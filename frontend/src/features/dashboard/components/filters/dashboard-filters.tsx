@@ -741,6 +741,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
             iconOnly={isBelowLgFilters}
             iconAriaLabel={t('filters.duration', 'Duration')}
             popoverPlacement="bottom-end"
+            useDashboardRolloverQuickRanges={true}
           />
           {!isBelowLgFilters ? (
             <Button

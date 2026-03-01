@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Box,
   Button,
@@ -71,6 +71,7 @@ export interface DateRangePickerProps {
   iconOnly?: boolean
   iconAriaLabel?: string
   popoverPlacement?: PopoverPlacement
+  useDashboardRolloverQuickRanges?: boolean
 }
 
 const formatISODate = (date: Date) => {
@@ -120,6 +121,54 @@ const getDefaultRangeIso = (endDateIso: string): DateRange => {
   }
 }
 
+const DASHBOARD_DATA_ROLLOVER_HOUR = 19
+
+const getNextQuickRangeVisibilityRefreshDelay = (baseDate = new Date()) => {
+  const nextRollover = new Date(baseDate)
+  nextRollover.setHours(DASHBOARD_DATA_ROLLOVER_HOUR, 0, 0, 0)
+
+  const nextMidnight = new Date(baseDate)
+  nextMidnight.setDate(baseDate.getDate() + 1)
+  nextMidnight.setHours(0, 0, 0, 0)
+
+  const nextRefresh = baseDate.getTime() < nextRollover.getTime() ? nextRollover : nextMidnight
+
+  return Math.max(0, nextRefresh.getTime() - baseDate.getTime()) + 1000
+}
+
+const shouldShowDashboardQuickRange = (presetId: string, baseDate: Date, maxDateIso: string) => {
+  const currentDateIso = formatISODate(baseDate)
+  const isBeforeRolloverByClock = baseDate.getHours() < DASHBOARD_DATA_ROLLOVER_HOUR
+  const isBeforeRolloverByMaxDate = maxDateIso < currentDateIso
+  const isBeforeDashboardRollover = isBeforeRolloverByClock || isBeforeRolloverByMaxDate
+
+  if (!isBeforeDashboardRollover) {
+    return true
+  }
+
+  if (presetId === 'today') {
+    return false
+  }
+
+  if (
+    presetId === 'this-week' &&
+    ((isBeforeRolloverByClock && baseDate.getDay() === 1) ||
+      formatISODate(startOfWeek(baseDate)) > maxDateIso)
+  ) {
+    return false
+  }
+
+  if (
+    presetId === 'this-month' &&
+    ((isBeforeRolloverByClock && baseDate.getDate() === 1) ||
+      formatISODate(startOfMonth(baseDate)) > maxDateIso)
+  ) {
+    return false
+  }
+
+  return true
+}
+
 export function DateRangePicker({
   value,
   onChange,
@@ -140,6 +189,7 @@ export function DateRangePicker({
   iconOnly = false,
   iconAriaLabel,
   popoverPlacement = 'bottom-start',
+  useDashboardRolloverQuickRanges = false,
 }: DateRangePickerProps) {
   const { t } = useTranslation('dashboard')
   const resolvedDateFormat = normalizeDateFormat(dateFormat)
@@ -156,6 +206,7 @@ export function DateRangePicker({
   const [draft, setDraft] = useState<DateRange | null>(value)
   const [tinyPopoverWidth, setTinyPopoverWidth] = useState<number | null>(null)
   const [tinyPopoverOffset, setTinyPopoverOffset] = useState(0)
+  const [quickRangeVisibilityDate, setQuickRangeVisibilityDate] = useState(() => new Date())
   const [draftIso, setDraftIso] = useState<{ startDate: string; endDate: string } | null>(
     value
       ? {
@@ -259,6 +310,32 @@ export function DateRangePicker({
     ],
     [t]
   )
+
+  useEffect(() => {
+    if (!useDashboardRolloverQuickRanges) {
+      return undefined
+    }
+
+    if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') {
+      return undefined
+    }
+
+    const timeoutId = setTimeout(() => {
+      setQuickRangeVisibilityDate(new Date())
+    }, getNextQuickRangeVisibilityRefreshDelay(quickRangeVisibilityDate))
+
+    if (typeof timeoutId === 'object' && 'unref' in timeoutId) {
+      timeoutId.unref()
+    }
+
+    return () => clearTimeout(timeoutId)
+  }, [quickRangeVisibilityDate, useDashboardRolloverQuickRanges])
+
+  const visiblePresets = useDashboardRolloverQuickRanges
+    ? presets.filter((preset) =>
+        shouldShowDashboardQuickRange(preset.id, quickRangeVisibilityDate, maxDateIso)
+      )
+    : presets
 
   const displayLabel = displayRange
     ? displayRange.preset ||
@@ -488,7 +565,7 @@ export function DateRangePicker({
                 <Text textStyle="h10" color="neutral.500">
                   {t('filters.dateRangePicker.quickRanges', 'Quick ranges')}
                 </Text>
-                {presets.map((preset) => {
+                {visiblePresets.map((preset) => {
                   const isSelected = draft?.preset === preset.label
                   return (
                     <Button
