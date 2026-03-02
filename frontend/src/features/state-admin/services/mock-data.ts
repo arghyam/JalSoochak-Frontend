@@ -191,6 +191,9 @@ let mockWaterNormsConfiguration: WaterNormsConfiguration = {
   id: '',
   stateQuantity: 0,
   districtOverrides: [],
+  maxQuantity: 0,
+  minQuantity: 0,
+  regularity: 0,
   isConfigured: false,
 }
 
@@ -211,6 +214,9 @@ export const saveMockWaterNormsConfiguration = (
         id: '1',
         stateQuantity: Number(config.stateQuantity),
         districtOverrides: Array.isArray(config.districtOverrides) ? config.districtOverrides : [],
+        maxQuantity: Number(config.maxQuantity),
+        minQuantity: Number(config.minQuantity),
+        regularity: Number(config.regularity),
         isConfigured: true,
       }
       mockWaterNormsConfiguration = savedConfig

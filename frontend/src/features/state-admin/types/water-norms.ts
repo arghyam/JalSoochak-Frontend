@@ -8,6 +8,9 @@ export interface WaterNormsConfiguration extends Record<string, unknown> {
   id: string
   stateQuantity: number
   districtOverrides: DistrictOverride[]
+  maxQuantity: number
+  minQuantity: number
+  regularity: number
   isConfigured: boolean
 }
 

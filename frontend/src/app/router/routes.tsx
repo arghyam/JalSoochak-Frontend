@@ -20,7 +20,6 @@ import {
   IntegrationPage,
   WaterNormsPage,
   EscalationsPage,
-  ThresholdsPage,
   NudgesTemplatePage,
 } from '@/features/state-admin'
 import { LoginPage, ResetPasswordPage } from '@/features/auth'
@@ -188,10 +187,6 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.STATE_ADMIN_ESCALATIONS,
         element: <EscalationsPage />,
-      },
-      {
-        path: ROUTES.STATE_ADMIN_THRESHOLDS,
-        element: <ThresholdsPage />,
       },
       {
         path: ROUTES.STATE_ADMIN_NUDGES,
