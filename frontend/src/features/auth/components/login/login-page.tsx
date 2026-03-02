@@ -5,7 +5,6 @@ import {
   Flex,
   Image,
   Text,
-  Button,
   FormControl,
   FormErrorMessage,
   Checkbox,
@@ -13,7 +12,7 @@ import {
   useDisclosure,
   VStack,
 } from '@chakra-ui/react'
-import { FormInput } from '@/shared/components/common'
+import { FormInput, AppButton } from '@/shared/components/common'
 import { AuthSideImage } from '@/features/auth/components/signup/auth-side-image'
 import jalsoochakLogo from '@/assets/media/jalsoochak-logo.svg'
 import { useAuthStore } from '@/app/store'
@@ -144,17 +143,16 @@ export function LoginPage() {
                     </Link>
                   </Flex>
 
-                  <Button
+                  <AppButton
                     type="submit"
+                    variant="primary"
+                    size="md"
                     w="full"
-                    fontSize="16px"
-                    fontWeight="600"
                     isLoading={loading}
                     loadingText="Signing in..."
-                    _loading={{ bg: 'primary.500', color: 'white' }}
                   >
                     Log in
-                  </Button>
+                  </AppButton>
                 </VStack>
               </Box>
             </Box>

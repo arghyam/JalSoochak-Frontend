@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Button, Checkbox, Flex, List, ListItem, Spinner, Text, VStack } from '@chakra-ui/react'
-import { FormInput } from '@/shared/components/common'
+import { Checkbox, Flex, List, ListItem, Spinner, Text, VStack } from '@chakra-ui/react'
+import { FormInput, AppButton } from '@/shared/components/common'
 import { authApi, buildSetPasswordRequest } from '@/features/auth/services/auth-api'
 import { ROUTES } from '@/shared/constants/routes'
 import type { ToastType } from '@/shared/components/common/toast'
@@ -205,19 +205,18 @@ export function CreatePasswordPage({ onShowToast }: CreatePasswordPageProps) {
         </Text>
       </Checkbox>
 
-      <Button
+      <AppButton
+        variant="primary"
+        size="md"
         w="full"
         mt="1.25rem"
-        fontSize="16px"
-        fontWeight="600"
         isDisabled={!canSubmit || isSubmitting}
         isLoading={isSubmitting}
         loadingText="Saving..."
-        _loading={{ bg: 'primary.500', color: 'white' }}
         onClick={handleSubmit}
       >
         Next
-      </Button>
+      </AppButton>
     </>
   )
 }

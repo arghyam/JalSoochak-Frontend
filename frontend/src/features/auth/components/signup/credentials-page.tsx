@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Box, Button, Flex, Spinner, Text } from '@chakra-ui/react'
-import { FormInput } from '@/shared/components/common'
+import { Box, Flex, Spinner, Text } from '@chakra-ui/react'
+import { FormInput, AppButton } from '@/shared/components/common'
 import { ROUTES } from '@/shared/constants/routes'
 import { authApi, buildUpdateProfileRequest } from '@/features/auth/services/auth-api'
 import type { ToastType } from '@/shared/components/common/toast'
@@ -184,18 +184,17 @@ export function CredentialsPage({ email, userId, onShowToast }: CredentialsPageP
         />
       </Box>
 
-      <Button
+      <AppButton
+        variant="primary"
+        size="md"
         w="full"
-        fontSize="16px"
-        fontWeight="600"
         isDisabled={!canSubmit || isSubmitting}
         isLoading={isSubmitting}
         loadingText="Signing up..."
-        _loading={{ bg: 'primary.500', color: 'white' }}
         onClick={handleSubmit}
       >
         Sign up
-      </Button>
+      </AppButton>
     </>
   )
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Heading, Text, Flex, Button, HStack, Alert, AlertIcon, Icon } from '@chakra-ui/react'
+import { Box, Heading, Text, Flex, HStack, Alert, AlertIcon, Icon } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
 import {
@@ -8,6 +8,7 @@ import {
   StateAdminDetailsSection,
   Toggle,
   ToastContainer,
+  AppButton,
 } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ROUTES } from '@/shared/constants/routes'
@@ -464,7 +465,7 @@ export function AddStateUTPage() {
             mt={6}
             flexDirection={{ base: 'column-reverse', sm: 'row' }}
           >
-            <Button
+            <AppButton
               variant="secondary"
               size="md"
               width={{ base: 'full', sm: '174px' }}
@@ -478,8 +479,8 @@ export function AddStateUTPage() {
               }
             >
               {t('common:button.cancel')}
-            </Button>
-            <Button
+            </AppButton>
+            <AppButton
               type="submit"
               variant="primary"
               size="md"
@@ -502,7 +503,7 @@ export function AddStateUTPage() {
               }
             >
               {isEditMode ? t('common:button.saveChanges') : t('statesUts.buttons.addAndSendLink')}
-            </Button>
+            </AppButton>
           </HStack>
         </Flex>
       </Box>

@@ -105,7 +105,10 @@
   "manageStateAdmins": {
     "title": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक प्रबंधित करें",
     "searchPlaceholder": "राज्य/केंद्र शासित प्रदेश खोजें",
-    "downloadReport": "रिपोर्ट डाउनलोड करें",
+    "addNewStateUt": "नया राज्य/केंद्र शासित प्रदेश जोड़ें",
+    "statusFilterLabel": "साइनअप स्थिति के अनुसार फ़िल्टर करें",
+    "statusFilterPlaceholder": "स्थिति",
+    "clearAll": "सभी साफ़ करें",
     "table": {
       "adminName": "व्यवस्थापक का नाम",
       "stateUt": "राज्य/केंद्र शासित प्रदेश",

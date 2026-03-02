@@ -105,7 +105,10 @@
   "manageStateAdmins": {
     "title": "Manage State/UTs Admins",
     "searchPlaceholder": "Search State/UT",
-    "downloadReport": "Download Report",
+    "addNewStateUt": "Add New State/UT",
+    "statusFilterLabel": "Filter by signup status",
+    "statusFilterPlaceholder": "Status",
+    "clearAll": "Clear All",
     "table": {
       "adminName": "Admin Name",
       "stateUt": "State/UT",
