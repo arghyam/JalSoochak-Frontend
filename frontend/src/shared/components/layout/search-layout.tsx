@@ -35,6 +35,7 @@ interface BreadcrumbPanelProps {
   closeOnOptionSelect?: boolean
   onTrailSelect?: (trailIndex: number) => void
   showTabs?: boolean
+  tabsDisabled?: boolean
   tabs?: string[]
   activeTab?: number
   onTabChange?: (index: number) => void
@@ -74,6 +75,7 @@ export function SearchLayout({
   const hasExternalSelectionTrail = selectionTrail !== undefined
   const panelOptions = breadcrumbPanelProps?.options ?? breadcrumbPanelProps?.stateOptions ?? []
   const breadcrumbTabs = breadcrumbPanelProps?.tabs ?? ['Administrative', 'Departmental']
+  const isTabsDisabled = Boolean(breadcrumbPanelProps?.tabsDisabled)
   const panelOptionsLabel = breadcrumbPanelProps?.optionsLabel ?? 'States'
   const panelOptionsCount =
     breadcrumbPanelProps?.totalOptionsCount ?? breadcrumbPanelProps?.totalStatesCount ?? 0
@@ -101,7 +103,7 @@ export function SearchLayout({
       return fallbackIndex
     }
 
-    return Math.max(0, Math.min(activeTrailIndex, fallbackIndex))
+    return Math.max(-1, Math.min(activeTrailIndex, fallbackIndex))
   }, [activeTrailIndex, effectiveSelectionTrail.length])
   const filteredStateOptions = useMemo(() => {
     if (!panelOptions.length) {
@@ -116,6 +118,10 @@ export function SearchLayout({
     return panelOptions.filter((option) => option.label.toLowerCase().includes(query))
   }, [panelOptions, inputValue])
   const closedSelectionTrail = useMemo(() => {
+    if (effectiveActiveTrailIndex < 0) {
+      return []
+    }
+
     if (effectiveActiveTrailIndex >= 0) {
       return effectiveSelectionTrail.slice(0, effectiveActiveTrailIndex + 1)
     }
@@ -278,7 +284,7 @@ export function SearchLayout({
                   variant="unstyled"
                   h="auto"
                   minH="auto"
-                  fontSize="16px"
+                  fontSize="14px"
                   color="neutral.500"
                   fontWeight="400"
                   onClick={() => handleTrailSelect(index)}
@@ -312,19 +318,24 @@ export function SearchLayout({
             <Box px="16px" py="8px" data-testid="search-dropdown-tabs">
               <Tabs
                 index={breadcrumbPanelProps.activeTab}
-                onChange={breadcrumbPanelProps.onTabChange}
+                onChange={isTabsDisabled ? undefined : breadcrumbPanelProps.onTabChange}
               >
                 <TabList w="fit-content" borderBottomWidth="0">
                   {breadcrumbTabs.map((tab) => (
                     <Tab
                       key={tab}
+                      isDisabled={isTabsDisabled}
                       py="4px"
-                      color="neutral.400"
+                      color={isTabsDisabled ? 'neutral.30' : 'neutral.400'}
                       borderBottomWidth="2px"
                       width="128px"
                       height="30px"
                       borderColor="neutral.200"
-                      _selected={{ color: 'primary.500', borderColor: 'primary.500' }}
+                      _selected={
+                        isTabsDisabled
+                          ? { color: 'neutral.30', borderColor: 'neutral.200' }
+                          : { color: 'primary.500', borderColor: 'primary.500' }
+                      }
                     >
                       <Text textStyle="h10" color="inherit">
                         {tab}

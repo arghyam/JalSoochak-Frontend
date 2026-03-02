@@ -104,7 +104,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   const effectiveTrailIndex =
     activeTrailIndex === null || activeTrailIndex === undefined
       ? deepestSelectedTrailIndex
-      : Math.max(0, Math.min(activeTrailIndex, deepestSelectedTrailIndex))
+      : Math.max(-1, Math.min(activeTrailIndex, deepestSelectedTrailIndex))
   const hasSelectedState = effectiveTrailIndex >= 0 && Boolean(selectedState)
   const hasSelectedDistrict = effectiveTrailIndex >= 1 && Boolean(selectedDistrict)
   const hasSelectedBlock = effectiveTrailIndex >= 2 && Boolean(selectedBlock)
@@ -151,8 +151,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
 
   const handleTrailSelect = (trailIndex: number) => {
     if (trailIndex < 0) {
-      onActiveTrailChange?.(null)
-      onStateChange('')
+      onActiveTrailChange?.(-1)
       return
     }
 
@@ -173,7 +172,8 @@ export function DashboardFilters(props: DashboardFiltersProps) {
         onOptionSelect: breadcrumbPanelConfig.onSelect,
         closeOnOptionSelect: hasSelectedGramPanchayat,
         onTrailSelect: handleTrailSelect,
-        showTabs: hasSelectedState,
+        showTabs: true,
+        tabsDisabled: !hasSelectedState,
         activeTab: filterTabIndex,
         onTabChange,
       }}

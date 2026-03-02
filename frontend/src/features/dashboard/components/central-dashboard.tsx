@@ -121,7 +121,7 @@ export function CentralDashboard() {
   const effectiveTrailIndex =
     activeTrailIndex === null || activeTrailIndex === undefined
       ? deepestSelectedTrailIndex
-      : Math.max(0, Math.min(activeTrailIndex, deepestSelectedTrailIndex))
+      : Math.max(-1, Math.min(activeTrailIndex, deepestSelectedTrailIndex))
   const effectiveSelectedState = effectiveTrailIndex >= 0 ? selectedState : ''
   const effectiveSelectedDistrict = effectiveTrailIndex >= 1 ? selectedDistrict : ''
   const effectiveSelectedBlock = effectiveTrailIndex >= 2 ? selectedBlock : ''
@@ -172,6 +172,7 @@ export function CentralDashboard() {
     : emptyOptions
   const handleStateChange = (value: string) => {
     setActiveTrailIndex(null)
+    setFilterTabIndex(0)
     setSelectedState(value)
     setSelectedDistrict('')
     setSelectedBlock('')
@@ -210,6 +211,7 @@ export function CentralDashboard() {
   }
   const handleClearFilters = () => {
     setActiveTrailIndex(null)
+    setFilterTabIndex(0)
     setSelectedState('')
     setSelectedDistrict('')
     setSelectedBlock('')

@@ -99,4 +99,14 @@ describe('SearchLayout', () => {
     expect(screen.getByTestId('search-trail-closed')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Breadcrumb: Sangareddy' })).toBeTruthy()
   })
+
+  it('does not render closed chips when active trail points to All States/UTs', () => {
+    renderWithProviders(
+      <SearchLayout selectionTrail={['Telangana', 'Sangareddy']} activeTrailIndex={-1} />
+    )
+
+    expect(screen.queryByTestId('search-trail-closed')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Breadcrumb: Telangana' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Breadcrumb: Sangareddy' })).toBeNull()
+  })
 })
