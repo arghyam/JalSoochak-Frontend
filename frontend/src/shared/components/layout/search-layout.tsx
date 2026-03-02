@@ -186,16 +186,17 @@ export function SearchLayout({
         direction={{ base: 'column', lg: 'row' }}
       >
         <Flex
-          w={{ base: 'full', lg: '1084px' }}
-          flex={{ base: 'unset', lg: '0 0 1084px' }}
-          maxW={{ base: 'full', lg: '1084px' }}
+          w="full"
+          flex={{ base: '1 1 auto', lg: '1 1 auto' }}
+          minW={0}
+          maxW={{ base: 'full', lg: 'calc(100% - 184px)' }}
           gap={3}
-          wrap={{ base: 'wrap' }}
+          wrap={{ base: 'wrap', lg: 'nowrap' }}
         >
           <InputGroup
-            w={{ base: 'full', lg: '782px' }}
-            maxW={{ base: 'full', lg: '782px' }}
-            minW={0}
+            w={{ base: 'full', lg: 'auto' }}
+            flex={{ base: '1 1 100%', lg: '1 1 auto' }}
+            minW={{ base: 0, lg: '320px' }}
           >
             <InputLeftElement pointerEvents="none" p="12px" w="auto" h="32px" alignItems="center">
               <SearchIcon mr="4px" color="neutral.300" />

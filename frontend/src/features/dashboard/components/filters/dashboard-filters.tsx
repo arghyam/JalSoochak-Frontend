@@ -178,7 +178,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
         onTabChange,
       }}
       filterSlot={
-        <Flex align="center" gap={3} wrap="wrap">
+        <Flex align="center" gap={3} wrap="nowrap">
           <DateRangePicker
             value={selectedDuration}
             onChange={setSelectedDuration}
@@ -195,6 +195,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
           <Button
             variant="link"
             size="sm"
+            whiteSpace="nowrap"
             onClick={onClear}
             _hover={{ textDecoration: 'underline', textDecorationColor: 'neutral.300' }}
           >

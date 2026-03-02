@@ -690,7 +690,7 @@ describe('DashboardFilters', () => {
     expect(screen.queryByText('Gram Panchayats (2)')).toBeNull()
   })
 
-  it('shows administrative and departmental tabs in open dropdown only after state selection', () => {
+  it('shows tabs from start and enables them after state selection', () => {
     const districtOptions: SearchableSelectOption[] = [
       { value: 'sangareddy', label: 'Sangareddy' },
       { value: 'rangareddy', label: 'Ranga Reddy' },
@@ -743,7 +743,13 @@ describe('DashboardFilters', () => {
       'Search by state/UT, district, block, gram panchayat, village'
     )
     fireEvent.focus(searchInput)
-    expect(screen.queryByTestId('search-dropdown-tabs')).toBeNull()
+    expect(screen.getByTestId('search-dropdown-tabs')).toBeTruthy()
+    expect(screen.getByRole('tab', { name: 'Administrative' }).getAttribute('disabled')).not.toBe(
+      null
+    )
+    expect(screen.getByRole('tab', { name: 'Departmental' }).getAttribute('disabled')).not.toBe(
+      null
+    )
 
     rerender(
       <DashboardFilters
@@ -790,5 +796,7 @@ describe('DashboardFilters', () => {
 
     fireEvent.focus(searchInput)
     expect(screen.getByTestId('search-dropdown-tabs')).toBeTruthy()
+    expect(screen.getByRole('tab', { name: 'Administrative' }).getAttribute('disabled')).toBe(null)
+    expect(screen.getByRole('tab', { name: 'Departmental' }).getAttribute('disabled')).toBe(null)
   })
 })
