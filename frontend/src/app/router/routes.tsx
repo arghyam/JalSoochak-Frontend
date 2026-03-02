@@ -41,6 +41,14 @@ export const router = createBrowserRouter([
     ),
   },
   {
+    path: '/:stateSlug',
+    element: (
+      <DashboardLayout>
+        <CentralDashboard />
+      </DashboardLayout>
+    ),
+  },
+  {
     path: '/states/:stateId',
     element: (
       <DashboardLayout>

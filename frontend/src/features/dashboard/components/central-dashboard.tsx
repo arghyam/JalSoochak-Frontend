@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Box, Flex, Text, Heading, Grid, Icon, Image, Avatar } from '@chakra-ui/react'
 import { useDashboardData } from '../hooks/use-dashboard-data'
 import { KPICard } from './kpi-card'
@@ -15,6 +15,7 @@ import type { DateRange, SearchableSelectOption } from '@/shared/components/comm
 import type { EntityPerformance } from '../types'
 import { DashboardFilters } from './filters/dashboard-filters'
 import { AllStatesTable } from './tables'
+import { ROUTES } from '@/shared/constants/routes'
 import {
   mockFilterStates,
   mockFilterDistricts,
@@ -31,11 +32,6 @@ import {
 const storageKey = 'central-dashboard-filters'
 
 type StoredFilters = {
-  selectedState?: string
-  selectedDistrict?: string
-  selectedBlock?: string
-  selectedGramPanchayat?: string
-  selectedVillage?: string
   selectedDuration?: DateRange
   selectedScheme?: string
   selectedDepartmentState?: string
@@ -65,6 +61,8 @@ const getStoredFilters = (): StoredFilters => {
 }
 
 export function CentralDashboard() {
+  const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { data, isLoading, error } = useDashboardData('central')
   const [storedFilters] = useState(() => getStoredFilters())
@@ -75,13 +73,11 @@ export function CentralDashboard() {
     'endDate' in storedFilters.selectedDuration
       ? storedFilters.selectedDuration
       : null
-  const [selectedState, setSelectedState] = useState(storedFilters.selectedState ?? '')
-  const [selectedDistrict, setSelectedDistrict] = useState(storedFilters.selectedDistrict ?? '')
-  const [selectedBlock, setSelectedBlock] = useState(storedFilters.selectedBlock ?? '')
-  const [selectedGramPanchayat, setSelectedGramPanchayat] = useState(
-    storedFilters.selectedGramPanchayat ?? ''
-  )
-  const [selectedVillage, setSelectedVillage] = useState(storedFilters.selectedVillage ?? '')
+  const selectedState = stateSlug
+  const selectedDistrict = selectedState ? (searchParams.get('district') ?? '') : ''
+  const selectedBlock = selectedDistrict ? (searchParams.get('block') ?? '') : ''
+  const selectedGramPanchayat = selectedBlock ? (searchParams.get('gramPanchayat') ?? '') : ''
+  const selectedVillage = selectedGramPanchayat ? (searchParams.get('village') ?? '') : ''
   const [selectedDuration, setSelectedDuration] = useState<DateRange | null>(initialDuration)
   const [selectedScheme, setSelectedScheme] = useState(storedFilters.selectedScheme ?? '')
   const [selectedDepartmentState, setSelectedDepartmentState] = useState(
@@ -170,36 +166,74 @@ export function CentralDashboard() {
   const villageOptions = selectedGramPanchayat
     ? (mockFilterVillages[selectedGramPanchayat] ?? [])
     : emptyOptions
+
+  const updateFilterUrl = (filters: {
+    state?: string
+    district?: string
+    block?: string
+    gramPanchayat?: string
+    village?: string
+  }) => {
+    const nextState = filters.state ?? ''
+    const nextPath = nextState ? `/${encodeURIComponent(nextState)}` : ROUTES.DASHBOARD
+    const nextSearchParams = new URLSearchParams()
+
+    if (filters.district) {
+      nextSearchParams.set('district', filters.district)
+    }
+    if (filters.block) {
+      nextSearchParams.set('block', filters.block)
+    }
+    if (filters.gramPanchayat) {
+      nextSearchParams.set('gramPanchayat', filters.gramPanchayat)
+    }
+    if (filters.village) {
+      nextSearchParams.set('village', filters.village)
+    }
+
+    const nextSearch = nextSearchParams.toString()
+    navigate({
+      pathname: nextPath,
+      search: nextSearch ? `?${nextSearch}` : '',
+    })
+  }
+
   const handleStateChange = (value: string) => {
     setActiveTrailIndex(null)
     setFilterTabIndex(0)
-    setSelectedState(value)
-    setSelectedDistrict('')
-    setSelectedBlock('')
-    setSelectedGramPanchayat('')
-    setSelectedVillage('')
+    updateFilterUrl({ state: value })
   }
   const handleDistrictChange = (value: string) => {
     setActiveTrailIndex(null)
-    setSelectedDistrict(value)
-    setSelectedBlock('')
-    setSelectedGramPanchayat('')
-    setSelectedVillage('')
+    updateFilterUrl({ state: selectedState, district: value })
   }
   const handleBlockChange = (value: string) => {
     setActiveTrailIndex(null)
-    setSelectedBlock(value)
-    setSelectedGramPanchayat('')
-    setSelectedVillage('')
+    updateFilterUrl({
+      state: selectedState,
+      district: selectedDistrict,
+      block: value,
+    })
   }
   const handleGramPanchayatChange = (value: string) => {
     setActiveTrailIndex(null)
-    setSelectedGramPanchayat(value)
-    setSelectedVillage('')
+    updateFilterUrl({
+      state: selectedState,
+      district: selectedDistrict,
+      block: selectedBlock,
+      gramPanchayat: value,
+    })
   }
   const handleVillageChange: Dispatch<SetStateAction<string>> = (value) => {
     setActiveTrailIndex(null)
-    setSelectedVillage(value)
+    const nextVillage = typeof value === 'function' ? value(selectedVillage) : value
+    updateFilterUrl({
+      state: selectedState,
+      district: selectedDistrict,
+      block: selectedBlock,
+      gramPanchayat: selectedGramPanchayat,
+      village: nextVillage,
+    })
   }
   const handleDepartmentStateChange = (value: string) => {
     setSelectedDepartmentState(value)
@@ -212,11 +246,7 @@ export function CentralDashboard() {
   const handleClearFilters = () => {
     setActiveTrailIndex(null)
     setFilterTabIndex(0)
-    setSelectedState('')
-    setSelectedDistrict('')
-    setSelectedBlock('')
-    setSelectedGramPanchayat('')
-    setSelectedVillage('')
+    updateFilterUrl({ state: '' })
     setSelectedDuration(null)
     setSelectedScheme('')
     setSelectedDepartmentState('')
