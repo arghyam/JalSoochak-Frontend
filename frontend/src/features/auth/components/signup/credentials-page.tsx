@@ -1,16 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import {
-  Button,
-  Flex,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  Input,
-  Spinner,
-  Text,
-} from '@chakra-ui/react'
+import { Box, Button, Flex, Spinner, Text } from '@chakra-ui/react'
+import { FormInput } from '@/shared/components/common'
 import { ROUTES } from '@/shared/constants/routes'
 import { authApi, buildUpdateProfileRequest } from '@/features/auth/services/auth-api'
 import type { ToastType } from '@/shared/components/common/toast'
@@ -150,83 +142,47 @@ export function CredentialsPage({ email, userId, onShowToast }: CredentialsPageP
       </Text>
 
       <Flex gap="1rem" mb="1rem">
-        <FormControl>
-          <FormLabel>
-            <Text textStyle="bodyText6" mb="4px">
-              First name
-              <Text as="span" color="error.500">
-                *
-              </Text>
-            </Text>
-          </FormLabel>
-          <Input
-            placeholder="Enter"
-            autoComplete="given-name"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value.replace(/[^A-Za-z]/g, ''))}
-            h="36px"
-            px="12px"
-            py="8px"
-            borderRadius="4px"
-            borderColor="neutral.300"
-            _placeholder={{ color: 'neutral.300' }}
-            fontSize="sm"
-            focusBorderColor="primary.500"
-          />
-        </FormControl>
+        <FormInput
+          label="First name"
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value.replace(/[^A-Za-z]/g, ''))}
+          placeholder="Enter"
+          isRequired
+          labelTextStyle="bodyText6"
+          inputProps={{ autoComplete: 'given-name' }}
+        />
 
-        <FormControl>
-          <FormLabel>
-            <Text textStyle="bodyText6" mb="4px">
-              Last name
-            </Text>
-          </FormLabel>
-          <Input
-            placeholder="Enter"
-            autoComplete="family-name"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value.replace(/[^A-Za-z]/g, ''))}
-            h="36px"
-            px="12px"
-            py="8px"
-            borderRadius="4px"
-            borderColor="neutral.300"
-            _placeholder={{ color: 'neutral.300' }}
-            fontSize="sm"
-            focusBorderColor="primary.500"
-          />
-        </FormControl>
+        <FormInput
+          label="Last name"
+          value={lastName}
+          onChange={(e) => setLastName(e.target.value.replace(/[^A-Za-z]/g, ''))}
+          placeholder="Enter"
+          labelTextStyle="bodyText6"
+          inputProps={{ autoComplete: 'family-name' }}
+        />
       </Flex>
 
-      <FormControl mb="1.25rem" isInvalid={!isPhoneValid && !!phoneNumber}>
-        <FormLabel>
-          <Text textStyle="bodyText6" mb="4px">
-            Phone Number
-            <Text as="span" color="error.500">
-              *
-            </Text>
-          </Text>
-        </FormLabel>
-        <Input
+      <Box mb="1.25rem">
+        <FormInput
+          label="Phone Number"
           type="tel"
-          placeholder="+91"
-          autoComplete="tel"
-          inputMode="numeric"
-          pattern="[0-9]*"
           value={phoneNumber}
           onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
-          maxLength={10}
-          h="36px"
-          px="12px"
-          py="8px"
-          borderRadius="4px"
-          borderColor="neutral.300"
-          _placeholder={{ color: 'neutral.300' }}
-          fontSize="sm"
-          focusBorderColor="primary.500"
+          placeholder="+91"
+          isRequired
+          isInvalid={!isPhoneValid && !!phoneNumber}
+          errorMessage={
+            !isPhoneValid && phoneNumber ? 'Phone number must be 10 digits.' : undefined
+          }
+          labelTextStyle="bodyText6"
+          inputProps={{
+            autoComplete: 'tel',
+            inputMode: 'numeric',
+            pattern: '[0-9]*',
+            maxLength: 10,
+          }}
         />
-        <FormErrorMessage>Phone number must be 10 digits.</FormErrorMessage>
-      </FormControl>
+      </Box>
 
       <Button
         w="full"
