@@ -43,6 +43,14 @@ type StoredFilters = {
   filterTabIndex?: number
 }
 
+const getOwnLookupValue = <T,>(record: Record<string, T>, key: string, fallback: T): T => {
+  if (Object.prototype.hasOwnProperty.call(record, key)) {
+    return record[key] as T
+  }
+
+  return fallback
+}
+
 const getStoredFilters = (): StoredFilters => {
   if (typeof window === 'undefined') return {}
   try {
@@ -131,15 +139,27 @@ export function CentralDashboard() {
   const isDepartmentStateSelected = Boolean(selectedDepartmentState)
   const emptyOptions: SearchableSelectOption[] = []
   const isAdvancedEnabled = Boolean(selectedState && selectedDistrict)
-  const districtTableData =
-    mockDistrictPerformanceByState[effectiveSelectedState] ?? ([] as EntityPerformance[])
-  const blockTableData =
-    mockBlockPerformanceByDistrict[effectiveSelectedDistrict] ?? ([] as EntityPerformance[])
-  const gramPanchayatTableData =
-    mockGramPanchayatPerformanceByBlock[effectiveSelectedBlock] ?? ([] as EntityPerformance[])
-  const villageTableData =
-    mockVillagePerformanceByGramPanchayat[effectiveSelectedGramPanchayat] ??
-    ([] as EntityPerformance[])
+  const emptyEntityPerformance: EntityPerformance[] = []
+  const districtTableData = getOwnLookupValue(
+    mockDistrictPerformanceByState,
+    effectiveSelectedState,
+    emptyEntityPerformance
+  )
+  const blockTableData = getOwnLookupValue(
+    mockBlockPerformanceByDistrict,
+    effectiveSelectedDistrict,
+    emptyEntityPerformance
+  )
+  const gramPanchayatTableData = getOwnLookupValue(
+    mockGramPanchayatPerformanceByBlock,
+    effectiveSelectedBlock,
+    emptyEntityPerformance
+  )
+  const villageTableData = getOwnLookupValue(
+    mockVillagePerformanceByGramPanchayat,
+    effectiveSelectedGramPanchayat,
+    emptyEntityPerformance
+  )
   const supplySubmissionRateData = isGramPanchayatSelected
     ? villageTableData
     : isBlockSelected
@@ -158,13 +178,17 @@ export function CentralDashboard() {
         : isStateSelected
           ? 'Districts'
           : 'States/UTs'
-  const districtOptions = selectedState ? (mockFilterDistricts[selectedState] ?? []) : emptyOptions
-  const blockOptions = selectedDistrict ? (mockFilterBlocks[selectedDistrict] ?? []) : emptyOptions
+  const districtOptions = selectedState
+    ? getOwnLookupValue(mockFilterDistricts, selectedState, emptyOptions)
+    : emptyOptions
+  const blockOptions = selectedDistrict
+    ? getOwnLookupValue(mockFilterBlocks, selectedDistrict, emptyOptions)
+    : emptyOptions
   const gramPanchayatOptions = selectedBlock
-    ? (mockFilterGramPanchayats[selectedBlock] ?? [])
+    ? getOwnLookupValue(mockFilterGramPanchayats, selectedBlock, emptyOptions)
     : emptyOptions
   const villageOptions = selectedGramPanchayat
-    ? (mockFilterVillages[selectedGramPanchayat] ?? [])
+    ? getOwnLookupValue(mockFilterVillages, selectedGramPanchayat, emptyOptions)
     : emptyOptions
 
   const updateFilterUrl = (filters: {
@@ -357,11 +381,33 @@ export function CentralDashboard() {
   }
 
   const waterSupplyOutagesData = isGramPanchayatSelected
-    ? (mockVillagePerformanceByGramPanchayat[effectiveSelectedGramPanchayat] ?? []).map(
-        (village, index) => {
+    ? getOwnLookupValue(
+        mockVillagePerformanceByGramPanchayat,
+        effectiveSelectedGramPanchayat,
+        emptyEntityPerformance
+      ).map((village, index) => {
+        if (data.waterSupplyOutages.length === 0) {
+          return {
+            district: village.name,
+            electricityFailure: 0,
+            pipelineLeak: 0,
+            pumpFailure: 0,
+            valveIssue: 0,
+            sourceDrying: 0,
+          }
+        }
+        const source = data.waterSupplyOutages[index % data.waterSupplyOutages.length]
+        return { ...source, district: village.name }
+      })
+    : isBlockSelected
+      ? getOwnLookupValue(
+          mockGramPanchayatPerformanceByBlock,
+          effectiveSelectedBlock,
+          emptyEntityPerformance
+        ).map((gramPanchayat, index) => {
           if (data.waterSupplyOutages.length === 0) {
             return {
-              district: village.name,
+              district: gramPanchayat.name,
               electricityFailure: 0,
               pipelineLeak: 0,
               pumpFailure: 0,
@@ -370,28 +416,14 @@ export function CentralDashboard() {
             }
           }
           const source = data.waterSupplyOutages[index % data.waterSupplyOutages.length]
-          return { ...source, district: village.name }
-        }
-      )
-    : isBlockSelected
-      ? (mockGramPanchayatPerformanceByBlock[effectiveSelectedBlock] ?? []).map(
-          (gramPanchayat, index) => {
-            if (data.waterSupplyOutages.length === 0) {
-              return {
-                district: gramPanchayat.name,
-                electricityFailure: 0,
-                pipelineLeak: 0,
-                pumpFailure: 0,
-                valveIssue: 0,
-                sourceDrying: 0,
-              }
-            }
-            const source = data.waterSupplyOutages[index % data.waterSupplyOutages.length]
-            return { ...source, district: gramPanchayat.name }
-          }
-        )
+          return { ...source, district: gramPanchayat.name }
+        })
       : isDistrictSelected
-        ? (mockBlockPerformanceByDistrict[effectiveSelectedDistrict] ?? []).map((block, index) => {
+        ? getOwnLookupValue(
+            mockBlockPerformanceByDistrict,
+            effectiveSelectedDistrict,
+            emptyEntityPerformance
+          ).map((block, index) => {
             if (data.waterSupplyOutages.length === 0) {
               return {
                 district: block.name,

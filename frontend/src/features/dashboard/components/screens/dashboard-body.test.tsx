@@ -1,12 +1,19 @@
-import { describe, expect, it, jest } from '@jest/globals'
+import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import type { ComponentProps } from 'react'
-import { screen } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { DashboardData, EntityPerformance, PumpOperatorPerformanceData } from '../../types'
 import { DashboardBody } from './dashboard-body'
 
+const mockMetricPerformanceChart = jest.fn(
+  (_props: { data: EntityPerformance[]; metric: string }) => (
+    <div data-testid="metric-performance-chart" />
+  )
+)
+
 jest.mock('../charts', () => ({
-  MetricPerformanceChart: () => <div data-testid="metric-performance-chart" />,
+  MetricPerformanceChart: (props: { data: EntityPerformance[]; metric: string }) =>
+    mockMetricPerformanceChart(props),
   SupplySubmissionRateChart: () => <div data-testid="supply-submission-rate-chart" />,
   IssueTypeBreakdownChart: () => <div data-testid="issue-type-breakdown-chart" />,
 }))
@@ -41,6 +48,16 @@ const mockEntityData: EntityPerformance[] = [
     quantity: 48,
     compositeScore: 56,
     status: 'needs-attention',
+  },
+  {
+    id: 'e2',
+    name: 'Beta',
+    coverage: 72,
+    regularity: 74,
+    continuity: 0,
+    quantity: 65,
+    compositeScore: 71,
+    status: 'good',
   },
 ]
 
@@ -119,6 +136,48 @@ function renderDashboardBody(overrides: Partial<ComponentProps<typeof DashboardB
 }
 
 describe('DashboardBody', () => {
+  beforeEach(() => {
+    mockMetricPerformanceChart.mockClear()
+  })
+
+  it('wires performance selectors to map-data options', () => {
+    renderDashboardBody()
+
+    const selects = screen.getAllByRole('combobox')
+
+    expect(selects).toHaveLength(2)
+    expect(screen.getAllByRole('option', { name: 'Alpha' })).toHaveLength(2)
+    expect(screen.getAllByRole('option', { name: 'Beta' })).toHaveLength(2)
+  })
+
+  it('filters metric chart data by selected performance state', () => {
+    mockMetricPerformanceChart.mockClear()
+
+    renderDashboardBody({ performanceState: 'Beta' })
+
+    const metricChartCalls = mockMetricPerformanceChart.mock.calls as Array<
+      [{ data: EntityPerformance[]; metric: string }]
+    >
+
+    expect(metricChartCalls).toHaveLength(2)
+    expect(metricChartCalls[0][0].data).toHaveLength(1)
+    expect(metricChartCalls[0][0].data[0]?.name).toBe('Beta')
+    expect(metricChartCalls[1][0].data).toHaveLength(1)
+    expect(metricChartCalls[1][0].data[0]?.name).toBe('Beta')
+  })
+
+  it('calls onPerformanceStateChange from selector changes', () => {
+    const onPerformanceStateChange = jest.fn()
+    renderDashboardBody({ onPerformanceStateChange })
+
+    const selects = screen.getAllByRole('combobox')
+    fireEvent.change(selects[0], { target: { value: 'Alpha' } })
+    fireEvent.change(selects[1], { target: { value: 'Beta' } })
+
+    expect(onPerformanceStateChange).toHaveBeenNthCalledWith(1, 'Alpha')
+    expect(onPerformanceStateChange).toHaveBeenNthCalledWith(2, 'Beta')
+  })
+
   it('renders outage reasons pie card and reading submission card in central default view', () => {
     renderDashboardBody()
 

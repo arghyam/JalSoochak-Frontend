@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type PointerEvent,
+} from 'react'
 import { Box, useBreakpointValue, useTheme } from '@chakra-ui/react'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from './echarts-wrapper'
@@ -67,6 +75,17 @@ export function MetricPerformanceChart({
     seriesName ?? (metric === 'quantity' ? 'Quantity' : metric === 'regularity' ? 'Regularity' : '')
   const yValues = useMemo(() => data.map((item) => item[metric]), [data, metric])
   const demandValues = useMemo(() => data.map((item) => item.coverage), [data])
+
+  const yAxisScale = useMemo(() => {
+    if (metric !== 'quantity') {
+      return { max: 100, interval: 25 as number | undefined }
+    }
+
+    const maxValue = yValues.length > 0 ? Math.max(...yValues) : 0
+    const max = maxValue > 100 ? Math.ceil(maxValue / 10) * 10 : 100
+
+    return { max, interval: undefined }
+  }, [metric, yValues])
 
   const option = useMemo<echarts.EChartsOption>(() => {
     const entities = data.map((d) => d.name)
@@ -143,11 +162,12 @@ export function MetricPerformanceChart({
       },
       yAxis: {
         type: 'value',
+        min: 0,
         axisLabel: {
           show: false,
         },
-        max: 100,
-        interval: 25,
+        max: yAxisScale.max,
+        interval: yAxisScale.interval,
         splitLine: {
           lineStyle: {
             color: '#E4E4E7',
@@ -165,6 +185,7 @@ export function MetricPerformanceChart({
     demandValues,
     dynamicBarWidth,
     showAreaLine,
+    yAxisScale,
     yValues,
   ])
 
@@ -213,8 +234,8 @@ export function MetricPerformanceChart({
           color: bodyText7.color,
         },
         min: 0,
-        max: 100,
-        interval: 25,
+        max: yAxisScale.max,
+        interval: yAxisScale.interval,
         splitLine: {
           show: false,
         },
@@ -231,7 +252,7 @@ export function MetricPerformanceChart({
       ],
       animation: false,
     }
-  }, [bodyText7, longestEntityLabel])
+  }, [bodyText7, longestEntityLabel, yAxisScale])
 
   const baseChartWidth = data.length * itemWidth
   const chartPixelWidth =
@@ -330,6 +351,51 @@ export function MetricPerformanceChart({
     event.currentTarget.releasePointerCapture(event.pointerId)
   }
 
+  const handleScrollRegionKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      if (!shouldScroll) return
+
+      const node = chartScrollRef.current
+      if (!node) return
+
+      const maxScroll = Math.max(0, node.scrollWidth - node.clientWidth)
+      if (maxScroll === 0) return
+
+      let nextLeft = node.scrollLeft
+      const step = 40
+      const pageStep = Math.max(step, Math.floor(node.clientWidth * 0.9))
+
+      switch (event.key) {
+        case 'ArrowRight':
+          nextLeft += step
+          break
+        case 'ArrowLeft':
+          nextLeft -= step
+          break
+        case 'PageDown':
+          nextLeft += pageStep
+          break
+        case 'PageUp':
+          nextLeft -= pageStep
+          break
+        case 'Home':
+          nextLeft = 0
+          break
+        case 'End':
+          nextLeft = maxScroll
+          break
+        default:
+          return
+      }
+
+      event.preventDefault()
+      const clampedLeft = Math.min(Math.max(nextLeft, 0), maxScroll)
+      node.scrollLeft = clampedLeft
+      updateThumbFromScroll()
+    },
+    [shouldScroll, updateThumbFromScroll]
+  )
+
   useEffect(() => {
     updateThumbFromScroll()
   }, [data.length, containerWidth, updateThumbFromScroll])
@@ -377,6 +443,15 @@ export function MetricPerformanceChart({
           flex="1"
           minW={0}
           onScroll={updateThumbFromScroll}
+          onKeyDown={handleScrollRegionKeyDown}
+          tabIndex={shouldScroll ? 0 : -1}
+          aria-label={`${yAxisLabel} chart scroll area`}
+          data-testid="metric-performance-scroll-region"
+          _focusVisible={{
+            outline: '2px solid',
+            outlineColor: 'primary.500',
+            outlineOffset: '2px',
+          }}
           sx={{
             scrollbarWidth: 'none',
             '&::-webkit-scrollbar': { height: '0px' },

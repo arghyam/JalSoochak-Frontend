@@ -67,6 +67,16 @@ export function DashboardBody({
     isDistrictSelected && !isBlockSelected && !isGramPanchayatSelected && !selectedVillage
   const isBlockScreen = isBlockSelected && !isGramPanchayatSelected && !selectedVillage
   const isGramPanchayatScreen = isGramPanchayatSelected && !selectedVillage
+  const performanceStateOptions = Array.from(
+    new Set(
+      data.mapData
+        .map((item) => item.name)
+        .filter((name): name is string => Boolean(name && name.trim()))
+    )
+  )
+  const performanceChartData = performanceState
+    ? data.mapData.filter((item) => item.name === performanceState)
+    : data.mapData
 
   return (
     <>
@@ -160,11 +170,15 @@ export function DashboardBody({
                   boxShadow: 'none',
                 }}
               >
-                <option value="Punjab">Punjab</option>
+                {performanceStateOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
               </Select>
             </Flex>
             <MetricPerformanceChart
-              data={data.mapData}
+              data={performanceChartData}
               metric="quantity"
               height="400px"
               entityLabel="States/UTs"
@@ -201,10 +215,22 @@ export function DashboardBody({
                 color="neutral.400"
                 placeholder="Select"
                 appearance="none"
-              />
+                value={performanceState}
+                onChange={(event) => onPerformanceStateChange(event.target.value)}
+                _focus={{
+                  borderColor: 'primary.500',
+                  boxShadow: 'none',
+                }}
+              >
+                {performanceStateOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </Select>
             </Flex>
             <MetricPerformanceChart
-              data={data.mapData}
+              data={performanceChartData}
               metric="regularity"
               height="400px"
               entityLabel="States/UTs"

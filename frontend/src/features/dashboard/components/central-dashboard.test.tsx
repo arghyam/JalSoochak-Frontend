@@ -9,9 +9,15 @@ const mockNavigate = jest.fn()
 const mockUseParams = jest.fn(() => ({}))
 const mockUseSearchParams = jest.fn(() => [new URLSearchParams(), jest.fn()])
 const mockDashboardFilters = jest.fn((_props: unknown) => <div data-testid="dashboard-filters" />)
+const mockDashboardBody = jest.fn((_props: unknown) => <div data-testid="dashboard-body" />)
 
 const getLatestDashboardFilterProps = <T extends object>() => {
   const calls = mockDashboardFilters.mock.calls as unknown[][]
+  return calls[calls.length - 1]?.[0] as T
+}
+
+const getLatestDashboardBodyProps = <T extends object>() => {
+  const calls = mockDashboardBody.mock.calls as unknown[][]
   return calls[calls.length - 1]?.[0] as T
 }
 
@@ -38,7 +44,7 @@ jest.mock('./charts', () => ({
 }))
 
 jest.mock('./screens/dashboard-body', () => ({
-  DashboardBody: () => <div data-testid="dashboard-body" />,
+  DashboardBody: (props: unknown) => mockDashboardBody(props),
 }))
 
 jest.mock('./tables', () => ({
@@ -98,6 +104,7 @@ describe('CentralDashboard', () => {
     mockUseParams.mockReset()
     mockUseSearchParams.mockReset()
     mockDashboardFilters.mockClear()
+    mockDashboardBody.mockClear()
     mockUseParams.mockReturnValue({})
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()])
   })
@@ -166,5 +173,36 @@ describe('CentralDashboard', () => {
       pathname: '/telangana',
       search: '?district=sangareddy',
     })
+  })
+
+  it('guards URL-keyed lookups against prototype-chain keys', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: '__proto__' })
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams('district=constructor&block=__proto__&gramPanchayat=constructor'),
+      jest.fn(),
+    ])
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(screen.getByTestId('dashboard-body')).toBeTruthy()
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{
+      districtTableData: unknown[]
+      blockTableData: unknown[]
+      gramPanchayatTableData: unknown[]
+      villageTableData: unknown[]
+      waterSupplyOutagesData: unknown[]
+    }>()
+
+    expect(dashboardBodyProps.districtTableData).toEqual([])
+    expect(dashboardBodyProps.blockTableData).toEqual([])
+    expect(dashboardBodyProps.gramPanchayatTableData).toEqual([])
+    expect(dashboardBodyProps.villageTableData).toEqual([])
+    expect(dashboardBodyProps.waterSupplyOutagesData).toEqual([])
   })
 })
