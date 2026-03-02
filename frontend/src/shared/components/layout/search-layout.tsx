@@ -32,6 +32,7 @@ interface BreadcrumbPanelProps {
   totalOptionsCount?: number
   noOptionsText?: string
   onOptionSelect?: (value: string) => void
+  closeOnOptionSelect?: boolean
   onTrailSelect?: (trailIndex: number) => void
   showTabs?: boolean
   tabs?: string[]
@@ -49,6 +50,7 @@ interface SearchLayoutProps {
   rightSlot?: ReactNode
   breadcrumbPanelProps?: BreadcrumbPanelProps
   selectionTrail?: string[]
+  activeTrailIndex?: number | null
 }
 
 export function SearchLayout({
@@ -61,6 +63,7 @@ export function SearchLayout({
   rightSlot,
   breadcrumbPanelProps,
   selectionTrail,
+  activeTrailIndex,
 }: SearchLayoutProps) {
   const [searchValue, setSearchValue] = useState('')
   const [isBreadcrumbPanelOpen, setIsBreadcrumbPanelOpen] = useState(false)
@@ -88,6 +91,18 @@ export function SearchLayout({
 
     return selectedState ? [selectedState.label] : []
   }, [hasExternalSelectionTrail, selectionTrail, selectedState])
+  const effectiveActiveTrailIndex = useMemo(() => {
+    if (effectiveSelectionTrail.length === 0) {
+      return -1
+    }
+
+    const fallbackIndex = effectiveSelectionTrail.length - 1
+    if (activeTrailIndex === null || activeTrailIndex === undefined) {
+      return fallbackIndex
+    }
+
+    return Math.max(0, Math.min(activeTrailIndex, fallbackIndex))
+  }, [activeTrailIndex, effectiveSelectionTrail.length])
   const filteredStateOptions = useMemo(() => {
     if (!panelOptions.length) {
       return []
@@ -100,6 +115,13 @@ export function SearchLayout({
 
     return panelOptions.filter((option) => option.label.toLowerCase().includes(query))
   }, [panelOptions, inputValue])
+  const closedSelectionTrail = useMemo(() => {
+    if (effectiveActiveTrailIndex >= 0) {
+      return effectiveSelectionTrail.slice(0, effectiveActiveTrailIndex + 1)
+    }
+
+    return effectiveSelectionTrail
+  }, [effectiveActiveTrailIndex, effectiveSelectionTrail])
 
   useOutsideClick({
     ref: panelContainerRef,
@@ -127,6 +149,9 @@ export function SearchLayout({
     setSearchValue('')
     breadcrumbPanelProps?.onOptionSelect?.(stateValue)
     breadcrumbPanelProps?.onStateSelect?.(stateValue)
+    if (breadcrumbPanelProps?.closeOnOptionSelect) {
+      setIsBreadcrumbPanelOpen(false)
+    }
   }
 
   const handleTrailSelect = (trailIndex: number) => {
@@ -154,7 +179,13 @@ export function SearchLayout({
         gap="24px"
         direction={{ base: 'column', lg: 'row' }}
       >
-        <Flex w="full" flex="1" maxW="none" gap={3} wrap={{ base: 'wrap' }}>
+        <Flex
+          w={{ base: 'full', lg: '1084px' }}
+          flex={{ base: 'unset', lg: '0 0 1084px' }}
+          maxW={{ base: 'full', lg: '1084px' }}
+          gap={3}
+          wrap={{ base: 'wrap' }}
+        >
           <InputGroup
             w={{ base: 'full', lg: '782px' }}
             maxW={{ base: 'full', lg: '782px' }}
@@ -194,45 +225,67 @@ export function SearchLayout({
           </Button>
         )}
       </Flex>
-      {effectiveSelectionTrail.length > 0 && !isBreadcrumbPanelOpen ? (
-        <Flex mt="12px" align="center" gap="8px" wrap="wrap">
-          {effectiveSelectionTrail.map((item, index) => {
-            const isLast = index === effectiveSelectionTrail.length - 1
+      {closedSelectionTrail.length > 0 && !isBreadcrumbPanelOpen ? (
+        <Flex mt="12px" align="center" gap="8px" wrap="wrap" data-testid="search-trail-closed">
+          {closedSelectionTrail.map((item, index) => {
+            const isActive = index === effectiveActiveTrailIndex
 
-            if (isLast) {
+            if (isActive) {
               return (
-                <Button
-                  key={`${item}-${index}`}
-                  h="26px"
-                  minW="66px"
-                  px="8px"
-                  py="4px"
-                  borderRadius="16px"
-                  borderColor="neutral.300"
-                  bg="primary.25"
-                  color="primary.600"
-                  fontSize="14px"
-                  fontWeight="400"
-                  variant="ghost"
-                  _hover={{ bg: 'neutral.100' }}
-                  _active={{ bg: 'neutral.100' }}
-                >
-                  {item}
-                </Button>
+                <Flex key={`${item}-${index}`} align="center" gap="8px">
+                  {index > 0 ? (
+                    <Icon
+                      as={FiChevronDown}
+                      color="neutral.500"
+                      boxSize="14px"
+                      transform="rotate(-90deg)"
+                    />
+                  ) : null}
+                  <Button
+                    h="26px"
+                    minW="66px"
+                    px="8px"
+                    py="4px"
+                    borderRadius="16px"
+                    borderColor="neutral.300"
+                    bg="primary.25"
+                    color="primary.600"
+                    fontSize="14px"
+                    fontWeight="400"
+                    variant="ghost"
+                    onClick={() => handleTrailSelect(index)}
+                    _hover={{ bg: 'neutral.100' }}
+                    _active={{ bg: 'neutral.100' }}
+                    aria-label={`Breadcrumb: ${item}`}
+                  >
+                    {item}
+                  </Button>
+                </Flex>
               )
             }
 
             return (
               <Flex key={`${item}-${index}`} align="center" gap="8px">
-                <Text fontSize="16px" color="neutral.500">
-                  {item}
-                </Text>
-                <Icon
-                  as={FiChevronDown}
+                {index > 0 ? (
+                  <Icon
+                    as={FiChevronDown}
+                    color="neutral.500"
+                    boxSize="14px"
+                    transform="rotate(-90deg)"
+                  />
+                ) : null}
+                <Button
+                  variant="unstyled"
+                  h="auto"
+                  minH="auto"
+                  fontSize="16px"
                   color="neutral.500"
-                  boxSize="14px"
-                  transform="rotate(-90deg)"
-                />
+                  fontWeight="400"
+                  onClick={() => handleTrailSelect(index)}
+                  aria-label={`Breadcrumb: ${item}`}
+                >
+                  {item}
+                </Button>
               </Flex>
             )
           })}
@@ -310,10 +363,9 @@ export function SearchLayout({
                     h="auto"
                     minH="auto"
                     textStyle="bodyText4"
-                    color={
-                      index === effectiveSelectionTrail.length - 1 ? 'neutral.800' : 'neutral.500'
-                    }
-                    fontWeight="400"
+                    color={index === effectiveActiveTrailIndex ? 'neutral.800' : 'neutral.500'}
+                    fontWeight={index === effectiveActiveTrailIndex ? '500' : '400'}
+                    aria-current={index === effectiveActiveTrailIndex ? 'page' : undefined}
                     aria-label={`Breadcrumb: ${item}`}
                   >
                     {item}

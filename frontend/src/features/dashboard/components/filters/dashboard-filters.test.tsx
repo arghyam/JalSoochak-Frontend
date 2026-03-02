@@ -377,7 +377,85 @@ describe('DashboardFilters', () => {
     expect(screen.getByText('Industrial Area')).toBeTruthy()
   })
 
-  it('truncates trail and shows child level options when a breadcrumb item is clicked', () => {
+  it('closes breadcrumb dropdown when a village is selected', () => {
+    const districtOptions: SearchableSelectOption[] = [
+      { value: 'sangareddy', label: 'Sangareddy' },
+      { value: 'rangareddy', label: 'Ranga Reddy' },
+    ]
+    const blockOptions: SearchableSelectOption[] = [
+      { value: 'patancheru', label: 'Patancheru' },
+      { value: 'zaheerabad', label: 'Zaheerabad' },
+    ]
+    const gramPanchayatOptions: SearchableSelectOption[] = [
+      { value: 'isnapur', label: 'Isnapur' },
+      { value: 'rudraram', label: 'Rudraram' },
+    ]
+    const villageOptions: SearchableSelectOption[] = [
+      { value: 'kistareddypet', label: 'Kistareddypet' },
+      { value: 'industrial-area', label: 'Industrial Area' },
+    ]
+
+    function Harness() {
+      const [selectedVillage, setSelectedVillage] = useState('')
+
+      return (
+        <DashboardFilters
+          filterTabIndex={0}
+          onTabChange={jest.fn()}
+          onClear={jest.fn()}
+          isAdvancedEnabled={true}
+          isDepartmentStateSelected={false}
+          emptyOptions={emptyOptions}
+          selectedState="telangana"
+          selectedDistrict="sangareddy"
+          selectedBlock="patancheru"
+          selectedGramPanchayat="isnapur"
+          selectedVillage={selectedVillage}
+          selectedScheme=""
+          selectedDuration={null}
+          selectedDepartmentState=""
+          selectedDepartmentZone=""
+          selectedDepartmentCircle=""
+          selectedDepartmentDivision=""
+          selectedDepartmentSubdivision=""
+          selectedDepartmentVillage=""
+          districtOptions={districtOptions}
+          blockOptions={blockOptions}
+          gramPanchayatOptions={gramPanchayatOptions}
+          villageOptions={villageOptions}
+          mockFilterStates={[{ value: 'telangana', label: 'Telangana' }]}
+          mockFilterSchemes={emptyOptions}
+          onStateChange={jest.fn()}
+          onDistrictChange={jest.fn()}
+          onBlockChange={jest.fn()}
+          onGramPanchayatChange={jest.fn()}
+          setSelectedVillage={setSelectedVillage}
+          setSelectedScheme={jest.fn()}
+          setSelectedDuration={jest.fn()}
+          onDepartmentStateChange={jest.fn()}
+          setSelectedDepartmentZone={jest.fn()}
+          setSelectedDepartmentCircle={jest.fn()}
+          setSelectedDepartmentDivision={jest.fn()}
+          setSelectedDepartmentSubdivision={jest.fn()}
+          setSelectedDepartmentVillage={jest.fn()}
+        />
+      )
+    }
+
+    renderWithProviders(<Harness />)
+
+    const searchInput = screen.getByPlaceholderText(
+      'Search by state/UT, district, block, gram panchayat, village'
+    )
+    fireEvent.focus(searchInput)
+    expect(screen.getByText('Villages (2)')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Kistareddypet' }))
+
+    expect(screen.queryByText('Villages (2)')).toBeNull()
+  })
+
+  it('shows child-level options when a breadcrumb item is clicked', () => {
     const districtOptions: SearchableSelectOption[] = [
       { value: 'sangareddy', label: 'Sangareddy' },
       { value: 'rangareddy', label: 'Ranga Reddy' },
@@ -401,6 +479,7 @@ describe('DashboardFilters', () => {
       const [selectedBlock, setSelectedBlock] = useState('patancheru')
       const [selectedGramPanchayat, setSelectedGramPanchayat] = useState('isnapur')
       const [selectedVillage, setSelectedVillage] = useState('kistareddypet')
+      const [activeTrailIndex, setActiveTrailIndex] = useState<number | null>(null)
 
       const handleStateChange = (value: string) => {
         setSelectedState(value)
@@ -449,6 +528,7 @@ describe('DashboardFilters', () => {
           selectedDepartmentDivision=""
           selectedDepartmentSubdivision=""
           selectedDepartmentVillage=""
+          activeTrailIndex={activeTrailIndex}
           districtOptions={selectedState ? districtOptions : emptyOptions}
           blockOptions={selectedDistrict ? blockOptions : emptyOptions}
           gramPanchayatOptions={selectedBlock ? gramPanchayatOptions : emptyOptions}
@@ -468,6 +548,7 @@ describe('DashboardFilters', () => {
           setSelectedDepartmentDivision={jest.fn()}
           setSelectedDepartmentSubdivision={jest.fn()}
           setSelectedDepartmentVillage={jest.fn()}
+          onActiveTrailChange={setActiveTrailIndex}
         />
       )
     }
@@ -488,9 +569,125 @@ describe('DashboardFilters', () => {
 
     expect(searchInput.value).toBe('')
     expect(screen.getByText('Gram Panchayats (2)')).toBeTruthy()
-    expect(screen.getByText('Isnapur')).toBeTruthy()
+    expect(screen.getAllByText('Isnapur').length).toBeGreaterThan(0)
     expect(screen.getByText('Rudraram')).toBeTruthy()
     expect(screen.queryByText('Villages (2)')).toBeNull()
+  })
+
+  it('allows clicking closed breadcrumb chips to navigate to that dashboard level', () => {
+    const districtOptions: SearchableSelectOption[] = [
+      { value: 'sangareddy', label: 'Sangareddy' },
+      { value: 'rangareddy', label: 'Ranga Reddy' },
+    ]
+    const blockOptions: SearchableSelectOption[] = [
+      { value: 'patancheru', label: 'Patancheru' },
+      { value: 'zaheerabad', label: 'Zaheerabad' },
+    ]
+    const gramPanchayatOptions: SearchableSelectOption[] = [
+      { value: 'isnapur', label: 'Isnapur' },
+      { value: 'rudraram', label: 'Rudraram' },
+    ]
+    const villageOptions: SearchableSelectOption[] = [
+      { value: 'kistareddypet', label: 'Kistareddypet' },
+      { value: 'industrial-area', label: 'Industrial Area' },
+    ]
+
+    function Harness() {
+      const [selectedState, setSelectedState] = useState('telangana')
+      const [selectedDistrict, setSelectedDistrict] = useState('sangareddy')
+      const [selectedBlock, setSelectedBlock] = useState('patancheru')
+      const [selectedGramPanchayat, setSelectedGramPanchayat] = useState('isnapur')
+      const [selectedVillage, setSelectedVillage] = useState('kistareddypet')
+      const [activeTrailIndex, setActiveTrailIndex] = useState<number | null>(null)
+
+      const handleStateChange = (value: string) => {
+        setSelectedState(value)
+        setSelectedDistrict('')
+        setSelectedBlock('')
+        setSelectedGramPanchayat('')
+        setSelectedVillage('')
+      }
+
+      const handleDistrictChange = (value: string) => {
+        setSelectedDistrict(value)
+        setSelectedBlock('')
+        setSelectedGramPanchayat('')
+        setSelectedVillage('')
+      }
+
+      const handleBlockChange = (value: string) => {
+        setSelectedBlock(value)
+        setSelectedGramPanchayat('')
+        setSelectedVillage('')
+      }
+
+      const handleGramPanchayatChange = (value: string) => {
+        setSelectedGramPanchayat(value)
+        setSelectedVillage('')
+      }
+
+      return (
+        <DashboardFilters
+          filterTabIndex={1}
+          onTabChange={jest.fn()}
+          onClear={jest.fn()}
+          isAdvancedEnabled={true}
+          isDepartmentStateSelected={false}
+          emptyOptions={emptyOptions}
+          selectedState={selectedState}
+          selectedDistrict={selectedDistrict}
+          selectedBlock={selectedBlock}
+          selectedGramPanchayat={selectedGramPanchayat}
+          selectedVillage={selectedVillage}
+          selectedScheme=""
+          selectedDuration={null}
+          selectedDepartmentState=""
+          selectedDepartmentZone=""
+          selectedDepartmentCircle=""
+          selectedDepartmentDivision=""
+          selectedDepartmentSubdivision=""
+          selectedDepartmentVillage=""
+          activeTrailIndex={activeTrailIndex}
+          districtOptions={selectedState ? districtOptions : emptyOptions}
+          blockOptions={selectedDistrict ? blockOptions : emptyOptions}
+          gramPanchayatOptions={selectedBlock ? gramPanchayatOptions : emptyOptions}
+          villageOptions={selectedGramPanchayat ? villageOptions : emptyOptions}
+          mockFilterStates={[{ value: 'telangana', label: 'Telangana' }]}
+          mockFilterSchemes={emptyOptions}
+          onStateChange={handleStateChange}
+          onDistrictChange={handleDistrictChange}
+          onBlockChange={handleBlockChange}
+          onGramPanchayatChange={handleGramPanchayatChange}
+          setSelectedVillage={setSelectedVillage}
+          setSelectedScheme={jest.fn()}
+          setSelectedDuration={jest.fn()}
+          onDepartmentStateChange={jest.fn()}
+          setSelectedDepartmentZone={jest.fn()}
+          setSelectedDepartmentCircle={jest.fn()}
+          setSelectedDepartmentDivision={jest.fn()}
+          setSelectedDepartmentSubdivision={jest.fn()}
+          setSelectedDepartmentVillage={jest.fn()}
+          onActiveTrailChange={setActiveTrailIndex}
+        />
+      )
+    }
+
+    renderWithProviders(<Harness />)
+
+    expect(screen.getByRole('button', { name: 'Breadcrumb: Patancheru' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Breadcrumb: Sangareddy' }))
+
+    expect(screen.queryByRole('button', { name: 'Breadcrumb: Patancheru' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Breadcrumb: Isnapur' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Breadcrumb: Kistareddypet' })).toBeNull()
+
+    const searchInput = screen.getByPlaceholderText(
+      'Search by state/UT, district, block, gram panchayat, village'
+    )
+    fireEvent.focus(searchInput)
+
+    expect(screen.getByText('Blocks (2)')).toBeTruthy()
+    expect(screen.queryByText('Gram Panchayats (2)')).toBeNull()
   })
 
   it('shows administrative and departmental tabs in open dropdown only after state selection', () => {

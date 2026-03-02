@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { Dispatch, SetStateAction } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Box, Flex, Text, Heading, Grid, Icon, Image, Avatar } from '@chakra-ui/react'
 import { useDashboardData } from '../hooks/use-dashboard-data'
@@ -105,21 +106,44 @@ export function CentralDashboard() {
   const [filterTabIndex, setFilterTabIndex] = useState(
     typeof storedFilters.filterTabIndex === 'number' ? storedFilters.filterTabIndex : 0
   )
-  const isStateSelected = Boolean(selectedState)
-  const isDistrictSelected = Boolean(selectedDistrict)
-  const isBlockSelected = Boolean(selectedBlock)
-  const isGramPanchayatSelected = Boolean(selectedGramPanchayat)
+  const [activeTrailIndex, setActiveTrailIndex] = useState<number | null>(null)
+  const selectionTrailValues = [
+    selectedState,
+    selectedDistrict,
+    selectedBlock,
+    selectedGramPanchayat,
+    selectedVillage,
+  ] as const
+  const deepestSelectedTrailIndex = [...selectionTrailValues].reduce(
+    (lastIndex, value, index) => (value ? index : lastIndex),
+    -1
+  )
+  const effectiveTrailIndex =
+    activeTrailIndex === null || activeTrailIndex === undefined
+      ? deepestSelectedTrailIndex
+      : Math.max(0, Math.min(activeTrailIndex, deepestSelectedTrailIndex))
+  const effectiveSelectedState = effectiveTrailIndex >= 0 ? selectedState : ''
+  const effectiveSelectedDistrict = effectiveTrailIndex >= 1 ? selectedDistrict : ''
+  const effectiveSelectedBlock = effectiveTrailIndex >= 2 ? selectedBlock : ''
+  const effectiveSelectedGramPanchayat = effectiveTrailIndex >= 3 ? selectedGramPanchayat : ''
+  const effectiveSelectedVillage = effectiveTrailIndex >= 4 ? selectedVillage : ''
+  const isStateSelected = Boolean(effectiveSelectedState)
+  const isDistrictSelected = Boolean(effectiveSelectedDistrict)
+  const isBlockSelected = Boolean(effectiveSelectedBlock)
+  const isGramPanchayatSelected = Boolean(effectiveSelectedGramPanchayat)
+  const isVillageSelected = Boolean(effectiveSelectedVillage)
   const isDepartmentStateSelected = Boolean(selectedDepartmentState)
   const emptyOptions: SearchableSelectOption[] = []
   const isAdvancedEnabled = Boolean(selectedState && selectedDistrict)
   const districtTableData =
-    mockDistrictPerformanceByState[selectedState] ?? ([] as EntityPerformance[])
+    mockDistrictPerformanceByState[effectiveSelectedState] ?? ([] as EntityPerformance[])
   const blockTableData =
-    mockBlockPerformanceByDistrict[selectedDistrict] ?? ([] as EntityPerformance[])
+    mockBlockPerformanceByDistrict[effectiveSelectedDistrict] ?? ([] as EntityPerformance[])
   const gramPanchayatTableData =
-    mockGramPanchayatPerformanceByBlock[selectedBlock] ?? ([] as EntityPerformance[])
+    mockGramPanchayatPerformanceByBlock[effectiveSelectedBlock] ?? ([] as EntityPerformance[])
   const villageTableData =
-    mockVillagePerformanceByGramPanchayat[selectedGramPanchayat] ?? ([] as EntityPerformance[])
+    mockVillagePerformanceByGramPanchayat[effectiveSelectedGramPanchayat] ??
+    ([] as EntityPerformance[])
   const supplySubmissionRateData = isGramPanchayatSelected
     ? villageTableData
     : isBlockSelected
@@ -147,6 +171,7 @@ export function CentralDashboard() {
     ? (mockFilterVillages[selectedGramPanchayat] ?? [])
     : emptyOptions
   const handleStateChange = (value: string) => {
+    setActiveTrailIndex(null)
     setSelectedState(value)
     setSelectedDistrict('')
     setSelectedBlock('')
@@ -154,19 +179,26 @@ export function CentralDashboard() {
     setSelectedVillage('')
   }
   const handleDistrictChange = (value: string) => {
+    setActiveTrailIndex(null)
     setSelectedDistrict(value)
     setSelectedBlock('')
     setSelectedGramPanchayat('')
     setSelectedVillage('')
   }
   const handleBlockChange = (value: string) => {
+    setActiveTrailIndex(null)
     setSelectedBlock(value)
     setSelectedGramPanchayat('')
     setSelectedVillage('')
   }
   const handleGramPanchayatChange = (value: string) => {
+    setActiveTrailIndex(null)
     setSelectedGramPanchayat(value)
     setSelectedVillage('')
+  }
+  const handleVillageChange: Dispatch<SetStateAction<string>> = (value) => {
+    setActiveTrailIndex(null)
+    setSelectedVillage(value)
   }
   const handleDepartmentStateChange = (value: string) => {
     setSelectedDepartmentState(value)
@@ -177,6 +209,7 @@ export function CentralDashboard() {
     setSelectedDepartmentVillage('')
   }
   const handleClearFilters = () => {
+    setActiveTrailIndex(null)
     setSelectedState('')
     setSelectedDistrict('')
     setSelectedBlock('')
@@ -292,25 +325,11 @@ export function CentralDashboard() {
   }
 
   const waterSupplyOutagesData = isGramPanchayatSelected
-    ? (mockVillagePerformanceByGramPanchayat[selectedGramPanchayat] ?? []).map((village, index) => {
-        if (data.waterSupplyOutages.length === 0) {
-          return {
-            district: village.name,
-            electricityFailure: 0,
-            pipelineLeak: 0,
-            pumpFailure: 0,
-            valveIssue: 0,
-            sourceDrying: 0,
-          }
-        }
-        const source = data.waterSupplyOutages[index % data.waterSupplyOutages.length]
-        return { ...source, district: village.name }
-      })
-    : isBlockSelected
-      ? (mockGramPanchayatPerformanceByBlock[selectedBlock] ?? []).map((gramPanchayat, index) => {
+    ? (mockVillagePerformanceByGramPanchayat[effectiveSelectedGramPanchayat] ?? []).map(
+        (village, index) => {
           if (data.waterSupplyOutages.length === 0) {
             return {
-              district: gramPanchayat.name,
+              district: village.name,
               electricityFailure: 0,
               pipelineLeak: 0,
               pumpFailure: 0,
@@ -319,10 +338,28 @@ export function CentralDashboard() {
             }
           }
           const source = data.waterSupplyOutages[index % data.waterSupplyOutages.length]
-          return { ...source, district: gramPanchayat.name }
-        })
+          return { ...source, district: village.name }
+        }
+      )
+    : isBlockSelected
+      ? (mockGramPanchayatPerformanceByBlock[effectiveSelectedBlock] ?? []).map(
+          (gramPanchayat, index) => {
+            if (data.waterSupplyOutages.length === 0) {
+              return {
+                district: gramPanchayat.name,
+                electricityFailure: 0,
+                pipelineLeak: 0,
+                pumpFailure: 0,
+                valveIssue: 0,
+                sourceDrying: 0,
+              }
+            }
+            const source = data.waterSupplyOutages[index % data.waterSupplyOutages.length]
+            return { ...source, district: gramPanchayat.name }
+          }
+        )
       : isDistrictSelected
-        ? (mockBlockPerformanceByDistrict[selectedDistrict] ?? []).map((block, index) => {
+        ? (mockBlockPerformanceByDistrict[effectiveSelectedDistrict] ?? []).map((block, index) => {
             if (data.waterSupplyOutages.length === 0) {
               return {
                 district: block.name,
@@ -411,6 +448,7 @@ export function CentralDashboard() {
         selectedDepartmentDivision={selectedDepartmentDivision}
         selectedDepartmentSubdivision={selectedDepartmentSubdivision}
         selectedDepartmentVillage={selectedDepartmentVillage}
+        activeTrailIndex={effectiveTrailIndex}
         districtOptions={districtOptions}
         blockOptions={blockOptions}
         gramPanchayatOptions={gramPanchayatOptions}
@@ -421,7 +459,7 @@ export function CentralDashboard() {
         onDistrictChange={handleDistrictChange}
         onBlockChange={handleBlockChange}
         onGramPanchayatChange={handleGramPanchayatChange}
-        setSelectedVillage={setSelectedVillage}
+        setSelectedVillage={handleVillageChange}
         setSelectedScheme={setSelectedScheme}
         setSelectedDuration={setSelectedDuration}
         onDepartmentStateChange={handleDepartmentStateChange}
@@ -430,6 +468,7 @@ export function CentralDashboard() {
         setSelectedDepartmentDivision={setSelectedDepartmentDivision}
         setSelectedDepartmentSubdivision={setSelectedDepartmentSubdivision}
         setSelectedDepartmentVillage={setSelectedDepartmentVillage}
+        onActiveTrailChange={setActiveTrailIndex}
       />
 
       {/* KPI Cards */}
@@ -466,7 +505,7 @@ export function CentralDashboard() {
             height="100%"
           />
         </Box>
-        {selectedVillage ? (
+        {isVillageSelected ? (
           <Flex direction="column" gap="28px" w="full">
             <Box
               bg="white"
@@ -615,7 +654,7 @@ export function CentralDashboard() {
         isDistrictSelected={isDistrictSelected}
         isBlockSelected={isBlockSelected}
         isGramPanchayatSelected={isGramPanchayatSelected}
-        selectedVillage={selectedVillage}
+        selectedVillage={effectiveSelectedVillage}
         performanceState={performanceState}
         onPerformanceStateChange={setPerformanceState}
         districtTableData={districtTableData}

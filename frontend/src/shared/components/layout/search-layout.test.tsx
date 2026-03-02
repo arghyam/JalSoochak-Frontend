@@ -43,7 +43,7 @@ describe('SearchLayout', () => {
     renderWithProviders(<SearchLayout selectionTrail={['Telangana', 'Sangareddy']} />)
 
     expect(screen.getByText('Telangana')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Sangareddy' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Breadcrumb: Sangareddy' })).toBeTruthy()
   })
 
   it('does not render chip when external trail is empty', () => {
@@ -84,17 +84,19 @@ describe('SearchLayout', () => {
       'Search by state/UT, district, block, gram panchayat, village'
     )
 
-    expect(screen.getByRole('button', { name: 'Sangareddy' })).toBeTruthy()
+    expect(screen.getByTestId('search-trail-closed')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Breadcrumb: Sangareddy' })).toBeTruthy()
 
     fireEvent.focus(searchInput)
-    expect(screen.queryByRole('button', { name: 'Sangareddy' })).toBeNull()
+    expect(screen.queryByTestId('search-trail-closed')).toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'Telangana' }))
-    expect(screen.queryByRole('button', { name: 'Sangareddy' })).toBeNull()
+    expect(screen.queryByTestId('search-trail-closed')).toBeNull()
 
     fireEvent.mouseDown(document.body)
     fireEvent.mouseUp(document.body)
     fireEvent.click(document.body)
-    expect(screen.getByRole('button', { name: 'Sangareddy' })).toBeTruthy()
+    expect(screen.getByTestId('search-trail-closed')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Breadcrumb: Sangareddy' })).toBeTruthy()
   })
 })

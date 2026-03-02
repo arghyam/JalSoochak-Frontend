@@ -25,6 +25,7 @@ type DashboardFiltersProps = {
   selectedDepartmentDivision: string
   selectedDepartmentSubdivision: string
   selectedDepartmentVillage: string
+  activeTrailIndex?: number | null
   districtOptions: SearchableSelectOption[]
   blockOptions: SearchableSelectOption[]
   gramPanchayatOptions: SearchableSelectOption[]
@@ -44,6 +45,7 @@ type DashboardFiltersProps = {
   setSelectedDepartmentDivision: Dispatch<SetStateAction<string>>
   setSelectedDepartmentSubdivision: Dispatch<SetStateAction<string>>
   setSelectedDepartmentVillage: Dispatch<SetStateAction<string>>
+  onActiveTrailChange?: (trailIndex: number | null) => void
 }
 
 export function DashboardFilters(props: DashboardFiltersProps) {
@@ -56,6 +58,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     selectedBlock,
     selectedGramPanchayat,
     selectedVillage,
+    activeTrailIndex,
     selectedDuration,
     districtOptions,
     blockOptions,
@@ -66,6 +69,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     onBlockChange,
     onGramPanchayatChange,
     setSelectedVillage,
+    onActiveTrailChange,
     setSelectedDuration,
   } = props
 
@@ -85,10 +89,26 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     findLabel(selectedGramPanchayat, gramPanchayatOptions),
     findLabel(selectedVillage, villageOptions),
   ].filter((item): item is string => Boolean(item))
-  const hasSelectedState = Boolean(selectedState)
-  const hasSelectedDistrict = Boolean(selectedDistrict)
-  const hasSelectedBlock = Boolean(selectedBlock)
-  const hasSelectedGramPanchayat = Boolean(selectedGramPanchayat)
+
+  const trailSelectionValues = [
+    selectedState,
+    selectedDistrict,
+    selectedBlock,
+    selectedGramPanchayat,
+    selectedVillage,
+  ] as const
+  const deepestSelectedTrailIndex = [...trailSelectionValues].reduce(
+    (lastIndex, value, index) => (value ? index : lastIndex),
+    -1
+  )
+  const effectiveTrailIndex =
+    activeTrailIndex === null || activeTrailIndex === undefined
+      ? deepestSelectedTrailIndex
+      : Math.max(0, Math.min(activeTrailIndex, deepestSelectedTrailIndex))
+  const hasSelectedState = effectiveTrailIndex >= 0 && Boolean(selectedState)
+  const hasSelectedDistrict = effectiveTrailIndex >= 1 && Boolean(selectedDistrict)
+  const hasSelectedBlock = effectiveTrailIndex >= 2 && Boolean(selectedBlock)
+  const hasSelectedGramPanchayat = effectiveTrailIndex >= 3 && Boolean(selectedGramPanchayat)
   const breadcrumbPanelConfig = hasSelectedGramPanchayat
     ? {
         options: villageOptions,
@@ -129,37 +149,20 @@ export function DashboardFilters(props: DashboardFiltersProps) {
               onSelect: onStateChange,
             }
 
-  const trailSelectionValues = [
-    selectedState,
-    selectedDistrict,
-    selectedBlock,
-    selectedGramPanchayat,
-    selectedVillage,
-  ] as const
-  const trailSelectionHandlers = [
-    onStateChange,
-    onDistrictChange,
-    onBlockChange,
-    onGramPanchayatChange,
-    setSelectedVillage,
-  ] as const
-
   const handleTrailSelect = (trailIndex: number) => {
     if (trailIndex < 0) {
+      onActiveTrailChange?.(null)
       onStateChange('')
       return
     }
 
-    const selectedValue = trailSelectionValues[trailIndex]
-    const handleSelection = trailSelectionHandlers[trailIndex]
-    if (selectedValue && handleSelection) {
-      handleSelection(selectedValue)
-    }
+    onActiveTrailChange?.(trailIndex)
   }
 
   return (
     <SearchLayout
       selectionTrail={selectionTrail}
+      activeTrailIndex={effectiveTrailIndex}
       breadcrumbPanelProps={{
         stateOptions: breadcrumbStateOptions,
         totalStatesCount,
@@ -168,6 +171,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
         totalOptionsCount: breadcrumbPanelConfig.totalCount,
         noOptionsText: breadcrumbPanelConfig.noOptionsText,
         onOptionSelect: breadcrumbPanelConfig.onSelect,
+        closeOnOptionSelect: hasSelectedGramPanchayat,
         onTrailSelect: handleTrailSelect,
         showTabs: hasSelectedState,
         activeTab: filterTabIndex,
