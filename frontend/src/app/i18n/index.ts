@@ -4,9 +4,11 @@ import LanguageDetector from 'i18next-browser-languagedetector'
 
 // Import translation files
 import enCommon from '@/locales/en/common.json'
+import enDashboard from '@/locales/en/dashboard.json'
 import enSuperAdmin from '@/locales/en/super-admin.json'
 import enStateAdmin from '@/locales/en/state-admin.json'
 import hiCommon from '@/locales/hi/common.json'
+import hiDashboard from '@/locales/hi/dashboard.json'
 import hiSuperAdmin from '@/locales/hi/super-admin.json'
 import hiStateAdmin from '@/locales/hi/state-admin.json'
 
@@ -22,11 +24,13 @@ export const DEFAULT_LANGUAGE: LanguageCode = 'en'
 const resources = {
   en: {
     common: enCommon,
+    dashboard: enDashboard,
     'super-admin': enSuperAdmin,
     'state-admin': enStateAdmin,
   },
   hi: {
     common: hiCommon,
+    dashboard: hiDashboard,
     'super-admin': hiSuperAdmin,
     'state-admin': hiStateAdmin,
   },
@@ -39,7 +43,7 @@ i18n
     resources,
     fallbackLng: DEFAULT_LANGUAGE,
     defaultNS: 'common',
-    ns: ['common', 'super-admin', 'state-admin'],
+    ns: ['common', 'dashboard', 'super-admin', 'state-admin'],
 
     detection: {
       order: ['localStorage', 'navigator'],

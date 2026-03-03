@@ -1,7 +1,11 @@
 import { Box, Flex, Text, Image } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import jalsoochakLogo from '@/assets/media/jalsoochak-logo.svg'
+import { LanguageSwitcher } from '@/shared/components/common'
 
 export function Header() {
+  const { t } = useTranslation(['dashboard', 'common'])
+
   return (
     <Flex as="header" borderBottomWidth="1px" bg="white" boxShadow="sm" mb="28px">
       <Flex
@@ -16,7 +20,7 @@ export function Header() {
         <Flex align="center" flexShrink={0}>
           <Image
             src={jalsoochakLogo}
-            alt="JalSoochak logo"
+            alt={t('sidebar.logoAlt', 'JalSoochak logo')}
             w={{ base: '70px', md: '117.61px' }}
             h={{ base: '40px', md: '68.55px' }}
           />
@@ -31,16 +35,13 @@ export function Header() {
             lineHeight={{ base: 'short', md: 'normal' }}
             whiteSpace={{ base: 'nowrap', md: 'normal' }}
           >
-            JalSoochak Dashboard
+            {t('headerTitle', { ns: 'dashboard', defaultValue: 'JalSoochak Dashboard' })}
           </Text>
         </Flex>
 
-        <Box
-          display={{ base: 'none', md: 'block' }}
-          w={{ md: '117.61px' }}
-          h={{ md: '1px' }}
-          aria-hidden="true"
-        />
+        <Box display="flex" w={{ base: '70px', md: '117.61px' }} justifyContent="flex-end">
+          <LanguageSwitcher isMobileHeader />
+        </Box>
       </Flex>
     </Flex>
   )

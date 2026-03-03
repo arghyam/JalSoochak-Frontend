@@ -1,0 +1,37 @@
+{
+  "headerTitle": "जलसूचक डैशबोर्ड",
+  "searchLayout": {
+    "placeholder": "राज्य/केंद्रशासित प्रदेश, जिला, ब्लॉक, ग्राम पंचायत, गांव द्वारा खोजें",
+    "downloadReport": "रिपोर्ट डाउनलोड करें",
+    "allStatesUTs": "सभी राज्य/केंद्रशासित प्रदेश",
+    "noOptionsFound": "{{label}} नहीं मिला",
+    "tabs": {
+      "administrative": "प्रशासनिक",
+      "departmental": "विभागीय"
+    },
+    "options": {
+      "states": "राज्य"
+    },
+    "aria": {
+      "breadcrumb": "ब्रेडक्रंब: {{item}}"
+    }
+  },
+  "filters": {
+    "duration": "अवधि",
+    "clearAll": "सभी फ़िल्टर साफ़ करें",
+    "options": {
+      "states": "राज्य",
+      "districts": "जिले",
+      "blocks": "ब्लॉक",
+      "gramPanchayats": "ग्राम पंचायतें",
+      "villages": "गांव"
+    },
+    "noOptions": {
+      "states": "कोई राज्य नहीं मिला",
+      "districts": "कोई जिला नहीं मिला",
+      "blocks": "कोई ब्लॉक नहीं मिला",
+      "gramPanchayats": "कोई ग्राम पंचायत नहीं मिली",
+      "villages": "कोई गांव नहीं मिला"
+    }
+  }
+}

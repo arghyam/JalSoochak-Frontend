@@ -1,0 +1,37 @@
+{
+  "headerTitle": "JalSoochak Dashboard",
+  "searchLayout": {
+    "placeholder": "Search by state/UT, district, block, gram panchayat, village",
+    "downloadReport": "Download Report",
+    "allStatesUTs": "All States/UTs",
+    "noOptionsFound": "No {{label}} found",
+    "tabs": {
+      "administrative": "Administrative",
+      "departmental": "Departmental"
+    },
+    "options": {
+      "states": "States"
+    },
+    "aria": {
+      "breadcrumb": "Breadcrumb: {{item}}"
+    }
+  },
+  "filters": {
+    "duration": "Duration",
+    "clearAll": "Clear all filters",
+    "options": {
+      "states": "States",
+      "districts": "Districts",
+      "blocks": "Blocks",
+      "gramPanchayats": "Gram Panchayats",
+      "villages": "Villages"
+    },
+    "noOptions": {
+      "states": "No states found",
+      "districts": "No districts found",
+      "blocks": "No blocks found",
+      "gramPanchayats": "No gram panchayats found",
+      "villages": "No villages found"
+    }
+  }
+}

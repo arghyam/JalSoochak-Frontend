@@ -17,6 +17,7 @@ import {
 } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
 import { FiChevronDown, FiDownload } from 'react-icons/fi'
+import { useTranslation } from 'react-i18next'
 
 export type SearchStateOption = {
   value: string
@@ -55,8 +56,8 @@ interface SearchLayoutProps {
 }
 
 export function SearchLayout({
-  placeholder = 'Search by state/UT, district, block, gram panchayat, village',
-  actionLabel = 'Download Report',
+  placeholder,
+  actionLabel,
   onActionClick,
   inputProps,
   actionProps,
@@ -66,6 +67,7 @@ export function SearchLayout({
   selectionTrail,
   activeTrailIndex,
 }: SearchLayoutProps) {
+  const { t } = useTranslation('dashboard')
   const [searchValue, setSearchValue] = useState('')
   const [isBreadcrumbPanelOpen, setIsBreadcrumbPanelOpen] = useState(false)
   const [selectedStateValue, setSelectedStateValue] = useState('')
@@ -74,13 +76,25 @@ export function SearchLayout({
   const showBreadcrumbPanel = Boolean(breadcrumbPanelProps)
   const hasExternalSelectionTrail = selectionTrail !== undefined
   const panelOptions = breadcrumbPanelProps?.options ?? breadcrumbPanelProps?.stateOptions ?? []
-  const breadcrumbTabs = breadcrumbPanelProps?.tabs ?? ['Administrative', 'Departmental']
+  const breadcrumbTabs = breadcrumbPanelProps?.tabs ?? [
+    t('searchLayout.tabs.administrative', 'Administrative'),
+    t('searchLayout.tabs.departmental', 'Departmental'),
+  ]
   const isTabsDisabled = Boolean(breadcrumbPanelProps?.tabsDisabled)
-  const panelOptionsLabel = breadcrumbPanelProps?.optionsLabel ?? 'States'
+  const panelOptionsLabel =
+    breadcrumbPanelProps?.optionsLabel ?? t('searchLayout.options.states', 'States')
   const panelOptionsCount =
     breadcrumbPanelProps?.totalOptionsCount ?? breadcrumbPanelProps?.totalStatesCount ?? 0
   const noOptionsText =
-    breadcrumbPanelProps?.noOptionsText ?? `No ${panelOptionsLabel.toLowerCase()} found`
+    breadcrumbPanelProps?.noOptionsText ??
+    t('searchLayout.noOptionsFound', {
+      label: panelOptionsLabel,
+      defaultValue: `No ${panelOptionsLabel} found`,
+    })
+  const resolvedPlaceholder =
+    placeholder ??
+    t('searchLayout.placeholder', 'Search by state/UT, district, block, gram panchayat, village')
+  const resolvedActionLabel = actionLabel ?? t('searchLayout.downloadReport', 'Download Report')
   const inputValue = inputProps?.value !== undefined ? String(inputProps.value ?? '') : searchValue
   const selectedState = useMemo(
     () => breadcrumbPanelProps?.stateOptions.find((option) => option.value === selectedStateValue),
@@ -200,7 +214,7 @@ export function SearchLayout({
             <Input
               px="12px"
               pl="32px"
-              placeholder={placeholder}
+              placeholder={resolvedPlaceholder}
               fontSize="14px"
               h="32px"
               borderColor="neutral.300"
@@ -224,7 +238,7 @@ export function SearchLayout({
             leftIcon={<FiDownload size="16" />}
             {...actionProps}
           >
-            {actionLabel}
+            {resolvedActionLabel}
           </Button>
         )}
       </Flex>
@@ -259,7 +273,10 @@ export function SearchLayout({
                     onClick={() => handleTrailSelect(index)}
                     _hover={{ bg: 'neutral.100' }}
                     _active={{ bg: 'neutral.100' }}
-                    aria-label={`Breadcrumb: ${item}`}
+                    aria-label={t('searchLayout.aria.breadcrumb', {
+                      item,
+                      defaultValue: `Breadcrumb: ${item}`,
+                    })}
                     aria-current="page"
                   >
                     {item}
@@ -286,7 +303,10 @@ export function SearchLayout({
                   color="neutral.500"
                   fontWeight="400"
                   onClick={() => handleTrailSelect(index)}
-                  aria-label={`Breadcrumb: ${item}`}
+                  aria-label={t('searchLayout.aria.breadcrumb', {
+                    item,
+                    defaultValue: `Breadcrumb: ${item}`,
+                  })}
                 >
                   {item}
                 </Button>
@@ -354,9 +374,12 @@ export function SearchLayout({
                 textStyle="bodyText4"
                 color="neutral.500"
                 fontWeight="400"
-                aria-label="Breadcrumb: All States/UTs"
+                aria-label={t('searchLayout.aria.breadcrumb', {
+                  item: t('searchLayout.allStatesUTs', 'All States/UTs'),
+                  defaultValue: 'Breadcrumb: All States/UTs',
+                })}
               >
-                All States/UTs
+                {t('searchLayout.allStatesUTs', 'All States/UTs')}
               </Button>
               {effectiveSelectionTrail.map((item, index) => (
                 <Flex key={`${item}-${index}`} align="center">
@@ -375,7 +398,10 @@ export function SearchLayout({
                     color={index === effectiveActiveTrailIndex ? 'neutral.800' : 'neutral.500'}
                     fontWeight={index === effectiveActiveTrailIndex ? '500' : '400'}
                     aria-current={index === effectiveActiveTrailIndex ? 'page' : undefined}
-                    aria-label={`Breadcrumb: ${item}`}
+                    aria-label={t('searchLayout.aria.breadcrumb', {
+                      item,
+                      defaultValue: `Breadcrumb: ${item}`,
+                    })}
                   >
                     {item}
                   </Button>
