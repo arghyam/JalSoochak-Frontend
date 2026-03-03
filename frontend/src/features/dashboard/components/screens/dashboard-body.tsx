@@ -81,7 +81,7 @@ export function DashboardBody({
     () =>
       data.demandSupply.map((item) => ({
         period: item.period,
-        value: item.demand > 0 ? Math.round((item.supply / item.demand) * 100) : 0,
+        value: item.demand > 0 ? Math.min(100, Math.round((item.supply / item.demand) * 100)) : 0,
       })),
     [data.demandSupply]
   )

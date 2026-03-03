@@ -8,7 +8,7 @@ import {
   type PointerEvent,
 } from 'react'
 import { Box, useTheme } from '@chakra-ui/react'
-import * as echarts from 'echarts'
+import type { EChartsOption } from 'echarts'
 import { EChartsWrapper } from './echarts-wrapper'
 import { getBodyText7Style } from './chart-text-style'
 
@@ -72,7 +72,7 @@ export function MonthlyTrendChart({
     return { max }
   }, [data])
 
-  const option = useMemo<echarts.EChartsOption>(() => {
+  const option = useMemo<EChartsOption>(() => {
     const periods = data.map((item) => item.period)
     const values = data.map((item) => item.value)
 
@@ -151,7 +151,7 @@ export function MonthlyTrendChart({
     }
   }, [bodyText7, data, seriesName, yAxisScale.max])
 
-  const axisOption = useMemo<echarts.EChartsOption>(() => {
+  const axisOption = useMemo<EChartsOption>(() => {
     const placeholderLabel = longestPeriodLabel || 'W'
     return {
       tooltip: {
