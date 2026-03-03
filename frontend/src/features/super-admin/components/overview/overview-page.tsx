@@ -21,7 +21,7 @@ import { BsCheck2Circle } from 'react-icons/bs'
 import { IoCloseCircleOutline, IoAddOutline } from 'react-icons/io5'
 import { ROUTES } from '@/shared/constants/routes'
 import { useSuperAdminOverviewQuery } from '../../services/query/use-super-admin-queries'
-import { WaterSupplyOutagesChart } from './water-supply-outages-chart'
+import { WaterSupplyOutagesChart } from '@/shared/components/charts/water-supply-outages-chart'
 
 export function OverviewPage() {
   const { t } = useTranslation(['super-admin', 'common'])

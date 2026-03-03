@@ -293,7 +293,7 @@ export function CentralDashboard() {
     ? (mockVillagePerformanceByGramPanchayat[selectedGramPanchayat] ?? []).map((village, index) => {
         if (data.waterSupplyOutages.length === 0) {
           return {
-            district: village.name,
+            label: village.name,
             electricityFailure: 0,
             pipelineLeak: 0,
             pumpFailure: 0,
@@ -302,13 +302,13 @@ export function CentralDashboard() {
           }
         }
         const source = data.waterSupplyOutages[index % data.waterSupplyOutages.length]
-        return { ...source, district: village.name }
+        return { ...source, label: village.name }
       })
     : isBlockSelected
       ? (mockGramPanchayatPerformanceByBlock[selectedBlock] ?? []).map((gramPanchayat, index) => {
           if (data.waterSupplyOutages.length === 0) {
             return {
-              district: gramPanchayat.name,
+              label: gramPanchayat.name,
               electricityFailure: 0,
               pipelineLeak: 0,
               pumpFailure: 0,
@@ -317,13 +317,13 @@ export function CentralDashboard() {
             }
           }
           const source = data.waterSupplyOutages[index % data.waterSupplyOutages.length]
-          return { ...source, district: gramPanchayat.name }
+          return { ...source, label: gramPanchayat.name }
         })
       : isDistrictSelected
         ? (mockBlockPerformanceByDistrict[selectedDistrict] ?? []).map((block, index) => {
             if (data.waterSupplyOutages.length === 0) {
               return {
-                district: block.name,
+                label: block.name,
                 electricityFailure: 0,
                 pipelineLeak: 0,
                 pumpFailure: 0,
@@ -332,7 +332,7 @@ export function CentralDashboard() {
               }
             }
             const source = data.waterSupplyOutages[index % data.waterSupplyOutages.length]
-            return { ...source, district: block.name }
+            return { ...source, label: block.name }
           })
         : data.waterSupplyOutages
 

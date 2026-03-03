@@ -64,7 +64,7 @@ export interface PumpOperatorPerformanceData {
 }
 
 export interface WaterSupplyOutageData {
-  district: string
+  label: string
   electricityFailure: number
   pipelineLeak: number
   pumpFailure: number

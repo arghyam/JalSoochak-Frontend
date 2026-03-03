@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import { useTheme } from '@chakra-ui/react'
 import * as echarts from 'echarts'
-import { EChartsWrapper } from './echarts-wrapper'
-import { getBodyText6Style } from './chart-text-style'
+import { EChartsWrapper } from '@/shared/components/common'
+import { getBodyText6Style } from '@/shared/components/charts/chart-text-style'
 import type { EntityPerformance } from '../../types'
 
 interface IndiaMapChartProps {

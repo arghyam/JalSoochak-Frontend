@@ -9,13 +9,15 @@
       "activeIntegrations": "Active Integrations"
     },
     "charts": {
+      "waterSupplyOutages": "Water Supply Outages",
       "demandVsSupply": "Demand vs Supply",
       "dailyIngestionMonitor": "Daily Ingestion Monitor",
       "successRate": "Success Rate",
       "Demand": "Demand",
       "Supply": "Supply",
       "Quantity": "Quantity (units)",
-      "Year": "Year"
+      "Year": "Year",
+      "Districts": "Districts"
     },
     "months": {
       "january": "January",

@@ -21,6 +21,16 @@ export interface DailyIngestionDataPoint {
   count: number
 }
 
+export interface WaterSupplyOutageData {
+  /** Label shown on the X-axis (district, block, sub-division, etc.) */
+  label: string
+  electricityFailure: number
+  pipelineLeak: number
+  pumpFailure: number
+  valveIssue: number
+  sourceDrying: number
+}
+
 export interface OverviewData {
   stats: {
     configurationStatus: StatItem
@@ -30,4 +40,5 @@ export interface OverviewData {
   }
   demandSupplyData: DemandSupplyDataPoint[]
   dailyIngestionData: DailyIngestionDataPoint[]
+  waterSupplyOutages: WaterSupplyOutageData[]
 }

@@ -9,13 +9,15 @@
       "activeIntegrations": "सक्रिय एकीकरण"
     },
     "charts": {
+      "waterSupplyOutages": "जल आपूर्ति व्यवधान",
       "demandVsSupply": "मांग बनाम आपूर्ति",
       "dailyIngestionMonitor": "दैनिक अंतर्ग्रहण मॉनिटर",
       "successRate": "सफलता दर",
       "Demand": "मांग",
       "Supply": "आपूर्ति",
       "Quantity": "मात्रा (इकाइयाँ)",
-      "Year": "वर्ष"
+      "Year": "वर्ष",
+      "Districts": "जिले"
     },
     "months": {
       "january": "जनवरी",

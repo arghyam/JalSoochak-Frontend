@@ -1,9 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
 import { Box, useBreakpointValue, useTheme } from '@chakra-ui/react'
 import * as echarts from 'echarts'
-import { EChartsWrapper } from './echarts-wrapper'
+import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from './chart-text-style'
-import type { WaterSupplyOutageData } from '../../types'
+
+export interface WaterSupplyOutageData {
+  /** Label shown on the X-axis (state, district, block, sub-division, village, etc.) */
+  label: string
+  electricityFailure: number
+  pipelineLeak: number
+  pumpFailure: number
+  valveIssue: number
+  sourceDrying: number
+}
 
 interface WaterSupplyOutagesChartProps {
   data: WaterSupplyOutageData[]
@@ -43,7 +52,13 @@ export function WaterSupplyOutagesChart({
   const itemWidth = barWidth + 24
 
   const option = useMemo<echarts.EChartsOption>(() => {
-    const districts = data.map((entry) => entry.district)
+    const isEmpty = data.length === 0
+    const categories = isEmpty ? [''] : data.map((entry) => entry.label)
+    const sourceDryingData = isEmpty ? [0] : data.map((entry) => entry.sourceDrying)
+    const valveIssueData = isEmpty ? [0] : data.map((entry) => entry.valveIssue)
+    const pumpFailureData = isEmpty ? [0] : data.map((entry) => entry.pumpFailure)
+    const pipelineLeakData = isEmpty ? [0] : data.map((entry) => entry.pipelineLeak)
+    const electricityFailureData = isEmpty ? [0] : data.map((entry) => entry.electricityFailure)
 
     return {
       tooltip: {
@@ -52,14 +67,13 @@ export function WaterSupplyOutagesChart({
       grid: {
         left: 0,
         right: '4%',
-        top: '12%',
-        bottom: '18%',
-        height: 300,
+        top: 10,
+        bottom: 10,
         containLabel: true,
       },
       xAxis: {
         type: 'category',
-        data: districts,
+        data: categories,
         axisTick: {
           show: false,
         },
@@ -67,13 +81,15 @@ export function WaterSupplyOutagesChart({
           show: false,
         },
         axisLabel: {
+          show: true,
           rotate: 45,
           interval: 0,
           margin: 8,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
-          color: bodyText7.color,
+          color: bodyText7.color || '#374151',
+          overflow: 'none',
         },
         name: '',
         nameLocation: 'middle',
@@ -82,7 +98,7 @@ export function WaterSupplyOutagesChart({
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
-          color: bodyText7.color,
+          color: bodyText7.color || '#374151',
         },
       },
       yAxis: {
@@ -111,10 +127,10 @@ export function WaterSupplyOutagesChart({
       },
       series: [
         {
-          name: 'Source drying',
+          name: 'Source Drying',
           type: 'bar',
           stack: 'outages',
-          data: data.map((entry) => entry.sourceDrying),
+          data: sourceDryingData,
           barWidth,
           barCategoryGap,
           itemStyle: {
@@ -126,7 +142,7 @@ export function WaterSupplyOutagesChart({
           name: 'Valve issue',
           type: 'bar',
           stack: 'outages',
-          data: data.map((entry) => entry.valveIssue),
+          data: valveIssueData,
           barWidth,
           barCategoryGap,
           itemStyle: {
@@ -137,7 +153,7 @@ export function WaterSupplyOutagesChart({
           name: 'Pump failure',
           type: 'bar',
           stack: 'outages',
-          data: data.map((entry) => entry.pumpFailure),
+          data: pumpFailureData,
           barWidth,
           barCategoryGap,
           itemStyle: {
@@ -145,10 +161,10 @@ export function WaterSupplyOutagesChart({
           },
         },
         {
-          name: 'Pipeline leak',
+          name: 'Pipeline break',
           type: 'bar',
           stack: 'outages',
-          data: data.map((entry) => entry.pipelineLeak),
+          data: pipelineLeakData,
           barWidth,
           barCategoryGap,
           itemStyle: {
@@ -156,10 +172,10 @@ export function WaterSupplyOutagesChart({
           },
         },
         {
-          name: 'Electricity failure',
+          name: 'Electrical failure',
           type: 'bar',
           stack: 'outages',
-          data: data.map((entry) => entry.electricityFailure),
+          data: electricityFailureData,
           barWidth,
           barCategoryGap,
           itemStyle: {
@@ -179,8 +195,8 @@ export function WaterSupplyOutagesChart({
       grid: {
         left: 0,
         right: 0,
-        top: '12%',
-        bottom: '18%',
+        top: 10,
+        bottom: 10,
         containLabel: true,
       },
       xAxis: {
@@ -197,7 +213,7 @@ export function WaterSupplyOutagesChart({
           rotate: 45,
           margin: 8,
           formatter: () => '',
-          color: 'transparent',
+          // color: 'transparent',
         },
       },
       yAxis: {
@@ -235,19 +251,18 @@ export function WaterSupplyOutagesChart({
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
   const legendItems = [
-    { label: 'Electricity failure', color: outageColors.electricityFailure },
-    { label: 'Pipeline leak', color: outageColors.pipelineLeak },
+    { label: 'Electrical failure', color: outageColors.electricityFailure },
+    { label: 'Pipeline break', color: outageColors.pipelineLeak },
     { label: 'Pump failure', color: outageColors.pumpFailure },
     { label: 'Valve issue', color: outageColors.valveIssue },
-    { label: 'Source drying', color: outageColors.sourceDrying },
+    { label: 'Source Drying', color: outageColors.sourceDrying },
   ]
-  const baseChartWidth = data.length * itemWidth
+  const categoryCount = Math.max(data.length, 1)
+  const baseChartWidth = categoryCount * itemWidth
   const shouldScroll = containerWidth > 0 && baseChartWidth > containerWidth
   const chartWidth = `${baseChartWidth}px`
 
-  const getTrackWidth = () => {
-    return scrollbarTrackRef.current?.getBoundingClientRect().width ?? 0
-  }
+  const getTrackWidth = () => scrollbarTrackRef.current?.getBoundingClientRect().width ?? 0
 
   const updateThumbFromScroll = useCallback(() => {
     const node = chartScrollRef.current
@@ -268,42 +283,36 @@ export function WaterSupplyOutagesChart({
   useEffect(() => {
     const node = chartScrollRef.current
     if (!node) return
-
     const resizeObserver = new ResizeObserver((entries) => {
       const entry = entries[0]
       if (entry) setContainerWidth(entry.contentRect.width)
       updateThumbFromScroll()
     })
-
     resizeObserver.observe(node)
-    return () => {
-      resizeObserver.disconnect()
-    }
+    return () => resizeObserver.disconnect()
   }, [updateThumbFromScroll])
 
   useEffect(() => {
     const node = scrollbarTrackRef.current
     if (!node) return
-
-    const resizeObserver = new ResizeObserver(() => {
-      updateThumbFromScroll()
-    })
-
+    const resizeObserver = new ResizeObserver(updateThumbFromScroll)
     resizeObserver.observe(node)
-    return () => {
-      resizeObserver.disconnect()
-    }
+    return () => resizeObserver.disconnect()
   }, [updateThumbFromScroll])
 
-  const handleThumbPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+  useEffect(() => {
+    updateThumbFromScroll()
+  }, [data.length, containerWidth, updateThumbFromScroll])
+
+  const handleThumbPointerDown = (e: PointerEvent<HTMLDivElement>) => {
     if (!shouldScroll) return
     isDraggingThumb.current = true
-    dragStartX.current = event.clientX
+    dragStartX.current = e.clientX
     dragStartLeft.current = thumbLeftRef.current
-    event.currentTarget.setPointerCapture(event.pointerId)
+    e.currentTarget.setPointerCapture(e.pointerId)
   }
 
-  const handleThumbPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+  const handleThumbPointerMove = (e: PointerEvent<HTMLDivElement>) => {
     if (!isDraggingThumb.current) return
     const node = chartScrollRef.current
     if (!node) return
@@ -312,32 +321,20 @@ export function WaterSupplyOutagesChart({
     const thumbWidth = Math.min(163, trackWidth)
     const maxThumbTravel = Math.max(0, trackWidth - thumbWidth)
     if (maxThumbTravel === 0) return
-    const delta = event.clientX - dragStartX.current
+    const delta = e.clientX - dragStartX.current
     const nextLeft = Math.min(Math.max(dragStartLeft.current + delta, 0), maxThumbTravel)
     const thumb = scrollbarThumbRef.current
-    if (thumb) {
-      thumb.style.left = `${nextLeft}px`
-    }
+    if (thumb) thumb.style.left = `${nextLeft}px`
     thumbLeftRef.current = nextLeft
     const maxScroll = node.scrollWidth - node.clientWidth
     node.scrollLeft = (nextLeft / maxThumbTravel) * maxScroll
   }
 
-  const handleThumbPointerUp = (event: PointerEvent<HTMLDivElement>) => {
+  const handleThumbPointerUp = (e: PointerEvent<HTMLDivElement>) => {
     if (!isDraggingThumb.current) return
     isDraggingThumb.current = false
-    event.currentTarget.releasePointerCapture(event.pointerId)
+    e.currentTarget.releasePointerCapture(e.pointerId)
   }
-
-  const handleThumbPointerCancel = (event: PointerEvent<HTMLDivElement>) => {
-    if (!isDraggingThumb.current) return
-    isDraggingThumb.current = false
-    event.currentTarget.releasePointerCapture(event.pointerId)
-  }
-
-  useEffect(() => {
-    updateThumbFromScroll()
-  }, [data.length, containerWidth, updateThumbFromScroll])
 
   return (
     <div
@@ -381,9 +378,9 @@ export function WaterSupplyOutagesChart({
         >
           <div
             style={{
-              width: chartWidth,
+              width: shouldScroll ? chartWidth : '100%',
               height: '100%',
-              margin: shouldScroll ? '0' : '0 auto',
+              margin: shouldScroll ? '0' : undefined,
             }}
           >
             <EChartsWrapper option={option} height="100%" />
@@ -437,37 +434,39 @@ export function WaterSupplyOutagesChart({
           </div>
         ))}
       </div>
-      <div style={{ marginTop: '6px' }}>
-        <div
-          ref={scrollbarTrackRef}
-          style={{
-            height: '4px',
-            background: '#E4E4E7',
-            borderRadius: '999px',
-            position: 'relative',
-          }}
-        >
+      {shouldScroll && (
+        <div style={{ marginTop: '6px' }}>
           <div
-            role="presentation"
-            ref={scrollbarThumbRef}
-            onPointerDown={handleThumbPointerDown}
-            onPointerMove={handleThumbPointerMove}
-            onPointerUp={handleThumbPointerUp}
-            onPointerLeave={handleThumbPointerUp}
-            onPointerCancel={handleThumbPointerCancel}
+            ref={scrollbarTrackRef}
             style={{
-              position: 'absolute',
-              top: 0,
               height: '4px',
-              width: '163px',
-              maxWidth: '100%',
-              background: '#D1D5DB',
+              background: 'transparent',
               borderRadius: '999px',
-              cursor: shouldScroll ? 'grab' : 'default',
+              position: 'relative',
             }}
-          />
+          >
+            <div
+              role="presentation"
+              ref={scrollbarThumbRef}
+              onPointerDown={handleThumbPointerDown}
+              onPointerMove={handleThumbPointerMove}
+              onPointerUp={handleThumbPointerUp}
+              onPointerLeave={handleThumbPointerUp}
+              onPointerCancel={handleThumbPointerUp}
+              style={{
+                position: 'absolute',
+                top: 0,
+                height: '4px',
+                width: '163px',
+                maxWidth: '100%',
+                background: '#E4E4E7',
+                borderRadius: '999px',
+                cursor: 'grab',
+              }}
+            />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
