@@ -7,12 +7,18 @@ interface AllStatesTableProps {
   data: EntityPerformance[]
   maxItems?: number
   scrollMaxHeight?: string
+  entityLabel?: string
 }
 
 type SortColumn = 'coverage' | 'quantity' | 'regularity' | null
 type SortDirection = 'asc' | 'desc' | null
 
-export function AllStatesTable({ data, maxItems, scrollMaxHeight = '416px' }: AllStatesTableProps) {
+export function AllStatesTable({
+  data,
+  maxItems,
+  scrollMaxHeight = '416px',
+  entityLabel = 'State/UT',
+}: AllStatesTableProps) {
   const [sortColumn, setSortColumn] = useState<SortColumn>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>(null)
   const safeMaxItems =
@@ -72,7 +78,7 @@ export function AllStatesTable({ data, maxItems, scrollMaxHeight = '416px' }: Al
             }}
           >
             <Tr>
-              <Th>State/UT</Th>
+              <Th>{entityLabel}</Th>
               <Th
                 aria-sort={
                   sortColumn === 'coverage'

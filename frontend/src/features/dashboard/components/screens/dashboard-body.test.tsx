@@ -10,11 +10,21 @@ const mockMetricPerformanceChart = jest.fn(
     <div data-testid="metric-performance-chart" />
   )
 )
+const mockMonthlyTrendChart = jest.fn(
+  (_props: { data: Array<{ period: string; value: number }>; seriesName: string }) => (
+    <div data-testid="monthly-trend-chart" />
+  )
+)
 
 jest.mock('../charts', () => ({
   MetricPerformanceChart: (props: { data: EntityPerformance[]; metric: string }) =>
     mockMetricPerformanceChart(props),
+  MonthlyTrendChart: (props: {
+    data: Array<{ period: string; value: number }>
+    seriesName: string
+  }) => mockMonthlyTrendChart(props),
   SupplySubmissionRateChart: () => <div data-testid="supply-submission-rate-chart" />,
+  WaterSupplyOutagesChart: () => <div data-testid="water-supply-outages-chart" />,
   IssueTypeBreakdownChart: () => <div data-testid="issue-type-breakdown-chart" />,
 }))
 
@@ -118,8 +128,6 @@ function renderDashboardBody(overrides: Partial<ComponentProps<typeof DashboardB
       isBlockSelected={false}
       isGramPanchayatSelected={false}
       selectedVillage=""
-      performanceState=""
-      onPerformanceStateChange={jest.fn()}
       districtTableData={mockEntityData}
       blockTableData={mockEntityData}
       gramPanchayatTableData={mockEntityData}
@@ -138,48 +146,56 @@ function renderDashboardBody(overrides: Partial<ComponentProps<typeof DashboardB
 describe('DashboardBody', () => {
   beforeEach(() => {
     mockMetricPerformanceChart.mockClear()
+    mockMonthlyTrendChart.mockClear()
   })
 
-  it('wires performance selectors to map-data options', () => {
+  it('renders independent geography/time selectors for both performance cards', () => {
     renderDashboardBody()
 
-    const quantitySelect = screen.getByRole('combobox', { name: 'Quantity performance state' })
+    const quantitySelect = screen.getByRole('combobox', { name: 'Quantity performance view by' })
     const regularitySelect = screen.getByRole('combobox', {
-      name: 'Regularity performance state',
+      name: 'Regularity performance view by',
     })
 
     expect(quantitySelect).toBeTruthy()
     expect(regularitySelect).toBeTruthy()
-    expect(screen.getAllByRole('option', { name: 'Alpha' })).toHaveLength(2)
-    expect(screen.getAllByRole('option', { name: 'Beta' })).toHaveLength(2)
+    expect(screen.getAllByRole('option', { name: 'Geography' })).toHaveLength(2)
+    expect(screen.getAllByRole('option', { name: 'Time' })).toHaveLength(2)
   })
 
-  it('filters metric chart data by selected performance state', () => {
+  it('renders geography bar charts with full map data by default', () => {
     mockMetricPerformanceChart.mockClear()
 
-    renderDashboardBody({ performanceState: 'Beta' })
+    renderDashboardBody()
 
     const metricChartCalls = mockMetricPerformanceChart.mock.calls as Array<
-      [{ data: EntityPerformance[]; metric: string }]
+      [{ data: EntityPerformance[]; metric: string; showAreaLine?: boolean }]
     >
 
     expect(metricChartCalls).toHaveLength(2)
-    expect(metricChartCalls[0][0].data).toHaveLength(1)
-    expect(metricChartCalls[0][0].data[0]?.name).toBe('Beta')
-    expect(metricChartCalls[1][0].data).toHaveLength(1)
-    expect(metricChartCalls[1][0].data[0]?.name).toBe('Beta')
+    expect(metricChartCalls[0][0].data).toEqual(mockEntityData)
+    expect(metricChartCalls[0][0].showAreaLine).toBe(true)
+    expect(metricChartCalls[1][0].data).toEqual(mockEntityData)
+    expect(metricChartCalls[1][0].showAreaLine).toBeUndefined()
+    expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
   })
 
-  it('calls onPerformanceStateChange from selector changes', () => {
-    const onPerformanceStateChange = jest.fn()
-    renderDashboardBody({ onPerformanceStateChange })
+  it('switches each card to time chart independently', () => {
+    renderDashboardBody()
 
-    const selects = screen.getAllByRole('combobox')
-    fireEvent.change(selects[0], { target: { value: 'Alpha' } })
-    fireEvent.change(selects[1], { target: { value: 'Beta' } })
+    const quantitySelect = screen.getByRole('combobox', { name: 'Quantity performance view by' })
+    const regularitySelect = screen.getByRole('combobox', {
+      name: 'Regularity performance view by',
+    })
 
-    expect(onPerformanceStateChange).toHaveBeenNthCalledWith(1, 'Alpha')
-    expect(onPerformanceStateChange).toHaveBeenNthCalledWith(2, 'Beta')
+    fireEvent.change(quantitySelect, { target: { value: 'time' } })
+    expect(mockMonthlyTrendChart).toHaveBeenCalledTimes(1)
+    expect(mockMonthlyTrendChart.mock.calls[0]?.[0].seriesName).toBe('Quantity')
+    expect(mockMetricPerformanceChart).toHaveBeenCalledTimes(3)
+
+    fireEvent.change(regularitySelect, { target: { value: 'time' } })
+    expect(mockMonthlyTrendChart).toHaveBeenCalledTimes(3)
+    expect(mockMonthlyTrendChart.mock.calls[2]?.[0].seriesName).toBe('Regularity')
   })
 
   it('renders outage reasons pie card and reading submission card in central default view', () => {
@@ -198,5 +214,38 @@ describe('DashboardBody', () => {
     expect(screen.getByTestId('village-dashboard-screen')).toBeTruthy()
     expect(screen.queryByText('Supply Outage Reasons')).toBeNull()
     expect(screen.queryByText('Reading Submission Rate')).toBeNull()
+  })
+
+  it('renders geography charts with district data and labels when state is selected', () => {
+    mockMetricPerformanceChart.mockClear()
+
+    renderDashboardBody({
+      isStateSelected: true,
+      isDistrictSelected: false,
+      isBlockSelected: false,
+      isGramPanchayatSelected: false,
+      selectedVillage: '',
+      districtTableData: [
+        {
+          id: 'd1',
+          name: 'District A',
+          coverage: 60,
+          regularity: 70,
+          continuity: 0,
+          quantity: 50,
+          compositeScore: 65,
+          status: 'needs-attention',
+        },
+      ],
+    })
+
+    const metricChartCalls = mockMetricPerformanceChart.mock.calls as Array<
+      [{ data: EntityPerformance[]; entityLabel?: string }]
+    >
+
+    expect(metricChartCalls).toHaveLength(2)
+    expect(metricChartCalls[0][0].data[0]?.name).toBe('District A')
+    expect(metricChartCalls[0][0].entityLabel).toBe('Districts')
+    expect(metricChartCalls[1][0].entityLabel).toBe('Districts')
   })
 })
