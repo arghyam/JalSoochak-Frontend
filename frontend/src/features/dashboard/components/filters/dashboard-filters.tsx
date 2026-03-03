@@ -4,6 +4,7 @@ import { DateRangePicker } from '@/shared/components/common'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
 import { SearchLayout } from '@/shared/components/layout'
 import { useLocationSearchQuery } from '../../services/query/use-location-search-query'
+import { computeTrailIndices } from '../../utils/trail-index'
 
 type DashboardFiltersProps = {
   filterTabIndex: number
@@ -97,14 +98,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     selectedGramPanchayat,
     selectedVillage,
   ] as const
-  const deepestSelectedTrailIndex = [...trailSelectionValues].reduce(
-    (lastIndex, value, index) => (value ? index : lastIndex),
-    -1
-  )
-  const effectiveTrailIndex =
-    activeTrailIndex === null || activeTrailIndex === undefined
-      ? deepestSelectedTrailIndex
-      : Math.max(-1, Math.min(activeTrailIndex, deepestSelectedTrailIndex))
+  const { effectiveTrailIndex } = computeTrailIndices(trailSelectionValues, activeTrailIndex)
   const hasSelectedState = effectiveTrailIndex >= 0 && Boolean(selectedState)
   const hasSelectedDistrict = effectiveTrailIndex >= 1 && Boolean(selectedDistrict)
   const hasSelectedBlock = effectiveTrailIndex >= 2 && Boolean(selectedBlock)

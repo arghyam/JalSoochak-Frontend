@@ -16,6 +16,7 @@ import type { EntityPerformance } from '../types'
 import { DashboardFilters } from './filters/dashboard-filters'
 import { AllStatesTable } from './tables'
 import { ROUTES } from '@/shared/constants/routes'
+import { computeTrailIndices } from '../utils/trail-index'
 import {
   mockFilterStates,
   mockFilterDistricts,
@@ -118,14 +119,7 @@ export function CentralDashboard() {
     selectedGramPanchayat,
     selectedVillage,
   ] as const
-  const deepestSelectedTrailIndex = [...selectionTrailValues].reduce(
-    (lastIndex, value, index) => (value ? index : lastIndex),
-    -1
-  )
-  const effectiveTrailIndex =
-    activeTrailIndex === null || activeTrailIndex === undefined
-      ? deepestSelectedTrailIndex
-      : Math.max(-1, Math.min(activeTrailIndex, deepestSelectedTrailIndex))
+  const { effectiveTrailIndex } = computeTrailIndices(selectionTrailValues, activeTrailIndex)
   const effectiveSelectedState = effectiveTrailIndex >= 0 ? selectedState : ''
   const effectiveSelectedDistrict = effectiveTrailIndex >= 1 ? selectedDistrict : ''
   const effectiveSelectedBlock = effectiveTrailIndex >= 2 ? selectedBlock : ''

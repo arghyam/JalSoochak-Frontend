@@ -327,14 +327,14 @@ export function SearchLayout({
                       key={tab}
                       isDisabled={isTabsDisabled}
                       py="4px"
-                      color={isTabsDisabled ? 'neutral.30' : 'neutral.400'}
+                      color={isTabsDisabled ? 'neutral.300' : 'neutral.400'}
                       borderBottomWidth="2px"
                       width="128px"
                       height="30px"
                       borderColor="neutral.200"
                       _selected={
                         isTabsDisabled
-                          ? { color: 'neutral.30', borderColor: 'neutral.200' }
+                          ? { color: 'neutral.300', borderColor: 'neutral.200' }
                           : { color: 'primary.500', borderColor: 'primary.500' }
                       }
                     >
