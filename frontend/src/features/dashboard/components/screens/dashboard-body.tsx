@@ -5,8 +5,11 @@ import type {
   PumpOperatorPerformanceData,
   WaterSupplyOutageData,
 } from '../../types'
-import { AllStatesPerformanceChart, DemandSupplyChart, SupplySubmissionRateChart } from '../charts'
-import { AllStatesTable } from '../tables'
+import {
+  IssueTypeBreakdownChart,
+  MetricPerformanceChart,
+  SupplySubmissionRateChart,
+} from '../charts'
 import { BlockDashboardScreen } from './block-dashboard'
 import { DistrictDashboardScreen } from './district-dashboard'
 import { GramPanchayatDashboardScreen } from './gram-panchayat-dashboard'
@@ -64,6 +67,16 @@ export function DashboardBody({
     isDistrictSelected && !isBlockSelected && !isGramPanchayatSelected && !selectedVillage
   const isBlockScreen = isBlockSelected && !isGramPanchayatSelected && !selectedVillage
   const isGramPanchayatScreen = isGramPanchayatSelected && !selectedVillage
+  const performanceStateOptions = Array.from(
+    new Set(
+      data.mapData
+        .map((item) => item.name)
+        .filter((name): name is string => Boolean(name && name.trim()))
+    )
+  )
+  const performanceChartData = performanceState
+    ? data.mapData.filter((item) => item.name === performanceState)
+    : data.mapData
 
   return (
     <>
@@ -115,7 +128,7 @@ export function DashboardBody({
         />
       ) : null}
 
-      {/* Performance + Demand vs Supply Charts */}
+      {/* Quantity + Regularity Charts */}
       {!selectedVillage &&
       !isStateScreen &&
       !isDistrictScreen &&
@@ -124,79 +137,136 @@ export function DashboardBody({
         <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
           <Box
             bg="white"
-            borderWidth="1px"
-            borderRadius="lg"
-            p={4}
-            h="536px"
+            borderWidth="0.5px"
+            borderRadius="12px"
+            borderColor="#E4E4E7"
+            px="16px"
+            pt="24px"
+            pb="24px"
+            h="523px"
             w="full"
-            minW="250px"
-            justifySelf={{ base: 'center', md: 'stretch' }}
+            minW={0}
           >
             <Flex align="center" justify="space-between">
               <Text textStyle="bodyText3" fontWeight="400">
-                All States/UTs Performance
+                Quantity Performance
               </Text>
-              {!isStateSelected &&
-              !isDistrictSelected &&
-              !isBlockSelected &&
-              !isGramPanchayatSelected ? (
-                <Select
-                  h="32px"
-                  maxW="120px"
-                  fontSize="14px"
-                  fontWeight="600"
-                  borderRadius="4px"
-                  borderColor="neutral.400"
-                  borderWidth="1px"
-                  bg="white"
-                  color="neutral.400"
-                  placeholder="Select"
-                  appearance="none"
-                  value={performanceState}
-                  onChange={(event) => onPerformanceStateChange(event.target.value)}
-                  _focus={{
-                    borderColor: 'primary.500',
-                    boxShadow: 'none',
-                  }}
-                >
-                  <option value="Punjab">Punjab</option>
-                </Select>
-              ) : null}
+              <Select
+                aria-label="Quantity performance state"
+                h="32px"
+                maxW="96px"
+                fontSize="14px"
+                fontWeight="600"
+                borderRadius="4px"
+                borderColor="neutral.400"
+                borderWidth="1px"
+                bg="white"
+                color="neutral.400"
+                placeholder="Select"
+                appearance="none"
+                value={performanceState}
+                onChange={(event) => onPerformanceStateChange(event.target.value)}
+                _focus={{
+                  borderColor: 'primary.500',
+                  boxShadow: 'none',
+                }}
+              >
+                {performanceStateOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </Select>
             </Flex>
-            <AllStatesPerformanceChart
-              data={
-                performanceState
-                  ? data.mapData.filter((state) => state.name === performanceState).slice(0, 1)
-                  : data.mapData
-              }
-              height="440px"
+            <MetricPerformanceChart
+              data={performanceChartData}
+              metric="quantity"
+              height="400px"
               entityLabel="States/UTs"
+              yAxisLabel="Quantity"
+              seriesName="Quantity"
+              showAreaLine
+              areaSeriesName="Demand"
             />
           </Box>
-          <Box bg="white" borderWidth="1px" borderRadius="lg" p={4} h="536px" minW={0}>
-            <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-              Demand vs Supply
-            </Text>
-            <DemandSupplyChart data={data.demandSupply} height="418px" />
+          <Box
+            bg="white"
+            borderWidth="0.5px"
+            borderRadius="12px"
+            borderColor="#E4E4E7"
+            px="16px"
+            pt="24px"
+            pb="24px"
+            h="523px"
+            minW={0}
+          >
+            <Flex align="center" justify="space-between">
+              <Text textStyle="bodyText3" fontWeight="400">
+                Regularity Performance
+              </Text>
+              <Select
+                aria-label="Regularity performance state"
+                h="32px"
+                maxW="96px"
+                fontSize="14px"
+                fontWeight="600"
+                borderRadius="4px"
+                borderColor="neutral.400"
+                borderWidth="1px"
+                bg="white"
+                color="neutral.400"
+                placeholder="Select"
+                appearance="none"
+                value={performanceState}
+                onChange={(event) => onPerformanceStateChange(event.target.value)}
+                _focus={{
+                  borderColor: 'primary.500',
+                  boxShadow: 'none',
+                }}
+              >
+                {performanceStateOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </Select>
+            </Flex>
+            <MetricPerformanceChart
+              data={performanceChartData}
+              metric="regularity"
+              height="400px"
+              entityLabel="States/UTs"
+              yAxisLabel="Regularity"
+              seriesName="Regularity"
+            />
           </Box>
         </Grid>
       ) : null}
 
-      {/* All Gram Panchayats/Villages + Pump Operators */}
-      {/* All States/Districts/Pump Operators + Submission Rate */}
+      {/* Supply outage reasons + Submission Rate */}
       {!selectedVillage &&
       !isStateScreen &&
       !isDistrictScreen &&
       !isBlockSelected &&
       !isGramPanchayatScreen ? (
         <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-          <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="510px" minW={0}>
-            <>
-              <Text textStyle="bodyText3" fontWeight="400" mb="16px">
-                All States/UTs
-              </Text>
-              <AllStatesTable data={data.mapData} />
-            </>
+          <Box
+            bg="white"
+            borderWidth="0.5px"
+            borderRadius="12px"
+            borderColor="#E4E4E7"
+            pt="24px"
+            pb="24px"
+            pl="16px"
+            pr="16px"
+            h="523px"
+            w="full"
+            minW={0}
+          >
+            <Text textStyle="bodyText3" fontWeight="400" mb={2}>
+              Supply Outage Reasons
+            </Text>
+            <IssueTypeBreakdownChart data={waterSupplyOutagesData} height="400px" />
           </Box>
           <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="510px" minW={0}>
             <Text textStyle="bodyText3" fontWeight="400" mb={2}>

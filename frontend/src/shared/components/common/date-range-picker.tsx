@@ -320,7 +320,12 @@ export function DateRangePicker({
           <CalendarIcon boxSize="16px" />
         </Flex>
       </PopoverTrigger>
-      <PopoverContent w={{ base: 'full', md: '420px' }} borderColor="neutral.100" boxShadow="md">
+      <PopoverContent
+        w={{ base: 'full', md: '420px' }}
+        borderColor="neutral.100"
+        boxShadow="md"
+        mt="16px"
+      >
         <PopoverBody p="16px">
           <Flex direction={{ base: 'column', md: 'row' }} gap="16px">
             <VStack align="stretch" spacing="6px" minW={{ md: '160px' }}>
