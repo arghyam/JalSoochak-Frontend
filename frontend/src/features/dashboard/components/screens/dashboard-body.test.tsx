@@ -143,9 +143,13 @@ describe('DashboardBody', () => {
   it('wires performance selectors to map-data options', () => {
     renderDashboardBody()
 
-    const selects = screen.getAllByRole('combobox')
+    const quantitySelect = screen.getByRole('combobox', { name: 'Quantity performance state' })
+    const regularitySelect = screen.getByRole('combobox', {
+      name: 'Regularity performance state',
+    })
 
-    expect(selects).toHaveLength(2)
+    expect(quantitySelect).toBeTruthy()
+    expect(regularitySelect).toBeTruthy()
     expect(screen.getAllByRole('option', { name: 'Alpha' })).toHaveLength(2)
     expect(screen.getAllByRole('option', { name: 'Beta' })).toHaveLength(2)
   })

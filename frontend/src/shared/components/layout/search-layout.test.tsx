@@ -42,8 +42,13 @@ describe('SearchLayout', () => {
   it('renders trail with last selected as chip', () => {
     renderWithProviders(<SearchLayout selectionTrail={['Telangana', 'Sangareddy']} />)
 
+    const activeBreadcrumb = screen.getByRole('button', { name: 'Breadcrumb: Sangareddy' })
+    const previousBreadcrumb = screen.getByRole('button', { name: 'Breadcrumb: Telangana' })
+
     expect(screen.getByText('Telangana')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Breadcrumb: Sangareddy' })).toBeTruthy()
+    expect(activeBreadcrumb).toBeTruthy()
+    expect(activeBreadcrumb.getAttribute('aria-current')).toBe('page')
+    expect(previousBreadcrumb.hasAttribute('aria-current')).toBe(false)
   })
 
   it('does not render chip when external trail is empty', () => {

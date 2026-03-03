@@ -152,6 +152,7 @@ export function DashboardBody({
                 Quantity Performance
               </Text>
               <Select
+                aria-label="Quantity performance state"
                 h="32px"
                 maxW="96px"
                 fontSize="14px"
@@ -204,6 +205,7 @@ export function DashboardBody({
                 Regularity Performance
               </Text>
               <Select
+                aria-label="Regularity performance state"
                 h="32px"
                 maxW="96px"
                 fontSize="14px"

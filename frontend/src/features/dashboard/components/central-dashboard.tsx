@@ -69,6 +69,13 @@ const getStoredFilters = (): StoredFilters => {
   }
 }
 
+const toStateSlug = (stateName: string) =>
+  stateName
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+
 export function CentralDashboard() {
   const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
   const [searchParams] = useSearchParams()
@@ -314,8 +321,13 @@ export function CentralDashboard() {
     selectedVillage,
   ])
 
-  const handleStateClick = (stateId: string, _stateName: string) => {
-    navigate(`/states/${stateId}`)
+  const handleStateClick = (_stateId: string, stateName: string) => {
+    setActiveTrailIndex(null)
+    setFilterTabIndex(0)
+    const stateOption = mockFilterStates.find(
+      (option) => option.label.toLowerCase() === stateName.toLowerCase()
+    )
+    updateFilterUrl({ state: stateOption?.value ?? toStateSlug(stateName) })
   }
 
   const handleStateHover = (_stateId: string, _stateName: string, _metrics: unknown) => {

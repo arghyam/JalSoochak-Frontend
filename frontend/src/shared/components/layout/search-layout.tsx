@@ -122,11 +122,7 @@ export function SearchLayout({
       return []
     }
 
-    if (effectiveActiveTrailIndex >= 0) {
-      return effectiveSelectionTrail.slice(0, effectiveActiveTrailIndex + 1)
-    }
-
-    return effectiveSelectionTrail
+    return effectiveSelectionTrail.slice(0, effectiveActiveTrailIndex + 1)
   }, [effectiveActiveTrailIndex, effectiveSelectionTrail])
 
   useOutsideClick({
@@ -264,6 +260,7 @@ export function SearchLayout({
                     _hover={{ bg: 'neutral.100' }}
                     _active={{ bg: 'neutral.100' }}
                     aria-label={`Breadcrumb: ${item}`}
+                    aria-current="page"
                   >
                     {item}
                   </Button>

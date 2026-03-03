@@ -10,6 +10,7 @@ const mockUseParams = jest.fn(() => ({}))
 const mockUseSearchParams = jest.fn(() => [new URLSearchParams(), jest.fn()])
 const mockDashboardFilters = jest.fn((_props: unknown) => <div data-testid="dashboard-filters" />)
 const mockDashboardBody = jest.fn((_props: unknown) => <div data-testid="dashboard-body" />)
+const mockIndiaMapChart = jest.fn((_props: unknown) => <div data-testid="india-map-chart" />)
 
 const getLatestDashboardFilterProps = <T extends object>() => {
   const calls = mockDashboardFilters.mock.calls as unknown[][]
@@ -18,6 +19,11 @@ const getLatestDashboardFilterProps = <T extends object>() => {
 
 const getLatestDashboardBodyProps = <T extends object>() => {
   const calls = mockDashboardBody.mock.calls as unknown[][]
+  return calls[calls.length - 1]?.[0] as T
+}
+
+const getLatestIndiaMapChartProps = <T extends object>() => {
+  const calls = mockIndiaMapChart.mock.calls as unknown[][]
   return calls[calls.length - 1]?.[0] as T
 }
 
@@ -40,7 +46,7 @@ jest.mock('./kpi-card', () => ({
 }))
 
 jest.mock('./charts', () => ({
-  IndiaMapChart: () => <div data-testid="india-map-chart" />,
+  IndiaMapChart: (props: unknown) => mockIndiaMapChart(props),
 }))
 
 jest.mock('./screens/dashboard-body', () => ({
@@ -105,6 +111,7 @@ describe('CentralDashboard', () => {
     mockUseSearchParams.mockReset()
     mockDashboardFilters.mockClear()
     mockDashboardBody.mockClear()
+    mockIndiaMapChart.mockClear()
     mockUseParams.mockReturnValue({})
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()])
   })
@@ -204,5 +211,25 @@ describe('CentralDashboard', () => {
     expect(dashboardBodyProps.gramPanchayatTableData).toEqual([])
     expect(dashboardBodyProps.villageTableData).toEqual([])
     expect(dashboardBodyProps.waterSupplyOutagesData).toEqual([])
+  })
+
+  it('uses state slug route format when map state is clicked', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const mapProps = getLatestIndiaMapChartProps<{
+      onStateClick: (stateId: string, stateName: string) => void
+    }>()
+    mapProps.onStateClick('TG', 'Telangana')
+
+    expect(mockNavigate).toHaveBeenCalledWith({
+      pathname: '/telangana',
+      search: '',
+    })
   })
 })
