@@ -95,8 +95,8 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
   },
   {
     type: 'simple',
-    path: ROUTES.STATE_ADMIN_OPERATOR_SYNC,
-    labelKey: 'sidebar.operatorSync',
+    path: ROUTES.STATE_ADMIN_STAFF_SYNC,
+    labelKey: 'sidebar.staffSync',
     roles: [AUTH_ROLES.STATE_ADMIN],
     icon: 'BsPerson',
   },

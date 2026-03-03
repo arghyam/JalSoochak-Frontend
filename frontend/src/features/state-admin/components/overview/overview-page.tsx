@@ -3,8 +3,6 @@ import {
   Box,
   Flex,
   SimpleGrid,
-  Text,
-  Icon,
   Stack,
   Menu,
   MenuButton,
@@ -13,16 +11,18 @@ import {
   Button,
   Heading,
   Spinner,
+  Text,
 } from '@chakra-ui/react'
+
 import { ChevronDownIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import i18n from '@/app/i18n'
 import { useAuthStore } from '@/app/store'
 import { LineChart } from '@/shared/components/charts/line-chart'
 import { AreaChart } from '@/shared/components/charts/area-chart'
+import { StatCard } from '@/shared/components/common'
 import { useStateAdminOverviewQuery } from '../../services/query/use-state-admin-queries'
-import { BsCheck2Circle, BsPerson } from 'react-icons/bs'
-import { AiOutlineApi, AiOutlineWarning } from 'react-icons/ai'
+import { BsCheck2Circle, BsDroplet, BsPerson } from 'react-icons/bs'
 import { BiMessageDetail } from 'react-icons/bi'
 
 type MonthKey =
@@ -82,43 +82,38 @@ export function OverviewPage() {
     return null
   }
 
+  const formatStatValue = (value: string | number): string =>
+    typeof value === 'number' ? value.toLocaleString(i18n.language) : value
+
   const statsCards = [
     {
-      title: t('overview.stats.pumpOperatorsSynced'),
-      value: data.stats.pumpOperatorsSynced.toLocaleString(i18n.language),
-      subtitle: t('overview.stats.outOf', { total: '3000' }),
-      icon: BsPerson,
-      iconBg: '#F1EEFF',
-      iconColor: '#584C93',
-    },
-    {
       title: t('overview.stats.configurationStatus'),
-      value: data.stats.configurationStatus,
-      subtitle: t('overview.stats.allModulesConfigured'),
+      value: formatStatValue(data.stats.configurationStatus.value),
+      subtitle: data.stats.configurationStatus.subtitle,
       icon: BsCheck2Circle,
       iconBg: '#E1FFEA',
       iconColor: '#079455',
     },
     {
-      title: t('overview.stats.todayApiIngestion'),
-      value: data.stats.todayApiIngestion,
-      subtitle: t('overview.stats.successfullyIngested'),
-      icon: AiOutlineApi,
+      title: t('overview.stats.activeStaff'),
+      value: formatStatValue(data.stats.activeStaff.value),
+      subtitle: data.stats.activeStaff.subtitle,
+      icon: BsPerson,
+      iconBg: '#F1EEFF',
+      iconColor: '#584C93',
+    },
+    {
+      title: t('overview.stats.activeSchemes'),
+      value: formatStatValue(data.stats.activeSchemes.value),
+      subtitle: data.stats.activeSchemes.subtitle,
+      icon: BsDroplet,
       iconBg: '#EBF4FA',
       iconColor: '#3291D1',
     },
     {
-      title: t('overview.stats.pendingDataSync'),
-      value: data.stats.pendingDataSync.toLocaleString(i18n.language),
-      subtitle: t('overview.stats.requiresAttention'),
-      icon: AiOutlineWarning,
-      iconBg: '#FFFBD7',
-      iconColor: '#CA8A04',
-    },
-    {
       title: t('overview.stats.activeIntegrations'),
-      value: data.stats.activeIntegrations.toLocaleString(i18n.language),
-      subtitle: t('overview.stats.integrationNames'),
+      value: formatStatValue(data.stats.activeIntegrations.value),
+      subtitle: data.stats.activeIntegrations.subtitle,
       icon: BiMessageDetail,
       iconBg: '#FBEAFF',
       iconColor: '#DC72F2',
@@ -141,53 +136,20 @@ export function OverviewPage() {
         <SimpleGrid
           as="section"
           aria-label={t('overview.aria.statsSection')}
-          columns={{ base: 1, sm: 2, md: 3, lg: 5 }}
+          columns={{ base: 1, sm: 2, md: 2, lg: 4 }}
           spacing={{ base: 4, md: 7 }}
         >
-          {statsCards.map((stat) => {
-            const StatIcon = stat.icon
-            return (
-              <Box
-                key={stat.title}
-                bg="white"
-                borderWidth="1px"
-                borderColor="neutral.100"
-                height={{ base: 'auto', xl: '200px' }}
-                borderRadius="lg"
-                boxShadow="default"
-                p={4}
-              >
-                <Flex direction="column" gap={3}>
-                  <Flex
-                    h="40px"
-                    w="40px"
-                    align="center"
-                    justify="center"
-                    borderRadius="full"
-                    bg={stat.iconBg}
-                    aria-hidden="true"
-                  >
-                    <Icon as={StatIcon} boxSize={5} color={stat.iconColor} />
-                  </Flex>
-                  <Flex direction="column" gap={1}>
-                    <Text color="neutral.600" fontSize={{ base: 'sm', md: 'md' }}>
-                      {stat.title}
-                    </Text>
-                    <Text
-                      textStyle="h9"
-                      fontSize={{ base: 'xl', md: '2xl' }}
-                      aria-label={`${stat.title}: ${stat.value}`}
-                    >
-                      {stat.value}
-                    </Text>
-                    <Text color="neutral.600" fontSize={{ base: 'sm', md: 'md' }}>
-                      {stat.subtitle}
-                    </Text>
-                  </Flex>
-                </Flex>
-              </Box>
-            )
-          })}
+          {statsCards.map((stat) => (
+            <StatCard
+              key={stat.title}
+              title={stat.title}
+              value={stat.value}
+              subtitle={stat.subtitle}
+              icon={stat.icon}
+              iconBg={stat.iconBg}
+              iconColor={stat.iconColor}
+            />
+          ))}
         </SimpleGrid>
 
         {/* Demand vs Supply Chart */}

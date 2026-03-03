@@ -3,16 +3,10 @@
     "title": "{{state}} का अवलोकन",
     "titleFallback": "राज्य का अवलोकन",
     "stats": {
-      "pumpOperatorsSynced": "सिंक किए गए पंप ऑपरेटर",
-      "outOf": "{{total}} में से",
       "configurationStatus": "कॉन्फ़िगरेशन स्थिति",
-      "allModulesConfigured": "सभी मॉड्यूल कॉन्फ़िगर किए गए",
-      "todayApiIngestion": "आज का API अंतर्ग्रहण",
-      "successfullyIngested": "सफलतापूर्वक अंतर्ग्रहित",
-      "pendingDataSync": "लंबित डेटा सिंक",
-      "requiresAttention": "ध्यान देने की आवश्यकता",
-      "activeIntegrations": "सक्रिय एकीकरण",
-      "integrationNames": "WhatsApp"
+      "activeStaff": "सक्रिय कर्मचारी",
+      "activeSchemes": "सक्रिय योजनाएँ",
+      "activeIntegrations": "सक्रिय एकीकरण"
     },
     "charts": {
       "demandVsSupply": "मांग बनाम आपूर्ति",
@@ -220,6 +214,51 @@
       "enterContinuity": "निरंतरता सीमा दिन दर्ज करें",
       "enterQuantity": "LPCD में मात्रा सीमा दर्ज करें",
       "enterRegularity": "नियमितता सीमा प्रतिशत दर्ज करें"
+    }
+  },
+
+  "staffSync": {
+    "title": "स्टाफ सिंक",
+    "searchPlaceholder": "नाम से खोजें",
+    "uploadData": "डेटा अपलोड करें",
+    "downloadData": "डेटा डाउनलोड करें",
+    "filters": {
+      "label": "फ़िल्टर",
+      "gramPanchayat": "ग्राम पंचायत",
+      "village": "गाँव",
+      "role": "भूमिका",
+      "status": "स्थिति",
+      "clearAll": "सभी फ़िल्टर हटाएं"
+    },
+    "stats": {
+      "totalPumpOperators": "कुल पंप ऑपरेटरों की संख्या",
+      "totalSubDivisionOfficers": "कुल उप-विभाग अधिकारियों की संख्या",
+      "totalSectionOfficers": "कुल सेक्शन अधिकारियों की संख्या"
+    },
+    "roles": {
+      "pumpOperator": "पंप ऑपरेटर",
+      "subDivisionOfficer": "उप-विभाग अधिकारी",
+      "sectionOfficer": "सेक्शन अधिकारी"
+    },
+    "table": {
+      "allGpVillage": "सभी GP और गाँव",
+      "name": "नाम",
+      "role": "भूमिका",
+      "mobileNumber": "मोबाइल नंबर",
+      "lastSubmission": "अंतिम सबमिशन",
+      "activityStatus": "गतिविधि स्थिति"
+    },
+    "messages": {
+      "noStaffFound": "कोई स्टाफ सदस्य नहीं मिला",
+      "failedToLoad": "स्टाफ डेटा लोड करने में विफल",
+      "naSubmission": "N/A"
+    },
+    "aria": {
+      "statsSection": "स्टाफ सिंक सांख्यिकी",
+      "searchStaff": "नाम से स्टाफ खोजें",
+      "filterSection": "स्टाफ सदस्यों को फ़िल्टर करें",
+      "uploadData": "स्टाफ डेटा अपलोड करें",
+      "downloadData": "स्टाफ डेटा डाउनलोड करें"
     }
   },
 

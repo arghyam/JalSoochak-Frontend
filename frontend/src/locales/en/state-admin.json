@@ -3,16 +3,10 @@
     "title": "Overview of {{state}}",
     "titleFallback": "Overview of State",
     "stats": {
-      "pumpOperatorsSynced": "Pump Operators Synced",
-      "outOf": "Out of {{total}}",
       "configurationStatus": "Configuration Status",
-      "allModulesConfigured": "All modules configured",
-      "todayApiIngestion": "Today's API Ingestion",
-      "successfullyIngested": "Successfully ingested",
-      "pendingDataSync": "Pending Data Sync",
-      "requiresAttention": "Requires Attention",
-      "activeIntegrations": "Active Integrations",
-      "integrationNames": "WhatsApp"
+      "activeStaff": "Active Staff",
+      "activeSchemes": "Active Schemes",
+      "activeIntegrations": "Active Integrations"
     },
     "charts": {
       "demandVsSupply": "Demand vs Supply",
@@ -220,6 +214,51 @@
       "enterContinuity": "Enter continuity threshold days",
       "enterQuantity": "Enter quantity threshold in LPCD",
       "enterRegularity": "Enter regularity threshold percentage"
+    }
+  },
+
+  "staffSync": {
+    "title": "Staff Sync",
+    "searchPlaceholder": "Search by name",
+    "uploadData": "Upload Data",
+    "downloadData": "Download Data",
+    "filters": {
+      "label": "Filters",
+      "gramPanchayat": "Gram Panchayat",
+      "village": "Village",
+      "role": "Role",
+      "status": "Status",
+      "clearAll": "clear all filters"
+    },
+    "stats": {
+      "totalPumpOperators": "Total No. of Pump Operators",
+      "totalSubDivisionOfficers": "Total No. of Sub-Division Officers",
+      "totalSectionOfficers": "Total No. Section Officers"
+    },
+    "roles": {
+      "pumpOperator": "Pump Operator",
+      "subDivisionOfficer": "Sub-Division Officer",
+      "sectionOfficer": "Section Officer"
+    },
+    "table": {
+      "allGpVillage": "All GP & Village",
+      "name": "Name",
+      "role": "Role",
+      "mobileNumber": "Mobile Number",
+      "lastSubmission": "Last Submission",
+      "activityStatus": "Activity Status"
+    },
+    "messages": {
+      "noStaffFound": "No staff members found",
+      "failedToLoad": "Failed to load staff data",
+      "naSubmission": "N/A"
+    },
+    "aria": {
+      "statsSection": "Staff sync statistics",
+      "searchStaff": "Search staff by name",
+      "filterSection": "Filter staff members",
+      "uploadData": "Upload staff data",
+      "downloadData": "Download staff data"
     }
   },
 
