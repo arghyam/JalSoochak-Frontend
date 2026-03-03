@@ -1,0 +1,251 @@
+import { beforeEach, describe, expect, it, jest } from '@jest/globals'
+import type { ComponentProps } from 'react'
+import { fireEvent, screen } from '@testing-library/react'
+import { renderWithProviders } from '@/test/render-with-providers'
+import type { DashboardData, EntityPerformance, PumpOperatorPerformanceData } from '../../types'
+import { DashboardBody } from './dashboard-body'
+
+const mockMetricPerformanceChart = jest.fn(
+  (_props: { data: EntityPerformance[]; metric: string }) => (
+    <div data-testid="metric-performance-chart" />
+  )
+)
+const mockMonthlyTrendChart = jest.fn(
+  (_props: { data: Array<{ period: string; value: number }>; seriesName: string }) => (
+    <div data-testid="monthly-trend-chart" />
+  )
+)
+
+jest.mock('../charts', () => ({
+  MetricPerformanceChart: (props: { data: EntityPerformance[]; metric: string }) =>
+    mockMetricPerformanceChart(props),
+  MonthlyTrendChart: (props: {
+    data: Array<{ period: string; value: number }>
+    seriesName: string
+  }) => mockMonthlyTrendChart(props),
+  SupplySubmissionRateChart: () => <div data-testid="supply-submission-rate-chart" />,
+  WaterSupplyOutagesChart: () => <div data-testid="water-supply-outages-chart" />,
+  IssueTypeBreakdownChart: () => <div data-testid="issue-type-breakdown-chart" />,
+}))
+
+jest.mock('./state-ut-dashboard', () => ({
+  StateUtDashboardScreen: () => <div data-testid="state-ut-dashboard-screen" />,
+}))
+
+jest.mock('./district-dashboard', () => ({
+  DistrictDashboardScreen: () => <div data-testid="district-dashboard-screen" />,
+}))
+
+jest.mock('./block-dashboard', () => ({
+  BlockDashboardScreen: () => <div data-testid="block-dashboard-screen" />,
+}))
+
+jest.mock('./gram-panchayat-dashboard', () => ({
+  GramPanchayatDashboardScreen: () => <div data-testid="gram-panchayat-dashboard-screen" />,
+}))
+
+jest.mock('./village-dashboard', () => ({
+  VillageDashboardScreen: () => <div data-testid="village-dashboard-screen" />,
+}))
+
+const mockEntityData: EntityPerformance[] = [
+  {
+    id: 'e1',
+    name: 'Alpha',
+    coverage: 55,
+    regularity: 62,
+    continuity: 0,
+    quantity: 48,
+    compositeScore: 56,
+    status: 'needs-attention',
+  },
+  {
+    id: 'e2',
+    name: 'Beta',
+    coverage: 72,
+    regularity: 74,
+    continuity: 0,
+    quantity: 65,
+    compositeScore: 71,
+    status: 'good',
+  },
+]
+
+const mockDashboardData: DashboardData = {
+  level: 'central',
+  kpis: {
+    totalSchemes: 100,
+    totalRuralHouseholds: 1000,
+    functionalTapConnections: 800,
+  },
+  mapData: mockEntityData,
+  demandSupply: [{ period: 'Jan', demand: 90, supply: 85 }],
+  imageSubmissionStatus: [{ label: 'On time', value: 80 }],
+  photoEvidenceCompliance: [
+    {
+      id: 'pe-1',
+      name: 'Operator 1',
+      village: 'Village 1',
+      lastSubmission: '2026-02-20',
+      readingValue: '120',
+    },
+  ],
+  pumpOperators: [{ label: 'Active', value: 12 }],
+  waterSupplyOutages: [
+    {
+      district: 'District 1',
+      electricityFailure: 1,
+      pipelineLeak: 1,
+      pumpFailure: 1,
+      valveIssue: 1,
+      sourceDrying: 1,
+    },
+  ],
+  topPerformers: [],
+  worstPerformers: [],
+  regularityData: [],
+  continuityData: [],
+}
+
+const mockOperatorsPerformanceTable: PumpOperatorPerformanceData[] = [
+  {
+    id: 'op-1',
+    name: 'Operator 1',
+    block: 'Block 1',
+    village: 'Village 1',
+    reportingRate: 90,
+    photoCompliance: 88,
+    waterSupplied: 200,
+  },
+]
+
+function renderDashboardBody(overrides: Partial<ComponentProps<typeof DashboardBody>> = {}) {
+  return renderWithProviders(
+    <DashboardBody
+      data={mockDashboardData}
+      isStateSelected={false}
+      isDistrictSelected={false}
+      isBlockSelected={false}
+      isGramPanchayatSelected={false}
+      selectedVillage=""
+      districtTableData={mockEntityData}
+      blockTableData={mockEntityData}
+      gramPanchayatTableData={mockEntityData}
+      villageTableData={mockEntityData}
+      supplySubmissionRateData={mockEntityData}
+      supplySubmissionRateLabel="States/UTs"
+      waterSupplyOutagesData={mockDashboardData.waterSupplyOutages}
+      pumpOperatorsTotal={12}
+      operatorsPerformanceTable={mockOperatorsPerformanceTable}
+      villagePhotoEvidenceRows={mockDashboardData.photoEvidenceCompliance}
+      {...overrides}
+    />
+  )
+}
+
+describe('DashboardBody', () => {
+  beforeEach(() => {
+    mockMetricPerformanceChart.mockClear()
+    mockMonthlyTrendChart.mockClear()
+  })
+
+  it('renders independent geography/time selectors for both performance cards', () => {
+    renderDashboardBody()
+
+    const quantitySelect = screen.getByRole('combobox', { name: 'Quantity performance view by' })
+    const regularitySelect = screen.getByRole('combobox', {
+      name: 'Regularity performance view by',
+    })
+
+    expect(quantitySelect).toBeTruthy()
+    expect(regularitySelect).toBeTruthy()
+    expect(screen.getAllByRole('option', { name: 'Geography' })).toHaveLength(2)
+    expect(screen.getAllByRole('option', { name: 'Time' })).toHaveLength(2)
+  })
+
+  it('renders geography bar charts with full map data by default', () => {
+    mockMetricPerformanceChart.mockClear()
+
+    renderDashboardBody()
+
+    const metricChartCalls = mockMetricPerformanceChart.mock.calls as Array<
+      [{ data: EntityPerformance[]; metric: string; showAreaLine?: boolean }]
+    >
+
+    expect(metricChartCalls).toHaveLength(2)
+    expect(metricChartCalls[0][0].data).toEqual(mockEntityData)
+    expect(metricChartCalls[0][0].showAreaLine).toBe(true)
+    expect(metricChartCalls[1][0].data).toEqual(mockEntityData)
+    expect(metricChartCalls[1][0].showAreaLine).toBeUndefined()
+    expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
+  })
+
+  it('switches each card to time chart independently', () => {
+    renderDashboardBody()
+
+    const quantitySelect = screen.getByRole('combobox', { name: 'Quantity performance view by' })
+    const regularitySelect = screen.getByRole('combobox', {
+      name: 'Regularity performance view by',
+    })
+
+    fireEvent.change(quantitySelect, { target: { value: 'time' } })
+    expect(mockMonthlyTrendChart).toHaveBeenCalledTimes(1)
+    expect(mockMonthlyTrendChart.mock.calls[0]?.[0].seriesName).toBe('Quantity')
+    expect(mockMetricPerformanceChart).toHaveBeenCalledTimes(3)
+
+    fireEvent.change(regularitySelect, { target: { value: 'time' } })
+    expect(mockMonthlyTrendChart).toHaveBeenCalledTimes(3)
+    expect(mockMonthlyTrendChart.mock.calls[2]?.[0].seriesName).toBe('Regularity')
+  })
+
+  it('renders outage reasons pie card and reading submission card in central default view', () => {
+    renderDashboardBody()
+
+    expect(screen.getByText('Supply Outage Reasons')).toBeTruthy()
+    expect(screen.getByTestId('issue-type-breakdown-chart')).toBeTruthy()
+    expect(screen.getByText('Reading Submission Rate')).toBeTruthy()
+    expect(screen.getByTestId('supply-submission-rate-chart')).toBeTruthy()
+    expect(screen.queryByText('All States/UTs')).toBeNull()
+  })
+
+  it('renders village screen only when village is selected', () => {
+    renderDashboardBody({ selectedVillage: 'Village 1' })
+
+    expect(screen.getByTestId('village-dashboard-screen')).toBeTruthy()
+    expect(screen.queryByText('Supply Outage Reasons')).toBeNull()
+    expect(screen.queryByText('Reading Submission Rate')).toBeNull()
+  })
+
+  it('renders geography charts with district data and labels when state is selected', () => {
+    mockMetricPerformanceChart.mockClear()
+
+    renderDashboardBody({
+      isStateSelected: true,
+      isDistrictSelected: false,
+      isBlockSelected: false,
+      isGramPanchayatSelected: false,
+      selectedVillage: '',
+      districtTableData: [
+        {
+          id: 'd1',
+          name: 'District A',
+          coverage: 60,
+          regularity: 70,
+          continuity: 0,
+          quantity: 50,
+          compositeScore: 65,
+          status: 'needs-attention',
+        },
+      ],
+    })
+
+    const metricChartCalls = mockMetricPerformanceChart.mock.calls as Array<
+      [{ data: EntityPerformance[]; entityLabel?: string }]
+    >
+
+    expect(metricChartCalls).toHaveLength(2)
+    expect(metricChartCalls[0][0].data[0]?.name).toBe('District A')
+    expect(metricChartCalls[0][0].entityLabel).toBe('Districts')
+    expect(metricChartCalls[1][0].entityLabel).toBe('Districts')
+  })
+})

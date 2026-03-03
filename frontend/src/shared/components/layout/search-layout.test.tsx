@@ -42,8 +42,13 @@ describe('SearchLayout', () => {
   it('renders trail with last selected as chip', () => {
     renderWithProviders(<SearchLayout selectionTrail={['Telangana', 'Sangareddy']} />)
 
+    const activeBreadcrumb = screen.getByRole('button', { name: 'Breadcrumb: Sangareddy' })
+    const previousBreadcrumb = screen.getByRole('button', { name: 'Breadcrumb: Telangana' })
+
     expect(screen.getByText('Telangana')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Sangareddy' })).toBeTruthy()
+    expect(activeBreadcrumb).toBeTruthy()
+    expect(activeBreadcrumb.getAttribute('aria-current')).toBe('page')
+    expect(previousBreadcrumb.hasAttribute('aria-current')).toBe(false)
   })
 
   it('does not render chip when external trail is empty', () => {
@@ -84,17 +89,29 @@ describe('SearchLayout', () => {
       'Search by state/UT, district, block, gram panchayat, village'
     )
 
-    expect(screen.getByRole('button', { name: 'Sangareddy' })).toBeTruthy()
+    expect(screen.getByTestId('search-trail-closed')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Breadcrumb: Sangareddy' })).toBeTruthy()
 
     fireEvent.focus(searchInput)
-    expect(screen.queryByRole('button', { name: 'Sangareddy' })).toBeNull()
+    expect(screen.queryByTestId('search-trail-closed')).toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'Telangana' }))
-    expect(screen.queryByRole('button', { name: 'Sangareddy' })).toBeNull()
+    expect(screen.queryByTestId('search-trail-closed')).toBeNull()
 
     fireEvent.mouseDown(document.body)
     fireEvent.mouseUp(document.body)
     fireEvent.click(document.body)
-    expect(screen.getByRole('button', { name: 'Sangareddy' })).toBeTruthy()
+    expect(screen.getByTestId('search-trail-closed')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Breadcrumb: Sangareddy' })).toBeTruthy()
+  })
+
+  it('does not render closed chips when active trail points to All States/UTs', () => {
+    renderWithProviders(
+      <SearchLayout selectionTrail={['Telangana', 'Sangareddy']} activeTrailIndex={-1} />
+    )
+
+    expect(screen.queryByTestId('search-trail-closed')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Breadcrumb: Telangana' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Breadcrumb: Sangareddy' })).toBeNull()
   })
 })

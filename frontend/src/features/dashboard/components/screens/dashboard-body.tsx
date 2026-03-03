@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import { Box, Flex, Grid, Select, Text } from '@chakra-ui/react'
 import type {
   DashboardData,
@@ -5,8 +6,13 @@ import type {
   PumpOperatorPerformanceData,
   WaterSupplyOutageData,
 } from '../../types'
-import { AllStatesPerformanceChart, DemandSupplyChart, SupplySubmissionRateChart } from '../charts'
-import { AllStatesTable } from '../tables'
+import {
+  IssueTypeBreakdownChart,
+  MetricPerformanceChart,
+  MonthlyTrendChart,
+  SupplySubmissionRateChart,
+  WaterSupplyOutagesChart,
+} from '../charts'
 import { BlockDashboardScreen } from './block-dashboard'
 import { DistrictDashboardScreen } from './district-dashboard'
 import { GramPanchayatDashboardScreen } from './gram-panchayat-dashboard'
@@ -20,8 +26,6 @@ type DashboardBodyProps = {
   isBlockSelected: boolean
   isGramPanchayatSelected: boolean
   selectedVillage: string
-  performanceState: string
-  onPerformanceStateChange: (value: string) => void
   districtTableData: EntityPerformance[]
   blockTableData: EntityPerformance[]
   gramPanchayatTableData: EntityPerformance[]
@@ -41,8 +45,6 @@ export function DashboardBody({
   isBlockSelected,
   isGramPanchayatSelected,
   selectedVillage,
-  performanceState,
-  onPerformanceStateChange,
   districtTableData,
   blockTableData,
   gramPanchayatTableData,
@@ -54,6 +56,8 @@ export function DashboardBody({
   operatorsPerformanceTable,
   villagePhotoEvidenceRows,
 }: DashboardBodyProps) {
+  const [quantityViewBy, setQuantityViewBy] = useState<'geography' | 'time'>('geography')
+  const [regularityViewBy, setRegularityViewBy] = useState<'geography' | 'time'>('geography')
   const isStateScreen =
     isStateSelected &&
     !isDistrictSelected &&
@@ -65,17 +69,152 @@ export function DashboardBody({
   const isBlockScreen = isBlockSelected && !isGramPanchayatSelected && !selectedVillage
   const isGramPanchayatScreen = isGramPanchayatSelected && !selectedVillage
 
+  const quantityTimeTrendData = useMemo(
+    () =>
+      data.demandSupply.map((item) => ({
+        period: item.period,
+        value: item.supply,
+      })),
+    [data.demandSupply]
+  )
+  const regularityTimeTrendData = useMemo(
+    () =>
+      data.demandSupply.map((item) => ({
+        period: item.period,
+        value: item.demand > 0 ? Math.min(100, Math.round((item.supply / item.demand) * 100)) : 0,
+      })),
+    [data.demandSupply]
+  )
+  const geographyMetricData = isStateScreen ? districtTableData : data.mapData
+  const geographyEntityLabel = isStateScreen ? 'Districts' : 'States/UTs'
+
   return (
     <>
-      {isStateScreen ? (
-        <StateUtDashboardScreen
-          data={data}
-          districtTableData={districtTableData}
-          supplySubmissionRateData={supplySubmissionRateData}
-          supplySubmissionRateLabel={supplySubmissionRateLabel}
-          waterSupplyOutagesData={waterSupplyOutagesData}
-        />
+      {/* Quantity + Regularity Charts */}
+      {!selectedVillage && !isDistrictScreen && !isBlockScreen && !isGramPanchayatScreen ? (
+        <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
+          <Box
+            bg="white"
+            borderWidth="0.5px"
+            borderRadius="12px"
+            borderColor="#E4E4E7"
+            px="16px"
+            pt="24px"
+            pb="24px"
+            h="523px"
+            w="full"
+            minW={0}
+          >
+            <Flex align="center" justify="space-between">
+              <Text textStyle="bodyText3" fontWeight="400">
+                Quantity Performance
+              </Text>
+              <Select
+                aria-label="Quantity performance view by"
+                h="32px"
+                maxW="128px"
+                fontSize="14px"
+                fontWeight="600"
+                borderRadius="4px"
+                borderColor="neutral.400"
+                borderWidth="1px"
+                bg="white"
+                color="neutral.400"
+                appearance="none"
+                value={quantityViewBy}
+                onChange={(event) => setQuantityViewBy(event.target.value as 'geography' | 'time')}
+                _focus={{
+                  borderColor: 'primary.500',
+                  boxShadow: 'none',
+                }}
+              >
+                <option value="geography">Geography</option>
+                <option value="time">Time</option>
+              </Select>
+            </Flex>
+            {quantityViewBy === 'geography' ? (
+              <MetricPerformanceChart
+                data={geographyMetricData}
+                metric="quantity"
+                height="400px"
+                entityLabel={geographyEntityLabel}
+                yAxisLabel="Quantity"
+                seriesName="Quantity"
+                showAreaLine
+                areaSeriesName="Demand"
+              />
+            ) : (
+              <MonthlyTrendChart
+                data={quantityTimeTrendData}
+                height="400px"
+                xAxisLabel="Month"
+                yAxisLabel="Quantity"
+                seriesName="Quantity"
+              />
+            )}
+          </Box>
+          <Box
+            bg="white"
+            borderWidth="0.5px"
+            borderRadius="12px"
+            borderColor="#E4E4E7"
+            px="16px"
+            pt="24px"
+            pb="24px"
+            h="523px"
+            minW={0}
+          >
+            <Flex align="center" justify="space-between">
+              <Text textStyle="bodyText3" fontWeight="400">
+                Regularity Performance
+              </Text>
+              <Select
+                aria-label="Regularity performance view by"
+                h="32px"
+                maxW="128px"
+                fontSize="14px"
+                fontWeight="600"
+                borderRadius="4px"
+                borderColor="neutral.400"
+                borderWidth="1px"
+                bg="white"
+                color="neutral.400"
+                appearance="none"
+                value={regularityViewBy}
+                onChange={(event) =>
+                  setRegularityViewBy(event.target.value as 'geography' | 'time')
+                }
+                _focus={{
+                  borderColor: 'primary.500',
+                  boxShadow: 'none',
+                }}
+              >
+                <option value="geography">Geography</option>
+                <option value="time">Time</option>
+              </Select>
+            </Flex>
+            {regularityViewBy === 'geography' ? (
+              <MetricPerformanceChart
+                data={geographyMetricData}
+                metric="regularity"
+                height="400px"
+                entityLabel={geographyEntityLabel}
+                yAxisLabel="Regularity"
+                seriesName="Regularity"
+              />
+            ) : (
+              <MonthlyTrendChart
+                data={regularityTimeTrendData}
+                height="400px"
+                xAxisLabel="Month"
+                yAxisLabel="Regularity (%)"
+                seriesName="Regularity"
+              />
+            )}
+          </Box>
+        </Grid>
       ) : null}
+
       {isDistrictScreen ? (
         <DistrictDashboardScreen
           data={data}
@@ -115,100 +254,61 @@ export function DashboardBody({
         />
       ) : null}
 
-      {/* Performance + Demand vs Supply Charts */}
-      {!selectedVillage &&
-      !isStateScreen &&
-      !isDistrictScreen &&
-      !isBlockScreen &&
-      !isGramPanchayatScreen ? (
+      {/* Supply outage reasons + distribution/submission */}
+      {!selectedVillage && !isDistrictScreen && !isBlockSelected && !isGramPanchayatScreen ? (
         <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
           <Box
             bg="white"
-            borderWidth="1px"
-            borderRadius="lg"
-            p={4}
-            h="536px"
+            borderWidth="0.5px"
+            borderRadius="12px"
+            borderColor="#E4E4E7"
+            pt="24px"
+            pb="24px"
+            pl="16px"
+            pr="16px"
+            h="510px"
             w="full"
-            minW="250px"
-            justifySelf={{ base: 'center', md: 'stretch' }}
+            minW={0}
           >
-            <Flex align="center" justify="space-between">
-              <Text textStyle="bodyText3" fontWeight="400">
-                All States/UTs Performance
-              </Text>
-              {!isStateSelected &&
-              !isDistrictSelected &&
-              !isBlockSelected &&
-              !isGramPanchayatSelected ? (
-                <Select
-                  h="32px"
-                  maxW="120px"
-                  fontSize="14px"
-                  fontWeight="600"
-                  borderRadius="4px"
-                  borderColor="neutral.400"
-                  borderWidth="1px"
-                  bg="white"
-                  color="neutral.400"
-                  placeholder="Select"
-                  appearance="none"
-                  value={performanceState}
-                  onChange={(event) => onPerformanceStateChange(event.target.value)}
-                  _focus={{
-                    borderColor: 'primary.500',
-                    boxShadow: 'none',
-                  }}
-                >
-                  <option value="Punjab">Punjab</option>
-                </Select>
-              ) : null}
-            </Flex>
-            <AllStatesPerformanceChart
-              data={
-                performanceState
-                  ? data.mapData.filter((state) => state.name === performanceState).slice(0, 1)
-                  : data.mapData
-              }
-              height="440px"
-              entityLabel="States/UTs"
-            />
-          </Box>
-          <Box bg="white" borderWidth="1px" borderRadius="lg" p={4} h="536px" minW={0}>
             <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-              Demand vs Supply
+              Supply Outage Reasons
             </Text>
-            <DemandSupplyChart data={data.demandSupply} height="418px" />
+            <IssueTypeBreakdownChart data={waterSupplyOutagesData} height="400px" />
+          </Box>
+          <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="510px" minW={0}>
+            {isStateScreen ? (
+              <>
+                <Text textStyle="bodyText3" fontWeight="400" mb={2}>
+                  Supply Outage Distribution
+                </Text>
+                <WaterSupplyOutagesChart
+                  data={waterSupplyOutagesData}
+                  height="400px"
+                  xAxisLabel={geographyEntityLabel}
+                />
+              </>
+            ) : (
+              <>
+                <Text textStyle="bodyText3" fontWeight="400" mb={2}>
+                  Reading Submission Rate
+                </Text>
+                <SupplySubmissionRateChart
+                  data={supplySubmissionRateData}
+                  height="383px"
+                  entityLabel={supplySubmissionRateLabel}
+                />
+              </>
+            )}
           </Box>
         </Grid>
       ) : null}
 
-      {/* All Gram Panchayats/Villages + Pump Operators */}
-      {/* All States/Districts/Pump Operators + Submission Rate */}
-      {!selectedVillage &&
-      !isStateScreen &&
-      !isDistrictScreen &&
-      !isBlockSelected &&
-      !isGramPanchayatScreen ? (
-        <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-          <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="510px" minW={0}>
-            <>
-              <Text textStyle="bodyText3" fontWeight="400" mb="16px">
-                All States/UTs
-              </Text>
-              <AllStatesTable data={data.mapData} />
-            </>
-          </Box>
-          <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="510px" minW={0}>
-            <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-              Reading Submission Rate
-            </Text>
-            <SupplySubmissionRateChart
-              data={supplySubmissionRateData}
-              height="383px"
-              entityLabel={supplySubmissionRateLabel}
-            />
-          </Box>
-        </Grid>
+      {isStateScreen ? (
+        <StateUtDashboardScreen
+          data={data}
+          supplySubmissionRateData={supplySubmissionRateData}
+          supplySubmissionRateLabel={supplySubmissionRateLabel}
+        />
       ) : null}
     </>
   )
