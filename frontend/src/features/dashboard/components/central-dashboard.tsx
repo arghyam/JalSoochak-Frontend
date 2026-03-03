@@ -464,7 +464,7 @@ export function CentralDashboard() {
           ? districtTableData.map((district, index) => {
               if (data.waterSupplyOutages.length === 0) {
                 return {
-                  district: district.name,
+                  label: district.name,
                   electricityFailure: 0,
                   pipelineLeak: 0,
                   pumpFailure: 0,
@@ -473,7 +473,7 @@ export function CentralDashboard() {
                 }
               }
               const source = data.waterSupplyOutages[index % data.waterSupplyOutages.length]
-              return { ...source, district: district.name }
+              return { ...source, label: district.name }
             })
           : data.waterSupplyOutages
 
