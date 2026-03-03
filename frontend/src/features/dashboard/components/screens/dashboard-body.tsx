@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import { Box, Flex, Grid, Select, Text } from '@chakra-ui/react'
 import type {
   DashboardData,
@@ -8,6 +9,7 @@ import type {
 import {
   IssueTypeBreakdownChart,
   MetricPerformanceChart,
+  MonthlyTrendChart,
   SupplySubmissionRateChart,
 } from '../charts'
 import { BlockDashboardScreen } from './block-dashboard'
@@ -23,8 +25,6 @@ type DashboardBodyProps = {
   isBlockSelected: boolean
   isGramPanchayatSelected: boolean
   selectedVillage: string
-  performanceState: string
-  onPerformanceStateChange: (value: string) => void
   districtTableData: EntityPerformance[]
   blockTableData: EntityPerformance[]
   gramPanchayatTableData: EntityPerformance[]
@@ -44,8 +44,6 @@ export function DashboardBody({
   isBlockSelected,
   isGramPanchayatSelected,
   selectedVillage,
-  performanceState,
-  onPerformanceStateChange,
   districtTableData,
   blockTableData,
   gramPanchayatTableData,
@@ -57,6 +55,8 @@ export function DashboardBody({
   operatorsPerformanceTable,
   villagePhotoEvidenceRows,
 }: DashboardBodyProps) {
+  const [quantityViewBy, setQuantityViewBy] = useState<'geography' | 'time'>('geography')
+  const [regularityViewBy, setRegularityViewBy] = useState<'geography' | 'time'>('geography')
   const isStateScreen =
     isStateSelected &&
     !isDistrictSelected &&
@@ -67,16 +67,23 @@ export function DashboardBody({
     isDistrictSelected && !isBlockSelected && !isGramPanchayatSelected && !selectedVillage
   const isBlockScreen = isBlockSelected && !isGramPanchayatSelected && !selectedVillage
   const isGramPanchayatScreen = isGramPanchayatSelected && !selectedVillage
-  const performanceStateOptions = Array.from(
-    new Set(
-      data.mapData
-        .map((item) => item.name)
-        .filter((name): name is string => Boolean(name && name.trim()))
-    )
+
+  const quantityTimeTrendData = useMemo(
+    () =>
+      data.demandSupply.map((item) => ({
+        period: item.period,
+        value: item.supply,
+      })),
+    [data.demandSupply]
   )
-  const performanceChartData = performanceState
-    ? data.mapData.filter((item) => item.name === performanceState)
-    : data.mapData
+  const regularityTimeTrendData = useMemo(
+    () =>
+      data.demandSupply.map((item) => ({
+        period: item.period,
+        value: item.demand > 0 ? Math.round((item.supply / item.demand) * 100) : 0,
+      })),
+    [data.demandSupply]
+  )
 
   return (
     <>
@@ -152,9 +159,9 @@ export function DashboardBody({
                 Quantity Performance
               </Text>
               <Select
-                aria-label="Quantity performance state"
+                aria-label="Quantity performance view by"
                 h="32px"
-                maxW="96px"
+                maxW="128px"
                 fontSize="14px"
                 fontWeight="600"
                 borderRadius="4px"
@@ -162,32 +169,38 @@ export function DashboardBody({
                 borderWidth="1px"
                 bg="white"
                 color="neutral.400"
-                placeholder="Select"
                 appearance="none"
-                value={performanceState}
-                onChange={(event) => onPerformanceStateChange(event.target.value)}
+                value={quantityViewBy}
+                onChange={(event) => setQuantityViewBy(event.target.value as 'geography' | 'time')}
                 _focus={{
                   borderColor: 'primary.500',
                   boxShadow: 'none',
                 }}
               >
-                {performanceStateOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
+                <option value="geography">Geography</option>
+                <option value="time">Time</option>
               </Select>
             </Flex>
-            <MetricPerformanceChart
-              data={performanceChartData}
-              metric="quantity"
-              height="400px"
-              entityLabel="States/UTs"
-              yAxisLabel="Quantity"
-              seriesName="Quantity"
-              showAreaLine
-              areaSeriesName="Demand"
-            />
+            {quantityViewBy === 'geography' ? (
+              <MetricPerformanceChart
+                data={data.mapData}
+                metric="quantity"
+                height="400px"
+                entityLabel="States/UTs"
+                yAxisLabel="Quantity"
+                seriesName="Quantity"
+                showAreaLine
+                areaSeriesName="Demand"
+              />
+            ) : (
+              <MonthlyTrendChart
+                data={quantityTimeTrendData}
+                height="400px"
+                xAxisLabel="Month"
+                yAxisLabel="Quantity"
+                seriesName="Quantity"
+              />
+            )}
           </Box>
           <Box
             bg="white"
@@ -205,9 +218,9 @@ export function DashboardBody({
                 Regularity Performance
               </Text>
               <Select
-                aria-label="Regularity performance state"
+                aria-label="Regularity performance view by"
                 h="32px"
-                maxW="96px"
+                maxW="128px"
                 fontSize="14px"
                 fontWeight="600"
                 borderRadius="4px"
@@ -215,30 +228,38 @@ export function DashboardBody({
                 borderWidth="1px"
                 bg="white"
                 color="neutral.400"
-                placeholder="Select"
                 appearance="none"
-                value={performanceState}
-                onChange={(event) => onPerformanceStateChange(event.target.value)}
+                value={regularityViewBy}
+                onChange={(event) =>
+                  setRegularityViewBy(event.target.value as 'geography' | 'time')
+                }
                 _focus={{
                   borderColor: 'primary.500',
                   boxShadow: 'none',
                 }}
               >
-                {performanceStateOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
+                <option value="geography">Geography</option>
+                <option value="time">Time</option>
               </Select>
             </Flex>
-            <MetricPerformanceChart
-              data={performanceChartData}
-              metric="regularity"
-              height="400px"
-              entityLabel="States/UTs"
-              yAxisLabel="Regularity"
-              seriesName="Regularity"
-            />
+            {regularityViewBy === 'geography' ? (
+              <MetricPerformanceChart
+                data={data.mapData}
+                metric="regularity"
+                height="400px"
+                entityLabel="States/UTs"
+                yAxisLabel="Regularity"
+                seriesName="Regularity"
+              />
+            ) : (
+              <MonthlyTrendChart
+                data={regularityTimeTrendData}
+                height="400px"
+                xAxisLabel="Month"
+                yAxisLabel="Regularity (%)"
+                seriesName="Regularity"
+              />
+            )}
           </Box>
         </Grid>
       ) : null}

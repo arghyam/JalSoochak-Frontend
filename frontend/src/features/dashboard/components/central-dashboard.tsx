@@ -114,7 +114,6 @@ export function CentralDashboard() {
   const [selectedDepartmentVillage, setSelectedDepartmentVillage] = useState(
     storedFilters.selectedDepartmentVillage ?? ''
   )
-  const [performanceState, setPerformanceState] = useState('')
   const [filterTabIndex, setFilterTabIndex] = useState(
     typeof storedFilters.filterTabIndex === 'number' ? storedFilters.filterTabIndex : 0
   )
@@ -725,8 +724,6 @@ export function CentralDashboard() {
         isBlockSelected={isBlockSelected}
         isGramPanchayatSelected={isGramPanchayatSelected}
         selectedVillage={effectiveSelectedVillage}
-        performanceState={performanceState}
-        onPerformanceStateChange={setPerformanceState}
         districtTableData={districtTableData}
         blockTableData={blockTableData}
         gramPanchayatTableData={gramPanchayatTableData}
