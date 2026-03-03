@@ -11,6 +11,7 @@ import {
   MetricPerformanceChart,
   MonthlyTrendChart,
   SupplySubmissionRateChart,
+  WaterSupplyOutagesChart,
 } from '../charts'
 import { BlockDashboardScreen } from './block-dashboard'
 import { DistrictDashboardScreen } from './district-dashboard'
@@ -84,63 +85,13 @@ export function DashboardBody({
       })),
     [data.demandSupply]
   )
+  const geographyMetricData = isStateScreen ? districtTableData : data.mapData
+  const geographyEntityLabel = isStateScreen ? 'Districts' : 'States/UTs'
 
   return (
     <>
-      {isStateScreen ? (
-        <StateUtDashboardScreen
-          data={data}
-          districtTableData={districtTableData}
-          supplySubmissionRateData={supplySubmissionRateData}
-          supplySubmissionRateLabel={supplySubmissionRateLabel}
-          waterSupplyOutagesData={waterSupplyOutagesData}
-        />
-      ) : null}
-      {isDistrictScreen ? (
-        <DistrictDashboardScreen
-          data={data}
-          blockTableData={blockTableData}
-          supplySubmissionRateData={supplySubmissionRateData}
-          supplySubmissionRateLabel={supplySubmissionRateLabel}
-          operatorsPerformanceTable={operatorsPerformanceTable}
-          pumpOperatorsTotal={pumpOperatorsTotal}
-        />
-      ) : null}
-      {isBlockScreen ? (
-        <BlockDashboardScreen
-          data={data}
-          gramPanchayatTableData={gramPanchayatTableData}
-          supplySubmissionRateData={supplySubmissionRateData}
-          supplySubmissionRateLabel={supplySubmissionRateLabel}
-          pumpOperatorsTotal={pumpOperatorsTotal}
-          operatorsPerformanceTable={operatorsPerformanceTable}
-        />
-      ) : null}
-      {isGramPanchayatScreen ? (
-        <GramPanchayatDashboardScreen
-          data={data}
-          villageTableData={villageTableData}
-          supplySubmissionRateData={supplySubmissionRateData}
-          supplySubmissionRateLabel={supplySubmissionRateLabel}
-          pumpOperatorsTotal={pumpOperatorsTotal}
-          operatorsPerformanceTable={operatorsPerformanceTable}
-        />
-      ) : null}
-
-      {selectedVillage ? (
-        <VillageDashboardScreen
-          data={data}
-          villagePhotoEvidenceRows={villagePhotoEvidenceRows}
-          waterSupplyOutagesData={waterSupplyOutagesData}
-        />
-      ) : null}
-
       {/* Quantity + Regularity Charts */}
-      {!selectedVillage &&
-      !isStateScreen &&
-      !isDistrictScreen &&
-      !isBlockScreen &&
-      !isGramPanchayatScreen ? (
+      {!selectedVillage && !isDistrictScreen && !isBlockScreen && !isGramPanchayatScreen ? (
         <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
           <Box
             bg="white"
@@ -183,10 +134,10 @@ export function DashboardBody({
             </Flex>
             {quantityViewBy === 'geography' ? (
               <MetricPerformanceChart
-                data={data.mapData}
+                data={geographyMetricData}
                 metric="quantity"
                 height="400px"
-                entityLabel="States/UTs"
+                entityLabel={geographyEntityLabel}
                 yAxisLabel="Quantity"
                 seriesName="Quantity"
                 showAreaLine
@@ -244,10 +195,10 @@ export function DashboardBody({
             </Flex>
             {regularityViewBy === 'geography' ? (
               <MetricPerformanceChart
-                data={data.mapData}
+                data={geographyMetricData}
                 metric="regularity"
                 height="400px"
-                entityLabel="States/UTs"
+                entityLabel={geographyEntityLabel}
                 yAxisLabel="Regularity"
                 seriesName="Regularity"
               />
@@ -264,12 +215,47 @@ export function DashboardBody({
         </Grid>
       ) : null}
 
-      {/* Supply outage reasons + Submission Rate */}
-      {!selectedVillage &&
-      !isStateScreen &&
-      !isDistrictScreen &&
-      !isBlockSelected &&
-      !isGramPanchayatScreen ? (
+      {isDistrictScreen ? (
+        <DistrictDashboardScreen
+          data={data}
+          blockTableData={blockTableData}
+          supplySubmissionRateData={supplySubmissionRateData}
+          supplySubmissionRateLabel={supplySubmissionRateLabel}
+          operatorsPerformanceTable={operatorsPerformanceTable}
+          pumpOperatorsTotal={pumpOperatorsTotal}
+        />
+      ) : null}
+      {isBlockScreen ? (
+        <BlockDashboardScreen
+          data={data}
+          gramPanchayatTableData={gramPanchayatTableData}
+          supplySubmissionRateData={supplySubmissionRateData}
+          supplySubmissionRateLabel={supplySubmissionRateLabel}
+          pumpOperatorsTotal={pumpOperatorsTotal}
+          operatorsPerformanceTable={operatorsPerformanceTable}
+        />
+      ) : null}
+      {isGramPanchayatScreen ? (
+        <GramPanchayatDashboardScreen
+          data={data}
+          villageTableData={villageTableData}
+          supplySubmissionRateData={supplySubmissionRateData}
+          supplySubmissionRateLabel={supplySubmissionRateLabel}
+          pumpOperatorsTotal={pumpOperatorsTotal}
+          operatorsPerformanceTable={operatorsPerformanceTable}
+        />
+      ) : null}
+
+      {selectedVillage ? (
+        <VillageDashboardScreen
+          data={data}
+          villagePhotoEvidenceRows={villagePhotoEvidenceRows}
+          waterSupplyOutagesData={waterSupplyOutagesData}
+        />
+      ) : null}
+
+      {/* Supply outage reasons + distribution/submission */}
+      {!selectedVillage && !isDistrictScreen && !isBlockSelected && !isGramPanchayatScreen ? (
         <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
           <Box
             bg="white"
@@ -280,7 +266,7 @@ export function DashboardBody({
             pb="24px"
             pl="16px"
             pr="16px"
-            h="523px"
+            h="510px"
             w="full"
             minW={0}
           >
@@ -290,16 +276,39 @@ export function DashboardBody({
             <IssueTypeBreakdownChart data={waterSupplyOutagesData} height="400px" />
           </Box>
           <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="510px" minW={0}>
-            <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-              Reading Submission Rate
-            </Text>
-            <SupplySubmissionRateChart
-              data={supplySubmissionRateData}
-              height="383px"
-              entityLabel={supplySubmissionRateLabel}
-            />
+            {isStateScreen ? (
+              <>
+                <Text textStyle="bodyText3" fontWeight="400" mb={2}>
+                  Supply Outage Distribution
+                </Text>
+                <WaterSupplyOutagesChart
+                  data={waterSupplyOutagesData}
+                  height="400px"
+                  xAxisLabel={geographyEntityLabel}
+                />
+              </>
+            ) : (
+              <>
+                <Text textStyle="bodyText3" fontWeight="400" mb={2}>
+                  Reading Submission Rate
+                </Text>
+                <SupplySubmissionRateChart
+                  data={supplySubmissionRateData}
+                  height="383px"
+                  entityLabel={supplySubmissionRateLabel}
+                />
+              </>
+            )}
           </Box>
         </Grid>
+      ) : null}
+
+      {isStateScreen ? (
+        <StateUtDashboardScreen
+          data={data}
+          supplySubmissionRateData={supplySubmissionRateData}
+          supplySubmissionRateLabel={supplySubmissionRateLabel}
+        />
       ) : null}
     </>
   )

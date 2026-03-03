@@ -24,6 +24,7 @@ jest.mock('../charts', () => ({
     seriesName: string
   }) => mockMonthlyTrendChart(props),
   SupplySubmissionRateChart: () => <div data-testid="supply-submission-rate-chart" />,
+  WaterSupplyOutagesChart: () => <div data-testid="water-supply-outages-chart" />,
   IssueTypeBreakdownChart: () => <div data-testid="issue-type-breakdown-chart" />,
 }))
 
@@ -213,5 +214,38 @@ describe('DashboardBody', () => {
     expect(screen.getByTestId('village-dashboard-screen')).toBeTruthy()
     expect(screen.queryByText('Supply Outage Reasons')).toBeNull()
     expect(screen.queryByText('Reading Submission Rate')).toBeNull()
+  })
+
+  it('renders geography charts with district data and labels when state is selected', () => {
+    mockMetricPerformanceChart.mockClear()
+
+    renderDashboardBody({
+      isStateSelected: true,
+      isDistrictSelected: false,
+      isBlockSelected: false,
+      isGramPanchayatSelected: false,
+      selectedVillage: '',
+      districtTableData: [
+        {
+          id: 'd1',
+          name: 'District A',
+          coverage: 60,
+          regularity: 70,
+          continuity: 0,
+          quantity: 50,
+          compositeScore: 65,
+          status: 'needs-attention',
+        },
+      ],
+    })
+
+    const metricChartCalls = mockMetricPerformanceChart.mock.calls as Array<
+      [{ data: EntityPerformance[]; entityLabel?: string }]
+    >
+
+    expect(metricChartCalls).toHaveLength(2)
+    expect(metricChartCalls[0][0].data[0]?.name).toBe('District A')
+    expect(metricChartCalls[0][0].entityLabel).toBe('Districts')
+    expect(metricChartCalls[1][0].entityLabel).toBe('Districts')
   })
 })

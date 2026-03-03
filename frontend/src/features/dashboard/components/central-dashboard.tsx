@@ -178,6 +178,24 @@ export function CentralDashboard() {
         : isStateSelected
           ? 'Districts'
           : 'States/UTs'
+  const overallPerformanceTableData = isGramPanchayatSelected
+    ? villageTableData
+    : isBlockSelected
+      ? gramPanchayatTableData
+      : isDistrictSelected
+        ? blockTableData
+        : isStateSelected
+          ? districtTableData
+          : (data?.mapData ?? emptyEntityPerformance)
+  const overallPerformanceEntityLabel = isGramPanchayatSelected
+    ? 'Village'
+    : isBlockSelected
+      ? 'Gram Panchayat'
+      : isDistrictSelected
+        ? 'Block'
+        : isStateSelected
+          ? 'District'
+          : 'State/UT'
   const districtOptions = selectedState
     ? getOwnLookupValue(mockFilterDistricts, selectedState, emptyOptions)
     : emptyOptions
@@ -442,7 +460,22 @@ export function CentralDashboard() {
             const source = data.waterSupplyOutages[index % data.waterSupplyOutages.length]
             return { ...source, district: block.name }
           })
-        : data.waterSupplyOutages
+        : isStateSelected
+          ? districtTableData.map((district, index) => {
+              if (data.waterSupplyOutages.length === 0) {
+                return {
+                  district: district.name,
+                  electricityFailure: 0,
+                  pipelineLeak: 0,
+                  pumpFailure: 0,
+                  valveIssue: 0,
+                  sourceDrying: 0,
+                }
+              }
+              const source = data.waterSupplyOutages[index % data.waterSupplyOutages.length]
+              return { ...source, district: district.name }
+            })
+          : data.waterSupplyOutages
 
   const coreMetrics = [
     {
@@ -713,7 +746,11 @@ export function CentralDashboard() {
             <Text textStyle="bodyText3" fontWeight="400" mb={4}>
               Overall Performance
             </Text>
-            <AllStatesTable data={data.mapData} scrollMaxHeight="620px" />
+            <AllStatesTable
+              data={overallPerformanceTableData}
+              entityLabel={overallPerformanceEntityLabel}
+              scrollMaxHeight="620px"
+            />
           </Box>
         )}
       </Grid>

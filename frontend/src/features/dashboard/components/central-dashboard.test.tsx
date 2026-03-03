@@ -11,6 +11,7 @@ const mockUseSearchParams = jest.fn(() => [new URLSearchParams(), jest.fn()])
 const mockDashboardFilters = jest.fn((_props: unknown) => <div data-testid="dashboard-filters" />)
 const mockDashboardBody = jest.fn((_props: unknown) => <div data-testid="dashboard-body" />)
 const mockIndiaMapChart = jest.fn((_props: unknown) => <div data-testid="india-map-chart" />)
+const mockAllStatesTable = jest.fn((_props: unknown) => <div data-testid="all-states-table" />)
 
 const getLatestDashboardFilterProps = <T extends object>() => {
   const calls = mockDashboardFilters.mock.calls as unknown[][]
@@ -54,7 +55,7 @@ jest.mock('./screens/dashboard-body', () => ({
 }))
 
 jest.mock('./tables', () => ({
-  AllStatesTable: () => <div data-testid="all-states-table" />,
+  AllStatesTable: (props: unknown) => mockAllStatesTable(props),
 }))
 
 const mockDashboardData: DashboardData = {
@@ -112,6 +113,7 @@ describe('CentralDashboard', () => {
     mockDashboardFilters.mockClear()
     mockDashboardBody.mockClear()
     mockIndiaMapChart.mockClear()
+    mockAllStatesTable.mockClear()
     mockUseParams.mockReturnValue({})
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()])
   })
@@ -159,6 +161,27 @@ describe('CentralDashboard', () => {
     expect(dashboardFilterProps.selectedBlock).toBe('patancheru')
     expect(dashboardFilterProps.selectedGramPanchayat).toBe('ismailkhanpet')
     expect(dashboardFilterProps.selectedVillage).toBe('rudraram')
+  })
+
+  it('uses district data in Overall Performance table when a state is selected', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const calls = mockAllStatesTable.mock.calls as unknown[][]
+    const tableProps = calls[calls.length - 1]?.[0] as {
+      entityLabel: string
+      data: Array<{ name: string }>
+    }
+
+    expect(tableProps.entityLabel).toBe('District')
+    expect(tableProps.data.some((row) => row.name === 'Sangareddy')).toBe(true)
+    expect(tableProps.data.some((row) => row.name === 'Alpha')).toBe(false)
   })
 
   it('updates URL with state in pathname and district in query params', () => {
