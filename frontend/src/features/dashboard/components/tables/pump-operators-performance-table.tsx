@@ -7,6 +7,8 @@ interface PumpOperatorsPerformanceTableProps {
   data: PumpOperatorPerformanceData[]
   title: string
   maxItems?: number
+  maxTableHeight?: string | number
+  fillHeight?: boolean
 }
 
 type SortColumn = 'reportingRate' | 'waterSupplied' | null
@@ -16,6 +18,8 @@ export function PumpOperatorsPerformanceTable({
   data,
   title,
   maxItems,
+  maxTableHeight = '330px',
+  fillHeight = false,
 }: PumpOperatorsPerformanceTableProps) {
   const [sortColumn, setSortColumn] = useState<SortColumn>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>(null)
@@ -41,12 +45,22 @@ export function PumpOperatorsPerformanceTable({
   }
 
   return (
-    <Box borderRadius="lg" overflow="hidden" w="full" minW={0}>
+    <Box
+      borderRadius="lg"
+      overflow="hidden"
+      w="full"
+      minW={0}
+      h={fillHeight ? '100%' : 'auto'}
+      display="flex"
+      flexDirection="column"
+    >
       <Box textStyle="bodyText3" fontWeight="400" mb="16px">
         {title}
       </Box>
       <Box
-        maxH="330px"
+        maxH={fillHeight ? undefined : maxTableHeight}
+        flex={fillHeight ? 1 : undefined}
+        minH={fillHeight ? 0 : undefined}
         overflowY="auto"
         overflowX="auto"
         w="full"
@@ -80,8 +94,8 @@ export function PumpOperatorsPerformanceTable({
           >
             <Tr>
               <Th>Name</Th>
-              <Th>Block</Th>
               <Th>Village</Th>
+              <Th>Block</Th>
               <Th
                 aria-sort={
                   sortColumn === 'reportingRate'
@@ -154,8 +168,8 @@ export function PumpOperatorsPerformanceTable({
             {rows.map((operator) => (
               <Tr key={operator.id} _odd={{ bg: 'primary.25' }}>
                 <Td>{operator.name}</Td>
-                <Td>{operator.block}</Td>
                 <Td>{operator.village}</Td>
+                <Td>{operator.block}</Td>
                 <Td>{operator.reportingRate}</Td>
                 <Td>{operator.waterSupplied} LPCD</Td>
               </Tr>

@@ -15,6 +15,9 @@ const mockMonthlyTrendChart = jest.fn(
     <div data-testid="monthly-trend-chart" />
   )
 )
+const mockDistrictDashboardScreen = jest.fn((_props: unknown) => (
+  <div data-testid="district-dashboard-screen" />
+))
 
 jest.mock('../charts', () => ({
   MetricPerformanceChart: (props: { data: EntityPerformance[]; metric: string }) =>
@@ -33,7 +36,7 @@ jest.mock('./state-ut-dashboard', () => ({
 }))
 
 jest.mock('./district-dashboard', () => ({
-  DistrictDashboardScreen: () => <div data-testid="district-dashboard-screen" />,
+  DistrictDashboardScreen: (props: unknown) => mockDistrictDashboardScreen(props),
 }))
 
 jest.mock('./block-dashboard', () => ({
@@ -147,6 +150,7 @@ describe('DashboardBody', () => {
   beforeEach(() => {
     mockMetricPerformanceChart.mockClear()
     mockMonthlyTrendChart.mockClear()
+    mockDistrictDashboardScreen.mockClear()
   })
 
   it('renders independent geography/time selectors for both performance cards', () => {
@@ -247,5 +251,30 @@ describe('DashboardBody', () => {
     expect(metricChartCalls[0][0].data[0]?.name).toBe('District A')
     expect(metricChartCalls[0][0].entityLabel).toBe('Districts')
     expect(metricChartCalls[1][0].entityLabel).toBe('Districts')
+  })
+
+  it('passes outage data to district screen', () => {
+    renderDashboardBody({
+      isDistrictSelected: true,
+      isBlockSelected: false,
+      isGramPanchayatSelected: false,
+      selectedVillage: '',
+      waterSupplyOutagesData: [
+        {
+          label: 'Block 1',
+          electricityFailure: 2,
+          pipelineLeak: 3,
+          pumpFailure: 4,
+          valveIssue: 5,
+          sourceDrying: 6,
+        },
+      ],
+    })
+
+    const districtScreenProps = (mockDistrictDashboardScreen.mock.calls.at(-1)?.[0] ?? {}) as {
+      waterSupplyOutagesData?: Array<{ label: string }>
+    }
+
+    expect(districtScreenProps.waterSupplyOutagesData?.[0]?.label).toBe('Block 1')
   })
 })
