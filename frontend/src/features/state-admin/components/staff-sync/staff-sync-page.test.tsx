@@ -36,7 +36,7 @@ const mockData: StaffSyncData = {
       name: 'Ravi Kumar',
       role: 'pump-operator',
       mobileNumber: '+91 98452-85564',
-      lastSubmission: new Date('2025-09-08T15:00:00'),
+      lastSubmission: '2025-09-08T15:00:00',
       activityStatus: 'active',
     },
     {
@@ -62,52 +62,49 @@ const mockData: StaffSyncData = {
   ],
 }
 
+const mockUseStaffSyncQuery = jest.fn()
+
 jest.mock('../../services/query/use-state-admin-queries', () => ({
-  useStaffSyncQuery: () => ({
-    data: mockData,
-    isLoading: false,
-    isError: false,
-    refetch: jest.fn(),
-  }),
+  useStaffSyncQuery: () => mockUseStaffSyncQuery(),
 }))
 
 describe('StaffSyncPage', () => {
+  beforeEach(() => {
+    mockUseStaffSyncQuery.mockReturnValue({
+      data: mockData,
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(),
+    })
+  })
+
   it('renders the page title', () => {
     renderWithProviders(<StaffSyncPage />)
     expect(screen.getByRole('heading', { name: /staff sync/i })).toBeTruthy()
   })
 
   it('renders loading state', () => {
-    jest.resetModules()
-    jest.mock('../../services/query/use-state-admin-queries', () => ({
-      useStaffSyncQuery: () => ({
-        data: undefined,
-        isLoading: true,
-        isError: false,
-        refetch: jest.fn(),
-      }),
-    }))
-    // Loading state is handled by DataTable which shows loading text
+    mockUseStaffSyncQuery.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+      refetch: jest.fn(),
+    })
     renderWithProviders(<StaffSyncPage />)
-    // Page title still renders during load
     expect(screen.getByRole('heading', { name: /staff sync/i })).toBeTruthy()
   })
 
   it('renders error state with retry button', () => {
-    jest.resetModules()
-    jest.mock('../../services/query/use-state-admin-queries', () => ({
-      useStaffSyncQuery: () => ({
-        data: undefined,
-        isLoading: false,
-        isError: true,
-        refetch: jest.fn(),
-      }),
-    }))
-    // Error state shows at top level only when isError=true before data branch
+    mockUseStaffSyncQuery.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      refetch: jest.fn(),
+    })
     renderWithProviders(<StaffSyncPage />)
-    // Since the module mock above won't override the module-level mock in this test,
-    // the page renders with data — we verify the data render path works
     expect(screen.getByRole('heading', { name: /staff sync/i })).toBeTruthy()
+    expect(screen.getByRole('alert')).toBeTruthy()
+    expect(screen.getByRole('button', { name: /retry/i })).toBeTruthy()
   })
 
   it('renders stat cards with correct values', () => {
@@ -188,12 +185,10 @@ describe('StaffSyncPage', () => {
   it('filters staff by role', () => {
     renderWithProviders(<StaffSyncPage />)
 
-    // Find the Role combobox and open it
-    const filterSection = screen.getByRole('section', { name: /filter staff members/i })
+    const filterSection = screen.getByRole('region', { name: /filter staff members/i })
     const roleButton = within(filterSection).getByText('Role')
     fireEvent.click(roleButton)
 
-    // Select pump-operator
     const pumpOperatorOption = screen.getByText('Pump Operator')
     fireEvent.click(pumpOperatorOption)
 

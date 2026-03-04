@@ -2,14 +2,14 @@ export type StaffRole = 'pump-operator' | 'sub-division-officer' | 'section-offi
 
 export type ActivityStatus = 'active' | 'inactive'
 
-export interface StaffMember extends Record<string, unknown> {
+export interface StaffMember {
   id: string
   gramPanchayat: string
   village: string
   name: string
   role: StaffRole
   mobileNumber: string
-  lastSubmission: Date | null
+  lastSubmission: string | null
   activityStatus: ActivityStatus
 }
 

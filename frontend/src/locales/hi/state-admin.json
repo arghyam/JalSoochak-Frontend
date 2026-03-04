@@ -134,8 +134,8 @@
       "maxQuantityCard": "अधिकतम मात्रा सीमा कॉन्फ़िगरेशन",
       "minQuantityCard": "न्यूनतम मात्रा सीमा कॉन्फ़िगरेशन",
       "regularityCard": "नियमितता सीमा कॉन्फ़िगरेशन",
-      "enterMaxQuantity": "LPCD में अधिकतम मात्रा सीमा दर्ज करें",
-      "enterMinQuantity": "LPCD में न्यूनतम मात्रा सीमा दर्ज करें",
+      "enterMaxQuantity": "अधिकतम मात्रा (LPCD का प्रतिशत) सीमा दर्ज करें",
+      "enterMinQuantity": "न्यूनतम मात्रा (LPCD का प्रतिशत) सीमा दर्ज करें",
       "enterRegularity": "नियमितता सीमा प्रतिशत दर्ज करें"
     }
   },

@@ -28,7 +28,7 @@ describe('WaterNormsDistrictOverrides', () => {
     const quantityInput = screen.getByRole('spinbutton')
     expect(quantityInput).toBeTruthy()
 
-    const deleteButtons = screen.getAllByRole('button')
-    expect(deleteButtons.length).toBeGreaterThanOrEqual(1)
+    const deleteButton = screen.getByRole('button', { name: /delete district/i })
+    expect(deleteButton).toBeTruthy()
   })
 })

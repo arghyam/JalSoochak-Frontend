@@ -39,8 +39,9 @@ export function StaffSyncPage() {
     document.title = `${t('staffSync.title')} | JalSoochak`
   }, [t])
 
-  const formatLastSubmission = (date: Date | null): string => {
-    if (!date) return t('staffSync.messages.naSubmission')
+  const formatLastSubmission = (value: string | null): string => {
+    if (!value) return t('staffSync.messages.naSubmission')
+    const date = new Date(value)
     const month = String(date.getMonth() + 1).padStart(2, '0')
     const day = String(date.getDate()).padStart(2, '0')
     const year = String(date.getFullYear()).slice(-2)
@@ -154,7 +155,7 @@ export function StaffSyncPage() {
       sortable: true,
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
-          {formatLastSubmission(row.lastSubmission as Date | null)}
+          {formatLastSubmission(row.lastSubmission)}
         </Text>
       ),
     },

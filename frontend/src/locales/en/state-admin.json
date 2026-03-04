@@ -134,8 +134,8 @@
       "maxQuantityCard": "Max quantity threshold configuration",
       "minQuantityCard": "Min quantity threshold configuration",
       "regularityCard": "Regularity threshold configuration",
-      "enterMaxQuantity": "Enter maximum quantity threshold in LPCD",
-      "enterMinQuantity": "Enter minimum quantity threshold in LPCD",
+      "enterMaxQuantity": "Enter maximum quantity(percentage of LPCD) threshold ",
+      "enterMinQuantity": "Enter minimum quantity(percentage of LPCD) threshold ",
       "enterRegularity": "Enter regularity threshold percentage"
     }
   },
@@ -235,7 +235,7 @@
     "stats": {
       "totalPumpOperators": "Total No. of Pump Operators",
       "totalSubDivisionOfficers": "Total No. of Sub-Division Officers",
-      "totalSectionOfficers": "Total No. Section Officers"
+      "totalSectionOfficers": "Total No. of Section Officers"
     },
     "roles": {
       "pumpOperator": "Pump Operator",

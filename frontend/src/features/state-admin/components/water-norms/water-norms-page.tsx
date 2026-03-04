@@ -43,10 +43,13 @@ export function WaterNormsPage() {
 
   const effectiveIsEditing = isEditing || Boolean(config && !config.isConfigured)
   const stateQuantity =
-    stateQuantityDraft ?? (config?.stateQuantity ? String(config.stateQuantity) : '')
-  const maxQuantity = maxQuantityDraft ?? (config?.maxQuantity ? String(config.maxQuantity) : '')
-  const minQuantity = minQuantityDraft ?? (config?.minQuantity ? String(config.minQuantity) : '')
-  const regularity = regularityDraft ?? (config?.regularity ? String(config.regularity) : '')
+    stateQuantityDraft ?? (config?.stateQuantity != null ? String(config.stateQuantity) : '')
+  const maxQuantity =
+    maxQuantityDraft ?? (config?.maxQuantity != null ? String(config.maxQuantity) : '')
+  const minQuantity =
+    minQuantityDraft ?? (config?.minQuantity != null ? String(config.minQuantity) : '')
+  const regularity =
+    regularityDraft ?? (config?.regularity != null ? String(config.regularity) : '')
   const districtOverrides = districtOverridesDraft ?? config?.districtOverrides ?? []
 
   const handleEdit = () => {

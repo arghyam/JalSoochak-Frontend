@@ -12,6 +12,28 @@ jest.mock('@/shared/components/charts/water-supply-outages-chart', () => ({
   WaterSupplyOutagesChart: () => <div data-testid="water-supply-outages-chart" />,
 }))
 
+const mockQueryState: {
+  data: OverviewData | undefined
+  isLoading: boolean
+  isError: boolean
+} = {
+  data: undefined,
+  isLoading: false,
+  isError: false,
+}
+
+const mockAuthState: { user: { tenantId: string } | null } = {
+  user: { tenantId: 'Telangana' },
+}
+
+jest.mock('../../services/query/use-state-admin-queries', () => ({
+  useStateAdminOverviewQuery: () => mockQueryState,
+}))
+
+jest.mock('@/app/store', () => ({
+  useAuthStore: (selector: (state: typeof mockAuthState) => unknown) => selector(mockAuthState),
+}))
+
 const mockOverviewData: OverviewData = {
   stats: {
     configurationStatus: { value: '8/10', subtitle: '80% complete' },
@@ -47,111 +69,108 @@ const mockOverviewData: OverviewData = {
   ],
 }
 
-jest.mock('../../services/query/use-state-admin-queries', () => ({
-  useStateAdminOverviewQuery: () => ({
-    data: mockOverviewData,
-    isLoading: false,
-    isError: false,
-  }),
-}))
+beforeEach(() => {
+  mockQueryState.data = mockOverviewData
+  mockQueryState.isLoading = false
+  mockQueryState.isError = false
+  mockAuthState.user = { tenantId: 'Telangana' }
+})
 
-jest.mock('@/app/store', () => ({
-  useAuthStore: (selector: (state: { user: { tenantId: string } | null }) => unknown) =>
-    selector({ user: { tenantId: 'Telangana' } }),
-}))
-
-describe('OverviewPage', () => {
-  beforeEach(() => {
-    jest.clearAllMocks()
+describe('data state', () => {
+  it('renders the page heading with tenantId', () => {
+    renderWithProviders(<OverviewPage />)
+    expect(screen.getByRole('heading', { level: 1 })).toBeTruthy()
+    expect(screen.getByText(/Overview of Telangana/i)).toBeTruthy()
   })
 
-  describe('data state', () => {
-    it('renders the page heading with tenantId', () => {
-      renderWithProviders(<OverviewPage />)
-      expect(screen.getByRole('heading', { level: 1 })).toBeTruthy()
-      expect(screen.getByText(/Overview of Telangana/i)).toBeTruthy()
-    })
-
-    it('renders all four stat card titles', () => {
-      renderWithProviders(<OverviewPage />)
-      expect(screen.getByText('Configuration Status')).toBeTruthy()
-      expect(screen.getByText('Active Staff')).toBeTruthy()
-      expect(screen.getByText('Active Schemes')).toBeTruthy()
-      expect(screen.getByText('Active Integrations')).toBeTruthy()
-    })
-
-    it('renders stat card values', () => {
-      renderWithProviders(<OverviewPage />)
-      expect(screen.getByText('8/10')).toBeTruthy()
-      expect(screen.getByText('243')).toBeTruthy()
-      expect(screen.getByText('57')).toBeTruthy()
-      expect(screen.getByText('4')).toBeTruthy()
-    })
-
-    it('renders stat card subtitles', () => {
-      renderWithProviders(<OverviewPage />)
-      expect(screen.getByText('80% complete')).toBeTruthy()
-      expect(screen.getByText('+12 this month')).toBeTruthy()
-      expect(screen.getByText('3 new this week')).toBeTruthy()
-      expect(screen.getByText('All systems active')).toBeTruthy()
-    })
-
-    it('renders the Water Supply Outages chart section heading', () => {
-      renderWithProviders(<OverviewPage />)
-      expect(screen.getByText('Water Supply Outages')).toBeTruthy()
-    })
-
-    it('renders the Demand vs Supply chart section heading', () => {
-      renderWithProviders(<OverviewPage />)
-      expect(screen.getByText('Demand vs Supply')).toBeTruthy()
-    })
-
-    it('renders stats section with aria-label', () => {
-      renderWithProviders(<OverviewPage />)
-      expect(screen.getByRole('region', { name: /statistics overview/i })).toBeTruthy()
-    })
+  it('renders all four stat card titles', () => {
+    renderWithProviders(<OverviewPage />)
+    expect(screen.getByText('Configuration Status')).toBeTruthy()
+    expect(screen.getByText('Active Staff')).toBeTruthy()
+    expect(screen.getByText('Active Schemes')).toBeTruthy()
+    expect(screen.getByText('Active Integrations')).toBeTruthy()
   })
 
-  describe('loading state', () => {
-    it('renders loading spinner and text', () => {
-      jest.doMock('../../services/query/use-state-admin-queries', () => ({
-        useStateAdminOverviewQuery: () => ({
-          data: undefined,
-          isLoading: true,
-          isError: false,
-        }),
-      }))
-
-      // The module-level mock controls this test; verify aria-busy is present
-      // by re-rendering with a locally scoped component using the loading mock.
-      // Since jest.mock at module scope is hoisted, we assert against the
-      // accessible loading region rendered when isLoading=true.
-      renderWithProviders(<OverviewPage />)
-      // With the top-level mock returning isLoading:false, the data view renders.
-      // Individual loading/error cases are covered by dedicated mocks below.
-      expect(screen.getByRole('heading', { level: 1 })).toBeTruthy()
-    })
+  it('renders stat card values', () => {
+    renderWithProviders(<OverviewPage />)
+    expect(screen.getByText('8/10')).toBeTruthy()
+    expect(screen.getByText('243')).toBeTruthy()
+    expect(screen.getByText('57')).toBeTruthy()
+    expect(screen.getByText('4')).toBeTruthy()
   })
 
-  describe('null/no data state', () => {
-    it('renders nothing when data is undefined and not loading or error', () => {
-      // Override the module mock inline — module-level mock takes precedence;
-      // this verifies the null guard doesn't crash when data is absent.
-      renderWithProviders(<OverviewPage />)
-      // Data is present via module mock, so the page renders normally.
-      expect(screen.getByText(/Overview of Telangana/i)).toBeTruthy()
-    })
+  it('renders stat card subtitles', () => {
+    renderWithProviders(<OverviewPage />)
+    expect(screen.getByText('80% complete')).toBeTruthy()
+    expect(screen.getByText('+12 this month')).toBeTruthy()
+    expect(screen.getByText('3 new this week')).toBeTruthy()
+    expect(screen.getByText('All systems active')).toBeTruthy()
   })
 
-  describe('fallback heading', () => {
-    it('renders fallback title when tenantId is absent', () => {
-      jest.doMock('@/app/store', () => ({
-        useAuthStore: (selector: (state: { user: null }) => unknown) => selector({ user: null }),
-      }))
-      // Module-level mock is used; the tenantId mock above controls the heading.
-      renderWithProviders(<OverviewPage />)
-      // Module-level tenantId mock produces "Overview of Telangana"
-      expect(screen.getByRole('heading', { level: 1 })).toBeTruthy()
-    })
+  it('renders the Water Supply Outages chart section heading', () => {
+    renderWithProviders(<OverviewPage />)
+    expect(screen.getByText('Water Supply Outages')).toBeTruthy()
+  })
+
+  it('renders the Demand vs Supply chart section heading', () => {
+    renderWithProviders(<OverviewPage />)
+    expect(screen.getByText('Demand vs Supply')).toBeTruthy()
+  })
+
+  it('renders stats section with aria-label', () => {
+    renderWithProviders(<OverviewPage />)
+    expect(screen.getByRole('region', { name: /statistics overview/i })).toBeTruthy()
+  })
+})
+
+describe('loading state', () => {
+  it('renders loading spinner and suppresses page content', () => {
+    mockQueryState.data = undefined
+    mockQueryState.isLoading = true
+
+    renderWithProviders(<OverviewPage />)
+
+    expect(screen.getByRole('status')).toBeTruthy()
+    expect(screen.getByText('Loading...', { selector: 'p' })).toBeTruthy()
+
+    expect(screen.queryByRole('heading', { level: 1 })).toBeNull()
+  })
+})
+
+describe('error state', () => {
+  it('renders error message and suppresses page content', () => {
+    mockQueryState.isError = true
+    mockQueryState.data = undefined
+
+    renderWithProviders(<OverviewPage />)
+
+    expect(screen.getByText('Failed to load configuration')).toBeTruthy()
+
+    expect(screen.queryByRole('heading', { level: 1 })).toBeNull()
+  })
+})
+
+describe('null/no data state', () => {
+  it('renders nothing when data is undefined and neither loading nor error', () => {
+    mockQueryState.data = undefined
+    mockQueryState.isLoading = false
+    mockQueryState.isError = false
+
+    renderWithProviders(<OverviewPage />)
+
+    expect(screen.queryByRole('heading', { level: 1 })).toBeNull()
+    expect(screen.queryByRole('status')).toBeNull()
+  })
+})
+
+describe('fallback heading', () => {
+  it('renders fallback title when user has no tenantId', () => {
+    mockAuthState.user = null
+
+    renderWithProviders(<OverviewPage />)
+
+    expect(screen.getByRole('heading', { level: 1 })).toBeTruthy()
+    expect(screen.getByText('Overview of State')).toBeTruthy()
+    expect(screen.queryByText(/Telangana/i)).toBeNull()
   })
 })

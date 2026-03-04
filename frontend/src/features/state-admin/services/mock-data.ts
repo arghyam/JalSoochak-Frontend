@@ -651,7 +651,7 @@ export const mockStaffSyncData: StaffSyncData = {
       name: 'Ravi Kumar',
       role: 'pump-operator',
       mobileNumber: '+91 98452-85564',
-      lastSubmission: new Date('2025-09-08T15:00:00'),
+      lastSubmission: '2025-09-08T15:00:00',
       activityStatus: 'active',
     },
     {
@@ -681,7 +681,7 @@ export const mockStaffSyncData: StaffSyncData = {
       name: 'Priya Sharma',
       role: 'pump-operator',
       mobileNumber: '+91 87654-90123',
-      lastSubmission: new Date('2025-04-29T11:00:00'),
+      lastSubmission: '2025-04-29T11:00:00',
       activityStatus: 'inactive',
     },
     {
@@ -691,7 +691,7 @@ export const mockStaffSyncData: StaffSyncData = {
       name: 'Karan Singh',
       role: 'pump-operator',
       mobileNumber: '+91 74185-96321',
-      lastSubmission: new Date('2025-09-08T15:00:00'),
+      lastSubmission: '2025-09-08T15:00:00',
       activityStatus: 'active',
     },
     {
@@ -701,7 +701,7 @@ export const mockStaffSyncData: StaffSyncData = {
       name: 'Vikash Kumar',
       role: 'pump-operator',
       mobileNumber: '+91 76543-21098',
-      lastSubmission: new Date('2025-09-08T15:00:00'),
+      lastSubmission: '2025-09-08T15:00:00',
       activityStatus: 'active',
     },
     {
@@ -731,7 +731,7 @@ export const mockStaffSyncData: StaffSyncData = {
       name: 'Saraswathi Devi',
       role: 'pump-operator',
       mobileNumber: '+91 43210-98754',
-      lastSubmission: new Date('2025-01-15T08:45:00'),
+      lastSubmission: '2025-01-15T08:45:00',
       activityStatus: 'active',
     },
     {
@@ -751,7 +751,7 @@ export const mockStaffSyncData: StaffSyncData = {
       name: 'Rohan Verma',
       role: 'pump-operator',
       mobileNumber: '+91 87654-90123',
-      lastSubmission: new Date('2025-09-08T15:00:00'),
+      lastSubmission: '2025-09-08T15:00:00',
       activityStatus: 'inactive',
     },
     {
@@ -781,7 +781,7 @@ export const mockStaffSyncData: StaffSyncData = {
       name: 'Sunita Devi',
       role: 'pump-operator',
       mobileNumber: '+91 65432-10987',
-      lastSubmission: new Date('2025-08-22T13:30:00'),
+      lastSubmission: '2025-08-22T13:30:00',
       activityStatus: 'active',
     },
     {
@@ -811,7 +811,7 @@ export const mockStaffSyncData: StaffSyncData = {
       name: 'Srinu Reddy',
       role: 'pump-operator',
       mobileNumber: '+91 98765-43209',
-      lastSubmission: new Date('2025-07-19T19:00:00'),
+      lastSubmission: '2025-07-19T19:00:00',
       activityStatus: 'active',
     },
     {
@@ -821,7 +821,7 @@ export const mockStaffSyncData: StaffSyncData = {
       name: 'Bhagya Laxmi',
       role: 'pump-operator',
       mobileNumber: '+91 87654-32198',
-      lastSubmission: new Date('2025-03-06T14:00:00'),
+      lastSubmission: '2025-03-06T14:00:00',
       activityStatus: 'active',
     },
     {
@@ -831,7 +831,7 @@ export const mockStaffSyncData: StaffSyncData = {
       name: 'Arjun Reddy',
       role: 'pump-operator',
       mobileNumber: '+91 87654-32109',
-      lastSubmission: new Date('2025-09-08T15:00:00'),
+      lastSubmission: '2025-09-08T15:00:00',
       activityStatus: 'active',
     },
     {
@@ -841,7 +841,7 @@ export const mockStaffSyncData: StaffSyncData = {
       name: 'Kavita Sharma',
       role: 'pump-operator',
       mobileNumber: '+91 76543-21087',
-      lastSubmission: new Date('2025-02-16T18:00:00'),
+      lastSubmission: '2025-02-16T18:00:00',
       activityStatus: 'active',
     },
     {
@@ -871,7 +871,7 @@ export const mockStaffSyncData: StaffSyncData = {
       name: 'Ramu Naik',
       role: 'pump-operator',
       mobileNumber: '+91 43210-98754',
-      lastSubmission: new Date('2025-09-08T15:00:00'),
+      lastSubmission: '2025-09-08T15:00:00',
       activityStatus: 'active',
     },
     {
@@ -881,7 +881,7 @@ export const mockStaffSyncData: StaffSyncData = {
       name: 'Chandra Sekhar',
       role: 'pump-operator',
       mobileNumber: '+91 32109-87643',
-      lastSubmission: new Date('2025-12-04T16:30:00'),
+      lastSubmission: '2025-12-04T16:30:00',
       activityStatus: 'active',
     },
     {
@@ -911,7 +911,7 @@ export const mockStaffSyncData: StaffSyncData = {
       name: 'Ganesh Babu',
       role: 'pump-operator',
       mobileNumber: '+91 54321-09865',
-      lastSubmission: new Date('2025-05-14T12:30:00'),
+      lastSubmission: '2025-05-14T12:30:00',
       activityStatus: 'active',
     },
   ],
