@@ -12,7 +12,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <Header />
 
       <Box as="main" flex="1" overflowY="auto" px={{ base: '40px', md: '80px' }}>
-        {children}
+        <Box w="full" maxW="1440px" mx="auto">
+          {children}
+        </Box>
       </Box>
     </Flex>
   )
