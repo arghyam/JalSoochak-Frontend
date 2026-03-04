@@ -18,6 +18,7 @@ export function LanguagePage() {
   const [languageDraft, setLanguageDraft] = useState<{
     primaryLanguage?: string
     secondaryLanguage?: string
+    tertiaryLanguage?: string
   }>({})
   const toast = useToast()
 
@@ -28,6 +29,7 @@ export function LanguagePage() {
   const effectiveIsEditing = isEditing || Boolean(config && !config.isConfigured)
   const primaryLanguage = languageDraft.primaryLanguage ?? config?.primaryLanguage ?? ''
   const secondaryLanguage = languageDraft.secondaryLanguage ?? config?.secondaryLanguage ?? ''
+  const tertiaryLanguage = languageDraft.tertiaryLanguage ?? config?.tertiaryLanguage ?? ''
 
   const handleEdit = () => {
     setIsEditing(true)
@@ -47,6 +49,7 @@ export function LanguagePage() {
       await saveLanguageConfigMutation.mutateAsync({
         primaryLanguage,
         secondaryLanguage: secondaryLanguage || undefined,
+        tertiaryLanguage: tertiaryLanguage || undefined,
         isConfigured: true,
       })
       setIsEditing(false)
@@ -66,6 +69,12 @@ export function LanguagePage() {
     if (!secondaryLanguage) return ''
     const lang = AVAILABLE_LANGUAGES.find((l) => l.value === secondaryLanguage)
     return lang ? lang.label : secondaryLanguage
+  }
+
+  const getTertiaryLanguageLabel = () => {
+    if (!tertiaryLanguage) return ''
+    const lang = AVAILABLE_LANGUAGES.find((l) => l.value === tertiaryLanguage)
+    return lang ? lang.label : tertiaryLanguage
   }
 
   if (isLoading) {
@@ -176,6 +185,19 @@ export function LanguagePage() {
                     {getSecondaryLanguageLabel() || '-'}
                   </Text>
                 </Box>
+                <Box>
+                  <Text
+                    fontSize={{ base: 'xs', md: 'sm' }}
+                    fontWeight="medium"
+                    color="neutral.700"
+                    mb={1}
+                  >
+                    {t('language.tertiaryLanguage')}
+                  </Text>
+                  <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
+                    {getTertiaryLanguageLabel() || '-'}
+                  </Text>
+                </Box>
               </SimpleGrid>
             </Box>
           ) : (
@@ -239,6 +261,29 @@ export function LanguagePage() {
                     placeholder={t('common:select')}
                     width="100%"
                     ariaLabel={t('language.aria.selectSecondaryLanguage')}
+                  />
+                </Box>
+                <Box w={{ base: 'full', xl: '486px' }}>
+                  <Text
+                    as="label"
+                    id="tertiary-language-label"
+                    fontSize={{ base: 'xs', md: 'sm' }}
+                    fontWeight="medium"
+                    color="neutral.950"
+                    mb={1}
+                    display="block"
+                  >
+                    {t('language.tertiaryLanguage')}
+                  </Text>
+                  <SearchableSelect
+                    options={AVAILABLE_LANGUAGES}
+                    value={tertiaryLanguage}
+                    onChange={(value) =>
+                      setLanguageDraft((prev) => ({ ...prev, tertiaryLanguage: value }))
+                    }
+                    placeholder={t('common:select')}
+                    width="100%"
+                    ariaLabel={t('language.aria.selectTertiaryLanguage')}
                   />
                 </Box>
               </SimpleGrid>

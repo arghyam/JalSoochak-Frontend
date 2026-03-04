@@ -62,10 +62,12 @@
     "configuration": "भाषा कॉन्फ़िगरेशन",
     "primaryLanguage": "प्राथमिक भाषा",
     "secondaryLanguage": "द्वितीयक भाषा (वैकल्पिक)",
+    "tertiaryLanguage": "तृतीयक भाषा (वैकल्पिक)",
     "aria": {
       "editConfiguration": "भाषा कॉन्फ़िगरेशन संपादित करें",
       "selectPrimaryLanguage": "प्राथमिक भाषा चुनें",
-      "selectSecondaryLanguage": "द्वितीयक भाषा चुनें"
+      "selectSecondaryLanguage": "द्वितीयक भाषा चुनें",
+      "selectTertiaryLanguage": "तृतीयक भाषा चुनें"
     }
   },
 

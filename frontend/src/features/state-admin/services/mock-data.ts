@@ -189,6 +189,7 @@ export const mockLanguageConfiguration: LanguageConfiguration = {
   id: '',
   primaryLanguage: '',
   secondaryLanguage: '',
+  tertiaryLanguage: '',
   isConfigured: false,
 }
 
@@ -209,6 +210,7 @@ export const saveMockLanguageConfiguration = (
         id: '1',
         primaryLanguage: config.primaryLanguage as string,
         secondaryLanguage: config.secondaryLanguage as string | undefined,
+        tertiaryLanguage: config.tertiaryLanguage as string | undefined,
         isConfigured: true,
       }
       resolve(savedConfig)
