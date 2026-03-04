@@ -20,6 +20,22 @@
   "filters": {
     "duration": "Duration",
     "clearAll": "Clear all filters",
+    "dateRangePicker": {
+      "quickRanges": "Quick ranges",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "dateInputPlaceholder": "dd/mm/yyyy",
+      "clear": "Clear",
+      "apply": "Apply",
+      "presets": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "thisWeek": "This week",
+        "lastWeek": "Last week",
+        "thisMonth": "This month",
+        "lastMonth": "Last month"
+      }
+    },
     "options": {
       "states": "States",
       "districts": "Districts",

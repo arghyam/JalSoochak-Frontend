@@ -13,6 +13,7 @@ import {
 } from '@chakra-ui/react'
 import type { ResponsiveValue } from '@chakra-ui/react'
 import type { Property } from 'csstype'
+import { useTranslation } from 'react-i18next'
 import { CalendarIcon } from './calendar-icon'
 
 export type DateRange = {
@@ -108,6 +109,7 @@ export function DateRangePicker({
   isFilter = false,
   placeholderColor = 'neutral.500',
 }: DateRangePickerProps) {
+  const { t } = useTranslation('dashboard')
   const [isOpen, setIsOpen] = useState(false)
   const [draft, setDraft] = useState<DateRange | null>(value)
   const [draftIso, setDraftIso] = useState<{ startDate: string; endDate: string } | null>(
@@ -137,7 +139,7 @@ export function DateRangePicker({
     () => [
       {
         id: 'today',
-        label: 'Today',
+        label: t('filters.dateRangePicker.presets.today', 'Today'),
         getRange: (baseDate) => ({
           startDate: formatISODate(baseDate),
           endDate: formatISODate(baseDate),
@@ -145,7 +147,7 @@ export function DateRangePicker({
       },
       {
         id: 'yesterday',
-        label: 'Yesterday',
+        label: t('filters.dateRangePicker.presets.yesterday', 'Yesterday'),
         getRange: (baseDate) => {
           const yesterday = new Date(baseDate)
           yesterday.setDate(baseDate.getDate() - 1)
@@ -157,7 +159,7 @@ export function DateRangePicker({
       },
       {
         id: 'this-week',
-        label: 'This week',
+        label: t('filters.dateRangePicker.presets.thisWeek', 'This week'),
         getRange: (baseDate) => ({
           startDate: formatISODate(startOfWeek(baseDate)),
           endDate: formatISODate(endOfWeek(baseDate)),
@@ -165,7 +167,7 @@ export function DateRangePicker({
       },
       {
         id: 'last-week',
-        label: 'Last week',
+        label: t('filters.dateRangePicker.presets.lastWeek', 'Last week'),
         getRange: (baseDate) => {
           const lastWeek = new Date(baseDate)
           lastWeek.setDate(baseDate.getDate() - 7)
@@ -177,7 +179,7 @@ export function DateRangePicker({
       },
       {
         id: 'this-month',
-        label: 'This month',
+        label: t('filters.dateRangePicker.presets.thisMonth', 'This month'),
         getRange: (baseDate) => ({
           startDate: formatISODate(startOfMonth(baseDate)),
           endDate: formatISODate(endOfMonth(baseDate)),
@@ -185,7 +187,7 @@ export function DateRangePicker({
       },
       {
         id: 'last-month',
-        label: 'Last month',
+        label: t('filters.dateRangePicker.presets.lastMonth', 'Last month'),
         getRange: (baseDate) => {
           const lastMonth = new Date(baseDate.getFullYear(), baseDate.getMonth() - 1, 1)
           return {
@@ -195,7 +197,7 @@ export function DateRangePicker({
         },
       },
     ],
-    []
+    [t]
   )
 
   const displayLabel = value
@@ -330,7 +332,7 @@ export function DateRangePicker({
           <Flex direction={{ base: 'column', md: 'row' }} gap="16px">
             <VStack align="stretch" spacing="6px" minW={{ md: '160px' }}>
               <Text textStyle="h10" color="neutral.500">
-                Quick ranges
+                {t('filters.dateRangePicker.quickRanges', 'Quick ranges')}
               </Text>
               {presets.map((preset) => {
                 const isSelected = draft?.preset === preset.label
@@ -353,12 +355,12 @@ export function DateRangePicker({
               <Flex gap="12px" wrap="wrap">
                 <Box flex="1" minW="180px">
                   <Text textStyle="h10" color="neutral.500" mb="6px">
-                    Start date
+                    {t('filters.dateRangePicker.startDate', 'Start date')}
                   </Text>
                   <Box position="relative">
                     <Input
                       type="text"
-                      placeholder="dd/mm/yyyy"
+                      placeholder={t('filters.dateRangePicker.dateInputPlaceholder', 'dd/mm/yyyy')}
                       value={draft?.startDate ?? ''}
                       onFocus={() => openPicker(startDateInputRef)}
                       onChange={(event) => {
@@ -434,12 +436,12 @@ export function DateRangePicker({
                 </Box>
                 <Box flex="1" minW="180px">
                   <Text textStyle="h10" color="neutral.500" mb="6px">
-                    End date
+                    {t('filters.dateRangePicker.endDate', 'End date')}
                   </Text>
                   <Box position="relative">
                     <Input
                       type="text"
-                      placeholder="dd/mm/yyyy"
+                      placeholder={t('filters.dateRangePicker.dateInputPlaceholder', 'dd/mm/yyyy')}
                       value={draft?.endDate ?? ''}
                       onFocus={() => openPicker(endDateInputRef)}
                       onChange={(event) => {
@@ -490,7 +492,7 @@ export function DateRangePicker({
               </Flex>
               <Flex justify="flex-end" gap="8px" mt="16px">
                 <Button variant="outline" size="sm" onClick={handleClear}>
-                  Clear
+                  {t('filters.dateRangePicker.clear', 'Clear')}
                 </Button>
                 <Button
                   colorScheme="teal"
@@ -498,7 +500,7 @@ export function DateRangePicker({
                   onClick={handleApply}
                   isDisabled={isApplyDisabled}
                 >
-                  Apply
+                  {t('filters.dateRangePicker.apply', 'Apply')}
                 </Button>
               </Flex>
             </Box>

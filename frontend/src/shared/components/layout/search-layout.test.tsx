@@ -120,9 +120,9 @@ describe('SearchLayout', () => {
     )
     fireEvent.focus(searchInput)
 
-    expect(screen.getByText('States (36)')).toBeTruthy()
+    expect(screen.getByTestId('search-dropdown-close')).toBeTruthy()
     fireEvent.click(screen.getByTestId('search-dropdown-close'))
-    expect(screen.queryByText('States (36)')).toBeNull()
+    expect(screen.queryByTestId('search-dropdown-close')).toBeNull()
   })
 
   it('does not render closed chips when active trail points to All States/UTs', () => {

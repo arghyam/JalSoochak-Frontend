@@ -20,6 +20,22 @@
   "filters": {
     "duration": "अवधि",
     "clearAll": "सभी फ़िल्टर साफ़ करें",
+    "dateRangePicker": {
+      "quickRanges": "त्वरित रेंज",
+      "startDate": "प्रारंभ तिथि",
+      "endDate": "समाप्ति तिथि",
+      "dateInputPlaceholder": "dd/mm/yyyy",
+      "clear": "साफ़ करें",
+      "apply": "लागू करें",
+      "presets": {
+        "today": "आज",
+        "yesterday": "कल",
+        "thisWeek": "यह सप्ताह",
+        "lastWeek": "पिछला सप्ताह",
+        "thisMonth": "यह महीना",
+        "lastMonth": "पिछला महीना"
+      }
+    },
     "options": {
       "states": "राज्य",
       "districts": "जिले",
