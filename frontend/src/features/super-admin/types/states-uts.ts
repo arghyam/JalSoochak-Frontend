@@ -34,6 +34,40 @@ export interface UpdateStateUTInput {
   admin: Omit<StateAdminDetails, 'email'> & { email?: string }
 }
 
+/** Request body for POST /api/v2/users (create tenant admin). */
+export interface CreateTenantAdminRequest {
+  firstName: string
+  lastName: string
+  primaryEmail: string
+  secondaryEmail?: string
+  primaryPhone: string
+  secondaryPhone?: string
+  role: 'TENANT_ADMIN'
+}
+
+/** Response data for create tenant admin API. */
+export interface CreateTenantAdminResponseData {
+  id: string
+  tenantId: string
+  firstName: string
+  lastName: string
+  primaryEmail: string
+  secondaryEmail: string
+  primaryPhone: string
+  secondaryPhone: string
+  role: string
+  status: string
+  createdAt: string
+  updatedAt: string
+}
+
+/** Full API response for POST /api/v2/users (create tenant admin). */
+export interface CreateTenantAdminApiResponse {
+  status: string
+  message: string
+  data: CreateTenantAdminResponseData
+}
+
 // All 36 Indian States and Union Territories with their codes
 export const INDIAN_STATES_UTS: { name: string; code: string }[] = [
   { name: 'Andhra Pradesh', code: '28' },

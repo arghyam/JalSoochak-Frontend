@@ -36,13 +36,20 @@
     "failedToSave": "परिवर्तन सहेजने में विफल",
     "failedToLoad": "कॉन्फ़िगरेशन लोड करने में विफल",
     "fillAllFields": "कृपया सभी आवश्यक फ़ील्ड भरें",
-    "fillAllFieldsCorrectly": "कृपया सभी आवश्यक फ़ील्ड सही ढंग से भरें"
+    "fillAllFieldsCorrectly": "कृपया सभी आवश्यक फ़ील्ड सही ढंग से भरें",
+    "passwordCreated": "पासवर्ड बनाया गया है।",
+    "passwordCreateFailed": "पासवर्ड बनाने में विफल।",
+    "profileUpdated": "प्रोफ़ाइल सफलतापूर्वक अपडेट की गई।",
+    "profileUpdateFailed": "प्रोफ़ाइल अपडेट करने में विफल।",
+    "sessionExpired": "सत्र समाप्त हो गया। कृपया पुनः आमंत्रण लिंक का उपयोग करें।"
   },
 
   "sidebar": {
     "overview": "अवलोकन",
     "systemRules": "सिस्टम नियम",
     "statesUts": "राज्य/केंद्र शासित प्रदेश",
+    "manageStatesUts": "राज्य/केंद्र शासित प्रदेश प्रबंधित करें",
+    "manageAdmins": "व्यवस्थापक प्रबंधित करें",
     "apiCredentials": "API प्रमाणपत्र",
     "ingestionMonitor": "डेटा अंतर्ग्रहण मॉनिटर",
     "language": "भाषा",
@@ -53,6 +60,7 @@
     "nudgesTemplate": "नज टेम्पलेट",
     "apiIngestion": "API अंतर्ग्रहण",
     "operatorSync": "ऑपरेटर सिंक",
+    "staffSync": "स्टाफ सिंक",
     "activity": "गतिविधि",
     "logout": "लॉगआउट",
     "skipToMain": "मुख्य सामग्री पर जाएं",

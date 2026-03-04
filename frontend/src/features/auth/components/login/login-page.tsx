@@ -10,10 +10,12 @@ import {
   InputGroup,
   InputRightElement,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   Checkbox,
   Link,
   useDisclosure,
+  VStack,
 } from '@chakra-ui/react'
 import { AuthSideImage } from '@/features/auth/components/signup/auth-side-image'
 import jalsoochakLogo from '@/assets/media/jalsoochak-logo.svg'
@@ -26,25 +28,30 @@ export function LoginPage() {
   const { login, loading, error } = useAuthStore()
   const { isOpen: isForgotPasswordOpen, onOpen, onClose } = useDisclosure()
   const [showPassword, setShowPassword] = useState(false)
-  const [phoneNumber, setPhoneNumber] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [localError, setLocalError] = useState<string | null>(null)
 
-  const validatePhoneNumber = (phone: string): boolean => {
-    return /^\d{10}$/.test(phone)
-  }
+  const isEmailError =
+    localError === 'Email is required.' || localError === 'Enter a valid email address.'
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setLocalError(null)
 
-    if (!validatePhoneNumber(phoneNumber)) {
-      setLocalError('Phone number must be 10 digits')
+    const trimmedEmail = email.trim()
+    if (!trimmedEmail) {
+      setLocalError('Email is required.')
+      return
+    }
+    const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)
+    if (!isEmailValid) {
+      setLocalError('Enter a valid email address.')
       return
     }
 
     try {
-      const redirectPath = await login({ phoneNumber, password })
+      const redirectPath = await login({ email: trimmedEmail, password })
       navigate(redirectPath, { replace: true })
     } catch (err) {
       console.error(err)
@@ -75,33 +82,31 @@ export function LoginPage() {
 
           <Flex flex="1" align="center" justify="center">
             <Box w="360px" h="360px">
-              <Text textStyle="h5" mb={3}>
+              <Text textStyle="h5" fontWeight="600" mb="0.25rem">
                 Welcome
               </Text>
-              <Text textStyle="bodyText5" mb="3rem">
+              <Text textStyle="bodyText5" fontWeight="400" mb="1.25rem">
                 Welcome ! Please enter your details.
               </Text>
 
               <Box as="form" onSubmit={handleSubmit}>
-                <Flex direction="column" gap="1.5rem">
-                  <FormControl>
-                    <FormLabel textStyle="bodyText6" mb="4px">
-                      Phone Number{' '}
-                      <Text as="span" color="error.500">
-                        *
+                <VStack align="stretch" spacing="1rem">
+                  <FormControl isInvalid={isEmailError}>
+                    <FormLabel>
+                      <Text textStyle="bodyText6" mb="4px">
+                        Email
+                        <Text as="span" color="error.500">
+                          {' '}
+                          *
+                        </Text>
                       </Text>
                     </FormLabel>
                     <Input
-                      type="tel"
-                      placeholder="+91"
-                      autoComplete="tel"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
-                      maxLength={10}
-                      textStyle="bodyText5"
-                      color="neutral.950"
+                      type="email"
+                      placeholder="Enter your email"
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       h="36px"
                       px="12px"
                       py="8px"
@@ -111,13 +116,17 @@ export function LoginPage() {
                       fontSize="sm"
                       focusBorderColor="primary.500"
                     />
+                    <FormErrorMessage>{localError}</FormErrorMessage>
                   </FormControl>
 
                   <FormControl>
-                    <FormLabel textStyle="bodyText6" mb="4px">
-                      Password{' '}
-                      <Text as="span" color="error.500">
-                        *
+                    <FormLabel>
+                      <Text textStyle="bodyText6" mb="4px">
+                        Password
+                        <Text as="span" color="error.500">
+                          {' '}
+                          *
+                        </Text>
                       </Text>
                     </FormLabel>
                     <InputGroup>
@@ -127,8 +136,6 @@ export function LoginPage() {
                         autoComplete="current-password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        textStyle="bodyText5"
-                        color="neutral.950"
                         h="36px"
                         px="12px"
                         py="8px"
@@ -162,11 +169,9 @@ export function LoginPage() {
                     </InputGroup>
                   </FormControl>
 
-                  {(localError || error) && (
-                    <Text fontSize="sm" color="error.500">
-                      {localError || error}
-                    </Text>
-                  )}
+                  <FormControl isInvalid={!!(error || (localError && !isEmailError))}>
+                    <FormErrorMessage>{localError || error}</FormErrorMessage>
+                  </FormControl>
 
                   <Flex align="center" justify="space-between">
                     <Checkbox
@@ -209,7 +214,7 @@ export function LoginPage() {
                   >
                     Log in
                   </Button>
-                </Flex>
+                </VStack>
               </Box>
             </Box>
           </Flex>

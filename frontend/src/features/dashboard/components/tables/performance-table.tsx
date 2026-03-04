@@ -1,5 +1,12 @@
 import { Box, Text, Table, Thead, Tbody, Tr, Th, Td } from '@chakra-ui/react'
+import { StatusChip } from '@/shared/components/common'
 import type { EntityPerformance } from '../../types'
+
+const STATUS_LABELS: Record<EntityPerformance['status'], string> = {
+  good: 'Good',
+  'needs-attention': 'Needs Attention',
+  critical: 'Critical',
+}
 
 interface PerformanceTableProps {
   data: EntityPerformance[]
@@ -9,15 +16,6 @@ interface PerformanceTableProps {
 }
 
 export function PerformanceTable({ data, title }: PerformanceTableProps) {
-  const getStatusConfig = (status: EntityPerformance['status']) => {
-    const statusConfig = {
-      good: { label: 'Good', color: 'success.500', bg: 'success.50' },
-      'needs-attention': { label: 'Needs Attention', color: 'warning.600', bg: 'warning.50' },
-      critical: { label: 'Critical', color: 'error.600', bg: 'error.50' },
-    }
-    return statusConfig[status]
-  }
-
   return (
     <Box>
       <Text fontSize="lg" fontWeight="semibold" mb={4}>
@@ -37,37 +35,23 @@ export function PerformanceTable({ data, title }: PerformanceTableProps) {
             </Tr>
           </Thead>
           <Tbody>
-            {data.map((entity) => {
-              const statusConfig = getStatusConfig(entity.status)
-              return (
-                <Tr key={entity.name}>
-                  <Td>
-                    <Text fontWeight="medium">{entity.name}</Text>
-                  </Td>
-                  <Td>{entity.coverage.toFixed(1)}%</Td>
-                  <Td>{entity.regularity.toFixed(1)}%</Td>
-                  <Td>{entity.continuity.toFixed(1)}</Td>
-                  <Td>{entity.quantity}</Td>
-                  <Td>
-                    <Text fontWeight="semibold">{entity.compositeScore.toFixed(2)}</Text>
-                  </Td>
-                  <Td>
-                    <Box
-                      as="span"
-                      px={2}
-                      py={1}
-                      borderRadius="md"
-                      fontSize="xs"
-                      fontWeight="medium"
-                      bg={statusConfig.bg}
-                      color={statusConfig.color}
-                    >
-                      {statusConfig.label}
-                    </Box>
-                  </Td>
-                </Tr>
-              )
-            })}
+            {data.map((entity) => (
+              <Tr key={entity.name}>
+                <Td>
+                  <Text fontWeight="medium">{entity.name}</Text>
+                </Td>
+                <Td>{entity.coverage.toFixed(1)}%</Td>
+                <Td>{entity.regularity.toFixed(1)}%</Td>
+                <Td>{entity.continuity.toFixed(1)}</Td>
+                <Td>{entity.quantity}</Td>
+                <Td>
+                  <Text fontWeight="semibold">{entity.compositeScore.toFixed(2)}</Text>
+                </Td>
+                <Td>
+                  <StatusChip status={entity.status} label={STATUS_LABELS[entity.status]} />
+                </Td>
+              </Tr>
+            ))}
           </Tbody>
         </Table>
       </Box>

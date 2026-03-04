@@ -93,7 +93,7 @@ const mockDashboardData: DashboardData = {
   pumpOperators: [{ label: 'Active', value: 12 }],
   waterSupplyOutages: [
     {
-      district: 'District 1',
+      label: 'District 1',
       electricityFailure: 1,
       pipelineLeak: 1,
       pumpFailure: 1,

@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Box, Text, Heading } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { DataTable, type DataTableColumn } from '@/shared/components/common'
+import { DataTable, type DataTableColumn, StatusChip } from '@/shared/components/common'
 import type { ActivityLog } from '../../types/activity'
 import { useStateAdminActivityQuery } from '../../services/query/use-state-admin-queries'
 
@@ -54,24 +54,10 @@ export function ActivityPage() {
       header: t('activity.table.status'),
       sortable: false,
       render: (row) => (
-        <Box
-          as="span"
-          display="inline-flex"
-          px={2}
-          py={0.5}
-          borderRadius="16px"
-          h={6}
-          maxW="96px"
-          width="71px"
-          alignItems="center"
-          justifyContent="center"
-          textStyle="h10"
-          fontWeight="400"
-          bg={row.status === 'Success' ? 'success.50' : 'error.50'}
-          color={row.status === 'Success' ? 'success.500' : 'error.500'}
-        >
-          {row.status === 'Success' ? t('common:status.success') : t('common:status.failed')}
-        </Box>
+        <StatusChip
+          status={row.status === 'Success' ? 'success' : 'failed'}
+          label={row.status === 'Success' ? t('common:status.success') : t('common:status.failed')}
+        />
       ),
     },
   ]

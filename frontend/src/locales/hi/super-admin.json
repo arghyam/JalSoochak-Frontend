@@ -10,9 +10,10 @@
     "charts": {
       "ingestionSuccessRate": "समय के साथ अंतर्ग्रहण सफलता दर",
       "successfulIngestions": "सफल अंतर्ग्रहण",
-      "failedIngestions": "विफल अंतर्ग्रहण"
-    },
-    "notifications": "सूचनाएं"
+      "failedIngestions": "विफल अंतर्ग्रहण",
+      "waterSupplyOutages": "जल आपूर्ति बाधाएं",
+      "select": "चुनें"
+    }
   },
 
   "systemRules": {
@@ -71,17 +72,23 @@
     },
     "statusSection": {
       "title": "स्थिति",
-      "activated": "सक्रिय"
+      "activated": "सक्रिय",
+      "stateUtStatus": "राज्य/केंद्र शासित प्रदेश की स्थिति"
     },
     "buttons": {
-      "addAndSendLink": "राज्य जोड़ें और ईमेल द्वारा लिंक भेजें"
+      "addAndSendLink": "राज्य जोड़ें और ईमेल द्वारा लिंक भेजें",
+      "backToList": "राज्य/केंद्र शासित प्रदेश की सूची में वापस"
     },
     "messages": {
       "notFound": "राज्य/केंद्र शासित प्रदेश नहीं मिला",
       "noStatesFound": "कोई राज्य/केंद्र शासित प्रदेश नहीं मिला",
       "addedSuccess": "राज्य/केंद्र शासित प्रदेश सफलतापूर्वक जोड़ा गया",
       "inviteSent": "आमंत्रण सफलतापूर्वक भेजा गया",
+      "tenantCreatedSuccess": "टेनेंट सफलतापूर्वक बनाया गया",
+      "tenantNameLabel": "राज्य/केंद्र शासित प्रदेश",
+      "adminInviteSent": "व्यवस्थापक आमंत्रण भेजा जाएगा।",
       "failedToAdd": "राज्य/केंद्र शासित प्रदेश जोड़ने में विफल",
+      "tenantCreatedAdminFailed": "टेनेंट बन गया लेकिन व्यवस्थापक बनाने में विफल",
       "failedToLoadAssignedStates": "असाइन किए गए राज्य लोड करने में विफल। कृपया पुनः प्रयास करें।",
       "failedToLoadStateOptions": "राज्य/केंद्र शासित प्रदेश विकल्प लोड करने में विफल। कृपया रीफ़्रेश करके पुनः प्रयास करें।",
       "activatedSuccess": "राज्य/केंद्र शासित प्रदेश सफलतापूर्वक सक्रिय किया गया",
@@ -93,6 +100,31 @@
       "editStateUt": "राज्य/केंद्र शासित प्रदेश संपादित करें"
     },
     "searchPlaceholder": "राज्य/केंद्र शासित प्रदेश के नाम से खोजें"
+  },
+
+  "manageStateAdmins": {
+    "title": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक प्रबंधित करें",
+    "searchPlaceholder": "राज्य/केंद्र शासित प्रदेश खोजें",
+    "downloadReport": "रिपोर्ट डाउनलोड करें",
+    "table": {
+      "adminName": "व्यवस्थापक का नाम",
+      "stateUt": "राज्य/केंद्र शासित प्रदेश",
+      "mobileNumber": "मोबाइल नंबर",
+      "emailAddress": "ईमेल पता",
+      "signupStatus": "साइनअप स्थिति",
+      "actions": "कार्रवाई"
+    },
+    "status": {
+      "completed": "पूर्ण",
+      "pending": "लंबित"
+    },
+    "messages": {
+      "noAdminsFound": "कोई व्यवस्थापक नहीं मिला"
+    },
+    "aria": {
+      "viewAdmin": "व्यवस्थापक देखें",
+      "editAdmin": "व्यवस्थापक संपादित करें"
+    }
   },
 
   "apiCredentials": {

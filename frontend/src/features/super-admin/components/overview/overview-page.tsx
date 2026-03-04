@@ -10,15 +10,18 @@ import {
   Button,
   Heading,
   Spinner,
+  Menu,
+  MenuButton,
+  MenuList,
 } from '@chakra-ui/react'
+import { ChevronDownIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
-import { BarLineChart } from '@/shared/components/charts/bar-line-chart'
 import { MdOutlinePlace } from 'react-icons/md'
 import { BsCheck2Circle } from 'react-icons/bs'
 import { IoCloseCircleOutline, IoAddOutline } from 'react-icons/io5'
 import { ROUTES } from '@/shared/constants/routes'
-import i18n from '@/app/i18n'
 import { useSuperAdminOverviewQuery } from '../../services/query/use-super-admin-queries'
+import { WaterSupplyOutagesChart } from '@/shared/components/charts/water-supply-outages-chart'
 
 export function OverviewPage() {
   const { t } = useTranslation(['super-admin', 'common'])
@@ -28,18 +31,6 @@ export function OverviewPage() {
   useEffect(() => {
     document.title = `${t('overview.title')} | JalSoochak`
   }, [t])
-
-  const formatTimestamp = (date: Date): string => {
-    const locale = i18n.language === 'hi' ? 'hi-IN' : 'en-IN'
-    return new Intl.DateTimeFormat(locale, {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    }).format(date)
-  }
 
   if (isLoading) {
     return (
@@ -165,93 +156,64 @@ export function OverviewPage() {
           })}
         </SimpleGrid>
 
-        {/* Ingestion Success Rate Chart */}
+        {/* Water Supply Outages Chart */}
         <Box
           as="section"
-          aria-labelledby="chart-heading"
+          aria-labelledby="water-supply-outages-heading"
           bg="white"
           borderWidth="0.5px"
           borderColor="neutral.200"
-          height={{ base: 'auto', md: '420px' }}
           borderRadius={{ base: '12px', md: '16px' }}
           boxShadow="default"
           py={{ base: 4, md: 6 }}
           px={4}
+          display="flex"
+          flexDirection="column"
+          minH="380px"
         >
-          <Heading
-            as="h2"
-            id="chart-heading"
-            size="h3"
-            fontWeight="400"
-            mb={4}
-            fontSize={{ base: 'md', md: 'xl' }}
-          >
-            {t('overview.charts.ingestionSuccessRate')}
-          </Heading>
-          <BarLineChart
-            data={data.ingestionData}
-            xKey="month"
-            barKey="successfulIngestions"
-            lineKey="failedIngestions"
-            barColor="#3291D1"
-            lineColor="#FFA100"
-            height="326px"
-            barLegendLabel={t('overview.charts.successfulIngestions')}
-            lineLegendLabel={t('overview.charts.failedIngestions')}
-          />
-        </Box>
-
-        {/* Notifications Section */}
-        <Box
-          as="section"
-          aria-labelledby="notifications-heading"
-          bg="white"
-          borderWidth="0.5px"
-          borderColor="neutral.200"
-          borderRadius="12px"
-          boxShadow="default"
-          height={{ base: 'auto', md: '237px' }}
-          py={{ base: 4, md: 6 }}
-          px={4}
-        >
-          <Heading
-            as="h2"
-            id="notifications-heading"
-            size="h3"
-            fontWeight="400"
-            mb={4}
-            fontSize={{ base: 'md', md: 'xl' }}
-          >
-            {t('overview.notifications')}
-          </Heading>
-          <Stack as="ul" gap={{ base: 2, md: 4 }} listStyleType="none">
-            {data.notifications.map((notification) => (
-              <Flex
-                as="li"
-                key={notification.id}
-                direction={{ base: 'column', sm: 'row' }}
-                justify="space-between"
-                align={{ base: 'flex-start', sm: 'center' }}
-                gap={{ base: 1, sm: 4 }}
-                py={2}
-                borderBottomWidth="1px"
-                borderColor="neutral.100"
-                _last={{ borderBottomWidth: 0 }}
+          <Flex justify="space-between" align="center" mb={4} flexShrink={0}>
+            <Heading
+              as="h2"
+              id="water-supply-outages-heading"
+              size="h3"
+              fontWeight="400"
+              fontSize={{ base: 'md', md: 'xl' }}
+            >
+              {t('overview.charts.waterSupplyOutages')}
+            </Heading>
+            <Menu>
+              <MenuButton
+                as={Button}
+                aria-label={t('overview.charts.select')}
+                h="32px"
+                minW={{ base: 'full', sm: '120px' }}
+                px="12px"
+                fontSize="14px"
+                fontWeight="600"
+                borderRadius="4px"
+                borderColor="neutral.300"
+                borderWidth="1px"
+                bg="white"
+                color="neutral.600"
+                variant="outline"
+                rightIcon={<ChevronDownIcon w={5} h={5} aria-hidden="true" />}
+                _hover={{ bg: 'neutral.50' }}
+                _active={{ bg: 'neutral.100' }}
+                _focusVisible={{ boxShadow: 'outline' }}
+                sx={{
+                  '& svg': {
+                    color: 'neutral.600',
+                  },
+                }}
               >
-                <Text fontSize={{ base: '14px', md: '16px' }} color="neutral.950" fontWeight="400">
-                  {notification.message}
-                </Text>
-                <Text
-                  fontSize={{ base: '14px', md: '16px' }}
-                  color="neutral.600"
-                  whiteSpace="nowrap"
-                  fontWeight="400"
-                >
-                  {formatTimestamp(notification.timestamp)}
-                </Text>
-              </Flex>
-            ))}
-          </Stack>
+                {t('overview.charts.select')}
+              </MenuButton>
+              <MenuList p={0} minW="162px" borderRadius="4px" borderColor="neutral.200" />
+            </Menu>
+          </Flex>
+          <Box flex={1}>
+            <WaterSupplyOutagesChart data={data.waterSupplyOutages} height={420} />
+          </Box>
         </Box>
       </Stack>
     </Box>

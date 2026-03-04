@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import * as echarts from 'echarts'
-import { EChartsWrapper } from './echarts-wrapper'
+import { EChartsWrapper } from '@/shared/components/common'
 import type { EntityPerformance } from '../../types'
 
 interface BarChartProps {

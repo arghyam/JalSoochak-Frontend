@@ -1,29 +1,71 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Button,
   Checkbox,
+  Flex,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   Input,
   InputGroup,
   InputRightElement,
   List,
   ListItem,
+  Spinner,
   Text,
 } from '@chakra-ui/react'
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai'
+import { authApi, buildSetPasswordRequest } from '@/features/auth/services/auth-api'
+import { ROUTES } from '@/shared/constants/routes'
+import type { ToastType } from '@/shared/components/common/toast'
 
 type CreatePasswordPageProps = {
-  onNext: () => void
+  onShowToast: (message: string, type: ToastType) => void
 }
 
-export function CreatePasswordPage({ onNext }: CreatePasswordPageProps) {
+type FetchState = 'loading' | 'ready' | 'error'
+
+export function CreatePasswordPage({ onShowToast }: CreatePasswordPageProps) {
+  const { t } = useTranslation('common')
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const [fetchState, setFetchState] = useState<FetchState>('loading')
+  const [email, setEmail] = useState('')
+  const [fetchError, setFetchError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (!id) {
+      setFetchState('error')
+      setFetchError('Invalid or expired invite link.')
+      return
+    }
+    let cancelled = false
+    authApi
+      .getUserByInviteId(id)
+      .then((res) => {
+        if (!cancelled) {
+          setEmail(res.email)
+          setFetchState('ready')
+        }
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setFetchState('error')
+          setFetchError(e instanceof Error ? e.message : 'Invalid or expired invite link.')
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [id])
 
   const hasUppercase = /[A-Z]/.test(password)
   const hasLowercase = /[a-z]/.test(password)
@@ -36,20 +78,92 @@ export function CreatePasswordPage({ onNext }: CreatePasswordPageProps) {
   const canSubmit =
     password.length > 0 && confirmPassword.length > 0 && isPasswordValid && isPasswordMatch
 
+  const handleSubmit = useCallback(async () => {
+    if (!id) return
+    setIsSubmitting(true)
+    try {
+      const request = buildSetPasswordRequest({
+        userId: id,
+        emailId: email,
+        newPassword: password,
+        confirmPassword,
+      })
+      await authApi.createPassword(request)
+      onShowToast(t('toast.passwordCreated'), 'success')
+      setTimeout(() => navigate(ROUTES.CREDENTIALS, { state: { email, userId: id } }), 1500)
+    } catch (e) {
+      const message = e instanceof Error ? e.message : t('toast.passwordCreateFailed')
+      onShowToast(message, 'error')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }, [id, email, password, confirmPassword, t, onShowToast, navigate])
+
+  if (fetchState === 'loading') {
+    return (
+      <>
+        <Text textStyle="h5" fontWeight="600" mb="0.25rem">
+          Sign up
+        </Text>
+        <Text textStyle="bodyText5" fontWeight="400" mb="1.25rem">
+          Loading...
+        </Text>
+        <Flex justify="center" align="center" py={8}>
+          <Spinner size="lg" color="primary.500" />
+        </Flex>
+      </>
+    )
+  }
+
+  if (fetchState === 'error') {
+    return (
+      <>
+        <Text textStyle="h5" fontWeight="600" mb="0.25rem">
+          Sign up
+        </Text>
+        <Text textStyle="bodyText5" color="error.500" mb="1.25rem">
+          {fetchError}
+        </Text>
+      </>
+    )
+  }
+
   return (
     <>
-      <Text textStyle="h5" mb={3}>
-        Create password
+      <Text textStyle="h5" fontWeight="600" mb="0.25rem">
+        Sign up
       </Text>
-      <Text textStyle="bodyText5" mb="20px">
-        Enter a new password.
+      <Text textStyle="bodyText5" fontWeight="400" mb="1.25rem">
+        Create a password to proceed further.
       </Text>
 
-      <FormControl>
-        <FormLabel textStyle="bodyText6" mb="4px" fontSize="16px">
-          Create new password
-          <Text as="span" color="error.500">
-            *
+      <FormControl mb="1rem">
+        <FormLabel>
+          <Text textStyle="bodyText6" mb="4px" color="neutral.300">
+            Email address
+          </Text>
+        </FormLabel>
+        <Input
+          type="email"
+          value={email}
+          isDisabled
+          h="36px"
+          px="12px"
+          py="8px"
+          borderRadius="4px"
+          borderColor="neutral.300"
+          fontSize="sm"
+          _disabled={{ opacity: 1, cursor: 'not-allowed', textColor: 'neutral.300' }}
+        />
+      </FormControl>
+
+      <FormControl mt="1rem" mb="1rem">
+        <FormLabel>
+          <Text textStyle="bodyText6" mb="4px">
+            Create password
+            <Text as="span" color="error.500">
+              *
+            </Text>
           </Text>
         </FormLabel>
         <InputGroup>
@@ -88,11 +202,13 @@ export function CreatePasswordPage({ onNext }: CreatePasswordPageProps) {
         </InputGroup>
       </FormControl>
 
-      <FormControl mt="1.5rem">
-        <FormLabel textStyle="bodyText6" mb="4px">
-          Rewrite password
-          <Text as="span" color="error.500">
-            *
+      <FormControl mt="1rem" isInvalid={!isPasswordMatch && !!confirmPassword}>
+        <FormLabel>
+          <Text textStyle="bodyText6" mb="4px">
+            Rewrite password
+            <Text as="span" color="error.500">
+              *
+            </Text>
           </Text>
         </FormLabel>
         <InputGroup>
@@ -133,15 +249,18 @@ export function CreatePasswordPage({ onNext }: CreatePasswordPageProps) {
             </Button>
           </InputRightElement>
         </InputGroup>
-        {!isPasswordMatch && confirmPassword ? (
-          <Text mt="6px" fontSize="sm" color="error.500">
-            Passwords do not match.
-          </Text>
-        ) : null}
+        <FormErrorMessage>Passwords do not match.</FormErrorMessage>
       </FormControl>
 
       {password.length > 0 && !isPasswordValid ? (
-        <List mt="10px" spacing="0.5px" fontSize="sm" color="error.500" pl="18px" styleType="disc">
+        <List
+          mt="0.75rem"
+          spacing="0.5px"
+          fontSize="sm"
+          color="error.500"
+          pl="18px"
+          styleType="disc"
+        >
           <ListItem>Include at least 1 lowercase letter.</ListItem>
           <ListItem>Include at least 1 uppercase letter.</ListItem>
           <ListItem>Include at least 1 number.</ListItem>
@@ -151,7 +270,7 @@ export function CreatePasswordPage({ onNext }: CreatePasswordPageProps) {
       ) : null}
 
       <Checkbox
-        mt="1.25rem"
+        mt="0.75rem"
         isChecked={rememberMe}
         onChange={(e) => setRememberMe(e.target.checked)}
         sx={{
@@ -190,10 +309,7 @@ export function CreatePasswordPage({ onNext }: CreatePasswordPageProps) {
         isLoading={isSubmitting}
         loadingText="Saving..."
         _loading={{ bg: 'primary.500', color: 'white' }}
-        onClick={() => {
-          setIsSubmitting(true)
-          setTimeout(() => onNext(), 400)
-        }}
+        onClick={handleSubmit}
       >
         Next
       </Button>

@@ -404,7 +404,7 @@ export function EditStateUTPage() {
             </Heading>
             <Flex align="center" gap={2} h={6} aria-labelledby="status-heading">
               <Text textStyle="h10" id="activated-label">
-                {t('statesUts.statusSection.activated')}
+                {t('statesUts.statusSection.stateUtStatus')}
               </Text>
               <Toggle
                 isChecked={status === 'active'}

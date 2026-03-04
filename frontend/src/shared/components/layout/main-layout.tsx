@@ -63,7 +63,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       <Hide above="lg">
         <Drawer isOpen={isOpen} onClose={onClose} placement="left">
           <DrawerOverlay />
-          <DrawerContent maxW="224px">
+          <DrawerContent maxW="250px">
             <DrawerCloseButton
               top={4}
               right={4}
@@ -78,7 +78,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       <Box
         flex={1}
         minW={0}
-        ml={{ base: 0, lg: '224px' }}
+        ml={{ base: 0, lg: '250px' }}
         display="flex"
         flexDirection="column"
         minH="100vh"

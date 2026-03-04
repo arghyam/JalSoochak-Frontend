@@ -8,7 +8,10 @@ import {
   type CreateStateUTInput,
   type UpdateStateUTInput,
   type StateUTOption,
+  type StateAdminDetails,
 } from '../types/states-uts'
+import type { StateAdmin } from '../types/state-admins'
+import type { CreateTenantInput, Tenant } from '../types/tenant'
 
 export const mockSuperAdminOverviewData: SuperAdminOverviewData = {
   stats: {
@@ -30,21 +33,86 @@ export const mockSuperAdminOverviewData: SuperAdminOverviewData = {
     { month: 'Nov', successfulIngestions: 650, failedIngestions: 22 },
     { month: 'Dec', successfulIngestions: 820, failedIngestions: 24 },
   ],
-  notifications: [
+  waterSupplyOutages: [
     {
-      id: '1',
-      message: 'Data ingestion delay detected for state Telangana (3 hours).',
-      timestamp: new Date('2025-11-20T10:30:00'),
+      label: 'Andhra Pradesh',
+      electricityFailure: 10,
+      pipelineLeak: 18,
+      pumpFailure: 14,
+      valveIssue: 22,
+      sourceDrying: 26,
     },
     {
-      id: '2',
-      message: 'API authentication failure for state Haryana.',
-      timestamp: new Date('2025-11-20T09:32:00'),
+      label: 'Gujarat',
+      electricityFailure: 12,
+      pipelineLeak: 16,
+      pumpFailure: 18,
+      valveIssue: 20,
+      sourceDrying: 22,
     },
     {
-      id: '3',
-      message: 'API authentication failure for state Uttar Pradesh.',
-      timestamp: new Date('2025-11-20T09:24:00'),
+      label: 'Karnataka',
+      electricityFailure: 20,
+      pipelineLeak: 14,
+      pumpFailure: 12,
+      valveIssue: 18,
+      sourceDrying: 26,
+    },
+    {
+      label: 'Maharashtra',
+      electricityFailure: 14,
+      pipelineLeak: 12,
+      pumpFailure: 22,
+      valveIssue: 16,
+      sourceDrying: 20,
+    },
+    {
+      label: 'Rajasthan',
+      electricityFailure: 18,
+      pipelineLeak: 20,
+      pumpFailure: 16,
+      valveIssue: 14,
+      sourceDrying: 12,
+    },
+    {
+      label: 'Tamil Nadu',
+      electricityFailure: 15,
+      pipelineLeak: 19,
+      pumpFailure: 11,
+      valveIssue: 21,
+      sourceDrying: 24,
+    },
+    {
+      label: 'Uttar Pradesh',
+      electricityFailure: 16,
+      pipelineLeak: 14,
+      pumpFailure: 20,
+      valveIssue: 18,
+      sourceDrying: 22,
+    },
+    {
+      label: 'West Bengal',
+      electricityFailure: 11,
+      pipelineLeak: 22,
+      pumpFailure: 15,
+      valveIssue: 19,
+      sourceDrying: 23,
+    },
+    {
+      label: 'Bihar',
+      electricityFailure: 19,
+      pipelineLeak: 13,
+      pumpFailure: 17,
+      valveIssue: 21,
+      sourceDrying: 20,
+    },
+    {
+      label: 'Kerala',
+      electricityFailure: 13,
+      pipelineLeak: 17,
+      pumpFailure: 19,
+      valveIssue: 17,
+      sourceDrying: 24,
     },
   ],
 }
@@ -488,6 +556,108 @@ export const updateStateUTStatus = (
   })
 }
 
+// State/UT Admins mock data (for Manage State/UTs Admins page)
+const mockStateAdminsData: StateAdmin[] = [
+  {
+    id: 'sa-1',
+    adminName: 'Ravi Kumar',
+    stateUt: 'Andhra Pradesh',
+    mobileNumber: '+91 98452-85564',
+    emailAddress: 'ravi@gmail.com',
+    signupStatus: 'completed',
+    stateUtId: '1',
+  },
+  {
+    id: 'sa-2',
+    adminName: 'Vijay Yadav',
+    stateUt: 'Arunachal Pradesh',
+    mobileNumber: '+91 74185-96321',
+    emailAddress: 'vijay@gmail.com',
+    signupStatus: 'pending',
+    stateUtId: '2',
+  },
+  {
+    id: 'sa-3',
+    adminName: 'Rohan',
+    stateUt: 'Assam',
+    mobileNumber: '+91 98765-43210',
+    emailAddress: 'rohan@gmail.com',
+    signupStatus: 'completed',
+    stateUtId: '3',
+  },
+  {
+    id: 'sa-4',
+    adminName: 'Sanjeev Kumar',
+    stateUt: 'Bihar',
+    mobileNumber: '+91 87654-90123',
+    emailAddress: 'sanjeev@gmail.com',
+    signupStatus: 'pending',
+    stateUtId: '4',
+  },
+  {
+    id: 'sa-5',
+    adminName: 'Sunita Verma',
+    stateUt: 'Chhattisgarh',
+    mobileNumber: '+91 76543-21098',
+    emailAddress: 'sunita.verma@jalsoochak.com',
+    signupStatus: 'completed',
+    stateUtId: '5',
+  },
+  {
+    id: 'sa-6',
+    adminName: 'Miguel Fernandes',
+    stateUt: 'Goa',
+    mobileNumber: '+91 65432-10987',
+    emailAddress: 'miguel.fernandes@jalsoochak.com',
+    signupStatus: 'completed',
+    stateUtId: '6',
+  },
+  {
+    id: 'sa-7',
+    adminName: 'Kiran Patel',
+    stateUt: 'Gujarat',
+    mobileNumber: '+91 54321-09876',
+    emailAddress: 'kiran.patel@jalsoochak.com',
+    signupStatus: 'pending',
+    stateUtId: '7',
+  },
+  {
+    id: 'sa-8',
+    adminName: 'Deepak Yadav',
+    stateUt: 'Haryana',
+    mobileNumber: '+91 43210-98765',
+    emailAddress: 'deepak.yadav@jalsoochak.com',
+    signupStatus: 'completed',
+    stateUtId: '8',
+  },
+  {
+    id: 'sa-9',
+    adminName: 'Anita Thakur',
+    stateUt: 'Himachal Pradesh',
+    mobileNumber: '+91 32109-87654',
+    emailAddress: 'anita.thakur@jalsoochak.com',
+    signupStatus: 'completed',
+    stateUtId: '9',
+  },
+  {
+    id: 'sa-10',
+    adminName: 'Ravi Oraon',
+    stateUt: 'Jharkhand',
+    mobileNumber: '+91 21098-76543',
+    emailAddress: 'ravi.oraon@jalsoochak.com',
+    signupStatus: 'completed',
+    stateUtId: '10',
+  },
+]
+
+export const getMockStateAdminsData = (): Promise<StateAdmin[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve([...mockStateAdminsData])
+    }, 300)
+  })
+}
+
 export const getAssignedStateNames = (): string[] => {
   return mockStatesUTsData.map((s) => s.name)
 }
@@ -498,4 +668,32 @@ export const getStateUTOptions = (): Promise<StateUTOption[]> => {
       resolve([...INDIAN_STATES_UTS])
     }, 300)
   })
+}
+
+/** Dummy implementation until real create-admin API is available. */
+export const createStateAdmin = (
+  _tenantId: string,
+  _admin: StateAdminDetails
+): Promise<{ success: boolean }> => {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve({ success: true }), 300)
+  })
+}
+
+export function mockCreateTenant(payload: CreateTenantInput): Promise<Tenant> {
+  const now = new Date().toISOString()
+  const tenant: Tenant = {
+    id: 1,
+    uuid: `mock-${payload.stateCode.toLowerCase()}-${Date.now()}`,
+    stateCode: payload.stateCode,
+    lgdCode: payload.lgdCode,
+    name: payload.name,
+    status: 'ACTIVE',
+    createdAt: now,
+    createdBy: 'system',
+    onBoardedAt: now,
+    updatedAt: now,
+    updatedBy: 'system',
+  }
+  return Promise.resolve(tenant)
 }

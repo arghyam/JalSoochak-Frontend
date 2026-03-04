@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
 import { Box, useBreakpointValue, useTheme } from '@chakra-ui/react'
 import * as echarts from 'echarts'
-import { EChartsWrapper } from './echarts-wrapper'
-import { getBodyText7Style } from './chart-text-style'
+import { EChartsWrapper } from '@/shared/components/common'
+import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
 import type { EntityPerformance } from '../../types'
 
 interface AllStatesPerformanceChartProps {

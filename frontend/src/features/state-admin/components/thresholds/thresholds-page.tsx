@@ -1,22 +1,8 @@
 import { useState, useEffect } from 'react'
-import {
-  Box,
-  Text,
-  Button,
-  Flex,
-  HStack,
-  SimpleGrid,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  NumberIncrementStepper,
-  NumberDecrementStepper,
-  Heading,
-  Spinner,
-} from '@chakra-ui/react'
+import { Box, Text, Button, Flex, HStack, SimpleGrid, Heading, Spinner } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer } from '@/shared/components/common'
+import { ToastContainer, MetricNumberCard } from '@/shared/components/common'
 import {
   useSaveThresholdConfigurationMutation,
   useThresholdConfigurationQuery,
@@ -149,205 +135,54 @@ export function ThresholdsPage() {
 
             {/* Form Fields Grid - 2x2 Layout */}
             <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={{ base: 4, md: 7 }} maxW="1200px">
-              {/* Coverage */}
-              <Box
+              <MetricNumberCard
                 as="article"
-                aria-label={t('thresholds.aria.coverageCard')}
-                borderWidth="0.5px"
-                borderColor="neutral.200"
-                borderRadius={{ base: 'lg', md: 'xl' }}
-                bg="neutral.50"
-                py={{ base: 4, md: 6 }}
-                px={4}
-                minH={{ base: 'auto', lg: '174px' }}
-              >
-                <Heading
-                  as="h3"
-                  size="h3"
-                  fontWeight="400"
-                  fontSize={{ base: 'md', md: 'xl' }}
-                  mb={1}
-                >
-                  {t('thresholds.coverage.title')}
-                </Heading>
-                <Text fontSize={{ base: '12px', md: '14px' }} lineHeight="20px" mb={4}>
-                  {t('thresholds.coverage.description')}
-                </Text>
-                <NumberInput
-                  value={coverage}
-                  onChange={(valueString) =>
-                    setFormDraft((prev) => ({ ...prev, coverage: valueString }))
-                  }
-                  min={0}
-                  w={{ base: 'full', xl: '490px' }}
-                >
-                  <NumberInputField
-                    placeholder={t('common:enter')}
-                    h="36px"
-                    fontSize="md"
-                    borderRadius="6px"
-                    borderWidth="1px"
-                    borderColor="neutral.200"
-                    pr="32px"
-                    pl="16px"
-                    aria-label={t('thresholds.aria.enterCoverage')}
-                  />
-                  <NumberInputStepper>
-                    <NumberIncrementStepper />
-                    <NumberDecrementStepper />
-                  </NumberInputStepper>
-                </NumberInput>
-              </Box>
-
-              {/* Continuity */}
-              <Box
+                cardAriaLabel={t('thresholds.aria.coverageCard')}
+                title={t('thresholds.coverage.title')}
+                description={t('thresholds.coverage.description')}
+                value={coverage}
+                onChange={(valueString) =>
+                  setFormDraft((prev) => ({ ...prev, coverage: valueString }))
+                }
+                placeholder={t('common:enter')}
+                inputAriaLabel={t('thresholds.aria.enterCoverage')}
+              />
+              <MetricNumberCard
                 as="article"
-                aria-label={t('thresholds.aria.continuityCard')}
-                borderWidth="0.5px"
-                borderColor="neutral.200"
-                borderRadius={{ base: 'lg', md: 'xl' }}
-                bg="neutral.50"
-                py={{ base: 4, md: 6 }}
-                px={4}
-                minH={{ base: 'auto', lg: '174px' }}
-              >
-                <Heading
-                  as="h3"
-                  size="h3"
-                  fontWeight="400"
-                  fontSize={{ base: 'md', md: 'xl' }}
-                  mb={1}
-                >
-                  {t('thresholds.continuity.title')}
-                </Heading>
-                <Text fontSize={{ base: '12px', md: '14px' }} lineHeight="20px" mb={4}>
-                  {t('thresholds.continuity.description')}
-                </Text>
-                <NumberInput
-                  value={continuity}
-                  onChange={(valueString) =>
-                    setFormDraft((prev) => ({ ...prev, continuity: valueString }))
-                  }
-                  min={0}
-                  w={{ base: 'full', xl: '490px' }}
-                >
-                  <NumberInputField
-                    placeholder={t('common:enter')}
-                    h="36px"
-                    fontSize="md"
-                    borderRadius="6px"
-                    borderWidth="1px"
-                    borderColor="neutral.200"
-                    pr="32px"
-                    pl="16px"
-                    aria-label={t('thresholds.aria.enterContinuity')}
-                  />
-                  <NumberInputStepper>
-                    <NumberIncrementStepper />
-                    <NumberDecrementStepper />
-                  </NumberInputStepper>
-                </NumberInput>
-              </Box>
-
-              {/* Quantity (per capita) */}
-              <Box
+                cardAriaLabel={t('thresholds.aria.continuityCard')}
+                title={t('thresholds.continuity.title')}
+                description={t('thresholds.continuity.description')}
+                value={continuity}
+                onChange={(valueString) =>
+                  setFormDraft((prev) => ({ ...prev, continuity: valueString }))
+                }
+                placeholder={t('common:enter')}
+                inputAriaLabel={t('thresholds.aria.enterContinuity')}
+              />
+              <MetricNumberCard
                 as="article"
-                aria-label={t('thresholds.aria.quantityCard')}
-                borderWidth="0.5px"
-                borderColor="neutral.200"
-                borderRadius={{ base: 'lg', md: 'xl' }}
-                bg="neutral.50"
-                py={{ base: 4, md: 6 }}
-                px={4}
-                minH={{ base: 'auto', lg: '174px' }}
-              >
-                <Heading
-                  as="h3"
-                  size="h3"
-                  fontWeight="400"
-                  fontSize={{ base: 'md', md: 'xl' }}
-                  mb={1}
-                >
-                  {t('thresholds.quantity.title')}
-                </Heading>
-                <Text fontSize={{ base: '12px', md: '14px' }} lineHeight="20px" mb={4}>
-                  {t('thresholds.quantity.description')}
-                </Text>
-                <NumberInput
-                  value={quantity}
-                  onChange={(valueString) =>
-                    setFormDraft((prev) => ({ ...prev, quantity: valueString }))
-                  }
-                  min={0}
-                  w={{ base: 'full', xl: '490px' }}
-                >
-                  <NumberInputField
-                    placeholder={t('common:enter')}
-                    h="36px"
-                    fontSize="md"
-                    borderRadius="6px"
-                    borderWidth="1px"
-                    borderColor="neutral.200"
-                    pr="32px"
-                    pl="16px"
-                    aria-label={t('thresholds.aria.enterQuantity')}
-                  />
-                  <NumberInputStepper>
-                    <NumberIncrementStepper />
-                    <NumberDecrementStepper />
-                  </NumberInputStepper>
-                </NumberInput>
-              </Box>
-
-              {/* Regularity Threshold */}
-              <Box
+                cardAriaLabel={t('thresholds.aria.quantityCard')}
+                title={t('thresholds.quantity.title')}
+                description={t('thresholds.quantity.description')}
+                value={quantity}
+                onChange={(valueString) =>
+                  setFormDraft((prev) => ({ ...prev, quantity: valueString }))
+                }
+                placeholder={t('common:enter')}
+                inputAriaLabel={t('thresholds.aria.enterQuantity')}
+              />
+              <MetricNumberCard
                 as="article"
-                aria-label={t('thresholds.aria.regularityCard')}
-                borderWidth="0.5px"
-                borderColor="neutral.200"
-                borderRadius={{ base: 'lg', md: 'xl' }}
-                bg="neutral.50"
-                py={{ base: 4, md: 6 }}
-                px={4}
-                minH={{ base: 'auto', lg: '174px' }}
-              >
-                <Heading
-                  as="h3"
-                  size="h3"
-                  fontWeight="400"
-                  fontSize={{ base: 'md', md: 'xl' }}
-                  mb={1}
-                >
-                  {t('thresholds.regularity.title')}
-                </Heading>
-                <Text fontSize={{ base: '12px', md: '14px' }} lineHeight="20px" mb={4}>
-                  {t('thresholds.regularity.description')}
-                </Text>
-                <NumberInput
-                  value={regularity}
-                  onChange={(valueString) =>
-                    setFormDraft((prev) => ({ ...prev, regularity: valueString }))
-                  }
-                  min={0}
-                  w={{ base: 'full', xl: '490px' }}
-                >
-                  <NumberInputField
-                    placeholder={t('common:enter')}
-                    h="36px"
-                    fontSize="md"
-                    borderRadius="6px"
-                    borderWidth="1px"
-                    borderColor="neutral.200"
-                    pr="32px"
-                    pl="16px"
-                    aria-label={t('thresholds.aria.enterRegularity')}
-                  />
-                  <NumberInputStepper>
-                    <NumberIncrementStepper />
-                    <NumberDecrementStepper />
-                  </NumberInputStepper>
-                </NumberInput>
-              </Box>
+                cardAriaLabel={t('thresholds.aria.regularityCard')}
+                title={t('thresholds.regularity.title')}
+                description={t('thresholds.regularity.description')}
+                value={regularity}
+                onChange={(valueString) =>
+                  setFormDraft((prev) => ({ ...prev, regularity: valueString }))
+                }
+                placeholder={t('common:enter')}
+                inputAriaLabel={t('thresholds.aria.enterRegularity')}
+              />
             </SimpleGrid>
           </Flex>
 

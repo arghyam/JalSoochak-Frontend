@@ -9,13 +9,12 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
-  Badge,
   useBreakpointValue,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { SearchIcon } from '@chakra-ui/icons'
 import { BiKey } from 'react-icons/bi'
-import { SearchableSelect } from '@/shared/components/common'
+import { SearchableSelect, StatusChip } from '@/shared/components/common'
 import type { ApiCredential } from '../../types/api-credentials'
 import { STATUS_FILTER_OPTIONS } from '../../types/api-credentials'
 import {
@@ -85,37 +84,8 @@ export function ApiCredentialsPage() {
     }
   }
 
-  const getStatusBadge = (status: ApiCredential['status']) => {
-    const statusConfig = {
-      active: {
-        bg: '#E1FFEA',
-        color: '#079455',
-        label: t('common:status.active'),
-      },
-      inactive: {
-        bg: '#FEE4E2',
-        color: '#D92D20',
-        label: t('common:status.inactive'),
-      },
-    }
-
-    const config = statusConfig[status]
-    return (
-      <Badge
-        bg={config.bg}
-        color={config.color}
-        px={2}
-        py={0.5}
-        borderRadius="16px"
-        fontSize="12px"
-        fontWeight="500"
-        textTransform="capitalize"
-        height="24px"
-      >
-        {config.label}
-      </Badge>
-    )
-  }
+  const getStatusLabel = (status: ApiCredential['status']) =>
+    status === 'active' ? t('common:status.active') : t('common:status.inactive')
 
   const filteredCredentials =
     data?.credentials.filter((cred) => {
@@ -284,7 +254,7 @@ export function ApiCredentialsPage() {
                 <Text fontSize="14px" mb={1} fontWeight="500">
                   {t('apiCredentials.labels.stateUtStatus')}
                 </Text>
-                {getStatusBadge(credential.status)}
+                <StatusChip status={credential.status} label={getStatusLabel(credential.status)} />
               </Box>
             </SimpleGrid>
 

@@ -36,13 +36,20 @@
     "failedToSave": "Failed to save changes",
     "failedToLoad": "Failed to load configuration",
     "fillAllFields": "Please fill all required fields",
-    "fillAllFieldsCorrectly": "Please fill all required fields correctly"
+    "fillAllFieldsCorrectly": "Please fill all required fields correctly",
+    "passwordCreated": "Password has been created.",
+    "passwordCreateFailed": "Failed to create password.",
+    "profileUpdated": "Profile updated successfully.",
+    "profileUpdateFailed": "Failed to update profile.",
+    "sessionExpired": "Session expired. Please use the invite link again."
   },
 
   "sidebar": {
     "overview": "Overview",
     "systemRules": "System Rules",
     "statesUts": "States/UTs",
+    "manageStatesUts": "Manage States/UTs",
+    "manageAdmins": "Manage Admins",
     "apiCredentials": "API Credentials",
     "ingestionMonitor": "Ingestion Monitor",
     "language": "Language",
@@ -53,6 +60,7 @@
     "nudgesTemplate": "Nudges Template",
     "apiIngestion": "API Ingestion",
     "operatorSync": "Operator Sync",
+    "staffSync": "Staff Sync",
     "activity": "Activity",
     "logout": "Logout",
     "skipToMain": "Skip to main content",

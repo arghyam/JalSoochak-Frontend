@@ -6,19 +6,18 @@ import {
   Flex,
   HStack,
   Input,
-  IconButton,
   Heading,
-  Spinner,
   SimpleGrid,
   Stack,
 } from '@chakra-ui/react'
 import { EditIcon } from '@chakra-ui/icons'
-import { MdDeleteOutline } from 'react-icons/md'
 import { useTranslation } from 'react-i18next'
 import type { DistrictOverride } from '../../types/water-norms'
 import { AVAILABLE_DISTRICTS } from '../../types/water-norms'
+import { WaterNormsAlertThresholds } from './water-norms-alert-thresholds'
+import { WaterNormsDistrictOverrides } from './water-norms-district-overrides'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer, SearchableSelect } from '@/shared/components/common'
+import { ToastContainer, PageLoadingState, PageErrorState } from '@/shared/components/common'
 import {
   useSaveWaterNormsConfigurationMutation,
   useWaterNormsConfigurationQuery,
@@ -30,6 +29,9 @@ export function WaterNormsPage() {
   const saveWaterNormsMutation = useSaveWaterNormsConfigurationMutation()
   const [isEditing, setIsEditing] = useState(false)
   const [stateQuantityDraft, setStateQuantityDraft] = useState<string | null>(null)
+  const [maxQuantityDraft, setMaxQuantityDraft] = useState<string | null>(null)
+  const [minQuantityDraft, setMinQuantityDraft] = useState<string | null>(null)
+  const [regularityDraft, setRegularityDraft] = useState<string | null>(null)
   const [districtOverridesDraft, setDistrictOverridesDraft] = useState<DistrictOverride[] | null>(
     null
   )
@@ -41,7 +43,13 @@ export function WaterNormsPage() {
 
   const effectiveIsEditing = isEditing || Boolean(config && !config.isConfigured)
   const stateQuantity =
-    stateQuantityDraft ?? (config?.stateQuantity ? String(config.stateQuantity) : '')
+    stateQuantityDraft ?? (config?.stateQuantity != null ? String(config.stateQuantity) : '')
+  const maxQuantity =
+    maxQuantityDraft ?? (config?.maxQuantity != null ? String(config.maxQuantity) : '')
+  const minQuantity =
+    minQuantityDraft ?? (config?.minQuantity != null ? String(config.minQuantity) : '')
+  const regularity =
+    regularityDraft ?? (config?.regularity != null ? String(config.regularity) : '')
   const districtOverrides = districtOverridesDraft ?? config?.districtOverrides ?? []
 
   const handleEdit = () => {
@@ -50,6 +58,9 @@ export function WaterNormsPage() {
 
   const handleCancel = () => {
     setStateQuantityDraft(null)
+    setMaxQuantityDraft(null)
+    setMinQuantityDraft(null)
+    setRegularityDraft(null)
     setDistrictOverridesDraft(null)
     setIsEditing(false)
   }
@@ -66,6 +77,24 @@ export function WaterNormsPage() {
       return
     }
 
+    const maxQty = Number(maxQuantity)
+    const minQty = Number(minQuantity)
+    const reg = Number(regularity)
+    if (
+      !maxQuantity ||
+      !minQuantity ||
+      !regularity ||
+      isNaN(maxQty) ||
+      isNaN(minQty) ||
+      isNaN(reg) ||
+      maxQty < 100 ||
+      minQty < 0 ||
+      reg < 0
+    ) {
+      toast.addToast(t('waterNorms.messages.invalidAlertThresholds'), 'error')
+      return
+    }
+
     // Validate district overrides
     for (const override of districtOverrides) {
       if (!override.districtName || override.quantity <= 0) {
@@ -77,10 +106,16 @@ export function WaterNormsPage() {
     try {
       await saveWaterNormsMutation.mutateAsync({
         stateQuantity: quantity,
+        maxQuantity: maxQty,
+        minQuantity: minQty,
+        regularity: reg,
         districtOverrides,
         isConfigured: true,
       })
       setStateQuantityDraft(null)
+      setMaxQuantityDraft(null)
+      setMinQuantityDraft(null)
+      setRegularityDraft(null)
       setDistrictOverridesDraft(null)
       setIsEditing(false)
       toast.addToast(t('common:toast.changesSavedShort'), 'success')
@@ -139,10 +174,7 @@ export function WaterNormsPage() {
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
           {t('waterNorms.title')}
         </Heading>
-        <Flex align="center" role="status" aria-live="polite" aria-busy="true">
-          <Spinner size="md" color="primary.500" mr={3} />
-          <Text color="neutral.600">{t('common:loading')}</Text>
-        </Flex>
+        <PageLoadingState message={t('common:loading')} />
       </Box>
     )
   }
@@ -153,9 +185,7 @@ export function WaterNormsPage() {
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
           {t('waterNorms.title')}
         </Heading>
-        <Text role="alert" color="error.500">
-          {t('waterNorms.messages.failedToLoad')}
-        </Text>
+        <PageErrorState message={t('waterNorms.messages.failedToLoad')} />
       </Box>
     )
   }
@@ -223,6 +253,45 @@ export function WaterNormsPage() {
                 <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
                   {config.stateQuantity}
                 </Text>
+              </Box>
+
+              {/* Alert Thresholds */}
+              <Box mb={7}>
+                <Heading
+                  as="h3"
+                  size="h3"
+                  fontWeight="400"
+                  fontSize={{ base: 'md', md: 'xl' }}
+                  mb={4}
+                >
+                  {t('waterNorms.alertThresholds.title')}
+                </Heading>
+                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={{ base: 3, md: 6 }}>
+                  <Box>
+                    <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" mb={1}>
+                      {t('waterNorms.alertThresholds.maxQuantity.title')}
+                    </Text>
+                    <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
+                      {config.maxQuantity}%
+                    </Text>
+                  </Box>
+                  <Box>
+                    <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" mb={1}>
+                      {t('waterNorms.alertThresholds.minQuantity.title')}
+                    </Text>
+                    <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
+                      {config.minQuantity}%
+                    </Text>
+                  </Box>
+                  <Box>
+                    <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" mb={1}>
+                      {t('waterNorms.alertThresholds.regularity.title')}
+                    </Text>
+                    <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
+                      {config.regularity}%
+                    </Text>
+                  </Box>
+                </SimpleGrid>
               </Box>
 
               {/* District-Level Overrides */}
@@ -313,113 +382,25 @@ export function WaterNormsPage() {
                   />
                 </Box>
 
+                {/* Alert Thresholds */}
+                <WaterNormsAlertThresholds
+                  maxQuantity={maxQuantity}
+                  minQuantity={minQuantity}
+                  regularity={regularity}
+                  onMaxQuantityChange={setMaxQuantityDraft}
+                  onMinQuantityChange={setMinQuantityDraft}
+                  onRegularityChange={setRegularityDraft}
+                />
+
                 {/* District-Level Overrides */}
-                <Box>
-                  <Heading
-                    as="h3"
-                    size="h3"
-                    fontWeight="400"
-                    fontSize={{ base: 'md', md: 'xl' }}
-                    mb={4}
-                  >
-                    {t('waterNorms.districtOverrides.title')}
-                  </Heading>
-
-                  <Stack spacing={3} mb={districtOverrides.length > 0 ? 3 : 0}>
-                    {districtOverrides.map((override) => (
-                      <Flex
-                        key={override.id}
-                        direction={{ base: 'column', lg: 'row' }}
-                        gap={{ base: 3, lg: 6 }}
-                        align={{ base: 'stretch', lg: 'flex-end' }}
-                      >
-                        <Box w={{ base: 'full', lg: '319px', xl: '486px' }}>
-                          <Text
-                            fontSize={{ base: 'xs', md: 'sm' }}
-                            fontWeight="medium"
-                            color="neutral.950"
-                            mb={1}
-                          >
-                            {t('waterNorms.districtOverrides.districtName')}
-                          </Text>
-                          <SearchableSelect
-                            options={[
-                              ...getAvailableDistricts(),
-                              ...(override.districtName
-                                ? [
-                                    {
-                                      value: override.districtName,
-                                      label: getDistrictLabel(override.districtName),
-                                    },
-                                  ]
-                                : []),
-                            ]}
-                            value={override.districtName}
-                            onChange={(value) =>
-                              handleDistrictChange(override.id, 'districtName', value)
-                            }
-                            placeholder={t('common:select')}
-                            width="100%"
-                            ariaLabel={t('waterNorms.aria.selectDistrict')}
-                          />
-                        </Box>
-                        <Box flex={{ base: 'none', lg: 1 }}>
-                          <Text
-                            fontSize={{ base: 'xs', md: 'sm' }}
-                            fontWeight="medium"
-                            color="neutral.950"
-                            mb={1}
-                          >
-                            {t('waterNorms.districtOverrides.quantity')}
-                          </Text>
-                          <Flex gap={2}>
-                            <Input
-                              placeholder={t('common:enter')}
-                              value={override.quantity || ''}
-                              onChange={(e) =>
-                                handleDistrictChange(
-                                  override.id,
-                                  'quantity',
-                                  Number(e.target.value)
-                                )
-                              }
-                              type="number"
-                              fontSize="sm"
-                              w={{ base: 'full', lg: '319px', xl: '486px' }}
-                              h="36px"
-                              borderColor="neutral.300"
-                              borderRadius="6px"
-                              aria-label={t('waterNorms.aria.enterDistrictQuantity')}
-                              _hover={{ borderColor: 'neutral.400' }}
-                              _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
-                            />
-                            <IconButton
-                              aria-label={t('waterNorms.aria.deleteDistrict', {
-                                name: getDistrictLabel(override.districtName) || '',
-                              })}
-                              icon={<MdDeleteOutline size={24} aria-hidden="true" />}
-                              variant="ghost"
-                              size="sm"
-                              color="neutral.400"
-                              onClick={() => handleRemoveDistrict(override.id)}
-                              h="36px"
-                              _hover={{ bg: 'error.50', color: 'error.500' }}
-                            />
-                          </Flex>
-                        </Box>
-                      </Flex>
-                    ))}
-                  </Stack>
-
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleAddDistrict}
-                    w={{ base: 'full', sm: 'auto' }}
-                  >
-                    {t('waterNorms.districtOverrides.addNew')}
-                  </Button>
-                </Box>
+                <WaterNormsDistrictOverrides
+                  districtOverrides={districtOverrides}
+                  onAddDistrict={handleAddDistrict}
+                  onRemoveDistrict={handleRemoveDistrict}
+                  onDistrictChange={handleDistrictChange}
+                  getDistrictLabel={getDistrictLabel}
+                  getAvailableDistricts={getAvailableDistricts}
+                />
               </Box>
 
               {/* Action Buttons */}
@@ -444,7 +425,7 @@ export function WaterNormsPage() {
                   width={{ base: 'full', sm: '174px' }}
                   onClick={handleSave}
                   isLoading={saveWaterNormsMutation.isPending}
-                  isDisabled={!stateQuantity}
+                  isDisabled={!stateQuantity || !maxQuantity || !minQuantity || !regularity}
                 >
                   {config?.isConfigured ? t('common:button.saveChanges') : t('common:button.save')}
                 </Button>

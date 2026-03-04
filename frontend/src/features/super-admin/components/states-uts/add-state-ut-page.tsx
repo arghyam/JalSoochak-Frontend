@@ -19,7 +19,8 @@ import { SearchableSelect, ToastContainer } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ROUTES } from '@/shared/constants/routes'
 import {
-  useCreateStateUTMutation,
+  useCreateStateAdminMutation,
+  useCreateTenantMutation,
   useStateUTOptionsQuery,
 } from '../../services/query/use-super-admin-queries'
 
@@ -37,7 +38,8 @@ export function AddStateUTPage() {
     isLoading: isStateUTOptionsLoading,
     isError: isStateUTOptionsError,
   } = useStateUTOptionsQuery()
-  const createStateMutation = useCreateStateUTMutation()
+  const createTenantMutation = useCreateTenantMutation()
+  const createStateAdminMutation = useCreateStateAdminMutation()
 
   // Form state
   const [stateName, setStateName] = useState('')
@@ -48,6 +50,7 @@ export function AddStateUTPage() {
   const [phone, setPhone] = useState('')
   const [secondaryEmail, setSecondaryEmail] = useState('')
   const [contactNumber, setContactNumber] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const availableStates = useMemo(() => {
     return stateUTOptions.map((state) => ({
@@ -103,26 +106,46 @@ export function AddStateUTPage() {
       return
     }
 
+    const lgdCode = parseInt(stateCode, 10)
+    if (!stateCode.trim() || Number.isNaN(lgdCode)) {
+      toast.addToast(t('common:toast.fillAllFieldsCorrectly'), 'error')
+      return
+    }
+
+    setIsSubmitting(true)
+    const tenantPayload = {
+      stateCode: stateCode.trim(),
+      lgdCode,
+      name: stateName.trim(),
+    }
+
     try {
-      const newState = await createStateMutation.mutateAsync({
-        name: stateName,
-        code: stateCode,
-        admin: {
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          email: email.trim(),
-          phone: phone.trim(),
-          secondaryEmail: secondaryEmail.trim() || undefined,
-          contactNumber: contactNumber.trim() || undefined,
-        },
-      })
-      toast.addToast(t('statesUts.messages.inviteSent'), 'success')
-      setTimeout(() => {
-        navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':id', newState.id))
-      }, 1000)
+      const tenant = await createTenantMutation.mutateAsync(tenantPayload)
+      try {
+        await createStateAdminMutation.mutateAsync({
+          tenantId: String(tenant.id),
+          admin: {
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            email: email.trim(),
+            phone: phone.trim(),
+            secondaryEmail: secondaryEmail.trim() || undefined,
+            contactNumber: contactNumber.trim() || undefined,
+          },
+        })
+        toast.addToast(t('statesUts.messages.inviteSent'), 'success')
+        setTimeout(() => {
+          navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':id', String(tenant.id)))
+        }, 1000)
+      } catch (adminError) {
+        console.error('Admin creation failed:', adminError)
+        toast.addToast(t('statesUts.messages.tenantCreatedAdminFailed'), 'error')
+      }
     } catch (error) {
-      console.error('Failed to create state:', error)
+      console.error('Failed to create tenant:', error)
       toast.addToast(t('statesUts.messages.failedToAdd'), 'error')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -143,7 +166,9 @@ export function AddStateUTPage() {
             _hover={{ textDecoration: 'underline' }}
             onClick={() => navigate(ROUTES.SUPER_ADMIN_STATES_UTS)}
             tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && navigate(ROUTES.SUPER_ADMIN_STATES_UTS)}
+            onKeyDown={(e: React.KeyboardEvent) =>
+              e.key === 'Enter' && navigate(ROUTES.SUPER_ADMIN_STATES_UTS)
+            }
           >
             {t('statesUts.breadcrumb.manage')}
           </Text>
@@ -360,7 +385,9 @@ export function AddStateUTPage() {
               size="md"
               width={{ base: 'full', sm: '174px' }}
               onClick={handleCancel}
-              isDisabled={createStateMutation.isPending}
+              isDisabled={
+                isSubmitting || createTenantMutation.isPending || createStateAdminMutation.isPending
+              }
             >
               {t('common:button.cancel')}
             </Button>
@@ -370,8 +397,15 @@ export function AddStateUTPage() {
               size="md"
               width={{ base: 'full', sm: 'auto' }}
               maxWidth={{ base: '100%', sm: '275px' }}
-              isLoading={createStateMutation.isPending}
-              isDisabled={!isFormValid}
+              isLoading={
+                isSubmitting || createTenantMutation.isPending || createStateAdminMutation.isPending
+              }
+              isDisabled={
+                !isFormValid ||
+                isSubmitting ||
+                createTenantMutation.isPending ||
+                createStateAdminMutation.isPending
+              }
             >
               {t('statesUts.buttons.addAndSendLink')}
             </Button>

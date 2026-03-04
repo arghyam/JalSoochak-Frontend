@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react'
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -13,7 +14,7 @@ import {
   Link as ChakraLink,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { MdOutlineMoving, MdOutlinePlace } from 'react-icons/md'
+import { MdOutlineMoving, MdOutlinePlace, MdExpandMore, MdExpandLess } from 'react-icons/md'
 import { AiOutlineEye, AiOutlineSetting, AiOutlineWarning, AiOutlineApi } from 'react-icons/ai'
 import { BiKey } from 'react-icons/bi'
 import { FiLogOut } from 'react-icons/fi'
@@ -23,114 +24,39 @@ import { BsPerson, BsListUl } from 'react-icons/bs'
 import jalsoochakLogo from '@/assets/media/jalsoochak-logo.svg'
 import { useAuthStore } from '@/app/store'
 import { ROUTES } from '@/shared/constants/routes'
-import { AUTH_ROLES } from '@/shared/constants/auth'
+import { SIDEBAR_NAV_ITEMS } from '@/shared/constants/sidebar-nav'
+import type {
+  SidebarNavItem,
+  SimpleNavItem,
+  ExpandableNavItem,
+} from '@/shared/constants/sidebar-types'
 
 interface SidebarProps {
   onNavClick?: () => void
 }
 
-interface NavItem {
-  path: string
-  labelKey: string
-  roles: string[]
-  icon?: React.ComponentType<{ className?: string }>
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  AiOutlineEye,
+  AiOutlineSetting,
+  AiOutlineWarning,
+  AiOutlineApi,
+  MdOutlinePlace,
+  MdOutlineMoving,
+  BiKey,
+  IoLanguageOutline,
+  IoWaterOutline,
+  HiOutlineTemplate,
+  BsPerson,
+  BsListUl,
 }
 
-const NAV_ITEMS: NavItem[] = [
-  // Super Admin navigation
-  {
-    path: ROUTES.SUPER_ADMIN_OVERVIEW,
-    labelKey: 'sidebar.overview',
-    roles: [AUTH_ROLES.SUPER_ADMIN],
-    icon: AiOutlineEye,
-  },
-  {
-    path: ROUTES.SUPER_ADMIN_SYSTEM_RULES,
-    labelKey: 'sidebar.systemRules',
-    roles: [AUTH_ROLES.SUPER_ADMIN],
-    icon: AiOutlineSetting,
-  },
-  {
-    path: ROUTES.SUPER_ADMIN_STATES_UTS,
-    labelKey: 'sidebar.statesUts',
-    roles: [AUTH_ROLES.SUPER_ADMIN],
-    icon: MdOutlinePlace,
-  },
-  {
-    path: ROUTES.SUPER_ADMIN_API_CREDENTIALS,
-    labelKey: 'sidebar.apiCredentials',
-    roles: [AUTH_ROLES.SUPER_ADMIN],
-    icon: BiKey,
-  },
-  {
-    path: ROUTES.SUPER_ADMIN_INGESTION_MONITOR,
-    labelKey: 'sidebar.ingestionMonitor',
-    roles: [AUTH_ROLES.SUPER_ADMIN],
-    icon: AiOutlineApi,
-  },
+function isSimple(item: SidebarNavItem): item is SimpleNavItem {
+  return item.type === 'simple'
+}
 
-  // State Admin navigation
-  {
-    path: ROUTES.STATE_ADMIN_OVERVIEW,
-    labelKey: 'sidebar.overview',
-    roles: [AUTH_ROLES.STATE_ADMIN],
-    icon: AiOutlineEye,
-  },
-  {
-    path: ROUTES.STATE_ADMIN_LANGUAGE,
-    labelKey: 'sidebar.language',
-    roles: [AUTH_ROLES.STATE_ADMIN],
-    icon: IoLanguageOutline,
-  },
-  {
-    path: ROUTES.STATE_ADMIN_WATER_NORMS,
-    labelKey: 'sidebar.waterNorms',
-    roles: [AUTH_ROLES.STATE_ADMIN],
-    icon: IoWaterOutline,
-  },
-  {
-    path: ROUTES.STATE_ADMIN_INTEGRATION,
-    labelKey: 'sidebar.integration',
-    roles: [AUTH_ROLES.STATE_ADMIN],
-    icon: AiOutlineSetting,
-  },
-  {
-    path: ROUTES.STATE_ADMIN_ESCALATIONS,
-    labelKey: 'sidebar.escalations',
-    roles: [AUTH_ROLES.STATE_ADMIN],
-    icon: MdOutlineMoving,
-  },
-  {
-    path: ROUTES.STATE_ADMIN_THRESHOLDS,
-    labelKey: 'sidebar.thresholds',
-    roles: [AUTH_ROLES.STATE_ADMIN],
-    icon: AiOutlineWarning,
-  },
-  {
-    path: ROUTES.STATE_ADMIN_NUDGES,
-    labelKey: 'sidebar.nudgesTemplate',
-    roles: [AUTH_ROLES.STATE_ADMIN],
-    icon: HiOutlineTemplate,
-  },
-  {
-    path: ROUTES.STATE_ADMIN_API_INGESTION,
-    labelKey: 'sidebar.apiIngestion',
-    roles: [AUTH_ROLES.STATE_ADMIN],
-    icon: AiOutlineApi,
-  },
-  {
-    path: ROUTES.STATE_ADMIN_OPERATOR_SYNC,
-    labelKey: 'sidebar.operatorSync',
-    roles: [AUTH_ROLES.STATE_ADMIN],
-    icon: BsPerson,
-  },
-  {
-    path: ROUTES.STATE_ADMIN_ACTIVITY,
-    labelKey: 'sidebar.activity',
-    roles: [AUTH_ROLES.STATE_ADMIN],
-    icon: BsListUl,
-  },
-]
+function isExpandable(item: SidebarNavItem): item is ExpandableNavItem {
+  return item.type === 'expandable'
+}
 
 export function Sidebar({ onNavClick }: SidebarProps) {
   const { t } = useTranslation('common')
@@ -140,7 +66,27 @@ export function Sidebar({ onNavClick }: SidebarProps) {
   const navigate = useNavigate()
 
   const userRole = user?.role
-  const visibleNavItems = NAV_ITEMS.filter((item) => userRole && item.roles.includes(userRole))
+
+  const visibleNavItems = useMemo(() => {
+    if (!userRole) return []
+    return SIDEBAR_NAV_ITEMS.filter((item) => {
+      if (!item.roles.includes(userRole)) return false
+      if (isExpandable(item)) {
+        const visibleChildren = item.children.filter((c) => c.roles.includes(userRole))
+        return visibleChildren.length > 0
+      }
+      return true
+    })
+  }, [userRole])
+
+  const [expandedKey, setExpandedKey] = useState<string | null>(null)
+  const [collapsedKeys, setCollapsedKeys] = useState<Set<string>>(() => new Set())
+
+  const isChildPathActive = (path: string) => {
+    if (path === ROUTES.SUPER_ADMIN_OVERVIEW || path === ROUTES.STATE_ADMIN_OVERVIEW)
+      return location.pathname === path
+    return location.pathname === path || location.pathname.startsWith(path + '/')
+  }
 
   const getInitials = (name: string) => {
     const parts = name.split(' ')
@@ -167,16 +113,16 @@ export function Sidebar({ onNavClick }: SidebarProps) {
       top={0}
       zIndex={40}
       h="100vh"
-      w="224px"
+      w="250px"
     >
       <Flex
         direction="column"
         h="100vh"
-        w="224px"
+        w="250px"
         bg="white"
         borderRight="1px"
         borderColor="neutral.100"
-        py={10}
+        py={12}
       >
         {/* Brand Section */}
         <Flex
@@ -204,48 +150,151 @@ export function Sidebar({ onNavClick }: SidebarProps) {
           flex={1}
           overflowY="auto"
         >
-          <Stack gap={4} px={7} py={4}>
+          <Stack gap={4} px={7} py={5}>
             {visibleNavItems.map((item) => {
-              const isActive =
-                location.pathname === item.path ||
-                (item.path !== ROUTES.SUPER_ADMIN_OVERVIEW &&
-                  item.path !== ROUTES.STATE_ADMIN_OVERVIEW &&
-                  location.pathname.startsWith(item.path + '/'))
-              const ItemIcon = item.icon
+              if (isSimple(item)) {
+                const isActive = isChildPathActive(item.path)
+                const ItemIcon = ICON_MAP[item.icon]
 
-              return (
-                <ChakraLink
-                  as={RouterLink}
-                  key={item.path}
-                  to={item.path}
-                  onClick={onNavClick}
-                  aria-current={isActive ? 'page' : undefined}
-                  textDecoration="none"
-                  _hover={{ textDecoration: 'none' }}
-                >
-                  <Flex
-                    alignItems="center"
-                    gap={2}
-                    borderRadius="lg"
-                    px={3}
-                    py={2}
-                    fontSize="sm"
-                    fontWeight="medium"
-                    transition="all 0.2s"
-                    bg={isActive ? 'primary.25' : 'transparent'}
-                    color={isActive ? 'primary.700' : 'neutral.950'}
-                    minH="44px"
-                    _hover={{
-                      bg: isActive ? 'primary.25' : 'neutral.100',
-                    }}
+                return (
+                  <ChakraLink
+                    as={RouterLink}
+                    key={item.path}
+                    to={item.path}
+                    onClick={onNavClick}
+                    aria-current={isActive ? 'page' : undefined}
+                    textDecoration="none"
+                    _hover={{ textDecoration: 'none' }}
                   >
-                    {ItemIcon && (
-                      <Icon as={ItemIcon} boxSize={5} flexShrink={0} aria-hidden="true" />
+                    <Flex
+                      alignItems="center"
+                      gap={2}
+                      borderRadius="lg"
+                      px={3}
+                      py={2}
+                      fontSize="sm"
+                      fontWeight="medium"
+                      transition="all 0.2s"
+                      bg={isActive ? 'primary.25' : 'transparent'}
+                      color={isActive ? 'primary.700' : 'neutral.950'}
+                      minH="44px"
+                      _hover={{
+                        bg: isActive ? 'primary.25' : 'neutral.100',
+                      }}
+                    >
+                      {ItemIcon && (
+                        <Icon as={ItemIcon} boxSize={5} flexShrink={0} aria-hidden="true" />
+                      )}
+                      <Text isTruncated>{t(item.labelKey)}</Text>
+                    </Flex>
+                  </ChakraLink>
+                )
+              }
+
+              if (isExpandable(item)) {
+                const visibleChildren = item.children.filter(
+                  (c) => userRole && c.roles.includes(userRole)
+                )
+                const isParentActive = visibleChildren.some((c) => isChildPathActive(c.path))
+                const isOpen =
+                  !collapsedKeys.has(item.labelKey) &&
+                  (expandedKey === item.labelKey ||
+                    visibleChildren.some((c) => isChildPathActive(c.path)))
+                const ItemIcon = ICON_MAP[item.icon]
+
+                return (
+                  <Box key={item.labelKey}>
+                    <Flex
+                      as="button"
+                      type="button"
+                      alignItems="center"
+                      gap={2}
+                      borderRadius="lg"
+                      px={3}
+                      py={2}
+                      fontSize="sm"
+                      fontWeight="medium"
+                      transition="all 0.2s"
+                      bg={isParentActive ? 'primary.25' : 'transparent'}
+                      color={isParentActive ? 'primary.700' : 'neutral.950'}
+                      minH="44px"
+                      w="full"
+                      textAlign="left"
+                      cursor="pointer"
+                      border="none"
+                      aria-expanded={isOpen}
+                      _hover={{
+                        bg: isParentActive ? 'primary.25' : 'neutral.100',
+                      }}
+                      onClick={() => {
+                        if (isOpen) {
+                          setCollapsedKeys((prev) => new Set(prev).add(item.labelKey))
+                          setExpandedKey(null)
+                        } else {
+                          setCollapsedKeys((prev) => {
+                            const next = new Set(prev)
+                            next.delete(item.labelKey)
+                            return next
+                          })
+                          setExpandedKey(item.labelKey)
+                        }
+                      }}
+                    >
+                      {ItemIcon && (
+                        <Icon as={ItemIcon} boxSize={5} flexShrink={0} aria-hidden="true" />
+                      )}
+                      <Text isTruncated flex={1}>
+                        {t(item.labelKey)}
+                      </Text>
+                      <Icon
+                        as={isOpen ? MdExpandLess : MdExpandMore}
+                        boxSize={5}
+                        flexShrink={0}
+                        aria-hidden="true"
+                      />
+                    </Flex>
+                    {isOpen && (
+                      <Stack gap={1} pl={8} mt={1}>
+                        {visibleChildren.map((child) => {
+                          const isActive = isChildPathActive(child.path)
+                          return (
+                            <ChakraLink
+                              as={RouterLink}
+                              key={child.path}
+                              to={child.path}
+                              onClick={onNavClick}
+                              aria-current={isActive ? 'page' : undefined}
+                              textDecoration="none"
+                              _hover={{ textDecoration: 'none' }}
+                            >
+                              <Flex
+                                alignItems="center"
+                                gap={2}
+                                borderRadius="lg"
+                                px={3}
+                                py={2}
+                                fontSize="sm"
+                                fontWeight="medium"
+                                transition="all 0.2s"
+                                bg={isActive ? 'primary.25' : 'transparent'}
+                                color={isActive ? 'primary.700' : 'neutral.950'}
+                                minH="40px"
+                                _hover={{
+                                  bg: isActive ? 'primary.25' : 'neutral.100',
+                                }}
+                              >
+                                <Text isTruncated>{t(child.labelKey)}</Text>
+                              </Flex>
+                            </ChakraLink>
+                          )
+                        })}
+                      </Stack>
                     )}
-                    <Text isTruncated>{t(item.labelKey)}</Text>
-                  </Flex>
-                </ChakraLink>
-              )
+                  </Box>
+                )
+              }
+
+              return null
             })}
           </Stack>
         </Box>

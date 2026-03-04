@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next'
 import { SearchIcon, EditIcon } from '@chakra-ui/icons'
 import { FiEye } from 'react-icons/fi'
 import { IoAddOutline } from 'react-icons/io5'
-import { DataTable, type DataTableColumn } from '@/shared/components/common'
+import { DataTable, type DataTableColumn, StatusChip } from '@/shared/components/common'
 import type { StateUT } from '../../types/states-uts'
 import { ROUTES } from '@/shared/constants/routes'
 import { useStatesUTsQuery } from '../../services/query/use-super-admin-queries'
@@ -96,20 +96,10 @@ export function StatesUTsPage() {
       header: t('statesUts.table.status'),
       sortable: false,
       render: (row) => (
-        <Box
-          as="span"
-          display="inline-block"
-          px={2}
-          py={0.5}
-          borderRadius="16px"
-          h={6}
-          textStyle="h10"
-          fontWeight="400"
-          bg={row.status === 'active' ? 'success.50' : 'error.50'}
-          color={row.status === 'active' ? 'success.500' : 'error.500'}
-        >
-          {row.status === 'active' ? t('common:status.active') : t('common:status.inactive')}
-        </Box>
+        <StatusChip
+          status={row.status}
+          label={row.status === 'active' ? t('common:status.active') : t('common:status.inactive')}
+        />
       ),
     },
     {

@@ -1,60 +1,24 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Heading, Text, Flex, SimpleGrid, IconButton } from '@chakra-ui/react'
+import { StatusChip } from '@/shared/components/common'
 import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
-import { Toggle, ToastContainer } from '@/shared/components/common'
-import { useToast } from '@/shared/hooks/use-toast'
 import type { StateUT } from '../../types/states-uts'
 import { ROUTES } from '@/shared/constants/routes'
-import {
-  useStateUTByIdQuery,
-  useUpdateStateUTStatusMutation,
-} from '../../services/query/use-super-admin-queries'
+import { useStateUTByIdQuery } from '../../services/query/use-super-admin-queries'
 
 export function ViewStateUTPage() {
   const { t } = useTranslation(['super-admin', 'common'])
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
-  const toast = useToast()
   const stateUTQuery = useStateUTByIdQuery(id)
-  const updateStateUTStatusMutation = useUpdateStateUTStatusMutation()
-
-  const [statusDraft, setStatusDraft] = useState<'active' | 'inactive' | null>(null)
 
   useEffect(() => {
     document.title = `${t('statesUts.viewTitle')} | JalSoochak`
   }, [t])
 
   const state: StateUT | null = stateUTQuery.data ?? null
-  const status = statusDraft ?? state?.status
-
-  const handleStatusToggle = async () => {
-    if (!state || updateStateUTStatusMutation.isPending) return
-
-    const newStatus = status === 'active' ? 'inactive' : 'active'
-
-    try {
-      const updated = await updateStateUTStatusMutation.mutateAsync({
-        id: state.id,
-        status: newStatus,
-      })
-      if (updated) {
-        setStatusDraft(newStatus)
-        toast.addToast(
-          newStatus === 'active'
-            ? t('statesUts.messages.activatedSuccess')
-            : t('statesUts.messages.deactivatedSuccess'),
-          'success'
-        )
-      } else {
-        toast.addToast(t('statesUts.messages.notFound'), 'error')
-      }
-    } catch (error) {
-      console.error('Failed to update status:', error)
-      toast.addToast(t('statesUts.messages.failedToUpdateStatus'), 'error')
-    }
-  }
 
   const handleEdit = () => {
     if (id) {
@@ -232,21 +196,13 @@ export function ViewStateUTPage() {
         <Heading as="h2" size="h3" fontWeight="400" mb={4} id="status-heading">
           {t('statesUts.statusSection.title')}
         </Heading>
-        <Flex align="center" gap={2} h={6} aria-labelledby="status-heading">
-          <Text textStyle="h10" id="activated-label">
-            {t('statesUts.statusSection.activated')}
-          </Text>
-          <Toggle
-            isChecked={status === 'active'}
-            onChange={handleStatusToggle}
-            isDisabled={updateStateUTStatusMutation.isPending}
-            aria-labelledby="activated-label"
-          />
-        </Flex>
+        <StatusChip
+          status={state.status}
+          label={
+            state.status === 'active' ? t('common:status.active') : t('common:status.inactive')
+          }
+        />
       </Box>
-
-      {/* Toast Container */}
-      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </Box>
   )
 }

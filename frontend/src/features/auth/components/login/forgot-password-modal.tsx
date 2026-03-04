@@ -3,6 +3,7 @@ import {
   Button,
   Flex,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   Input,
   Modal,
@@ -34,14 +35,14 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
 
   const handleSendResetLink = () => {
     const trimmedEmail = email.trim()
-    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)
+    const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)
 
     if (!trimmedEmail) {
       setEmailError('Email is required.')
       return
     }
 
-    if (!isValidEmail) {
+    if (!isEmailValid) {
       setEmailError('Enter a valid email address.')
       return
     }
@@ -54,7 +55,7 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} isCentered>
-      <ModalOverlay bg="#101828B3" />
+      <ModalOverlay bg="blackAlpha.700" />
       <ModalContent maxW="408px" h="328px" borderRadius="12px" p="24px">
         <ModalBody p="0">
           <Flex direction="column" align="center" gap="20px">
@@ -62,14 +63,14 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
               w="48px"
               h="48px"
               borderRadius="full"
-              bg="#D6E9F6"
+              bg="primary.50"
               border="1px solid"
-              borderColor="#EBF4FA"
+              borderColor="primary.25"
               display="flex"
               alignItems="center"
               justifyContent="center"
             >
-              <HiOutlineMail size="24px" color="#3291D1" />
+              <HiOutlineMail size="24px" color="var(--chakra-colors-primary-500)" />
             </Box>
             <Text textAlign="center" textStyle="bodyText3">
               Please enter your email id associated
@@ -78,7 +79,7 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
             </Text>
           </Flex>
 
-          <FormControl mt="20px">
+          <FormControl mt="20px" isInvalid={!!emailError}>
             <FormLabel textStyle="bodyText6" mb="4px">
               Email{' '}
               <Text as="span" color="error.500">
@@ -105,11 +106,7 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
               fontSize="sm"
               focusBorderColor="primary.500"
             />
-            {emailError ? (
-              <Text mt="4px" fontSize="xs" color="error.500">
-                {emailError}
-              </Text>
-            ) : null}
+            <FormErrorMessage>{emailError}</FormErrorMessage>
           </FormControl>
 
           <Flex mt={emailError ? '0' : '32px'} gap="20px" justify="space-between">

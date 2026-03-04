@@ -10,9 +10,10 @@
     "charts": {
       "ingestionSuccessRate": "Ingestion Success Rate Over Time",
       "successfulIngestions": "Successful Ingestions",
-      "failedIngestions": "Failed Ingestions"
-    },
-    "notifications": "Notifications"
+      "failedIngestions": "Failed Ingestions",
+      "waterSupplyOutages": "Water Supply Outages",
+      "select": "Select"
+    }
   },
 
   "systemRules": {
@@ -71,17 +72,23 @@
     },
     "statusSection": {
       "title": "Status",
-      "activated": "Activated"
+      "activated": "Activated",
+      "stateUtStatus": "State/UT Status"
     },
     "buttons": {
-      "addAndSendLink": "Add State & Send Link via Email"
+      "addAndSendLink": "Add State & Send Link via Email",
+      "backToList": "Back to States/UTs"
     },
     "messages": {
       "notFound": "State/UT not found",
       "noStatesFound": "No states/UTs found",
       "addedSuccess": "State/UT added successfully",
       "inviteSent": "Invite sent successfully",
+      "tenantCreatedSuccess": "Tenant created successfully",
+      "tenantNameLabel": "State/UT",
+      "adminInviteSent": "Admin invite will be sent.",
       "failedToAdd": "Failed to add State/UT",
+      "tenantCreatedAdminFailed": "Tenant created but admin creation failed",
       "failedToLoadAssignedStates": "Failed to load assigned states. Please refresh and try again.",
       "failedToLoadStateOptions": "Failed to load state/UT options. Please refresh and try again.",
       "activatedSuccess": "State/UT activated successfully",
@@ -93,6 +100,31 @@
       "editStateUt": "Edit State/UT"
     },
     "searchPlaceholder": "Search by State/UT name"
+  },
+
+  "manageStateAdmins": {
+    "title": "Manage State/UTs Admins",
+    "searchPlaceholder": "Search State/UT",
+    "downloadReport": "Download Report",
+    "table": {
+      "adminName": "Admin Name",
+      "stateUt": "State/UT",
+      "mobileNumber": "Mobile Number",
+      "emailAddress": "Email Address",
+      "signupStatus": "Signup Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "completed": "Completed",
+      "pending": "Pending"
+    },
+    "messages": {
+      "noAdminsFound": "No admins found"
+    },
+    "aria": {
+      "viewAdmin": "View admin",
+      "editAdmin": "Edit admin"
+    }
   },
 
   "apiCredentials": {

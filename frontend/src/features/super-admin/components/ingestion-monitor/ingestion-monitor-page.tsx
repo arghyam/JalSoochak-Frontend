@@ -9,12 +9,11 @@ import {
   Stack,
   Button,
   HStack,
-  Badge,
   useBreakpointValue,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { BarLineChart } from '@/shared/components/charts/bar-line-chart'
-import { SearchableSelect } from '@/shared/components/common'
+import { SearchableSelect, StatusChip } from '@/shared/components/common'
 import type { IngestionLogEntry } from '../../types/ingestion-monitor'
 import {
   STATE_FILTER_OPTIONS,
@@ -56,46 +55,13 @@ export function IngestionMonitorPage() {
     return `${hours}:${minutes}${ampm} | ${day}-${month}-${year}`
   }
 
-  const getStatusBadge = (status: IngestionLogEntry['status']) => {
-    const statusConfig = {
-      successful: {
-        bg: '#E1FFEA',
-        color: '#079455',
-        label: t('common:status.successful'),
-      },
-      warning: {
-        bg: '#FFF0DB',
-        color: '#F79009',
-        label: t('common:status.warning'),
-      },
-      failed: {
-        bg: '#FEE4E2',
-        color: '#D92D20',
-        label: t('common:status.failed'),
-      },
+  const getStatusLabel = (status: IngestionLogEntry['status']) => {
+    const labels: Record<IngestionLogEntry['status'], string> = {
+      successful: t('common:status.successful'),
+      warning: t('common:status.warning'),
+      failed: t('common:status.failed'),
     }
-
-    const config = statusConfig[status]
-    return (
-      <Badge
-        bg={config.bg}
-        color={config.color}
-        px={2}
-        py={0.5}
-        borderRadius="16px"
-        fontSize="12px"
-        lineHeight="16px"
-        fontWeight="500"
-        textTransform="capitalize"
-        height="24px"
-        width="71px"
-        alignItems="center"
-        display="flex"
-        justifyContent="center"
-      >
-        {config.label}
-      </Badge>
-    )
+    return labels[status]
   }
 
   const filteredLogs =
@@ -431,7 +397,7 @@ export function IngestionMonitorPage() {
                     flexDirection={{ base: 'row', md: 'row' }}
                     w={{ base: 'full', md: 'auto' }}
                   >
-                    {getStatusBadge(log.status)}
+                    <StatusChip status={log.status} label={getStatusLabel(log.status)} />
                   </Flex>
                   <Flex
                     align="center"
