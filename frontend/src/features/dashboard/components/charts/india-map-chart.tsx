@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTheme } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
@@ -25,22 +25,39 @@ export function IndiaMapChart({
   const { t } = useTranslation('dashboard')
   const [isRegularityView, setIsRegularityView] = useState(true)
   const metricKey: 'quantity' | 'regularity' = isRegularityView ? 'regularity' : 'quantity'
-  const resolveThemeColor = (token: string) => {
-    const [scale, shade] = token.split('.')
-    const palette = (theme as { colors?: Record<string, Record<string, string>> }).colors?.[scale]
-    const value = palette?.[shade]
-    return typeof value === 'string' ? value : token
-  }
-  const mapColors = {
-    gte90: resolveThemeColor('primary.500'),
-    gte70: resolveThemeColor('success.500'),
-    gte50: resolveThemeColor('secondary.500'),
-    gte30: resolveThemeColor('secondary.700'),
-    gte0: resolveThemeColor('error.500'),
-    noData: resolveThemeColor('neutral.400'),
-    emphasis: resolveThemeColor('primary.600'),
-  }
-  const toggleLabelColor = resolveThemeColor('neutral.950')
+  const resolveThemeColor = useCallback(
+    (token: string) => {
+      const [scale, shade] = token.split('.')
+      const palette = (theme as { colors?: Record<string, Record<string, string>> }).colors?.[scale]
+      const value = palette?.[shade]
+      return typeof value === 'string' ? value : token
+    },
+    [theme]
+  )
+  const mapColors = useMemo(
+    () => ({
+      gte90: resolveThemeColor('primary.500'),
+      gte70: resolveThemeColor('success.500'),
+      gte50: resolveThemeColor('secondary.500'),
+      gte30: resolveThemeColor('secondary.700'),
+      gte0: resolveThemeColor('error.500'),
+      noData: resolveThemeColor('neutral.400'),
+      emphasis: resolveThemeColor('primary.600'),
+    }),
+    [resolveThemeColor]
+  )
+  const toggleLabelColor = useMemo(() => resolveThemeColor('neutral.950'), [resolveThemeColor])
+  const getRangeColor = useCallback(
+    (value: number) => {
+      if (value >= 90) return mapColors.gte90
+      if (value >= 70) return mapColors.gte70
+      if (value >= 50) return mapColors.gte50
+      if (value >= 30) return mapColors.gte30
+      if (value >= 0) return mapColors.gte0
+      return mapColors.noData
+    },
+    [mapColors]
+  )
 
   const option = useMemo<echarts.EChartsOption>(() => {
     // Create map data series
@@ -49,6 +66,9 @@ export function IndiaMapChart({
       value: state[metricKey],
       stateId: state.id,
       status: state.status,
+      itemStyle: {
+        areaColor: getRangeColor(state[metricKey]),
+      },
       metrics: {
         coverage: state.coverage,
         regularity: state.regularity,
@@ -128,7 +148,7 @@ export function IndiaMapChart({
         },
       ],
     }
-  }, [data, mapColors.emphasis, mapColors.gte90, metricKey, t])
+  }, [data, getRangeColor, mapColors.emphasis, mapColors.gte90, metricKey, t])
 
   const bodyText6 = getBodyText6Style(theme)
   const legendItems = [
@@ -194,7 +214,6 @@ export function IndiaMapChart({
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              marginTop: '10px',
             }}
           >
             <span
