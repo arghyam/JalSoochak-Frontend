@@ -13,7 +13,8 @@
       "states": "States"
     },
     "aria": {
-      "breadcrumb": "Breadcrumb: {{item}}"
+      "breadcrumb": "Breadcrumb: {{item}}",
+      "closeDropdown": "Close search dropdown"
     }
   },
   "filters": {

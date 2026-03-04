@@ -13,7 +13,8 @@
       "states": "राज्य"
     },
     "aria": {
-      "breadcrumb": "ब्रेडक्रंब: {{item}}"
+      "breadcrumb": "ब्रेडक्रंब: {{item}}",
+      "closeDropdown": "खोज ड्रॉपडाउन बंद करें"
     }
   },
   "filters": {

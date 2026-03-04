@@ -317,7 +317,7 @@ export function DateRangePicker({
           >
             {displayLabel}
           </Text>
-          <CalendarIcon boxSize="16px" />
+          <CalendarIcon boxSize="16px" color={displayColor} />
         </Flex>
       </PopoverTrigger>
       <PopoverContent

@@ -105,6 +105,26 @@ describe('SearchLayout', () => {
     expect(screen.getByRole('button', { name: 'Breadcrumb: Sangareddy' })).toBeTruthy()
   })
 
+  it('closes dropdown when close icon is clicked', () => {
+    renderWithProviders(
+      <SearchLayout
+        breadcrumbPanelProps={{
+          stateOptions: [{ value: 'telangana', label: 'Telangana' }],
+          totalStatesCount: 36,
+        }}
+      />
+    )
+
+    const searchInput = screen.getByPlaceholderText(
+      'Search by state/UT, district, block, gram panchayat, village'
+    )
+    fireEvent.focus(searchInput)
+
+    expect(screen.getByText('States (36)')).toBeTruthy()
+    fireEvent.click(screen.getByTestId('search-dropdown-close'))
+    expect(screen.queryByText('States (36)')).toBeNull()
+  })
+
   it('does not render closed chips when active trail points to All States/UTs', () => {
     renderWithProviders(
       <SearchLayout selectionTrail={['Telangana', 'Sangareddy']} activeTrailIndex={-1} />

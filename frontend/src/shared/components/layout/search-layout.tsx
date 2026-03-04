@@ -7,6 +7,7 @@ import {
   InputGroup,
   InputLeftElement,
   Button,
+  IconButton,
   Box,
   Text,
   Icon,
@@ -15,7 +16,7 @@ import {
   TabList,
   Tab,
 } from '@chakra-ui/react'
-import { SearchIcon } from '@chakra-ui/icons'
+import { CloseIcon, SearchIcon } from '@chakra-ui/icons'
 import { FiChevronDown, FiDownload } from 'react-icons/fi'
 import { useTranslation } from 'react-i18next'
 
@@ -175,6 +176,10 @@ export function SearchLayout({
     breadcrumbPanelProps?.onTrailSelect?.(trailIndex)
   }
 
+  const handleCloseBreadcrumbPanel = () => {
+    setIsBreadcrumbPanelOpen(false)
+  }
+
   return (
     <Box
       as="section"
@@ -332,6 +337,24 @@ export function SearchLayout({
           overflowY="auto"
           boxShadow="0px 8px 24px rgba(0, 0, 0, 0.08)"
         >
+          <IconButton
+            aria-label={t('searchLayout.aria.closeDropdown', 'Close search dropdown')}
+            icon={<CloseIcon boxSize="10px" />}
+            size="sm"
+            variant="ghost"
+            color="neutral.950"
+            bg="transparent"
+            _hover={{ bg: 'transparent' }}
+            _active={{ bg: 'transparent' }}
+            _focus={{ bg: 'transparent' }}
+            _focusVisible={{ boxShadow: 'none' }}
+            position="absolute"
+            top="8px"
+            right="8px"
+            zIndex={1}
+            onClick={handleCloseBreadcrumbPanel}
+            data-testid="search-dropdown-close"
+          />
           {breadcrumbPanelProps?.showTabs ? (
             <Box px="16px" py="8px" data-testid="search-dropdown-tabs">
               <Tabs
