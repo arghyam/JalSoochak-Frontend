@@ -275,24 +275,42 @@ const theme = extendTheme({
           borderWidth: '1px',
           borderColor: 'primary.500',
           _hover: {
-            bg: 'primary.50',
+            bg: 'primary.400',
             borderColor: 'primary.600',
-            color: 'primary.600',
+            color: 'white',
             _disabled: {
               bg: 'transparent',
-              borderColor: 'neutral.200',
-              color: 'neutral.400',
+              borderColor: 'neutral.300',
+              color: 'neutral.300',
             },
           },
           _active: {
-            bg: 'primary.100',
+            bg: 'primary.600',
             borderColor: 'primary.700',
-            color: 'primary.700',
+            color: 'white',
           },
           _disabled: {
             bg: 'transparent',
-            borderColor: 'neutral.200',
-            color: 'neutral.400',
+            borderColor: 'neutral.300',
+            color: 'neutral.300',
+            opacity: 1,
+            cursor: 'not-allowed',
+          },
+        },
+        tertiary: {
+          bg: 'transparent',
+          color: 'primary.500',
+          _hover: {
+            color: 'primary.600',
+            _disabled: {
+              color: 'neutral.300',
+            },
+          },
+          _active: {
+            color: 'primary.700',
+          },
+          _disabled: {
+            color: 'neutral.300',
             opacity: 1,
             cursor: 'not-allowed',
           },

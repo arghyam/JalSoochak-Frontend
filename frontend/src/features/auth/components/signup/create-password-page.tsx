@@ -1,22 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import {
-  Button,
-  Checkbox,
-  Flex,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  Input,
-  InputGroup,
-  InputRightElement,
-  List,
-  ListItem,
-  Spinner,
-  Text,
-} from '@chakra-ui/react'
-import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai'
+import { Checkbox, Flex, List, ListItem, Spinner, Text, VStack } from '@chakra-ui/react'
+import { FormInput, AppButton } from '@/shared/components/common'
 import { authApi, buildSetPasswordRequest } from '@/features/auth/services/auth-api'
 import { ROUTES } from '@/shared/constants/routes'
 import type { ToastType } from '@/shared/components/common/toast'
@@ -34,8 +20,6 @@ export function CreatePasswordPage({ onShowToast }: CreatePasswordPageProps) {
   const [fetchState, setFetchState] = useState<FetchState>('loading')
   const [email, setEmail] = useState('')
   const [fetchError, setFetchError] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
@@ -137,120 +121,41 @@ export function CreatePasswordPage({ onShowToast }: CreatePasswordPageProps) {
         Create a password to proceed further.
       </Text>
 
-      <FormControl mb="1rem">
-        <FormLabel>
-          <Text textStyle="bodyText6" mb="4px" color="neutral.300">
-            Email address
-          </Text>
-        </FormLabel>
-        <Input
+      <VStack align="stretch" spacing="1rem" mb="1rem">
+        <FormInput
+          label="Email address"
           type="email"
           value={email}
+          onChange={() => {}}
           isDisabled
-          h="36px"
-          px="12px"
-          py="8px"
-          borderRadius="4px"
-          borderColor="neutral.300"
-          fontSize="sm"
-          _disabled={{ opacity: 1, cursor: 'not-allowed', textColor: 'neutral.300' }}
+          labelTextStyle="bodyText6"
+          inputProps={{ _disabled: { opacity: 1, cursor: 'not-allowed' } }}
         />
-      </FormControl>
 
-      <FormControl mt="1rem" mb="1rem">
-        <FormLabel>
-          <Text textStyle="bodyText6" mb="4px">
-            Create password
-            <Text as="span" color="error.500">
-              *
-            </Text>
-          </Text>
-        </FormLabel>
-        <InputGroup>
-          <Input
-            type={showPassword ? 'text' : 'password'}
-            placeholder="Enter your password"
-            autoComplete="new-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            h="36px"
-            px="12px"
-            py="8px"
-            borderRadius="4px"
-            borderColor="neutral.300"
-            _placeholder={{ color: 'neutral.300' }}
-            fontSize="sm"
-            focusBorderColor="primary.500"
-            pr="36px"
-          />
-          <InputRightElement h="36px">
-            <Button
-              variant="unstyled"
-              size="sm"
-              color="neutral.400"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              onClick={() => setShowPassword((prev) => !prev)}
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-              _hover={{ bg: 'transparent' }}
-              _active={{ bg: 'transparent' }}
-            >
-              {showPassword ? <AiOutlineEye size="16px" /> : <AiOutlineEyeInvisible size="16px" />}
-            </Button>
-          </InputRightElement>
-        </InputGroup>
-      </FormControl>
+        <FormInput
+          label="Create password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Enter your password"
+          isRequired
+          labelTextStyle="bodyText6"
+          inputProps={{ autoComplete: 'new-password' }}
+        />
 
-      <FormControl mt="1rem" isInvalid={!isPasswordMatch && !!confirmPassword}>
-        <FormLabel>
-          <Text textStyle="bodyText6" mb="4px">
-            Rewrite password
-            <Text as="span" color="error.500">
-              *
-            </Text>
-          </Text>
-        </FormLabel>
-        <InputGroup>
-          <Input
-            type={showConfirmPassword ? 'text' : 'password'}
-            placeholder="Enter your password"
-            autoComplete="new-password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            h="36px"
-            px="12px"
-            py="8px"
-            borderRadius="4px"
-            borderColor="neutral.300"
-            _placeholder={{ color: 'neutral.300' }}
-            fontSize="sm"
-            focusBorderColor="primary.500"
-            pr="36px"
-          />
-          <InputRightElement h="36px">
-            <Button
-              variant="unstyled"
-              size="sm"
-              color="neutral.400"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              onClick={() => setShowConfirmPassword((prev) => !prev)}
-              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-              _hover={{ bg: 'transparent' }}
-              _active={{ bg: 'transparent' }}
-            >
-              {showConfirmPassword ? (
-                <AiOutlineEye size="16px" />
-              ) : (
-                <AiOutlineEyeInvisible size="16px" />
-              )}
-            </Button>
-          </InputRightElement>
-        </InputGroup>
-        <FormErrorMessage>Passwords do not match.</FormErrorMessage>
-      </FormControl>
+        <FormInput
+          label="Rewrite password"
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          placeholder="Enter your password"
+          isRequired
+          isInvalid={!isPasswordMatch && !!confirmPassword}
+          errorMessage={!isPasswordMatch && confirmPassword ? 'Passwords do not match.' : undefined}
+          labelTextStyle="bodyText6"
+          inputProps={{ autoComplete: 'new-password' }}
+        />
+      </VStack>
 
       {password.length > 0 && !isPasswordValid ? (
         <List
@@ -300,19 +205,18 @@ export function CreatePasswordPage({ onShowToast }: CreatePasswordPageProps) {
         </Text>
       </Checkbox>
 
-      <Button
+      <AppButton
+        variant="primary"
+        size="md"
         w="full"
         mt="1.25rem"
-        fontSize="16px"
-        fontWeight="600"
         isDisabled={!canSubmit || isSubmitting}
         isLoading={isSubmitting}
         loadingText="Saving..."
-        _loading={{ bg: 'primary.500', color: 'white' }}
         onClick={handleSubmit}
       >
         Next
-      </Button>
+      </AppButton>
     </>
   )
 }

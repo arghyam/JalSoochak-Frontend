@@ -5,29 +5,23 @@ import {
   Flex,
   Image,
   Text,
-  Button,
-  Input,
-  InputGroup,
-  InputRightElement,
   FormControl,
   FormErrorMessage,
-  FormLabel,
   Checkbox,
   Link,
   useDisclosure,
   VStack,
 } from '@chakra-ui/react'
+import { FormInput, AppButton } from '@/shared/components/common'
 import { AuthSideImage } from '@/features/auth/components/signup/auth-side-image'
 import jalsoochakLogo from '@/assets/media/jalsoochak-logo.svg'
 import { useAuthStore } from '@/app/store'
-import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai'
 import { ForgotPasswordModal } from '@/features/auth/components/login/forgot-password-modal'
 
 export function LoginPage() {
   const navigate = useNavigate()
   const { login, loading, error } = useAuthStore()
   const { isOpen: isForgotPasswordOpen, onOpen, onClose } = useDisclosure()
-  const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [localError, setLocalError] = useState<string | null>(null)
@@ -91,83 +85,29 @@ export function LoginPage() {
 
               <Box as="form" onSubmit={handleSubmit}>
                 <VStack align="stretch" spacing="1rem">
-                  <FormControl isInvalid={isEmailError}>
-                    <FormLabel>
-                      <Text textStyle="bodyText6" mb="4px">
-                        Email
-                        <Text as="span" color="error.500">
-                          {' '}
-                          *
-                        </Text>
-                      </Text>
-                    </FormLabel>
-                    <Input
-                      type="email"
-                      placeholder="Enter your email"
-                      autoComplete="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      h="36px"
-                      px="12px"
-                      py="8px"
-                      borderRadius="4px"
-                      borderColor="neutral.300"
-                      _placeholder={{ color: 'neutral.300' }}
-                      fontSize="sm"
-                      focusBorderColor="primary.500"
-                    />
-                    <FormErrorMessage>{localError}</FormErrorMessage>
-                  </FormControl>
+                  <FormInput
+                    label="Email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    isRequired
+                    isInvalid={isEmailError}
+                    errorMessage={isEmailError ? (localError ?? undefined) : undefined}
+                    labelTextStyle="bodyText6"
+                    inputProps={{ autoComplete: 'email' }}
+                  />
 
-                  <FormControl>
-                    <FormLabel>
-                      <Text textStyle="bodyText6" mb="4px">
-                        Password
-                        <Text as="span" color="error.500">
-                          {' '}
-                          *
-                        </Text>
-                      </Text>
-                    </FormLabel>
-                    <InputGroup>
-                      <Input
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="Enter your password"
-                        autoComplete="current-password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        h="36px"
-                        px="12px"
-                        py="8px"
-                        borderRadius="4px"
-                        borderColor="neutral.300"
-                        _placeholder={{ color: 'neutral.300' }}
-                        fontSize="sm"
-                        focusBorderColor="primary.500"
-                        pr="36px"
-                      />
-                      <InputRightElement h="36px">
-                        <Button
-                          variant="unstyled"
-                          size="sm"
-                          color="neutral.400"
-                          display="flex"
-                          alignItems="center"
-                          justifyContent="center"
-                          onClick={() => setShowPassword((prev) => !prev)}
-                          aria-label={showPassword ? 'Hide password' : 'Show password'}
-                          _hover={{ bg: 'transparent' }}
-                          _active={{ bg: 'transparent' }}
-                        >
-                          {showPassword ? (
-                            <AiOutlineEye size="16px" />
-                          ) : (
-                            <AiOutlineEyeInvisible size="16px" />
-                          )}
-                        </Button>
-                      </InputRightElement>
-                    </InputGroup>
-                  </FormControl>
+                  <FormInput
+                    label="Password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    isRequired
+                    labelTextStyle="bodyText6"
+                    inputProps={{ autoComplete: 'current-password' }}
+                  />
 
                   <FormControl isInvalid={!!(error || (localError && !isEmailError))}>
                     <FormErrorMessage>{localError || error}</FormErrorMessage>
@@ -203,17 +143,16 @@ export function LoginPage() {
                     </Link>
                   </Flex>
 
-                  <Button
+                  <AppButton
                     type="submit"
+                    variant="primary"
+                    size="md"
                     w="full"
-                    fontSize="16px"
-                    fontWeight="600"
                     isLoading={loading}
                     loadingText="Signing in..."
-                    _loading={{ bg: 'primary.500', color: 'white' }}
                   >
                     Log in
-                  </Button>
+                  </AppButton>
                 </VStack>
               </Box>
             </Box>
