@@ -8,6 +8,7 @@ import {
   getMockLanguageConfiguration,
   getMockNudgeTemplates,
   getMockOverviewData,
+  getMockStaffSyncData,
   getMockThresholdConfiguration,
   getMockWaterNormsConfiguration,
   saveMockEscalation,
@@ -24,6 +25,7 @@ import type { IntegrationConfiguration } from '../../types/integration'
 import type { LanguageConfiguration } from '../../types/language'
 import type { NudgeTemplate } from '../../types/nudges'
 import type { OverviewData } from '../../types/overview'
+import type { StaffSyncData } from '../../types/staff-sync'
 import type { ThresholdConfiguration } from '../../types/thresholds'
 import type { WaterNormsConfiguration } from '../../types/water-norms'
 
@@ -40,6 +42,7 @@ export type UpdateNudgeTemplatePayload = { language: string; message: string }
 type StateAdminDataProvider = {
   getOverviewData: () => Promise<OverviewData>
   getActivityData: () => Promise<ActivityLog[]>
+  getStaffSyncData: () => Promise<StaffSyncData>
   getLanguageConfiguration: () => Promise<LanguageConfiguration>
   saveLanguageConfiguration: (
     payload: SaveLanguageConfigurationPayload
@@ -72,6 +75,10 @@ const httpProvider: StateAdminDataProvider = {
   },
   getActivityData: async () => {
     const response = await apiClient.get<ActivityLog[]>('/api/state-admin/activity')
+    return response.data
+  },
+  getStaffSyncData: async () => {
+    const response = await apiClient.get<StaffSyncData>('/api/state-admin/staff-sync')
     return response.data
   },
   getLanguageConfiguration: async () => {
@@ -159,6 +166,7 @@ const httpProvider: StateAdminDataProvider = {
 const mockProvider: StateAdminDataProvider = {
   getOverviewData: () => getMockOverviewData(),
   getActivityData: () => getMockActivityData(),
+  getStaffSyncData: () => getMockStaffSyncData(),
   getLanguageConfiguration: () => getMockLanguageConfiguration(),
   saveLanguageConfiguration: (payload) => saveMockLanguageConfiguration(payload),
   getIntegrationConfiguration: () => getMockIntegrationConfiguration(),
@@ -183,6 +191,7 @@ const provider: StateAdminDataProvider =
 export const stateAdminApi = {
   getOverviewData: () => provider.getOverviewData(),
   getActivityData: () => provider.getActivityData(),
+  getStaffSyncData: () => provider.getStaffSyncData(),
   getLanguageConfiguration: () => provider.getLanguageConfiguration(),
   saveLanguageConfiguration: (payload: SaveLanguageConfigurationPayload) =>
     provider.saveLanguageConfiguration(payload),

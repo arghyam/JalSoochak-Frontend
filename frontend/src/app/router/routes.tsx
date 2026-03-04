@@ -20,8 +20,8 @@ import {
   IntegrationPage,
   WaterNormsPage,
   EscalationsPage,
-  ThresholdsPage,
   NudgesTemplatePage,
+  StaffSyncPage,
 } from '@/features/state-admin'
 import { LoginPage, ResetPasswordPage } from '@/features/auth'
 import { SignupFlowPage } from '@/features/auth/components/signup/signup-flow-page'
@@ -198,10 +198,6 @@ export const router = createBrowserRouter([
         element: <EscalationsPage />,
       },
       {
-        path: ROUTES.STATE_ADMIN_THRESHOLDS,
-        element: <ThresholdsPage />,
-      },
-      {
         path: ROUTES.STATE_ADMIN_NUDGES,
         element: <NudgesTemplatePage />,
       },
@@ -217,15 +213,8 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: ROUTES.STATE_ADMIN_OPERATOR_SYNC,
-        element: (
-          <Box p={6}>
-            <Heading fontSize="2xl" fontWeight="bold">
-              Operator Sync
-            </Heading>
-            <Text color="gray.600">Coming soon...</Text>
-          </Box>
-        ),
+        path: ROUTES.STATE_ADMIN_STAFF_SYNC,
+        element: <StaffSyncPage />,
       },
       {
         path: ROUTES.STATE_ADMIN_ACTIVITY,

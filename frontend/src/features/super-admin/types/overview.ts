@@ -11,10 +11,8 @@ export interface IngestionDataPoint {
 }
 
 export interface WaterSupplyOutageData {
-  /** State or district name shown on the X-axis under each bar. Prefer state for overview. */
-  district: string
-  /** When provided, used as the category label instead of district (e.g. state name). */
-  state?: string
+  /** Label shown on the X-axis (state, district, block, sub-division, village, etc.) */
+  label: string
   electricityFailure: number
   pipelineLeak: number
   pumpFailure: number

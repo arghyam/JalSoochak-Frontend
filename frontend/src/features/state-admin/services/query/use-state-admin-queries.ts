@@ -153,3 +153,10 @@ export function useUpdateNudgeTemplateMutation() {
     },
   })
 }
+
+export function useStaffSyncQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.staffSync(),
+    queryFn: stateAdminApi.getStaffSyncData,
+  })
+}

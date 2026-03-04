@@ -60,6 +60,7 @@
     "nudgesTemplate": "Nudges Template",
     "apiIngestion": "API Ingestion",
     "operatorSync": "Operator Sync",
+    "staffSync": "Staff Sync",
     "activity": "Activity",
     "logout": "Logout",
     "skipToMain": "Skip to main content",

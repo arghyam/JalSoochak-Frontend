@@ -10,4 +10,5 @@ export const stateAdminQueryKeys = {
   escalationById: (id: string) => [...stateAdminQueryKeys.escalations(), id] as const,
   thresholdConfiguration: () => [...stateAdminQueryKeys.all, 'threshold-configuration'] as const,
   nudgeTemplates: () => [...stateAdminQueryKeys.all, 'nudge-templates'] as const,
+  staffSync: () => [...stateAdminQueryKeys.all, 'staff-sync'] as const,
 }

@@ -3,25 +3,21 @@
     "title": "Overview of {{state}}",
     "titleFallback": "Overview of State",
     "stats": {
-      "pumpOperatorsSynced": "Pump Operators Synced",
-      "outOf": "Out of {{total}}",
       "configurationStatus": "Configuration Status",
-      "allModulesConfigured": "All modules configured",
-      "todayApiIngestion": "Today's API Ingestion",
-      "successfullyIngested": "Successfully ingested",
-      "pendingDataSync": "Pending Data Sync",
-      "requiresAttention": "Requires Attention",
-      "activeIntegrations": "Active Integrations",
-      "integrationNames": "WhatsApp"
+      "activeStaff": "Active Staff",
+      "activeSchemes": "Active Schemes",
+      "activeIntegrations": "Active Integrations"
     },
     "charts": {
+      "waterSupplyOutages": "Water Supply Outages",
       "demandVsSupply": "Demand vs Supply",
       "dailyIngestionMonitor": "Daily Ingestion Monitor",
       "successRate": "Success Rate",
       "Demand": "Demand",
       "Supply": "Supply",
       "Quantity": "Quantity (units)",
-      "Year": "Year"
+      "Year": "Year",
+      "Districts": "Districts"
     },
     "months": {
       "january": "January",
@@ -100,6 +96,21 @@
     "title": "Water Norms",
     "stateUtWaterNorms": "State/UT Water Norms",
     "currentQuantity": "Current quantity (LPCD)",
+    "alertThresholds": {
+      "title": "Alert Thresholds",
+      "maxQuantity": {
+        "title": "Max Quantity (percentage)",
+        "description": "Maximum percentage of the specified water supply beyond which an alert will be triggered."
+      },
+      "minQuantity": {
+        "title": "Min Quantity (percentage)",
+        "description": "Minimum percentage of the specified water supply below which an alert will be triggered."
+      },
+      "regularity": {
+        "title": "Regularity Threshold (percentage)",
+        "description": "Minimum percentage of days water must be supplied during the selected period to avoid a regularity alert."
+      }
+    },
     "districtOverrides": {
       "title": "District-Level Overrides",
       "districtName": "District Name",
@@ -109,6 +120,7 @@
     "messages": {
       "quantityRequired": "State quantity is required",
       "invalidQuantity": "Please enter a valid quantity",
+      "invalidAlertThresholds": "Please enter valid alert threshold values",
       "invalidOverrides": "All district overrides must have valid values",
       "failedToLoad": "Failed to load configuration. Please try again later.",
       "fillExisting": "Please fill the existing district override first"
@@ -118,7 +130,13 @@
       "deleteDistrict": "Delete district {{name}}",
       "enterQuantity": "Enter state water quantity in LPCD",
       "selectDistrict": "Select district name",
-      "enterDistrictQuantity": "Enter district water quantity in LPCD"
+      "enterDistrictQuantity": "Enter district water quantity in LPCD",
+      "maxQuantityCard": "Max quantity threshold configuration",
+      "minQuantityCard": "Min quantity threshold configuration",
+      "regularityCard": "Regularity threshold configuration",
+      "enterMaxQuantity": "Enter maximum quantity(percentage of LPCD) threshold ",
+      "enterMinQuantity": "Enter minimum quantity(percentage of LPCD) threshold ",
+      "enterRegularity": "Enter regularity threshold percentage"
     }
   },
 
@@ -198,6 +216,51 @@
       "enterContinuity": "Enter continuity threshold days",
       "enterQuantity": "Enter quantity threshold in LPCD",
       "enterRegularity": "Enter regularity threshold percentage"
+    }
+  },
+
+  "staffSync": {
+    "title": "Staff Sync",
+    "searchPlaceholder": "Search by name",
+    "uploadData": "Upload Data",
+    "downloadData": "Download Data",
+    "filters": {
+      "label": "Filters",
+      "gramPanchayat": "Gram Panchayat",
+      "village": "Village",
+      "role": "Role",
+      "status": "Status",
+      "clearAll": "clear all filters"
+    },
+    "stats": {
+      "totalPumpOperators": "Total No. of Pump Operators",
+      "totalSubDivisionOfficers": "Total No. of Sub-Division Officers",
+      "totalSectionOfficers": "Total No. of Section Officers"
+    },
+    "roles": {
+      "pumpOperator": "Pump Operator",
+      "subDivisionOfficer": "Sub-Division Officer",
+      "sectionOfficer": "Section Officer"
+    },
+    "table": {
+      "allGpVillage": "All GP & Village",
+      "name": "Name",
+      "role": "Role",
+      "mobileNumber": "Mobile Number",
+      "lastSubmission": "Last Submission",
+      "activityStatus": "Activity Status"
+    },
+    "messages": {
+      "noStaffFound": "No staff members found",
+      "failedToLoad": "Failed to load staff data",
+      "naSubmission": "N/A"
+    },
+    "aria": {
+      "statsSection": "Staff sync statistics",
+      "searchStaff": "Search staff by name",
+      "filterSection": "Filter staff members",
+      "uploadData": "Upload staff data",
+      "downloadData": "Download staff data"
     }
   },
 

@@ -22,6 +22,7 @@ export const ROUTES = {
   STATE_ADMIN_NUDGES: '/state-admin/nudges-template',
   STATE_ADMIN_API_INGESTION: '/state-admin/api-ingestion',
   STATE_ADMIN_OPERATOR_SYNC: '/state-admin/operator-sync',
+  STATE_ADMIN_STAFF_SYNC: '/state-admin/staff-sync',
   STATE_ADMIN_ACTIVITY: '/state-admin/activity',
   // Auth routes
   LOGIN: '/login',

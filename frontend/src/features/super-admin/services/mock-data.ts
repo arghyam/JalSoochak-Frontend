@@ -35,8 +35,7 @@ export const mockSuperAdminOverviewData: SuperAdminOverviewData = {
   ],
   waterSupplyOutages: [
     {
-      district: 'Anand',
-      state: 'Andhra Pradesh',
+      label: 'Andhra Pradesh',
       electricityFailure: 10,
       pipelineLeak: 18,
       pumpFailure: 14,
@@ -44,8 +43,7 @@ export const mockSuperAdminOverviewData: SuperAdminOverviewData = {
       sourceDrying: 26,
     },
     {
-      district: 'Dahod',
-      state: 'Gujarat',
+      label: 'Gujarat',
       electricityFailure: 12,
       pipelineLeak: 16,
       pumpFailure: 18,
@@ -53,8 +51,7 @@ export const mockSuperAdminOverviewData: SuperAdminOverviewData = {
       sourceDrying: 22,
     },
     {
-      district: 'Bharuch',
-      state: 'Karnataka',
+      label: 'Karnataka',
       electricityFailure: 20,
       pipelineLeak: 14,
       pumpFailure: 12,
@@ -62,8 +59,7 @@ export const mockSuperAdminOverviewData: SuperAdminOverviewData = {
       sourceDrying: 26,
     },
     {
-      district: 'Patan',
-      state: 'Maharashtra',
+      label: 'Maharashtra',
       electricityFailure: 14,
       pipelineLeak: 12,
       pumpFailure: 22,
@@ -71,8 +67,7 @@ export const mockSuperAdminOverviewData: SuperAdminOverviewData = {
       sourceDrying: 20,
     },
     {
-      district: 'Vadodara',
-      state: 'Rajasthan',
+      label: 'Rajasthan',
       electricityFailure: 18,
       pipelineLeak: 20,
       pumpFailure: 16,
@@ -80,8 +75,7 @@ export const mockSuperAdminOverviewData: SuperAdminOverviewData = {
       sourceDrying: 12,
     },
     {
-      district: 'Chennai',
-      state: 'Tamil Nadu',
+      label: 'Tamil Nadu',
       electricityFailure: 15,
       pipelineLeak: 19,
       pumpFailure: 11,
@@ -89,8 +83,7 @@ export const mockSuperAdminOverviewData: SuperAdminOverviewData = {
       sourceDrying: 24,
     },
     {
-      district: 'Lucknow',
-      state: 'Uttar Pradesh',
+      label: 'Uttar Pradesh',
       electricityFailure: 16,
       pipelineLeak: 14,
       pumpFailure: 20,
@@ -98,8 +91,7 @@ export const mockSuperAdminOverviewData: SuperAdminOverviewData = {
       sourceDrying: 22,
     },
     {
-      district: 'Kolkata',
-      state: 'West Bengal',
+      label: 'West Bengal',
       electricityFailure: 11,
       pipelineLeak: 22,
       pumpFailure: 15,
@@ -107,8 +99,7 @@ export const mockSuperAdminOverviewData: SuperAdminOverviewData = {
       sourceDrying: 23,
     },
     {
-      district: 'Patna',
-      state: 'Bihar',
+      label: 'Bihar',
       electricityFailure: 19,
       pipelineLeak: 13,
       pumpFailure: 17,
@@ -116,8 +107,7 @@ export const mockSuperAdminOverviewData: SuperAdminOverviewData = {
       sourceDrying: 20,
     },
     {
-      district: 'Thiruvananthapuram',
-      state: 'Kerala',
+      label: 'Kerala',
       electricityFailure: 13,
       pipelineLeak: 17,
       pumpFailure: 19,

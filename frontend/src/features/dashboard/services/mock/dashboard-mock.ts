@@ -1677,7 +1677,7 @@ const mockBottomPumpOperators: PumpOperatorPerformanceData[] = [
 
 const mockWaterSupplyOutages = [
   {
-    district: 'Anand',
+    label: 'Anand',
     electricityFailure: 10,
     pipelineLeak: 18,
     pumpFailure: 14,
@@ -1685,7 +1685,7 @@ const mockWaterSupplyOutages = [
     sourceDrying: 26,
   },
   {
-    district: 'Dahod',
+    label: 'Dahod',
     electricityFailure: 12,
     pipelineLeak: 16,
     pumpFailure: 18,
@@ -1693,7 +1693,7 @@ const mockWaterSupplyOutages = [
     sourceDrying: 22,
   },
   {
-    district: 'Bharuch',
+    label: 'Bharuch',
     electricityFailure: 20,
     pipelineLeak: 14,
     pumpFailure: 12,
@@ -1701,7 +1701,7 @@ const mockWaterSupplyOutages = [
     sourceDrying: 26,
   },
   {
-    district: 'Patan',
+    label: 'Patan',
     electricityFailure: 14,
     pipelineLeak: 12,
     pumpFailure: 22,
@@ -1709,7 +1709,7 @@ const mockWaterSupplyOutages = [
     sourceDrying: 20,
   },
   {
-    district: 'Vadodara',
+    label: 'Vadodara',
     electricityFailure: 18,
     pipelineLeak: 20,
     pumpFailure: 16,

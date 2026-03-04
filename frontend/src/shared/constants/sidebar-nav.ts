@@ -88,13 +88,6 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
   },
   {
     type: 'simple',
-    path: ROUTES.STATE_ADMIN_THRESHOLDS,
-    labelKey: 'sidebar.thresholds',
-    roles: [AUTH_ROLES.STATE_ADMIN],
-    icon: 'AiOutlineWarning',
-  },
-  {
-    type: 'simple',
     path: ROUTES.STATE_ADMIN_NUDGES,
     labelKey: 'sidebar.nudgesTemplate',
     roles: [AUTH_ROLES.STATE_ADMIN],
@@ -102,15 +95,8 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
   },
   {
     type: 'simple',
-    path: ROUTES.STATE_ADMIN_API_INGESTION,
-    labelKey: 'sidebar.apiIngestion',
-    roles: [AUTH_ROLES.STATE_ADMIN],
-    icon: 'AiOutlineApi',
-  },
-  {
-    type: 'simple',
-    path: ROUTES.STATE_ADMIN_OPERATOR_SYNC,
-    labelKey: 'sidebar.operatorSync',
+    path: ROUTES.STATE_ADMIN_STAFF_SYNC,
+    labelKey: 'sidebar.staffSync',
     roles: [AUTH_ROLES.STATE_ADMIN],
     icon: 'BsPerson',
   },
