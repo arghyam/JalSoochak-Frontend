@@ -8,7 +8,7 @@ const mockEChartsWrapper = jest.fn((_props: { option: unknown }) => (
   <div data-testid="echarts-wrapper" />
 ))
 
-jest.mock('./echarts-wrapper', () => ({
+jest.mock('@/shared/components/common/echarts-wrapper', () => ({
   EChartsWrapper: (props: { option: unknown }) => mockEChartsWrapper(props),
 }))
 

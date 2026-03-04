@@ -146,10 +146,10 @@ describe('StaffSyncPage', () => {
 
   it('shows filter dropdowns', () => {
     renderWithProviders(<StaffSyncPage />)
-    expect(screen.getByText('Gram Panchayat')).toBeTruthy()
-    expect(screen.getByText('Village')).toBeTruthy()
-    expect(screen.getByText('Role')).toBeTruthy()
-    expect(screen.getByText('Status')).toBeTruthy()
+    expect(screen.getByRole('combobox', { name: 'Gram Panchayat' })).toBeTruthy()
+    expect(screen.getByRole('combobox', { name: 'Village' })).toBeTruthy()
+    expect(screen.getByRole('combobox', { name: 'Role' })).toBeTruthy()
+    expect(screen.getByRole('combobox', { name: 'Status' })).toBeTruthy()
   })
 
   it('does not show clear all filters when no filters are active', () => {
@@ -189,7 +189,7 @@ describe('StaffSyncPage', () => {
     const roleButton = within(filterSection).getByText('Role')
     fireEvent.click(roleButton)
 
-    const pumpOperatorOption = screen.getByText('Pump Operator')
+    const pumpOperatorOption = screen.getByRole('option', { name: 'Pump Operator' })
     fireEvent.click(pumpOperatorOption)
 
     expect(screen.getByText('Ravi Kumar')).toBeTruthy()
