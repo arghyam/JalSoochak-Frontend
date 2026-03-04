@@ -7,12 +7,19 @@ export function Header() {
   const { t } = useTranslation(['dashboard', 'common'])
 
   return (
-    <Flex as="header" borderBottomWidth="1px" bg="white" boxShadow="sm" mb="28px">
+    <Flex
+      as="header"
+      borderBottomWidth="1px"
+      bg="white"
+      boxShadow="sm"
+      mb="28px"
+      px={{ base: '40px', md: '80px' }}
+    >
       <Flex
         w="full"
-        maxW="100%"
+        maxW="1440px"
+        mx="auto"
         align="center"
-        px={{ base: '16px', md: '40px', lg: '80px' }}
         py={{ base: '12px', md: '12px' }}
         direction="row"
         gap={{ base: 3, md: 0 }}
