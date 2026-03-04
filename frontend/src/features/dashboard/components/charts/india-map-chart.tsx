@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { useTheme } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
-import { EChartsWrapper } from '@/shared/components/common'
+import { EChartsWrapper, Toggle } from '@/shared/components/common'
 import { getBodyText6Style } from '@/shared/components/charts/chart-text-style'
 import type { EntityPerformance } from '../../types'
 
