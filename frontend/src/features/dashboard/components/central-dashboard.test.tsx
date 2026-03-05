@@ -255,4 +255,17 @@ describe('CentralDashboard', () => {
       search: '',
     })
   })
+
+  it('renders a fallback message when dashboard data is unavailable', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: null,
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(screen.getByText('Dashboard data unavailable')).toBeTruthy()
+    expect(screen.getByText('No dashboard data was returned.')).toBeTruthy()
+  })
 })

@@ -1,5 +1,6 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useBreakpointValue, useTheme } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
@@ -13,6 +14,8 @@ interface PumpOperatorsChartProps {
 }
 
 const defaultColors = ['#3291D1', '#ADD3ED']
+const defaultPieRadius: (string | number)[] = ['50%', '85%']
+const defaultPieCenter: [string, string] = ['50%', '45%']
 
 export function PumpOperatorsChart({
   data,
@@ -20,19 +23,36 @@ export function PumpOperatorsChart({
   height = '360px',
   note,
 }: PumpOperatorsChartProps) {
+  const { t } = useTranslation('dashboard')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
   const noteColor = theme?.colors?.neutral?.['950'] ?? bodyText7.color ?? '#667085'
-  const pieRadius = useBreakpointValue<(string | number)[]>({
-    base: ['50%', '75%'],
-    sm: ['50%', '85%'],
-    md: ['50%', '85%'],
-  }) ?? ['50%', '85%']
-  const pieCenter = useBreakpointValue<[string, string]>({
-    base: ['50%', '42%'],
-    sm: ['50%', '45%'],
-    md: ['50%', '45%'],
-  }) ?? ['50%', '45%']
+  const pieRadius =
+    useBreakpointValue<(string | number)[]>({
+      base: ['50%', '75%'],
+      sm: ['50%', '85%'],
+      md: ['50%', '85%'],
+    }) ?? defaultPieRadius
+  const pieCenter =
+    useBreakpointValue<[string, string]>({
+      base: ['50%', '42%'],
+      sm: ['50%', '45%'],
+      md: ['50%', '45%'],
+    }) ?? defaultPieCenter
+  const localizedLegendLabel = useCallback(
+    (label: string) => {
+      const normalized = label.trim().toLowerCase()
+      if (normalized === 'active pump operators') {
+        return t('pumpOperators.legend.active', { defaultValue: 'Active pump operators' })
+      }
+      if (normalized === 'non-active pump operators') {
+        return t('pumpOperators.legend.inactive', { defaultValue: 'Non-active pump operators' })
+      }
+
+      return label
+    },
+    [t]
+  )
 
   const option = useMemo<echarts.EChartsOption>(() => {
     return {
@@ -54,7 +74,7 @@ export function PumpOperatorsChart({
             show: false,
           },
           data: data.map((entry, index) => ({
-            name: entry.label,
+            name: localizedLegendLabel(entry.label),
             value: entry.value,
             itemStyle: {
               color: defaultColors[index % defaultColors.length],
@@ -63,7 +83,7 @@ export function PumpOperatorsChart({
         },
       ],
     }
-  }, [data, pieCenter, pieRadius])
+  }, [data, pieCenter, pieRadius, localizedLegendLabel])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
   const chartSize = 300
@@ -134,7 +154,7 @@ export function PumpOperatorsChart({
                   color: bodyText7.color,
                 }}
               >
-                {entry.label}
+                {localizedLegendLabel(entry.label)}
               </span>
             </div>
           ))}

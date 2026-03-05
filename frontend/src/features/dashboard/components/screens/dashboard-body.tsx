@@ -307,7 +307,9 @@ export function DashboardBody({
             minW={0}
           >
             <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-              Supply Outage Reasons
+              {t('outageAndSubmissionCharts.titles.supplyOutageReasons', {
+                defaultValue: 'Supply Outage Reasons',
+              })}
             </Text>
             <IssueTypeBreakdownChart data={waterSupplyOutagesData} height="400px" />
           </Box>
@@ -315,7 +317,9 @@ export function DashboardBody({
             {isStateScreen ? (
               <>
                 <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-                  Supply Outage Distribution
+                  {t('outageAndSubmissionCharts.titles.supplyOutageDistribution', {
+                    defaultValue: 'Supply Outage Distribution',
+                  })}
                 </Text>
                 <WaterSupplyOutagesChart
                   data={waterSupplyOutagesData}
@@ -326,7 +330,9 @@ export function DashboardBody({
             ) : (
               <>
                 <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-                  Reading Submission Rate
+                  {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
+                    defaultValue: 'Reading Submission Rate',
+                  })}
                 </Text>
                 <SupplySubmissionRateChart
                   data={supplySubmissionRateData}

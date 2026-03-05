@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
 import { Box, useBreakpointValue, useTheme } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from './chart-text-style'
@@ -35,6 +36,7 @@ export function WaterSupplyOutagesChart({
   height = '300px',
   xAxisLabel = 'Districts',
 }: WaterSupplyOutagesChartProps) {
+  const { t } = useTranslation('dashboard')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
   const barWidth = useBreakpointValue({ base: 28, sm: 28, md: 42, lg: 66 }) ?? 66
@@ -48,6 +50,26 @@ export function WaterSupplyOutagesChart({
   const dragStartLeft = useRef(0)
   const thumbLeftRef = useRef(0)
   const [containerWidth, setContainerWidth] = useState(0)
+  const legendLabels = useMemo(
+    () => ({
+      electricalFailure: t('outageAndSubmissionCharts.legend.electricalFailure', {
+        defaultValue: 'Electrical failure',
+      }),
+      pipelineBreak: t('outageAndSubmissionCharts.legend.pipelineBreak', {
+        defaultValue: 'Pipeline break',
+      }),
+      pumpFailure: t('outageAndSubmissionCharts.legend.pumpFailure', {
+        defaultValue: 'Pump failure',
+      }),
+      valveIssue: t('outageAndSubmissionCharts.legend.valveIssue', {
+        defaultValue: 'Valve issue',
+      }),
+      sourceDrying: t('outageAndSubmissionCharts.legend.sourceDrying', {
+        defaultValue: 'Source Drying',
+      }),
+    }),
+    [t]
+  )
 
   const itemWidth = barWidth + 24
 
@@ -127,7 +149,7 @@ export function WaterSupplyOutagesChart({
       },
       series: [
         {
-          name: 'Source Drying',
+          name: legendLabels.sourceDrying,
           type: 'bar',
           stack: 'outages',
           data: sourceDryingData,
@@ -139,7 +161,7 @@ export function WaterSupplyOutagesChart({
           },
         },
         {
-          name: 'Valve issue',
+          name: legendLabels.valveIssue,
           type: 'bar',
           stack: 'outages',
           data: valveIssueData,
@@ -150,7 +172,7 @@ export function WaterSupplyOutagesChart({
           },
         },
         {
-          name: 'Pump failure',
+          name: legendLabels.pumpFailure,
           type: 'bar',
           stack: 'outages',
           data: pumpFailureData,
@@ -161,7 +183,7 @@ export function WaterSupplyOutagesChart({
           },
         },
         {
-          name: 'Pipeline break',
+          name: legendLabels.pipelineBreak,
           type: 'bar',
           stack: 'outages',
           data: pipelineLeakData,
@@ -172,7 +194,7 @@ export function WaterSupplyOutagesChart({
           },
         },
         {
-          name: 'Electrical failure',
+          name: legendLabels.electricalFailure,
           type: 'bar',
           stack: 'outages',
           data: electricityFailureData,
@@ -185,7 +207,7 @@ export function WaterSupplyOutagesChart({
         },
       ],
     }
-  }, [data, bodyText7, barWidth, barRadius, barCategoryGap])
+  }, [barCategoryGap, barRadius, barWidth, bodyText7, data, legendLabels])
 
   const axisOption = useMemo<echarts.EChartsOption>(() => {
     return {
@@ -251,11 +273,11 @@ export function WaterSupplyOutagesChart({
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
   const legendItems = [
-    { label: 'Electrical failure', color: outageColors.electricityFailure },
-    { label: 'Pipeline break', color: outageColors.pipelineLeak },
-    { label: 'Pump failure', color: outageColors.pumpFailure },
-    { label: 'Valve issue', color: outageColors.valveIssue },
-    { label: 'Source Drying', color: outageColors.sourceDrying },
+    { label: legendLabels.electricalFailure, color: outageColors.electricityFailure },
+    { label: legendLabels.pipelineBreak, color: outageColors.pipelineLeak },
+    { label: legendLabels.pumpFailure, color: outageColors.pumpFailure },
+    { label: legendLabels.valveIssue, color: outageColors.valveIssue },
+    { label: legendLabels.sourceDrying, color: outageColors.sourceDrying },
   ]
   const categoryCount = Math.max(data.length, 1)
   const baseChartWidth = categoryCount * itemWidth
@@ -360,7 +382,7 @@ export function WaterSupplyOutagesChart({
             color={bodyText7.color}
             whiteSpace="nowrap"
           >
-            No. of days
+            {t('outageAndSubmissionCharts.axis.noOfDays', { defaultValue: 'No. of days' })}
           </Box>
         </Box>
         <Box

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Box, Icon, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import { BiSortAlt2 } from 'react-icons/bi'
 import type { PumpOperatorPerformanceData } from '../../types'
 
@@ -21,6 +22,7 @@ export function PumpOperatorsPerformanceTable({
   maxTableHeight = '330px',
   fillHeight = false,
 }: PumpOperatorsPerformanceTableProps) {
+  const { t } = useTranslation('dashboard')
   const [sortColumn, setSortColumn] = useState<SortColumn>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>(null)
   const safeMaxItems =
@@ -93,9 +95,13 @@ export function PumpOperatorsPerformanceTable({
             }}
           >
             <Tr>
-              <Th>Name</Th>
-              <Th>Village</Th>
-              <Th>Block</Th>
+              <Th>{t('pumpOperators.performanceTable.columns.name', { defaultValue: 'Name' })}</Th>
+              <Th>
+                {t('pumpOperators.performanceTable.columns.village', { defaultValue: 'Village' })}
+              </Th>
+              <Th>
+                {t('pumpOperators.performanceTable.columns.block', { defaultValue: 'Block' })}
+              </Th>
               <Th
                 aria-sort={
                   sortColumn === 'reportingRate'
@@ -119,7 +125,11 @@ export function PumpOperatorsPerformanceTable({
                   border="none"
                   p={0}
                 >
-                  <Box as="span">Reporting Rate (%)</Box>
+                  <Box as="span">
+                    {t('pumpOperators.performanceTable.columns.reportingRate', {
+                      defaultValue: 'Reporting Rate (%)',
+                    })}
+                  </Box>
                   <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
                 </Box>
               </Th>
@@ -146,7 +156,11 @@ export function PumpOperatorsPerformanceTable({
                   border="none"
                   p={0}
                 >
-                  <Box as="span">Water Supplied</Box>
+                  <Box as="span">
+                    {t('pumpOperators.performanceTable.columns.waterSupplied', {
+                      defaultValue: 'Water Supplied',
+                    })}
+                  </Box>
                   <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
                 </Box>
               </Th>

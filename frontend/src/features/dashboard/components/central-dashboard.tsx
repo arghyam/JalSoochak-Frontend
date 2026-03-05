@@ -172,14 +172,14 @@ export function CentralDashboard() {
           ? districtTableData
           : (data?.mapData ?? ([] as EntityPerformance[]))
   const supplySubmissionRateLabel = isGramPanchayatSelected
-    ? 'Villages'
+    ? t('performanceCharts.viewBy.villages', { defaultValue: 'Villages' })
     : isBlockSelected
-      ? 'Gram Panchayats'
+      ? t('performanceCharts.viewBy.gramPanchayats', { defaultValue: 'Gram Panchayats' })
       : isDistrictSelected
-        ? 'Blocks'
+        ? t('performanceCharts.viewBy.blocks', { defaultValue: 'Blocks' })
         : isStateSelected
-          ? 'Districts'
-          : 'States/UTs'
+          ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
+          : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
   const overallPerformanceTableData = isGramPanchayatSelected
     ? villageTableData
     : isBlockSelected
@@ -376,7 +376,20 @@ export function CentralDashboard() {
     )
   }
 
-  if (!data) return null
+  if (!data) {
+    return (
+      <Flex h="100vh" align="center" justify="center">
+        <Box textAlign="center">
+          <Heading fontSize="2xl" fontWeight="bold" color="red.600">
+            Dashboard data unavailable
+          </Heading>
+          <Text mt={2} color="gray.600">
+            No dashboard data was returned.
+          </Text>
+        </Box>
+      </Flex>
+    )
+  }
 
   if (
     !data.kpis ||
