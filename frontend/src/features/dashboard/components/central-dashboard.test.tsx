@@ -184,6 +184,26 @@ describe('CentralDashboard', () => {
     expect(tableProps.data.some((row) => row.name === 'Alpha')).toBe(false)
   })
 
+  it('hides map and overall performance panel when a village is selected', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams(
+        'district=sangareddy&block=patancheru&gramPanchayat=ismailkhanpet&village=rudraram'
+      ),
+      jest.fn(),
+    ])
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(screen.queryByTestId('india-map-chart')).toBeNull()
+    expect(screen.queryByTestId('all-states-table')).toBeNull()
+  })
+
   it('updates URL with state in pathname and district in query params', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,

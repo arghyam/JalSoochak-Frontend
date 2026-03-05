@@ -63,6 +63,16 @@ export interface PumpOperatorPerformanceData {
   waterSupplied: number
 }
 
+export interface VillagePumpOperatorDetails {
+  name: string
+  scheme: string
+  stationLocation: string
+  lastSubmission: string
+  reportingRate: string
+  missingSubmissionCount: string
+  inactiveDays: string
+}
+
 export interface WaterSupplyOutageData {
   label: string
   electricityFailure: number

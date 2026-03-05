@@ -52,6 +52,32 @@ export function SupplySubmissionRateChart({
       return item.name.length > longest.length ? item.name : longest
     }, '')
   }, [data])
+  const localizedEntityLabel = useMemo(() => {
+    const normalized = entityLabel.trim().toLowerCase()
+    const labelLookup: Record<string, { key: string; defaultValue: string }> = {
+      'states/uts': { key: 'performanceCharts.viewBy.statesUTs', defaultValue: 'States/UTs' },
+      'state/ut': { key: 'performanceCharts.viewBy.statesUTs', defaultValue: 'States/UTs' },
+      districts: { key: 'performanceCharts.viewBy.districts', defaultValue: 'Districts' },
+      district: { key: 'performanceCharts.viewBy.districts', defaultValue: 'Districts' },
+      blocks: { key: 'performanceCharts.viewBy.blocks', defaultValue: 'Blocks' },
+      block: { key: 'performanceCharts.viewBy.blocks', defaultValue: 'Blocks' },
+      'gram panchayats': {
+        key: 'performanceCharts.viewBy.gramPanchayats',
+        defaultValue: 'Gram Panchayats',
+      },
+      'gram panchayat': {
+        key: 'performanceCharts.viewBy.gramPanchayats',
+        defaultValue: 'Gram Panchayats',
+      },
+      villages: { key: 'performanceCharts.viewBy.villages', defaultValue: 'Villages' },
+      village: { key: 'performanceCharts.viewBy.villages', defaultValue: 'Villages' },
+    }
+    const labelConfig = labelLookup[normalized]
+    if (labelConfig) {
+      return t(labelConfig.key, { defaultValue: labelConfig.defaultValue })
+    }
+    return entityLabel
+  }, [entityLabel, t])
 
   const option = useMemo<echarts.EChartsOption>(() => {
     const entities = data.map((d) => d.name)
@@ -347,7 +373,7 @@ export function SupplySubmissionRateChart({
         color={bodyText7.color}
         mt="4px"
       >
-        {entityLabel}
+        {localizedEntityLabel}
       </Box>
       <Box mt="6px">
         <Box

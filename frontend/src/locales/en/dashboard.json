@@ -98,6 +98,7 @@
       "title": "Quantity Performance",
       "ariaViewBy": "Quantity performance view by",
       "ariaViewByDistrict": "District quantity performance view by",
+      "ariaViewByGramPanchayat": "Gram panchayat quantity performance view by",
       "yAxisLabel": "Quantity",
       "seriesName": "Quantity",
       "areaSeriesName": "Demand"
@@ -106,6 +107,7 @@
       "title": "Regularity Performance",
       "ariaViewBy": "Regularity performance view by",
       "ariaViewByDistrict": "District regularity performance view by",
+      "ariaViewByGramPanchayat": "Gram panchayat regularity performance view by",
       "yAxisLabel": "Regularity",
       "yAxisLabelPercent": "Regularity (%)",
       "seriesName": "Regularity"
@@ -123,11 +125,15 @@
     }
   },
   "outageAndSubmissionCharts": {
+    "ariaViewByBlock": "Block supply outage distribution view by",
+    "ariaViewByGramPanchayat": "Gram panchayat supply outage distribution view by",
     "titles": {
       "supplyOutageReasons": "Supply Outage Reasons",
       "supplyOutageDistribution": "Supply Outage Distribution",
       "readingSubmissionRate": "Reading Submission Rate",
       "readingSubmissionStatus": "Reading Submission Status",
+      "readingCompliance": "Reading Compliance",
+      "photoEvidenceCompliance": "Photo Evidence Compliance",
       "issueTypeBreakdown": "Issue Type Breakdown"
     },
     "axis": {
@@ -136,7 +142,8 @@
     },
     "series": {
       "submissionRate": "Submission Rate",
-      "readingSubmission": "Reading submission"
+      "readingSubmission": "Reading submission",
+      "supplyOutage": "Supply outage"
     },
     "legend": {
       "electricalFailure": "Electrical failure",
@@ -146,12 +153,37 @@
       "sourceDrying": "Source Drying",
       "complaintSubmission": "Complaint Submission",
       "automatedSubmission": "Automated Submission"
+    },
+    "tables": {
+      "readingCompliance": {
+        "columns": {
+          "name": "Name",
+          "village": "Village",
+          "lastSubmission": "Last Submission",
+          "readingValue": "Reading Value"
+        }
+      }
     }
   },
   "pumpOperators": {
     "title": "Pump Operators",
     "totalLabel": "Total",
     "note": "Note: Active pump operators submit readings at least 30 days in a month.",
+    "details": {
+      "title": "Pump Operator Details",
+      "fields": {
+        "schemeNameSchemeId": "Scheme name/ Scheme ID",
+        "stationLocation": "Station location",
+        "lastSubmission": "Last submission",
+        "reportingRate": "Reporting rate",
+        "missingSubmissionCount": "Missing submission count",
+        "inactiveDays": "Inactive days"
+      },
+      "pagination": {
+        "previous": "Previous",
+        "next": "Next"
+      }
+    },
     "legend": {
       "active": "Active pump operators",
       "inactive": "Non-active pump operators"

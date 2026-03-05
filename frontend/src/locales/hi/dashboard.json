@@ -98,6 +98,7 @@
       "title": "मात्रा प्रदर्शन",
       "ariaViewBy": "मात्रा प्रदर्शन दृश्य प्रकार",
       "ariaViewByDistrict": "जिला मात्रा प्रदर्शन दृश्य प्रकार",
+      "ariaViewByGramPanchayat": "ग्राम पंचायत मात्रा प्रदर्शन दृश्य प्रकार",
       "yAxisLabel": "मात्रा",
       "seriesName": "मात्रा",
       "areaSeriesName": "मांग"
@@ -106,6 +107,7 @@
       "title": "नियमितता प्रदर्शन",
       "ariaViewBy": "नियमितता प्रदर्शन दृश्य प्रकार",
       "ariaViewByDistrict": "जिला नियमितता प्रदर्शन दृश्य प्रकार",
+      "ariaViewByGramPanchayat": "ग्राम पंचायत नियमितता प्रदर्शन दृश्य प्रकार",
       "yAxisLabel": "नियमितता",
       "yAxisLabelPercent": "नियमितता (%)",
       "seriesName": "नियमितता"
@@ -123,11 +125,15 @@
     }
   },
   "outageAndSubmissionCharts": {
+    "ariaViewByBlock": "ब्लॉक जल आपूर्ति बाधा वितरण दृश्य प्रकार",
+    "ariaViewByGramPanchayat": "ग्राम पंचायत जल आपूर्ति बाधा वितरण दृश्य प्रकार",
     "titles": {
       "supplyOutageReasons": "जल आपूर्ति बाधा के कारण",
       "supplyOutageDistribution": "जल आपूर्ति बाधा वितरण",
       "readingSubmissionRate": "रीडिंग सबमिशन दर",
       "readingSubmissionStatus": "रीडिंग सबमिशन स्थिति",
+      "readingCompliance": "रीडिंग अनुपालन",
+      "photoEvidenceCompliance": "फोटो साक्ष्य अनुपालन",
       "issueTypeBreakdown": "समस्या प्रकार विभाजन"
     },
     "axis": {
@@ -136,7 +142,8 @@
     },
     "series": {
       "submissionRate": "सबमिशन दर",
-      "readingSubmission": "रीडिंग सबमिशन"
+      "readingSubmission": "रीडिंग सबमिशन",
+      "supplyOutage": "जल आपूर्ति बाधा"
     },
     "legend": {
       "electricalFailure": "बिजली विफलता",
@@ -146,12 +153,37 @@
       "sourceDrying": "स्रोत सूखना",
       "complaintSubmission": "शिकायत सबमिशन",
       "automatedSubmission": "स्वचालित सबमिशन"
+    },
+    "tables": {
+      "readingCompliance": {
+        "columns": {
+          "name": "नाम",
+          "village": "गांव",
+          "lastSubmission": "अंतिम सबमिशन",
+          "readingValue": "रीडिंग मान"
+        }
+      }
     }
   },
   "pumpOperators": {
     "title": "पंप ऑपरेटर्स",
     "totalLabel": "कुल",
     "note": "नोट: सक्रिय पंप ऑपरेटर्स महीने में कम से कम 30 दिन रीडिंग सबमिट करते हैं।",
+    "details": {
+      "title": "पंप ऑपरेटर विवरण",
+      "fields": {
+        "schemeNameSchemeId": "योजना का नाम/ योजना आईडी",
+        "stationLocation": "स्टेशन स्थान",
+        "lastSubmission": "अंतिम सबमिशन",
+        "reportingRate": "रिपोर्टिंग दर",
+        "missingSubmissionCount": "मिसिंग सबमिशन की संख्या",
+        "inactiveDays": "निष्क्रिय दिन"
+      },
+      "pagination": {
+        "previous": "पिछला",
+        "next": "अगला"
+      }
+    },
     "legend": {
       "active": "सक्रिय पंप ऑपरेटर्स",
       "inactive": "गैर-सक्रिय पंप ऑपरेटर्स"

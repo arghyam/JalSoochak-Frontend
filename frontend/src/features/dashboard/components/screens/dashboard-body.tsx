@@ -5,6 +5,7 @@ import type {
   DashboardData,
   EntityPerformance,
   PumpOperatorPerformanceData,
+  VillagePumpOperatorDetails,
   WaterSupplyOutageData,
 } from '../../types'
 import {
@@ -37,6 +38,8 @@ type DashboardBodyProps = {
   pumpOperatorsTotal: number
   operatorsPerformanceTable: PumpOperatorPerformanceData[]
   villagePhotoEvidenceRows: DashboardData['photoEvidenceCompliance']
+  villagePumpOperatorDetails?: VillagePumpOperatorDetails
+  villagePumpOperators?: VillagePumpOperatorDetails[]
 }
 
 export function DashboardBody({
@@ -56,6 +59,8 @@ export function DashboardBody({
   pumpOperatorsTotal,
   operatorsPerformanceTable,
   villagePhotoEvidenceRows,
+  villagePumpOperatorDetails,
+  villagePumpOperators,
 }: DashboardBodyProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<'geography' | 'time'>('geography')
@@ -282,11 +287,13 @@ export function DashboardBody({
         />
       ) : null}
 
-      {selectedVillage ? (
+      {selectedVillage && villagePumpOperatorDetails ? (
         <VillageDashboardScreen
           data={data}
           villagePhotoEvidenceRows={villagePhotoEvidenceRows}
           waterSupplyOutagesData={waterSupplyOutagesData}
+          villagePumpOperatorDetails={villagePumpOperatorDetails}
+          villagePumpOperators={villagePumpOperators}
         />
       ) : null}
 

@@ -1,4 +1,5 @@
 import { Box, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import type { PhotoEvidenceComplianceData } from '../../types'
 
 interface PhotoEvidenceComplianceTableProps {
@@ -10,10 +11,16 @@ interface PhotoEvidenceComplianceTableProps {
 
 export function PhotoEvidenceComplianceTable({
   data,
-  title = 'Photo Evidence Compliance',
+  title,
   maxItems,
   showVillageColumn = true,
 }: PhotoEvidenceComplianceTableProps) {
+  const { t } = useTranslation('dashboard')
+  const resolvedTitle =
+    title?.trim() ||
+    t('outageAndSubmissionCharts.titles.photoEvidenceCompliance', {
+      defaultValue: 'Photo Evidence Compliance',
+    })
   const safeMaxItems =
     typeof maxItems === 'number' && Number.isFinite(maxItems) ? Math.max(0, maxItems) : undefined
   const rows = typeof safeMaxItems === 'number' ? data.slice(0, safeMaxItems) : data
@@ -21,7 +28,7 @@ export function PhotoEvidenceComplianceTable({
   return (
     <Box borderRadius="lg" overflow="hidden">
       <Box textStyle="bodyText3" fontWeight="400" mb="16px">
-        {title}
+        {resolvedTitle}
       </Box>
       <Box
         maxH="432px"
@@ -55,10 +62,28 @@ export function PhotoEvidenceComplianceTable({
             }}
           >
             <Tr>
-              <Th>Name</Th>
-              {showVillageColumn ? <Th>Village</Th> : null}
-              <Th>Last Submission</Th>
-              <Th>Reading Value</Th>
+              <Th>
+                {t('outageAndSubmissionCharts.tables.readingCompliance.columns.name', {
+                  defaultValue: 'Name',
+                })}
+              </Th>
+              {showVillageColumn ? (
+                <Th>
+                  {t('outageAndSubmissionCharts.tables.readingCompliance.columns.village', {
+                    defaultValue: 'Village',
+                  })}
+                </Th>
+              ) : null}
+              <Th>
+                {t('outageAndSubmissionCharts.tables.readingCompliance.columns.lastSubmission', {
+                  defaultValue: 'Last Submission',
+                })}
+              </Th>
+              <Th>
+                {t('outageAndSubmissionCharts.tables.readingCompliance.columns.readingValue', {
+                  defaultValue: 'Reading Value',
+                })}
+              </Th>
             </Tr>
           </Thead>
           <Tbody
