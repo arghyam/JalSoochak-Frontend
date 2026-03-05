@@ -1,4 +1,5 @@
 import { Box, Flex, Grid, Text } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import type { DashboardData, EntityPerformance, PumpOperatorPerformanceData } from '../../types'
 import {
   AllStatesPerformanceChart,
@@ -29,6 +30,8 @@ export function BlockDashboardScreen({
   pumpOperatorsTotal,
   operatorsPerformanceTable,
 }: BlockDashboardScreenProps) {
+  const { t } = useTranslation('dashboard')
+
   return (
     <>
       {/* Performance + Demand vs Supply Charts */}
@@ -44,17 +47,21 @@ export function BlockDashboardScreen({
           justifySelf={{ base: 'center', md: 'stretch' }}
         >
           <Text textStyle="bodyText3" fontWeight="400">
-            All Gram Panchayats Performance
+            {t('blockDashboard.titles.allGramPanchayatsPerformance', {
+              defaultValue: 'All Gram Panchayats Performance',
+            })}
           </Text>
           <AllStatesPerformanceChart
             data={gramPanchayatTableData}
             height="440px"
-            entityLabel="Gram Panchayats"
+            entityLabel={t('performanceCharts.viewBy.gramPanchayats', {
+              defaultValue: 'Gram Panchayats',
+            })}
           />
         </Box>
         <Box bg="white" borderWidth="1px" borderRadius="lg" p={4} h="536px" minW={0}>
           <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-            Demand vs Supply
+            {t('blockDashboard.titles.demandVsSupply', { defaultValue: 'Demand vs Supply' })}
           </Text>
           <DemandSupplyChart data={data.demandSupply} height="418px" />
         </Box>
@@ -67,7 +74,9 @@ export function BlockDashboardScreen({
         </Box>
         <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="526px">
           <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-            Reading Submission Rate
+            {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
+              defaultValue: 'Reading Submission Rate',
+            })}
           </Text>
           <SupplySubmissionRateChart
             data={supplySubmissionRateData}
@@ -81,23 +90,26 @@ export function BlockDashboardScreen({
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
         <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="510px">
           <Text textStyle="bodyText3" fontWeight="400" mb="16px">
-            All Gram Panchayats
+            {t('blockDashboard.titles.allGramPanchayats', { defaultValue: 'All Gram Panchayats' })}
           </Text>
           <AllGramPanchayatsTable data={gramPanchayatTableData} />
         </Box>
         <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="510px">
           <Flex align="center" justify="space-between" mb="40px">
             <Text textStyle="bodyText3" fontWeight="400">
-              Pump Operators
+              {t('pumpOperators.title', { defaultValue: 'Pump Operators' })}
             </Text>
             <Text textStyle="bodyText3" fontWeight="400">
-              Total: {pumpOperatorsTotal}
+              {t('pumpOperators.totalLabel', { defaultValue: 'Total' })}: {pumpOperatorsTotal}
             </Text>
           </Flex>
           <PumpOperatorsChart
             data={data.pumpOperators}
             height="360px"
-            note="Note: Active pump operators submit readings at least 30 days in a month."
+            note={t('pumpOperators.note', {
+              defaultValue:
+                'Note: Active pump operators submit readings at least 30 days in a month.',
+            })}
           />
         </Box>
       </Grid>
@@ -106,7 +118,9 @@ export function BlockDashboardScreen({
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
         <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} w="full" minW={0}>
           <PumpOperatorsPerformanceTable
-            title="Operators Performance Table"
+            title={t('pumpOperators.performanceTable.title', {
+              defaultValue: 'Pump Operators Performance',
+            })}
             data={operatorsPerformanceTable}
           />
         </Box>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Box, Flex, Grid, Select, Text } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import type { DashboardData, EntityPerformance, PumpOperatorPerformanceData } from '../../types'
 import {
   ImageSubmissionStatusChart,
@@ -31,6 +32,7 @@ export function DistrictDashboardScreen({
   operatorsPerformanceTable,
   pumpOperatorsTotal,
 }: DistrictDashboardScreenProps) {
+  const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('')
   const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('')
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('')
@@ -82,10 +84,12 @@ export function DistrictDashboardScreen({
         >
           <Flex align="center" justify="space-between">
             <Text textStyle="bodyText3" fontWeight="400">
-              Quantity Performance
+              {t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
             </Text>
             <Select
-              aria-label="District quantity performance view by"
+              aria-label={t('performanceCharts.quantity.ariaViewByDistrict', {
+                defaultValue: 'District quantity performance view by',
+              })}
               h="32px"
               maxW="128px"
               fontSize="14px"
@@ -100,9 +104,15 @@ export function DistrictDashboardScreen({
               onChange={(event) => setQuantityViewBy(event.target.value as ViewBy)}
               _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
             >
-              <option value="">Select</option>
-              <option value="geography">Geography</option>
-              <option value="time">Time</option>
+              <option value="">
+                {t('performanceCharts.viewBy.select', { defaultValue: 'Select' })}
+              </option>
+              <option value="geography">
+                {t('performanceCharts.viewBy.geography', { defaultValue: 'Geography' })}
+              </option>
+              <option value="time">
+                {t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+              </option>
             </Select>
           </Flex>
           {quantityViewBy === '' || quantityViewBy === 'geography' ? (
@@ -110,19 +120,21 @@ export function DistrictDashboardScreen({
               data={blockTableData}
               metric="quantity"
               height="400px"
-              entityLabel="Blocks"
-              yAxisLabel="Quantity"
-              seriesName="Quantity"
+              entityLabel={t('performanceCharts.viewBy.blocks', { defaultValue: 'Blocks' })}
+              yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
+              seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
               showAreaLine
-              areaSeriesName="Demand"
+              areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
+                defaultValue: 'Demand',
+              })}
             />
           ) : (
             <MonthlyTrendChart
               data={quantityTimeTrendData}
               height="400px"
-              xAxisLabel="Month"
-              yAxisLabel="Quantity"
-              seriesName="Quantity"
+              xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+              yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
+              seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
             />
           )}
         </Box>
@@ -139,10 +151,14 @@ export function DistrictDashboardScreen({
         >
           <Flex align="center" justify="space-between">
             <Text textStyle="bodyText3" fontWeight="400">
-              Regularity Performance
+              {t('performanceCharts.regularity.title', {
+                defaultValue: 'Regularity Performance',
+              })}
             </Text>
             <Select
-              aria-label="District regularity performance view by"
+              aria-label={t('performanceCharts.regularity.ariaViewByDistrict', {
+                defaultValue: 'District regularity performance view by',
+              })}
               h="32px"
               maxW="128px"
               fontSize="14px"
@@ -157,9 +173,15 @@ export function DistrictDashboardScreen({
               onChange={(event) => setRegularityViewBy(event.target.value as ViewBy)}
               _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
             >
-              <option value="">Select</option>
-              <option value="geography">Geography</option>
-              <option value="time">Time</option>
+              <option value="">
+                {t('performanceCharts.viewBy.select', { defaultValue: 'Select' })}
+              </option>
+              <option value="geography">
+                {t('performanceCharts.viewBy.geography', { defaultValue: 'Geography' })}
+              </option>
+              <option value="time">
+                {t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+              </option>
             </Select>
           </Flex>
           {regularityViewBy === '' || regularityViewBy === 'geography' ? (
@@ -167,17 +189,25 @@ export function DistrictDashboardScreen({
               data={blockTableData}
               metric="regularity"
               height="400px"
-              entityLabel="Blocks"
-              yAxisLabel="Regularity"
-              seriesName="Regularity"
+              entityLabel={t('performanceCharts.viewBy.blocks', { defaultValue: 'Blocks' })}
+              yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
+                defaultValue: 'Regularity',
+              })}
+              seriesName={t('performanceCharts.regularity.seriesName', {
+                defaultValue: 'Regularity',
+              })}
             />
           ) : (
             <MonthlyTrendChart
               data={regularityTimeTrendData}
               height="400px"
-              xAxisLabel="Month"
-              yAxisLabel="Regularity (%)"
-              seriesName="Regularity"
+              xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+              yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
+                defaultValue: 'Regularity (%)',
+              })}
+              seriesName={t('performanceCharts.regularity.seriesName', {
+                defaultValue: 'Regularity',
+              })}
             />
           )}
         </Box>
@@ -198,7 +228,9 @@ export function DistrictDashboardScreen({
           minW={0}
         >
           <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-            Supply Outage Reasons
+            {t('outageAndSubmissionCharts.titles.supplyOutageReasons', {
+              defaultValue: 'Supply Outage Reasons',
+            })}
           </Text>
           <IssueTypeBreakdownChart data={data.waterSupplyOutages} height="400px" />
         </Box>
@@ -215,7 +247,9 @@ export function DistrictDashboardScreen({
         >
           <Flex align="center" justify="space-between">
             <Text textStyle="bodyText3" fontWeight="400">
-              Supply Outage Distribution
+              {t('outageAndSubmissionCharts.titles.supplyOutageDistribution', {
+                defaultValue: 'Supply Outage Distribution',
+              })}
             </Text>
             <Select
               aria-label="District supply outage distribution view by"
@@ -249,7 +283,9 @@ export function DistrictDashboardScreen({
               data={outageDistributionTimeTrendData}
               height="400px"
               xAxisLabel="Month"
-              yAxisLabel="No. of days"
+              yAxisLabel={t('outageAndSubmissionCharts.axis.noOfDays', {
+                defaultValue: 'No. of days',
+              })}
               seriesName="Supply outage"
             />
           )}
@@ -270,7 +306,9 @@ export function DistrictDashboardScreen({
           minW={0}
         >
           <Text textStyle="bodyText3" fontWeight="400" mb="16px">
-            Reading Submission Status
+            {t('outageAndSubmissionCharts.titles.readingSubmissionStatus', {
+              defaultValue: 'Reading Submission Status',
+            })}
           </Text>
           <ImageSubmissionStatusChart data={data.imageSubmissionStatus} height="383px" />
         </Box>
@@ -287,7 +325,9 @@ export function DistrictDashboardScreen({
         >
           <Flex align="center" justify="space-between">
             <Text textStyle="bodyText3" fontWeight="400">
-              Reading Submission Rate
+              {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
+                defaultValue: 'Reading Submission Rate',
+              })}
             </Text>
             <Select
               aria-label="District reading submission rate view by"
@@ -321,8 +361,12 @@ export function DistrictDashboardScreen({
               data={readingSubmissionTimeTrendData}
               height="383px"
               xAxisLabel="Month"
-              yAxisLabel="Percentage"
-              seriesName="Reading submission"
+              yAxisLabel={t('outageAndSubmissionCharts.axis.percentage', {
+                defaultValue: 'Percentage',
+              })}
+              seriesName={t('outageAndSubmissionCharts.series.readingSubmission', {
+                defaultValue: 'Reading submission',
+              })}
             />
           )}
         </Box>
@@ -342,16 +386,19 @@ export function DistrictDashboardScreen({
         >
           <Flex align="center" justify="space-between" mb="40px">
             <Text textStyle="bodyText3" fontWeight="400">
-              Pump Operators
+              {t('pumpOperators.title', { defaultValue: 'Pump Operators' })}
             </Text>
             <Text textStyle="bodyText3" fontWeight="400">
-              Total: {pumpOperatorsTotal}
+              {t('pumpOperators.totalLabel', { defaultValue: 'Total' })}: {pumpOperatorsTotal}
             </Text>
           </Flex>
           <PumpOperatorsChart
             data={data.pumpOperators}
             height="360px"
-            note="Note: Active pump operators submit readings at least 30 days in a month."
+            note={t('pumpOperators.note', {
+              defaultValue:
+                'Note: Active pump operators submit readings at least 30 days in a month.',
+            })}
           />
         </Box>
         <Box
@@ -365,7 +412,9 @@ export function DistrictDashboardScreen({
           minW={0}
         >
           <PumpOperatorsPerformanceTable
-            title="Pump Operators Performance"
+            title={t('pumpOperators.performanceTable.title', {
+              defaultValue: 'Pump Operators Performance',
+            })}
             data={operatorsPerformanceTable}
             fillHeight
           />

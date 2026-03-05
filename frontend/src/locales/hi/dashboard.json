@@ -64,5 +64,120 @@
       "gte0": ">=0%",
       "noData": "डेटा नहीं"
     }
+  },
+  "kpi": {
+    "labels": {
+      "quantityInMld": "एमएलडी में मात्रा",
+      "quantityInLpcd": "एलपीसीडी में मात्रा",
+      "regularity": "नियमितता"
+    },
+    "trends": {
+      "percentDownLastDays": "पिछले {{days}} दिनों की तुलना में -{{change}}%",
+      "lpcdUpLastMonth": "पिछले महीने की तुलना में +{{change}} LPCD",
+      "percentDownLastMonth": "पिछले महीने की तुलना में -{{change}}%"
+    }
+  },
+  "overallPerformance": {
+    "title": "समग्र प्रदर्शन",
+    "columns": {
+      "entity": "राज्य/केंद्रशासित प्रदेश",
+      "quantityMld": "मात्रा (MLD)",
+      "quantityLpcd": "मात्रा (LPCD)",
+      "regularity": "नियमितता (%)"
+    },
+    "entities": {
+      "stateUt": "राज्य/केंद्रशासित प्रदेश",
+      "district": "जिला",
+      "block": "ब्लॉक",
+      "gramPanchayat": "ग्राम पंचायत",
+      "village": "गांव"
+    }
+  },
+  "performanceCharts": {
+    "quantity": {
+      "title": "मात्रा प्रदर्शन",
+      "ariaViewBy": "मात्रा प्रदर्शन दृश्य प्रकार",
+      "ariaViewByDistrict": "जिला मात्रा प्रदर्शन दृश्य प्रकार",
+      "yAxisLabel": "मात्रा",
+      "seriesName": "मात्रा",
+      "areaSeriesName": "मांग"
+    },
+    "regularity": {
+      "title": "नियमितता प्रदर्शन",
+      "ariaViewBy": "नियमितता प्रदर्शन दृश्य प्रकार",
+      "ariaViewByDistrict": "जिला नियमितता प्रदर्शन दृश्य प्रकार",
+      "yAxisLabel": "नियमितता",
+      "yAxisLabelPercent": "नियमितता (%)",
+      "seriesName": "नियमितता"
+    },
+    "viewBy": {
+      "select": "चुनें",
+      "geography": "भौगोलिक",
+      "time": "समय",
+      "month": "महीना",
+      "blocks": "ब्लॉक",
+      "districts": "जिले",
+      "statesUTs": "राज्य/केंद्रशासित प्रदेश",
+      "gramPanchayats": "ग्राम पंचायतें",
+      "villages": "गांव"
+    }
+  },
+  "outageAndSubmissionCharts": {
+    "titles": {
+      "supplyOutageReasons": "जल आपूर्ति बाधा के कारण",
+      "supplyOutageDistribution": "जल आपूर्ति बाधा वितरण",
+      "readingSubmissionRate": "रीडिंग सबमिशन दर",
+      "readingSubmissionStatus": "रीडिंग सबमिशन स्थिति",
+      "issueTypeBreakdown": "समस्या प्रकार विभाजन"
+    },
+    "axis": {
+      "percentage": "प्रतिशत",
+      "noOfDays": "दिनों की संख्या"
+    },
+    "series": {
+      "submissionRate": "सबमिशन दर",
+      "readingSubmission": "रीडिंग सबमिशन"
+    },
+    "legend": {
+      "electricalFailure": "बिजली विफलता",
+      "pipelineBreak": "पाइपलाइन टूटना",
+      "pumpFailure": "पंप विफलता",
+      "valveIssue": "वाल्व समस्या",
+      "sourceDrying": "स्रोत सूखना",
+      "complaintSubmission": "शिकायत सबमिशन",
+      "automatedSubmission": "स्वचालित सबमिशन"
+    }
+  },
+  "pumpOperators": {
+    "title": "पंप ऑपरेटर्स",
+    "totalLabel": "कुल",
+    "note": "नोट: सक्रिय पंप ऑपरेटर्स महीने में कम से कम 30 दिन रीडिंग सबमिट करते हैं।",
+    "legend": {
+      "active": "सक्रिय पंप ऑपरेटर्स",
+      "inactive": "गैर-सक्रिय पंप ऑपरेटर्स"
+    },
+    "performanceTable": {
+      "title": "पंप ऑपरेटर्स प्रदर्शन",
+      "columns": {
+        "name": "नाम",
+        "village": "गांव",
+        "block": "ब्लॉक",
+        "reportingRate": "रिपोर्टिंग दर (%)",
+        "waterSupplied": "जल आपूर्ति"
+      }
+    }
+  },
+  "blockDashboard": {
+    "titles": {
+      "allGramPanchayatsPerformance": "सभी ग्राम पंचायतों का प्रदर्शन",
+      "demandVsSupply": "मांग बनाम आपूर्ति",
+      "allGramPanchayats": "सभी ग्राम पंचायतें"
+    }
+  },
+  "states": {
+    "dataUnavailable": {
+      "title": "डैशबोर्ड डेटा उपलब्ध नहीं है",
+      "description": "कोई डैशबोर्ड डेटा प्राप्त नहीं हुआ।"
+    }
   }
 }

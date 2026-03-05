@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Box, Flex, Text, Heading, Grid, Icon, Image, Avatar } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import { useDashboardData } from '../hooks/use-dashboard-data'
 import { KPICard } from './kpi-card'
 import { DashboardBody } from './screens/dashboard-body'
@@ -77,6 +78,7 @@ const toStateSlug = (stateName: string) =>
     .replace(/^-+|-+$/g, '')
 
 export function CentralDashboard() {
+  const { t, i18n } = useTranslation('dashboard')
   const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -170,14 +172,14 @@ export function CentralDashboard() {
           ? districtTableData
           : (data?.mapData ?? ([] as EntityPerformance[]))
   const supplySubmissionRateLabel = isGramPanchayatSelected
-    ? 'Villages'
+    ? t('performanceCharts.viewBy.villages', { defaultValue: 'Villages' })
     : isBlockSelected
-      ? 'Gram Panchayats'
+      ? t('performanceCharts.viewBy.gramPanchayats', { defaultValue: 'Gram Panchayats' })
       : isDistrictSelected
-        ? 'Blocks'
+        ? t('performanceCharts.viewBy.blocks', { defaultValue: 'Blocks' })
         : isStateSelected
-          ? 'Districts'
-          : 'States/UTs'
+          ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
+          : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
   const overallPerformanceTableData = isGramPanchayatSelected
     ? villageTableData
     : isBlockSelected
@@ -188,14 +190,14 @@ export function CentralDashboard() {
           ? districtTableData
           : (data?.mapData ?? emptyEntityPerformance)
   const overallPerformanceEntityLabel = isGramPanchayatSelected
-    ? 'Village'
+    ? t('overallPerformance.entities.village', { defaultValue: 'Village' })
     : isBlockSelected
-      ? 'Gram Panchayat'
+      ? t('overallPerformance.entities.gramPanchayat', { defaultValue: 'Gram Panchayat' })
       : isDistrictSelected
-        ? 'Block'
+        ? t('overallPerformance.entities.block', { defaultValue: 'Block' })
         : isStateSelected
-          ? 'District'
-          : 'State/UT'
+          ? t('overallPerformance.entities.district', { defaultValue: 'District' })
+          : t('overallPerformance.entities.stateUt', { defaultValue: 'State/UT' })
   const districtOptions = selectedState
     ? getOwnLookupValue(mockFilterDistricts, selectedState, emptyOptions)
     : emptyOptions
@@ -374,7 +376,22 @@ export function CentralDashboard() {
     )
   }
 
-  if (!data) return null
+  if (!data) {
+    return (
+      <Flex h="100vh" align="center" justify="center">
+        <Box textAlign="center">
+          <Heading fontSize="2xl" fontWeight="bold" color="red.600">
+            {t('states.dataUnavailable.title', { defaultValue: 'Dashboard data unavailable' })}
+          </Heading>
+          <Text mt={2} color="gray.600">
+            {t('states.dataUnavailable.description', {
+              defaultValue: 'No dashboard data was returned.',
+            })}
+          </Text>
+        </Box>
+      </Flex>
+    )
+  }
 
   if (
     !data.kpis ||
@@ -477,11 +494,22 @@ export function CentralDashboard() {
             })
           : data.waterSupplyOutages
 
+  const numberLocale = i18n.resolvedLanguage === 'hi' ? 'hi-IN' : 'en-IN'
+  const formatNumber = (value: number, options?: Intl.NumberFormatOptions) =>
+    new Intl.NumberFormat(numberLocale, options).format(value)
+
   const coreMetrics = [
     {
-      label: 'Quantity in MLD',
-      value: '36,20,012',
-      trend: { direction: 'down', text: '-3% vs last 30 days' },
+      label: t('kpi.labels.quantityInMld', { defaultValue: 'Quantity in MLD' }),
+      value: formatNumber(3620012),
+      trend: {
+        direction: 'down',
+        text: t('kpi.trends.percentDownLastDays', {
+          change: 3,
+          days: 30,
+          defaultValue: '-{{change}}% vs last {{days}} days',
+        }),
+      },
       icon: (
         <Flex w="44px" h="44px" borderRadius="100px" bg="#E6F7EC" align="center" justify="center">
           <Image src={waterTapIcon} alt="" boxSize="24px" />
@@ -489,9 +517,15 @@ export function CentralDashboard() {
       ),
     },
     {
-      label: 'Quantity in LPCD',
-      value: '55',
-      trend: { direction: 'up', text: '+2 LPCD vs last month' },
+      label: t('kpi.labels.quantityInLpcd', { defaultValue: 'Quantity in LPCD' }),
+      value: formatNumber(55),
+      trend: {
+        direction: 'up',
+        text: t('kpi.trends.lpcdUpLastMonth', {
+          change: 2,
+          defaultValue: '+{{change}} LPCD vs last month',
+        }),
+      },
       icon: (
         <Flex w="44px" h="44px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
           <Icon as={MdOutlineWaterDrop} boxSize="22px" color="#2E90FA" />
@@ -499,9 +533,15 @@ export function CentralDashboard() {
       ),
     },
     {
-      label: 'Regularity',
-      value: '78.4%',
-      trend: { direction: 'down', text: '-3% vs last month' },
+      label: t('kpi.labels.regularity', { defaultValue: 'Regularity' }),
+      value: `${formatNumber(78.4, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`,
+      trend: {
+        direction: 'down',
+        text: t('kpi.trends.percentDownLastMonth', {
+          change: 3,
+          defaultValue: '-{{change}}% vs last month',
+        }),
+      },
       icon: (
         <Flex w="44px" h="44px" borderRadius="100px" bg="#FFF4CC" align="center" justify="center">
           <Icon as={LuClock3} boxSize="22px" color="#CA8A04" />
@@ -744,7 +784,7 @@ export function CentralDashboard() {
             h="710px"
           >
             <Text textStyle="bodyText3" fontWeight="400" mb={4}>
-              Overall Performance
+              {t('overallPerformance.title', { defaultValue: 'Overall Performance' })}
             </Text>
             <AllStatesTable
               data={overallPerformanceTableData}

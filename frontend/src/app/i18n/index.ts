@@ -36,28 +36,34 @@ const resources = {
   },
 }
 
-i18n
-  .use(LanguageDetector)
-  .use(initReactI18next)
-  .init({
-    resources,
-    fallbackLng: DEFAULT_LANGUAGE,
-    defaultNS: 'common',
-    ns: ['common', 'dashboard', 'super-admin', 'state-admin'],
+const isTestEnv = process.env.NODE_ENV === 'test'
 
-    detection: {
-      order: ['localStorage', 'navigator'],
-      lookupLocalStorage: 'i18nextLng',
-      caches: ['localStorage'],
-    },
+if (!isTestEnv) {
+  i18n.use(LanguageDetector)
+}
 
-    interpolation: {
-      escapeValue: false, // React already handles XSS
-    },
+i18n.use(initReactI18next).init({
+  resources,
+  fallbackLng: DEFAULT_LANGUAGE,
+  lng: isTestEnv ? DEFAULT_LANGUAGE : undefined,
+  defaultNS: 'common',
+  ns: ['common', 'dashboard', 'super-admin', 'state-admin'],
 
-    react: {
-      useSuspense: false,
-    },
-  })
+  detection: isTestEnv
+    ? undefined
+    : {
+        order: ['localStorage', 'navigator'],
+        lookupLocalStorage: 'i18nextLng',
+        caches: ['localStorage'],
+      },
+
+  interpolation: {
+    escapeValue: false, // React already handles XSS
+  },
+
+  react: {
+    useSuspense: false,
+  },
+})
 
 export default i18n

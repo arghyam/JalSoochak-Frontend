@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useTheme } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
@@ -24,8 +25,27 @@ export function IssueTypeBreakdownChart({
   className,
   height = '400px',
 }: IssueTypeBreakdownChartProps) {
+  const { t } = useTranslation('dashboard')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
+  const legendLabels = useMemo(
+    () => ({
+      electricalFailure: t('outageAndSubmissionCharts.legend.electricalFailure', {
+        defaultValue: 'Electrical failure',
+      }),
+      pipelineBreak: t('outageAndSubmissionCharts.legend.pipelineBreak', {
+        defaultValue: 'Pipeline break',
+      }),
+      pumpFailure: t('outageAndSubmissionCharts.legend.pumpFailure', {
+        defaultValue: 'Pump failure',
+      }),
+      valveIssue: t('outageAndSubmissionCharts.legend.valveIssue', { defaultValue: 'Valve issue' }),
+      sourceDrying: t('outageAndSubmissionCharts.legend.sourceDrying', {
+        defaultValue: 'Source Drying',
+      }),
+    }),
+    [t]
+  )
 
   const totals = useMemo(
     () =>
@@ -67,27 +87,27 @@ export function IssueTypeBreakdownChart({
           },
           data: [
             {
-              name: 'Electrical failure',
+              name: legendLabels.electricalFailure,
               value: totals.electricityFailure,
               itemStyle: { color: outageColors.electricityFailure },
             },
             {
-              name: 'Pipeline break',
+              name: legendLabels.pipelineBreak,
               value: totals.pipelineLeak,
               itemStyle: { color: outageColors.pipelineLeak },
             },
             {
-              name: 'Pump failure',
+              name: legendLabels.pumpFailure,
               value: totals.pumpFailure,
               itemStyle: { color: outageColors.pumpFailure },
             },
             {
-              name: 'Valve issue',
+              name: legendLabels.valveIssue,
               value: totals.valveIssue,
               itemStyle: { color: outageColors.valveIssue },
             },
             {
-              name: 'Source Drying',
+              name: legendLabels.sourceDrying,
               value: totals.sourceDrying,
               itemStyle: { color: outageColors.sourceDrying },
             },
@@ -95,15 +115,15 @@ export function IssueTypeBreakdownChart({
         },
       ],
     }
-  }, [totals])
+  }, [legendLabels, totals])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
   const legendItems = [
-    { label: 'Electrical failure', color: outageColors.electricityFailure },
-    { label: 'Pipeline break', color: outageColors.pipelineLeak },
-    { label: 'Pump failure', color: outageColors.pumpFailure },
-    { label: 'Valve issue', color: outageColors.valveIssue },
-    { label: 'Source Drying', color: outageColors.sourceDrying },
+    { label: legendLabels.electricalFailure, color: outageColors.electricityFailure },
+    { label: legendLabels.pipelineBreak, color: outageColors.pipelineLeak },
+    { label: legendLabels.pumpFailure, color: outageColors.pumpFailure },
+    { label: legendLabels.valveIssue, color: outageColors.valveIssue },
+    { label: legendLabels.sourceDrying, color: outageColors.sourceDrying },
   ]
 
   return (

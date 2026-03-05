@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Box, Icon, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import { BiSortAlt2 } from 'react-icons/bi'
 import type { EntityPerformance } from '../../types'
 
@@ -17,10 +18,13 @@ export function AllStatesTable({
   data,
   maxItems,
   scrollMaxHeight = '416px',
-  entityLabel = 'State/UT',
+  entityLabel,
 }: AllStatesTableProps) {
+  const { t } = useTranslation('dashboard')
   const [sortColumn, setSortColumn] = useState<SortColumn>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>(null)
+  const resolvedEntityLabel =
+    entityLabel ?? t('overallPerformance.columns.entity', { defaultValue: 'State/UT' })
   const safeMaxItems =
     typeof maxItems === 'number' && Number.isFinite(maxItems) ? Math.max(0, maxItems) : undefined
   const sortedRows =
@@ -78,7 +82,7 @@ export function AllStatesTable({
             }}
           >
             <Tr>
-              <Th>{entityLabel}</Th>
+              <Th>{resolvedEntityLabel}</Th>
               <Th
                 aria-sort={
                   sortColumn === 'coverage'
@@ -102,7 +106,11 @@ export function AllStatesTable({
                   border="none"
                   p={0}
                 >
-                  <Box as="span">Quantity (MLD)</Box>
+                  <Box as="span">
+                    {t('overallPerformance.columns.quantityMld', {
+                      defaultValue: 'Quantity (MLD)',
+                    })}
+                  </Box>
                   <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
                 </Box>
               </Th>
@@ -129,7 +137,11 @@ export function AllStatesTable({
                   border="none"
                   p={0}
                 >
-                  <Box as="span">Quantity (LPCD)</Box>
+                  <Box as="span">
+                    {t('overallPerformance.columns.quantityLpcd', {
+                      defaultValue: 'Quantity (LPCD)',
+                    })}
+                  </Box>
                   <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
                 </Box>
               </Th>
@@ -156,7 +168,11 @@ export function AllStatesTable({
                   border="none"
                   p={0}
                 >
-                  <Box as="span">Regularity (%)</Box>
+                  <Box as="span">
+                    {t('overallPerformance.columns.regularity', {
+                      defaultValue: 'Regularity (%)',
+                    })}
+                  </Box>
                   <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
                 </Box>
               </Th>

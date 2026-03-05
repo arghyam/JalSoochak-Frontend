@@ -1,4 +1,5 @@
 import { Box, Flex, Grid, Text } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import type { DashboardData, EntityPerformance, PumpOperatorPerformanceData } from '../../types'
 import {
   AllStatesPerformanceChart,
@@ -29,6 +30,8 @@ export function GramPanchayatDashboardScreen({
   pumpOperatorsTotal,
   operatorsPerformanceTable,
 }: GramPanchayatDashboardScreenProps) {
+  const { t } = useTranslation('dashboard')
+
   return (
     <>
       {/* Performance + Demand vs Supply Charts */}
@@ -67,7 +70,9 @@ export function GramPanchayatDashboardScreen({
         </Box>
         <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="526px">
           <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-            Reading Submission Rate
+            {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
+              defaultValue: 'Reading Submission Rate',
+            })}
           </Text>
           <SupplySubmissionRateChart
             data={supplySubmissionRateData}
@@ -88,16 +93,19 @@ export function GramPanchayatDashboardScreen({
         <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="510px">
           <Flex align="center" justify="space-between" mb="40px">
             <Text textStyle="bodyText3" fontWeight="400">
-              Pump Operators
+              {t('pumpOperators.title', { defaultValue: 'Pump Operators' })}
             </Text>
             <Text textStyle="bodyText3" fontWeight="400">
-              Total: {pumpOperatorsTotal}
+              {t('pumpOperators.totalLabel', { defaultValue: 'Total' })}: {pumpOperatorsTotal}
             </Text>
           </Flex>
           <PumpOperatorsChart
             data={data.pumpOperators}
             height="360px"
-            note="Note: Active pump operators submit readings at least 30 days in a month."
+            note={t('pumpOperators.note', {
+              defaultValue:
+                'Note: Active pump operators submit readings at least 30 days in a month.',
+            })}
           />
         </Box>
       </Grid>
@@ -106,7 +114,9 @@ export function GramPanchayatDashboardScreen({
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
         <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} w="full" minW={0}>
           <PumpOperatorsPerformanceTable
-            title="Operators Performance Table"
+            title={t('pumpOperators.performanceTable.title', {
+              defaultValue: 'Pump Operators Performance',
+            })}
             data={operatorsPerformanceTable}
           />
         </Box>

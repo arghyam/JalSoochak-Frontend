@@ -64,5 +64,120 @@
       "gte0": ">=0%",
       "noData": "No Data"
     }
+  },
+  "kpi": {
+    "labels": {
+      "quantityInMld": "Quantity in MLD",
+      "quantityInLpcd": "Quantity in LPCD",
+      "regularity": "Regularity"
+    },
+    "trends": {
+      "percentDownLastDays": "-{{change}}% vs last {{days}} days",
+      "lpcdUpLastMonth": "+{{change}} LPCD vs last month",
+      "percentDownLastMonth": "-{{change}}% vs last month"
+    }
+  },
+  "overallPerformance": {
+    "title": "Overall Performance",
+    "columns": {
+      "entity": "State/UT",
+      "quantityMld": "Quantity (MLD)",
+      "quantityLpcd": "Quantity (LPCD)",
+      "regularity": "Regularity (%)"
+    },
+    "entities": {
+      "stateUt": "State/UT",
+      "district": "District",
+      "block": "Block",
+      "gramPanchayat": "Gram Panchayat",
+      "village": "Village"
+    }
+  },
+  "performanceCharts": {
+    "quantity": {
+      "title": "Quantity Performance",
+      "ariaViewBy": "Quantity performance view by",
+      "ariaViewByDistrict": "District quantity performance view by",
+      "yAxisLabel": "Quantity",
+      "seriesName": "Quantity",
+      "areaSeriesName": "Demand"
+    },
+    "regularity": {
+      "title": "Regularity Performance",
+      "ariaViewBy": "Regularity performance view by",
+      "ariaViewByDistrict": "District regularity performance view by",
+      "yAxisLabel": "Regularity",
+      "yAxisLabelPercent": "Regularity (%)",
+      "seriesName": "Regularity"
+    },
+    "viewBy": {
+      "select": "Select",
+      "geography": "Geography",
+      "time": "Time",
+      "month": "Month",
+      "blocks": "Blocks",
+      "districts": "Districts",
+      "statesUTs": "States/UTs",
+      "gramPanchayats": "Gram Panchayats",
+      "villages": "Villages"
+    }
+  },
+  "outageAndSubmissionCharts": {
+    "titles": {
+      "supplyOutageReasons": "Supply Outage Reasons",
+      "supplyOutageDistribution": "Supply Outage Distribution",
+      "readingSubmissionRate": "Reading Submission Rate",
+      "readingSubmissionStatus": "Reading Submission Status",
+      "issueTypeBreakdown": "Issue Type Breakdown"
+    },
+    "axis": {
+      "percentage": "Percentage",
+      "noOfDays": "No. of days"
+    },
+    "series": {
+      "submissionRate": "Submission Rate",
+      "readingSubmission": "Reading submission"
+    },
+    "legend": {
+      "electricalFailure": "Electrical failure",
+      "pipelineBreak": "Pipeline break",
+      "pumpFailure": "Pump failure",
+      "valveIssue": "Valve issue",
+      "sourceDrying": "Source Drying",
+      "complaintSubmission": "Complaint Submission",
+      "automatedSubmission": "Automated Submission"
+    }
+  },
+  "pumpOperators": {
+    "title": "Pump Operators",
+    "totalLabel": "Total",
+    "note": "Note: Active pump operators submit readings at least 30 days in a month.",
+    "legend": {
+      "active": "Active pump operators",
+      "inactive": "Non-active pump operators"
+    },
+    "performanceTable": {
+      "title": "Pump Operators Performance",
+      "columns": {
+        "name": "Name",
+        "village": "Village",
+        "block": "Block",
+        "reportingRate": "Reporting Rate (%)",
+        "waterSupplied": "Water Supplied"
+      }
+    }
+  },
+  "blockDashboard": {
+    "titles": {
+      "allGramPanchayatsPerformance": "All Gram Panchayats Performance",
+      "demandVsSupply": "Demand vs Supply",
+      "allGramPanchayats": "All Gram Panchayats"
+    }
+  },
+  "states": {
+    "dataUnavailable": {
+      "title": "Dashboard data unavailable",
+      "description": "No dashboard data was returned."
+    }
   }
 }

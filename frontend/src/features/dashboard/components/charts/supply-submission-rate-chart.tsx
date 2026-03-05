@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
 import { Box, useBreakpointValue, useTheme } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
@@ -20,6 +21,7 @@ export function SupplySubmissionRateChart({
   maxItems = 5,
   entityLabel = 'States/UTs',
 }: SupplySubmissionRateChartProps) {
+  const { t } = useTranslation('dashboard')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
   const barWidth = useBreakpointValue({ base: 28, sm: 28, md: 42, lg: 66 }) ?? 66
@@ -102,7 +104,9 @@ export function SupplySubmissionRateChart({
       },
       series: [
         {
-          name: 'Submission Rate',
+          name: t('outageAndSubmissionCharts.series.submissionRate', {
+            defaultValue: 'Submission Rate',
+          }),
           type: 'bar',
           data: rates,
           barWidth: dynamicBarWidth,
@@ -117,7 +121,7 @@ export function SupplySubmissionRateChart({
         },
       ],
     }
-  }, [data, dynamicBarWidth, barRadius, bodyText7])
+  }, [barRadius, bodyText7, data, dynamicBarWidth, t])
 
   const axisOption = useMemo<echarts.EChartsOption>(() => {
     const placeholderLabel = longestEntityLabel || 'W'
@@ -310,7 +314,7 @@ export function SupplySubmissionRateChart({
             color={bodyText7.color}
             whiteSpace="nowrap"
           >
-            Percentage
+            {t('outageAndSubmissionCharts.axis.percentage', { defaultValue: 'Percentage' })}
           </Box>
         </Box>
         <Box

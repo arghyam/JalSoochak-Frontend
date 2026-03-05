@@ -1,4 +1,5 @@
 import { Box, Grid, Text } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import type { DashboardData, WaterSupplyOutageData } from '../../types'
 import { DemandSupplyChart, ImageSubmissionStatusChart, IssueTypeBreakdownChart } from '../charts'
 import { PhotoEvidenceComplianceTable } from '../tables'
@@ -14,6 +15,8 @@ export function VillageDashboardScreen({
   villagePhotoEvidenceRows,
   waterSupplyOutagesData,
 }: VillageDashboardScreenProps) {
+  const { t } = useTranslation('dashboard')
+
   return (
     <>
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
@@ -60,7 +63,9 @@ export function VillageDashboardScreen({
           minW={0}
         >
           <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-            Issue Type Breakdown
+            {t('outageAndSubmissionCharts.titles.issueTypeBreakdown', {
+              defaultValue: 'Issue Type Breakdown',
+            })}
           </Text>
           <IssueTypeBreakdownChart data={waterSupplyOutagesData} height="400px" />
         </Box>
