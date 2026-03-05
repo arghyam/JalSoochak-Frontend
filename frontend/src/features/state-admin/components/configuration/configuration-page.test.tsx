@@ -243,6 +243,39 @@ describe('ConfigurationPage', () => {
     expect(screen.queryByDisplayValue('Meter Replaced')).toBeNull()
   })
 
+  it('rejects logo files larger than 2MB and does not update draft', () => {
+    mockUseConfigurationQuery.mockReturnValue({
+      data: unconfiguredConfig,
+      isLoading: false,
+      isError: false,
+    })
+    renderWithProviders(<ConfigurationPage />)
+
+    const fileInput = screen.getByLabelText(/upload logo/i)
+    const oversizedFile = new File([''], 'large.png', { type: 'image/png' })
+    Object.defineProperty(oversizedFile, 'size', { value: 3 * 1024 * 1024, configurable: true })
+    fireEvent.change(fileInput, { target: { files: [oversizedFile] } })
+
+    // Draft should not update — no logo preview should appear
+    expect(screen.queryByRole('img', { name: /current logo/i })).toBeNull()
+  })
+
+  it('accepts logo files within the 2MB limit', () => {
+    mockUseConfigurationQuery.mockReturnValue({
+      data: unconfiguredConfig,
+      isLoading: false,
+      isError: false,
+    })
+    renderWithProviders(<ConfigurationPage />)
+
+    const fileInput = screen.getByLabelText(/upload logo/i)
+    const validFile = new File([''], 'logo.png', { type: 'image/png' })
+    Object.defineProperty(validFile, 'size', { value: 1 * 1024 * 1024, configurable: true })
+    fireEvent.change(fileInput, { target: { files: [validFile] } })
+
+    expect(screen.getByRole('img', { name: /current logo/i })).toBeTruthy()
+  })
+
   it('shows Save button for unconfigured and Save Changes for reconfiguring', () => {
     // Unconfigured → "Save"
     mockUseConfigurationQuery.mockReturnValue({

@@ -161,6 +161,11 @@ export function ConfigurationPage() {
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    const MAX_LOGO_SIZE = 2 * 1024 * 1024 // 2MB
+    if (file.size > MAX_LOGO_SIZE) {
+      toast.addToast(t('configuration.messages.validation.logoTooLarge'), 'error')
+      return
+    }
     setDraft((prev) => ({
       ...(prev ?? buildInitialDraft(config)),
       logoFile: file,
