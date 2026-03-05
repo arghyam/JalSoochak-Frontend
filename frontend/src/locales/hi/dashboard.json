@@ -166,5 +166,18 @@
         "waterSupplied": "जल आपूर्ति"
       }
     }
+  },
+  "blockDashboard": {
+    "titles": {
+      "allGramPanchayatsPerformance": "सभी ग्राम पंचायतों का प्रदर्शन",
+      "demandVsSupply": "मांग बनाम आपूर्ति",
+      "allGramPanchayats": "सभी ग्राम पंचायतें"
+    }
+  },
+  "states": {
+    "dataUnavailable": {
+      "title": "डैशबोर्ड डेटा उपलब्ध नहीं है",
+      "description": "कोई डैशबोर्ड डेटा प्राप्त नहीं हुआ।"
+    }
   }
 }

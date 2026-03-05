@@ -2,7 +2,7 @@ import type { PropsWithChildren, ReactElement } from 'react'
 import { ChakraProvider } from '@chakra-ui/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render } from '@testing-library/react'
-import '@/app/i18n'
+import i18n from '@/app/i18n'
 import theme from '@/app/theme'
 
 function Providers({ children }: PropsWithChildren) {
@@ -21,5 +21,6 @@ function Providers({ children }: PropsWithChildren) {
 }
 
 export function renderWithProviders(ui: ReactElement) {
+  void i18n.changeLanguage('en')
   return render(ui, { wrapper: Providers })
 }

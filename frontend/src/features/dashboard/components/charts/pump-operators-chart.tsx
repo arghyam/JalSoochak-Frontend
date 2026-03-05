@@ -16,6 +16,19 @@ interface PumpOperatorsChartProps {
 const defaultColors = ['#3291D1', '#ADD3ED']
 const defaultPieRadius: (string | number)[] = ['50%', '85%']
 const defaultPieCenter: [string, string] = ['50%', '45%']
+const legendKeyByNormalizedLabel: Record<string, 'active' | 'inactive'> = {
+  active: 'active',
+  'active pump operator': 'active',
+  'active pump operators': 'active',
+  inactive: 'inactive',
+  'inactive pump operator': 'inactive',
+  'inactive pump operators': 'inactive',
+  'non active pump operator': 'inactive',
+  'non active pump operators': 'inactive',
+}
+
+const normalizeLegendLabel = (label: string) =>
+  label.trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ')
 
 export function PumpOperatorsChart({
   data,
@@ -41,11 +54,11 @@ export function PumpOperatorsChart({
     }) ?? defaultPieCenter
   const localizedLegendLabel = useCallback(
     (label: string) => {
-      const normalized = label.trim().toLowerCase()
-      if (normalized === 'active pump operators') {
+      const legendKey = legendKeyByNormalizedLabel[normalizeLegendLabel(label)]
+      if (legendKey === 'active') {
         return t('pumpOperators.legend.active', { defaultValue: 'Active pump operators' })
       }
-      if (normalized === 'non-active pump operators') {
+      if (legendKey === 'inactive') {
         return t('pumpOperators.legend.inactive', { defaultValue: 'Non-active pump operators' })
       }
 

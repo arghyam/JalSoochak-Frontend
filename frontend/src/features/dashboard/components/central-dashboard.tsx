@@ -381,10 +381,12 @@ export function CentralDashboard() {
       <Flex h="100vh" align="center" justify="center">
         <Box textAlign="center">
           <Heading fontSize="2xl" fontWeight="bold" color="red.600">
-            Dashboard data unavailable
+            {t('states.dataUnavailable.title', { defaultValue: 'Dashboard data unavailable' })}
           </Heading>
           <Text mt={2} color="gray.600">
-            No dashboard data was returned.
+            {t('states.dataUnavailable.description', {
+              defaultValue: 'No dashboard data was returned.',
+            })}
           </Text>
         </Box>
       </Flex>
@@ -502,7 +504,11 @@ export function CentralDashboard() {
       value: formatNumber(3620012),
       trend: {
         direction: 'down',
-        text: '-3% vs last 30 days',
+        text: t('kpi.trends.percentDownLastDays', {
+          change: 3,
+          days: 30,
+          defaultValue: '-{{change}}% vs last {{days}} days',
+        }),
       },
       icon: (
         <Flex w="44px" h="44px" borderRadius="100px" bg="#E6F7EC" align="center" justify="center">
@@ -515,7 +521,10 @@ export function CentralDashboard() {
       value: formatNumber(55),
       trend: {
         direction: 'up',
-        text: '+2 LPCD vs last month',
+        text: t('kpi.trends.lpcdUpLastMonth', {
+          change: 2,
+          defaultValue: '+{{change}} LPCD vs last month',
+        }),
       },
       icon: (
         <Flex w="44px" h="44px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
@@ -528,7 +537,10 @@ export function CentralDashboard() {
       value: `${formatNumber(78.4, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`,
       trend: {
         direction: 'down',
-        text: '-3% vs last month',
+        text: t('kpi.trends.percentDownLastMonth', {
+          change: 3,
+          defaultValue: '-{{change}}% vs last month',
+        }),
       },
       icon: (
         <Flex w="44px" h="44px" borderRadius="100px" bg="#FFF4CC" align="center" justify="center">

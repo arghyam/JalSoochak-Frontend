@@ -47,17 +47,21 @@ export function BlockDashboardScreen({
           justifySelf={{ base: 'center', md: 'stretch' }}
         >
           <Text textStyle="bodyText3" fontWeight="400">
-            All Gram Panchayats Performance
+            {t('blockDashboard.titles.allGramPanchayatsPerformance', {
+              defaultValue: 'All Gram Panchayats Performance',
+            })}
           </Text>
           <AllStatesPerformanceChart
             data={gramPanchayatTableData}
             height="440px"
-            entityLabel="Gram Panchayats"
+            entityLabel={t('performanceCharts.viewBy.gramPanchayats', {
+              defaultValue: 'Gram Panchayats',
+            })}
           />
         </Box>
         <Box bg="white" borderWidth="1px" borderRadius="lg" p={4} h="536px" minW={0}>
           <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-            Demand vs Supply
+            {t('blockDashboard.titles.demandVsSupply', { defaultValue: 'Demand vs Supply' })}
           </Text>
           <DemandSupplyChart data={data.demandSupply} height="418px" />
         </Box>
@@ -86,7 +90,7 @@ export function BlockDashboardScreen({
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
         <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="510px">
           <Text textStyle="bodyText3" fontWeight="400" mb="16px">
-            All Gram Panchayats
+            {t('blockDashboard.titles.allGramPanchayats', { defaultValue: 'All Gram Panchayats' })}
           </Text>
           <AllGramPanchayatsTable data={gramPanchayatTableData} />
         </Box>

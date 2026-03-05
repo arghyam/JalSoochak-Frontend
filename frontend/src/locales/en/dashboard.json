@@ -166,5 +166,18 @@
         "waterSupplied": "Water Supplied"
       }
     }
+  },
+  "blockDashboard": {
+    "titles": {
+      "allGramPanchayatsPerformance": "All Gram Panchayats Performance",
+      "demandVsSupply": "Demand vs Supply",
+      "allGramPanchayats": "All Gram Panchayats"
+    }
+  },
+  "states": {
+    "dataUnavailable": {
+      "title": "Dashboard data unavailable",
+      "description": "No dashboard data was returned."
+    }
   }
 }

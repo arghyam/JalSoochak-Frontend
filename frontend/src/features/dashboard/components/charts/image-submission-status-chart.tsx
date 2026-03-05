@@ -39,7 +39,7 @@ export function ImageSubmissionStatusChart({
   const localizedLegendLabel = useCallback(
     (label: string) => {
       const normalized = label.trim().toLowerCase()
-      if (normalized === 'complaint submission' || normalized === 'compliant submissions') {
+      if (normalized === 'complaint submission' || normalized === 'complaint submissions') {
         return t('outageAndSubmissionCharts.legend.complaintSubmission', {
           defaultValue: 'Complaint Submission',
         })
