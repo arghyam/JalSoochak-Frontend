@@ -1,33 +1,142 @@
-import { Box, Grid, Text } from '@chakra-ui/react'
+import { useMemo, useState } from 'react'
+import { Avatar, Box, Button, Flex, Grid, Icon, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import type { DashboardData, WaterSupplyOutageData } from '../../types'
-import { DemandSupplyChart, ImageSubmissionStatusChart, IssueTypeBreakdownChart } from '../charts'
+import { LuArrowLeft, LuArrowRight } from 'react-icons/lu'
+import type { DashboardData, EntityPerformance, WaterSupplyOutageData } from '../../types'
+import {
+  ImageSubmissionStatusChart,
+  IssueTypeBreakdownChart,
+  MetricPerformanceChart,
+} from '../charts'
 import { PhotoEvidenceComplianceTable } from '../tables'
+
+type VillagePumpOperatorDetails = {
+  name: string
+  scheme: string
+  stationLocation: string
+  lastSubmission: string
+  reportingRate: string
+  missingSubmissionCount: string
+  inactiveDays: string
+}
 
 type VillageDashboardScreenProps = {
   data: DashboardData
   villagePhotoEvidenceRows: DashboardData['photoEvidenceCompliance']
   waterSupplyOutagesData: WaterSupplyOutageData[]
+  villagePumpOperatorDetails: VillagePumpOperatorDetails
 }
 
 export function VillageDashboardScreen({
   data,
   villagePhotoEvidenceRows,
   waterSupplyOutagesData,
+  villagePumpOperatorDetails,
 }: VillageDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
+  const [pumpOperatorPage, setPumpOperatorPage] = useState(1)
+  const timeSeriesPerformanceData = useMemo<EntityPerformance[]>(
+    () =>
+      data.demandSupply.map((item, index) => ({
+        id: `performance-${index}-${item.period}`,
+        name: item.period,
+        coverage: item.demand,
+        regularity:
+          item.demand > 0 ? Math.min(100, Math.round((item.supply / item.demand) * 100)) : 0,
+        continuity: 0,
+        quantity: item.supply,
+        compositeScore: 0,
+        status: 'needs-attention',
+      })),
+    [data.demandSupply]
+  )
+  const pumpOperatorPages = useMemo(
+    () =>
+      villagePhotoEvidenceRows.length > 0
+        ? villagePhotoEvidenceRows.map((row) => ({
+            ...villagePumpOperatorDetails,
+            name: row.name,
+            lastSubmission: row.lastSubmission,
+          }))
+        : [villagePumpOperatorDetails],
+    [villagePhotoEvidenceRows, villagePumpOperatorDetails]
+  )
+  const totalPumpOperatorPages = pumpOperatorPages.length
+  const activePumpOperatorPage = Math.min(pumpOperatorPage, totalPumpOperatorPages)
+  const activePumpOperator =
+    pumpOperatorPages[activePumpOperatorPage - 1] ?? villagePumpOperatorDetails
+  const visiblePageNumbers = useMemo(() => {
+    if (totalPumpOperatorPages <= 3) {
+      return Array.from({ length: totalPumpOperatorPages }, (_, index) => index + 1)
+    }
+
+    if (activePumpOperatorPage <= 2) {
+      return [1, 2, 3]
+    }
+
+    if (activePumpOperatorPage >= totalPumpOperatorPages - 1) {
+      return [totalPumpOperatorPages - 2, totalPumpOperatorPages - 1, totalPumpOperatorPages]
+    }
+
+    return [activePumpOperatorPage - 1, activePumpOperatorPage, activePumpOperatorPage + 1]
+  }, [activePumpOperatorPage, totalPumpOperatorPages])
 
   return (
     <>
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
-        <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="536px">
-          <PhotoEvidenceComplianceTable data={villagePhotoEvidenceRows} showVillageColumn={false} />
-        </Box>
-        <Box bg="white" borderWidth="1px" borderRadius="lg" p={4} h="536px">
+        <Box
+          bg="white"
+          borderWidth="0.5px"
+          borderRadius="12px"
+          borderColor="#E4E4E7"
+          px="16px"
+          pt="24px"
+          pb="24px"
+          h="523px"
+          minW={0}
+        >
           <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-            Demand vs Supply
+            {t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
           </Text>
-          <DemandSupplyChart data={data.demandSupply} height="418px" />
+          <MetricPerformanceChart
+            data={timeSeriesPerformanceData}
+            metric="quantity"
+            height="400px"
+            entityLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+            yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
+            seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
+            showAreaLine
+            areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
+              defaultValue: 'Demand',
+            })}
+          />
+        </Box>
+        <Box
+          bg="white"
+          borderWidth="0.5px"
+          borderRadius="12px"
+          borderColor="#E4E4E7"
+          px="16px"
+          pt="24px"
+          pb="24px"
+          h="523px"
+          minW={0}
+        >
+          <Text textStyle="bodyText3" fontWeight="400" mb={2}>
+            {t('performanceCharts.regularity.title', { defaultValue: 'Regularity Performance' })}
+          </Text>
+          <MetricPerformanceChart
+            data={timeSeriesPerformanceData}
+            metric="regularity"
+            height="400px"
+            entityLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+            yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
+              defaultValue: 'Regularity',
+            })}
+            seriesName={t('performanceCharts.regularity.seriesName', {
+              defaultValue: 'Regularity',
+            })}
+          />
         </Box>
       </Grid>
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
@@ -45,9 +154,11 @@ export function VillageDashboardScreen({
           minW={0}
         >
           <Text textStyle="bodyText3" fontWeight="400" mb="0px">
-            Image Submission Status
+            {t('outageAndSubmissionCharts.titles.supplyOutageReasons', {
+              defaultValue: 'Supply Outage Reasons',
+            })}
           </Text>
-          <ImageSubmissionStatusChart data={data.imageSubmissionStatus} height="406px" />
+          <IssueTypeBreakdownChart data={waterSupplyOutagesData} height="400px" />
         </Box>
         <Box
           bg="white"
@@ -63,11 +174,138 @@ export function VillageDashboardScreen({
           minW={0}
         >
           <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-            {t('outageAndSubmissionCharts.titles.issueTypeBreakdown', {
-              defaultValue: 'Issue Type Breakdown',
+            {t('outageAndSubmissionCharts.titles.readingSubmissionStatus', {
+              defaultValue: 'Reading Submission Status',
             })}
           </Text>
-          <IssueTypeBreakdownChart data={waterSupplyOutagesData} height="400px" />
+          <ImageSubmissionStatusChart data={data.imageSubmissionStatus} height="406px" />
+        </Box>
+      </Grid>
+      <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
+        <Box
+          bg="white"
+          borderWidth="0.5px"
+          borderRadius="12px"
+          borderColor="#E4E4E7"
+          pt="24px"
+          pb="24px"
+          pl="16px"
+          pr="16px"
+          h="523px"
+          minW={0}
+        >
+          <Flex direction="column" h="full">
+            <Text textStyle="bodyText3" fontWeight="400" mb={4}>
+              Pump Operator Details
+            </Text>
+            <Box>
+              <Flex align="center" gap={3} mb={6}>
+                <Avatar name={activePumpOperator.name} boxSize="44px" />
+                <Text textStyle="bodyText4" fontSize="14px" fontWeight="500" color="neutral.950">
+                  {activePumpOperator.name}
+                </Text>
+              </Flex>
+              <Grid templateColumns="1fr auto" columnGap="24px" rowGap="12px" alignItems="center">
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                  Scheme name/ Scheme ID
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
+                  {activePumpOperator.scheme}
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                  Station location
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
+                  {activePumpOperator.stationLocation}
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                  Last submission
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
+                  {activePumpOperator.lastSubmission}
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                  Reporting rate
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
+                  {activePumpOperator.reportingRate}
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                  Missing submission count
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
+                  {activePumpOperator.missingSubmissionCount}
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                  Inactive days
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
+                  {activePumpOperator.inactiveDays}
+                </Text>
+              </Grid>
+            </Box>
+            {totalPumpOperatorPages > 1 ? (
+              <Flex mt="auto" pt={6} align="center" justify="center" gap={2}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  leftIcon={<Icon as={LuArrowLeft} boxSize={4} />}
+                  onClick={() =>
+                    setPumpOperatorPage((previousPage) =>
+                      Math.max(1, Math.min(previousPage, totalPumpOperatorPages) - 1)
+                    )
+                  }
+                  isDisabled={activePumpOperatorPage === 1}
+                >
+                  Previous
+                </Button>
+                {visiblePageNumbers.map((pageNumber) => (
+                  <Button
+                    key={pageNumber}
+                    variant="outline"
+                    size="sm"
+                    minW="34px"
+                    px={0}
+                    borderRadius="8px"
+                    borderColor="#D4D4D8"
+                    bg={activePumpOperatorPage === pageNumber ? '#3291D1' : 'white'}
+                    color={activePumpOperatorPage === pageNumber ? 'white' : 'neutral.700'}
+                    _hover={{
+                      bg: activePumpOperatorPage === pageNumber ? '#3291D1' : 'neutral.100',
+                    }}
+                    onClick={() => setPumpOperatorPage(pageNumber)}
+                  >
+                    {pageNumber}
+                  </Button>
+                ))}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  rightIcon={<Icon as={LuArrowRight} boxSize={4} />}
+                  onClick={() =>
+                    setPumpOperatorPage((previousPage) =>
+                      Math.min(
+                        totalPumpOperatorPages,
+                        Math.min(previousPage, totalPumpOperatorPages) + 1
+                      )
+                    )
+                  }
+                  isDisabled={activePumpOperatorPage === totalPumpOperatorPages}
+                >
+                  Next
+                </Button>
+              </Flex>
+            ) : null}
+          </Flex>
+        </Box>
+        <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="536px">
+          <PhotoEvidenceComplianceTable
+            data={villagePhotoEvidenceRows}
+            showVillageColumn={false}
+            title={t('outageAndSubmissionCharts.titles.readingCompliance', {
+              defaultValue: 'Reading Compliance',
+            })}
+          />
         </Box>
       </Grid>
     </>

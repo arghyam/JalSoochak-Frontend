@@ -141,6 +141,15 @@ function renderDashboardBody(overrides: Partial<ComponentProps<typeof DashboardB
       pumpOperatorsTotal={12}
       operatorsPerformanceTable={mockOperatorsPerformanceTable}
       villagePhotoEvidenceRows={mockDashboardData.photoEvidenceCompliance}
+      villagePumpOperatorDetails={{
+        name: 'Ajay Yadav',
+        scheme: 'Rural Water Supply 001',
+        stationLocation: 'Central Pumping Station',
+        lastSubmission: '11-02-24, 1:00pm',
+        reportingRate: '85%',
+        missingSubmissionCount: '3',
+        inactiveDays: '2',
+      }}
       {...overrides}
     />
   )
