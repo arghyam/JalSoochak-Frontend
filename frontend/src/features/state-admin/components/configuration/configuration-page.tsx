@@ -492,9 +492,18 @@ export function ConfigurationPage() {
                       onChange={(e) => {
                         const raw = e.target.value
                         setAvgMembersStr(raw)
+                        if (raw.trim() === '') {
+                          setDraft((prev) => ({
+                            ...(prev ?? buildInitialDraft(config)),
+                            averageMembersPerHousehold: 0,
+                          }))
+                          return
+                        }
+                        const parsed = Number(raw)
+                        if (!Number.isFinite(parsed) || parsed < 0) return
                         setDraft((prev) => ({
                           ...(prev ?? buildInitialDraft(config)),
-                          averageMembersPerHousehold: raw === '' ? 0 : Number(raw),
+                          averageMembersPerHousehold: parsed,
                         }))
                       }}
                       aria-label={t('configuration.sections.averageMembersPerHousehold.title')}
@@ -548,10 +557,15 @@ export function ConfigurationPage() {
 
 // ─── View Mode ────────────────────────────────────────────────────────────────
 
-function ViewField({ label, value }: { label: string; value: string }) {
+function ViewField({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
     <Box>
-      <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" color="neutral.700" mb={1}>
+      <Text
+        fontSize={{ base: 'xs', md: 'sm' }}
+        fontWeight="medium"
+        color={color ?? 'neutral.950'}
+        mb={1}
+      >
         {label}
       </Text>
       <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
@@ -564,7 +578,7 @@ function ViewField({ label, value }: { label: string; value: string }) {
 function ViewSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Box>
-      <Text fontSize={{ base: 'sm', md: 'md' }} fontWeight="semibold" color="neutral.950" mb={3}>
+      <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" color="neutral.950" mb={3}>
         {title}
       </Text>
       {children}
@@ -645,6 +659,7 @@ function ViewMode({
               ? t('configuration.sections.locationCheckRequired.yes')
               : t('configuration.sections.locationCheckRequired.no')
           }
+          color="neutral.950"
         />
         <ViewSection title={t('configuration.sections.logo.title')}>
           {config.logoUrl ? (
@@ -668,12 +683,14 @@ function ViewMode({
         <ViewField
           label={t('configuration.sections.dataConsolidationTime.title')}
           value={config.dataConsolidationTime}
+          color="neutral.950"
         />
         <ViewField
           label={t('configuration.sections.averageMembersPerHousehold.title')}
           value={
             config.averageMembersPerHousehold > 0 ? String(config.averageMembersPerHousehold) : '-'
           }
+          color="neutral.950"
         />
       </SimpleGrid>
     </VStack>
