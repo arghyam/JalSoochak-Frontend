@@ -1,4 +1,5 @@
 export { OverviewPage } from './components/overview/overview-page'
+export { ConfigurationPage } from './components/configuration/configuration-page'
 export { ActivityPage } from './components/activity/activity-page'
 export { LanguagePage } from './components/language/language-page'
 export { IntegrationPage } from './components/integration/integration-page'

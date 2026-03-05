@@ -266,6 +266,67 @@
     }
   },
 
+  "configuration": {
+    "pageTitle": "कॉन्फ़िगरेशन",
+    "sectionTitle": "राज्य/केंद्र शासित प्रदेश कॉन्फ़िगरेशन",
+    "sections": {
+      "lgdHierarchy": {
+        "title": "LGD पदानुक्रम",
+        "levelLabel": "स्तर {{level}}"
+      },
+      "departmentHierarchy": {
+        "title": "विभाग पदानुक्रम",
+        "levelLabel": "स्तर {{level}}"
+      },
+      "supportedChannels": {
+        "title": "समर्थित चैनल"
+      },
+      "logo": {
+        "title": "लोगो",
+        "uploadButton": "लोगो अपलोड करें",
+        "hint": "केवल PNG या JPG",
+        "currentLogo": "वर्तमान लोगो"
+      },
+      "meterChangeReasons": {
+        "title": "मीटर परिवर्तन के कारण",
+        "placeholder": "कारण दर्ज करें",
+        "addButton": "जोड़ें",
+        "addNewButton": "+ नया कारण जोड़ें",
+        "empty": "अभी तक कोई कारण नहीं जोड़ा गया",
+        "editAriaLabel": "कारण {{name}} संपादित करें",
+        "deleteAriaLabel": "कारण {{name}} हटाएं"
+      },
+      "locationCheckRequired": {
+        "title": "स्थान रिकॉर्ड करें",
+        "yes": "हाँ",
+        "no": "नहीं"
+      },
+      "dataConsolidationTime": {
+        "title": "डेटा समेकन समय"
+      },
+      "stateDataReconciliationTime": {
+        "title": "राज्य डेटा समाधान समय"
+      },
+      "averageMembersPerHousehold": {
+        "title": "प्रति परिवार औसत सदस्य"
+      }
+    },
+    "aria": {
+      "form": "कॉन्फ़िगरेशन फ़ॉर्म",
+      "editConfiguration": "कॉन्फ़िगरेशन संपादित करें",
+      "lgdLevel": "LGD पदानुक्रम स्तर {{level}} का नाम",
+      "deptLevel": "विभाग पदानुक्रम स्तर {{level}} का नाम"
+    },
+    "messages": {
+      "saveSuccess": "कॉन्फ़िगरेशन सफलतापूर्वक सहेजा गया",
+      "saveFailed": "कॉन्फ़िगरेशन सहेजने में विफल",
+      "validation": {
+        "channelRequired": "कम से कम एक समर्थित चैनल चुनें",
+        "hierarchyRequired": "सभी पदानुक्रम स्तर के नाम आवश्यक हैं"
+      }
+    }
+  },
+
   "nudges": {
     "title": "नज टेम्पलेट",
     "language": "भाषा",

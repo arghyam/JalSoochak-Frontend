@@ -15,6 +15,7 @@ import {
 } from '@/features/super-admin'
 import {
   OverviewPage,
+  ConfigurationPage,
   ActivityPage,
   LanguagePage,
   IntegrationPage,
@@ -180,7 +181,10 @@ export const router = createBrowserRouter([
         index: true,
         element: <OverviewPage />,
       },
-
+      {
+        path: ROUTES.STATE_ADMIN_CONFIGURATION,
+        element: <ConfigurationPage />,
+      },
       {
         path: ROUTES.STATE_ADMIN_LANGUAGE,
         element: <LanguagePage />,
