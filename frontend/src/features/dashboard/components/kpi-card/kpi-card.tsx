@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Box, Flex, Icon, Text } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { MdArrowDownward, MdArrowUpward } from 'react-icons/md'
 
@@ -16,7 +17,9 @@ interface KPICardProps {
 }
 
 export function KPICard({ title, value, icon, trend }: KPICardProps) {
-  const formattedValue = typeof value === 'number' ? value.toLocaleString('en-IN') : value
+  const { i18n } = useTranslation()
+  const numberLocale = i18n.resolvedLanguage === 'hi' ? 'hi-IN' : 'en-IN'
+  const formattedValue = typeof value === 'number' ? value.toLocaleString(numberLocale) : value
   const isPositive = trend?.direction === 'up'
   const trendColor = isPositive ? '#079455' : '#D92D20'
   const TrendIcon = isPositive ? MdArrowUpward : MdArrowDownward

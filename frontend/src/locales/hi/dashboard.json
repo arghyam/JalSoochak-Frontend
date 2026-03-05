@@ -64,5 +64,60 @@
       "gte0": ">=0%",
       "noData": "डेटा नहीं"
     }
+  },
+  "kpi": {
+    "labels": {
+      "quantityInMld": "एमएलडी में मात्रा",
+      "quantityInLpcd": "एलपीसीडी में मात्रा",
+      "regularity": "नियमितता"
+    },
+    "trends": {
+      "percentDownLastDays": "पिछले {{days}} दिनों की तुलना में -{{change}}%",
+      "lpcdUpLastMonth": "पिछले महीने की तुलना में +{{change}} LPCD",
+      "percentDownLastMonth": "पिछले महीने की तुलना में -{{change}}%"
+    }
+  },
+  "overallPerformance": {
+    "title": "समग्र प्रदर्शन",
+    "columns": {
+      "entity": "राज्य/केंद्रशासित प्रदेश",
+      "quantityMld": "मात्रा (MLD)",
+      "quantityLpcd": "मात्रा (LPCD)",
+      "regularity": "नियमितता (%)"
+    },
+    "entities": {
+      "stateUt": "राज्य/केंद्रशासित प्रदेश",
+      "district": "जिला",
+      "block": "ब्लॉक",
+      "gramPanchayat": "ग्राम पंचायत",
+      "village": "गांव"
+    }
+  },
+  "performanceCharts": {
+    "quantity": {
+      "title": "मात्रा प्रदर्शन",
+      "ariaViewBy": "मात्रा प्रदर्शन दृश्य प्रकार",
+      "ariaViewByDistrict": "जिला मात्रा प्रदर्शन दृश्य प्रकार",
+      "yAxisLabel": "मात्रा",
+      "seriesName": "मात्रा",
+      "areaSeriesName": "मांग"
+    },
+    "regularity": {
+      "title": "नियमितता प्रदर्शन",
+      "ariaViewBy": "नियमितता प्रदर्शन दृश्य प्रकार",
+      "ariaViewByDistrict": "जिला नियमितता प्रदर्शन दृश्य प्रकार",
+      "yAxisLabel": "नियमितता",
+      "yAxisLabelPercent": "नियमितता (%)",
+      "seriesName": "नियमितता"
+    },
+    "viewBy": {
+      "select": "चुनें",
+      "geography": "भौगोलिक",
+      "time": "समय",
+      "month": "महीना",
+      "blocks": "ब्लॉक",
+      "districts": "जिले",
+      "statesUTs": "राज्य/केंद्रशासित प्रदेश"
+    }
   }
 }

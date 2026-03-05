@@ -64,5 +64,60 @@
       "gte0": ">=0%",
       "noData": "No Data"
     }
+  },
+  "kpi": {
+    "labels": {
+      "quantityInMld": "Quantity in MLD",
+      "quantityInLpcd": "Quantity in LPCD",
+      "regularity": "Regularity"
+    },
+    "trends": {
+      "percentDownLastDays": "-{{change}}% vs last {{days}} days",
+      "lpcdUpLastMonth": "+{{change}} LPCD vs last month",
+      "percentDownLastMonth": "-{{change}}% vs last month"
+    }
+  },
+  "overallPerformance": {
+    "title": "Overall Performance",
+    "columns": {
+      "entity": "State/UT",
+      "quantityMld": "Quantity (MLD)",
+      "quantityLpcd": "Quantity (LPCD)",
+      "regularity": "Regularity (%)"
+    },
+    "entities": {
+      "stateUt": "State/UT",
+      "district": "District",
+      "block": "Block",
+      "gramPanchayat": "Gram Panchayat",
+      "village": "Village"
+    }
+  },
+  "performanceCharts": {
+    "quantity": {
+      "title": "Quantity Performance",
+      "ariaViewBy": "Quantity performance view by",
+      "ariaViewByDistrict": "District quantity performance view by",
+      "yAxisLabel": "Quantity",
+      "seriesName": "Quantity",
+      "areaSeriesName": "Demand"
+    },
+    "regularity": {
+      "title": "Regularity Performance",
+      "ariaViewBy": "Regularity performance view by",
+      "ariaViewByDistrict": "District regularity performance view by",
+      "yAxisLabel": "Regularity",
+      "yAxisLabelPercent": "Regularity (%)",
+      "seriesName": "Regularity"
+    },
+    "viewBy": {
+      "select": "Select",
+      "geography": "Geography",
+      "time": "Time",
+      "month": "Month",
+      "blocks": "Blocks",
+      "districts": "Districts",
+      "statesUTs": "States/UTs"
+    }
   }
 }

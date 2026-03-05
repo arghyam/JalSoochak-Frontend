@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Box, Flex, Grid, Select, Text } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import type { DashboardData, EntityPerformance, PumpOperatorPerformanceData } from '../../types'
 import {
   ImageSubmissionStatusChart,
@@ -31,6 +32,7 @@ export function DistrictDashboardScreen({
   operatorsPerformanceTable,
   pumpOperatorsTotal,
 }: DistrictDashboardScreenProps) {
+  const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('')
   const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('')
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('')
@@ -82,10 +84,12 @@ export function DistrictDashboardScreen({
         >
           <Flex align="center" justify="space-between">
             <Text textStyle="bodyText3" fontWeight="400">
-              Quantity Performance
+              {t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
             </Text>
             <Select
-              aria-label="District quantity performance view by"
+              aria-label={t('performanceCharts.quantity.ariaViewByDistrict', {
+                defaultValue: 'District quantity performance view by',
+              })}
               h="32px"
               maxW="128px"
               fontSize="14px"
@@ -100,9 +104,15 @@ export function DistrictDashboardScreen({
               onChange={(event) => setQuantityViewBy(event.target.value as ViewBy)}
               _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
             >
-              <option value="">Select</option>
-              <option value="geography">Geography</option>
-              <option value="time">Time</option>
+              <option value="">
+                {t('performanceCharts.viewBy.select', { defaultValue: 'Select' })}
+              </option>
+              <option value="geography">
+                {t('performanceCharts.viewBy.geography', { defaultValue: 'Geography' })}
+              </option>
+              <option value="time">
+                {t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+              </option>
             </Select>
           </Flex>
           {quantityViewBy === '' || quantityViewBy === 'geography' ? (
@@ -110,19 +120,21 @@ export function DistrictDashboardScreen({
               data={blockTableData}
               metric="quantity"
               height="400px"
-              entityLabel="Blocks"
-              yAxisLabel="Quantity"
-              seriesName="Quantity"
+              entityLabel={t('performanceCharts.viewBy.blocks', { defaultValue: 'Blocks' })}
+              yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
+              seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
               showAreaLine
-              areaSeriesName="Demand"
+              areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
+                defaultValue: 'Demand',
+              })}
             />
           ) : (
             <MonthlyTrendChart
               data={quantityTimeTrendData}
               height="400px"
-              xAxisLabel="Month"
-              yAxisLabel="Quantity"
-              seriesName="Quantity"
+              xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+              yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
+              seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
             />
           )}
         </Box>
@@ -139,10 +151,14 @@ export function DistrictDashboardScreen({
         >
           <Flex align="center" justify="space-between">
             <Text textStyle="bodyText3" fontWeight="400">
-              Regularity Performance
+              {t('performanceCharts.regularity.title', {
+                defaultValue: 'Regularity Performance',
+              })}
             </Text>
             <Select
-              aria-label="District regularity performance view by"
+              aria-label={t('performanceCharts.regularity.ariaViewByDistrict', {
+                defaultValue: 'District regularity performance view by',
+              })}
               h="32px"
               maxW="128px"
               fontSize="14px"
@@ -157,9 +173,15 @@ export function DistrictDashboardScreen({
               onChange={(event) => setRegularityViewBy(event.target.value as ViewBy)}
               _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
             >
-              <option value="">Select</option>
-              <option value="geography">Geography</option>
-              <option value="time">Time</option>
+              <option value="">
+                {t('performanceCharts.viewBy.select', { defaultValue: 'Select' })}
+              </option>
+              <option value="geography">
+                {t('performanceCharts.viewBy.geography', { defaultValue: 'Geography' })}
+              </option>
+              <option value="time">
+                {t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+              </option>
             </Select>
           </Flex>
           {regularityViewBy === '' || regularityViewBy === 'geography' ? (
@@ -167,17 +189,25 @@ export function DistrictDashboardScreen({
               data={blockTableData}
               metric="regularity"
               height="400px"
-              entityLabel="Blocks"
-              yAxisLabel="Regularity"
-              seriesName="Regularity"
+              entityLabel={t('performanceCharts.viewBy.blocks', { defaultValue: 'Blocks' })}
+              yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
+                defaultValue: 'Regularity',
+              })}
+              seriesName={t('performanceCharts.regularity.seriesName', {
+                defaultValue: 'Regularity',
+              })}
             />
           ) : (
             <MonthlyTrendChart
               data={regularityTimeTrendData}
               height="400px"
-              xAxisLabel="Month"
-              yAxisLabel="Regularity (%)"
-              seriesName="Regularity"
+              xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+              yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
+                defaultValue: 'Regularity (%)',
+              })}
+              seriesName={t('performanceCharts.regularity.seriesName', {
+                defaultValue: 'Regularity',
+              })}
             />
           )}
         </Box>
