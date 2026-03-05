@@ -49,7 +49,6 @@ export interface ConfigurationData extends Record<string, unknown> {
   meterChangeReasons: MeterChangeReason[]
   locationCheckRequired: boolean
   dataConsolidationTime: string
-  stateDataReconciliationTime: string
   averageMembersPerHousehold: number
   isConfigured: boolean
 }

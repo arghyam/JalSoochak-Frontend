@@ -45,7 +45,6 @@ interface ConfigDraft {
   meterChangeReasons: MeterChangeReason[]
   locationCheckRequired: boolean
   dataConsolidationTime: string
-  stateDataReconciliationTime: string
   averageMembersPerHousehold: number
 }
 
@@ -57,7 +56,6 @@ function buildInitialDraft(config?: {
   meterChangeReasons: MeterChangeReason[]
   locationCheckRequired: boolean
   dataConsolidationTime: string
-  stateDataReconciliationTime: string
   averageMembersPerHousehold: number
 }): ConfigDraft {
   return {
@@ -75,7 +73,6 @@ function buildInitialDraft(config?: {
       : DEFAULT_METER_CHANGE_REASONS.map((r) => ({ ...r })),
     locationCheckRequired: config?.locationCheckRequired ?? false,
     dataConsolidationTime: config?.dataConsolidationTime ?? '',
-    stateDataReconciliationTime: config?.stateDataReconciliationTime ?? '',
     averageMembersPerHousehold: config?.averageMembersPerHousehold ?? 0,
   }
 }
@@ -112,35 +109,37 @@ export function ConfigurationPage() {
   }
 
   const handleSave = async () => {
-    if (!draft) return
+    // draft is null when the first-configure form is shown without the user
+    // touching any field (effectiveIsEditing fires before handleEdit is called).
+    // Fall back to the same defaults the form already displays.
+    const current = draft ?? buildInitialDraft(config ?? undefined)
 
-    const emptyLgd = draft.lgdHierarchy.some((l) => !l.name.trim())
-    const emptyDept = draft.departmentHierarchy.some((l) => !l.name.trim())
+    const emptyLgd = current.lgdHierarchy.some((l) => !l.name.trim())
+    const emptyDept = current.departmentHierarchy.some((l) => !l.name.trim())
     if (emptyLgd || emptyDept) {
       toast.addToast(t('configuration.messages.validation.hierarchyRequired'), 'error')
       return
     }
-    if (draft.supportedChannels.length === 0) {
+    if (current.supportedChannels.length === 0) {
       toast.addToast(t('configuration.messages.validation.channelRequired'), 'error')
       return
     }
 
     try {
-      let logoUrl = draft.logoUrl
-      if (draft.logoFile) {
-        logoUrl = await fileToBase64(draft.logoFile)
+      let logoUrl = current.logoUrl
+      if (current.logoFile) {
+        logoUrl = await fileToBase64(current.logoFile)
       }
 
       await saveMutation.mutateAsync({
-        lgdHierarchy: draft.lgdHierarchy,
-        departmentHierarchy: draft.departmentHierarchy,
-        supportedChannels: draft.supportedChannels,
+        lgdHierarchy: current.lgdHierarchy,
+        departmentHierarchy: current.departmentHierarchy,
+        supportedChannels: current.supportedChannels,
         logoUrl,
-        meterChangeReasons: draft.meterChangeReasons,
-        locationCheckRequired: draft.locationCheckRequired,
-        dataConsolidationTime: draft.dataConsolidationTime,
-        stateDataReconciliationTime: draft.stateDataReconciliationTime,
-        averageMembersPerHousehold: draft.averageMembersPerHousehold,
+        meterChangeReasons: current.meterChangeReasons,
+        locationCheckRequired: current.locationCheckRequired,
+        dataConsolidationTime: current.dataConsolidationTime,
+        averageMembersPerHousehold: current.averageMembersPerHousehold,
         isConfigured: true,
       })
       setDraft(null)
@@ -488,14 +487,12 @@ export function ConfigurationPage() {
                       min="0"
                       value={displayAvgStr}
                       onChange={(e) => {
-                        setAvgMembersStr(e.target.value)
-                        const val = parseFloat(e.target.value)
-                        if (!isNaN(val)) {
-                          setDraft((prev) => ({
-                            ...(prev ?? buildInitialDraft(config)),
-                            averageMembersPerHousehold: val,
-                          }))
-                        }
+                        const raw = e.target.value
+                        setAvgMembersStr(raw)
+                        setDraft((prev) => ({
+                          ...(prev ?? buildInitialDraft(config)),
+                          averageMembersPerHousehold: raw === '' ? 0 : Number(raw),
+                        }))
                       }}
                       aria-label={t('configuration.sections.averageMembersPerHousehold.title')}
                       h="36px"

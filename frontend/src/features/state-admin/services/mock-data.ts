@@ -943,7 +943,6 @@ let mockConfigurationData: ConfigurationData = {
   meterChangeReasons: DEFAULT_METER_CHANGE_REASONS.map((r) => ({ ...r })),
   locationCheckRequired: false,
   dataConsolidationTime: '',
-  stateDataReconciliationTime: '',
   averageMembersPerHousehold: 0,
   isConfigured: false,
 }

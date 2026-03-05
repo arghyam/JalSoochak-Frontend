@@ -304,9 +304,6 @@
       "dataConsolidationTime": {
         "title": "Data Consolidation Time"
       },
-      "stateDataReconciliationTime": {
-        "title": "State Data Reconciliation Time"
-      },
       "averageMembersPerHousehold": {
         "title": "Average Members Per Household"
       }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Box, Text, Button, Flex, HStack, Heading, Spinner, SimpleGrid } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
@@ -30,6 +30,30 @@ export function LanguagePage() {
   const primaryLanguage = languageDraft.primaryLanguage ?? config?.primaryLanguage ?? ''
   const secondaryLanguage = languageDraft.secondaryLanguage ?? config?.secondaryLanguage ?? ''
   const tertiaryLanguage = languageDraft.tertiaryLanguage ?? config?.tertiaryLanguage ?? ''
+
+  const primaryOptions = useMemo(
+    () =>
+      AVAILABLE_LANGUAGES.filter(
+        ({ value }) => value !== secondaryLanguage && value !== tertiaryLanguage
+      ),
+    [secondaryLanguage, tertiaryLanguage]
+  )
+
+  const secondaryOptions = useMemo(
+    () =>
+      AVAILABLE_LANGUAGES.filter(
+        ({ value }) => value !== primaryLanguage && value !== tertiaryLanguage
+      ),
+    [primaryLanguage, tertiaryLanguage]
+  )
+
+  const tertiaryOptions = useMemo(
+    () =>
+      AVAILABLE_LANGUAGES.filter(
+        ({ value }) => value !== primaryLanguage && value !== secondaryLanguage
+      ),
+    [primaryLanguage, secondaryLanguage]
+  )
 
   const handleEdit = () => {
     setIsEditing(true)
@@ -230,10 +254,15 @@ export function LanguagePage() {
                     </Text>
                   </Text>
                   <SearchableSelect
-                    options={AVAILABLE_LANGUAGES}
+                    options={primaryOptions}
                     value={primaryLanguage}
                     onChange={(value) =>
-                      setLanguageDraft((prev) => ({ ...prev, primaryLanguage: value }))
+                      setLanguageDraft((prev) => ({
+                        ...prev,
+                        primaryLanguage: value,
+                        ...(value === secondaryLanguage && { secondaryLanguage: '' }),
+                        ...(value === tertiaryLanguage && { tertiaryLanguage: '' }),
+                      }))
                     }
                     placeholder={t('common:select')}
                     width="100%"
@@ -253,7 +282,7 @@ export function LanguagePage() {
                     {t('language.secondaryLanguage')}
                   </Text>
                   <SearchableSelect
-                    options={AVAILABLE_LANGUAGES}
+                    options={secondaryOptions}
                     value={secondaryLanguage}
                     onChange={(value) =>
                       setLanguageDraft((prev) => ({ ...prev, secondaryLanguage: value }))
@@ -276,7 +305,7 @@ export function LanguagePage() {
                     {t('language.tertiaryLanguage')}
                   </Text>
                   <SearchableSelect
-                    options={AVAILABLE_LANGUAGES}
+                    options={tertiaryOptions}
                     value={tertiaryLanguage}
                     onChange={(value) =>
                       setLanguageDraft((prev) => ({ ...prev, tertiaryLanguage: value }))

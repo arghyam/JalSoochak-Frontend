@@ -25,7 +25,8 @@ export function MeterChangeReasonsSection({
   }
 
   const handleAdd = () => {
-    onChange([...reasons, { id: Date.now().toString(), name: '' }])
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+    onChange([...reasons, { id, name: '' }])
   }
 
   return (

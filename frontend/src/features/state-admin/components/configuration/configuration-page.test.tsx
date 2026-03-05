@@ -39,7 +39,6 @@ const configuredConfig = {
   ],
   locationCheckRequired: true,
   dataConsolidationTime: '08:00',
-  stateDataReconciliationTime: '20:00',
   averageMembersPerHousehold: 4.5,
   isConfigured: true,
 }
@@ -69,7 +68,6 @@ const unconfiguredConfig = {
   ],
   locationCheckRequired: false,
   dataConsolidationTime: '',
-  stateDataReconciliationTime: '',
   averageMembersPerHousehold: 0,
   isConfigured: false,
 }

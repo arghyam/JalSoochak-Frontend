@@ -134,6 +134,32 @@ describe('LanguagePage', () => {
     expect(screen.queryByRole('combobox', { name: /select primary language/i })).toBeNull()
   })
 
+  it('excludes already-selected languages from other dropdowns options', () => {
+    // configured: primary=hindi, secondary=english, tertiary=telugu
+    renderWithProviders(<LanguagePage />)
+    fireEvent.click(screen.getByRole('button', { name: /edit language configuration/i }))
+
+    // Open primary dropdown — should not offer english (secondary) or telugu (tertiary)
+    fireEvent.click(screen.getByRole('combobox', { name: /select primary language/i }))
+    expect(screen.queryByRole('option', { name: 'English' })).toBeNull()
+    expect(screen.queryByRole('option', { name: 'Telugu' })).toBeNull()
+    expect(screen.getByRole('option', { name: 'Hindi' })).toBeTruthy()
+
+    // Close primary, open secondary — should not offer hindi (primary) or telugu (tertiary)
+    fireEvent.click(screen.getByRole('combobox', { name: /select primary language/i }))
+    fireEvent.click(screen.getByRole('combobox', { name: /select secondary language/i }))
+    expect(screen.queryByRole('option', { name: 'Hindi' })).toBeNull()
+    expect(screen.queryByRole('option', { name: 'Telugu' })).toBeNull()
+    expect(screen.getByRole('option', { name: 'English' })).toBeTruthy()
+
+    // Close secondary, open tertiary — should not offer hindi (primary) or english (secondary)
+    fireEvent.click(screen.getByRole('combobox', { name: /select secondary language/i }))
+    fireEvent.click(screen.getByRole('combobox', { name: /select tertiary language/i }))
+    expect(screen.queryByRole('option', { name: 'Hindi' })).toBeNull()
+    expect(screen.queryByRole('option', { name: 'English' })).toBeNull()
+    expect(screen.getByRole('option', { name: 'Telugu' })).toBeTruthy()
+  })
+
   it('calls mutateAsync with tertiaryLanguage on save', async () => {
     mockMutateAsync.mockResolvedValue(configuredConfig)
     renderWithProviders(<LanguagePage />)
