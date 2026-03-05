@@ -2,23 +2,18 @@ import { useMemo, useState } from 'react'
 import { Avatar, Box, Button, Flex, Grid, Icon, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { LuArrowLeft, LuArrowRight } from 'react-icons/lu'
-import type { DashboardData, EntityPerformance, WaterSupplyOutageData } from '../../types'
+import type {
+  DashboardData,
+  EntityPerformance,
+  VillagePumpOperatorDetails,
+  WaterSupplyOutageData,
+} from '../../types'
 import {
   ImageSubmissionStatusChart,
   IssueTypeBreakdownChart,
   MetricPerformanceChart,
 } from '../charts'
 import { PhotoEvidenceComplianceTable } from '../tables'
-
-type VillagePumpOperatorDetails = {
-  name: string
-  scheme: string
-  stationLocation: string
-  lastSubmission: string
-  reportingRate: string
-  missingSubmissionCount: string
-  inactiveDays: string
-}
 
 type VillageDashboardScreenProps = {
   data: DashboardData

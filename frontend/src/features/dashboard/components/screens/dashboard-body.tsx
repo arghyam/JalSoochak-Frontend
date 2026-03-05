@@ -5,6 +5,7 @@ import type {
   DashboardData,
   EntityPerformance,
   PumpOperatorPerformanceData,
+  VillagePumpOperatorDetails,
   WaterSupplyOutageData,
 } from '../../types'
 import {
@@ -37,24 +38,8 @@ type DashboardBodyProps = {
   pumpOperatorsTotal: number
   operatorsPerformanceTable: PumpOperatorPerformanceData[]
   villagePhotoEvidenceRows: DashboardData['photoEvidenceCompliance']
-  villagePumpOperatorDetails?: {
-    name: string
-    scheme: string
-    stationLocation: string
-    lastSubmission: string
-    reportingRate: string
-    missingSubmissionCount: string
-    inactiveDays: string
-  }
-  villagePumpOperators?: Array<{
-    name: string
-    scheme: string
-    stationLocation: string
-    lastSubmission: string
-    reportingRate: string
-    missingSubmissionCount: string
-    inactiveDays: string
-  }>
+  villagePumpOperatorDetails?: VillagePumpOperatorDetails
+  villagePumpOperators?: VillagePumpOperatorDetails[]
 }
 
 export function DashboardBody({
