@@ -221,7 +221,6 @@ export function DashboardBody({
           blockTableData={blockTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
-          waterSupplyOutagesData={waterSupplyOutagesData}
           operatorsPerformanceTable={operatorsPerformanceTable}
           pumpOperatorsTotal={pumpOperatorsTotal}
         />

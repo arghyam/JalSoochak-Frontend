@@ -77,6 +77,11 @@ export interface ReadingSubmissionTrendData {
   value: number
 }
 
+export interface SupplyOutageTrendData {
+  period: string
+  value: number
+}
+
 export interface DashboardData {
   level: DashboardLevel
   entityId?: string
@@ -88,6 +93,7 @@ export interface DashboardData {
   photoEvidenceCompliance: PhotoEvidenceComplianceData[]
   pumpOperators: PumpOperatorsData[]
   waterSupplyOutages: WaterSupplyOutageData[]
+  supplyOutageTrend?: SupplyOutageTrendData[]
   readingSubmissionTrend?: ReadingSubmissionTrendData[]
   topPerformers: EntityPerformance[]
   worstPerformers: EntityPerformance[]

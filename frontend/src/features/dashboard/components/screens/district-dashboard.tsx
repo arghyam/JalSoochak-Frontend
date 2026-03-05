@@ -1,11 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Box, Flex, Grid, Select, Text } from '@chakra-ui/react'
-import type {
-  DashboardData,
-  EntityPerformance,
-  PumpOperatorPerformanceData,
-  WaterSupplyOutageData,
-} from '../../types'
+import type { DashboardData, EntityPerformance, PumpOperatorPerformanceData } from '../../types'
 import {
   ImageSubmissionStatusChart,
   IssueTypeBreakdownChart,
@@ -22,7 +17,6 @@ type DistrictDashboardScreenProps = {
   blockTableData: EntityPerformance[]
   supplySubmissionRateData: EntityPerformance[]
   supplySubmissionRateLabel: string
-  waterSupplyOutagesData: WaterSupplyOutageData[]
   operatorsPerformanceTable: PumpOperatorPerformanceData[]
   pumpOperatorsTotal: number
 }
@@ -34,7 +28,6 @@ export function DistrictDashboardScreen({
   blockTableData,
   supplySubmissionRateData,
   supplySubmissionRateLabel,
-  waterSupplyOutagesData,
   operatorsPerformanceTable,
   pumpOperatorsTotal,
 }: DistrictDashboardScreenProps) {
@@ -62,12 +55,8 @@ export function DistrictDashboardScreen({
   )
 
   const outageDistributionTimeTrendData = useMemo(
-    () =>
-      data.demandSupply.map((item) => ({
-        period: item.period,
-        value: Math.max(0, item.demand - item.supply),
-      })),
-    [data.demandSupply]
+    () => data.supplyOutageTrend ?? [],
+    [data.supplyOutageTrend]
   )
 
   const readingSubmissionTimeTrendData = useMemo(
@@ -211,7 +200,7 @@ export function DistrictDashboardScreen({
           <Text textStyle="bodyText3" fontWeight="400" mb={2}>
             Supply Outage Reasons
           </Text>
-          <IssueTypeBreakdownChart data={waterSupplyOutagesData} height="400px" />
+          <IssueTypeBreakdownChart data={data.waterSupplyOutages} height="400px" />
         </Box>
         <Box
           bg="white"
@@ -251,7 +240,7 @@ export function DistrictDashboardScreen({
           </Flex>
           {outageDistributionViewBy === '' || outageDistributionViewBy === 'geography' ? (
             <WaterSupplyOutagesChart
-              data={waterSupplyOutagesData}
+              data={data.waterSupplyOutages}
               height="400px"
               xAxisLabel="Blocks"
             />

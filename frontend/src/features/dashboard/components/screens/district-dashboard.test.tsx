@@ -108,6 +108,7 @@ const data: DashboardData = {
     { label: 'Non-active pump operators', value: 5 },
   ],
   waterSupplyOutages: waterSupplyOutagesData,
+  supplyOutageTrend: [{ period: 'Jan', value: 12 }],
   readingSubmissionTrend: [{ period: 'Jan', value: 77 }],
   topPerformers: [],
   worstPerformers: [],
@@ -122,7 +123,6 @@ function renderDistrictDashboard() {
       blockTableData={blockTableData}
       supplySubmissionRateData={supplySubmissionRateData}
       supplySubmissionRateLabel="Blocks"
-      waterSupplyOutagesData={waterSupplyOutagesData}
       operatorsPerformanceTable={operatorsPerformanceTable}
       pumpOperatorsTotal={15}
     />
@@ -233,6 +233,27 @@ describe('DistrictDashboardScreen', () => {
       {
         period: 'Jan',
         value: 77,
+      },
+    ])
+  })
+
+  it('switches outage distribution chart to time mode with outage trend data', () => {
+    renderDistrictDashboard()
+
+    const outageSelect = screen.getByRole('combobox', {
+      name: 'District supply outage distribution view by',
+    })
+    fireEvent.change(outageSelect, { target: { value: 'time' } })
+
+    const monthlyCalls = mockMonthlyTrendChart.mock.calls as Array<[Record<string, unknown>]>
+    const outageCall = monthlyCalls.find((call) => call[0]?.seriesName === 'Supply outage')
+    expect(outageCall).toBeDefined()
+    expect(outageCall?.[0].xAxisLabel).toBe('Month')
+    expect(outageCall?.[0].yAxisLabel).toBe('No. of days')
+    expect(outageCall?.[0].data).toEqual([
+      {
+        period: 'Jan',
+        value: 12,
       },
     ])
   })

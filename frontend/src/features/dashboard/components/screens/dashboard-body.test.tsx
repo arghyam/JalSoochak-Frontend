@@ -253,28 +253,31 @@ describe('DashboardBody', () => {
     expect(metricChartCalls[1][0].entityLabel).toBe('Districts')
   })
 
-  it('passes outage data to district screen', () => {
+  it('passes dashboard data to district screen as outage single source-of-truth', () => {
     renderDashboardBody({
       isDistrictSelected: true,
       isBlockSelected: false,
       isGramPanchayatSelected: false,
       selectedVillage: '',
-      waterSupplyOutagesData: [
-        {
-          label: 'Block 1',
-          electricityFailure: 2,
-          pipelineLeak: 3,
-          pumpFailure: 4,
-          valveIssue: 5,
-          sourceDrying: 6,
-        },
-      ],
+      data: {
+        ...mockDashboardData,
+        waterSupplyOutages: [
+          {
+            label: 'Block 1',
+            electricityFailure: 2,
+            pipelineLeak: 3,
+            pumpFailure: 4,
+            valveIssue: 5,
+            sourceDrying: 6,
+          },
+        ],
+      },
     })
 
     const districtScreenProps = (mockDistrictDashboardScreen.mock.calls.at(-1)?.[0] ?? {}) as {
-      waterSupplyOutagesData?: Array<{ label: string }>
+      data?: { waterSupplyOutages?: Array<{ label: string }> }
     }
 
-    expect(districtScreenProps.waterSupplyOutagesData?.[0]?.label).toBe('Block 1')
+    expect(districtScreenProps.data?.waterSupplyOutages?.[0]?.label).toBe('Block 1')
   })
 })
