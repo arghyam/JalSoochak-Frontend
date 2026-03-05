@@ -7,6 +7,12 @@ import type { Escalation } from '../types/escalations'
 import type { ThresholdConfiguration } from '../types/thresholds'
 import type { NudgeTemplate } from '../types/nudges'
 import type { StaffSyncData } from '../types/staff-sync'
+import type { ConfigurationData } from '../types/configuration'
+import {
+  DEFAULT_LGD_HIERARCHY,
+  DEFAULT_DEPARTMENT_HIERARCHY,
+  DEFAULT_METER_CHANGE_REASONS,
+} from '../types/configuration'
 
 export const mockOverviewData: OverviewData = {
   stats: {
@@ -189,6 +195,7 @@ export const mockLanguageConfiguration: LanguageConfiguration = {
   id: '',
   primaryLanguage: '',
   secondaryLanguage: '',
+  tertiaryLanguage: '',
   isConfigured: false,
 }
 
@@ -209,6 +216,7 @@ export const saveMockLanguageConfiguration = (
         id: '1',
         primaryLanguage: config.primaryLanguage as string,
         secondaryLanguage: config.secondaryLanguage as string | undefined,
+        tertiaryLanguage: config.tertiaryLanguage as string | undefined,
         isConfigured: true,
       }
       resolve(savedConfig)
@@ -922,5 +930,43 @@ export const getMockStaffSyncData = (): Promise<StaffSyncData> => {
     setTimeout(() => {
       resolve(mockStaffSyncData)
     }, 300)
+  })
+}
+
+// Configuration Mock Data
+let mockConfigurationData: ConfigurationData = {
+  id: '',
+  lgdHierarchy: DEFAULT_LGD_HIERARCHY.map((l) => ({ ...l })),
+  departmentHierarchy: DEFAULT_DEPARTMENT_HIERARCHY.map((l) => ({ ...l })),
+  supportedChannels: [],
+  logoUrl: undefined,
+  meterChangeReasons: DEFAULT_METER_CHANGE_REASONS.map((r) => ({ ...r })),
+  locationCheckRequired: false,
+  dataConsolidationTime: '',
+  averageMembersPerHousehold: 0,
+  isConfigured: false,
+}
+
+export const getMockConfigurationData = (): Promise<ConfigurationData> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({ ...mockConfigurationData })
+    }, 300)
+  })
+}
+
+export const saveMockConfigurationData = (
+  config: Omit<ConfigurationData, 'id'>
+): Promise<ConfigurationData> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const saved = {
+        ...config,
+        id: mockConfigurationData.id || '1',
+        isConfigured: true,
+      } as ConfigurationData
+      mockConfigurationData = saved
+      resolve(saved)
+    }, 500)
   })
 }

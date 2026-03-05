@@ -11,4 +11,5 @@ export const stateAdminQueryKeys = {
   thresholdConfiguration: () => [...stateAdminQueryKeys.all, 'threshold-configuration'] as const,
   nudgeTemplates: () => [...stateAdminQueryKeys.all, 'nudge-templates'] as const,
   staffSync: () => [...stateAdminQueryKeys.all, 'staff-sync'] as const,
+  configuration: () => [...stateAdminQueryKeys.all, 'configuration'] as const,
 }

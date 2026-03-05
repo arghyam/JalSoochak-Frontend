@@ -7,6 +7,7 @@ export interface LanguageConfiguration extends Record<string, unknown> {
   id: string
   primaryLanguage: string
   secondaryLanguage?: string
+  tertiaryLanguage?: string
   isConfigured: boolean
 }
 

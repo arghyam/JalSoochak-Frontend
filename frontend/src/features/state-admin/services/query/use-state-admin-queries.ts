@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   stateAdminApi,
+  type SaveConfigurationPayload,
   type SaveEscalationPayload,
   type SaveIntegrationConfigurationPayload,
   type SaveLanguageConfigurationPayload,
@@ -158,5 +159,22 @@ export function useStaffSyncQuery() {
   return useQuery({
     queryKey: stateAdminQueryKeys.staffSync(),
     queryFn: stateAdminApi.getStaffSyncData,
+  })
+}
+
+export function useConfigurationQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.configuration(),
+    queryFn: stateAdminApi.getConfiguration,
+  })
+}
+
+export function useSaveConfigurationMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: SaveConfigurationPayload) => stateAdminApi.saveConfiguration(payload),
+    onSuccess: (data) => {
+      queryClient.setQueryData(stateAdminQueryKeys.configuration(), data)
+    },
   })
 }

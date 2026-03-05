@@ -14,6 +14,7 @@ export const ROUTES = {
   // State Admin routes
   STATE_ADMIN: '/state-admin',
   STATE_ADMIN_OVERVIEW: '/state-admin',
+  STATE_ADMIN_CONFIGURATION: '/state-admin/configuration',
   STATE_ADMIN_LANGUAGE: '/state-admin/language',
   STATE_ADMIN_WATER_NORMS: '/state-admin/water-norms',
   STATE_ADMIN_INTEGRATION: '/state-admin/integration',

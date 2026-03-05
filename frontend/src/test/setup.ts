@@ -11,6 +11,16 @@ if (typeof globalThis.TextDecoder === 'undefined') {
   globalThis.TextDecoder = TextDecoder as typeof globalThis.TextDecoder
 }
 
+Object.defineProperty(globalThis.URL, 'createObjectURL', {
+  writable: true,
+  value: () => 'blob:mock-url',
+})
+
+Object.defineProperty(globalThis.URL, 'revokeObjectURL', {
+  writable: true,
+  value: () => {},
+})
+
 Object.defineProperty(globalThis, 'matchMedia', {
   writable: true,
   value: (query: string) => ({

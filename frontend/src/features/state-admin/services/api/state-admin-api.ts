@@ -2,6 +2,7 @@ import { apiClient } from '@/shared/lib/axios'
 import {
   deleteMockEscalation,
   getMockActivityData,
+  getMockConfigurationData,
   getMockEscalationById,
   getMockEscalations,
   getMockIntegrationConfiguration,
@@ -11,6 +12,7 @@ import {
   getMockStaffSyncData,
   getMockThresholdConfiguration,
   getMockWaterNormsConfiguration,
+  saveMockConfigurationData,
   saveMockEscalation,
   saveMockIntegrationConfiguration,
   saveMockLanguageConfiguration,
@@ -20,6 +22,7 @@ import {
   updateMockNudgeTemplate,
 } from '../mock-data'
 import type { ActivityLog } from '../../types/activity'
+import type { ConfigurationData } from '../../types/configuration'
 import type { Escalation } from '../../types/escalations'
 import type { IntegrationConfiguration } from '../../types/integration'
 import type { LanguageConfiguration } from '../../types/language'
@@ -38,6 +41,7 @@ export type SaveWaterNormsConfigurationPayload = Omit<WaterNormsConfiguration, '
 export type SaveEscalationPayload = Omit<Escalation, 'id' | 'name'>
 export type SaveThresholdConfigurationPayload = Omit<ThresholdConfiguration, 'id'>
 export type UpdateNudgeTemplatePayload = { language: string; message: string }
+export type SaveConfigurationPayload = Omit<ConfigurationData, 'id'>
 
 type StateAdminDataProvider = {
   getOverviewData: () => Promise<OverviewData>
@@ -66,6 +70,8 @@ type StateAdminDataProvider = {
   ) => Promise<ThresholdConfiguration>
   getNudgeTemplates: () => Promise<NudgeTemplate[]>
   updateNudgeTemplate: (id: string, payload: UpdateNudgeTemplatePayload) => Promise<NudgeTemplate>
+  getConfiguration: () => Promise<ConfigurationData>
+  saveConfiguration: (payload: SaveConfigurationPayload) => Promise<ConfigurationData>
 }
 
 const httpProvider: StateAdminDataProvider = {
@@ -161,6 +167,17 @@ const httpProvider: StateAdminDataProvider = {
     )
     return response.data
   },
+  getConfiguration: async () => {
+    const response = await apiClient.get<ConfigurationData>('/api/state-admin/configuration')
+    return response.data
+  },
+  saveConfiguration: async (payload) => {
+    const response = await apiClient.put<ConfigurationData>(
+      '/api/state-admin/configuration',
+      payload
+    )
+    return response.data
+  },
 }
 
 const mockProvider: StateAdminDataProvider = {
@@ -182,6 +199,8 @@ const mockProvider: StateAdminDataProvider = {
   saveThresholdConfiguration: (payload) => saveMockThresholdConfiguration(payload),
   getNudgeTemplates: () => getMockNudgeTemplates(),
   updateNudgeTemplate: (id, payload) => updateMockNudgeTemplate(id, payload),
+  getConfiguration: () => getMockConfigurationData(),
+  saveConfiguration: (payload) => saveMockConfigurationData(payload),
 }
 
 const STATE_ADMIN_PROVIDER = import.meta.env.VITE_STATE_ADMIN_DATA_PROVIDER ?? 'mock'
@@ -213,4 +232,6 @@ export const stateAdminApi = {
   getNudgeTemplates: () => provider.getNudgeTemplates(),
   updateNudgeTemplate: (id: string, payload: UpdateNudgeTemplatePayload) =>
     provider.updateNudgeTemplate(id, payload),
+  getConfiguration: () => provider.getConfiguration(),
+  saveConfiguration: (payload: SaveConfigurationPayload) => provider.saveConfiguration(payload),
 }

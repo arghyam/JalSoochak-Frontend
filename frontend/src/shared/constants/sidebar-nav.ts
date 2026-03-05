@@ -60,6 +60,13 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
   },
   {
     type: 'simple',
+    path: ROUTES.STATE_ADMIN_CONFIGURATION,
+    labelKey: 'sidebar.configuration',
+    roles: [AUTH_ROLES.STATE_ADMIN],
+    icon: 'IoSettingsOutline',
+  },
+  {
+    type: 'simple',
     path: ROUTES.STATE_ADMIN_LANGUAGE,
     labelKey: 'sidebar.language',
     roles: [AUTH_ROLES.STATE_ADMIN],
@@ -77,7 +84,7 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
     path: ROUTES.STATE_ADMIN_INTEGRATION,
     labelKey: 'sidebar.integration',
     roles: [AUTH_ROLES.STATE_ADMIN],
-    icon: 'AiOutlineSetting',
+    icon: 'AiOutlineMessage',
   },
   {
     type: 'simple',

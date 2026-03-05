@@ -62,10 +62,12 @@
     "configuration": "Language Configuration",
     "primaryLanguage": "Primary Language",
     "secondaryLanguage": "Secondary Language (optional)",
+    "tertiaryLanguage": "Tertiary Language (optional)",
     "aria": {
       "editConfiguration": "Edit language configuration",
       "selectPrimaryLanguage": "Select primary language",
-      "selectSecondaryLanguage": "Select secondary language"
+      "selectSecondaryLanguage": "Select secondary language",
+      "selectTertiaryLanguage": "Select tertiary language"
     }
   },
 
@@ -261,6 +263,65 @@
       "filterSection": "Filter staff members",
       "uploadData": "Upload staff data",
       "downloadData": "Download staff data"
+    }
+  },
+
+  "configuration": {
+    "pageTitle": "Configuration",
+    "sectionTitle": "State/UT Configuration",
+    "sections": {
+      "lgdHierarchy": {
+        "title": "LGD Hierarchy",
+        "levelLabel": "Level {{level}}"
+      },
+      "departmentHierarchy": {
+        "title": "Department Hierarchy",
+        "levelLabel": "Level {{level}}"
+      },
+      "supportedChannels": {
+        "title": "Supported Channels"
+      },
+      "logo": {
+        "title": "Logo",
+        "uploadButton": "Upload Logo",
+        "hint": "PNG or JPG only",
+        "currentLogo": "Current logo"
+      },
+      "meterChangeReasons": {
+        "title": "Meter Change Reasons",
+        "placeholder": "Enter reason",
+        "addButton": "Add",
+        "addNewButton": "+ Add New Reason",
+        "empty": "No reasons added yet",
+        "editAriaLabel": "Edit reason {{name}}",
+        "deleteAriaLabel": "Delete reason {{name}}"
+      },
+      "locationCheckRequired": {
+        "title": "Record Location",
+        "yes": "Yes",
+        "no": "No"
+      },
+      "dataConsolidationTime": {
+        "title": "Data Consolidation Time"
+      },
+      "averageMembersPerHousehold": {
+        "title": "Average Members Per Household"
+      }
+    },
+    "aria": {
+      "form": "Configuration form",
+      "editConfiguration": "Edit configuration",
+      "lgdLevel": "LGD hierarchy level {{level}} name",
+      "deptLevel": "Department hierarchy level {{level}} name"
+    },
+    "messages": {
+      "saveSuccess": "Configuration saved successfully",
+      "saveFailed": "Failed to save configuration",
+      "validation": {
+        "channelRequired": "Select at least one supported channel",
+        "hierarchyRequired": "All hierarchy level names are required",
+        "logoTooLarge": "Logo file must be 2 MB or smaller"
+      }
     }
   },
 
