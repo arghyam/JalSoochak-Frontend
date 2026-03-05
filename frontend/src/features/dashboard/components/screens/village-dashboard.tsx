@@ -25,6 +25,7 @@ type VillageDashboardScreenProps = {
   villagePhotoEvidenceRows: DashboardData['photoEvidenceCompliance']
   waterSupplyOutagesData: WaterSupplyOutageData[]
   villagePumpOperatorDetails: VillagePumpOperatorDetails
+  villagePumpOperators?: VillagePumpOperatorDetails[]
 }
 
 export function VillageDashboardScreen({
@@ -32,6 +33,7 @@ export function VillageDashboardScreen({
   villagePhotoEvidenceRows,
   waterSupplyOutagesData,
   villagePumpOperatorDetails,
+  villagePumpOperators = [],
 }: VillageDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const [pumpOperatorPage, setPumpOperatorPage] = useState(1)
@@ -51,28 +53,31 @@ export function VillageDashboardScreen({
     [data.demandSupply]
   )
   const pumpOperatorPages = useMemo(
-    () =>
-      villagePhotoEvidenceRows.length > 0
-        ? villagePhotoEvidenceRows.map((row) => ({
-            ...villagePumpOperatorDetails,
-            name: row.name,
-            lastSubmission: row.lastSubmission,
-          }))
-        : [villagePumpOperatorDetails],
-    [villagePhotoEvidenceRows, villagePumpOperatorDetails]
+    () => (villagePumpOperators.length > 0 ? villagePumpOperators : [villagePumpOperatorDetails]),
+    [villagePumpOperatorDetails, villagePumpOperators]
   )
   const totalPumpOperatorPages = pumpOperatorPages.length
   const activePumpOperatorPage = Math.min(pumpOperatorPage, totalPumpOperatorPages)
   const activePumpOperator =
     pumpOperatorPages[activePumpOperatorPage - 1] ?? villagePumpOperatorDetails
-  const readingComplianceRows = useMemo(
-    () =>
-      villagePhotoEvidenceRows.map((row) => ({
-        ...row,
+  const readingComplianceRows = useMemo(() => {
+    const operatorRows = villagePhotoEvidenceRows.filter(
+      (row) => row.name === activePumpOperator.name
+    )
+    if (operatorRows.length > 0) {
+      return operatorRows
+    }
+
+    return [
+      {
+        id: `mock-${activePumpOperator.name.toLowerCase().replace(/\s+/g, '-')}`,
         name: activePumpOperator.name,
-      })),
-    [activePumpOperator.name, villagePhotoEvidenceRows]
-  )
+        village: 'N/A',
+        lastSubmission: activePumpOperator.lastSubmission,
+        readingValue: 'N/A',
+      },
+    ]
+  }, [activePumpOperator.lastSubmission, activePumpOperator.name, villagePhotoEvidenceRows])
   const visiblePageNumbers = useMemo(() => {
     if (totalPumpOperatorPages <= 3) {
       return Array.from({ length: totalPumpOperatorPages }, (_, index) => index + 1)

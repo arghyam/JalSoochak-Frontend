@@ -71,6 +71,24 @@ const villagePumpOperatorDetails = {
   inactiveDays: '2',
 }
 
+const villagePumpOperators = [
+  {
+    ...villagePumpOperatorDetails,
+    name: 'Vikash',
+    lastSubmission: '09-08-2025, 3:00pm',
+  },
+  {
+    ...villagePumpOperatorDetails,
+    name: 'Arjun',
+    lastSubmission: '11-02-2025, 1:00pm',
+  },
+  {
+    ...villagePumpOperatorDetails,
+    name: 'Shashwat',
+    lastSubmission: '03-19-2025, 9:00am',
+  },
+]
+
 function renderVillageDashboard(
   villagePhotoEvidenceRows: DashboardData['photoEvidenceCompliance'] = [
     {
@@ -94,7 +112,8 @@ function renderVillageDashboard(
       lastSubmission: '03-19-2025, 9:00am',
       readingValue: '034982',
     },
-  ]
+  ],
+  operatorPages = villagePumpOperators
 ) {
   return renderWithProviders(
     <VillageDashboardScreen
@@ -102,6 +121,7 @@ function renderVillageDashboard(
       villagePhotoEvidenceRows={villagePhotoEvidenceRows}
       waterSupplyOutagesData={waterSupplyOutagesData}
       villagePumpOperatorDetails={villagePumpOperatorDetails}
+      villagePumpOperators={operatorPages}
     />
   )
 }
@@ -163,15 +183,18 @@ describe('VillageDashboardScreen', () => {
   })
 
   it('hides pagination controls when only one operator row exists', () => {
-    renderVillageDashboard([
-      {
-        id: 'pe-1',
-        name: 'Vikash',
-        village: 'Asaihpura',
-        lastSubmission: '09-08-2025, 3:00pm',
-        readingValue: '017848',
-      },
-    ])
+    renderVillageDashboard(
+      [
+        {
+          id: 'pe-1',
+          name: 'Vikash',
+          village: 'Asaihpura',
+          lastSubmission: '09-08-2025, 3:00pm',
+          readingValue: '017848',
+        },
+      ],
+      [villagePumpOperatorDetails]
+    )
 
     expect(screen.queryByRole('button', { name: 'Previous' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Next' })).toBeNull()

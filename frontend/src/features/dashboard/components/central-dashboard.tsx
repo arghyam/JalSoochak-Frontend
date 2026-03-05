@@ -125,7 +125,7 @@ export function CentralDashboard() {
     selectedBlock,
     selectedGramPanchayat,
     selectedVillage,
-  ] as const
+  ]
   const { effectiveTrailIndex } = computeTrailIndices(selectionTrailValues, activeTrailIndex)
   const effectiveSelectedState = effectiveTrailIndex >= 0 ? selectedState : ''
   const effectiveSelectedDistrict = effectiveTrailIndex >= 1 ? selectedDistrict : ''
@@ -548,15 +548,27 @@ export function CentralDashboard() {
       ),
     },
   ] as const
-  const villagePumpOperatorDetails = {
-    name: 'Ajay Yadav',
-    scheme: 'Rural Water Supply 001',
-    stationLocation: 'Central Pumping Station',
-    lastSubmission: '11-02-24, 1:00pm',
-    reportingRate: '85%',
-    missingSubmissionCount: '3',
-    inactiveDays: '2',
-  }
+  const villagePumpOperators = [
+    {
+      name: 'Ajay Yadav',
+      scheme: 'Rural Water Supply 001',
+      stationLocation: 'Central Pumping Station',
+      lastSubmission: '11-02-24, 1:00pm',
+      reportingRate: '85%',
+      missingSubmissionCount: '3',
+      inactiveDays: '2',
+    },
+    {
+      name: 'Vikram Singh',
+      scheme: 'Rural Water Supply 002',
+      stationLocation: 'North Pumping Station',
+      lastSubmission: '13-02-24, 10:30am',
+      reportingRate: '78%',
+      missingSubmissionCount: '5',
+      inactiveDays: '4',
+    },
+  ]
+  const villagePumpOperatorDetails = villagePumpOperators[0]
 
   const pumpOperatorsTotal = data.pumpOperators.reduce((total, item) => total + item.value, 0)
   const leadingPumpOperators = data.leadingPumpOperators ?? []
@@ -685,6 +697,7 @@ export function CentralDashboard() {
         operatorsPerformanceTable={operatorsPerformanceTable}
         villagePhotoEvidenceRows={villagePhotoEvidenceRows}
         villagePumpOperatorDetails={villagePumpOperatorDetails}
+        villagePumpOperators={villagePumpOperators}
       />
     </Box>
   )

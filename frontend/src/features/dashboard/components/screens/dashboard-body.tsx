@@ -46,6 +46,15 @@ type DashboardBodyProps = {
     missingSubmissionCount: string
     inactiveDays: string
   }
+  villagePumpOperators?: Array<{
+    name: string
+    scheme: string
+    stationLocation: string
+    lastSubmission: string
+    reportingRate: string
+    missingSubmissionCount: string
+    inactiveDays: string
+  }>
 }
 
 export function DashboardBody({
@@ -66,6 +75,7 @@ export function DashboardBody({
   operatorsPerformanceTable,
   villagePhotoEvidenceRows,
   villagePumpOperatorDetails,
+  villagePumpOperators,
 }: DashboardBodyProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<'geography' | 'time'>('geography')
@@ -298,6 +308,7 @@ export function DashboardBody({
           villagePhotoEvidenceRows={villagePhotoEvidenceRows}
           waterSupplyOutagesData={waterSupplyOutagesData}
           villagePumpOperatorDetails={villagePumpOperatorDetails}
+          villagePumpOperators={villagePumpOperators}
         />
       ) : null}
 
