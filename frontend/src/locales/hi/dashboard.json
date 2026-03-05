@@ -142,7 +142,8 @@
     },
     "series": {
       "submissionRate": "सबमिशन दर",
-      "readingSubmission": "रीडिंग सबमिशन"
+      "readingSubmission": "रीडिंग सबमिशन",
+      "supplyOutage": "जल आपूर्ति बाधा"
     },
     "legend": {
       "electricalFailure": "बिजली विफलता",

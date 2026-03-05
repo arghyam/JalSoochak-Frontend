@@ -17,7 +17,7 @@ export function PhotoEvidenceComplianceTable({
 }: PhotoEvidenceComplianceTableProps) {
   const { t } = useTranslation('dashboard')
   const resolvedTitle =
-    title ??
+    title?.trim() ||
     t('outageAndSubmissionCharts.titles.photoEvidenceCompliance', {
       defaultValue: 'Photo Evidence Compliance',
     })

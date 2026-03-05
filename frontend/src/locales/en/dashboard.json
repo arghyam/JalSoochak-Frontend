@@ -142,7 +142,8 @@
     },
     "series": {
       "submissionRate": "Submission Rate",
-      "readingSubmission": "Reading submission"
+      "readingSubmission": "Reading submission",
+      "supplyOutage": "Supply outage"
     },
     "legend": {
       "electricalFailure": "Electrical failure",

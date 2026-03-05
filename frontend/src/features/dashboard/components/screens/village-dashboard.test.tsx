@@ -74,18 +74,18 @@ const villagePumpOperatorDetails = {
 const villagePumpOperators = [
   {
     ...villagePumpOperatorDetails,
-    name: 'Vikash',
-    lastSubmission: '09-08-2025, 3:00pm',
+    name: 'Ajay Yadav',
+    lastSubmission: '11-02-24, 1:00pm',
   },
   {
     ...villagePumpOperatorDetails,
-    name: 'Arjun',
-    lastSubmission: '11-02-2025, 1:00pm',
+    name: 'Vikram Singh',
+    lastSubmission: '13-02-24, 10:30am',
   },
   {
     ...villagePumpOperatorDetails,
-    name: 'Shashwat',
-    lastSubmission: '03-19-2025, 9:00am',
+    name: 'Neha Kumari',
+    lastSubmission: '17-02-24, 3:45pm',
   },
 ]
 
@@ -153,12 +153,12 @@ describe('VillageDashboardScreen', () => {
   it('paginates pump operator details with previous/next and page buttons', () => {
     renderVillageDashboard()
 
-    expect(screen.getByText('Vikash')).toBeTruthy()
-    expect(screen.getByText('09-08-2025, 3:00pm')).toBeTruthy()
+    expect(screen.getByText('Ajay Yadav')).toBeTruthy()
+    expect(screen.getByText('11-02-24, 1:00pm')).toBeTruthy()
     let complianceProps = mockPhotoEvidenceComplianceTable.mock.calls.at(-1)?.[0] as {
       data: Array<{ name: string }>
     }
-    expect(complianceProps.data.every((row) => row.name === 'Vikash')).toBe(true)
+    expect(complianceProps.data.every((row) => row.name === 'Ajay Yadav')).toBe(true)
 
     const previousButton = screen.getByRole('button', { name: 'Previous' })
     const nextButton = screen.getByRole('button', { name: 'Next' })
@@ -166,20 +166,20 @@ describe('VillageDashboardScreen', () => {
     expect((nextButton as HTMLButtonElement).disabled).toBe(false)
 
     fireEvent.click(screen.getByRole('button', { name: '2' }))
-    expect(screen.getByText('Arjun')).toBeTruthy()
-    expect(screen.getByText('11-02-2025, 1:00pm')).toBeTruthy()
+    expect(screen.getByText('Vikram Singh')).toBeTruthy()
+    expect(screen.getByText('13-02-24, 10:30am')).toBeTruthy()
     complianceProps = mockPhotoEvidenceComplianceTable.mock.calls.at(-1)?.[0] as {
       data: Array<{ name: string }>
     }
-    expect(complianceProps.data.every((row) => row.name === 'Arjun')).toBe(true)
+    expect(complianceProps.data.every((row) => row.name === 'Vikram Singh')).toBe(true)
 
     fireEvent.click(nextButton)
-    expect(screen.getByText('Shashwat')).toBeTruthy()
-    expect(screen.getByText('03-19-2025, 9:00am')).toBeTruthy()
+    expect(screen.getByText('Neha Kumari')).toBeTruthy()
+    expect(screen.getByText('17-02-24, 3:45pm')).toBeTruthy()
     expect((screen.getByRole('button', { name: 'Next' }) as HTMLButtonElement).disabled).toBe(true)
 
     fireEvent.click(screen.getByRole('button', { name: 'Previous' }))
-    expect(screen.getByText('Arjun')).toBeTruthy()
+    expect(screen.getByText('Vikram Singh')).toBeTruthy()
   })
 
   it('hides pagination controls when only one operator row exists', () => {
