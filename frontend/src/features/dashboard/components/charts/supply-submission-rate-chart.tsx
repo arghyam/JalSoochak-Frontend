@@ -52,6 +52,25 @@ export function SupplySubmissionRateChart({
       return item.name.length > longest.length ? item.name : longest
     }, '')
   }, [data])
+  const localizedEntityLabel = useMemo(() => {
+    const normalized = entityLabel.trim().toLowerCase()
+    if (normalized === 'states/uts' || normalized === 'state/ut') {
+      return t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
+    }
+    if (normalized === 'districts' || normalized === 'district') {
+      return t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
+    }
+    if (normalized === 'blocks' || normalized === 'block') {
+      return t('performanceCharts.viewBy.blocks', { defaultValue: 'Blocks' })
+    }
+    if (normalized === 'gram panchayats' || normalized === 'gram panchayat') {
+      return t('performanceCharts.viewBy.gramPanchayats', { defaultValue: 'Gram Panchayats' })
+    }
+    if (normalized === 'villages' || normalized === 'village') {
+      return t('performanceCharts.viewBy.villages', { defaultValue: 'Villages' })
+    }
+    return entityLabel
+  }, [entityLabel, t])
 
   const option = useMemo<echarts.EChartsOption>(() => {
     const entities = data.map((d) => d.name)
@@ -347,7 +366,7 @@ export function SupplySubmissionRateChart({
         color={bodyText7.color}
         mt="4px"
       >
-        {entityLabel}
+        {localizedEntityLabel}
       </Box>
       <Box mt="6px">
         <Box

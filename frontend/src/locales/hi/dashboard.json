@@ -128,6 +128,8 @@
       "supplyOutageDistribution": "जल आपूर्ति बाधा वितरण",
       "readingSubmissionRate": "रीडिंग सबमिशन दर",
       "readingSubmissionStatus": "रीडिंग सबमिशन स्थिति",
+      "readingCompliance": "रीडिंग अनुपालन",
+      "photoEvidenceCompliance": "फोटो साक्ष्य अनुपालन",
       "issueTypeBreakdown": "समस्या प्रकार विभाजन"
     },
     "axis": {
@@ -146,6 +148,16 @@
       "sourceDrying": "स्रोत सूखना",
       "complaintSubmission": "शिकायत सबमिशन",
       "automatedSubmission": "स्वचालित सबमिशन"
+    },
+    "tables": {
+      "readingCompliance": {
+        "columns": {
+          "name": "नाम",
+          "village": "गांव",
+          "lastSubmission": "अंतिम सबमिशन",
+          "readingValue": "रीडिंग मान"
+        }
+      }
     }
   },
   "pumpOperators": {
