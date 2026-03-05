@@ -108,6 +108,7 @@ const data: DashboardData = {
     { label: 'Non-active pump operators', value: 5 },
   ],
   waterSupplyOutages: waterSupplyOutagesData,
+  readingSubmissionTrend: [{ period: 'Jan', value: 77 }],
   topPerformers: [],
   worstPerformers: [],
   regularityData: [],
@@ -201,6 +202,38 @@ describe('DistrictDashboardScreen', () => {
     fireEvent.change(quantitySelect, { target: { value: 'time' } })
 
     const monthlyCalls = mockMonthlyTrendChart.mock.calls as Array<[Record<string, unknown>]>
-    expect(monthlyCalls.some((call) => call[0]?.seriesName === 'Quantity')).toBe(true)
+    const quantityCall = monthlyCalls.find((call) => call[0]?.seriesName === 'Quantity')
+    expect(quantityCall).toBeDefined()
+    expect(quantityCall?.[0].xAxisLabel).toBe('Month')
+    expect(quantityCall?.[0].yAxisLabel).toBe('Quantity')
+    expect(quantityCall?.[0].data).toEqual([
+      {
+        period: 'Jan',
+        value: 90,
+      },
+    ])
+  })
+
+  it('switches reading submission chart to time mode with reading submission trend data', () => {
+    renderDistrictDashboard()
+
+    const readingSelect = screen.getByRole('combobox', {
+      name: 'District reading submission rate view by',
+    })
+    fireEvent.change(readingSelect, { target: { value: 'time' } })
+
+    const monthlyCalls = mockMonthlyTrendChart.mock.calls as Array<[Record<string, unknown>]>
+    const readingSubmissionCall = monthlyCalls.find(
+      (call) => call[0]?.seriesName === 'Reading submission'
+    )
+    expect(readingSubmissionCall).toBeDefined()
+    expect(readingSubmissionCall?.[0].xAxisLabel).toBe('Month')
+    expect(readingSubmissionCall?.[0].yAxisLabel).toBe('Percentage')
+    expect(readingSubmissionCall?.[0].data).toEqual([
+      {
+        period: 'Jan',
+        value: 77,
+      },
+    ])
   })
 })

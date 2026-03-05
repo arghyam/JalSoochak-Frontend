@@ -1,6 +1,11 @@
 import { useMemo, useState } from 'react'
 import { Box, Flex, Grid, Select, Text } from '@chakra-ui/react'
-import type { DashboardData, EntityPerformance, PumpOperatorPerformanceData } from '../../types'
+import type {
+  DashboardData,
+  EntityPerformance,
+  PumpOperatorPerformanceData,
+  WaterSupplyOutageData,
+} from '../../types'
 import {
   ImageSubmissionStatusChart,
   IssueTypeBreakdownChart,
@@ -11,7 +16,6 @@ import {
   WaterSupplyOutagesChart,
 } from '../charts'
 import { PumpOperatorsPerformanceTable } from '../tables'
-import type { WaterSupplyOutageData } from '@/shared/components/charts/water-supply-outages-chart'
 
 type DistrictDashboardScreenProps = {
   data: DashboardData
@@ -64,6 +68,11 @@ export function DistrictDashboardScreen({
         value: Math.max(0, item.demand - item.supply),
       })),
     [data.demandSupply]
+  )
+
+  const readingSubmissionTimeTrendData = useMemo(
+    () => data.readingSubmissionTrend ?? [],
+    [data.readingSubmissionTrend]
   )
 
   return (
@@ -320,7 +329,7 @@ export function DistrictDashboardScreen({
             />
           ) : (
             <MonthlyTrendChart
-              data={regularityTimeTrendData}
+              data={readingSubmissionTimeTrendData}
               height="383px"
               xAxisLabel="Month"
               yAxisLabel="Percentage"
