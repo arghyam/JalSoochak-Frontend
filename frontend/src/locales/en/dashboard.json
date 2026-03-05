@@ -98,6 +98,7 @@
       "title": "Quantity Performance",
       "ariaViewBy": "Quantity performance view by",
       "ariaViewByDistrict": "District quantity performance view by",
+      "ariaViewByGramPanchayat": "Gram panchayat quantity performance view by",
       "yAxisLabel": "Quantity",
       "seriesName": "Quantity",
       "areaSeriesName": "Demand"
@@ -106,6 +107,7 @@
       "title": "Regularity Performance",
       "ariaViewBy": "Regularity performance view by",
       "ariaViewByDistrict": "District regularity performance view by",
+      "ariaViewByGramPanchayat": "Gram panchayat regularity performance view by",
       "yAxisLabel": "Regularity",
       "yAxisLabelPercent": "Regularity (%)",
       "seriesName": "Regularity"
