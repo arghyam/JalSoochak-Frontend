@@ -135,6 +135,10 @@ describe('VillageDashboardScreen', () => {
 
     expect(screen.getByText('Vikash')).toBeTruthy()
     expect(screen.getByText('09-08-2025, 3:00pm')).toBeTruthy()
+    let complianceProps = mockPhotoEvidenceComplianceTable.mock.calls.at(-1)?.[0] as {
+      data: Array<{ name: string }>
+    }
+    expect(complianceProps.data.every((row) => row.name === 'Vikash')).toBe(true)
 
     const previousButton = screen.getByRole('button', { name: 'Previous' })
     const nextButton = screen.getByRole('button', { name: 'Next' })
@@ -144,6 +148,10 @@ describe('VillageDashboardScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: '2' }))
     expect(screen.getByText('Arjun')).toBeTruthy()
     expect(screen.getByText('11-02-2025, 1:00pm')).toBeTruthy()
+    complianceProps = mockPhotoEvidenceComplianceTable.mock.calls.at(-1)?.[0] as {
+      data: Array<{ name: string }>
+    }
+    expect(complianceProps.data.every((row) => row.name === 'Arjun')).toBe(true)
 
     fireEvent.click(nextButton)
     expect(screen.getByText('Shashwat')).toBeTruthy()

@@ -166,6 +166,21 @@
     "title": "Pump Operators",
     "totalLabel": "Total",
     "note": "Note: Active pump operators submit readings at least 30 days in a month.",
+    "details": {
+      "title": "Pump Operator Details",
+      "fields": {
+        "schemeNameSchemeId": "Scheme name/ Scheme ID",
+        "stationLocation": "Station location",
+        "lastSubmission": "Last submission",
+        "reportingRate": "Reporting rate",
+        "missingSubmissionCount": "Missing submission count",
+        "inactiveDays": "Inactive days"
+      },
+      "pagination": {
+        "previous": "Previous",
+        "next": "Next"
+      }
+    },
     "legend": {
       "active": "Active pump operators",
       "inactive": "Non-active pump operators"

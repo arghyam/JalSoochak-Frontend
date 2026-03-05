@@ -166,6 +166,21 @@
     "title": "पंप ऑपरेटर्स",
     "totalLabel": "कुल",
     "note": "नोट: सक्रिय पंप ऑपरेटर्स महीने में कम से कम 30 दिन रीडिंग सबमिट करते हैं।",
+    "details": {
+      "title": "पंप ऑपरेटर विवरण",
+      "fields": {
+        "schemeNameSchemeId": "योजना का नाम/ योजना आईडी",
+        "stationLocation": "स्टेशन स्थान",
+        "lastSubmission": "अंतिम सबमिशन",
+        "reportingRate": "रिपोर्टिंग दर",
+        "missingSubmissionCount": "मिसिंग सबमिशन की संख्या",
+        "inactiveDays": "निष्क्रिय दिन"
+      },
+      "pagination": {
+        "previous": "पिछला",
+        "next": "अगला"
+      }
+    },
     "legend": {
       "active": "सक्रिय पंप ऑपरेटर्स",
       "inactive": "गैर-सक्रिय पंप ऑपरेटर्स"

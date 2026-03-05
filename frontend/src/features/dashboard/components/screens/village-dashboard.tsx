@@ -65,6 +65,14 @@ export function VillageDashboardScreen({
   const activePumpOperatorPage = Math.min(pumpOperatorPage, totalPumpOperatorPages)
   const activePumpOperator =
     pumpOperatorPages[activePumpOperatorPage - 1] ?? villagePumpOperatorDetails
+  const readingComplianceRows = useMemo(
+    () =>
+      villagePhotoEvidenceRows.map((row) => ({
+        ...row,
+        name: activePumpOperator.name,
+      })),
+    [activePumpOperator.name, villagePhotoEvidenceRows]
+  )
   const visiblePageNumbers = useMemo(() => {
     if (totalPumpOperatorPages <= 3) {
       return Array.from({ length: totalPumpOperatorPages }, (_, index) => index + 1)
@@ -196,7 +204,9 @@ export function VillageDashboardScreen({
         >
           <Flex direction="column" h="full">
             <Text textStyle="bodyText3" fontWeight="400" mb={4}>
-              Pump Operator Details
+              {t('pumpOperators.details.title', {
+                defaultValue: 'Pump Operator Details',
+              })}
             </Text>
             <Box>
               <Flex align="center" gap={3} mb={6}>
@@ -207,37 +217,49 @@ export function VillageDashboardScreen({
               </Flex>
               <Grid templateColumns="1fr auto" columnGap="24px" rowGap="12px" alignItems="center">
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  Scheme name/ Scheme ID
+                  {t('pumpOperators.details.fields.schemeNameSchemeId', {
+                    defaultValue: 'Scheme name/ Scheme ID',
+                  })}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
                   {activePumpOperator.scheme}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  Station location
+                  {t('pumpOperators.details.fields.stationLocation', {
+                    defaultValue: 'Station location',
+                  })}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
                   {activePumpOperator.stationLocation}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  Last submission
+                  {t('pumpOperators.details.fields.lastSubmission', {
+                    defaultValue: 'Last submission',
+                  })}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
                   {activePumpOperator.lastSubmission}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  Reporting rate
+                  {t('pumpOperators.details.fields.reportingRate', {
+                    defaultValue: 'Reporting rate',
+                  })}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
                   {activePumpOperator.reportingRate}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  Missing submission count
+                  {t('pumpOperators.details.fields.missingSubmissionCount', {
+                    defaultValue: 'Missing submission count',
+                  })}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
                   {activePumpOperator.missingSubmissionCount}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  Inactive days
+                  {t('pumpOperators.details.fields.inactiveDays', {
+                    defaultValue: 'Inactive days',
+                  })}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
                   {activePumpOperator.inactiveDays}
@@ -257,7 +279,9 @@ export function VillageDashboardScreen({
                   }
                   isDisabled={activePumpOperatorPage === 1}
                 >
-                  Previous
+                  {t('pumpOperators.details.pagination.previous', {
+                    defaultValue: 'Previous',
+                  })}
                 </Button>
                 {visiblePageNumbers.map((pageNumber) => (
                   <Button
@@ -292,7 +316,9 @@ export function VillageDashboardScreen({
                   }
                   isDisabled={activePumpOperatorPage === totalPumpOperatorPages}
                 >
-                  Next
+                  {t('pumpOperators.details.pagination.next', {
+                    defaultValue: 'Next',
+                  })}
                 </Button>
               </Flex>
             ) : null}
@@ -300,7 +326,7 @@ export function VillageDashboardScreen({
         </Box>
         <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="536px">
           <PhotoEvidenceComplianceTable
-            data={villagePhotoEvidenceRows}
+            data={readingComplianceRows}
             showVillageColumn={false}
             title={t('outageAndSubmissionCharts.titles.readingCompliance', {
               defaultValue: 'Reading Compliance',
