@@ -109,9 +109,6 @@ export function ConfigurationPage() {
   }
 
   const handleSave = async () => {
-    // draft is null when the first-configure form is shown without the user
-    // touching any field (effectiveIsEditing fires before handleEdit is called).
-    // Fall back to the same defaults the form already displays.
     const current = draft ?? buildInitialDraft(config ?? undefined)
 
     const emptyLgd = current.lgdHierarchy.some((l) => !l.name.trim())
@@ -307,8 +304,8 @@ export function ConfigurationPage() {
                 {/* 3. Supported Channels — 2-column vertical flow */}
                 <Box>
                   <Text
-                    fontSize={{ base: 'sm', md: 'md' }}
-                    fontWeight="semibold"
+                    fontSize={{ base: 'xs', md: 'sm' }}
+                    fontWeight="medium"
                     color="neutral.950"
                     mb={3}
                   >
@@ -361,8 +358,8 @@ export function ConfigurationPage() {
                   {/* Record Location */}
                   <Box>
                     <Text
-                      fontSize={{ base: 'sm', md: 'md' }}
-                      fontWeight="semibold"
+                      fontSize={{ base: 'xs', md: 'sm' }}
+                      fontWeight="medium"
                       color="neutral.950"
                       mb={3}
                     >
@@ -395,8 +392,8 @@ export function ConfigurationPage() {
                   {/* Logo */}
                   <Box>
                     <Text
-                      fontSize={{ base: 'sm', md: 'md' }}
-                      fontWeight="semibold"
+                      fontSize={{ base: 'xs', md: 'sm' }}
+                      fontWeight="medium"
                       color="neutral.950"
                       mb={3}
                     >
@@ -466,6 +463,7 @@ export function ConfigurationPage() {
                         }))
                       }
                       h="36px"
+                      w={{ base: 'full', xl: '486px' }}
                       fontSize="sm"
                       borderColor="neutral.300"
                       borderRadius="6px"
@@ -501,6 +499,7 @@ export function ConfigurationPage() {
                       }}
                       aria-label={t('configuration.sections.averageMembersPerHousehold.title')}
                       h="36px"
+                      w={{ base: 'full', xl: '486px' }}
                       fontSize="sm"
                       borderColor="neutral.300"
                       borderRadius="6px"

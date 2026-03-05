@@ -31,7 +31,7 @@ export function MeterChangeReasonsSection({
 
   return (
     <Box>
-      <Text fontSize={{ base: 'sm', md: 'md' }} fontWeight="semibold" color="neutral.950" mb={3}>
+      <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" color="neutral.950" mb={3}>
         {title}
       </Text>
 
@@ -43,6 +43,7 @@ export function MeterChangeReasonsSection({
               onChange={(e) => handleChange(reason.id, e.target.value)}
               placeholder={t('configuration.sections.meterChangeReasons.placeholder')}
               h="36px"
+              w={{ base: 'full', xl: '486px' }}
               fontSize="sm"
               borderColor="neutral.300"
               borderRadius="6px"

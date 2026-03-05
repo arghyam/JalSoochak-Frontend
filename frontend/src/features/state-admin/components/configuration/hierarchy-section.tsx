@@ -28,8 +28,8 @@ export function HierarchySection({
     <Box as="fieldset" border="none" p={0} m={0}>
       <Text
         as="legend"
-        fontSize={{ base: 'sm', md: 'md' }}
-        fontWeight="semibold"
+        fontSize={{ base: 'xs', md: 'sm' }}
+        fontWeight="medium"
         color="neutral.950"
         mb={3}
       >
@@ -62,6 +62,7 @@ export function HierarchySection({
                 level: level.level,
               })}
               h="36px"
+              w={{ base: 'full', xl: '418px' }}
               fontSize="sm"
               borderColor="neutral.300"
               borderRadius="6px"

@@ -84,7 +84,7 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
     path: ROUTES.STATE_ADMIN_INTEGRATION,
     labelKey: 'sidebar.integration',
     roles: [AUTH_ROLES.STATE_ADMIN],
-    icon: 'AiOutlineSetting',
+    icon: 'AiOutlineMessage',
   },
   {
     type: 'simple',

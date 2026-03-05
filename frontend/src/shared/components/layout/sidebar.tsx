@@ -20,6 +20,7 @@ import { BiKey } from 'react-icons/bi'
 import { FiLogOut } from 'react-icons/fi'
 import { IoLanguageOutline, IoSettingsOutline, IoWaterOutline } from 'react-icons/io5'
 import { HiOutlineTemplate } from 'react-icons/hi'
+import { AiOutlineMessage } from 'react-icons/ai'
 import { BsPerson, BsListUl } from 'react-icons/bs'
 import jalsoochakLogo from '@/assets/media/jalsoochak-logo.svg'
 import { useAuthStore } from '@/app/store'
@@ -47,6 +48,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   IoSettingsOutline,
   IoWaterOutline,
   HiOutlineTemplate,
+  AiOutlineMessage,
   BsPerson,
   BsListUl,
 }
