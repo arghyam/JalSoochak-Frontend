@@ -125,6 +125,8 @@
     }
   },
   "outageAndSubmissionCharts": {
+    "ariaViewByBlock": "ब्लॉक जल आपूर्ति बाधा वितरण दृश्य प्रकार",
+    "ariaViewByGramPanchayat": "ग्राम पंचायत जल आपूर्ति बाधा वितरण दृश्य प्रकार",
     "titles": {
       "supplyOutageReasons": "जल आपूर्ति बाधा के कारण",
       "supplyOutageDistribution": "जल आपूर्ति बाधा वितरण",

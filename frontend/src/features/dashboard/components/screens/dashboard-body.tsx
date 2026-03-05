@@ -37,7 +37,7 @@ type DashboardBodyProps = {
   pumpOperatorsTotal: number
   operatorsPerformanceTable: PumpOperatorPerformanceData[]
   villagePhotoEvidenceRows: DashboardData['photoEvidenceCompliance']
-  villagePumpOperatorDetails: {
+  villagePumpOperatorDetails?: {
     name: string
     scheme: string
     stationLocation: string
@@ -292,7 +292,7 @@ export function DashboardBody({
         />
       ) : null}
 
-      {selectedVillage ? (
+      {selectedVillage && villagePumpOperatorDetails ? (
         <VillageDashboardScreen
           data={data}
           villagePhotoEvidenceRows={villagePhotoEvidenceRows}

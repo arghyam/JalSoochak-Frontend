@@ -125,6 +125,8 @@
     }
   },
   "outageAndSubmissionCharts": {
+    "ariaViewByBlock": "Block supply outage distribution view by",
+    "ariaViewByGramPanchayat": "Gram panchayat supply outage distribution view by",
     "titles": {
       "supplyOutageReasons": "Supply Outage Reasons",
       "supplyOutageDistribution": "Supply Outage Distribution",

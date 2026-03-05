@@ -250,7 +250,9 @@ export function GramPanchayatDashboardScreen({
               })}
             </Text>
             <Select
-              aria-label="Gram panchayat supply outage distribution view by"
+              aria-label={t('outageAndSubmissionCharts.ariaViewByGramPanchayat', {
+                defaultValue: 'Gram panchayat supply outage distribution view by',
+              })}
               h="32px"
               maxW="128px"
               fontSize="14px"
@@ -265,9 +267,15 @@ export function GramPanchayatDashboardScreen({
               onChange={(event) => setOutageDistributionViewBy(event.target.value as ViewBy)}
               _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
             >
-              <option value="">Select</option>
-              <option value="geography">Geography</option>
-              <option value="time">Time</option>
+              <option value="">
+                {t('performanceCharts.viewBy.select', { defaultValue: 'Select' })}
+              </option>
+              <option value="geography">
+                {t('performanceCharts.viewBy.geography', { defaultValue: 'Geography' })}
+              </option>
+              <option value="time">
+                {t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+              </option>
             </Select>
           </Flex>
           {outageDistributionViewBy === '' || outageDistributionViewBy === 'geography' ? (

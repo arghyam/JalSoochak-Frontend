@@ -54,20 +54,27 @@ export function SupplySubmissionRateChart({
   }, [data])
   const localizedEntityLabel = useMemo(() => {
     const normalized = entityLabel.trim().toLowerCase()
-    if (normalized === 'states/uts' || normalized === 'state/ut') {
-      return t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
+    const labelLookup: Record<string, { key: string; defaultValue: string }> = {
+      'states/uts': { key: 'performanceCharts.viewBy.statesUTs', defaultValue: 'States/UTs' },
+      'state/ut': { key: 'performanceCharts.viewBy.statesUTs', defaultValue: 'States/UTs' },
+      districts: { key: 'performanceCharts.viewBy.districts', defaultValue: 'Districts' },
+      district: { key: 'performanceCharts.viewBy.districts', defaultValue: 'Districts' },
+      blocks: { key: 'performanceCharts.viewBy.blocks', defaultValue: 'Blocks' },
+      block: { key: 'performanceCharts.viewBy.blocks', defaultValue: 'Blocks' },
+      'gram panchayats': {
+        key: 'performanceCharts.viewBy.gramPanchayats',
+        defaultValue: 'Gram Panchayats',
+      },
+      'gram panchayat': {
+        key: 'performanceCharts.viewBy.gramPanchayats',
+        defaultValue: 'Gram Panchayats',
+      },
+      villages: { key: 'performanceCharts.viewBy.villages', defaultValue: 'Villages' },
+      village: { key: 'performanceCharts.viewBy.villages', defaultValue: 'Villages' },
     }
-    if (normalized === 'districts' || normalized === 'district') {
-      return t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
-    }
-    if (normalized === 'blocks' || normalized === 'block') {
-      return t('performanceCharts.viewBy.blocks', { defaultValue: 'Blocks' })
-    }
-    if (normalized === 'gram panchayats' || normalized === 'gram panchayat') {
-      return t('performanceCharts.viewBy.gramPanchayats', { defaultValue: 'Gram Panchayats' })
-    }
-    if (normalized === 'villages' || normalized === 'village') {
-      return t('performanceCharts.viewBy.villages', { defaultValue: 'Villages' })
+    const labelConfig = labelLookup[normalized]
+    if (labelConfig) {
+      return t(labelConfig.key, { defaultValue: labelConfig.defaultValue })
     }
     return entityLabel
   }, [entityLabel, t])

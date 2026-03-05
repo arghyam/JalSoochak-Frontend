@@ -193,10 +193,12 @@ describe('BlockDashboardScreen', () => {
 
     const metricCalls = mockMetricPerformanceChart.mock.calls as Array<[Record<string, unknown>]>
     expect(metricCalls).toHaveLength(2)
-    expect(metricCalls[0]?.[0].metric).toBe('quantity')
-    expect(metricCalls[1]?.[0].metric).toBe('regularity')
-    expect(metricCalls[0]?.[0].entityLabel).toBe('Gram Panchayats')
-    expect(metricCalls[1]?.[0].entityLabel).toBe('Gram Panchayats')
+    const metricProps = metricCalls.map(([props]) => props)
+    const quantityMetricCall = metricProps.find((props) => props.metric === 'quantity')
+    const regularityMetricCall = metricProps.find((props) => props.metric === 'regularity')
+
+    expect(quantityMetricCall?.entityLabel).toBe('Gram Panchayats')
+    expect(regularityMetricCall?.entityLabel).toBe('Gram Panchayats')
     expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
 
     const outagesProps = mockWaterSupplyOutagesChart.mock.calls[0]?.[0] as {
