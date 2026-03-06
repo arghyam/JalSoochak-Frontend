@@ -46,7 +46,9 @@ export function IndiaMapChart({
     }),
     [resolveThemeColor]
   )
-  const toggleLabelColor = useMemo(() => resolveThemeColor('neutral.950'), [resolveThemeColor])
+  const selectedMetricLabel = isRegularityView
+    ? t('map.metric.regularity')
+    : t('map.metric.quantity')
   const getRangeColor = useCallback(
     (value: number) => {
       if (value >= 90) return mapColors.gte90
@@ -220,14 +222,19 @@ export function IndiaMapChart({
               style={{
                 fontSize: bodyText6.fontSize,
                 lineHeight: `${bodyText6.lineHeight}px`,
-                fontWeight: 400,
-                color: toggleLabelColor,
+                fontWeight: bodyText6.fontWeight,
+                color: bodyText6.color,
               }}
             >
               {t('map.metric.quantity')}
             </span>
             <Toggle
               isChecked={isRegularityView}
+              alwaysPrimaryTrack
+              aria-label={t('map.metric.toggleAriaLabel', {
+                defaultValue: 'Switch map metric. Currently selected: {{metric}}',
+                metric: selectedMetricLabel,
+              })}
               onChange={(event) => {
                 setIsRegularityView(event.target.checked)
               }}
@@ -236,8 +243,8 @@ export function IndiaMapChart({
               style={{
                 fontSize: bodyText6.fontSize,
                 lineHeight: `${bodyText6.lineHeight}px`,
-                fontWeight: 400,
-                color: toggleLabelColor,
+                fontWeight: bodyText6.fontWeight,
+                color: bodyText6.color,
               }}
             >
               {t('map.metric.regularity')}
