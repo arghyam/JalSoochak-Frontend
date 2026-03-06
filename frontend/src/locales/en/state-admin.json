@@ -325,6 +325,56 @@
     }
   },
 
+  "stateUtAdmins": {
+    "title": "State/UT Admins",
+    "addTitle": "Add State/UT Admin",
+    "editTitle": "Edit State/UT Admin",
+    "viewTitle": "View State/UT Admin",
+    "addAdmin": "Add State Admin",
+    "table": {
+      "name": "Name",
+      "mobileNumber": "Mobile Number",
+      "emailAddress": "Email Address",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "filters": {
+      "allStatuses": "All Statuses"
+    },
+    "form": {
+      "userDetails": "User Details",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "emailAddress": "Email address",
+      "phoneNumber": "Phone number",
+      "statusSection": "Status",
+      "activated": "Activated"
+    },
+    "buttons": {
+      "addAndSendLink": "Add State Admin & Send Link via Email"
+    },
+    "breadcrumb": {
+      "manage": "Manages State/UT Admins",
+      "addNew": "Add State/UT Admin",
+      "view": "View State/UT Admin",
+      "edit": "Edit State/UT Admin"
+    },
+    "messages": {
+      "noAdminsFound": "No admins found",
+      "notFound": "Admin not found",
+      "adminAdded": "State admin added and invite sent via email",
+      "failedToAdd": "Failed to add state admin",
+      "activatedSuccess": "Admin activated successfully",
+      "deactivatedSuccess": "Admin deactivated successfully",
+      "failedToUpdateStatus": "Failed to update admin status"
+    },
+    "aria": {
+      "search": "Search admins",
+      "view": "View admin",
+      "edit": "Edit admin"
+    }
+  },
+
   "nudges": {
     "title": "Nudges Template",
     "language": "Language",
