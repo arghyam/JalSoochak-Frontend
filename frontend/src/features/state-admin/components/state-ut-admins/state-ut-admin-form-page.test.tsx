@@ -14,11 +14,12 @@ const mockAdmin: StateUTAdmin = {
 }
 
 const mockNavigate = jest.fn()
+const mockUseParams = jest.fn<() => { id: string | undefined }>().mockReturnValue({ id: undefined })
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual<typeof import('react-router-dom')>('react-router-dom'),
   useNavigate: () => mockNavigate,
-  useParams: () => ({ id: undefined }),
+  useParams: () => mockUseParams(),
 }))
 
 const mockUseStateUTAdminByIdQuery = jest.fn()
@@ -36,6 +37,7 @@ jest.mock('../../services/query/use-state-admin-queries', () => ({
 describe('StateUTAdminFormPage — Add Mode', () => {
   beforeEach(() => {
     mockNavigate.mockReset()
+    mockUseParams.mockReturnValue({ id: undefined })
     mockUseStateUTAdminByIdQuery.mockReturnValue({ data: undefined, isLoading: false })
     mockUseCreateStateUTAdminMutation.mockReturnValue({
       mutateAsync: jest.fn<() => Promise<StateUTAdmin>>().mockResolvedValue(mockAdmin),
@@ -106,8 +108,8 @@ describe('StateUTAdminFormPage — Add Mode', () => {
 
 describe('StateUTAdminFormPage — Edit Mode', () => {
   beforeEach(() => {
-    jest.resetModules()
     mockNavigate.mockReset()
+    mockUseParams.mockReturnValue({ id: 'admin-1' })
     mockUseStateUTAdminByIdQuery.mockReturnValue({ data: mockAdmin, isLoading: false })
     mockUseCreateStateUTAdminMutation.mockReturnValue({
       mutateAsync: jest.fn(),
@@ -121,12 +123,6 @@ describe('StateUTAdminFormPage — Edit Mode', () => {
       mutateAsync: jest.fn<() => Promise<StateUTAdmin>>().mockResolvedValue(mockAdmin),
       isPending: false,
     })
-  })
-
-  // Re-mock useParams for edit mode
-  beforeEach(() => {
-    const reactRouterDom = jest.requireMock<typeof import('react-router-dom')>('react-router-dom')
-    ;(reactRouterDom.useParams as jest.Mock).mockReturnValue({ id: 'admin-1' })
   })
 
   it('renders edit title', () => {
@@ -148,8 +144,7 @@ describe('StateUTAdminFormPage — Edit Mode', () => {
 
   it('email field is read-only in edit mode', () => {
     renderWithProviders(<StateUTAdminFormPage />)
-    const emailInput = screen.getByLabelText(/email address/i) as HTMLInputElement
-    expect(emailInput.readOnly).toBe(true)
+    expect(screen.getByLabelText(/email address/i).getAttribute('aria-readonly')).toBe('true')
   })
 
   it('shows status toggle in edit mode', () => {
