@@ -330,7 +330,7 @@
     "addTitle": "Add State/UT Admin",
     "editTitle": "Edit State/UT Admin",
     "viewTitle": "View State/UT Admin",
-    "addAdmin": "Add State Admin",
+    "addAdmin": "Add State/UT Admin",
     "table": {
       "name": "Name",
       "mobileNumber": "Mobile Number",
@@ -351,10 +351,10 @@
       "activated": "Activated"
     },
     "buttons": {
-      "addAndSendLink": "Add State Admin & Send Link via Email"
+      "addAndSendLink": "Add State/UT Admin & Send Link via Email"
     },
     "breadcrumb": {
-      "manage": "Manages State/UT Admins",
+      "manage": "Manage State/UT Admins",
       "addNew": "Add State/UT Admin",
       "view": "View State/UT Admin",
       "edit": "Edit State/UT Admin"
@@ -362,8 +362,8 @@
     "messages": {
       "noAdminsFound": "No admins found",
       "notFound": "Admin not found",
-      "adminAdded": "State admin added and invite sent via email",
-      "failedToAdd": "Failed to add state admin",
+      "adminAdded": "State/UT admin added and invite sent via email",
+      "failedToAdd": "Failed to add State/UT admin",
       "activatedSuccess": "Admin activated successfully",
       "deactivatedSuccess": "Admin deactivated successfully",
       "failedToUpdateStatus": "Failed to update admin status"

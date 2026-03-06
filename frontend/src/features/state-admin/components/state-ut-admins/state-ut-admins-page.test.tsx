@@ -60,7 +60,7 @@ describe('StateUTAdminsPage', () => {
       refetch: jest.fn(),
     })
     renderWithProviders(<StateUTAdminsPage />)
-    expect(screen.getByRole('heading', { name: /state\/ut admins/i })).toBeTruthy()
+    expect(screen.getByRole('status')).toBeTruthy()
   })
 
   it('renders error state with retry button', () => {
@@ -114,7 +114,7 @@ describe('StateUTAdminsPage', () => {
 
   it('navigates to add page when Add State Admin button is clicked', () => {
     renderWithProviders(<StateUTAdminsPage />)
-    fireEvent.click(screen.getByRole('button', { name: /add state admin/i }))
+    fireEvent.click(screen.getByRole('button', { name: /add state\/ut admin/i }))
     expect(mockNavigate).toHaveBeenCalledWith('/state-admin/state-ut-admins/add')
   })
 

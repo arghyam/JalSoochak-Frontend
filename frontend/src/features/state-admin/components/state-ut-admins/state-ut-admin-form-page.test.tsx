@@ -1,4 +1,5 @@
 import { screen, fireEvent } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, jest, beforeEach } from '@jest/globals'
 import { StateUTAdminFormPage } from './state-ut-admin-form-page'
 import { renderWithProviders } from '@/test/render-with-providers'
@@ -74,7 +75,7 @@ describe('StateUTAdminFormPage — Add Mode', () => {
   it('submit button is disabled when form is empty', () => {
     renderWithProviders(<StateUTAdminFormPage />)
     const submitBtn = screen.getByRole('button', {
-      name: /add state admin & send link via email/i,
+      name: /add state\/ut admin & send link via email/i,
     })
     expect(submitBtn).toBeTruthy()
     expect((submitBtn as HTMLButtonElement).disabled).toBe(true)
@@ -89,7 +90,7 @@ describe('StateUTAdminFormPage — Add Mode', () => {
     })
     fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '8564254517' } })
     const submitBtn = screen.getByRole('button', {
-      name: /add state admin & send link via email/i,
+      name: /add state\/ut admin & send link via email/i,
     })
     expect((submitBtn as HTMLButtonElement).disabled).toBe(false)
   })
@@ -142,9 +143,11 @@ describe('StateUTAdminFormPage — Edit Mode', () => {
     expect(screen.getByText('Admin not found')).toBeTruthy()
   })
 
-  it('email field is read-only in edit mode', () => {
+  it('email field is read-only in edit mode', async () => {
     renderWithProviders(<StateUTAdminFormPage />)
-    expect(screen.getByLabelText(/email address/i).getAttribute('aria-readonly')).toBe('true')
+    const emailInput = screen.getByLabelText(/email address/i) as HTMLInputElement
+    await userEvent.type(emailInput, 'new@example.com')
+    expect(emailInput.value).toBe(mockAdmin.email)
   })
 
   it('shows status toggle in edit mode', () => {

@@ -1,6 +1,16 @@
 import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Heading, Text, Flex, SimpleGrid, IconButton, Spinner } from '@chakra-ui/react'
+import {
+  Box,
+  Heading,
+  Text,
+  Flex,
+  SimpleGrid,
+  IconButton,
+  Spinner,
+  Button,
+  Link,
+} from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
 import { StatusChip } from '@/shared/components/common'
@@ -32,7 +42,25 @@ export function ViewStateUTAdminPage() {
     )
   }
 
-  if (!admin) {
+  if (adminQuery.isError) {
+    const errorMessage =
+      adminQuery.error instanceof Error ? adminQuery.error.message : t('common:toast.failedToLoad')
+    return (
+      <Box w="full">
+        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
+          {t('stateUtAdmins.title')}
+        </Heading>
+        <Flex direction="column" align="flex-start" mt={4} gap={3}>
+          <Text color="red.500">{errorMessage}</Text>
+          <Button size="sm" variant="outline" onClick={() => adminQuery.refetch()}>
+            {t('common:retry')}
+          </Button>
+        </Flex>
+      </Box>
+    )
+  }
+
+  if (admin === null) {
     return (
       <Box w="full">
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
@@ -57,19 +85,15 @@ export function ViewStateUTAdminPage() {
           {t('stateUtAdmins.title')}
         </Heading>
         <Flex as="nav" aria-label="Breadcrumb" gap={2} flexWrap="wrap">
-          <Text
-            as="a"
+          <Link
             fontSize="14px"
             lineHeight="21px"
             color="neutral.500"
-            cursor="pointer"
             _hover={{ textDecoration: 'underline' }}
             onClick={() => navigate(ROUTES.STATE_ADMIN_STATE_UT_ADMINS)}
-            tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && navigate(ROUTES.STATE_ADMIN_STATE_UT_ADMINS)}
           >
             {t('stateUtAdmins.breadcrumb.manage')}
-          </Text>
+          </Link>
           <Text fontSize="14px" lineHeight="21px" color="neutral.500" aria-hidden="true">
             /
           </Text>

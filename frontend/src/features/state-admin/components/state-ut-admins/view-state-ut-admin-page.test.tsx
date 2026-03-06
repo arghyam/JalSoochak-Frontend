@@ -2,6 +2,7 @@ import { screen, fireEvent } from '@testing-library/react'
 import { describe, expect, it, jest, beforeEach } from '@jest/globals'
 import { ViewStateUTAdminPage } from './view-state-ut-admin-page'
 import { renderWithProviders } from '@/test/render-with-providers'
+import { ROUTES } from '@/shared/constants/routes'
 import type { StateUTAdmin } from '../../types/state-ut-admins'
 
 const mockAdmin: StateUTAdmin = {
@@ -70,21 +71,50 @@ describe('ViewStateUTAdminPage', () => {
 
   it('renders breadcrumb with manage link', () => {
     renderWithProviders(<ViewStateUTAdminPage />)
-    expect(screen.getByText('Manages State/UT Admins')).toBeTruthy()
+    expect(screen.getByText('Manage State/UT Admins')).toBeTruthy()
     expect(screen.getByText('View State/UT Admin')).toBeTruthy()
   })
 
   it('navigates to list when breadcrumb manage link is clicked', () => {
     renderWithProviders(<ViewStateUTAdminPage />)
-    fireEvent.click(screen.getByText('Manages State/UT Admins'))
-    expect(mockNavigate).toHaveBeenCalledWith('/state-admin/state-ut-admins')
+    fireEvent.click(screen.getByText('Manage State/UT Admins'))
+    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.STATE_ADMIN_STATE_UT_ADMINS)
   })
 
   it('navigates to edit page when edit icon is clicked', () => {
     renderWithProviders(<ViewStateUTAdminPage />)
     const editButton = screen.getByRole('button', { name: /edit admin/i })
     fireEvent.click(editButton)
-    expect(mockNavigate).toHaveBeenCalledWith('/state-admin/state-ut-admins/admin-1/edit')
+    expect(mockNavigate).toHaveBeenCalledWith(
+      ROUTES.STATE_ADMIN_STATE_UT_ADMINS_EDIT.replace(':id', 'admin-1')
+    )
+  })
+
+  it('renders error state with message and retry button', () => {
+    mockUseStateUTAdminByIdQuery.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      error: new Error('Failed to fetch admin'),
+      refetch: jest.fn(),
+    })
+    renderWithProviders(<ViewStateUTAdminPage />)
+    expect(screen.getByText('Failed to fetch admin')).toBeTruthy()
+    expect(screen.getByRole('button', { name: /retry/i })).toBeTruthy()
+  })
+
+  it('calls refetch when retry button is clicked', () => {
+    const mockRefetch = jest.fn()
+    mockUseStateUTAdminByIdQuery.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      error: new Error('Network error'),
+      refetch: mockRefetch,
+    })
+    renderWithProviders(<ViewStateUTAdminPage />)
+    fireEvent.click(screen.getByRole('button', { name: /retry/i }))
+    expect(mockRefetch).toHaveBeenCalledTimes(1)
   })
 
   it('displays inactive status chip for inactive admin', () => {

@@ -1,3 +1,4 @@
+import { isAxiosError } from 'axios'
 import { apiClient } from '@/shared/lib/axios'
 import {
   createMockStateUTAdmin,
@@ -198,15 +199,22 @@ const httpProvider: StateAdminDataProvider = {
     return response.data
   },
   getStateUTAdminById: async (id) => {
-    const response = await apiClient.get<StateUTAdmin>(`/api/state-admin/admins/${id}`)
-    return response.data
+    try {
+      const response = await apiClient.get<StateUTAdmin>(`/api/state-admin/admins/${id}`)
+      return response.data
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.status === 404) {
+        return null
+      }
+      throw error
+    }
   },
   createStateUTAdmin: async (input) => {
     const response = await apiClient.post<StateUTAdmin>('/api/state-admin/admins', input)
     return response.data
   },
   updateStateUTAdmin: async (id, input) => {
-    const response = await apiClient.put<StateUTAdmin>(`/api/state-admin/admins/${id}`, input)
+    const response = await apiClient.patch<StateUTAdmin>(`/api/state-admin/admins/${id}`, input)
     return response.data
   },
   updateStateUTAdminStatus: async (id, status) => {

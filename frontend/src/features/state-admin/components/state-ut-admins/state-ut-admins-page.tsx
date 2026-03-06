@@ -182,7 +182,7 @@ export function StateUTAdminsPage() {
           w={{ base: 'full', md: 'auto' }}
           flexDirection={{ base: 'column', sm: 'row' }}
         >
-          <InputGroup w={{ base: 'full', md: '240px' }}>
+          <InputGroup w={{ base: 'full', md: '240px', lg: '404px' }}>
             <InputLeftElement pointerEvents="none" h={8}>
               <SearchIcon color="neutral.300" aria-hidden="true" />
             </InputLeftElement>
@@ -202,6 +202,7 @@ export function StateUTAdminsPage() {
           <SearchableSelect
             options={statusOptions}
             value={statusFilter}
+            height="32px"
             onChange={(val) => setStatusFilter(val as StatusFilter)}
             placeholder={t('common:statusLabel')}
             width={{ base: '100%', md: '140px' }}

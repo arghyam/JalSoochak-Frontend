@@ -407,5 +407,7 @@ export function StateUTAdminFormPage() {
     )
   }
 
-  return <FormContent id={id} isEditMode={isEditMode} original={original} />
+  return (
+    <FormContent key={original?.id ?? 'new'} id={id} isEditMode={isEditMode} original={original} />
+  )
 }
