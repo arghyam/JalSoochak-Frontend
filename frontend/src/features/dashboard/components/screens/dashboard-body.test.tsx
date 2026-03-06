@@ -165,13 +165,18 @@ describe('DashboardBody', () => {
   it('renders independent geography/time selectors for both performance cards', () => {
     renderDashboardBody()
 
-    const quantitySelect = screen.getByRole('combobox', { name: 'Quantity performance view by' })
+    const quantitySelect = screen.getByRole('combobox', {
+      name: 'Quantity performance view by',
+    }) as HTMLSelectElement
     const regularitySelect = screen.getByRole('combobox', {
       name: 'Regularity performance view by',
-    })
+    }) as HTMLSelectElement
 
     expect(quantitySelect).toBeTruthy()
     expect(regularitySelect).toBeTruthy()
+    expect(quantitySelect.value).toBe('')
+    expect(regularitySelect.value).toBe('')
+    expect(screen.getAllByRole('option', { name: 'Select' })).toHaveLength(2)
     expect(screen.getAllByRole('option', { name: 'Geography' })).toHaveLength(2)
     expect(screen.getAllByRole('option', { name: 'Time' })).toHaveLength(2)
   })
