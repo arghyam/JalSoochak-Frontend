@@ -25,6 +25,10 @@ export const ROUTES = {
   STATE_ADMIN_OPERATOR_SYNC: '/state-admin/operator-sync',
   STATE_ADMIN_STAFF_SYNC: '/state-admin/staff-sync',
   STATE_ADMIN_ACTIVITY: '/state-admin/activity',
+  STATE_ADMIN_STATE_UT_ADMINS: '/state-admin/state-ut-admins',
+  STATE_ADMIN_STATE_UT_ADMINS_ADD: '/state-admin/state-ut-admins/add',
+  STATE_ADMIN_STATE_UT_ADMINS_VIEW: '/state-admin/state-ut-admins/:id',
+  STATE_ADMIN_STATE_UT_ADMINS_EDIT: '/state-admin/state-ut-admins/:id/edit',
   // Auth routes
   LOGIN: '/login',
   LOGOUT: '/logout',

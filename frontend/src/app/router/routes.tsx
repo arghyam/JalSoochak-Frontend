@@ -23,6 +23,9 @@ import {
   EscalationsPage,
   NudgesTemplatePage,
   StaffSyncPage,
+  StateUTAdminsPage,
+  StateUTAdminFormPage,
+  ViewStateUTAdminPage,
 } from '@/features/state-admin'
 import { LoginPage, ResetPasswordPage } from '@/features/auth'
 import { SignupFlowPage } from '@/features/auth/components/signup/signup-flow-page'
@@ -223,6 +226,22 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.STATE_ADMIN_ACTIVITY,
         element: <ActivityPage />,
+      },
+      {
+        path: ROUTES.STATE_ADMIN_STATE_UT_ADMINS,
+        element: <StateUTAdminsPage />,
+      },
+      {
+        path: ROUTES.STATE_ADMIN_STATE_UT_ADMINS_ADD,
+        element: <StateUTAdminFormPage />,
+      },
+      {
+        path: ROUTES.STATE_ADMIN_STATE_UT_ADMINS_VIEW,
+        element: <ViewStateUTAdminPage />,
+      },
+      {
+        path: ROUTES.STATE_ADMIN_STATE_UT_ADMINS_EDIT,
+        element: <StateUTAdminFormPage />,
       },
     ],
   },

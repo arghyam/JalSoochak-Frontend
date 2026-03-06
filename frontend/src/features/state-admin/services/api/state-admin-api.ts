@@ -1,5 +1,7 @@
+import { isAxiosError } from 'axios'
 import { apiClient } from '@/shared/lib/axios'
 import {
+  createMockStateUTAdmin,
   deleteMockEscalation,
   getMockActivityData,
   getMockConfigurationData,
@@ -10,6 +12,8 @@ import {
   getMockNudgeTemplates,
   getMockOverviewData,
   getMockStaffSyncData,
+  getMockStateUTAdminById,
+  getMockStateUTAdmins,
   getMockThresholdConfiguration,
   getMockWaterNormsConfiguration,
   saveMockConfigurationData,
@@ -20,6 +24,8 @@ import {
   saveMockWaterNormsConfiguration,
   updateMockEscalation,
   updateMockNudgeTemplate,
+  updateMockStateUTAdmin,
+  updateMockStateUTAdminStatus,
 } from '../mock-data'
 import type { ActivityLog } from '../../types/activity'
 import type { ConfigurationData } from '../../types/configuration'
@@ -28,6 +34,11 @@ import type { IntegrationConfiguration } from '../../types/integration'
 import type { LanguageConfiguration } from '../../types/language'
 import type { NudgeTemplate } from '../../types/nudges'
 import type { OverviewData } from '../../types/overview'
+import type {
+  StateUTAdmin,
+  CreateStateUTAdminInput,
+  UpdateStateUTAdminInput,
+} from '../../types/state-ut-admins'
 import type { StaffSyncData } from '../../types/staff-sync'
 import type { ThresholdConfiguration } from '../../types/thresholds'
 import type { WaterNormsConfiguration } from '../../types/water-norms'
@@ -72,6 +83,11 @@ type StateAdminDataProvider = {
   updateNudgeTemplate: (id: string, payload: UpdateNudgeTemplatePayload) => Promise<NudgeTemplate>
   getConfiguration: () => Promise<ConfigurationData>
   saveConfiguration: (payload: SaveConfigurationPayload) => Promise<ConfigurationData>
+  getStateUTAdmins: () => Promise<StateUTAdmin[]>
+  getStateUTAdminById: (id: string) => Promise<StateUTAdmin | null>
+  createStateUTAdmin: (input: CreateStateUTAdminInput) => Promise<StateUTAdmin>
+  updateStateUTAdmin: (id: string, input: UpdateStateUTAdminInput) => Promise<StateUTAdmin>
+  updateStateUTAdminStatus: (id: string, status: 'active' | 'inactive') => Promise<StateUTAdmin>
 }
 
 const httpProvider: StateAdminDataProvider = {
@@ -178,6 +194,35 @@ const httpProvider: StateAdminDataProvider = {
     )
     return response.data
   },
+  getStateUTAdmins: async () => {
+    const response = await apiClient.get<StateUTAdmin[]>('/api/state-admin/admins')
+    return response.data
+  },
+  getStateUTAdminById: async (id) => {
+    try {
+      const response = await apiClient.get<StateUTAdmin>(`/api/state-admin/admins/${id}`)
+      return response.data
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.status === 404) {
+        return null
+      }
+      throw error
+    }
+  },
+  createStateUTAdmin: async (input) => {
+    const response = await apiClient.post<StateUTAdmin>('/api/state-admin/admins', input)
+    return response.data
+  },
+  updateStateUTAdmin: async (id, input) => {
+    const response = await apiClient.patch<StateUTAdmin>(`/api/state-admin/admins/${id}`, input)
+    return response.data
+  },
+  updateStateUTAdminStatus: async (id, status) => {
+    const response = await apiClient.patch<StateUTAdmin>(`/api/state-admin/admins/${id}/status`, {
+      status,
+    })
+    return response.data
+  },
 }
 
 const mockProvider: StateAdminDataProvider = {
@@ -201,6 +246,11 @@ const mockProvider: StateAdminDataProvider = {
   updateNudgeTemplate: (id, payload) => updateMockNudgeTemplate(id, payload),
   getConfiguration: () => getMockConfigurationData(),
   saveConfiguration: (payload) => saveMockConfigurationData(payload),
+  getStateUTAdmins: () => getMockStateUTAdmins(),
+  getStateUTAdminById: (id) => getMockStateUTAdminById(id),
+  createStateUTAdmin: (input) => createMockStateUTAdmin(input),
+  updateStateUTAdmin: (id, input) => updateMockStateUTAdmin(id, input),
+  updateStateUTAdminStatus: (id, status) => updateMockStateUTAdminStatus(id, status),
 }
 
 const STATE_ADMIN_PROVIDER = import.meta.env.VITE_STATE_ADMIN_DATA_PROVIDER ?? 'mock'
@@ -234,4 +284,11 @@ export const stateAdminApi = {
     provider.updateNudgeTemplate(id, payload),
   getConfiguration: () => provider.getConfiguration(),
   saveConfiguration: (payload: SaveConfigurationPayload) => provider.saveConfiguration(payload),
+  getStateUTAdmins: () => provider.getStateUTAdmins(),
+  getStateUTAdminById: (id: string) => provider.getStateUTAdminById(id),
+  createStateUTAdmin: (input: CreateStateUTAdminInput) => provider.createStateUTAdmin(input),
+  updateStateUTAdmin: (id: string, input: UpdateStateUTAdminInput) =>
+    provider.updateStateUTAdmin(id, input),
+  updateStateUTAdminStatus: (id: string, status: 'active' | 'inactive') =>
+    provider.updateStateUTAdminStatus(id, status),
 }
