@@ -46,9 +46,9 @@ export function IndiaMapChart({
     }),
     [resolveThemeColor]
   )
-  const selectedMetricLabel = isRegularityView
-    ? t('map.metric.regularity')
-    : t('map.metric.quantity')
+  const quantityLabel = t('map.metric.quantity', { defaultValue: 'Quantity' })
+  const regularityLabel = t('map.metric.regularity', { defaultValue: 'Regularity' })
+  const selectedMetricLabel = isRegularityView ? regularityLabel : quantityLabel
   const getRangeColor = useCallback(
     (value: number) => {
       if (value >= 90) return mapColors.gte90
@@ -108,7 +108,7 @@ export function IndiaMapChart({
             return `
               <div style="padding: 8px;">
                 <strong>${name}</strong><br/>
-                ${metricKey === 'regularity' ? t('map.metric.regularity') : t('map.metric.quantity')}: ${value.toFixed(1)}${metricKey === 'regularity' ? '%' : ''}<br/>
+                ${metricKey === 'regularity' ? regularityLabel : quantityLabel}: ${value.toFixed(1)}${metricKey === 'regularity' ? '%' : ''}<br/>
                 Coverage: ${metrics.coverage.toFixed(1)}%<br/>
                 Regularity: ${metrics.regularity.toFixed(1)}%<br/>
                 Continuity: ${metrics.continuity.toFixed(1)}<br/>
@@ -150,7 +150,15 @@ export function IndiaMapChart({
         },
       ],
     }
-  }, [data, getRangeColor, mapColors.emphasis, mapColors.gte90, metricKey, t])
+  }, [
+    data,
+    getRangeColor,
+    mapColors.emphasis,
+    mapColors.gte90,
+    metricKey,
+    quantityLabel,
+    regularityLabel,
+  ])
 
   const bodyText6 = getBodyText6Style(theme)
   const legendItems = [
@@ -226,7 +234,7 @@ export function IndiaMapChart({
                 color: bodyText6.color,
               }}
             >
-              {t('map.metric.quantity')}
+              {quantityLabel}
             </span>
             <Toggle
               isChecked={isRegularityView}
@@ -247,7 +255,7 @@ export function IndiaMapChart({
                 color: bodyText6.color,
               }}
             >
-              {t('map.metric.regularity')}
+              {regularityLabel}
             </span>
           </div>
           <EChartsWrapper option={option} height="100%" onChartReady={handleChartReady} />

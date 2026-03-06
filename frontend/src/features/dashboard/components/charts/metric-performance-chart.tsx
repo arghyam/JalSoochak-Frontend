@@ -145,7 +145,7 @@ export function MetricPerformanceChart({
             return ''
           }
 
-          const entityName = points[0]?.axisValueLabel ?? ''
+          const entityName = echarts.format.encodeHTML(points[0]?.axisValueLabel ?? '')
           const rows = points
             .map((point) => {
               const rawValue = typeof point.value === 'number' ? point.value : Number(point.value)
@@ -156,7 +156,8 @@ export function MetricPerformanceChart({
                   : `${rawValue.toFixed(1)}`
                 : '-'
 
-              return `${point.seriesName}: ${formattedValue}`
+              const safeSeriesName = echarts.format.encodeHTML(point.seriesName ?? '')
+              return `${safeSeriesName}: ${formattedValue}`
             })
             .join('<br/>')
 

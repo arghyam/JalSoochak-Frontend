@@ -183,7 +183,7 @@ export function IssueTypeBreakdownChart({
           alignItems: 'center',
           justifyContent: 'center',
           gap: '16px',
-          paddingTop: '0px',
+          paddingTop: 0,
           flexWrap: 'wrap',
         }}
       >
