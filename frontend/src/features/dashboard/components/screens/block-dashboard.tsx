@@ -370,7 +370,7 @@ export function BlockDashboardScreen({
               defaultValue: 'Reading Submission Status',
             })}
           </Text>
-          <ImageSubmissionStatusChart data={data.imageSubmissionStatus} height="390px" />
+          <ImageSubmissionStatusChart data={data.imageSubmissionStatus} height="336px" />
         </Box>
         <Box
           bg="white"

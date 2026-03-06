@@ -26,7 +26,7 @@ export function StateUtDashboardScreen({
               defaultValue: 'Reading Submission Status',
             })}
           </Text>
-          <ImageSubmissionStatusChart data={data.imageSubmissionStatus} height="383px" />
+          <ImageSubmissionStatusChart data={data.imageSubmissionStatus} height="336px" />
         </Box>
         <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="510px" minW={0}>
           <Text textStyle="bodyText3" fontWeight="400" mb={2}>

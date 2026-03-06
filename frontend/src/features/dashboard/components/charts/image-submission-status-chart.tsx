@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react'
-import { useBreakpointValue, useTheme } from '@chakra-ui/react'
+import { useTheme } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
@@ -10,32 +10,20 @@ interface ImageSubmissionStatusChartProps {
   data: ImageSubmissionStatusData[]
   className?: string
   height?: string | number
+  pieSize?: number
 }
 
 const defaultColors = ['#3291D1', '#ADD3ED']
-const defaultPieRadius: (string | number)[] = ['0%', '68%']
-const defaultPieCenter: [string, string] = ['50%', '45%']
 
 export function ImageSubmissionStatusChart({
   data,
   className,
-  height = '406px',
+  height = '336px',
+  pieSize = 300,
 }: ImageSubmissionStatusChartProps) {
   const { t } = useTranslation('dashboard')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
-  const pieRadius =
-    useBreakpointValue<(string | number)[]>({
-      base: ['0%', '75%'],
-      sm: ['0%', '70%'],
-      md: ['0%', '68%'],
-    }) ?? defaultPieRadius
-  const pieCenter =
-    useBreakpointValue<[string, string]>({
-      base: ['50%', '42%'],
-      sm: ['50%', '45%'],
-      md: ['50%', '45%'],
-    }) ?? defaultPieCenter
   const localizedLegendLabel = useCallback(
     (label: string) => {
       const normalized = label.trim().toLowerCase()
@@ -63,8 +51,8 @@ export function ImageSubmissionStatusChart({
       series: [
         {
           type: 'pie',
-          radius: pieRadius,
-          center: pieCenter,
+          radius: ['0%', '98%'],
+          center: ['50%', '50%'],
           avoidLabelOverlap: true,
           label: {
             show: false,
@@ -82,7 +70,7 @@ export function ImageSubmissionStatusChart({
         },
       ],
     }
-  }, [data, pieCenter, pieRadius, localizedLegendLabel])
+  }, [data, localizedLegendLabel])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
 
@@ -98,7 +86,17 @@ export function ImageSubmissionStatusChart({
       }}
     >
       <div style={{ flex: 1, minHeight: 0, minWidth: 0 }}>
-        <EChartsWrapper option={option} height="100%" />
+        <div
+          style={{
+            width: `${pieSize}px`,
+            height: `${pieSize}px`,
+            maxWidth: '100%',
+            margin: '0 auto',
+            marginBottom: '20px',
+          }}
+        >
+          <EChartsWrapper option={option} height="100%" />
+        </div>
       </div>
       <div
         style={{
@@ -106,7 +104,7 @@ export function ImageSubmissionStatusChart({
           alignItems: 'center',
           justifyContent: 'center',
           gap: '16px',
-          paddingTop: '8px',
+          paddingTop: '0px',
           flexWrap: 'wrap',
           rowGap: '6px',
         }}

@@ -357,7 +357,7 @@ export function DashboardBody({
           <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="510px" minW={0}>
             {isStateScreen ? (
               <>
-                <Text textStyle="bodyText3" fontWeight="400" mb={2}>
+                <Text textStyle="bodyText3" fontWeight="400" mb="16px">
                   {t('outageAndSubmissionCharts.titles.supplyOutageDistribution', {
                     defaultValue: 'Supply Outage Distribution',
                   })}

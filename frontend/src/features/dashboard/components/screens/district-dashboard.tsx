@@ -310,7 +310,7 @@ export function DistrictDashboardScreen({
               defaultValue: 'Reading Submission Status',
             })}
           </Text>
-          <ImageSubmissionStatusChart data={data.imageSubmissionStatus} height="383px" />
+          <ImageSubmissionStatusChart data={data.imageSubmissionStatus} height="336px" />
         </Box>
         <Box
           bg="white"
