@@ -127,7 +127,41 @@ export function MetricPerformanceChart({
 
     return {
       tooltip: {
-        show: false,
+        show: true,
+        trigger: 'axis',
+        axisPointer: {
+          type: 'shadow',
+        },
+        formatter: (params: unknown) => {
+          const points = Array.isArray(params)
+            ? (params as Array<{
+                axisValueLabel?: string
+                seriesName?: string
+                value?: number | string
+              }>)
+            : []
+
+          if (points.length === 0) {
+            return ''
+          }
+
+          const entityName = points[0]?.axisValueLabel ?? ''
+          const rows = points
+            .map((point) => {
+              const rawValue = typeof point.value === 'number' ? point.value : Number(point.value)
+              const hasNumericValue = Number.isFinite(rawValue)
+              const formattedValue = hasNumericValue
+                ? metric === 'regularity'
+                  ? `${rawValue.toFixed(1)}%`
+                  : `${rawValue.toFixed(1)}`
+                : '-'
+
+              return `${point.seriesName}: ${formattedValue}`
+            })
+            .join('<br/>')
+
+          return `<strong>${entityName}</strong><br/>${rows}`
+        },
       },
       legend: {
         show: false,
@@ -184,6 +218,7 @@ export function MetricPerformanceChart({
     data,
     demandValues,
     dynamicBarWidth,
+    metric,
     showAreaLine,
     yAxisScale,
     yValues,
