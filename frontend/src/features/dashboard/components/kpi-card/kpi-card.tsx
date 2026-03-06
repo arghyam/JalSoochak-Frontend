@@ -31,9 +31,9 @@ export function KPICard({ title, value, icon, trend }: KPICardProps) {
       borderWidth="0.5px"
       borderColor="neutral.200"
       w="full"
-      minH="120px"
+      h="140px"
       px="16px"
-      py="16px"
+      py="24px"
       boxShadow="sm"
       transition="box-shadow 0.2s"
     >
