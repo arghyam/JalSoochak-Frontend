@@ -10,6 +10,7 @@ interface IssueTypeBreakdownChartProps {
   data: WaterSupplyOutageData[]
   className?: string
   height?: string | number
+  pieSize?: number
 }
 
 const outageColors = {
@@ -24,6 +25,7 @@ export function IssueTypeBreakdownChart({
   data,
   className,
   height = '400px',
+  pieSize = 300,
 }: IssueTypeBreakdownChartProps) {
   const { t } = useTranslation('dashboard')
   const theme = useTheme()
@@ -97,8 +99,8 @@ export function IssueTypeBreakdownChart({
       series: [
         {
           type: 'pie',
-          radius: ['0%', '70%'],
-          center: ['50%', '45%'],
+          radius: ['0%', '98%'],
+          center: ['50%', '50%'],
           avoidLabelOverlap: true,
           label: {
             show: false,
@@ -163,7 +165,17 @@ export function IssueTypeBreakdownChart({
       }}
     >
       <div style={{ flex: 1, minHeight: 0 }}>
-        <EChartsWrapper option={option} height="100%" />
+        <div
+          style={{
+            width: `${pieSize}px`,
+            height: `${pieSize}px`,
+            maxWidth: '100%',
+            margin: '0 auto',
+            marginBottom: '20px',
+          }}
+        >
+          <EChartsWrapper option={option} height="100%" />
+        </div>
       </div>
       <div
         style={{
@@ -171,7 +183,7 @@ export function IssueTypeBreakdownChart({
           alignItems: 'center',
           justifyContent: 'center',
           gap: '16px',
-          paddingTop: '8px',
+          paddingTop: '0px',
           flexWrap: 'wrap',
         }}
       >

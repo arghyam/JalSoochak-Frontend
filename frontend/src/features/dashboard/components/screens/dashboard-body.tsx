@@ -116,11 +116,11 @@ export function DashboardBody({
             px="16px"
             pt="24px"
             pb="24px"
-            h="523px"
+            h="536px"
             w="full"
             minW={0}
           >
-            <Flex align="center" justify="space-between">
+            <Flex align="center" justify="space-between" mb="16px">
               <Text textStyle="bodyText3" fontWeight="400">
                 {t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
               </Text>
@@ -207,10 +207,10 @@ export function DashboardBody({
             px="16px"
             pt="24px"
             pb="24px"
-            h="523px"
+            h="536px"
             minW={0}
           >
-            <Flex align="center" justify="space-between">
+            <Flex align="center" justify="space-between" mb="16px">
               <Text textStyle="bodyText3" fontWeight="400">
                 {t('performanceCharts.regularity.title', {
                   defaultValue: 'Regularity Performance',
@@ -347,12 +347,12 @@ export function DashboardBody({
             w="full"
             minW={0}
           >
-            <Text textStyle="bodyText3" fontWeight="400" mb={2}>
+            <Text textStyle="bodyText3" fontWeight="400" mb="44px">
               {t('outageAndSubmissionCharts.titles.supplyOutageReasons', {
                 defaultValue: 'Supply Outage Reasons',
               })}
             </Text>
-            <IssueTypeBreakdownChart data={waterSupplyOutagesData} height="400px" />
+            <IssueTypeBreakdownChart data={waterSupplyOutagesData} height="336px" />
           </Box>
           <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="510px" minW={0}>
             {isStateScreen ? (
@@ -370,7 +370,7 @@ export function DashboardBody({
               </>
             ) : (
               <>
-                <Text textStyle="bodyText3" fontWeight="400" mb={2}>
+                <Text textStyle="bodyText3" fontWeight="400" mb="16px">
                   {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
                     defaultValue: 'Reading Submission Rate',
                   })}
