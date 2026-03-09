@@ -137,6 +137,7 @@ export function MetricPerformanceChart({
             ? (params as Array<{
                 axisValueLabel?: string
                 seriesName?: string
+                seriesType?: string
                 value?: number | string
               }>)
             : []
@@ -150,8 +151,11 @@ export function MetricPerformanceChart({
             .map((point) => {
               const rawValue = typeof point.value === 'number' ? point.value : Number(point.value)
               const hasNumericValue = Number.isFinite(rawValue)
+              const shouldUsePercentUnit =
+                point.seriesType === 'line' ||
+                (point.seriesType === 'bar' && metric === 'regularity')
               const formattedValue = hasNumericValue
-                ? metric === 'regularity'
+                ? shouldUsePercentUnit
                   ? `${rawValue.toFixed(1)}%`
                   : `${rawValue.toFixed(1)}`
                 : '-'

@@ -95,8 +95,10 @@ export function WaterSupplyOutagesChart({
           const rawValue =
             typeof point.value === 'number' ? point.value : Number(point.value ?? Number.NaN)
           const formattedValue = Number.isFinite(rawValue) ? rawValue.toFixed(1) : '-'
+          const safeName = echarts.format.encodeHTML(point.name ?? '')
+          const safeSeriesName = echarts.format.encodeHTML(point.seriesName ?? '')
 
-          return `<strong>${point.name ?? ''}</strong><br/>${point.seriesName ?? ''}: ${formattedValue}`
+          return `<strong>${safeName}</strong><br/>${safeSeriesName}: ${formattedValue}`
         },
       },
       grid: {

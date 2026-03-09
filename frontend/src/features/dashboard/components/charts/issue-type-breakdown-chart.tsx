@@ -25,7 +25,7 @@ const chartLegendGapPx = 20
 export function IssueTypeBreakdownChart({
   data,
   className,
-  height = '400px',
+  height = '300px',
   pieSize = 300,
 }: IssueTypeBreakdownChartProps) {
   const { t } = useTranslation('dashboard')

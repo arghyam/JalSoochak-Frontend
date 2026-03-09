@@ -21,6 +21,7 @@ beforeAll(() => {
   }
 
   Object.defineProperty(globalThis, 'ResizeObserver', {
+    configurable: true,
     writable: true,
     value: ResizeObserverMock,
   })
@@ -60,8 +61,8 @@ describe('WaterSupplyOutagesChart', () => {
             option?: {
               tooltip?: { show?: boolean; formatter?: (params: unknown) => string }
               series?: Array<{
-                itemStyle?: { color?: string }
-                emphasis?: { itemStyle?: { color?: string } }
+                itemStyle?: { color?: string; borderRadius?: number | number[] }
+                emphasis?: { itemStyle?: { color?: string; borderRadius?: number | number[] } }
               }>
             }
           },
@@ -87,6 +88,7 @@ describe('WaterSupplyOutagesChart', () => {
     const series = option?.series ?? []
     series.forEach((stack) => {
       expect(stack.emphasis?.itemStyle?.color).toBe(stack.itemStyle?.color)
+      expect(stack.emphasis?.itemStyle?.borderRadius).toEqual(stack.itemStyle?.borderRadius)
     })
   })
 })

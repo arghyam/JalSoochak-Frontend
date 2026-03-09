@@ -105,10 +105,14 @@ export function IndiaMapChart({
           }
           if (p.data) {
             const { name, value, metrics } = p.data
+            const safeName = echarts.format.encodeHTML(name)
+            const safeMetricLabel = echarts.format.encodeHTML(
+              metricKey === 'regularity' ? regularityLabel : quantityLabel
+            )
             return `
               <div style="padding: 8px;">
-                <strong>${name}</strong><br/>
-                ${metricKey === 'regularity' ? regularityLabel : quantityLabel}: ${value.toFixed(1)}${metricKey === 'regularity' ? '%' : ''}<br/>
+                <strong>${safeName}</strong><br/>
+                ${safeMetricLabel}: ${value.toFixed(1)}${metricKey === 'regularity' ? '%' : ''}<br/>
                 Coverage: ${metrics.coverage.toFixed(1)}%<br/>
                 Regularity: ${metrics.regularity.toFixed(1)}%<br/>
                 Continuity: ${metrics.continuity.toFixed(1)}<br/>
@@ -116,7 +120,7 @@ export function IndiaMapChart({
               </div>
             `
           }
-          return (p as { name?: string }).name || ''
+          return echarts.format.encodeHTML((p as { name?: string }).name ?? '')
         },
       },
       series: [

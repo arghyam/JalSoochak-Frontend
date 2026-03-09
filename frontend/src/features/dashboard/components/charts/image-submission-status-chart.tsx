@@ -56,13 +56,14 @@ export function ImageSubmissionStatusChart({
           const rawValue =
             typeof point.value === 'number' ? point.value : Number(point.value ?? Number.NaN)
           const hasNumericValue = Number.isFinite(rawValue)
+          const safeName = echarts.format.encodeHTML(point.name ?? '')
           const percentage =
             hasNumericValue && totalSubmissions > 0
               ? ` (${((rawValue / totalSubmissions) * 100).toFixed(1)}%)`
               : ''
           const formattedValue = hasNumericValue ? rawValue.toFixed(1) : '-'
 
-          return `<strong>${point.name ?? ''}</strong><br/>${formattedValue}${percentage}`
+          return `<strong>${safeName}</strong><br/>${formattedValue}${percentage}`
         },
       },
       series: [
