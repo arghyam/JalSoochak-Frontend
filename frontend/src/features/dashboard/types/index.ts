@@ -123,6 +123,24 @@ export interface StateUtSearchResponse {
   states: StateUtOption[]
 }
 
+export interface TenantApiItem {
+  id: number
+  uuid: string
+  stateCode: string
+  lgdCode: number
+  name: string
+  status?: string
+}
+
+export interface TenantListResponse {
+  status: number
+  message: string
+  data: {
+    content: TenantApiItem[]
+    totalElements: number
+  }
+}
+
 // For map hover/click interactions
 export interface MapInteraction {
   entityId: string

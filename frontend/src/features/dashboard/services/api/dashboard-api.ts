@@ -1,14 +1,10 @@
 import { apiClient } from '@/shared/lib/axios'
-import type { DashboardData, DashboardLevel } from '../../types'
+import type { DashboardData, DashboardLevel, TenantListResponse } from '../../types'
 import { dashboardMockService } from '../mock/dashboard-mock'
 
 export interface DashboardQueryParams {
   level: DashboardLevel
   entityId?: string
-}
-
-type DashboardDataProvider = {
-  getDashboardData: (params: DashboardQueryParams) => Promise<DashboardData>
 }
 
 const ensureValidParams = ({ level, entityId }: DashboardQueryParams): void => {
@@ -17,29 +13,24 @@ const ensureValidParams = ({ level, entityId }: DashboardQueryParams): void => {
   }
 }
 
-const httpProvider: DashboardDataProvider = {
-  getDashboardData: async ({ level, entityId }) => {
+export const dashboardApi = {
+  getDashboardData: async ({ level, entityId }: DashboardQueryParams): Promise<DashboardData> => {
     ensureValidParams({ level, entityId })
-    const endpoint =
-      level === 'central' ? '/api/dashboard/central' : `/api/dashboard/${level}/${entityId}`
+    if (level === 'central') {
+      return dashboardMockService.getDashboardData(level, entityId)
+    }
+
+    const endpoint = `/api/dashboard/${level}/${entityId}`
     const response = await apiClient.get<DashboardData>(endpoint)
     return response.data
   },
-}
-
-const mockProvider: DashboardDataProvider = {
-  getDashboardData: ({ level, entityId }) => {
-    ensureValidParams({ level, entityId })
-    return dashboardMockService.getDashboardData(level, entityId)
-  },
-}
-
-const DASHBOARD_PROVIDER = import.meta.env.VITE_DASHBOARD_DATA_PROVIDER ?? 'mock'
-
-const provider: DashboardDataProvider = DASHBOARD_PROVIDER === 'http' ? httpProvider : mockProvider
-
-export const dashboardApi = {
-  getDashboardData: (params: DashboardQueryParams): Promise<DashboardData> => {
-    return provider.getDashboardData(params)
+  getTenants: async (
+    params: { page?: number; size?: number } = {}
+  ): Promise<TenantListResponse> => {
+    const { page = 0, size = 100 } = params
+    const response = await apiClient.get<TenantListResponse>('/tenants', {
+      params: { page, size },
+    })
+    return response.data
   },
 }

@@ -18,7 +18,6 @@ import { AllStatesTable } from './tables'
 import { ROUTES } from '@/shared/constants/routes'
 import { computeTrailIndices } from '../utils/trail-index'
 import {
-  mockFilterStates,
   mockFilterDistricts,
   mockFilterBlocks,
   mockFilterGramPanchayats,
@@ -342,10 +341,7 @@ export function CentralDashboard() {
   const handleStateClick = (_stateId: string, stateName: string) => {
     setActiveTrailIndex(null)
     setFilterTabIndex(0)
-    const stateOption = mockFilterStates.find(
-      (option) => option.label.toLowerCase() === stateName.toLowerCase()
-    )
-    updateFilterUrl({ state: stateOption?.value ?? toStateSlug(stateName) })
+    updateFilterUrl({ state: toStateSlug(stateName) })
   }
 
   const handleStateHover = (_stateId: string, _stateName: string, _metrics: unknown) => {
@@ -603,7 +599,7 @@ export function CentralDashboard() {
         blockOptions={blockOptions}
         gramPanchayatOptions={gramPanchayatOptions}
         villageOptions={villageOptions}
-        mockFilterStates={mockFilterStates}
+        mockFilterStates={emptyOptions}
         mockFilterSchemes={mockFilterSchemes}
         onStateChange={handleStateChange}
         onDistrictChange={handleDistrictChange}

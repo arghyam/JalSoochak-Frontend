@@ -1,12 +1,11 @@
 import type { Dispatch, SetStateAction } from 'react'
 import { Button, Flex, Text } from '@chakra-ui/react'
-import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { DateRangePicker } from '@/shared/components/common'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
 import { SearchLayout } from '@/shared/components/layout'
-import { apiClient } from '@/shared/lib/axios'
 import { useLocationSearchQuery } from '../../services/query/use-location-search-query'
+import { useTenantsQuery } from '../../services/query/use-tenants-query'
 import { computeTrailIndices } from '../../utils/trail-index'
 
 type DashboardFiltersProps = {
@@ -52,11 +51,6 @@ type DashboardFiltersProps = {
   onActiveTrailChange?: (trailIndex: number | null) => void
 }
 
-type TenantApiItem = {
-  tenantId: number
-  title: string
-}
-
 export function DashboardFilters(props: DashboardFiltersProps) {
   const { t } = useTranslation('dashboard')
   const {
@@ -89,28 +83,39 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     !selectedBlock &&
     !selectedGramPanchayat &&
     !selectedVillage
-  const { data: tenants } = useQuery<TenantApiItem[]>({
-    queryKey: ['dashboard', 'location-search', 'tenants'],
-    queryFn: async () => {
-      const response = await apiClient.get<TenantApiItem[]>('/api/v1/analytics/tenants')
-      return response.data
-    },
-    enabled: shouldFetchTenants,
-  })
+  const { data: tenantResponse } = useTenantsQuery(shouldFetchTenants, { page: 0, size: 100 })
   const { data: locationSearchData } = useLocationSearchQuery()
+  const toStateSlug = (stateName: string) =>
+    stateName
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+  const toStateLabel = (stateSlug: string) =>
+    stateSlug
+      .split('-')
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+
   const tenantStateOptions =
-    tenants
-      ?.filter((tenant) => tenant.tenantId !== 0)
+    tenantResponse?.data.content
+      ?.filter((tenant) => tenant.id !== 0 && tenant.status !== 'ARCHIVED')
       .map((tenant) => ({
-        value: String(tenant.tenantId),
-        label: tenant.title.trim() || `Tenant ${tenant.tenantId}`,
+        value: toStateSlug(tenant.name || tenant.stateCode),
+        label: tenant.name.trim() || tenant.stateCode.trim(),
       })) ?? []
+  const selectedStateFallbackOptions = selectedState
+    ? [{ value: selectedState, label: toStateLabel(selectedState) }]
+    : []
   const breadcrumbStateOptions = tenantStateOptions.length
     ? tenantStateOptions
-    : (locationSearchData?.states ?? [{ value: 'telangana', label: 'Telangana' }])
+    : locationSearchData?.states?.length
+      ? locationSearchData.states
+      : selectedStateFallbackOptions
   const totalStatesCount = tenantStateOptions.length
     ? tenantStateOptions.length
-    : (locationSearchData?.totalStatesCount ?? 36)
+    : (tenantResponse?.data.totalElements ?? locationSearchData?.totalStatesCount ?? 0)
   const findLabel = (value: string, options: SearchableSelectOption[]): string | null => {
     if (!value) return null
     return options.find((option) => option.value === value)?.label ?? null

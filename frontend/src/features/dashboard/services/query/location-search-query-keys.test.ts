@@ -9,5 +9,6 @@ describe('locationSearchQueryKeys', () => {
       'location-search',
       'states-uts',
     ])
+    expect(locationSearchQueryKeys.tenants()).toEqual(['dashboard', 'location-search', 'tenants'])
   })
 })
