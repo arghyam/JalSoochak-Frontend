@@ -63,6 +63,16 @@ export interface PumpOperatorPerformanceData {
   waterSupplied: number
 }
 
+export interface VillagePumpOperatorDetails {
+  name: string
+  scheme: string
+  stationLocation: string
+  lastSubmission: string
+  reportingRate: string
+  missingSubmissionCount: string
+  inactiveDays: string
+}
+
 export interface WaterSupplyOutageData {
   label: string
   electricityFailure: number
@@ -70,6 +80,16 @@ export interface WaterSupplyOutageData {
   pumpFailure: number
   valveIssue: number
   sourceDrying: number
+}
+
+export interface ReadingSubmissionTrendData {
+  period: string
+  value: number
+}
+
+export interface SupplyOutageTrendData {
+  period: string
+  value: number
 }
 
 export interface DashboardData {
@@ -83,6 +103,8 @@ export interface DashboardData {
   photoEvidenceCompliance: PhotoEvidenceComplianceData[]
   pumpOperators: PumpOperatorsData[]
   waterSupplyOutages: WaterSupplyOutageData[]
+  supplyOutageTrend?: SupplyOutageTrendData[]
+  readingSubmissionTrend?: ReadingSubmissionTrendData[]
   topPerformers: EntityPerformance[]
   worstPerformers: EntityPerformance[]
   regularityData: EntityPerformance[]

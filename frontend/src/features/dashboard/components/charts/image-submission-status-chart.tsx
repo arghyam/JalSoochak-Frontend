@@ -1,5 +1,6 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useBreakpointValue, useTheme } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
@@ -12,24 +13,47 @@ interface ImageSubmissionStatusChartProps {
 }
 
 const defaultColors = ['#3291D1', '#ADD3ED']
+const defaultPieRadius: (string | number)[] = ['0%', '68%']
+const defaultPieCenter: [string, string] = ['50%', '45%']
 
 export function ImageSubmissionStatusChart({
   data,
   className,
   height = '406px',
 }: ImageSubmissionStatusChartProps) {
+  const { t } = useTranslation('dashboard')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
-  const pieRadius = useBreakpointValue<(string | number)[]>({
-    base: ['0%', '75%'],
-    sm: ['0%', '70%'],
-    md: ['0%', '68%'],
-  }) ?? ['0%', '68%']
-  const pieCenter = useBreakpointValue<[string, string]>({
-    base: ['50%', '42%'],
-    sm: ['50%', '45%'],
-    md: ['50%', '45%'],
-  }) ?? ['50%', '45%']
+  const pieRadius =
+    useBreakpointValue<(string | number)[]>({
+      base: ['0%', '75%'],
+      sm: ['0%', '70%'],
+      md: ['0%', '68%'],
+    }) ?? defaultPieRadius
+  const pieCenter =
+    useBreakpointValue<[string, string]>({
+      base: ['50%', '42%'],
+      sm: ['50%', '45%'],
+      md: ['50%', '45%'],
+    }) ?? defaultPieCenter
+  const localizedLegendLabel = useCallback(
+    (label: string) => {
+      const normalized = label.trim().toLowerCase()
+      if (normalized === 'complaint submission' || normalized === 'complaint submissions') {
+        return t('outageAndSubmissionCharts.legend.complaintSubmission', {
+          defaultValue: 'Complaint Submission',
+        })
+      }
+      if (normalized === 'automated submission' || normalized === 'automated submissions') {
+        return t('outageAndSubmissionCharts.legend.automatedSubmission', {
+          defaultValue: 'Automated Submission',
+        })
+      }
+
+      return label
+    },
+    [t]
+  )
 
   const option = useMemo<echarts.EChartsOption>(() => {
     return {
@@ -49,7 +73,7 @@ export function ImageSubmissionStatusChart({
             show: false,
           },
           data: data.map((entry, index) => ({
-            name: entry.label,
+            name: localizedLegendLabel(entry.label),
             value: entry.value,
             itemStyle: {
               color: defaultColors[index % defaultColors.length],
@@ -58,7 +82,7 @@ export function ImageSubmissionStatusChart({
         },
       ],
     }
-  }, [data, bodyText7, pieCenter, pieRadius])
+  }, [data, pieCenter, pieRadius, localizedLegendLabel])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
 
@@ -107,7 +131,7 @@ export function ImageSubmissionStatusChart({
                 color: bodyText7.color,
               }}
             >
-              {entry.label}
+              {localizedLegendLabel(entry.label)}
             </span>
           </div>
         ))}

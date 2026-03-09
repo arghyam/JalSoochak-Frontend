@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react'
 import { Button, Flex, Text } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import { DateRangePicker } from '@/shared/components/common'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
 import { SearchLayout } from '@/shared/components/layout'
@@ -50,6 +51,7 @@ type DashboardFiltersProps = {
 }
 
 export function DashboardFilters(props: DashboardFiltersProps) {
+  const { t } = useTranslation('dashboard')
   const {
     filterTabIndex,
     onTabChange,
@@ -106,40 +108,40 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   const breadcrumbPanelConfig = hasSelectedGramPanchayat
     ? {
         options: villageOptions,
-        label: 'Villages',
+        label: t('filters.options.villages', 'Villages'),
         totalCount: villageOptions.length,
-        noOptionsText: 'No villages found',
+        noOptionsText: t('filters.noOptions.villages', 'No villages found'),
         onSelect: setSelectedVillage,
       }
     : hasSelectedBlock
       ? {
           options: gramPanchayatOptions,
-          label: 'Gram Panchayats',
+          label: t('filters.options.gramPanchayats', 'Gram Panchayats'),
           totalCount: gramPanchayatOptions.length,
-          noOptionsText: 'No gram panchayats found',
+          noOptionsText: t('filters.noOptions.gramPanchayats', 'No gram panchayats found'),
           onSelect: onGramPanchayatChange,
         }
       : hasSelectedDistrict
         ? {
             options: blockOptions,
-            label: 'Blocks',
+            label: t('filters.options.blocks', 'Blocks'),
             totalCount: blockOptions.length,
-            noOptionsText: 'No blocks found',
+            noOptionsText: t('filters.noOptions.blocks', 'No blocks found'),
             onSelect: onBlockChange,
           }
         : hasSelectedState
           ? {
               options: districtOptions,
-              label: 'Districts',
+              label: t('filters.options.districts', 'Districts'),
               totalCount: districtOptions.length,
-              noOptionsText: 'No districts found',
+              noOptionsText: t('filters.noOptions.districts', 'No districts found'),
               onSelect: onDistrictChange,
             }
           : {
               options: breadcrumbStateOptions,
-              label: 'States',
+              label: t('filters.options.states', 'States'),
               totalCount: totalStatesCount,
-              noOptionsText: 'No states found',
+              noOptionsText: t('filters.noOptions.states', 'No states found'),
               onSelect: onStateChange,
             }
 
@@ -176,7 +178,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
           <DateRangePicker
             value={selectedDuration}
             onChange={setSelectedDuration}
-            placeholder="Duration"
+            placeholder={t('filters.duration', 'Duration')}
             width="160px"
             height="32px"
             borderRadius="4px"
@@ -194,7 +196,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
             _hover={{ textDecoration: 'underline', textDecorationColor: 'neutral.300' }}
           >
             <Text textStyle="h10" fontWeight="600" color="neutral.300">
-              Clear all filters
+              {t('filters.clearAll', 'Clear all filters')}
             </Text>
           </Button>
         </Flex>

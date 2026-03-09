@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react'
 import { Box, Flex, Grid, Select, Text } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import type {
   DashboardData,
   EntityPerformance,
   PumpOperatorPerformanceData,
+  VillagePumpOperatorDetails,
   WaterSupplyOutageData,
 } from '../../types'
 import {
@@ -36,6 +38,8 @@ type DashboardBodyProps = {
   pumpOperatorsTotal: number
   operatorsPerformanceTable: PumpOperatorPerformanceData[]
   villagePhotoEvidenceRows: DashboardData['photoEvidenceCompliance']
+  villagePumpOperatorDetails?: VillagePumpOperatorDetails
+  villagePumpOperators?: VillagePumpOperatorDetails[]
 }
 
 export function DashboardBody({
@@ -55,7 +59,10 @@ export function DashboardBody({
   pumpOperatorsTotal,
   operatorsPerformanceTable,
   villagePhotoEvidenceRows,
+  villagePumpOperatorDetails,
+  villagePumpOperators,
 }: DashboardBodyProps) {
+  const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<'geography' | 'time'>('geography')
   const [regularityViewBy, setRegularityViewBy] = useState<'geography' | 'time'>('geography')
   const isStateScreen =
@@ -86,7 +93,9 @@ export function DashboardBody({
     [data.demandSupply]
   )
   const geographyMetricData = isStateScreen ? districtTableData : data.mapData
-  const geographyEntityLabel = isStateScreen ? 'Districts' : 'States/UTs'
+  const geographyEntityLabel = isStateScreen
+    ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
+    : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
 
   return (
     <>
@@ -107,10 +116,12 @@ export function DashboardBody({
           >
             <Flex align="center" justify="space-between">
               <Text textStyle="bodyText3" fontWeight="400">
-                Quantity Performance
+                {t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
               </Text>
               <Select
-                aria-label="Quantity performance view by"
+                aria-label={t('performanceCharts.quantity.ariaViewBy', {
+                  defaultValue: 'Quantity performance view by',
+                })}
                 h="32px"
                 maxW="128px"
                 fontSize="14px"
@@ -128,8 +139,12 @@ export function DashboardBody({
                   boxShadow: 'none',
                 }}
               >
-                <option value="geography">Geography</option>
-                <option value="time">Time</option>
+                <option value="geography">
+                  {t('performanceCharts.viewBy.geography', { defaultValue: 'Geography' })}
+                </option>
+                <option value="time">
+                  {t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+                </option>
               </Select>
             </Flex>
             {quantityViewBy === 'geography' ? (
@@ -138,18 +153,28 @@ export function DashboardBody({
                 metric="quantity"
                 height="400px"
                 entityLabel={geographyEntityLabel}
-                yAxisLabel="Quantity"
-                seriesName="Quantity"
+                yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
+                  defaultValue: 'Quantity',
+                })}
+                seriesName={t('performanceCharts.quantity.seriesName', {
+                  defaultValue: 'Quantity',
+                })}
                 showAreaLine
-                areaSeriesName="Demand"
+                areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
+                  defaultValue: 'Demand',
+                })}
               />
             ) : (
               <MonthlyTrendChart
                 data={quantityTimeTrendData}
                 height="400px"
-                xAxisLabel="Month"
-                yAxisLabel="Quantity"
-                seriesName="Quantity"
+                xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+                yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
+                  defaultValue: 'Quantity',
+                })}
+                seriesName={t('performanceCharts.quantity.seriesName', {
+                  defaultValue: 'Quantity',
+                })}
               />
             )}
           </Box>
@@ -166,10 +191,14 @@ export function DashboardBody({
           >
             <Flex align="center" justify="space-between">
               <Text textStyle="bodyText3" fontWeight="400">
-                Regularity Performance
+                {t('performanceCharts.regularity.title', {
+                  defaultValue: 'Regularity Performance',
+                })}
               </Text>
               <Select
-                aria-label="Regularity performance view by"
+                aria-label={t('performanceCharts.regularity.ariaViewBy', {
+                  defaultValue: 'Regularity performance view by',
+                })}
                 h="32px"
                 maxW="128px"
                 fontSize="14px"
@@ -189,8 +218,12 @@ export function DashboardBody({
                   boxShadow: 'none',
                 }}
               >
-                <option value="geography">Geography</option>
-                <option value="time">Time</option>
+                <option value="geography">
+                  {t('performanceCharts.viewBy.geography', { defaultValue: 'Geography' })}
+                </option>
+                <option value="time">
+                  {t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+                </option>
               </Select>
             </Flex>
             {regularityViewBy === 'geography' ? (
@@ -199,16 +232,24 @@ export function DashboardBody({
                 metric="regularity"
                 height="400px"
                 entityLabel={geographyEntityLabel}
-                yAxisLabel="Regularity"
-                seriesName="Regularity"
+                yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
+                  defaultValue: 'Regularity',
+                })}
+                seriesName={t('performanceCharts.regularity.seriesName', {
+                  defaultValue: 'Regularity',
+                })}
               />
             ) : (
               <MonthlyTrendChart
                 data={regularityTimeTrendData}
                 height="400px"
-                xAxisLabel="Month"
-                yAxisLabel="Regularity (%)"
-                seriesName="Regularity"
+                xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+                yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
+                  defaultValue: 'Regularity (%)',
+                })}
+                seriesName={t('performanceCharts.regularity.seriesName', {
+                  defaultValue: 'Regularity',
+                })}
               />
             )}
           </Box>
@@ -246,11 +287,13 @@ export function DashboardBody({
         />
       ) : null}
 
-      {selectedVillage ? (
+      {selectedVillage && villagePumpOperatorDetails ? (
         <VillageDashboardScreen
           data={data}
           villagePhotoEvidenceRows={villagePhotoEvidenceRows}
           waterSupplyOutagesData={waterSupplyOutagesData}
+          villagePumpOperatorDetails={villagePumpOperatorDetails}
+          villagePumpOperators={villagePumpOperators}
         />
       ) : null}
 
@@ -271,7 +314,9 @@ export function DashboardBody({
             minW={0}
           >
             <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-              Supply Outage Reasons
+              {t('outageAndSubmissionCharts.titles.supplyOutageReasons', {
+                defaultValue: 'Supply Outage Reasons',
+              })}
             </Text>
             <IssueTypeBreakdownChart data={waterSupplyOutagesData} height="400px" />
           </Box>
@@ -279,7 +324,9 @@ export function DashboardBody({
             {isStateScreen ? (
               <>
                 <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-                  Supply Outage Distribution
+                  {t('outageAndSubmissionCharts.titles.supplyOutageDistribution', {
+                    defaultValue: 'Supply Outage Distribution',
+                  })}
                 </Text>
                 <WaterSupplyOutagesChart
                   data={waterSupplyOutagesData}
@@ -290,7 +337,9 @@ export function DashboardBody({
             ) : (
               <>
                 <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-                  Reading Submission Rate
+                  {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
+                    defaultValue: 'Reading Submission Rate',
+                  })}
                 </Text>
                 <SupplySubmissionRateChart
                   data={supplySubmissionRateData}

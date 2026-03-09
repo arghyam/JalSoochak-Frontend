@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
 import { Box, useBreakpointValue, useTheme } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
@@ -20,6 +21,7 @@ export function SupplySubmissionRateChart({
   maxItems = 5,
   entityLabel = 'States/UTs',
 }: SupplySubmissionRateChartProps) {
+  const { t } = useTranslation('dashboard')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
   const barWidth = useBreakpointValue({ base: 28, sm: 28, md: 42, lg: 66 }) ?? 66
@@ -50,6 +52,32 @@ export function SupplySubmissionRateChart({
       return item.name.length > longest.length ? item.name : longest
     }, '')
   }, [data])
+  const localizedEntityLabel = useMemo(() => {
+    const normalized = entityLabel.trim().toLowerCase()
+    const labelLookup: Record<string, { key: string; defaultValue: string }> = {
+      'states/uts': { key: 'performanceCharts.viewBy.statesUTs', defaultValue: 'States/UTs' },
+      'state/ut': { key: 'performanceCharts.viewBy.statesUTs', defaultValue: 'States/UTs' },
+      districts: { key: 'performanceCharts.viewBy.districts', defaultValue: 'Districts' },
+      district: { key: 'performanceCharts.viewBy.districts', defaultValue: 'Districts' },
+      blocks: { key: 'performanceCharts.viewBy.blocks', defaultValue: 'Blocks' },
+      block: { key: 'performanceCharts.viewBy.blocks', defaultValue: 'Blocks' },
+      'gram panchayats': {
+        key: 'performanceCharts.viewBy.gramPanchayats',
+        defaultValue: 'Gram Panchayats',
+      },
+      'gram panchayat': {
+        key: 'performanceCharts.viewBy.gramPanchayats',
+        defaultValue: 'Gram Panchayats',
+      },
+      villages: { key: 'performanceCharts.viewBy.villages', defaultValue: 'Villages' },
+      village: { key: 'performanceCharts.viewBy.villages', defaultValue: 'Villages' },
+    }
+    const labelConfig = labelLookup[normalized]
+    if (labelConfig) {
+      return t(labelConfig.key, { defaultValue: labelConfig.defaultValue })
+    }
+    return entityLabel
+  }, [entityLabel, t])
 
   const option = useMemo<echarts.EChartsOption>(() => {
     const entities = data.map((d) => d.name)
@@ -102,7 +130,9 @@ export function SupplySubmissionRateChart({
       },
       series: [
         {
-          name: 'Submission Rate',
+          name: t('outageAndSubmissionCharts.series.submissionRate', {
+            defaultValue: 'Submission Rate',
+          }),
           type: 'bar',
           data: rates,
           barWidth: dynamicBarWidth,
@@ -117,7 +147,7 @@ export function SupplySubmissionRateChart({
         },
       ],
     }
-  }, [data, dynamicBarWidth, barRadius, bodyText7])
+  }, [barRadius, bodyText7, data, dynamicBarWidth, t])
 
   const axisOption = useMemo<echarts.EChartsOption>(() => {
     const placeholderLabel = longestEntityLabel || 'W'
@@ -310,7 +340,7 @@ export function SupplySubmissionRateChart({
             color={bodyText7.color}
             whiteSpace="nowrap"
           >
-            Percentage
+            {t('outageAndSubmissionCharts.axis.percentage', { defaultValue: 'Percentage' })}
           </Box>
         </Box>
         <Box
@@ -343,7 +373,7 @@ export function SupplySubmissionRateChart({
         color={bodyText7.color}
         mt="4px"
       >
-        {entityLabel}
+        {localizedEntityLabel}
       </Box>
       <Box mt="6px">
         <Box

@@ -1,0 +1,215 @@
+{
+  "headerTitle": "JalSoochak Dashboard",
+  "searchLayout": {
+    "placeholder": "Search by state/UT, district, block, gram panchayat, village",
+    "downloadReport": "Download Report",
+    "allStatesUTs": "All States/UTs",
+    "noOptionsFound": "No {{label}} found",
+    "tabs": {
+      "administrative": "Administrative",
+      "departmental": "Departmental"
+    },
+    "options": {
+      "states": "States"
+    },
+    "aria": {
+      "breadcrumb": "Breadcrumb: {{item}}",
+      "closeDropdown": "Close search dropdown"
+    }
+  },
+  "filters": {
+    "duration": "Duration",
+    "clearAll": "Clear all filters",
+    "dateRangePicker": {
+      "quickRanges": "Quick ranges",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "dateInputPlaceholder": "dd/mm/yyyy",
+      "clear": "Clear",
+      "apply": "Apply",
+      "presets": {
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "thisWeek": "This week",
+        "lastWeek": "Last week",
+        "thisMonth": "This month",
+        "lastMonth": "Last month"
+      }
+    },
+    "options": {
+      "states": "States",
+      "districts": "Districts",
+      "blocks": "Blocks",
+      "gramPanchayats": "Gram Panchayats",
+      "villages": "Villages"
+    },
+    "noOptions": {
+      "states": "No states found",
+      "districts": "No districts found",
+      "blocks": "No blocks found",
+      "gramPanchayats": "No gram panchayats found",
+      "villages": "No villages found"
+    }
+  },
+  "map": {
+    "metric": {
+      "quantity": "Quantity",
+      "regularity": "Regularity"
+    },
+    "legend": {
+      "gte90": ">=90%",
+      "gte70": ">=70%",
+      "gte50": ">=50%",
+      "gte30": ">=30%",
+      "gte0": ">=0%",
+      "noData": "No Data"
+    }
+  },
+  "kpi": {
+    "labels": {
+      "quantityInMld": "Quantity in MLD",
+      "quantityInLpcd": "Quantity in LPCD",
+      "regularity": "Regularity"
+    },
+    "trends": {
+      "percentDownLastDays": "-{{change}}% vs last {{days}} days",
+      "lpcdUpLastMonth": "+{{change}} LPCD vs last month",
+      "percentDownLastMonth": "-{{change}}% vs last month"
+    }
+  },
+  "overallPerformance": {
+    "title": "Overall Performance",
+    "columns": {
+      "entity": "State/UT",
+      "quantityMld": "Quantity (MLD)",
+      "quantityLpcd": "Quantity (LPCD)",
+      "regularity": "Regularity (%)"
+    },
+    "entities": {
+      "stateUt": "State/UT",
+      "district": "District",
+      "block": "Block",
+      "gramPanchayat": "Gram Panchayat",
+      "village": "Village"
+    }
+  },
+  "performanceCharts": {
+    "quantity": {
+      "title": "Quantity Performance",
+      "ariaViewBy": "Quantity performance view by",
+      "ariaViewByDistrict": "District quantity performance view by",
+      "ariaViewByGramPanchayat": "Gram panchayat quantity performance view by",
+      "yAxisLabel": "Quantity",
+      "seriesName": "Quantity",
+      "areaSeriesName": "Demand"
+    },
+    "regularity": {
+      "title": "Regularity Performance",
+      "ariaViewBy": "Regularity performance view by",
+      "ariaViewByDistrict": "District regularity performance view by",
+      "ariaViewByGramPanchayat": "Gram panchayat regularity performance view by",
+      "yAxisLabel": "Regularity",
+      "yAxisLabelPercent": "Regularity (%)",
+      "seriesName": "Regularity"
+    },
+    "viewBy": {
+      "select": "Select",
+      "geography": "Geography",
+      "time": "Time",
+      "month": "Month",
+      "blocks": "Blocks",
+      "districts": "Districts",
+      "statesUTs": "States/UTs",
+      "gramPanchayats": "Gram Panchayats",
+      "villages": "Villages"
+    }
+  },
+  "outageAndSubmissionCharts": {
+    "ariaViewByBlock": "Block supply outage distribution view by",
+    "ariaViewByGramPanchayat": "Gram panchayat supply outage distribution view by",
+    "titles": {
+      "supplyOutageReasons": "Supply Outage Reasons",
+      "supplyOutageDistribution": "Supply Outage Distribution",
+      "readingSubmissionRate": "Reading Submission Rate",
+      "readingSubmissionStatus": "Reading Submission Status",
+      "readingCompliance": "Reading Compliance",
+      "photoEvidenceCompliance": "Photo Evidence Compliance",
+      "issueTypeBreakdown": "Issue Type Breakdown"
+    },
+    "axis": {
+      "percentage": "Percentage",
+      "noOfDays": "No. of days"
+    },
+    "series": {
+      "submissionRate": "Submission Rate",
+      "readingSubmission": "Reading submission",
+      "supplyOutage": "Supply outage"
+    },
+    "legend": {
+      "electricalFailure": "Electrical failure",
+      "pipelineBreak": "Pipeline break",
+      "pumpFailure": "Pump failure",
+      "valveIssue": "Valve issue",
+      "sourceDrying": "Source Drying",
+      "complaintSubmission": "Complaint Submission",
+      "automatedSubmission": "Automated Submission"
+    },
+    "tables": {
+      "readingCompliance": {
+        "columns": {
+          "name": "Name",
+          "village": "Village",
+          "lastSubmission": "Last Submission",
+          "readingValue": "Reading Value"
+        }
+      }
+    }
+  },
+  "pumpOperators": {
+    "title": "Pump Operators",
+    "totalLabel": "Total",
+    "note": "Note: Active pump operators submit readings at least 30 days in a month.",
+    "details": {
+      "title": "Pump Operator Details",
+      "fields": {
+        "schemeNameSchemeId": "Scheme name/ Scheme ID",
+        "stationLocation": "Station location",
+        "lastSubmission": "Last submission",
+        "reportingRate": "Reporting rate",
+        "missingSubmissionCount": "Missing submission count",
+        "inactiveDays": "Inactive days"
+      },
+      "pagination": {
+        "previous": "Previous",
+        "next": "Next"
+      }
+    },
+    "legend": {
+      "active": "Active pump operators",
+      "inactive": "Non-active pump operators"
+    },
+    "performanceTable": {
+      "title": "Pump Operators Performance",
+      "columns": {
+        "name": "Name",
+        "village": "Village",
+        "block": "Block",
+        "reportingRate": "Reporting Rate (%)",
+        "waterSupplied": "Water Supplied"
+      }
+    }
+  },
+  "blockDashboard": {
+    "titles": {
+      "allGramPanchayatsPerformance": "All Gram Panchayats Performance",
+      "demandVsSupply": "Demand vs Supply",
+      "allGramPanchayats": "All Gram Panchayats"
+    }
+  },
+  "states": {
+    "dataUnavailable": {
+      "title": "Dashboard data unavailable",
+      "description": "No dashboard data was returned."
+    }
+  }
+}

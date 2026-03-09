@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { Box, Flex, Text, Heading, Grid, Icon, Image, Avatar } from '@chakra-ui/react'
+import { Box, Flex, Text, Heading, Grid, Icon, Image } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import { useDashboardData } from '../hooks/use-dashboard-data'
 import { KPICard } from './kpi-card'
 import { DashboardBody } from './screens/dashboard-body'
 import { IndiaMapChart } from './charts'
 import { LoadingSpinner } from '@/shared/components/common'
-import { MdOutlineWaterDrop, MdArrowUpward, MdArrowDownward } from 'react-icons/md'
-import { AiOutlineInfoCircle } from 'react-icons/ai'
+import { MdOutlineWaterDrop } from 'react-icons/md'
 import { LuClock3 } from 'react-icons/lu'
 import waterTapIcon from '@/assets/media/water-tap_1822589 1.svg'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
@@ -77,6 +77,7 @@ const toStateSlug = (stateName: string) =>
     .replace(/^-+|-+$/g, '')
 
 export function CentralDashboard() {
+  const { t, i18n } = useTranslation('dashboard')
   const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -124,7 +125,7 @@ export function CentralDashboard() {
     selectedBlock,
     selectedGramPanchayat,
     selectedVillage,
-  ] as const
+  ]
   const { effectiveTrailIndex } = computeTrailIndices(selectionTrailValues, activeTrailIndex)
   const effectiveSelectedState = effectiveTrailIndex >= 0 ? selectedState : ''
   const effectiveSelectedDistrict = effectiveTrailIndex >= 1 ? selectedDistrict : ''
@@ -170,14 +171,14 @@ export function CentralDashboard() {
           ? districtTableData
           : (data?.mapData ?? ([] as EntityPerformance[]))
   const supplySubmissionRateLabel = isGramPanchayatSelected
-    ? 'Villages'
+    ? t('performanceCharts.viewBy.villages', { defaultValue: 'Villages' })
     : isBlockSelected
-      ? 'Gram Panchayats'
+      ? t('performanceCharts.viewBy.gramPanchayats', { defaultValue: 'Gram Panchayats' })
       : isDistrictSelected
-        ? 'Blocks'
+        ? t('performanceCharts.viewBy.blocks', { defaultValue: 'Blocks' })
         : isStateSelected
-          ? 'Districts'
-          : 'States/UTs'
+          ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
+          : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
   const overallPerformanceTableData = isGramPanchayatSelected
     ? villageTableData
     : isBlockSelected
@@ -188,14 +189,14 @@ export function CentralDashboard() {
           ? districtTableData
           : (data?.mapData ?? emptyEntityPerformance)
   const overallPerformanceEntityLabel = isGramPanchayatSelected
-    ? 'Village'
+    ? t('overallPerformance.entities.village', { defaultValue: 'Village' })
     : isBlockSelected
-      ? 'Gram Panchayat'
+      ? t('overallPerformance.entities.gramPanchayat', { defaultValue: 'Gram Panchayat' })
       : isDistrictSelected
-        ? 'Block'
+        ? t('overallPerformance.entities.block', { defaultValue: 'Block' })
         : isStateSelected
-          ? 'District'
-          : 'State/UT'
+          ? t('overallPerformance.entities.district', { defaultValue: 'District' })
+          : t('overallPerformance.entities.stateUt', { defaultValue: 'State/UT' })
   const districtOptions = selectedState
     ? getOwnLookupValue(mockFilterDistricts, selectedState, emptyOptions)
     : emptyOptions
@@ -374,7 +375,22 @@ export function CentralDashboard() {
     )
   }
 
-  if (!data) return null
+  if (!data) {
+    return (
+      <Flex h="100vh" align="center" justify="center">
+        <Box textAlign="center">
+          <Heading fontSize="2xl" fontWeight="bold" color="red.600">
+            {t('states.dataUnavailable.title', { defaultValue: 'Dashboard data unavailable' })}
+          </Heading>
+          <Text mt={2} color="gray.600">
+            {t('states.dataUnavailable.description', {
+              defaultValue: 'No dashboard data was returned.',
+            })}
+          </Text>
+        </Box>
+      </Flex>
+    )
+  }
 
   if (
     !data.kpis ||
@@ -477,11 +493,22 @@ export function CentralDashboard() {
             })
           : data.waterSupplyOutages
 
+  const numberLocale = i18n.resolvedLanguage === 'hi' ? 'hi-IN' : 'en-IN'
+  const formatNumber = (value: number, options?: Intl.NumberFormatOptions) =>
+    new Intl.NumberFormat(numberLocale, options).format(value)
+
   const coreMetrics = [
     {
-      label: 'Quantity in MLD',
-      value: '36,20,012',
-      trend: { direction: 'down', text: '-3% vs last 30 days' },
+      label: t('kpi.labels.quantityInMld', { defaultValue: 'Quantity in MLD' }),
+      value: formatNumber(3620012),
+      trend: {
+        direction: 'down',
+        text: t('kpi.trends.percentDownLastDays', {
+          change: 3,
+          days: 30,
+          defaultValue: '-{{change}}% vs last {{days}} days',
+        }),
+      },
       icon: (
         <Flex w="44px" h="44px" borderRadius="100px" bg="#E6F7EC" align="center" justify="center">
           <Image src={waterTapIcon} alt="" boxSize="24px" />
@@ -489,9 +516,15 @@ export function CentralDashboard() {
       ),
     },
     {
-      label: 'Quantity in LPCD',
-      value: '55',
-      trend: { direction: 'up', text: '+2 LPCD vs last month' },
+      label: t('kpi.labels.quantityInLpcd', { defaultValue: 'Quantity in LPCD' }),
+      value: formatNumber(55),
+      trend: {
+        direction: 'up',
+        text: t('kpi.trends.lpcdUpLastMonth', {
+          change: 2,
+          defaultValue: '+{{change}} LPCD vs last month',
+        }),
+      },
       icon: (
         <Flex w="44px" h="44px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
           <Icon as={MdOutlineWaterDrop} boxSize="22px" color="#2E90FA" />
@@ -499,9 +532,15 @@ export function CentralDashboard() {
       ),
     },
     {
-      label: 'Regularity',
-      value: '78.4%',
-      trend: { direction: 'down', text: '-3% vs last month' },
+      label: t('kpi.labels.regularity', { defaultValue: 'Regularity' }),
+      value: `${formatNumber(78.4, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`,
+      trend: {
+        direction: 'down',
+        text: t('kpi.trends.percentDownLastMonth', {
+          change: 3,
+          defaultValue: '-{{change}}% vs last month',
+        }),
+      },
       icon: (
         <Flex w="44px" h="44px" borderRadius="100px" bg="#FFF4CC" align="center" justify="center">
           <Icon as={LuClock3} boxSize="22px" color="#CA8A04" />
@@ -509,24 +548,33 @@ export function CentralDashboard() {
       ),
     },
   ] as const
-  const villagePumpOperatorDetails = {
-    name: 'Ajay Yadav',
-    scheme: 'Rural Water Supply 001',
-    stationLocation: 'Central Pumping Station',
-    lastSubmission: '11-02-24, 1:00pm',
-    reportingRate: '85%',
-    missingSubmissionCount: '3',
-    inactiveDays: '2',
-  }
+  const villagePumpOperators = [
+    {
+      name: 'Ajay Yadav',
+      scheme: 'Rural Water Supply 001',
+      stationLocation: 'Central Pumping Station',
+      lastSubmission: '11-02-24, 1:00pm',
+      reportingRate: '85%',
+      missingSubmissionCount: '3',
+      inactiveDays: '2',
+    },
+    {
+      name: 'Vikram Singh',
+      scheme: 'Rural Water Supply 002',
+      stationLocation: 'North Pumping Station',
+      lastSubmission: '13-02-24, 10:30am',
+      reportingRate: '78%',
+      missingSubmissionCount: '5',
+      inactiveDays: '4',
+    },
+  ]
+  const villagePumpOperatorDetails = villagePumpOperators[0]
 
   const pumpOperatorsTotal = data.pumpOperators.reduce((total, item) => total + item.value, 0)
   const leadingPumpOperators = data.leadingPumpOperators ?? []
   const bottomPumpOperators = data.bottomPumpOperators ?? []
   const operatorsPerformanceTable = [...leadingPumpOperators, ...bottomPumpOperators]
-  const villagePhotoEvidenceRows = data.photoEvidenceCompliance.map((row) => ({
-    ...row,
-    name: villagePumpOperatorDetails.name,
-  }))
+  const villagePhotoEvidenceRows = data.photoEvidenceCompliance
 
   return (
     <Box>
@@ -586,151 +634,28 @@ export function CentralDashboard() {
         ))}
       </Grid>
 
-      {/* Map and Core Metrics */}
-      <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-        <Box
-          bg="white"
-          borderWidth="0.5px"
-          borderRadius="12px"
-          borderColor="#E4E4E7"
-          pt="24px"
-          pb="10px"
-          pl="16px"
-          pr="16px"
-          w="full"
-          h="710px"
-        >
-          <IndiaMapChart
-            data={data.mapData}
-            onStateClick={handleStateClick}
-            onStateHover={handleStateHover}
-            height="100%"
-          />
-        </Box>
-        {isVillageSelected ? (
-          <Flex direction="column" gap="28px" w="full">
-            <Box
-              bg="white"
-              borderWidth="0.5px"
-              borderRadius="12px"
-              borderColor="#E4E4E7"
-              pt="24px"
-              pb="24px"
-              pl="16px"
-              pr="16px"
-              w="full"
-              h="330px"
-            >
-              <Text textStyle="bodyText3" fontWeight="400" mb={4}>
-                Core Metrics
-              </Text>
-              <Box>
-                <Grid templateColumns="repeat(2, 1fr)" gap="12px">
-                  {coreMetrics.map((metric) => {
-                    const isPositive = metric.trend.direction === 'up'
-                    const TrendIcon = isPositive ? MdArrowUpward : MdArrowDownward
-                    const trendColor = isPositive ? '#079455' : '#D92D20'
-
-                    return (
-                      <Box
-                        key={metric.label}
-                        px="16px"
-                        py="12px"
-                        h="112px"
-                        bg="#FAFAFA"
-                        borderRadius="8px"
-                      >
-                        <Flex direction="column" align="center" gap="4px" h="100%" w="full">
-                          <Flex align="center" justify="center" w="full" position="relative">
-                            <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                              {metric.label}
-                            </Text>
-                            <Icon
-                              as={AiOutlineInfoCircle}
-                              boxSize="16px"
-                              color="neutral.400"
-                              position="absolute"
-                              right="0"
-                            />
-                          </Flex>
-                          <Text textStyle="bodyText2" fontWeight="400" color="neutral.950">
-                            {metric.value}
-                          </Text>
-                          <Flex align="center" gap={1}>
-                            <Icon as={TrendIcon} boxSize="16px" color={trendColor} />
-                            <Text textStyle="bodyText4" fontWeight="400" color={trendColor}>
-                              {metric.trend.text}
-                            </Text>
-                          </Flex>
-                        </Flex>
-                      </Box>
-                    )
-                  })}
-                </Grid>
-              </Box>
-            </Box>
-            <Box
-              bg="white"
-              borderWidth="0.5px"
-              borderRadius="12px"
-              borderColor="#E4E4E7"
-              pt="24px"
-              pb="24px"
-              pl="16px"
-              pr="16px"
-              w="full"
-              h="373px"
-            >
-              <Text textStyle="bodyText3" fontWeight="400" mb={4}>
-                Pump Operator Details
-              </Text>
-              <Flex align="center" gap={3} mb={6}>
-                <Avatar name={villagePumpOperatorDetails.name} boxSize="44px" />
-                <Text textStyle="bodyText4" fontSize="14px" fontWeight="500" color="neutral.950">
-                  {villagePumpOperatorDetails.name}
-                </Text>
-              </Flex>
-              <Grid templateColumns="1fr auto" columnGap="24px" rowGap="12px" alignItems="center">
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  Scheme name/ Scheme ID
-                </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
-                  {villagePumpOperatorDetails.scheme}
-                </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  Station location
-                </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
-                  {villagePumpOperatorDetails.stationLocation}
-                </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  Last submission
-                </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
-                  {villagePumpOperatorDetails.lastSubmission}
-                </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  Reporting rate
-                </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
-                  {villagePumpOperatorDetails.reportingRate}
-                </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  Missing submission count
-                </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
-                  {villagePumpOperatorDetails.missingSubmissionCount}
-                </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  Inactive days
-                </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
-                  {villagePumpOperatorDetails.inactiveDays}
-                </Text>
-              </Grid>
-            </Box>
-          </Flex>
-        ) : (
+      {/* Map and Overall Performance */}
+      {!isVillageSelected ? (
+        <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
+          <Box
+            bg="white"
+            borderWidth="0.5px"
+            borderRadius="12px"
+            borderColor="#E4E4E7"
+            pt="24px"
+            pb="10px"
+            pl="16px"
+            pr="16px"
+            w="full"
+            h="710px"
+          >
+            <IndiaMapChart
+              data={data.mapData}
+              onStateClick={handleStateClick}
+              onStateHover={handleStateHover}
+              height="100%"
+            />
+          </Box>
           <Box
             bg="white"
             borderWidth="0.5px"
@@ -744,7 +669,7 @@ export function CentralDashboard() {
             h="710px"
           >
             <Text textStyle="bodyText3" fontWeight="400" mb={4}>
-              Overall Performance
+              {t('overallPerformance.title', { defaultValue: 'Overall Performance' })}
             </Text>
             <AllStatesTable
               data={overallPerformanceTableData}
@@ -752,8 +677,8 @@ export function CentralDashboard() {
               scrollMaxHeight="620px"
             />
           </Box>
-        )}
-      </Grid>
+        </Grid>
+      ) : null}
       <DashboardBody
         data={data}
         isStateSelected={isStateSelected}
@@ -771,6 +696,8 @@ export function CentralDashboard() {
         pumpOperatorsTotal={pumpOperatorsTotal}
         operatorsPerformanceTable={operatorsPerformanceTable}
         villagePhotoEvidenceRows={villagePhotoEvidenceRows}
+        villagePumpOperatorDetails={villagePumpOperatorDetails}
+        villagePumpOperators={villagePumpOperators}
       />
     </Box>
   )

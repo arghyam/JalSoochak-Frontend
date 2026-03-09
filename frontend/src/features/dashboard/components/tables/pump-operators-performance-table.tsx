@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Box, Icon, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import { BiSortAlt2 } from 'react-icons/bi'
 import type { PumpOperatorPerformanceData } from '../../types'
 
@@ -7,6 +8,8 @@ interface PumpOperatorsPerformanceTableProps {
   data: PumpOperatorPerformanceData[]
   title: string
   maxItems?: number
+  maxTableHeight?: string | number
+  fillHeight?: boolean
 }
 
 type SortColumn = 'reportingRate' | 'waterSupplied' | null
@@ -16,7 +19,10 @@ export function PumpOperatorsPerformanceTable({
   data,
   title,
   maxItems,
+  maxTableHeight = '330px',
+  fillHeight = false,
 }: PumpOperatorsPerformanceTableProps) {
+  const { t } = useTranslation('dashboard')
   const [sortColumn, setSortColumn] = useState<SortColumn>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>(null)
   const safeMaxItems =
@@ -41,12 +47,22 @@ export function PumpOperatorsPerformanceTable({
   }
 
   return (
-    <Box borderRadius="lg" overflow="hidden" w="full" minW={0}>
+    <Box
+      borderRadius="lg"
+      overflow="hidden"
+      w="full"
+      minW={0}
+      h={fillHeight ? '100%' : 'auto'}
+      display="flex"
+      flexDirection="column"
+    >
       <Box textStyle="bodyText3" fontWeight="400" mb="16px">
         {title}
       </Box>
       <Box
-        maxH="330px"
+        maxH={fillHeight ? undefined : maxTableHeight}
+        flex={fillHeight ? 1 : undefined}
+        minH={fillHeight ? 0 : undefined}
         overflowY="auto"
         overflowX="auto"
         w="full"
@@ -79,9 +95,13 @@ export function PumpOperatorsPerformanceTable({
             }}
           >
             <Tr>
-              <Th>Name</Th>
-              <Th>Block</Th>
-              <Th>Village</Th>
+              <Th>{t('pumpOperators.performanceTable.columns.name', { defaultValue: 'Name' })}</Th>
+              <Th>
+                {t('pumpOperators.performanceTable.columns.village', { defaultValue: 'Village' })}
+              </Th>
+              <Th>
+                {t('pumpOperators.performanceTable.columns.block', { defaultValue: 'Block' })}
+              </Th>
               <Th
                 aria-sort={
                   sortColumn === 'reportingRate'
@@ -105,7 +125,11 @@ export function PumpOperatorsPerformanceTable({
                   border="none"
                   p={0}
                 >
-                  <Box as="span">Reporting Rate (%)</Box>
+                  <Box as="span">
+                    {t('pumpOperators.performanceTable.columns.reportingRate', {
+                      defaultValue: 'Reporting Rate (%)',
+                    })}
+                  </Box>
                   <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
                 </Box>
               </Th>
@@ -132,7 +156,11 @@ export function PumpOperatorsPerformanceTable({
                   border="none"
                   p={0}
                 >
-                  <Box as="span">Water Supplied</Box>
+                  <Box as="span">
+                    {t('pumpOperators.performanceTable.columns.waterSupplied', {
+                      defaultValue: 'Water Supplied',
+                    })}
+                  </Box>
                   <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
                 </Box>
               </Th>
@@ -154,8 +182,8 @@ export function PumpOperatorsPerformanceTable({
             {rows.map((operator) => (
               <Tr key={operator.id} _odd={{ bg: 'primary.25' }}>
                 <Td>{operator.name}</Td>
-                <Td>{operator.block}</Td>
                 <Td>{operator.village}</Td>
+                <Td>{operator.block}</Td>
                 <Td>{operator.reportingRate}</Td>
                 <Td>{operator.waterSupplied} LPCD</Td>
               </Tr>
