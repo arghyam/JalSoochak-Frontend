@@ -7,6 +7,7 @@ interface PhotoEvidenceComplianceTableProps {
   title?: string
   maxItems?: number
   showVillageColumn?: boolean
+  scrollAreaMaxH?: string | number
 }
 
 export function PhotoEvidenceComplianceTable({
@@ -14,6 +15,7 @@ export function PhotoEvidenceComplianceTable({
   title,
   maxItems,
   showVillageColumn = true,
+  scrollAreaMaxH = '432px',
 }: PhotoEvidenceComplianceTableProps) {
   const { t } = useTranslation('dashboard')
   const resolvedTitle =
@@ -31,7 +33,7 @@ export function PhotoEvidenceComplianceTable({
         {resolvedTitle}
       </Box>
       <Box
-        maxH="432px"
+        maxH={scrollAreaMaxH}
         overflowY="auto"
         overflowX="auto"
         pr={2}

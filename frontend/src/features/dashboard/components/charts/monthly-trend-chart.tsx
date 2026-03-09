@@ -78,7 +78,43 @@ export function MonthlyTrendChart({
 
     return {
       tooltip: {
-        show: false,
+        show: true,
+        trigger: 'axis',
+        axisPointer: {
+          type: 'line',
+        },
+        formatter: (params: unknown) => {
+          const points = Array.isArray(params)
+            ? (params as Array<{
+                axisValueLabel?: string
+                seriesName?: string
+                value?: number | string
+              }>)
+            : []
+
+          if (points.length === 0) {
+            return ''
+          }
+
+          const period = points[0]?.axisValueLabel ?? ''
+          const usePercent =
+            yAxisLabel.includes('%') || seriesName.toLowerCase().includes('regularity')
+          const rows = points
+            .map((point) => {
+              const rawValue = typeof point.value === 'number' ? point.value : Number(point.value)
+              const hasNumericValue = Number.isFinite(rawValue)
+              const formattedValue = hasNumericValue
+                ? usePercent
+                  ? `${rawValue.toFixed(1)}%`
+                  : `${rawValue.toFixed(1)}`
+                : '-'
+
+              return `${point.seriesName}: ${formattedValue}`
+            })
+            .join('<br/>')
+
+          return `<strong>${period}</strong><br/>${rows}`
+        },
       },
       legend: {
         show: false,
@@ -138,18 +174,18 @@ export function MonthlyTrendChart({
           data: values,
           smooth: true,
           symbol: 'circle',
-          symbolSize: 8,
+          symbolSize: 5,
           showSymbol: true,
           itemStyle: {
             color: '#3291D1',
           },
           lineStyle: {
-            width: 2,
+            width: 1,
           },
         },
       ],
     }
-  }, [bodyText7, data, seriesName, yAxisScale.max])
+  }, [bodyText7, data, seriesName, yAxisLabel, yAxisScale.max])
 
   const axisOption = useMemo<EChartsOption>(() => {
     const placeholderLabel = longestPeriodLabel || 'W'
