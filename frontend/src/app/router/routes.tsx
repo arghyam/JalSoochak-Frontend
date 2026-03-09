@@ -27,7 +27,7 @@ import {
   StateUTAdminFormPage,
   ViewStateUTAdminPage,
 } from '@/features/state-admin'
-import { LoginPage, ResetPasswordPage } from '@/features/auth'
+import { LoginPage, ResetPasswordPage, ProfilePage, ChangePasswordPage } from '@/features/auth'
 import { SignupFlowPage } from '@/features/auth/components/signup/signup-flow-page'
 import { ProtectedRoute, RedirectIfAuthenticated } from '@/shared/components/routing/ProtectedRoute'
 import { AUTH_ROLES } from '@/shared/constants/auth'
@@ -242,6 +242,26 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.STATE_ADMIN_STATE_UT_ADMINS_EDIT,
         element: <StateUTAdminFormPage />,
+      },
+    ],
+  },
+
+  // Shared routes — all authenticated roles
+  {
+    path: '/',
+    element: (
+      <ProtectedRoute>
+        <MainLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        path: ROUTES.PROFILE,
+        element: <ProfilePage />,
+      },
+      {
+        path: ROUTES.CHANGE_PASSWORD,
+        element: <ChangePasswordPage />,
       },
     ],
   },

@@ -64,6 +64,8 @@
     "configuration": "Configuration",
     "activity": "Activity",
     "stateUtAdmins": "State/UT Admins",
+    "profile": "Profile",
+    "changePassword": "Change Password",
     "logout": "Logout",
     "skipToMain": "Skip to main content",
     "openMenu": "Open menu",
@@ -94,5 +96,27 @@
   "searchableSelect": {
     "search": "Search",
     "noResults": "No results found"
+  },
+
+  "profile": {
+    "title": "Profile",
+    "details": "Profile Details",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email address",
+    "phone": "Phone number",
+    "editProfile": "Edit profile"
+  },
+
+  "changePassword": {
+    "title": "Change Password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "submit": "Update Password",
+    "mismatch": "Passwords do not match",
+    "sameAsCurrent": "New password must differ from current password",
+    "success": "Password updated successfully",
+    "failed": "Failed to update password"
   }
 }
