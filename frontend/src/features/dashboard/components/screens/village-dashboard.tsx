@@ -8,12 +8,9 @@ import type {
   VillagePumpOperatorDetails,
   WaterSupplyOutageData,
 } from '../../types'
-import {
-  ImageSubmissionStatusChart,
-  IssueTypeBreakdownChart,
-  MetricPerformanceChart,
-} from '../charts'
+import { IssueTypeBreakdownChart, MetricPerformanceChart } from '../charts'
 import { PhotoEvidenceComplianceTable } from '../tables'
+import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 
 type VillageDashboardScreenProps = {
   data: DashboardData
@@ -161,33 +158,19 @@ export function VillageDashboardScreen({
           w="full"
           minW={0}
         >
-          <Text textStyle="bodyText3" fontWeight="400" mb="0px">
+          <Text textStyle="bodyText3" fontWeight="400" mb="40px">
             {t('outageAndSubmissionCharts.titles.supplyOutageReasons', {
               defaultValue: 'Supply Outage Reasons',
             })}
           </Text>
           <IssueTypeBreakdownChart data={waterSupplyOutagesData} height="400px" />
         </Box>
-        <Box
-          bg="white"
-          borderWidth="0.5px"
-          borderRadius="12px"
-          borderColor="#E4E4E7"
-          pt="24px"
-          pb="24px"
-          pl="16px"
-          pr="16px"
-          h="523px"
-          w="full"
-          minW={0}
-        >
-          <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-            {t('outageAndSubmissionCharts.titles.readingSubmissionStatus', {
-              defaultValue: 'Reading Submission Status',
-            })}
-          </Text>
-          <ImageSubmissionStatusChart data={data.imageSubmissionStatus} height="406px" />
-        </Box>
+        <ReadingSubmissionStatusCard
+          data={data.imageSubmissionStatus}
+          chartHeight="406px"
+          cardHeight="523px"
+          boxProps={{ w: 'full' }}
+        />
       </Grid>
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
         <Box

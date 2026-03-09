@@ -21,10 +21,26 @@ export interface ToggleProps {
    * ID attribute for the input
    */
   id?: string
+  /**
+   * Accessible label for assistive technologies
+   */
+  'aria-label'?: string
+  /**
+   * Keep track color primary in both checked and unchecked states
+   */
+  alwaysPrimaryTrack?: boolean
 }
 
 export const Toggle = forwardRef<ToggleProps, 'input'>((props, ref) => {
-  const { isChecked, isDisabled, onChange, name, id } = props
+  const {
+    isChecked,
+    isDisabled,
+    onChange,
+    name,
+    id,
+    'aria-label': ariaLabel,
+    alwaysPrimaryTrack,
+  } = props
 
   return (
     <Switch
@@ -34,9 +50,10 @@ export const Toggle = forwardRef<ToggleProps, 'input'>((props, ref) => {
       onChange={onChange}
       name={name}
       id={id}
+      aria-label={ariaLabel}
       sx={{
         '.chakra-switch__track': {
-          bg: isDisabled ? 'neutral.200' : 'neutral.300',
+          bg: isDisabled ? 'neutral.200' : alwaysPrimaryTrack ? 'primary.500' : 'neutral.300',
           boxSizing: 'border-box',
           width: '43px',
           height: '24px',

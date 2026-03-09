@@ -510,7 +510,7 @@ export function CentralDashboard() {
         }),
       },
       icon: (
-        <Flex w="44px" h="44px" borderRadius="100px" bg="#E6F7EC" align="center" justify="center">
+        <Flex w="48px" h="48px" borderRadius="100px" bg="#E6F7EC" align="center" justify="center">
           <Image src={waterTapIcon} alt="" boxSize="24px" />
         </Flex>
       ),
@@ -526,7 +526,7 @@ export function CentralDashboard() {
         }),
       },
       icon: (
-        <Flex w="44px" h="44px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
+        <Flex w="48px" h="48px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
           <Icon as={MdOutlineWaterDrop} boxSize="22px" color="#2E90FA" />
         </Flex>
       ),
@@ -542,7 +542,7 @@ export function CentralDashboard() {
         }),
       },
       icon: (
-        <Flex w="44px" h="44px" borderRadius="100px" bg="#FFF4CC" align="center" justify="center">
+        <Flex w="48px" h="48px" borderRadius="100px" bg="#FFF4CC" align="center" justify="center">
           <Icon as={LuClock3} boxSize="22px" color="#CA8A04" />
         </Flex>
       ),

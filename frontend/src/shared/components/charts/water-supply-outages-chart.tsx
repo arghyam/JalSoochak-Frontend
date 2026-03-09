@@ -84,7 +84,22 @@ export function WaterSupplyOutagesChart({
 
     return {
       tooltip: {
-        show: false,
+        show: true,
+        trigger: 'item',
+        formatter: (params: unknown) => {
+          const point = params as {
+            name?: string
+            seriesName?: string
+            value?: number | string
+          }
+          const rawValue =
+            typeof point.value === 'number' ? point.value : Number(point.value ?? Number.NaN)
+          const formattedValue = Number.isFinite(rawValue) ? rawValue.toFixed(1) : '-'
+          const safeName = echarts.format.encodeHTML(point.name ?? '')
+          const safeSeriesName = echarts.format.encodeHTML(point.seriesName ?? '')
+
+          return `<strong>${safeName}</strong><br/>${safeSeriesName}: ${formattedValue}`
+        },
       },
       grid: {
         left: 0,
@@ -159,6 +174,12 @@ export function WaterSupplyOutagesChart({
             color: outageColors.sourceDrying,
             borderRadius: [0, 0, barRadius, barRadius],
           },
+          emphasis: {
+            itemStyle: {
+              color: outageColors.sourceDrying,
+              borderRadius: [0, 0, barRadius, barRadius],
+            },
+          },
         },
         {
           name: legendLabels.valveIssue,
@@ -169,6 +190,11 @@ export function WaterSupplyOutagesChart({
           barCategoryGap,
           itemStyle: {
             color: outageColors.valveIssue,
+          },
+          emphasis: {
+            itemStyle: {
+              color: outageColors.valveIssue,
+            },
           },
         },
         {
@@ -181,6 +207,11 @@ export function WaterSupplyOutagesChart({
           itemStyle: {
             color: outageColors.pumpFailure,
           },
+          emphasis: {
+            itemStyle: {
+              color: outageColors.pumpFailure,
+            },
+          },
         },
         {
           name: legendLabels.pipelineBreak,
@@ -191,6 +222,11 @@ export function WaterSupplyOutagesChart({
           barCategoryGap,
           itemStyle: {
             color: outageColors.pipelineLeak,
+          },
+          emphasis: {
+            itemStyle: {
+              color: outageColors.pipelineLeak,
+            },
           },
         },
         {
@@ -203,6 +239,12 @@ export function WaterSupplyOutagesChart({
           itemStyle: {
             color: outageColors.electricityFailure,
             borderRadius: [barRadius, barRadius, 0, 0],
+          },
+          emphasis: {
+            itemStyle: {
+              color: outageColors.electricityFailure,
+              borderRadius: [barRadius, barRadius, 0, 0],
+            },
           },
         },
       ],
