@@ -109,6 +109,13 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
   },
   {
     type: 'simple',
+    path: ROUTES.STATE_ADMIN_STATE_UT_ADMINS,
+    labelKey: 'sidebar.stateUtAdmins',
+    roles: [AUTH_ROLES.STATE_ADMIN],
+    icon: 'BsPeople',
+  },
+  {
+    type: 'simple',
     path: ROUTES.STATE_ADMIN_ACTIVITY,
     labelKey: 'sidebar.activity',
     roles: [AUTH_ROLES.STATE_ADMIN],
