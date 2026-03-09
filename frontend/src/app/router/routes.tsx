@@ -45,37 +45,32 @@ export const router = createBrowserRouter([
       </DashboardLayout>
     ),
   },
+
+  // Shared routes — all authenticated roles
+  {
+    path: '/',
+    element: (
+      <ProtectedRoute>
+        <MainLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        path: ROUTES.PROFILE,
+        element: <ProfilePage />,
+      },
+      {
+        path: ROUTES.CHANGE_PASSWORD,
+        element: <ChangePasswordPage />,
+      },
+    ],
+  },
+
   {
     path: '/:stateSlug',
     element: (
       <DashboardLayout>
         <CentralDashboard />
-      </DashboardLayout>
-    ),
-  },
-  {
-    path: '/states/:stateId',
-    element: (
-      <DashboardLayout>
-        <Box p={6}>
-          <Heading fontSize="2xl" fontWeight="bold">
-            State Dashboard
-          </Heading>
-          <Text color="gray.600">State dashboard coming soon...</Text>
-        </Box>
-      </DashboardLayout>
-    ),
-  },
-  {
-    path: '/zones/:zoneId',
-    element: (
-      <DashboardLayout>
-        <Box p={6}>
-          <Heading fontSize="2xl" fontWeight="bold">
-            Zone Dashboard
-          </Heading>
-          <Text color="gray.600">Zone dashboard coming soon...</Text>
-        </Box>
       </DashboardLayout>
     ),
   },
@@ -242,26 +237,6 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.STATE_ADMIN_STATE_UT_ADMINS_EDIT,
         element: <StateUTAdminFormPage />,
-      },
-    ],
-  },
-
-  // Shared routes — all authenticated roles
-  {
-    path: '/',
-    element: (
-      <ProtectedRoute>
-        <MainLayout />
-      </ProtectedRoute>
-    ),
-    children: [
-      {
-        path: ROUTES.PROFILE,
-        element: <ProfilePage />,
-      },
-      {
-        path: ROUTES.CHANGE_PASSWORD,
-        element: <ChangePasswordPage />,
       },
     ],
   },

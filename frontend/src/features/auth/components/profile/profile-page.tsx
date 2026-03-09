@@ -63,7 +63,7 @@ export function ProfilePage() {
     setIsEditing(false)
   }
 
-  const isFormValid = form.firstName.trim().length > 0 && form.lastName.trim().length > 0
+  const isFormValid = form.firstName.trim().length > 0
 
   const hasChanges =
     form.firstName !== initialForm.firstName ||
@@ -71,7 +71,7 @@ export function ProfilePage() {
     form.phoneNumber !== initialForm.phoneNumber
 
   const handleSave = async () => {
-    if (!user || !isFormValid) return
+    if (!user || !isFormValid || isSaving) return
     setIsSaving(true)
     try {
       const body = buildUpdateProfileRequest({
@@ -159,7 +159,7 @@ export function ProfilePage() {
                   />
                 </FormControl>
 
-                <FormControl isRequired>
+                <FormControl>
                   <FormLabel textStyle="h10" mb={1}>
                     {t('profile.lastName')}
                   </FormLabel>
@@ -171,7 +171,6 @@ export function ProfilePage() {
                     maxW={{ base: '100%', lg: '486px' }}
                     borderColor="neutral.200"
                     _placeholder={{ color: 'neutral.300' }}
-                    aria-required="true"
                   />
                 </FormControl>
 

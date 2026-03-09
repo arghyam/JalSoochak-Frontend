@@ -92,6 +92,36 @@ describe('ChangePasswordPage', () => {
     expect(screen.getByText('New password must differ from current password')).toBeTruthy()
   })
 
+  it('does not call changePassword API twice on rapid double submit', async () => {
+    const { authApi } = await import('@/features/auth/services/auth-api')
+    const changePasswordMock = authApi.changePassword as ReturnType<typeof jest.fn>
+    // Hold the first call unresolved so the ref guard is still set when the second click fires
+    let resolveFirst!: () => void
+    changePasswordMock.mockReturnValueOnce(
+      new Promise<void>((res) => {
+        resolveFirst = res
+      })
+    )
+
+    renderWithProviders(<ChangePasswordPage />)
+    fireEvent.change(screen.getByLabelText(/current password/i), {
+      target: { value: 'OldPass@123' },
+    })
+    fireEvent.change(screen.getByLabelText(/^new password/i), { target: { value: 'NewPass@456' } })
+    fireEvent.change(screen.getByLabelText(/confirm new password/i), {
+      target: { value: 'NewPass@456' },
+    })
+
+    const btn = screen.getByRole('button', { name: /update password/i })
+    fireEvent.click(btn)
+    fireEvent.click(btn)
+
+    resolveFirst()
+    await waitFor(() => {
+      expect(changePasswordMock).toHaveBeenCalledTimes(1)
+    })
+  })
+
   it('calls changePassword API on valid submit', async () => {
     const { authApi } = await import('@/features/auth/services/auth-api')
     renderWithProviders(<ChangePasswordPage />)
@@ -112,6 +142,14 @@ describe('ChangePasswordPage', () => {
         confirmPassword: 'NewPass@456',
       })
     })
+  })
+
+  it('toggles password visibility using localized aria-labels', () => {
+    renderWithProviders(<ChangePasswordPage />)
+    const showBtn = screen.getAllByRole('button', { name: /show password/i })
+    expect(showBtn.length).toBe(3)
+    fireEvent.click(showBtn[0])
+    expect(screen.getByRole('button', { name: /hide password/i })).toBeTruthy()
   })
 
   it('clears form fields after successful submit', async () => {
