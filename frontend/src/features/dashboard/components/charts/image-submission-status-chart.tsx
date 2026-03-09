@@ -70,6 +70,10 @@ export function ImageSubmissionStatusChart({
           radius: ['0%', '98%'],
           center: ['50%', '50%'],
           avoidLabelOverlap: true,
+          emphasis: {
+            scale: true,
+            scaleSize: 2,
+          },
           label: {
             show: false,
           },
