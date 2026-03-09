@@ -347,7 +347,7 @@ export function DashboardBody({
             w="full"
             minW={0}
           >
-            <Text textStyle="bodyText3" fontWeight="400" mb="44px">
+            <Text textStyle="bodyText3" fontWeight="400" mb="40px">
               {t('outageAndSubmissionCharts.titles.supplyOutageReasons', {
                 defaultValue: 'Supply Outage Reasons',
               })}

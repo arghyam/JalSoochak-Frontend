@@ -20,6 +20,7 @@ const outageColors = {
   valveIssue: '#3291D1',
   sourceDrying: '#1E577D',
 }
+const chartLegendGapPx = 20
 
 export function IssueTypeBreakdownChart({
   data,
@@ -166,23 +167,23 @@ export function IssueTypeBreakdownChart({
         height: containerHeight,
         display: 'flex',
         flexDirection: 'column',
+        alignItems: 'center',
       }}
     >
-      <div style={{ flex: 1, minHeight: 0 }}>
-        <div
-          style={{
-            width: `${pieSize}px`,
-            height: `${pieSize}px`,
-            maxWidth: '100%',
-            margin: '0 auto',
-            marginBottom: '20px',
-          }}
-        >
-          <EChartsWrapper option={option} height="100%" />
-        </div>
+      <div
+        style={{
+          width: `${pieSize}px`,
+          height: `${pieSize}px`,
+          maxWidth: '100%',
+          margin: '0 auto',
+        }}
+      >
+        <EChartsWrapper option={option} height="100%" />
       </div>
       <div
         style={{
+          marginTop: `${chartLegendGapPx}px`,
+          width: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

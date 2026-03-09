@@ -3,7 +3,6 @@ import { Box, Flex, Grid, Select, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import type { DashboardData, EntityPerformance, PumpOperatorPerformanceData } from '../../types'
 import {
-  ImageSubmissionStatusChart,
   IssueTypeBreakdownChart,
   MetricPerformanceChart,
   MonthlyTrendChart,
@@ -12,6 +11,7 @@ import {
   WaterSupplyOutagesChart,
 } from '../charts'
 import { PumpOperatorsPerformanceTable } from '../tables'
+import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 
 type DistrictDashboardScreenProps = {
   data: DashboardData
@@ -227,7 +227,7 @@ export function DistrictDashboardScreen({
           h="510px"
           minW={0}
         >
-          <Text textStyle="bodyText3" fontWeight="400" mb={2}>
+          <Text textStyle="bodyText3" fontWeight="400" mb="40px">
             {t('outageAndSubmissionCharts.titles.supplyOutageReasons', {
               defaultValue: 'Supply Outage Reasons',
             })}
@@ -294,24 +294,7 @@ export function DistrictDashboardScreen({
 
       {/* Reading Submission Status + Reading Submission Rate */}
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-        <Box
-          bg="white"
-          borderWidth="0.5px"
-          borderRadius="12px"
-          borderColor="#E4E4E7"
-          px="16px"
-          pt="24px"
-          pb="24px"
-          h="510px"
-          minW={0}
-        >
-          <Text textStyle="bodyText3" fontWeight="400" mb="16px">
-            {t('outageAndSubmissionCharts.titles.readingSubmissionStatus', {
-              defaultValue: 'Reading Submission Status',
-            })}
-          </Text>
-          <ImageSubmissionStatusChart data={data.imageSubmissionStatus} height="336px" />
-        </Box>
+        <ReadingSubmissionStatusCard data={data.imageSubmissionStatus} chartHeight="336px" />
         <Box
           bg="white"
           borderWidth="0.5px"

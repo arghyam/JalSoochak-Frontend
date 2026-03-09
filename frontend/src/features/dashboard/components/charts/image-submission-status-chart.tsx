@@ -14,11 +14,12 @@ interface ImageSubmissionStatusChartProps {
 }
 
 const defaultColors = ['#3291D1', '#ADD3ED']
+const chartLegendGapPx = 20
 
 export function ImageSubmissionStatusChart({
   data,
   className,
-  height = '336px',
+  height = '300px',
   pieSize = 300,
 }: ImageSubmissionStatusChartProps) {
   const { t } = useTranslation('dashboard')
@@ -108,23 +109,23 @@ export function ImageSubmissionStatusChart({
         height: containerHeight,
         display: 'flex',
         flexDirection: 'column',
+        alignItems: 'center',
       }}
     >
-      <div style={{ flex: 1, minHeight: 0, minWidth: 0 }}>
-        <div
-          style={{
-            width: `${pieSize}px`,
-            height: `${pieSize}px`,
-            maxWidth: '100%',
-            margin: '0 auto',
-            marginBottom: '20px',
-          }}
-        >
-          <EChartsWrapper option={option} height="100%" />
-        </div>
+      <div
+        style={{
+          width: `${pieSize}px`,
+          height: `${pieSize}px`,
+          maxWidth: '100%',
+          margin: '0 auto',
+        }}
+      >
+        <EChartsWrapper option={option} height="100%" />
       </div>
       <div
         style={{
+          marginTop: `${chartLegendGapPx}px`,
+          width: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
