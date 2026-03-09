@@ -122,6 +122,13 @@ export interface UserProfileResponse {
   updatedAt: string
 }
 
+/** Request body for POST /api/v2/user/:userId/change-password. */
+export interface ChangePasswordRequest {
+  currentPassword: string
+  newPassword: string
+  confirmPassword: string
+}
+
 /** Build a typed UpdateProfileRequest for PUT /api/v2/user/:userId. */
 export function buildUpdateProfileRequest(params: {
   role: string
@@ -316,6 +323,21 @@ export const authApi = {
           : err instanceof Error
             ? err.message
             : 'Failed to load profile.'
+      throw new Error(message)
+    }
+  },
+
+  /** POST /api/v2/user/:userId/change-password — change logged-in user's password. */
+  changePassword: async (userId: string, payload: ChangePasswordRequest): Promise<void> => {
+    try {
+      await apiClient.post(`/api/v2/user/${userId}/change-password`, payload)
+    } catch (err: unknown) {
+      let message = 'Failed to update password.'
+      if (isAxiosError(err) && typeof err.response?.data?.message === 'string') {
+        message = err.response.data.message
+      } else if (err instanceof Error) {
+        message = err.message
+      }
       throw new Error(message)
     }
   },

@@ -29,6 +29,9 @@ export const ROUTES = {
   STATE_ADMIN_STATE_UT_ADMINS_ADD: '/state-admin/state-ut-admins/add',
   STATE_ADMIN_STATE_UT_ADMINS_VIEW: '/state-admin/state-ut-admins/:id',
   STATE_ADMIN_STATE_UT_ADMINS_EDIT: '/state-admin/state-ut-admins/:id/edit',
+  // Shared authenticated routes
+  PROFILE: '/profile',
+  CHANGE_PASSWORD: '/change-password',
   // Auth routes
   LOGIN: '/login',
   LOGOUT: '/logout',
