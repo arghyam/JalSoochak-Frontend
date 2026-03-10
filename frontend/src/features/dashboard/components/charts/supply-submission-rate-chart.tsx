@@ -85,7 +85,37 @@ export function SupplySubmissionRateChart({
 
     return {
       tooltip: {
-        show: false,
+        show: true,
+        trigger: 'axis',
+        axisPointer: {
+          type: 'none',
+        },
+        formatter: (params: unknown) => {
+          const points = Array.isArray(params)
+            ? (params as Array<{
+                axisValueLabel?: string
+                seriesName?: string
+                value?: number | string
+              }>)
+            : []
+
+          if (points.length === 0) {
+            return ''
+          }
+
+          const entityName = points[0]?.axisValueLabel ?? ''
+          const rows = points
+            .map((point) => {
+              const rawValue = typeof point.value === 'number' ? point.value : Number(point.value)
+              const hasNumericValue = Number.isFinite(rawValue)
+              const formattedValue = hasNumericValue ? `${rawValue.toFixed(1)}%` : '-'
+
+              return `${point.seriesName}: ${formattedValue}`
+            })
+            .join('<br/>')
+
+          return `<strong>${entityName}</strong><br/>${rows}`
+        },
       },
       grid: {
         left: '0%',
@@ -142,7 +172,9 @@ export function SupplySubmissionRateChart({
             borderRadius: [barRadius, barRadius, barRadius, barRadius],
           },
           emphasis: {
-            disabled: true,
+            itemStyle: {
+              color: '#84BDE3',
+            },
           },
         },
       ],

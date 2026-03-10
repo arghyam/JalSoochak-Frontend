@@ -102,7 +102,9 @@ export function MetricPerformanceChart({
           borderRadius: [barRadius, barRadius, barRadius, barRadius],
         },
         emphasis: {
-          disabled: true,
+          itemStyle: {
+            color: '#84BDE3',
+          },
         },
       },
     ]
@@ -127,7 +129,46 @@ export function MetricPerformanceChart({
 
     return {
       tooltip: {
-        show: false,
+        show: true,
+        trigger: 'axis',
+        axisPointer: {
+          type: 'none',
+        },
+        formatter: (params: unknown) => {
+          const points = Array.isArray(params)
+            ? (params as Array<{
+                axisValueLabel?: string
+                seriesName?: string
+                seriesType?: string
+                value?: number | string
+              }>)
+            : []
+
+          if (points.length === 0) {
+            return ''
+          }
+
+          const entityName = echarts.format.encodeHTML(points[0]?.axisValueLabel ?? '')
+          const rows = points
+            .map((point) => {
+              const rawValue = typeof point.value === 'number' ? point.value : Number(point.value)
+              const hasNumericValue = Number.isFinite(rawValue)
+              const shouldUsePercentUnit =
+                point.seriesType === 'line' ||
+                (point.seriesType === 'bar' && metric === 'regularity')
+              const formattedValue = hasNumericValue
+                ? shouldUsePercentUnit
+                  ? `${rawValue.toFixed(1)}%`
+                  : `${rawValue.toFixed(1)}`
+                : '-'
+
+              const safeSeriesName = echarts.format.encodeHTML(point.seriesName ?? '')
+              return `${safeSeriesName}: ${formattedValue}`
+            })
+            .join('<br/>')
+
+          return `<strong>${entityName}</strong><br/>${rows}`
+        },
       },
       legend: {
         show: false,
@@ -184,6 +225,7 @@ export function MetricPerformanceChart({
     data,
     demandValues,
     dynamicBarWidth,
+    metric,
     showAreaLine,
     yAxisScale,
     yValues,

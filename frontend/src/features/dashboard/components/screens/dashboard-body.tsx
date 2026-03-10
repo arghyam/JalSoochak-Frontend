@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Box, Flex, Grid, Select, Text } from '@chakra-ui/react'
+import { Box, Flex, Grid, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import type {
   DashboardData,
@@ -19,6 +19,7 @@ import { BlockDashboardScreen } from './block-dashboard'
 import { DistrictDashboardScreen } from './district-dashboard'
 import { GramPanchayatDashboardScreen } from './gram-panchayat-dashboard'
 import { StateUtDashboardScreen } from './state-ut-dashboard'
+import { ViewBySelect } from '@/shared/components/common'
 import { VillageDashboardScreen } from './village-dashboard'
 
 type DashboardBodyProps = {
@@ -42,6 +43,8 @@ type DashboardBodyProps = {
   villagePumpOperators?: VillagePumpOperatorDetails[]
 }
 
+type ViewBy = 'geography' | 'time'
+
 export function DashboardBody({
   data,
   isStateSelected,
@@ -63,8 +66,8 @@ export function DashboardBody({
   villagePumpOperators,
 }: DashboardBodyProps) {
   const { t } = useTranslation('dashboard')
-  const [quantityViewBy, setQuantityViewBy] = useState<'geography' | 'time'>('geography')
-  const [regularityViewBy, setRegularityViewBy] = useState<'geography' | 'time'>('geography')
+  const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
+  const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
   const isStateScreen =
     isStateSelected &&
     !isDistrictSelected &&
@@ -96,7 +99,6 @@ export function DashboardBody({
   const geographyEntityLabel = isStateScreen
     ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
     : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
-
   return (
     <>
       {/* Quantity + Regularity Charts */}
@@ -110,42 +112,21 @@ export function DashboardBody({
             px="16px"
             pt="24px"
             pb="24px"
-            h="523px"
+            h="536px"
             w="full"
             minW={0}
           >
-            <Flex align="center" justify="space-between">
+            <Flex align="center" justify="space-between" mb="16px">
               <Text textStyle="bodyText3" fontWeight="400">
                 {t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
               </Text>
-              <Select
-                aria-label={t('performanceCharts.quantity.ariaViewBy', {
+              <ViewBySelect
+                ariaLabel={t('performanceCharts.quantity.ariaViewBy', {
                   defaultValue: 'Quantity performance view by',
                 })}
-                h="32px"
-                maxW="128px"
-                fontSize="14px"
-                fontWeight="600"
-                borderRadius="4px"
-                borderColor="neutral.400"
-                borderWidth="1px"
-                bg="white"
-                color="neutral.400"
-                appearance="none"
                 value={quantityViewBy}
-                onChange={(event) => setQuantityViewBy(event.target.value as 'geography' | 'time')}
-                _focus={{
-                  borderColor: 'primary.500',
-                  boxShadow: 'none',
-                }}
-              >
-                <option value="geography">
-                  {t('performanceCharts.viewBy.geography', { defaultValue: 'Geography' })}
-                </option>
-                <option value="time">
-                  {t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
-                </option>
-              </Select>
+                onChange={setQuantityViewBy}
+              />
             </Flex>
             {quantityViewBy === 'geography' ? (
               <MetricPerformanceChart
@@ -186,45 +167,22 @@ export function DashboardBody({
             px="16px"
             pt="24px"
             pb="24px"
-            h="523px"
+            h="536px"
             minW={0}
           >
-            <Flex align="center" justify="space-between">
+            <Flex align="center" justify="space-between" mb="16px">
               <Text textStyle="bodyText3" fontWeight="400">
                 {t('performanceCharts.regularity.title', {
                   defaultValue: 'Regularity Performance',
                 })}
               </Text>
-              <Select
-                aria-label={t('performanceCharts.regularity.ariaViewBy', {
+              <ViewBySelect
+                ariaLabel={t('performanceCharts.regularity.ariaViewBy', {
                   defaultValue: 'Regularity performance view by',
                 })}
-                h="32px"
-                maxW="128px"
-                fontSize="14px"
-                fontWeight="600"
-                borderRadius="4px"
-                borderColor="neutral.400"
-                borderWidth="1px"
-                bg="white"
-                color="neutral.400"
-                appearance="none"
                 value={regularityViewBy}
-                onChange={(event) =>
-                  setRegularityViewBy(event.target.value as 'geography' | 'time')
-                }
-                _focus={{
-                  borderColor: 'primary.500',
-                  boxShadow: 'none',
-                }}
-              >
-                <option value="geography">
-                  {t('performanceCharts.viewBy.geography', { defaultValue: 'Geography' })}
-                </option>
-                <option value="time">
-                  {t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
-                </option>
-              </Select>
+                onChange={setRegularityViewBy}
+              />
             </Flex>
             {regularityViewBy === 'geography' ? (
               <MetricPerformanceChart
@@ -243,6 +201,7 @@ export function DashboardBody({
               <MonthlyTrendChart
                 data={regularityTimeTrendData}
                 height="400px"
+                isPercent
                 xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
                 yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
                   defaultValue: 'Regularity (%)',
@@ -313,17 +272,17 @@ export function DashboardBody({
             w="full"
             minW={0}
           >
-            <Text textStyle="bodyText3" fontWeight="400" mb={2}>
+            <Text textStyle="bodyText3" fontWeight="400" mb="40px">
               {t('outageAndSubmissionCharts.titles.supplyOutageReasons', {
                 defaultValue: 'Supply Outage Reasons',
               })}
             </Text>
-            <IssueTypeBreakdownChart data={waterSupplyOutagesData} height="400px" />
+            <IssueTypeBreakdownChart data={waterSupplyOutagesData} height="336px" />
           </Box>
           <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="510px" minW={0}>
             {isStateScreen ? (
               <>
-                <Text textStyle="bodyText3" fontWeight="400" mb={2}>
+                <Text textStyle="bodyText3" fontWeight="400" mb="16px">
                   {t('outageAndSubmissionCharts.titles.supplyOutageDistribution', {
                     defaultValue: 'Supply Outage Distribution',
                   })}
@@ -336,7 +295,7 @@ export function DashboardBody({
               </>
             ) : (
               <>
-                <Text textStyle="bodyText3" fontWeight="400" mb={2}>
+                <Text textStyle="bodyText3" fontWeight="400" mb="16px">
                   {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
                     defaultValue: 'Reading Submission Rate',
                   })}

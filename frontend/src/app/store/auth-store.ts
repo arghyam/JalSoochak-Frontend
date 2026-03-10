@@ -17,6 +17,7 @@ export interface AuthState {
   login: (payload: LoginRequest) => Promise<string>
   logout: () => Promise<void>
   bootstrap: () => Promise<void>
+  updateUser: (user: AuthUser) => void
   sessionExpired: boolean
   setSessionExpired: () => void
   setTokens: (accessToken: string, refreshToken: string) => void
@@ -153,6 +154,10 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       sessionExpired: true,
       error: 'Session expired. Please log in again.',
     })
+  },
+
+  updateUser: (user: AuthUser) => {
+    set({ user })
   },
 
   setTokens: (accessToken: string, refreshToken: string) => {

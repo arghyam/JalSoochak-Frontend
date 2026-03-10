@@ -1,3 +1,4 @@
+import { isAxiosError } from 'axios'
 import { apiClient } from '@/shared/lib/axios'
 import {
   createStateUT,
@@ -8,6 +9,11 @@ import {
   getMockApiCredentialsData,
   getMockIngestionMonitorData,
   getMockStateAdminsData,
+  getMockSuperUsers,
+  getMockSuperUserById,
+  createMockSuperUser,
+  updateMockSuperUser,
+  updateMockSuperUserStatus,
   getMockStatesUTsData,
   getMockSuperAdminOverviewData,
   getMockSystemRulesConfiguration,
@@ -34,6 +40,7 @@ import type {
 import type { CreateTenantInput, CreateTenantResponse } from '../../types/tenant'
 import type { SystemRulesConfiguration } from '../../types/system-rules'
 import type { StateAdmin } from '../../types/state-admins'
+import type { SuperUser, CreateSuperUserInput, UpdateSuperUserInput } from '../../types/super-users'
 
 export type SaveSystemRulesPayload = Omit<SystemRulesConfiguration, 'id'>
 export type IngestionMonitorFilters = {
@@ -64,6 +71,11 @@ type SuperAdminDataProvider = {
     admin: StateAdminDetails
   ) => Promise<{ success: boolean } | CreateTenantAdminApiResponse>
   createTenant: (payload: CreateTenantInput) => Promise<CreateTenantResponse['data']>
+  getSuperUsers: () => Promise<SuperUser[]>
+  getSuperUserById: (id: string) => Promise<SuperUser | null>
+  createSuperUser: (payload: CreateSuperUserInput) => Promise<SuperUser>
+  updateSuperUser: (id: string, payload: UpdateSuperUserInput) => Promise<SuperUser>
+  updateSuperUserStatus: (id: string, status: 'active' | 'inactive') => Promise<SuperUser>
 }
 
 const httpProvider: SuperAdminDataProvider = {
@@ -169,6 +181,35 @@ const httpProvider: SuperAdminDataProvider = {
     })
     return response.data.data
   },
+  getSuperUsers: async () => {
+    const response = await apiClient.get<SuperUser[]>('/api/super-admin/super-users')
+    return response.data
+  },
+  getSuperUserById: async (id) => {
+    try {
+      const response = await apiClient.get<SuperUser>(`/api/super-admin/super-users/${id}`)
+      return response.data
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.status === 404) {
+        return null
+      }
+      throw error
+    }
+  },
+  createSuperUser: async (payload) => {
+    const response = await apiClient.post<SuperUser>('/api/super-admin/super-users', payload)
+    return response.data
+  },
+  updateSuperUser: async (id, payload) => {
+    const response = await apiClient.put<SuperUser>(`/api/super-admin/super-users/${id}`, payload)
+    return response.data
+  },
+  updateSuperUserStatus: async (id, status) => {
+    const response = await apiClient.patch<SuperUser>(`/api/super-admin/super-users/${id}/status`, {
+      status,
+    })
+    return response.data
+  },
 }
 
 const mockProvider: SuperAdminDataProvider = {
@@ -190,6 +231,11 @@ const mockProvider: SuperAdminDataProvider = {
   createStateAdmin: (tenantId: string, admin: StateAdminDetails) =>
     createStateAdmin(tenantId, admin),
   createTenant: (payload: CreateTenantInput) => mockCreateTenant(payload),
+  getSuperUsers: () => getMockSuperUsers(),
+  getSuperUserById: (id) => getMockSuperUserById(id),
+  createSuperUser: (payload) => createMockSuperUser(payload),
+  updateSuperUser: (id, payload) => updateMockSuperUser(id, payload),
+  updateSuperUserStatus: (id, status) => updateMockSuperUserStatus(id, status),
 }
 
 const SUPER_ADMIN_PROVIDER = import.meta.env.VITE_SUPER_ADMIN_DATA_PROVIDER ?? 'mock'
@@ -218,4 +264,11 @@ export const superAdminApi = {
   createStateAdmin: (tenantId: string, admin: StateAdminDetails) =>
     provider.createStateAdmin(tenantId, admin),
   createTenant: (payload: CreateTenantInput) => provider.createTenant(payload),
+  getSuperUsers: () => provider.getSuperUsers(),
+  getSuperUserById: (id: string) => provider.getSuperUserById(id),
+  createSuperUser: (payload: CreateSuperUserInput) => provider.createSuperUser(payload),
+  updateSuperUser: (id: string, payload: UpdateSuperUserInput) =>
+    provider.updateSuperUser(id, payload),
+  updateSuperUserStatus: (id: string, status: 'active' | 'inactive') =>
+    provider.updateSuperUserStatus(id, status),
 }

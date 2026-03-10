@@ -12,6 +12,9 @@ import {
   ManageStateAdminsPage,
   ApiCredentialsPage,
   IngestionMonitorPage,
+  SuperUsersPage,
+  SuperUserFormPage,
+  ViewSuperUserPage,
 } from '@/features/super-admin'
 import {
   OverviewPage,
@@ -27,7 +30,7 @@ import {
   StateUTAdminFormPage,
   ViewStateUTAdminPage,
 } from '@/features/state-admin'
-import { LoginPage, ResetPasswordPage } from '@/features/auth'
+import { LoginPage, ResetPasswordPage, ProfilePage, ChangePasswordPage } from '@/features/auth'
 import { SignupFlowPage } from '@/features/auth/components/signup/signup-flow-page'
 import { ProtectedRoute, RedirectIfAuthenticated } from '@/shared/components/routing/ProtectedRoute'
 import { AUTH_ROLES } from '@/shared/constants/auth'
@@ -45,37 +48,32 @@ export const router = createBrowserRouter([
       </DashboardLayout>
     ),
   },
+
+  // Shared routes — all authenticated roles
+  {
+    path: '/',
+    element: (
+      <ProtectedRoute>
+        <MainLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        path: ROUTES.PROFILE,
+        element: <ProfilePage />,
+      },
+      {
+        path: ROUTES.CHANGE_PASSWORD,
+        element: <ChangePasswordPage />,
+      },
+    ],
+  },
+
   {
     path: '/:stateSlug',
     element: (
       <DashboardLayout>
         <CentralDashboard />
-      </DashboardLayout>
-    ),
-  },
-  {
-    path: '/states/:stateId',
-    element: (
-      <DashboardLayout>
-        <Box p={6}>
-          <Heading fontSize="2xl" fontWeight="bold">
-            State Dashboard
-          </Heading>
-          <Text color="gray.600">State dashboard coming soon...</Text>
-        </Box>
-      </DashboardLayout>
-    ),
-  },
-  {
-    path: '/zones/:zoneId',
-    element: (
-      <DashboardLayout>
-        <Box p={6}>
-          <Heading fontSize="2xl" fontWeight="bold">
-            Zone Dashboard
-          </Heading>
-          <Text color="gray.600">Zone dashboard coming soon...</Text>
-        </Box>
       </DashboardLayout>
     ),
   },
@@ -167,6 +165,22 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.SUPER_ADMIN_INGESTION_MONITOR,
         element: <IngestionMonitorPage />,
+      },
+      {
+        path: ROUTES.SUPER_ADMIN_SUPER_USERS,
+        element: <SuperUsersPage />,
+      },
+      {
+        path: ROUTES.SUPER_ADMIN_SUPER_USERS_ADD,
+        element: <SuperUserFormPage />,
+      },
+      {
+        path: ROUTES.SUPER_ADMIN_SUPER_USERS_VIEW,
+        element: <ViewSuperUserPage />,
+      },
+      {
+        path: ROUTES.SUPER_ADMIN_SUPER_USERS_EDIT,
+        element: <SuperUserFormPage />,
       },
     ],
   },

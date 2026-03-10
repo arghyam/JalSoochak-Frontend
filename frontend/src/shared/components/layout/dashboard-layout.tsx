@@ -11,7 +11,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     <Flex minH="100vh" direction="column" bg="neutral.50">
       <Header />
 
-      <Box as="main" flex="1" overflowY="auto" px={{ base: '40px', md: '80px' }}>
+      <Box as="main" flex="1" overflowY="auto" px={{ base: '40px', md: '80px' }} pb="48px">
         <Box w="full" maxW="1440px" mx="auto">
           {children}
         </Box>

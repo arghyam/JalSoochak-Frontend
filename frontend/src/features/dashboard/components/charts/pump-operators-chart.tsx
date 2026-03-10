@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react'
-import { useBreakpointValue, useTheme } from '@chakra-ui/react'
+import { useTheme } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
@@ -14,8 +14,8 @@ interface PumpOperatorsChartProps {
 }
 
 const defaultColors = ['#3291D1', '#ADD3ED']
-const defaultPieRadius: (string | number)[] = ['50%', '85%']
-const defaultPieCenter: [string, string] = ['50%', '45%']
+const donutRadius: [string, string] = ['58%', '98%']
+const donutCenter: [string, string] = ['50%', '50%']
 const legendKeyByNormalizedLabel: Record<string, 'active' | 'inactive'> = {
   active: 'active',
   'active pump operator': 'active',
@@ -40,18 +40,6 @@ export function PumpOperatorsChart({
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
   const noteColor = theme?.colors?.neutral?.['950'] ?? bodyText7.color ?? '#667085'
-  const pieRadius =
-    useBreakpointValue<(string | number)[]>({
-      base: ['50%', '75%'],
-      sm: ['50%', '85%'],
-      md: ['50%', '85%'],
-    }) ?? defaultPieRadius
-  const pieCenter =
-    useBreakpointValue<[string, string]>({
-      base: ['50%', '42%'],
-      sm: ['50%', '45%'],
-      md: ['50%', '45%'],
-    }) ?? defaultPieCenter
   const localizedLegendLabel = useCallback(
     (label: string) => {
       const legendKey = legendKeyByNormalizedLabel[normalizeLegendLabel(label)]
@@ -68,18 +56,38 @@ export function PumpOperatorsChart({
   )
 
   const option = useMemo<echarts.EChartsOption>(() => {
+    const totalOperators = data.reduce((sum, entry) => sum + entry.value, 0)
+
     return {
       tooltip: {
-        show: false,
+        show: true,
+        trigger: 'item',
+        formatter: (params: unknown) => {
+          const point = params as { name?: string; value?: number | string }
+          const rawValue =
+            typeof point.value === 'number' ? point.value : Number(point.value ?? Number.NaN)
+          const hasNumericValue = Number.isFinite(rawValue)
+          const percentage =
+            hasNumericValue && totalOperators > 0
+              ? ` (${((rawValue / totalOperators) * 100).toFixed(1)}%)`
+              : ''
+          const formattedValue = hasNumericValue ? rawValue.toFixed(1) : '-'
+
+          return `<strong>${point.name ?? ''}</strong><br/>${formattedValue}${percentage}`
+        },
       },
       series: [
         {
           type: 'pie',
-          radius: pieRadius,
-          center: pieCenter,
+          radius: donutRadius,
+          center: donutCenter,
           startAngle: 360,
           clockwise: true,
           avoidLabelOverlap: true,
+          emphasis: {
+            scale: true,
+            scaleSize: 2,
+          },
           label: {
             show: false,
           },
@@ -92,14 +100,19 @@ export function PumpOperatorsChart({
             itemStyle: {
               color: defaultColors[index % defaultColors.length],
             },
+            emphasis: {
+              itemStyle: {
+                color: defaultColors[index % defaultColors.length],
+              },
+            },
           })),
         },
       ],
     }
-  }, [data, pieCenter, pieRadius, localizedLegendLabel])
+  }, [data, localizedLegendLabel])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
-  const chartSize = 300
+  const chartSize = 350
 
   return (
     <div
