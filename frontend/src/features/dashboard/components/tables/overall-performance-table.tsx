@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { BiSortAlt2 } from 'react-icons/bi'
 import type { EntityPerformance } from '../../types'
 
-interface AllStatesTableProps {
+interface OverallPerformanceTableProps {
   data: EntityPerformance[]
   maxItems?: number
   scrollMaxHeight?: string
@@ -14,12 +14,12 @@ interface AllStatesTableProps {
 type SortColumn = 'coverage' | 'quantity' | 'regularity' | null
 type SortDirection = 'asc' | 'desc' | null
 
-export function AllStatesTable({
+export function OverallPerformanceTable({
   data,
   maxItems,
   scrollMaxHeight = '416px',
   entityLabel,
-}: AllStatesTableProps) {
+}: OverallPerformanceTableProps) {
   const { t } = useTranslation('dashboard')
   const [sortColumn, setSortColumn] = useState<SortColumn>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>(null)

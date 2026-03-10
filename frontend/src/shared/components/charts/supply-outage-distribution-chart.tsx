@@ -15,7 +15,7 @@ export interface WaterSupplyOutageData {
   sourceDrying: number
 }
 
-interface WaterSupplyOutagesChartProps {
+interface SupplyOutageDistributionChartProps {
   data: WaterSupplyOutageData[]
   className?: string
   height?: string | number
@@ -30,12 +30,12 @@ const outageColors = {
   sourceDrying: '#1E577D',
 }
 
-export function WaterSupplyOutagesChart({
+export function SupplyOutageDistributionChart({
   data,
   className,
   height = '300px',
   xAxisLabel = 'Districts',
-}: WaterSupplyOutagesChartProps) {
+}: SupplyOutageDistributionChartProps) {
   const { t } = useTranslation('dashboard')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)

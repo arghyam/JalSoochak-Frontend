@@ -6,7 +6,7 @@ import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
 import type { WaterSupplyOutageData } from '../../types'
 
-interface IssueTypeBreakdownChartProps {
+interface SupplyOutageReasonsChartProps {
   data: WaterSupplyOutageData[]
   className?: string
   height?: string | number
@@ -22,12 +22,12 @@ const outageColors = {
 }
 const chartLegendGapPx = 20
 
-export function IssueTypeBreakdownChart({
+export function SupplyOutageReasonsChart({
   data,
   className,
   height = '300px',
   pieSize = 300,
-}: IssueTypeBreakdownChartProps) {
+}: SupplyOutageReasonsChartProps) {
   const { t } = useTranslation('dashboard')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)

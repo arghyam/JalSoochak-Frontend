@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
-import type { ImageSubmissionStatusData } from '../../types'
+import type { ReadingSubmissionStatusData } from '../../types'
 
-interface ImageSubmissionStatusChartProps {
-  data: ImageSubmissionStatusData[]
+interface ReadingSubmissionStatusChartProps {
+  data: ReadingSubmissionStatusData[]
   className?: string
   height?: string | number
   pieSize?: number
@@ -16,12 +16,12 @@ interface ImageSubmissionStatusChartProps {
 const defaultColors = ['#3291D1', '#ADD3ED']
 const chartLegendGapPx = 20
 
-export function ImageSubmissionStatusChart({
+export function ReadingSubmissionStatusChart({
   data,
   className,
   height = '300px',
   pieSize = 300,
-}: ImageSubmissionStatusChartProps) {
+}: ReadingSubmissionStatusChartProps) {
   const { t } = useTranslation('dashboard')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
