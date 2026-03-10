@@ -9,7 +9,7 @@ import type {
   WaterSupplyOutageData,
 } from '../../types'
 import { SupplyOutageReasonsChart, MetricPerformanceChart } from '../charts'
-import { PhotoEvidenceComplianceTable } from '../tables'
+import { ReadingComplianceTable } from '../tables'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 
 type VillageDashboardScreenProps = {
@@ -308,7 +308,7 @@ export function VillageDashboardScreen({
           </Flex>
         </Box>
         <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="430px" minW={0}>
-          <PhotoEvidenceComplianceTable
+          <ReadingComplianceTable
             data={readingComplianceRows}
             showVillageColumn={false}
             scrollAreaMaxH="320px"

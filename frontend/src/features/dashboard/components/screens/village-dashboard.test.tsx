@@ -13,8 +13,8 @@ const mockSupplyOutageReasonsChart = jest.fn((_props: unknown) => (
 const mockReadingSubmissionStatusChart = jest.fn((_props: unknown) => (
   <div data-testid="reading-submission-status-chart" />
 ))
-const mockPhotoEvidenceComplianceTable = jest.fn((_props: unknown) => (
-  <div data-testid="photo-evidence-compliance-table" />
+const mockReadingComplianceTable = jest.fn((_props: unknown) => (
+  <div data-testid="reading-compliance-table" />
 ))
 
 jest.mock('../charts', () => ({
@@ -24,7 +24,7 @@ jest.mock('../charts', () => ({
 }))
 
 jest.mock('../tables', () => ({
-  PhotoEvidenceComplianceTable: (props: unknown) => mockPhotoEvidenceComplianceTable(props),
+  ReadingComplianceTable: (props: unknown) => mockReadingComplianceTable(props),
 }))
 
 const data: DashboardData = {
@@ -131,7 +131,7 @@ describe('VillageDashboardScreen', () => {
     mockMetricPerformanceChart.mockClear()
     mockSupplyOutageReasonsChart.mockClear()
     mockReadingSubmissionStatusChart.mockClear()
-    mockPhotoEvidenceComplianceTable.mockClear()
+    mockReadingComplianceTable.mockClear()
   })
 
   it('renders quantity and regularity using metric performance charts', () => {
@@ -147,7 +147,7 @@ describe('VillageDashboardScreen', () => {
 
     expect(screen.getByTestId('supply-outage-reasons-chart')).toBeTruthy()
     expect(screen.getByTestId('reading-submission-status-chart')).toBeTruthy()
-    expect(screen.getByTestId('photo-evidence-compliance-table')).toBeTruthy()
+    expect(screen.getByTestId('reading-compliance-table')).toBeTruthy()
   })
 
   it('paginates pump operator details with previous/next and page buttons', () => {
@@ -155,7 +155,7 @@ describe('VillageDashboardScreen', () => {
 
     expect(screen.getByText('Ajay Yadav')).toBeTruthy()
     expect(screen.getByText('11-02-24, 1:00pm')).toBeTruthy()
-    let complianceProps = mockPhotoEvidenceComplianceTable.mock.calls.at(-1)?.[0] as {
+    let complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
       data: Array<{ name: string }>
     }
     expect(complianceProps.data.every((row) => row.name === 'Ajay Yadav')).toBe(true)
@@ -168,7 +168,7 @@ describe('VillageDashboardScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: '2' }))
     expect(screen.getByText('Vikram Singh')).toBeTruthy()
     expect(screen.getByText('13-02-24, 10:30am')).toBeTruthy()
-    complianceProps = mockPhotoEvidenceComplianceTable.mock.calls.at(-1)?.[0] as {
+    complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
       data: Array<{ name: string }>
     }
     expect(complianceProps.data.every((row) => row.name === 'Vikram Singh')).toBe(true)

@@ -28,8 +28,8 @@ const mockReadingSubmissionRateChart = jest.fn((_props: unknown) => (
 const mockPumpOperatorsPerformanceTable = jest.fn((_props: unknown) => (
   <div data-testid="pump-operators-performance-table" />
 ))
-const mockPhotoEvidenceComplianceTable = jest.fn((_props: unknown) => (
-  <div data-testid="photo-evidence-compliance-table" />
+const mockReadingComplianceTable = jest.fn((_props: unknown) => (
+  <div data-testid="reading-compliance-table" />
 ))
 
 jest.mock('../charts', () => ({
@@ -44,7 +44,7 @@ jest.mock('../charts', () => ({
 
 jest.mock('../tables', () => ({
   PumpOperatorsPerformanceTable: (props: unknown) => mockPumpOperatorsPerformanceTable(props),
-  PhotoEvidenceComplianceTable: (props: unknown) => mockPhotoEvidenceComplianceTable(props),
+  ReadingComplianceTable: (props: unknown) => mockReadingComplianceTable(props),
 }))
 
 const gramPanchayatTableData: EntityPerformance[] = [
@@ -151,7 +151,7 @@ describe('BlockDashboardScreen', () => {
     mockReadingSubmissionStatusChart.mockClear()
     mockReadingSubmissionRateChart.mockClear()
     mockPumpOperatorsPerformanceTable.mockClear()
-    mockPhotoEvidenceComplianceTable.mockClear()
+    mockReadingComplianceTable.mockClear()
   })
 
   it('renders block view selectors with Select default option', () => {
@@ -185,7 +185,7 @@ describe('BlockDashboardScreen', () => {
     expect(screen.getByTestId('pump-operators-performance-table')).toBeTruthy()
     expect(screen.getByTestId('reading-submission-status-chart')).toBeTruthy()
     expect(screen.getByTestId('reading-submission-rate-chart')).toBeTruthy()
-    expect(screen.getByTestId('photo-evidence-compliance-table')).toBeTruthy()
+    expect(screen.getByTestId('reading-compliance-table')).toBeTruthy()
   })
 
   it('renders geography charts by default with gram panchayat labels and reading compliance title', () => {
@@ -213,7 +213,7 @@ describe('BlockDashboardScreen', () => {
     }
     expect(submissionProps.entityLabel).toBe('Gram Panchayats')
 
-    const complianceProps = mockPhotoEvidenceComplianceTable.mock.calls[0]?.[0] as {
+    const complianceProps = mockReadingComplianceTable.mock.calls[0]?.[0] as {
       title: string
     }
     expect(complianceProps.title).toBe('Reading Compliance')

@@ -10,7 +10,7 @@ import {
   ReadingSubmissionRateChart,
   SupplyOutageDistributionChart,
 } from '../charts'
-import { PhotoEvidenceComplianceTable, PumpOperatorsPerformanceTable } from '../tables'
+import { ReadingComplianceTable, PumpOperatorsPerformanceTable } from '../tables'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 import { ViewBySelect } from '@/shared/components/common'
 
@@ -325,7 +325,7 @@ export function BlockDashboardScreen({
       {/* Reading Compliance */}
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
         <Box bg="white" borderWidth="0.5px" borderRadius="12px" borderColor="#E4E4E7" px={4} py={6}>
-          <PhotoEvidenceComplianceTable
+          <ReadingComplianceTable
             data={data.photoEvidenceCompliance}
             title={t('outageAndSubmissionCharts.titles.readingCompliance', {
               defaultValue: 'Reading Compliance',

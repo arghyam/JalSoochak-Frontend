@@ -2,7 +2,7 @@ import { Box, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import type { PhotoEvidenceComplianceData } from '../../types'
 
-interface PhotoEvidenceComplianceTableProps {
+interface ReadingComplianceTableProps {
   data: PhotoEvidenceComplianceData[]
   title?: string
   maxItems?: number
@@ -10,13 +10,13 @@ interface PhotoEvidenceComplianceTableProps {
   scrollAreaMaxH?: string | number
 }
 
-export function PhotoEvidenceComplianceTable({
+export function ReadingComplianceTable({
   data,
   title,
   maxItems,
   showVillageColumn = true,
   scrollAreaMaxH = '432px',
-}: PhotoEvidenceComplianceTableProps) {
+}: ReadingComplianceTableProps) {
   const { t } = useTranslation('dashboard')
   const resolvedTitle =
     title?.trim() ||
