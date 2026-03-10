@@ -88,7 +88,7 @@ export function SupplySubmissionRateChart({
         show: true,
         trigger: 'axis',
         axisPointer: {
-          type: 'shadow',
+          type: 'none',
         },
         formatter: (params: unknown) => {
           const points = Array.isArray(params)
@@ -172,7 +172,9 @@ export function SupplySubmissionRateChart({
             borderRadius: [barRadius, barRadius, barRadius, barRadius],
           },
           emphasis: {
-            disabled: true,
+            itemStyle: {
+              color: '#84BDE3',
+            },
           },
         },
       ],

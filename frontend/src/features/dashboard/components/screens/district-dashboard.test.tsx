@@ -229,6 +229,7 @@ describe('DistrictDashboardScreen', () => {
     expect(readingSubmissionCall).toBeDefined()
     expect(readingSubmissionCall?.[0].xAxisLabel).toBe('Month')
     expect(readingSubmissionCall?.[0].yAxisLabel).toBe('Percentage')
+    expect(readingSubmissionCall?.[0].isPercent).toBe(true)
     expect(readingSubmissionCall?.[0].data).toEqual([
       {
         period: 'Jan',

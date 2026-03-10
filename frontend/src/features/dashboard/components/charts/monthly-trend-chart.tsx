@@ -8,6 +8,7 @@ import {
   type PointerEvent,
 } from 'react'
 import { Box, useTheme } from '@chakra-ui/react'
+import * as echarts from 'echarts'
 import type { EChartsOption } from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
@@ -22,6 +23,7 @@ interface MonthlyTrendChartProps {
   className?: string
   height?: string | number
   maxItems?: number
+  isPercent?: boolean
   xAxisLabel?: string
   yAxisLabel?: string
   seriesName?: string
@@ -32,6 +34,7 @@ export function MonthlyTrendChart({
   className,
   height = '400px',
   maxItems = 5,
+  isPercent = false,
   xAxisLabel = 'Month',
   yAxisLabel = 'Value',
   seriesName = 'Trend',
@@ -78,7 +81,43 @@ export function MonthlyTrendChart({
 
     return {
       tooltip: {
-        show: false,
+        show: true,
+        trigger: 'axis',
+        axisPointer: {
+          type: 'line',
+        },
+        formatter: (params: unknown) => {
+          const points = Array.isArray(params)
+            ? (params as Array<{
+                axisValueLabel?: string
+                seriesName?: string
+                value?: number | string
+              }>)
+            : []
+
+          if (points.length === 0) {
+            return ''
+          }
+
+          const period = points[0]?.axisValueLabel ?? ''
+          const safePeriod = echarts.format.encodeHTML(period)
+          const rows = points
+            .map((point) => {
+              const rawValue = typeof point.value === 'number' ? point.value : Number(point.value)
+              const hasNumericValue = Number.isFinite(rawValue)
+              const formattedValue = hasNumericValue
+                ? isPercent
+                  ? `${rawValue.toFixed(1)}%`
+                  : `${rawValue.toFixed(1)}`
+                : '-'
+              const safeSeriesName = echarts.format.encodeHTML(point.seriesName ?? '')
+
+              return `${safeSeriesName}: ${formattedValue}`
+            })
+            .join('<br/>')
+
+          return `<strong>${safePeriod}</strong><br/>${rows}`
+        },
       },
       legend: {
         show: false,
@@ -138,18 +177,18 @@ export function MonthlyTrendChart({
           data: values,
           smooth: true,
           symbol: 'circle',
-          symbolSize: 8,
+          symbolSize: 5,
           showSymbol: true,
           itemStyle: {
             color: '#3291D1',
           },
           lineStyle: {
-            width: 2,
+            width: 1,
           },
         },
       ],
     }
-  }, [bodyText7, data, seriesName, yAxisScale.max])
+  }, [bodyText7, data, isPercent, seriesName, yAxisScale.max])
 
   const axisOption = useMemo<EChartsOption>(() => {
     const placeholderLabel = longestPeriodLabel || 'W'

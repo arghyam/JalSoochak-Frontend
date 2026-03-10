@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Box, Flex, Grid, Select, Text } from '@chakra-ui/react'
+import { Box, Flex, Grid, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import type {
   DashboardData,
@@ -19,6 +19,7 @@ import { BlockDashboardScreen } from './block-dashboard'
 import { DistrictDashboardScreen } from './district-dashboard'
 import { GramPanchayatDashboardScreen } from './gram-panchayat-dashboard'
 import { StateUtDashboardScreen } from './state-ut-dashboard'
+import { ViewBySelect } from '@/shared/components/common'
 import { VillageDashboardScreen } from './village-dashboard'
 
 type DashboardBodyProps = {
@@ -42,7 +43,7 @@ type DashboardBodyProps = {
   villagePumpOperators?: VillagePumpOperatorDetails[]
 }
 
-type ViewBy = '' | 'geography' | 'time'
+type ViewBy = 'geography' | 'time'
 
 export function DashboardBody({
   data,
@@ -65,8 +66,8 @@ export function DashboardBody({
   villagePumpOperators,
 }: DashboardBodyProps) {
   const { t } = useTranslation('dashboard')
-  const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('')
-  const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('')
+  const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
+  const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
   const isStateScreen =
     isStateSelected &&
     !isDistrictSelected &&
@@ -98,11 +99,6 @@ export function DashboardBody({
   const geographyEntityLabel = isStateScreen
     ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
     : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
-  const quantitySelectColor = quantityViewBy === '' ? 'neutral.400' : 'primary.500'
-  const quantitySelectBorderColor = quantityViewBy === '' ? 'neutral.400' : 'primary.500'
-  const regularitySelectColor = regularityViewBy === '' ? 'neutral.400' : 'primary.500'
-  const regularitySelectBorderColor = regularityViewBy === '' ? 'neutral.400' : 'primary.500'
-
   return (
     <>
       {/* Quantity + Regularity Charts */}
@@ -124,51 +120,15 @@ export function DashboardBody({
               <Text textStyle="bodyText3" fontWeight="400">
                 {t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
               </Text>
-              <Select
-                aria-label={t('performanceCharts.quantity.ariaViewBy', {
+              <ViewBySelect
+                ariaLabel={t('performanceCharts.quantity.ariaViewBy', {
                   defaultValue: 'Quantity performance view by',
                 })}
-                h="32px"
-                maxW="128px"
-                fontSize="14px"
-                fontWeight="600"
-                borderRadius="4px"
-                borderColor={quantitySelectBorderColor}
-                borderWidth="1px"
-                bg="white"
-                color={quantitySelectColor}
-                iconColor={quantitySelectColor}
-                appearance="none"
                 value={quantityViewBy}
-                onChange={(event) => setQuantityViewBy(event.target.value as ViewBy)}
-                sx={{
-                  '> option': {
-                    color: 'neutral.900',
-                    backgroundColor: 'white',
-                  },
-                }}
-                _hover={{
-                  borderColor: quantitySelectBorderColor,
-                  color: quantitySelectColor,
-                  bg: 'white',
-                }}
-                _focus={{
-                  borderColor: quantitySelectBorderColor,
-                  boxShadow: 'none',
-                }}
-              >
-                <option value="">
-                  {t('performanceCharts.viewBy.select', { defaultValue: 'Select' })}
-                </option>
-                <option value="geography">
-                  {t('performanceCharts.viewBy.geography', { defaultValue: 'Geography' })}
-                </option>
-                <option value="time">
-                  {t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
-                </option>
-              </Select>
+                onChange={setQuantityViewBy}
+              />
             </Flex>
-            {quantityViewBy === '' || quantityViewBy === 'geography' ? (
+            {quantityViewBy === 'geography' ? (
               <MetricPerformanceChart
                 data={geographyMetricData}
                 metric="quantity"
@@ -216,51 +176,15 @@ export function DashboardBody({
                   defaultValue: 'Regularity Performance',
                 })}
               </Text>
-              <Select
-                aria-label={t('performanceCharts.regularity.ariaViewBy', {
+              <ViewBySelect
+                ariaLabel={t('performanceCharts.regularity.ariaViewBy', {
                   defaultValue: 'Regularity performance view by',
                 })}
-                h="32px"
-                maxW="128px"
-                fontSize="14px"
-                fontWeight="600"
-                borderRadius="4px"
-                borderColor={regularitySelectBorderColor}
-                borderWidth="1px"
-                bg="white"
-                color={regularitySelectColor}
-                iconColor={regularitySelectColor}
-                appearance="none"
                 value={regularityViewBy}
-                onChange={(event) => setRegularityViewBy(event.target.value as ViewBy)}
-                sx={{
-                  '> option': {
-                    color: 'neutral.900',
-                    backgroundColor: 'white',
-                  },
-                }}
-                _hover={{
-                  borderColor: regularitySelectBorderColor,
-                  color: regularitySelectColor,
-                  bg: 'white',
-                }}
-                _focus={{
-                  borderColor: regularitySelectBorderColor,
-                  boxShadow: 'none',
-                }}
-              >
-                <option value="">
-                  {t('performanceCharts.viewBy.select', { defaultValue: 'Select' })}
-                </option>
-                <option value="geography">
-                  {t('performanceCharts.viewBy.geography', { defaultValue: 'Geography' })}
-                </option>
-                <option value="time">
-                  {t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
-                </option>
-              </Select>
+                onChange={setRegularityViewBy}
+              />
             </Flex>
-            {regularityViewBy === '' || regularityViewBy === 'geography' ? (
+            {regularityViewBy === 'geography' ? (
               <MetricPerformanceChart
                 data={geographyMetricData}
                 metric="regularity"
@@ -277,6 +201,7 @@ export function DashboardBody({
               <MonthlyTrendChart
                 data={regularityTimeTrendData}
                 height="400px"
+                isPercent
                 xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
                 yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
                   defaultValue: 'Regularity (%)',

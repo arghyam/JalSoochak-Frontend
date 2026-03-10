@@ -182,7 +182,7 @@ export function VillageDashboardScreen({
           pb="24px"
           pl="16px"
           pr="16px"
-          h="523px"
+          h="430px"
           minW={0}
         >
           <Flex direction="column" h="full">
@@ -307,10 +307,11 @@ export function VillageDashboardScreen({
             ) : null}
           </Flex>
         </Box>
-        <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="536px">
+        <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="430px" minW={0}>
           <PhotoEvidenceComplianceTable
             data={readingComplianceRows}
             showVillageColumn={false}
+            scrollAreaMaxH="320px"
             title={t('outageAndSubmissionCharts.titles.readingCompliance', {
               defaultValue: 'Reading Compliance',
             })}
