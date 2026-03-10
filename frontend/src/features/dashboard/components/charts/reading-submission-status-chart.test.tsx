@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { ImageSubmissionStatusData } from '../../types'
-import { ImageSubmissionStatusChart } from './image-submission-status-chart'
+import { ReadingSubmissionStatusChart } from './reading-submission-status-chart'
 
 const mockEChartsWrapper = jest.fn((_props: { option: unknown }) => (
   <div data-testid="echarts-wrapper" />
@@ -20,9 +20,9 @@ const chartData: ImageSubmissionStatusData[] = [
   { label: 'Automated Submission', value: 36 },
 ]
 
-describe('ImageSubmissionStatusChart', () => {
+describe('ReadingSubmissionStatusChart', () => {
   it('shows hover tooltip value and keeps same slice color on emphasis', () => {
-    renderWithProviders(<ImageSubmissionStatusChart data={chartData} height="336px" />)
+    renderWithProviders(<ReadingSubmissionStatusChart data={chartData} height="336px" />)
 
     const option = (
       mockEChartsWrapper.mock.calls as Array<

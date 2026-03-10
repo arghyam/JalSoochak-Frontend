@@ -13,7 +13,7 @@ import {
   MetricPerformanceChart,
   MonthlyTrendChart,
   ReadingSubmissionRateChart,
-  WaterSupplyOutagesChart,
+  SupplyOutageDistributionChart,
 } from '../charts'
 import { BlockDashboardScreen } from './block-dashboard'
 import { DistrictDashboardScreen } from './district-dashboard'
@@ -287,7 +287,7 @@ export function DashboardBody({
                     defaultValue: 'Supply Outage Distribution',
                   })}
                 </Text>
-                <WaterSupplyOutagesChart
+                <SupplyOutageDistributionChart
                   data={waterSupplyOutagesData}
                   height="400px"
                   xAxisLabel={geographyEntityLabel}

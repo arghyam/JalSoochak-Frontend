@@ -1,7 +1,7 @@
 import { Box, Text } from '@chakra-ui/react'
 import type { BoxProps } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { ImageSubmissionStatusChart } from '../charts'
+import { ReadingSubmissionStatusChart } from '../charts'
 import type { ImageSubmissionStatusData } from '../../types'
 
 type ReadingSubmissionStatusCardProps = {
@@ -37,7 +37,7 @@ export function ReadingSubmissionStatusCard({
           defaultValue: 'Reading Submission Status',
         })}
       </Text>
-      <ImageSubmissionStatusChart data={data} height={chartHeight} />
+      <ReadingSubmissionStatusChart data={data} height={chartHeight} />
     </Box>
   )
 }

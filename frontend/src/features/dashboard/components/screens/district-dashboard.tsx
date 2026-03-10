@@ -8,7 +8,7 @@ import {
   MonthlyTrendChart,
   PumpOperatorsChart,
   ReadingSubmissionRateChart,
-  WaterSupplyOutagesChart,
+  SupplyOutageDistributionChart,
 } from '../charts'
 import { PumpOperatorsPerformanceTable } from '../tables'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
@@ -226,7 +226,7 @@ export function DistrictDashboardScreen({
             />
           </Flex>
           {outageDistributionViewBy === 'geography' ? (
-            <WaterSupplyOutagesChart
+            <SupplyOutageDistributionChart
               data={data.waterSupplyOutages}
               height="400px"
               xAxisLabel="Blocks"

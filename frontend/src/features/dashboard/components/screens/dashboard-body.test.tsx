@@ -30,7 +30,7 @@ jest.mock('../charts', () => ({
     isPercent?: boolean
   }) => mockMonthlyTrendChart(props),
   ReadingSubmissionRateChart: () => <div data-testid="reading-submission-rate-chart" />,
-  WaterSupplyOutagesChart: () => <div data-testid="water-supply-outages-chart" />,
+  SupplyOutageDistributionChart: () => <div data-testid="supply-outage-distribution-chart" />,
   SupplyOutageReasonsChart: () => <div data-testid="supply-outage-reasons-chart" />,
 }))
 

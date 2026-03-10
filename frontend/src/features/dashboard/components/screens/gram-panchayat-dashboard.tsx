@@ -8,7 +8,7 @@ import {
   MonthlyTrendChart,
   PumpOperatorsChart,
   ReadingSubmissionRateChart,
-  WaterSupplyOutagesChart,
+  SupplyOutageDistributionChart,
 } from '../charts'
 import { PhotoEvidenceComplianceTable, PumpOperatorsPerformanceTable } from '../tables'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
@@ -223,7 +223,7 @@ export function GramPanchayatDashboardScreen({
             />
           </Flex>
           {outageDistributionViewBy === 'geography' ? (
-            <WaterSupplyOutagesChart
+            <SupplyOutageDistributionChart
               data={data.waterSupplyOutages}
               height="400px"
               xAxisLabel={t('performanceCharts.viewBy.villages', {

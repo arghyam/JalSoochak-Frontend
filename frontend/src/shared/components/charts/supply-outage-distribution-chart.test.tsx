@@ -1,6 +1,9 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { renderWithProviders } from '@/test/render-with-providers'
-import { WaterSupplyOutagesChart, type WaterSupplyOutageData } from './water-supply-outages-chart'
+import {
+  SupplyOutageDistributionChart,
+  type WaterSupplyOutageData,
+} from './supply-outage-distribution-chart'
 
 const mockEChartsWrapper = jest.fn((_props: { option: unknown }) => (
   <div data-testid="echarts-wrapper" />
@@ -50,9 +53,9 @@ const chartData: WaterSupplyOutageData[] = [
   },
 ]
 
-describe('WaterSupplyOutagesChart', () => {
+describe('SupplyOutageDistributionChart', () => {
   it('shows hover tooltip value and keeps segment color unchanged on emphasis', () => {
-    renderWithProviders(<WaterSupplyOutagesChart data={chartData} height="300px" />)
+    renderWithProviders(<SupplyOutageDistributionChart data={chartData} height="300px" />)
 
     const option = (
       mockEChartsWrapper.mock.calls as Array<

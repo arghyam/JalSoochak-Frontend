@@ -10,8 +10,8 @@ const mockMetricPerformanceChart = jest.fn((_props: unknown) => (
 const mockSupplyOutageReasonsChart = jest.fn((_props: unknown) => (
   <div data-testid="supply-outage-reasons-chart" />
 ))
-const mockImageSubmissionStatusChart = jest.fn((_props: unknown) => (
-  <div data-testid="image-submission-status-chart" />
+const mockReadingSubmissionStatusChart = jest.fn((_props: unknown) => (
+  <div data-testid="reading-submission-status-chart" />
 ))
 const mockPhotoEvidenceComplianceTable = jest.fn((_props: unknown) => (
   <div data-testid="photo-evidence-compliance-table" />
@@ -20,7 +20,7 @@ const mockPhotoEvidenceComplianceTable = jest.fn((_props: unknown) => (
 jest.mock('../charts', () => ({
   MetricPerformanceChart: (props: unknown) => mockMetricPerformanceChart(props),
   SupplyOutageReasonsChart: (props: unknown) => mockSupplyOutageReasonsChart(props),
-  ImageSubmissionStatusChart: (props: unknown) => mockImageSubmissionStatusChart(props),
+  ReadingSubmissionStatusChart: (props: unknown) => mockReadingSubmissionStatusChart(props),
 }))
 
 jest.mock('../tables', () => ({
@@ -130,7 +130,7 @@ describe('VillageDashboardScreen', () => {
   beforeEach(() => {
     mockMetricPerformanceChart.mockClear()
     mockSupplyOutageReasonsChart.mockClear()
-    mockImageSubmissionStatusChart.mockClear()
+    mockReadingSubmissionStatusChart.mockClear()
     mockPhotoEvidenceComplianceTable.mockClear()
   })
 
@@ -146,7 +146,7 @@ describe('VillageDashboardScreen', () => {
     expect(metricCalls[1]?.[0].seriesName).toBe('Regularity')
 
     expect(screen.getByTestId('supply-outage-reasons-chart')).toBeTruthy()
-    expect(screen.getByTestId('image-submission-status-chart')).toBeTruthy()
+    expect(screen.getByTestId('reading-submission-status-chart')).toBeTruthy()
     expect(screen.getByTestId('photo-evidence-compliance-table')).toBeTruthy()
   })
 
