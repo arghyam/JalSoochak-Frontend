@@ -8,6 +8,7 @@ import {
   type PointerEvent,
 } from 'react'
 import { Box, useTheme } from '@chakra-ui/react'
+import * as echarts from 'echarts'
 import type { EChartsOption } from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
@@ -22,6 +23,7 @@ interface MonthlyTrendChartProps {
   className?: string
   height?: string | number
   maxItems?: number
+  isPercent?: boolean
   xAxisLabel?: string
   yAxisLabel?: string
   seriesName?: string
@@ -32,6 +34,7 @@ export function MonthlyTrendChart({
   className,
   height = '400px',
   maxItems = 5,
+  isPercent = false,
   xAxisLabel = 'Month',
   yAxisLabel = 'Value',
   seriesName = 'Trend',
@@ -97,23 +100,23 @@ export function MonthlyTrendChart({
           }
 
           const period = points[0]?.axisValueLabel ?? ''
-          const usePercent =
-            yAxisLabel.includes('%') || seriesName.toLowerCase().includes('regularity')
+          const safePeriod = echarts.format.encodeHTML(period)
           const rows = points
             .map((point) => {
               const rawValue = typeof point.value === 'number' ? point.value : Number(point.value)
               const hasNumericValue = Number.isFinite(rawValue)
               const formattedValue = hasNumericValue
-                ? usePercent
+                ? isPercent
                   ? `${rawValue.toFixed(1)}%`
                   : `${rawValue.toFixed(1)}`
                 : '-'
+              const safeSeriesName = echarts.format.encodeHTML(point.seriesName ?? '')
 
-              return `${point.seriesName}: ${formattedValue}`
+              return `${safeSeriesName}: ${formattedValue}`
             })
             .join('<br/>')
 
-          return `<strong>${period}</strong><br/>${rows}`
+          return `<strong>${safePeriod}</strong><br/>${rows}`
         },
       },
       legend: {
@@ -185,7 +188,7 @@ export function MonthlyTrendChart({
         },
       ],
     }
-  }, [bodyText7, data, seriesName, yAxisLabel, yAxisScale.max])
+  }, [bodyText7, data, isPercent, seriesName, yAxisScale.max])
 
   const axisOption = useMemo<EChartsOption>(() => {
     const placeholderLabel = longestPeriodLabel || 'W'

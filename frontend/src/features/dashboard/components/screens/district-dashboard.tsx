@@ -164,6 +164,7 @@ export function DistrictDashboardScreen({
             <MonthlyTrendChart
               data={regularityTimeTrendData}
               height="400px"
+              isPercent
               xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
               yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
                 defaultValue: 'Regularity (%)',
@@ -280,6 +281,7 @@ export function DistrictDashboardScreen({
             <MonthlyTrendChart
               data={readingSubmissionTimeTrendData}
               height="383px"
+              isPercent
               xAxisLabel="Month"
               yAxisLabel={t('outageAndSubmissionCharts.axis.percentage', {
                 defaultValue: 'Percentage',

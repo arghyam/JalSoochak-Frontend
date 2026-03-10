@@ -11,9 +11,11 @@ const mockMetricPerformanceChart = jest.fn(
   )
 )
 const mockMonthlyTrendChart = jest.fn(
-  (_props: { data: Array<{ period: string; value: number }>; seriesName: string }) => (
-    <div data-testid="monthly-trend-chart" />
-  )
+  (_props: {
+    data: Array<{ period: string; value: number }>
+    seriesName: string
+    isPercent?: boolean
+  }) => <div data-testid="monthly-trend-chart" />
 )
 const mockDistrictDashboardScreen = jest.fn((_props: unknown) => (
   <div data-testid="district-dashboard-screen" />
@@ -25,6 +27,7 @@ jest.mock('../charts', () => ({
   MonthlyTrendChart: (props: {
     data: Array<{ period: string; value: number }>
     seriesName: string
+    isPercent?: boolean
   }) => mockMonthlyTrendChart(props),
   SupplySubmissionRateChart: () => <div data-testid="supply-submission-rate-chart" />,
   WaterSupplyOutagesChart: () => <div data-testid="water-supply-outages-chart" />,
@@ -214,6 +217,7 @@ describe('DashboardBody', () => {
     fireEvent.change(regularitySelect, { target: { value: 'time' } })
     expect(mockMonthlyTrendChart).toHaveBeenCalledTimes(3)
     expect(mockMonthlyTrendChart.mock.calls[2]?.[0].seriesName).toBe('Regularity')
+    expect(mockMonthlyTrendChart.mock.calls[2]?.[0].isPercent).toBe(true)
   })
 
   it('renders outage reasons pie card and reading submission card in central default view', () => {

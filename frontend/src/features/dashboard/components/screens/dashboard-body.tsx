@@ -209,6 +209,7 @@ export function DashboardBody({
               <MonthlyTrendChart
                 data={regularityTimeTrendData}
                 height="400px"
+                isPercent
                 xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
                 yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
                   defaultValue: 'Regularity (%)',
