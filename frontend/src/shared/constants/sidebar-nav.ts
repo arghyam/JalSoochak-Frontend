@@ -36,13 +36,13 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
       },
     ],
   },
-  {
-    type: 'simple',
-    path: ROUTES.SUPER_ADMIN_API_CREDENTIALS,
-    labelKey: 'sidebar.apiCredentials',
-    roles: [AUTH_ROLES.SUPER_ADMIN],
-    icon: 'BiKey',
-  },
+  // {
+  //   type: 'simple',
+  //   path: ROUTES.SUPER_ADMIN_API_CREDENTIALS,
+  //   labelKey: 'sidebar.apiCredentials',
+  //   roles: [AUTH_ROLES.SUPER_ADMIN],
+  //   icon: 'BiKey',
+  // },
   // {
   //   type: 'simple',
   //   path: ROUTES.SUPER_ADMIN_INGESTION_MONITOR,
@@ -51,6 +51,13 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
   //   icon: 'AiOutlineApi',
   // },
   // State Admin
+  {
+    type: 'simple',
+    path: ROUTES.SUPER_ADMIN_SUPER_USERS,
+    labelKey: 'sidebar.superUsers',
+    roles: [AUTH_ROLES.SUPER_ADMIN],
+    icon: 'BsPeople',
+  },
   {
     type: 'simple',
     path: ROUTES.STATE_ADMIN_OVERVIEW,

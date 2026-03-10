@@ -123,6 +123,16 @@ describe('ProfilePage — Edit Mode', () => {
     expect(screen.getByText('Profile Details')).toBeTruthy()
   })
 
+  it('Save Changes is enabled with only first name (single-word name)', () => {
+    renderWithProviders(<ProfilePage />)
+    fireEvent.click(screen.getByRole('button', { name: /edit profile/i }))
+    const lastNameInput = screen.getByLabelText(/last name/i) as HTMLInputElement
+    fireEvent.change(lastNameInput, { target: { value: '' } })
+    fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Madonna' } })
+    const saveBtn = screen.getByRole('button', { name: /save changes/i }) as HTMLButtonElement
+    expect(saveBtn.disabled).toBe(false)
+  })
+
   it('calls updateProfile and updateUser on successful save', async () => {
     const { authApi } = await import('@/features/auth/services/auth-api')
     renderWithProviders(<ProfilePage />)
@@ -132,6 +142,27 @@ describe('ProfilePage — Edit Mode', () => {
     await waitFor(() => {
       expect(authApi.updateProfile).toHaveBeenCalledTimes(1)
       expect(mockUpdateUser).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('does not call updateProfile a second time when save is double-clicked', async () => {
+    const { authApi } = await import('@/features/auth/services/auth-api')
+    // Keep the promise pending so isSaving stays true during the second click
+    let resolveUpdate!: () => void
+    ;(authApi.updateProfile as jest.Mock).mockReturnValueOnce(
+      new Promise<void>((res) => {
+        resolveUpdate = res
+      })
+    )
+    renderWithProviders(<ProfilePage />)
+    fireEvent.click(screen.getByRole('button', { name: /edit profile/i }))
+    fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Rajesh' } })
+    const saveBtn = screen.getByRole('button', { name: /save changes/i })
+    fireEvent.click(saveBtn)
+    fireEvent.click(saveBtn) // second click while first is in-flight
+    resolveUpdate()
+    await waitFor(() => {
+      expect(authApi.updateProfile).toHaveBeenCalledTimes(1)
     })
   })
 })

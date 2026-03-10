@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Box,
   Heading,
@@ -49,6 +49,7 @@ export function ChangePasswordPage() {
     confirmPassword: false,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const isSubmittingRef = useRef(false)
 
   useEffect(() => {
     document.title = `${t('changePassword.title')} | JalSoochak`
@@ -104,6 +105,8 @@ export function ChangePasswordPage() {
     e.preventDefault()
     setTouched({ currentPassword: true, newPassword: true, confirmPassword: true })
     if (!isFormValid || !user) return
+    if (isSubmittingRef.current) return
+    isSubmittingRef.current = true
 
     setIsSubmitting(true)
     try {
@@ -119,6 +122,7 @@ export function ChangePasswordPage() {
       const message = err instanceof Error ? err.message : t('changePassword.failed')
       toast.addToast(message, 'error')
     } finally {
+      isSubmittingRef.current = false
       setIsSubmitting(false)
     }
   }
@@ -162,7 +166,11 @@ export function ChangePasswordPage() {
                 />
                 <InputRightElement h={9}>
                   <IconButton
-                    aria-label={show.currentPassword ? 'Hide password' : 'Show password'}
+                    aria-label={
+                      show.currentPassword
+                        ? t('changePassword.hidePassword')
+                        : t('changePassword.showPassword')
+                    }
                     icon={show.currentPassword ? <ViewOffIcon /> : <ViewIcon />}
                     variant="ghost"
                     size="xs"
@@ -190,7 +198,11 @@ export function ChangePasswordPage() {
                 />
                 <InputRightElement h={9}>
                   <IconButton
-                    aria-label={show.newPassword ? 'Hide password' : 'Show password'}
+                    aria-label={
+                      show.newPassword
+                        ? t('changePassword.hidePassword')
+                        : t('changePassword.showPassword')
+                    }
                     icon={show.newPassword ? <ViewOffIcon /> : <ViewIcon />}
                     variant="ghost"
                     size="xs"
@@ -216,7 +228,11 @@ export function ChangePasswordPage() {
                 />
                 <InputRightElement h={9}>
                   <IconButton
-                    aria-label={show.confirmPassword ? 'Hide password' : 'Show password'}
+                    aria-label={
+                      show.confirmPassword
+                        ? t('changePassword.hidePassword')
+                        : t('changePassword.showPassword')
+                    }
                     icon={show.confirmPassword ? <ViewOffIcon /> : <ViewIcon />}
                     variant="ghost"
                     size="xs"

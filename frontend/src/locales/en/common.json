@@ -64,6 +64,7 @@
     "configuration": "Configuration",
     "activity": "Activity",
     "stateUtAdmins": "State/UT Admins",
+    "superUsers": "Super Users",
     "profile": "Profile",
     "changePassword": "Change Password",
     "logout": "Logout",
@@ -117,6 +118,8 @@
     "mismatch": "Passwords do not match",
     "sameAsCurrent": "New password must differ from current password",
     "success": "Password updated successfully",
-    "failed": "Failed to update password"
+    "failed": "Failed to update password",
+    "hidePassword": "Hide password",
+    "showPassword": "Show password"
   }
 }

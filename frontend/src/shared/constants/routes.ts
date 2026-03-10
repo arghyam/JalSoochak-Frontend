@@ -9,6 +9,10 @@ export const ROUTES = {
   SUPER_ADMIN_STATES_UTS_VIEW: '/super-admin/states-uts/:id',
   SUPER_ADMIN_STATES_UTS_EDIT: '/super-admin/states-uts/:id/edit',
   SUPER_ADMIN_MANAGE_ADMINS: '/super-admin/manage-admins',
+  SUPER_ADMIN_SUPER_USERS: '/super-admin/super-users',
+  SUPER_ADMIN_SUPER_USERS_ADD: '/super-admin/super-users/add',
+  SUPER_ADMIN_SUPER_USERS_VIEW: '/super-admin/super-users/:id',
+  SUPER_ADMIN_SUPER_USERS_EDIT: '/super-admin/super-users/:id/edit',
   SUPER_ADMIN_API_CREDENTIALS: '/super-admin/api-credentials',
   SUPER_ADMIN_INGESTION_MONITOR: '/super-admin/ingestion-monitor',
   // State Admin routes
