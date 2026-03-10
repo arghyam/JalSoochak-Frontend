@@ -14,7 +14,7 @@ import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 
 type VillageDashboardScreenProps = {
   data: DashboardData
-  villagePhotoEvidenceRows: DashboardData['photoEvidenceCompliance']
+  villagePhotoEvidenceRows: DashboardData['readingCompliance']
   waterSupplyOutagesData: WaterSupplyOutageData[]
   villagePumpOperatorDetails: VillagePumpOperatorDetails
   villagePumpOperators?: VillagePumpOperatorDetails[]
@@ -166,7 +166,7 @@ export function VillageDashboardScreen({
           <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
         </Box>
         <ReadingSubmissionStatusCard
-          data={data.imageSubmissionStatus}
+          data={data.readingSubmissionStatus}
           chartHeight="406px"
           cardHeight="523px"
           boxProps={{ w: 'full' }}

@@ -86,8 +86,8 @@ const mockDashboardData: DashboardData = {
   },
   mapData: mockEntityData,
   demandSupply: [{ period: 'Jan', demand: 90, supply: 85 }],
-  imageSubmissionStatus: [{ label: 'On time', value: 80 }],
-  photoEvidenceCompliance: [
+  readingSubmissionStatus: [{ label: 'On time', value: 80 }],
+  readingCompliance: [
     {
       id: 'pe-1',
       name: 'Operator 1',
@@ -143,7 +143,7 @@ function renderDashboardBody(overrides: Partial<ComponentProps<typeof DashboardB
       waterSupplyOutagesData={mockDashboardData.waterSupplyOutages}
       pumpOperatorsTotal={12}
       operatorsPerformanceTable={mockOperatorsPerformanceTable}
-      villagePhotoEvidenceRows={mockDashboardData.photoEvidenceCompliance}
+      villagePhotoEvidenceRows={mockDashboardData.readingCompliance}
       villagePumpOperatorDetails={{
         name: 'Ajay Yadav',
         scheme: 'Rural Water Supply 001',

@@ -22,7 +22,7 @@ export function StateUtDashboardScreen({
       {/* Reading Submission Status + Submission Rate */}
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
         <ReadingSubmissionStatusCard
-          data={data.imageSubmissionStatus}
+          data={data.readingSubmissionStatus}
           chartHeight="336px"
           boxProps={{ borderWidth: '1px', borderRadius: 'lg', px: 4, py: 6 }}
         />

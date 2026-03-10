@@ -297,7 +297,7 @@ export function BlockDashboardScreen({
 
       {/* Reading Submission Status + Reading Submission Rate */}
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-        <ReadingSubmissionStatusCard data={data.imageSubmissionStatus} chartHeight="336px" />
+        <ReadingSubmissionStatusCard data={data.readingSubmissionStatus} chartHeight="336px" />
         <Box
           bg="white"
           borderWidth="0.5px"
@@ -326,7 +326,7 @@ export function BlockDashboardScreen({
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
         <Box bg="white" borderWidth="0.5px" borderRadius="12px" borderColor="#E4E4E7" px={4} py={6}>
           <ReadingComplianceTable
-            data={data.photoEvidenceCompliance}
+            data={data.readingCompliance}
             title={t('outageAndSubmissionCharts.titles.readingCompliance', {
               defaultValue: 'Reading Compliance',
             })}

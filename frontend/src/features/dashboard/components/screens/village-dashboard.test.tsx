@@ -40,8 +40,8 @@ const data: DashboardData = {
     { period: 'FY21', demand: 82, supply: 74 },
     { period: 'FY22', demand: 99, supply: 109 },
   ],
-  imageSubmissionStatus: [{ label: 'Complaint Submission', value: 62 }],
-  photoEvidenceCompliance: [],
+  readingSubmissionStatus: [{ label: 'Complaint Submission', value: 62 }],
+  readingCompliance: [],
   pumpOperators: [],
   waterSupplyOutages: [],
   topPerformers: [],
@@ -90,7 +90,7 @@ const villagePumpOperators = [
 ]
 
 function renderVillageDashboard(
-  villagePhotoEvidenceRows: DashboardData['photoEvidenceCompliance'] = [
+  villagePhotoEvidenceRows: DashboardData['readingCompliance'] = [
     {
       id: 'pe-1',
       name: 'Vikash',

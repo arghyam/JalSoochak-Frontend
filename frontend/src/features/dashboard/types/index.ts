@@ -99,8 +99,8 @@ export interface DashboardData {
   kpis: KPIData
   mapData: EntityPerformance[]
   demandSupply: DemandSupplyData[]
-  imageSubmissionStatus: ReadingSubmissionStatusData[]
-  photoEvidenceCompliance: ReadingComplianceData[]
+  readingSubmissionStatus: ReadingSubmissionStatusData[]
+  readingCompliance: ReadingComplianceData[]
   pumpOperators: PumpOperatorsData[]
   waterSupplyOutages: WaterSupplyOutageData[]
   supplyOutageTrend?: SupplyOutageTrendData[]

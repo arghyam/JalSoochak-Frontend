@@ -101,8 +101,8 @@ const data: DashboardData = {
   },
   mapData: [],
   demandSupply: [{ period: 'Jan', demand: 100, supply: 90 }],
-  imageSubmissionStatus: [{ label: 'Compliant Submissions', value: 60 }],
-  photoEvidenceCompliance: [],
+  readingSubmissionStatus: [{ label: 'Compliant Submissions', value: 60 }],
+  readingCompliance: [],
   pumpOperators: [
     { label: 'Active pump operators', value: 10 },
     { label: 'Non-active pump operators', value: 5 },

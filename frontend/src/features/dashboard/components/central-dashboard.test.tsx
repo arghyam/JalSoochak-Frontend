@@ -80,8 +80,8 @@ const mockDashboardData: DashboardData = {
     },
   ],
   demandSupply: [{ period: 'Jan', demand: 100, supply: 90 }],
-  imageSubmissionStatus: [{ label: 'On time', value: 80 }],
-  photoEvidenceCompliance: [
+  readingSubmissionStatus: [{ label: 'On time', value: 80 }],
+  readingCompliance: [
     {
       id: 'pe-1',
       name: 'Operator 1',

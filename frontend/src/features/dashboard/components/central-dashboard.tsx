@@ -396,9 +396,9 @@ export function CentralDashboard() {
     !data.kpis ||
     !data.mapData ||
     !data.demandSupply ||
-    !data.imageSubmissionStatus ||
+    !data.readingSubmissionStatus ||
     !data.pumpOperators ||
-    !data.photoEvidenceCompliance ||
+    !data.readingCompliance ||
     !data.waterSupplyOutages ||
     !data.topPerformers ||
     !data.worstPerformers ||
@@ -574,7 +574,7 @@ export function CentralDashboard() {
   const leadingPumpOperators = data.leadingPumpOperators ?? []
   const bottomPumpOperators = data.bottomPumpOperators ?? []
   const operatorsPerformanceTable = [...leadingPumpOperators, ...bottomPumpOperators]
-  const villagePhotoEvidenceRows = data.photoEvidenceCompliance
+  const villagePhotoEvidenceRows = data.readingCompliance
 
   return (
     <Box>

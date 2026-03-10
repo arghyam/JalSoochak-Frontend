@@ -38,7 +38,7 @@ type DashboardBodyProps = {
   waterSupplyOutagesData: WaterSupplyOutageData[]
   pumpOperatorsTotal: number
   operatorsPerformanceTable: PumpOperatorPerformanceData[]
-  villagePhotoEvidenceRows: DashboardData['photoEvidenceCompliance']
+  villagePhotoEvidenceRows: DashboardData['readingCompliance']
   villagePumpOperatorDetails?: VillagePumpOperatorDetails
   villagePumpOperators?: VillagePumpOperatorDetails[]
 }
