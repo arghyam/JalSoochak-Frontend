@@ -9,10 +9,10 @@ import type {
   WaterSupplyOutageData,
 } from '../../types'
 import {
-  IssueTypeBreakdownChart,
+  SupplyOutageReasonsChart,
   MetricPerformanceChart,
   MonthlyTrendChart,
-  SupplySubmissionRateChart,
+  ReadingSubmissionRateChart,
   WaterSupplyOutagesChart,
 } from '../charts'
 import { BlockDashboardScreen } from './block-dashboard'
@@ -277,7 +277,7 @@ export function DashboardBody({
                 defaultValue: 'Supply Outage Reasons',
               })}
             </Text>
-            <IssueTypeBreakdownChart data={waterSupplyOutagesData} height="336px" />
+            <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="336px" />
           </Box>
           <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="510px" minW={0}>
             {isStateScreen ? (
@@ -300,7 +300,7 @@ export function DashboardBody({
                     defaultValue: 'Reading Submission Rate',
                   })}
                 </Text>
-                <SupplySubmissionRateChart
+                <ReadingSubmissionRateChart
                   data={supplySubmissionRateData}
                   height="383px"
                   entityLabel={supplySubmissionRateLabel}

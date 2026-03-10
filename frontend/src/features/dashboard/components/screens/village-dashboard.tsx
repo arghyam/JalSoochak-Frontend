@@ -8,7 +8,7 @@ import type {
   VillagePumpOperatorDetails,
   WaterSupplyOutageData,
 } from '../../types'
-import { IssueTypeBreakdownChart, MetricPerformanceChart } from '../charts'
+import { SupplyOutageReasonsChart, MetricPerformanceChart } from '../charts'
 import { PhotoEvidenceComplianceTable } from '../tables'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 
@@ -163,7 +163,7 @@ export function VillageDashboardScreen({
               defaultValue: 'Supply Outage Reasons',
             })}
           </Text>
-          <IssueTypeBreakdownChart data={waterSupplyOutagesData} height="400px" />
+          <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
         </Box>
         <ReadingSubmissionStatusCard
           data={data.imageSubmissionStatus}

@@ -3,11 +3,11 @@ import { Box, Flex, Grid, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import type { DashboardData, EntityPerformance, PumpOperatorPerformanceData } from '../../types'
 import {
-  IssueTypeBreakdownChart,
+  SupplyOutageReasonsChart,
   MetricPerformanceChart,
   MonthlyTrendChart,
   PumpOperatorsChart,
-  SupplySubmissionRateChart,
+  ReadingSubmissionRateChart,
   WaterSupplyOutagesChart,
 } from '../charts'
 import { PumpOperatorsPerformanceTable } from '../tables'
@@ -196,7 +196,7 @@ export function DistrictDashboardScreen({
               defaultValue: 'Supply Outage Reasons',
             })}
           </Text>
-          <IssueTypeBreakdownChart data={data.waterSupplyOutages} height="400px" />
+          <SupplyOutageReasonsChart data={data.waterSupplyOutages} height="400px" />
         </Box>
         <Box
           bg="white"
@@ -276,7 +276,7 @@ export function DistrictDashboardScreen({
             />
           </Flex>
           {readingSubmissionRateViewBy === 'geography' ? (
-            <SupplySubmissionRateChart
+            <ReadingSubmissionRateChart
               data={supplySubmissionRateData}
               height="383px"
               entityLabel={supplySubmissionRateLabel}

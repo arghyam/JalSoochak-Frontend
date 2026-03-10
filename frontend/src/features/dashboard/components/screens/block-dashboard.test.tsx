@@ -10,8 +10,8 @@ const mockMetricPerformanceChart = jest.fn((_props: unknown) => (
 const mockMonthlyTrendChart = jest.fn((_props: unknown) => (
   <div data-testid="monthly-trend-chart" />
 ))
-const mockIssueTypeBreakdownChart = jest.fn((_props: unknown) => (
-  <div data-testid="issue-type-breakdown-chart" />
+const mockSupplyOutageReasonsChart = jest.fn((_props: unknown) => (
+  <div data-testid="supply-outage-reasons-chart" />
 ))
 const mockWaterSupplyOutagesChart = jest.fn((_props: unknown) => (
   <div data-testid="water-supply-outages-chart" />
@@ -22,8 +22,8 @@ const mockPumpOperatorsChart = jest.fn((_props: unknown) => (
 const mockImageSubmissionStatusChart = jest.fn((_props: unknown) => (
   <div data-testid="image-submission-status-chart" />
 ))
-const mockSupplySubmissionRateChart = jest.fn((_props: unknown) => (
-  <div data-testid="supply-submission-rate-chart" />
+const mockReadingSubmissionRateChart = jest.fn((_props: unknown) => (
+  <div data-testid="reading-submission-rate-chart" />
 ))
 const mockPumpOperatorsPerformanceTable = jest.fn((_props: unknown) => (
   <div data-testid="pump-operators-performance-table" />
@@ -35,11 +35,11 @@ const mockPhotoEvidenceComplianceTable = jest.fn((_props: unknown) => (
 jest.mock('../charts', () => ({
   MetricPerformanceChart: (props: unknown) => mockMetricPerformanceChart(props),
   MonthlyTrendChart: (props: unknown) => mockMonthlyTrendChart(props),
-  IssueTypeBreakdownChart: (props: unknown) => mockIssueTypeBreakdownChart(props),
+  SupplyOutageReasonsChart: (props: unknown) => mockSupplyOutageReasonsChart(props),
   WaterSupplyOutagesChart: (props: unknown) => mockWaterSupplyOutagesChart(props),
   PumpOperatorsChart: (props: unknown) => mockPumpOperatorsChart(props),
   ImageSubmissionStatusChart: (props: unknown) => mockImageSubmissionStatusChart(props),
-  SupplySubmissionRateChart: (props: unknown) => mockSupplySubmissionRateChart(props),
+  ReadingSubmissionRateChart: (props: unknown) => mockReadingSubmissionRateChart(props),
 }))
 
 jest.mock('../tables', () => ({
@@ -145,11 +145,11 @@ describe('BlockDashboardScreen', () => {
   beforeEach(() => {
     mockMetricPerformanceChart.mockClear()
     mockMonthlyTrendChart.mockClear()
-    mockIssueTypeBreakdownChart.mockClear()
+    mockSupplyOutageReasonsChart.mockClear()
     mockWaterSupplyOutagesChart.mockClear()
     mockPumpOperatorsChart.mockClear()
     mockImageSubmissionStatusChart.mockClear()
-    mockSupplySubmissionRateChart.mockClear()
+    mockReadingSubmissionRateChart.mockClear()
     mockPumpOperatorsPerformanceTable.mockClear()
     mockPhotoEvidenceComplianceTable.mockClear()
   })
@@ -184,7 +184,7 @@ describe('BlockDashboardScreen', () => {
     expect(screen.getByTestId('pump-operators-chart')).toBeTruthy()
     expect(screen.getByTestId('pump-operators-performance-table')).toBeTruthy()
     expect(screen.getByTestId('image-submission-status-chart')).toBeTruthy()
-    expect(screen.getByTestId('supply-submission-rate-chart')).toBeTruthy()
+    expect(screen.getByTestId('reading-submission-rate-chart')).toBeTruthy()
     expect(screen.getByTestId('photo-evidence-compliance-table')).toBeTruthy()
   })
 
@@ -208,7 +208,7 @@ describe('BlockDashboardScreen', () => {
     expect(outagesProps.xAxisLabel).toBe('Gram Panchayats')
     expect(outagesProps.data[0]?.label).toBe('Gram Panchayat 1')
 
-    const submissionProps = mockSupplySubmissionRateChart.mock.calls[0]?.[0] as {
+    const submissionProps = mockReadingSubmissionRateChart.mock.calls[0]?.[0] as {
       entityLabel: string
     }
     expect(submissionProps.entityLabel).toBe('Gram Panchayats')

@@ -10,8 +10,8 @@ const mockMetricPerformanceChart = jest.fn((_props: unknown) => (
 const mockMonthlyTrendChart = jest.fn((_props: unknown) => (
   <div data-testid="monthly-trend-chart" />
 ))
-const mockIssueTypeBreakdownChart = jest.fn((_props: unknown) => (
-  <div data-testid="issue-type-breakdown-chart" />
+const mockSupplyOutageReasonsChart = jest.fn((_props: unknown) => (
+  <div data-testid="supply-outage-reasons-chart" />
 ))
 const mockWaterSupplyOutagesChart = jest.fn((_props: unknown) => (
   <div data-testid="water-supply-outages-chart" />
@@ -19,8 +19,8 @@ const mockWaterSupplyOutagesChart = jest.fn((_props: unknown) => (
 const mockImageSubmissionStatusChart = jest.fn((_props: unknown) => (
   <div data-testid="image-submission-status-chart" />
 ))
-const mockSupplySubmissionRateChart = jest.fn((_props: unknown) => (
-  <div data-testid="supply-submission-rate-chart" />
+const mockReadingSubmissionRateChart = jest.fn((_props: unknown) => (
+  <div data-testid="reading-submission-rate-chart" />
 ))
 const mockPumpOperatorsChart = jest.fn((_props: unknown) => (
   <div data-testid="pump-operators-chart" />
@@ -32,10 +32,10 @@ const mockPumpOperatorsPerformanceTable = jest.fn((_props: unknown) => (
 jest.mock('../charts', () => ({
   MetricPerformanceChart: (props: unknown) => mockMetricPerformanceChart(props),
   MonthlyTrendChart: (props: unknown) => mockMonthlyTrendChart(props),
-  IssueTypeBreakdownChart: (props: unknown) => mockIssueTypeBreakdownChart(props),
+  SupplyOutageReasonsChart: (props: unknown) => mockSupplyOutageReasonsChart(props),
   WaterSupplyOutagesChart: (props: unknown) => mockWaterSupplyOutagesChart(props),
   ImageSubmissionStatusChart: (props: unknown) => mockImageSubmissionStatusChart(props),
-  SupplySubmissionRateChart: (props: unknown) => mockSupplySubmissionRateChart(props),
+  ReadingSubmissionRateChart: (props: unknown) => mockReadingSubmissionRateChart(props),
   PumpOperatorsChart: (props: unknown) => mockPumpOperatorsChart(props),
 }))
 
@@ -133,10 +133,10 @@ describe('DistrictDashboardScreen', () => {
   beforeEach(() => {
     mockMetricPerformanceChart.mockClear()
     mockMonthlyTrendChart.mockClear()
-    mockIssueTypeBreakdownChart.mockClear()
+    mockSupplyOutageReasonsChart.mockClear()
     mockWaterSupplyOutagesChart.mockClear()
     mockImageSubmissionStatusChart.mockClear()
-    mockSupplySubmissionRateChart.mockClear()
+    mockReadingSubmissionRateChart.mockClear()
     mockPumpOperatorsChart.mockClear()
     mockPumpOperatorsPerformanceTable.mockClear()
   })
@@ -182,7 +182,7 @@ describe('DistrictDashboardScreen', () => {
     expect(outagesProps.xAxisLabel).toBe('Blocks')
     expect(outagesProps.data[0]?.label).toBe('Block 1')
 
-    const submissionProps = mockSupplySubmissionRateChart.mock.calls[0]?.[0] as {
+    const submissionProps = mockReadingSubmissionRateChart.mock.calls[0]?.[0] as {
       entityLabel: string
     }
     expect(submissionProps.entityLabel).toBe('Blocks')

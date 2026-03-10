@@ -7,8 +7,8 @@ import { VillageDashboardScreen } from './village-dashboard'
 const mockMetricPerformanceChart = jest.fn((_props: unknown) => (
   <div data-testid="metric-performance-chart" />
 ))
-const mockIssueTypeBreakdownChart = jest.fn((_props: unknown) => (
-  <div data-testid="issue-type-breakdown-chart" />
+const mockSupplyOutageReasonsChart = jest.fn((_props: unknown) => (
+  <div data-testid="supply-outage-reasons-chart" />
 ))
 const mockImageSubmissionStatusChart = jest.fn((_props: unknown) => (
   <div data-testid="image-submission-status-chart" />
@@ -19,7 +19,7 @@ const mockPhotoEvidenceComplianceTable = jest.fn((_props: unknown) => (
 
 jest.mock('../charts', () => ({
   MetricPerformanceChart: (props: unknown) => mockMetricPerformanceChart(props),
-  IssueTypeBreakdownChart: (props: unknown) => mockIssueTypeBreakdownChart(props),
+  SupplyOutageReasonsChart: (props: unknown) => mockSupplyOutageReasonsChart(props),
   ImageSubmissionStatusChart: (props: unknown) => mockImageSubmissionStatusChart(props),
 }))
 
@@ -129,7 +129,7 @@ function renderVillageDashboard(
 describe('VillageDashboardScreen', () => {
   beforeEach(() => {
     mockMetricPerformanceChart.mockClear()
-    mockIssueTypeBreakdownChart.mockClear()
+    mockSupplyOutageReasonsChart.mockClear()
     mockImageSubmissionStatusChart.mockClear()
     mockPhotoEvidenceComplianceTable.mockClear()
   })
@@ -145,7 +145,7 @@ describe('VillageDashboardScreen', () => {
     expect(metricCalls[1]?.[0].metric).toBe('regularity')
     expect(metricCalls[1]?.[0].seriesName).toBe('Regularity')
 
-    expect(screen.getByTestId('issue-type-breakdown-chart')).toBeTruthy()
+    expect(screen.getByTestId('supply-outage-reasons-chart')).toBeTruthy()
     expect(screen.getByTestId('image-submission-status-chart')).toBeTruthy()
     expect(screen.getByTestId('photo-evidence-compliance-table')).toBeTruthy()
   })

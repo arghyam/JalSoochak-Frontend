@@ -29,9 +29,9 @@ jest.mock('../charts', () => ({
     seriesName: string
     isPercent?: boolean
   }) => mockMonthlyTrendChart(props),
-  SupplySubmissionRateChart: () => <div data-testid="supply-submission-rate-chart" />,
+  ReadingSubmissionRateChart: () => <div data-testid="reading-submission-rate-chart" />,
   WaterSupplyOutagesChart: () => <div data-testid="water-supply-outages-chart" />,
-  IssueTypeBreakdownChart: () => <div data-testid="issue-type-breakdown-chart" />,
+  SupplyOutageReasonsChart: () => <div data-testid="supply-outage-reasons-chart" />,
 }))
 
 jest.mock('./state-ut-dashboard', () => ({
@@ -224,9 +224,9 @@ describe('DashboardBody', () => {
     renderDashboardBody()
 
     expect(screen.getByText('Supply Outage Reasons')).toBeTruthy()
-    expect(screen.getByTestId('issue-type-breakdown-chart')).toBeTruthy()
+    expect(screen.getByTestId('supply-outage-reasons-chart')).toBeTruthy()
     expect(screen.getByText('Reading Submission Rate')).toBeTruthy()
-    expect(screen.getByTestId('supply-submission-rate-chart')).toBeTruthy()
+    expect(screen.getByTestId('reading-submission-rate-chart')).toBeTruthy()
     expect(screen.queryByText('All States/UTs')).toBeNull()
   })
 
