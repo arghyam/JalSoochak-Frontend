@@ -71,13 +71,13 @@ describe('ViewSuperUserPage', () => {
 
   it('renders breadcrumb with manage link', () => {
     renderWithProviders(<ViewSuperUserPage />)
-    expect(screen.getByText('Manages Super Users')).toBeTruthy()
+    expect(screen.getByText('Manage Super Users')).toBeTruthy()
     expect(screen.getByText('View Super User')).toBeTruthy()
   })
 
   it('navigates to list when breadcrumb manage link is clicked', () => {
     renderWithProviders(<ViewSuperUserPage />)
-    fireEvent.click(screen.getByText('Manages Super Users'))
+    fireEvent.click(screen.getByText('Manage Super Users'))
     expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SUPER_ADMIN_SUPER_USERS)
   })
 

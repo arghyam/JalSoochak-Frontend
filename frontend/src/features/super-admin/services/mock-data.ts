@@ -735,6 +735,8 @@ const mockSuperUsersData: SuperUser[] = [
   },
 ]
 
+let nextMockSuperUserId = mockSuperUsersData.length + 1
+
 export const getMockSuperUsers = (): Promise<SuperUser[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -756,7 +758,7 @@ export const createMockSuperUser = (input: CreateSuperUserInput): Promise<SuperU
   return new Promise((resolve) => {
     setTimeout(() => {
       const newUser: SuperUser = {
-        id: `su-${Date.now()}`,
+        id: `su-${nextMockSuperUserId++}`,
         firstName: input.firstName,
         lastName: input.lastName,
         email: input.email,

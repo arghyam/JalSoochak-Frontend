@@ -104,6 +104,22 @@ describe('UserAdminListPage', () => {
     expect(screen.getByRole('button', { name: /retry/i })).toBeTruthy()
   })
 
+  it('calls onRefetch when Retry button is clicked', () => {
+    const onRefetchMock = jest.fn()
+    renderWithProviders(
+      <UserAdminListPage
+        data={[]}
+        isLoading={false}
+        isError={true}
+        onRefetch={onRefetchMock}
+        routes={mockRoutes}
+        labels={mockLabels}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: /retry/i }))
+    expect(onRefetchMock).toHaveBeenCalled()
+  })
+
   it('renders all data rows', () => {
     renderWithProviders(
       <UserAdminListPage

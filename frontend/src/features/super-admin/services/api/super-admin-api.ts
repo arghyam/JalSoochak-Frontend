@@ -1,3 +1,4 @@
+import { isAxiosError } from 'axios'
 import { apiClient } from '@/shared/lib/axios'
 import {
   createStateUT,
@@ -185,8 +186,15 @@ const httpProvider: SuperAdminDataProvider = {
     return response.data
   },
   getSuperUserById: async (id) => {
-    const response = await apiClient.get<SuperUser>(`/api/super-admin/super-users/${id}`)
-    return response.data
+    try {
+      const response = await apiClient.get<SuperUser>(`/api/super-admin/super-users/${id}`)
+      return response.data
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.status === 404) {
+        return null
+      }
+      throw error
+    }
   },
   createSuperUser: async (payload) => {
     const response = await apiClient.post<SuperUser>('/api/super-admin/super-users', payload)

@@ -137,6 +137,7 @@ export function UserAdminViewPage({
             color="neutral.600"
             _hover={{ color: 'primary.500', bg: 'transparent' }}
             onClick={handleEdit}
+            isDisabled={!id}
           />
         </Flex>
 

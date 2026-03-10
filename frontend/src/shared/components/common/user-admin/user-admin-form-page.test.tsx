@@ -1,4 +1,4 @@
-import { screen, fireEvent } from '@testing-library/react'
+import { screen, fireEvent, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, jest, beforeEach } from '@jest/globals'
 import { UserAdminFormPage } from './user-admin-form-page'
@@ -211,6 +211,37 @@ describe('UserAdminFormPage — Add Mode', () => {
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
     expect(mockNavigate).toHaveBeenCalledWith('/test/users')
   })
+
+  it('calls createMutation.mutateAsync with form data on submit', async () => {
+    const createMutation = makeCreateMutation()
+    renderWithProviders(
+      <UserAdminFormPage
+        isEditMode={false}
+        original={null}
+        isLoadingOriginal={false}
+        routes={mockRoutes}
+        labels={mockLabels}
+        createMutation={createMutation}
+        updateMutation={makeUpdateMutation()}
+        statusMutation={makeStatusMutation()}
+      />
+    )
+    fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Vijay' } })
+    fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'Kumar' } })
+    fireEvent.change(screen.getByLabelText(/email address/i), {
+      target: { value: 'vijay@gmail.com' },
+    })
+    fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '8564254517' } })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /add test user & send link via email/i }))
+    })
+    expect(createMutation.mutateAsync).toHaveBeenCalledWith({
+      firstName: 'Vijay',
+      lastName: 'Kumar',
+      email: 'vijay@gmail.com',
+      phone: '8564254517',
+    })
+  })
 })
 
 describe('UserAdminFormPage — Edit Mode', () => {
@@ -338,5 +369,51 @@ describe('UserAdminFormPage — Edit Mode', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
     expect(mockNavigate).toHaveBeenCalledWith('/test/users/u-1')
+  })
+
+  it('calls updateMutation.mutateAsync with changed fields on Save Changes click', async () => {
+    const updateMutation = makeUpdateMutation()
+    renderWithProviders(
+      <UserAdminFormPage
+        id="u-1"
+        isEditMode={true}
+        original={mockAdmin}
+        isLoadingOriginal={false}
+        routes={mockRoutes}
+        labels={mockLabels}
+        createMutation={makeCreateMutation()}
+        updateMutation={updateMutation}
+        statusMutation={makeStatusMutation()}
+      />
+    )
+    fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Updated' } })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+    })
+    expect(updateMutation.mutateAsync).toHaveBeenCalledWith({
+      id: 'u-1',
+      input: { firstName: 'Updated', lastName: 'Kumar', phone: '8564254517' },
+    })
+  })
+
+  it('calls statusMutation.mutateAsync with new status when toggle is clicked', async () => {
+    const statusMutation = makeStatusMutation()
+    renderWithProviders(
+      <UserAdminFormPage
+        id="u-1"
+        isEditMode={true}
+        original={mockAdmin}
+        isLoadingOriginal={false}
+        routes={mockRoutes}
+        labels={mockLabels}
+        createMutation={makeCreateMutation()}
+        updateMutation={makeUpdateMutation()}
+        statusMutation={statusMutation}
+      />
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByRole('checkbox'))
+    })
+    expect(statusMutation.mutateAsync).toHaveBeenCalledWith({ id: 'u-1', status: 'inactive' })
   })
 })

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -56,6 +56,17 @@ function FormContent({
   const navigate = useNavigate()
   const toast = useToast()
 
+  const [isBusy, setIsBusy] = useState(false)
+  const createTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const updateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (createTimerRef.current !== null) clearTimeout(createTimerRef.current)
+      if (updateTimerRef.current !== null) clearTimeout(updateTimerRef.current)
+    }
+  }, [])
+
   const [form, setForm] = useState({
     firstName: original?.firstName ?? '',
     lastName: original?.lastName ?? '',
@@ -93,8 +104,9 @@ function FormContent({
   }
 
   const handleStatusToggle = async () => {
-    if (!original || statusMutation.isPending) return
+    if (!original || isBusy) return
     const newStatus = form.status === 'active' ? 'inactive' : 'active'
+    setIsBusy(true)
     try {
       await statusMutation.mutateAsync({ id: original.id, status: newStatus })
       setForm((prev) => ({ ...prev, status: newStatus }))
@@ -106,11 +118,14 @@ function FormContent({
       )
     } catch {
       toast.addToast(labels.messages.failedToUpdateStatus, 'error')
+    } finally {
+      setIsBusy(false)
     }
   }
 
   const handleUpdate = async () => {
-    if (!hasChanges || !id) return
+    if (!hasChanges || !id || isBusy) return
+    setIsBusy(true)
     try {
       await updateMutation.mutateAsync({
         id,
@@ -121,15 +136,19 @@ function FormContent({
         },
       })
       toast.addToast(t('toast.changesSaved'), 'success')
-      setTimeout(() => {
+      updateTimerRef.current = setTimeout(() => {
         navigate(routes.view(id))
       }, 500)
     } catch {
       toast.addToast(t('toast.failedToSave'), 'error')
+    } finally {
+      setIsBusy(false)
     }
   }
 
   const handleCreate = async () => {
+    if (isBusy) return
+    setIsBusy(true)
     try {
       const created = await createMutation.mutateAsync({
         firstName: form.firstName.trim(),
@@ -142,11 +161,13 @@ function FormContent({
       } else {
         toast.addToast(labels.messages.itemAdded, 'success')
       }
-      setTimeout(() => {
+      createTimerRef.current = setTimeout(() => {
         navigate(routes.view(created.id))
       }, 1000)
     } catch {
       toast.addToast(labels.messages.failedToAdd, 'error')
+    } finally {
+      setIsBusy(false)
     }
   }
 
@@ -164,7 +185,6 @@ function FormContent({
 
   const title = isEditMode ? labels.editTitle : labels.addTitle
   const breadcrumbLeaf = isEditMode ? labels.breadcrumb.edit : labels.breadcrumb.addNew
-  const isMutating = createMutation.isPending || updateMutation.isPending
 
   return (
     <Box w="full">
@@ -329,7 +349,7 @@ function FormContent({
                   <Toggle
                     isChecked={form.status === 'active'}
                     onChange={() => void handleStatusToggle()}
-                    isDisabled={statusMutation.isPending}
+                    isDisabled={isBusy}
                     aria-labelledby="activated-label"
                   />
                 </Flex>
@@ -349,7 +369,7 @@ function FormContent({
               size="md"
               width={{ base: 'full', sm: '174px' }}
               onClick={handleCancel}
-              isDisabled={isMutating}
+              isDisabled={isBusy}
             >
               {t('button.cancel')}
             </Button>
@@ -359,7 +379,7 @@ function FormContent({
               size="md"
               width={{ base: 'full', sm: 'auto' }}
               maxWidth={{ base: '100%', sm: isEditMode ? '174px' : '310px' }}
-              isLoading={isMutating}
+              isLoading={isBusy}
               isDisabled={!isFormValid || (isEditMode && !hasChanges)}
             >
               {isEditMode ? t('button.saveChanges') : labels.buttons.addAndSendLink}
