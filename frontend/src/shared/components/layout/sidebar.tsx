@@ -21,7 +21,7 @@ import { FiLogOut } from 'react-icons/fi'
 import { IoLanguageOutline, IoSettingsOutline, IoWaterOutline } from 'react-icons/io5'
 import { HiOutlineTemplate } from 'react-icons/hi'
 import { AiOutlineMessage } from 'react-icons/ai'
-import { BsPerson, BsListUl } from 'react-icons/bs'
+import { BsPerson, BsListUl, BsPeople } from 'react-icons/bs'
 import jalsoochakLogo from '@/assets/media/jalsoochak-logo.svg'
 import { useAuthStore } from '@/app/store'
 import { ROUTES } from '@/shared/constants/routes'
@@ -50,6 +50,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   HiOutlineTemplate,
   AiOutlineMessage,
   BsPerson,
+  BsPeople,
   BsListUl,
 }
 
@@ -303,7 +304,7 @@ export function Sidebar({ onNavClick }: SidebarProps) {
         </Box>
 
         {/* Profile Section */}
-        <Menu placement="top-start">
+        <Menu placement="top-start" matchWidth>
           <MenuButton
             w="100%"
             borderTop="1px"
@@ -335,19 +336,55 @@ export function Sidebar({ onNavClick }: SidebarProps) {
               </Flex>
             </Flex>
           </MenuButton>
-          <MenuList height="44px" px={7} py={0}>
+          <MenuList px={7} py={2}>
             <MenuItem
-              height="full"
-              width="167px"
+              w="100%"
               px={3}
-              py={0}
+              py={2}
               gap={2}
-              borderRadius={2}
+              borderRadius="lg"
+              minH="44px"
+              onClick={() => {
+                navigate(ROUTES.PROFILE)
+                onNavClick?.()
+              }}
+              _hover={{ bg: 'neutral.100' }}
+            >
+              <Icon as={BsPerson} boxSize={5} flexShrink={0} aria-hidden="true" />
+              <Text fontSize="sm" fontWeight="medium">
+                {t('sidebar.profile')}
+              </Text>
+            </MenuItem>
+            <MenuItem
+              w="100%"
+              px={3}
+              py={2}
+              gap={2}
+              borderRadius="lg"
+              minH="44px"
+              onClick={() => {
+                navigate(ROUTES.CHANGE_PASSWORD)
+                onNavClick?.()
+              }}
+              _hover={{ bg: 'neutral.100' }}
+            >
+              <Icon as={BiKey} boxSize={5} flexShrink={0} aria-hidden="true" />
+              <Text fontSize="sm" fontWeight="medium">
+                {t('sidebar.changePassword')}
+              </Text>
+            </MenuItem>
+            <MenuItem
+              w="100%"
+              px={3}
+              py={2}
+              gap={2}
+              borderRadius="lg"
+              minH="44px"
               onClick={handleLogout}
               _hover={{ bg: 'neutral.100' }}
             >
-              <FiLogOut />
-              <Text fontSize="16px" fontWeight="500">
+              <Icon as={FiLogOut} boxSize={5} flexShrink={0} aria-hidden="true" />
+              <Text fontSize="sm" fontWeight="medium">
                 {t('sidebar.logout')}
               </Text>
             </MenuItem>

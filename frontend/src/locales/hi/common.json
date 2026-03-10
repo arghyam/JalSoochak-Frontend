@@ -63,6 +63,10 @@
     "staffSync": "स्टाफ सिंक",
     "configuration": "कॉन्फ़िगरेशन",
     "activity": "गतिविधि",
+    "stateUtAdmins": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक",
+    "superUsers": "सुपर उपयोगकर्ता",
+    "profile": "प्रोफ़ाइल",
+    "changePassword": "पासवर्ड बदलें",
     "logout": "लॉगआउट",
     "skipToMain": "मुख्य सामग्री पर जाएं",
     "openMenu": "मेनू खोलें",
@@ -93,5 +97,29 @@
   "searchableSelect": {
     "search": "खोजें",
     "noResults": "कोई परिणाम नहीं मिला"
+  },
+
+  "profile": {
+    "title": "प्रोफ़ाइल",
+    "details": "प्रोफ़ाइल विवरण",
+    "firstName": "पहला नाम",
+    "lastName": "अंतिम नाम",
+    "email": "ईमेल पता",
+    "phone": "फ़ोन नंबर",
+    "editProfile": "प्रोफ़ाइल संपादित करें"
+  },
+
+  "changePassword": {
+    "title": "पासवर्ड बदलें",
+    "currentPassword": "वर्तमान पासवर्ड",
+    "newPassword": "नया पासवर्ड",
+    "confirmPassword": "नया पासवर्ड पुष्टि करें",
+    "submit": "पासवर्ड अपडेट करें",
+    "mismatch": "पासवर्ड मेल नहीं खाते",
+    "sameAsCurrent": "नया पासवर्ड वर्तमान से अलग होना चाहिए",
+    "success": "पासवर्ड सफलतापूर्वक अपडेट किया गया",
+    "failed": "पासवर्ड अपडेट करने में विफल",
+    "hidePassword": "पासवर्ड छिपाएं",
+    "showPassword": "पासवर्ड दिखाएं"
   }
 }

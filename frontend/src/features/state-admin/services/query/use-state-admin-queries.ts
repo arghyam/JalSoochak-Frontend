@@ -178,3 +178,58 @@ export function useSaveConfigurationMutation() {
     },
   })
 }
+
+export function useStateUTAdminsQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.stateUtAdmins(),
+    queryFn: stateAdminApi.getStateUTAdmins,
+  })
+}
+
+export function useStateUTAdminByIdQuery(id: string | undefined) {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.stateUtAdminById(id ?? ''),
+    queryFn: () => stateAdminApi.getStateUTAdminById(id ?? ''),
+    enabled: Boolean(id),
+  })
+}
+
+export function useCreateStateUTAdminMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { firstName: string; lastName: string; email: string; phone: string }) =>
+      stateAdminApi.createStateUTAdmin(input),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.stateUtAdmins() })
+    },
+  })
+}
+
+export function useUpdateStateUTAdminMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      id,
+      input,
+    }: {
+      id: string
+      input: { firstName: string; lastName: string; phone: string }
+    }) => stateAdminApi.updateStateUTAdmin(id, input),
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.stateUtAdmins() })
+      queryClient.removeQueries({ queryKey: stateAdminQueryKeys.stateUtAdminById(variables.id) })
+    },
+  })
+}
+
+export function useUpdateStateUTAdminStatusMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: 'active' | 'inactive' }) =>
+      stateAdminApi.updateStateUTAdminStatus(id, status),
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.stateUtAdmins() })
+      queryClient.removeQueries({ queryKey: stateAdminQueryKeys.stateUtAdminById(variables.id) })
+    },
+  })
+}

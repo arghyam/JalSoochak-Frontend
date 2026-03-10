@@ -13,6 +13,11 @@ import {
   DEFAULT_DEPARTMENT_HIERARCHY,
   DEFAULT_METER_CHANGE_REASONS,
 } from '../types/configuration'
+import type {
+  StateUTAdmin,
+  CreateStateUTAdminInput,
+  UpdateStateUTAdminInput,
+} from '../types/state-ut-admins'
 
 export const mockOverviewData: OverviewData = {
   stats: {
@@ -968,5 +973,111 @@ export const saveMockConfigurationData = (
       mockConfigurationData = saved
       resolve(saved)
     }, 500)
+  })
+}
+
+// State/UT Admins Mock Data
+let mockStateUTAdmins: StateUTAdmin[] = [
+  {
+    id: 'admin-1',
+    firstName: 'Ravi',
+    lastName: 'Kumar',
+    email: 'ravi@gmail.com',
+    phone: '9845285564',
+    status: 'active',
+  },
+  {
+    id: 'admin-2',
+    firstName: 'Vijay',
+    lastName: 'Yadav',
+    email: 'vijay@gmail.com',
+    phone: '7418596321',
+    status: 'active',
+  },
+  {
+    id: 'admin-3',
+    firstName: 'Rohan',
+    lastName: 'Verma',
+    email: 'rohan@gmail.com',
+    phone: '9876543210',
+    status: 'active',
+  },
+  {
+    id: 'admin-4',
+    firstName: 'Sanjeev',
+    lastName: 'Kumar',
+    email: 'sanjeev@gmail.com',
+    phone: '8765490123',
+    status: 'inactive',
+  },
+]
+
+export const getMockStateUTAdmins = (): Promise<StateUTAdmin[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve([...mockStateUTAdmins])
+    }, 300)
+  })
+}
+
+export const getMockStateUTAdminById = (id: string): Promise<StateUTAdmin | null> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const admin = mockStateUTAdmins.find((a) => a.id === id)
+      resolve(admin ?? null)
+    }, 300)
+  })
+}
+
+export const createMockStateUTAdmin = (input: CreateStateUTAdminInput): Promise<StateUTAdmin> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const created: StateUTAdmin = {
+        id: `admin-${Date.now()}`,
+        firstName: input.firstName,
+        lastName: input.lastName,
+        email: input.email,
+        phone: input.phone,
+        status: 'active',
+      }
+      mockStateUTAdmins = [...mockStateUTAdmins, created]
+      resolve(created)
+    }, 500)
+  })
+}
+
+export const updateMockStateUTAdmin = (
+  id: string,
+  input: UpdateStateUTAdminInput
+): Promise<StateUTAdmin> => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const existing = mockStateUTAdmins.find((a) => a.id === id)
+      if (!existing) {
+        reject(new Error('Admin not found'))
+        return
+      }
+      const updated: StateUTAdmin = { ...existing, ...input }
+      mockStateUTAdmins = mockStateUTAdmins.map((a) => (a.id === id ? updated : a))
+      resolve(updated)
+    }, 500)
+  })
+}
+
+export const updateMockStateUTAdminStatus = (
+  id: string,
+  status: 'active' | 'inactive'
+): Promise<StateUTAdmin> => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const existing = mockStateUTAdmins.find((a) => a.id === id)
+      if (!existing) {
+        reject(new Error('Admin not found'))
+        return
+      }
+      const updated: StateUTAdmin = { ...existing, status }
+      mockStateUTAdmins = mockStateUTAdmins.map((a) => (a.id === id ? updated : a))
+      resolve(updated)
+    }, 300)
   })
 }
