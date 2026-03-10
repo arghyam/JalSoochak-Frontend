@@ -157,7 +157,7 @@ export function DashboardBody({
                   boxShadow: 'none',
                 }}
               >
-                <option value="">
+                <option value="" disabled hidden>
                   {t('performanceCharts.viewBy.select', { defaultValue: 'Select' })}
                 </option>
                 <option value="geography">
@@ -249,7 +249,7 @@ export function DashboardBody({
                   boxShadow: 'none',
                 }}
               >
-                <option value="">
+                <option value="" disabled hidden>
                   {t('performanceCharts.viewBy.select', { defaultValue: 'Select' })}
                 </option>
                 <option value="geography">

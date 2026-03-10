@@ -98,7 +98,7 @@ export function BlockDashboardScreen({
               onChange={(event) => setQuantityViewBy(event.target.value as ViewBy)}
               _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
             >
-              <option value="">
+              <option value="" disabled hidden>
                 {t('performanceCharts.viewBy.select', { defaultValue: 'Select' })}
               </option>
               <option value="geography">
@@ -169,7 +169,7 @@ export function BlockDashboardScreen({
               onChange={(event) => setRegularityViewBy(event.target.value as ViewBy)}
               _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
             >
-              <option value="">
+              <option value="" disabled hidden>
                 {t('performanceCharts.viewBy.select', { defaultValue: 'Select' })}
               </option>
               <option value="geography">
@@ -267,7 +267,7 @@ export function BlockDashboardScreen({
               onChange={(event) => setOutageDistributionViewBy(event.target.value as ViewBy)}
               _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
             >
-              <option value="">
+              <option value="" disabled hidden>
                 {t('performanceCharts.viewBy.select', { defaultValue: 'Select' })}
               </option>
               <option value="geography">

@@ -104,7 +104,7 @@ export function DistrictDashboardScreen({
               onChange={(event) => setQuantityViewBy(event.target.value as ViewBy)}
               _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
             >
-              <option value="">
+              <option value="" disabled hidden>
                 {t('performanceCharts.viewBy.select', { defaultValue: 'Select' })}
               </option>
               <option value="geography">
@@ -173,7 +173,7 @@ export function DistrictDashboardScreen({
               onChange={(event) => setRegularityViewBy(event.target.value as ViewBy)}
               _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
             >
-              <option value="">
+              <option value="" disabled hidden>
                 {t('performanceCharts.viewBy.select', { defaultValue: 'Select' })}
               </option>
               <option value="geography">
@@ -267,7 +267,9 @@ export function DistrictDashboardScreen({
               onChange={(event) => setOutageDistributionViewBy(event.target.value as ViewBy)}
               _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
             >
-              <option value="">Select</option>
+              <option value="" disabled hidden>
+                Select
+              </option>
               <option value="geography">Geography</option>
               <option value="time">Time</option>
             </Select>
@@ -328,7 +330,9 @@ export function DistrictDashboardScreen({
               onChange={(event) => setReadingSubmissionRateViewBy(event.target.value as ViewBy)}
               _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
             >
-              <option value="">Select</option>
+              <option value="" disabled hidden>
+                Select
+              </option>
               <option value="geography">Geography</option>
               <option value="time">Time</option>
             </Select>
