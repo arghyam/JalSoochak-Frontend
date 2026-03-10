@@ -6,7 +6,7 @@ import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
 import type { EntityPerformance } from '../../types'
 
-interface SupplySubmissionRateChartProps {
+interface ReadingSubmissionRateChartProps {
   data: EntityPerformance[]
   className?: string
   height?: string | number
@@ -14,13 +14,13 @@ interface SupplySubmissionRateChartProps {
   entityLabel?: string
 }
 
-export function SupplySubmissionRateChart({
+export function ReadingSubmissionRateChart({
   data,
   className,
   height = '500px',
   maxItems = 5,
   entityLabel = 'States/UTs',
-}: SupplySubmissionRateChartProps) {
+}: ReadingSubmissionRateChartProps) {
   const { t } = useTranslation('dashboard')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)

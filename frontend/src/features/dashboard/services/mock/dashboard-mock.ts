@@ -7,7 +7,7 @@ import type {
   DemandSupplyData,
   KPIData,
   PumpOperatorPerformanceData,
-  PhotoEvidenceComplianceData,
+  ReadingComplianceData,
 } from '../../types'
 import type { SearchableSelectOption } from '@/shared/components/common'
 
@@ -1718,7 +1718,7 @@ const mockWaterSupplyOutages = [
   },
 ]
 
-const mockPhotoEvidenceCompliance: PhotoEvidenceComplianceData[] = [
+const mockReadingCompliance: ReadingComplianceData[] = [
   {
     id: 'pec-1',
     name: 'Ajay Yadav',
@@ -1886,8 +1886,8 @@ export const dashboardMockService = {
         kpis: mockCentralKPIs,
         mapData: mockStates,
         demandSupply: mockDemandSupply,
-        imageSubmissionStatus: mockImageSubmissionStatus,
-        photoEvidenceCompliance: mockPhotoEvidenceCompliance,
+        readingSubmissionStatus: mockImageSubmissionStatus,
+        readingCompliance: mockReadingCompliance,
         pumpOperators: mockPumpOperators,
         waterSupplyOutages: mockWaterSupplyOutages,
         topPerformers: sortedStates.slice(0, 5),
@@ -1906,8 +1906,8 @@ export const dashboardMockService = {
       kpis: mockCentralKPIs,
       mapData: [],
       demandSupply: mockDemandSupply,
-      imageSubmissionStatus: mockImageSubmissionStatus,
-      photoEvidenceCompliance: mockPhotoEvidenceCompliance,
+      readingSubmissionStatus: mockImageSubmissionStatus,
+      readingCompliance: mockReadingCompliance,
       pumpOperators: mockPumpOperators,
       waterSupplyOutages: mockWaterSupplyOutages,
       topPerformers: [],

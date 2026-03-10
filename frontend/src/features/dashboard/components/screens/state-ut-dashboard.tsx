@@ -1,7 +1,7 @@
 import { Box, Grid, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import type { DashboardData, EntityPerformance } from '../../types'
-import { SupplySubmissionRateChart } from '../charts'
+import { ReadingSubmissionRateChart } from '../charts'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 
 type StateUtDashboardScreenProps = {
@@ -22,7 +22,7 @@ export function StateUtDashboardScreen({
       {/* Reading Submission Status + Submission Rate */}
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
         <ReadingSubmissionStatusCard
-          data={data.imageSubmissionStatus}
+          data={data.readingSubmissionStatus}
           chartHeight="336px"
           boxProps={{ borderWidth: '1px', borderRadius: 'lg', px: 4, py: 6 }}
         />
@@ -32,7 +32,7 @@ export function StateUtDashboardScreen({
               defaultValue: 'Reading Submission Rate',
             })}
           </Text>
-          <SupplySubmissionRateChart
+          <ReadingSubmissionRateChart
             data={supplySubmissionRateData}
             height="383px"
             entityLabel={supplySubmissionRateLabel}

@@ -3,12 +3,12 @@ import { Box, Flex, Grid, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import type { DashboardData, EntityPerformance, PumpOperatorPerformanceData } from '../../types'
 import {
-  IssueTypeBreakdownChart,
+  SupplyOutageReasonsChart,
   MetricPerformanceChart,
   MonthlyTrendChart,
   PumpOperatorsChart,
-  SupplySubmissionRateChart,
-  WaterSupplyOutagesChart,
+  ReadingSubmissionRateChart,
+  SupplyOutageDistributionChart,
 } from '../charts'
 import { PumpOperatorsPerformanceTable } from '../tables'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
@@ -196,7 +196,7 @@ export function DistrictDashboardScreen({
               defaultValue: 'Supply Outage Reasons',
             })}
           </Text>
-          <IssueTypeBreakdownChart data={data.waterSupplyOutages} height="400px" />
+          <SupplyOutageReasonsChart data={data.waterSupplyOutages} height="400px" />
         </Box>
         <Box
           bg="white"
@@ -226,7 +226,7 @@ export function DistrictDashboardScreen({
             />
           </Flex>
           {outageDistributionViewBy === 'geography' ? (
-            <WaterSupplyOutagesChart
+            <SupplyOutageDistributionChart
               data={data.waterSupplyOutages}
               height="400px"
               xAxisLabel="Blocks"
@@ -247,7 +247,7 @@ export function DistrictDashboardScreen({
 
       {/* Reading Submission Status + Reading Submission Rate */}
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-        <ReadingSubmissionStatusCard data={data.imageSubmissionStatus} chartHeight="336px" />
+        <ReadingSubmissionStatusCard data={data.readingSubmissionStatus} chartHeight="336px" />
         <Box
           bg="white"
           borderWidth="0.5px"
@@ -276,7 +276,7 @@ export function DistrictDashboardScreen({
             />
           </Flex>
           {readingSubmissionRateViewBy === 'geography' ? (
-            <SupplySubmissionRateChart
+            <ReadingSubmissionRateChart
               data={supplySubmissionRateData}
               height="383px"
               entityLabel={supplySubmissionRateLabel}

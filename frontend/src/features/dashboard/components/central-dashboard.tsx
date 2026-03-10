@@ -14,7 +14,7 @@ import waterTapIcon from '@/assets/media/water-tap_1822589 1.svg'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
 import type { EntityPerformance } from '../types'
 import { DashboardFilters } from './filters/dashboard-filters'
-import { AllStatesTable } from './tables'
+import { OverallPerformanceTable } from './tables'
 import { ROUTES } from '@/shared/constants/routes'
 import { computeTrailIndices } from '../utils/trail-index'
 import {
@@ -396,9 +396,9 @@ export function CentralDashboard() {
     !data.kpis ||
     !data.mapData ||
     !data.demandSupply ||
-    !data.imageSubmissionStatus ||
+    !data.readingSubmissionStatus ||
     !data.pumpOperators ||
-    !data.photoEvidenceCompliance ||
+    !data.readingCompliance ||
     !data.waterSupplyOutages ||
     !data.topPerformers ||
     !data.worstPerformers ||
@@ -574,7 +574,7 @@ export function CentralDashboard() {
   const leadingPumpOperators = data.leadingPumpOperators ?? []
   const bottomPumpOperators = data.bottomPumpOperators ?? []
   const operatorsPerformanceTable = [...leadingPumpOperators, ...bottomPumpOperators]
-  const villagePhotoEvidenceRows = data.photoEvidenceCompliance
+  const villagePhotoEvidenceRows = data.readingCompliance
 
   return (
     <Box>
@@ -671,7 +671,7 @@ export function CentralDashboard() {
             <Text textStyle="bodyText3" fontWeight="400" mb={4}>
               {t('overallPerformance.title', { defaultValue: 'Overall Performance' })}
             </Text>
-            <AllStatesTable
+            <OverallPerformanceTable
               data={overallPerformanceTableData}
               entityLabel={overallPerformanceEntityLabel}
               scrollMaxHeight="620px"

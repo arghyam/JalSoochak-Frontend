@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { EntityPerformance } from '../../types'
-import { SupplySubmissionRateChart } from './supply-submission-rate-chart'
+import { ReadingSubmissionRateChart } from './reading-submission-rate-chart'
 
 const mockEChartsWrapper = jest.fn((_props: { option: unknown }) => (
   <div data-testid="echarts-wrapper" />
@@ -91,9 +91,9 @@ const chartData: EntityPerformance[] = [
   },
 ]
 
-describe('SupplySubmissionRateChart', () => {
+describe('ReadingSubmissionRateChart', () => {
   it('enables tooltip and formats hovered value with percentage', () => {
-    renderWithProviders(<SupplySubmissionRateChart data={chartData} />)
+    renderWithProviders(<ReadingSubmissionRateChart data={chartData} />)
 
     const mainOption = (
       mockEChartsWrapper.mock.calls as Array<

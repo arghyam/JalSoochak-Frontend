@@ -3,14 +3,14 @@ import { Box, Flex, Grid, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import type { DashboardData, EntityPerformance, PumpOperatorPerformanceData } from '../../types'
 import {
-  IssueTypeBreakdownChart,
+  SupplyOutageReasonsChart,
   MetricPerformanceChart,
   MonthlyTrendChart,
   PumpOperatorsChart,
-  SupplySubmissionRateChart,
-  WaterSupplyOutagesChart,
+  ReadingSubmissionRateChart,
+  SupplyOutageDistributionChart,
 } from '../charts'
-import { PhotoEvidenceComplianceTable, PumpOperatorsPerformanceTable } from '../tables'
+import { ReadingComplianceTable, PumpOperatorsPerformanceTable } from '../tables'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 import { ViewBySelect } from '@/shared/components/common'
 
@@ -193,7 +193,7 @@ export function GramPanchayatDashboardScreen({
               defaultValue: 'Supply Outage Reasons',
             })}
           </Text>
-          <IssueTypeBreakdownChart data={data.waterSupplyOutages} height="400px" />
+          <SupplyOutageReasonsChart data={data.waterSupplyOutages} height="400px" />
         </Box>
         <Box
           bg="white"
@@ -223,7 +223,7 @@ export function GramPanchayatDashboardScreen({
             />
           </Flex>
           {outageDistributionViewBy === 'geography' ? (
-            <WaterSupplyOutagesChart
+            <SupplyOutageDistributionChart
               data={data.waterSupplyOutages}
               height="400px"
               xAxisLabel={t('performanceCharts.viewBy.villages', {
@@ -297,7 +297,7 @@ export function GramPanchayatDashboardScreen({
 
       {/* Reading Submission Status + Reading Submission Rate */}
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-        <ReadingSubmissionStatusCard data={data.imageSubmissionStatus} chartHeight="336px" />
+        <ReadingSubmissionStatusCard data={data.readingSubmissionStatus} chartHeight="336px" />
         <Box
           bg="white"
           borderWidth="0.5px"
@@ -314,7 +314,7 @@ export function GramPanchayatDashboardScreen({
               defaultValue: 'Reading Submission Rate',
             })}
           </Text>
-          <SupplySubmissionRateChart
+          <ReadingSubmissionRateChart
             data={supplySubmissionRateData}
             height="383px"
             entityLabel={supplySubmissionRateLabel}
@@ -325,8 +325,8 @@ export function GramPanchayatDashboardScreen({
       {/* Reading Compliance */}
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
         <Box bg="white" borderWidth="0.5px" borderRadius="12px" borderColor="#E4E4E7" px={4} py={6}>
-          <PhotoEvidenceComplianceTable
-            data={data.photoEvidenceCompliance}
+          <ReadingComplianceTable
+            data={data.readingCompliance}
             title={t('outageAndSubmissionCharts.titles.readingCompliance', {
               defaultValue: 'Reading Compliance',
             })}

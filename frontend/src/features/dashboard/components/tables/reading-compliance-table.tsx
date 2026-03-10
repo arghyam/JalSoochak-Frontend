@@ -1,27 +1,27 @@
 import { Box, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import type { PhotoEvidenceComplianceData } from '../../types'
+import type { ReadingComplianceData } from '../../types'
 
-interface PhotoEvidenceComplianceTableProps {
-  data: PhotoEvidenceComplianceData[]
+interface ReadingComplianceTableProps {
+  data: ReadingComplianceData[]
   title?: string
   maxItems?: number
   showVillageColumn?: boolean
   scrollAreaMaxH?: string | number
 }
 
-export function PhotoEvidenceComplianceTable({
+export function ReadingComplianceTable({
   data,
   title,
   maxItems,
   showVillageColumn = true,
   scrollAreaMaxH = '432px',
-}: PhotoEvidenceComplianceTableProps) {
+}: ReadingComplianceTableProps) {
   const { t } = useTranslation('dashboard')
   const resolvedTitle =
     title?.trim() ||
-    t('outageAndSubmissionCharts.titles.photoEvidenceCompliance', {
-      defaultValue: 'Photo Evidence Compliance',
+    t('outageAndSubmissionCharts.titles.readingCompliance', {
+      defaultValue: 'Reading Compliance',
     })
   const safeMaxItems =
     typeof maxItems === 'number' && Number.isFinite(maxItems) ? Math.max(0, maxItems) : undefined

@@ -8,13 +8,13 @@ import type {
   VillagePumpOperatorDetails,
   WaterSupplyOutageData,
 } from '../../types'
-import { IssueTypeBreakdownChart, MetricPerformanceChart } from '../charts'
-import { PhotoEvidenceComplianceTable } from '../tables'
+import { SupplyOutageReasonsChart, MetricPerformanceChart } from '../charts'
+import { ReadingComplianceTable } from '../tables'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 
 type VillageDashboardScreenProps = {
   data: DashboardData
-  villagePhotoEvidenceRows: DashboardData['photoEvidenceCompliance']
+  villagePhotoEvidenceRows: DashboardData['readingCompliance']
   waterSupplyOutagesData: WaterSupplyOutageData[]
   villagePumpOperatorDetails: VillagePumpOperatorDetails
   villagePumpOperators?: VillagePumpOperatorDetails[]
@@ -163,10 +163,10 @@ export function VillageDashboardScreen({
               defaultValue: 'Supply Outage Reasons',
             })}
           </Text>
-          <IssueTypeBreakdownChart data={waterSupplyOutagesData} height="400px" />
+          <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
         </Box>
         <ReadingSubmissionStatusCard
-          data={data.imageSubmissionStatus}
+          data={data.readingSubmissionStatus}
           chartHeight="406px"
           cardHeight="523px"
           boxProps={{ w: 'full' }}
@@ -308,7 +308,7 @@ export function VillageDashboardScreen({
           </Flex>
         </Box>
         <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="430px" minW={0}>
-          <PhotoEvidenceComplianceTable
+          <ReadingComplianceTable
             data={readingComplianceRows}
             showVillageColumn={false}
             scrollAreaMaxH="320px"
