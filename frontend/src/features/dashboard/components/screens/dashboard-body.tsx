@@ -99,10 +99,6 @@ export function DashboardBody({
   const geographyEntityLabel = isStateScreen
     ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
     : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
-  const quantitySelectColor = 'primary.500'
-  const quantitySelectBorderColor = 'primary.500'
-  const regularitySelectColor = 'primary.500'
-  const regularitySelectBorderColor = 'primary.500'
   return (
     <>
       {/* Quantity + Regularity Charts */}
@@ -130,8 +126,6 @@ export function DashboardBody({
                 })}
                 value={quantityViewBy}
                 onChange={setQuantityViewBy}
-                color={quantitySelectColor}
-                borderColor={quantitySelectBorderColor}
               />
             </Flex>
             {quantityViewBy === 'geography' ? (
@@ -188,8 +182,6 @@ export function DashboardBody({
                 })}
                 value={regularityViewBy}
                 onChange={setRegularityViewBy}
-                color={regularitySelectColor}
-                borderColor={regularitySelectBorderColor}
               />
             </Flex>
             {regularityViewBy === 'geography' ? (

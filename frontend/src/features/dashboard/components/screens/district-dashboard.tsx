@@ -216,7 +216,9 @@ export function DistrictDashboardScreen({
               })}
             </Text>
             <ViewBySelect
-              ariaLabel="District supply outage distribution view by"
+              ariaLabel={t('outageAndSubmissionCharts.ariaViewByDistrict', {
+                defaultValue: 'District supply outage distribution view by',
+              })}
               value={outageDistributionViewBy}
               onChange={setOutageDistributionViewBy}
               color="primary.500"
@@ -264,7 +266,9 @@ export function DistrictDashboardScreen({
               })}
             </Text>
             <ViewBySelect
-              ariaLabel="District reading submission rate view by"
+              ariaLabel={t('outageAndSubmissionCharts.ariaViewByReadingSubmissionDistrict', {
+                defaultValue: 'District reading submission rate view by',
+              })}
               value={readingSubmissionRateViewBy}
               onChange={setReadingSubmissionRateViewBy}
               color="primary.500"
@@ -282,7 +286,7 @@ export function DistrictDashboardScreen({
               data={readingSubmissionTimeTrendData}
               height="383px"
               isPercent
-              xAxisLabel="Month"
+              xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
               yAxisLabel={t('outageAndSubmissionCharts.axis.percentage', {
                 defaultValue: 'Percentage',
               })}

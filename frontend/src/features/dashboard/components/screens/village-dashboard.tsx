@@ -307,7 +307,7 @@ export function VillageDashboardScreen({
             ) : null}
           </Flex>
         </Box>
-        <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="430px">
+        <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="430px" minW={0}>
           <PhotoEvidenceComplianceTable
             data={readingComplianceRows}
             showVillageColumn={false}
