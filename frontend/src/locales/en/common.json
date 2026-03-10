@@ -64,6 +64,7 @@
     "configuration": "Configuration",
     "activity": "Activity",
     "stateUtAdmins": "State/UT Admins",
+    "superUsers": "Super Users",
     "profile": "Profile",
     "changePassword": "Change Password",
     "logout": "Logout",

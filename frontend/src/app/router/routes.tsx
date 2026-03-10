@@ -12,6 +12,9 @@ import {
   ManageStateAdminsPage,
   ApiCredentialsPage,
   IngestionMonitorPage,
+  SuperUsersPage,
+  SuperUserFormPage,
+  ViewSuperUserPage,
 } from '@/features/super-admin'
 import {
   OverviewPage,
@@ -162,6 +165,22 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.SUPER_ADMIN_INGESTION_MONITOR,
         element: <IngestionMonitorPage />,
+      },
+      {
+        path: ROUTES.SUPER_ADMIN_SUPER_USERS,
+        element: <SuperUsersPage />,
+      },
+      {
+        path: ROUTES.SUPER_ADMIN_SUPER_USERS_ADD,
+        element: <SuperUserFormPage />,
+      },
+      {
+        path: ROUTES.SUPER_ADMIN_SUPER_USERS_VIEW,
+        element: <ViewSuperUserPage />,
+      },
+      {
+        path: ROUTES.SUPER_ADMIN_SUPER_USERS_EDIT,
+        element: <SuperUserFormPage />,
       },
     ],
   },

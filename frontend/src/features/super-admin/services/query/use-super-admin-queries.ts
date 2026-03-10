@@ -9,6 +9,7 @@ import type {
 } from '../../types/states-uts'
 import type { CreateTenantInput } from '../../types/tenant'
 import type { ApiCredentialsData } from '../../types/api-credentials'
+import type { CreateSuperUserInput, UpdateSuperUserInput } from '../../types/super-users'
 
 export function useSuperAdminOverviewQuery() {
   return useQuery({
@@ -160,6 +161,59 @@ export function useUpdateStateUTStatusMutation() {
       await queryClient.invalidateQueries({ queryKey: superAdminQueryKeys.statesUTs() })
       await queryClient.invalidateQueries({
         queryKey: superAdminQueryKeys.stateUTById(variables.id),
+      })
+    },
+  })
+}
+
+export function useSuperUsersQuery() {
+  return useQuery({
+    queryKey: superAdminQueryKeys.superUsers(),
+    queryFn: superAdminApi.getSuperUsers,
+  })
+}
+
+export function useSuperUserByIdQuery(id?: string) {
+  return useQuery({
+    queryKey: superAdminQueryKeys.superUserById(id ?? ''),
+    queryFn: () => superAdminApi.getSuperUserById(id ?? ''),
+    enabled: Boolean(id),
+  })
+}
+
+export function useCreateSuperUserMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: CreateSuperUserInput) => superAdminApi.createSuperUser(payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: superAdminQueryKeys.superUsers() })
+    },
+  })
+}
+
+export function useUpdateSuperUserMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: UpdateSuperUserInput }) =>
+      superAdminApi.updateSuperUser(id, input),
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({ queryKey: superAdminQueryKeys.superUsers() })
+      await queryClient.invalidateQueries({
+        queryKey: superAdminQueryKeys.superUserById(variables.id),
+      })
+    },
+  })
+}
+
+export function useUpdateSuperUserStatusMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: 'active' | 'inactive' }) =>
+      superAdminApi.updateSuperUserStatus(id, status),
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({ queryKey: superAdminQueryKeys.superUsers() })
+      await queryClient.invalidateQueries({
+        queryKey: superAdminQueryKeys.superUserById(variables.id),
       })
     },
   })

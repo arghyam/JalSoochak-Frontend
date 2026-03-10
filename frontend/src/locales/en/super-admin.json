@@ -145,6 +145,56 @@
     }
   },
 
+  "superUsers": {
+    "title": "Super Users",
+    "addTitle": "Add Super User",
+    "editTitle": "Edit Super User",
+    "viewTitle": "View Super User",
+    "addUser": "Add Super User",
+    "table": {
+      "name": "Name",
+      "mobileNumber": "Mobile Number",
+      "emailAddress": "Email Address",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "filters": {
+      "allStatuses": "All Statuses"
+    },
+    "form": {
+      "userDetails": "User Details",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "emailAddress": "Email address",
+      "phoneNumber": "Phone number",
+      "statusSection": "Status",
+      "activated": "Activated"
+    },
+    "buttons": {
+      "addAndSendLink": "Add Super User & Send Link via Email"
+    },
+    "breadcrumb": {
+      "manage": "Manages Super Users",
+      "addNew": "Add Super User",
+      "view": "View Super User",
+      "edit": "Edit Super User"
+    },
+    "messages": {
+      "noUsersFound": "No super users found",
+      "notFound": "Super user not found",
+      "userAdded": "Super user added and invite sent via email",
+      "failedToAdd": "Failed to add super user",
+      "activatedSuccess": "Super user activated successfully",
+      "deactivatedSuccess": "Super user deactivated successfully",
+      "failedToUpdateStatus": "Failed to update super user status"
+    },
+    "aria": {
+      "search": "Search super users",
+      "view": "View super user",
+      "edit": "Edit super user"
+    }
+  },
+
   "ingestionMonitor": {
     "title": "Ingestion Monitor",
     "filters": {

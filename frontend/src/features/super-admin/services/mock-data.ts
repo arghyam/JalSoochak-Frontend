@@ -1,4 +1,5 @@
 import type { SuperAdminOverviewData } from '../types/overview'
+import type { SuperUser, CreateSuperUserInput, UpdateSuperUserInput } from '../types/super-users'
 import type { SystemRulesConfiguration } from '../types/system-rules'
 import type { IngestionMonitorData } from '../types/ingestion-monitor'
 import type { ApiCredentialsData } from '../types/api-credentials'
@@ -696,4 +697,113 @@ export function mockCreateTenant(payload: CreateTenantInput): Promise<Tenant> {
     updatedBy: 'system',
   }
   return Promise.resolve(tenant)
+}
+
+// Super Users Mock Data
+const mockSuperUsersData: SuperUser[] = [
+  {
+    id: 'su-1',
+    firstName: 'Ravi',
+    lastName: 'Kumar',
+    email: 'ravi@gmail.com',
+    phone: '9845285564',
+    status: 'active',
+  },
+  {
+    id: 'su-2',
+    firstName: 'Vijay',
+    lastName: 'Yadav',
+    email: 'vijay@gmail.com',
+    phone: '7418596321',
+    status: 'active',
+  },
+  {
+    id: 'su-3',
+    firstName: 'Rohan',
+    lastName: 'Sharma',
+    email: 'rohan@gmail.com',
+    phone: '9876543210',
+    status: 'active',
+  },
+  {
+    id: 'su-4',
+    firstName: 'Sanjeev',
+    lastName: 'Kumar',
+    email: 'sanjeev@gmail.com',
+    phone: '8765490123',
+    status: 'inactive',
+  },
+]
+
+export const getMockSuperUsers = (): Promise<SuperUser[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve([...mockSuperUsersData])
+    }, 300)
+  })
+}
+
+export const getMockSuperUserById = (id: string): Promise<SuperUser | null> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const user = mockSuperUsersData.find((u) => u.id === id) ?? null
+      resolve(user ? { ...user } : null)
+    }, 300)
+  })
+}
+
+export const createMockSuperUser = (input: CreateSuperUserInput): Promise<SuperUser> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const newUser: SuperUser = {
+        id: `su-${Date.now()}`,
+        firstName: input.firstName,
+        lastName: input.lastName,
+        email: input.email,
+        phone: input.phone,
+        status: 'active',
+      }
+      mockSuperUsersData.push(newUser)
+      resolve({ ...newUser })
+    }, 500)
+  })
+}
+
+export const updateMockSuperUser = (
+  id: string,
+  input: UpdateSuperUserInput
+): Promise<SuperUser> => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const index = mockSuperUsersData.findIndex((u) => u.id === id)
+      if (index === -1) {
+        reject(new Error(`SuperUser with id "${id}" not found`))
+        return
+      }
+      mockSuperUsersData[index] = {
+        ...mockSuperUsersData[index],
+        firstName: input.firstName,
+        lastName: input.lastName,
+        phone: input.phone,
+      }
+      resolve({ ...mockSuperUsersData[index] })
+    }, 500)
+  })
+}
+
+export const updateMockSuperUserStatus = (
+  id: string,
+  status: 'active' | 'inactive'
+): Promise<SuperUser> => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const index = mockSuperUsersData.findIndex((u) => u.id === id)
+      if (index === -1) {
+        reject(new Error(`SuperUser with id "${id}" not found`))
+        return
+      }
+      mockSuperUsersData[index] = { ...mockSuperUsersData[index], status }
+      resolve({ ...mockSuperUsersData[index] })
+    }, 300)
+  })
 }
