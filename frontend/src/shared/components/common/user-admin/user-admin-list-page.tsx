@@ -83,10 +83,12 @@ export function UserAdminListPage({
 
   const filteredData = data.filter((item) => {
     const fullName = `${item.firstName} ${item.lastName}`.toLowerCase()
+    const normalizedPhone = item.phone.replace(/\D/g, '')
+    const normalizedQuery = searchQuery.replace(/\D/g, '')
     const matchesSearch =
       fullName.includes(searchQuery.toLowerCase()) ||
       item.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.phone.includes(searchQuery)
+      (normalizedQuery.length > 0 && normalizedPhone.includes(normalizedQuery))
     const matchesStatus = statusFilter === 'all' || item.status === statusFilter
     return matchesSearch && matchesStatus
   })

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   Box,
   Heading,
+  Link,
   Text,
   Flex,
   SimpleGrid,
@@ -194,19 +195,19 @@ function FormContent({
           {title}
         </Heading>
         <Flex as="nav" aria-label="Breadcrumb" gap={2} flexWrap="wrap">
-          <Text
-            as="a"
+          <Link
+            href={routes.list}
             fontSize="14px"
             lineHeight="21px"
             color="neutral.500"
-            cursor="pointer"
             _hover={{ textDecoration: 'underline' }}
-            onClick={() => navigate(routes.list)}
-            tabIndex={0}
-            onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && navigate(routes.list)}
+            onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
+              e.preventDefault()
+              navigate(routes.list)
+            }}
           >
             {labels.breadcrumb.manage}
-          </Text>
+          </Link>
           <Text fontSize="14px" lineHeight="21px" color="neutral.500" aria-hidden="true">
             /
           </Text>
