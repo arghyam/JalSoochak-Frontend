@@ -2,10 +2,10 @@ import { Box, Text } from '@chakra-ui/react'
 import type { BoxProps } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { ReadingSubmissionStatusChart } from '../charts'
-import type { ImageSubmissionStatusData } from '../../types'
+import type { ReadingSubmissionStatusData } from '../../types'
 
 type ReadingSubmissionStatusCardProps = {
-  data: ImageSubmissionStatusData[]
+  data: ReadingSubmissionStatusData[]
   chartHeight?: string | number
   cardHeight?: string | number
   boxProps?: BoxProps

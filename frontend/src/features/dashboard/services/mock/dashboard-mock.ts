@@ -7,7 +7,7 @@ import type {
   DemandSupplyData,
   KPIData,
   PumpOperatorPerformanceData,
-  PhotoEvidenceComplianceData,
+  ReadingComplianceData,
 } from '../../types'
 import type { SearchableSelectOption } from '@/shared/components/common'
 
@@ -1718,7 +1718,7 @@ const mockWaterSupplyOutages = [
   },
 ]
 
-const mockPhotoEvidenceCompliance: PhotoEvidenceComplianceData[] = [
+const mockPhotoEvidenceCompliance: ReadingComplianceData[] = [
   {
     id: 'pec-1',
     name: 'Ajay Yadav',

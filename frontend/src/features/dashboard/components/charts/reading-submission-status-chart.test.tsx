@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { renderWithProviders } from '@/test/render-with-providers'
-import type { ImageSubmissionStatusData } from '../../types'
+import type { ReadingSubmissionStatusData } from '../../types'
 import { ReadingSubmissionStatusChart } from './reading-submission-status-chart'
 
 const mockEChartsWrapper = jest.fn((_props: { option: unknown }) => (
@@ -15,7 +15,7 @@ beforeEach(() => {
   mockEChartsWrapper.mockClear()
 })
 
-const chartData: ImageSubmissionStatusData[] = [
+const chartData: ReadingSubmissionStatusData[] = [
   { label: 'Complaint Submission', value: 64 },
   { label: 'Automated Submission', value: 36 },
 ]

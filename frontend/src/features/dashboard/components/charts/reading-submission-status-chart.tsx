@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
-import type { ImageSubmissionStatusData } from '../../types'
+import type { ReadingSubmissionStatusData } from '../../types'
 
 interface ReadingSubmissionStatusChartProps {
-  data: ImageSubmissionStatusData[]
+  data: ReadingSubmissionStatusData[]
   className?: string
   height?: string | number
   pieSize?: number

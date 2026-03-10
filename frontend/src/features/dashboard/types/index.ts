@@ -35,7 +35,7 @@ export interface DemandSupplyData {
   supply: number
 }
 
-export interface ImageSubmissionStatusData {
+export interface ReadingSubmissionStatusData {
   label: string
   value: number
 }
@@ -45,7 +45,7 @@ export interface PumpOperatorsData {
   value: number
 }
 
-export interface PhotoEvidenceComplianceData {
+export interface ReadingComplianceData {
   id: string
   name: string
   village: string
@@ -99,8 +99,8 @@ export interface DashboardData {
   kpis: KPIData
   mapData: EntityPerformance[]
   demandSupply: DemandSupplyData[]
-  imageSubmissionStatus: ImageSubmissionStatusData[]
-  photoEvidenceCompliance: PhotoEvidenceComplianceData[]
+  imageSubmissionStatus: ReadingSubmissionStatusData[]
+  photoEvidenceCompliance: ReadingComplianceData[]
   pumpOperators: PumpOperatorsData[]
   waterSupplyOutages: WaterSupplyOutageData[]
   supplyOutageTrend?: SupplyOutageTrendData[]
