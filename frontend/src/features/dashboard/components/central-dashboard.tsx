@@ -14,7 +14,7 @@ import waterTapIcon from '@/assets/media/water-tap_1822589 1.svg'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
 import type { EntityPerformance } from '../types'
 import { DashboardFilters } from './filters/dashboard-filters'
-import { AllStatesTable } from './tables'
+import { OverallPerformanceTable } from './tables'
 import { ROUTES } from '@/shared/constants/routes'
 import { computeTrailIndices } from '../utils/trail-index'
 import {
@@ -671,7 +671,7 @@ export function CentralDashboard() {
             <Text textStyle="bodyText3" fontWeight="400" mb={4}>
               {t('overallPerformance.title', { defaultValue: 'Overall Performance' })}
             </Text>
-            <AllStatesTable
+            <OverallPerformanceTable
               data={overallPerformanceTableData}
               entityLabel={overallPerformanceEntityLabel}
               scrollMaxHeight="620px"
