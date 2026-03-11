@@ -10,41 +10,41 @@ const mockMetricPerformanceChart = jest.fn((_props: unknown) => (
 const mockMonthlyTrendChart = jest.fn((_props: unknown) => (
   <div data-testid="monthly-trend-chart" />
 ))
-const mockIssueTypeBreakdownChart = jest.fn((_props: unknown) => (
-  <div data-testid="issue-type-breakdown-chart" />
+const mockSupplyOutageReasonsChart = jest.fn((_props: unknown) => (
+  <div data-testid="supply-outage-reasons-chart" />
 ))
-const mockWaterSupplyOutagesChart = jest.fn((_props: unknown) => (
-  <div data-testid="water-supply-outages-chart" />
+const mockSupplyOutageDistributionChart = jest.fn((_props: unknown) => (
+  <div data-testid="supply-outage-distribution-chart" />
 ))
 const mockPumpOperatorsChart = jest.fn((_props: unknown) => (
   <div data-testid="pump-operators-chart" />
 ))
-const mockImageSubmissionStatusChart = jest.fn((_props: unknown) => (
-  <div data-testid="image-submission-status-chart" />
+const mockReadingSubmissionStatusChart = jest.fn((_props: unknown) => (
+  <div data-testid="reading-submission-status-chart" />
 ))
-const mockSupplySubmissionRateChart = jest.fn((_props: unknown) => (
-  <div data-testid="supply-submission-rate-chart" />
+const mockReadingSubmissionRateChart = jest.fn((_props: unknown) => (
+  <div data-testid="reading-submission-rate-chart" />
 ))
 const mockPumpOperatorsPerformanceTable = jest.fn((_props: unknown) => (
   <div data-testid="pump-operators-performance-table" />
 ))
-const mockPhotoEvidenceComplianceTable = jest.fn((_props: unknown) => (
-  <div data-testid="photo-evidence-compliance-table" />
+const mockReadingComplianceTable = jest.fn((_props: unknown) => (
+  <div data-testid="reading-compliance-table" />
 ))
 
 jest.mock('../charts', () => ({
   MetricPerformanceChart: (props: unknown) => mockMetricPerformanceChart(props),
   MonthlyTrendChart: (props: unknown) => mockMonthlyTrendChart(props),
-  IssueTypeBreakdownChart: (props: unknown) => mockIssueTypeBreakdownChart(props),
-  WaterSupplyOutagesChart: (props: unknown) => mockWaterSupplyOutagesChart(props),
+  SupplyOutageReasonsChart: (props: unknown) => mockSupplyOutageReasonsChart(props),
+  SupplyOutageDistributionChart: (props: unknown) => mockSupplyOutageDistributionChart(props),
   PumpOperatorsChart: (props: unknown) => mockPumpOperatorsChart(props),
-  ImageSubmissionStatusChart: (props: unknown) => mockImageSubmissionStatusChart(props),
-  SupplySubmissionRateChart: (props: unknown) => mockSupplySubmissionRateChart(props),
+  ReadingSubmissionStatusChart: (props: unknown) => mockReadingSubmissionStatusChart(props),
+  ReadingSubmissionRateChart: (props: unknown) => mockReadingSubmissionRateChart(props),
 }))
 
 jest.mock('../tables', () => ({
   PumpOperatorsPerformanceTable: (props: unknown) => mockPumpOperatorsPerformanceTable(props),
-  PhotoEvidenceComplianceTable: (props: unknown) => mockPhotoEvidenceComplianceTable(props),
+  ReadingComplianceTable: (props: unknown) => mockReadingComplianceTable(props),
 }))
 
 const gramPanchayatTableData: EntityPerformance[] = [
@@ -105,8 +105,8 @@ const data: DashboardData = {
   },
   mapData: [],
   demandSupply: [{ period: 'Jan', demand: 100, supply: 90 }],
-  imageSubmissionStatus: [{ label: 'Compliant Submissions', value: 60 }],
-  photoEvidenceCompliance: [
+  readingSubmissionStatus: [{ label: 'Compliant Submissions', value: 60 }],
+  readingCompliance: [
     {
       id: 'pe-1',
       name: 'Operator 1',
@@ -145,13 +145,13 @@ describe('BlockDashboardScreen', () => {
   beforeEach(() => {
     mockMetricPerformanceChart.mockClear()
     mockMonthlyTrendChart.mockClear()
-    mockIssueTypeBreakdownChart.mockClear()
-    mockWaterSupplyOutagesChart.mockClear()
+    mockSupplyOutageReasonsChart.mockClear()
+    mockSupplyOutageDistributionChart.mockClear()
     mockPumpOperatorsChart.mockClear()
-    mockImageSubmissionStatusChart.mockClear()
-    mockSupplySubmissionRateChart.mockClear()
+    mockReadingSubmissionStatusChart.mockClear()
+    mockReadingSubmissionRateChart.mockClear()
     mockPumpOperatorsPerformanceTable.mockClear()
-    mockPhotoEvidenceComplianceTable.mockClear()
+    mockReadingComplianceTable.mockClear()
   })
 
   it('renders block view selectors with Select default option', () => {
@@ -183,9 +183,9 @@ describe('BlockDashboardScreen', () => {
 
     expect(screen.getByTestId('pump-operators-chart')).toBeTruthy()
     expect(screen.getByTestId('pump-operators-performance-table')).toBeTruthy()
-    expect(screen.getByTestId('image-submission-status-chart')).toBeTruthy()
-    expect(screen.getByTestId('supply-submission-rate-chart')).toBeTruthy()
-    expect(screen.getByTestId('photo-evidence-compliance-table')).toBeTruthy()
+    expect(screen.getByTestId('reading-submission-status-chart')).toBeTruthy()
+    expect(screen.getByTestId('reading-submission-rate-chart')).toBeTruthy()
+    expect(screen.getByTestId('reading-compliance-table')).toBeTruthy()
   })
 
   it('renders geography charts by default with gram panchayat labels and reading compliance title', () => {
@@ -201,19 +201,19 @@ describe('BlockDashboardScreen', () => {
     expect(regularityMetricCall?.entityLabel).toBe('Gram Panchayats')
     expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
 
-    const outagesProps = mockWaterSupplyOutagesChart.mock.calls[0]?.[0] as {
+    const outagesProps = mockSupplyOutageDistributionChart.mock.calls[0]?.[0] as {
       xAxisLabel: string
       data: Array<{ label: string }>
     }
     expect(outagesProps.xAxisLabel).toBe('Gram Panchayats')
     expect(outagesProps.data[0]?.label).toBe('Gram Panchayat 1')
 
-    const submissionProps = mockSupplySubmissionRateChart.mock.calls[0]?.[0] as {
+    const submissionProps = mockReadingSubmissionRateChart.mock.calls[0]?.[0] as {
       entityLabel: string
     }
     expect(submissionProps.entityLabel).toBe('Gram Panchayats')
 
-    const complianceProps = mockPhotoEvidenceComplianceTable.mock.calls[0]?.[0] as {
+    const complianceProps = mockReadingComplianceTable.mock.calls[0]?.[0] as {
       title: string
     }
     expect(complianceProps.title).toBe('Reading Compliance')

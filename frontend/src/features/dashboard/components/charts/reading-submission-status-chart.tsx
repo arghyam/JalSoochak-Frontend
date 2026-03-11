@@ -1,41 +1,30 @@
 import { useCallback, useMemo } from 'react'
-import { useBreakpointValue, useTheme } from '@chakra-ui/react'
+import { useTheme } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
-import type { ImageSubmissionStatusData } from '../../types'
+import type { ReadingSubmissionStatusData } from '../../types'
 
-interface ImageSubmissionStatusChartProps {
-  data: ImageSubmissionStatusData[]
+interface ReadingSubmissionStatusChartProps {
+  data: ReadingSubmissionStatusData[]
   className?: string
   height?: string | number
+  pieSize?: number
 }
 
 const defaultColors = ['#3291D1', '#ADD3ED']
-const defaultPieRadius: (string | number)[] = ['0%', '68%']
-const defaultPieCenter: [string, string] = ['50%', '45%']
+const chartLegendGapPx = 20
 
-export function ImageSubmissionStatusChart({
+export function ReadingSubmissionStatusChart({
   data,
   className,
-  height = '406px',
-}: ImageSubmissionStatusChartProps) {
+  height = '300px',
+  pieSize = 300,
+}: ReadingSubmissionStatusChartProps) {
   const { t } = useTranslation('dashboard')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
-  const pieRadius =
-    useBreakpointValue<(string | number)[]>({
-      base: ['0%', '75%'],
-      sm: ['0%', '70%'],
-      md: ['0%', '68%'],
-    }) ?? defaultPieRadius
-  const pieCenter =
-    useBreakpointValue<[string, string]>({
-      base: ['50%', '42%'],
-      sm: ['50%', '45%'],
-      md: ['50%', '45%'],
-    }) ?? defaultPieCenter
   const localizedLegendLabel = useCallback(
     (label: string) => {
       const normalized = label.trim().toLowerCase()
@@ -56,16 +45,37 @@ export function ImageSubmissionStatusChart({
   )
 
   const option = useMemo<echarts.EChartsOption>(() => {
+    const totalSubmissions = data.reduce((sum, entry) => sum + entry.value, 0)
+
     return {
       tooltip: {
-        show: false,
+        show: true,
+        trigger: 'item',
+        formatter: (params: unknown) => {
+          const point = params as { name?: string; value?: number | string }
+          const rawValue =
+            typeof point.value === 'number' ? point.value : Number(point.value ?? Number.NaN)
+          const hasNumericValue = Number.isFinite(rawValue)
+          const safeName = echarts.format.encodeHTML(point.name ?? '')
+          const percentage =
+            hasNumericValue && totalSubmissions > 0
+              ? ` (${((rawValue / totalSubmissions) * 100).toFixed(1)}%)`
+              : ''
+          const formattedValue = hasNumericValue ? rawValue.toFixed(1) : '-'
+
+          return `<strong>${safeName}</strong><br/>${formattedValue}${percentage}`
+        },
       },
       series: [
         {
           type: 'pie',
-          radius: pieRadius,
-          center: pieCenter,
+          radius: ['0%', '98%'],
+          center: ['50%', '50%'],
           avoidLabelOverlap: true,
+          emphasis: {
+            scale: true,
+            scaleSize: 2,
+          },
           label: {
             show: false,
           },
@@ -78,11 +88,16 @@ export function ImageSubmissionStatusChart({
             itemStyle: {
               color: defaultColors[index % defaultColors.length],
             },
+            emphasis: {
+              itemStyle: {
+                color: defaultColors[index % defaultColors.length],
+              },
+            },
           })),
         },
       ],
     }
-  }, [data, pieCenter, pieRadius, localizedLegendLabel])
+  }, [data, localizedLegendLabel])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
 
@@ -95,18 +110,28 @@ export function ImageSubmissionStatusChart({
         height: containerHeight,
         display: 'flex',
         flexDirection: 'column',
+        alignItems: 'center',
       }}
     >
-      <div style={{ flex: 1, minHeight: 0, minWidth: 0 }}>
+      <div
+        style={{
+          width: `${pieSize}px`,
+          height: `${pieSize}px`,
+          maxWidth: '100%',
+          margin: '0 auto',
+        }}
+      >
         <EChartsWrapper option={option} height="100%" />
       </div>
       <div
         style={{
+          marginTop: `${chartLegendGapPx}px`,
+          width: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           gap: '16px',
-          paddingTop: '8px',
+          paddingTop: '0px',
           flexWrap: 'wrap',
           rowGap: '6px',
         }}

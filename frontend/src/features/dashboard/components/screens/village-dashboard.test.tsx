@@ -7,24 +7,24 @@ import { VillageDashboardScreen } from './village-dashboard'
 const mockMetricPerformanceChart = jest.fn((_props: unknown) => (
   <div data-testid="metric-performance-chart" />
 ))
-const mockIssueTypeBreakdownChart = jest.fn((_props: unknown) => (
-  <div data-testid="issue-type-breakdown-chart" />
+const mockSupplyOutageReasonsChart = jest.fn((_props: unknown) => (
+  <div data-testid="supply-outage-reasons-chart" />
 ))
-const mockImageSubmissionStatusChart = jest.fn((_props: unknown) => (
-  <div data-testid="image-submission-status-chart" />
+const mockReadingSubmissionStatusChart = jest.fn((_props: unknown) => (
+  <div data-testid="reading-submission-status-chart" />
 ))
-const mockPhotoEvidenceComplianceTable = jest.fn((_props: unknown) => (
-  <div data-testid="photo-evidence-compliance-table" />
+const mockReadingComplianceTable = jest.fn((_props: unknown) => (
+  <div data-testid="reading-compliance-table" />
 ))
 
 jest.mock('../charts', () => ({
   MetricPerformanceChart: (props: unknown) => mockMetricPerformanceChart(props),
-  IssueTypeBreakdownChart: (props: unknown) => mockIssueTypeBreakdownChart(props),
-  ImageSubmissionStatusChart: (props: unknown) => mockImageSubmissionStatusChart(props),
+  SupplyOutageReasonsChart: (props: unknown) => mockSupplyOutageReasonsChart(props),
+  ReadingSubmissionStatusChart: (props: unknown) => mockReadingSubmissionStatusChart(props),
 }))
 
 jest.mock('../tables', () => ({
-  PhotoEvidenceComplianceTable: (props: unknown) => mockPhotoEvidenceComplianceTable(props),
+  ReadingComplianceTable: (props: unknown) => mockReadingComplianceTable(props),
 }))
 
 const data: DashboardData = {
@@ -40,8 +40,8 @@ const data: DashboardData = {
     { period: 'FY21', demand: 82, supply: 74 },
     { period: 'FY22', demand: 99, supply: 109 },
   ],
-  imageSubmissionStatus: [{ label: 'Complaint Submission', value: 62 }],
-  photoEvidenceCompliance: [],
+  readingSubmissionStatus: [{ label: 'Complaint Submission', value: 62 }],
+  readingCompliance: [],
   pumpOperators: [],
   waterSupplyOutages: [],
   topPerformers: [],
@@ -90,7 +90,7 @@ const villagePumpOperators = [
 ]
 
 function renderVillageDashboard(
-  villagePhotoEvidenceRows: DashboardData['photoEvidenceCompliance'] = [
+  villagePhotoEvidenceRows: DashboardData['readingCompliance'] = [
     {
       id: 'pe-1',
       name: 'Vikash',
@@ -129,9 +129,9 @@ function renderVillageDashboard(
 describe('VillageDashboardScreen', () => {
   beforeEach(() => {
     mockMetricPerformanceChart.mockClear()
-    mockIssueTypeBreakdownChart.mockClear()
-    mockImageSubmissionStatusChart.mockClear()
-    mockPhotoEvidenceComplianceTable.mockClear()
+    mockSupplyOutageReasonsChart.mockClear()
+    mockReadingSubmissionStatusChart.mockClear()
+    mockReadingComplianceTable.mockClear()
   })
 
   it('renders quantity and regularity using metric performance charts', () => {
@@ -145,9 +145,9 @@ describe('VillageDashboardScreen', () => {
     expect(metricCalls[1]?.[0].metric).toBe('regularity')
     expect(metricCalls[1]?.[0].seriesName).toBe('Regularity')
 
-    expect(screen.getByTestId('issue-type-breakdown-chart')).toBeTruthy()
-    expect(screen.getByTestId('image-submission-status-chart')).toBeTruthy()
-    expect(screen.getByTestId('photo-evidence-compliance-table')).toBeTruthy()
+    expect(screen.getByTestId('supply-outage-reasons-chart')).toBeTruthy()
+    expect(screen.getByTestId('reading-submission-status-chart')).toBeTruthy()
+    expect(screen.getByTestId('reading-compliance-table')).toBeTruthy()
   })
 
   it('paginates pump operator details with previous/next and page buttons', () => {
@@ -155,7 +155,7 @@ describe('VillageDashboardScreen', () => {
 
     expect(screen.getByText('Ajay Yadav')).toBeTruthy()
     expect(screen.getByText('11-02-24, 1:00pm')).toBeTruthy()
-    let complianceProps = mockPhotoEvidenceComplianceTable.mock.calls.at(-1)?.[0] as {
+    let complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
       data: Array<{ name: string }>
     }
     expect(complianceProps.data.every((row) => row.name === 'Ajay Yadav')).toBe(true)
@@ -168,7 +168,7 @@ describe('VillageDashboardScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: '2' }))
     expect(screen.getByText('Vikram Singh')).toBeTruthy()
     expect(screen.getByText('13-02-24, 10:30am')).toBeTruthy()
-    complianceProps = mockPhotoEvidenceComplianceTable.mock.calls.at(-1)?.[0] as {
+    complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
       data: Array<{ name: string }>
     }
     expect(complianceProps.data.every((row) => row.name === 'Vikram Singh')).toBe(true)

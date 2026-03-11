@@ -10,7 +10,7 @@ export function Header() {
     <Flex
       as="header"
       borderBottomWidth="1px"
-      bg="white"
+      bg="primary.25"
       boxShadow="sm"
       mb="28px"
       px={{ base: '40px', md: '80px' }}

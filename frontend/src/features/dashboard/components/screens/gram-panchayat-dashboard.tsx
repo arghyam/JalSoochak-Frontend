@@ -1,17 +1,18 @@
 import { useMemo, useState } from 'react'
-import { Box, Flex, Grid, Select, Text } from '@chakra-ui/react'
+import { Box, Flex, Grid, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import type { DashboardData, EntityPerformance, PumpOperatorPerformanceData } from '../../types'
 import {
-  ImageSubmissionStatusChart,
-  IssueTypeBreakdownChart,
+  SupplyOutageReasonsChart,
   MetricPerformanceChart,
   MonthlyTrendChart,
   PumpOperatorsChart,
-  SupplySubmissionRateChart,
-  WaterSupplyOutagesChart,
+  ReadingSubmissionRateChart,
+  SupplyOutageDistributionChart,
 } from '../charts'
-import { PhotoEvidenceComplianceTable, PumpOperatorsPerformanceTable } from '../tables'
+import { ReadingComplianceTable, PumpOperatorsPerformanceTable } from '../tables'
+import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
+import { ViewBySelect } from '@/shared/components/common'
 
 type GramPanchayatDashboardScreenProps = {
   data: DashboardData
@@ -22,7 +23,7 @@ type GramPanchayatDashboardScreenProps = {
   operatorsPerformanceTable: PumpOperatorPerformanceData[]
 }
 
-type ViewBy = '' | 'geography' | 'time'
+type ViewBy = 'geography' | 'time'
 
 export function GramPanchayatDashboardScreen({
   data,
@@ -33,10 +34,9 @@ export function GramPanchayatDashboardScreen({
   operatorsPerformanceTable,
 }: GramPanchayatDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
-  const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('')
-  const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('')
-  const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('')
-
+  const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
+  const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
+  const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
   const quantityTimeTrendData = useMemo(
     () =>
       data.demandSupply.map((item) => ({
@@ -80,36 +80,17 @@ export function GramPanchayatDashboardScreen({
             <Text textStyle="bodyText3" fontWeight="400">
               {t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
             </Text>
-            <Select
-              aria-label={t('performanceCharts.quantity.ariaViewByGramPanchayat', {
+            <ViewBySelect
+              ariaLabel={t('performanceCharts.quantity.ariaViewByGramPanchayat', {
                 defaultValue: 'Gram panchayat quantity performance view by',
               })}
-              h="32px"
-              maxW="128px"
-              fontSize="14px"
-              fontWeight="600"
-              borderRadius="4px"
-              borderColor="neutral.400"
-              borderWidth="1px"
-              bg="white"
-              color="neutral.400"
-              appearance="none"
               value={quantityViewBy}
-              onChange={(event) => setQuantityViewBy(event.target.value as ViewBy)}
-              _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
-            >
-              <option value="">
-                {t('performanceCharts.viewBy.select', { defaultValue: 'Select' })}
-              </option>
-              <option value="geography">
-                {t('performanceCharts.viewBy.geography', { defaultValue: 'Geography' })}
-              </option>
-              <option value="time">
-                {t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
-              </option>
-            </Select>
+              onChange={setQuantityViewBy}
+              color="primary.500"
+              borderColor="primary.500"
+            />
           </Flex>
-          {quantityViewBy === '' || quantityViewBy === 'geography' ? (
+          {quantityViewBy === 'geography' ? (
             <MetricPerformanceChart
               data={villageTableData}
               metric="quantity"
@@ -151,36 +132,17 @@ export function GramPanchayatDashboardScreen({
                 defaultValue: 'Regularity Performance',
               })}
             </Text>
-            <Select
-              aria-label={t('performanceCharts.regularity.ariaViewByGramPanchayat', {
+            <ViewBySelect
+              ariaLabel={t('performanceCharts.regularity.ariaViewByGramPanchayat', {
                 defaultValue: 'Gram panchayat regularity performance view by',
               })}
-              h="32px"
-              maxW="128px"
-              fontSize="14px"
-              fontWeight="600"
-              borderRadius="4px"
-              borderColor="neutral.400"
-              borderWidth="1px"
-              bg="white"
-              color="neutral.400"
-              appearance="none"
               value={regularityViewBy}
-              onChange={(event) => setRegularityViewBy(event.target.value as ViewBy)}
-              _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
-            >
-              <option value="">
-                {t('performanceCharts.viewBy.select', { defaultValue: 'Select' })}
-              </option>
-              <option value="geography">
-                {t('performanceCharts.viewBy.geography', { defaultValue: 'Geography' })}
-              </option>
-              <option value="time">
-                {t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
-              </option>
-            </Select>
+              onChange={setRegularityViewBy}
+              color="primary.500"
+              borderColor="primary.500"
+            />
           </Flex>
-          {regularityViewBy === '' || regularityViewBy === 'geography' ? (
+          {regularityViewBy === 'geography' ? (
             <MetricPerformanceChart
               data={villageTableData}
               metric="regularity"
@@ -199,6 +161,7 @@ export function GramPanchayatDashboardScreen({
             <MonthlyTrendChart
               data={regularityTimeTrendData}
               height="400px"
+              isPercent
               xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
               yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
                 defaultValue: 'Regularity (%)',
@@ -225,12 +188,12 @@ export function GramPanchayatDashboardScreen({
           h="510px"
           minW={0}
         >
-          <Text textStyle="bodyText3" fontWeight="400" mb={2}>
+          <Text textStyle="bodyText3" fontWeight="400" mb="40px">
             {t('outageAndSubmissionCharts.titles.supplyOutageReasons', {
               defaultValue: 'Supply Outage Reasons',
             })}
           </Text>
-          <IssueTypeBreakdownChart data={data.waterSupplyOutages} height="400px" />
+          <SupplyOutageReasonsChart data={data.waterSupplyOutages} height="400px" />
         </Box>
         <Box
           bg="white"
@@ -249,37 +212,18 @@ export function GramPanchayatDashboardScreen({
                 defaultValue: 'Supply Outage Distribution',
               })}
             </Text>
-            <Select
-              aria-label={t('outageAndSubmissionCharts.ariaViewByGramPanchayat', {
+            <ViewBySelect
+              ariaLabel={t('outageAndSubmissionCharts.ariaViewByGramPanchayat', {
                 defaultValue: 'Gram panchayat supply outage distribution view by',
               })}
-              h="32px"
-              maxW="128px"
-              fontSize="14px"
-              fontWeight="600"
-              borderRadius="4px"
-              borderColor="neutral.400"
-              borderWidth="1px"
-              bg="white"
-              color="neutral.400"
-              appearance="none"
               value={outageDistributionViewBy}
-              onChange={(event) => setOutageDistributionViewBy(event.target.value as ViewBy)}
-              _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
-            >
-              <option value="">
-                {t('performanceCharts.viewBy.select', { defaultValue: 'Select' })}
-              </option>
-              <option value="geography">
-                {t('performanceCharts.viewBy.geography', { defaultValue: 'Geography' })}
-              </option>
-              <option value="time">
-                {t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
-              </option>
-            </Select>
+              onChange={setOutageDistributionViewBy}
+              color="primary.500"
+              borderColor="primary.500"
+            />
           </Flex>
-          {outageDistributionViewBy === '' || outageDistributionViewBy === 'geography' ? (
-            <WaterSupplyOutagesChart
+          {outageDistributionViewBy === 'geography' ? (
+            <SupplyOutageDistributionChart
               data={data.waterSupplyOutages}
               height="400px"
               xAxisLabel={t('performanceCharts.viewBy.villages', {
@@ -353,25 +297,7 @@ export function GramPanchayatDashboardScreen({
 
       {/* Reading Submission Status + Reading Submission Rate */}
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-        <Box
-          bg="white"
-          borderWidth="0.5px"
-          borderRadius="12px"
-          borderColor="#E4E4E7"
-          pt="24px"
-          pb="24px"
-          pl="16px"
-          pr="16px"
-          h="510px"
-          minW={0}
-        >
-          <Text textStyle="bodyText3" fontWeight="400" mb="8px">
-            {t('outageAndSubmissionCharts.titles.readingSubmissionStatus', {
-              defaultValue: 'Reading Submission Status',
-            })}
-          </Text>
-          <ImageSubmissionStatusChart data={data.imageSubmissionStatus} height="390px" />
-        </Box>
+        <ReadingSubmissionStatusCard data={data.readingSubmissionStatus} chartHeight="336px" />
         <Box
           bg="white"
           borderWidth="0.5px"
@@ -388,7 +314,7 @@ export function GramPanchayatDashboardScreen({
               defaultValue: 'Reading Submission Rate',
             })}
           </Text>
-          <SupplySubmissionRateChart
+          <ReadingSubmissionRateChart
             data={supplySubmissionRateData}
             height="383px"
             entityLabel={supplySubmissionRateLabel}
@@ -399,8 +325,8 @@ export function GramPanchayatDashboardScreen({
       {/* Reading Compliance */}
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
         <Box bg="white" borderWidth="0.5px" borderRadius="12px" borderColor="#E4E4E7" px={4} py={6}>
-          <PhotoEvidenceComplianceTable
-            data={data.photoEvidenceCompliance}
+          <ReadingComplianceTable
+            data={data.readingCompliance}
             title={t('outageAndSubmissionCharts.titles.readingCompliance', {
               defaultValue: 'Reading Compliance',
             })}

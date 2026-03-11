@@ -2,7 +2,7 @@ import { fireEvent, screen } from '@testing-library/react'
 import { describe, expect, it } from '@jest/globals'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { EntityPerformance } from '../../types'
-import { AllStatesTable } from './all-states-table'
+import { OverallPerformanceTable } from './overall-performance-table'
 
 const tableData: EntityPerformance[] = [
   {
@@ -43,9 +43,9 @@ function getStateOrder(container: HTMLElement) {
   )
 }
 
-describe('AllStatesTable', () => {
+describe('OverallPerformanceTable', () => {
   it('renders only the 4 expected columns', () => {
-    renderWithProviders(<AllStatesTable data={tableData} />)
+    renderWithProviders(<OverallPerformanceTable data={tableData} />)
 
     expect(screen.getByText('State/UT')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Quantity (MLD)' })).toBeTruthy()
@@ -55,7 +55,7 @@ describe('AllStatesTable', () => {
   })
 
   it('sorts by Quantity (MLD) descending then ascending on repeated clicks', () => {
-    const { container } = renderWithProviders(<AllStatesTable data={tableData} />)
+    const { container } = renderWithProviders(<OverallPerformanceTable data={tableData} />)
     const quantityMldButton = screen.getByRole('button', { name: 'Quantity (MLD)' })
 
     fireEvent.click(quantityMldButton)
@@ -68,7 +68,7 @@ describe('AllStatesTable', () => {
   })
 
   it('sorts by Quantity (LPCD) and Regularity when their headers are clicked', () => {
-    const { container } = renderWithProviders(<AllStatesTable data={tableData} />)
+    const { container } = renderWithProviders(<OverallPerformanceTable data={tableData} />)
     const quantityLpcdButton = screen.getByRole('button', { name: 'Quantity (LPCD)' })
     const regularityButton = screen.getByRole('button', { name: 'Regularity (%)' })
 

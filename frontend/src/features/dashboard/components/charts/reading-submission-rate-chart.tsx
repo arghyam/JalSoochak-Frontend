@@ -6,7 +6,7 @@ import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
 import type { EntityPerformance } from '../../types'
 
-interface SupplySubmissionRateChartProps {
+interface ReadingSubmissionRateChartProps {
   data: EntityPerformance[]
   className?: string
   height?: string | number
@@ -14,13 +14,13 @@ interface SupplySubmissionRateChartProps {
   entityLabel?: string
 }
 
-export function SupplySubmissionRateChart({
+export function ReadingSubmissionRateChart({
   data,
   className,
   height = '500px',
   maxItems = 5,
   entityLabel = 'States/UTs',
-}: SupplySubmissionRateChartProps) {
+}: ReadingSubmissionRateChartProps) {
   const { t } = useTranslation('dashboard')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
@@ -85,7 +85,37 @@ export function SupplySubmissionRateChart({
 
     return {
       tooltip: {
-        show: false,
+        show: true,
+        trigger: 'axis',
+        axisPointer: {
+          type: 'none',
+        },
+        formatter: (params: unknown) => {
+          const points = Array.isArray(params)
+            ? (params as Array<{
+                axisValueLabel?: string
+                seriesName?: string
+                value?: number | string
+              }>)
+            : []
+
+          if (points.length === 0) {
+            return ''
+          }
+
+          const entityName = points[0]?.axisValueLabel ?? ''
+          const rows = points
+            .map((point) => {
+              const rawValue = typeof point.value === 'number' ? point.value : Number(point.value)
+              const hasNumericValue = Number.isFinite(rawValue)
+              const formattedValue = hasNumericValue ? `${rawValue.toFixed(1)}%` : '-'
+
+              return `${point.seriesName}: ${formattedValue}`
+            })
+            .join('<br/>')
+
+          return `<strong>${entityName}</strong><br/>${rows}`
+        },
       },
       grid: {
         left: '0%',
@@ -142,7 +172,9 @@ export function SupplySubmissionRateChart({
             borderRadius: [barRadius, barRadius, barRadius, barRadius],
           },
           emphasis: {
-            disabled: true,
+            itemStyle: {
+              color: '#84BDE3',
+            },
           },
         },
       ],

@@ -8,8 +8,8 @@ jest.mock('@/shared/components/charts/line-chart', () => ({
   LineChart: () => <div data-testid="line-chart" />,
 }))
 
-jest.mock('@/shared/components/charts/water-supply-outages-chart', () => ({
-  WaterSupplyOutagesChart: () => <div data-testid="water-supply-outages-chart" />,
+jest.mock('@/shared/components/charts/supply-outage-distribution-chart', () => ({
+  SupplyOutageDistributionChart: () => <div data-testid="supply-outage-distribution-chart" />,
 }))
 
 const mockQueryState: {

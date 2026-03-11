@@ -11,7 +11,9 @@ const mockUseSearchParams = jest.fn(() => [new URLSearchParams(), jest.fn()])
 const mockDashboardFilters = jest.fn((_props: unknown) => <div data-testid="dashboard-filters" />)
 const mockDashboardBody = jest.fn((_props: unknown) => <div data-testid="dashboard-body" />)
 const mockIndiaMapChart = jest.fn((_props: unknown) => <div data-testid="india-map-chart" />)
-const mockAllStatesTable = jest.fn((_props: unknown) => <div data-testid="all-states-table" />)
+const mockOverallPerformanceTable = jest.fn((_props: unknown) => (
+  <div data-testid="overall-performance-table" />
+))
 
 const getLatestDashboardFilterProps = <T extends object>() => {
   const calls = mockDashboardFilters.mock.calls as unknown[][]
@@ -55,7 +57,7 @@ jest.mock('./screens/dashboard-body', () => ({
 }))
 
 jest.mock('./tables', () => ({
-  AllStatesTable: (props: unknown) => mockAllStatesTable(props),
+  OverallPerformanceTable: (props: unknown) => mockOverallPerformanceTable(props),
 }))
 
 const mockDashboardData: DashboardData = {
@@ -78,8 +80,8 @@ const mockDashboardData: DashboardData = {
     },
   ],
   demandSupply: [{ period: 'Jan', demand: 100, supply: 90 }],
-  imageSubmissionStatus: [{ label: 'On time', value: 80 }],
-  photoEvidenceCompliance: [
+  readingSubmissionStatus: [{ label: 'On time', value: 80 }],
+  readingCompliance: [
     {
       id: 'pe-1',
       name: 'Operator 1',
@@ -113,7 +115,7 @@ describe('CentralDashboard', () => {
     mockDashboardFilters.mockClear()
     mockDashboardBody.mockClear()
     mockIndiaMapChart.mockClear()
-    mockAllStatesTable.mockClear()
+    mockOverallPerformanceTable.mockClear()
     mockUseParams.mockReturnValue({})
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()])
   })
@@ -128,7 +130,7 @@ describe('CentralDashboard', () => {
     renderWithProviders(<CentralDashboard />)
 
     expect(screen.getByText('Overall Performance')).toBeTruthy()
-    expect(screen.getByTestId('all-states-table')).toBeTruthy()
+    expect(screen.getByTestId('overall-performance-table')).toBeTruthy()
     expect(screen.queryByText('Core Metrics')).toBeNull()
   })
 
@@ -173,7 +175,7 @@ describe('CentralDashboard', () => {
 
     renderWithProviders(<CentralDashboard />)
 
-    const calls = mockAllStatesTable.mock.calls as unknown[][]
+    const calls = mockOverallPerformanceTable.mock.calls as unknown[][]
     const tableProps = calls[calls.length - 1]?.[0] as {
       entityLabel: string
       data: Array<{ name: string }>
@@ -201,7 +203,7 @@ describe('CentralDashboard', () => {
     renderWithProviders(<CentralDashboard />)
 
     expect(screen.queryByTestId('india-map-chart')).toBeNull()
-    expect(screen.queryByTestId('all-states-table')).toBeNull()
+    expect(screen.queryByTestId('overall-performance-table')).toBeNull()
   })
 
   it('updates URL with state in pathname and district in query params', () => {

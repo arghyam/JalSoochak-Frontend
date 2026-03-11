@@ -1,17 +1,18 @@
 import { useMemo, useState } from 'react'
-import { Box, Flex, Grid, Select, Text } from '@chakra-ui/react'
+import { Box, Flex, Grid, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import type { DashboardData, EntityPerformance, PumpOperatorPerformanceData } from '../../types'
 import {
-  ImageSubmissionStatusChart,
-  IssueTypeBreakdownChart,
+  SupplyOutageReasonsChart,
   MetricPerformanceChart,
   MonthlyTrendChart,
   PumpOperatorsChart,
-  SupplySubmissionRateChart,
-  WaterSupplyOutagesChart,
+  ReadingSubmissionRateChart,
+  SupplyOutageDistributionChart,
 } from '../charts'
 import { PumpOperatorsPerformanceTable } from '../tables'
+import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
+import { ViewBySelect } from '@/shared/components/common'
 
 type DistrictDashboardScreenProps = {
   data: DashboardData
@@ -22,7 +23,7 @@ type DistrictDashboardScreenProps = {
   pumpOperatorsTotal: number
 }
 
-type ViewBy = '' | 'geography' | 'time'
+type ViewBy = 'geography' | 'time'
 
 export function DistrictDashboardScreen({
   data,
@@ -33,11 +34,11 @@ export function DistrictDashboardScreen({
   pumpOperatorsTotal,
 }: DistrictDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
-  const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('')
-  const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('')
-  const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('')
-  const [readingSubmissionRateViewBy, setReadingSubmissionRateViewBy] = useState<ViewBy>('')
-
+  const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
+  const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
+  const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
+  const [readingSubmissionRateViewBy, setReadingSubmissionRateViewBy] =
+    useState<ViewBy>('geography')
   const quantityTimeTrendData = useMemo(
     () =>
       data.demandSupply.map((item) => ({
@@ -86,36 +87,17 @@ export function DistrictDashboardScreen({
             <Text textStyle="bodyText3" fontWeight="400">
               {t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
             </Text>
-            <Select
-              aria-label={t('performanceCharts.quantity.ariaViewByDistrict', {
+            <ViewBySelect
+              ariaLabel={t('performanceCharts.quantity.ariaViewByDistrict', {
                 defaultValue: 'District quantity performance view by',
               })}
-              h="32px"
-              maxW="128px"
-              fontSize="14px"
-              fontWeight="600"
-              borderRadius="4px"
-              borderColor="neutral.400"
-              borderWidth="1px"
-              bg="white"
-              color="neutral.400"
-              appearance="none"
               value={quantityViewBy}
-              onChange={(event) => setQuantityViewBy(event.target.value as ViewBy)}
-              _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
-            >
-              <option value="">
-                {t('performanceCharts.viewBy.select', { defaultValue: 'Select' })}
-              </option>
-              <option value="geography">
-                {t('performanceCharts.viewBy.geography', { defaultValue: 'Geography' })}
-              </option>
-              <option value="time">
-                {t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
-              </option>
-            </Select>
+              onChange={setQuantityViewBy}
+              color="primary.500"
+              borderColor="primary.500"
+            />
           </Flex>
-          {quantityViewBy === '' || quantityViewBy === 'geography' ? (
+          {quantityViewBy === 'geography' ? (
             <MetricPerformanceChart
               data={blockTableData}
               metric="quantity"
@@ -155,36 +137,17 @@ export function DistrictDashboardScreen({
                 defaultValue: 'Regularity Performance',
               })}
             </Text>
-            <Select
-              aria-label={t('performanceCharts.regularity.ariaViewByDistrict', {
+            <ViewBySelect
+              ariaLabel={t('performanceCharts.regularity.ariaViewByDistrict', {
                 defaultValue: 'District regularity performance view by',
               })}
-              h="32px"
-              maxW="128px"
-              fontSize="14px"
-              fontWeight="600"
-              borderRadius="4px"
-              borderColor="neutral.400"
-              borderWidth="1px"
-              bg="white"
-              color="neutral.400"
-              appearance="none"
               value={regularityViewBy}
-              onChange={(event) => setRegularityViewBy(event.target.value as ViewBy)}
-              _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
-            >
-              <option value="">
-                {t('performanceCharts.viewBy.select', { defaultValue: 'Select' })}
-              </option>
-              <option value="geography">
-                {t('performanceCharts.viewBy.geography', { defaultValue: 'Geography' })}
-              </option>
-              <option value="time">
-                {t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
-              </option>
-            </Select>
+              onChange={setRegularityViewBy}
+              color="primary.500"
+              borderColor="primary.500"
+            />
           </Flex>
-          {regularityViewBy === '' || regularityViewBy === 'geography' ? (
+          {regularityViewBy === 'geography' ? (
             <MetricPerformanceChart
               data={blockTableData}
               metric="regularity"
@@ -201,6 +164,7 @@ export function DistrictDashboardScreen({
             <MonthlyTrendChart
               data={regularityTimeTrendData}
               height="400px"
+              isPercent
               xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
               yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
                 defaultValue: 'Regularity (%)',
@@ -227,12 +191,12 @@ export function DistrictDashboardScreen({
           h="510px"
           minW={0}
         >
-          <Text textStyle="bodyText3" fontWeight="400" mb={2}>
+          <Text textStyle="bodyText3" fontWeight="400" mb="40px">
             {t('outageAndSubmissionCharts.titles.supplyOutageReasons', {
               defaultValue: 'Supply Outage Reasons',
             })}
           </Text>
-          <IssueTypeBreakdownChart data={data.waterSupplyOutages} height="400px" />
+          <SupplyOutageReasonsChart data={data.waterSupplyOutages} height="400px" />
         </Box>
         <Box
           bg="white"
@@ -251,29 +215,18 @@ export function DistrictDashboardScreen({
                 defaultValue: 'Supply Outage Distribution',
               })}
             </Text>
-            <Select
-              aria-label="District supply outage distribution view by"
-              h="32px"
-              maxW="128px"
-              fontSize="14px"
-              fontWeight="600"
-              borderRadius="4px"
-              borderColor="neutral.400"
-              borderWidth="1px"
-              bg="white"
-              color="neutral.400"
-              appearance="none"
+            <ViewBySelect
+              ariaLabel={t('outageAndSubmissionCharts.ariaViewByDistrict', {
+                defaultValue: 'District supply outage distribution view by',
+              })}
               value={outageDistributionViewBy}
-              onChange={(event) => setOutageDistributionViewBy(event.target.value as ViewBy)}
-              _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
-            >
-              <option value="">Select</option>
-              <option value="geography">Geography</option>
-              <option value="time">Time</option>
-            </Select>
+              onChange={setOutageDistributionViewBy}
+              color="primary.500"
+              borderColor="primary.500"
+            />
           </Flex>
-          {outageDistributionViewBy === '' || outageDistributionViewBy === 'geography' ? (
-            <WaterSupplyOutagesChart
+          {outageDistributionViewBy === 'geography' ? (
+            <SupplyOutageDistributionChart
               data={data.waterSupplyOutages}
               height="400px"
               xAxisLabel="Blocks"
@@ -294,24 +247,7 @@ export function DistrictDashboardScreen({
 
       {/* Reading Submission Status + Reading Submission Rate */}
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-        <Box
-          bg="white"
-          borderWidth="0.5px"
-          borderRadius="12px"
-          borderColor="#E4E4E7"
-          px="16px"
-          pt="24px"
-          pb="24px"
-          h="510px"
-          minW={0}
-        >
-          <Text textStyle="bodyText3" fontWeight="400" mb="16px">
-            {t('outageAndSubmissionCharts.titles.readingSubmissionStatus', {
-              defaultValue: 'Reading Submission Status',
-            })}
-          </Text>
-          <ImageSubmissionStatusChart data={data.imageSubmissionStatus} height="383px" />
-        </Box>
+        <ReadingSubmissionStatusCard data={data.readingSubmissionStatus} chartHeight="336px" />
         <Box
           bg="white"
           borderWidth="0.5px"
@@ -329,29 +265,18 @@ export function DistrictDashboardScreen({
                 defaultValue: 'Reading Submission Rate',
               })}
             </Text>
-            <Select
-              aria-label="District reading submission rate view by"
-              h="32px"
-              maxW="128px"
-              fontSize="14px"
-              fontWeight="600"
-              borderRadius="4px"
-              borderColor="neutral.400"
-              borderWidth="1px"
-              bg="white"
-              color="neutral.400"
-              appearance="none"
+            <ViewBySelect
+              ariaLabel={t('outageAndSubmissionCharts.ariaViewByReadingSubmissionDistrict', {
+                defaultValue: 'District reading submission rate view by',
+              })}
               value={readingSubmissionRateViewBy}
-              onChange={(event) => setReadingSubmissionRateViewBy(event.target.value as ViewBy)}
-              _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
-            >
-              <option value="">Select</option>
-              <option value="geography">Geography</option>
-              <option value="time">Time</option>
-            </Select>
+              onChange={setReadingSubmissionRateViewBy}
+              color="primary.500"
+              borderColor="primary.500"
+            />
           </Flex>
-          {readingSubmissionRateViewBy === '' || readingSubmissionRateViewBy === 'geography' ? (
-            <SupplySubmissionRateChart
+          {readingSubmissionRateViewBy === 'geography' ? (
+            <ReadingSubmissionRateChart
               data={supplySubmissionRateData}
               height="383px"
               entityLabel={supplySubmissionRateLabel}
@@ -360,7 +285,8 @@ export function DistrictDashboardScreen({
             <MonthlyTrendChart
               data={readingSubmissionTimeTrendData}
               height="383px"
-              xAxisLabel="Month"
+              isPercent
+              xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
               yAxisLabel={t('outageAndSubmissionCharts.axis.percentage', {
                 defaultValue: 'Percentage',
               })}

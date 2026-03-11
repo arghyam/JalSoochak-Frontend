@@ -46,7 +46,9 @@ export function IndiaMapChart({
     }),
     [resolveThemeColor]
   )
-  const toggleLabelColor = useMemo(() => resolveThemeColor('neutral.950'), [resolveThemeColor])
+  const quantityLabel = t('map.metric.quantity', { defaultValue: 'Quantity' })
+  const regularityLabel = t('map.metric.regularity', { defaultValue: 'Regularity' })
+  const selectedMetricLabel = isRegularityView ? regularityLabel : quantityLabel
   const getRangeColor = useCallback(
     (value: number) => {
       if (value >= 90) return mapColors.gte90
@@ -103,10 +105,14 @@ export function IndiaMapChart({
           }
           if (p.data) {
             const { name, value, metrics } = p.data
+            const safeName = echarts.format.encodeHTML(name)
+            const safeMetricLabel = echarts.format.encodeHTML(
+              metricKey === 'regularity' ? regularityLabel : quantityLabel
+            )
             return `
               <div style="padding: 8px;">
-                <strong>${name}</strong><br/>
-                ${metricKey === 'regularity' ? t('map.metric.regularity') : t('map.metric.quantity')}: ${value.toFixed(1)}${metricKey === 'regularity' ? '%' : ''}<br/>
+                <strong>${safeName}</strong><br/>
+                ${safeMetricLabel}: ${value.toFixed(1)}${metricKey === 'regularity' ? '%' : ''}<br/>
                 Coverage: ${metrics.coverage.toFixed(1)}%<br/>
                 Regularity: ${metrics.regularity.toFixed(1)}%<br/>
                 Continuity: ${metrics.continuity.toFixed(1)}<br/>
@@ -114,7 +120,7 @@ export function IndiaMapChart({
               </div>
             `
           }
-          return (p as { name?: string }).name || ''
+          return echarts.format.encodeHTML((p as { name?: string }).name ?? '')
         },
       },
       series: [
@@ -148,7 +154,15 @@ export function IndiaMapChart({
         },
       ],
     }
-  }, [data, getRangeColor, mapColors.emphasis, mapColors.gte90, metricKey, t])
+  }, [
+    data,
+    getRangeColor,
+    mapColors.emphasis,
+    mapColors.gte90,
+    metricKey,
+    quantityLabel,
+    regularityLabel,
+  ])
 
   const bodyText6 = getBodyText6Style(theme)
   const legendItems = [
@@ -220,14 +234,19 @@ export function IndiaMapChart({
               style={{
                 fontSize: bodyText6.fontSize,
                 lineHeight: `${bodyText6.lineHeight}px`,
-                fontWeight: 400,
-                color: toggleLabelColor,
+                fontWeight: bodyText6.fontWeight,
+                color: bodyText6.color,
               }}
             >
-              {t('map.metric.quantity')}
+              {quantityLabel}
             </span>
             <Toggle
               isChecked={isRegularityView}
+              alwaysPrimaryTrack
+              aria-label={t('map.metric.toggleAriaLabel', {
+                defaultValue: 'Switch map metric. Currently selected: {{metric}}',
+                metric: selectedMetricLabel,
+              })}
               onChange={(event) => {
                 setIsRegularityView(event.target.checked)
               }}
@@ -236,11 +255,11 @@ export function IndiaMapChart({
               style={{
                 fontSize: bodyText6.fontSize,
                 lineHeight: `${bodyText6.lineHeight}px`,
-                fontWeight: 400,
-                color: toggleLabelColor,
+                fontWeight: bodyText6.fontWeight,
+                color: bodyText6.color,
               }}
             >
-              {t('map.metric.regularity')}
+              {regularityLabel}
             </span>
           </div>
           <EChartsWrapper option={option} height="100%" onChartReady={handleChartReady} />

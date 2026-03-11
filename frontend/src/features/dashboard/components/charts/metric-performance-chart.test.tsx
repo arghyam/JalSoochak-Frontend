@@ -204,4 +204,30 @@ describe('MetricPerformanceChart', () => {
     fireEvent.keyDown(scrollRegion, { key: 'End' })
     expect(scrollRegion.scrollLeft).toBe(700)
   })
+
+  it('escapes tooltip labels before returning html', () => {
+    renderWithProviders(<MetricPerformanceChart data={chartData} metric="quantity" />)
+
+    const call = (
+      mockEChartsWrapper.mock.calls as Array<[{ option?: { tooltip?: { formatter?: unknown } } }]>
+    ).find(([props]) => typeof props.option?.tooltip?.formatter === 'function')
+
+    const formatter = call?.[0].option?.tooltip?.formatter as
+      | ((params: unknown) => string)
+      | undefined
+
+    expect(typeof formatter).toBe('function')
+    const html = formatter?.([
+      {
+        axisValueLabel: '<img src=x onerror=alert(1)>',
+        seriesName: '<script>alert(1)</script>',
+        value: 12.3,
+      },
+    ])
+
+    expect(html).toContain('&lt;img src=x onerror=alert(1)&gt;')
+    expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;')
+    expect(html).not.toContain('<img src=x onerror=alert(1)>')
+    expect(html).not.toContain('<script>alert(1)</script>')
+  })
 })

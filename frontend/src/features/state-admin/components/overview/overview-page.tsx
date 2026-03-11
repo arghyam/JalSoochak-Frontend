@@ -6,7 +6,7 @@ import i18n from '@/app/i18n'
 import { useAuthStore } from '@/app/store'
 import { LineChart } from '@/shared/components/charts/line-chart'
 import { StatCard } from '@/shared/components/common'
-import { WaterSupplyOutagesChart } from '@/shared/components/charts/water-supply-outages-chart'
+import { SupplyOutageDistributionChart } from '@/shared/components/charts/supply-outage-distribution-chart'
 import { useStateAdminOverviewQuery } from '../../services/query/use-state-admin-queries'
 import { BsCheck2Circle, BsDroplet, BsPerson } from 'react-icons/bs'
 import { BiMessageDetail } from 'react-icons/bi'
@@ -147,7 +147,7 @@ export function OverviewPage() {
             {t('overview.charts.waterSupplyOutages')}
           </Heading>
           <Box flex={1}>
-            <WaterSupplyOutagesChart
+            <SupplyOutageDistributionChart
               data={data.waterSupplyOutages}
               height={300}
               xAxisLabel={t('overview.charts.Districts')}
