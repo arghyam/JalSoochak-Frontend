@@ -158,9 +158,14 @@
     "buttons": {
       "addEscalation": "वृद्धि जोड़ें"
     },
+    "scheduleTime": "अनुसूची समय",
+    "escalateAfterDays": "इसके बाद वृद्धि (दिन)",
+    "escalateAfterDaysValue": "{{days}} दिन बाद वृद्धि",
+    "levelRole": "भूमिका",
     "messages": {
       "selectAlertType": "कृपया एक अलर्ट प्रकार चुनें",
       "invalidLevels": "सभी स्तरों में वैध भूमिका और घंटे होने चाहिए",
+      "invalidRulesDays": "सभी स्तरों में भूमिका और कम से कम 1 दिन होना चाहिए",
       "addedSuccess": "वृद्धि सफलतापूर्वक जोड़ी गई",
       "deletedSuccess": "वृद्धि सफलतापूर्वक हटाई गई",
       "notFound": "वृद्धि नहीं मिली",
@@ -168,9 +173,12 @@
       "failedToLoadSingle": "वृद्धि लोड करने में विफल",
       "failedToDelete": "वृद्धि हटाने में विफल",
       "failedToSave": "वृद्धि सहेजने में विफल",
+      "rulesSaveSuccess": "वृद्धि नियम सफलतापूर्वक सहेजे गए",
+      "rulesSaveFailed": "वृद्धि नियम सहेजने में विफल",
       "confirmDeleteTitle": "वृद्धि हटाएं",
       "confirmDelete": "क्या आप वाकई इस वृद्धि को हटाना चाहते हैं?",
-      "fillExisting": "कृपया पहले मौजूदा वृद्धि स्तर भरें"
+      "fillExisting": "कृपया पहले मौजूदा वृद्धि स्तर भरें",
+      "fillExistingRules": "कृपया दूसरा जोड़ने से पहले मौजूदा स्तर भरें"
     },
     "aria": {
       "editEscalation": "{{name}} वृद्धि संपादित करें",
@@ -303,6 +311,9 @@
       },
       "dataConsolidationTime": {
         "title": "डेटा समेकन समय"
+      },
+      "pumpOperatorReminderNudgeTime": {
+        "title": "पंप ऑपरेटर रिमाइंडर नज समय"
       },
       "averageMembersPerHousehold": {
         "title": "प्रति परिवार औसत सदस्य"

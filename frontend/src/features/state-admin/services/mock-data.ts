@@ -18,6 +18,7 @@ import type {
   CreateStateUTAdminInput,
   UpdateStateUTAdminInput,
 } from '../types/state-ut-admins'
+import type { EscalationRulesConfig } from '../types/escalation-rules'
 
 export const mockOverviewData: OverviewData = {
   stats: {
@@ -948,6 +949,7 @@ let mockConfigurationData: ConfigurationData = {
   meterChangeReasons: DEFAULT_METER_CHANGE_REASONS.map((r) => ({ ...r })),
   locationCheckRequired: false,
   dataConsolidationTime: '',
+  pumpOperatorReminderNudgeTime: '',
   averageMembersPerHousehold: 0,
   isConfigured: false,
 }
@@ -1079,5 +1081,33 @@ export const updateMockStateUTAdminStatus = (
       mockStateUTAdmins = mockStateUTAdmins.map((a) => (a.id === id ? updated : a))
       resolve(updated)
     }, 300)
+  })
+}
+
+// Escalation Rules Mock Data
+let mockEscalationRules: EscalationRulesConfig = {
+  schedule: { hour: 9, minute: 0 },
+  levels: [
+    { days: 3, userType: 'SECTION_OFFICER' },
+    { days: 7, userType: 'SUBDIVISION_OFFICER' },
+  ],
+}
+
+export const getMockEscalationRules = (): Promise<EscalationRulesConfig> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({ ...mockEscalationRules, levels: [...mockEscalationRules.levels] })
+    }, 300)
+  })
+}
+
+export const saveMockEscalationRules = (
+  payload: EscalationRulesConfig
+): Promise<EscalationRulesConfig> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      mockEscalationRules = { ...payload, levels: [...payload.levels] }
+      resolve(mockEscalationRules)
+    }, 500)
   })
 }

@@ -158,9 +158,14 @@
     "buttons": {
       "addEscalation": "Add Escalation"
     },
+    "scheduleTime": "Schedule Time",
+    "escalateAfterDays": "Escalate after (days)",
+    "escalateAfterDaysValue": "Escalate after {{days}} day(s)",
+    "levelRole": "Role",
     "messages": {
       "selectAlertType": "Please select an alert type",
       "invalidLevels": "All levels must have valid role and hours",
+      "invalidRulesDays": "All levels must have a role and at least 1 day",
       "addedSuccess": "Escalation added successfully",
       "deletedSuccess": "Escalation deleted successfully",
       "notFound": "Escalation not found",
@@ -168,9 +173,12 @@
       "failedToLoadSingle": "Failed to load escalation",
       "failedToDelete": "Failed to delete escalation",
       "failedToSave": "Failed to save escalation",
+      "rulesSaveSuccess": "Escalation rules saved successfully",
+      "rulesSaveFailed": "Failed to save escalation rules",
       "confirmDeleteTitle": "Delete Escalation",
       "confirmDelete": "Are you sure you want to delete this escalation?",
-      "fillExisting": "Please fill the existing escalation level first"
+      "fillExisting": "Please fill the existing escalation level first",
+      "fillExistingRules": "Please fill in the current level before adding another"
     },
     "aria": {
       "editEscalation": "Edit escalation {{name}}",
@@ -303,6 +311,9 @@
       },
       "dataConsolidationTime": {
         "title": "Data Consolidation Time"
+      },
+      "pumpOperatorReminderNudgeTime": {
+        "title": "Pump Operator Reminder Nudge Time"
       },
       "averageMembersPerHousehold": {
         "title": "Average Members Per Household"

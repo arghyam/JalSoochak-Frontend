@@ -1,4 +1,5 @@
 import { isAxiosError } from 'axios'
+import { useAuthStore } from '@/app/store/auth-store'
 import { apiClient } from '@/shared/lib/axios'
 import {
   createMockStateUTAdmin,
@@ -7,6 +8,7 @@ import {
   getMockConfigurationData,
   getMockEscalationById,
   getMockEscalations,
+  getMockEscalationRules,
   getMockIntegrationConfiguration,
   getMockLanguageConfiguration,
   getMockNudgeTemplates,
@@ -18,6 +20,7 @@ import {
   getMockWaterNormsConfiguration,
   saveMockConfigurationData,
   saveMockEscalation,
+  saveMockEscalationRules,
   saveMockIntegrationConfiguration,
   saveMockLanguageConfiguration,
   saveMockThresholdConfiguration,
@@ -30,6 +33,10 @@ import {
 import type { ActivityLog } from '../../types/activity'
 import type { ConfigurationData } from '../../types/configuration'
 import type { Escalation } from '../../types/escalations'
+import type {
+  EscalationRulesConfig,
+  SaveEscalationRulesPayload,
+} from '../../types/escalation-rules'
 import type { IntegrationConfiguration } from '../../types/integration'
 import type { LanguageConfiguration } from '../../types/language'
 import type { NudgeTemplate } from '../../types/nudges'
@@ -42,6 +49,16 @@ import type {
 import type { StaffSyncData } from '../../types/staff-sync'
 import type { ThresholdConfiguration } from '../../types/thresholds'
 import type { WaterNormsConfiguration } from '../../types/water-norms'
+import {
+  mapApiConfigToConfigurationData,
+  mapApiConfigToEscalationRules,
+  mapApiConfigToLanguageConfiguration,
+  mapApiConfigToWaterNormsConfiguration,
+  mapConfigurationDataToApiConfig,
+  mapEscalationRulesToApiConfig,
+  mapLanguageConfigToApiConfig,
+  mapWaterNormsToApiConfig,
+} from './tenant-config-mappers'
 
 export type SaveLanguageConfigurationPayload = Omit<LanguageConfiguration, 'id'>
 export type SaveIntegrationConfigurationPayload = Omit<
@@ -88,7 +105,32 @@ type StateAdminDataProvider = {
   createStateUTAdmin: (input: CreateStateUTAdminInput) => Promise<StateUTAdmin>
   updateStateUTAdmin: (id: string, input: UpdateStateUTAdminInput) => Promise<StateUTAdmin>
   updateStateUTAdminStatus: (id: string, status: 'active' | 'inactive') => Promise<StateUTAdmin>
+  getEscalationRules: () => Promise<EscalationRulesConfig>
+  saveEscalationRules: (payload: SaveEscalationRulesPayload) => Promise<EscalationRulesConfig>
 }
+
+/** Reads tenantId from the auth store. Throws if the user is not authenticated. */
+const getTenantId = (): string => {
+  const id = useAuthStore.getState().user?.tenantId
+  if (!id) throw new Error('tenantId unavailable — user not authenticated')
+  return id
+}
+
+const TENANT_CONFIG_BASE = (tenantId: string) => `/api/v1/tenants/${tenantId}/config`
+
+const CONFIGURATION_KEYS = [
+  'TENANT_SUPPORTED_CHANNELS',
+  'TENANT_LOGO',
+  'METER_CHANGE_REASONS',
+  'LOCATION_CHECK_REQUIRED',
+  'DATA_CONSOLIDATION_TIME',
+  'PUMP_OPERATOR_REMINDER_NUDGE_TIME',
+  'AVERAGE_MEMBERS_PER_HOUSEHOLD',
+  'LGD_LOCATION_HIERARCHY',
+  'DEPT_LOCATION_HIERARCHY',
+].join(',')
+
+const WATER_NORMS_KEYS = ['WATER_NORM', 'TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD'].join(',')
 
 const httpProvider: StateAdminDataProvider = {
   getOverviewData: async () => {
@@ -104,17 +146,25 @@ const httpProvider: StateAdminDataProvider = {
     return response.data
   },
   getLanguageConfiguration: async () => {
-    const response = await apiClient.get<LanguageConfiguration>(
-      '/api/state-admin/language-configuration'
+    const tenantId = getTenantId()
+    const response = await apiClient.get<{ configs: Record<string, unknown> }>(
+      `${TENANT_CONFIG_BASE(tenantId)}?keys=SUPPORTED_LANGUAGES`
     )
-    return response.data
+    return {
+      id: tenantId,
+      ...mapApiConfigToLanguageConfiguration(response.data.configs),
+    } as LanguageConfiguration
   },
   saveLanguageConfiguration: async (payload) => {
-    const response = await apiClient.put<LanguageConfiguration>(
-      '/api/state-admin/language-configuration',
-      payload
+    const tenantId = getTenantId()
+    const response = await apiClient.put<{ configs: Record<string, unknown> }>(
+      TENANT_CONFIG_BASE(tenantId),
+      { configs: mapLanguageConfigToApiConfig(payload) }
     )
-    return response.data
+    return {
+      id: tenantId,
+      ...mapApiConfigToLanguageConfiguration(response.data.configs),
+    } as LanguageConfiguration
   },
   getIntegrationConfiguration: async () => {
     const response = await apiClient.get<IntegrationConfiguration>(
@@ -130,15 +180,25 @@ const httpProvider: StateAdminDataProvider = {
     return response.data
   },
   getWaterNormsConfiguration: async () => {
-    const response = await apiClient.get<WaterNormsConfiguration>('/api/state-admin/water-norms')
-    return response.data
+    const tenantId = getTenantId()
+    const response = await apiClient.get<{ configs: Record<string, unknown> }>(
+      `${TENANT_CONFIG_BASE(tenantId)}?keys=${WATER_NORMS_KEYS}`
+    )
+    return {
+      id: tenantId,
+      ...mapApiConfigToWaterNormsConfiguration(response.data.configs),
+    } as WaterNormsConfiguration
   },
   saveWaterNormsConfiguration: async (payload) => {
-    const response = await apiClient.put<WaterNormsConfiguration>(
-      '/api/state-admin/water-norms',
-      payload
+    const tenantId = getTenantId()
+    const response = await apiClient.put<{ configs: Record<string, unknown> }>(
+      TENANT_CONFIG_BASE(tenantId),
+      { configs: mapWaterNormsToApiConfig(payload) }
     )
-    return response.data
+    return {
+      id: tenantId,
+      ...mapApiConfigToWaterNormsConfiguration(response.data.configs),
+    } as WaterNormsConfiguration
   },
   getEscalations: async () => {
     const response = await apiClient.get<Escalation[]>('/api/state-admin/escalations')
@@ -184,15 +244,25 @@ const httpProvider: StateAdminDataProvider = {
     return response.data
   },
   getConfiguration: async () => {
-    const response = await apiClient.get<ConfigurationData>('/api/state-admin/configuration')
-    return response.data
+    const tenantId = getTenantId()
+    const response = await apiClient.get<{ configs: Record<string, unknown> }>(
+      `${TENANT_CONFIG_BASE(tenantId)}?keys=${CONFIGURATION_KEYS}`
+    )
+    return {
+      id: tenantId,
+      ...mapApiConfigToConfigurationData(response.data.configs),
+    } as ConfigurationData
   },
   saveConfiguration: async (payload) => {
-    const response = await apiClient.put<ConfigurationData>(
-      '/api/state-admin/configuration',
-      payload
+    const tenantId = getTenantId()
+    const response = await apiClient.put<{ configs: Record<string, unknown> }>(
+      TENANT_CONFIG_BASE(tenantId),
+      { configs: mapConfigurationDataToApiConfig(payload) }
     )
-    return response.data
+    return {
+      id: tenantId,
+      ...mapApiConfigToConfigurationData(response.data.configs),
+    } as ConfigurationData
   },
   getStateUTAdmins: async () => {
     const response = await apiClient.get<StateUTAdmin[]>('/api/state-admin/admins')
@@ -223,6 +293,21 @@ const httpProvider: StateAdminDataProvider = {
     })
     return response.data
   },
+  getEscalationRules: async () => {
+    const tenantId = getTenantId()
+    const response = await apiClient.get<{ configs: Record<string, unknown> }>(
+      `${TENANT_CONFIG_BASE(tenantId)}?keys=FIELD_STAFF_ESCALATION_RULES`
+    )
+    return mapApiConfigToEscalationRules(response.data.configs)
+  },
+  saveEscalationRules: async (payload) => {
+    const tenantId = getTenantId()
+    const response = await apiClient.put<{ configs: Record<string, unknown> }>(
+      TENANT_CONFIG_BASE(tenantId),
+      { configs: mapEscalationRulesToApiConfig(payload) }
+    )
+    return mapApiConfigToEscalationRules(response.data.configs)
+  },
 }
 
 const mockProvider: StateAdminDataProvider = {
@@ -251,6 +336,8 @@ const mockProvider: StateAdminDataProvider = {
   createStateUTAdmin: (input) => createMockStateUTAdmin(input),
   updateStateUTAdmin: (id, input) => updateMockStateUTAdmin(id, input),
   updateStateUTAdminStatus: (id, status) => updateMockStateUTAdminStatus(id, status),
+  getEscalationRules: () => getMockEscalationRules(),
+  saveEscalationRules: (payload) => saveMockEscalationRules(payload),
 }
 
 const STATE_ADMIN_PROVIDER = import.meta.env.VITE_STATE_ADMIN_DATA_PROVIDER ?? 'mock'
@@ -291,4 +378,7 @@ export const stateAdminApi = {
     provider.updateStateUTAdmin(id, input),
   updateStateUTAdminStatus: (id: string, status: 'active' | 'inactive') =>
     provider.updateStateUTAdminStatus(id, status),
+  getEscalationRules: () => provider.getEscalationRules(),
+  saveEscalationRules: (payload: SaveEscalationRulesPayload) =>
+    provider.saveEscalationRules(payload),
 }

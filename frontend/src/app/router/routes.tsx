@@ -23,7 +23,7 @@ import {
   LanguagePage,
   IntegrationPage,
   WaterNormsPage,
-  EscalationsPage,
+  EscalationsFormPage,
   NudgesTemplatePage,
   StaffSyncPage,
   StateUTAdminsPage,
@@ -216,7 +216,7 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.STATE_ADMIN_ESCALATIONS,
-        element: <EscalationsPage />,
+        element: <EscalationsFormPage />,
       },
       {
         path: ROUTES.STATE_ADMIN_NUDGES,

@@ -3,7 +3,7 @@ export interface LanguageOption {
   label: string
 }
 
-export interface LanguageConfiguration extends Record<string, unknown> {
+export interface LanguageConfiguration {
   id: string
   primaryLanguage: string
   secondaryLanguage?: string

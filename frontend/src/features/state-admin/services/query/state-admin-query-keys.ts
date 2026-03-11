@@ -14,4 +14,5 @@ export const stateAdminQueryKeys = {
   configuration: () => [...stateAdminQueryKeys.all, 'configuration'] as const,
   stateUtAdmins: () => [...stateAdminQueryKeys.all, 'state-ut-admins'] as const,
   stateUtAdminById: (id: string) => [...stateAdminQueryKeys.stateUtAdmins(), id] as const,
+  escalationRules: () => [...stateAdminQueryKeys.all, 'escalation-rules'] as const,
 }
