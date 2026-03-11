@@ -73,24 +73,21 @@
 
   "integration": {
     "title": "एकीकरण",
-    "whatsappDetails": "Whatsapp विवरण",
+    "messageBrokerDetails": "मैसेज ब्रोकर विवरण",
     "fields": {
-      "businessAccountName": "Whatsapp व्यवसाय खाता नाम",
-      "businessAccountNamePlaceholder": "उदाहरण: राज्य जल प्राधिकरण",
-      "senderPhoneNumber": "प्रेषक फ़ोन नंबर",
-      "senderPhoneNumberPlaceholder": "+91",
-      "businessAccountId": "Whatsapp व्यवसाय खाता ID",
-      "apiAccessToken": "API एक्सेस टोकन/ API कुंजी"
+      "apiUrl": "API URL",
+      "apiUrlPlaceholder": "https://api.example.com",
+      "apiKey": "API कुंजी",
+      "organizationId": "संगठन ID"
     },
     "messages": {
       "failedToLoad": "कॉन्फ़िगरेशन लोड करने में विफल"
     },
     "aria": {
-      "formLabel": "Whatsapp एकीकरण कॉन्फ़िगरेशन फ़ॉर्म",
-      "enterBusinessAccountName": "Whatsapp व्यवसाय खाता नाम दर्ज करें",
-      "enterPhoneNumber": "प्रेषक फ़ोन नंबर दर्ज करें",
-      "enterAccountId": "Whatsapp व्यवसाय खाता ID दर्ज करें",
-      "enterApiToken": "API एक्सेस टोकन दर्ज करें"
+      "formLabel": "एकीकरण कॉन्फ़िगरेशन फ़ॉर्म",
+      "enterApiUrl": "API URL दर्ज करें",
+      "enterApiKey": "API कुंजी दर्ज करें",
+      "enterOrganizationId": "संगठन ID दर्ज करें"
     }
   },
 

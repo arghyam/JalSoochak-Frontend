@@ -73,24 +73,21 @@
 
   "integration": {
     "title": "Integrations",
-    "whatsappDetails": "Whatsapp Details",
+    "messageBrokerDetails": "Message Broker Details",
     "fields": {
-      "businessAccountName": "Whatsapp Business Account Name",
-      "businessAccountNamePlaceholder": "Example: State Water Authority",
-      "senderPhoneNumber": "Sender Phone Number",
-      "senderPhoneNumberPlaceholder": "+91",
-      "businessAccountId": "Whatsapp Business Account ID",
-      "apiAccessToken": "API Access Token/ API Key"
+      "apiUrl": "API URL",
+      "apiUrlPlaceholder": "https://api.example.com",
+      "apiKey": "API Key",
+      "organizationId": "Organization ID"
     },
     "messages": {
       "failedToLoad": "Failed to load configuration"
     },
     "aria": {
-      "formLabel": "WhatsApp integration configuration form",
-      "enterBusinessAccountName": "Enter WhatsApp business account name",
-      "enterPhoneNumber": "Enter sender phone number",
-      "enterAccountId": "Enter WhatsApp business account ID",
-      "enterApiToken": "Enter API access token"
+      "formLabel": "Integration configuration form",
+      "enterApiUrl": "Enter API URL",
+      "enterApiKey": "Enter API Key",
+      "enterOrganizationId": "Enter Organization ID"
     }
   },
 

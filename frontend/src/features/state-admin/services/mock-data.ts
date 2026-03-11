@@ -233,10 +233,9 @@ export const saveMockLanguageConfiguration = (
 // Integration Configuration Mock Data
 export const mockIntegrationConfiguration: IntegrationConfiguration = {
   id: '',
-  whatsappBusinessAccountName: '',
-  senderPhoneNumber: '',
-  whatsappBusinessAccountId: '',
-  apiAccessToken: '',
+  apiUrl: '',
+  apiKey: '',
+  organizationId: '',
   isConfigured: false,
 }
 
@@ -255,10 +254,9 @@ export const saveMockIntegrationConfiguration = (
     setTimeout(() => {
       const savedConfig: IntegrationConfiguration = {
         id: '1',
-        whatsappBusinessAccountName: config.whatsappBusinessAccountName as string,
-        senderPhoneNumber: config.senderPhoneNumber as string,
-        whatsappBusinessAccountId: config.whatsappBusinessAccountId as string,
-        apiAccessToken: config.apiAccessToken as string,
+        apiUrl: config.apiUrl as string,
+        apiKey: config.apiKey as string,
+        organizationId: config.organizationId as string,
         isConfigured: true,
       }
       resolve(savedConfig)

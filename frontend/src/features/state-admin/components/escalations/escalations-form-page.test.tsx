@@ -86,7 +86,7 @@ describe('EscalationsFormPage', () => {
     fireEvent.click(screen.getByLabelText(/edit mode/i))
 
     expect(screen.getByRole('form')).toBeInTheDocument()
-    expect(screen.getByLabelText(/escalation-schedule-time/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/schedule time/i)).toBeInTheDocument()
   })
 
   it('shows edit form for unconfigured state (empty levels)', () => {
@@ -131,7 +131,7 @@ describe('EscalationsFormPage', () => {
     fireEvent.click(addButton)
 
     // Now there should be 3 level number indicators
-    const levelNumbers = screen.getAllByText(/^\d+\.$/)
+    const levelNumbers = screen.getAllByText(/^Level \d+$/i)
     expect(levelNumbers.length).toBe(3)
   })
 
@@ -149,7 +149,7 @@ describe('EscalationsFormPage', () => {
 
     fireEvent.click(deleteButtons[1])
 
-    const levelNumbers = screen.getAllByText(/^\d+\.$/)
+    const levelNumbers = screen.getAllByText(/^Level \d+$/i)
     expect(levelNumbers.length).toBe(1)
   })
 

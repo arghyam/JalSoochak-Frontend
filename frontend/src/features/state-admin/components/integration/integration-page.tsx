@@ -26,10 +26,9 @@ export function IntegrationPage() {
   const saveIntegrationMutation = useSaveIntegrationConfigurationMutation()
 
   const [formValues, setFormValues] = useState<{
-    whatsappBusinessAccountName?: string
-    senderPhoneNumber?: string
-    whatsappBusinessAccountId?: string
-    apiAccessToken?: string
+    apiUrl?: string
+    apiKey?: string
+    organizationId?: string
   }>({})
 
   const toast = useToast()
@@ -38,35 +37,22 @@ export function IntegrationPage() {
     document.title = `${t('integration.title')} | JalSoochak`
   }, [t])
 
-  const whatsappBusinessAccountName =
-    formValues.whatsappBusinessAccountName ?? config?.whatsappBusinessAccountName ?? ''
-  const senderPhoneNumber = formValues.senderPhoneNumber ?? config?.senderPhoneNumber ?? ''
-  const whatsappBusinessAccountId =
-    formValues.whatsappBusinessAccountId ?? config?.whatsappBusinessAccountId ?? ''
-  const apiAccessToken = formValues.apiAccessToken ?? config?.apiAccessToken ?? ''
+  const apiUrl = formValues.apiUrl ?? config?.apiUrl ?? ''
+  const apiKey = formValues.apiKey ?? config?.apiKey ?? ''
+  const organizationId = formValues.organizationId ?? config?.organizationId ?? ''
 
   const handleCancel = () => {
     setFormValues({})
   }
 
   const handleSave = async () => {
-    if (
-      !whatsappBusinessAccountName ||
-      !senderPhoneNumber ||
-      !whatsappBusinessAccountId ||
-      !apiAccessToken
-    ) {
+    if (!apiUrl || !apiKey || !organizationId) {
       toast.addToast(t('common:toast.fillAllFields'), 'error')
       return
     }
 
     try {
-      await saveIntegrationMutation.mutateAsync({
-        whatsappBusinessAccountName,
-        senderPhoneNumber,
-        whatsappBusinessAccountId,
-        apiAccessToken,
-      })
+      await saveIntegrationMutation.mutateAsync({ apiUrl, apiKey, organizationId })
       toast.addToast(t('common:toast.changesSavedShort'), 'success')
     } catch (error) {
       console.error('Failed to save integration configuration:', error)
@@ -76,10 +62,9 @@ export function IntegrationPage() {
 
   const hasChanges =
     config &&
-    (whatsappBusinessAccountName !== config.whatsappBusinessAccountName ||
-      senderPhoneNumber !== config.senderPhoneNumber ||
-      whatsappBusinessAccountId !== config.whatsappBusinessAccountId ||
-      apiAccessToken !== config.apiAccessToken)
+    (apiUrl !== config.apiUrl ||
+      apiKey !== config.apiKey ||
+      organizationId !== config.organizationId)
 
   if (isLoading) {
     return (
@@ -147,25 +132,20 @@ export function IntegrationPage() {
               fontWeight="400"
               fontSize={{ base: 'md', md: 'xl' }}
             >
-              {t('integration.whatsappDetails')}
+              {t('integration.messageBrokerDetails')}
             </Heading>
             {/* Form Fields */}
             <VStack align="stretch" spacing={3} flex={1}>
               <FormControl isRequired>
                 <FormLabel textStyle="h10" fontSize={{ base: 'xs', md: 'sm' }} mb={1}>
-                  {t('integration.fields.businessAccountName')}
+                  {t('integration.fields.apiUrl')}
                 </FormLabel>
                 <Input
-                  placeholder={t('integration.fields.businessAccountNamePlaceholder')}
+                  placeholder={t('integration.fields.apiUrlPlaceholder')}
                   fontSize="14px"
                   fontWeight="400"
-                  value={whatsappBusinessAccountName}
-                  onChange={(e) =>
-                    setFormValues((prev) => ({
-                      ...prev,
-                      whatsappBusinessAccountName: e.target.value,
-                    }))
-                  }
+                  value={apiUrl}
+                  onChange={(e) => setFormValues((prev) => ({ ...prev, apiUrl: e.target.value }))}
                   size="md"
                   h="36px"
                   maxW={{ base: '100%', lg: '486px' }}
@@ -173,7 +153,7 @@ export function IntegrationPage() {
                   py={2}
                   borderColor="neutral.300"
                   borderRadius="4px"
-                  aria-label={t('integration.aria.enterBusinessAccountName')}
+                  aria-label={t('integration.aria.enterApiUrl')}
                   _hover={{ borderColor: 'neutral.400' }}
                   _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
                 />
@@ -181,75 +161,39 @@ export function IntegrationPage() {
 
               <FormControl isRequired>
                 <FormLabel textStyle="h10" fontSize={{ base: 'xs', md: 'sm' }} mb={1}>
-                  {t('integration.fields.senderPhoneNumber')}
-                </FormLabel>
-                <Input
-                  placeholder={t('integration.fields.senderPhoneNumberPlaceholder')}
-                  fontSize="14px"
-                  fontWeight="400"
-                  value={senderPhoneNumber}
-                  onChange={(e) =>
-                    setFormValues((prev) => ({
-                      ...prev,
-                      senderPhoneNumber: e.target.value,
-                    }))
-                  }
-                  size="md"
-                  h="36px"
-                  maxW={{ base: '100%', lg: '486px' }}
-                  px={3}
-                  py={2}
-                  borderColor="neutral.300"
-                  borderRadius="4px"
-                  aria-label={t('integration.aria.enterPhoneNumber')}
-                  _hover={{ borderColor: 'neutral.400' }}
-                  _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
-                />
-              </FormControl>
-
-              <FormControl isRequired>
-                <FormLabel textStyle="h10" fontSize={{ base: 'xs', md: 'sm' }} mb={1}>
-                  {t('integration.fields.businessAccountId')}
-                </FormLabel>
-                <Input
-                  placeholder={t('common:enter')}
-                  fontSize="14px"
-                  fontWeight="400"
-                  value={whatsappBusinessAccountId}
-                  onChange={(e) =>
-                    setFormValues((prev) => ({
-                      ...prev,
-                      whatsappBusinessAccountId: e.target.value,
-                    }))
-                  }
-                  size="md"
-                  h="36px"
-                  maxW={{ base: '100%', lg: '486px' }}
-                  px={3}
-                  py={2}
-                  borderColor="neutral.300"
-                  borderRadius="4px"
-                  aria-label={t('integration.aria.enterAccountId')}
-                  _hover={{ borderColor: 'neutral.400' }}
-                  _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
-                />
-              </FormControl>
-
-              <FormControl isRequired>
-                <FormLabel textStyle="h10" fontSize={{ base: 'xs', md: 'sm' }} mb={1}>
-                  {t('integration.fields.apiAccessToken')}
+                  {t('integration.fields.apiKey')}
                 </FormLabel>
                 <Input
                   placeholder={t('common:enter')}
                   fontSize="14px"
                   fontWeight="400"
                   type="password"
-                  value={apiAccessToken}
+                  value={apiKey}
+                  onChange={(e) => setFormValues((prev) => ({ ...prev, apiKey: e.target.value }))}
+                  size="md"
+                  h="36px"
+                  maxW={{ base: '100%', lg: '486px' }}
+                  px={3}
+                  py={2}
+                  borderColor="neutral.300"
+                  borderRadius="4px"
+                  aria-label={t('integration.aria.enterApiKey')}
+                  _hover={{ borderColor: 'neutral.400' }}
+                  _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
+                />
+              </FormControl>
+
+              <FormControl isRequired>
+                <FormLabel textStyle="h10" fontSize={{ base: 'xs', md: 'sm' }} mb={1}>
+                  {t('integration.fields.organizationId')}
+                </FormLabel>
+                <Input
+                  placeholder={t('common:enter')}
+                  fontSize="14px"
+                  fontWeight="400"
+                  value={organizationId}
                   onChange={(e) =>
-                    setFormValues((prev) => ({
-                      ...prev,
-                      apiAccessToken: e.target.value,
-                    }))
+                    setFormValues((prev) => ({ ...prev, organizationId: e.target.value }))
                   }
                   size="md"
                   h="36px"
@@ -258,7 +202,7 @@ export function IntegrationPage() {
                   py={2}
                   borderColor="neutral.300"
                   borderRadius="4px"
-                  aria-label={t('integration.aria.enterApiToken')}
+                  aria-label={t('integration.aria.enterOrganizationId')}
                   _hover={{ borderColor: 'neutral.400' }}
                   _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
                 />
@@ -288,13 +232,7 @@ export function IntegrationPage() {
               width={{ base: 'full', sm: '174px' }}
               onClick={handleSave}
               isLoading={saveIntegrationMutation.isPending}
-              isDisabled={
-                !whatsappBusinessAccountName ||
-                !senderPhoneNumber ||
-                !whatsappBusinessAccountId ||
-                !apiAccessToken ||
-                !hasChanges
-              }
+              isDisabled={!apiUrl || !apiKey || !organizationId || !hasChanges}
             >
               {t('common:button.save')}
             </Button>

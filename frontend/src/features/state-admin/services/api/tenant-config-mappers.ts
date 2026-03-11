@@ -9,6 +9,7 @@
  * Keys marked // TODO below may need format adjustments once tested against the real API.
  */
 
+import type { IntegrationConfiguration } from '../../types/integration'
 import type { ConfigurationData, MeterChangeReason } from '../../types/configuration'
 import {
   CHANNEL_CODE_TO_NAME,
@@ -62,6 +63,7 @@ export interface TenantConfigMap {
   WATER_NORM?: number // TODO: verify — assumed plain number (litres)
   TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD?: { lowerThreshold: number; upperThreshold: number } // TODO: verify field names
   FIELD_STAFF_ESCALATION_RULES?: ApiEscalationRules
+  MESSAGE_BROKER_CONNECTION_SETTINGS?: { apiUrl: string; apiKey: string; organizationId: string }
 }
 
 // ---------------------------------------------------------------------------
@@ -266,6 +268,34 @@ export function mapEscalationRulesToApiConfig(payload: EscalationRulesConfig): T
         schedule: payload.schedule,
         ...levelEntries,
       },
+    },
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Integration configuration mappers
+// ---------------------------------------------------------------------------
+
+export function mapApiConfigToIntegrationConfiguration(
+  configs: TenantConfigMap
+): Omit<IntegrationConfiguration, 'id'> {
+  const settings = configs.MESSAGE_BROKER_CONNECTION_SETTINGS
+  return {
+    apiUrl: settings?.apiUrl ?? '',
+    apiKey: settings?.apiKey ?? '',
+    organizationId: settings?.organizationId ?? '',
+    isConfigured: !!settings?.apiUrl,
+  }
+}
+
+export function mapIntegrationConfigToApiConfig(
+  payload: Omit<IntegrationConfiguration, 'id' | 'isConfigured'>
+): TenantConfigMap {
+  return {
+    MESSAGE_BROKER_CONNECTION_SETTINGS: {
+      apiUrl: payload.apiUrl as string,
+      apiKey: payload.apiKey as string,
+      organizationId: payload.organizationId as string,
     },
   }
 }

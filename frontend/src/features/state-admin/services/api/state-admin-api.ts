@@ -52,10 +52,12 @@ import type { WaterNormsConfiguration } from '../../types/water-norms'
 import {
   mapApiConfigToConfigurationData,
   mapApiConfigToEscalationRules,
+  mapApiConfigToIntegrationConfiguration,
   mapApiConfigToLanguageConfiguration,
   mapApiConfigToWaterNormsConfiguration,
   mapConfigurationDataToApiConfig,
   mapEscalationRulesToApiConfig,
+  mapIntegrationConfigToApiConfig,
   mapLanguageConfigToApiConfig,
   mapWaterNormsToApiConfig,
 } from './tenant-config-mappers'
@@ -167,17 +169,25 @@ const httpProvider: StateAdminDataProvider = {
     } as LanguageConfiguration
   },
   getIntegrationConfiguration: async () => {
-    const response = await apiClient.get<IntegrationConfiguration>(
-      '/api/state-admin/integration-configuration'
+    const tenantId = getTenantId()
+    const response = await apiClient.get<{ configs: Record<string, unknown> }>(
+      `${TENANT_CONFIG_BASE(tenantId)}?keys=MESSAGE_BROKER_CONNECTION_SETTINGS`
     )
-    return response.data
+    return {
+      id: tenantId,
+      ...mapApiConfigToIntegrationConfiguration(response.data.configs),
+    } as IntegrationConfiguration
   },
   saveIntegrationConfiguration: async (payload) => {
-    const response = await apiClient.put<IntegrationConfiguration>(
-      '/api/state-admin/integration-configuration',
-      payload
+    const tenantId = getTenantId()
+    const response = await apiClient.put<{ configs: Record<string, unknown> }>(
+      TENANT_CONFIG_BASE(tenantId),
+      { configs: mapIntegrationConfigToApiConfig(payload) }
     )
-    return response.data
+    return {
+      id: tenantId,
+      ...mapApiConfigToIntegrationConfiguration(response.data.configs),
+    } as IntegrationConfiguration
   },
   getWaterNormsConfiguration: async () => {
     const tenantId = getTenantId()
