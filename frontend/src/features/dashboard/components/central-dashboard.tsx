@@ -52,6 +52,35 @@ const getOwnLookupValue = <T,>(record: Record<string, T>, key: string, fallback:
   return fallback
 }
 
+const getFirstRecordValue = <T,>(record: Record<string, T>, fallback: T): T => {
+  const firstKey = Object.keys(record)[0]
+  if (!firstKey) {
+    return fallback
+  }
+
+  return record[firstKey] as T
+}
+
+const isUnsafeLookupKey = (key: string) =>
+  key === '__proto__' || key === 'prototype' || key === 'constructor'
+
+const getLookupValueWithFallback = <T,>(
+  record: Record<string, T>,
+  key: string,
+  emptyFallback: T,
+  defaultFallback: T
+): T => {
+  if (!key) {
+    return defaultFallback
+  }
+
+  if (isUnsafeLookupKey(key)) {
+    return emptyFallback
+  }
+
+  return getOwnLookupValue(record, key, emptyFallback)
+}
+
 const getStoredFilters = (): StoredFilters => {
   if (typeof window === 'undefined') return {}
   try {
@@ -132,6 +161,30 @@ export function CentralDashboard() {
   const effectiveSelectedBlock = effectiveTrailIndex >= 2 ? selectedBlock : ''
   const effectiveSelectedGramPanchayat = effectiveTrailIndex >= 3 ? selectedGramPanchayat : ''
   const effectiveSelectedVillage = effectiveTrailIndex >= 4 ? selectedVillage : ''
+  const hasStateMockData = Object.prototype.hasOwnProperty.call(
+    mockDistrictPerformanceByState,
+    effectiveSelectedState
+  )
+  const selectedStateMockKey = isUnsafeLookupKey(effectiveSelectedState)
+    ? effectiveSelectedState
+    : hasStateMockData
+      ? effectiveSelectedState
+      : ''
+  const selectedDistrictMockKey = isUnsafeLookupKey(effectiveSelectedDistrict)
+    ? effectiveSelectedDistrict
+    : hasStateMockData
+      ? effectiveSelectedDistrict
+      : ''
+  const selectedBlockMockKey = isUnsafeLookupKey(effectiveSelectedBlock)
+    ? effectiveSelectedBlock
+    : hasStateMockData
+      ? effectiveSelectedBlock
+      : ''
+  const selectedGramPanchayatMockKey = isUnsafeLookupKey(effectiveSelectedGramPanchayat)
+    ? effectiveSelectedGramPanchayat
+    : hasStateMockData
+      ? effectiveSelectedGramPanchayat
+      : ''
   const isStateSelected = Boolean(effectiveSelectedState)
   const isDistrictSelected = Boolean(effectiveSelectedDistrict)
   const isBlockSelected = Boolean(effectiveSelectedBlock)
@@ -141,25 +194,45 @@ export function CentralDashboard() {
   const emptyOptions: SearchableSelectOption[] = []
   const isAdvancedEnabled = Boolean(selectedState && selectedDistrict)
   const emptyEntityPerformance: EntityPerformance[] = []
-  const districtTableData = getOwnLookupValue(
+  const defaultDistrictTableData = getFirstRecordValue(
     mockDistrictPerformanceByState,
-    effectiveSelectedState,
     emptyEntityPerformance
   )
-  const blockTableData = getOwnLookupValue(
+  const defaultBlockTableData = getFirstRecordValue(
     mockBlockPerformanceByDistrict,
-    effectiveSelectedDistrict,
     emptyEntityPerformance
   )
-  const gramPanchayatTableData = getOwnLookupValue(
+  const defaultGramPanchayatTableData = getFirstRecordValue(
     mockGramPanchayatPerformanceByBlock,
-    effectiveSelectedBlock,
     emptyEntityPerformance
   )
-  const villageTableData = getOwnLookupValue(
+  const defaultVillageTableData = getFirstRecordValue(
     mockVillagePerformanceByGramPanchayat,
-    effectiveSelectedGramPanchayat,
     emptyEntityPerformance
+  )
+  const districtTableData = getLookupValueWithFallback(
+    mockDistrictPerformanceByState,
+    selectedStateMockKey,
+    emptyEntityPerformance,
+    defaultDistrictTableData
+  )
+  const blockTableData = getLookupValueWithFallback(
+    mockBlockPerformanceByDistrict,
+    selectedDistrictMockKey,
+    emptyEntityPerformance,
+    defaultBlockTableData
+  )
+  const gramPanchayatTableData = getLookupValueWithFallback(
+    mockGramPanchayatPerformanceByBlock,
+    selectedBlockMockKey,
+    emptyEntityPerformance,
+    defaultGramPanchayatTableData
+  )
+  const villageTableData = getLookupValueWithFallback(
+    mockVillagePerformanceByGramPanchayat,
+    selectedGramPanchayatMockKey,
+    emptyEntityPerformance,
+    defaultVillageTableData
   )
   const supplySubmissionRateData = isGramPanchayatSelected
     ? villageTableData
@@ -420,11 +493,7 @@ export function CentralDashboard() {
   }
 
   const waterSupplyOutagesData = isGramPanchayatSelected
-    ? getOwnLookupValue(
-        mockVillagePerformanceByGramPanchayat,
-        effectiveSelectedGramPanchayat,
-        emptyEntityPerformance
-      ).map((village, index) => {
+    ? villageTableData.map((village, index) => {
         if (data.waterSupplyOutages.length === 0) {
           return {
             label: village.name,
@@ -439,11 +508,7 @@ export function CentralDashboard() {
         return { ...source, label: village.name }
       })
     : isBlockSelected
-      ? getOwnLookupValue(
-          mockGramPanchayatPerformanceByBlock,
-          effectiveSelectedBlock,
-          emptyEntityPerformance
-        ).map((gramPanchayat, index) => {
+      ? gramPanchayatTableData.map((gramPanchayat, index) => {
           if (data.waterSupplyOutages.length === 0) {
             return {
               label: gramPanchayat.name,
@@ -458,11 +523,7 @@ export function CentralDashboard() {
           return { ...source, label: gramPanchayat.name }
         })
       : isDistrictSelected
-        ? getOwnLookupValue(
-            mockBlockPerformanceByDistrict,
-            effectiveSelectedDistrict,
-            emptyEntityPerformance
-          ).map((block, index) => {
+        ? blockTableData.map((block, index) => {
             if (data.waterSupplyOutages.length === 0) {
               return {
                 label: block.name,

@@ -1,13 +1,39 @@
 import { fireEvent, screen } from '@testing-library/react'
-import { describe, expect, it, jest } from '@jest/globals'
+import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { useState } from 'react'
 import type { SearchableSelectOption } from '@/shared/components/common'
 import { renderWithProviders } from '@/test/render-with-providers'
 import { DashboardFilters } from './dashboard-filters'
 
 const emptyOptions: SearchableSelectOption[] = []
+const mockUseLocationSearchQuery = jest.fn()
+const mockUseLocationHierarchyQuery = jest.fn()
+const mockUseLocationChildrenQuery = jest.fn()
+
+jest.mock('../../services/query/use-location-search-query', () => ({
+  useLocationSearchQuery: (...args: unknown[]) => mockUseLocationSearchQuery(...args),
+}))
+
+jest.mock('../../services/query/use-location-hierarchy-query', () => ({
+  useLocationHierarchyQuery: (...args: unknown[]) => mockUseLocationHierarchyQuery(...args),
+}))
+
+jest.mock('../../services/query/use-location-children-query', () => ({
+  useLocationChildrenQuery: (...args: unknown[]) => mockUseLocationChildrenQuery(...args),
+}))
 
 describe('DashboardFilters', () => {
+  beforeEach(() => {
+    mockUseLocationSearchQuery.mockReturnValue({
+      data: {
+        totalStatesCount: 36,
+        states: [{ value: 'telangana', label: 'Telangana' }],
+      },
+    })
+    mockUseLocationHierarchyQuery.mockReturnValue({ data: undefined })
+    mockUseLocationChildrenQuery.mockReturnValue({ data: undefined })
+  })
+
   it('keeps duration control enabled even when advanced filters are disabled', () => {
     renderWithProviders(
       <DashboardFilters

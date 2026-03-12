@@ -28,6 +28,7 @@ export type SearchStateOption = {
 interface BreadcrumbPanelProps {
   stateOptions: SearchStateOption[]
   totalStatesCount: number
+  onPanelOpenChange?: (isOpen: boolean) => void
   onStateSelect?: (stateValue: string) => void
   options?: SearchStateOption[]
   optionsLabel?: string
@@ -140,16 +141,25 @@ export function SearchLayout({
     return effectiveSelectionTrail.slice(0, effectiveActiveTrailIndex + 1)
   }, [effectiveActiveTrailIndex, effectiveSelectionTrail])
 
+  const setBreadcrumbPanelOpen = (isOpen: boolean) => {
+    if (isBreadcrumbPanelOpen === isOpen) {
+      return
+    }
+
+    setIsBreadcrumbPanelOpen(isOpen)
+    breadcrumbPanelProps?.onPanelOpenChange?.(isOpen)
+  }
+
   useOutsideClick({
     ref: panelContainerRef,
     handler: () => {
-      setIsBreadcrumbPanelOpen(false)
+      setBreadcrumbPanelOpen(false)
     },
   })
 
   const handleFocus = (event: FocusEvent<HTMLInputElement>) => {
     if (showBreadcrumbPanel) {
-      setIsBreadcrumbPanelOpen(true)
+      setBreadcrumbPanelOpen(true)
     }
     inputProps?.onFocus?.(event)
   }
@@ -167,7 +177,7 @@ export function SearchLayout({
     breadcrumbPanelProps?.onOptionSelect?.(stateValue)
     breadcrumbPanelProps?.onStateSelect?.(stateValue)
     if (breadcrumbPanelProps?.closeOnOptionSelect) {
-      setIsBreadcrumbPanelOpen(false)
+      setBreadcrumbPanelOpen(false)
     }
   }
 
@@ -177,7 +187,7 @@ export function SearchLayout({
   }
 
   const handleCloseBreadcrumbPanel = () => {
-    setIsBreadcrumbPanelOpen(false)
+    setBreadcrumbPanelOpen(false)
   }
 
   return (
@@ -308,6 +318,8 @@ export function SearchLayout({
                   color="neutral.500"
                   fontWeight="400"
                   onClick={() => handleTrailSelect(index)}
+                  _hover={{ color: 'primary.500' }}
+                  _active={{ color: 'primary.500' }}
                   aria-label={t('searchLayout.aria.breadcrumb', {
                     item,
                     defaultValue: `Breadcrumb: ${item}`,
@@ -328,13 +340,13 @@ export function SearchLayout({
           mt="16px"
           width="798px"
           maxW="100%"
-          height="375px"
+          minH="375px"
           borderRadius="12px"
           border="1px solid"
           borderColor="neutral.200"
           bg="white"
           zIndex={10}
-          overflowY="auto"
+          overflow="hidden"
           boxShadow="0px 8px 24px rgba(0, 0, 0, 0.08)"
         >
           <IconButton
@@ -397,6 +409,8 @@ export function SearchLayout({
                 textStyle="bodyText4"
                 color="neutral.500"
                 fontWeight="400"
+                _hover={{ color: 'primary.500' }}
+                _active={{ color: 'primary.500' }}
                 aria-label={t('searchLayout.aria.breadcrumb', {
                   item: t('searchLayout.allStatesUTs', 'All States/UTs'),
                   defaultValue: 'Breadcrumb: All States/UTs',
@@ -420,6 +434,12 @@ export function SearchLayout({
                     textStyle="bodyText4"
                     color={index === effectiveActiveTrailIndex ? 'neutral.800' : 'neutral.500'}
                     fontWeight={index === effectiveActiveTrailIndex ? '500' : '400'}
+                    _hover={{
+                      color: index === effectiveActiveTrailIndex ? 'neutral.800' : 'primary.500',
+                    }}
+                    _active={{
+                      color: index === effectiveActiveTrailIndex ? 'neutral.800' : 'primary.500',
+                    }}
                     aria-current={index === effectiveActiveTrailIndex ? 'page' : undefined}
                     aria-label={t('searchLayout.aria.breadcrumb', {
                       item,
@@ -436,7 +456,22 @@ export function SearchLayout({
             <Text textStyle="bodyText5" fontWeight="500" color="neutral.950" mb="8px">
               {panelOptionsLabel} ({panelOptionsCount})
             </Text>
-            <Flex direction="column" gap="8px">
+            <Box
+              display="grid"
+              gridTemplateColumns={{
+                base: 'repeat(2, minmax(0, 1fr))',
+                md: 'repeat(3, minmax(0, 1fr))',
+                lg: 'repeat(5, minmax(0, 1fr))',
+              }}
+              gridTemplateRows={{ lg: 'repeat(15, minmax(20px, auto))' }}
+              gridAutoFlow={{ lg: 'column' }}
+              columnGap={{ base: '12px', lg: '24px' }}
+              rowGap="8px"
+              alignItems="start"
+              alignContent="start"
+              pb="16px"
+              data-testid="search-options-grid"
+            >
               {filteredStateOptions.map((state) => (
                 <Button
                   key={state.value}
@@ -449,8 +484,8 @@ export function SearchLayout({
                   h="auto"
                   fontSize="14px"
                   onClick={() => handleStateSelect(state.value)}
-                  _hover={{ bg: 'transparent' }}
-                  _active={{ bg: 'transparent' }}
+                  _hover={{ bg: 'transparent', color: 'primary.500' }}
+                  _active={{ bg: 'transparent', color: 'primary.500' }}
                 >
                   {state.label}
                 </Button>
@@ -460,7 +495,7 @@ export function SearchLayout({
                   {noOptionsText}
                 </Text>
               ) : null}
-            </Flex>
+            </Box>
           </Box>
         </Box>
       ) : null}
