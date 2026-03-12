@@ -47,6 +47,27 @@ jest.mock('../tables', () => ({
   ReadingComplianceTable: (props: unknown) => mockReadingComplianceTable(props),
 }))
 
+jest.mock('@/shared/components/common/view-by-select', () => ({
+  ViewBySelect: ({
+    value,
+    onChange,
+    ariaLabel,
+  }: {
+    value: 'geography' | 'time'
+    onChange: (value: 'geography' | 'time') => void
+    ariaLabel: string
+  }) => (
+    <select
+      aria-label={ariaLabel}
+      value={value}
+      onChange={(event) => onChange(event.target.value as 'geography' | 'time')}
+    >
+      <option value="geography">Geography</option>
+      <option value="time">Time</option>
+    </select>
+  ),
+}))
+
 const villageTableData: EntityPerformance[] = [
   {
     id: 'v-1',
@@ -154,7 +175,7 @@ describe('GramPanchayatDashboardScreen', () => {
     mockReadingComplianceTable.mockClear()
   })
 
-  it('renders gram panchayat view selectors with Select default option', () => {
+  it('renders gram panchayat view selectors with Geography selected by default', () => {
     renderGramPanchayatDashboard()
 
     const quantitySelect = screen.getByRole('combobox', {
@@ -167,10 +188,9 @@ describe('GramPanchayatDashboardScreen', () => {
       name: 'Gram panchayat supply outage distribution view by',
     }) as HTMLSelectElement
 
-    expect(quantitySelect.value).toBe('')
-    expect(regularitySelect.value).toBe('')
-    expect(outageSelect.value).toBe('')
-    expect(screen.getAllByRole('option', { name: 'Select' })).toHaveLength(3)
+    expect(quantitySelect.value).toBe('geography')
+    expect(regularitySelect.value).toBe('geography')
+    expect(outageSelect.value).toBe('geography')
   })
 
   it('renders pump operators row and all 3 charts under it', () => {

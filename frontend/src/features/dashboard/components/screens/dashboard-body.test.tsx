@@ -54,6 +54,27 @@ jest.mock('./village-dashboard', () => ({
   VillageDashboardScreen: () => <div data-testid="village-dashboard-screen" />,
 }))
 
+jest.mock('@/shared/components/common/view-by-select', () => ({
+  ViewBySelect: ({
+    value,
+    onChange,
+    ariaLabel,
+  }: {
+    value: 'geography' | 'time'
+    onChange: (value: 'geography' | 'time') => void
+    ariaLabel: string
+  }) => (
+    <select
+      aria-label={ariaLabel}
+      value={value}
+      onChange={(event) => onChange(event.target.value as 'geography' | 'time')}
+    >
+      <option value="geography">Geography</option>
+      <option value="time">Time</option>
+    </select>
+  ),
+}))
+
 const mockEntityData: EntityPerformance[] = [
   {
     id: 'e1',
@@ -177,11 +198,8 @@ describe('DashboardBody', () => {
 
     expect(quantitySelect).toBeTruthy()
     expect(regularitySelect).toBeTruthy()
-    expect(quantitySelect.value).toBe('')
-    expect(regularitySelect.value).toBe('')
-    expect(screen.getAllByRole('option', { name: 'Select' })).toHaveLength(2)
-    expect(screen.getAllByRole('option', { name: 'Geography' })).toHaveLength(2)
-    expect(screen.getAllByRole('option', { name: 'Time' })).toHaveLength(2)
+    expect(quantitySelect.value).toBe('geography')
+    expect(regularitySelect.value).toBe('geography')
   })
 
   it('renders geography bar charts with full map data by default', () => {
