@@ -16,6 +16,13 @@ describe('locationSearchQueryKeys', () => {
       16,
       'LGD',
     ])
+    expect(locationSearchQueryKeys.hierarchy(undefined, undefined)).toEqual([
+      'dashboard',
+      'location-search',
+      'hierarchy',
+      undefined,
+      undefined,
+    ])
     expect(locationSearchQueryKeys.children(16, 'LGD', 0)).toEqual([
       'dashboard',
       'location-search',
@@ -23,6 +30,14 @@ describe('locationSearchQueryKeys', () => {
       16,
       'LGD',
       0,
+    ])
+    expect(locationSearchQueryKeys.children(undefined, undefined, undefined)).toEqual([
+      'dashboard',
+      'location-search',
+      'children',
+      undefined,
+      undefined,
+      undefined,
     ])
   })
 })

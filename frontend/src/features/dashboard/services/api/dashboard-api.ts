@@ -30,6 +30,7 @@ export type TenantListResponse = {
 }
 
 const TENANTS_PAGE_SIZE = 10
+const TENANTS_MAX_PAGES = 1000
 
 const toTenantListContainer = (value: unknown): TenantListContainer | null => {
   if (!value || typeof value !== 'object') {
@@ -210,10 +211,19 @@ export const dashboardApi = {
   getTenants: async (): Promise<TenantListResponse> => {
     const tenants: TenantListItem[] = []
     let page = 0
+    let iterations = 0
     let totalElements = 0
     let lastPayload: TenantListResponse | undefined
 
     while (true) {
+      if (iterations >= TENANTS_MAX_PAGES) {
+        const lastResolved = resolveTenantListContainer(lastPayload)
+        throw new Error(
+          `getTenants pagination exceeded ${TENANTS_MAX_PAGES} pages (page=${page}, pageSize=${TENANTS_PAGE_SIZE}, tenantsCollected=${tenants.length}, totalElements=${lastResolved.totalElements ?? totalElements ?? 'unknown'})`
+        )
+      }
+      iterations += 1
+
       const response = await apiClient.get<TenantListResponse>('/api/v1/tenants', {
         params: { page, size: TENANTS_PAGE_SIZE },
       })
@@ -300,6 +310,9 @@ export const dashboardApi = {
         hierarchyTypeResolutionCache.set(cacheKey, candidate)
         return response.data
       } catch (error) {
+        if (shouldRethrowHierarchyResolutionError(error)) {
+          throw error
+        }
         lastError = error
       }
     }
