@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { Box, Text, Button, Flex, HStack, Heading, Spinner, SimpleGrid } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
-import { AVAILABLE_LANGUAGES } from '../../types/language'
+import { APP_LANGUAGES } from '@/shared/constants/languages'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ToastContainer, SearchableSelect } from '@/shared/components/common'
 import {
@@ -33,25 +33,34 @@ export function LanguagePage() {
 
   const primaryOptions = useMemo(
     () =>
-      AVAILABLE_LANGUAGES.filter(
-        ({ value }) => value !== secondaryLanguage && value !== tertiaryLanguage
-      ),
+      APP_LANGUAGES.filter(
+        (l) =>
+          l.isActive &&
+          l.label.toLowerCase() !== secondaryLanguage &&
+          l.label.toLowerCase() !== tertiaryLanguage
+      ).map((l) => ({ value: l.label.toLowerCase(), label: l.labelLocale })),
     [secondaryLanguage, tertiaryLanguage]
   )
 
   const secondaryOptions = useMemo(
     () =>
-      AVAILABLE_LANGUAGES.filter(
-        ({ value }) => value !== primaryLanguage && value !== tertiaryLanguage
-      ),
+      APP_LANGUAGES.filter(
+        (l) =>
+          l.isActive &&
+          l.label.toLowerCase() !== primaryLanguage &&
+          l.label.toLowerCase() !== tertiaryLanguage
+      ).map((l) => ({ value: l.label.toLowerCase(), label: l.labelLocale })),
     [primaryLanguage, tertiaryLanguage]
   )
 
   const tertiaryOptions = useMemo(
     () =>
-      AVAILABLE_LANGUAGES.filter(
-        ({ value }) => value !== primaryLanguage && value !== secondaryLanguage
-      ),
+      APP_LANGUAGES.filter(
+        (l) =>
+          l.isActive &&
+          l.label.toLowerCase() !== primaryLanguage &&
+          l.label.toLowerCase() !== secondaryLanguage
+      ).map((l) => ({ value: l.label.toLowerCase(), label: l.labelLocale })),
     [primaryLanguage, secondaryLanguage]
   )
 
@@ -85,20 +94,20 @@ export function LanguagePage() {
   }
 
   const getPrimaryLanguageLabel = () => {
-    const lang = AVAILABLE_LANGUAGES.find((l) => l.value === primaryLanguage)
-    return lang ? lang.label : primaryLanguage
+    const lang = APP_LANGUAGES.find((l) => l.label.toLowerCase() === primaryLanguage)
+    return lang ? lang.labelLocale : primaryLanguage
   }
 
   const getSecondaryLanguageLabel = () => {
     if (!secondaryLanguage) return ''
-    const lang = AVAILABLE_LANGUAGES.find((l) => l.value === secondaryLanguage)
-    return lang ? lang.label : secondaryLanguage
+    const lang = APP_LANGUAGES.find((l) => l.label.toLowerCase() === secondaryLanguage)
+    return lang ? lang.labelLocale : secondaryLanguage
   }
 
   const getTertiaryLanguageLabel = () => {
     if (!tertiaryLanguage) return ''
-    const lang = AVAILABLE_LANGUAGES.find((l) => l.value === tertiaryLanguage)
-    return lang ? lang.label : tertiaryLanguage
+    const lang = APP_LANGUAGES.find((l) => l.label.toLowerCase() === tertiaryLanguage)
+    return lang ? lang.labelLocale : tertiaryLanguage
   }
 
   if (isLoading) {

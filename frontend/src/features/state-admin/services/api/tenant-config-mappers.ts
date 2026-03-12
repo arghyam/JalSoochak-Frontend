@@ -5,8 +5,6 @@
  *   GET  /api/v1/tenants/{id}/config            → { configs: { KEY: value, ... } }
  *   PUT  /api/v1/tenants/{id}/config            ← { configs: { KEY: value, ... } }
  *
- * TODO: Verify exact value format for each key with backend before switching to http mode.
- * Keys marked // TODO below may need format adjustments once tested against the real API.
  */
 
 import type { IntegrationConfiguration } from '../../types/integration'
@@ -22,7 +20,7 @@ import {
 } from '../../types/configuration'
 import type { EscalationRuleLevel, EscalationRulesConfig } from '../../types/escalation-rules'
 import type { LanguageConfiguration } from '../../types/language'
-import { AVAILABLE_LANGUAGES } from '../../types/language'
+import { APP_LANGUAGES } from '@/shared/constants/languages'
 import type { WaterNormsConfiguration } from '../../types/water-norms'
 
 // ---------------------------------------------------------------------------
@@ -38,10 +36,9 @@ interface ApiHierarchy {
   locationHierarchy: ApiHierarchyLevel[]
 }
 
-// TODO: Confirm FIELD_STAFF_ESCALATION_RULES level key structure with backend
 interface ApiEscalationLevel {
   threshold: { days: number }
-  officer: { user_type: string }
+  officer: { userType: string }
 }
 
 interface ApiEscalationRules {
@@ -63,7 +60,7 @@ export interface TenantConfigMap {
   DEPT_LOCATION_HIERARCHY?: ApiHierarchy
   SUPPORTED_LANGUAGES?: { languages: { language: string; preference: number }[] }
   WATER_NORM?: number // TODO: verify — assumed plain number (litres)
-  TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD?: { lowerThreshold: number; upperThreshold: number } // TODO: verify field names
+  TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD?: { value: string }
   FIELD_STAFF_ESCALATION_RULES?: ApiEscalationRules
   MESSAGE_BROKER_CONNECTION_SETTINGS?: { apiUrl: string; apiKey: string; organizationId: string }
   GLIFIC_MESSAGE_TEMPLATES?: {
@@ -169,8 +166,8 @@ export function mapApiConfigToWaterNormsConfiguration(
     // they remain UI-local until the backend supports these fields
     districtOverrides: [],
     regularity: 0,
-    maxQuantity: configs.TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD?.upperThreshold ?? 0,
-    minQuantity: configs.TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD?.lowerThreshold ?? 0,
+    maxQuantity: Number(configs.TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD?.value) || 0,
+    minQuantity: 0,
     isConfigured: true,
   }
 }
@@ -182,8 +179,7 @@ export function mapWaterNormsToApiConfig(
   return {
     WATER_NORM: payload.stateQuantity,
     TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD: {
-      lowerThreshold: payload.minQuantity,
-      upperThreshold: payload.maxQuantity,
+      value: String(payload.maxQuantity),
     },
   }
 }
@@ -194,12 +190,12 @@ export function mapWaterNormsToApiConfig(
 
 function languageApiNameToValue(apiName: string): string {
   const normalized = apiName.toLowerCase()
-  const found = AVAILABLE_LANGUAGES.find((l) => l.label.toLowerCase() === normalized)
-  return found?.value ?? normalized
+  const found = APP_LANGUAGES.find((l) => l.label.toLowerCase() === normalized)
+  return found?.label.toLowerCase() ?? normalized
 }
 
 function languageValueToApiName(value: string): string {
-  const found = AVAILABLE_LANGUAGES.find((l) => l.value === value)
+  const found = APP_LANGUAGES.find((l) => l.label.toLowerCase() === value)
   return found?.label ?? value
 }
 
@@ -260,7 +256,7 @@ export function mapApiConfigToEscalationRules(configs: TenantConfigMap): Escalat
       const level = rest[k] as ApiEscalationLevel
       return {
         days: level.threshold.days,
-        userType: level.officer.user_type as EscalationRuleLevel['userType'],
+        userType: level.officer.userType as EscalationRuleLevel['userType'],
       }
     })
 
@@ -273,7 +269,7 @@ export function mapEscalationRulesToApiConfig(payload: EscalationRulesConfig): T
   payload.levels.forEach((level, i) => {
     levelEntries[`level${i + 1}`] = {
       threshold: { days: level.days },
-      officer: { user_type: level.userType },
+      officer: { userType: level.userType },
     }
   })
 

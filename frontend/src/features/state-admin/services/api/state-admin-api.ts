@@ -138,163 +138,179 @@ const CONFIGURATION_KEYS = [
 
 const WATER_NORMS_KEYS = ['WATER_NORM', 'TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD'].join(',')
 
+// The backend wraps all responses in { status, message, data: T }.
+// Axios parses the HTTP body into response.data, so the actual payload is at response.data.data.
+type ApiEnvelope<T> = { data: T }
+
 const httpProvider: StateAdminDataProvider = {
   getOverviewData: async () => {
-    const response = await apiClient.get<OverviewData>('/api/state-admin/overview')
-    return response.data
+    const response = await apiClient.get<ApiEnvelope<OverviewData>>('/api/state-admin/overview')
+    return response.data.data
   },
   getActivityData: async () => {
-    const response = await apiClient.get<ActivityLog[]>('/api/state-admin/activity')
-    return response.data
+    const response = await apiClient.get<ApiEnvelope<ActivityLog[]>>('/api/state-admin/activity')
+    return response.data.data
   },
   getStaffSyncData: async () => {
-    const response = await apiClient.get<StaffSyncData>('/api/state-admin/staff-sync')
-    return response.data
+    const response = await apiClient.get<ApiEnvelope<StaffSyncData>>('/api/state-admin/staff-sync')
+    return response.data.data
   },
   getLanguageConfiguration: async () => {
     const tenantId = getTenantId()
-    const response = await apiClient.get<{ configs: Record<string, unknown> }>(
+    const response = await apiClient.get<ApiEnvelope<{ configs: Record<string, unknown> }>>(
       `${TENANT_CONFIG_BASE(tenantId)}?keys=SUPPORTED_LANGUAGES`
     )
     return {
       id: tenantId,
-      ...mapApiConfigToLanguageConfiguration(response.data.configs),
+      ...mapApiConfigToLanguageConfiguration(response.data.data.configs),
     } as LanguageConfiguration
   },
   saveLanguageConfiguration: async (payload) => {
     const tenantId = getTenantId()
-    const response = await apiClient.put<{ configs: Record<string, unknown> }>(
+    const response = await apiClient.put<ApiEnvelope<{ configs: Record<string, unknown> }>>(
       TENANT_CONFIG_BASE(tenantId),
       { configs: mapLanguageConfigToApiConfig(payload) }
     )
     return {
       id: tenantId,
-      ...mapApiConfigToLanguageConfiguration(response.data.configs),
+      ...mapApiConfigToLanguageConfiguration(response.data.data.configs),
     } as LanguageConfiguration
   },
   getIntegrationConfiguration: async () => {
     const tenantId = getTenantId()
-    const response = await apiClient.get<{ configs: Record<string, unknown> }>(
+    const response = await apiClient.get<ApiEnvelope<{ configs: Record<string, unknown> }>>(
       `${TENANT_CONFIG_BASE(tenantId)}?keys=MESSAGE_BROKER_CONNECTION_SETTINGS`
     )
     return {
       id: tenantId,
-      ...mapApiConfigToIntegrationConfiguration(response.data.configs),
+      ...mapApiConfigToIntegrationConfiguration(response.data.data.configs),
     } as IntegrationConfiguration
   },
   saveIntegrationConfiguration: async (payload) => {
     const tenantId = getTenantId()
-    const response = await apiClient.put<{ configs: Record<string, unknown> }>(
+    const response = await apiClient.put<ApiEnvelope<{ configs: Record<string, unknown> }>>(
       TENANT_CONFIG_BASE(tenantId),
       { configs: mapIntegrationConfigToApiConfig(payload) }
     )
     return {
       id: tenantId,
-      ...mapApiConfigToIntegrationConfiguration(response.data.configs),
+      ...mapApiConfigToIntegrationConfiguration(response.data.data.configs),
     } as IntegrationConfiguration
   },
   getWaterNormsConfiguration: async () => {
     const tenantId = getTenantId()
-    const response = await apiClient.get<{ configs: Record<string, unknown> }>(
+    const response = await apiClient.get<ApiEnvelope<{ configs: Record<string, unknown> }>>(
       `${TENANT_CONFIG_BASE(tenantId)}?keys=${WATER_NORMS_KEYS}`
     )
     return {
       id: tenantId,
-      ...mapApiConfigToWaterNormsConfiguration(response.data.configs),
+      ...mapApiConfigToWaterNormsConfiguration(response.data.data.configs),
     } as WaterNormsConfiguration
   },
   saveWaterNormsConfiguration: async (payload) => {
     const tenantId = getTenantId()
-    const response = await apiClient.put<{ configs: Record<string, unknown> }>(
+    const response = await apiClient.put<ApiEnvelope<{ configs: Record<string, unknown> }>>(
       TENANT_CONFIG_BASE(tenantId),
       { configs: mapWaterNormsToApiConfig(payload) }
     )
     return {
       id: tenantId,
-      ...mapApiConfigToWaterNormsConfiguration(response.data.configs),
+      ...mapApiConfigToWaterNormsConfiguration(response.data.data.configs),
     } as WaterNormsConfiguration
   },
   getEscalations: async () => {
-    const response = await apiClient.get<Escalation[]>('/api/state-admin/escalations')
-    return response.data
+    const response = await apiClient.get<ApiEnvelope<Escalation[]>>('/api/state-admin/escalations')
+    return response.data.data
   },
   getEscalationById: async (id) => {
-    const response = await apiClient.get<Escalation>(`/api/state-admin/escalations/${id}`)
-    return response.data
+    const response = await apiClient.get<ApiEnvelope<Escalation>>(
+      `/api/state-admin/escalations/${id}`
+    )
+    return response.data.data
   },
   createEscalation: async (payload) => {
-    const response = await apiClient.post<Escalation>('/api/state-admin/escalations', payload)
-    return response.data
+    const response = await apiClient.post<ApiEnvelope<Escalation>>(
+      '/api/state-admin/escalations',
+      payload
+    )
+    return response.data.data
   },
   updateEscalation: async (id, payload) => {
-    const response = await apiClient.put<Escalation>(`/api/state-admin/escalations/${id}`, payload)
-    return response.data
+    const response = await apiClient.put<ApiEnvelope<Escalation>>(
+      `/api/state-admin/escalations/${id}`,
+      payload
+    )
+    return response.data.data
   },
   deleteEscalation: async (id) => {
     await apiClient.delete(`/api/state-admin/escalations/${id}`)
   },
   getThresholdConfiguration: async () => {
-    const response = await apiClient.get<ThresholdConfiguration>(
+    const response = await apiClient.get<ApiEnvelope<ThresholdConfiguration>>(
       '/api/state-admin/threshold-configuration'
     )
-    return response.data
+    return response.data.data
   },
   saveThresholdConfiguration: async (payload) => {
-    const response = await apiClient.put<ThresholdConfiguration>(
+    const response = await apiClient.put<ApiEnvelope<ThresholdConfiguration>>(
       '/api/state-admin/threshold-configuration',
       payload
     )
-    return response.data
+    return response.data.data
   },
   getMessageTemplates: async () => {
     const tenantId = getTenantId()
-    const response = await apiClient.get<{ configs: Record<string, unknown> }>(
+    const response = await apiClient.get<ApiEnvelope<{ configs: Record<string, unknown> }>>(
       `${TENANT_CONFIG_BASE(tenantId)}?keys=GLIFIC_MESSAGE_TEMPLATES,SUPPORTED_LANGUAGES`
     )
     return mapApiConfigToMessageTemplates(
-      response.data.configs as Parameters<typeof mapApiConfigToMessageTemplates>[0]
+      response.data.data.configs as Parameters<typeof mapApiConfigToMessageTemplates>[0]
     )
   },
   getNudgeTemplates: async () => {
-    const response = await apiClient.get<NudgeTemplate[]>('/api/state-admin/nudge-templates')
-    return response.data
+    const response = await apiClient.get<ApiEnvelope<NudgeTemplate[]>>(
+      '/api/state-admin/nudge-templates'
+    )
+    return response.data.data
   },
   updateNudgeTemplate: async (id, payload) => {
-    const response = await apiClient.put<NudgeTemplate>(
+    const response = await apiClient.put<ApiEnvelope<NudgeTemplate>>(
       `/api/state-admin/nudge-templates/${id}`,
       payload
     )
-    return response.data
+    return response.data.data
   },
   getConfiguration: async () => {
     const tenantId = getTenantId()
-    const response = await apiClient.get<{ configs: Record<string, unknown> }>(
+    const response = await apiClient.get<ApiEnvelope<{ configs: Record<string, unknown> }>>(
       `${TENANT_CONFIG_BASE(tenantId)}?keys=${CONFIGURATION_KEYS}`
     )
     return {
       id: tenantId,
-      ...mapApiConfigToConfigurationData(response.data.configs),
+      ...mapApiConfigToConfigurationData(response.data.data.configs),
     } as ConfigurationData
   },
   saveConfiguration: async (payload) => {
     const tenantId = getTenantId()
-    const response = await apiClient.put<{ configs: Record<string, unknown> }>(
+    const response = await apiClient.put<ApiEnvelope<{ configs: Record<string, unknown> }>>(
       TENANT_CONFIG_BASE(tenantId),
       { configs: mapConfigurationDataToApiConfig(payload) }
     )
     return {
       id: tenantId,
-      ...mapApiConfigToConfigurationData(response.data.configs),
+      ...mapApiConfigToConfigurationData(response.data.data.configs),
     } as ConfigurationData
   },
   getStateUTAdmins: async () => {
-    const response = await apiClient.get<StateUTAdmin[]>('/api/state-admin/admins')
-    return response.data
+    const response = await apiClient.get<ApiEnvelope<StateUTAdmin[]>>('/api/state-admin/admins')
+    return response.data.data
   },
   getStateUTAdminById: async (id) => {
     try {
-      const response = await apiClient.get<StateUTAdmin>(`/api/state-admin/admins/${id}`)
-      return response.data
+      const response = await apiClient.get<ApiEnvelope<StateUTAdmin>>(
+        `/api/state-admin/admins/${id}`
+      )
+      return response.data.data
     } catch (error) {
       if (isAxiosError(error) && error.response?.status === 404) {
         return null
@@ -303,33 +319,40 @@ const httpProvider: StateAdminDataProvider = {
     }
   },
   createStateUTAdmin: async (input) => {
-    const response = await apiClient.post<StateUTAdmin>('/api/state-admin/admins', input)
-    return response.data
+    const response = await apiClient.post<ApiEnvelope<StateUTAdmin>>(
+      '/api/state-admin/admins',
+      input
+    )
+    return response.data.data
   },
   updateStateUTAdmin: async (id, input) => {
-    const response = await apiClient.patch<StateUTAdmin>(`/api/state-admin/admins/${id}`, input)
-    return response.data
+    const response = await apiClient.patch<ApiEnvelope<StateUTAdmin>>(
+      `/api/state-admin/admins/${id}`,
+      input
+    )
+    return response.data.data
   },
   updateStateUTAdminStatus: async (id, status) => {
-    const response = await apiClient.patch<StateUTAdmin>(`/api/state-admin/admins/${id}/status`, {
-      status,
-    })
-    return response.data
+    const response = await apiClient.patch<ApiEnvelope<StateUTAdmin>>(
+      `/api/state-admin/admins/${id}/status`,
+      { status }
+    )
+    return response.data.data
   },
   getEscalationRules: async () => {
     const tenantId = getTenantId()
-    const response = await apiClient.get<{ configs: Record<string, unknown> }>(
+    const response = await apiClient.get<ApiEnvelope<{ configs: Record<string, unknown> }>>(
       `${TENANT_CONFIG_BASE(tenantId)}?keys=FIELD_STAFF_ESCALATION_RULES`
     )
-    return mapApiConfigToEscalationRules(response.data.configs)
+    return mapApiConfigToEscalationRules(response.data.data.configs)
   },
   saveEscalationRules: async (payload) => {
     const tenantId = getTenantId()
-    const response = await apiClient.put<{ configs: Record<string, unknown> }>(
+    const response = await apiClient.put<ApiEnvelope<{ configs: Record<string, unknown> }>>(
       TENANT_CONFIG_BASE(tenantId),
       { configs: mapEscalationRulesToApiConfig(payload) }
     )
-    return mapApiConfigToEscalationRules(response.data.configs)
+    return mapApiConfigToEscalationRules(response.data.data.configs)
   },
 }
 
@@ -364,46 +387,48 @@ const mockProvider: StateAdminDataProvider = {
   saveEscalationRules: (payload) => saveMockEscalationRules(payload),
 }
 
-const STATE_ADMIN_PROVIDER = import.meta.env.VITE_STATE_ADMIN_DATA_PROVIDER ?? 'mock'
-const provider: StateAdminDataProvider =
-  STATE_ADMIN_PROVIDER === 'http' ? httpProvider : mockProvider
-
+// Real HTTP: language, integration, water norms, system config, thresholds,
+//            escalations, escalation rules, Glific message templates
+// Mock:      overview, activity, staff sync, state/UT admins, nudge templates
 export const stateAdminApi = {
-  getOverviewData: () => provider.getOverviewData(),
-  getActivityData: () => provider.getActivityData(),
-  getStaffSyncData: () => provider.getStaffSyncData(),
-  getLanguageConfiguration: () => provider.getLanguageConfiguration(),
-  saveLanguageConfiguration: (payload: SaveLanguageConfigurationPayload) =>
-    provider.saveLanguageConfiguration(payload),
-  getIntegrationConfiguration: () => provider.getIntegrationConfiguration(),
-  saveIntegrationConfiguration: (payload: SaveIntegrationConfigurationPayload) =>
-    provider.saveIntegrationConfiguration(payload),
-  getWaterNormsConfiguration: () => provider.getWaterNormsConfiguration(),
-  saveWaterNormsConfiguration: (payload: SaveWaterNormsConfigurationPayload) =>
-    provider.saveWaterNormsConfiguration(payload),
-  getEscalations: () => provider.getEscalations(),
-  getEscalationById: (id: string) => provider.getEscalationById(id),
-  createEscalation: (payload: SaveEscalationPayload) => provider.createEscalation(payload),
-  updateEscalation: (id: string, payload: SaveEscalationPayload) =>
-    provider.updateEscalation(id, payload),
-  deleteEscalation: (id: string) => provider.deleteEscalation(id),
-  getThresholdConfiguration: () => provider.getThresholdConfiguration(),
-  saveThresholdConfiguration: (payload: SaveThresholdConfigurationPayload) =>
-    provider.saveThresholdConfiguration(payload),
-  getMessageTemplates: () => provider.getMessageTemplates(),
-  getNudgeTemplates: () => provider.getNudgeTemplates(),
+  // --- Mock ---
+  getOverviewData: () => mockProvider.getOverviewData(),
+  getActivityData: () => mockProvider.getActivityData(),
+  getStaffSyncData: () => mockProvider.getStaffSyncData(),
+  getNudgeTemplates: () => mockProvider.getNudgeTemplates(),
   updateNudgeTemplate: (id: string, payload: UpdateNudgeTemplatePayload) =>
-    provider.updateNudgeTemplate(id, payload),
-  getConfiguration: () => provider.getConfiguration(),
-  saveConfiguration: (payload: SaveConfigurationPayload) => provider.saveConfiguration(payload),
-  getStateUTAdmins: () => provider.getStateUTAdmins(),
-  getStateUTAdminById: (id: string) => provider.getStateUTAdminById(id),
-  createStateUTAdmin: (input: CreateStateUTAdminInput) => provider.createStateUTAdmin(input),
+    mockProvider.updateNudgeTemplate(id, payload),
+  getStateUTAdmins: () => mockProvider.getStateUTAdmins(),
+  getStateUTAdminById: (id: string) => mockProvider.getStateUTAdminById(id),
+  createStateUTAdmin: (input: CreateStateUTAdminInput) => mockProvider.createStateUTAdmin(input),
   updateStateUTAdmin: (id: string, input: UpdateStateUTAdminInput) =>
-    provider.updateStateUTAdmin(id, input),
+    mockProvider.updateStateUTAdmin(id, input),
   updateStateUTAdminStatus: (id: string, status: 'active' | 'inactive') =>
-    provider.updateStateUTAdminStatus(id, status),
-  getEscalationRules: () => provider.getEscalationRules(),
+    mockProvider.updateStateUTAdminStatus(id, status),
+
+  // --- Real HTTP ---
+  getLanguageConfiguration: () => httpProvider.getLanguageConfiguration(),
+  saveLanguageConfiguration: (payload: SaveLanguageConfigurationPayload) =>
+    httpProvider.saveLanguageConfiguration(payload),
+  getIntegrationConfiguration: () => httpProvider.getIntegrationConfiguration(),
+  saveIntegrationConfiguration: (payload: SaveIntegrationConfigurationPayload) =>
+    httpProvider.saveIntegrationConfiguration(payload),
+  getWaterNormsConfiguration: () => httpProvider.getWaterNormsConfiguration(),
+  saveWaterNormsConfiguration: (payload: SaveWaterNormsConfigurationPayload) =>
+    httpProvider.saveWaterNormsConfiguration(payload),
+  getEscalations: () => httpProvider.getEscalations(),
+  getEscalationById: (id: string) => httpProvider.getEscalationById(id),
+  createEscalation: (payload: SaveEscalationPayload) => httpProvider.createEscalation(payload),
+  updateEscalation: (id: string, payload: SaveEscalationPayload) =>
+    httpProvider.updateEscalation(id, payload),
+  deleteEscalation: (id: string) => httpProvider.deleteEscalation(id),
+  getThresholdConfiguration: () => httpProvider.getThresholdConfiguration(),
+  saveThresholdConfiguration: (payload: SaveThresholdConfigurationPayload) =>
+    httpProvider.saveThresholdConfiguration(payload),
+  getMessageTemplates: () => httpProvider.getMessageTemplates(),
+  getConfiguration: () => httpProvider.getConfiguration(),
+  saveConfiguration: (payload: SaveConfigurationPayload) => httpProvider.saveConfiguration(payload),
+  getEscalationRules: () => httpProvider.getEscalationRules(),
   saveEscalationRules: (payload: SaveEscalationRulesPayload) =>
-    provider.saveEscalationRules(payload),
+    httpProvider.saveEscalationRules(payload),
 }
