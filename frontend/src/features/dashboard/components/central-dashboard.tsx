@@ -71,7 +71,7 @@ const getLookupValueWithFallback = <T,>(
   defaultFallback: T
 ): T => {
   if (!key || isUnsafeLookupKey(key)) {
-    return emptyFallback
+    return defaultFallback
   }
 
   const value = getOwnLookupValue(record, key, emptyFallback)

@@ -5,14 +5,13 @@ import { locationSearchQueryKeys } from './location-search-query-keys'
 
 type UseLocationSearchQueryOptions = {
   enabled?: boolean
-  trigger?: number
 }
 
 export function useLocationSearchQuery(options: UseLocationSearchQueryOptions = {}) {
-  const { enabled = true, trigger = 0 } = options
+  const { enabled = true } = options
 
   return useQuery<StateUtSearchResponse>({
-    queryKey: locationSearchQueryKeys.statesUts(trigger),
+    queryKey: locationSearchQueryKeys.statesUts(),
     queryFn: () => locationSearchApi.getStatesUts(),
     enabled,
   })

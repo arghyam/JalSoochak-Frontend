@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { Button, Flex, Text } from '@chakra-ui/react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { DateRangePicker } from '@/shared/components/common'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
@@ -8,6 +9,7 @@ import { SearchLayout } from '@/shared/components/layout'
 import { useLocationSearchQuery } from '../../services/query/use-location-search-query'
 import { useLocationChildrenQuery } from '../../services/query/use-location-children-query'
 import { useLocationHierarchyQuery } from '../../services/query/use-location-hierarchy-query'
+import { locationSearchQueryKeys } from '../../services/query/location-search-query-keys'
 import { computeTrailIndices } from '../../utils/trail-index'
 import { toCapitalizedWords } from '../../utils/format-location-label'
 import type { HierarchyType } from '../../services/api/dashboard-api'
@@ -82,8 +84,8 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     setSelectedDuration,
   } = props
 
+  const queryClient = useQueryClient()
   const [isBreadcrumbPanelOpen, setIsBreadcrumbPanelOpen] = useState(false)
-  const [tenantsFetchTrigger, setTenantsFetchTrigger] = useState(0)
   const toValueSlug = (title: string) =>
     title
       .trim()
@@ -109,7 +111,6 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   }
   const { data: locationSearchData } = useLocationSearchQuery({
     enabled: isBreadcrumbPanelOpen,
-    trigger: tenantsFetchTrigger,
   })
   const breadcrumbStateOptions = locationSearchData?.states ?? []
   const totalStatesCount = locationSearchData?.totalStatesCount ?? 0
@@ -185,12 +186,27 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     () => mapLocationOptions(villageLocationsData?.data),
     [villageLocationsData?.data]
   )
-  const resolvedDistrictOptions =
-    districtApiOptions.length > 0 ? districtApiOptions : districtOptions
-  const resolvedBlockOptions = blockApiOptions.length > 0 ? blockApiOptions : blockOptions
-  const resolvedGramPanchayatOptions =
-    gramPanchayatApiOptions.length > 0 ? gramPanchayatApiOptions : gramPanchayatOptions
-  const resolvedVillageOptions = villageApiOptions.length > 0 ? villageApiOptions : villageOptions
+  const hasSelectedTenant = Boolean(selectedTenant)
+  const resolvedDistrictOptions = hasSelectedTenant
+    ? districtApiOptions
+    : districtApiOptions.length > 0
+      ? districtApiOptions
+      : districtOptions
+  const resolvedBlockOptions = hasSelectedTenant
+    ? blockApiOptions
+    : blockApiOptions.length > 0
+      ? blockApiOptions
+      : blockOptions
+  const resolvedGramPanchayatOptions = hasSelectedTenant
+    ? gramPanchayatApiOptions
+    : gramPanchayatApiOptions.length > 0
+      ? gramPanchayatApiOptions
+      : gramPanchayatOptions
+  const resolvedVillageOptions = hasSelectedTenant
+    ? villageApiOptions
+    : villageApiOptions.length > 0
+      ? villageApiOptions
+      : villageOptions
   const { data: locationHierarchyData } = useLocationHierarchyQuery({
     tenantId: selectedTenant?.tenantId,
     tenantCode: selectedTenant?.tenantCode,
@@ -319,7 +335,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   const handlePanelOpenChange = (isOpen: boolean) => {
     setIsBreadcrumbPanelOpen(isOpen)
     if (isOpen) {
-      setTenantsFetchTrigger((previous) => previous + 1)
+      void queryClient.invalidateQueries({ queryKey: locationSearchQueryKeys.statesUts() })
     }
   }
 

@@ -1,4 +1,5 @@
 import { apiClient } from '@/shared/lib/axios'
+import { isAxiosError } from 'axios'
 import type { DashboardData, DashboardLevel } from '../../types'
 import { dashboardMockService } from '../mock/dashboard-mock'
 
@@ -26,6 +27,36 @@ export type TenantListResponse = {
   data?: TenantListContainer | { data?: TenantListContainer }
   content?: TenantListItem[]
   totalElements?: number
+}
+
+const TENANTS_PAGE_SIZE = 10
+
+const toTenantListContainer = (value: unknown): TenantListContainer | null => {
+  if (!value || typeof value !== 'object') {
+    return null
+  }
+
+  const candidate = value as Partial<TenantListContainer>
+  return {
+    content: Array.isArray(candidate.content) ? (candidate.content as TenantListItem[]) : undefined,
+    totalElements:
+      typeof candidate.totalElements === 'number' ? candidate.totalElements : undefined,
+  }
+}
+
+const resolveTenantListContainer = (value: TenantListResponse | undefined): TenantListContainer => {
+  if (!value) {
+    return {}
+  }
+
+  const firstLevel = toTenantListContainer(value)
+  const secondLevel =
+    value.data && typeof value.data === 'object'
+      ? toTenantListContainer((value.data as { data?: unknown }).data)
+      : null
+  const dataLevel = toTenantListContainer(value.data)
+
+  return secondLevel ?? dataLevel ?? firstLevel ?? {}
 }
 
 export type LocationHierarchyLevelName = {
@@ -93,6 +124,54 @@ const getOrderedHierarchyTypeCandidates = (tenantId: number, hierarchyType: Hier
   return [cached, ...baseCandidates.filter((candidate) => candidate !== cached)]
 }
 
+const hasInvalidHierarchyIndicator = (error: unknown): boolean => {
+  if (!isAxiosError(error)) {
+    return false
+  }
+
+  const responseData = error.response?.data as { type?: unknown; message?: unknown } | undefined
+
+  if (typeof responseData?.type === 'string' && responseData.type === 'invalid-hierarchy') {
+    return true
+  }
+
+  if (
+    typeof responseData?.message === 'string' &&
+    responseData.message.toLowerCase().includes('invalid-hierarchy')
+  ) {
+    return true
+  }
+
+  return false
+}
+
+const shouldRethrowHierarchyResolutionError = (error: unknown): boolean => {
+  if (!isAxiosError(error)) {
+    return true
+  }
+
+  const status = error.response?.status
+
+  if (status === 401 || status === 403) {
+    return true
+  }
+
+  if (typeof status === 'number' && status >= 500) {
+    return true
+  }
+
+  const isNetworkOrTimeoutError =
+    !error.response ||
+    error.code === 'ECONNABORTED' ||
+    (typeof error.message === 'string' && error.message.toLowerCase().includes('timeout'))
+
+  if (isNetworkOrTimeoutError) {
+    return true
+  }
+
+  return !hasInvalidHierarchyIndicator(error)
+}
+
 type DashboardDataProvider = {
   getDashboardData: (params: DashboardQueryParams) => Promise<DashboardData>
 }
@@ -129,8 +208,53 @@ export const dashboardApi = {
     return provider.getDashboardData(params)
   },
   getTenants: async (): Promise<TenantListResponse> => {
-    const response = await apiClient.get<TenantListResponse>('/api/v1/tenants')
-    return response.data
+    const tenants: TenantListItem[] = []
+    let page = 0
+    let totalElements = 0
+    let lastPayload: TenantListResponse | undefined
+
+    while (true) {
+      const response = await apiClient.get<TenantListResponse>('/api/v1/tenants', {
+        params: { page, size: TENANTS_PAGE_SIZE },
+      })
+      const payload = response.data
+      const resolved = resolveTenantListContainer(payload)
+      const content = resolved.content ?? []
+
+      lastPayload = payload
+      tenants.push(...content)
+      totalElements = resolved.totalElements ?? tenants.length
+
+      if (tenants.length >= totalElements || content.length === 0) {
+        break
+      }
+
+      page += 1
+    }
+
+    const aggregatedContainer: TenantListContainer = {
+      content: tenants,
+      totalElements,
+    }
+
+    if (lastPayload?.data && typeof lastPayload.data === 'object' && 'data' in lastPayload.data) {
+      return {
+        ...lastPayload,
+        data: {
+          ...(lastPayload.data as { data?: TenantListContainer }),
+          data: aggregatedContainer,
+        },
+        content: tenants,
+        totalElements,
+      }
+    }
+
+    return {
+      ...lastPayload,
+      data: aggregatedContainer,
+      content: tenants,
+      totalElements,
+    }
   },
   getTenantLocationHierarchy: async (params: {
     tenantId: number
@@ -149,6 +273,9 @@ export const dashboardApi = {
         hierarchyTypeResolutionCache.set(cacheKey, candidate)
         return response.data
       } catch (error) {
+        if (shouldRethrowHierarchyResolutionError(error)) {
+          throw error
+        }
         lastError = error
       }
     }
