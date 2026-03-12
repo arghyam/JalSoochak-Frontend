@@ -34,10 +34,26 @@ export const locationSearchApi = {
     const resolved = secondLevel ?? dataLevel ?? firstLevel
     const content = resolved?.content ?? []
     const filteredTenants = content.filter((tenant: TenantListItem) => tenant.id !== 0)
-    const states = filteredTenants.map((tenant: TenantListItem) => ({
-      value: toStateValue(tenant.name),
-      label: tenant.name,
-    }))
+    const states = filteredTenants.map((tenant: TenantListItem) => {
+      const option = {
+        value: toStateValue(tenant.name),
+        label: tenant.name,
+      } as {
+        value: string
+        label: string
+        tenantId?: number
+        tenantCode?: string
+      }
+
+      if (typeof tenant.id === 'number') {
+        option.tenantId = tenant.id
+      }
+      if (tenant.stateCode) {
+        option.tenantCode = tenant.stateCode
+      }
+
+      return option
+    })
     const totalStatesCount = states.length
 
     return {

@@ -8,6 +8,22 @@ describe('locationSearchQueryKeys', () => {
       'dashboard',
       'location-search',
       'states-uts',
+      0,
+    ])
+    expect(locationSearchQueryKeys.hierarchy(16, 'LGD')).toEqual([
+      'dashboard',
+      'location-search',
+      'hierarchy',
+      16,
+      'LGD',
+    ])
+    expect(locationSearchQueryKeys.children(16, 'LGD', 0)).toEqual([
+      'dashboard',
+      'location-search',
+      'children',
+      16,
+      'LGD',
+      0,
     ])
   })
 })

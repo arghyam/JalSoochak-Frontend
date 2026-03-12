@@ -116,6 +116,8 @@ export interface DashboardData {
 export interface StateUtOption {
   value: string
   label: string
+  tenantId?: number
+  tenantCode?: string
 }
 
 export interface StateUtSearchResponse {

@@ -52,6 +52,32 @@ const getOwnLookupValue = <T,>(record: Record<string, T>, key: string, fallback:
   return fallback
 }
 
+const getFirstRecordValue = <T,>(record: Record<string, T>, fallback: T): T => {
+  const firstKey = Object.keys(record)[0]
+  if (!firstKey) {
+    return fallback
+  }
+
+  return record[firstKey] as T
+}
+
+const isUnsafeLookupKey = (key: string) =>
+  key === '__proto__' || key === 'prototype' || key === 'constructor'
+
+const getLookupValueWithFallback = <T,>(
+  record: Record<string, T>,
+  key: string,
+  emptyFallback: T,
+  defaultFallback: T
+): T => {
+  if (!key || isUnsafeLookupKey(key)) {
+    return emptyFallback
+  }
+
+  const value = getOwnLookupValue(record, key, emptyFallback)
+  return value === emptyFallback ? defaultFallback : value
+}
+
 const getStoredFilters = (): StoredFilters => {
   if (typeof window === 'undefined') return {}
   try {
@@ -141,25 +167,45 @@ export function CentralDashboard() {
   const emptyOptions: SearchableSelectOption[] = []
   const isAdvancedEnabled = Boolean(selectedState && selectedDistrict)
   const emptyEntityPerformance: EntityPerformance[] = []
-  const districtTableData = getOwnLookupValue(
+  const defaultDistrictTableData = getFirstRecordValue(
+    mockDistrictPerformanceByState,
+    emptyEntityPerformance
+  )
+  const defaultBlockTableData = getFirstRecordValue(
+    mockBlockPerformanceByDistrict,
+    emptyEntityPerformance
+  )
+  const defaultGramPanchayatTableData = getFirstRecordValue(
+    mockGramPanchayatPerformanceByBlock,
+    emptyEntityPerformance
+  )
+  const defaultVillageTableData = getFirstRecordValue(
+    mockVillagePerformanceByGramPanchayat,
+    emptyEntityPerformance
+  )
+  const districtTableData = getLookupValueWithFallback(
     mockDistrictPerformanceByState,
     effectiveSelectedState,
-    emptyEntityPerformance
+    emptyEntityPerformance,
+    defaultDistrictTableData
   )
-  const blockTableData = getOwnLookupValue(
+  const blockTableData = getLookupValueWithFallback(
     mockBlockPerformanceByDistrict,
     effectiveSelectedDistrict,
-    emptyEntityPerformance
+    emptyEntityPerformance,
+    defaultBlockTableData
   )
-  const gramPanchayatTableData = getOwnLookupValue(
+  const gramPanchayatTableData = getLookupValueWithFallback(
     mockGramPanchayatPerformanceByBlock,
     effectiveSelectedBlock,
-    emptyEntityPerformance
+    emptyEntityPerformance,
+    defaultGramPanchayatTableData
   )
-  const villageTableData = getOwnLookupValue(
+  const villageTableData = getLookupValueWithFallback(
     mockVillagePerformanceByGramPanchayat,
     effectiveSelectedGramPanchayat,
-    emptyEntityPerformance
+    emptyEntityPerformance,
+    defaultVillageTableData
   )
   const supplySubmissionRateData = isGramPanchayatSelected
     ? villageTableData

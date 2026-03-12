@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { Button, Flex, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
@@ -6,7 +6,11 @@ import { DateRangePicker } from '@/shared/components/common'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
 import { SearchLayout } from '@/shared/components/layout'
 import { useLocationSearchQuery } from '../../services/query/use-location-search-query'
+import { useLocationChildrenQuery } from '../../services/query/use-location-children-query'
+import { useLocationHierarchyQuery } from '../../services/query/use-location-hierarchy-query'
 import { computeTrailIndices } from '../../utils/trail-index'
+import type { HierarchyType } from '../../services/api/dashboard-api'
+import type { TenantChildLocation } from '../../services/api/dashboard-api'
 
 type DashboardFiltersProps = {
   filterTabIndex: number
@@ -79,22 +83,162 @@ export function DashboardFilters(props: DashboardFiltersProps) {
 
   const [isBreadcrumbPanelOpen, setIsBreadcrumbPanelOpen] = useState(false)
   const [tenantsFetchTrigger, setTenantsFetchTrigger] = useState(0)
+  const toValueSlug = (title: string) =>
+    title
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+  type LocationOption = SearchableSelectOption & { locationId?: number }
+  const mapLocationOptions = (locations: TenantChildLocation[] | undefined): LocationOption[] => {
+    if (!locations?.length) {
+      return []
+    }
+
+    return locations
+      .filter((location) => typeof location.id === 'number' && Boolean(location.title?.trim()))
+      .map((location) => ({
+        value: toValueSlug(location.title?.trim() ?? ''),
+        label: location.title?.trim() ?? '',
+        locationId: location.id,
+      }))
+  }
   const { data: locationSearchData } = useLocationSearchQuery({
     enabled: isBreadcrumbPanelOpen,
     trigger: tenantsFetchTrigger,
   })
   const breadcrumbStateOptions = locationSearchData?.states ?? []
   const totalStatesCount = locationSearchData?.totalStatesCount ?? 0
+  const selectedTenant = breadcrumbStateOptions.find((option) => option.value === selectedState)
+  const hierarchyType: HierarchyType = filterTabIndex === 0 ? 'LGD' : 'DEPARTMENT'
+  const { data: rootLocationsData } = useLocationChildrenQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: 0,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(selectedTenant?.tenantId),
+  })
+  const rootLevelOptions = useMemo(
+    () => mapLocationOptions(rootLocationsData?.data),
+    [rootLocationsData?.data]
+  )
+  const selectedRootOption = rootLevelOptions.find((option) => option.value === selectedState)
+  const isRootStateLevel =
+    Boolean(selectedState) && rootLevelOptions.some((option) => option.value === selectedState)
+  const districtParentId = isRootStateLevel ? selectedRootOption?.locationId : undefined
+  const { data: districtLocationsData } = useLocationChildrenQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: districtParentId,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(selectedTenant?.tenantId && districtParentId),
+  })
+  const districtApiOptions = useMemo(() => {
+    if (isRootStateLevel) {
+      return mapLocationOptions(districtLocationsData?.data)
+    }
+
+    // Some tenants return districts directly at parentId=0 instead of returning state first.
+    return rootLevelOptions
+  }, [districtLocationsData?.data, isRootStateLevel, rootLevelOptions])
+  const selectedDistrictOption = districtApiOptions.find(
+    (option) => option.value === selectedDistrict
+  )
+  const { data: blockLocationsData } = useLocationChildrenQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: selectedDistrictOption?.locationId,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(selectedTenant?.tenantId && selectedDistrictOption?.locationId),
+  })
+  const blockApiOptions = useMemo(
+    () => mapLocationOptions(blockLocationsData?.data),
+    [blockLocationsData?.data]
+  )
+  const selectedBlockOption = blockApiOptions.find((option) => option.value === selectedBlock)
+  const { data: gramPanchayatLocationsData } = useLocationChildrenQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: selectedBlockOption?.locationId,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(selectedTenant?.tenantId && selectedBlockOption?.locationId),
+  })
+  const gramPanchayatApiOptions = useMemo(
+    () => mapLocationOptions(gramPanchayatLocationsData?.data),
+    [gramPanchayatLocationsData?.data]
+  )
+  const selectedGramPanchayatOption = gramPanchayatApiOptions.find(
+    (option) => option.value === selectedGramPanchayat
+  )
+  const { data: villageLocationsData } = useLocationChildrenQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: selectedGramPanchayatOption?.locationId,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(selectedTenant?.tenantId && selectedGramPanchayatOption?.locationId),
+  })
+  const villageApiOptions = useMemo(
+    () => mapLocationOptions(villageLocationsData?.data),
+    [villageLocationsData?.data]
+  )
+  const resolvedDistrictOptions =
+    districtApiOptions.length > 0 ? districtApiOptions : districtOptions
+  const resolvedBlockOptions = blockApiOptions.length > 0 ? blockApiOptions : blockOptions
+  const resolvedGramPanchayatOptions =
+    gramPanchayatApiOptions.length > 0 ? gramPanchayatApiOptions : gramPanchayatOptions
+  const resolvedVillageOptions = villageApiOptions.length > 0 ? villageApiOptions : villageOptions
+  const { data: locationHierarchyData } = useLocationHierarchyQuery({
+    tenantId: selectedTenant?.tenantId,
+    tenantCode: selectedTenant?.tenantCode,
+    hierarchyType,
+    enabled: Boolean(selectedTenant?.tenantId),
+  })
+  const hierarchyLevels = locationHierarchyData?.data?.levels ?? []
+  const hierarchyLabelByLevel = hierarchyLevels.reduce<Record<number, string>>((acc, item) => {
+    const levelNumber = typeof item.level === 'number' ? item.level : undefined
+    const levelTitle = item.levelName?.[0]?.title?.trim()
+    if (!levelNumber || !levelTitle) {
+      return acc
+    }
+    acc[levelNumber] = levelTitle
+    return acc
+  }, {})
+  const toPluralLabel = (value: string): string => {
+    const normalized = value.trim().toLowerCase()
+    if (normalized === 'state') return 'States'
+    if (normalized === 'district') return 'Districts'
+    if (normalized === 'block') return 'Blocks'
+    if (normalized === 'panchayat') return 'Panchayats'
+    if (normalized === 'village') return 'Villages'
+    if (normalized === 'sub division' || normalized === 'sub-division') return 'Sub-divisions'
+    if (value.endsWith('s')) return value
+    return `${value}s`
+  }
+  const stateLabel = toPluralLabel(
+    hierarchyLabelByLevel[1] ?? t('filters.options.states', 'States')
+  )
+  const districtLabel = toPluralLabel(
+    hierarchyLabelByLevel[2] ?? t('filters.options.districts', 'Districts')
+  )
+  const blockLabel = toPluralLabel(
+    hierarchyLabelByLevel[3] ?? t('filters.options.blocks', 'Blocks')
+  )
+  const gramPanchayatLabel = toPluralLabel(
+    hierarchyLabelByLevel[4] ?? t('filters.options.gramPanchayats', 'Gram Panchayats')
+  )
+  const villageLabel = toPluralLabel(
+    hierarchyLabelByLevel[5] ?? t('filters.options.villages', 'Villages')
+  )
   const findLabel = (value: string, options: SearchableSelectOption[]): string | null => {
     if (!value) return null
     return options.find((option) => option.value === value)?.label ?? null
   }
   const selectionTrail = [
     findLabel(selectedState, breadcrumbStateOptions),
-    findLabel(selectedDistrict, districtOptions),
-    findLabel(selectedBlock, blockOptions),
-    findLabel(selectedGramPanchayat, gramPanchayatOptions),
-    findLabel(selectedVillage, villageOptions),
+    findLabel(selectedDistrict, resolvedDistrictOptions),
+    findLabel(selectedBlock, resolvedBlockOptions),
+    findLabel(selectedGramPanchayat, resolvedGramPanchayatOptions),
+    findLabel(selectedVillage, resolvedVillageOptions),
   ].filter((item): item is string => Boolean(item))
 
   const trailSelectionValues = [
@@ -111,41 +255,51 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   const hasSelectedGramPanchayat = effectiveTrailIndex >= 3 && Boolean(selectedGramPanchayat)
   const breadcrumbPanelConfig = hasSelectedGramPanchayat
     ? {
-        options: villageOptions,
-        label: t('filters.options.villages', 'Villages'),
-        totalCount: villageOptions.length,
-        noOptionsText: t('filters.noOptions.villages', 'No villages found'),
+        options: resolvedVillageOptions,
+        label: villageLabel,
+        totalCount: resolvedVillageOptions.length,
+        noOptionsText: t('filters.noOptions.villages', {
+          defaultValue: `No ${villageLabel.toLowerCase()} found`,
+        }),
         onSelect: setSelectedVillage,
       }
     : hasSelectedBlock
       ? {
-          options: gramPanchayatOptions,
-          label: t('filters.options.gramPanchayats', 'Gram Panchayats'),
-          totalCount: gramPanchayatOptions.length,
-          noOptionsText: t('filters.noOptions.gramPanchayats', 'No gram panchayats found'),
+          options: resolvedGramPanchayatOptions,
+          label: gramPanchayatLabel,
+          totalCount: resolvedGramPanchayatOptions.length,
+          noOptionsText: t('filters.noOptions.gramPanchayats', {
+            defaultValue: `No ${gramPanchayatLabel.toLowerCase()} found`,
+          }),
           onSelect: onGramPanchayatChange,
         }
       : hasSelectedDistrict
         ? {
-            options: blockOptions,
-            label: t('filters.options.blocks', 'Blocks'),
-            totalCount: blockOptions.length,
-            noOptionsText: t('filters.noOptions.blocks', 'No blocks found'),
+            options: resolvedBlockOptions,
+            label: blockLabel,
+            totalCount: resolvedBlockOptions.length,
+            noOptionsText: t('filters.noOptions.blocks', {
+              defaultValue: `No ${blockLabel.toLowerCase()} found`,
+            }),
             onSelect: onBlockChange,
           }
         : hasSelectedState
           ? {
-              options: districtOptions,
-              label: t('filters.options.districts', 'Districts'),
-              totalCount: districtOptions.length,
-              noOptionsText: t('filters.noOptions.districts', 'No districts found'),
+              options: resolvedDistrictOptions,
+              label: districtLabel,
+              totalCount: resolvedDistrictOptions.length,
+              noOptionsText: t('filters.noOptions.districts', {
+                defaultValue: `No ${districtLabel.toLowerCase()} found`,
+              }),
               onSelect: onDistrictChange,
             }
           : {
               options: breadcrumbStateOptions,
-              label: t('filters.options.states', 'States'),
+              label: stateLabel,
               totalCount: totalStatesCount,
-              noOptionsText: t('filters.noOptions.states', 'No states found'),
+              noOptionsText: t('filters.noOptions.states', {
+                defaultValue: `No ${stateLabel.toLowerCase()} found`,
+              }),
               onSelect: onStateChange,
             }
 
