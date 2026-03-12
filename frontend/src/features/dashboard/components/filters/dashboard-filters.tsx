@@ -58,6 +58,32 @@ type DashboardFiltersProps = {
   onActiveTrailChange?: (trailIndex: number | null) => void
 }
 
+type LocationOption = SearchableSelectOption & { locationId?: number }
+
+const toValueSlug = (title: string) =>
+  title
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+
+const mapLocationOptions = (locations: TenantChildLocation[] | undefined): LocationOption[] => {
+  if (!locations?.length) {
+    return []
+  }
+
+  return locations
+    .filter((location) => typeof location.id === 'number' && Boolean(location.title?.trim()))
+    .map((location) => {
+      const normalizedTitle = toCapitalizedWords(location.title?.trim() ?? '')
+      return {
+        value: toValueSlug(normalizedTitle),
+        label: normalizedTitle,
+        locationId: location.id,
+      }
+    })
+}
+
 export function DashboardFilters(props: DashboardFiltersProps) {
   const { t } = useTranslation('dashboard')
   const {
@@ -86,29 +112,6 @@ export function DashboardFilters(props: DashboardFiltersProps) {
 
   const queryClient = useQueryClient()
   const [isBreadcrumbPanelOpen, setIsBreadcrumbPanelOpen] = useState(false)
-  const toValueSlug = (title: string) =>
-    title
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-  type LocationOption = SearchableSelectOption & { locationId?: number }
-  const mapLocationOptions = (locations: TenantChildLocation[] | undefined): LocationOption[] => {
-    if (!locations?.length) {
-      return []
-    }
-
-    return locations
-      .filter((location) => typeof location.id === 'number' && Boolean(location.title?.trim()))
-      .map((location) => {
-        const normalizedTitle = toCapitalizedWords(location.title?.trim() ?? '')
-        return {
-          value: toValueSlug(normalizedTitle),
-          label: normalizedTitle,
-          locationId: location.id,
-        }
-      })
-  }
   const { data: locationSearchData } = useLocationSearchQuery({
     enabled: isBreadcrumbPanelOpen,
   })

@@ -4,7 +4,7 @@ export const toCapitalizedWords = (value: string): string => {
     return ''
   }
 
-  return normalized.replace(/(^|[\s\-/'(])([a-z])/g, (_, prefix: string, letter: string) => {
+  return normalized.replace(/(^|[\s\-/'(])(\p{L})/gu, (_, prefix: string, letter: string) => {
     return `${prefix}${letter.toUpperCase()}`
   })
 }
