@@ -59,6 +59,38 @@ type DashboardFiltersProps = {
 }
 
 type LocationOption = SearchableSelectOption & { locationId?: number }
+const LOCATION_VALUE_SEPARATOR = ':'
+
+const toStableLocationValue = (locationId: number, label: string): string =>
+  `${locationId}${LOCATION_VALUE_SEPARATOR}${slugify(label)}`
+
+const parseLocationId = (value: string): number | undefined => {
+  if (!value) {
+    return undefined
+  }
+
+  const idPrefix = value.split(LOCATION_VALUE_SEPARATOR, 1)[0]
+  const parsedId = Number.parseInt(idPrefix, 10)
+  return Number.isFinite(parsedId) ? parsedId : undefined
+}
+
+const findLocationOption = (
+  options: LocationOption[],
+  selectedValue: string
+): LocationOption | undefined => {
+  if (!selectedValue) {
+    return undefined
+  }
+
+  const selectedId = parseLocationId(selectedValue)
+  if (typeof selectedId === 'number') {
+    return options.find((option) => option.locationId === selectedId)
+  }
+
+  return options.find(
+    (option) => option.value === selectedValue || slugify(option.label) === selectedValue
+  )
+}
 
 const mapLocationOptions = (locations: TenantChildLocation[] | undefined): LocationOption[] => {
   if (!locations?.length) {
@@ -68,11 +100,12 @@ const mapLocationOptions = (locations: TenantChildLocation[] | undefined): Locat
   return locations
     .filter((location) => typeof location.id === 'number' && Boolean(location.title?.trim()))
     .map((location) => {
+      const locationId = location.id as number
       const normalizedTitle = toCapitalizedWords(location.title?.trim() ?? '')
       return {
-        value: slugify(normalizedTitle),
+        value: toStableLocationValue(locationId, normalizedTitle),
         label: normalizedTitle,
-        locationId: location.id,
+        locationId,
       }
     })
 }
@@ -123,9 +156,8 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     () => mapLocationOptions(rootLocationsData?.data),
     [rootLocationsData?.data]
   )
-  const selectedRootOption = rootLevelOptions.find((option) => option.value === selectedState)
-  const isRootStateLevel =
-    Boolean(selectedState) && rootLevelOptions.some((option) => option.value === selectedState)
+  const selectedRootOption = findLocationOption(rootLevelOptions, selectedState)
+  const isRootStateLevel = Boolean(selectedState) && Boolean(selectedRootOption)
   const districtParentId = isRootStateLevel ? selectedRootOption?.locationId : undefined
   const { data: districtLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
@@ -142,47 +174,50 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     // Some tenants return districts directly at parentId=0 instead of returning state first.
     return rootLevelOptions
   }, [districtLocationsData?.data, isRootStateLevel, rootLevelOptions])
-  const selectedDistrictOption = districtApiOptions.find(
-    (option) => option.value === selectedDistrict
-  )
+  const selectedDistrictOption = findLocationOption(districtApiOptions, selectedDistrict)
+  const selectedDistrictId = parseLocationId(selectedDistrict) ?? selectedDistrictOption?.locationId
   const { data: blockLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
-    parentId: selectedDistrictOption?.locationId,
+    parentId: selectedDistrictId,
     tenantCode: selectedTenant?.tenantCode,
-    enabled: Boolean(selectedTenant?.tenantId && selectedDistrictOption?.locationId),
+    enabled: Boolean(selectedTenant?.tenantId && selectedDistrictId),
   })
   const blockApiOptions = useMemo(
     () => mapLocationOptions(blockLocationsData?.data),
     [blockLocationsData?.data]
   )
-  const selectedBlockOption = blockApiOptions.find((option) => option.value === selectedBlock)
+  const selectedBlockOption = findLocationOption(blockApiOptions, selectedBlock)
+  const selectedBlockId = parseLocationId(selectedBlock) ?? selectedBlockOption?.locationId
   const { data: gramPanchayatLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
-    parentId: selectedBlockOption?.locationId,
+    parentId: selectedBlockId,
     tenantCode: selectedTenant?.tenantCode,
-    enabled: Boolean(selectedTenant?.tenantId && selectedBlockOption?.locationId),
+    enabled: Boolean(selectedTenant?.tenantId && selectedBlockId),
   })
   const gramPanchayatApiOptions = useMemo(
     () => mapLocationOptions(gramPanchayatLocationsData?.data),
     [gramPanchayatLocationsData?.data]
   )
-  const selectedGramPanchayatOption = gramPanchayatApiOptions.find(
-    (option) => option.value === selectedGramPanchayat
+  const selectedGramPanchayatOption = findLocationOption(
+    gramPanchayatApiOptions,
+    selectedGramPanchayat
   )
+  const selectedGramPanchayatId =
+    parseLocationId(selectedGramPanchayat) ?? selectedGramPanchayatOption?.locationId
   const { data: villageLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
-    parentId: selectedGramPanchayatOption?.locationId,
+    parentId: selectedGramPanchayatId,
     tenantCode: selectedTenant?.tenantCode,
-    enabled: Boolean(selectedTenant?.tenantId && selectedGramPanchayatOption?.locationId),
+    enabled: Boolean(selectedTenant?.tenantId && selectedGramPanchayatId),
   })
   const villageApiOptions = useMemo(
     () => mapLocationOptions(villageLocationsData?.data),
     [villageLocationsData?.data]
   )
-  const hasSelectedTenant = Boolean(selectedTenant)
+  const hasSelectedTenant = Boolean(selectedTenant?.tenantId)
   const resolvedDistrictOptions = hasSelectedTenant
     ? districtApiOptions
     : districtApiOptions.length > 0
@@ -247,7 +282,10 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   )
   const findLabel = (value: string, options: SearchableSelectOption[]): string | null => {
     if (!value) return null
-    return options.find((option) => option.value === value)?.label ?? null
+    return (
+      options.find((option) => option.value === value || slugify(option.label) === value)?.label ??
+      null
+    )
   }
   const selectionTrail = [
     findLabel(selectedState, breadcrumbStateOptions),
