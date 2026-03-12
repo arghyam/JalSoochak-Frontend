@@ -9,6 +9,7 @@ import { useLocationSearchQuery } from '../../services/query/use-location-search
 import { useLocationChildrenQuery } from '../../services/query/use-location-children-query'
 import { useLocationHierarchyQuery } from '../../services/query/use-location-hierarchy-query'
 import { computeTrailIndices } from '../../utils/trail-index'
+import { toCapitalizedWords } from '../../utils/format-location-label'
 import type { HierarchyType } from '../../services/api/dashboard-api'
 import type { TenantChildLocation } from '../../services/api/dashboard-api'
 
@@ -97,11 +98,14 @@ export function DashboardFilters(props: DashboardFiltersProps) {
 
     return locations
       .filter((location) => typeof location.id === 'number' && Boolean(location.title?.trim()))
-      .map((location) => ({
-        value: toValueSlug(location.title?.trim() ?? ''),
-        label: location.title?.trim() ?? '',
-        locationId: location.id,
-      }))
+      .map((location) => {
+        const normalizedTitle = toCapitalizedWords(location.title?.trim() ?? '')
+        return {
+          value: toValueSlug(normalizedTitle),
+          label: normalizedTitle,
+          locationId: location.id,
+        }
+      })
   }
   const { data: locationSearchData } = useLocationSearchQuery({
     enabled: isBreadcrumbPanelOpen,
@@ -196,7 +200,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   const hierarchyLevels = locationHierarchyData?.data?.levels ?? []
   const hierarchyLabelByLevel = hierarchyLevels.reduce<Record<number, string>>((acc, item) => {
     const levelNumber = typeof item.level === 'number' ? item.level : undefined
-    const levelTitle = item.levelName?.[0]?.title?.trim()
+    const levelTitle = toCapitalizedWords(item.levelName?.[0]?.title?.trim() ?? '')
     if (!levelNumber || !levelTitle) {
       return acc
     }

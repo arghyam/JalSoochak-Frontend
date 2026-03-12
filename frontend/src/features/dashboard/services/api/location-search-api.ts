@@ -1,6 +1,7 @@
 import type { StateUtSearchResponse } from '../../types'
 import { dashboardApi } from './dashboard-api'
 import type { TenantListContainer, TenantListItem, TenantListResponse } from './dashboard-api'
+import { toCapitalizedWords } from '../../utils/format-location-label'
 
 const toTenantListContainer = (value: unknown): TenantListContainer | null => {
   if (!value || typeof value !== 'object') {
@@ -35,9 +36,10 @@ export const locationSearchApi = {
     const content = resolved?.content ?? []
     const filteredTenants = content.filter((tenant: TenantListItem) => tenant.id !== 0)
     const states = filteredTenants.map((tenant: TenantListItem) => {
+      const normalizedTenantName = toCapitalizedWords(tenant.name)
       const option = {
-        value: toStateValue(tenant.name),
-        label: tenant.name,
+        value: toStateValue(normalizedTenantName),
+        label: normalizedTenantName,
       } as {
         value: string
         label: string
