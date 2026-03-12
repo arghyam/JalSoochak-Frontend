@@ -308,6 +308,8 @@ export function SearchLayout({
                   color="neutral.500"
                   fontWeight="400"
                   onClick={() => handleTrailSelect(index)}
+                  _hover={{ color: 'primary.500' }}
+                  _active={{ color: 'primary.500' }}
                   aria-label={t('searchLayout.aria.breadcrumb', {
                     item,
                     defaultValue: `Breadcrumb: ${item}`,
@@ -397,6 +399,8 @@ export function SearchLayout({
                 textStyle="bodyText4"
                 color="neutral.500"
                 fontWeight="400"
+                _hover={{ color: 'primary.500' }}
+                _active={{ color: 'primary.500' }}
                 aria-label={t('searchLayout.aria.breadcrumb', {
                   item: t('searchLayout.allStatesUTs', 'All States/UTs'),
                   defaultValue: 'Breadcrumb: All States/UTs',
@@ -420,6 +424,12 @@ export function SearchLayout({
                     textStyle="bodyText4"
                     color={index === effectiveActiveTrailIndex ? 'neutral.800' : 'neutral.500'}
                     fontWeight={index === effectiveActiveTrailIndex ? '500' : '400'}
+                    _hover={{
+                      color: index === effectiveActiveTrailIndex ? 'neutral.800' : 'primary.500',
+                    }}
+                    _active={{
+                      color: index === effectiveActiveTrailIndex ? 'neutral.800' : 'primary.500',
+                    }}
                     aria-current={index === effectiveActiveTrailIndex ? 'page' : undefined}
                     aria-label={t('searchLayout.aria.breadcrumb', {
                       item,
@@ -449,8 +459,8 @@ export function SearchLayout({
                   h="auto"
                   fontSize="14px"
                   onClick={() => handleStateSelect(state.value)}
-                  _hover={{ bg: 'transparent' }}
-                  _active={{ bg: 'transparent' }}
+                  _hover={{ bg: 'transparent', color: 'primary.500' }}
+                  _active={{ bg: 'transparent', color: 'primary.500' }}
                 >
                   {state.label}
                 </Button>
