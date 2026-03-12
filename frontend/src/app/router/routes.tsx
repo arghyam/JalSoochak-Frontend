@@ -25,6 +25,7 @@ import {
   WaterNormsPage,
   EscalationsFormPage,
   NudgesTemplatePage,
+  MessageTemplatesPage,
   StaffSyncPage,
   StateUTAdminsPage,
   StateUTAdminFormPage,
@@ -221,6 +222,10 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.STATE_ADMIN_NUDGES,
         element: <NudgesTemplatePage />,
+      },
+      {
+        path: ROUTES.STATE_ADMIN_TEMPLATES,
+        element: <MessageTemplatesPage />,
       },
       {
         path: ROUTES.STATE_ADMIN_API_INGESTION,

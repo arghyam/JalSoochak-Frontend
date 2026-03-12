@@ -383,6 +383,35 @@
     }
   },
 
+  "messageTemplates": {
+    "title": "टेम्पलेट",
+    "selectLanguage": "भाषा चुनें",
+    "selectTemplate": "टेम्पलेट चुनें",
+    "language": "भाषा",
+    "template": "टेम्पलेट",
+    "prompt": "प्रॉम्प्ट",
+    "message": "संदेश",
+    "confirmationTemplate": "पुष्टि संदेश",
+    "options": "विकल्प",
+    "reasons": "कारण",
+    "noContent": "इस चयन के लिए कोई सामग्री उपलब्ध नहीं है",
+    "screens": {
+      "ISSUE_REPORT": "समस्या रिपोर्ट",
+      "INTRO_MESSAGE": "परिचय संदेश",
+      "ITEM_SELECTION": "आइटम चयन",
+      "CLOSING_MESSAGE": "समापन संदेश",
+      "CHANNEL_SELECTION": "चैनल चयन",
+      "LANGUAGE_SELECTION": "भाषा चयन"
+    },
+    "messages": {
+      "failedToLoad": "संदेश टेम्पलेट लोड करने में विफल"
+    },
+    "aria": {
+      "selectLanguage": "भाषा चुनें",
+      "selectTemplate": "टेम्पलेट चुनें"
+    }
+  },
+
   "nudges": {
     "title": "नज टेम्पलेट",
     "language": "भाषा",

@@ -11,6 +11,7 @@ import {
   getMockEscalationRules,
   getMockIntegrationConfiguration,
   getMockLanguageConfiguration,
+  getMockMessageTemplates,
   getMockNudgeTemplates,
   getMockOverviewData,
   getMockStaffSyncData,
@@ -39,6 +40,7 @@ import type {
 } from '../../types/escalation-rules'
 import type { IntegrationConfiguration } from '../../types/integration'
 import type { LanguageConfiguration } from '../../types/language'
+import type { MessageTemplatesData } from '../../types/message-templates'
 import type { NudgeTemplate } from '../../types/nudges'
 import type { OverviewData } from '../../types/overview'
 import type {
@@ -54,6 +56,7 @@ import {
   mapApiConfigToEscalationRules,
   mapApiConfigToIntegrationConfiguration,
   mapApiConfigToLanguageConfiguration,
+  mapApiConfigToMessageTemplates,
   mapApiConfigToWaterNormsConfiguration,
   mapConfigurationDataToApiConfig,
   mapEscalationRulesToApiConfig,
@@ -98,6 +101,7 @@ type StateAdminDataProvider = {
   saveThresholdConfiguration: (
     payload: SaveThresholdConfigurationPayload
   ) => Promise<ThresholdConfiguration>
+  getMessageTemplates: () => Promise<MessageTemplatesData>
   getNudgeTemplates: () => Promise<NudgeTemplate[]>
   updateNudgeTemplate: (id: string, payload: UpdateNudgeTemplatePayload) => Promise<NudgeTemplate>
   getConfiguration: () => Promise<ConfigurationData>
@@ -242,6 +246,15 @@ const httpProvider: StateAdminDataProvider = {
     )
     return response.data
   },
+  getMessageTemplates: async () => {
+    const tenantId = getTenantId()
+    const response = await apiClient.get<{ configs: Record<string, unknown> }>(
+      `${TENANT_CONFIG_BASE(tenantId)}?keys=GLIFIC_MESSAGE_TEMPLATES,SUPPORTED_LANGUAGES`
+    )
+    return mapApiConfigToMessageTemplates(
+      response.data.configs as Parameters<typeof mapApiConfigToMessageTemplates>[0]
+    )
+  },
   getNudgeTemplates: async () => {
     const response = await apiClient.get<NudgeTemplate[]>('/api/state-admin/nudge-templates')
     return response.data
@@ -337,6 +350,7 @@ const mockProvider: StateAdminDataProvider = {
   deleteEscalation: (id) => deleteMockEscalation(id),
   getThresholdConfiguration: () => getMockThresholdConfiguration(),
   saveThresholdConfiguration: (payload) => saveMockThresholdConfiguration(payload),
+  getMessageTemplates: () => getMockMessageTemplates(),
   getNudgeTemplates: () => getMockNudgeTemplates(),
   updateNudgeTemplate: (id, payload) => updateMockNudgeTemplate(id, payload),
   getConfiguration: () => getMockConfigurationData(),
@@ -376,6 +390,7 @@ export const stateAdminApi = {
   getThresholdConfiguration: () => provider.getThresholdConfiguration(),
   saveThresholdConfiguration: (payload: SaveThresholdConfigurationPayload) =>
     provider.saveThresholdConfiguration(payload),
+  getMessageTemplates: () => provider.getMessageTemplates(),
   getNudgeTemplates: () => provider.getNudgeTemplates(),
   updateNudgeTemplate: (id: string, payload: UpdateNudgeTemplatePayload) =>
     provider.updateNudgeTemplate(id, payload),

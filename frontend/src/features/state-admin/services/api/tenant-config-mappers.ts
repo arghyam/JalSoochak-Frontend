@@ -11,6 +11,8 @@
 
 import type { IntegrationConfiguration } from '../../types/integration'
 import type { ConfigurationData, MeterChangeReason } from '../../types/configuration'
+import type { MessageTemplatesData, ScreenContent, ScreenName } from '../../types/message-templates'
+import { SCREEN_NAMES } from '../../types/message-templates'
 import {
   CHANNEL_CODE_TO_NAME,
   CHANNEL_NAME_TO_CODE,
@@ -64,6 +66,19 @@ export interface TenantConfigMap {
   TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD?: { lowerThreshold: number; upperThreshold: number } // TODO: verify field names
   FIELD_STAFF_ESCALATION_RULES?: ApiEscalationRules
   MESSAGE_BROKER_CONNECTION_SETTINGS?: { apiUrl: string; apiKey: string; organizationId: string }
+  GLIFIC_MESSAGE_TEMPLATES?: {
+    version: number
+    screens: Record<
+      string,
+      {
+        prompt: Record<string, string | null> | null
+        options: Record<string, { order: number; label: Record<string, string | null> }> | null
+        reasons: Record<string, { order: number; label: Record<string, string | null> }> | null
+        confirmationTemplate: Record<string, string | null> | null
+        message: Record<string, string | null> | null
+      }
+    >
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -298,4 +313,35 @@ export function mapIntegrationConfigToApiConfig(
       organizationId: payload.organizationId as string,
     },
   }
+}
+
+// ---------------------------------------------------------------------------
+// Message templates mapper
+// ---------------------------------------------------------------------------
+
+export function mapApiConfigToMessageTemplates(configs: TenantConfigMap): MessageTemplatesData {
+  const raw = configs.GLIFIC_MESSAGE_TEMPLATES
+  const supportedLanguages = configs.SUPPORTED_LANGUAGES?.languages ?? []
+
+  if (!raw?.screens) {
+    return { screens: {}, supportedLanguages }
+  }
+
+  const screens: Partial<Record<ScreenName, ScreenContent>> = {}
+
+  for (const key of SCREEN_NAMES) {
+    const rawScreen = raw.screens[key]
+    if (!rawScreen) continue
+
+    screens[key] = {
+      prompt: (rawScreen.prompt as ScreenContent['prompt']) ?? null,
+      options: rawScreen.options ? (rawScreen.options as ScreenContent['options']) : null,
+      reasons: rawScreen.reasons ? (rawScreen.reasons as ScreenContent['reasons']) : null,
+      confirmationTemplate:
+        (rawScreen.confirmationTemplate as ScreenContent['confirmationTemplate']) ?? null,
+      message: (rawScreen.message as ScreenContent['message']) ?? null,
+    }
+  }
+
+  return { screens, supportedLanguages }
 }

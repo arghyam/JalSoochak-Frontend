@@ -138,6 +138,13 @@ export function useSaveThresholdConfigurationMutation() {
   })
 }
 
+export function useMessageTemplatesQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.messageTemplates(),
+    queryFn: stateAdminApi.getMessageTemplates,
+  })
+}
+
 export function useNudgeTemplatesQuery() {
   return useQuery({
     queryKey: stateAdminQueryKeys.nudgeTemplates(),

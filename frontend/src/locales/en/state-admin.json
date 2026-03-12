@@ -383,6 +383,35 @@
     }
   },
 
+  "messageTemplates": {
+    "title": "Templates",
+    "selectLanguage": "Select language",
+    "selectTemplate": "Select template",
+    "language": "Language",
+    "template": "Template",
+    "prompt": "Prompt",
+    "message": "Message",
+    "confirmationTemplate": "Confirmation Message",
+    "options": "Options",
+    "reasons": "Reasons",
+    "noContent": "No content available for this selection",
+    "screens": {
+      "ISSUE_REPORT": "Issue Report",
+      "INTRO_MESSAGE": "Intro Message",
+      "ITEM_SELECTION": "Item Selection",
+      "CLOSING_MESSAGE": "Closing Message",
+      "CHANNEL_SELECTION": "Channel Selection",
+      "LANGUAGE_SELECTION": "Language Selection"
+    },
+    "messages": {
+      "failedToLoad": "Failed to load message templates"
+    },
+    "aria": {
+      "selectLanguage": "Select language",
+      "selectTemplate": "Select template"
+    }
+  },
+
   "nudges": {
     "title": "Nudges Template",
     "language": "Language",

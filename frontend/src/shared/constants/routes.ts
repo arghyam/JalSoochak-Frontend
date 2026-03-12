@@ -25,6 +25,7 @@ export const ROUTES = {
   STATE_ADMIN_ESCALATIONS: '/state-admin/escalations',
   STATE_ADMIN_THRESHOLDS: '/state-admin/thresholds',
   STATE_ADMIN_NUDGES: '/state-admin/nudges-template',
+  STATE_ADMIN_TEMPLATES: '/state-admin/templates',
   STATE_ADMIN_API_INGESTION: '/state-admin/api-ingestion',
   STATE_ADMIN_OPERATOR_SYNC: '/state-admin/operator-sync',
   STATE_ADMIN_STAFF_SYNC: '/state-admin/staff-sync',

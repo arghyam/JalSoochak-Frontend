@@ -9,6 +9,7 @@ export const stateAdminQueryKeys = {
   escalations: () => [...stateAdminQueryKeys.all, 'escalations'] as const,
   escalationById: (id: string) => [...stateAdminQueryKeys.escalations(), id] as const,
   thresholdConfiguration: () => [...stateAdminQueryKeys.all, 'threshold-configuration'] as const,
+  messageTemplates: () => [...stateAdminQueryKeys.all, 'message-templates'] as const,
   nudgeTemplates: () => [...stateAdminQueryKeys.all, 'nudge-templates'] as const,
   staffSync: () => [...stateAdminQueryKeys.all, 'staff-sync'] as const,
   configuration: () => [...stateAdminQueryKeys.all, 'configuration'] as const,

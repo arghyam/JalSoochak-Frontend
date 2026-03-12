@@ -102,8 +102,8 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
   },
   {
     type: 'simple',
-    path: ROUTES.STATE_ADMIN_NUDGES,
-    labelKey: 'sidebar.nudgesTemplate',
+    path: ROUTES.STATE_ADMIN_TEMPLATES,
+    labelKey: 'sidebar.templates',
     roles: [AUTH_ROLES.STATE_ADMIN],
     icon: 'HiOutlineTemplate',
   },
