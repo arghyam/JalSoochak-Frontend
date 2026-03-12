@@ -1,7 +1,7 @@
 import type { StateUtSearchResponse } from '../../types'
 import { dashboardApi } from './dashboard-api'
 import type { TenantListContainer, TenantListItem, TenantListResponse } from './dashboard-api'
-import { toCapitalizedWords } from '../../utils/format-location-label'
+import { slugify, toCapitalizedWords } from '../../utils/format-location-label'
 
 const toTenantListContainer = (value: unknown): TenantListContainer | null => {
   if (!value || typeof value !== 'object') {
@@ -15,13 +15,6 @@ const toTenantListContainer = (value: unknown): TenantListContainer | null => {
       typeof candidate.totalElements === 'number' ? candidate.totalElements : undefined,
   }
 }
-
-const toStateValue = (stateName: string) =>
-  stateName
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
 
 export const locationSearchApi = {
   getStatesUts: async (): Promise<StateUtSearchResponse> => {
@@ -38,7 +31,7 @@ export const locationSearchApi = {
     const states = filteredTenants.map((tenant: TenantListItem) => {
       const normalizedTenantName = toCapitalizedWords(tenant.name)
       const option = {
-        value: toStateValue(normalizedTenantName),
+        value: slugify(tenant.name),
         label: normalizedTenantName,
       } as {
         value: string

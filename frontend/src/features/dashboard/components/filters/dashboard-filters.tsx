@@ -11,7 +11,7 @@ import { useLocationChildrenQuery } from '../../services/query/use-location-chil
 import { useLocationHierarchyQuery } from '../../services/query/use-location-hierarchy-query'
 import { locationSearchQueryKeys } from '../../services/query/location-search-query-keys'
 import { computeTrailIndices } from '../../utils/trail-index'
-import { toCapitalizedWords } from '../../utils/format-location-label'
+import { slugify, toCapitalizedWords } from '../../utils/format-location-label'
 import type { HierarchyType } from '../../services/api/dashboard-api'
 import type { TenantChildLocation } from '../../services/api/dashboard-api'
 
@@ -60,13 +60,6 @@ type DashboardFiltersProps = {
 
 type LocationOption = SearchableSelectOption & { locationId?: number }
 
-const toValueSlug = (title: string) =>
-  title
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-
 const mapLocationOptions = (locations: TenantChildLocation[] | undefined): LocationOption[] => {
   if (!locations?.length) {
     return []
@@ -77,7 +70,7 @@ const mapLocationOptions = (locations: TenantChildLocation[] | undefined): Locat
     .map((location) => {
       const normalizedTitle = toCapitalizedWords(location.title?.trim() ?? '')
       return {
-        value: toValueSlug(normalizedTitle),
+        value: slugify(normalizedTitle),
         label: normalizedTitle,
         locationId: location.id,
       }
