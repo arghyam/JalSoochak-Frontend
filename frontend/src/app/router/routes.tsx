@@ -15,6 +15,7 @@ import {
   SuperUsersPage,
   SuperUserFormPage,
   ViewSuperUserPage,
+  SystemConfigPage,
 } from '@/features/super-admin'
 import {
   OverviewPage,
@@ -138,6 +139,10 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.SUPER_ADMIN_SYSTEM_RULES,
         element: <SystemRulesPage />,
+      },
+      {
+        path: ROUTES.SUPER_ADMIN_CONFIGURATION,
+        element: <SystemConfigPage />,
       },
       {
         path: ROUTES.SUPER_ADMIN_STATES_UTS,

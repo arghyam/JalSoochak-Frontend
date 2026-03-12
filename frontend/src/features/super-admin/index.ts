@@ -10,3 +10,4 @@ export { IngestionMonitorPage } from './components/ingestion-monitor/ingestion-m
 export { SuperUsersPage } from './components/super-users/super-users-page'
 export { SuperUserFormPage } from './components/super-users/super-user-form-page'
 export { ViewSuperUserPage } from './components/super-users/view-super-user-page'
+export { SystemConfigPage } from './components/configuration/system-config-page'

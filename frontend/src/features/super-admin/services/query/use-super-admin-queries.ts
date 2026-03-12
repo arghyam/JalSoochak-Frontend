@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { superAdminApi, type SaveSystemRulesPayload } from '../api/super-admin-api'
 import { superAdminQueryKeys } from './super-admin-query-keys'
+import type { SaveSystemConfigPayload } from '../../types/system-config'
 import type {
   CreateStateUTInput,
   StateUTStatus,
@@ -215,6 +216,24 @@ export function useUpdateSuperUserStatusMutation() {
       await queryClient.invalidateQueries({
         queryKey: superAdminQueryKeys.superUserById(variables.id),
       })
+    },
+  })
+}
+
+export function useSystemConfigurationQuery() {
+  return useQuery({
+    queryKey: superAdminQueryKeys.systemConfiguration(),
+    queryFn: superAdminApi.getSystemConfiguration,
+  })
+}
+
+export function useSaveSystemConfigurationMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: SaveSystemConfigPayload) =>
+      superAdminApi.saveSystemConfiguration(payload),
+    onSuccess: (data) => {
+      queryClient.setQueryData(superAdminQueryKeys.systemConfiguration(), data)
     },
   })
 }

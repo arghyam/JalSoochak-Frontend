@@ -23,6 +23,8 @@ import {
   sendApiKey,
   updateStateUT,
   updateStateUTStatus,
+  getMockSystemConfiguration,
+  saveMockSystemConfiguration,
 } from '../mock-data'
 import type { ApiCredentialsData } from '../../types/api-credentials'
 import type { IngestionMonitorData } from '../../types/ingestion-monitor'
@@ -41,6 +43,11 @@ import type { CreateTenantInput, CreateTenantResponse } from '../../types/tenant
 import type { SystemRulesConfiguration } from '../../types/system-rules'
 import type { StateAdmin } from '../../types/state-admins'
 import type { SuperUser, CreateSuperUserInput, UpdateSuperUserInput } from '../../types/super-users'
+import type { SystemConfiguration, SaveSystemConfigPayload } from '../../types/system-config'
+import {
+  mapApiResponseToSystemConfig,
+  mapSystemConfigToApiPayload,
+} from '../../types/system-config'
 
 export type SaveSystemRulesPayload = Omit<SystemRulesConfiguration, 'id'>
 export type IngestionMonitorFilters = {
@@ -48,12 +55,21 @@ export type IngestionMonitorFilters = {
   timeFilter?: string
 }
 
+const SYSTEM_CONFIG_KEYS = [
+  'SYSTEM_SUPPORTED_CHANNELS',
+  'WATER_QUANTITY_SUPPLY_THRESHOLD',
+  'BFM_IMAGE_READING_CONFIDENCE_LEVEL_THRESHOLD',
+  'LOCATION_AFFINITY_THRESHOLD',
+].join(',')
+
 type SuperAdminDataProvider = {
   getOverviewData: () => Promise<SuperAdminOverviewData>
   getSystemRulesConfiguration: () => Promise<SystemRulesConfiguration>
   saveSystemRulesConfiguration: (
     payload: SaveSystemRulesPayload
   ) => Promise<SystemRulesConfiguration>
+  getSystemConfiguration: () => Promise<SystemConfiguration>
+  saveSystemConfiguration: (payload: SaveSystemConfigPayload) => Promise<SystemConfiguration>
   getIngestionMonitorData: (filters?: IngestionMonitorFilters) => Promise<IngestionMonitorData>
   getApiCredentialsData: () => Promise<ApiCredentialsData>
   generateApiKey: (stateId: string) => Promise<string>
@@ -95,6 +111,24 @@ const httpProvider: SuperAdminDataProvider = {
       payload
     )
     return response.data
+  },
+  getSystemConfiguration: async () => {
+    const response = await apiClient.get<{ data: { configs: Record<string, unknown> } }>(
+      `/api/v1/system/config?keys=${SYSTEM_CONFIG_KEYS}`
+    )
+    return mapApiResponseToSystemConfig(
+      response.data.data.configs as Parameters<typeof mapApiResponseToSystemConfig>[0]
+    )
+  },
+  saveSystemConfiguration: async (payload) => {
+    const body = mapSystemConfigToApiPayload(payload)
+    const response = await apiClient.put<{ data: { configs: Record<string, unknown> } }>(
+      '/api/v1/system/config',
+      body
+    )
+    return mapApiResponseToSystemConfig(
+      response.data.data.configs as Parameters<typeof mapApiResponseToSystemConfig>[0]
+    )
   },
   getIngestionMonitorData: async (filters) => {
     const response = await apiClient.get<IngestionMonitorData>(
@@ -216,6 +250,8 @@ const mockProvider: SuperAdminDataProvider = {
   getOverviewData: () => getMockSuperAdminOverviewData(),
   getSystemRulesConfiguration: () => getMockSystemRulesConfiguration(),
   saveSystemRulesConfiguration: (payload) => saveMockSystemRulesConfiguration(payload),
+  getSystemConfiguration: () => getMockSystemConfiguration(),
+  saveSystemConfiguration: (payload) => saveMockSystemConfiguration(payload),
   getIngestionMonitorData: (_filters) => getMockIngestionMonitorData(),
   getApiCredentialsData: () => getMockApiCredentialsData(),
   generateApiKey: (stateId) => generateApiKey(stateId),
@@ -247,6 +283,9 @@ export const superAdminApi = {
   getSystemRulesConfiguration: () => provider.getSystemRulesConfiguration(),
   saveSystemRulesConfiguration: (payload: SaveSystemRulesPayload) =>
     provider.saveSystemRulesConfiguration(payload),
+  getSystemConfiguration: () => provider.getSystemConfiguration(),
+  saveSystemConfiguration: (payload: SaveSystemConfigPayload) =>
+    provider.saveSystemConfiguration(payload),
   getIngestionMonitorData: (filters?: IngestionMonitorFilters) =>
     provider.getIngestionMonitorData(filters),
   getApiCredentialsData: () => provider.getApiCredentialsData(),

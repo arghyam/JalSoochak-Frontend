@@ -13,10 +13,10 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
   },
   {
     type: 'simple',
-    path: ROUTES.SUPER_ADMIN_SYSTEM_RULES,
-    labelKey: 'sidebar.systemRules',
+    path: ROUTES.SUPER_ADMIN_CONFIGURATION,
+    labelKey: 'sidebar.configuration',
     roles: [AUTH_ROLES.SUPER_ADMIN],
-    icon: 'AiOutlineSetting',
+    icon: 'IoSettingsOutline',
   },
   {
     type: 'expandable',

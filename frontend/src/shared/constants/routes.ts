@@ -15,6 +15,7 @@ export const ROUTES = {
   SUPER_ADMIN_SUPER_USERS_EDIT: '/super-admin/super-users/:id/edit',
   SUPER_ADMIN_API_CREDENTIALS: '/super-admin/api-credentials',
   SUPER_ADMIN_INGESTION_MONITOR: '/super-admin/ingestion-monitor',
+  SUPER_ADMIN_CONFIGURATION: '/super-admin/configuration',
   // State Admin routes
   STATE_ADMIN: '/state-admin',
   STATE_ADMIN_OVERVIEW: '/state-admin',
