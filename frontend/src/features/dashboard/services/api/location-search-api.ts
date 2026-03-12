@@ -25,7 +25,11 @@ export const locationSearchApi = {
         ? toTenantListContainer((responsePayload.data as { data?: unknown }).data)
         : null
     const dataLevel = toTenantListContainer(responsePayload?.data)
-    const resolved = secondLevel ?? dataLevel ?? firstLevel
+    const containers = [secondLevel, dataLevel, firstLevel]
+    const resolvedWithContent = containers.find(
+      (container) => Array.isArray(container?.content) && container.content.length > 0
+    )
+    const resolved = resolvedWithContent ?? secondLevel ?? dataLevel ?? firstLevel
     const content = resolved?.content ?? []
     const filteredTenants = content.filter((tenant: TenantListItem) => tenant.id !== 0)
     const states = filteredTenants.map((tenant: TenantListItem) => {

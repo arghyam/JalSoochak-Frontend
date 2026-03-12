@@ -19,4 +19,11 @@ describe('slugify', () => {
     expect(slugify('Ranga Reddy')).toBe('ranga-reddy')
     expect(slugify('North/East (Zone)')).toBe('north-east-zone')
   })
+
+  it('preserves Unicode letters and numbers in non-empty stable slugs', () => {
+    expect(slugify('São Tomé')).toBe('são-tomé')
+    expect(slugify('São Tomé')).not.toBe('')
+    expect(slugify('Niño')).toBe('niño')
+    expect(slugify('Niño')).not.toBe('')
+  })
 })

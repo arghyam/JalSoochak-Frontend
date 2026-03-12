@@ -76,6 +76,28 @@ describe('locationSearchApi', () => {
     })
   })
 
+  it('prefers container with non-empty content over earlier empty container', async () => {
+    const apiResponse = {
+      data: {
+        data: {
+          content: [],
+          totalElements: 0,
+        },
+        content: [{ id: 16, uuid: 'tenant-16', name: 'Telangana', status: 'ACTIVE' }],
+        totalElements: 1,
+      },
+    }
+    mockGetTenants.mockImplementation(async () => apiResponse)
+
+    const { locationSearchApi } = await import('./location-search-api')
+    const response = await locationSearchApi.getStatesUts()
+
+    expect(response).toEqual({
+      totalStatesCount: 1,
+      states: [{ value: 'telangana', label: 'Telangana', tenantId: 16 }],
+    })
+  })
+
   it('excludes tenant with id 0 from states list', async () => {
     const apiResponse = {
       data: {
