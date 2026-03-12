@@ -340,13 +340,13 @@ export function SearchLayout({
           mt="16px"
           width="798px"
           maxW="100%"
-          height="375px"
+          minH="375px"
           borderRadius="12px"
           border="1px solid"
           borderColor="neutral.200"
           bg="white"
           zIndex={10}
-          overflowY="auto"
+          overflow="hidden"
           boxShadow="0px 8px 24px rgba(0, 0, 0, 0.08)"
         >
           <IconButton
@@ -456,7 +456,22 @@ export function SearchLayout({
             <Text textStyle="bodyText5" fontWeight="500" color="neutral.950" mb="8px">
               {panelOptionsLabel} ({panelOptionsCount})
             </Text>
-            <Flex direction="column" gap="8px">
+            <Box
+              display="grid"
+              gridTemplateColumns={{
+                base: 'repeat(2, minmax(0, 1fr))',
+                md: 'repeat(3, minmax(0, 1fr))',
+                lg: 'repeat(5, minmax(0, 1fr))',
+              }}
+              gridTemplateRows={{ lg: 'repeat(15, minmax(20px, auto))' }}
+              gridAutoFlow={{ lg: 'column' }}
+              columnGap={{ base: '12px', lg: '24px' }}
+              rowGap="8px"
+              alignItems="start"
+              alignContent="start"
+              pb="16px"
+              data-testid="search-options-grid"
+            >
               {filteredStateOptions.map((state) => (
                 <Button
                   key={state.value}
@@ -480,7 +495,7 @@ export function SearchLayout({
                   {noOptionsText}
                 </Text>
               ) : null}
-            </Flex>
+            </Box>
           </Box>
         </Box>
       ) : null}
