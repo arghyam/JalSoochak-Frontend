@@ -8,7 +8,11 @@
  */
 
 import type { IntegrationConfiguration } from '../../types/integration'
-import type { ConfigurationData, MeterChangeReason } from '../../types/configuration'
+import type {
+  ConfigurationData,
+  MeterChangeReason,
+  SupportedChannel,
+} from '../../types/configuration'
 import type { MessageTemplatesData, ScreenContent, ScreenName } from '../../types/message-templates'
 import { SCREEN_NAMES } from '../../types/message-templates'
 import {
@@ -49,17 +53,17 @@ interface ApiEscalationRules {
 }
 
 export interface TenantConfigMap {
-  TENANT_SUPPORTED_CHANNELS?: string[] // TODO: verify — assumed string[] of channel codes
+  TENANT_SUPPORTED_CHANNELS?: { channels: string[] }
   TENANT_LOGO?: string // URL string
-  METER_CHANGE_REASONS?: string[] // TODO: verify — assumed string[]
-  LOCATION_CHECK_REQUIRED?: boolean // TODO: verify — assumed boolean
-  DATA_CONSOLIDATION_TIME?: string // TODO: verify — assumed "HH:mm" string
-  PUMP_OPERATOR_REMINDER_NUDGE_TIME?: string // TODO: verify — assumed "HH:mm" string
-  AVERAGE_MEMBERS_PER_HOUSEHOLD?: number // TODO: verify — assumed plain number
+  METER_CHANGE_REASONS?: { reasons: { id: string; name: string; sequenceOrder: number }[] }
+  LOCATION_CHECK_REQUIRED?: { value: 'YES' | 'NO' }
+  DATA_CONSOLIDATION_TIME?: { timeValue: string; description: string | null }
+  PUMP_OPERATOR_REMINDER_NUDGE_TIME?: { nudge: { schedule: { hour: number; minute: number } } }
+  AVERAGE_MEMBERS_PER_HOUSEHOLD?: { value: string }
   LGD_LOCATION_HIERARCHY?: ApiHierarchy
   DEPT_LOCATION_HIERARCHY?: ApiHierarchy
   SUPPORTED_LANGUAGES?: { languages: { language: string; preference: number }[] }
-  WATER_NORM?: number // TODO: verify — assumed plain number (litres)
+  WATER_NORM?: { value: string }
   TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD?: { value: string }
   FIELD_STAFF_ESCALATION_RULES?: ApiEscalationRules
   MESSAGE_BROKER_CONNECTION_SETTINGS?: { apiUrl: string; apiKey: string; organizationId: string }
@@ -79,6 +83,19 @@ export interface TenantConfigMap {
 }
 
 // ---------------------------------------------------------------------------
+// Time helpers
+// ---------------------------------------------------------------------------
+
+function parseHHmm(time: string): { hour: number; minute: number } {
+  const [h, m] = time.split(':').map(Number)
+  return { hour: h ?? 0, minute: m ?? 0 }
+}
+
+function formatHHmm(hour: number, minute: number): string {
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+}
+
+// ---------------------------------------------------------------------------
 // Hierarchy helpers
 // ---------------------------------------------------------------------------
 
@@ -93,15 +110,6 @@ function mapApiHierarchy(
   }))
 }
 
-function mapHierarchyToApi(levels: { level: number; name: string }[]): ApiHierarchy {
-  return {
-    locationHierarchy: levels.map((l) => ({
-      level: l.level,
-      levelName: [{ title: l.name }],
-    })),
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Configuration page mappers
 // ---------------------------------------------------------------------------
@@ -109,14 +117,16 @@ function mapHierarchyToApi(levels: { level: number; name: string }[]): ApiHierar
 export function mapApiConfigToConfigurationData(
   configs: TenantConfigMap
 ): Omit<ConfigurationData, 'id'> {
-  const channelCodes = configs.TENANT_SUPPORTED_CHANNELS ?? []
+  const channelCodes = configs.TENANT_SUPPORTED_CHANNELS?.channels ?? []
   const supportedChannels = channelCodes
     .map((code) => CHANNEL_CODE_TO_NAME[code as keyof typeof CHANNEL_CODE_TO_NAME])
-    .filter(Boolean) as ConfigurationData['supportedChannels']
+    .filter((c): c is SupportedChannel => Boolean(c))
 
-  const meterReasons: MeterChangeReason[] = configs.METER_CHANGE_REASONS?.length
-    ? configs.METER_CHANGE_REASONS.map((name, i) => ({ id: `r${i + 1}`, name }))
+  const meterReasons: MeterChangeReason[] = configs.METER_CHANGE_REASONS?.reasons?.length
+    ? configs.METER_CHANGE_REASONS.reasons.map((r) => ({ id: r.id, name: r.name }))
     : DEFAULT_METER_CHANGE_REASONS
+
+  const nudgeSchedule = configs.PUMP_OPERATOR_REMINDER_NUDGE_TIME?.nudge?.schedule
 
   return {
     lgdHierarchy: mapApiHierarchy(configs.LGD_LOCATION_HIERARCHY, DEFAULT_LGD_HIERARCHY),
@@ -127,10 +137,12 @@ export function mapApiConfigToConfigurationData(
     supportedChannels,
     logoUrl: configs.TENANT_LOGO,
     meterChangeReasons: meterReasons,
-    locationCheckRequired: configs.LOCATION_CHECK_REQUIRED ?? false,
-    dataConsolidationTime: configs.DATA_CONSOLIDATION_TIME ?? '',
-    pumpOperatorReminderNudgeTime: configs.PUMP_OPERATOR_REMINDER_NUDGE_TIME ?? '',
-    averageMembersPerHousehold: configs.AVERAGE_MEMBERS_PER_HOUSEHOLD ?? 0,
+    locationCheckRequired: configs.LOCATION_CHECK_REQUIRED?.value === 'YES',
+    dataConsolidationTime: configs.DATA_CONSOLIDATION_TIME?.timeValue ?? '',
+    pumpOperatorReminderNudgeTime: nudgeSchedule
+      ? formatHHmm(nudgeSchedule.hour, nudgeSchedule.minute)
+      : '',
+    averageMembersPerHousehold: Number(configs.AVERAGE_MEMBERS_PER_HOUSEHOLD?.value) || 0,
     isConfigured: true,
   }
 }
@@ -140,16 +152,25 @@ export function mapConfigurationDataToApiConfig(
 ): TenantConfigMap {
   const channelCodes = payload.supportedChannels.map((name) => CHANNEL_NAME_TO_CODE[name])
 
+  const { hour, minute } = parseHHmm(payload.pumpOperatorReminderNudgeTime)
+
   return {
-    TENANT_SUPPORTED_CHANNELS: channelCodes,
+    TENANT_SUPPORTED_CHANNELS: { channels: channelCodes },
     TENANT_LOGO: payload.logoUrl,
-    METER_CHANGE_REASONS: payload.meterChangeReasons.map((r) => r.name),
-    LOCATION_CHECK_REQUIRED: payload.locationCheckRequired,
-    DATA_CONSOLIDATION_TIME: payload.dataConsolidationTime,
-    PUMP_OPERATOR_REMINDER_NUDGE_TIME: payload.pumpOperatorReminderNudgeTime,
-    AVERAGE_MEMBERS_PER_HOUSEHOLD: payload.averageMembersPerHousehold,
-    LGD_LOCATION_HIERARCHY: mapHierarchyToApi(payload.lgdHierarchy),
-    DEPT_LOCATION_HIERARCHY: mapHierarchyToApi(payload.departmentHierarchy),
+    METER_CHANGE_REASONS: {
+      reasons: payload.meterChangeReasons.map((r, i) => ({
+        id: r.id,
+        name: r.name,
+        sequenceOrder: i + 1,
+      })),
+    },
+    LOCATION_CHECK_REQUIRED: { value: payload.locationCheckRequired ? 'YES' : 'NO' },
+    DATA_CONSOLIDATION_TIME: { timeValue: payload.dataConsolidationTime, description: null },
+    PUMP_OPERATOR_REMINDER_NUDGE_TIME: { nudge: { schedule: { hour, minute } } },
+    AVERAGE_MEMBERS_PER_HOUSEHOLD: { value: String(payload.averageMembersPerHousehold) },
+    // TODO: re-enable once backend supports updating hierarchy via PUT /config
+    // LGD_LOCATION_HIERARCHY: mapHierarchyToApi(payload.lgdHierarchy),
+    // DEPT_LOCATION_HIERARCHY: mapHierarchyToApi(payload.departmentHierarchy),
   }
 }
 
@@ -161,7 +182,7 @@ export function mapApiConfigToWaterNormsConfiguration(
   configs: TenantConfigMap
 ): Omit<WaterNormsConfiguration, 'id'> {
   return {
-    stateQuantity: configs.WATER_NORM ?? 0,
+    stateQuantity: Number(configs.WATER_NORM?.value) || 0,
     // district overrides and regularity are not yet provided by the backend;
     // they remain UI-local until the backend supports these fields
     districtOverrides: [],
@@ -177,7 +198,7 @@ export function mapWaterNormsToApiConfig(
 ): TenantConfigMap {
   // district overrides and regularity are intentionally excluded — not yet supported by backend
   return {
-    WATER_NORM: payload.stateQuantity,
+    WATER_NORM: { value: String(payload.stateQuantity) },
     TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD: {
       value: String(payload.maxQuantity),
     },
