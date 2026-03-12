@@ -28,6 +28,7 @@ export type SearchStateOption = {
 interface BreadcrumbPanelProps {
   stateOptions: SearchStateOption[]
   totalStatesCount: number
+  onPanelOpenChange?: (isOpen: boolean) => void
   onStateSelect?: (stateValue: string) => void
   options?: SearchStateOption[]
   optionsLabel?: string
@@ -140,16 +141,25 @@ export function SearchLayout({
     return effectiveSelectionTrail.slice(0, effectiveActiveTrailIndex + 1)
   }, [effectiveActiveTrailIndex, effectiveSelectionTrail])
 
+  const setBreadcrumbPanelOpen = (isOpen: boolean) => {
+    if (isBreadcrumbPanelOpen === isOpen) {
+      return
+    }
+
+    setIsBreadcrumbPanelOpen(isOpen)
+    breadcrumbPanelProps?.onPanelOpenChange?.(isOpen)
+  }
+
   useOutsideClick({
     ref: panelContainerRef,
     handler: () => {
-      setIsBreadcrumbPanelOpen(false)
+      setBreadcrumbPanelOpen(false)
     },
   })
 
   const handleFocus = (event: FocusEvent<HTMLInputElement>) => {
     if (showBreadcrumbPanel) {
-      setIsBreadcrumbPanelOpen(true)
+      setBreadcrumbPanelOpen(true)
     }
     inputProps?.onFocus?.(event)
   }
@@ -167,7 +177,7 @@ export function SearchLayout({
     breadcrumbPanelProps?.onOptionSelect?.(stateValue)
     breadcrumbPanelProps?.onStateSelect?.(stateValue)
     if (breadcrumbPanelProps?.closeOnOptionSelect) {
-      setIsBreadcrumbPanelOpen(false)
+      setBreadcrumbPanelOpen(false)
     }
   }
 
@@ -177,7 +187,7 @@ export function SearchLayout({
   }
 
   const handleCloseBreadcrumbPanel = () => {
-    setIsBreadcrumbPanelOpen(false)
+    setBreadcrumbPanelOpen(false)
   }
 
   return (

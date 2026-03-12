@@ -7,6 +7,24 @@ export interface DashboardQueryParams {
   entityId?: string
 }
 
+export type TenantListItem = {
+  id?: number
+  uuid: string
+  name: string
+  status: string
+}
+
+export type TenantListContainer = {
+  content?: TenantListItem[]
+  totalElements?: number
+}
+
+export type TenantListResponse = {
+  data?: TenantListContainer | { data?: TenantListContainer }
+  content?: TenantListItem[]
+  totalElements?: number
+}
+
 type DashboardDataProvider = {
   getDashboardData: (params: DashboardQueryParams) => Promise<DashboardData>
 }
@@ -41,5 +59,9 @@ const provider: DashboardDataProvider = DASHBOARD_PROVIDER === 'http' ? httpProv
 export const dashboardApi = {
   getDashboardData: (params: DashboardQueryParams): Promise<DashboardData> => {
     return provider.getDashboardData(params)
+  },
+  getTenants: async (): Promise<TenantListResponse> => {
+    const response = await apiClient.get<TenantListResponse>('/api/v1/tenants')
+    return response.data
   },
 }

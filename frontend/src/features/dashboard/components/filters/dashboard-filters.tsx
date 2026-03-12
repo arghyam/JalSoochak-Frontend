@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { Button, Flex, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
@@ -76,11 +77,14 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     setSelectedDuration,
   } = props
 
-  const { data: locationSearchData } = useLocationSearchQuery()
-  const breadcrumbStateOptions = locationSearchData?.states ?? [
-    { value: 'telangana', label: 'Telangana' },
-  ]
-  const totalStatesCount = locationSearchData?.totalStatesCount ?? 36
+  const [isBreadcrumbPanelOpen, setIsBreadcrumbPanelOpen] = useState(false)
+  const [tenantsFetchTrigger, setTenantsFetchTrigger] = useState(0)
+  const { data: locationSearchData } = useLocationSearchQuery({
+    enabled: isBreadcrumbPanelOpen,
+    trigger: tenantsFetchTrigger,
+  })
+  const breadcrumbStateOptions = locationSearchData?.states ?? []
+  const totalStatesCount = locationSearchData?.totalStatesCount ?? 0
   const findLabel = (value: string, options: SearchableSelectOption[]): string | null => {
     if (!value) return null
     return options.find((option) => option.value === value)?.label ?? null
@@ -154,6 +158,13 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     onActiveTrailChange?.(trailIndex)
   }
 
+  const handlePanelOpenChange = (isOpen: boolean) => {
+    setIsBreadcrumbPanelOpen(isOpen)
+    if (isOpen) {
+      setTenantsFetchTrigger((previous) => previous + 1)
+    }
+  }
+
   return (
     <SearchLayout
       selectionTrail={selectionTrail}
@@ -168,6 +179,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
         onOptionSelect: breadcrumbPanelConfig.onSelect,
         closeOnOptionSelect: hasSelectedGramPanchayat,
         onTrailSelect: handleTrailSelect,
+        onPanelOpenChange: handlePanelOpenChange,
         showTabs: true,
         tabsDisabled: !hasSelectedState,
         activeTab: filterTabIndex,

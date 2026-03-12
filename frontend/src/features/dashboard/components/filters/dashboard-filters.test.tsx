@@ -1,13 +1,27 @@
 import { fireEvent, screen } from '@testing-library/react'
-import { describe, expect, it, jest } from '@jest/globals'
+import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { useState } from 'react'
 import type { SearchableSelectOption } from '@/shared/components/common'
 import { renderWithProviders } from '@/test/render-with-providers'
 import { DashboardFilters } from './dashboard-filters'
 
 const emptyOptions: SearchableSelectOption[] = []
+const mockUseLocationSearchQuery = jest.fn()
+
+jest.mock('../../services/query/use-location-search-query', () => ({
+  useLocationSearchQuery: (...args: unknown[]) => mockUseLocationSearchQuery(...args),
+}))
 
 describe('DashboardFilters', () => {
+  beforeEach(() => {
+    mockUseLocationSearchQuery.mockReturnValue({
+      data: {
+        totalStatesCount: 36,
+        states: [{ value: 'telangana', label: 'Telangana' }],
+      },
+    })
+  })
+
   it('keeps duration control enabled even when advanced filters are disabled', () => {
     renderWithProviders(
       <DashboardFilters
