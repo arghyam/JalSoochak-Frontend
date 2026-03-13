@@ -7,6 +7,8 @@ import type {
   AverageWaterSupplyPerRegionResponse,
   DashboardData,
   DashboardLevel,
+  OutageReasonsQueryParams,
+  OutageReasonsResponse,
 } from '../../types'
 import { dashboardMockService } from '../mock/dashboard-mock'
 
@@ -246,6 +248,21 @@ export const dashboardApi = {
           scope: params.scope ?? 'child',
           start_date: params.startDate,
           end_date: params.endDate,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getOutageReasons: async (params: OutageReasonsQueryParams): Promise<OutageReasonsResponse> => {
+    const response = await apiClient.get<OutageReasonsResponse>(
+      '/api/v1/analytics/outage-reasons',
+      {
+        params: {
+          start_date: params.startDate,
+          end_date: params.endDate,
+          parent_lgd_id: params.parentLgdId,
+          parent_department_id: params.parentDepartmentId,
         },
       }
     )

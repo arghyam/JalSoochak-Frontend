@@ -8,6 +8,7 @@ import { useLocationChildrenQuery } from '../services/query/use-location-childre
 import { useLocationSearchQuery } from '../services/query/use-location-search-query'
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
+import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
 import { KPICard } from './kpi-card'
 import { DashboardBody } from './screens/dashboard-body'
 import { IndiaMapChart } from './charts'
@@ -16,7 +17,7 @@ import { MdOutlineWaterDrop } from 'react-icons/md'
 import { LuClock3 } from 'react-icons/lu'
 import waterTapIcon from '@/assets/media/water-tap_1822589 1.svg'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
-import type { EntityPerformance } from '../types'
+import type { EntityPerformance, OutageReasonSchemeCount, WaterSupplyOutageData } from '../types'
 import { DashboardFilters } from './filters/dashboard-filters'
 import { OverallPerformanceTable } from './tables'
 import { ROUTES } from '@/shared/constants/routes'
@@ -222,6 +223,59 @@ const getDefaultAnalyticsDateRange = () => {
   }
 }
 
+const emptyOutageReasons: WaterSupplyOutageData = {
+  label: 'Outages',
+  electricityFailure: 0,
+  pipelineLeak: 0,
+  pumpFailure: 0,
+  valveIssue: 0,
+  sourceDrying: 0,
+}
+
+const normalizeOutageReasonKey = (value: string) => value.replace(/[^a-z]/gi, '').toLowerCase()
+
+const toOutageReasonsData = (
+  outageReasonSchemeCount: OutageReasonSchemeCount | undefined
+): WaterSupplyOutageData => {
+  if (!outageReasonSchemeCount) {
+    return emptyOutageReasons
+  }
+
+  return Object.entries(outageReasonSchemeCount).reduce<WaterSupplyOutageData>(
+    (acc, [key, value]) => {
+      const numericValue = typeof value === 'number' && Number.isFinite(value) ? value : 0
+
+      switch (normalizeOutageReasonKey(key)) {
+        case 'electricityfailure':
+        case 'electricalfailure':
+        case 'powerfailure':
+          acc.electricityFailure += numericValue
+          break
+        case 'pipelineleak':
+        case 'pipelinebreak':
+        case 'pipebreak':
+          acc.pipelineLeak += numericValue
+          break
+        case 'pumpfailure':
+          acc.pumpFailure += numericValue
+          break
+        case 'valveissue':
+          acc.valveIssue += numericValue
+          break
+        case 'sourcedrying':
+        case 'sourcedry':
+          acc.sourceDrying += numericValue
+          break
+        default:
+          break
+      }
+
+      return acc
+    },
+    { ...emptyOutageReasons }
+  )
+}
+
 export function CentralDashboard() {
   const { t, i18n } = useTranslation('dashboard')
   const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
@@ -411,10 +465,16 @@ export function CentralDashboard() {
     hierarchyType,
     parentId: 0,
     tenantCode: selectedTenant?.tenantCode,
-    enabled: Boolean(selectedTenant?.tenantId && hierarchyType === 'LGD'),
+    enabled: Boolean(selectedTenant?.tenantId),
   })
   const rootLocationOptions = mapLocationOptions(rootLocationsData?.data)
   const selectedRootOption = findLocationOption(rootLocationOptions, selectedState)
+  const analyticsParentId =
+    parseLocationId(effectiveSelectedGramPanchayat) ??
+    parseLocationId(effectiveSelectedBlock) ??
+    parseLocationId(effectiveSelectedDistrict) ??
+    selectedRootOption?.locationId ??
+    0
   const analyticsFallbackData = isGramPanchayatSelected
     ? villageTableData
     : isBlockSelected
@@ -425,35 +485,43 @@ export function CentralDashboard() {
           ? districtTableData
           : (data?.mapData ?? emptyEntityPerformance)
   const defaultAnalyticsRange = getDefaultAnalyticsDateRange()
+  const analyticsDateRange = {
+    startDate: toIsoDate(selectedDuration?.startDate) ?? defaultAnalyticsRange.startDate,
+    endDate: toIsoDate(selectedDuration?.endDate) ?? defaultAnalyticsRange.endDate,
+  }
   const analyticsParams =
     hierarchyType !== 'LGD' || isVillageSelected || !selectedTenant?.tenantId
       ? null
       : {
           tenantId: selectedTenant.tenantId,
-          parentLgdId:
-            parseLocationId(effectiveSelectedGramPanchayat) ??
-            parseLocationId(effectiveSelectedBlock) ??
-            parseLocationId(effectiveSelectedDistrict) ??
-            selectedRootOption?.locationId ??
-            0,
+          parentLgdId: analyticsParentId,
           scope: 'child' as const,
-          startDate: toIsoDate(selectedDuration?.startDate) ?? defaultAnalyticsRange.startDate,
-          endDate: toIsoDate(selectedDuration?.endDate) ?? defaultAnalyticsRange.endDate,
+          startDate: analyticsDateRange.startDate,
+          endDate: analyticsDateRange.endDate,
         }
   const regularityAnalyticsParams =
     hierarchyType !== 'LGD' || isVillageSelected
       ? null
       : {
-          parentLgdId:
-            parseLocationId(effectiveSelectedGramPanchayat) ??
-            parseLocationId(effectiveSelectedBlock) ??
-            parseLocationId(effectiveSelectedDistrict) ??
-            selectedRootOption?.locationId ??
-            0,
+          parentLgdId: analyticsParentId,
           scope: 'child' as const,
-          startDate: toIsoDate(selectedDuration?.startDate) ?? defaultAnalyticsRange.startDate,
-          endDate: toIsoDate(selectedDuration?.endDate) ?? defaultAnalyticsRange.endDate,
+          startDate: analyticsDateRange.startDate,
+          endDate: analyticsDateRange.endDate,
         }
+  const outageReasonsAnalyticsParams =
+    isVillageSelected || !selectedTenant?.tenantId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            parentLgdId: analyticsParentId,
+          }
+        : {
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            parentDepartmentId: analyticsParentId,
+          }
   const previousAnalyticsRange = getPreviousPeriodRange(
     analyticsParams?.startDate ?? defaultAnalyticsRange.startDate,
     analyticsParams?.endDate ?? defaultAnalyticsRange.endDate
@@ -505,6 +573,10 @@ export function CentralDashboard() {
   const { data: averageSchemeRegularityData } = useAverageSchemeRegularityQuery({
     params: regularityAnalyticsParams,
     enabled: Boolean(regularityAnalyticsParams),
+  })
+  const { data: outageReasonsData } = useOutageReasonsQuery({
+    params: outageReasonsAnalyticsParams,
+    enabled: Boolean(outageReasonsAnalyticsParams),
   })
   const { data: currentRegularityKpiData } = useAverageSchemeRegularityQuery({
     params: currentRegularityAnalyticsParams,
@@ -742,67 +814,10 @@ export function CentralDashboard() {
     )
   }
 
-  const waterSupplyOutagesData = isGramPanchayatSelected
-    ? villageTableData.map((village, index) => {
-        if (data.waterSupplyOutages.length === 0) {
-          return {
-            label: village.name,
-            electricityFailure: 0,
-            pipelineLeak: 0,
-            pumpFailure: 0,
-            valveIssue: 0,
-            sourceDrying: 0,
-          }
-        }
-        const source = data.waterSupplyOutages[index % data.waterSupplyOutages.length]
-        return { ...source, label: village.name }
-      })
-    : isBlockSelected
-      ? gramPanchayatTableData.map((gramPanchayat, index) => {
-          if (data.waterSupplyOutages.length === 0) {
-            return {
-              label: gramPanchayat.name,
-              electricityFailure: 0,
-              pipelineLeak: 0,
-              pumpFailure: 0,
-              valveIssue: 0,
-              sourceDrying: 0,
-            }
-          }
-          const source = data.waterSupplyOutages[index % data.waterSupplyOutages.length]
-          return { ...source, label: gramPanchayat.name }
-        })
-      : isDistrictSelected
-        ? blockTableData.map((block, index) => {
-            if (data.waterSupplyOutages.length === 0) {
-              return {
-                label: block.name,
-                electricityFailure: 0,
-                pipelineLeak: 0,
-                pumpFailure: 0,
-                valveIssue: 0,
-                sourceDrying: 0,
-              }
-            }
-            const source = data.waterSupplyOutages[index % data.waterSupplyOutages.length]
-            return { ...source, label: block.name }
-          })
-        : isStateSelected
-          ? districtTableData.map((district, index) => {
-              if (data.waterSupplyOutages.length === 0) {
-                return {
-                  label: district.name,
-                  electricityFailure: 0,
-                  pipelineLeak: 0,
-                  pumpFailure: 0,
-                  valveIssue: 0,
-                  sourceDrying: 0,
-                }
-              }
-              const source = data.waterSupplyOutages[index % data.waterSupplyOutages.length]
-              return { ...source, label: district.name }
-            })
-          : data.waterSupplyOutages
+  const apiWaterSupplyOutagesData = outageReasonsData?.outageReasonSchemeCount
+    ? [toOutageReasonsData(outageReasonsData.outageReasonSchemeCount)]
+    : null
+  const waterSupplyOutagesData = apiWaterSupplyOutagesData ?? data.waterSupplyOutages
 
   const numberLocale = i18n.resolvedLanguage === 'hi' ? 'hi-IN' : 'en-IN'
   const formatNumber = (value: number, options?: Intl.NumberFormatOptions) =>

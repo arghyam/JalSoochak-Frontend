@@ -220,6 +220,7 @@ export function DashboardBody({
       {isDistrictScreen ? (
         <DistrictDashboardScreen
           data={data}
+          waterSupplyOutagesData={waterSupplyOutagesData}
           quantityPerformanceData={quantityPerformanceData}
           regularityPerformanceData={regularityPerformanceData}
           blockTableData={blockTableData}
@@ -232,6 +233,7 @@ export function DashboardBody({
       {isBlockScreen ? (
         <BlockDashboardScreen
           data={data}
+          waterSupplyOutagesData={waterSupplyOutagesData}
           quantityPerformanceData={quantityPerformanceData}
           regularityPerformanceData={regularityPerformanceData}
           gramPanchayatTableData={gramPanchayatTableData}
@@ -244,6 +246,7 @@ export function DashboardBody({
       {isGramPanchayatScreen ? (
         <GramPanchayatDashboardScreen
           data={data}
+          waterSupplyOutagesData={waterSupplyOutagesData}
           quantityPerformanceData={quantityPerformanceData}
           regularityPerformanceData={regularityPerformanceData}
           villageTableData={villageTableData}

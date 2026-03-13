@@ -2,6 +2,7 @@ import type {
   AverageSchemeRegularityQueryParams,
   AverageWaterSupplyPerRegionQueryParams,
   DashboardLevel,
+  OutageReasonsQueryParams,
 } from '../../types'
 
 export const dashboardQueryKeys = {
@@ -28,6 +29,16 @@ export const dashboardQueryKeys = {
       params?.parentLgdId,
       params?.parentDepartmentId,
       params?.scope,
+      params?.startDate,
+      params?.endDate,
+    ] as const,
+  outageReasons: (params: OutageReasonsQueryParams | null) =>
+    [
+      'dashboard',
+      'analytics',
+      'outage-reasons',
+      params?.parentLgdId,
+      params?.parentDepartmentId,
       params?.startDate,
       params?.endDate,
     ] as const,

@@ -8,6 +8,7 @@ import { useLocationSearchQuery } from '../services/query/use-location-search-qu
 import { useLocationChildrenQuery } from '../services/query/use-location-children-query'
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
+import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
 
 const mockNavigate = jest.fn()
 const mockUseParams = jest.fn(() => ({}))
@@ -59,6 +60,10 @@ jest.mock('../services/query/use-average-water-supply-per-region-query', () => (
 
 jest.mock('../services/query/use-average-scheme-regularity-query', () => ({
   useAverageSchemeRegularityQuery: jest.fn(),
+}))
+
+jest.mock('../services/query/use-outage-reasons-query', () => ({
+  useOutageReasonsQuery: jest.fn(),
 }))
 
 jest.mock('./filters/dashboard-filters', () => ({
@@ -144,6 +149,7 @@ describe('CentralDashboard', () => {
     ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useOutageReasonsQuery as jest.Mock).mockReturnValue({ data: undefined })
   })
 
   it('renders Overall Performance table panel for central view', () => {
@@ -420,6 +426,67 @@ describe('CentralDashboard', () => {
     )
   })
 
+  it('passes API-mapped outage reasons data to dashboard body when outage analytics exist', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [{ id: 10, title: 'Telangana' }],
+      },
+    })
+    ;(useOutageReasonsQuery as jest.Mock).mockReturnValue({
+      data: {
+        lgdId: 10,
+        departmentId: 0,
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        parentLgdLevel: 1,
+        parentDepartmentLevel: 0,
+        outageReasonSchemeCount: {
+          electrical_failure: 7,
+          pipeline_break: 5,
+          pump_failure: 3,
+          valve_issue: 2,
+          source_drying: 1,
+        },
+        childRegionCount: 0,
+        childRegions: [],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{
+      waterSupplyOutagesData: Array<{
+        electricityFailure: number
+        pipelineLeak: number
+        pumpFailure: number
+        valveIssue: number
+        sourceDrying: number
+      }>
+    }>()
+
+    expect(dashboardBodyProps.waterSupplyOutagesData).toEqual([
+      expect.objectContaining({
+        electricityFailure: 7,
+        pipelineLeak: 5,
+        pumpFailure: 3,
+        valveIssue: 2,
+        sourceDrying: 1,
+      }),
+    ])
+  })
+
   it('passes computed KPI values and comparison trends to KPI cards', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -684,7 +751,7 @@ describe('CentralDashboard', () => {
     expect(dashboardBodyProps.blockTableData).toEqual([])
     expect(dashboardBodyProps.gramPanchayatTableData).toEqual([])
     expect(dashboardBodyProps.villageTableData).toEqual([])
-    expect(dashboardBodyProps.waterSupplyOutagesData).toEqual([])
+    expect(dashboardBodyProps.waterSupplyOutagesData).toEqual(mockDashboardData.waterSupplyOutages)
   })
 
   it('uses state slug route format when map state is clicked', () => {

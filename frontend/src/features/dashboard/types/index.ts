@@ -200,6 +200,36 @@ export interface AverageSchemeRegularityResponse {
   childRegions: AverageSchemeRegularityChildRegion[]
 }
 
+export interface OutageReasonsQueryParams {
+  startDate: string
+  endDate: string
+  parentLgdId?: number
+  parentDepartmentId?: number
+}
+
+export interface OutageReasonSchemeCount {
+  [reason: string]: number
+}
+
+export interface OutageReasonsChildRegion {
+  lgdId: number
+  departmentId: number
+  title: string
+  outageReasonSchemeCount: OutageReasonSchemeCount
+}
+
+export interface OutageReasonsResponse {
+  lgdId: number
+  departmentId: number
+  startDate: string
+  endDate: string
+  parentLgdLevel: number
+  parentDepartmentLevel: number
+  outageReasonSchemeCount: OutageReasonSchemeCount
+  childRegionCount: number
+  childRegions: OutageReasonsChildRegion[]
+}
+
 // For map hover/click interactions
 export interface MapInteraction {
   entityId: string

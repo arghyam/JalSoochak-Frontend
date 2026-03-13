@@ -1,7 +1,12 @@
 import { useMemo, useState } from 'react'
 import { Box, Flex, Grid, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import type { DashboardData, EntityPerformance, PumpOperatorPerformanceData } from '../../types'
+import type {
+  DashboardData,
+  EntityPerformance,
+  PumpOperatorPerformanceData,
+  WaterSupplyOutageData,
+} from '../../types'
 import {
   SupplyOutageReasonsChart,
   MetricPerformanceChart,
@@ -16,6 +21,7 @@ import { ViewBySelect } from '@/shared/components/common'
 
 type BlockDashboardScreenProps = {
   data: DashboardData
+  waterSupplyOutagesData?: WaterSupplyOutageData[]
   quantityPerformanceData: EntityPerformance[]
   regularityPerformanceData: EntityPerformance[]
   gramPanchayatTableData: EntityPerformance[]
@@ -29,6 +35,7 @@ type ViewBy = 'geography' | 'time'
 
 export function BlockDashboardScreen({
   data,
+  waterSupplyOutagesData = data.waterSupplyOutages,
   quantityPerformanceData,
   regularityPerformanceData,
   supplySubmissionRateData,
@@ -196,7 +203,7 @@ export function BlockDashboardScreen({
               defaultValue: 'Supply Outage Reasons',
             })}
           </Text>
-          <SupplyOutageReasonsChart data={data.waterSupplyOutages} height="400px" />
+          <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
         </Box>
         <Box
           bg="white"
@@ -227,7 +234,7 @@ export function BlockDashboardScreen({
           </Flex>
           {outageDistributionViewBy === 'geography' ? (
             <SupplyOutageDistributionChart
-              data={data.waterSupplyOutages}
+              data={waterSupplyOutagesData}
               height="400px"
               xAxisLabel={t('performanceCharts.viewBy.gramPanchayats', {
                 defaultValue: 'Gram Panchayats',
