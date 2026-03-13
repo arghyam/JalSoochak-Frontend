@@ -2,7 +2,6 @@ import { isAxiosError } from 'axios'
 import { useAuthStore } from '@/app/store/auth-store'
 import { apiClient } from '@/shared/lib/axios'
 import {
-  createMockStateUTAdmin,
   deleteMockEscalation,
   getMockActivityData,
   getMockConfigurationData,
@@ -15,8 +14,6 @@ import {
   getMockNudgeTemplates,
   getMockOverviewData,
   getMockStaffSyncData,
-  getMockStateUTAdminById,
-  getMockStateUTAdmins,
   getMockThresholdConfiguration,
   getMockWaterNormsConfiguration,
   saveMockConfigurationData,
@@ -28,8 +25,6 @@ import {
   saveMockWaterNormsConfiguration,
   updateMockEscalation,
   updateMockNudgeTemplate,
-  updateMockStateUTAdmin,
-  updateMockStateUTAdminStatus,
 } from '../mock-data'
 import type { ActivityLog } from '../../types/activity'
 import type { ConfigurationData } from '../../types/configuration'
@@ -43,11 +38,7 @@ import type { LanguageConfiguration } from '../../types/language'
 import type { MessageTemplatesData } from '../../types/message-templates'
 import type { NudgeTemplate } from '../../types/nudges'
 import type { OverviewData } from '../../types/overview'
-import type {
-  StateUTAdmin,
-  CreateStateUTAdminInput,
-  UpdateStateUTAdminInput,
-} from '../../types/state-ut-admins'
+import type { StateUTAdmin, UpdateStateUTAdminInput } from '../../types/state-ut-admins'
 import type { StaffSyncData } from '../../types/staff-sync'
 import type { ThresholdConfiguration } from '../../types/thresholds'
 import type { WaterNormsConfiguration } from '../../types/water-norms'
@@ -106,11 +97,6 @@ type StateAdminDataProvider = {
   updateNudgeTemplate: (id: string, payload: UpdateNudgeTemplatePayload) => Promise<NudgeTemplate>
   getConfiguration: () => Promise<ConfigurationData>
   saveConfiguration: (payload: SaveConfigurationPayload) => Promise<ConfigurationData>
-  getStateUTAdmins: () => Promise<StateUTAdmin[]>
-  getStateUTAdminById: (id: string) => Promise<StateUTAdmin | null>
-  createStateUTAdmin: (input: CreateStateUTAdminInput) => Promise<StateUTAdmin>
-  updateStateUTAdmin: (id: string, input: UpdateStateUTAdminInput) => Promise<StateUTAdmin>
-  updateStateUTAdminStatus: (id: string, status: 'active' | 'inactive') => Promise<StateUTAdmin>
   getEscalationRules: () => Promise<EscalationRulesConfig>
   saveEscalationRules: (payload: SaveEscalationRulesPayload) => Promise<EscalationRulesConfig>
 }
@@ -123,6 +109,35 @@ const getTenantId = (): string => {
 }
 
 const TENANT_CONFIG_BASE = (tenantId: string) => `/api/v1/tenants/${tenantId}/config`
+
+/** Minimal user shape from GET /api/v1/users — local to this file */
+interface ApiUser {
+  id: number
+  email: string
+  firstName: string | null
+  lastName: string | null
+  phoneNumber: string
+  active: boolean
+}
+
+interface ApiUsersListResponse {
+  content: ApiUser[]
+  totalElements: number
+  totalPages: number
+  size: number
+  number: number
+}
+
+function mapApiUserToAdmin(u: ApiUser): StateUTAdmin {
+  return {
+    id: String(u.id),
+    firstName: u.firstName ?? '',
+    lastName: u.lastName ?? '',
+    email: u.email,
+    phone: u.phoneNumber,
+    status: u.active ? 'active' : 'inactive',
+  }
+}
 
 const CONFIGURATION_KEYS = [
   'TENANT_SUPPORTED_CHANNELS',
@@ -301,44 +316,6 @@ const httpProvider: StateAdminDataProvider = {
       ...mapApiConfigToConfigurationData(response.data.data.configs),
     } as ConfigurationData
   },
-  getStateUTAdmins: async () => {
-    const response = await apiClient.get<ApiEnvelope<StateUTAdmin[]>>('/api/state-admin/admins')
-    return response.data.data
-  },
-  getStateUTAdminById: async (id) => {
-    try {
-      const response = await apiClient.get<ApiEnvelope<StateUTAdmin>>(
-        `/api/state-admin/admins/${id}`
-      )
-      return response.data.data
-    } catch (error) {
-      if (isAxiosError(error) && error.response?.status === 404) {
-        return null
-      }
-      throw error
-    }
-  },
-  createStateUTAdmin: async (input) => {
-    const response = await apiClient.post<ApiEnvelope<StateUTAdmin>>(
-      '/api/state-admin/admins',
-      input
-    )
-    return response.data.data
-  },
-  updateStateUTAdmin: async (id, input) => {
-    const response = await apiClient.patch<ApiEnvelope<StateUTAdmin>>(
-      `/api/state-admin/admins/${id}`,
-      input
-    )
-    return response.data.data
-  },
-  updateStateUTAdminStatus: async (id, status) => {
-    const response = await apiClient.patch<ApiEnvelope<StateUTAdmin>>(
-      `/api/state-admin/admins/${id}/status`,
-      { status }
-    )
-    return response.data.data
-  },
   getEscalationRules: async () => {
     const tenantId = getTenantId()
     const response = await apiClient.get<ApiEnvelope<{ configs: Record<string, unknown> }>>(
@@ -378,18 +355,13 @@ const mockProvider: StateAdminDataProvider = {
   updateNudgeTemplate: (id, payload) => updateMockNudgeTemplate(id, payload),
   getConfiguration: () => getMockConfigurationData(),
   saveConfiguration: (payload) => saveMockConfigurationData(payload),
-  getStateUTAdmins: () => getMockStateUTAdmins(),
-  getStateUTAdminById: (id) => getMockStateUTAdminById(id),
-  createStateUTAdmin: (input) => createMockStateUTAdmin(input),
-  updateStateUTAdmin: (id, input) => updateMockStateUTAdmin(id, input),
-  updateStateUTAdminStatus: (id, status) => updateMockStateUTAdminStatus(id, status),
   getEscalationRules: () => getMockEscalationRules(),
   saveEscalationRules: (payload) => saveMockEscalationRules(payload),
 }
 
 // Real HTTP: language, integration, water norms, system config, thresholds,
-//            escalations, escalation rules, Glific message templates
-// Mock:      overview, activity, staff sync, state/UT admins, nudge templates
+//            escalations, escalation rules, Glific message templates, state-ut-admins
+// Mock:      overview, activity, staff sync, nudge templates
 export const stateAdminApi = {
   // --- Mock ---
   getOverviewData: () => mockProvider.getOverviewData(),
@@ -398,13 +370,45 @@ export const stateAdminApi = {
   getNudgeTemplates: () => mockProvider.getNudgeTemplates(),
   updateNudgeTemplate: (id: string, payload: UpdateNudgeTemplatePayload) =>
     mockProvider.updateNudgeTemplate(id, payload),
-  getStateUTAdmins: () => mockProvider.getStateUTAdmins(),
-  getStateUTAdminById: (id: string) => mockProvider.getStateUTAdminById(id),
-  createStateUTAdmin: (input: CreateStateUTAdminInput) => mockProvider.createStateUTAdmin(input),
-  updateStateUTAdmin: (id: string, input: UpdateStateUTAdminInput) =>
-    mockProvider.updateStateUTAdmin(id, input),
-  updateStateUTAdminStatus: (id: string, status: 'active' | 'inactive') =>
-    mockProvider.updateStateUTAdminStatus(id, status),
+
+  // --- Real HTTP: State/UT Admins ---
+  getStateUTAdmins: async (tenantCode: string): Promise<StateUTAdmin[]> => {
+    const response = await apiClient.get<ApiEnvelope<ApiUsersListResponse>>(
+      '/api/v1/users/state-admins',
+      { params: { tenantCode } }
+    )
+    return response.data.data.content.map((u) => mapApiUserToAdmin(u))
+  },
+  getStateUTAdminById: async (id: string): Promise<StateUTAdmin | null> => {
+    try {
+      const response = await apiClient.get<ApiEnvelope<ApiUser>>(`/api/v1/users/${id}`)
+      return mapApiUserToAdmin(response.data.data)
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.status === 404) return null
+      throw error
+    }
+  },
+  updateStateUTAdmin: async (id: string, input: UpdateStateUTAdminInput): Promise<void> => {
+    await apiClient.patch(`/api/v1/users/${id}`, {
+      firstName: input.firstName,
+      lastName: input.lastName,
+      phoneNumber: input.phone,
+    })
+  },
+  updateStateUTAdminStatus: async (id: string, status: 'active' | 'inactive'): Promise<void> => {
+    if (status === 'inactive') {
+      await apiClient.put(`/api/v1/users/${id}/deactivate`)
+    } else {
+      await apiClient.put(`/api/v1/users/${id}/activate`)
+    }
+  },
+  inviteStateUTAdmin: async (email: string, tenantCode: string): Promise<void> => {
+    await apiClient.post('/api/v1/users/invite', {
+      email,
+      role: 'STATE_ADMIN',
+      tenantCode,
+    })
+  },
 
   // --- Real HTTP ---
   getLanguageConfiguration: () => httpProvider.getLanguageConfiguration(),

@@ -51,6 +51,8 @@
     },
     "table": {
       "stateUt": "State/UT",
+      "stateCode": "State Code",
+      "lgdCode": "LGD Code",
       "status": "Status",
       "lastSyncDate": "Last Sync Date",
       "totalDistricts": "Total Districts",
@@ -59,7 +61,10 @@
     "details": {
       "title": "State/UT Details",
       "name": "State/UT name",
-      "code": "State/UT code"
+      "code": "State/UT code",
+      "stateCode": "State Code",
+      "lgdCode": "LGD Code",
+      "createdAt": "Created At"
     },
     "adminDetails": {
       "title": "State Admin Details",

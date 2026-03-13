@@ -41,12 +41,6 @@ export const ROUTES = {
   // Auth routes
   LOGIN: '/login',
   LOGOUT: '/logout',
-  SIGNUP: '/signup',
-  CREATE_PASSWORD: '/createpassword/:id',
-  CREDENTIALS: '/credentials',
+  CREATE_PASSWORD: '/createpassword',
   RESET_PASSWORD: '/resetpassword',
 } as const
-
-export function createPasswordUrl(id: string): string {
-  return `/createpassword/${id}`
-}

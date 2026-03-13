@@ -5,14 +5,20 @@ import {
   UserAdminFormPage,
   type UserAdminRoutes,
   type UserAdminFormPageLabels,
+  type UserAdminCreateMutation,
 } from '@/shared/components/common'
 import { ROUTES } from '@/shared/constants/routes'
 import {
   useStateUTAdminByIdQuery,
-  useCreateStateUTAdminMutation,
   useUpdateStateUTAdminMutation,
   useUpdateStateUTAdminStatusMutation,
 } from '../../services/query/use-state-admin-queries'
+
+// Stub — add mode is handled by InviteStateUTAdminPage; this page is edit-only.
+const neverCreate: UserAdminCreateMutation = {
+  isPending: false,
+  mutateAsync: () => Promise.reject(new Error('Use InviteStateUTAdminPage for add')),
+}
 
 export function StateUTAdminFormPage() {
   const { t } = useTranslation(['state-admin', 'common'])
@@ -20,7 +26,6 @@ export function StateUTAdminFormPage() {
   const isEditMode = Boolean(id)
 
   const adminQuery = useStateUTAdminByIdQuery(id)
-  const createMutation = useCreateStateUTAdminMutation()
   const updateMutation = useUpdateStateUTAdminMutation()
   const statusMutation = useUpdateStateUTAdminStatusMutation()
 
@@ -73,7 +78,7 @@ export function StateUTAdminFormPage() {
       isLoadingOriginal={adminQuery.isLoading}
       routes={routes}
       labels={labels}
-      createMutation={createMutation}
+      createMutation={neverCreate}
       updateMutation={updateMutation}
       statusMutation={statusMutation}
     />

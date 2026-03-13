@@ -1,53 +1,36 @@
-import { isAxiosError } from 'axios'
 import { apiClient } from '@/shared/lib/axios'
+import { isAxiosError } from 'axios'
 import {
-  createStateUT,
-  createStateAdmin,
   generateApiKey,
-  getAssignedStateNames,
-  getStateUTOptions,
   getMockApiCredentialsData,
   getMockIngestionMonitorData,
-  getMockStateAdminsData,
-  getMockSuperUsers,
-  getMockSuperUserById,
-  createMockSuperUser,
-  updateMockSuperUser,
-  updateMockSuperUserStatus,
-  getMockStatesUTsData,
   getMockSuperAdminOverviewData,
   getMockSystemRulesConfiguration,
-  getStateUTById,
-  mockCreateTenant,
   saveMockSystemRulesConfiguration,
   sendApiKey,
-  updateStateUT,
-  updateStateUTStatus,
-  getMockSystemConfiguration,
-  saveMockSystemConfiguration,
 } from '../mock-data'
 import type { ApiCredentialsData } from '../../types/api-credentials'
 import type { IngestionMonitorData } from '../../types/ingestion-monitor'
 import type { SuperAdminOverviewData } from '../../types/overview'
-import type {
-  CreateStateUTInput,
-  CreateTenantAdminApiResponse,
-  CreateTenantAdminRequest,
-  StateUT,
-  StateUTStatus,
-  StateUTOption,
-  UpdateStateUTInput,
-  StateAdminDetails,
-} from '../../types/states-uts'
-import type { CreateTenantInput, CreateTenantResponse } from '../../types/tenant'
 import type { SystemRulesConfiguration } from '../../types/system-rules'
-import type { StateAdmin } from '../../types/state-admins'
-import type { SuperUser, CreateSuperUserInput, UpdateSuperUserInput } from '../../types/super-users'
 import type { SystemConfiguration, SaveSystemConfigPayload } from '../../types/system-config'
+import type { StateAdmin } from '../../types/state-admins'
+import type { Tenant, TenantApiResponse, TenantsListApiResponse } from '../../types/states-uts'
+import { mapTenantApiToTenant as mapTenant } from '../../types/states-uts'
+import type {
+  ApiUser,
+  ApiUsersListResponse,
+  InviteUserRequest,
+  UpdateUserRequest,
+} from '../../types/super-users'
+import { mapApiUserToUserAdminData } from '../../types/super-users'
+import type { UserAdminData } from '@/shared/components/common'
 import {
   mapApiResponseToSystemConfig,
   mapSystemConfigToApiPayload,
 } from '../../types/system-config'
+
+export { mapApiUserToUserAdminData } from '../../types/super-users'
 
 export type SaveSystemRulesPayload = Omit<SystemRulesConfiguration, 'id'>
 export type IngestionMonitorFilters = {
@@ -62,57 +45,38 @@ const SYSTEM_CONFIG_KEYS = [
   'LOCATION_AFFINITY_THRESHOLD',
 ].join(',')
 
-type SuperAdminDataProvider = {
-  getOverviewData: () => Promise<SuperAdminOverviewData>
-  getSystemRulesConfiguration: () => Promise<SystemRulesConfiguration>
-  saveSystemRulesConfiguration: (
-    payload: SaveSystemRulesPayload
-  ) => Promise<SystemRulesConfiguration>
-  getSystemConfiguration: () => Promise<SystemConfiguration>
-  saveSystemConfiguration: (payload: SaveSystemConfigPayload) => Promise<SystemConfiguration>
-  getIngestionMonitorData: (filters?: IngestionMonitorFilters) => Promise<IngestionMonitorData>
-  getApiCredentialsData: () => Promise<ApiCredentialsData>
-  generateApiKey: (stateId: string) => Promise<string>
-  sendApiKey: (stateId: string) => Promise<{ success: boolean }>
-  getStatesUTsData: () => Promise<StateUT[]>
-  getStateAdminsData: () => Promise<StateAdmin[]>
-  getStateUTById: (id: string) => Promise<StateUT>
-  createStateUT: (payload: CreateStateUTInput) => Promise<StateUT>
-  updateStateUT: (id: string, payload: UpdateStateUTInput) => Promise<StateUT>
-  updateStateUTStatus: (id: string, status: StateUTStatus) => Promise<StateUT>
-  getAssignedStateNames: () => Promise<string[]>
-  getStateUTOptions: () => Promise<StateUTOption[]>
-  createStateAdmin: (
-    tenantId: string,
-    admin: StateAdminDetails
-  ) => Promise<{ success: boolean } | CreateTenantAdminApiResponse>
-  createTenant: (payload: CreateTenantInput) => Promise<CreateTenantResponse['data']>
-  getSuperUsers: () => Promise<SuperUser[]>
-  getSuperUserById: (id: string) => Promise<SuperUser | null>
-  createSuperUser: (payload: CreateSuperUserInput) => Promise<SuperUser>
-  updateSuperUser: (id: string, payload: UpdateSuperUserInput) => Promise<SuperUser>
-  updateSuperUserStatus: (id: string, status: 'active' | 'inactive') => Promise<SuperUser>
+// ── Real API response wrappers ────────────────────────────────────────────────
+
+interface ApiResponse<T> {
+  status: number
+  message: string
+  data: T
 }
 
-const httpProvider: SuperAdminDataProvider = {
-  getOverviewData: async () => {
-    const response = await apiClient.get<SuperAdminOverviewData>('/api/super-admin/overview')
-    return response.data
-  },
-  getSystemRulesConfiguration: async () => {
-    const response = await apiClient.get<SystemRulesConfiguration>(
-      '/api/super-admin/system-rules-configuration'
-    )
-    return response.data
-  },
-  saveSystemRulesConfiguration: async (payload) => {
-    const response = await apiClient.put<SystemRulesConfiguration>(
-      '/api/super-admin/system-rules-configuration',
-      payload
-    )
-    return response.data
-  },
-  getSystemConfiguration: async () => {
+// ── superAdminApi ─────────────────────────────────────────────────────────────
+
+export const superAdminApi = {
+  // ── Mock (not yet migrated) ─────────────────────────────────────────────────
+  getOverviewData: (): Promise<SuperAdminOverviewData> => getMockSuperAdminOverviewData(),
+
+  getSystemRulesConfiguration: (): Promise<SystemRulesConfiguration> =>
+    getMockSystemRulesConfiguration(),
+
+  saveSystemRulesConfiguration: (
+    payload: SaveSystemRulesPayload
+  ): Promise<SystemRulesConfiguration> => saveMockSystemRulesConfiguration(payload),
+
+  getIngestionMonitorData: (_filters?: IngestionMonitorFilters): Promise<IngestionMonitorData> =>
+    getMockIngestionMonitorData(),
+
+  getApiCredentialsData: (): Promise<ApiCredentialsData> => getMockApiCredentialsData(),
+
+  generateApiKey: (stateId: string): Promise<string> => generateApiKey(stateId),
+
+  sendApiKey: (stateId: string): Promise<{ success: boolean }> => sendApiKey(stateId),
+
+  // ── Real HTTP: System Configuration ────────────────────────────────────────
+  getSystemConfiguration: async (): Promise<SystemConfiguration> => {
     const response = await apiClient.get<{ data: { configs: Record<string, unknown> } }>(
       `/api/v1/system/config?keys=${SYSTEM_CONFIG_KEYS}`
     )
@@ -120,7 +84,10 @@ const httpProvider: SuperAdminDataProvider = {
       response.data.data.configs as Parameters<typeof mapApiResponseToSystemConfig>[0]
     )
   },
-  saveSystemConfiguration: async (payload) => {
+
+  saveSystemConfiguration: async (
+    payload: SaveSystemConfigPayload
+  ): Promise<SystemConfiguration> => {
     const body = mapSystemConfigToApiPayload(payload)
     const response = await apiClient.put<{ data: { configs: Record<string, unknown> } }>(
       '/api/v1/system/config',
@@ -130,186 +97,100 @@ const httpProvider: SuperAdminDataProvider = {
       response.data.data.configs as Parameters<typeof mapApiResponseToSystemConfig>[0]
     )
   },
-  getIngestionMonitorData: async (filters) => {
-    const response = await apiClient.get<IngestionMonitorData>(
-      '/api/super-admin/ingestion-monitor',
-      {
-        params: {
-          state: filters?.stateFilter,
-          days: filters?.timeFilter,
-        },
-      }
-    )
-    return response.data
-  },
-  getApiCredentialsData: async () => {
-    const response = await apiClient.get<ApiCredentialsData>('/api/super-admin/api-credentials')
-    return response.data
-  },
-  generateApiKey: async (stateId) => {
-    const response = await apiClient.post<{ apiKey: string }>(
-      `/api/super-admin/api-credentials/${stateId}/generate-key`
-    )
-    return response.data.apiKey
-  },
-  sendApiKey: async (stateId) => {
-    const response = await apiClient.post<{ success: boolean }>(
-      `/api/super-admin/api-credentials/${stateId}/send-key`
-    )
-    return response.data
-  },
-  getStatesUTsData: async () => {
-    const response = await apiClient.get<StateUT[]>('/api/super-admin/states-uts')
-    return response.data
-  },
-  getStateAdminsData: async () => {
-    const response = await apiClient.get<StateAdmin[]>('/api/super-admin/state-admins')
-    return response.data
-  },
-  getStateUTById: async (id) => {
-    const response = await apiClient.get<StateUT>(`/api/super-admin/states-uts/${id}`)
-    return response.data
-  },
-  createStateUT: async (payload) => {
-    const response = await apiClient.post<StateUT>('/api/super-admin/states-uts', payload)
-    return response.data
-  },
-  updateStateUT: async (id, payload) => {
-    const response = await apiClient.put<StateUT>(`/api/super-admin/states-uts/${id}`, payload)
-    return response.data
-  },
-  updateStateUTStatus: async (id, status) => {
-    const response = await apiClient.patch<StateUT>(`/api/super-admin/states-uts/${id}/status`, {
-      status,
+
+  // ── Real HTTP: Tenants (States/UTs) ────────────────────────────────────────
+  getStatesUTsData: async (): Promise<Tenant[]> => {
+    const response = await apiClient.get<ApiResponse<TenantsListApiResponse>>('/api/v1/tenants', {
+      params: { page: 0, size: 100 },
     })
-    return response.data
+    return response.data.data.content.map((t) => mapTenant(t))
   },
-  getAssignedStateNames: async () => {
-    const response = await apiClient.get<string[]>(
-      '/api/super-admin/states-uts/assigned-state-names'
-    )
-    return response.data
-  },
-  getStateUTOptions: async () => {
-    const response = await apiClient.get<StateUTOption[]>('/api/super-admin/states-uts/options')
-    return response.data
-  },
-  createStateAdmin: async (tenantId: string, admin: StateAdminDetails) => {
-    const body: CreateTenantAdminRequest = {
-      firstName: admin.firstName,
-      lastName: admin.lastName,
-      primaryEmail: admin.email,
-      primaryPhone: admin.phone,
-      role: 'TENANT_ADMIN',
-    }
-    if (admin.secondaryEmail) body.secondaryEmail = admin.secondaryEmail
-    if (admin.contactNumber) body.secondaryPhone = admin.contactNumber
-    const response = await apiClient.post<CreateTenantAdminApiResponse>('/api/v2/users', body, {
-      headers: { 'X-Tenant-Id': tenantId },
-    })
-    return response.data
-  },
-  createTenant: async (payload: CreateTenantInput) => {
-    const response = await apiClient.post<CreateTenantResponse>('/api/v1/tenants', payload, {
-      headers: { 'X-Tenant-Code': payload.stateCode },
-    })
-    return response.data.data
-  },
-  getSuperUsers: async () => {
-    const response = await apiClient.get<SuperUser[]>('/api/super-admin/super-users')
-    return response.data
-  },
-  getSuperUserById: async (id) => {
+
+  getTenantById: async (id: number): Promise<Tenant | null> => {
     try {
-      const response = await apiClient.get<SuperUser>(`/api/super-admin/super-users/${id}`)
-      return response.data
+      const response = await apiClient.get<ApiResponse<TenantApiResponse>>(`/api/v1/tenants/${id}`)
+      return mapTenant(response.data.data)
     } catch (error) {
-      if (isAxiosError(error) && error.response?.status === 404) {
-        return null
-      }
+      if (isAxiosError(error) && error.response?.status === 404) return null
       throw error
     }
   },
-  createSuperUser: async (payload) => {
-    const response = await apiClient.post<SuperUser>('/api/super-admin/super-users', payload)
-    return response.data
-  },
-  updateSuperUser: async (id, payload) => {
-    const response = await apiClient.put<SuperUser>(`/api/super-admin/super-users/${id}`, payload)
-    return response.data
-  },
-  updateSuperUserStatus: async (id, status) => {
-    const response = await apiClient.patch<SuperUser>(`/api/super-admin/super-users/${id}/status`, {
-      status,
-    })
-    return response.data
-  },
-}
 
-const mockProvider: SuperAdminDataProvider = {
-  getOverviewData: () => getMockSuperAdminOverviewData(),
-  getSystemRulesConfiguration: () => getMockSystemRulesConfiguration(),
-  saveSystemRulesConfiguration: (payload) => saveMockSystemRulesConfiguration(payload),
-  getSystemConfiguration: () => getMockSystemConfiguration(),
-  saveSystemConfiguration: (payload) => saveMockSystemConfiguration(payload),
-  getIngestionMonitorData: (_filters) => getMockIngestionMonitorData(),
-  getApiCredentialsData: () => getMockApiCredentialsData(),
-  generateApiKey: (stateId) => generateApiKey(stateId),
-  sendApiKey: (stateId) => sendApiKey(stateId),
-  getStatesUTsData: () => getMockStatesUTsData(),
-  getStateAdminsData: () => getMockStateAdminsData(),
-  getStateUTById: (id) => getStateUTById(id),
-  createStateUT: (payload) => createStateUT(payload),
-  updateStateUT: (id, payload) => updateStateUT(id, payload),
-  updateStateUTStatus: (id, status) => updateStateUTStatus(id, status),
-  getAssignedStateNames: async () => getAssignedStateNames(),
-  getStateUTOptions: () => getStateUTOptions(),
-  createStateAdmin: (tenantId: string, admin: StateAdminDetails) =>
-    createStateAdmin(tenantId, admin),
-  createTenant: (payload: CreateTenantInput) => mockCreateTenant(payload),
-  getSuperUsers: () => getMockSuperUsers(),
-  getSuperUserById: (id) => getMockSuperUserById(id),
-  createSuperUser: (payload) => createMockSuperUser(payload),
-  updateSuperUser: (id, payload) => updateMockSuperUser(id, payload),
-  updateSuperUserStatus: (id, status) => updateMockSuperUserStatus(id, status),
-}
+  createTenant: async (payload: {
+    stateCode: string
+    lgdCode: number
+    name: string
+  }): Promise<Tenant> => {
+    const response = await apiClient.post<ApiResponse<TenantApiResponse>>(
+      '/api/v1/tenants',
+      payload
+    )
+    return mapTenant(response.data.data)
+  },
 
-// Real HTTP: system configuration
-// Mock:      everything else (to be migrated incrementally)
-export const superAdminApi = {
-  // --- Mock ---
-  getOverviewData: () => mockProvider.getOverviewData(),
-  getSystemRulesConfiguration: () => mockProvider.getSystemRulesConfiguration(),
-  saveSystemRulesConfiguration: (payload: SaveSystemRulesPayload) =>
-    mockProvider.saveSystemRulesConfiguration(payload),
-  getIngestionMonitorData: (filters?: IngestionMonitorFilters) =>
-    mockProvider.getIngestionMonitorData(filters),
-  getApiCredentialsData: () => mockProvider.getApiCredentialsData(),
-  generateApiKey: (stateId: string) => mockProvider.generateApiKey(stateId),
-  sendApiKey: (stateId: string) => mockProvider.sendApiKey(stateId),
-  getStatesUTsData: () => mockProvider.getStatesUTsData(),
-  getStateAdminsData: () => mockProvider.getStateAdminsData(),
-  getStateUTById: (id: string) => mockProvider.getStateUTById(id),
-  createStateUT: (payload: CreateStateUTInput) => mockProvider.createStateUT(payload),
-  updateStateUT: (id: string, payload: UpdateStateUTInput) =>
-    mockProvider.updateStateUT(id, payload),
-  updateStateUTStatus: (id: string, status: StateUTStatus) =>
-    mockProvider.updateStateUTStatus(id, status),
-  getAssignedStateNames: () => mockProvider.getAssignedStateNames(),
-  getStateUTOptions: () => mockProvider.getStateUTOptions(),
-  createStateAdmin: (tenantId: string, admin: StateAdminDetails) =>
-    mockProvider.createStateAdmin(tenantId, admin),
-  createTenant: (payload: CreateTenantInput) => mockProvider.createTenant(payload),
-  getSuperUsers: () => mockProvider.getSuperUsers(),
-  getSuperUserById: (id: string) => mockProvider.getSuperUserById(id),
-  createSuperUser: (payload: CreateSuperUserInput) => mockProvider.createSuperUser(payload),
-  updateSuperUser: (id: string, payload: UpdateSuperUserInput) =>
-    mockProvider.updateSuperUser(id, payload),
-  updateSuperUserStatus: (id: string, status: 'active' | 'inactive') =>
-    mockProvider.updateSuperUserStatus(id, status),
+  updateTenantStatus: async (id: number, status: 'ACTIVE' | 'INACTIVE'): Promise<void> => {
+    if (status === 'INACTIVE') {
+      await apiClient.put(`/api/v1/tenants/${id}/deactivate`)
+    } else {
+      await apiClient.put(`/api/v1/tenants/${id}`, { status: 'ACTIVE' })
+    }
+  },
 
-  // --- Real HTTP ---
-  getSystemConfiguration: () => httpProvider.getSystemConfiguration(),
-  saveSystemConfiguration: (payload: SaveSystemConfigPayload) =>
-    httpProvider.saveSystemConfiguration(payload),
+  // ── Real HTTP: State Admins (by tenant) ────────────────────────────────────
+  getStateAdminsByTenant: async (tenantCode: string): Promise<UserAdminData[]> => {
+    const response = await apiClient.get<ApiResponse<ApiUsersListResponse>>(
+      '/api/v1/users/state-admins',
+      { params: { tenantCode } }
+    )
+    return response.data.data.content.map(mapApiUserToUserAdminData)
+  },
+
+  /** Kept for ManageStateAdminsPage which fetches all state admins (no tenantCode). */
+  getStateAdminsData: async (): Promise<StateAdmin[]> => {
+    const response = await apiClient.get<ApiResponse<ApiUsersListResponse>>(
+      '/api/v1/users/state-admins'
+    )
+    return response.data.data.content.map((u: ApiUser) => ({
+      id: String(u.id),
+      adminName: `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim(),
+      stateUt: u.tenantCode ?? '',
+      mobileNumber: u.phoneNumber,
+      emailAddress: u.email,
+      signupStatus: u.active ? ('completed' as const) : ('pending' as const),
+    }))
+  },
+
+  // ── Real HTTP: Users (super users + generic update/status) ─────────────────
+  getSuperUsers: async (): Promise<UserAdminData[]> => {
+    const response = await apiClient.get<ApiResponse<ApiUsersListResponse>>(
+      '/api/v1/users/super-users'
+    )
+    return response.data.data.content.map(mapApiUserToUserAdminData)
+  },
+
+  getSuperUserById: async (id: string): Promise<UserAdminData | null> => {
+    try {
+      const response = await apiClient.get<ApiResponse<ApiUser>>(`/api/v1/users/${id}`)
+      return mapApiUserToUserAdminData(response.data.data)
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.status === 404) return null
+      throw error
+    }
+  },
+
+  inviteUser: async (payload: InviteUserRequest): Promise<void> => {
+    await apiClient.post('/api/v1/users/invite', payload)
+  },
+
+  updateUser: async (id: string, payload: UpdateUserRequest): Promise<void> => {
+    await apiClient.patch(`/api/v1/users/${id}`, payload)
+  },
+
+  updateUserStatus: async (id: string, status: 'active' | 'inactive'): Promise<void> => {
+    if (status === 'inactive') {
+      await apiClient.put(`/api/v1/users/${id}/deactivate`)
+    } else {
+      await apiClient.put(`/api/v1/users/${id}/activate`)
+    }
+  },
 }

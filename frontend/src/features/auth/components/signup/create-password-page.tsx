@@ -90,7 +90,7 @@ export function CreatePasswordPage({ onShowToast }: CreatePasswordPageProps) {
       })
       await authApi.createPassword(request)
       onShowToast(t('toast.passwordCreated'), 'success')
-      setTimeout(() => navigate(ROUTES.CREDENTIALS, { state: { email, userId: id } }), 1500)
+      setTimeout(() => navigate(ROUTES.LOGIN), 1500)
     } catch (e) {
       const message = e instanceof Error ? e.message : t('toast.passwordCreateFailed')
       onShowToast(message, 'error')

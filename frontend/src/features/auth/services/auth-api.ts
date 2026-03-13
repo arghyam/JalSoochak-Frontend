@@ -305,4 +305,45 @@ export const authApi = {
       throw new Error(message)
     }
   },
+
+  /** GET /api/v1/auth/invite/info?token=... — fetch invite metadata from token. */
+  getInviteInfo: async (
+    token: string
+  ): Promise<{ email: string; role: string; tenantName: string }> => {
+    try {
+      const response = await apiClient.get<
+        ApiResponse<{ email: string; role: string; tenantName: string }>
+      >('/api/v1/auth/invite/info', { params: { token } })
+      return response.data.data
+    } catch (err: unknown) {
+      let message = 'Invalid or expired invite link.'
+      if (isAxiosError(err) && typeof err.response?.data?.message === 'string') {
+        message = err.response.data.message
+      } else if (err instanceof Error) {
+        message = err.message
+      }
+      throw new Error(message)
+    }
+  },
+
+  /** POST /api/v1/auth/activate-account — set password + profile for invited user. */
+  activateAccount: async (payload: {
+    inviteToken: string
+    firstName: string
+    lastName: string
+    phoneNumber: string
+    password: string
+  }): Promise<void> => {
+    try {
+      await apiClient.post('/api/v1/auth/activate-account', payload)
+    } catch (err: unknown) {
+      let message = 'Failed to activate account.'
+      if (isAxiosError(err) && typeof err.response?.data?.message === 'string') {
+        message = err.response.data.message
+      } else if (err instanceof Error) {
+        message = err.message
+      }
+      throw new Error(message)
+    }
+  },
 }

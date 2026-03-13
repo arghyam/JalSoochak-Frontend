@@ -5,14 +5,21 @@ import {
   UserAdminFormPage,
   type UserAdminRoutes,
   type UserAdminFormPageLabels,
+  type UserAdminCreateMutation,
+  type UserAdminUpdateMutation,
 } from '@/shared/components/common'
 import { ROUTES } from '@/shared/constants/routes'
 import {
   useSuperUserByIdQuery,
-  useCreateSuperUserMutation,
-  useUpdateSuperUserMutation,
-  useUpdateSuperUserStatusMutation,
+  useUpdateUserMutation,
+  useUpdateUserStatusMutation,
 } from '../../services/query/use-super-admin-queries'
+
+// Stub — add mode is handled by InviteSuperUserPage; this page is edit-only.
+const neverCreate: UserAdminCreateMutation = {
+  isPending: false,
+  mutateAsync: () => Promise.reject(new Error('Use InviteSuperUserPage for add')),
+}
 
 export function SuperUserFormPage() {
   const { t } = useTranslation(['super-admin', 'common'])
@@ -20,9 +27,23 @@ export function SuperUserFormPage() {
   const isEditMode = Boolean(id)
 
   const userQuery = useSuperUserByIdQuery(id)
-  const createMutation = useCreateSuperUserMutation()
-  const updateMutation = useUpdateSuperUserMutation()
-  const statusMutation = useUpdateSuperUserStatusMutation()
+  const rawUpdateMutation = useUpdateUserMutation()
+  const statusMutation = useUpdateUserStatusMutation()
+
+  // Adapter: UserAdminFormPage calls { id, input: { firstName, lastName, phone } }
+  // but useUpdateUserMutation takes { id, payload: { firstName?, lastName?, phoneNumber? } }
+  const updateMutation: UserAdminUpdateMutation = {
+    isPending: rawUpdateMutation.isPending,
+    mutateAsync: ({ id: userId, input }) =>
+      rawUpdateMutation.mutateAsync({
+        id: userId,
+        payload: {
+          firstName: input.firstName,
+          lastName: input.lastName,
+          phoneNumber: input.phone,
+        },
+      }),
+  }
 
   useEffect(() => {
     document.title = `${isEditMode ? t('superUsers.editTitle') : t('superUsers.addTitle')} | JalSoochak`
@@ -73,7 +94,7 @@ export function SuperUserFormPage() {
       isLoadingOriginal={userQuery.isLoading}
       routes={routes}
       labels={labels}
-      createMutation={createMutation}
+      createMutation={neverCreate}
       updateMutation={updateMutation}
       statusMutation={statusMutation}
     />

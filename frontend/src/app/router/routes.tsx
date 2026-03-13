@@ -14,6 +14,7 @@ import {
   IngestionMonitorPage,
   SuperUsersPage,
   SuperUserFormPage,
+  InviteSuperUserPage,
   ViewSuperUserPage,
   SystemConfigPage,
 } from '@/features/super-admin'
@@ -30,10 +31,11 @@ import {
   StaffSyncPage,
   StateUTAdminsPage,
   StateUTAdminFormPage,
+  InviteStateUTAdminPage,
   ViewStateUTAdminPage,
 } from '@/features/state-admin'
 import { LoginPage, ResetPasswordPage, ProfilePage, ChangePasswordPage } from '@/features/auth'
-import { SignupFlowPage } from '@/features/auth/components/signup/signup-flow-page'
+import { AccountActivationPage } from '@/features/auth/components/activate-account/activate-account-page'
 import { ProtectedRoute, RedirectIfAuthenticated } from '@/shared/components/routing/ProtectedRoute'
 import { AUTH_ROLES } from '@/shared/constants/auth'
 import { NotFoundPage } from '@/shared/components/common'
@@ -90,30 +92,9 @@ export const router = createBrowserRouter([
     ),
   },
 
-  // Auth
-  {
-    path: ROUTES.SIGNUP,
-    element: (
-      <RedirectIfAuthenticated>
-        <SignupFlowPage />
-      </RedirectIfAuthenticated>
-    ),
-  },
   {
     path: ROUTES.CREATE_PASSWORD,
-    element: (
-      <RedirectIfAuthenticated>
-        <SignupFlowPage initialStep="createPassword" />
-      </RedirectIfAuthenticated>
-    ),
-  },
-  {
-    path: ROUTES.CREDENTIALS,
-    element: (
-      <RedirectIfAuthenticated>
-        <SignupFlowPage initialStep="credentials" />
-      </RedirectIfAuthenticated>
-    ),
+    element: <AccountActivationPage />,
   },
   {
     path: ROUTES.RESET_PASSWORD,
@@ -178,7 +159,7 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.SUPER_ADMIN_SUPER_USERS_ADD,
-        element: <SuperUserFormPage />,
+        element: <InviteSuperUserPage />,
       },
       {
         path: ROUTES.SUPER_ADMIN_SUPER_USERS_VIEW,
@@ -257,7 +238,7 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.STATE_ADMIN_STATE_UT_ADMINS_ADD,
-        element: <StateUTAdminFormPage />,
+        element: <InviteStateUTAdminPage />,
       },
       {
         path: ROUTES.STATE_ADMIN_STATE_UT_ADMINS_VIEW,

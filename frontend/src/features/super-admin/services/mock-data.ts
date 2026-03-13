@@ -5,13 +5,13 @@ import type { IngestionMonitorData } from '../types/ingestion-monitor'
 import type { ApiCredentialsData } from '../types/api-credentials'
 import type { SystemConfiguration, SaveSystemConfigPayload } from '../types/system-config'
 import {
-  INDIAN_STATES_UTS,
   type StateUT,
   type CreateStateUTInput,
   type UpdateStateUTInput,
   type StateUTOption,
   type StateAdminDetails,
 } from '../types/states-uts'
+import { INDIA_STATES } from '@/shared/constants/states'
 import type { StateAdmin } from '../types/state-admins'
 import type { CreateTenantInput, Tenant } from '../types/tenant'
 
@@ -667,7 +667,7 @@ export const getAssignedStateNames = (): string[] => {
 export const getStateUTOptions = (): Promise<StateUTOption[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve([...INDIAN_STATES_UTS])
+      resolve([...INDIA_STATES])
     }, 300)
   })
 }
