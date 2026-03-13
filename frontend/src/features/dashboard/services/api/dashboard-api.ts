@@ -1,6 +1,11 @@
 import { apiClient } from '@/shared/lib/axios'
 import { isAxiosError } from 'axios'
-import type { DashboardData, DashboardLevel } from '../../types'
+import type {
+  AverageWaterSupplyPerRegionQueryParams,
+  AverageWaterSupplyPerRegionResponse,
+  DashboardData,
+  DashboardLevel,
+} from '../../types'
 import { dashboardMockService } from '../mock/dashboard-mock'
 
 export interface DashboardQueryParams {
@@ -207,6 +212,25 @@ const provider: DashboardDataProvider = DASHBOARD_PROVIDER === 'http' ? httpProv
 export const dashboardApi = {
   getDashboardData: (params: DashboardQueryParams): Promise<DashboardData> => {
     return provider.getDashboardData(params)
+  },
+  getAverageWaterSupplyPerRegion: async (
+    params: AverageWaterSupplyPerRegionQueryParams
+  ): Promise<AverageWaterSupplyPerRegionResponse> => {
+    const response = await apiClient.get<AverageWaterSupplyPerRegionResponse>(
+      '/api/v1/analytics/water-supply/average-per-region',
+      {
+        params: {
+          tenant_id: params.tenantId,
+          parent_lgd_id: params.parentLgdId,
+          parent_department_id: params.parentDepartmentId,
+          scope: params.scope ?? 'child',
+          start_date: params.startDate,
+          end_date: params.endDate,
+        },
+      }
+    )
+
+    return response.data
   },
   getTenants: async (): Promise<TenantListResponse> => {
     const tenants: TenantListItem[] = []

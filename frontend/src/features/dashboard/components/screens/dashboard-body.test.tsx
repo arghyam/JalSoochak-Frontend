@@ -155,6 +155,7 @@ function renderDashboardBody(overrides: Partial<ComponentProps<typeof DashboardB
       isBlockSelected={false}
       isGramPanchayatSelected={false}
       selectedVillage=""
+      quantityPerformanceData={mockEntityData}
       districtTableData={mockEntityData}
       blockTableData={mockEntityData}
       gramPanchayatTableData={mockEntityData}
@@ -265,6 +266,18 @@ describe('DashboardBody', () => {
       isBlockSelected: false,
       isGramPanchayatSelected: false,
       selectedVillage: '',
+      quantityPerformanceData: [
+        {
+          id: 'qd1',
+          name: 'District A',
+          coverage: 60,
+          regularity: 70,
+          continuity: 0,
+          quantity: 50,
+          compositeScore: 65,
+          status: 'needs-attention',
+        },
+      ],
       districtTableData: [
         {
           id: 'd1',

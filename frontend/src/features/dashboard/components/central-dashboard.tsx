@@ -4,6 +4,9 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Box, Flex, Text, Heading, Grid, Icon, Image } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { useDashboardData } from '../hooks/use-dashboard-data'
+import { useLocationChildrenQuery } from '../services/query/use-location-children-query'
+import { useLocationSearchQuery } from '../services/query/use-location-search-query'
+import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { KPICard } from './kpi-card'
 import { DashboardBody } from './screens/dashboard-body'
 import { IndiaMapChart } from './charts'
@@ -17,6 +20,7 @@ import { DashboardFilters } from './filters/dashboard-filters'
 import { OverallPerformanceTable } from './tables'
 import { ROUTES } from '@/shared/constants/routes'
 import { computeTrailIndices } from '../utils/trail-index'
+import { slugify, toCapitalizedWords } from '../utils/format-location-label'
 import {
   mockFilterStates,
   mockFilterDistricts,
@@ -29,8 +33,10 @@ import {
   mockGramPanchayatPerformanceByBlock,
   mockVillagePerformanceByGramPanchayat,
 } from '../services/mock/dashboard-mock'
+import type { HierarchyType, TenantChildLocation } from '../services/api/dashboard-api'
 
 const storageKey = 'central-dashboard-filters'
+const LOCATION_VALUE_SEPARATOR = ':'
 
 type StoredFilters = {
   selectedDuration?: DateRange
@@ -112,6 +118,96 @@ const normalizeMockLookupKey = (value: string) => {
 
   const normalizedValue = value.includes(':') ? value.split(':').slice(1).join(':') : value
   return normalizedValue.trim().toLowerCase()
+}
+
+const parseLocationId = (value: string): number | undefined => {
+  if (!value) {
+    return undefined
+  }
+
+  const idPrefix = value.split(LOCATION_VALUE_SEPARATOR, 1)[0]
+  const parsedId = Number.parseInt(idPrefix, 10)
+  return Number.isFinite(parsedId) ? parsedId : undefined
+}
+
+type LocationOption = {
+  value: string
+  label: string
+  locationId?: number
+}
+
+const toStableLocationValue = (locationId: number, label: string): string =>
+  `${locationId}${LOCATION_VALUE_SEPARATOR}${slugify(label)}`
+
+const mapLocationOptions = (locations: TenantChildLocation[] | undefined): LocationOption[] => {
+  if (!locations?.length) {
+    return []
+  }
+
+  return locations
+    .filter((location) => typeof location.id === 'number' && Boolean(location.title?.trim()))
+    .map((location) => {
+      const locationId = location.id as number
+      const normalizedTitle = toCapitalizedWords(location.title?.trim() ?? '')
+
+      return {
+        value: toStableLocationValue(locationId, normalizedTitle),
+        label: normalizedTitle,
+        locationId,
+      }
+    })
+}
+
+const findLocationOption = (
+  options: LocationOption[],
+  selectedValue: string
+): LocationOption | undefined => {
+  if (!selectedValue) {
+    return undefined
+  }
+
+  const selectedId = parseLocationId(selectedValue)
+  if (typeof selectedId === 'number') {
+    return options.find((option) => option.locationId === selectedId)
+  }
+
+  return options.find(
+    (option) => option.value === selectedValue || slugify(option.label) === selectedValue
+  )
+}
+
+const toIsoDate = (value?: string | null): string | null => {
+  if (!value) {
+    return null
+  }
+
+  const parts = value.split('/')
+  if (parts.length === 3) {
+    const [day, month, year] = parts
+    if (year && month && day) {
+      return `${year}-${month}-${day}`
+    }
+  }
+
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null
+}
+
+const formatDateForApi = (date: Date) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const getDefaultAnalyticsDateRange = () => {
+  const endDate = new Date()
+  const startDate = new Date(endDate)
+  startDate.setDate(endDate.getDate() - 29)
+
+  return {
+    startDate: formatDateForApi(startDate),
+    endDate: formatDateForApi(endDate),
+  }
 }
 
 export function CentralDashboard() {
@@ -204,6 +300,7 @@ export function CentralDashboard() {
   const isGramPanchayatSelected = Boolean(effectiveSelectedGramPanchayat)
   const isVillageSelected = Boolean(effectiveSelectedVillage)
   const isDepartmentStateSelected = Boolean(selectedDepartmentState)
+  const hierarchyType: HierarchyType = filterTabIndex === 0 ? 'LGD' : 'DEPARTMENT'
   const emptyOptions: SearchableSelectOption[] = []
   const isAdvancedEnabled = Boolean(selectedState && selectedDistrict)
   const emptyEntityPerformance: EntityPerformance[] = []
@@ -295,6 +392,47 @@ export function CentralDashboard() {
   const villageOptions = normalizedSelectedGramPanchayat
     ? getOwnLookupValue(mockFilterVillages, normalizedSelectedGramPanchayat, emptyOptions)
     : emptyOptions
+  const { data: locationSearchData } = useLocationSearchQuery()
+  const selectedTenant = locationSearchData?.states.find((option) => option.value === selectedState)
+  const { data: rootLocationsData } = useLocationChildrenQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: 0,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(selectedTenant?.tenantId && hierarchyType === 'LGD'),
+  })
+  const rootLocationOptions = mapLocationOptions(rootLocationsData?.data)
+  const selectedRootOption = findLocationOption(rootLocationOptions, selectedState)
+  const analyticsFallbackData = isGramPanchayatSelected
+    ? villageTableData
+    : isBlockSelected
+      ? gramPanchayatTableData
+      : isDistrictSelected
+        ? blockTableData
+        : isStateSelected
+          ? districtTableData
+          : (data?.mapData ?? emptyEntityPerformance)
+  const defaultAnalyticsRange = getDefaultAnalyticsDateRange()
+  const analyticsParams =
+    hierarchyType !== 'LGD' || isVillageSelected || !selectedTenant?.tenantId
+      ? null
+      : {
+          tenantId: selectedTenant.tenantId,
+          parentLgdId:
+            parseLocationId(effectiveSelectedGramPanchayat) ??
+            parseLocationId(effectiveSelectedBlock) ??
+            parseLocationId(effectiveSelectedDistrict) ??
+            selectedRootOption?.locationId ??
+            0,
+          scope: 'child' as const,
+          startDate: toIsoDate(selectedDuration?.startDate) ?? defaultAnalyticsRange.startDate,
+          endDate: toIsoDate(selectedDuration?.endDate) ?? defaultAnalyticsRange.endDate,
+        }
+  useAverageWaterSupplyPerRegionQuery({
+    params: analyticsParams,
+    enabled: Boolean(analyticsParams),
+  })
+  const quantityPerformanceData = analyticsFallbackData
 
   const updateFilterUrl = (filters: {
     state?: string
@@ -760,6 +898,7 @@ export function CentralDashboard() {
         isBlockSelected={isBlockSelected}
         isGramPanchayatSelected={isGramPanchayatSelected}
         selectedVillage={effectiveSelectedVillage}
+        quantityPerformanceData={quantityPerformanceData}
         districtTableData={districtTableData}
         blockTableData={blockTableData}
         gramPanchayatTableData={gramPanchayatTableData}

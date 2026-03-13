@@ -16,6 +16,7 @@ import { ViewBySelect } from '@/shared/components/common'
 
 type BlockDashboardScreenProps = {
   data: DashboardData
+  quantityPerformanceData: EntityPerformance[]
   gramPanchayatTableData: EntityPerformance[]
   supplySubmissionRateData: EntityPerformance[]
   supplySubmissionRateLabel: string
@@ -27,6 +28,7 @@ type ViewBy = 'geography' | 'time'
 
 export function BlockDashboardScreen({
   data,
+  quantityPerformanceData,
   gramPanchayatTableData,
   supplySubmissionRateData,
   supplySubmissionRateLabel,
@@ -92,7 +94,7 @@ export function BlockDashboardScreen({
           </Flex>
           {quantityViewBy === 'geography' ? (
             <MetricPerformanceChart
-              data={gramPanchayatTableData}
+              data={quantityPerformanceData}
               metric="quantity"
               height="400px"
               entityLabel={t('performanceCharts.viewBy.gramPanchayats', {

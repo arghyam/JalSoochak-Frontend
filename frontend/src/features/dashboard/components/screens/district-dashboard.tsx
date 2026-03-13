@@ -16,6 +16,7 @@ import { ViewBySelect } from '@/shared/components/common'
 
 type DistrictDashboardScreenProps = {
   data: DashboardData
+  quantityPerformanceData: EntityPerformance[]
   blockTableData: EntityPerformance[]
   supplySubmissionRateData: EntityPerformance[]
   supplySubmissionRateLabel: string
@@ -27,6 +28,7 @@ type ViewBy = 'geography' | 'time'
 
 export function DistrictDashboardScreen({
   data,
+  quantityPerformanceData,
   blockTableData,
   supplySubmissionRateData,
   supplySubmissionRateLabel,
@@ -99,7 +101,7 @@ export function DistrictDashboardScreen({
           </Flex>
           {quantityViewBy === 'geography' ? (
             <MetricPerformanceChart
-              data={blockTableData}
+              data={quantityPerformanceData}
               metric="quantity"
               height="400px"
               entityLabel={t('performanceCharts.viewBy.blocks', { defaultValue: 'Blocks' })}

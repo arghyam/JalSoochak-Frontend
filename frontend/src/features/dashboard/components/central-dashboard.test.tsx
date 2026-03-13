@@ -4,6 +4,9 @@ import { renderWithProviders } from '@/test/render-with-providers'
 import type { DashboardData } from '../types'
 import { CentralDashboard } from './central-dashboard'
 import { useDashboardData } from '../hooks/use-dashboard-data'
+import { useLocationSearchQuery } from '../services/query/use-location-search-query'
+import { useLocationChildrenQuery } from '../services/query/use-location-children-query'
+import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 
 const mockNavigate = jest.fn()
 const mockUseParams = jest.fn(() => ({}))
@@ -38,6 +41,18 @@ jest.mock('react-router-dom', () => ({
 
 jest.mock('../hooks/use-dashboard-data', () => ({
   useDashboardData: jest.fn(),
+}))
+
+jest.mock('../services/query/use-location-search-query', () => ({
+  useLocationSearchQuery: jest.fn(),
+}))
+
+jest.mock('../services/query/use-location-children-query', () => ({
+  useLocationChildrenQuery: jest.fn(),
+}))
+
+jest.mock('../services/query/use-average-water-supply-per-region-query', () => ({
+  useAverageWaterSupplyPerRegionQuery: jest.fn(),
 }))
 
 jest.mock('./filters/dashboard-filters', () => ({
@@ -118,6 +133,9 @@ describe('CentralDashboard', () => {
     mockOverallPerformanceTable.mockClear()
     mockUseParams.mockReturnValue({})
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()])
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({ data: undefined })
   })
 
   it('renders Overall Performance table panel for central view', () => {

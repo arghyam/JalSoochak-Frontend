@@ -29,6 +29,7 @@ type DashboardBodyProps = {
   isBlockSelected: boolean
   isGramPanchayatSelected: boolean
   selectedVillage: string
+  quantityPerformanceData: EntityPerformance[]
   districtTableData: EntityPerformance[]
   blockTableData: EntityPerformance[]
   gramPanchayatTableData: EntityPerformance[]
@@ -52,6 +53,7 @@ export function DashboardBody({
   isBlockSelected,
   isGramPanchayatSelected,
   selectedVillage,
+  quantityPerformanceData,
   districtTableData,
   blockTableData,
   gramPanchayatTableData,
@@ -130,7 +132,7 @@ export function DashboardBody({
             </Flex>
             {quantityViewBy === 'geography' ? (
               <MetricPerformanceChart
-                data={geographyMetricData}
+                data={quantityPerformanceData}
                 metric="quantity"
                 height="400px"
                 entityLabel={geographyEntityLabel}
@@ -218,6 +220,7 @@ export function DashboardBody({
       {isDistrictScreen ? (
         <DistrictDashboardScreen
           data={data}
+          quantityPerformanceData={quantityPerformanceData}
           blockTableData={blockTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
@@ -228,6 +231,7 @@ export function DashboardBody({
       {isBlockScreen ? (
         <BlockDashboardScreen
           data={data}
+          quantityPerformanceData={quantityPerformanceData}
           gramPanchayatTableData={gramPanchayatTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
@@ -238,6 +242,7 @@ export function DashboardBody({
       {isGramPanchayatScreen ? (
         <GramPanchayatDashboardScreen
           data={data}
+          quantityPerformanceData={quantityPerformanceData}
           villageTableData={villageTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}

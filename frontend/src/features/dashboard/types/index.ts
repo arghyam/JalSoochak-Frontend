@@ -125,6 +125,48 @@ export interface StateUtSearchResponse {
   states: StateUtOption[]
 }
 
+export interface AverageWaterSupplyPerRegionQueryParams {
+  tenantId: number
+  parentLgdId?: number
+  parentDepartmentId?: number
+  scope?: 'current' | 'child'
+  startDate: string
+  endDate: string
+}
+
+export interface AverageWaterSupplyScheme {
+  schemeId: number
+  schemeName: string
+  householdCount: number
+  totalWaterSuppliedLiters: number
+  supplyDays: number
+  avgLitersPerHousehold: number
+}
+
+export interface AverageWaterSupplyChildRegion {
+  lgdId: number
+  departmentId: number
+  title: string
+  totalHouseholdCount: number
+  totalWaterSuppliedLiters: number
+  schemeCount: number
+  avgWaterSupplyPerScheme: number
+}
+
+export interface AverageWaterSupplyPerRegionResponse {
+  tenantId: number
+  stateCode: string
+  parentLgdLevel: number
+  parentDepartmentLevel: number
+  startDate: string
+  endDate: string
+  daysInRange: number
+  schemeCount: number
+  childRegionCount: number
+  schemes: AverageWaterSupplyScheme[]
+  childRegions: AverageWaterSupplyChildRegion[]
+}
+
 // For map hover/click interactions
 export interface MapInteraction {
   entityId: string
