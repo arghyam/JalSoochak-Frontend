@@ -16,7 +16,6 @@ export interface AuthState {
   updateUser: (user: AuthUser) => void
   sessionExpired: boolean
   setSessionExpired: () => void
-  setTokens: (accessToken: string) => void
   refreshAccessToken: () => Promise<string>
 }
 
@@ -111,10 +110,6 @@ export const useAuthStore = create<AuthState>()((set) => ({
 
   updateUser: (user: AuthUser) => {
     set({ user })
-  },
-
-  setTokens: (accessToken: string) => {
-    set({ accessToken })
   },
 
   refreshAccessToken: async () => {
