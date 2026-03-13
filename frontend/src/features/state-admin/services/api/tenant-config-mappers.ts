@@ -183,7 +183,7 @@ export function mapApiConfigToWaterNormsConfiguration(
 ): Omit<WaterNormsConfiguration, 'id'> {
   return {
     stateQuantity: Number(configs.WATER_NORM?.value) || 0,
-    // district overrides and regularity are not yet provided by the backend;
+    //regularity not yet provided by the backend;
     // they remain UI-local until the backend supports these fields
     districtOverrides: [],
     regularity: 0,

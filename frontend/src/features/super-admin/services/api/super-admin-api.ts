@@ -274,40 +274,42 @@ const mockProvider: SuperAdminDataProvider = {
   updateSuperUserStatus: (id, status) => updateMockSuperUserStatus(id, status),
 }
 
-const SUPER_ADMIN_PROVIDER = import.meta.env.VITE_SUPER_ADMIN_DATA_PROVIDER ?? 'mock'
-const provider: SuperAdminDataProvider =
-  SUPER_ADMIN_PROVIDER === 'http' ? httpProvider : mockProvider
-
+// Real HTTP: system configuration
+// Mock:      everything else (to be migrated incrementally)
 export const superAdminApi = {
-  getOverviewData: () => provider.getOverviewData(),
-  getSystemRulesConfiguration: () => provider.getSystemRulesConfiguration(),
+  // --- Mock ---
+  getOverviewData: () => mockProvider.getOverviewData(),
+  getSystemRulesConfiguration: () => mockProvider.getSystemRulesConfiguration(),
   saveSystemRulesConfiguration: (payload: SaveSystemRulesPayload) =>
-    provider.saveSystemRulesConfiguration(payload),
-  getSystemConfiguration: () => provider.getSystemConfiguration(),
-  saveSystemConfiguration: (payload: SaveSystemConfigPayload) =>
-    provider.saveSystemConfiguration(payload),
+    mockProvider.saveSystemRulesConfiguration(payload),
   getIngestionMonitorData: (filters?: IngestionMonitorFilters) =>
-    provider.getIngestionMonitorData(filters),
-  getApiCredentialsData: () => provider.getApiCredentialsData(),
-  generateApiKey: (stateId: string) => provider.generateApiKey(stateId),
-  sendApiKey: (stateId: string) => provider.sendApiKey(stateId),
-  getStatesUTsData: () => provider.getStatesUTsData(),
-  getStateAdminsData: () => provider.getStateAdminsData(),
-  getStateUTById: (id: string) => provider.getStateUTById(id),
-  createStateUT: (payload: CreateStateUTInput) => provider.createStateUT(payload),
-  updateStateUT: (id: string, payload: UpdateStateUTInput) => provider.updateStateUT(id, payload),
+    mockProvider.getIngestionMonitorData(filters),
+  getApiCredentialsData: () => mockProvider.getApiCredentialsData(),
+  generateApiKey: (stateId: string) => mockProvider.generateApiKey(stateId),
+  sendApiKey: (stateId: string) => mockProvider.sendApiKey(stateId),
+  getStatesUTsData: () => mockProvider.getStatesUTsData(),
+  getStateAdminsData: () => mockProvider.getStateAdminsData(),
+  getStateUTById: (id: string) => mockProvider.getStateUTById(id),
+  createStateUT: (payload: CreateStateUTInput) => mockProvider.createStateUT(payload),
+  updateStateUT: (id: string, payload: UpdateStateUTInput) =>
+    mockProvider.updateStateUT(id, payload),
   updateStateUTStatus: (id: string, status: StateUTStatus) =>
-    provider.updateStateUTStatus(id, status),
-  getAssignedStateNames: () => provider.getAssignedStateNames(),
-  getStateUTOptions: () => provider.getStateUTOptions(),
+    mockProvider.updateStateUTStatus(id, status),
+  getAssignedStateNames: () => mockProvider.getAssignedStateNames(),
+  getStateUTOptions: () => mockProvider.getStateUTOptions(),
   createStateAdmin: (tenantId: string, admin: StateAdminDetails) =>
-    provider.createStateAdmin(tenantId, admin),
-  createTenant: (payload: CreateTenantInput) => provider.createTenant(payload),
-  getSuperUsers: () => provider.getSuperUsers(),
-  getSuperUserById: (id: string) => provider.getSuperUserById(id),
-  createSuperUser: (payload: CreateSuperUserInput) => provider.createSuperUser(payload),
+    mockProvider.createStateAdmin(tenantId, admin),
+  createTenant: (payload: CreateTenantInput) => mockProvider.createTenant(payload),
+  getSuperUsers: () => mockProvider.getSuperUsers(),
+  getSuperUserById: (id: string) => mockProvider.getSuperUserById(id),
+  createSuperUser: (payload: CreateSuperUserInput) => mockProvider.createSuperUser(payload),
   updateSuperUser: (id: string, payload: UpdateSuperUserInput) =>
-    provider.updateSuperUser(id, payload),
+    mockProvider.updateSuperUser(id, payload),
   updateSuperUserStatus: (id: string, status: 'active' | 'inactive') =>
-    provider.updateSuperUserStatus(id, status),
+    mockProvider.updateSuperUserStatus(id, status),
+
+  // --- Real HTTP ---
+  getSystemConfiguration: () => httpProvider.getSystemConfiguration(),
+  saveSystemConfiguration: (payload: SaveSystemConfigPayload) =>
+    httpProvider.saveSystemConfiguration(payload),
 }
