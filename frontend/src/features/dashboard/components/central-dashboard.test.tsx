@@ -18,6 +18,7 @@ const mockIndiaMapChart = jest.fn((_props: unknown) => <div data-testid="india-m
 const mockOverallPerformanceTable = jest.fn((_props: unknown) => (
   <div data-testid="overall-performance-table" />
 ))
+const mockKPICard = jest.fn((_props: unknown) => <div data-testid="kpi-card" />)
 
 const getLatestDashboardFilterProps = <T extends object>() => {
   const calls = mockDashboardFilters.mock.calls as unknown[][]
@@ -65,7 +66,7 @@ jest.mock('./filters/dashboard-filters', () => ({
 }))
 
 jest.mock('./kpi-card', () => ({
-  KPICard: ({ title }: { title: string }) => <div>{title}</div>,
+  KPICard: (props: unknown) => mockKPICard(props),
 }))
 
 jest.mock('./charts', () => ({
@@ -136,6 +137,7 @@ describe('CentralDashboard', () => {
     mockDashboardBody.mockClear()
     mockIndiaMapChart.mockClear()
     mockOverallPerformanceTable.mockClear()
+    mockKPICard.mockClear()
     mockUseParams.mockReturnValue({})
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()])
     ;(useLocationSearchQuery as jest.Mock).mockReturnValue({ data: undefined })
@@ -328,6 +330,201 @@ describe('CentralDashboard', () => {
         regularity: 50,
       })
     )
+  })
+
+  it('passes computed KPI values and comparison trends to KPI cards', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [{ id: 10, title: 'Telangana' }],
+      },
+    })
+    ;(useAverageWaterSupplyPerRegionQuery as jest.Mock)
+      .mockReturnValueOnce({
+        data: {
+          tenantId: 16,
+          stateCode: 'TG',
+          parentLgdLevel: 1,
+          parentDepartmentLevel: 0,
+          startDate: '2026-03-01',
+          endDate: '2026-03-30',
+          daysInRange: 30,
+          schemeCount: 1,
+          childRegionCount: 1,
+          schemes: [],
+          childRegions: [
+            {
+              lgdId: 101,
+              departmentId: 0,
+              title: 'Alpha',
+              totalHouseholdCount: 1000,
+              totalWaterSuppliedLiters: 90_000_000,
+              schemeCount: 1,
+              avgWaterSupplyPerScheme: 0,
+            },
+          ],
+        },
+      })
+      .mockReturnValueOnce({
+        data: {
+          tenantId: 16,
+          stateCode: 'TG',
+          parentLgdLevel: 1,
+          parentDepartmentLevel: 0,
+          startDate: '2026-03-01',
+          endDate: '2026-03-30',
+          daysInRange: 30,
+          schemeCount: 2,
+          childRegionCount: 0,
+          schemes: [
+            {
+              schemeId: 1,
+              schemeName: 'Scheme 1',
+              householdCount: 1000,
+              totalWaterSuppliedLiters: 90_000_000,
+              supplyDays: 30,
+              avgLitersPerHousehold: 0,
+            },
+            {
+              schemeId: 2,
+              schemeName: 'Scheme 2',
+              householdCount: 1000,
+              totalWaterSuppliedLiters: 60_000_000,
+              supplyDays: 30,
+              avgLitersPerHousehold: 0,
+            },
+          ],
+          childRegions: [],
+        },
+      })
+      .mockReturnValueOnce({
+        data: {
+          tenantId: 16,
+          stateCode: 'TG',
+          parentLgdLevel: 1,
+          parentDepartmentLevel: 0,
+          startDate: '2026-01-30',
+          endDate: '2026-02-28',
+          daysInRange: 30,
+          schemeCount: 2,
+          childRegionCount: 0,
+          schemes: [
+            {
+              schemeId: 1,
+              schemeName: 'Scheme 1',
+              householdCount: 1000,
+              totalWaterSuppliedLiters: 120_000_000,
+              supplyDays: 30,
+              avgLitersPerHousehold: 0,
+            },
+            {
+              schemeId: 2,
+              schemeName: 'Scheme 2',
+              householdCount: 1000,
+              totalWaterSuppliedLiters: 60_000_000,
+              supplyDays: 30,
+              avgLitersPerHousehold: 0,
+            },
+          ],
+          childRegions: [],
+        },
+      })
+    ;(useAverageSchemeRegularityQuery as jest.Mock)
+      .mockReturnValueOnce({
+        data: {
+          lgdId: 10,
+          parentDepartmentId: 0,
+          parentLgdLevel: 1,
+          parentDepartmentLevel: 0,
+          scope: 'child',
+          startDate: '2026-03-01',
+          endDate: '2026-03-30',
+          daysInRange: 30,
+          schemeCount: 2,
+          totalSupplyDays: 45,
+          averageRegularity: 0,
+          childRegionCount: 1,
+          childRegions: [
+            {
+              lgdId: 101,
+              departmentId: 0,
+              title: 'Alpha',
+              schemeCount: 3,
+              totalSupplyDays: 45,
+              averageRegularity: 0,
+            },
+          ],
+        },
+      })
+      .mockReturnValueOnce({
+        data: {
+          lgdId: 10,
+          parentDepartmentId: 0,
+          parentLgdLevel: 1,
+          parentDepartmentLevel: 0,
+          scope: 'current',
+          startDate: '2026-03-01',
+          endDate: '2026-03-30',
+          daysInRange: 30,
+          schemeCount: 2,
+          totalSupplyDays: 42,
+          averageRegularity: 0,
+          childRegionCount: 0,
+          childRegions: [],
+        },
+      })
+      .mockReturnValueOnce({
+        data: {
+          lgdId: 10,
+          parentDepartmentId: 0,
+          parentLgdLevel: 1,
+          parentDepartmentLevel: 0,
+          scope: 'current',
+          startDate: '2026-01-30',
+          endDate: '2026-02-28',
+          daysInRange: 30,
+          schemeCount: 2,
+          totalSupplyDays: 48,
+          averageRegularity: 0,
+          childRegionCount: 0,
+          childRegions: [],
+        },
+      })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const kpiProps = mockKPICard.mock.calls.map(
+      (call) =>
+        call[0] as {
+          title: string
+          value: string
+          trend?: { direction: 'up' | 'down'; text: string }
+        }
+    )
+
+    expect(kpiProps).toHaveLength(3)
+    expect(kpiProps[0]?.title).toBe('Quantity in MLD')
+    expect(kpiProps[0]?.value).toBe('5')
+    expect(kpiProps[0]?.trend).toEqual({ direction: 'down', text: '-16.7% vs last 30 days' })
+
+    expect(kpiProps[1]?.title).toBe('Quantity in LPCD')
+    expect(kpiProps[1]?.value).toBe('500')
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-100 LPCD vs last month' })
+
+    expect(kpiProps[2]?.title).toBe('Regularity')
+    expect(kpiProps[2]?.value).toBe('70.0%')
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'down', text: '-12.5% vs last month' })
   })
 
   it('hides map and overall performance panel when a village is selected', () => {

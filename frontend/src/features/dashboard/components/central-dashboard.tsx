@@ -23,8 +23,14 @@ import { ROUTES } from '@/shared/constants/routes'
 import { computeTrailIndices } from '../utils/trail-index'
 import { slugify, toCapitalizedWords } from '../utils/format-location-label'
 import {
+  calculateAbsoluteChange,
+  calculatePercentChange,
+  getPreviousPeriodRange,
+  getRegularityKpi,
+  getWaterSupplyKpis,
   mapQuantityPerformanceFromAnalytics,
   mapRegularityPerformanceFromAnalytics,
+  resolveDaysInRange,
 } from '../utils/formulas'
 import {
   mockFilterStates,
@@ -447,13 +453,65 @@ export function CentralDashboard() {
           startDate: toIsoDate(selectedDuration?.startDate) ?? defaultAnalyticsRange.startDate,
           endDate: toIsoDate(selectedDuration?.endDate) ?? defaultAnalyticsRange.endDate,
         }
+  const previousAnalyticsRange = getPreviousPeriodRange(
+    analyticsParams?.startDate ?? defaultAnalyticsRange.startDate,
+    analyticsParams?.endDate ?? defaultAnalyticsRange.endDate
+  )
+  const previousWaterSupplyAnalyticsParams =
+    analyticsParams === null
+      ? null
+      : {
+          ...analyticsParams,
+          scope: 'current' as const,
+          startDate: previousAnalyticsRange.startDate,
+          endDate: previousAnalyticsRange.endDate,
+        }
+  const currentWaterSupplyAnalyticsParams =
+    analyticsParams === null
+      ? null
+      : {
+          ...analyticsParams,
+          scope: 'current' as const,
+        }
+  const previousRegularityAnalyticsParams =
+    regularityAnalyticsParams === null
+      ? null
+      : {
+          ...regularityAnalyticsParams,
+          scope: 'current' as const,
+          startDate: previousAnalyticsRange.startDate,
+          endDate: previousAnalyticsRange.endDate,
+        }
+  const currentRegularityAnalyticsParams =
+    regularityAnalyticsParams === null
+      ? null
+      : {
+          ...regularityAnalyticsParams,
+          scope: 'current' as const,
+        }
   const { data: averageWaterSupplyData } = useAverageWaterSupplyPerRegionQuery({
     params: analyticsParams,
     enabled: Boolean(analyticsParams),
   })
+  const { data: currentWaterSupplyKpiData } = useAverageWaterSupplyPerRegionQuery({
+    params: currentWaterSupplyAnalyticsParams,
+    enabled: Boolean(currentWaterSupplyAnalyticsParams),
+  })
+  const { data: previousWaterSupplyKpiData } = useAverageWaterSupplyPerRegionQuery({
+    params: previousWaterSupplyAnalyticsParams,
+    enabled: Boolean(previousWaterSupplyAnalyticsParams),
+  })
   const { data: averageSchemeRegularityData } = useAverageSchemeRegularityQuery({
     params: regularityAnalyticsParams,
     enabled: Boolean(regularityAnalyticsParams),
+  })
+  const { data: currentRegularityKpiData } = useAverageSchemeRegularityQuery({
+    params: currentRegularityAnalyticsParams,
+    enabled: Boolean(currentRegularityAnalyticsParams),
+  })
+  const { data: previousRegularityKpiData } = useAverageSchemeRegularityQuery({
+    params: previousRegularityAnalyticsParams,
+    enabled: Boolean(previousRegularityAnalyticsParams),
   })
   const quantityPerformanceData = mapQuantityPerformanceFromAnalytics(
     averageWaterSupplyData,
@@ -463,6 +521,10 @@ export function CentralDashboard() {
     averageSchemeRegularityData,
     analyticsFallbackData
   )
+  const currentWaterSupplyKpis = getWaterSupplyKpis(currentWaterSupplyKpiData, 5)
+  const previousWaterSupplyKpis = getWaterSupplyKpis(previousWaterSupplyKpiData, 5)
+  const currentRegularityKpi = getRegularityKpi(currentRegularityKpiData)
+  const previousRegularityKpi = getRegularityKpi(previousRegularityKpiData)
 
   const updateFilterUrl = (filters: {
     state?: string
@@ -738,18 +800,45 @@ export function CentralDashboard() {
   const numberLocale = i18n.resolvedLanguage === 'hi' ? 'hi-IN' : 'en-IN'
   const formatNumber = (value: number, options?: Intl.NumberFormatOptions) =>
     new Intl.NumberFormat(numberLocale, options).format(value)
+  const quantityMldChange = calculatePercentChange(
+    currentWaterSupplyKpis.quantityMld,
+    previousWaterSupplyKpis.quantityMld
+  )
+  const quantityLpcdChange = calculateAbsoluteChange(
+    currentWaterSupplyKpis.quantityLpcd,
+    previousWaterSupplyKpis.quantityLpcd
+  )
+  const regularityChange = calculatePercentChange(currentRegularityKpi, previousRegularityKpi)
+  const formatSignedValue = (value: number, options?: Intl.NumberFormatOptions) => {
+    const absoluteValue = Math.abs(value)
+    const formatted = new Intl.NumberFormat(numberLocale, options).format(absoluteValue)
+    if (value > 0) {
+      return `+${formatted}`
+    }
+    if (value < 0) {
+      return `-${formatted}`
+    }
+    return formatted
+  }
+  const toTrendDirection = (value: number): 'up' | 'down' => (value < 0 ? 'down' : 'up')
 
   const coreMetrics = [
     {
       label: t('kpi.labels.quantityInMld', { defaultValue: 'Quantity in MLD' }),
-      value: formatNumber(3620012),
+      value: formatNumber(currentWaterSupplyKpis.quantityMld, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      }),
       trend: {
-        direction: 'down',
-        text: t('kpi.trends.percentDownLastDays', {
-          change: 3,
-          days: 30,
-          defaultValue: '-{{change}}% vs last {{days}} days',
-        }),
+        direction: toTrendDirection(quantityMldChange),
+        text: `${formatSignedValue(quantityMldChange, {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 1,
+        })}% vs last ${resolveDaysInRange(
+          previousWaterSupplyKpiData?.daysInRange,
+          previousWaterSupplyAnalyticsParams?.startDate,
+          previousWaterSupplyAnalyticsParams?.endDate
+        )} days`,
       },
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#E6F7EC" align="center" justify="center">
@@ -759,13 +848,16 @@ export function CentralDashboard() {
     },
     {
       label: t('kpi.labels.quantityInLpcd', { defaultValue: 'Quantity in LPCD' }),
-      value: formatNumber(55),
+      value: formatNumber(currentWaterSupplyKpis.quantityLpcd, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 1,
+      }),
       trend: {
-        direction: 'up',
-        text: t('kpi.trends.lpcdUpLastMonth', {
-          change: 2,
-          defaultValue: '+{{change}} LPCD vs last month',
-        }),
+        direction: toTrendDirection(quantityLpcdChange),
+        text: `${formatSignedValue(quantityLpcdChange, {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 1,
+        })} LPCD vs last month`,
       },
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
@@ -775,13 +867,16 @@ export function CentralDashboard() {
     },
     {
       label: t('kpi.labels.regularity', { defaultValue: 'Regularity' }),
-      value: `${formatNumber(78.4, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`,
+      value: `${formatNumber(currentRegularityKpi, {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      })}%`,
       trend: {
-        direction: 'down',
-        text: t('kpi.trends.percentDownLastMonth', {
-          change: 3,
-          defaultValue: '-{{change}}% vs last month',
-        }),
+        direction: toTrendDirection(regularityChange),
+        text: `${formatSignedValue(regularityChange, {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 1,
+        })}% vs last month`,
       },
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#FFF4CC" align="center" justify="center">

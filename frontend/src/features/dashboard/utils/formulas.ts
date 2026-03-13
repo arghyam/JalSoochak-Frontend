@@ -42,6 +42,38 @@ export const resolveDaysInRange = (
   return DEFAULT_DAYS_IN_RANGE
 }
 
+export const getPreviousPeriodRange = (startDate: string, endDate: string) => {
+  const start = parseIsoDate(startDate)
+  const end = parseIsoDate(endDate)
+  const daysInRange = resolveDaysInRange(undefined, startDate, endDate)
+
+  if (!start || !end) {
+    const today = new Date()
+    const previousEnd = new Date(today)
+    previousEnd.setDate(today.getDate() - 30)
+    const previousStart = new Date(previousEnd)
+    previousStart.setDate(previousEnd.getDate() - (daysInRange - 1))
+
+    return {
+      startDate: `${previousStart.getFullYear()}-${String(previousStart.getMonth() + 1).padStart(2, '0')}-${String(previousStart.getDate()).padStart(2, '0')}`,
+      endDate: `${previousEnd.getFullYear()}-${String(previousEnd.getMonth() + 1).padStart(2, '0')}-${String(previousEnd.getDate()).padStart(2, '0')}`,
+    }
+  }
+
+  const previousEnd = new Date(start)
+  previousEnd.setDate(start.getDate() - 1)
+  const previousStart = new Date(previousEnd)
+  previousStart.setDate(previousEnd.getDate() - (daysInRange - 1))
+
+  const toIsoDate = (date: Date) =>
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+
+  return {
+    startDate: toIsoDate(previousStart),
+    endDate: toIsoDate(previousEnd),
+  }
+}
+
 export const calculateQuantityMld = (
   totalWaterSuppliedLiters: number,
   daysInRange: number
@@ -55,6 +87,32 @@ export const calculateQuantityMld = (
   }
 
   return Number((totalWaterSuppliedLiters / daysInRange / MILLION_LITERS).toFixed(2))
+}
+
+export const calculateQuantityLpcd = (
+  totalWaterSuppliedLiters: number,
+  householdCount: number,
+  daysInRange: number,
+  averagePersonsPerHousehold = 5
+): number => {
+  if (
+    !isFiniteNumber(totalWaterSuppliedLiters) ||
+    !isFiniteNumber(householdCount) ||
+    !isFiniteNumber(averagePersonsPerHousehold) ||
+    totalWaterSuppliedLiters <= 0 ||
+    householdCount <= 0 ||
+    averagePersonsPerHousehold <= 0 ||
+    daysInRange <= 0
+  ) {
+    return 0
+  }
+
+  return Number(
+    (
+      totalWaterSuppliedLiters /
+      (householdCount * averagePersonsPerHousehold * daysInRange)
+    ).toFixed(1)
+  )
 }
 
 export const calculateAverageRegularityPercent = (
@@ -74,6 +132,68 @@ export const calculateAverageRegularityPercent = (
 
   return Number(clamp((totalSupplyDays / (schemeCount * daysInRange)) * 100, 0, 100).toFixed(1))
 }
+
+const sumWaterSupplySchemeField = (
+  response: AverageWaterSupplyPerRegionResponse | undefined,
+  field: 'totalWaterSuppliedLiters' | 'householdCount'
+) => {
+  if (!response?.schemes?.length) {
+    return 0
+  }
+
+  return response.schemes.reduce((total, scheme) => total + (scheme[field] ?? 0), 0)
+}
+
+export const getWaterSupplyKpis = (
+  response: AverageWaterSupplyPerRegionResponse | undefined,
+  averagePersonsPerHousehold = 5
+) => {
+  if (!response) {
+    return { quantityMld: 0, quantityLpcd: 0 }
+  }
+
+  const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
+  const totalWaterSuppliedLiters = sumWaterSupplySchemeField(response, 'totalWaterSuppliedLiters')
+  const householdCount = sumWaterSupplySchemeField(response, 'householdCount')
+
+  return {
+    quantityMld: calculateQuantityMld(totalWaterSuppliedLiters, daysInRange),
+    quantityLpcd: calculateQuantityLpcd(
+      totalWaterSuppliedLiters,
+      householdCount,
+      daysInRange,
+      averagePersonsPerHousehold
+    ),
+  }
+}
+
+export const getRegularityKpi = (response: AverageSchemeRegularityResponse | undefined) => {
+  if (!response) {
+    return 0
+  }
+
+  const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
+  return calculateAverageRegularityPercent(
+    response.totalSupplyDays,
+    response.schemeCount,
+    daysInRange
+  )
+}
+
+export const calculatePercentChange = (currentValue: number, previousValue: number) => {
+  if (!isFiniteNumber(currentValue) || !isFiniteNumber(previousValue)) {
+    return 0
+  }
+
+  if (previousValue === 0) {
+    return currentValue === 0 ? 0 : 100
+  }
+
+  return Number((((currentValue - previousValue) / previousValue) * 100).toFixed(1))
+}
+
+export const calculateAbsoluteChange = (currentValue: number, previousValue: number) =>
+  Number((currentValue - previousValue).toFixed(1))
 
 const mapFallbackByName = (fallbackData: EntityPerformance[]) =>
   new Map(fallbackData.map((item) => [slugify(item.name), item] as const))
