@@ -23,6 +23,8 @@ import {
   sendApiKey,
   updateStateUT,
   updateStateUTStatus,
+  getMockSystemConfiguration,
+  saveMockSystemConfiguration,
 } from '../mock-data'
 import type { ApiCredentialsData } from '../../types/api-credentials'
 import type { IngestionMonitorData } from '../../types/ingestion-monitor'
@@ -41,6 +43,11 @@ import type { CreateTenantInput, CreateTenantResponse } from '../../types/tenant
 import type { SystemRulesConfiguration } from '../../types/system-rules'
 import type { StateAdmin } from '../../types/state-admins'
 import type { SuperUser, CreateSuperUserInput, UpdateSuperUserInput } from '../../types/super-users'
+import type { SystemConfiguration, SaveSystemConfigPayload } from '../../types/system-config'
+import {
+  mapApiResponseToSystemConfig,
+  mapSystemConfigToApiPayload,
+} from '../../types/system-config'
 
 export type SaveSystemRulesPayload = Omit<SystemRulesConfiguration, 'id'>
 export type IngestionMonitorFilters = {
@@ -48,12 +55,21 @@ export type IngestionMonitorFilters = {
   timeFilter?: string
 }
 
+const SYSTEM_CONFIG_KEYS = [
+  'SYSTEM_SUPPORTED_CHANNELS',
+  'WATER_QUANTITY_SUPPLY_THRESHOLD',
+  'BFM_IMAGE_READING_CONFIDENCE_LEVEL_THRESHOLD',
+  'LOCATION_AFFINITY_THRESHOLD',
+].join(',')
+
 type SuperAdminDataProvider = {
   getOverviewData: () => Promise<SuperAdminOverviewData>
   getSystemRulesConfiguration: () => Promise<SystemRulesConfiguration>
   saveSystemRulesConfiguration: (
     payload: SaveSystemRulesPayload
   ) => Promise<SystemRulesConfiguration>
+  getSystemConfiguration: () => Promise<SystemConfiguration>
+  saveSystemConfiguration: (payload: SaveSystemConfigPayload) => Promise<SystemConfiguration>
   getIngestionMonitorData: (filters?: IngestionMonitorFilters) => Promise<IngestionMonitorData>
   getApiCredentialsData: () => Promise<ApiCredentialsData>
   generateApiKey: (stateId: string) => Promise<string>
@@ -95,6 +111,24 @@ const httpProvider: SuperAdminDataProvider = {
       payload
     )
     return response.data
+  },
+  getSystemConfiguration: async () => {
+    const response = await apiClient.get<{ data: { configs: Record<string, unknown> } }>(
+      `/api/v1/system/config?keys=${SYSTEM_CONFIG_KEYS}`
+    )
+    return mapApiResponseToSystemConfig(
+      response.data.data.configs as Parameters<typeof mapApiResponseToSystemConfig>[0]
+    )
+  },
+  saveSystemConfiguration: async (payload) => {
+    const body = mapSystemConfigToApiPayload(payload)
+    const response = await apiClient.put<{ data: { configs: Record<string, unknown> } }>(
+      '/api/v1/system/config',
+      body
+    )
+    return mapApiResponseToSystemConfig(
+      response.data.data.configs as Parameters<typeof mapApiResponseToSystemConfig>[0]
+    )
   },
   getIngestionMonitorData: async (filters) => {
     const response = await apiClient.get<IngestionMonitorData>(
@@ -216,6 +250,8 @@ const mockProvider: SuperAdminDataProvider = {
   getOverviewData: () => getMockSuperAdminOverviewData(),
   getSystemRulesConfiguration: () => getMockSystemRulesConfiguration(),
   saveSystemRulesConfiguration: (payload) => saveMockSystemRulesConfiguration(payload),
+  getSystemConfiguration: () => getMockSystemConfiguration(),
+  saveSystemConfiguration: (payload) => saveMockSystemConfiguration(payload),
   getIngestionMonitorData: (_filters) => getMockIngestionMonitorData(),
   getApiCredentialsData: () => getMockApiCredentialsData(),
   generateApiKey: (stateId) => generateApiKey(stateId),
@@ -238,37 +274,42 @@ const mockProvider: SuperAdminDataProvider = {
   updateSuperUserStatus: (id, status) => updateMockSuperUserStatus(id, status),
 }
 
-const SUPER_ADMIN_PROVIDER = import.meta.env.VITE_SUPER_ADMIN_DATA_PROVIDER ?? 'mock'
-const provider: SuperAdminDataProvider =
-  SUPER_ADMIN_PROVIDER === 'http' ? httpProvider : mockProvider
-
+// Real HTTP: system configuration
+// Mock:      everything else (to be migrated incrementally)
 export const superAdminApi = {
-  getOverviewData: () => provider.getOverviewData(),
-  getSystemRulesConfiguration: () => provider.getSystemRulesConfiguration(),
+  // --- Mock ---
+  getOverviewData: () => mockProvider.getOverviewData(),
+  getSystemRulesConfiguration: () => mockProvider.getSystemRulesConfiguration(),
   saveSystemRulesConfiguration: (payload: SaveSystemRulesPayload) =>
-    provider.saveSystemRulesConfiguration(payload),
+    mockProvider.saveSystemRulesConfiguration(payload),
   getIngestionMonitorData: (filters?: IngestionMonitorFilters) =>
-    provider.getIngestionMonitorData(filters),
-  getApiCredentialsData: () => provider.getApiCredentialsData(),
-  generateApiKey: (stateId: string) => provider.generateApiKey(stateId),
-  sendApiKey: (stateId: string) => provider.sendApiKey(stateId),
-  getStatesUTsData: () => provider.getStatesUTsData(),
-  getStateAdminsData: () => provider.getStateAdminsData(),
-  getStateUTById: (id: string) => provider.getStateUTById(id),
-  createStateUT: (payload: CreateStateUTInput) => provider.createStateUT(payload),
-  updateStateUT: (id: string, payload: UpdateStateUTInput) => provider.updateStateUT(id, payload),
+    mockProvider.getIngestionMonitorData(filters),
+  getApiCredentialsData: () => mockProvider.getApiCredentialsData(),
+  generateApiKey: (stateId: string) => mockProvider.generateApiKey(stateId),
+  sendApiKey: (stateId: string) => mockProvider.sendApiKey(stateId),
+  getStatesUTsData: () => mockProvider.getStatesUTsData(),
+  getStateAdminsData: () => mockProvider.getStateAdminsData(),
+  getStateUTById: (id: string) => mockProvider.getStateUTById(id),
+  createStateUT: (payload: CreateStateUTInput) => mockProvider.createStateUT(payload),
+  updateStateUT: (id: string, payload: UpdateStateUTInput) =>
+    mockProvider.updateStateUT(id, payload),
   updateStateUTStatus: (id: string, status: StateUTStatus) =>
-    provider.updateStateUTStatus(id, status),
-  getAssignedStateNames: () => provider.getAssignedStateNames(),
-  getStateUTOptions: () => provider.getStateUTOptions(),
+    mockProvider.updateStateUTStatus(id, status),
+  getAssignedStateNames: () => mockProvider.getAssignedStateNames(),
+  getStateUTOptions: () => mockProvider.getStateUTOptions(),
   createStateAdmin: (tenantId: string, admin: StateAdminDetails) =>
-    provider.createStateAdmin(tenantId, admin),
-  createTenant: (payload: CreateTenantInput) => provider.createTenant(payload),
-  getSuperUsers: () => provider.getSuperUsers(),
-  getSuperUserById: (id: string) => provider.getSuperUserById(id),
-  createSuperUser: (payload: CreateSuperUserInput) => provider.createSuperUser(payload),
+    mockProvider.createStateAdmin(tenantId, admin),
+  createTenant: (payload: CreateTenantInput) => mockProvider.createTenant(payload),
+  getSuperUsers: () => mockProvider.getSuperUsers(),
+  getSuperUserById: (id: string) => mockProvider.getSuperUserById(id),
+  createSuperUser: (payload: CreateSuperUserInput) => mockProvider.createSuperUser(payload),
   updateSuperUser: (id: string, payload: UpdateSuperUserInput) =>
-    provider.updateSuperUser(id, payload),
+    mockProvider.updateSuperUser(id, payload),
   updateSuperUserStatus: (id: string, status: 'active' | 'inactive') =>
-    provider.updateSuperUserStatus(id, status),
+    mockProvider.updateSuperUserStatus(id, status),
+
+  // --- Real HTTP ---
+  getSystemConfiguration: () => httpProvider.getSystemConfiguration(),
+  saveSystemConfiguration: (payload: SaveSystemConfigPayload) =>
+    httpProvider.saveSystemConfiguration(payload),
 }

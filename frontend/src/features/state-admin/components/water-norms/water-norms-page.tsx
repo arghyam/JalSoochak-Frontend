@@ -1,21 +1,9 @@
 import { useState, useEffect } from 'react'
-import {
-  Box,
-  Text,
-  Button,
-  Flex,
-  HStack,
-  Input,
-  Heading,
-  SimpleGrid,
-  Stack,
-} from '@chakra-ui/react'
+import { Box, Text, Button, Flex, HStack, Input, Heading, SimpleGrid } from '@chakra-ui/react'
 import { EditIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import type { DistrictOverride } from '../../types/water-norms'
-import { AVAILABLE_DISTRICTS } from '../../types/water-norms'
 import { WaterNormsAlertThresholds } from './water-norms-alert-thresholds'
-import { WaterNormsDistrictOverrides } from './water-norms-district-overrides'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ToastContainer, PageLoadingState, PageErrorState } from '@/shared/components/common'
 import {
@@ -123,49 +111,6 @@ export function WaterNormsPage() {
       console.error('Failed to save water norms configuration:', error)
       toast.addToast(t('common:toast.failedToSave'), 'error')
     }
-  }
-
-  const handleAddDistrict = () => {
-    // Check if there's any unfilled district override
-    const hasUnfilledOverride = districtOverrides.some(
-      (override) => !override.districtName || override.quantity <= 0
-    )
-
-    if (hasUnfilledOverride) {
-      toast.addToast(t('waterNorms.messages.fillExisting'), 'error')
-      return
-    }
-
-    const newOverride: DistrictOverride = {
-      id: `district-${Date.now()}`,
-      districtName: '',
-      quantity: 0,
-    }
-    setDistrictOverridesDraft([...districtOverrides, newOverride])
-  }
-
-  const handleRemoveDistrict = (id: string) => {
-    setDistrictOverridesDraft(districtOverrides.filter((d) => d.id !== id))
-  }
-
-  const handleDistrictChange = (
-    id: string,
-    field: keyof DistrictOverride,
-    value: string | number
-  ) => {
-    setDistrictOverridesDraft(
-      districtOverrides.map((d) => (d.id === id ? { ...d, [field]: value } : d))
-    )
-  }
-
-  const getDistrictLabel = (value: string) => {
-    const district = AVAILABLE_DISTRICTS.find((d) => d.value === value)
-    return district ? district.label : value
-  }
-
-  const getAvailableDistricts = () => {
-    const usedDistricts = new Set(districtOverrides.map((d) => d.districtName))
-    return AVAILABLE_DISTRICTS.filter((d) => !usedDistricts.has(d.value))
   }
 
   if (isLoading) {
@@ -293,47 +238,6 @@ export function WaterNormsPage() {
                   </Box>
                 </SimpleGrid>
               </Box>
-
-              {/* District-Level Overrides */}
-              {districtOverrides.length > 0 && (
-                <Box>
-                  <Heading
-                    as="h3"
-                    size="h3"
-                    fontWeight="400"
-                    fontSize={{ base: 'md', md: 'xl' }}
-                    mb={4}
-                  >
-                    {t('waterNorms.districtOverrides.title')}
-                  </Heading>
-                  <Stack spacing={4}>
-                    {districtOverrides.map((override) => (
-                      <SimpleGrid
-                        key={override.id}
-                        columns={{ base: 1, md: 2 }}
-                        spacing={{ base: 3, md: 6 }}
-                      >
-                        <Box>
-                          <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" mb={1}>
-                            {t('waterNorms.districtOverrides.districtName')}
-                          </Text>
-                          <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
-                            {getDistrictLabel(override.districtName)}
-                          </Text>
-                        </Box>
-                        <Box>
-                          <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" mb={1}>
-                            {t('waterNorms.districtOverrides.quantity')}
-                          </Text>
-                          <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
-                            {override.quantity}
-                          </Text>
-                        </Box>
-                      </SimpleGrid>
-                    ))}
-                  </Stack>
-                </Box>
-              )}
             </Box>
           ) : (
             /* Edit Mode */
@@ -390,16 +294,6 @@ export function WaterNormsPage() {
                   onMaxQuantityChange={setMaxQuantityDraft}
                   onMinQuantityChange={setMinQuantityDraft}
                   onRegularityChange={setRegularityDraft}
-                />
-
-                {/* District-Level Overrides */}
-                <WaterNormsDistrictOverrides
-                  districtOverrides={districtOverrides}
-                  onAddDistrict={handleAddDistrict}
-                  onRemoveDistrict={handleRemoveDistrict}
-                  onDistrictChange={handleDistrictChange}
-                  getDistrictLabel={getDistrictLabel}
-                  getAvailableDistricts={getAvailableDistricts}
                 />
               </Box>
 

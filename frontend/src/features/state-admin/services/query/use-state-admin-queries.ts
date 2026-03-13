@@ -9,6 +9,7 @@ import {
   type SaveWaterNormsConfigurationPayload,
   type UpdateNudgeTemplatePayload,
 } from '../api/state-admin-api'
+import type { SaveEscalationRulesPayload } from '../../types/escalation-rules'
 import { stateAdminQueryKeys } from './state-admin-query-keys'
 
 export function useStateAdminOverviewQuery() {
@@ -137,6 +138,13 @@ export function useSaveThresholdConfigurationMutation() {
   })
 }
 
+export function useMessageTemplatesQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.messageTemplates(),
+    queryFn: stateAdminApi.getMessageTemplates,
+  })
+}
+
 export function useNudgeTemplatesQuery() {
   return useQuery({
     queryKey: stateAdminQueryKeys.nudgeTemplates(),
@@ -230,6 +238,23 @@ export function useUpdateStateUTAdminStatusMutation() {
     onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.stateUtAdmins() })
       queryClient.removeQueries({ queryKey: stateAdminQueryKeys.stateUtAdminById(variables.id) })
+    },
+  })
+}
+
+export function useEscalationRulesQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.escalationRules(),
+    queryFn: stateAdminApi.getEscalationRules,
+  })
+}
+
+export function useSaveEscalationRulesMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: SaveEscalationRulesPayload) => stateAdminApi.saveEscalationRules(payload),
+    onSuccess: (data) => {
+      queryClient.setQueryData(stateAdminQueryKeys.escalationRules(), data)
     },
   })
 }

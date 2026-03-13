@@ -15,6 +15,7 @@ import {
   SuperUsersPage,
   SuperUserFormPage,
   ViewSuperUserPage,
+  SystemConfigPage,
 } from '@/features/super-admin'
 import {
   OverviewPage,
@@ -23,8 +24,9 @@ import {
   LanguagePage,
   IntegrationPage,
   WaterNormsPage,
-  EscalationsPage,
+  EscalationsFormPage,
   NudgesTemplatePage,
+  MessageTemplatesPage,
   StaffSyncPage,
   StateUTAdminsPage,
   StateUTAdminFormPage,
@@ -139,6 +141,10 @@ export const router = createBrowserRouter([
         element: <SystemRulesPage />,
       },
       {
+        path: ROUTES.SUPER_ADMIN_CONFIGURATION,
+        element: <SystemConfigPage />,
+      },
+      {
         path: ROUTES.SUPER_ADMIN_STATES_UTS,
         element: <StatesUTsPage />,
       },
@@ -216,11 +222,15 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.STATE_ADMIN_ESCALATIONS,
-        element: <EscalationsPage />,
+        element: <EscalationsFormPage />,
       },
       {
         path: ROUTES.STATE_ADMIN_NUDGES,
         element: <NudgesTemplatePage />,
+      },
+      {
+        path: ROUTES.STATE_ADMIN_TEMPLATES,
+        element: <MessageTemplatesPage />,
       },
       {
         path: ROUTES.STATE_ADMIN_API_INGESTION,

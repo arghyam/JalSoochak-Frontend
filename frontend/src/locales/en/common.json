@@ -58,6 +58,7 @@
     "escalations": "Escalations",
     "thresholds": "Thresholds",
     "nudgesTemplate": "Nudges Template",
+    "templates": "Templates",
     "apiIngestion": "API Ingestion",
     "operatorSync": "Operator Sync",
     "staffSync": "Staff Sync",

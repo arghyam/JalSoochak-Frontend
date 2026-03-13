@@ -18,6 +18,20 @@ export const SUPPORTED_CHANNELS = [
 
 export type SupportedChannel = (typeof SUPPORTED_CHANNELS)[number]
 
+export const CHANNEL_CODE_TO_NAME = {
+  BFM: 'Bulk Flow Meter',
+  ELM: 'Electric Meter',
+  PDU: 'Pump Duration',
+  IOT: 'IOT',
+  MAN: 'Manual',
+} as const satisfies Record<string, SupportedChannel>
+
+export const CHANNEL_NAME_TO_CODE = Object.fromEntries(
+  Object.entries(CHANNEL_CODE_TO_NAME).map(([code, name]) => [name, code])
+) as Record<SupportedChannel, keyof typeof CHANNEL_CODE_TO_NAME>
+
+export type SupportedChannelCode = keyof typeof CHANNEL_CODE_TO_NAME
+
 export const DEFAULT_LGD_HIERARCHY: HierarchyLevel[] = [
   { level: 1, name: 'State' },
   { level: 2, name: 'District' },
@@ -40,7 +54,7 @@ export const DEFAULT_METER_CHANGE_REASONS: MeterChangeReason[] = [
   { id: 'r3', name: 'Meter Damaged' },
 ]
 
-export interface ConfigurationData extends Record<string, unknown> {
+export interface ConfigurationData {
   id: string
   lgdHierarchy: HierarchyLevel[]
   departmentHierarchy: HierarchyLevel[]
@@ -49,6 +63,7 @@ export interface ConfigurationData extends Record<string, unknown> {
   meterChangeReasons: MeterChangeReason[]
   locationCheckRequired: boolean
   dataConsolidationTime: string
+  pumpOperatorReminderNudgeTime: string
   averageMembersPerHousehold: number
   isConfigured: boolean
 }

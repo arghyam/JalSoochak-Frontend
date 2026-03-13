@@ -45,6 +45,7 @@ interface ConfigDraft {
   meterChangeReasons: MeterChangeReason[]
   locationCheckRequired: boolean
   dataConsolidationTime: string
+  pumpOperatorReminderNudgeTime: string
   averageMembersPerHousehold: number
 }
 
@@ -56,6 +57,7 @@ function buildInitialDraft(config?: {
   meterChangeReasons: MeterChangeReason[]
   locationCheckRequired: boolean
   dataConsolidationTime: string
+  pumpOperatorReminderNudgeTime: string
   averageMembersPerHousehold: number
 }): ConfigDraft {
   return {
@@ -73,6 +75,7 @@ function buildInitialDraft(config?: {
       : DEFAULT_METER_CHANGE_REASONS.map((r) => ({ ...r })),
     locationCheckRequired: config?.locationCheckRequired ?? false,
     dataConsolidationTime: config?.dataConsolidationTime ?? '',
+    pumpOperatorReminderNudgeTime: config?.pumpOperatorReminderNudgeTime ?? '',
     averageMembersPerHousehold: config?.averageMembersPerHousehold ?? 0,
   }
 }
@@ -136,6 +139,7 @@ export function ConfigurationPage() {
         meterChangeReasons: current.meterChangeReasons,
         locationCheckRequired: current.locationCheckRequired,
         dataConsolidationTime: current.dataConsolidationTime,
+        pumpOperatorReminderNudgeTime: current.pumpOperatorReminderNudgeTime,
         averageMembersPerHousehold: current.averageMembersPerHousehold,
         isConfigured: true,
       })
@@ -438,7 +442,7 @@ export function ConfigurationPage() {
                   </Box>
                 </SimpleGrid>
 
-                {/* 6. Data Consolidation Time + Average Members Per Household */}
+                {/* 6. Data Consolidation Time + Pump Operator Reminder Nudge Time */}
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
                   <Box>
                     <Text
@@ -471,6 +475,41 @@ export function ConfigurationPage() {
                       _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
                     />
                   </Box>
+                  <Box>
+                    <Text
+                      as="label"
+                      htmlFor="pump-operator-nudge-time"
+                      fontSize={{ base: 'xs', md: 'sm' }}
+                      fontWeight="medium"
+                      color="neutral.950"
+                      mb={1}
+                      display="block"
+                    >
+                      {t('configuration.sections.pumpOperatorReminderNudgeTime.title')}
+                    </Text>
+                    <Input
+                      id="pump-operator-nudge-time"
+                      type="time"
+                      value={activeDraft.pumpOperatorReminderNudgeTime}
+                      onChange={(e) =>
+                        setDraft((prev) => ({
+                          ...(prev ?? buildInitialDraft(config)),
+                          pumpOperatorReminderNudgeTime: e.target.value,
+                        }))
+                      }
+                      h="36px"
+                      w={{ base: 'full', xl: '486px' }}
+                      fontSize="sm"
+                      borderColor="neutral.300"
+                      borderRadius="6px"
+                      _hover={{ borderColor: 'neutral.400' }}
+                      _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
+                    />
+                  </Box>
+                </SimpleGrid>
+
+                {/* 7. Average Members Per Household */}
+                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
                   <Box>
                     <Text
                       as="label"
@@ -678,13 +717,22 @@ function ViewMode({
         </ViewSection>
       </SimpleGrid>
 
-      {/* Data Consolidation Time + Average Members Per Household */}
+      {/* Data Consolidation Time + Pump Operator Reminder Nudge Time */}
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
         <ViewField
           label={t('configuration.sections.dataConsolidationTime.title')}
           value={config.dataConsolidationTime}
           color="neutral.950"
         />
+        <ViewField
+          label={t('configuration.sections.pumpOperatorReminderNudgeTime.title')}
+          value={config.pumpOperatorReminderNudgeTime}
+          color="neutral.950"
+        />
+      </SimpleGrid>
+
+      {/* Average Members Per Household */}
+      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
         <ViewField
           label={t('configuration.sections.averageMembersPerHousehold.title')}
           value={

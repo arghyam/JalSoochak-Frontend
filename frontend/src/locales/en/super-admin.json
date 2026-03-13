@@ -195,6 +195,39 @@
     }
   },
 
+  "configuration": {
+    "pageTitle": "Configuration",
+    "sectionTitle": "System Configuration",
+    "sections": {
+      "supportedChannels": {
+        "title": "Supported Channels"
+      },
+      "waterQuantityMax": {
+        "title": "Max Quantity Threshold (%)"
+      },
+      "waterQuantityMin": {
+        "title": "Min Quantity Threshold (%)"
+      },
+      "bfmImageConfidence": {
+        "title": "BFM Image Confidence Threshold (%)"
+      },
+      "locationAffinity": {
+        "title": "Location Affinity Threshold"
+      }
+    },
+    "messages": {
+      "saveSuccess": "Configuration saved successfully",
+      "saveFailed": "Failed to save configuration",
+      "validation": {
+        "channelRequired": "At least one supported channel must be selected"
+      }
+    },
+    "aria": {
+      "editConfiguration": "Edit configuration",
+      "form": "System configuration form"
+    }
+  },
+
   "ingestionMonitor": {
     "title": "Ingestion Monitor",
     "filters": {

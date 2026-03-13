@@ -195,6 +195,39 @@
     }
   },
 
+  "configuration": {
+    "pageTitle": "कॉन्फ़िगरेशन",
+    "sectionTitle": "सिस्टम कॉन्फ़िगरेशन",
+    "sections": {
+      "supportedChannels": {
+        "title": "समर्थित चैनल"
+      },
+      "waterQuantityMax": {
+        "title": "अधिकतम मात्रा सीमा (%)"
+      },
+      "waterQuantityMin": {
+        "title": "न्यूनतम मात्रा सीमा (%)"
+      },
+      "bfmImageConfidence": {
+        "title": "BFM छवि विश्वास सीमा (%)"
+      },
+      "locationAffinity": {
+        "title": "स्थान आत्मीयता सीमा"
+      }
+    },
+    "messages": {
+      "saveSuccess": "कॉन्फ़िगरेशन सफलतापूर्वक सहेजा गया",
+      "saveFailed": "कॉन्फ़िगरेशन सहेजने में विफल",
+      "validation": {
+        "channelRequired": "कम से कम एक समर्थित चैनल चुना जाना चाहिए"
+      }
+    },
+    "aria": {
+      "editConfiguration": "कॉन्फ़िगरेशन संपादित करें",
+      "form": "सिस्टम कॉन्फ़िगरेशन फ़ॉर्म"
+    }
+  },
+
   "ingestionMonitor": {
     "title": "डेटा अंतर्ग्रहण मॉनिटर",
     "filters": {

@@ -4,6 +4,7 @@ import { Box, Flex, SimpleGrid, Stack, Heading, Spinner, Text } from '@chakra-ui
 import { useTranslation } from 'react-i18next'
 import i18n from '@/app/i18n'
 import { useAuthStore } from '@/app/store'
+import { INDIA_STATES } from '@/shared/constants/states'
 import { LineChart } from '@/shared/components/charts/line-chart'
 import { StatCard } from '@/shared/components/common'
 import { SupplyOutageDistributionChart } from '@/shared/components/charts/supply-outage-distribution-chart'
@@ -16,12 +17,17 @@ export function OverviewPage() {
   const user = useAuthStore((state) => state.user)
   const { data, isLoading, isError } = useStateAdminOverviewQuery()
 
+  const stateName =
+    INDIA_STATES.find((s) => s.code === user?.tenantCode?.toUpperCase())?.name ??
+    user?.tenantCode ??
+    null
+
   useEffect(() => {
-    const pageTitle = user?.tenantId
-      ? t('overview.title', { state: user.tenantId })
+    const pageTitle = stateName
+      ? t('overview.title', { state: stateName })
       : t('overview.titleFallback')
     document.title = `${pageTitle} | JalSoochak`
-  }, [t, user?.tenantId])
+  }, [t, stateName])
 
   if (isLoading) {
     return (
@@ -94,9 +100,7 @@ export function OverviewPage() {
       {/* Page Header */}
       <Box mb={5}>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
-          {user?.tenantId
-            ? t('overview.title', { state: user.tenantId })
-            : t('overview.titleFallback')}
+          {stateName ? t('overview.title', { state: stateName }) : t('overview.titleFallback')}
         </Heading>
       </Box>
 

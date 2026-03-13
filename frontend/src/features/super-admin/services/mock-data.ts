@@ -3,6 +3,7 @@ import type { SuperUser, CreateSuperUserInput, UpdateSuperUserInput } from '../t
 import type { SystemRulesConfiguration } from '../types/system-rules'
 import type { IngestionMonitorData } from '../types/ingestion-monitor'
 import type { ApiCredentialsData } from '../types/api-credentials'
+import type { SystemConfiguration, SaveSystemConfigPayload } from '../types/system-config'
 import {
   INDIAN_STATES_UTS,
   type StateUT,
@@ -807,5 +808,34 @@ export const updateMockSuperUserStatus = (
       mockSuperUsersData[index] = { ...mockSuperUsersData[index], status }
       resolve({ ...mockSuperUsersData[index] })
     }, 300)
+  })
+}
+
+// ─── System Configuration ─────────────────────────────────────────────────────
+
+let mockSystemConfigData: SystemConfiguration = {
+  supportedChannels: ['BFM', 'MAN', 'ELM', 'PDU', 'IOT'],
+  waterQuantityMaxThreshold: 100,
+  waterQuantityMinThreshold: 100,
+  bfmImageConfidenceThreshold: 89,
+  locationAffinityThreshold: 78,
+}
+
+export function getMockSystemConfiguration(): Promise<SystemConfiguration> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({ ...mockSystemConfigData })
+    }, 300)
+  })
+}
+
+export function saveMockSystemConfiguration(
+  payload: SaveSystemConfigPayload
+): Promise<SystemConfiguration> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      mockSystemConfigData = { ...payload }
+      resolve({ ...mockSystemConfigData })
+    }, 500)
   })
 }
