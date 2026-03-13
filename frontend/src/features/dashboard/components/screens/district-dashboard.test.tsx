@@ -141,6 +141,8 @@ function renderDistrictDashboard() {
   return renderWithProviders(
     <DistrictDashboardScreen
       data={data}
+      quantityPerformanceData={blockTableData}
+      regularityPerformanceData={blockTableData}
       blockTableData={blockTableData}
       supplySubmissionRateData={supplySubmissionRateData}
       supplySubmissionRateLabel="Blocks"

@@ -1,6 +1,8 @@
 import { apiClient } from '@/shared/lib/axios'
 import { isAxiosError } from 'axios'
 import type {
+  AverageSchemeRegularityQueryParams,
+  AverageSchemeRegularityResponse,
   AverageWaterSupplyPerRegionQueryParams,
   AverageWaterSupplyPerRegionResponse,
   DashboardData,
@@ -221,6 +223,24 @@ export const dashboardApi = {
       {
         params: {
           tenant_id: params.tenantId,
+          parent_lgd_id: params.parentLgdId,
+          parent_department_id: params.parentDepartmentId,
+          scope: params.scope ?? 'child',
+          start_date: params.startDate,
+          end_date: params.endDate,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getAverageSchemeRegularity: async (
+    params: AverageSchemeRegularityQueryParams
+  ): Promise<AverageSchemeRegularityResponse> => {
+    const response = await apiClient.get<AverageSchemeRegularityResponse>(
+      '/api/v1/analytics/scheme-regularity/average',
+      {
+        params: {
           parent_lgd_id: params.parentLgdId,
           parent_department_id: params.parentDepartmentId,
           scope: params.scope ?? 'child',

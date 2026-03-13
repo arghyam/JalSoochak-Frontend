@@ -1,4 +1,8 @@
-import type { AverageWaterSupplyPerRegionQueryParams, DashboardLevel } from '../../types'
+import type {
+  AverageSchemeRegularityQueryParams,
+  AverageWaterSupplyPerRegionQueryParams,
+  DashboardLevel,
+} from '../../types'
 
 export const dashboardQueryKeys = {
   all: ['dashboard'] as const,
@@ -10,6 +14,17 @@ export const dashboardQueryKeys = {
       'analytics',
       'average-water-supply-per-region',
       params?.tenantId,
+      params?.parentLgdId,
+      params?.parentDepartmentId,
+      params?.scope,
+      params?.startDate,
+      params?.endDate,
+    ] as const,
+  averageSchemeRegularity: (params: AverageSchemeRegularityQueryParams | null) =>
+    [
+      'dashboard',
+      'analytics',
+      'average-scheme-regularity',
       params?.parentLgdId,
       params?.parentDepartmentId,
       params?.scope,

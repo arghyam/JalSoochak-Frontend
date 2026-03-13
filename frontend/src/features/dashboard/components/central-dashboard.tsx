@@ -7,6 +7,7 @@ import { useDashboardData } from '../hooks/use-dashboard-data'
 import { useLocationChildrenQuery } from '../services/query/use-location-children-query'
 import { useLocationSearchQuery } from '../services/query/use-location-search-query'
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
+import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
 import { KPICard } from './kpi-card'
 import { DashboardBody } from './screens/dashboard-body'
 import { IndiaMapChart } from './charts'
@@ -21,6 +22,10 @@ import { OverallPerformanceTable } from './tables'
 import { ROUTES } from '@/shared/constants/routes'
 import { computeTrailIndices } from '../utils/trail-index'
 import { slugify, toCapitalizedWords } from '../utils/format-location-label'
+import {
+  mapQuantityPerformanceFromAnalytics,
+  mapRegularityPerformanceFromAnalytics,
+} from '../utils/formulas'
 import {
   mockFilterStates,
   mockFilterDistricts,
@@ -428,11 +433,36 @@ export function CentralDashboard() {
           startDate: toIsoDate(selectedDuration?.startDate) ?? defaultAnalyticsRange.startDate,
           endDate: toIsoDate(selectedDuration?.endDate) ?? defaultAnalyticsRange.endDate,
         }
-  useAverageWaterSupplyPerRegionQuery({
+  const regularityAnalyticsParams =
+    hierarchyType !== 'LGD' || isVillageSelected
+      ? null
+      : {
+          parentLgdId:
+            parseLocationId(effectiveSelectedGramPanchayat) ??
+            parseLocationId(effectiveSelectedBlock) ??
+            parseLocationId(effectiveSelectedDistrict) ??
+            selectedRootOption?.locationId ??
+            0,
+          scope: 'child' as const,
+          startDate: toIsoDate(selectedDuration?.startDate) ?? defaultAnalyticsRange.startDate,
+          endDate: toIsoDate(selectedDuration?.endDate) ?? defaultAnalyticsRange.endDate,
+        }
+  const { data: averageWaterSupplyData } = useAverageWaterSupplyPerRegionQuery({
     params: analyticsParams,
     enabled: Boolean(analyticsParams),
   })
-  const quantityPerformanceData = analyticsFallbackData
+  const { data: averageSchemeRegularityData } = useAverageSchemeRegularityQuery({
+    params: regularityAnalyticsParams,
+    enabled: Boolean(regularityAnalyticsParams),
+  })
+  const quantityPerformanceData = mapQuantityPerformanceFromAnalytics(
+    averageWaterSupplyData,
+    analyticsFallbackData
+  )
+  const regularityPerformanceData = mapRegularityPerformanceFromAnalytics(
+    averageSchemeRegularityData,
+    analyticsFallbackData
+  )
 
   const updateFilterUrl = (filters: {
     state?: string
@@ -899,6 +929,7 @@ export function CentralDashboard() {
         isGramPanchayatSelected={isGramPanchayatSelected}
         selectedVillage={effectiveSelectedVillage}
         quantityPerformanceData={quantityPerformanceData}
+        regularityPerformanceData={regularityPerformanceData}
         districtTableData={districtTableData}
         blockTableData={blockTableData}
         gramPanchayatTableData={gramPanchayatTableData}

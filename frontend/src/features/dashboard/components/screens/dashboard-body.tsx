@@ -30,6 +30,7 @@ type DashboardBodyProps = {
   isGramPanchayatSelected: boolean
   selectedVillage: string
   quantityPerformanceData: EntityPerformance[]
+  regularityPerformanceData: EntityPerformance[]
   districtTableData: EntityPerformance[]
   blockTableData: EntityPerformance[]
   gramPanchayatTableData: EntityPerformance[]
@@ -54,7 +55,7 @@ export function DashboardBody({
   isGramPanchayatSelected,
   selectedVillage,
   quantityPerformanceData,
-  districtTableData,
+  regularityPerformanceData,
   blockTableData,
   gramPanchayatTableData,
   villageTableData,
@@ -97,7 +98,6 @@ export function DashboardBody({
       })),
     [data.demandSupply]
   )
-  const geographyMetricData = isStateScreen ? districtTableData : data.mapData
   const geographyEntityLabel = isStateScreen
     ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
     : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
@@ -188,7 +188,7 @@ export function DashboardBody({
             </Flex>
             {regularityViewBy === 'geography' ? (
               <MetricPerformanceChart
-                data={geographyMetricData}
+                data={regularityPerformanceData}
                 metric="regularity"
                 height="400px"
                 entityLabel={geographyEntityLabel}
@@ -221,6 +221,7 @@ export function DashboardBody({
         <DistrictDashboardScreen
           data={data}
           quantityPerformanceData={quantityPerformanceData}
+          regularityPerformanceData={regularityPerformanceData}
           blockTableData={blockTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
@@ -232,6 +233,7 @@ export function DashboardBody({
         <BlockDashboardScreen
           data={data}
           quantityPerformanceData={quantityPerformanceData}
+          regularityPerformanceData={regularityPerformanceData}
           gramPanchayatTableData={gramPanchayatTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
@@ -243,6 +245,7 @@ export function DashboardBody({
         <GramPanchayatDashboardScreen
           data={data}
           quantityPerformanceData={quantityPerformanceData}
+          regularityPerformanceData={regularityPerformanceData}
           villageTableData={villageTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}

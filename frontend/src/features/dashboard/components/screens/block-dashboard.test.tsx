@@ -153,6 +153,8 @@ function renderBlockDashboard() {
   return renderWithProviders(
     <BlockDashboardScreen
       data={data}
+      quantityPerformanceData={gramPanchayatTableData}
+      regularityPerformanceData={gramPanchayatTableData}
       gramPanchayatTableData={gramPanchayatTableData}
       supplySubmissionRateData={supplySubmissionRateData}
       supplySubmissionRateLabel="Gram Panchayats"

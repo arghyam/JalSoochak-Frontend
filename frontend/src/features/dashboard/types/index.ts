@@ -167,6 +167,39 @@ export interface AverageWaterSupplyPerRegionResponse {
   childRegions: AverageWaterSupplyChildRegion[]
 }
 
+export interface AverageSchemeRegularityQueryParams {
+  parentLgdId?: number
+  parentDepartmentId?: number
+  scope?: 'current' | 'child'
+  startDate: string
+  endDate: string
+}
+
+export interface AverageSchemeRegularityChildRegion {
+  lgdId: number
+  departmentId: number
+  title: string
+  schemeCount: number
+  totalSupplyDays: number
+  averageRegularity: number
+}
+
+export interface AverageSchemeRegularityResponse {
+  lgdId: number
+  parentDepartmentId: number
+  parentLgdLevel: number
+  parentDepartmentLevel: number
+  scope: string
+  startDate: string
+  endDate: string
+  daysInRange: number
+  schemeCount: number
+  totalSupplyDays: number
+  averageRegularity: number
+  childRegionCount: number
+  childRegions: AverageSchemeRegularityChildRegion[]
+}
+
 // For map hover/click interactions
 export interface MapInteraction {
   entityId: string

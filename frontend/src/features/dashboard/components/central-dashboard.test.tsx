@@ -7,6 +7,7 @@ import { useDashboardData } from '../hooks/use-dashboard-data'
 import { useLocationSearchQuery } from '../services/query/use-location-search-query'
 import { useLocationChildrenQuery } from '../services/query/use-location-children-query'
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
+import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
 
 const mockNavigate = jest.fn()
 const mockUseParams = jest.fn(() => ({}))
@@ -53,6 +54,10 @@ jest.mock('../services/query/use-location-children-query', () => ({
 
 jest.mock('../services/query/use-average-water-supply-per-region-query', () => ({
   useAverageWaterSupplyPerRegionQuery: jest.fn(),
+}))
+
+jest.mock('../services/query/use-average-scheme-regularity-query', () => ({
+  useAverageSchemeRegularityQuery: jest.fn(),
 }))
 
 jest.mock('./filters/dashboard-filters', () => ({
@@ -136,6 +141,7 @@ describe('CentralDashboard', () => {
     ;(useLocationSearchQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({ data: undefined })
   })
 
   it('renders Overall Performance table panel for central view', () => {
@@ -230,6 +236,97 @@ describe('CentralDashboard', () => {
     )
     expect(dashboardBodyProps.villageTableData.some((row) => row.name === 'Kistareddypet')).toBe(
       true
+    )
+  })
+
+  it('passes formula-derived quantity and regularity performance data to dashboard body', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [{ id: 10, title: 'Telangana' }],
+      },
+    })
+    ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({
+      data: {
+        tenantId: 16,
+        stateCode: 'TG',
+        parentLgdLevel: 1,
+        parentDepartmentLevel: 0,
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        schemeCount: 2,
+        childRegionCount: 1,
+        schemes: [],
+        childRegions: [
+          {
+            lgdId: 101,
+            departmentId: 0,
+            title: 'Alpha',
+            totalHouseholdCount: 1000,
+            totalWaterSuppliedLiters: 90_000_000,
+            schemeCount: 2,
+            avgWaterSupplyPerScheme: 0,
+          },
+        ],
+      },
+    })
+    ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({
+      data: {
+        lgdId: 10,
+        parentDepartmentId: 0,
+        parentLgdLevel: 1,
+        parentDepartmentLevel: 0,
+        scope: 'child',
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        schemeCount: 2,
+        totalSupplyDays: 45,
+        averageRegularity: 0,
+        childRegionCount: 1,
+        childRegions: [
+          {
+            lgdId: 101,
+            departmentId: 0,
+            title: 'Alpha',
+            schemeCount: 3,
+            totalSupplyDays: 45,
+            averageRegularity: 0,
+          },
+        ],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{
+      quantityPerformanceData: Array<{ name: string; quantity: number }>
+      regularityPerformanceData: Array<{ name: string; regularity: number }>
+    }>()
+
+    expect(dashboardBodyProps.quantityPerformanceData[0]).toEqual(
+      expect.objectContaining({
+        name: 'Alpha',
+        quantity: 3,
+      })
+    )
+    expect(dashboardBodyProps.regularityPerformanceData[0]).toEqual(
+      expect.objectContaining({
+        name: 'Alpha',
+        regularity: 50,
+      })
     )
   })
 

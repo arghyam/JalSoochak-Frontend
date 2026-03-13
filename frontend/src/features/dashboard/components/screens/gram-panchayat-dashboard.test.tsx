@@ -153,6 +153,8 @@ function renderGramPanchayatDashboard() {
   return renderWithProviders(
     <GramPanchayatDashboardScreen
       data={data}
+      quantityPerformanceData={villageTableData}
+      regularityPerformanceData={villageTableData}
       villageTableData={villageTableData}
       supplySubmissionRateData={supplySubmissionRateData}
       supplySubmissionRateLabel="Villages"

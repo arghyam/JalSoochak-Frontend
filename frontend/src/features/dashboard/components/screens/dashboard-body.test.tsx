@@ -156,6 +156,7 @@ function renderDashboardBody(overrides: Partial<ComponentProps<typeof DashboardB
       isGramPanchayatSelected={false}
       selectedVillage=""
       quantityPerformanceData={mockEntityData}
+      regularityPerformanceData={mockEntityData}
       districtTableData={mockEntityData}
       blockTableData={mockEntityData}
       gramPanchayatTableData={mockEntityData}
@@ -278,6 +279,18 @@ describe('DashboardBody', () => {
           status: 'needs-attention',
         },
       ],
+      regularityPerformanceData: [
+        {
+          id: 'rd1',
+          name: 'District A',
+          coverage: 60,
+          regularity: 70,
+          continuity: 0,
+          quantity: 50,
+          compositeScore: 65,
+          status: 'needs-attention',
+        },
+      ],
       districtTableData: [
         {
           id: 'd1',
@@ -298,6 +311,7 @@ describe('DashboardBody', () => {
 
     expect(metricChartCalls).toHaveLength(2)
     expect(metricChartCalls[0][0].data[0]?.name).toBe('District A')
+    expect(metricChartCalls[1][0].data[0]?.name).toBe('District A')
     expect(metricChartCalls[0][0].entityLabel).toBe('Districts')
     expect(metricChartCalls[1][0].entityLabel).toBe('Districts')
   })
