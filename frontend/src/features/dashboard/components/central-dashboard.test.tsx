@@ -212,6 +212,94 @@ describe('CentralDashboard', () => {
     expect(tableProps.data.some((row) => row.name === 'Alpha')).toBe(false)
   })
 
+  it('passes formula-derived overall performance rows to the table when analytics child data exists', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [{ id: 10, title: 'Telangana' }],
+      },
+    })
+    ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({
+      data: {
+        tenantId: 16,
+        stateCode: 'TG',
+        parentLgdLevel: 1,
+        parentDepartmentLevel: 0,
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        schemeCount: 2,
+        childRegionCount: 1,
+        schemes: [],
+        childRegions: [
+          {
+            lgdId: 101,
+            departmentId: 0,
+            title: 'Alpha',
+            totalHouseholdCount: 1000,
+            totalWaterSuppliedLiters: 90_000_000,
+            schemeCount: 2,
+            avgWaterSupplyPerScheme: 0,
+          },
+        ],
+      },
+    })
+    ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({
+      data: {
+        lgdId: 10,
+        parentDepartmentId: 0,
+        parentLgdLevel: 1,
+        parentDepartmentLevel: 0,
+        scope: 'child',
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        schemeCount: 3,
+        totalSupplyDays: 45,
+        averageRegularity: 0,
+        childRegionCount: 1,
+        childRegions: [
+          {
+            lgdId: 101,
+            departmentId: 0,
+            title: 'Alpha',
+            schemeCount: 3,
+            totalSupplyDays: 45,
+            averageRegularity: 0,
+          },
+        ],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const tableProps = mockOverallPerformanceTable.mock.calls.at(-1)?.[0] as {
+      entityLabel: string
+      data: Array<{ name: string; coverage: number; quantity: number; regularity: number }>
+    }
+
+    expect(tableProps.entityLabel).toBe('District')
+    expect(tableProps.data[0]).toEqual(
+      expect.objectContaining({
+        name: 'Alpha',
+        coverage: 3,
+        quantity: 600,
+        regularity: 50,
+      })
+    )
+  })
+
   it('uses mock lookup data when query params include stable id-prefixed values', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,

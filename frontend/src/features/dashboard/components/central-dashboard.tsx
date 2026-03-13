@@ -28,6 +28,7 @@ import {
   getPreviousPeriodRange,
   getRegularityKpi,
   getWaterSupplyKpis,
+  mapOverallPerformanceFromAnalytics,
   mapQuantityPerformanceFromAnalytics,
   mapRegularityPerformanceFromAnalytics,
   resolveDaysInRange,
@@ -373,7 +374,7 @@ export function CentralDashboard() {
         : isStateSelected
           ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
           : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
-  const overallPerformanceTableData = isGramPanchayatSelected
+  const overallPerformanceFallbackData = isGramPanchayatSelected
     ? villageTableData
     : isBlockSelected
       ? gramPanchayatTableData
@@ -520,6 +521,12 @@ export function CentralDashboard() {
   const regularityPerformanceData = mapRegularityPerformanceFromAnalytics(
     averageSchemeRegularityData,
     analyticsFallbackData
+  )
+  const overallPerformanceTableData = mapOverallPerformanceFromAnalytics(
+    averageWaterSupplyData,
+    averageSchemeRegularityData,
+    overallPerformanceFallbackData,
+    5
   )
   const currentWaterSupplyKpis = getWaterSupplyKpis(currentWaterSupplyKpiData, 5)
   const previousWaterSupplyKpis = getWaterSupplyKpis(previousWaterSupplyKpiData, 5)

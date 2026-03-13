@@ -7,8 +7,10 @@ import type {
 import {
   calculateAverageRegularityPercent,
   calculateQuantityMld,
+  calculateQuantityLpcd,
   mapQuantityPerformanceFromAnalytics,
   mapRegularityPerformanceFromAnalytics,
+  mapOverallPerformanceFromAnalytics,
   resolveDaysInRange,
 } from './formulas'
 
@@ -23,6 +25,10 @@ describe('dashboard formulas', () => {
 
   it('calculates quantity in MLD from liters and day range', () => {
     expect(calculateQuantityMld(90_000_000, 30)).toBe(3)
+  })
+
+  it('calculates quantity in LPCD from liters, households, day range, and P', () => {
+    expect(calculateQuantityLpcd(90_000_000, 1000, 30, 5)).toBe(600)
   })
 
   it('calculates average regularity percent from supply days, schemes, and day range', () => {
@@ -115,6 +121,79 @@ describe('dashboard formulas', () => {
     expect(mapRegularityPerformanceFromAnalytics(response, fallbackData)).toEqual([
       {
         ...fallbackData[0],
+        regularity: 50,
+      },
+    ])
+  })
+
+  it('maps overall performance rows from quantity and regularity child responses', () => {
+    const fallbackData: EntityPerformance[] = [
+      {
+        id: 'alpha',
+        name: 'Region Alpha',
+        coverage: 0,
+        regularity: 0,
+        continuity: 0,
+        quantity: 0,
+        compositeScore: 68,
+        status: 'good',
+      },
+    ]
+    const waterResponse: AverageWaterSupplyPerRegionResponse = {
+      tenantId: 16,
+      stateCode: 'TG',
+      parentLgdLevel: 1,
+      parentDepartmentLevel: 0,
+      startDate: '2026-03-01',
+      endDate: '2026-03-30',
+      daysInRange: 30,
+      schemeCount: 2,
+      childRegionCount: 1,
+      schemes: [],
+      childRegions: [
+        {
+          lgdId: 100,
+          departmentId: 0,
+          title: 'Region Alpha',
+          totalHouseholdCount: 1000,
+          totalWaterSuppliedLiters: 90_000_000,
+          schemeCount: 2,
+          avgWaterSupplyPerScheme: 0,
+        },
+      ],
+    }
+    const regularityResponse: AverageSchemeRegularityResponse = {
+      lgdId: 100,
+      parentDepartmentId: 0,
+      parentLgdLevel: 1,
+      parentDepartmentLevel: 0,
+      scope: 'child',
+      startDate: '2026-03-01',
+      endDate: '2026-03-30',
+      daysInRange: 30,
+      schemeCount: 3,
+      totalSupplyDays: 45,
+      averageRegularity: 0,
+      childRegionCount: 1,
+      childRegions: [
+        {
+          lgdId: 100,
+          departmentId: 0,
+          title: 'Region Alpha',
+          schemeCount: 3,
+          totalSupplyDays: 45,
+          averageRegularity: 0,
+        },
+      ],
+    }
+
+    expect(
+      mapOverallPerformanceFromAnalytics(waterResponse, regularityResponse, fallbackData, 5)
+    ).toEqual([
+      {
+        ...fallbackData[0],
+        coverage: 3,
+        quantity: 600,
         regularity: 50,
       },
     ])

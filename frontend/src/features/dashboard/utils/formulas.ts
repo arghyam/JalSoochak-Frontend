@@ -261,3 +261,61 @@ export const mapRegularityPerformanceFromAnalytics = (
     }
   })
 }
+
+export const mapOverallPerformanceFromAnalytics = (
+  waterSupplyResponse: AverageWaterSupplyPerRegionResponse | undefined,
+  regularityResponse: AverageSchemeRegularityResponse | undefined,
+  fallbackData: EntityPerformance[],
+  averagePersonsPerHousehold = 5
+): EntityPerformance[] => {
+  if (!waterSupplyResponse?.childRegions?.length) {
+    return fallbackData
+  }
+
+  const waterChildRegions = waterSupplyResponse.childRegions
+  const fallbackByName = mapFallbackByName(fallbackData)
+  const regularityByName = new Map(
+    (regularityResponse?.childRegions ?? []).map(
+      (region) => [slugify(region.title), region] as const
+    )
+  )
+  const waterDaysInRange = resolveDaysInRange(
+    waterSupplyResponse.daysInRange,
+    waterSupplyResponse.startDate,
+    waterSupplyResponse.endDate
+  )
+  const regularityDaysInRange = resolveDaysInRange(
+    regularityResponse?.daysInRange,
+    regularityResponse?.startDate,
+    regularityResponse?.endDate
+  )
+
+  return waterChildRegions.map((region, index) => {
+    const fallbackMatch = fallbackByName.get(slugify(region.title)) ?? fallbackData[index]
+    const matchingRegularity = regularityByName.get(slugify(region.title))
+
+    return {
+      id:
+        fallbackMatch?.id ??
+        `overall-performance-${index}-${slugify(region.title || String(index))}`,
+      name: region.title || fallbackMatch?.name || `Region ${index + 1}`,
+      coverage: calculateQuantityMld(region.totalWaterSuppliedLiters, waterDaysInRange),
+      regularity: matchingRegularity
+        ? calculateAverageRegularityPercent(
+            matchingRegularity.totalSupplyDays,
+            matchingRegularity.schemeCount,
+            regularityDaysInRange
+          )
+        : (fallbackMatch?.regularity ?? 0),
+      continuity: fallbackMatch?.continuity ?? 0,
+      quantity: calculateQuantityLpcd(
+        region.totalWaterSuppliedLiters,
+        region.totalHouseholdCount,
+        waterDaysInRange,
+        averagePersonsPerHousehold
+      ),
+      compositeScore: fallbackMatch?.compositeScore ?? 0,
+      status: fallbackMatch?.status ?? 'needs-attention',
+    }
+  })
+}
