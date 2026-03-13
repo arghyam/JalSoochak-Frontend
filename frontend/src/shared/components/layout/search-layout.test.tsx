@@ -134,4 +134,24 @@ describe('SearchLayout', () => {
     expect(screen.queryByRole('button', { name: 'Breadcrumb: Telangana' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Breadcrumb: Sangareddy' })).toBeNull()
   })
+
+  it('normalizes uppercase option labels before rendering', () => {
+    renderWithProviders(
+      <SearchLayout
+        breadcrumbPanelProps={{
+          stateOptions: [{ value: 'ganesh-pur-jaipong', label: 'GANESH PUR (JAIPONG)' }],
+          totalStatesCount: 1,
+        }}
+      />
+    )
+
+    const searchInput = screen.getByPlaceholderText(
+      'Search by state/UT, district, block, gram panchayat, village'
+    )
+
+    fireEvent.focus(searchInput)
+
+    expect(screen.getByRole('button', { name: 'Ganesh Pur (Jaipong)' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'GANESH PUR (JAIPONG)' })).toBeNull()
+  })
 })

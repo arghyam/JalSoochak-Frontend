@@ -186,6 +186,35 @@ describe('CentralDashboard', () => {
     expect(tableProps.data.some((row) => row.name === 'Alpha')).toBe(false)
   })
 
+  it('uses mock lookup data when query params include stable id-prefixed values', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams('district=101:sangareddy&block=202:patancheru&gramPanchayat=303:isnapur'),
+      jest.fn(),
+    ])
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{
+      villageTableData: Array<{ name: string }>
+      gramPanchayatTableData: Array<{ name: string }>
+      blockTableData: Array<{ name: string }>
+    }>()
+
+    expect(dashboardBodyProps.blockTableData.some((row) => row.name === 'Nabha')).toBe(true)
+    expect(dashboardBodyProps.gramPanchayatTableData.some((row) => row.name === 'Isnapur')).toBe(
+      true
+    )
+    expect(dashboardBodyProps.villageTableData.some((row) => row.name === 'Kistareddypet')).toBe(
+      true
+    )
+  })
+
   it('hides map and overall performance panel when a village is selected', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,

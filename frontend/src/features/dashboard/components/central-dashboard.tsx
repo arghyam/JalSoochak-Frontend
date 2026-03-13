@@ -105,6 +105,15 @@ const toStateSlug = (stateName: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
 
+const normalizeMockLookupKey = (value: string) => {
+  if (!value) {
+    return ''
+  }
+
+  const normalizedValue = value.includes(':') ? value.split(':').slice(1).join(':') : value
+  return normalizedValue.trim().toLowerCase()
+}
+
 export function CentralDashboard() {
   const { t, i18n } = useTranslation('dashboard')
   const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
@@ -161,29 +170,33 @@ export function CentralDashboard() {
   const effectiveSelectedBlock = effectiveTrailIndex >= 2 ? selectedBlock : ''
   const effectiveSelectedGramPanchayat = effectiveTrailIndex >= 3 ? selectedGramPanchayat : ''
   const effectiveSelectedVillage = effectiveTrailIndex >= 4 ? selectedVillage : ''
+  const normalizedSelectedState = normalizeMockLookupKey(effectiveSelectedState)
+  const normalizedSelectedDistrict = normalizeMockLookupKey(effectiveSelectedDistrict)
+  const normalizedSelectedBlock = normalizeMockLookupKey(effectiveSelectedBlock)
+  const normalizedSelectedGramPanchayat = normalizeMockLookupKey(effectiveSelectedGramPanchayat)
   const hasStateMockData = Object.prototype.hasOwnProperty.call(
     mockDistrictPerformanceByState,
-    effectiveSelectedState
+    normalizedSelectedState
   )
-  const selectedStateMockKey = isUnsafeLookupKey(effectiveSelectedState)
-    ? effectiveSelectedState
+  const selectedStateMockKey = isUnsafeLookupKey(normalizedSelectedState)
+    ? normalizedSelectedState
     : hasStateMockData
-      ? effectiveSelectedState
+      ? normalizedSelectedState
       : ''
-  const selectedDistrictMockKey = isUnsafeLookupKey(effectiveSelectedDistrict)
-    ? effectiveSelectedDistrict
+  const selectedDistrictMockKey = isUnsafeLookupKey(normalizedSelectedDistrict)
+    ? normalizedSelectedDistrict
     : hasStateMockData
-      ? effectiveSelectedDistrict
+      ? normalizedSelectedDistrict
       : ''
-  const selectedBlockMockKey = isUnsafeLookupKey(effectiveSelectedBlock)
-    ? effectiveSelectedBlock
+  const selectedBlockMockKey = isUnsafeLookupKey(normalizedSelectedBlock)
+    ? normalizedSelectedBlock
     : hasStateMockData
-      ? effectiveSelectedBlock
+      ? normalizedSelectedBlock
       : ''
-  const selectedGramPanchayatMockKey = isUnsafeLookupKey(effectiveSelectedGramPanchayat)
-    ? effectiveSelectedGramPanchayat
+  const selectedGramPanchayatMockKey = isUnsafeLookupKey(normalizedSelectedGramPanchayat)
+    ? normalizedSelectedGramPanchayat
     : hasStateMockData
-      ? effectiveSelectedGramPanchayat
+      ? normalizedSelectedGramPanchayat
       : ''
   const isStateSelected = Boolean(effectiveSelectedState)
   const isDistrictSelected = Boolean(effectiveSelectedDistrict)
@@ -270,17 +283,17 @@ export function CentralDashboard() {
         : isStateSelected
           ? t('overallPerformance.entities.district', { defaultValue: 'District' })
           : t('overallPerformance.entities.stateUt', { defaultValue: 'State/UT' })
-  const districtOptions = selectedState
-    ? getOwnLookupValue(mockFilterDistricts, selectedState, emptyOptions)
+  const districtOptions = normalizedSelectedState
+    ? getOwnLookupValue(mockFilterDistricts, normalizedSelectedState, emptyOptions)
     : emptyOptions
-  const blockOptions = selectedDistrict
-    ? getOwnLookupValue(mockFilterBlocks, selectedDistrict, emptyOptions)
+  const blockOptions = normalizedSelectedDistrict
+    ? getOwnLookupValue(mockFilterBlocks, normalizedSelectedDistrict, emptyOptions)
     : emptyOptions
-  const gramPanchayatOptions = selectedBlock
-    ? getOwnLookupValue(mockFilterGramPanchayats, selectedBlock, emptyOptions)
+  const gramPanchayatOptions = normalizedSelectedBlock
+    ? getOwnLookupValue(mockFilterGramPanchayats, normalizedSelectedBlock, emptyOptions)
     : emptyOptions
-  const villageOptions = selectedGramPanchayat
-    ? getOwnLookupValue(mockFilterVillages, selectedGramPanchayat, emptyOptions)
+  const villageOptions = normalizedSelectedGramPanchayat
+    ? getOwnLookupValue(mockFilterVillages, normalizedSelectedGramPanchayat, emptyOptions)
     : emptyOptions
 
   const updateFilterUrl = (filters: {
