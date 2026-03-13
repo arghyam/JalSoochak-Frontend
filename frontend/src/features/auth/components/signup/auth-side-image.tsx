@@ -1,5 +1,5 @@
 import { Box, Image } from '@chakra-ui/react'
-import jalImage from '@/assets/media/jalmain.jpg'
+import bannerImage from '@/assets/media/banner.png'
 
 export function AuthSideImage() {
   return (
@@ -9,16 +9,17 @@ export function AuthSideImage() {
       position="relative"
       overflow="hidden"
       display={{ base: 'none', md: 'block' }}
+      bg="white"
       borderTopLeftRadius="60px"
       borderBottomLeftRadius="60px"
     >
       <Image
-        src={jalImage}
-        alt="Water tap"
+        src={bannerImage}
+        alt="JalSoochak banner"
         w="100%"
         h="100%"
         objectFit="cover"
-        objectPosition="center right"
+        objectPosition="center"
       />
     </Box>
   )

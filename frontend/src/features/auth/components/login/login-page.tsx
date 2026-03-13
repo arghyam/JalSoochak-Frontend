@@ -60,7 +60,7 @@ export function LoginPage() {
   }
 
   return (
-    <Flex minH="100vh" w="full" direction={{ base: 'column', md: 'row' }}>
+    <Flex minH="100vh" w="full" direction={{ base: 'column', md: 'row' }} bg="white">
       <Flex
         w={{ base: '100%', md: '50%' }}
         align="stretch"
