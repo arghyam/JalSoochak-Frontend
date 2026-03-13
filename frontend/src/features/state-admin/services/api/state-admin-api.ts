@@ -68,8 +68,8 @@ import {
 export type SaveLanguageConfigurationPayload = Omit<LanguageConfiguration, 'id'>
 export type SaveIntegrationConfigurationPayload = Omit<
   IntegrationConfiguration,
-  'id' | 'isConfigured'
->
+  'id' | 'isConfigured' | 'apiKey'
+> & { apiKey?: string }
 export type SaveWaterNormsConfigurationPayload = Omit<WaterNormsConfiguration, 'id'>
 export type SaveEscalationPayload = Omit<Escalation, 'id' | 'name'>
 export type SaveThresholdConfigurationPayload = Omit<ThresholdConfiguration, 'id'>

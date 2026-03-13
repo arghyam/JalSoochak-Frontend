@@ -165,7 +165,7 @@ describe('null/no data state', () => {
 
 describe('fallback heading', () => {
   it('renders fallback title when user has no tenantCode', () => {
-    mockAuthState.user = null
+    mockAuthState.user = { tenantCode: '' }
 
     renderWithProviders(<OverviewPage />)
 

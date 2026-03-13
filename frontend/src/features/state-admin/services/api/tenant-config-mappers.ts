@@ -66,7 +66,7 @@ export interface TenantConfigMap {
   WATER_NORM?: { value: string }
   TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD?: { value: string }
   FIELD_STAFF_ESCALATION_RULES?: ApiEscalationRules
-  MESSAGE_BROKER_CONNECTION_SETTINGS?: { apiUrl: string; apiKey: string; organizationId: string }
+  MESSAGE_BROKER_CONNECTION_SETTINGS?: { apiUrl: string; apiKey?: string; organizationId: string }
   GLIFIC_MESSAGE_TEMPLATES?: {
     version: number
     screens: Record<
@@ -227,11 +227,13 @@ export function mapApiConfigToLanguageConfiguration(
     (a, b) => a.preference - b.preference
   )
 
+  const primaryLanguage = languages.length > 0 ? languageApiNameToValue(languages[0].language) : ''
+
   return {
-    primaryLanguage: languageApiNameToValue(languages[0]?.language ?? ''),
+    primaryLanguage,
     secondaryLanguage: languages[1] ? languageApiNameToValue(languages[1].language) : undefined,
     tertiaryLanguage: languages[2] ? languageApiNameToValue(languages[2].language) : undefined,
-    isConfigured: true,
+    isConfigured: Boolean(primaryLanguage),
   }
 }
 
@@ -321,15 +323,16 @@ export function mapApiConfigToIntegrationConfiguration(
 }
 
 export function mapIntegrationConfigToApiConfig(
-  payload: Omit<IntegrationConfiguration, 'id' | 'isConfigured'>
+  payload: Omit<IntegrationConfiguration, 'id' | 'isConfigured' | 'apiKey'> & { apiKey?: string }
 ): TenantConfigMap {
-  return {
-    MESSAGE_BROKER_CONNECTION_SETTINGS: {
-      apiUrl: payload.apiUrl as string,
-      apiKey: payload.apiKey as string,
-      organizationId: payload.organizationId as string,
-    },
+  const settings: { apiUrl: string; organizationId: string; apiKey?: string } = {
+    apiUrl: payload.apiUrl as string,
+    organizationId: payload.organizationId as string,
   }
+  if (payload.apiKey) {
+    settings.apiKey = payload.apiKey
+  }
+  return { MESSAGE_BROKER_CONNECTION_SETTINGS: settings }
 }
 
 // ---------------------------------------------------------------------------

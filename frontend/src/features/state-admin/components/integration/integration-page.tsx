@@ -27,7 +27,7 @@ export function IntegrationPage() {
 
   const [formValues, setFormValues] = useState<{
     apiUrl?: string
-    apiKey?: string
+    newApiKey?: string
     organizationId?: string
   }>({})
 
@@ -38,7 +38,8 @@ export function IntegrationPage() {
   }, [t])
 
   const apiUrl = formValues.apiUrl ?? config?.apiUrl ?? ''
-  const apiKey = formValues.apiKey ?? config?.apiKey ?? ''
+  const hasApiKey = Boolean(config?.apiKey)
+  const newApiKey = formValues.newApiKey ?? ''
   const organizationId = formValues.organizationId ?? config?.organizationId ?? ''
 
   const handleCancel = () => {
@@ -46,13 +47,20 @@ export function IntegrationPage() {
   }
 
   const handleSave = async () => {
-    if (!apiUrl || !apiKey || !organizationId) {
+    if (!apiUrl || (!hasApiKey && !newApiKey) || !organizationId) {
       toast.addToast(t('common:toast.fillAllFields'), 'error')
       return
     }
 
     try {
-      await saveIntegrationMutation.mutateAsync({ apiUrl, apiKey, organizationId })
+      const payload: { apiUrl: string; organizationId: string; apiKey?: string } = {
+        apiUrl,
+        organizationId,
+      }
+      if (newApiKey) {
+        payload.apiKey = newApiKey
+      }
+      await saveIntegrationMutation.mutateAsync(payload)
       toast.addToast(t('common:toast.changesSavedShort'), 'success')
     } catch (error) {
       console.error('Failed to save integration configuration:', error)
@@ -62,9 +70,7 @@ export function IntegrationPage() {
 
   const hasChanges =
     config &&
-    (apiUrl !== config.apiUrl ||
-      apiKey !== config.apiKey ||
-      organizationId !== config.organizationId)
+    (apiUrl !== config.apiUrl || newApiKey.length > 0 || organizationId !== config.organizationId)
 
   if (isLoading) {
     return (
@@ -164,12 +170,14 @@ export function IntegrationPage() {
                   {t('integration.fields.apiKey')}
                 </FormLabel>
                 <Input
-                  placeholder={t('common:enter')}
                   fontSize="14px"
                   fontWeight="400"
                   type="password"
-                  value={apiKey}
-                  onChange={(e) => setFormValues((prev) => ({ ...prev, apiKey: e.target.value }))}
+                  value={newApiKey}
+                  placeholder={hasApiKey ? '••••••••' : t('common:enter')}
+                  onChange={(e) =>
+                    setFormValues((prev) => ({ ...prev, newApiKey: e.target.value }))
+                  }
                   size="md"
                   h="36px"
                   maxW={{ base: '100%', lg: '486px' }}
@@ -232,7 +240,7 @@ export function IntegrationPage() {
               width={{ base: 'full', sm: '174px' }}
               onClick={handleSave}
               isLoading={saveIntegrationMutation.isPending}
-              isDisabled={!apiUrl || !apiKey || !organizationId || !hasChanges}
+              isDisabled={!apiUrl || (!hasApiKey && !newApiKey) || !organizationId || !hasChanges}
             >
               {t('common:button.save')}
             </Button>

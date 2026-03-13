@@ -25,15 +25,18 @@ export function mapApiResponseToSystemConfig(
   configs: SystemConfigApiResponse
 ): SystemConfiguration {
   const channels = (configs.SYSTEM_SUPPORTED_CHANNELS?.channels ?? []) as SystemSupportedChannel[]
-  const quantityValue = Number(configs.WATER_QUANTITY_SUPPLY_THRESHOLD?.value ?? 0)
+  const rawQuantity = Number.parseFloat(configs.WATER_QUANTITY_SUPPLY_THRESHOLD?.value ?? '')
+  const quantityValue = Number.isFinite(rawQuantity) ? rawQuantity : 0
+  const rawBfm = Number.parseFloat(
+    configs.BFM_IMAGE_READING_CONFIDENCE_LEVEL_THRESHOLD?.value ?? ''
+  )
+  const rawLocation = Number.parseFloat(configs.LOCATION_AFFINITY_THRESHOLD?.value ?? '')
   return {
     supportedChannels: channels,
     waterQuantityMaxThreshold: quantityValue,
     waterQuantityMinThreshold: quantityValue,
-    bfmImageConfidenceThreshold: Number(
-      configs.BFM_IMAGE_READING_CONFIDENCE_LEVEL_THRESHOLD?.value ?? 0
-    ),
-    locationAffinityThreshold: Number(configs.LOCATION_AFFINITY_THRESHOLD?.value ?? 0),
+    bfmImageConfidenceThreshold: Number.isFinite(rawBfm) ? rawBfm : 0,
+    locationAffinityThreshold: Number.isFinite(rawLocation) ? rawLocation : 0,
   }
 }
 

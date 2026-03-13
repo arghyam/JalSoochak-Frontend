@@ -93,22 +93,15 @@ export function LanguagePage() {
     }
   }
 
-  const getPrimaryLanguageLabel = () => {
-    const lang = APP_LANGUAGES.find((l) => l.label.toLowerCase() === primaryLanguage)
-    return lang ? lang.labelLocale : primaryLanguage
+  const lookupLanguageLabel = (value: string | undefined | null): string => {
+    if (!value) return ''
+    const lang = APP_LANGUAGES.find((l) => l.label.toLowerCase() === value)
+    return lang ? lang.labelLocale : value
   }
 
-  const getSecondaryLanguageLabel = () => {
-    if (!secondaryLanguage) return ''
-    const lang = APP_LANGUAGES.find((l) => l.label.toLowerCase() === secondaryLanguage)
-    return lang ? lang.labelLocale : secondaryLanguage
-  }
-
-  const getTertiaryLanguageLabel = () => {
-    if (!tertiaryLanguage) return ''
-    const lang = APP_LANGUAGES.find((l) => l.label.toLowerCase() === tertiaryLanguage)
-    return lang ? lang.labelLocale : tertiaryLanguage
-  }
+  const getPrimaryLanguageLabel = () => lookupLanguageLabel(primaryLanguage)
+  const getSecondaryLanguageLabel = () => lookupLanguageLabel(secondaryLanguage)
+  const getTertiaryLanguageLabel = () => lookupLanguageLabel(tertiaryLanguage)
 
   if (isLoading) {
     return (

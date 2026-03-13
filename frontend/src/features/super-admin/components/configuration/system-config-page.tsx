@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Box,
   Text,
@@ -77,6 +77,11 @@ export function SystemConfigPage() {
   const handleCancel = () => {
     setDraft(null)
     setIsEditing(false)
+  }
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault()
+    void handleSave()
   }
 
   const handleSave = async () => {
@@ -206,6 +211,7 @@ export function SystemConfigPage() {
               as="form"
               role="form"
               aria-label={t('configuration.aria.form')}
+              onSubmit={handleSubmit}
               direction="column"
               w="full"
               justify="space-between"
@@ -309,10 +315,10 @@ export function SystemConfigPage() {
                   {t('common:button.cancel')}
                 </Button>
                 <Button
+                  type="submit"
                   variant="primary"
                   size="md"
                   width={{ base: 'full', sm: '174px' }}
-                  onClick={handleSave}
                   isLoading={saveMutation.isPending}
                 >
                   {t('common:button.saveChanges')}
@@ -367,7 +373,7 @@ function ThresholdInput({
         value={value}
         onChange={(e) => {
           const raw = e.target.value
-          if (raw === '' || Number(raw) >= (min ?? 0)) {
+          if (raw === '' || (Number(raw) >= (min ?? 0) && Number(raw) <= (max ?? Infinity))) {
             onChange(raw)
           }
         }}

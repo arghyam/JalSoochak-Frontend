@@ -22,6 +22,7 @@ jest.mock('../../services/query/use-super-admin-queries', () => ({
 
 describe('SystemConfigPage', () => {
   beforeEach(() => {
+    jest.clearAllMocks()
     mockUseSystemConfigurationQuery.mockReturnValue({
       data: mockConfig,
       isLoading: false,

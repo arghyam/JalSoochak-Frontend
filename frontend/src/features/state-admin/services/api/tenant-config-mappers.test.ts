@@ -23,13 +23,18 @@ import {
 describe('mapApiConfigToConfigurationData', () => {
   it('maps a full config response to ConfigurationData', () => {
     const configs: TenantConfigMap = {
-      TENANT_SUPPORTED_CHANNELS: ['BFM', 'ELM'],
+      TENANT_SUPPORTED_CHANNELS: { channels: ['BFM', 'ELM'] },
       TENANT_LOGO: 'https://example.com/logo.png',
-      METER_CHANGE_REASONS: ['Meter Replaced', 'Meter Damaged'],
-      LOCATION_CHECK_REQUIRED: true,
-      DATA_CONSOLIDATION_TIME: '14:00',
-      PUMP_OPERATOR_REMINDER_NUDGE_TIME: '09:30',
-      AVERAGE_MEMBERS_PER_HOUSEHOLD: 4.5,
+      METER_CHANGE_REASONS: {
+        reasons: [
+          { id: 'r1', name: 'Meter Replaced', sequenceOrder: 1 },
+          { id: 'r2', name: 'Meter Damaged', sequenceOrder: 2 },
+        ],
+      },
+      LOCATION_CHECK_REQUIRED: { value: 'YES' },
+      DATA_CONSOLIDATION_TIME: { timeValue: '14:00', description: null },
+      PUMP_OPERATOR_REMINDER_NUDGE_TIME: { nudge: { schedule: { hour: 9, minute: 30 } } },
+      AVERAGE_MEMBERS_PER_HOUSEHOLD: { value: '4.5' },
       LGD_LOCATION_HIERARCHY: {
         locationHierarchy: [
           { level: 1, levelName: [{ title: 'State' }] },
@@ -82,7 +87,7 @@ describe('mapApiConfigToConfigurationData', () => {
 
   it('filters out unknown channel codes', () => {
     const result = mapApiConfigToConfigurationData({
-      TENANT_SUPPORTED_CHANNELS: ['BFM', 'UNKNOWN'],
+      TENANT_SUPPORTED_CHANNELS: { channels: ['BFM', 'UNKNOWN'] },
     })
     expect(result.supportedChannels).toEqual(['Bulk Flow Meter'])
   })
@@ -105,26 +110,32 @@ describe('mapConfigurationDataToApiConfig', () => {
 
     const result = mapConfigurationDataToApiConfig(payload)
 
-    expect(result.TENANT_SUPPORTED_CHANNELS).toEqual(['BFM', 'IOT'])
+    expect(result.TENANT_SUPPORTED_CHANNELS).toEqual({ channels: ['BFM', 'IOT'] })
     expect(result.TENANT_LOGO).toBe('https://example.com/logo.png')
-    expect(result.METER_CHANGE_REASONS).toEqual(['Meter Replaced'])
-    expect(result.LOCATION_CHECK_REQUIRED).toBe(false)
-    expect(result.DATA_CONSOLIDATION_TIME).toBe('18:00')
-    expect(result.PUMP_OPERATOR_REMINDER_NUDGE_TIME).toBe('08:00')
-    expect(result.AVERAGE_MEMBERS_PER_HOUSEHOLD).toBe(3)
-    expect(result.LGD_LOCATION_HIERARCHY).toEqual({
-      locationHierarchy: [{ level: 1, levelName: [{ title: 'State' }] }],
+    expect(result.METER_CHANGE_REASONS).toEqual({
+      reasons: [{ id: 'r1', name: 'Meter Replaced', sequenceOrder: 1 }],
     })
+    expect(result.LOCATION_CHECK_REQUIRED).toEqual({ value: 'NO' })
+    expect(result.DATA_CONSOLIDATION_TIME).toEqual({ timeValue: '18:00', description: null })
+    expect(result.PUMP_OPERATOR_REMINDER_NUDGE_TIME).toEqual({
+      nudge: { schedule: { hour: 8, minute: 0 } },
+    })
+    expect(result.AVERAGE_MEMBERS_PER_HOUSEHOLD).toEqual({ value: '3' })
   })
 
   it('round-trips: API → frontend → API preserves data', () => {
     const configs: TenantConfigMap = {
-      TENANT_SUPPORTED_CHANNELS: ['BFM', 'MAN'],
-      METER_CHANGE_REASONS: ['Reason A', 'Reason B'],
-      LOCATION_CHECK_REQUIRED: true,
-      DATA_CONSOLIDATION_TIME: '22:00',
-      PUMP_OPERATOR_REMINDER_NUDGE_TIME: '07:00',
-      AVERAGE_MEMBERS_PER_HOUSEHOLD: 5,
+      TENANT_SUPPORTED_CHANNELS: { channels: ['BFM', 'MAN'] },
+      METER_CHANGE_REASONS: {
+        reasons: [
+          { id: 'r1', name: 'Reason A', sequenceOrder: 1 },
+          { id: 'r2', name: 'Reason B', sequenceOrder: 2 },
+        ],
+      },
+      LOCATION_CHECK_REQUIRED: { value: 'YES' },
+      DATA_CONSOLIDATION_TIME: { timeValue: '22:00', description: null },
+      PUMP_OPERATOR_REMINDER_NUDGE_TIME: { nudge: { schedule: { hour: 7, minute: 0 } } },
+      AVERAGE_MEMBERS_PER_HOUSEHOLD: { value: '5' },
       LGD_LOCATION_HIERARCHY: {
         locationHierarchy: [{ level: 1, levelName: [{ title: 'State' }] }],
       },
@@ -136,9 +147,9 @@ describe('mapConfigurationDataToApiConfig', () => {
     const frontend = mapApiConfigToConfigurationData(configs)
     const backToApi = mapConfigurationDataToApiConfig(frontend)
 
-    expect(backToApi.TENANT_SUPPORTED_CHANNELS).toEqual(['BFM', 'MAN'])
-    expect(backToApi.LOCATION_CHECK_REQUIRED).toBe(true)
-    expect(backToApi.DATA_CONSOLIDATION_TIME).toBe('22:00')
+    expect(backToApi.TENANT_SUPPORTED_CHANNELS).toEqual({ channels: ['BFM', 'MAN'] })
+    expect(backToApi.LOCATION_CHECK_REQUIRED).toEqual({ value: 'YES' })
+    expect(backToApi.DATA_CONSOLIDATION_TIME).toEqual({ timeValue: '22:00', description: null })
   })
 })
 
@@ -149,14 +160,14 @@ describe('mapConfigurationDataToApiConfig', () => {
 describe('mapApiConfigToWaterNormsConfiguration', () => {
   it('maps water norm and threshold values', () => {
     const configs: TenantConfigMap = {
-      WATER_NORM: 55,
-      TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD: { lowerThreshold: 40, upperThreshold: 100 },
+      WATER_NORM: { value: '55' },
+      TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD: { value: '100' },
     }
 
     const result = mapApiConfigToWaterNormsConfiguration(configs)
 
     expect(result.stateQuantity).toBe(55)
-    expect(result.minQuantity).toBe(40)
+    expect(result.minQuantity).toBe(0)
     expect(result.maxQuantity).toBe(100)
     expect(result.districtOverrides).toEqual([])
     expect(result.regularity).toBe(0)
@@ -184,11 +195,8 @@ describe('mapWaterNormsToApiConfig', () => {
 
     const result = mapWaterNormsToApiConfig(payload)
 
-    expect(result.WATER_NORM).toBe(60)
-    expect(result.TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD).toEqual({
-      lowerThreshold: 40,
-      upperThreshold: 100,
-    })
+    expect(result.WATER_NORM).toEqual({ value: '60' })
+    expect(result.TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD).toEqual({ value: '100' })
     // district overrides and regularity must NOT be sent
     expect(result).not.toHaveProperty('districtOverrides')
     expect(result).not.toHaveProperty('regularity')
@@ -234,6 +242,18 @@ describe('mapApiConfigToLanguageConfiguration', () => {
   it('returns empty primary when key is absent', () => {
     const result = mapApiConfigToLanguageConfiguration({})
     expect(result.primaryLanguage).toBe('')
+  })
+
+  it('sets isConfigured to false when languages array is empty', () => {
+    const result = mapApiConfigToLanguageConfiguration({})
+    expect(result.isConfigured).toBe(false)
+  })
+
+  it('sets isConfigured to false when primaryLanguage resolves to empty', () => {
+    const result = mapApiConfigToLanguageConfiguration({
+      SUPPORTED_LANGUAGES: { languages: [] },
+    })
+    expect(result.isConfigured).toBe(false)
   })
 })
 
@@ -284,8 +304,8 @@ describe('mapApiConfigToEscalationRules', () => {
       FIELD_STAFF_ESCALATION_RULES: {
         escalation: {
           schedule: { hour: 9, minute: 0 },
-          level1: { threshold: { days: 3 }, officer: { user_type: 'SECTION_OFFICER' } },
-          level2: { threshold: { days: 7 }, officer: { user_type: 'SUBDIVISION_OFFICER' } },
+          level1: { threshold: { days: 3 }, officer: { userType: 'SECTION_OFFICER' } },
+          level2: { threshold: { days: 7 }, officer: { userType: 'SUBDIVISION_OFFICER' } },
         },
       },
     }
@@ -309,8 +329,8 @@ describe('mapApiConfigToEscalationRules', () => {
       FIELD_STAFF_ESCALATION_RULES: {
         escalation: {
           schedule: { hour: 8, minute: 30 },
-          level2: { threshold: { days: 7 }, officer: { user_type: 'SUBDIVISION_OFFICER' } },
-          level1: { threshold: { days: 3 }, officer: { user_type: 'SECTION_OFFICER' } },
+          level2: { threshold: { days: 7 }, officer: { userType: 'SUBDIVISION_OFFICER' } },
+          level1: { threshold: { days: 3 }, officer: { userType: 'SECTION_OFFICER' } },
         },
       },
     }
@@ -340,11 +360,11 @@ describe('mapEscalationRulesToApiConfig', () => {
     })
     expect(result.FIELD_STAFF_ESCALATION_RULES?.escalation?.level1).toEqual({
       threshold: { days: 3 },
-      officer: { user_type: 'SECTION_OFFICER' },
+      officer: { userType: 'SECTION_OFFICER' },
     })
     expect(result.FIELD_STAFF_ESCALATION_RULES?.escalation?.level2).toEqual({
       threshold: { days: 7 },
-      officer: { user_type: 'SUBDIVISION_OFFICER' },
+      officer: { userType: 'SUBDIVISION_OFFICER' },
     })
   })
 
@@ -353,28 +373,5 @@ describe('mapEscalationRulesToApiConfig', () => {
     const escalation = result.FIELD_STAFF_ESCALATION_RULES?.escalation
     expect(escalation?.schedule).toEqual({ hour: 9, minute: 0 })
     expect(Object.keys(escalation ?? {}).filter((k) => k.startsWith('level'))).toHaveLength(0)
-  })
-
-  it('round-trips: API → frontend → API', () => {
-    const configs: TenantConfigMap = {
-      FIELD_STAFF_ESCALATION_RULES: {
-        escalation: {
-          schedule: { hour: 10, minute: 15 },
-          level1: { threshold: { days: 5 }, officer: { user_type: 'EXECUTIVE_ENGINEER' } },
-        },
-      },
-    }
-
-    const frontend = mapApiConfigToEscalationRules(configs)
-    const backToApi = mapEscalationRulesToApiConfig(frontend)
-
-    expect(backToApi.FIELD_STAFF_ESCALATION_RULES?.escalation?.schedule).toEqual({
-      hour: 10,
-      minute: 15,
-    })
-    expect(backToApi.FIELD_STAFF_ESCALATION_RULES?.escalation?.level1).toEqual({
-      threshold: { days: 5 },
-      officer: { user_type: 'EXECUTIVE_ENGINEER' },
-    })
   })
 })

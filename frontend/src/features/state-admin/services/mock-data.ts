@@ -249,14 +249,14 @@ export const getMockIntegrationConfiguration = (): Promise<IntegrationConfigurat
 }
 
 export const saveMockIntegrationConfiguration = (
-  config: Omit<IntegrationConfiguration, 'id' | 'isConfigured'>
+  config: Omit<IntegrationConfiguration, 'id' | 'isConfigured' | 'apiKey'> & { apiKey?: string }
 ): Promise<IntegrationConfiguration> => {
   return new Promise((resolve) => {
     setTimeout(() => {
       const savedConfig: IntegrationConfiguration = {
         id: '1',
         apiUrl: config.apiUrl as string,
-        apiKey: config.apiKey as string,
+        apiKey: config.apiKey ?? '',
         organizationId: config.organizationId as string,
         isConfigured: true,
       }
