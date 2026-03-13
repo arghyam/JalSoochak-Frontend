@@ -12,6 +12,7 @@ const mockUser: AuthUser = {
   role: 'state_admin',
   phoneNumber: '8564254517',
   tenantId: 'tenant-1',
+  tenantCode: 'TC001',
   personId: 'person-1',
 }
 
