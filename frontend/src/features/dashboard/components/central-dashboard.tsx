@@ -10,6 +10,7 @@ import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-avera
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
 import { useReadingSubmissionRateQuery } from '../services/query/use-reading-submission-rate-query'
+import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
 import { KPICard } from './kpi-card'
 import { DashboardBody } from './screens/dashboard-body'
@@ -37,6 +38,7 @@ import {
   getRegularityKpi,
   mapReadingSubmissionRateFromAnalytics,
   mapReadingSubmissionStatusFromAnalytics,
+  mapSchemePerformanceToPumpOperators,
   getWaterSupplyKpis,
   mapOverallPerformanceFromAnalytics,
   mapQuantityPerformanceFromAnalytics,
@@ -545,6 +547,16 @@ export function CentralDashboard() {
           startDate: analyticsDateRange.startDate,
           endDate: analyticsDateRange.endDate,
         }
+  const parsedSelectedSchemeId = Number.parseInt(selectedScheme, 10)
+  const selectedSchemeId = Number.isFinite(parsedSelectedSchemeId)
+    ? parsedSelectedSchemeId
+    : undefined
+  const schemePerformanceAnalyticsParams = selectedTenant?.tenantId
+    ? {
+        tenantId: selectedTenant.tenantId,
+        schemeId: selectedSchemeId,
+      }
+    : null
   const submissionStatusAnalyticsParams = {
     startDate: analyticsDateRange.startDate,
     endDate: analyticsDateRange.endDate,
@@ -619,6 +631,10 @@ export function CentralDashboard() {
     params: readingSubmissionRateAnalyticsParams,
     enabled: Boolean(readingSubmissionRateAnalyticsParams),
   })
+  const { data: schemePerformanceData } = useSchemePerformanceQuery({
+    params: schemePerformanceAnalyticsParams,
+    enabled: Boolean(schemePerformanceAnalyticsParams),
+  })
   const { data: submissionStatusData } = useSubmissionStatusQuery({
     params: submissionStatusAnalyticsParams,
     enabled: true,
@@ -650,6 +666,10 @@ export function CentralDashboard() {
   const readingSubmissionStatusData = mapReadingSubmissionStatusFromAnalytics(
     submissionStatusData,
     data?.readingSubmissionStatus ?? []
+  )
+  const pumpOperatorsData = mapSchemePerformanceToPumpOperators(
+    schemePerformanceData,
+    data?.pumpOperators ?? []
   )
   const overallPerformanceTableData = mapOverallPerformanceFromAnalytics(
     averageWaterSupplyData,
@@ -881,11 +901,13 @@ export function CentralDashboard() {
   const waterSupplyOutageDistributionData =
     apiWaterSupplyOutageDistributionData ?? data.waterSupplyOutages
   const resolvedDashboardData =
-    readingSubmissionStatusData === data.readingSubmissionStatus
+    readingSubmissionStatusData === data.readingSubmissionStatus &&
+    pumpOperatorsData === data.pumpOperators
       ? data
       : {
           ...data,
           readingSubmissionStatus: readingSubmissionStatusData,
+          pumpOperators: pumpOperatorsData,
         }
 
   const numberLocale = i18n.resolvedLanguage === 'hi' ? 'hi-IN' : 'en-IN'
@@ -998,7 +1020,10 @@ export function CentralDashboard() {
   ]
   const villagePumpOperatorDetails = villagePumpOperators[0]
 
-  const pumpOperatorsTotal = data.pumpOperators.reduce((total, item) => total + item.value, 0)
+  const pumpOperatorsTotal = resolvedDashboardData.pumpOperators.reduce(
+    (total, item) => total + item.value,
+    0
+  )
   const leadingPumpOperators = data.leadingPumpOperators ?? []
   const bottomPumpOperators = data.bottomPumpOperators ?? []
   const operatorsPerformanceTable = [...leadingPumpOperators, ...bottomPumpOperators]

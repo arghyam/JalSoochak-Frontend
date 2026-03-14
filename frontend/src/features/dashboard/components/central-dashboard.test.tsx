@@ -9,6 +9,7 @@ import { useLocationChildrenQuery } from '../services/query/use-location-childre
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
+import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
 
 const mockNavigate = jest.fn()
@@ -65,6 +66,10 @@ jest.mock('../services/query/use-average-scheme-regularity-query', () => ({
 
 jest.mock('../services/query/use-outage-reasons-query', () => ({
   useOutageReasonsQuery: jest.fn(),
+}))
+
+jest.mock('../services/query/use-scheme-performance-query', () => ({
+  useSchemePerformanceQuery: jest.fn(),
 }))
 
 jest.mock('../services/query/use-submission-status-query', () => ({
@@ -155,6 +160,7 @@ describe('CentralDashboard', () => {
     ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useOutageReasonsQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useSchemePerformanceQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useSubmissionStatusQuery as jest.Mock).mockReturnValue({ data: undefined })
   })
 
@@ -249,6 +255,52 @@ describe('CentralDashboard', () => {
     expect(dashboardBodyProps.data.readingSubmissionStatus).toEqual([
       { label: 'Complaint Submission', value: 7 },
       { label: 'Anomalous Submissions', value: 5 },
+    ])
+  })
+
+  it('overrides active schemes chart data from scheme performance analytics when rows are available', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    ;(useSchemePerformanceQuery as jest.Mock).mockReturnValue({
+      data: [
+        {
+          id: 1,
+          schemeId: 101,
+          tenantId: 16,
+          performanceScore: 82,
+          lastWaterSupplyDate: '2026-03-14',
+          createdAt: '2026-03-14T00:00:00.000Z',
+          updatedAt: '2026-03-14T00:00:00.000Z',
+        },
+        {
+          id: 2,
+          schemeId: 102,
+          tenantId: 16,
+          performanceScore: 0,
+          lastWaterSupplyDate: '2026-03-10',
+          createdAt: '2026-03-14T00:00:00.000Z',
+          updatedAt: '2026-03-14T00:00:00.000Z',
+        },
+      ],
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{ data: DashboardData }>()
+
+    expect(dashboardBodyProps.data.pumpOperators).toEqual([
+      { label: 'Active schemes', value: 1 },
+      { label: 'Non-active schemes', value: 1 },
     ])
   })
 

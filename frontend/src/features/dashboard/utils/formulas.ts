@@ -2,8 +2,10 @@ import type {
   AverageSchemeRegularityResponse,
   AverageWaterSupplyPerRegionResponse,
   EntityPerformance,
+  PumpOperatorsData,
   ReadingSubmissionStatusData,
   ReadingSubmissionRateResponse,
+  SchemePerformanceResponse,
   SubmissionStatusResponse,
 } from '../types'
 import { slugify } from './format-location-label'
@@ -336,6 +338,34 @@ export const mapReadingSubmissionStatusFromAnalytics = (
   return [
     { label: 'Complaint Submission', value: compliantCount },
     { label: 'Anomalous Submissions', value: anomalousCount },
+  ]
+}
+
+const isSchemePerformanceRecordActive = (
+  record: NonNullable<SchemePerformanceResponse>[number]
+): boolean => {
+  if (typeof record.performanceScore === 'number' && Number.isFinite(record.performanceScore)) {
+    return record.performanceScore > 0
+  }
+
+  return Boolean(record.lastWaterSupplyDate)
+}
+
+export const mapSchemePerformanceToPumpOperators = (
+  response: SchemePerformanceResponse | undefined,
+  fallbackData: PumpOperatorsData[]
+): PumpOperatorsData[] => {
+  if (!response?.length) {
+    return fallbackData
+  }
+
+  const totalSchemes = response.length
+  const activeSchemes = response.filter(isSchemePerformanceRecordActive).length
+  const inactiveSchemes = Math.max(0, totalSchemes - activeSchemes)
+
+  return [
+    { label: 'Active schemes', value: activeSchemes },
+    { label: 'Non-active schemes', value: inactiveSchemes },
   ]
 }
 

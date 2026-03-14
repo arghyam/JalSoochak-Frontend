@@ -208,6 +208,23 @@ export interface ReadingSubmissionRateQueryParams {
   endDate: string
 }
 
+export interface SchemePerformanceQueryParams {
+  tenantId: number
+  schemeId?: number
+}
+
+export interface SchemePerformanceItem {
+  id: number
+  schemeId: number
+  tenantId: number
+  performanceScore: number
+  lastWaterSupplyDate: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type SchemePerformanceResponse = SchemePerformanceItem[]
+
 export interface ReadingSubmissionRateChildRegion {
   lgdId: number
   departmentId: number

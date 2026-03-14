@@ -11,6 +11,8 @@ import type {
   OutageReasonsResponse,
   ReadingSubmissionRateQueryParams,
   ReadingSubmissionRateResponse,
+  SchemePerformanceQueryParams,
+  SchemePerformanceResponse,
   SubmissionStatusQueryParams,
   SubmissionStatusResponse,
 } from '../../types'
@@ -270,6 +272,21 @@ export const dashboardApi = {
           scope: params.scope ?? 'child',
           start_date: params.startDate,
           end_date: params.endDate,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getSchemePerformance: async (
+    params: SchemePerformanceQueryParams
+  ): Promise<SchemePerformanceResponse> => {
+    const response = await apiClient.get<SchemePerformanceResponse>(
+      '/api/v1/analytics/scheme-performance',
+      {
+        params: {
+          tenantId: params.tenantId,
+          schemeId: params.schemeId,
         },
       }
     )
