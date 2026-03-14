@@ -2,6 +2,7 @@ import type {
   AverageSchemeRegularityResponse,
   AverageWaterSupplyPerRegionResponse,
   EntityPerformance,
+  ReadingSubmissionRateResponse,
 } from '../types'
 import { slugify } from './format-location-label'
 
@@ -133,6 +134,24 @@ export const calculateAverageRegularityPercent = (
   return Number(clamp((totalSupplyDays / (schemeCount * daysInRange)) * 100, 0, 100).toFixed(1))
 }
 
+export const calculateReadingSubmissionRatePercent = (
+  totalSubmissionDays: number,
+  schemeCount: number,
+  daysInRange: number
+): number => {
+  if (
+    !isFiniteNumber(totalSubmissionDays) ||
+    !isFiniteNumber(schemeCount) ||
+    totalSubmissionDays <= 0 ||
+    schemeCount <= 0 ||
+    daysInRange <= 0
+  ) {
+    return 0
+  }
+
+  return Number(clamp((totalSubmissionDays / (schemeCount * daysInRange)) * 100, 0, 100).toFixed(1))
+}
+
 const sumWaterSupplySchemeField = (
   response: AverageWaterSupplyPerRegionResponse | undefined,
   field: 'totalWaterSuppliedLiters' | 'householdCount'
@@ -251,6 +270,39 @@ export const mapRegularityPerformanceFromAnalytics = (
       coverage: fallbackMatch?.coverage ?? 0,
       regularity: calculateAverageRegularityPercent(
         region.totalSupplyDays,
+        region.schemeCount,
+        daysInRange
+      ),
+      continuity: fallbackMatch?.continuity ?? 0,
+      quantity: fallbackMatch?.quantity ?? 0,
+      compositeScore: fallbackMatch?.compositeScore ?? 0,
+      status: fallbackMatch?.status ?? 'needs-attention',
+    }
+  })
+}
+
+export const mapReadingSubmissionRateFromAnalytics = (
+  response: ReadingSubmissionRateResponse | undefined,
+  fallbackData: EntityPerformance[]
+): EntityPerformance[] => {
+  if (!response?.childRegions?.length) {
+    return fallbackData
+  }
+
+  const fallbackByName = mapFallbackByName(fallbackData)
+  const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
+
+  return response.childRegions.map((region, index) => {
+    const fallbackMatch = fallbackByName.get(slugify(region.title)) ?? fallbackData[index]
+
+    return {
+      id:
+        fallbackMatch?.id ??
+        `reading-submission-rate-${index}-${slugify(region.title || String(index))}`,
+      name: region.title || fallbackMatch?.name || `Region ${index + 1}`,
+      coverage: fallbackMatch?.coverage ?? 0,
+      regularity: calculateReadingSubmissionRatePercent(
+        region.totalSubmissionDays,
         region.schemeCount,
         daysInRange
       ),

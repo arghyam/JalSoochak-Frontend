@@ -3,6 +3,7 @@ import type {
   AverageWaterSupplyPerRegionQueryParams,
   DashboardLevel,
   OutageReasonsQueryParams,
+  ReadingSubmissionRateQueryParams,
 } from '../../types'
 
 export const dashboardQueryKeys = {
@@ -26,6 +27,17 @@ export const dashboardQueryKeys = {
       'dashboard',
       'analytics',
       'average-scheme-regularity',
+      params?.parentLgdId,
+      params?.parentDepartmentId,
+      params?.scope,
+      params?.startDate,
+      params?.endDate,
+    ] as const,
+  readingSubmissionRate: (params: ReadingSubmissionRateQueryParams | null) =>
+    [
+      'dashboard',
+      'analytics',
+      'reading-submission-rate',
       params?.parentLgdId,
       params?.parentDepartmentId,
       params?.scope,

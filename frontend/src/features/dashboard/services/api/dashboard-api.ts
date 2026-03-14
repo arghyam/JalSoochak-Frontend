@@ -9,6 +9,8 @@ import type {
   DashboardLevel,
   OutageReasonsQueryParams,
   OutageReasonsResponse,
+  ReadingSubmissionRateQueryParams,
+  ReadingSubmissionRateResponse,
 } from '../../types'
 import { dashboardMockService } from '../mock/dashboard-mock'
 
@@ -241,6 +243,24 @@ export const dashboardApi = {
   ): Promise<AverageSchemeRegularityResponse> => {
     const response = await apiClient.get<AverageSchemeRegularityResponse>(
       '/api/v1/analytics/scheme-regularity/average',
+      {
+        params: {
+          parent_lgd_id: params.parentLgdId,
+          parent_department_id: params.parentDepartmentId,
+          scope: params.scope ?? 'child',
+          start_date: params.startDate,
+          end_date: params.endDate,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getReadingSubmissionRate: async (
+    params: ReadingSubmissionRateQueryParams
+  ): Promise<ReadingSubmissionRateResponse> => {
+    const response = await apiClient.get<ReadingSubmissionRateResponse>(
+      '/api/v1/analytics/reading-submission-rate',
       {
         params: {
           parent_lgd_id: params.parentLgdId,

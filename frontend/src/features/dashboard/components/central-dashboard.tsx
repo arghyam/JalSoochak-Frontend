@@ -9,6 +9,7 @@ import { useLocationSearchQuery } from '../services/query/use-location-search-qu
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
+import { useReadingSubmissionRateQuery } from '../services/query/use-reading-submission-rate-query'
 import { KPICard } from './kpi-card'
 import { DashboardBody } from './screens/dashboard-body'
 import { IndiaMapChart } from './charts'
@@ -28,6 +29,7 @@ import {
   calculatePercentChange,
   getPreviousPeriodRange,
   getRegularityKpi,
+  mapReadingSubmissionRateFromAnalytics,
   getWaterSupplyKpis,
   mapOverallPerformanceFromAnalytics,
   mapQuantityPerformanceFromAnalytics,
@@ -410,7 +412,7 @@ export function CentralDashboard() {
     emptyEntityPerformance,
     defaultVillageTableData
   )
-  const supplySubmissionRateData = isGramPanchayatSelected
+  const supplySubmissionRateFallbackData = isGramPanchayatSelected
     ? villageTableData
     : isBlockSelected
       ? gramPanchayatTableData
@@ -508,6 +510,21 @@ export function CentralDashboard() {
           startDate: analyticsDateRange.startDate,
           endDate: analyticsDateRange.endDate,
         }
+  const readingSubmissionRateAnalyticsParams = isVillageSelected
+    ? null
+    : hierarchyType === 'LGD'
+      ? {
+          parentLgdId: analyticsParentId,
+          scope: 'child' as const,
+          startDate: analyticsDateRange.startDate,
+          endDate: analyticsDateRange.endDate,
+        }
+      : {
+          parentDepartmentId: analyticsParentId,
+          scope: 'child' as const,
+          startDate: analyticsDateRange.startDate,
+          endDate: analyticsDateRange.endDate,
+        }
   const outageReasonsAnalyticsParams =
     isVillageSelected || !selectedTenant?.tenantId
       ? null
@@ -574,6 +591,10 @@ export function CentralDashboard() {
     params: regularityAnalyticsParams,
     enabled: Boolean(regularityAnalyticsParams),
   })
+  const { data: readingSubmissionRateData } = useReadingSubmissionRateQuery({
+    params: readingSubmissionRateAnalyticsParams,
+    enabled: Boolean(readingSubmissionRateAnalyticsParams),
+  })
   const { data: outageReasonsData } = useOutageReasonsQuery({
     params: outageReasonsAnalyticsParams,
     enabled: Boolean(outageReasonsAnalyticsParams),
@@ -593,6 +614,10 @@ export function CentralDashboard() {
   const regularityPerformanceData = mapRegularityPerformanceFromAnalytics(
     averageSchemeRegularityData,
     analyticsFallbackData
+  )
+  const supplySubmissionRateData = mapReadingSubmissionRateFromAnalytics(
+    readingSubmissionRateData,
+    supplySubmissionRateFallbackData
   )
   const overallPerformanceTableData = mapOverallPerformanceFromAnalytics(
     averageWaterSupplyData,

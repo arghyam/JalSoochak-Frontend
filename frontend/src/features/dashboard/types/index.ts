@@ -200,6 +200,39 @@ export interface AverageSchemeRegularityResponse {
   childRegions: AverageSchemeRegularityChildRegion[]
 }
 
+export interface ReadingSubmissionRateQueryParams {
+  parentLgdId?: number
+  parentDepartmentId?: number
+  scope?: 'current' | 'child'
+  startDate: string
+  endDate: string
+}
+
+export interface ReadingSubmissionRateChildRegion {
+  lgdId: number
+  departmentId: number
+  title: string
+  schemeCount: number
+  totalSubmissionDays: number
+  readingSubmissionRate: number
+}
+
+export interface ReadingSubmissionRateResponse {
+  parentLgdId: number
+  parentDepartmentId: number
+  parentLgdLevel: number
+  parentDepartmentLevel: number
+  scope: string
+  startDate: string
+  endDate: string
+  daysInRange: number
+  schemeCount: number
+  totalSubmissionDays: number
+  readingSubmissionRate: number
+  childRegionCount: number
+  childRegions: ReadingSubmissionRateChildRegion[]
+}
+
 export interface OutageReasonsQueryParams {
   startDate: string
   endDate: string

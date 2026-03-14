@@ -3,11 +3,14 @@ import type {
   AverageSchemeRegularityResponse,
   AverageWaterSupplyPerRegionResponse,
   EntityPerformance,
+  ReadingSubmissionRateResponse,
 } from '../types'
 import {
   calculateAverageRegularityPercent,
+  calculateReadingSubmissionRatePercent,
   calculateQuantityMld,
   calculateQuantityLpcd,
+  mapReadingSubmissionRateFromAnalytics,
   mapQuantityPerformanceFromAnalytics,
   mapRegularityPerformanceFromAnalytics,
   mapOverallPerformanceFromAnalytics,
@@ -33,6 +36,10 @@ describe('dashboard formulas', () => {
 
   it('calculates average regularity percent from supply days, schemes, and day range', () => {
     expect(calculateAverageRegularityPercent(45, 3, 30)).toBe(50)
+  })
+
+  it('calculates reading submission rate percent from submission days, schemes, and day range', () => {
+    expect(calculateReadingSubmissionRatePercent(45, 3, 30)).toBe(50)
   })
 
   it('maps quantity analytics response into chart data with fallback metadata', () => {
@@ -194,6 +201,52 @@ describe('dashboard formulas', () => {
         ...fallbackData[0],
         coverage: 3,
         quantity: 600,
+        regularity: 50,
+      },
+    ])
+  })
+
+  it('maps reading submission rate analytics response into chart data with fallback metadata', () => {
+    const fallbackData: EntityPerformance[] = [
+      {
+        id: 'alpha',
+        name: 'Region Alpha',
+        coverage: 72,
+        regularity: 0,
+        continuity: 0,
+        quantity: 4,
+        compositeScore: 68,
+        status: 'good',
+      },
+    ]
+    const response: ReadingSubmissionRateResponse = {
+      parentLgdId: 100,
+      parentDepartmentId: 0,
+      parentLgdLevel: 1,
+      parentDepartmentLevel: 0,
+      scope: 'child',
+      startDate: '2026-03-01',
+      endDate: '2026-03-30',
+      daysInRange: 30,
+      schemeCount: 3,
+      totalSubmissionDays: 45,
+      readingSubmissionRate: 50,
+      childRegionCount: 1,
+      childRegions: [
+        {
+          lgdId: 100,
+          departmentId: 0,
+          title: 'Region Alpha',
+          schemeCount: 3,
+          totalSubmissionDays: 45,
+          readingSubmissionRate: 87.5,
+        },
+      ],
+    }
+
+    expect(mapReadingSubmissionRateFromAnalytics(response, fallbackData)).toEqual([
+      {
+        ...fallbackData[0],
         regularity: 50,
       },
     ])
