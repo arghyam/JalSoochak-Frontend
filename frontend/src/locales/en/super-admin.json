@@ -62,6 +62,7 @@
       "title": "State/UT Details",
       "name": "State/UT name",
       "code": "State/UT code",
+      "autoFilledOnStateSelection": "Auto-filled on state selection",
       "stateCode": "State Code",
       "lgdCode": "LGD Code",
       "createdAt": "Created At"

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   Box,
@@ -51,9 +51,15 @@ export function EditStateUTPage() {
 
   const [adminDrafts, setAdminDrafts] = useState<Record<string, AdminDraft>>({})
   const [isSaving, setIsSaving] = useState(false)
+  const navigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     document.title = `${t('statesUts.editTitle')} | JalSoochak`
+    return () => {
+      if (navigateTimerRef.current !== null) {
+        clearTimeout(navigateTimerRef.current)
+      }
+    }
   }, [t])
 
   const changedAdmins = useMemo(
@@ -114,7 +120,11 @@ export function EditStateUTPage() {
     if (failedEmails.length === 0) {
       toast.addToast(t('common:toast.changesSaved'), 'success')
       if (id) {
-        setTimeout(() => {
+        if (navigateTimerRef.current !== null) {
+          clearTimeout(navigateTimerRef.current)
+        }
+        navigateTimerRef.current = setTimeout(() => {
+          navigateTimerRef.current = null
           navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':id', id))
         }, 500)
       }

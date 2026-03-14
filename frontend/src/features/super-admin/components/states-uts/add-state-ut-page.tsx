@@ -188,7 +188,7 @@ export function AddStateUTPage() {
                   borderColor="neutral.200"
                   color="neutral.500"
                   aria-readonly="true"
-                  placeholder="Auto-filled on state selection"
+                  placeholder={t('statesUts.details.autoFilledOnStateSelection')}
                   _placeholder={{ color: 'neutral.300' }}
                 />
               </FormControl>
