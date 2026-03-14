@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Box,
   Heading,
@@ -11,11 +11,16 @@ import {
   Input,
   Button,
   HStack,
+  Skeleton,
+  Alert,
+  AlertIcon,
 } from '@chakra-ui/react'
 import { EditIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
-import { useAuthStore } from '@/app/store'
-import { authApi, buildUpdateProfileRequest } from '@/features/auth/services/auth-api'
+import {
+  useMyProfileQuery,
+  useUpdateMyProfileMutation,
+} from '@/features/auth/services/query/use-auth-queries'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ToastContainer } from '@/shared/components/common'
 
@@ -25,76 +30,71 @@ interface ProfileFormState {
   phoneNumber: string
 }
 
-function splitName(fullName: string): { firstName: string; lastName: string } {
-  const parts = fullName.trim().split(' ')
-  return {
-    firstName: parts[0] ?? '',
-    lastName: parts.slice(1).join(' '),
-  }
-}
-
 export function ProfilePage() {
   const { t } = useTranslation('common')
-  const user = useAuthStore((state) => state.user)
-  const updateUser = useAuthStore((state) => state.updateUser)
+  const { data: profile, isLoading, isError } = useMyProfileQuery()
+  const updateMutation = useUpdateMyProfileMutation()
   const toast = useToast()
 
-  const initialForm = useMemo((): ProfileFormState => {
-    if (!user) return { firstName: '', lastName: '', phoneNumber: '' }
-    const { firstName, lastName } = splitName(user.name)
-    return { firstName, lastName, phoneNumber: user.phoneNumber ?? '' }
-  }, [user])
-
   const [isEditing, setIsEditing] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [form, setForm] = useState<ProfileFormState>(initialForm)
+  const [form, setForm] = useState<ProfileFormState>({
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+  })
 
   useEffect(() => {
     document.title = `${t('profile.title')} | JalSoochak`
   }, [t])
 
   const handleEdit = () => {
-    setForm(initialForm)
+    if (profile) {
+      setForm({
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        phoneNumber: profile.phoneNumber,
+      })
+    }
     setIsEditing(true)
   }
 
   const handleCancel = () => {
-    setForm(initialForm)
+    if (profile) {
+      setForm({
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        phoneNumber: profile.phoneNumber,
+      })
+    }
     setIsEditing(false)
   }
 
   const isFormValid = form.firstName.trim().length > 0
 
   const hasChanges =
-    form.firstName !== initialForm.firstName ||
-    form.lastName !== initialForm.lastName ||
-    form.phoneNumber !== initialForm.phoneNumber
+    form.firstName !== (profile?.firstName ?? '') ||
+    form.lastName !== (profile?.lastName ?? '') ||
+    form.phoneNumber !== (profile?.phoneNumber ?? '')
 
-  const handleSave = async () => {
-    if (!user || !isFormValid || isSaving) return
-    setIsSaving(true)
-    try {
-      const body = buildUpdateProfileRequest({
-        role: user.role,
+  const handleSave = () => {
+    if (!isFormValid || updateMutation.isPending) return
+    updateMutation.mutate(
+      {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
-        primaryEmail: user.email,
-        primaryNumber: form.phoneNumber.trim(),
-      })
-      await authApi.updateProfile(user.id, body)
-      updateUser({
-        ...user,
-        name: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
         phoneNumber: form.phoneNumber.trim(),
-      })
-      toast.addToast(t('toast.profileUpdated'), 'success')
-      setIsEditing(false)
-    } catch (err) {
-      const message = err instanceof Error ? err.message : t('toast.profileUpdateFailed')
-      toast.addToast(message, 'error')
-    } finally {
-      setIsSaving(false)
-    }
+      },
+      {
+        onSuccess: () => {
+          toast.addToast(t('toast.profileUpdated'), 'success')
+          setIsEditing(false)
+        },
+        onError: (err) => {
+          const message = err instanceof Error ? err.message : t('toast.profileUpdateFailed')
+          toast.addToast(message, 'error')
+        },
+      }
+    )
   }
 
   return (
@@ -113,6 +113,13 @@ export function ProfilePage() {
         py={6}
         px={{ base: 3, md: 4 }}
       >
+        {isError && (
+          <Alert status="error" borderRadius="md" mb={4}>
+            <AlertIcon />
+            {t('toast.profileLoadFailed')}
+          </Alert>
+        )}
+
         <Flex
           direction="column"
           h="full"
@@ -124,7 +131,7 @@ export function ProfilePage() {
               <Heading as="h2" size="h3" fontWeight="400" id="profile-details-heading">
                 {t('profile.details')}
               </Heading>
-              {!isEditing && (
+              {!isEditing && !isLoading && !isError && (
                 <IconButton
                   aria-label={t('profile.editProfile')}
                   icon={<EditIcon boxSize={5} />}
@@ -137,7 +144,16 @@ export function ProfilePage() {
               )}
             </Flex>
 
-            {isEditing ? (
+            {isLoading ? (
+              <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
+                {[0, 1, 2, 3].map((i) => (
+                  <Box key={i}>
+                    <Skeleton height="14px" width="80px" mb={2} />
+                    <Skeleton height="18px" width="160px" />
+                  </Box>
+                ))}
+              </SimpleGrid>
+            ) : isEditing ? (
               <SimpleGrid
                 columns={{ base: 1, lg: 2 }}
                 spacing={3}
@@ -180,7 +196,7 @@ export function ProfilePage() {
                   </FormLabel>
                   <Input
                     type="email"
-                    value={user?.email ?? ''}
+                    value={profile?.email ?? ''}
                     isReadOnly
                     isDisabled
                     bg="neutral.50"
@@ -220,7 +236,7 @@ export function ProfilePage() {
                     {t('profile.firstName')}
                   </Text>
                   <Text textStyle="h10" fontWeight="400">
-                    {initialForm.firstName || t('na')}
+                    {profile?.firstName || t('na')}
                   </Text>
                 </Box>
                 <Box>
@@ -228,7 +244,7 @@ export function ProfilePage() {
                     {t('profile.lastName')}
                   </Text>
                   <Text textStyle="h10" fontWeight="400">
-                    {initialForm.lastName || t('na')}
+                    {profile?.lastName || t('na')}
                   </Text>
                 </Box>
                 <Box>
@@ -236,7 +252,7 @@ export function ProfilePage() {
                     {t('profile.email')}
                   </Text>
                   <Text textStyle="h10" fontWeight="400">
-                    {user?.email || t('na')}
+                    {profile?.email || t('na')}
                   </Text>
                 </Box>
                 <Box>
@@ -244,7 +260,7 @@ export function ProfilePage() {
                     {t('profile.phone')}
                   </Text>
                   <Text textStyle="h10" fontWeight="400">
-                    {initialForm.phoneNumber || t('na')}
+                    {profile?.phoneNumber || t('na')}
                   </Text>
                 </Box>
               </SimpleGrid>
@@ -263,7 +279,7 @@ export function ProfilePage() {
                 size="md"
                 width={{ base: 'full', sm: '174px' }}
                 onClick={handleCancel}
-                isDisabled={isSaving}
+                isDisabled={updateMutation.isPending}
               >
                 {t('button.cancel')}
               </Button>
@@ -271,9 +287,9 @@ export function ProfilePage() {
                 variant="primary"
                 size="md"
                 width={{ base: 'full', sm: '174px' }}
-                isLoading={isSaving}
+                isLoading={updateMutation.isPending}
                 isDisabled={!isFormValid || !hasChanges}
-                onClick={() => void handleSave()}
+                onClick={handleSave}
               >
                 {t('button.saveChanges')}
               </Button>
