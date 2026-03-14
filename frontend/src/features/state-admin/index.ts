@@ -12,4 +12,5 @@ export { MessageTemplatesPage } from './components/nudges-template/message-templ
 export { StaffSyncPage } from './components/staff-sync/staff-sync-page'
 export { StateUTAdminsPage } from './components/state-ut-admins/state-ut-admins-page'
 export { StateUTAdminFormPage } from './components/state-ut-admins/state-ut-admin-form-page'
+export { InviteStateUTAdminPage } from './components/state-ut-admins/invite-state-ut-admin-page'
 export { ViewStateUTAdminPage } from './components/state-ut-admins/view-state-ut-admin-page'

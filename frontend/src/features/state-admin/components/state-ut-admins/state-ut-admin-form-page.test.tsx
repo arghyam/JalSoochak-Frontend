@@ -24,13 +24,11 @@ jest.mock('react-router-dom', () => ({
 }))
 
 const mockUseStateUTAdminByIdQuery = jest.fn()
-const mockUseCreateStateUTAdminMutation = jest.fn()
 const mockUseUpdateStateUTAdminMutation = jest.fn()
 const mockUseUpdateStateUTAdminStatusMutation = jest.fn()
 
 jest.mock('../../services/query/use-state-admin-queries', () => ({
   useStateUTAdminByIdQuery: () => mockUseStateUTAdminByIdQuery(),
-  useCreateStateUTAdminMutation: () => mockUseCreateStateUTAdminMutation(),
   useUpdateStateUTAdminMutation: () => mockUseUpdateStateUTAdminMutation(),
   useUpdateStateUTAdminStatusMutation: () => mockUseUpdateStateUTAdminStatusMutation(),
 }))
@@ -40,10 +38,6 @@ describe('StateUTAdminFormPage — Add Mode', () => {
     mockNavigate.mockReset()
     mockUseParams.mockReturnValue({ id: undefined })
     mockUseStateUTAdminByIdQuery.mockReturnValue({ data: undefined, isLoading: false })
-    mockUseCreateStateUTAdminMutation.mockReturnValue({
-      mutateAsync: jest.fn<() => Promise<StateUTAdmin>>().mockResolvedValue(mockAdmin),
-      isPending: false,
-    })
     mockUseUpdateStateUTAdminMutation.mockReturnValue({
       mutateAsync: jest.fn<() => Promise<StateUTAdmin>>().mockResolvedValue(mockAdmin),
       isPending: false,
@@ -112,10 +106,6 @@ describe('StateUTAdminFormPage — Edit Mode', () => {
     mockNavigate.mockReset()
     mockUseParams.mockReturnValue({ id: 'admin-1' })
     mockUseStateUTAdminByIdQuery.mockReturnValue({ data: mockAdmin, isLoading: false })
-    mockUseCreateStateUTAdminMutation.mockReturnValue({
-      mutateAsync: jest.fn(),
-      isPending: false,
-    })
     mockUseUpdateStateUTAdminMutation.mockReturnValue({
       mutateAsync: jest.fn<() => Promise<StateUTAdmin>>().mockResolvedValue(mockAdmin),
       isPending: false,
