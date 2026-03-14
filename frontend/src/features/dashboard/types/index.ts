@@ -56,11 +56,11 @@ export interface ReadingComplianceData {
 export interface PumpOperatorPerformanceData {
   id: string
   name: string
-  block: string
-  village: string
-  reportingRate: number
+  block: string | null
+  village: string | null
+  reportingRate: number | null
   photoCompliance: number
-  waterSupplied: number
+  waterSupplied: number | null
 }
 
 export interface VillagePumpOperatorDetails {

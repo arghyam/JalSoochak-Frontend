@@ -75,4 +75,25 @@ describe('SchemePerformanceTable', () => {
     expect(getNameOrder(container)).toEqual(['Nitish', 'Vikash', 'Navdeep'])
     expect(waterButton.closest('th')?.getAttribute('aria-sort')).toBe('descending')
   })
+
+  it('renders missing analytics fields as dashes', () => {
+    renderWithProviders(
+      <SchemePerformanceTable
+        title="Scheme Performance"
+        data={[
+          {
+            id: 'scheme-1',
+            name: 'Scheme Alpha',
+            village: null,
+            block: null,
+            reportingRate: null,
+            photoCompliance: 0,
+            waterSupplied: null,
+          },
+        ]}
+      />
+    )
+
+    expect(screen.getAllByText('-')).toHaveLength(4)
+  })
 })

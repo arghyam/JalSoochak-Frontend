@@ -2,6 +2,7 @@ import type {
   AverageSchemeRegularityResponse,
   AverageWaterSupplyPerRegionResponse,
   EntityPerformance,
+  PumpOperatorPerformanceData,
   PumpOperatorsData,
   ReadingSubmissionStatusData,
   ReadingSubmissionRateResponse,
@@ -367,6 +368,25 @@ export const mapSchemePerformanceToPumpOperators = (
     { label: 'Active schemes', value: activeSchemes },
     { label: 'Non-active schemes', value: inactiveSchemes },
   ]
+}
+
+export const mapSchemePerformanceToTable = (
+  response: SchemePerformanceResponse | undefined,
+  fallbackData: PumpOperatorPerformanceData[]
+): PumpOperatorPerformanceData[] => {
+  if (!response?.length) {
+    return fallbackData
+  }
+
+  return response.map((scheme, index) => ({
+    id: `scheme-performance-${scheme.schemeId ?? scheme.id ?? index}`,
+    name: `Scheme ${scheme.schemeId ?? scheme.id ?? index + 1}`,
+    village: null,
+    block: null,
+    reportingRate: null,
+    photoCompliance: 0,
+    waterSupplied: null,
+  }))
 }
 
 export const mapOverallPerformanceFromAnalytics = (

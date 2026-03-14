@@ -15,6 +15,34 @@ interface SchemePerformanceTableProps {
 type SortColumn = 'reportingRate' | 'waterSupplied' | null
 type SortDirection = 'asc' | 'desc' | null
 
+const compareNullableNumbers = (
+  left: number | null | undefined,
+  right: number | null | undefined,
+  direction: Exclude<SortDirection, null>
+) => {
+  const leftValue = typeof left === 'number' && Number.isFinite(left) ? left : null
+  const rightValue = typeof right === 'number' && Number.isFinite(right) ? right : null
+
+  if (leftValue === null && rightValue === null) {
+    return 0
+  }
+
+  if (leftValue === null) {
+    return 1
+  }
+
+  if (rightValue === null) {
+    return -1
+  }
+
+  return direction === 'asc' ? leftValue - rightValue : rightValue - leftValue
+}
+
+const formatCellValue = (value: string | null | undefined) => value?.trim() || '-'
+
+const formatMetricValue = (value: number | null | undefined, suffix = '') =>
+  typeof value === 'number' && Number.isFinite(value) ? `${value}${suffix}` : '-'
+
 export function SchemePerformanceTable({
   data,
   title,
@@ -30,9 +58,7 @@ export function SchemePerformanceTable({
   const sortedRows =
     sortColumn && sortDirection
       ? [...data].sort((a, b) => {
-          const aValue = a[sortColumn]
-          const bValue = b[sortColumn]
-          return sortDirection === 'asc' ? aValue - bValue : bValue - aValue
+          return compareNullableNumbers(a[sortColumn], b[sortColumn], sortDirection)
         })
       : data
   const rows = typeof safeMaxItems === 'number' ? sortedRows.slice(0, safeMaxItems) : sortedRows
@@ -182,10 +208,10 @@ export function SchemePerformanceTable({
             {rows.map((operator) => (
               <Tr key={operator.id} _odd={{ bg: 'primary.25' }}>
                 <Td>{operator.name}</Td>
-                <Td>{operator.village}</Td>
-                <Td>{operator.block}</Td>
-                <Td>{operator.reportingRate}</Td>
-                <Td>{operator.waterSupplied} LPCD</Td>
+                <Td>{formatCellValue(operator.village)}</Td>
+                <Td>{formatCellValue(operator.block)}</Td>
+                <Td>{formatMetricValue(operator.reportingRate)}</Td>
+                <Td>{formatMetricValue(operator.waterSupplied, ' LPCD')}</Td>
               </Tr>
             ))}
           </Tbody>

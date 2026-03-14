@@ -38,6 +38,7 @@ import {
   getRegularityKpi,
   mapReadingSubmissionRateFromAnalytics,
   mapReadingSubmissionStatusFromAnalytics,
+  mapSchemePerformanceToTable,
   mapSchemePerformanceToPumpOperators,
   getWaterSupplyKpis,
   mapOverallPerformanceFromAnalytics,
@@ -671,6 +672,7 @@ export function CentralDashboard() {
     schemePerformanceData,
     data?.pumpOperators ?? []
   )
+  const operatorsPerformanceAnalyticsTable = mapSchemePerformanceToTable(schemePerformanceData, [])
   const overallPerformanceTableData = mapOverallPerformanceFromAnalytics(
     averageWaterSupplyData,
     averageSchemeRegularityData,
@@ -1026,7 +1028,10 @@ export function CentralDashboard() {
   )
   const leadingPumpOperators = data.leadingPumpOperators ?? []
   const bottomPumpOperators = data.bottomPumpOperators ?? []
-  const operatorsPerformanceTable = [...leadingPumpOperators, ...bottomPumpOperators]
+  const operatorsPerformanceTable =
+    operatorsPerformanceAnalyticsTable.length > 0
+      ? operatorsPerformanceAnalyticsTable
+      : [...leadingPumpOperators, ...bottomPumpOperators]
   const villagePhotoEvidenceRows = data.readingCompliance
 
   return (

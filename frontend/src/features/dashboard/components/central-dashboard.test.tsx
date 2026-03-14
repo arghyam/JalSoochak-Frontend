@@ -304,6 +304,58 @@ describe('CentralDashboard', () => {
     ])
   })
 
+  it('overrides scheme performance table rows from scheme performance analytics when rows are available', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    ;(useSchemePerformanceQuery as jest.Mock).mockReturnValue({
+      data: [
+        {
+          id: 1,
+          schemeId: 101,
+          tenantId: 16,
+          performanceScore: 82,
+          lastWaterSupplyDate: '2026-03-14',
+          createdAt: '2026-03-14T00:00:00.000Z',
+          updatedAt: '2026-03-14T00:00:00.000Z',
+        },
+      ],
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{
+      operatorsPerformanceTable: Array<{
+        name: string
+        village: string | null
+        block: string | null
+        reportingRate: number | null
+        waterSupplied: number | null
+      }>
+    }>()
+
+    expect(dashboardBodyProps.operatorsPerformanceTable).toEqual([
+      {
+        id: 'scheme-performance-101',
+        name: 'Scheme 101',
+        village: null,
+        block: null,
+        reportingRate: null,
+        photoCompliance: 0,
+        waterSupplied: null,
+      },
+    ])
+  })
+
   it('passes formula-derived overall performance rows to the table when analytics child data exists', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
