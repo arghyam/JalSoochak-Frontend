@@ -164,6 +164,7 @@ function renderDashboardBody(overrides: Partial<ComponentProps<typeof DashboardB
       supplySubmissionRateData={mockEntityData}
       supplySubmissionRateLabel="States/UTs"
       waterSupplyOutagesData={mockDashboardData.waterSupplyOutages}
+      waterSupplyOutageDistributionData={mockDashboardData.waterSupplyOutages}
       pumpOperatorsTotal={12}
       operatorsPerformanceTable={mockOperatorsPerformanceTable}
       villagePhotoEvidenceRows={mockDashboardData.readingCompliance}

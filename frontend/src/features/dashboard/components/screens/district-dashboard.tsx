@@ -22,6 +22,7 @@ import { ViewBySelect } from '@/shared/components/common'
 type DistrictDashboardScreenProps = {
   data: DashboardData
   waterSupplyOutagesData?: WaterSupplyOutageData[]
+  waterSupplyOutageDistributionData?: WaterSupplyOutageData[]
   quantityPerformanceData: EntityPerformance[]
   regularityPerformanceData: EntityPerformance[]
   blockTableData: EntityPerformance[]
@@ -36,6 +37,7 @@ type ViewBy = 'geography' | 'time'
 export function DistrictDashboardScreen({
   data,
   waterSupplyOutagesData = data.waterSupplyOutages,
+  waterSupplyOutageDistributionData = data.waterSupplyOutages,
   quantityPerformanceData,
   regularityPerformanceData,
   supplySubmissionRateData,
@@ -237,7 +239,7 @@ export function DistrictDashboardScreen({
           </Flex>
           {outageDistributionViewBy === 'geography' ? (
             <SupplyOutageDistributionChart
-              data={waterSupplyOutagesData}
+              data={waterSupplyOutageDistributionData}
               height="400px"
               xAxisLabel="Blocks"
             />

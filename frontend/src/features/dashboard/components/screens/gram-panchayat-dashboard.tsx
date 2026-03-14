@@ -22,6 +22,7 @@ import { ViewBySelect } from '@/shared/components/common'
 type GramPanchayatDashboardScreenProps = {
   data: DashboardData
   waterSupplyOutagesData?: WaterSupplyOutageData[]
+  waterSupplyOutageDistributionData?: WaterSupplyOutageData[]
   quantityPerformanceData: EntityPerformance[]
   regularityPerformanceData: EntityPerformance[]
   villageTableData: EntityPerformance[]
@@ -36,6 +37,7 @@ type ViewBy = 'geography' | 'time'
 export function GramPanchayatDashboardScreen({
   data,
   waterSupplyOutagesData = data.waterSupplyOutages,
+  waterSupplyOutageDistributionData = data.waterSupplyOutages,
   quantityPerformanceData,
   regularityPerformanceData,
   supplySubmissionRateData,
@@ -234,7 +236,7 @@ export function GramPanchayatDashboardScreen({
           </Flex>
           {outageDistributionViewBy === 'geography' ? (
             <SupplyOutageDistributionChart
-              data={waterSupplyOutagesData}
+              data={waterSupplyOutageDistributionData}
               height="400px"
               xAxisLabel={t('performanceCharts.viewBy.villages', {
                 defaultValue: 'Villages',

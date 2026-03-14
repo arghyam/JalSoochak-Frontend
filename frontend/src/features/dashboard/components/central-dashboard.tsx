@@ -18,7 +18,12 @@ import { MdOutlineWaterDrop } from 'react-icons/md'
 import { LuClock3 } from 'react-icons/lu'
 import waterTapIcon from '@/assets/media/water-tap_1822589 1.svg'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
-import type { EntityPerformance, OutageReasonSchemeCount, WaterSupplyOutageData } from '../types'
+import type {
+  EntityPerformance,
+  OutageReasonSchemeCount,
+  OutageReasonsResponse,
+  WaterSupplyOutageData,
+} from '../types'
 import { DashboardFilters } from './filters/dashboard-filters'
 import { OverallPerformanceTable } from './tables'
 import { ROUTES } from '@/shared/constants/routes'
@@ -276,6 +281,19 @@ const toOutageReasonsData = (
     },
     { ...emptyOutageReasons }
   )
+}
+
+const toOutageDistributionData = (
+  childRegions: OutageReasonsResponse['childRegions'] | undefined
+): WaterSupplyOutageData[] => {
+  if (!childRegions?.length) {
+    return []
+  }
+
+  return childRegions.map((childRegion) => ({
+    ...toOutageReasonsData(childRegion.outageReasonSchemeCount),
+    label: childRegion.title,
+  }))
 }
 
 export function CentralDashboard() {
@@ -839,10 +857,15 @@ export function CentralDashboard() {
     )
   }
 
-  const apiWaterSupplyOutagesData = outageReasonsData?.outageReasonSchemeCount
+  const apiWaterSupplyOutageReasonsData = outageReasonsData?.outageReasonSchemeCount
     ? [toOutageReasonsData(outageReasonsData.outageReasonSchemeCount)]
     : null
-  const waterSupplyOutagesData = apiWaterSupplyOutagesData ?? data.waterSupplyOutages
+  const apiWaterSupplyOutageDistributionData = outageReasonsData?.childRegions?.length
+    ? toOutageDistributionData(outageReasonsData.childRegions)
+    : null
+  const waterSupplyOutagesData = apiWaterSupplyOutageReasonsData ?? data.waterSupplyOutages
+  const waterSupplyOutageDistributionData =
+    apiWaterSupplyOutageDistributionData ?? data.waterSupplyOutages
 
   const numberLocale = i18n.resolvedLanguage === 'hi' ? 'hi-IN' : 'en-IN'
   const formatNumber = (value: number, options?: Intl.NumberFormatOptions) =>
@@ -1079,6 +1102,7 @@ export function CentralDashboard() {
         supplySubmissionRateData={supplySubmissionRateData}
         supplySubmissionRateLabel={supplySubmissionRateLabel}
         waterSupplyOutagesData={waterSupplyOutagesData}
+        waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
         pumpOperatorsTotal={pumpOperatorsTotal}
         operatorsPerformanceTable={operatorsPerformanceTable}
         villagePhotoEvidenceRows={villagePhotoEvidenceRows}

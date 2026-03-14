@@ -38,6 +38,7 @@ type DashboardBodyProps = {
   supplySubmissionRateData: EntityPerformance[]
   supplySubmissionRateLabel: string
   waterSupplyOutagesData: WaterSupplyOutageData[]
+  waterSupplyOutageDistributionData: WaterSupplyOutageData[]
   pumpOperatorsTotal: number
   operatorsPerformanceTable: PumpOperatorPerformanceData[]
   villagePhotoEvidenceRows: DashboardData['readingCompliance']
@@ -62,6 +63,7 @@ export function DashboardBody({
   supplySubmissionRateData,
   supplySubmissionRateLabel,
   waterSupplyOutagesData,
+  waterSupplyOutageDistributionData,
   pumpOperatorsTotal,
   operatorsPerformanceTable,
   villagePhotoEvidenceRows,
@@ -221,6 +223,7 @@ export function DashboardBody({
         <DistrictDashboardScreen
           data={data}
           waterSupplyOutagesData={waterSupplyOutagesData}
+          waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
           quantityPerformanceData={quantityPerformanceData}
           regularityPerformanceData={regularityPerformanceData}
           blockTableData={blockTableData}
@@ -234,6 +237,7 @@ export function DashboardBody({
         <BlockDashboardScreen
           data={data}
           waterSupplyOutagesData={waterSupplyOutagesData}
+          waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
           quantityPerformanceData={quantityPerformanceData}
           regularityPerformanceData={regularityPerformanceData}
           gramPanchayatTableData={gramPanchayatTableData}
@@ -247,6 +251,7 @@ export function DashboardBody({
         <GramPanchayatDashboardScreen
           data={data}
           waterSupplyOutagesData={waterSupplyOutagesData}
+          waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
           quantityPerformanceData={quantityPerformanceData}
           regularityPerformanceData={regularityPerformanceData}
           villageTableData={villageTableData}
@@ -299,7 +304,7 @@ export function DashboardBody({
                   })}
                 </Text>
                 <SupplyOutageDistributionChart
-                  data={waterSupplyOutagesData}
+                  data={waterSupplyOutageDistributionData}
                   height="400px"
                   xAxisLabel={geographyEntityLabel}
                 />

@@ -474,6 +474,14 @@ describe('CentralDashboard', () => {
         valveIssue: number
         sourceDrying: number
       }>
+      waterSupplyOutageDistributionData: Array<{
+        label: string
+        electricityFailure: number
+        pipelineLeak: number
+        pumpFailure: number
+        valveIssue: number
+        sourceDrying: number
+      }>
     }>()
 
     expect(dashboardBodyProps.waterSupplyOutagesData).toEqual([
@@ -484,6 +492,95 @@ describe('CentralDashboard', () => {
         valveIssue: 2,
         sourceDrying: 1,
       }),
+    ])
+    expect(dashboardBodyProps.waterSupplyOutageDistributionData).toEqual(
+      mockDashboardData.waterSupplyOutages
+    )
+  })
+
+  it('maps outage child regions into distribution chart data', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [{ id: 10, title: 'Telangana' }],
+      },
+    })
+    ;(useOutageReasonsQuery as jest.Mock).mockReturnValue({
+      data: {
+        lgdId: 10,
+        departmentId: 0,
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        parentLgdLevel: 1,
+        parentDepartmentLevel: 0,
+        outageReasonSchemeCount: {
+          electrical_failure: 7,
+        },
+        childRegionCount: 2,
+        childRegions: [
+          {
+            lgdId: 101,
+            departmentId: 0,
+            title: 'Sangareddy',
+            outageReasonSchemeCount: {
+              electrical_failure: 4,
+              pipeline_break: 2,
+            },
+          },
+          {
+            lgdId: 102,
+            departmentId: 0,
+            title: 'Medak',
+            outageReasonSchemeCount: {
+              pump_failure: 3,
+              source_drying: 1,
+            },
+          },
+        ],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{
+      waterSupplyOutageDistributionData: Array<{
+        label: string
+        electricityFailure: number
+        pipelineLeak: number
+        pumpFailure: number
+        valveIssue: number
+        sourceDrying: number
+      }>
+    }>()
+
+    expect(dashboardBodyProps.waterSupplyOutageDistributionData).toEqual([
+      {
+        label: 'Sangareddy',
+        electricityFailure: 4,
+        pipelineLeak: 2,
+        pumpFailure: 0,
+        valveIssue: 0,
+        sourceDrying: 0,
+      },
+      {
+        label: 'Medak',
+        electricityFailure: 0,
+        pipelineLeak: 0,
+        pumpFailure: 3,
+        valveIssue: 0,
+        sourceDrying: 1,
+      },
     ])
   })
 
