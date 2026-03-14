@@ -11,11 +11,11 @@ import {
   SupplyOutageReasonsChart,
   MetricPerformanceChart,
   MonthlyTrendChart,
-  PumpOperatorsChart,
+  ActiveSchemesChart,
   ReadingSubmissionRateChart,
   SupplyOutageDistributionChart,
 } from '../charts'
-import { ReadingComplianceTable, PumpOperatorsPerformanceTable } from '../tables'
+import { ReadingComplianceTable, SchemePerformanceTable } from '../tables'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 import { ViewBySelect } from '@/shared/components/common'
 
@@ -272,18 +272,17 @@ export function GramPanchayatDashboardScreen({
         >
           <Flex align="center" justify="space-between" mb="40px">
             <Text textStyle="bodyText3" fontWeight="400">
-              {t('pumpOperators.title', { defaultValue: 'Pump Operators' })}
+              {t('pumpOperators.title', { defaultValue: 'Active Schemes' })}
             </Text>
             <Text textStyle="bodyText3" fontWeight="400">
               {t('pumpOperators.totalLabel', { defaultValue: 'Total' })}: {pumpOperatorsTotal}
             </Text>
           </Flex>
-          <PumpOperatorsChart
+          <ActiveSchemesChart
             data={data.pumpOperators}
             height="360px"
             note={t('pumpOperators.note', {
-              defaultValue:
-                'Note: Active pump operators submit readings at least 30 days in a month.',
+              defaultValue: 'Note: Active schemes for at least 30 days in a month',
             })}
           />
         </Box>
@@ -297,9 +296,9 @@ export function GramPanchayatDashboardScreen({
           h="510px"
           minW={0}
         >
-          <PumpOperatorsPerformanceTable
+          <SchemePerformanceTable
             title={t('pumpOperators.performanceTable.title', {
-              defaultValue: 'Pump Operators Performance',
+              defaultValue: 'Scheme Performance',
             })}
             data={operatorsPerformanceTable}
             fillHeight

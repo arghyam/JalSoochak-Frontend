@@ -6,7 +6,7 @@ import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
 import type { PumpOperatorsData } from '../../types'
 
-interface PumpOperatorsChartProps {
+interface ActiveSchemesChartProps {
   data: PumpOperatorsData[]
   className?: string
   height?: string | number
@@ -18,9 +18,15 @@ const donutRadius: [string, string] = ['58%', '98%']
 const donutCenter: [string, string] = ['50%', '50%']
 const legendKeyByNormalizedLabel: Record<string, 'active' | 'inactive'> = {
   active: 'active',
+  'active scheme': 'active',
+  'active schemes': 'active',
   'active pump operator': 'active',
   'active pump operators': 'active',
   inactive: 'inactive',
+  'non active scheme': 'inactive',
+  'non active schemes': 'inactive',
+  'inactive scheme': 'inactive',
+  'inactive schemes': 'inactive',
   'inactive pump operator': 'inactive',
   'inactive pump operators': 'inactive',
   'non active pump operator': 'inactive',
@@ -30,12 +36,12 @@ const legendKeyByNormalizedLabel: Record<string, 'active' | 'inactive'> = {
 const normalizeLegendLabel = (label: string) =>
   label.trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ')
 
-export function PumpOperatorsChart({
+export function ActiveSchemesChart({
   data,
   className,
   height = '360px',
   note,
-}: PumpOperatorsChartProps) {
+}: ActiveSchemesChartProps) {
   const { t } = useTranslation('dashboard')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
@@ -44,10 +50,10 @@ export function PumpOperatorsChart({
     (label: string) => {
       const legendKey = legendKeyByNormalizedLabel[normalizeLegendLabel(label)]
       if (legendKey === 'active') {
-        return t('pumpOperators.legend.active', { defaultValue: 'Active pump operators' })
+        return t('pumpOperators.legend.active', { defaultValue: 'Active schemes' })
       }
       if (legendKey === 'inactive') {
-        return t('pumpOperators.legend.inactive', { defaultValue: 'Non-active pump operators' })
+        return t('pumpOperators.legend.inactive', { defaultValue: 'Non-active schemes' })
       }
 
       return label

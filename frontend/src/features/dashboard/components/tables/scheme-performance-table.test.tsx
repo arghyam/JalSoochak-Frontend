@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals'
 import { fireEvent, screen } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { PumpOperatorPerformanceData } from '../../types'
-import { PumpOperatorsPerformanceTable } from './pump-operators-performance-table'
+import { SchemePerformanceTable } from './scheme-performance-table'
 
 const tableData: PumpOperatorPerformanceData[] = [
   {
@@ -40,11 +40,9 @@ function getNameOrder(container: HTMLElement) {
   )
 }
 
-describe('PumpOperatorsPerformanceTable', () => {
+describe('SchemePerformanceTable', () => {
   it('renders headers in Name, Village, Block order', () => {
-    renderWithProviders(
-      <PumpOperatorsPerformanceTable title="Pump Operators Performance" data={tableData} />
-    )
+    renderWithProviders(<SchemePerformanceTable title="Scheme Performance" data={tableData} />)
 
     const headers = screen.getAllByRole('columnheader').map((header) => header.textContent ?? '')
     expect(headers[0]).toContain('Name')
@@ -54,7 +52,7 @@ describe('PumpOperatorsPerformanceTable', () => {
 
   it('sorts reporting rate descending then ascending', () => {
     const { container } = renderWithProviders(
-      <PumpOperatorsPerformanceTable title="Pump Operators Performance" data={tableData} />
+      <SchemePerformanceTable title="Scheme Performance" data={tableData} />
     )
     const reportingButton = screen.getByRole('button', { name: 'Reporting Rate (%)' })
 
@@ -69,7 +67,7 @@ describe('PumpOperatorsPerformanceTable', () => {
 
   it('sorts water supplied when water column is clicked', () => {
     const { container } = renderWithProviders(
-      <PumpOperatorsPerformanceTable title="Pump Operators Performance" data={tableData} />
+      <SchemePerformanceTable title="Scheme Performance" data={tableData} />
     )
     const waterButton = screen.getByRole('button', { name: 'Water Supplied' })
 

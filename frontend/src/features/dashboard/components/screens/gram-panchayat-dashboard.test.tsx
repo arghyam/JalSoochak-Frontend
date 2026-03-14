@@ -16,7 +16,7 @@ const mockSupplyOutageReasonsChart = jest.fn((_props: unknown) => (
 const mockSupplyOutageDistributionChart = jest.fn((_props: unknown) => (
   <div data-testid="supply-outage-distribution-chart" />
 ))
-const mockPumpOperatorsChart = jest.fn((_props: unknown) => (
+const mockActiveSchemesChart = jest.fn((_props: unknown) => (
   <div data-testid="pump-operators-chart" />
 ))
 const mockReadingSubmissionStatusChart = jest.fn((_props: unknown) => (
@@ -25,7 +25,7 @@ const mockReadingSubmissionStatusChart = jest.fn((_props: unknown) => (
 const mockReadingSubmissionRateChart = jest.fn((_props: unknown) => (
   <div data-testid="reading-submission-rate-chart" />
 ))
-const mockPumpOperatorsPerformanceTable = jest.fn((_props: unknown) => (
+const mockSchemePerformanceTable = jest.fn((_props: unknown) => (
   <div data-testid="pump-operators-performance-table" />
 ))
 const mockReadingComplianceTable = jest.fn((_props: unknown) => (
@@ -37,13 +37,13 @@ jest.mock('../charts', () => ({
   MonthlyTrendChart: (props: unknown) => mockMonthlyTrendChart(props),
   SupplyOutageReasonsChart: (props: unknown) => mockSupplyOutageReasonsChart(props),
   SupplyOutageDistributionChart: (props: unknown) => mockSupplyOutageDistributionChart(props),
-  PumpOperatorsChart: (props: unknown) => mockPumpOperatorsChart(props),
+  ActiveSchemesChart: (props: unknown) => mockActiveSchemesChart(props),
   ReadingSubmissionStatusChart: (props: unknown) => mockReadingSubmissionStatusChart(props),
   ReadingSubmissionRateChart: (props: unknown) => mockReadingSubmissionRateChart(props),
 }))
 
 jest.mock('../tables', () => ({
-  PumpOperatorsPerformanceTable: (props: unknown) => mockPumpOperatorsPerformanceTable(props),
+  SchemePerformanceTable: (props: unknown) => mockSchemePerformanceTable(props),
   ReadingComplianceTable: (props: unknown) => mockReadingComplianceTable(props),
 }))
 
@@ -170,10 +170,10 @@ describe('GramPanchayatDashboardScreen', () => {
     mockMonthlyTrendChart.mockClear()
     mockSupplyOutageReasonsChart.mockClear()
     mockSupplyOutageDistributionChart.mockClear()
-    mockPumpOperatorsChart.mockClear()
+    mockActiveSchemesChart.mockClear()
     mockReadingSubmissionStatusChart.mockClear()
     mockReadingSubmissionRateChart.mockClear()
-    mockPumpOperatorsPerformanceTable.mockClear()
+    mockSchemePerformanceTable.mockClear()
     mockReadingComplianceTable.mockClear()
   })
 
@@ -198,7 +198,7 @@ describe('GramPanchayatDashboardScreen', () => {
   it('renders pump operators row and all 3 charts under it', () => {
     renderGramPanchayatDashboard()
 
-    expect(screen.getByText('Pump Operators')).toBeTruthy()
+    expect(screen.getByText('Active Schemes')).toBeTruthy()
     expect(screen.getByText('Total: 15')).toBeTruthy()
     expect(screen.getByText('Reading Submission Status')).toBeTruthy()
     expect(screen.getByText('Reading Submission Rate')).toBeTruthy()

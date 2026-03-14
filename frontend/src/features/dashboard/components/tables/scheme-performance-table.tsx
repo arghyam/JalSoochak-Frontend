@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { BiSortAlt2 } from 'react-icons/bi'
 import type { PumpOperatorPerformanceData } from '../../types'
 
-interface PumpOperatorsPerformanceTableProps {
+interface SchemePerformanceTableProps {
   data: PumpOperatorPerformanceData[]
   title: string
   maxItems?: number
@@ -15,13 +15,13 @@ interface PumpOperatorsPerformanceTableProps {
 type SortColumn = 'reportingRate' | 'waterSupplied' | null
 type SortDirection = 'asc' | 'desc' | null
 
-export function PumpOperatorsPerformanceTable({
+export function SchemePerformanceTable({
   data,
   title,
   maxItems,
   maxTableHeight = '330px',
   fillHeight = false,
-}: PumpOperatorsPerformanceTableProps) {
+}: SchemePerformanceTableProps) {
   const { t } = useTranslation('dashboard')
   const [sortColumn, setSortColumn] = useState<SortColumn>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>(null)
