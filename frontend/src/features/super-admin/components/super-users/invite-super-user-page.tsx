@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -28,10 +28,17 @@ export function InviteSuperUserPage() {
 
   const [email, setEmail] = useState('')
   const [emailTouched, setEmailTouched] = useState(false)
+  const navigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     document.title = `${t('superUsers.addTitle')} | JalSoochak`
   }, [t])
+
+  useEffect(() => {
+    return () => {
+      if (navigateTimerRef.current !== null) clearTimeout(navigateTimerRef.current)
+    }
+  }, [])
 
   const emailError = emailTouched && email !== '' && !isValidEmail(email)
   const isFormValid = email.trim() !== '' && isValidEmail(email)
@@ -41,7 +48,7 @@ export function InviteSuperUserPage() {
     try {
       await inviteMutation.mutateAsync({ email: email.trim(), role: 'SUPER_USER' })
       toast.addToast(t('superUsers.messages.userAdded'), 'success')
-      setTimeout(() => {
+      navigateTimerRef.current = setTimeout(() => {
         navigate(ROUTES.SUPER_ADMIN_SUPER_USERS)
       }, 1000)
     } catch {

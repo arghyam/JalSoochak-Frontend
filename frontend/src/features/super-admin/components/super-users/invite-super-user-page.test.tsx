@@ -73,20 +73,25 @@ describe('InviteSuperUserPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/super-admin/super-users')
   })
 
-  // it('calls mutateAsync with correct payload on submit', async () => {
-  //   const mockMutateAsync = jest.fn<() => Promise<void>>().mockResolvedValue(undefined)
-  //   mockUseInviteUserMutation.mockReturnValue({ mutateAsync: mockMutateAsync, isPending: false })
+  it('calls mutateAsync with correct payload on submit', async () => {
+    const mockMutateAsync = jest
+      .fn<(input: { email: string; role: string }) => Promise<void>>()
+      .mockResolvedValue(undefined)
+    mockUseInviteUserMutation.mockReturnValue({ mutateAsync: mockMutateAsync, isPending: false })
 
-  //   renderWithProviders(<InviteSuperUserPage />)
-  //   fireEvent.change(screen.getByRole('textbox', { name: /email address/i }), {
-  //     target: { value: 'test@example.com' },
-  //   })
-  //   fireEvent.click(screen.getByRole('button', { name: /add super user & send link via email/i }))
+    renderWithProviders(<InviteSuperUserPage />)
+    fireEvent.change(screen.getByRole('textbox', { name: /email address/i }), {
+      target: { value: 'test@example.com' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /add super user & send link via email/i }))
 
-  //   await waitFor(() => {
-  //     expect(mockMutateAsync).toHaveBeenCalledWith({ email: 'test@example.com', role: 'SUPER_USER' })
-  //   })
-  // })
+    await waitFor(() => {
+      expect(mockMutateAsync).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        role: 'SUPER_USER',
+      })
+    })
+  })
 
   it('shows error toast when mutateAsync rejects', async () => {
     mockUseInviteUserMutation.mockReturnValue({

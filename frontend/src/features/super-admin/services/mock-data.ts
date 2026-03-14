@@ -688,7 +688,6 @@ export function mockCreateTenant(payload: CreateTenantInput): Promise<Tenant> {
     id: 1,
     uuid: `mock-${payload.stateCode.toLowerCase()}-${Date.now()}`,
     stateCode: payload.stateCode,
-    lgdCode: payload.lgdCode,
     name: payload.name,
     status: 'ACTIVE',
     createdAt: now,

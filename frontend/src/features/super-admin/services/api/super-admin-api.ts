@@ -100,10 +100,22 @@ export const superAdminApi = {
 
   // ── Real HTTP: Tenants (States/UTs) ────────────────────────────────────────
   getStatesUTsData: async (): Promise<Tenant[]> => {
-    const response = await apiClient.get<ApiResponse<TenantsListApiResponse>>('/api/v1/tenants', {
-      params: { page: 0, size: 100 },
-    })
-    return response.data.data.content.map((t) => mapTenant(t))
+    const pageSize = 100
+    const firstResponse = await apiClient.get<ApiResponse<TenantsListApiResponse>>(
+      '/api/v1/tenants',
+      { params: { page: 0, size: pageSize } }
+    )
+    const firstPage = firstResponse.data.data
+    const allContent = [...firstPage.content]
+
+    for (let page = 1; page < firstPage.totalPages; page++) {
+      const response = await apiClient.get<ApiResponse<TenantsListApiResponse>>('/api/v1/tenants', {
+        params: { page, size: pageSize },
+      })
+      allContent.push(...response.data.data.content)
+    }
+
+    return allContent.map((t) => mapTenant(t))
   },
 
   getTenantById: async (id: number): Promise<Tenant | null> => {
@@ -116,11 +128,7 @@ export const superAdminApi = {
     }
   },
 
-  createTenant: async (payload: {
-    stateCode: string
-    lgdCode: number
-    name: string
-  }): Promise<Tenant> => {
+  createTenant: async (payload: { stateCode: string; name: string }): Promise<Tenant> => {
     const response = await apiClient.post<ApiResponse<TenantApiResponse>>(
       '/api/v1/tenants',
       payload

@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next'
 import { SearchableSelect, ToastContainer } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ROUTES } from '@/shared/constants/routes'
-import { INDIAN_STATES_UTS } from '../../types/states-uts'
+import { INDIA_STATES } from '@/shared/constants/states'
 import {
   useCreateTenantMutation,
   useInviteUserMutation,
@@ -37,43 +37,36 @@ export function AddStateUTPage() {
 
   const [stateName, setStateName] = useState('')
   const [stateCode, setStateCode] = useState('')
-  const [lgdCode, setLgdCode] = useState<number | null>(null)
   const [adminEmail, setAdminEmail] = useState('')
   const [emailTouched, setEmailTouched] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const stateOptions = useMemo(
-    () => INDIAN_STATES_UTS.map((s) => ({ value: s.name, label: s.name })),
+    () => INDIA_STATES.map((s) => ({ value: s.name, label: s.name })),
     []
   )
 
   const handleStateChange = (value: string) => {
     setStateName(value)
-    const selected = INDIAN_STATES_UTS.find((s) => s.name === value)
-    setStateCode(selected?.stateCode ?? '')
-    setLgdCode(selected?.lgdCode ?? null)
+    const selected = INDIA_STATES.find((s) => s.name === value)
+    setStateCode(selected?.code ?? '')
   }
 
   const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
   const emailError = emailTouched && adminEmail !== '' && !isValidEmail(adminEmail)
 
   const isFormValid =
-    stateName !== '' &&
-    stateCode !== '' &&
-    lgdCode !== null &&
-    adminEmail.trim() !== '' &&
-    isValidEmail(adminEmail)
+    stateName !== '' && stateCode !== '' && adminEmail.trim() !== '' && isValidEmail(adminEmail)
 
   const handleCancel = () => navigate(ROUTES.SUPER_ADMIN_STATES_UTS)
 
   const handleSubmit = async () => {
-    if (!isFormValid || lgdCode === null) return
+    if (!isFormValid) return
 
     setIsSubmitting(true)
     try {
       const tenant = await createTenantMutation.mutateAsync({
         stateCode,
-        lgdCode,
         name: stateName.trim(),
       })
 
@@ -187,7 +180,7 @@ export function AddStateUTPage() {
                   {t('statesUts.details.code')}
                 </FormLabel>
                 <Input
-                  value={stateCode ? `${stateCode} (LGD: ${String(lgdCode)})` : ''}
+                  value={stateCode}
                   isReadOnly
                   bg="neutral.50"
                   h={9}

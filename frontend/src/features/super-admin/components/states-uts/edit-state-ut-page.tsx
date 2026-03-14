@@ -40,7 +40,7 @@ export function EditStateUTPage() {
   const { id } = useParams<{ id: string }>()
   const toast = useToast()
 
-  const tenantId = id ? Number(id) : undefined
+  const tenantId = id && !Number.isNaN(Number(id)) ? Number(id) : undefined
   const tenantQuery = useTenantByIdQuery(tenantId)
   const tenant = tenantQuery.data ?? null
   const adminsQuery = useStateAdminsByTenantQuery(tenant?.stateCode)
