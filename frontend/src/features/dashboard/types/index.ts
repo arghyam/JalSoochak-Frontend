@@ -233,6 +233,27 @@ export interface ReadingSubmissionRateResponse {
   childRegions: ReadingSubmissionRateChildRegion[]
 }
 
+export interface SubmissionStatusQueryParams {
+  userId?: number
+  startDate: string
+  endDate: string
+}
+
+export interface SubmissionStatusDailySchemeDistribution {
+  date: string
+  submittedSchemeCount: number
+}
+
+export interface SubmissionStatusResponse {
+  userId: number
+  startDate: string
+  endDate: string
+  schemeCount: number
+  compliantSubmissionCount: number
+  anomalousSubmissionCount: number
+  dailySubmissionSchemeDistribution: SubmissionStatusDailySchemeDistribution[]
+}
+
 export interface OutageReasonsQueryParams {
   startDate: string
   endDate: string

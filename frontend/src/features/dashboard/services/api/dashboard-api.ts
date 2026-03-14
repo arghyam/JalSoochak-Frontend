@@ -11,6 +11,8 @@ import type {
   OutageReasonsResponse,
   ReadingSubmissionRateQueryParams,
   ReadingSubmissionRateResponse,
+  SubmissionStatusQueryParams,
+  SubmissionStatusResponse,
 } from '../../types'
 import { dashboardMockService } from '../mock/dashboard-mock'
 
@@ -266,6 +268,22 @@ export const dashboardApi = {
           parent_lgd_id: params.parentLgdId,
           parent_department_id: params.parentDepartmentId,
           scope: params.scope ?? 'child',
+          start_date: params.startDate,
+          end_date: params.endDate,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getSubmissionStatus: async (
+    params: SubmissionStatusQueryParams
+  ): Promise<SubmissionStatusResponse> => {
+    const response = await apiClient.get<SubmissionStatusResponse>(
+      '/api/v1/analytics/submission-status/user',
+      {
+        params: {
+          user_id: params.userId,
           start_date: params.startDate,
           end_date: params.endDate,
         },

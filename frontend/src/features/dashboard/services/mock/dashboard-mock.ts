@@ -1570,8 +1570,8 @@ const mockDemandSupply: DemandSupplyData[] = [
 ]
 
 const mockImageSubmissionStatus = [
-  { label: 'Complaint Submission', value: 64 },
-  { label: 'Automated Submission', value: 36 },
+  { label: 'Complaint Submissions', value: 64 },
+  { label: 'Anomalous Submissions', value: 36 },
 ]
 
 const mockPumpOperators = [

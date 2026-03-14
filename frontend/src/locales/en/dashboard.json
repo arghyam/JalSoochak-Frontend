@@ -151,8 +151,8 @@
       "pumpFailure": "Pump failure",
       "valveIssue": "Valve issue",
       "sourceDrying": "Source Drying",
-      "complaintSubmission": "Complaint Submission",
-      "automatedSubmission": "Automated Submission"
+      "complaintSubmission": "Complaint Submissios",
+      "automatedSubmission": "Anomalous Submissions"
     },
     "tables": {
       "readingCompliance": {

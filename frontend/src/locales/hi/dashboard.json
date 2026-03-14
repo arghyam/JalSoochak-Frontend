@@ -152,7 +152,7 @@
       "valveIssue": "वाल्व समस्या",
       "sourceDrying": "स्रोत सूखना",
       "complaintSubmission": "शिकायत सबमिशन",
-      "automatedSubmission": "स्वचालित सबमिशन"
+      "automatedSubmission": "विसंगतिपूर्ण सबमिशन"
     },
     "tables": {
       "readingCompliance": {

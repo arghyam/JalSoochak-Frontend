@@ -4,6 +4,7 @@ import type {
   DashboardLevel,
   OutageReasonsQueryParams,
   ReadingSubmissionRateQueryParams,
+  SubmissionStatusQueryParams,
 } from '../../types'
 
 export const dashboardQueryKeys = {
@@ -41,6 +42,15 @@ export const dashboardQueryKeys = {
       params?.parentLgdId,
       params?.parentDepartmentId,
       params?.scope,
+      params?.startDate,
+      params?.endDate,
+    ] as const,
+  submissionStatus: (params: SubmissionStatusQueryParams | null) =>
+    [
+      'dashboard',
+      'analytics',
+      'submission-status',
+      params?.userId,
       params?.startDate,
       params?.endDate,
     ] as const,

@@ -9,6 +9,7 @@ import { useLocationChildrenQuery } from '../services/query/use-location-childre
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
+import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
 
 const mockNavigate = jest.fn()
 const mockUseParams = jest.fn(() => ({}))
@@ -64,6 +65,10 @@ jest.mock('../services/query/use-average-scheme-regularity-query', () => ({
 
 jest.mock('../services/query/use-outage-reasons-query', () => ({
   useOutageReasonsQuery: jest.fn(),
+}))
+
+jest.mock('../services/query/use-submission-status-query', () => ({
+  useSubmissionStatusQuery: jest.fn(),
 }))
 
 jest.mock('./filters/dashboard-filters', () => ({
@@ -150,6 +155,7 @@ describe('CentralDashboard', () => {
     ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useOutageReasonsQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useSubmissionStatusQuery as jest.Mock).mockReturnValue({ data: undefined })
   })
 
   it('renders Overall Performance table panel for central view', () => {
@@ -216,6 +222,34 @@ describe('CentralDashboard', () => {
     expect(tableProps.entityLabel).toBe('District')
     expect(tableProps.data.some((row) => row.name === 'Sangareddy')).toBe(true)
     expect(tableProps.data.some((row) => row.name === 'Alpha')).toBe(false)
+  })
+
+  it('overrides reading submission status from analytics when counts are available', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    ;(useSubmissionStatusQuery as jest.Mock).mockReturnValue({
+      data: {
+        userId: 0,
+        startDate: '2026-03-14',
+        endDate: '2026-03-14',
+        schemeCount: 12,
+        compliantSubmissionCount: 7,
+        anomalousSubmissionCount: 5,
+        dailySubmissionSchemeDistribution: [],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{ data: DashboardData }>()
+
+    expect(dashboardBodyProps.data.readingSubmissionStatus).toEqual([
+      { label: 'Complaint Submission', value: 7 },
+      { label: 'Anomalous Submissions', value: 5 },
+    ])
   })
 
   it('passes formula-derived overall performance rows to the table when analytics child data exists', () => {

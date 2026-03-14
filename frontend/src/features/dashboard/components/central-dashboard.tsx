@@ -10,6 +10,7 @@ import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-avera
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
 import { useReadingSubmissionRateQuery } from '../services/query/use-reading-submission-rate-query'
+import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
 import { KPICard } from './kpi-card'
 import { DashboardBody } from './screens/dashboard-body'
 import { IndiaMapChart } from './charts'
@@ -35,6 +36,7 @@ import {
   getPreviousPeriodRange,
   getRegularityKpi,
   mapReadingSubmissionRateFromAnalytics,
+  mapReadingSubmissionStatusFromAnalytics,
   getWaterSupplyKpis,
   mapOverallPerformanceFromAnalytics,
   mapQuantityPerformanceFromAnalytics,
@@ -543,6 +545,10 @@ export function CentralDashboard() {
           startDate: analyticsDateRange.startDate,
           endDate: analyticsDateRange.endDate,
         }
+  const submissionStatusAnalyticsParams = {
+    startDate: analyticsDateRange.startDate,
+    endDate: analyticsDateRange.endDate,
+  }
   const outageReasonsAnalyticsParams =
     isVillageSelected || !selectedTenant?.tenantId
       ? null
@@ -613,6 +619,10 @@ export function CentralDashboard() {
     params: readingSubmissionRateAnalyticsParams,
     enabled: Boolean(readingSubmissionRateAnalyticsParams),
   })
+  const { data: submissionStatusData } = useSubmissionStatusQuery({
+    params: submissionStatusAnalyticsParams,
+    enabled: true,
+  })
   const { data: outageReasonsData } = useOutageReasonsQuery({
     params: outageReasonsAnalyticsParams,
     enabled: Boolean(outageReasonsAnalyticsParams),
@@ -636,6 +646,10 @@ export function CentralDashboard() {
   const supplySubmissionRateData = mapReadingSubmissionRateFromAnalytics(
     readingSubmissionRateData,
     supplySubmissionRateFallbackData
+  )
+  const readingSubmissionStatusData = mapReadingSubmissionStatusFromAnalytics(
+    submissionStatusData,
+    data?.readingSubmissionStatus ?? []
   )
   const overallPerformanceTableData = mapOverallPerformanceFromAnalytics(
     averageWaterSupplyData,
@@ -866,6 +880,13 @@ export function CentralDashboard() {
   const waterSupplyOutagesData = apiWaterSupplyOutageReasonsData ?? data.waterSupplyOutages
   const waterSupplyOutageDistributionData =
     apiWaterSupplyOutageDistributionData ?? data.waterSupplyOutages
+  const resolvedDashboardData =
+    readingSubmissionStatusData === data.readingSubmissionStatus
+      ? data
+      : {
+          ...data,
+          readingSubmissionStatus: readingSubmissionStatusData,
+        }
 
   const numberLocale = i18n.resolvedLanguage === 'hi' ? 'hi-IN' : 'en-IN'
   const formatNumber = (value: number, options?: Intl.NumberFormatOptions) =>
@@ -1087,7 +1108,7 @@ export function CentralDashboard() {
         </Grid>
       ) : null}
       <DashboardBody
-        data={data}
+        data={resolvedDashboardData}
         isStateSelected={isStateSelected}
         isDistrictSelected={isDistrictSelected}
         isBlockSelected={isBlockSelected}

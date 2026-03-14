@@ -2,7 +2,9 @@ import type {
   AverageSchemeRegularityResponse,
   AverageWaterSupplyPerRegionResponse,
   EntityPerformance,
+  ReadingSubmissionStatusData,
   ReadingSubmissionRateResponse,
+  SubmissionStatusResponse,
 } from '../types'
 import { slugify } from './format-location-label'
 
@@ -312,6 +314,29 @@ export const mapReadingSubmissionRateFromAnalytics = (
       status: fallbackMatch?.status ?? 'needs-attention',
     }
   })
+}
+
+export const mapReadingSubmissionStatusFromAnalytics = (
+  response: SubmissionStatusResponse | undefined,
+  fallbackData: ReadingSubmissionStatusData[]
+): ReadingSubmissionStatusData[] => {
+  if (!response) {
+    return fallbackData
+  }
+
+  const compliantCount = response.compliantSubmissionCount ?? 0
+  const anomalousCount = response.anomalousSubmissionCount ?? 0
+  const totalCount = compliantCount + anomalousCount
+
+  // Keep current mock-backed chart data until the submission-status API is populated.
+  if (totalCount <= 0) {
+    return fallbackData
+  }
+
+  return [
+    { label: 'Complaint Submission', value: compliantCount },
+    { label: 'Anomalous Submissions', value: anomalousCount },
+  ]
 }
 
 export const mapOverallPerformanceFromAnalytics = (
