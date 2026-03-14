@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Box,
   Heading,
@@ -15,8 +15,7 @@ import {
 } from '@chakra-ui/react'
 import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
-import { useAuthStore } from '@/app/store'
-import { authApi } from '@/features/auth/services/auth-api'
+import { useChangeMyPasswordMutation } from '@/features/auth/services/query/use-auth-queries'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ToastContainer } from '@/shared/components/common'
 
@@ -30,7 +29,7 @@ type PasswordField = keyof ChangePasswordForm
 
 export function ChangePasswordPage() {
   const { t } = useTranslation('common')
-  const user = useAuthStore((state) => state.user)
+  const changePasswordMutation = useChangeMyPasswordMutation()
   const toast = useToast()
 
   const [form, setForm] = useState<ChangePasswordForm>({
@@ -48,8 +47,6 @@ export function ChangePasswordPage() {
     newPassword: false,
     confirmPassword: false,
   })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const isSubmittingRef = useRef(false)
 
   useEffect(() => {
     document.title = `${t('changePassword.title')} | JalSoochak`
@@ -101,30 +98,25 @@ export function ChangePasswordPage() {
     setTouched((p) => ({ ...p, [field]: true }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setTouched({ currentPassword: true, newPassword: true, confirmPassword: true })
-    if (!isFormValid || !user) return
-    if (isSubmittingRef.current) return
-    isSubmittingRef.current = true
+    if (!isFormValid || changePasswordMutation.isPending) return
 
-    setIsSubmitting(true)
-    try {
-      await authApi.changePassword(user.id, {
-        currentPassword: form.currentPassword,
-        newPassword: form.newPassword,
-        confirmPassword: form.confirmPassword,
-      })
-      toast.addToast(t('changePassword.success'), 'success')
-      setForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
-      setTouched({ currentPassword: false, newPassword: false, confirmPassword: false })
-    } catch (err) {
-      const message = err instanceof Error ? err.message : t('changePassword.failed')
-      toast.addToast(message, 'error')
-    } finally {
-      isSubmittingRef.current = false
-      setIsSubmitting(false)
-    }
+    changePasswordMutation.mutate(
+      { currentPassword: form.currentPassword, newPassword: form.newPassword },
+      {
+        onSuccess: () => {
+          toast.addToast(t('changePassword.success'), 'success')
+          setForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
+          setTouched({ currentPassword: false, newPassword: false, confirmPassword: false })
+        },
+        onError: (err) => {
+          const message = err instanceof Error ? err.message : t('changePassword.failed')
+          toast.addToast(message, 'error')
+        },
+      }
+    )
   }
 
   return (
@@ -147,7 +139,7 @@ export function ChangePasswordPage() {
           as="form"
           role="form"
           aria-label={t('changePassword.title')}
-          onSubmit={(e: React.FormEvent) => void handleSubmit(e)}
+          onSubmit={handleSubmit}
           maxW="md"
         >
           <Stack spacing={5} mb={8}>
@@ -252,7 +244,7 @@ export function ChangePasswordPage() {
               variant="primary"
               size="md"
               width={{ base: 'full', sm: 'auto' }}
-              isLoading={isSubmitting}
+              isLoading={changePasswordMutation.isPending}
               isDisabled={!isFormValid}
             >
               {t('changePassword.submit')}

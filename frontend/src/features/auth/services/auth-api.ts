@@ -149,6 +149,38 @@ export function buildUpdateProfileRequest(params: {
   }
 }
 
+/** Response for GET /api/v1/users/me */
+export interface MyProfileResponse {
+  id: number
+  email: string
+  firstName: string
+  lastName: string
+  phoneNumber: string
+  role: string
+  tenantCode: string
+  active: boolean
+  createdAt: string
+}
+
+/** Request body for PATCH /api/v1/users/me */
+export interface UpdateMyProfileRequest {
+  firstName?: string
+  lastName?: string
+  phoneNumber?: string
+}
+
+/** Request body for PATCH /api/v1/users/me/password */
+export interface ChangeMyPasswordRequest {
+  currentPassword: string
+  newPassword: string
+}
+
+/** Request body for POST /api/v1/auth/reset-password */
+export interface ResetPasswordRequest {
+  token: string
+  newPassword: string
+}
+
 function buildUserFromTokenResponse(tokenData: TokenResponse): AuthUser {
   const jwtPayload = parseJWT(tokenData.access_token)
   return {
@@ -326,6 +358,56 @@ export const authApi = {
     }
   },
 
+  /** GET /api/v1/users/me — fetch logged-in user's profile. */
+  getMyProfile: async (): Promise<MyProfileResponse> => {
+    try {
+      const { data } = await apiClient.get<ApiResponse<MyProfileResponse>>('/api/v1/users/me')
+      return data.data
+    } catch (err: unknown) {
+      let message = 'Failed to load profile.'
+      if (isAxiosError(err) && typeof err.response?.data?.message === 'string') {
+        message = err.response.data.message
+      } else if (err instanceof Error) {
+        message = err.message
+      }
+      throw new Error(message)
+    }
+  },
+
+  /** PATCH /api/v1/users/me — update logged-in user's profile. */
+  updateMyProfile: async (payload: UpdateMyProfileRequest): Promise<MyProfileResponse> => {
+    try {
+      const { data } = await apiClient.patch<ApiResponse<MyProfileResponse>>(
+        '/api/v1/users/me',
+        payload
+      )
+      return data.data
+    } catch (err: unknown) {
+      let message = 'Failed to update profile.'
+      if (isAxiosError(err) && typeof err.response?.data?.message === 'string') {
+        message = err.response.data.message
+      } else if (err instanceof Error) {
+        message = err.message
+      }
+      throw new Error(message)
+    }
+  },
+
+  /** PATCH /api/v1/users/me/password — change logged-in user's password. */
+  changeMyPassword: async (payload: ChangeMyPasswordRequest): Promise<void> => {
+    try {
+      await apiClient.patch('/api/v1/users/me/password', payload)
+    } catch (err: unknown) {
+      let message = 'Failed to update password.'
+      if (isAxiosError(err) && typeof err.response?.data?.message === 'string') {
+        message = err.response.data.message
+      } else if (err instanceof Error) {
+        message = err.message
+      }
+      throw new Error(message)
+    }
+  },
+
   /** POST /api/v1/auth/activate-account — set password + profile for invited user. */
   activateAccount: async (payload: {
     inviteToken: string
@@ -338,6 +420,36 @@ export const authApi = {
       await apiClient.post('/api/v1/auth/activate-account', payload)
     } catch (err: unknown) {
       let message = 'Failed to activate account.'
+      if (isAxiosError(err) && typeof err.response?.data?.message === 'string') {
+        message = err.response.data.message
+      } else if (err instanceof Error) {
+        message = err.message
+      }
+      throw new Error(message)
+    }
+  },
+
+  /** POST /api/v1/auth/forgot-password — send reset link to email. */
+  forgotPassword: async (email: string): Promise<void> => {
+    try {
+      await apiClient.post('/api/v1/auth/forgot-password', { email })
+    } catch (err: unknown) {
+      let message = 'Failed to send reset link.'
+      if (isAxiosError(err) && typeof err.response?.data?.message === 'string') {
+        message = err.response.data.message
+      } else if (err instanceof Error) {
+        message = err.message
+      }
+      throw new Error(message)
+    }
+  },
+
+  /** POST /api/v1/auth/reset-password — reset password using token from email link. */
+  resetPassword: async (payload: ResetPasswordRequest): Promise<void> => {
+    try {
+      await apiClient.post('/api/v1/auth/reset-password', payload)
+    } catch (err: unknown) {
+      let message = 'Failed to reset password.'
       if (isAxiosError(err) && typeof err.response?.data?.message === 'string') {
         message = err.response.data.message
       } else if (err instanceof Error) {
