@@ -76,7 +76,7 @@ export function SupplyOutageReasonsChart({
     [data]
   )
 
-  const option = useMemo<echarts.EChartsOption>(() => {
+  const option: echarts.EChartsOption = useMemo(() => {
     const totalOutages =
       totals.electricityFailure +
       totals.pipelineLeak +

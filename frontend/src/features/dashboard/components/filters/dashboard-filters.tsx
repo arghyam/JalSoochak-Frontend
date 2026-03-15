@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
-import { Button, Flex, Text } from '@chakra-ui/react'
+import { Button, Flex, Text, useMediaQuery } from '@chakra-ui/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { DateRangePicker } from '@/shared/components/common'
@@ -112,6 +112,8 @@ const mapLocationOptions = (locations: TenantChildLocation[] | undefined): Locat
 
 export function DashboardFilters(props: DashboardFiltersProps) {
   const { t } = useTranslation('dashboard')
+  const [isVeryCompactFilters] = useMediaQuery('(max-width: 569px)')
+  const [isXsFilters] = useMediaQuery('(max-width: 479px)')
   const {
     filterTabIndex,
     onTabChange,
@@ -375,6 +377,11 @@ export function DashboardFilters(props: DashboardFiltersProps) {
 
   return (
     <SearchLayout
+      actionLabel={
+        isXsFilters
+          ? t('searchLayout.download', 'Download')
+          : t('searchLayout.downloadReport', 'Download Report')
+      }
       selectionTrail={selectionTrail}
       activeTrailIndex={effectiveTrailIndex}
       breadcrumbPanelProps={{
@@ -402,7 +409,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
             width="160px"
             height="32px"
             borderRadius="4px"
-            fontSize="sm"
+            fontSize={isVeryCompactFilters ? '11px' : 'sm'}
             textColor="neutral.400"
             borderColor="neutral.400"
             disabled={false}
@@ -415,8 +422,15 @@ export function DashboardFilters(props: DashboardFiltersProps) {
             onClick={onClear}
             _hover={{ textDecoration: 'underline', textDecorationColor: 'neutral.300' }}
           >
-            <Text textStyle="h10" fontWeight="600" color="neutral.300">
-              {t('filters.clearAll', 'Clear all filters')}
+            <Text
+              textStyle="h10"
+              fontWeight="600"
+              color="neutral.300"
+              fontSize={isVeryCompactFilters ? '11px' : '14px'}
+            >
+              {isXsFilters
+                ? t('filters.clear', 'Clear')
+                : t('filters.clearAll', 'Clear all filters')}
             </Text>
           </Button>
         </Flex>

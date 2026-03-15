@@ -34,7 +34,7 @@ export interface DateRangePickerProps {
   placeholder?: string
   disabled?: boolean
   width?: ResponsiveValue<Property.Width>
-  fontSize?: string
+  fontSize?: ResponsiveValue<Property.FontSize>
   textColor?: string
   height?: string
   borderRadius?: string
