@@ -56,14 +56,14 @@ export function ManageStateAdminsPage() {
   )
 
   const handleView = (row: StateAdmin) => {
-    if (row.stateUtId) {
-      navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':id', row.stateUtId))
+    if (row.stateUt) {
+      navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':tenantCode', row.stateUt))
     }
   }
 
   const handleEdit = (row: StateAdmin) => {
-    if (row.stateUtId) {
-      navigate(ROUTES.SUPER_ADMIN_STATES_UTS_EDIT.replace(':id', row.stateUtId))
+    if (row.stateUt) {
+      navigate(ROUTES.SUPER_ADMIN_STATES_UTS_EDIT.replace(':tenantCode', row.stateUt))
     }
   }
 

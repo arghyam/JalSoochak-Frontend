@@ -51,12 +51,12 @@ export function StatesUTsPage() {
 
   const filtered = tenants.filter((t) => t.name.toLowerCase().includes(searchQuery.toLowerCase()))
 
-  const handleView = (id: number) => {
-    navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':id', String(id)))
+  const handleView = (stateCode: string) => {
+    navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':tenantCode', stateCode))
   }
 
-  const handleEdit = (id: number) => {
-    navigate(ROUTES.SUPER_ADMIN_STATES_UTS_EDIT.replace(':id', String(id)))
+  const handleEdit = (stateCode: string) => {
+    navigate(ROUTES.SUPER_ADMIN_STATES_UTS_EDIT.replace(':tenantCode', stateCode))
   }
 
   const columns: DataTableColumn<Tenant>[] = [
@@ -114,7 +114,7 @@ export function StatesUTsPage() {
             minW={5}
             height={5}
             color="neutral.950"
-            onClick={() => handleView(row.id)}
+            onClick={() => handleView(row.stateCode)}
             _hover={{ color: 'primary.500', bg: 'transparent' }}
           />
           <IconButton
@@ -125,7 +125,7 @@ export function StatesUTsPage() {
             minW={5}
             height={5}
             color="neutral.950"
-            onClick={() => handleEdit(row.id)}
+            onClick={() => handleEdit(row.stateCode)}
             _hover={{ color: 'primary.500', bg: 'transparent' }}
           />
         </Flex>

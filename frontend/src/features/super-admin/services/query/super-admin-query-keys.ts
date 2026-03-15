@@ -10,7 +10,6 @@ export const superAdminQueryKeys = {
   stateAdmins: () => [...superAdminQueryKeys.all, 'state-admins'] as const,
   stateAdminsByTenant: (tenantCode: string) =>
     [...superAdminQueryKeys.stateAdmins(), tenantCode] as const,
-  stateUTById: (id: string) => [...superAdminQueryKeys.statesUTs(), id] as const,
   assignedStateNames: () => [...superAdminQueryKeys.statesUTs(), 'assigned-state-names'] as const,
   stateUTOptions: () => [...superAdminQueryKeys.statesUTs(), 'options'] as const,
   superUsers: () => [...superAdminQueryKeys.all, 'super-users'] as const,

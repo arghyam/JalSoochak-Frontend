@@ -7,5 +7,4 @@ export interface StateAdmin {
   mobileNumber: string
   emailAddress: string
   signupStatus: StateAdminSignupStatus
-  stateUtId?: string
 }
