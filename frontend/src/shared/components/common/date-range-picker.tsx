@@ -285,9 +285,9 @@ export function DateRangePicker({
       isOpen={isOpen}
       onOpen={handleOpen}
       onClose={handleClose}
-      placement="bottom-end"
+      placement="bottom-start"
       modifiers={[
-        { name: 'offset', options: { offset: [260, 8] } },
+        { name: 'offset', options: { offset: [-20, 8] } },
         { name: 'flip', enabled: false },
         { name: 'preventOverflow', options: { mainAxis: false, altAxis: false, tether: false } },
       ]}
@@ -327,14 +327,15 @@ export function DateRangePicker({
         </Flex>
       </PopoverTrigger>
       <PopoverContent
-        w="420px"
-        maxW="calc(100vw - 32px)"
+        w="full"
+        minW="320px"
+        maxW="min(420px, calc(100vw - 32px))"
         borderColor="neutral.100"
         boxShadow="md"
         mt="16px"
       >
-        <PopoverBody p="16px">
-          <Flex direction="row" gap="16px" align="flex-start">
+        <PopoverBody p="16px" w="full" maxW="full">
+          <Flex direction="row" gap="16px" align="flex-start" w="full" maxW="full">
             {isTinyPicker ? null : (
               <VStack align="stretch" spacing="6px" minW="160px" flex="0 0 160px">
                 <Text textStyle="h10" color="neutral.500">
