@@ -11,6 +11,7 @@ import {
   InputGroup,
   InputRightElement,
   Text,
+  useMediaQuery,
 } from '@chakra-ui/react'
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai'
 import { useSearchParams, useNavigate } from 'react-router-dom'
@@ -22,6 +23,7 @@ import { ROUTES } from '@/shared/constants/routes'
 export function ResetPasswordPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const [showBannerImage] = useMediaQuery('(min-width: 992px)')
   const token = searchParams.get('token') ?? ''
 
   const [showNewPassword, setShowNewPassword] = useState(false)
@@ -61,9 +63,9 @@ export function ResetPasswordPage() {
 
   if (!token) {
     return (
-      <Flex minH="100vh" w="full" direction={{ base: 'column', md: 'row' }}>
+      <Flex minH="100vh" w="full" direction={showBannerImage ? 'row' : 'column'}>
         <Flex
-          w={{ base: '100%', md: '50%' }}
+          w={showBannerImage ? '50%' : '100%'}
           align="center"
           justify="center"
           bg="white"
@@ -83,22 +85,23 @@ export function ResetPasswordPage() {
             </Button>
           </Box>
         </Flex>
-        <AuthSideImage />
+        <AuthSideImage isVisible={showBannerImage} />
       </Flex>
     )
   }
 
   return (
-    <Flex minH="100vh" w="full" direction={{ base: 'column', md: 'row' }}>
+    <Flex minH="100vh" w="full" direction={showBannerImage ? 'row' : 'column'}>
       <Flex
-        w={{ base: '100%', md: '50%' }}
+        w={showBannerImage ? '50%' : '100%'}
+        minH="100vh"
         align="stretch"
         justify="flex-start"
         bg="white"
         px={{ base: 10, md: 8 }}
         py={{ base: 10, md: 8 }}
       >
-        <Flex w="full" direction="column">
+        <Flex w="full" minH="full" direction="column">
           <Box w="full" maxW="420px">
             <Image src={jalsoochakLogo} alt="JalSoochak logo" h="50px" mb={{ base: 10, md: 12 }} />
           </Box>
@@ -240,7 +243,7 @@ export function ResetPasswordPage() {
         </Flex>
       </Flex>
 
-      <AuthSideImage />
+      <AuthSideImage isVisible={showBannerImage} />
     </Flex>
   )
 }
