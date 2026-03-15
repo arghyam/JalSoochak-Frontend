@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Box, Flex, Text, Heading, Grid, Icon, Image } from '@chakra-ui/react'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDashboardData } from '../hooks/use-dashboard-data'
 import { KPICard } from './kpi-card'
@@ -104,6 +105,27 @@ const toStateSlug = (stateName: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
+
+const formulaTooltipTextStyle = {
+  fontSize: '12px',
+  lineHeight: '18px',
+} as const
+
+const renderFormulaTooltip = (title: string, formula: ReactNode, definitions: ReactNode[]) => (
+  <Box>
+    <Text fontWeight="600" mb="6px" sx={formulaTooltipTextStyle}>
+      {title}
+    </Text>
+    <Text sx={formulaTooltipTextStyle} mb="8px">
+      {formula}
+    </Text>
+    {definitions.map((definition, index) => (
+      <Text key={index} sx={formulaTooltipTextStyle}>
+        {definition}
+      </Text>
+    ))}
+  </Box>
+)
 
 export function CentralDashboard() {
   const { t, i18n } = useTranslation('dashboard')
@@ -575,6 +597,19 @@ export function CentralDashboard() {
           <Image src={waterTapIcon} alt="" boxSize="24px" />
         </Flex>
       ),
+      tooltipContent: renderFormulaTooltip(
+        'Quantity (MLD)',
+        <>
+          Quantity (MLD) = SUM(W<sub>k</sub>) / N
+        </>,
+        [
+          <>
+            W<sub>k</sub> = water quantity supplied on day k
+          </>,
+          <>SUM(Wk) = total water supplied across all days</>,
+          <>N = total number of days</>,
+        ]
+      ),
     },
     {
       label: t('kpi.labels.quantityInLpcd', { defaultValue: 'Quantity in LPCD' }),
@@ -591,6 +626,22 @@ export function CentralDashboard() {
           <Icon as={MdOutlineWaterDrop} boxSize="22px" color="#2E90FA" />
         </Flex>
       ),
+      tooltipContent: renderFormulaTooltip(
+        'Quantity (LPCD)',
+        <>
+          Quantity (LPCD) = SUM(W<sub>k</sub>) / (SUM(HC<sub>i</sub>) x P x N)
+        </>,
+        [
+          <>
+            W<sub>k</sub> = water quantity supplied on day k
+          </>,
+          <>
+            HC<sub>i</sub> = household count of scheme i
+          </>,
+          <>P = average persons per household</>,
+          <>N = number of days</>,
+        ]
+      ),
     },
     {
       label: t('kpi.labels.regularity', { defaultValue: 'Regularity' }),
@@ -606,6 +657,18 @@ export function CentralDashboard() {
         <Flex w="48px" h="48px" borderRadius="100px" bg="#FFF4CC" align="center" justify="center">
           <Icon as={LuClock3} boxSize="22px" color="#CA8A04" />
         </Flex>
+      ),
+      tooltipContent: renderFormulaTooltip(
+        'Regularity of Scheme',
+        <>
+          Regularity of scheme = X<sub>i</sub> / N
+        </>,
+        [
+          <>
+            X<sub>i</sub> = number of supply-days of scheme i
+          </>,
+          <>N = total number of days in the selected time period</>,
+        ]
       ),
     },
   ] as const
@@ -691,6 +754,7 @@ export function CentralDashboard() {
             value={metric.value}
             icon={metric.icon}
             trend={metric.trend}
+            tooltipContent={metric.tooltipContent}
           />
         ))}
       </Grid>
