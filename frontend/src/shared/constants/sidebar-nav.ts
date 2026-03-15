@@ -74,6 +74,13 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
   },
   {
     type: 'simple',
+    path: ROUTES.STATE_ADMIN_HIERARCHY,
+    labelKey: 'sidebar.hierarchy',
+    roles: [AUTH_ROLES.STATE_ADMIN],
+    icon: 'MdOutlineAccountTree',
+  },
+  {
+    type: 'simple',
     path: ROUTES.STATE_ADMIN_LANGUAGE,
     labelKey: 'sidebar.language',
     roles: [AUTH_ROLES.STATE_ADMIN],

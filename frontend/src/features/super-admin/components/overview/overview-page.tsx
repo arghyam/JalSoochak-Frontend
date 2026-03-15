@@ -20,13 +20,27 @@ import { MdOutlinePlace } from 'react-icons/md'
 import { BsCheck2Circle } from 'react-icons/bs'
 import { IoCloseCircleOutline, IoAddOutline } from 'react-icons/io5'
 import { ROUTES } from '@/shared/constants/routes'
-import { useSuperAdminOverviewQuery } from '../../services/query/use-super-admin-queries'
+import {
+  useSuperAdminOverviewQuery,
+  useTenantsSummaryQuery,
+} from '../../services/query/use-super-admin-queries'
 import { SupplyOutageDistributionChart } from '@/shared/components/charts/supply-outage-distribution-chart'
 
 export function OverviewPage() {
   const { t } = useTranslation(['super-admin', 'common'])
   const navigate = useNavigate()
-  const { data, isLoading, isError } = useSuperAdminOverviewQuery()
+  const {
+    data,
+    isLoading: isOverviewLoading,
+    isError: isOverviewError,
+  } = useSuperAdminOverviewQuery()
+  const {
+    data: summaryData,
+    isLoading: isSummaryLoading,
+    isError: isSummaryError,
+  } = useTenantsSummaryQuery()
+  const isLoading = isOverviewLoading || isSummaryLoading
+  const isError = isOverviewError || isSummaryError
 
   useEffect(() => {
     document.title = `${t('overview.title')} | JalSoochak`
@@ -56,26 +70,26 @@ export function OverviewPage() {
     )
   }
 
-  if (!data) return null
+  if (!data || !summaryData) return null
 
   const statsCards = [
     {
       title: t('overview.stats.totalStatesManaged'),
-      value: data.stats.totalStatesManaged,
+      value: summaryData.totalStatesManaged,
       icon: MdOutlinePlace,
       iconBg: '#EBF4FA',
       iconColor: '#3291D1',
     },
     {
       title: t('overview.stats.activeStates'),
-      value: data.stats.activeStates,
+      value: summaryData.activeStates,
       icon: BsCheck2Circle,
       iconBg: '#E1FFEA',
       iconColor: '#079455',
     },
     {
       title: t('overview.stats.inactiveStates'),
-      value: data.stats.inactiveStates,
+      value: summaryData.inactiveStates,
       icon: IoCloseCircleOutline,
       iconBg: '#FFFBD7',
       iconColor: '#CA8A04',

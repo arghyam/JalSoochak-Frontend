@@ -1,4 +1,24 @@
 {
+  "hierarchy": {
+    "pageTitle": "Hierarchy",
+    "sectionTitle": "Hierarchy Configuration",
+    "lgdTitle": "LGD Hierarchy",
+    "departmentTitle": "Department Hierarchy",
+    "levelLabel": "Level {{level}}",
+    "addLevel": "Add Level",
+    "messages": {
+      "saveSuccess": "Hierarchy saved successfully",
+      "saveFailed": "Failed to save hierarchy",
+      "failedToLoad": "Failed to load hierarchy. Please try again later.",
+      "emptyLevelName": "All levels must have a name"
+    },
+    "aria": {
+      "editConfiguration": "Edit hierarchy configuration",
+      "levelInput": "Enter name for level {{level}}",
+      "deleteLevel": "Delete level {{level}}"
+    }
+  },
+
   "overview": {
     "title": "Overview of {{state}}",
     "titleFallback": "Overview of State",
@@ -38,6 +58,14 @@
       "statsSection": "Statistics overview",
       "demandSupplyChart": "Demand versus Supply chart",
       "ingestionChart": "Daily Ingestion Monitor chart"
+    },
+    "setupWizard": {
+      "title": "Setup Progress",
+      "configuration": "Configuration",
+      "language": "Language",
+      "waterNorms": "Water Norms",
+      "integration": "Integration",
+      "escalations": "Escalations"
     }
   },
 
@@ -97,17 +125,13 @@
     "currentQuantity": "Current quantity (LPCD)",
     "alertThresholds": {
       "title": "Alert Thresholds",
-      "maxQuantity": {
-        "title": "Max Quantity (percentage)",
-        "description": "Maximum percentage of the specified water supply beyond which an alert will be triggered."
+      "undersupplyThreshold": {
+        "title": "Undersupply Threshold (percentage)",
+        "description": "The negative deviation from the actual norm in percentage."
       },
-      "minQuantity": {
-        "title": "Min Quantity (percentage)",
-        "description": "Minimum percentage of the specified water supply below which an alert will be triggered."
-      },
-      "regularity": {
-        "title": "Regularity Threshold (percentage)",
-        "description": "Minimum percentage of days water must be supplied during the selected period to avoid a regularity alert."
+      "oversupplyThreshold": {
+        "title": "Oversupply Threshold (percentage)",
+        "description": "The positive deviation from the actual norm in percentage."
       }
     },
     "districtOverrides": {
@@ -130,12 +154,10 @@
       "enterQuantity": "Enter state water quantity in LPCD",
       "selectDistrict": "Select district name",
       "enterDistrictQuantity": "Enter district water quantity in LPCD",
-      "maxQuantityCard": "Max quantity threshold configuration",
-      "minQuantityCard": "Min quantity threshold configuration",
-      "regularityCard": "Regularity threshold configuration",
-      "enterMaxQuantity": "Enter maximum quantity(percentage of LPCD) threshold ",
-      "enterMinQuantity": "Enter minimum quantity(percentage of LPCD) threshold ",
-      "enterRegularity": "Enter regularity threshold percentage"
+      "undersupplyThresholdCard": "Undersupply threshold configuration",
+      "oversupplyThresholdCard": "Oversupply threshold configuration",
+      "enterUndersupplyThreshold": "Enter undersupply threshold percentage (0–100)",
+      "enterOversupplyThreshold": "Enter oversupply threshold percentage (0–1000)"
     }
   },
 

@@ -10,6 +10,7 @@ import {
   type UpdateNudgeTemplatePayload,
 } from '../api/state-admin-api'
 import type { SaveEscalationRulesPayload } from '../../types/escalation-rules'
+import type { HierarchyLevel } from '../../types/hierarchy'
 import { stateAdminQueryKeys } from './state-admin-query-keys'
 import { useAuthStore } from '@/app/store/auth-store'
 
@@ -259,5 +260,62 @@ export function useSaveEscalationRulesMutation() {
     onSuccess: (data) => {
       queryClient.setQueryData(stateAdminQueryKeys.escalationRules(), data)
     },
+  })
+}
+
+// ── Hierarchy ────────────────────────────────────────────────────────────────
+
+export function useLgdHierarchyQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.lgdHierarchy(),
+    queryFn: stateAdminApi.getLgdHierarchy,
+  })
+}
+
+export function useDepartmentHierarchyQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.departmentHierarchy(),
+    queryFn: stateAdminApi.getDepartmentHierarchy,
+  })
+}
+
+export function useLgdEditConstraintsQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.lgdEditConstraints(),
+    queryFn: stateAdminApi.getLgdEditConstraints,
+  })
+}
+
+export function useDepartmentEditConstraintsQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.departmentEditConstraints(),
+    queryFn: stateAdminApi.getDepartmentEditConstraints,
+  })
+}
+
+export function useSaveLgdHierarchyMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (levels: HierarchyLevel[]) => stateAdminApi.saveLgdHierarchy(levels),
+    onSuccess: (data) => {
+      queryClient.setQueryData(stateAdminQueryKeys.lgdHierarchy(), data)
+    },
+  })
+}
+
+export function useSaveDepartmentHierarchyMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (levels: HierarchyLevel[]) => stateAdminApi.saveDepartmentHierarchy(levels),
+    onSuccess: (data) => {
+      queryClient.setQueryData(stateAdminQueryKeys.departmentHierarchy(), data)
+    },
+  })
+}
+
+export function useConfigStatusQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.configStatus(),
+    queryFn: stateAdminApi.getConfigStatus,
   })
 }

@@ -14,6 +14,13 @@ export function useSuperAdminOverviewQuery() {
   })
 }
 
+export function useTenantsSummaryQuery() {
+  return useQuery({
+    queryKey: superAdminQueryKeys.tenantsSummary(),
+    queryFn: superAdminApi.getTenantsSummary,
+  })
+}
+
 export function useSystemRulesConfigurationQuery() {
   return useQuery({
     queryKey: superAdminQueryKeys.systemRulesConfiguration(),

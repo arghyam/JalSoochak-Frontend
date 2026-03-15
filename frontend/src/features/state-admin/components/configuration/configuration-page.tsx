@@ -25,20 +25,14 @@ import {
   useSaveConfigurationMutation,
 } from '../../services/query/use-state-admin-queries'
 import {
-  DEFAULT_LGD_HIERARCHY,
-  DEFAULT_DEPARTMENT_HIERARCHY,
   DEFAULT_METER_CHANGE_REASONS,
   SUPPORTED_CHANNELS,
-  type HierarchyLevel,
   type MeterChangeReason,
   type SupportedChannel,
 } from '../../types/configuration'
-import { HierarchySection } from './hierarchy-section'
 import { MeterChangeReasonsSection } from './meter-change-reasons-section'
 
 interface ConfigDraft {
-  lgdHierarchy: HierarchyLevel[]
-  departmentHierarchy: HierarchyLevel[]
   supportedChannels: SupportedChannel[]
   logoFile: File | null
   logoUrl?: string
@@ -50,8 +44,6 @@ interface ConfigDraft {
 }
 
 function buildInitialDraft(config?: {
-  lgdHierarchy: HierarchyLevel[]
-  departmentHierarchy: HierarchyLevel[]
   supportedChannels: SupportedChannel[]
   logoUrl?: string
   meterChangeReasons: MeterChangeReason[]
@@ -61,12 +53,6 @@ function buildInitialDraft(config?: {
   averageMembersPerHousehold: number
 }): ConfigDraft {
   return {
-    lgdHierarchy: config
-      ? config.lgdHierarchy.map((l) => ({ ...l }))
-      : DEFAULT_LGD_HIERARCHY.map((l) => ({ ...l })),
-    departmentHierarchy: config
-      ? config.departmentHierarchy.map((l) => ({ ...l }))
-      : DEFAULT_DEPARTMENT_HIERARCHY.map((l) => ({ ...l })),
     supportedChannels: config ? [...config.supportedChannels] : [],
     logoFile: null,
     logoUrl: config?.logoUrl,
@@ -114,12 +100,6 @@ export function ConfigurationPage() {
   const handleSave = async () => {
     const current = draft ?? buildInitialDraft(config ?? undefined)
 
-    const emptyLgd = current.lgdHierarchy.some((l) => !l.name.trim())
-    const emptyDept = current.departmentHierarchy.some((l) => !l.name.trim())
-    if (emptyLgd || emptyDept) {
-      toast.addToast(t('configuration.messages.validation.hierarchyRequired'), 'error')
-      return
-    }
     if (current.supportedChannels.length === 0) {
       toast.addToast(t('configuration.messages.validation.channelRequired'), 'error')
       return
@@ -132,8 +112,6 @@ export function ConfigurationPage() {
       }
 
       await saveMutation.mutateAsync({
-        lgdHierarchy: current.lgdHierarchy,
-        departmentHierarchy: current.departmentHierarchy,
         supportedChannels: current.supportedChannels,
         logoUrl,
         meterChangeReasons: current.meterChangeReasons,
@@ -277,35 +255,7 @@ export function ConfigurationPage() {
               gap={{ base: 6, lg: 0 }}
             >
               <VStack spacing={6} align="stretch">
-                {/* 1 & 2. LGD + Department Hierarchy side by side */}
-                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                  <HierarchySection
-                    sectionId="lgd"
-                    title={t('configuration.sections.lgdHierarchy.title')}
-                    levels={activeDraft.lgdHierarchy}
-                    onChange={(levels) =>
-                      setDraft((prev) => ({
-                        ...(prev ?? buildInitialDraft(config)),
-                        lgdHierarchy: levels,
-                      }))
-                    }
-                    ariaLevelKey="configuration.aria.lgdLevel"
-                  />
-                  <HierarchySection
-                    sectionId="dept"
-                    title={t('configuration.sections.departmentHierarchy.title')}
-                    levels={activeDraft.departmentHierarchy}
-                    onChange={(levels) =>
-                      setDraft((prev) => ({
-                        ...(prev ?? buildInitialDraft(config)),
-                        departmentHierarchy: levels,
-                      }))
-                    }
-                    ariaLevelKey="configuration.aria.deptLevel"
-                  />
-                </SimpleGrid>
-
-                {/* 3. Supported Channels — 2-column vertical flow */}
+                {/* Supported Channels — 2-column vertical flow */}
                 <Box>
                   <Text
                     fontSize={{ base: 'xs', md: 'sm' }}
@@ -634,37 +584,6 @@ function ViewMode({
 }) {
   return (
     <VStack spacing={6} align="stretch">
-      {/* LGD + Department Hierarchy side by side */}
-      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-        <ViewSection title={t('configuration.sections.lgdHierarchy.title')}>
-          <VStack align="stretch" spacing={3}>
-            {config.lgdHierarchy.map((level) => (
-              <ViewField
-                key={level.level}
-                label={t('configuration.sections.lgdHierarchy.levelLabel', {
-                  level: level.level,
-                })}
-                value={level.name}
-              />
-            ))}
-          </VStack>
-        </ViewSection>
-
-        <ViewSection title={t('configuration.sections.departmentHierarchy.title')}>
-          <VStack align="stretch" spacing={3}>
-            {config.departmentHierarchy.map((level) => (
-              <ViewField
-                key={level.level}
-                label={t('configuration.sections.lgdHierarchy.levelLabel', {
-                  level: level.level,
-                })}
-                value={level.name}
-              />
-            ))}
-          </VStack>
-        </ViewSection>
-      </SimpleGrid>
-
       {/* Supported Channels */}
       <ViewSection title={t('configuration.sections.supportedChannels.title')}>
         <Text fontSize="sm" color="neutral.950">

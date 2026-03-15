@@ -1,8 +1,3 @@
-export interface HierarchyLevel {
-  level: number
-  name: string
-}
-
 export interface MeterChangeReason {
   id: string
   name: string
@@ -32,22 +27,6 @@ export const CHANNEL_NAME_TO_CODE = Object.fromEntries(
 
 export type SupportedChannelCode = keyof typeof CHANNEL_CODE_TO_NAME
 
-export const DEFAULT_LGD_HIERARCHY: HierarchyLevel[] = [
-  { level: 1, name: 'State' },
-  { level: 2, name: 'District' },
-  { level: 3, name: 'Block' },
-  { level: 4, name: 'Panchayat' },
-  { level: 5, name: 'Village' },
-]
-
-export const DEFAULT_DEPARTMENT_HIERARCHY: HierarchyLevel[] = [
-  { level: 1, name: 'State' },
-  { level: 2, name: 'Zone' },
-  { level: 3, name: 'Circle' },
-  { level: 4, name: 'Division' },
-  { level: 5, name: 'Sub-division' },
-]
-
 export const DEFAULT_METER_CHANGE_REASONS: MeterChangeReason[] = [
   { id: 'r1', name: 'Meter Replaced' },
   { id: 'r2', name: 'Meter Not Working' },
@@ -56,8 +35,6 @@ export const DEFAULT_METER_CHANGE_REASONS: MeterChangeReason[] = [
 
 export interface ConfigurationData {
   id: string
-  lgdHierarchy: HierarchyLevel[]
-  departmentHierarchy: HierarchyLevel[]
   supportedChannels: SupportedChannel[]
   logoUrl?: string
   meterChangeReasons: MeterChangeReason[]

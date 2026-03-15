@@ -17,9 +17,8 @@ export function WaterNormsPage() {
   const saveWaterNormsMutation = useSaveWaterNormsConfigurationMutation()
   const [isEditing, setIsEditing] = useState(false)
   const [stateQuantityDraft, setStateQuantityDraft] = useState<string | null>(null)
-  const [maxQuantityDraft, setMaxQuantityDraft] = useState<string | null>(null)
-  const [minQuantityDraft, setMinQuantityDraft] = useState<string | null>(null)
-  const [regularityDraft, setRegularityDraft] = useState<string | null>(null)
+  const [oversupplyThresholdDraft, setOversupplyThresholdDraft] = useState<string | null>(null)
+  const [undersupplyThresholdDraft, setUndersupplyThresholdDraft] = useState<string | null>(null)
   const [districtOverridesDraft, setDistrictOverridesDraft] = useState<DistrictOverride[] | null>(
     null
   )
@@ -32,12 +31,12 @@ export function WaterNormsPage() {
   const effectiveIsEditing = isEditing || Boolean(config && !config.isConfigured)
   const stateQuantity =
     stateQuantityDraft ?? (config?.stateQuantity != null ? String(config.stateQuantity) : '')
-  const maxQuantity =
-    maxQuantityDraft ?? (config?.maxQuantity != null ? String(config.maxQuantity) : '')
-  const minQuantity =
-    minQuantityDraft ?? (config?.minQuantity != null ? String(config.minQuantity) : '')
-  const regularity =
-    regularityDraft ?? (config?.regularity != null ? String(config.regularity) : '')
+  const oversupplyThreshold =
+    oversupplyThresholdDraft ??
+    (config?.oversupplyThreshold != null ? String(config.oversupplyThreshold) : '')
+  const undersupplyThreshold =
+    undersupplyThresholdDraft ??
+    (config?.undersupplyThreshold != null ? String(config.undersupplyThreshold) : '')
   const districtOverrides = districtOverridesDraft ?? config?.districtOverrides ?? []
 
   const handleEdit = () => {
@@ -46,9 +45,8 @@ export function WaterNormsPage() {
 
   const handleCancel = () => {
     setStateQuantityDraft(null)
-    setMaxQuantityDraft(null)
-    setMinQuantityDraft(null)
-    setRegularityDraft(null)
+    setOversupplyThresholdDraft(null)
+    setUndersupplyThresholdDraft(null)
     setDistrictOverridesDraft(null)
     setIsEditing(false)
   }
@@ -65,19 +63,17 @@ export function WaterNormsPage() {
       return
     }
 
-    const maxQty = Number(maxQuantity)
-    const minQty = Number(minQuantity)
-    const reg = Number(regularity)
+    const oversupply = Number(oversupplyThreshold)
+    const undersupply = Number(undersupplyThreshold)
     if (
-      !maxQuantity ||
-      !minQuantity ||
-      !regularity ||
-      isNaN(maxQty) ||
-      isNaN(minQty) ||
-      isNaN(reg) ||
-      maxQty < 100 ||
-      minQty < 0 ||
-      reg < 0
+      !oversupplyThreshold ||
+      !undersupplyThreshold ||
+      isNaN(oversupply) ||
+      isNaN(undersupply) ||
+      oversupply < 0 ||
+      oversupply > 1000 ||
+      undersupply < 0 ||
+      undersupply > 100
     ) {
       toast.addToast(t('waterNorms.messages.invalidAlertThresholds'), 'error')
       return
@@ -94,16 +90,14 @@ export function WaterNormsPage() {
     try {
       await saveWaterNormsMutation.mutateAsync({
         stateQuantity: quantity,
-        maxQuantity: maxQty,
-        minQuantity: minQty,
-        regularity: reg,
+        oversupplyThreshold: oversupply,
+        undersupplyThreshold: undersupply,
         districtOverrides,
         isConfigured: true,
       })
       setStateQuantityDraft(null)
-      setMaxQuantityDraft(null)
-      setMinQuantityDraft(null)
-      setRegularityDraft(null)
+      setOversupplyThresholdDraft(null)
+      setUndersupplyThresholdDraft(null)
       setDistrictOverridesDraft(null)
       setIsEditing(false)
       toast.addToast(t('common:toast.changesSavedShort'), 'success')
@@ -214,26 +208,18 @@ export function WaterNormsPage() {
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={{ base: 3, md: 6 }}>
                   <Box>
                     <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" mb={1}>
-                      {t('waterNorms.alertThresholds.maxQuantity.title')}
+                      {t('waterNorms.alertThresholds.undersupplyThreshold.title')}
                     </Text>
                     <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
-                      {config.maxQuantity}%
+                      {config.undersupplyThreshold}%
                     </Text>
                   </Box>
                   <Box>
                     <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" mb={1}>
-                      {t('waterNorms.alertThresholds.minQuantity.title')}
+                      {t('waterNorms.alertThresholds.oversupplyThreshold.title')}
                     </Text>
                     <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
-                      {config.minQuantity}%
-                    </Text>
-                  </Box>
-                  <Box>
-                    <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" mb={1}>
-                      {t('waterNorms.alertThresholds.regularity.title')}
-                    </Text>
-                    <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
-                      {config.regularity}%
+                      {config.oversupplyThreshold}%
                     </Text>
                   </Box>
                 </SimpleGrid>
@@ -288,12 +274,10 @@ export function WaterNormsPage() {
 
                 {/* Alert Thresholds */}
                 <WaterNormsAlertThresholds
-                  maxQuantity={maxQuantity}
-                  minQuantity={minQuantity}
-                  regularity={regularity}
-                  onMaxQuantityChange={setMaxQuantityDraft}
-                  onMinQuantityChange={setMinQuantityDraft}
-                  onRegularityChange={setRegularityDraft}
+                  oversupplyThreshold={oversupplyThreshold}
+                  undersupplyThreshold={undersupplyThreshold}
+                  onOversupplyThresholdChange={(v) => setOversupplyThresholdDraft(v)}
+                  onUndersupplyThresholdChange={(v) => setUndersupplyThresholdDraft(v)}
                 />
               </Box>
 
@@ -319,7 +303,7 @@ export function WaterNormsPage() {
                   width={{ base: 'full', sm: '174px' }}
                   onClick={handleSave}
                   isLoading={saveWaterNormsMutation.isPending}
-                  isDisabled={!stateQuantity || !maxQuantity || !minQuantity || !regularity}
+                  isDisabled={!stateQuantity || !oversupplyThreshold || !undersupplyThreshold}
                 >
                   {config?.isConfigured ? t('common:button.saveChanges') : t('common:button.save')}
                 </Button>

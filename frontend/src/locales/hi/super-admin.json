@@ -208,11 +208,13 @@
       "supportedChannels": {
         "title": "समर्थित चैनल"
       },
-      "waterQuantityMax": {
-        "title": "अधिकतम मात्रा सीमा (%)"
+      "undersupplyThreshold": {
+        "title": "अंडरसप्लाई सीमा (%)",
+        "description": "वास्तविक मानक से नकारात्मक विचलन प्रतिशत में।"
       },
-      "waterQuantityMin": {
-        "title": "न्यूनतम मात्रा सीमा (%)"
+      "oversupplyThreshold": {
+        "title": "ओवरसप्लाई सीमा (%)",
+        "description": "वास्तविक मानक से सकारात्मक विचलन प्रतिशत में।"
       },
       "bfmImageConfidence": {
         "title": "BFM छवि विश्वास सीमा (%)"

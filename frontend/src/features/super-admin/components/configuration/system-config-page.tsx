@@ -29,8 +29,8 @@ import {
 
 interface ConfigDraft {
   supportedChannels: SystemSupportedChannel[]
-  waterQuantityMaxThreshold: string
-  waterQuantityMinThreshold: string
+  oversupplyThreshold: string
+  undersupplyThreshold: string
   bfmImageConfidenceThreshold: string
   locationAffinityThreshold: string
 }
@@ -38,14 +38,10 @@ interface ConfigDraft {
 function buildDraft(config?: SystemConfiguration): ConfigDraft {
   return {
     supportedChannels: config ? [...config.supportedChannels] : [],
-    waterQuantityMaxThreshold:
-      config && config.waterQuantityMaxThreshold > 0
-        ? String(config.waterQuantityMaxThreshold)
-        : '',
-    waterQuantityMinThreshold:
-      config && config.waterQuantityMinThreshold > 0
-        ? String(config.waterQuantityMinThreshold)
-        : '',
+    oversupplyThreshold:
+      config && config.oversupplyThreshold > 0 ? String(config.oversupplyThreshold) : '',
+    undersupplyThreshold:
+      config && config.undersupplyThreshold > 0 ? String(config.undersupplyThreshold) : '',
     bfmImageConfidenceThreshold:
       config && config.bfmImageConfidenceThreshold > 0
         ? String(config.bfmImageConfidenceThreshold)
@@ -95,8 +91,8 @@ export function SystemConfigPage() {
     try {
       await saveMutation.mutateAsync({
         supportedChannels: current.supportedChannels,
-        waterQuantityMaxThreshold: Number(current.waterQuantityMaxThreshold) || 0,
-        waterQuantityMinThreshold: Number(current.waterQuantityMinThreshold) || 0,
+        oversupplyThreshold: Number(current.oversupplyThreshold) || 0,
+        undersupplyThreshold: Number(current.undersupplyThreshold) || 0,
         bfmImageConfidenceThreshold: Number(current.bfmImageConfidenceThreshold) || 0,
         locationAffinityThreshold: Number(current.locationAffinityThreshold) || 0,
       })
@@ -262,19 +258,20 @@ export function SystemConfigPage() {
                 {/* 2. Quantity Thresholds */}
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
                   <ThresholdInput
-                    id="water-qty-max"
-                    label={t('configuration.sections.waterQuantityMax.title')}
-                    value={activeDraft.waterQuantityMaxThreshold}
-                    onChange={updateDraftField('waterQuantityMaxThreshold')}
-                    min={0}
-                  />
-                  <ThresholdInput
-                    id="water-qty-min"
-                    label={t('configuration.sections.waterQuantityMin.title')}
-                    value={activeDraft.waterQuantityMinThreshold}
-                    onChange={updateDraftField('waterQuantityMinThreshold')}
+                    id="water-qty-undersupply"
+                    label={t('configuration.sections.undersupplyThreshold.title')}
+                    value={activeDraft.undersupplyThreshold}
+                    onChange={updateDraftField('undersupplyThreshold')}
                     min={0}
                     max={100}
+                  />
+                  <ThresholdInput
+                    id="water-qty-oversupply"
+                    label={t('configuration.sections.oversupplyThreshold.title')}
+                    value={activeDraft.oversupplyThreshold}
+                    onChange={updateDraftField('oversupplyThreshold')}
+                    min={0}
+                    max={1000}
                   />
                 </SimpleGrid>
 
@@ -426,16 +423,12 @@ function ViewMode({
       {/* Quantity Thresholds */}
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
         <ViewField
-          label={t('configuration.sections.waterQuantityMax.title')}
-          value={
-            config.waterQuantityMaxThreshold > 0 ? String(config.waterQuantityMaxThreshold) : '-'
-          }
+          label={t('configuration.sections.undersupplyThreshold.title')}
+          value={config.undersupplyThreshold > 0 ? String(config.undersupplyThreshold) : '-'}
         />
         <ViewField
-          label={t('configuration.sections.waterQuantityMin.title')}
-          value={
-            config.waterQuantityMinThreshold > 0 ? String(config.waterQuantityMinThreshold) : '-'
-          }
+          label={t('configuration.sections.oversupplyThreshold.title')}
+          value={config.oversupplyThreshold > 0 ? String(config.oversupplyThreshold) : '-'}
         />
       </SimpleGrid>
 

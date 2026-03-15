@@ -1,6 +1,6 @@
 import { Box, Flex, Stack, Text, Input } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import type { HierarchyLevel } from '../../types/configuration'
+import type { HierarchyLevel } from '../../types/hierarchy'
 
 interface HierarchySectionProps {
   sectionId: string

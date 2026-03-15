@@ -208,11 +208,13 @@
       "supportedChannels": {
         "title": "Supported Channels"
       },
-      "waterQuantityMax": {
-        "title": "Max Quantity Threshold (%)"
+      "undersupplyThreshold": {
+        "title": "Undersupply Threshold (%)",
+        "description": "The negative deviation from the actual norm in percentage."
       },
-      "waterQuantityMin": {
-        "title": "Min Quantity Threshold (%)"
+      "oversupplyThreshold": {
+        "title": "Oversupply Threshold (%)",
+        "description": "The positive deviation from the actual norm in percentage."
       },
       "bfmImageConfidence": {
         "title": "BFM Image Confidence Threshold (%)"

@@ -9,12 +9,7 @@ import {
   mapWaterNormsToApiConfig,
   type TenantConfigMap,
 } from './tenant-config-mappers'
-import {
-  DEFAULT_DEPARTMENT_HIERARCHY,
-  DEFAULT_LGD_HIERARCHY,
-  DEFAULT_METER_CHANGE_REASONS,
-  type SupportedChannel,
-} from '../../types/configuration'
+import { DEFAULT_METER_CHANGE_REASONS, type SupportedChannel } from '../../types/configuration'
 
 // ---------------------------------------------------------------------------
 // Configuration mappers
@@ -35,18 +30,6 @@ describe('mapApiConfigToConfigurationData', () => {
       DATA_CONSOLIDATION_TIME: { timeValue: '14:00', description: null },
       PUMP_OPERATOR_REMINDER_NUDGE_TIME: { nudge: { schedule: { hour: 9, minute: 30 } } },
       AVERAGE_MEMBERS_PER_HOUSEHOLD: { value: '4.5' },
-      LGD_LOCATION_HIERARCHY: {
-        locationHierarchy: [
-          { level: 1, levelName: [{ title: 'State' }] },
-          { level: 2, levelName: [{ title: 'District' }] },
-        ],
-      },
-      DEPT_LOCATION_HIERARCHY: {
-        locationHierarchy: [
-          { level: 1, levelName: [{ title: 'State' }] },
-          { level: 2, levelName: [{ title: 'Zone' }] },
-        ],
-      },
     }
 
     const result = mapApiConfigToConfigurationData(configs)
@@ -61,22 +44,12 @@ describe('mapApiConfigToConfigurationData', () => {
     expect(result.dataConsolidationTime).toBe('14:00')
     expect(result.pumpOperatorReminderNudgeTime).toBe('09:30')
     expect(result.averageMembersPerHousehold).toBe(4.5)
-    expect(result.lgdHierarchy).toEqual([
-      { level: 1, name: 'State' },
-      { level: 2, name: 'District' },
-    ])
-    expect(result.departmentHierarchy).toEqual([
-      { level: 1, name: 'State' },
-      { level: 2, name: 'Zone' },
-    ])
     expect(result.isConfigured).toBe(true)
   })
 
   it('falls back to defaults when keys are absent', () => {
     const result = mapApiConfigToConfigurationData({})
 
-    expect(result.lgdHierarchy).toEqual(DEFAULT_LGD_HIERARCHY)
-    expect(result.departmentHierarchy).toEqual(DEFAULT_DEPARTMENT_HIERARCHY)
     expect(result.meterChangeReasons).toEqual(DEFAULT_METER_CHANGE_REASONS)
     expect(result.supportedChannels).toEqual([])
     expect(result.locationCheckRequired).toBe(false)
@@ -96,8 +69,6 @@ describe('mapApiConfigToConfigurationData', () => {
 describe('mapConfigurationDataToApiConfig', () => {
   it('converts ConfigurationData to API format', () => {
     const payload = {
-      lgdHierarchy: [{ level: 1, name: 'State' }],
-      departmentHierarchy: [{ level: 1, name: 'State' }],
       supportedChannels: ['Bulk Flow Meter', 'IOT'] as SupportedChannel[],
       logoUrl: 'https://example.com/logo.png',
       meterChangeReasons: [{ id: 'r1', name: 'Meter Replaced' }],
@@ -136,12 +107,6 @@ describe('mapConfigurationDataToApiConfig', () => {
       DATA_CONSOLIDATION_TIME: { timeValue: '22:00', description: null },
       PUMP_OPERATOR_REMINDER_NUDGE_TIME: { nudge: { schedule: { hour: 7, minute: 0 } } },
       AVERAGE_MEMBERS_PER_HOUSEHOLD: { value: '5' },
-      LGD_LOCATION_HIERARCHY: {
-        locationHierarchy: [{ level: 1, levelName: [{ title: 'State' }] }],
-      },
-      DEPT_LOCATION_HIERARCHY: {
-        locationHierarchy: [{ level: 1, levelName: [{ title: 'HQ' }] }],
-      },
     }
 
     const frontend = mapApiConfigToConfigurationData(configs)
@@ -161,24 +126,38 @@ describe('mapApiConfigToWaterNormsConfiguration', () => {
   it('maps water norm and threshold values', () => {
     const configs: TenantConfigMap = {
       WATER_NORM: { value: '55' },
-      TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD: { value: '100' },
+      TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD: {
+        undersupplyThresholdPercent: 40,
+        oversupplyThresholdPercent: 150,
+      },
     }
 
     const result = mapApiConfigToWaterNormsConfiguration(configs)
 
     expect(result.stateQuantity).toBe(55)
-    expect(result.minQuantity).toBe(0)
-    expect(result.maxQuantity).toBe(100)
+    expect(result.undersupplyThreshold).toBe(40)
+    expect(result.oversupplyThreshold).toBe(150)
     expect(result.districtOverrides).toEqual([])
-    expect(result.regularity).toBe(0)
     expect(result.isConfigured).toBe(true)
   })
 
   it('defaults to 0 when keys are absent', () => {
     const result = mapApiConfigToWaterNormsConfiguration({})
     expect(result.stateQuantity).toBe(0)
-    expect(result.minQuantity).toBe(0)
-    expect(result.maxQuantity).toBe(0)
+    expect(result.undersupplyThreshold).toBe(0)
+    expect(result.oversupplyThreshold).toBe(0)
+  })
+
+  it('defaults to 0 when threshold values are null', () => {
+    const configs: TenantConfigMap = {
+      TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD: {
+        undersupplyThresholdPercent: null,
+        oversupplyThresholdPercent: null,
+      },
+    }
+    const result = mapApiConfigToWaterNormsConfiguration(configs)
+    expect(result.undersupplyThreshold).toBe(0)
+    expect(result.oversupplyThreshold).toBe(0)
   })
 })
 
@@ -187,19 +166,20 @@ describe('mapWaterNormsToApiConfig', () => {
     const payload = {
       stateQuantity: 60,
       districtOverrides: [{ id: 'd1', districtName: 'Hyderabad', quantity: 70 }],
-      regularity: 90,
-      maxQuantity: 100,
-      minQuantity: 40,
+      oversupplyThreshold: 150,
+      undersupplyThreshold: 40,
       isConfigured: true,
     }
 
     const result = mapWaterNormsToApiConfig(payload)
 
     expect(result.WATER_NORM).toEqual({ value: '60' })
-    expect(result.TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD).toEqual({ value: '100' })
-    // district overrides and regularity must NOT be sent
+    expect(result.TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD).toEqual({
+      undersupplyThresholdPercent: 40,
+      oversupplyThresholdPercent: 150,
+    })
+    // district overrides must NOT be sent
     expect(result).not.toHaveProperty('districtOverrides')
-    expect(result).not.toHaveProperty('regularity')
   })
 })
 

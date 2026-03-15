@@ -8,11 +8,7 @@ import type { ThresholdConfiguration } from '../types/thresholds'
 import type { NudgeTemplate } from '../types/nudges'
 import type { StaffSyncData } from '../types/staff-sync'
 import type { ConfigurationData } from '../types/configuration'
-import {
-  DEFAULT_LGD_HIERARCHY,
-  DEFAULT_DEPARTMENT_HIERARCHY,
-  DEFAULT_METER_CHANGE_REASONS,
-} from '../types/configuration'
+import { DEFAULT_METER_CHANGE_REASONS } from '../types/configuration'
 import type {
   StateUTAdmin,
   CreateStateUTAdminInput,
@@ -28,94 +24,6 @@ export const mockOverviewData: OverviewData = {
     activeSchemes: { value: 147, subtitle: 'Across 12 Sub-Divisions' },
     activeIntegrations: { value: 2, subtitle: 'WhatsApp, Email' },
   },
-  demandSupplyData: [
-    { period: 'FY20', Demand: 450, Supply: 380 },
-    { period: 'FY21', Demand: 480, Supply: 420 },
-    { period: 'FY22', Demand: 520, Supply: 460 },
-    { period: 'FY23', Demand: 490, Supply: 440 },
-    { period: 'FY24', Demand: 510, Supply: 470 },
-    { period: 'FY25', Demand: 530, Supply: 490 },
-  ],
-  dailyIngestionData: [
-    { day: 'Day 1', count: 2100 },
-    { day: 'Day 2', count: 2300 },
-    { day: 'Day 3', count: 2200 },
-    { day: 'Day 4', count: 2500 },
-    { day: 'Day 5', count: 2400 },
-    { day: 'Day 6', count: 2600 },
-    { day: 'Day 7', count: 2700 },
-    { day: 'Day 8', count: 2550 },
-    { day: 'Day 9', count: 2450 },
-    { day: 'Day 10', count: 2650 },
-    { day: 'Day 11', count: 2750 },
-    { day: 'Day 12', count: 2800 },
-  ],
-  waterSupplyOutages: [
-    {
-      label: 'Achampet',
-      electricityFailure: 12,
-      pipelineLeak: 18,
-      pumpFailure: 10,
-      valveIssue: 20,
-      sourceDrying: 15,
-    },
-    {
-      label: 'Bhongir',
-      electricityFailure: 8,
-      pipelineLeak: 14,
-      pumpFailure: 16,
-      valveIssue: 12,
-      sourceDrying: 22,
-    },
-    {
-      label: 'Bodhan',
-      electricityFailure: 15,
-      pipelineLeak: 10,
-      pumpFailure: 20,
-      valveIssue: 18,
-      sourceDrying: 17,
-    },
-    {
-      label: 'Nalgonda',
-      electricityFailure: 10,
-      pipelineLeak: 22,
-      pumpFailure: 14,
-      valveIssue: 16,
-      sourceDrying: 20,
-    },
-    {
-      label: 'Medak',
-      electricityFailure: 18,
-      pipelineLeak: 12,
-      pumpFailure: 8,
-      valveIssue: 24,
-      sourceDrying: 14,
-    },
-    {
-      label: 'Karimnagar',
-      electricityFailure: 6,
-      pipelineLeak: 16,
-      pumpFailure: 22,
-      valveIssue: 14,
-      sourceDrying: 18,
-    },
-    {
-      label: 'Warangal',
-      electricityFailure: 20,
-      pipelineLeak: 8,
-      pumpFailure: 12,
-      valveIssue: 10,
-      sourceDrying: 25,
-    },
-    {
-      label: 'Nizamabad',
-      electricityFailure: 14,
-      pipelineLeak: 20,
-      pumpFailure: 18,
-      valveIssue: 22,
-      sourceDrying: 10,
-    },
-  ],
 }
 
 export const getMockOverviewData = (): Promise<OverviewData> => {
@@ -270,9 +178,8 @@ let mockWaterNormsConfiguration: WaterNormsConfiguration = {
   id: '',
   stateQuantity: 0,
   districtOverrides: [],
-  maxQuantity: 0,
-  minQuantity: 0,
-  regularity: 0,
+  oversupplyThreshold: 0,
+  undersupplyThreshold: 0,
   isConfigured: false,
 }
 
@@ -293,9 +200,8 @@ export const saveMockWaterNormsConfiguration = (
         id: '1',
         stateQuantity: Number(config.stateQuantity),
         districtOverrides: Array.isArray(config.districtOverrides) ? config.districtOverrides : [],
-        maxQuantity: Number(config.maxQuantity),
-        minQuantity: Number(config.minQuantity),
-        regularity: Number(config.regularity),
+        oversupplyThreshold: Number(config.oversupplyThreshold),
+        undersupplyThreshold: Number(config.undersupplyThreshold),
         isConfigured: true,
       }
       mockWaterNormsConfiguration = savedConfig
@@ -941,8 +847,6 @@ export const getMockStaffSyncData = (): Promise<StaffSyncData> => {
 // Configuration Mock Data
 let mockConfigurationData: ConfigurationData = {
   id: '',
-  lgdHierarchy: DEFAULT_LGD_HIERARCHY.map((l) => ({ ...l })),
-  departmentHierarchy: DEFAULT_DEPARTMENT_HIERARCHY.map((l) => ({ ...l })),
   supportedChannels: [],
   logoUrl: undefined,
   meterChangeReasons: DEFAULT_METER_CHANGE_REASONS.map((r) => ({ ...r })),

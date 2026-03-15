@@ -11,7 +11,7 @@ import {
 } from '../mock-data'
 import type { ApiCredentialsData } from '../../types/api-credentials'
 import type { IngestionMonitorData } from '../../types/ingestion-monitor'
-import type { SuperAdminOverviewData } from '../../types/overview'
+import type { SuperAdminOverviewData, SuperAdminStats } from '../../types/overview'
 import type { SystemRulesConfiguration } from '../../types/system-rules'
 import type { SystemConfiguration, SaveSystemConfigPayload } from '../../types/system-config'
 import type { StateAdmin } from '../../types/state-admins'
@@ -96,6 +96,24 @@ export const superAdminApi = {
     return mapApiResponseToSystemConfig(
       response.data.data.configs as Parameters<typeof mapApiResponseToSystemConfig>[0]
     )
+  },
+
+  // ── Real HTTP: Tenants Summary ─────────────────────────────────────────────
+  getTenantsSummary: async (): Promise<SuperAdminStats> => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        totalTenants: number
+        activeTenants: number
+        inactiveTenants: number
+        archivedTenants: number
+      }>
+    >('/api/v1/tenants/summary')
+    const { totalTenants, activeTenants, inactiveTenants } = response.data.data
+    return {
+      totalStatesManaged: totalTenants,
+      activeStates: activeTenants,
+      inactiveStates: inactiveTenants,
+    }
   },
 
   // ── Real HTTP: Tenants (States/UTs) ────────────────────────────────────────

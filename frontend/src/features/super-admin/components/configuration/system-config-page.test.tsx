@@ -6,8 +6,8 @@ import type { SystemConfiguration } from '../../types/system-config'
 
 const mockConfig: SystemConfiguration = {
   supportedChannels: ['BFM', 'MAN'],
-  waterQuantityMaxThreshold: 100,
-  waterQuantityMinThreshold: 80,
+  oversupplyThreshold: 100,
+  undersupplyThreshold: 80,
   bfmImageConfidenceThreshold: 89,
   locationAffinityThreshold: 78,
 }
