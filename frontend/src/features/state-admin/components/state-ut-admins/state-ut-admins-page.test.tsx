@@ -21,6 +21,14 @@ const mockAdmins: StateUTAdmin[] = [
     phone: '8765490123',
     status: 'inactive',
   },
+  {
+    id: 'admin-3',
+    firstName: 'Priya',
+    lastName: 'Sharma',
+    email: 'priya@gmail.com',
+    phone: '7654321098',
+    status: 'pending',
+  },
 ]
 
 const mockNavigate = jest.fn()
@@ -31,14 +39,17 @@ jest.mock('react-router-dom', () => ({
 }))
 
 const mockUseStateUTAdminsQuery = jest.fn()
+const mockReinviteMutate = jest.fn()
 
 jest.mock('../../services/query/use-state-admin-queries', () => ({
   useStateUTAdminsQuery: () => mockUseStateUTAdminsQuery(),
+  useReinviteStateUTAdminMutation: () => ({ mutate: mockReinviteMutate }),
 }))
 
 describe('StateUTAdminsPage', () => {
   beforeEach(() => {
     mockNavigate.mockReset()
+    mockReinviteMutate.mockReset()
     mockUseStateUTAdminsQuery.mockReturnValue({
       data: mockAdmins,
       isLoading: false,
@@ -130,5 +141,16 @@ describe('StateUTAdminsPage', () => {
     const editButtons = screen.getAllByRole('button', { name: /edit admin/i })
     fireEvent.click(editButtons[0])
     expect(mockNavigate).toHaveBeenCalledWith('/state-admin/state-ut-admins/admin-1/edit')
+  })
+
+  it('renders resend invite button for pending admins', () => {
+    renderWithProviders(<StateUTAdminsPage />)
+    expect(screen.getByRole('button', { name: /resend invite.*priya sharma/i })).toBeTruthy()
+  })
+
+  it('calls reinvite mutation when resend invite is clicked', () => {
+    renderWithProviders(<StateUTAdminsPage />)
+    fireEvent.click(screen.getByRole('button', { name: /resend invite.*priya sharma/i }))
+    expect(mockReinviteMutate).toHaveBeenCalledWith('admin-3', expect.any(Object))
   })
 })

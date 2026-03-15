@@ -1,4 +1,4 @@
-export type StateUTAdminStatus = 'active' | 'inactive'
+export type StateUTAdminStatus = 'active' | 'inactive' | 'pending'
 
 export interface StateUTAdmin extends Record<string, unknown> {
   id: string

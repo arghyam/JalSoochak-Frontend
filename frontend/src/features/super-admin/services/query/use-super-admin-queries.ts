@@ -177,6 +177,26 @@ export function useUpdateUserStatusMutation() {
   })
 }
 
+export function useReinviteSuperUserMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => superAdminApi.reinviteUser(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: superAdminQueryKeys.superUsers() })
+    },
+  })
+}
+
+export function useReinviteStateAdminMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => superAdminApi.reinviteUser(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: superAdminQueryKeys.stateAdmins() })
+    },
+  })
+}
+
 // ── Super Users ──────────────────────────────────────────────────────────────
 
 export function useSuperUsersQuery() {

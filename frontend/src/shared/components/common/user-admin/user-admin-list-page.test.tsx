@@ -21,6 +21,14 @@ const mockData: UserAdminData[] = [
     phone: '8765490123',
     status: 'inactive',
   },
+  {
+    id: 'u-3',
+    firstName: 'Priya',
+    lastName: 'Sharma',
+    email: 'priya@gmail.com',
+    phone: '7654321098',
+    status: 'pending',
+  },
 ]
 
 const mockNavigate = jest.fn()
@@ -53,6 +61,7 @@ const mockLabels: UserAdminListLabels = {
     search: 'Search users',
     view: 'View',
     edit: 'Edit',
+    resendInvite: 'Resend invite',
   },
 }
 
@@ -247,5 +256,67 @@ describe('UserAdminListPage', () => {
     const editButtons = screen.getAllByRole('button', { name: /edit ravi kumar/i })
     fireEvent.click(editButtons[0])
     expect(mockNavigate).toHaveBeenCalledWith('/test/users/u-1/edit')
+  })
+
+  it('renders resend invite button only for pending rows', () => {
+    renderWithProviders(
+      <UserAdminListPage
+        data={mockData}
+        isLoading={false}
+        isError={false}
+        onRefetch={jest.fn()}
+        routes={mockRoutes}
+        labels={mockLabels}
+        onReinvite={jest.fn()}
+      />
+    )
+    expect(screen.getByRole('button', { name: /resend invite priya sharma/i })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /resend invite ravi kumar/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /resend invite sanjeev kumar/i })).toBeNull()
+  })
+
+  it('calls onReinvite with the correct id when resend invite is clicked', () => {
+    const onReinviteMock = jest.fn()
+    renderWithProviders(
+      <UserAdminListPage
+        data={mockData}
+        isLoading={false}
+        isError={false}
+        onRefetch={jest.fn()}
+        routes={mockRoutes}
+        labels={mockLabels}
+        onReinvite={onReinviteMock}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: /resend invite priya sharma/i }))
+    expect(onReinviteMock).toHaveBeenCalledWith('u-3')
+  })
+
+  it('does not render resend invite button when onReinvite is not provided', () => {
+    renderWithProviders(
+      <UserAdminListPage
+        data={mockData}
+        isLoading={false}
+        isError={false}
+        onRefetch={jest.fn()}
+        routes={mockRoutes}
+        labels={mockLabels}
+      />
+    )
+    expect(screen.queryByRole('button', { name: /resend invite/i })).toBeNull()
+  })
+
+  it('renders Pending status chip for pending rows', () => {
+    renderWithProviders(
+      <UserAdminListPage
+        data={mockData}
+        isLoading={false}
+        isError={false}
+        onRefetch={jest.fn()}
+        routes={mockRoutes}
+        labels={mockLabels}
+      />
+    )
+    expect(screen.getByText('Pending')).toBeTruthy()
   })
 })

@@ -166,14 +166,24 @@ export const superAdminApi = {
     const response = await apiClient.get<ApiResponse<ApiUsersListResponse>>(
       '/api/v1/users/state-admins'
     )
-    return response.data.data.content.map((u: ApiUser) => ({
-      id: String(u.id),
-      adminName: `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim(),
-      stateUt: u.tenantCode ?? '',
-      mobileNumber: u.phoneNumber,
-      emailAddress: u.email,
-      signupStatus: u.active ? ('completed' as const) : ('pending' as const),
-    }))
+    return response.data.data.content.map((u: ApiUser) => {
+      let signupStatus: StateAdmin['signupStatus']
+      if (u.status === 'ACTIVE') {
+        signupStatus = 'completed'
+      } else if (u.status === 'INACTIVE') {
+        signupStatus = 'inactive'
+      } else {
+        signupStatus = 'pending'
+      }
+      return {
+        id: String(u.id),
+        adminName: `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim(),
+        stateUt: u.tenantCode ?? '',
+        mobileNumber: u.phoneNumber,
+        emailAddress: u.email,
+        signupStatus,
+      }
+    })
   },
 
   // ── Real HTTP: Users (super users + generic update/status) ─────────────────
@@ -208,5 +218,9 @@ export const superAdminApi = {
     } else {
       await apiClient.put(`/api/v1/users/${id}/activate`)
     }
+  },
+
+  reinviteUser: async (id: string): Promise<void> => {
+    await apiClient.post(`/api/v1/users/${id}/reinvite`)
   },
 }

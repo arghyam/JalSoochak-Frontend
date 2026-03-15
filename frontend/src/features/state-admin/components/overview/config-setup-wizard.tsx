@@ -71,7 +71,11 @@ function StepNode({ step, index, configured, onClick }: Readonly<StepNodeProps>)
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') onClick()
+        if (e.key === 'Enter') onClick()
+        if (e.key === ' ') {
+          e.preventDefault()
+          onClick()
+        }
       }}
       aria-label={t(step.labelKey)}
     >

@@ -401,7 +401,8 @@
     "aria": {
       "search": "Search admins",
       "view": "View admin",
-      "edit": "Edit admin"
+      "edit": "Edit admin",
+      "resendInvite": "Resend invite for admin"
     }
   },
 

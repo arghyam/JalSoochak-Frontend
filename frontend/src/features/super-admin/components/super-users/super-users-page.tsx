@@ -2,19 +2,33 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   UserAdminListPage,
+  ToastContainer,
   type UserAdminRoutes,
   type UserAdminListLabels,
 } from '@/shared/components/common'
+import { useToast } from '@/shared/hooks/use-toast'
 import { ROUTES } from '@/shared/constants/routes'
-import { useSuperUsersQuery } from '../../services/query/use-super-admin-queries'
+import {
+  useSuperUsersQuery,
+  useReinviteSuperUserMutation,
+} from '../../services/query/use-super-admin-queries'
 
 export function SuperUsersPage() {
   const { t } = useTranslation(['super-admin', 'common'])
   const { data: users = [], isLoading, isError, refetch } = useSuperUsersQuery()
+  const reinviteMutation = useReinviteSuperUserMutation()
+  const toast = useToast()
 
   useEffect(() => {
     document.title = `${t('superUsers.title')} | JalSoochak`
   }, [t])
+
+  const handleReinvite = (id: string) => {
+    reinviteMutation.mutate(id, {
+      onSuccess: () => toast.success(t('common:toast.reinviteSent')),
+      onError: () => toast.error(t('common:toast.reinviteFailed')),
+    })
+  }
 
   const routes: UserAdminRoutes = {
     list: ROUTES.SUPER_ADMIN_SUPER_USERS,
@@ -39,17 +53,22 @@ export function SuperUsersPage() {
       search: t('superUsers.aria.search'),
       view: t('superUsers.aria.view'),
       edit: t('superUsers.aria.edit'),
+      resendInvite: t('superUsers.aria.resendInvite'),
     },
   }
 
   return (
-    <UserAdminListPage
-      data={users}
-      isLoading={isLoading}
-      isError={isError}
-      onRefetch={() => void refetch()}
-      routes={routes}
-      labels={labels}
-    />
+    <>
+      <UserAdminListPage
+        data={users}
+        isLoading={isLoading}
+        isError={isError}
+        onRefetch={() => void refetch()}
+        routes={routes}
+        labels={labels}
+        onReinvite={handleReinvite}
+      />
+      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
+    </>
   )
 }

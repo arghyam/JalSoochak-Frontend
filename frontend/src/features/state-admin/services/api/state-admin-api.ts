@@ -130,7 +130,7 @@ interface ApiUser {
   firstName: string | null
   lastName: string | null
   phoneNumber: string
-  active: boolean
+  status: 'ACTIVE' | 'INACTIVE' | 'PENDING'
 }
 
 interface ApiUsersListResponse {
@@ -142,13 +142,21 @@ interface ApiUsersListResponse {
 }
 
 function mapApiUserToAdmin(u: ApiUser): StateUTAdmin {
+  let status: StateUTAdmin['status']
+  if (u.status === 'ACTIVE') {
+    status = 'active'
+  } else if (u.status === 'PENDING') {
+    status = 'pending'
+  } else {
+    status = 'inactive'
+  }
   return {
     id: String(u.id),
     firstName: u.firstName ?? '',
     lastName: u.lastName ?? '',
     email: u.email,
     phone: u.phoneNumber,
-    status: u.active ? 'active' : 'inactive',
+    status,
   }
 }
 
@@ -419,6 +427,10 @@ export const stateAdminApi = {
       role: 'STATE_ADMIN',
       tenantCode,
     })
+  },
+
+  reinviteStateUTAdmin: async (id: string): Promise<void> => {
+    await apiClient.post(`/api/v1/users/${id}/reinvite`)
   },
 
   // --- Real HTTP ---

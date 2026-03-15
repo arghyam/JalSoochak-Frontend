@@ -246,6 +246,16 @@ export function useUpdateStateUTAdminStatusMutation() {
   })
 }
 
+export function useReinviteStateUTAdminMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => stateAdminApi.reinviteStateUTAdmin(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.stateUtAdmins() })
+    },
+  })
+}
+
 export function useEscalationRulesQuery() {
   return useQuery({
     queryKey: stateAdminQueryKeys.escalationRules(),
