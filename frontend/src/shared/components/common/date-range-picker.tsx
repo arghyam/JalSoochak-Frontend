@@ -9,6 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
   Text,
+  useMediaQuery,
   VStack,
 } from '@chakra-ui/react'
 import type { ResponsiveValue } from '@chakra-ui/react'
@@ -110,6 +111,7 @@ export function DateRangePicker({
   placeholderColor = 'neutral.500',
 }: DateRangePickerProps) {
   const { t } = useTranslation('dashboard')
+  const [isTinyPicker] = useMediaQuery('(max-width: 499px)')
   const [isOpen, setIsOpen] = useState(false)
   const [draft, setDraft] = useState<DateRange | null>(value)
   const [draftIso, setDraftIso] = useState<{ startDate: string; endDate: string } | null>(
@@ -295,7 +297,9 @@ export function DateRangePicker({
           as="button"
           type="button"
           w={width}
+          maxW={width}
           h={height}
+          maxH={height}
           px="12px"
           py="6px"
           bg="white"
@@ -323,37 +327,40 @@ export function DateRangePicker({
         </Flex>
       </PopoverTrigger>
       <PopoverContent
-        w={{ base: 'full', md: '420px' }}
+        w="420px"
+        maxW="calc(100vw - 32px)"
         borderColor="neutral.100"
         boxShadow="md"
         mt="16px"
       >
         <PopoverBody p="16px">
-          <Flex direction={{ base: 'column', md: 'row' }} gap="16px">
-            <VStack align="stretch" spacing="6px" minW={{ md: '160px' }}>
-              <Text textStyle="h10" color="neutral.500">
-                {t('filters.dateRangePicker.quickRanges', 'Quick ranges')}
-              </Text>
-              {presets.map((preset) => {
-                const isSelected = draft?.preset === preset.label
-                return (
-                  <Button
-                    key={preset.id}
-                    variant="ghost"
-                    justifyContent="flex-start"
-                    size="sm"
-                    fontWeight={isSelected ? '600' : '500'}
-                    color={isSelected ? 'primary.500' : 'neutral.600'}
-                    onClick={() => handlePreset(preset)}
-                  >
-                    {preset.label}
-                  </Button>
-                )
-              })}
-            </VStack>
-            <Box flex="1">
-              <Flex gap="12px" wrap="wrap">
-                <Box flex="1" minW="180px">
+          <Flex direction="row" gap="16px" align="flex-start">
+            {isTinyPicker ? null : (
+              <VStack align="stretch" spacing="6px" minW="160px" flex="0 0 160px">
+                <Text textStyle="h10" color="neutral.500">
+                  {t('filters.dateRangePicker.quickRanges', 'Quick ranges')}
+                </Text>
+                {presets.map((preset) => {
+                  const isSelected = draft?.preset === preset.label
+                  return (
+                    <Button
+                      key={preset.id}
+                      variant="ghost"
+                      justifyContent="flex-start"
+                      size="sm"
+                      fontWeight={isSelected ? '600' : '500'}
+                      color={isSelected ? 'primary.500' : 'neutral.600'}
+                      onClick={() => handlePreset(preset)}
+                    >
+                      {preset.label}
+                    </Button>
+                  )
+                })}
+              </VStack>
+            )}
+            <Box flex="1" minW={0}>
+              <Flex direction="column" gap="12px">
+                <Box w="full" minW={0}>
                   <Text textStyle="h10" color="neutral.500" mb="6px">
                     {t('filters.dateRangePicker.startDate', 'Start date')}
                   </Text>
@@ -434,7 +441,7 @@ export function DateRangePicker({
                     />
                   </Box>
                 </Box>
-                <Box flex="1" minW="180px">
+                <Box w="full" minW={0}>
                   <Text textStyle="h10" color="neutral.500" mb="6px">
                     {t('filters.dateRangePicker.endDate', 'End date')}
                   </Text>
