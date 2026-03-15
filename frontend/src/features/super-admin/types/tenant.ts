@@ -2,7 +2,6 @@ export type TenantStatus = 'ACTIVE' | 'INACTIVE'
 
 export interface CreateTenantInput {
   stateCode: string
-  lgdCode: number
   name: string
 }
 
@@ -10,7 +9,6 @@ export interface Tenant {
   id: number
   uuid: string
   stateCode: string
-  lgdCode: number
   name: string
   status: TenantStatus
   createdAt: string

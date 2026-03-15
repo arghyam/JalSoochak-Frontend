@@ -51,6 +51,8 @@
     },
     "table": {
       "stateUt": "राज्य/केंद्र शासित प्रदेश",
+      "stateCode": "राज्य कोड",
+      "lgdCode": "LGD कोड",
       "status": "स्थिति",
       "lastSyncDate": "अंतिम सिंक तिथि",
       "totalDistricts": "कुल जिले",
@@ -59,7 +61,11 @@
     "details": {
       "title": "राज्य/केंद्र शासित प्रदेश विवरण",
       "name": "राज्य/केंद्र शासित प्रदेश का नाम",
-      "code": "राज्य/केंद्र शासित प्रदेश कोड"
+      "code": "राज्य/केंद्र शासित प्रदेश कोड",
+      "autoFilledOnStateSelection": "राज्य चुनने पर स्वतः भरा जाएगा",
+      "stateCode": "राज्य कोड",
+      "lgdCode": "LGD कोड",
+      "createdAt": "बनाया गया"
     },
     "adminDetails": {
       "title": "राज्य व्यवस्थापक विवरण",
@@ -192,6 +198,39 @@
     "aria": {
       "viewUser": "उपयोगकर्ता देखें",
       "editUser": "उपयोगकर्ता संपादित करें"
+    }
+  },
+
+  "configuration": {
+    "pageTitle": "कॉन्फ़िगरेशन",
+    "sectionTitle": "सिस्टम कॉन्फ़िगरेशन",
+    "sections": {
+      "supportedChannels": {
+        "title": "समर्थित चैनल"
+      },
+      "waterQuantityMax": {
+        "title": "अधिकतम मात्रा सीमा (%)"
+      },
+      "waterQuantityMin": {
+        "title": "न्यूनतम मात्रा सीमा (%)"
+      },
+      "bfmImageConfidence": {
+        "title": "BFM छवि विश्वास सीमा (%)"
+      },
+      "locationAffinity": {
+        "title": "स्थान आत्मीयता सीमा"
+      }
+    },
+    "messages": {
+      "saveSuccess": "कॉन्फ़िगरेशन सफलतापूर्वक सहेजा गया",
+      "saveFailed": "कॉन्फ़िगरेशन सहेजने में विफल",
+      "validation": {
+        "channelRequired": "कम से कम एक समर्थित चैनल चुना जाना चाहिए"
+      }
+    },
+    "aria": {
+      "editConfiguration": "कॉन्फ़िगरेशन संपादित करें",
+      "form": "सिस्टम कॉन्फ़िगरेशन फ़ॉर्म"
     }
   },
 

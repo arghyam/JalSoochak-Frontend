@@ -22,8 +22,8 @@ const mockQueryState: {
   isError: false,
 }
 
-const mockAuthState: { user: { tenantId: string } | null } = {
-  user: { tenantId: 'Telangana' },
+const mockAuthState: { user: { tenantCode: string } | null } = {
+  user: { tenantCode: 'TG' },
 }
 
 jest.mock('../../services/query/use-state-admin-queries', () => ({
@@ -73,11 +73,11 @@ beforeEach(() => {
   mockQueryState.data = mockOverviewData
   mockQueryState.isLoading = false
   mockQueryState.isError = false
-  mockAuthState.user = { tenantId: 'Telangana' }
+  mockAuthState.user = { tenantCode: 'TG' }
 })
 
 describe('data state', () => {
-  it('renders the page heading with tenantId', () => {
+  it('renders the page heading with state name derived from tenantCode', () => {
     renderWithProviders(<OverviewPage />)
     expect(screen.getByRole('heading', { level: 1 })).toBeTruthy()
     expect(screen.getByText(/Overview of Telangana/i)).toBeTruthy()
@@ -164,8 +164,8 @@ describe('null/no data state', () => {
 })
 
 describe('fallback heading', () => {
-  it('renders fallback title when user has no tenantId', () => {
-    mockAuthState.user = null
+  it('renders fallback title when user has no tenantCode', () => {
+    mockAuthState.user = { tenantCode: '' }
 
     renderWithProviders(<OverviewPage />)
 

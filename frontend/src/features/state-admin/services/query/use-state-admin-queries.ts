@@ -9,7 +9,9 @@ import {
   type SaveWaterNormsConfigurationPayload,
   type UpdateNudgeTemplatePayload,
 } from '../api/state-admin-api'
+import type { SaveEscalationRulesPayload } from '../../types/escalation-rules'
 import { stateAdminQueryKeys } from './state-admin-query-keys'
+import { useAuthStore } from '@/app/store/auth-store'
 
 export function useStateAdminOverviewQuery() {
   return useQuery({
@@ -137,6 +139,13 @@ export function useSaveThresholdConfigurationMutation() {
   })
 }
 
+export function useMessageTemplatesQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.messageTemplates(),
+    queryFn: stateAdminApi.getMessageTemplates,
+  })
+}
+
 export function useNudgeTemplatesQuery() {
   return useQuery({
     queryKey: stateAdminQueryKeys.nudgeTemplates(),
@@ -180,9 +189,11 @@ export function useSaveConfigurationMutation() {
 }
 
 export function useStateUTAdminsQuery() {
+  const tenantCode = useAuthStore((state) => state.user?.tenantCode ?? '')
   return useQuery({
     queryKey: stateAdminQueryKeys.stateUtAdmins(),
-    queryFn: stateAdminApi.getStateUTAdmins,
+    queryFn: () => stateAdminApi.getStateUTAdmins(tenantCode),
+    enabled: Boolean(tenantCode),
   })
 }
 
@@ -194,11 +205,11 @@ export function useStateUTAdminByIdQuery(id: string | undefined) {
   })
 }
 
-export function useCreateStateUTAdminMutation() {
+export function useInviteStateUTAdminMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (input: { firstName: string; lastName: string; email: string; phone: string }) =>
-      stateAdminApi.createStateUTAdmin(input),
+    mutationFn: (payload: { email: string; tenantCode: string }) =>
+      stateAdminApi.inviteStateUTAdmin(payload.email, payload.tenantCode),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.stateUtAdmins() })
     },
@@ -230,6 +241,23 @@ export function useUpdateStateUTAdminStatusMutation() {
     onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.stateUtAdmins() })
       queryClient.removeQueries({ queryKey: stateAdminQueryKeys.stateUtAdminById(variables.id) })
+    },
+  })
+}
+
+export function useEscalationRulesQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.escalationRules(),
+    queryFn: stateAdminApi.getEscalationRules,
+  })
+}
+
+export function useSaveEscalationRulesMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: SaveEscalationRulesPayload) => stateAdminApi.saveEscalationRules(payload),
+    onSuccess: (data) => {
+      queryClient.setQueryData(stateAdminQueryKeys.escalationRules(), data)
     },
   })
 }

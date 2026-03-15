@@ -9,4 +9,6 @@ export { ApiCredentialsPage } from './components/api-credentials/api-credentials
 export { IngestionMonitorPage } from './components/ingestion-monitor/ingestion-monitor-page'
 export { SuperUsersPage } from './components/super-users/super-users-page'
 export { SuperUserFormPage } from './components/super-users/super-user-form-page'
+export { InviteSuperUserPage } from './components/super-users/invite-super-user-page'
 export { ViewSuperUserPage } from './components/super-users/view-super-user-page'
+export { SystemConfigPage } from './components/configuration/system-config-page'

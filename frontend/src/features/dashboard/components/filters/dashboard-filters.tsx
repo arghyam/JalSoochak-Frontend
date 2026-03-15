@@ -1,11 +1,19 @@
+import { useMemo, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { Button, Flex, Text } from '@chakra-ui/react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { DateRangePicker } from '@/shared/components/common'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
 import { SearchLayout } from '@/shared/components/layout'
 import { useLocationSearchQuery } from '../../services/query/use-location-search-query'
+import { useLocationChildrenQuery } from '../../services/query/use-location-children-query'
+import { useLocationHierarchyQuery } from '../../services/query/use-location-hierarchy-query'
+import { locationSearchQueryKeys } from '../../services/query/location-search-query-keys'
 import { computeTrailIndices } from '../../utils/trail-index'
+import { slugify, toCapitalizedWords } from '../../utils/format-location-label'
+import type { HierarchyType } from '../../services/api/dashboard-api'
+import type { TenantChildLocation } from '../../services/api/dashboard-api'
 
 type DashboardFiltersProps = {
   filterTabIndex: number
@@ -50,6 +58,58 @@ type DashboardFiltersProps = {
   onActiveTrailChange?: (trailIndex: number | null) => void
 }
 
+type LocationOption = SearchableSelectOption & { locationId?: number }
+const LOCATION_VALUE_SEPARATOR = ':'
+
+const toStableLocationValue = (locationId: number, label: string): string =>
+  `${locationId}${LOCATION_VALUE_SEPARATOR}${slugify(label)}`
+
+const parseLocationId = (value: string): number | undefined => {
+  if (!value) {
+    return undefined
+  }
+
+  const idPrefix = value.split(LOCATION_VALUE_SEPARATOR, 1)[0]
+  const parsedId = Number.parseInt(idPrefix, 10)
+  return Number.isFinite(parsedId) ? parsedId : undefined
+}
+
+const findLocationOption = (
+  options: LocationOption[],
+  selectedValue: string
+): LocationOption | undefined => {
+  if (!selectedValue) {
+    return undefined
+  }
+
+  const selectedId = parseLocationId(selectedValue)
+  if (typeof selectedId === 'number') {
+    return options.find((option) => option.locationId === selectedId)
+  }
+
+  return options.find(
+    (option) => option.value === selectedValue || slugify(option.label) === selectedValue
+  )
+}
+
+const mapLocationOptions = (locations: TenantChildLocation[] | undefined): LocationOption[] => {
+  if (!locations?.length) {
+    return []
+  }
+
+  return locations
+    .filter((location) => typeof location.id === 'number' && Boolean(location.title?.trim()))
+    .map((location) => {
+      const locationId = location.id as number
+      const normalizedTitle = toCapitalizedWords(location.title?.trim() ?? '')
+      return {
+        value: toStableLocationValue(locationId, normalizedTitle),
+        label: normalizedTitle,
+        locationId,
+      }
+    })
+}
+
 export function DashboardFilters(props: DashboardFiltersProps) {
   const { t } = useTranslation('dashboard')
   const {
@@ -76,21 +136,163 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     setSelectedDuration,
   } = props
 
-  const { data: locationSearchData } = useLocationSearchQuery()
-  const breadcrumbStateOptions = locationSearchData?.states ?? [
-    { value: 'telangana', label: 'Telangana' },
-  ]
-  const totalStatesCount = locationSearchData?.totalStatesCount ?? 36
+  const queryClient = useQueryClient()
+  const [isBreadcrumbPanelOpen, setIsBreadcrumbPanelOpen] = useState(false)
+  const { data: locationSearchData } = useLocationSearchQuery({
+    enabled: isBreadcrumbPanelOpen,
+  })
+  const breadcrumbStateOptions = locationSearchData?.states ?? []
+  const totalStatesCount = locationSearchData?.totalStatesCount ?? 0
+  const selectedTenant = breadcrumbStateOptions.find((option) => option.value === selectedState)
+  const hierarchyType: HierarchyType = filterTabIndex === 0 ? 'LGD' : 'DEPARTMENT'
+  const { data: rootLocationsData } = useLocationChildrenQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: 0,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(selectedTenant?.tenantId),
+  })
+  const rootLevelOptions = useMemo(
+    () => mapLocationOptions(rootLocationsData?.data),
+    [rootLocationsData?.data]
+  )
+  const selectedRootOption = findLocationOption(rootLevelOptions, selectedState)
+  const isRootStateLevel = Boolean(selectedState) && Boolean(selectedRootOption)
+  const districtParentId = isRootStateLevel ? selectedRootOption?.locationId : undefined
+  const { data: districtLocationsData } = useLocationChildrenQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: districtParentId,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(selectedTenant?.tenantId && districtParentId),
+  })
+  const districtApiOptions = useMemo(() => {
+    if (isRootStateLevel) {
+      return mapLocationOptions(districtLocationsData?.data)
+    }
+
+    // Some tenants return districts directly at parentId=0 instead of returning state first.
+    return rootLevelOptions
+  }, [districtLocationsData?.data, isRootStateLevel, rootLevelOptions])
+  const selectedDistrictOption = findLocationOption(districtApiOptions, selectedDistrict)
+  const selectedDistrictId = parseLocationId(selectedDistrict) ?? selectedDistrictOption?.locationId
+  const { data: blockLocationsData } = useLocationChildrenQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: selectedDistrictId,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(selectedTenant?.tenantId && selectedDistrictId),
+  })
+  const blockApiOptions = useMemo(
+    () => mapLocationOptions(blockLocationsData?.data),
+    [blockLocationsData?.data]
+  )
+  const selectedBlockOption = findLocationOption(blockApiOptions, selectedBlock)
+  const selectedBlockId = parseLocationId(selectedBlock) ?? selectedBlockOption?.locationId
+  const { data: gramPanchayatLocationsData } = useLocationChildrenQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: selectedBlockId,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(selectedTenant?.tenantId && selectedBlockId),
+  })
+  const gramPanchayatApiOptions = useMemo(
+    () => mapLocationOptions(gramPanchayatLocationsData?.data),
+    [gramPanchayatLocationsData?.data]
+  )
+  const selectedGramPanchayatOption = findLocationOption(
+    gramPanchayatApiOptions,
+    selectedGramPanchayat
+  )
+  const selectedGramPanchayatId =
+    parseLocationId(selectedGramPanchayat) ?? selectedGramPanchayatOption?.locationId
+  const { data: villageLocationsData } = useLocationChildrenQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: selectedGramPanchayatId,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(selectedTenant?.tenantId && selectedGramPanchayatId),
+  })
+  const villageApiOptions = useMemo(
+    () => mapLocationOptions(villageLocationsData?.data),
+    [villageLocationsData?.data]
+  )
+  const hasSelectedTenant = Boolean(selectedTenant?.tenantId)
+  const resolvedDistrictOptions = hasSelectedTenant
+    ? districtApiOptions
+    : districtApiOptions.length > 0
+      ? districtApiOptions
+      : districtOptions
+  const resolvedBlockOptions = hasSelectedTenant
+    ? blockApiOptions
+    : blockApiOptions.length > 0
+      ? blockApiOptions
+      : blockOptions
+  const resolvedGramPanchayatOptions = hasSelectedTenant
+    ? gramPanchayatApiOptions
+    : gramPanchayatApiOptions.length > 0
+      ? gramPanchayatApiOptions
+      : gramPanchayatOptions
+  const resolvedVillageOptions = hasSelectedTenant
+    ? villageApiOptions
+    : villageApiOptions.length > 0
+      ? villageApiOptions
+      : villageOptions
+  const { data: locationHierarchyData } = useLocationHierarchyQuery({
+    tenantId: selectedTenant?.tenantId,
+    tenantCode: selectedTenant?.tenantCode,
+    hierarchyType,
+    enabled: Boolean(selectedTenant?.tenantId),
+  })
+  const hierarchyLevels = locationHierarchyData?.data?.levels ?? []
+  const hierarchyLabelByLevel = hierarchyLevels.reduce<Record<number, string>>((acc, item) => {
+    const levelNumber = typeof item.level === 'number' ? item.level : undefined
+    const levelTitle = toCapitalizedWords(item.levelName?.[0]?.title?.trim() ?? '')
+    if (!levelNumber || !levelTitle) {
+      return acc
+    }
+    acc[levelNumber] = levelTitle
+    return acc
+  }, {})
+  const toPluralLabel = (value: string): string => {
+    const normalized = value.trim().toLowerCase()
+    if (normalized === 'state') return 'States'
+    if (normalized === 'district') return 'Districts'
+    if (normalized === 'block') return 'Blocks'
+    if (normalized === 'panchayat') return 'Panchayats'
+    if (normalized === 'village') return 'Villages'
+    if (normalized === 'sub division' || normalized === 'sub-division') return 'Sub-divisions'
+    if (value.endsWith('s')) return value
+    return `${value}s`
+  }
+  const stateLabel = toPluralLabel(
+    hierarchyLabelByLevel[1] ?? t('filters.options.states', 'States')
+  )
+  const districtLabel = toPluralLabel(
+    hierarchyLabelByLevel[2] ?? t('filters.options.districts', 'Districts')
+  )
+  const blockLabel = toPluralLabel(
+    hierarchyLabelByLevel[3] ?? t('filters.options.blocks', 'Blocks')
+  )
+  const gramPanchayatLabel = toPluralLabel(
+    hierarchyLabelByLevel[4] ?? t('filters.options.gramPanchayats', 'Gram Panchayats')
+  )
+  const villageLabel = toPluralLabel(
+    hierarchyLabelByLevel[5] ?? t('filters.options.villages', 'Villages')
+  )
   const findLabel = (value: string, options: SearchableSelectOption[]): string | null => {
     if (!value) return null
-    return options.find((option) => option.value === value)?.label ?? null
+    return (
+      options.find((option) => option.value === value || slugify(option.label) === value)?.label ??
+      null
+    )
   }
   const selectionTrail = [
     findLabel(selectedState, breadcrumbStateOptions),
-    findLabel(selectedDistrict, districtOptions),
-    findLabel(selectedBlock, blockOptions),
-    findLabel(selectedGramPanchayat, gramPanchayatOptions),
-    findLabel(selectedVillage, villageOptions),
+    findLabel(selectedDistrict, resolvedDistrictOptions),
+    findLabel(selectedBlock, resolvedBlockOptions),
+    findLabel(selectedGramPanchayat, resolvedGramPanchayatOptions),
+    findLabel(selectedVillage, resolvedVillageOptions),
   ].filter((item): item is string => Boolean(item))
 
   const trailSelectionValues = [
@@ -107,41 +309,51 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   const hasSelectedGramPanchayat = effectiveTrailIndex >= 3 && Boolean(selectedGramPanchayat)
   const breadcrumbPanelConfig = hasSelectedGramPanchayat
     ? {
-        options: villageOptions,
-        label: t('filters.options.villages', 'Villages'),
-        totalCount: villageOptions.length,
-        noOptionsText: t('filters.noOptions.villages', 'No villages found'),
+        options: resolvedVillageOptions,
+        label: villageLabel,
+        totalCount: resolvedVillageOptions.length,
+        noOptionsText: t('filters.noOptions.villages', {
+          defaultValue: `No ${villageLabel.toLowerCase()} found`,
+        }),
         onSelect: setSelectedVillage,
       }
     : hasSelectedBlock
       ? {
-          options: gramPanchayatOptions,
-          label: t('filters.options.gramPanchayats', 'Gram Panchayats'),
-          totalCount: gramPanchayatOptions.length,
-          noOptionsText: t('filters.noOptions.gramPanchayats', 'No gram panchayats found'),
+          options: resolvedGramPanchayatOptions,
+          label: gramPanchayatLabel,
+          totalCount: resolvedGramPanchayatOptions.length,
+          noOptionsText: t('filters.noOptions.gramPanchayats', {
+            defaultValue: `No ${gramPanchayatLabel.toLowerCase()} found`,
+          }),
           onSelect: onGramPanchayatChange,
         }
       : hasSelectedDistrict
         ? {
-            options: blockOptions,
-            label: t('filters.options.blocks', 'Blocks'),
-            totalCount: blockOptions.length,
-            noOptionsText: t('filters.noOptions.blocks', 'No blocks found'),
+            options: resolvedBlockOptions,
+            label: blockLabel,
+            totalCount: resolvedBlockOptions.length,
+            noOptionsText: t('filters.noOptions.blocks', {
+              defaultValue: `No ${blockLabel.toLowerCase()} found`,
+            }),
             onSelect: onBlockChange,
           }
         : hasSelectedState
           ? {
-              options: districtOptions,
-              label: t('filters.options.districts', 'Districts'),
-              totalCount: districtOptions.length,
-              noOptionsText: t('filters.noOptions.districts', 'No districts found'),
+              options: resolvedDistrictOptions,
+              label: districtLabel,
+              totalCount: resolvedDistrictOptions.length,
+              noOptionsText: t('filters.noOptions.districts', {
+                defaultValue: `No ${districtLabel.toLowerCase()} found`,
+              }),
               onSelect: onDistrictChange,
             }
           : {
               options: breadcrumbStateOptions,
-              label: t('filters.options.states', 'States'),
+              label: stateLabel,
               totalCount: totalStatesCount,
-              noOptionsText: t('filters.noOptions.states', 'No states found'),
+              noOptionsText: t('filters.noOptions.states', {
+                defaultValue: `No ${stateLabel.toLowerCase()} found`,
+              }),
               onSelect: onStateChange,
             }
 
@@ -152,6 +364,13 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     }
 
     onActiveTrailChange?.(trailIndex)
+  }
+
+  const handlePanelOpenChange = (isOpen: boolean) => {
+    setIsBreadcrumbPanelOpen(isOpen)
+    if (isOpen) {
+      void queryClient.invalidateQueries({ queryKey: locationSearchQueryKeys.statesUts() })
+    }
   }
 
   return (
@@ -168,6 +387,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
         onOptionSelect: breadcrumbPanelConfig.onSelect,
         closeOnOptionSelect: hasSelectedGramPanchayat,
         onTrailSelect: handleTrailSelect,
+        onPanelOpenChange: handlePanelOpenChange,
         showTabs: true,
         tabsDisabled: !hasSelectedState,
         activeTab: filterTabIndex,

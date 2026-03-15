@@ -1,7 +1,6 @@
 export const NOTIFY_ROLES = {
   SECTION_OFFICER: 'SectionOfficer',
   ASSISTANT_EXECUTIVE_ENGINEER: 'AssistantExecutiveEngineer',
-  EXECUTIVE_ENGINEER: 'ExecutiveEngineer',
 } as const
 
 export type NotifyRole = (typeof NOTIFY_ROLES)[keyof typeof NOTIFY_ROLES]
@@ -9,7 +8,6 @@ export type NotifyRole = (typeof NOTIFY_ROLES)[keyof typeof NOTIFY_ROLES]
 export const NOTIFY_ROLE_LABELS: Record<NotifyRole, string> = {
   [NOTIFY_ROLES.SECTION_OFFICER]: 'Section Officer',
   [NOTIFY_ROLES.ASSISTANT_EXECUTIVE_ENGINEER]: 'Assistant Executive Engineer',
-  [NOTIFY_ROLES.EXECUTIVE_ENGINEER]: 'Executive Engineer',
 }
 
 export const CONDITION_TYPES = {

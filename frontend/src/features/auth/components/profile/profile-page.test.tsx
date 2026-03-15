@@ -3,39 +3,98 @@ import { describe, expect, it, jest, beforeEach } from '@jest/globals'
 import '@/app/i18n'
 import { ProfilePage } from './profile-page'
 import { renderWithProviders } from '@/test/render-with-providers'
-import type { AuthUser } from '@/features/auth/services/auth-api'
+import type { MyProfileResponse } from '@/features/auth/services/auth-api'
 
-const mockUser: AuthUser = {
-  id: 'user-1',
-  name: 'Mahesh Yadav',
+const mockProfile: MyProfileResponse = {
+  id: 10,
   email: 'mahesh@jalsoochak.com',
-  role: 'state_admin',
+  firstName: 'Mahesh',
+  lastName: 'Yadav',
   phoneNumber: '8564254517',
-  tenantId: 'tenant-1',
-  personId: 'person-1',
+  role: 'STATE_ADMIN',
+  tenantCode: 'TC001',
+  active: true,
+  createdAt: '2026-03-12T10:47:43.622177',
 }
 
-const mockUpdateUser = jest.fn()
+const mockMutate = jest.fn()
 
-jest.mock('@/app/store', () => ({
-  useAuthStore: jest.fn((selector: (state: Record<string, unknown>) => unknown) =>
-    selector({
-      user: mockUser,
-      updateUser: mockUpdateUser,
-    })
-  ),
+jest.mock('@/features/auth/services/query/use-auth-queries', () => ({
+  useMyProfileQuery: jest.fn(),
+  useUpdateMyProfileMutation: jest.fn(),
 }))
 
-jest.mock('@/features/auth/services/auth-api', () => ({
-  authApi: {
-    updateProfile: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
-  },
-  buildUpdateProfileRequest: jest.fn().mockReturnValue({}),
-}))
+import {
+  useMyProfileQuery,
+  useUpdateMyProfileMutation,
+} from '@/features/auth/services/query/use-auth-queries'
+
+const mockUseMyProfileQuery = useMyProfileQuery as jest.MockedFunction<typeof useMyProfileQuery>
+const mockUseUpdateMyProfileMutation = useUpdateMyProfileMutation as jest.MockedFunction<
+  typeof useUpdateMyProfileMutation
+>
+
+function setupLoaded(isPending = false) {
+  mockUseMyProfileQuery.mockReturnValue({
+    data: mockProfile,
+    isLoading: false,
+    isError: false,
+  } as ReturnType<typeof useMyProfileQuery>)
+  mockUseUpdateMyProfileMutation.mockReturnValue({
+    mutate: mockMutate,
+    isPending,
+  } as unknown as ReturnType<typeof useUpdateMyProfileMutation>)
+}
+
+describe('ProfilePage — Loading state', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mockUseMyProfileQuery.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+    } as ReturnType<typeof useMyProfileQuery>)
+    mockUseUpdateMyProfileMutation.mockReturnValue({
+      mutate: mockMutate,
+      isPending: false,
+    } as unknown as ReturnType<typeof useUpdateMyProfileMutation>)
+  })
+
+  it('does not render edit button while loading', () => {
+    renderWithProviders(<ProfilePage />)
+    expect(screen.queryByRole('button', { name: /edit profile/i })).toBeNull()
+  })
+})
+
+describe('ProfilePage — Error state', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mockUseMyProfileQuery.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+    } as ReturnType<typeof useMyProfileQuery>)
+    mockUseUpdateMyProfileMutation.mockReturnValue({
+      mutate: mockMutate,
+      isPending: false,
+    } as unknown as ReturnType<typeof useUpdateMyProfileMutation>)
+  })
+
+  it('renders error alert when query fails', () => {
+    renderWithProviders(<ProfilePage />)
+    expect(screen.getByRole('alert')).toBeTruthy()
+  })
+
+  it('does not render edit button on error', () => {
+    renderWithProviders(<ProfilePage />)
+    expect(screen.queryByRole('button', { name: /edit profile/i })).toBeNull()
+  })
+})
 
 describe('ProfilePage — View Mode', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    setupLoaded()
   })
 
   it('renders page title', () => {
@@ -48,14 +107,10 @@ describe('ProfilePage — View Mode', () => {
     expect(screen.getByText('Profile Details')).toBeTruthy()
   })
 
-  it('displays split first and last name from user.name', () => {
+  it('displays firstName, lastName, email, and phone from query data', () => {
     renderWithProviders(<ProfilePage />)
     expect(screen.getByText('Mahesh')).toBeTruthy()
     expect(screen.getByText('Yadav')).toBeTruthy()
-  })
-
-  it('displays email and phone', () => {
-    renderWithProviders(<ProfilePage />)
     expect(screen.getByText('mahesh@jalsoochak.com')).toBeTruthy()
     expect(screen.getByText('8564254517')).toBeTruthy()
   })
@@ -74,6 +129,7 @@ describe('ProfilePage — View Mode', () => {
 describe('ProfilePage — Edit Mode', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    setupLoaded()
   })
 
   it('switches to edit mode on edit button click', () => {
@@ -87,32 +143,31 @@ describe('ProfilePage — Edit Mode', () => {
   it('email field is disabled in edit mode', () => {
     renderWithProviders(<ProfilePage />)
     fireEvent.click(screen.getByRole('button', { name: /edit profile/i }))
-    const emailInput = screen.getByLabelText(/email address/i) as HTMLInputElement
-    expect(emailInput.disabled).toBe(true)
+    expect((screen.getByLabelText(/email address/i) as HTMLInputElement).disabled).toBe(true)
   })
 
-  it('pre-fills first and last name from user.name', () => {
+  it('pre-fills form fields from query data', () => {
     renderWithProviders(<ProfilePage />)
     fireEvent.click(screen.getByRole('button', { name: /edit profile/i }))
-    const firstNameInput = screen.getByLabelText(/first name/i) as HTMLInputElement
-    const lastNameInput = screen.getByLabelText(/last name/i) as HTMLInputElement
-    expect(firstNameInput.value).toBe('Mahesh')
-    expect(lastNameInput.value).toBe('Yadav')
+    expect((screen.getByLabelText(/first name/i) as HTMLInputElement).value).toBe('Mahesh')
+    expect((screen.getByLabelText(/last name/i) as HTMLInputElement).value).toBe('Yadav')
   })
 
   it('Save Changes button is disabled when no changes made', () => {
     renderWithProviders(<ProfilePage />)
     fireEvent.click(screen.getByRole('button', { name: /edit profile/i }))
-    const saveBtn = screen.getByRole('button', { name: /save changes/i }) as HTMLButtonElement
-    expect(saveBtn.disabled).toBe(true)
+    expect(
+      (screen.getByRole('button', { name: /save changes/i }) as HTMLButtonElement).disabled
+    ).toBe(true)
   })
 
   it('Save Changes button is enabled after making a change', () => {
     renderWithProviders(<ProfilePage />)
     fireEvent.click(screen.getByRole('button', { name: /edit profile/i }))
     fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Rajesh' } })
-    const saveBtn = screen.getByRole('button', { name: /save changes/i }) as HTMLButtonElement
-    expect(saveBtn.disabled).toBe(false)
+    expect(
+      (screen.getByRole('button', { name: /save changes/i }) as HTMLButtonElement).disabled
+    ).toBe(false)
   })
 
   it('Cancel returns to view mode', () => {
@@ -123,46 +178,26 @@ describe('ProfilePage — Edit Mode', () => {
     expect(screen.getByText('Profile Details')).toBeTruthy()
   })
 
-  it('Save Changes is enabled with only first name (single-word name)', () => {
-    renderWithProviders(<ProfilePage />)
-    fireEvent.click(screen.getByRole('button', { name: /edit profile/i }))
-    const lastNameInput = screen.getByLabelText(/last name/i) as HTMLInputElement
-    fireEvent.change(lastNameInput, { target: { value: '' } })
-    fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Madonna' } })
-    const saveBtn = screen.getByRole('button', { name: /save changes/i }) as HTMLButtonElement
-    expect(saveBtn.disabled).toBe(false)
-  })
-
-  it('calls updateProfile and updateUser on successful save', async () => {
-    const { authApi } = await import('@/features/auth/services/auth-api')
+  it('calls mutation on save with trimmed values', async () => {
     renderWithProviders(<ProfilePage />)
     fireEvent.click(screen.getByRole('button', { name: /edit profile/i }))
     fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Rajesh' } })
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
     await waitFor(() => {
-      expect(authApi.updateProfile).toHaveBeenCalledTimes(1)
-      expect(mockUpdateUser).toHaveBeenCalledTimes(1)
+      expect(mockMutate).toHaveBeenCalledWith(
+        { firstName: 'Rajesh', lastName: 'Yadav', phoneNumber: '8564254517' },
+        expect.any(Object)
+      )
     })
   })
 
-  it('does not call updateProfile a second time when save is double-clicked', async () => {
-    const { authApi } = await import('@/features/auth/services/auth-api')
-    // Keep the promise pending so isSaving stays true during the second click
-    let resolveUpdate!: () => void
-    ;(authApi.updateProfile as jest.Mock).mockReturnValueOnce(
-      new Promise<void>((res) => {
-        resolveUpdate = res
-      })
-    )
+  it('save button is disabled while mutation is pending', () => {
+    setupLoaded(true)
     renderWithProviders(<ProfilePage />)
     fireEvent.click(screen.getByRole('button', { name: /edit profile/i }))
     fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Rajesh' } })
-    const saveBtn = screen.getByRole('button', { name: /save changes/i })
-    fireEvent.click(saveBtn)
-    fireEvent.click(saveBtn) // second click while first is in-flight
-    resolveUpdate()
-    await waitFor(() => {
-      expect(authApi.updateProfile).toHaveBeenCalledTimes(1)
-    })
+    expect(
+      (screen.getByRole('button', { name: /save changes/i }) as HTMLButtonElement).disabled
+    ).toBe(true)
   })
 })

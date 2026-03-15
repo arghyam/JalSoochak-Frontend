@@ -1,0 +1,461 @@
+import React, { useState, useEffect } from 'react'
+import {
+  Box,
+  Text,
+  Button,
+  Flex,
+  HStack,
+  VStack,
+  Heading,
+  Spinner,
+  Checkbox,
+  CheckboxGroup,
+  Input,
+  SimpleGrid,
+} from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
+import { EditIcon } from '@chakra-ui/icons'
+import { useToast } from '@/shared/hooks/use-toast'
+import { ToastContainer } from '@/shared/components/common'
+import {
+  useSystemConfigurationQuery,
+  useSaveSystemConfigurationMutation,
+} from '../../services/query/use-super-admin-queries'
+import {
+  SYSTEM_SUPPORTED_CHANNELS,
+  type SystemSupportedChannel,
+  type SystemConfiguration,
+} from '../../types/system-config'
+
+interface ConfigDraft {
+  supportedChannels: SystemSupportedChannel[]
+  waterQuantityMaxThreshold: string
+  waterQuantityMinThreshold: string
+  bfmImageConfidenceThreshold: string
+  locationAffinityThreshold: string
+}
+
+function buildDraft(config?: SystemConfiguration): ConfigDraft {
+  return {
+    supportedChannels: config ? [...config.supportedChannels] : [],
+    waterQuantityMaxThreshold:
+      config && config.waterQuantityMaxThreshold > 0
+        ? String(config.waterQuantityMaxThreshold)
+        : '',
+    waterQuantityMinThreshold:
+      config && config.waterQuantityMinThreshold > 0
+        ? String(config.waterQuantityMinThreshold)
+        : '',
+    bfmImageConfidenceThreshold:
+      config && config.bfmImageConfidenceThreshold > 0
+        ? String(config.bfmImageConfidenceThreshold)
+        : '',
+    locationAffinityThreshold:
+      config && config.locationAffinityThreshold > 0
+        ? String(config.locationAffinityThreshold)
+        : '',
+  }
+}
+
+export function SystemConfigPage() {
+  const { t } = useTranslation(['super-admin', 'common'])
+  const { data: config, isLoading, isError } = useSystemConfigurationQuery()
+  const saveMutation = useSaveSystemConfigurationMutation()
+  const [isEditing, setIsEditing] = useState(false)
+  const [draft, setDraft] = useState<ConfigDraft | null>(null)
+  const toast = useToast()
+
+  useEffect(() => {
+    document.title = `${t('configuration.pageTitle')} | JalSoochak`
+  }, [t])
+
+  const handleEdit = () => {
+    setDraft(buildDraft(config))
+    setIsEditing(true)
+  }
+
+  const handleCancel = () => {
+    setDraft(null)
+    setIsEditing(false)
+  }
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault()
+    void handleSave()
+  }
+
+  const handleSave = async () => {
+    const current = draft ?? buildDraft(config)
+
+    if (current.supportedChannels.length === 0) {
+      toast.addToast(t('configuration.messages.validation.channelRequired'), 'error')
+      return
+    }
+
+    try {
+      await saveMutation.mutateAsync({
+        supportedChannels: current.supportedChannels,
+        waterQuantityMaxThreshold: Number(current.waterQuantityMaxThreshold) || 0,
+        waterQuantityMinThreshold: Number(current.waterQuantityMinThreshold) || 0,
+        bfmImageConfidenceThreshold: Number(current.bfmImageConfidenceThreshold) || 0,
+        locationAffinityThreshold: Number(current.locationAffinityThreshold) || 0,
+      })
+      setDraft(null)
+      setIsEditing(false)
+      toast.addToast(t('configuration.messages.saveSuccess'), 'success')
+    } catch {
+      toast.addToast(t('configuration.messages.saveFailed'), 'error')
+    }
+  }
+
+  const handleChannelChange = (values: string[]) => {
+    setDraft((prev) => ({
+      ...(prev ?? buildDraft(config)),
+      supportedChannels: values as SystemSupportedChannel[],
+    }))
+  }
+
+  const updateDraftField =
+    (field: keyof Omit<ConfigDraft, 'supportedChannels'>) => (value: string) => {
+      setDraft((prev) => ({
+        ...(prev ?? buildDraft(config)),
+        [field]: value,
+      }))
+    }
+
+  if (isLoading) {
+    return (
+      <Box w="full">
+        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
+          {t('configuration.pageTitle')}
+        </Heading>
+        <Flex align="center" role="status" aria-live="polite" aria-busy="true">
+          <Spinner size="md" color="primary.500" mr={3} />
+          <Text color="neutral.600">{t('common:loading')}</Text>
+        </Flex>
+      </Box>
+    )
+  }
+
+  if (isError || !config) {
+    return (
+      <Box w="full">
+        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
+          {t('configuration.pageTitle')}
+        </Heading>
+        <Text color="error.500">{t('common:toast.failedToLoad')}</Text>
+      </Box>
+    )
+  }
+
+  const activeDraft = draft ?? buildDraft(config)
+  const halfChannels = Math.ceil(SYSTEM_SUPPORTED_CHANNELS.length / 2)
+
+  return (
+    <Box w="full">
+      <Box mb={5}>
+        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+          {t('configuration.pageTitle')}
+        </Heading>
+      </Box>
+
+      <Box
+        as="section"
+        aria-labelledby="system-config-heading"
+        bg="white"
+        borderWidth="0.5px"
+        borderColor="neutral.100"
+        borderRadius={{ base: 'lg', md: 'xl' }}
+        w="full"
+        minH={{ base: 'auto', lg: 'calc(100vh - 148px)' }}
+        py={{ base: 4, md: 6 }}
+        px={4}
+      >
+        <Flex direction="column" w="full" h="full" justify="space-between">
+          {/* Card Header */}
+          <Flex justify="space-between" align="center" mb={4}>
+            <Heading
+              as="h2"
+              id="system-config-heading"
+              size="h3"
+              textStyle="h8"
+              fontWeight="400"
+              fontSize={{ base: 'md', md: 'xl' }}
+            >
+              {t('configuration.sectionTitle')}
+            </Heading>
+            {!isEditing && (
+              <Button
+                variant="ghost"
+                h={6}
+                w={6}
+                minW={6}
+                pl="2px"
+                pr="2px"
+                onClick={handleEdit}
+                color="neutral.950"
+                _hover={{ bg: 'primary.50', color: 'primary.500' }}
+                aria-label={t('configuration.aria.editConfiguration')}
+              >
+                <EditIcon h={5} w={5} aria-hidden="true" />
+              </Button>
+            )}
+          </Flex>
+
+          {/* View Mode */}
+          {!isEditing ? (
+            <ViewMode config={config} t={t} />
+          ) : (
+            /* Edit Mode */
+            <Flex
+              as="form"
+              role="form"
+              aria-label={t('configuration.aria.form')}
+              onSubmit={handleSubmit}
+              direction="column"
+              w="full"
+              justify="space-between"
+              minH={{ base: 'auto', lg: 'calc(100vh - 250px)' }}
+              gap={{ base: 6, lg: 0 }}
+            >
+              <VStack spacing={6} align="stretch">
+                {/* 1. Supported Channels */}
+                <Box>
+                  <Text
+                    fontSize={{ base: 'xs', md: 'sm' }}
+                    fontWeight="medium"
+                    color="neutral.950"
+                    mb={3}
+                  >
+                    {t('configuration.sections.supportedChannels.title')}
+                    <Text as="span" color="error.500" ml={1}>
+                      *
+                    </Text>
+                  </Text>
+                  <CheckboxGroup
+                    value={activeDraft.supportedChannels}
+                    onChange={handleChannelChange}
+                  >
+                    <SimpleGrid columns={2} spacing={3} w={{ base: 'full', md: '360px' }}>
+                      <VStack align="start" spacing={3}>
+                        {SYSTEM_SUPPORTED_CHANNELS.slice(0, halfChannels).map((channel) => (
+                          <Checkbox key={channel} value={channel}>
+                            <Text fontSize="sm" color="neutral.950">
+                              {channel}
+                            </Text>
+                          </Checkbox>
+                        ))}
+                      </VStack>
+                      <VStack align="start" spacing={3}>
+                        {SYSTEM_SUPPORTED_CHANNELS.slice(halfChannels).map((channel) => (
+                          <Checkbox key={channel} value={channel}>
+                            <Text fontSize="sm" color="neutral.950">
+                              {channel}
+                            </Text>
+                          </Checkbox>
+                        ))}
+                      </VStack>
+                    </SimpleGrid>
+                  </CheckboxGroup>
+                </Box>
+
+                {/* 2. Quantity Thresholds */}
+                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+                  <ThresholdInput
+                    id="water-qty-max"
+                    label={t('configuration.sections.waterQuantityMax.title')}
+                    value={activeDraft.waterQuantityMaxThreshold}
+                    onChange={updateDraftField('waterQuantityMaxThreshold')}
+                    min={0}
+                  />
+                  <ThresholdInput
+                    id="water-qty-min"
+                    label={t('configuration.sections.waterQuantityMin.title')}
+                    value={activeDraft.waterQuantityMinThreshold}
+                    onChange={updateDraftField('waterQuantityMinThreshold')}
+                    min={0}
+                    max={100}
+                  />
+                </SimpleGrid>
+
+                {/* 3. BFM + Location Thresholds */}
+                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+                  <ThresholdInput
+                    id="bfm-confidence"
+                    label={t('configuration.sections.bfmImageConfidence.title')}
+                    value={activeDraft.bfmImageConfidenceThreshold}
+                    onChange={updateDraftField('bfmImageConfidenceThreshold')}
+                    min={0}
+                    max={100}
+                  />
+                  <ThresholdInput
+                    id="location-affinity"
+                    label={t('configuration.sections.locationAffinity.title')}
+                    value={activeDraft.locationAffinityThreshold}
+                    onChange={updateDraftField('locationAffinityThreshold')}
+                    min={0}
+                  />
+                </SimpleGrid>
+              </VStack>
+
+              {/* Action Buttons */}
+              <HStack
+                spacing={3}
+                justify={{ base: 'stretch', sm: 'flex-end' }}
+                flexDirection={{ base: 'column-reverse', sm: 'row' }}
+                mt={{ base: 4, lg: 6 }}
+              >
+                <Button
+                  variant="secondary"
+                  size="md"
+                  width={{ base: 'full', sm: '174px' }}
+                  onClick={handleCancel}
+                  isDisabled={saveMutation.isPending}
+                >
+                  {t('common:button.cancel')}
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="md"
+                  width={{ base: 'full', sm: '174px' }}
+                  isLoading={saveMutation.isPending}
+                >
+                  {t('common:button.saveChanges')}
+                </Button>
+              </HStack>
+            </Flex>
+          )}
+        </Flex>
+      </Box>
+
+      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
+    </Box>
+  )
+}
+
+// ─── Shared input ─────────────────────────────────────────────────────────────
+
+function ThresholdInput({
+  id,
+  label,
+  value,
+  onChange,
+  min,
+  max,
+}: {
+  id: string
+  label: string
+  value: string
+  onChange: (v: string) => void
+  min?: number
+  max?: number
+}) {
+  return (
+    <Box>
+      <Text
+        as="label"
+        htmlFor={id}
+        fontSize={{ base: 'xs', md: 'sm' }}
+        fontWeight="medium"
+        color="neutral.950"
+        mb={1}
+        display="block"
+      >
+        {label}
+      </Text>
+      <Input
+        id={id}
+        type="number"
+        step="any"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(e) => {
+          const raw = e.target.value
+          if (raw === '' || (Number(raw) >= (min ?? 0) && Number(raw) <= (max ?? Infinity))) {
+            onChange(raw)
+          }
+        }}
+        h="36px"
+        w={{ base: 'full', xl: '486px' }}
+        fontSize="sm"
+        borderColor="neutral.300"
+        borderRadius="6px"
+        _hover={{ borderColor: 'neutral.400' }}
+        _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
+      />
+    </Box>
+  )
+}
+
+// ─── View Mode ────────────────────────────────────────────────────────────────
+
+function ViewField({ label, value }: { label: string; value: string }) {
+  return (
+    <Box>
+      <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" color="neutral.950" mb={1}>
+        {label}
+      </Text>
+      <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
+        {value || '-'}
+      </Text>
+    </Box>
+  )
+}
+
+function ViewMode({
+  config,
+  t,
+}: {
+  config: SystemConfiguration
+  t: ReturnType<typeof useTranslation<['super-admin', 'common']>>['t']
+}) {
+  return (
+    <VStack spacing={6} align="stretch">
+      {/* Supported Channels */}
+      <Box>
+        <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" color="neutral.950" mb={1}>
+          {t('configuration.sections.supportedChannels.title')}
+        </Text>
+        <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
+          {config.supportedChannels.length > 0 ? config.supportedChannels.join(', ') : '-'}
+        </Text>
+      </Box>
+
+      {/* Quantity Thresholds */}
+      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+        <ViewField
+          label={t('configuration.sections.waterQuantityMax.title')}
+          value={
+            config.waterQuantityMaxThreshold > 0 ? String(config.waterQuantityMaxThreshold) : '-'
+          }
+        />
+        <ViewField
+          label={t('configuration.sections.waterQuantityMin.title')}
+          value={
+            config.waterQuantityMinThreshold > 0 ? String(config.waterQuantityMinThreshold) : '-'
+          }
+        />
+      </SimpleGrid>
+
+      {/* BFM + Location */}
+      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+        <ViewField
+          label={t('configuration.sections.bfmImageConfidence.title')}
+          value={
+            config.bfmImageConfidenceThreshold > 0
+              ? String(config.bfmImageConfidenceThreshold)
+              : '-'
+          }
+        />
+        <ViewField
+          label={t('configuration.sections.locationAffinity.title')}
+          value={
+            config.locationAffinityThreshold > 0 ? String(config.locationAffinityThreshold) : '-'
+          }
+        />
+      </SimpleGrid>
+    </VStack>
+  )
+}

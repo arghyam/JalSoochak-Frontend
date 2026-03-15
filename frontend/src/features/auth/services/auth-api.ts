@@ -1,6 +1,6 @@
 import { isAxiosError } from 'axios'
 import apiClient from '@/shared/lib/axios'
-import { extractUserFromJWT } from '@/shared/utils/jwt'
+import { parseJWT } from '@/shared/utils/jwt'
 
 export interface LoginRequest {
   email: string
@@ -19,22 +19,19 @@ export interface RegisterRequest {
 
 export interface TokenResponse {
   access_token: string
-  refresh_token: string
-  id_token: string
   expires_in: number
-  refresh_expires_in: number
   token_type: string
+  person_id: number
   user_role: string
-  tenant_id: string
-  person_id: string
+  phone_number: string
+  tenant_id?: string
+  tenant_code?: string
 }
 
-export interface RefreshRequest {
-  refreshToken: string
-}
-
-export interface LogoutRequest {
-  refreshToken: string
+interface ApiResponse<T> {
+  status: number
+  message: string
+  data: T
 }
 
 export interface AuthUser {
@@ -44,13 +41,13 @@ export interface AuthUser {
   role: string
   phoneNumber: string
   tenantId: string
+  tenantCode: string
   personId: string
 }
 
 export interface LoginResponse {
   user: AuthUser
   accessToken: string
-  refreshToken: string
 }
 
 export interface InviteUserResponse {
@@ -152,112 +149,86 @@ export function buildUpdateProfileRequest(params: {
   }
 }
 
-const TEST_CREDS = [
-  {
-    email: 'test@test.com',
-    password: 'Test@123',
-    role: 'business_user' as const,
-    name: 'Test User',
-    id: 'test-user',
-  },
-  {
-    email: 'superadmin@test.com',
-    password: 'Test@123',
-    role: 'super_user' as const,
-    name: 'Super Admin',
-    id: 'test-superadmin',
-  },
-  {
-    email: 'stateadmin@test.com',
-    password: 'Test@123',
-    role: 'state_admin' as const,
-    name: 'State Admin',
-    id: 'test-stateadmin',
-  },
-]
+/** Response for GET /api/v1/users/me */
+export interface MyProfileResponse {
+  id: number
+  email: string
+  firstName: string
+  lastName: string
+  phoneNumber: string
+  role: string
+  tenantCode: string
+  active: boolean
+  createdAt: string
+}
+
+/** Request body for PATCH /api/v1/users/me */
+export interface UpdateMyProfileRequest {
+  firstName?: string
+  lastName?: string
+  phoneNumber?: string
+}
+
+/** Request body for PATCH /api/v1/users/me/password */
+export interface ChangeMyPasswordRequest {
+  currentPassword: string
+  newPassword: string
+}
+
+/** Request body for POST /api/v1/auth/reset-password */
+export interface ResetPasswordRequest {
+  token: string
+  newPassword: string
+}
+
+function buildUserFromTokenResponse(tokenData: TokenResponse): AuthUser {
+  const jwtPayload = parseJWT(tokenData.access_token)
+  return {
+    id: String(tokenData.person_id),
+    name: jwtPayload?.name ?? '',
+    email: jwtPayload?.email ?? '',
+    role: tokenData.user_role,
+    phoneNumber: tokenData.phone_number ?? '',
+    tenantId: tokenData.tenant_id ?? '',
+    tenantCode: tokenData.tenant_code ?? '',
+    personId: String(tokenData.person_id),
+  }
+}
 
 export const authApi = {
   login: async (payload: LoginRequest): Promise<LoginResponse> => {
-    const email = payload.email.trim().toLowerCase()
-    const match = TEST_CREDS.find((c) => c.email === email && c.password === payload.password)
-    if (match) {
-      return {
-        user: {
-          id: match.id,
-          name: match.name,
-          email: match.email,
-          role: match.role,
-          phoneNumber: '',
-          tenantId: '',
-          personId: '',
-        },
-        accessToken: 'test-access-token',
-        refreshToken: 'test-refresh-token',
-      }
-    }
-
-    const response = await apiClient.post<TokenResponse>('/api/v2/auth/login', {
+    const response = await apiClient.post<ApiResponse<TokenResponse>>('/api/v1/auth/login', {
       email: payload.email,
       password: payload.password,
     })
-    const { access_token, refresh_token, id_token, user_role, tenant_id, person_id } = response.data
-
-    const userFromToken = extractUserFromJWT(id_token)
-    if (!userFromToken) {
-      throw new Error('Failed to extract user information')
+    const tokenData = response.data.data
+    if (!tokenData.access_token) {
+      throw new Error('Invalid login response')
     }
-
-    const user: AuthUser = {
-      ...userFromToken,
-      role: user_role ?? '',
-      tenantId: tenant_id ?? '',
-      personId: person_id ?? '',
-    }
-
     return {
-      user,
-      accessToken: access_token,
-      refreshToken: refresh_token,
+      user: buildUserFromTokenResponse(tokenData),
+      accessToken: tokenData.access_token,
     }
   },
 
-  refresh: async (refreshToken: string): Promise<LoginResponse> => {
-    const response = await apiClient.post<TokenResponse>('/api/v2/auth/refresh', {
-      refreshToken,
-    })
-    const { access_token, refresh_token, id_token, user_role, tenant_id, person_id } = response.data
-
-    if (!access_token || !refresh_token || !id_token) {
+  refresh: async (): Promise<LoginResponse> => {
+    const response = await apiClient.post<ApiResponse<TokenResponse>>('/api/v1/auth/refresh')
+    const tokenData = response.data.data
+    if (!tokenData.access_token) {
       throw new Error('Invalid token response')
     }
-
-    const userFromToken = extractUserFromJWT(id_token)
-    if (!userFromToken) {
-      throw new Error('Failed to extract user information')
-    }
-
-    const user: AuthUser = {
-      ...userFromToken,
-      role: user_role ?? '',
-      tenantId: tenant_id ?? '',
-      personId: person_id ?? '',
-    }
-
     return {
-      user,
-      accessToken: access_token,
-      refreshToken: refresh_token,
+      user: buildUserFromTokenResponse(tokenData),
+      accessToken: tokenData.access_token,
     }
   },
 
-  logout: async (refreshToken: string): Promise<void> => {
-    await apiClient.post('/api/v2/auth/logout', {
-      refreshToken,
-    })
+  logout: async (): Promise<void> => {
+    await apiClient.post('/api/v1/auth/logout')
   },
 
   register: async (payload: RegisterRequest): Promise<void> => {
-    await apiClient.post('/api/v2/auth/register', payload)
+    await apiClient.post('/api/v1/auth/register', payload)
   },
 
   /** Fetch user email by invite/token ID (e.g. from reset/create-password link). Mock for now. */
@@ -363,6 +334,127 @@ export const authApi = {
           : err instanceof Error
             ? err.message
             : 'Failed to update profile.'
+      throw new Error(message)
+    }
+  },
+
+  /** GET /api/v1/auth/invite/info?token=... — fetch invite metadata from token. */
+  getInviteInfo: async (
+    token: string
+  ): Promise<{ email: string; role: string; tenantName: string }> => {
+    try {
+      const response = await apiClient.get<
+        ApiResponse<{ email: string; role: string; tenantName: string }>
+      >('/api/v1/auth/invite/info', { params: { token } })
+      return response.data.data
+    } catch (err: unknown) {
+      let message = 'Invalid or expired invite link.'
+      if (isAxiosError(err) && typeof err.response?.data?.message === 'string') {
+        message = err.response.data.message
+      } else if (err instanceof Error) {
+        message = err.message
+      }
+      throw new Error(message)
+    }
+  },
+
+  /** GET /api/v1/users/me — fetch logged-in user's profile. */
+  getMyProfile: async (): Promise<MyProfileResponse> => {
+    try {
+      const { data } = await apiClient.get<ApiResponse<MyProfileResponse>>('/api/v1/users/me')
+      return data.data
+    } catch (err: unknown) {
+      let message = 'Failed to load profile.'
+      if (isAxiosError(err) && typeof err.response?.data?.message === 'string') {
+        message = err.response.data.message
+      } else if (err instanceof Error) {
+        message = err.message
+      }
+      throw new Error(message)
+    }
+  },
+
+  /** PATCH /api/v1/users/me — update logged-in user's profile. */
+  updateMyProfile: async (payload: UpdateMyProfileRequest): Promise<MyProfileResponse> => {
+    try {
+      const { data } = await apiClient.patch<ApiResponse<MyProfileResponse>>(
+        '/api/v1/users/me',
+        payload
+      )
+      return data.data
+    } catch (err: unknown) {
+      let message = 'Failed to update profile.'
+      if (isAxiosError(err) && typeof err.response?.data?.message === 'string') {
+        message = err.response.data.message
+      } else if (err instanceof Error) {
+        message = err.message
+      }
+      throw new Error(message)
+    }
+  },
+
+  /** PATCH /api/v1/users/me/password — change logged-in user's password. */
+  changeMyPassword: async (payload: ChangeMyPasswordRequest): Promise<void> => {
+    try {
+      await apiClient.patch('/api/v1/users/me/password', payload)
+    } catch (err: unknown) {
+      let message = 'Failed to update password.'
+      if (isAxiosError(err) && typeof err.response?.data?.message === 'string') {
+        message = err.response.data.message
+      } else if (err instanceof Error) {
+        message = err.message
+      }
+      throw new Error(message)
+    }
+  },
+
+  /** POST /api/v1/auth/activate-account — set password + profile for invited user. */
+  activateAccount: async (payload: {
+    inviteToken: string
+    firstName: string
+    lastName: string
+    phoneNumber: string
+    password: string
+  }): Promise<void> => {
+    try {
+      await apiClient.post('/api/v1/auth/activate-account', payload)
+    } catch (err: unknown) {
+      let message = 'Failed to activate account.'
+      if (isAxiosError(err) && typeof err.response?.data?.message === 'string') {
+        message = err.response.data.message
+      } else if (err instanceof Error) {
+        message = err.message
+      }
+      throw new Error(message)
+    }
+  },
+
+  /** POST /api/v1/auth/forgot-password — send reset link to email. */
+  forgotPassword: async (email: string): Promise<void> => {
+    try {
+      await apiClient.post('/api/v1/auth/forgot-password', { email })
+    } catch (err: unknown) {
+      let message = 'Failed to send reset link.'
+      if (isAxiosError(err) && typeof err.response?.data?.message === 'string') {
+        message = err.response.data.message
+      } else if (err instanceof Error) {
+        message = err.message
+      }
+      throw new Error(message)
+    }
+  },
+
+  /** POST /api/v1/auth/reset-password — reset password using token from email link. */
+  resetPassword: async (payload: ResetPasswordRequest): Promise<void> => {
+    try {
+      await apiClient.post('/api/v1/auth/reset-password', payload)
+    } catch (err: unknown) {
+      let message = 'Failed to reset password.'
+      if (isAxiosError(err) && typeof err.response?.data?.message === 'string') {
+        message = err.response.data.message
+      } else if (err instanceof Error) {
+        message = err.message
+      }
       throw new Error(message)
     }
   },

@@ -15,7 +15,8 @@ permissions:
   contents: read
   id-token: write
   pull-requests: write
-
+  security-events: write
+  
 jobs:
   Docker-Image-Build:
     name: SonarQube scan & push image
@@ -66,7 +67,32 @@ jobs:
           docker build  -t $ECR_REGISTRY/jalsoochak-frontend:$IMAGE_TAG .
           docker push $ECR_REGISTRY/jalsoochak-frontend:$IMAGE_TAG
         working-directory: frontend
+      - name: Cache Trivy DB
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/trivy
+          key: ${{ runner.os }}-trivy-db
 
+      - name: Run Trivy vulnerability scanner
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@master
+        with:
+          # Image to scan (use commit SHA for traceability)
+          image-ref: ${{ steps.ecr-login.outputs.registry }}/jalsoochak-frontend:${{ github.sha }}
+          # Output format for GitHub Security tab integration
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'HIGH,CRITICAL'
+          ignore-unfixed: true
+
+      - name: Upload Trivy scan results
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: 'trivy-results.sarif'
+          
   Deployment:
     needs: Docker-Image-Build
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'

@@ -3,14 +3,15 @@ import type { SuperUser, CreateSuperUserInput, UpdateSuperUserInput } from '../t
 import type { SystemRulesConfiguration } from '../types/system-rules'
 import type { IngestionMonitorData } from '../types/ingestion-monitor'
 import type { ApiCredentialsData } from '../types/api-credentials'
+import type { SystemConfiguration, SaveSystemConfigPayload } from '../types/system-config'
 import {
-  INDIAN_STATES_UTS,
   type StateUT,
   type CreateStateUTInput,
   type UpdateStateUTInput,
   type StateUTOption,
   type StateAdminDetails,
 } from '../types/states-uts'
+import { INDIA_STATES } from '@/shared/constants/states'
 import type { StateAdmin } from '../types/state-admins'
 import type { CreateTenantInput, Tenant } from '../types/tenant'
 
@@ -666,7 +667,7 @@ export const getAssignedStateNames = (): string[] => {
 export const getStateUTOptions = (): Promise<StateUTOption[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve([...INDIAN_STATES_UTS])
+      resolve([...INDIA_STATES])
     }, 300)
   })
 }
@@ -687,7 +688,6 @@ export function mockCreateTenant(payload: CreateTenantInput): Promise<Tenant> {
     id: 1,
     uuid: `mock-${payload.stateCode.toLowerCase()}-${Date.now()}`,
     stateCode: payload.stateCode,
-    lgdCode: payload.lgdCode,
     name: payload.name,
     status: 'ACTIVE',
     createdAt: now,
@@ -807,5 +807,34 @@ export const updateMockSuperUserStatus = (
       mockSuperUsersData[index] = { ...mockSuperUsersData[index], status }
       resolve({ ...mockSuperUsersData[index] })
     }, 300)
+  })
+}
+
+// ─── System Configuration ─────────────────────────────────────────────────────
+
+let mockSystemConfigData: SystemConfiguration = {
+  supportedChannels: ['BFM', 'MAN', 'ELM', 'PDU', 'IOT'],
+  waterQuantityMaxThreshold: 100,
+  waterQuantityMinThreshold: 100,
+  bfmImageConfidenceThreshold: 89,
+  locationAffinityThreshold: 78,
+}
+
+export function getMockSystemConfiguration(): Promise<SystemConfiguration> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({ ...mockSystemConfigData })
+    }, 300)
+  })
+}
+
+export function saveMockSystemConfiguration(
+  payload: SaveSystemConfigPayload
+): Promise<SystemConfiguration> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      mockSystemConfigData = { ...payload }
+      resolve({ ...mockSystemConfigData })
+    }, 500)
   })
 }
