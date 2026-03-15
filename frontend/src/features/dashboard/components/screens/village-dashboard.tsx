@@ -60,6 +60,10 @@ export function VillageDashboardScreen({
       return operatorRows
     }
 
+    if (villagePhotoEvidenceRows.length > 0) {
+      return villagePhotoEvidenceRows
+    }
+
     return [
       {
         id: `mock-${activePumpOperator.name.toLowerCase().replace(/\s+/g, '-')}`,

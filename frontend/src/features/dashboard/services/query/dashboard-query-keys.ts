@@ -3,6 +3,7 @@ import type {
   AverageWaterSupplyPerRegionQueryParams,
   DashboardLevel,
   OutageReasonsQueryParams,
+  ReadingComplianceQueryParams,
   PumpOperatorDetailsQueryParams,
   ReadingSubmissionRateQueryParams,
   SchemePerformanceQueryParams,
@@ -51,6 +52,8 @@ export const dashboardQueryKeys = {
     ['dashboard', 'analytics', 'scheme-performance', params?.tenantId, params?.schemeId] as const,
   pumpOperatorDetails: (params: PumpOperatorDetailsQueryParams | null) =>
     ['dashboard', 'pump-operator', 'details', params?.pumpOperatorId, params?.tenantCode] as const,
+  readingCompliance: (params: ReadingComplianceQueryParams | null) =>
+    ['dashboard', 'pump-operator', 'reading-compliance', params?.tenantCode] as const,
   submissionStatus: (params: SubmissionStatusQueryParams | null) =>
     [
       'dashboard',

@@ -9,6 +9,8 @@ import type {
   DashboardLevel,
   OutageReasonsQueryParams,
   OutageReasonsResponse,
+  ReadingComplianceQueryParams,
+  ReadingComplianceResponse,
   PumpOperatorDetailsQueryParams,
   PumpOperatorDetailsResponse,
   ReadingSubmissionRateQueryParams,
@@ -300,6 +302,20 @@ export const dashboardApi = {
   ): Promise<PumpOperatorDetailsResponse> => {
     const response = await apiClient.get<PumpOperatorDetailsResponse>(
       `/api/v1/pumpoperator/pump-operators/${params.pumpOperatorId}`,
+      {
+        params: {
+          tenantCode: params.tenantCode,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getReadingCompliance: async (
+    params: ReadingComplianceQueryParams
+  ): Promise<ReadingComplianceResponse> => {
+    const response = await apiClient.get<ReadingComplianceResponse>(
+      '/api/v1/pumpoperator/pump-operators/reading-compliance',
       {
         params: {
           tenantCode: params.tenantCode,

@@ -223,6 +223,24 @@ export interface ReadingSubmissionRateQueryParams {
   endDate: string
 }
 
+export interface ReadingComplianceQueryParams {
+  tenantCode: string
+}
+
+export interface ReadingComplianceItem {
+  id: number
+  uuid: string
+  name: string
+  lastSubmissionAt: string | null
+  confirmedReading: number | null
+}
+
+export interface ReadingComplianceResponse {
+  status: number
+  message: string
+  data: ReadingComplianceItem[]
+}
+
 export interface SchemePerformanceQueryParams {
   tenantId: number
   schemeId?: number

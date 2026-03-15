@@ -10,6 +10,7 @@ import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-avera
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
 import { usePumpOperatorDetailsQuery } from '../services/query/use-pump-operator-details-query'
+import { useReadingComplianceQuery } from '../services/query/use-reading-compliance-query'
 import { useReadingSubmissionRateQuery } from '../services/query/use-reading-submission-rate-query'
 import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
@@ -25,6 +26,7 @@ import type {
   EntityPerformance,
   OutageReasonSchemeCount,
   OutageReasonsResponse,
+  ReadingComplianceData,
   WaterSupplyOutageData,
 } from '../types'
 import { DashboardFilters } from './filters/dashboard-filters'
@@ -223,6 +225,33 @@ const formatDateForApi = (date: Date) => {
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
+}
+
+const formatReadingComplianceTimestamp = (value?: string | null) => {
+  if (!value) {
+    return 'N/A'
+  }
+
+  const parsedDate = new Date(value)
+  if (Number.isNaN(parsedDate.getTime())) {
+    return value
+  }
+
+  const datePart = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit',
+  }).format(parsedDate)
+  const timeParts = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).formatToParts(parsedDate)
+  const hour = timeParts.find((part) => part.type === 'hour')?.value ?? ''
+  const minute = timeParts.find((part) => part.type === 'minute')?.value ?? ''
+  const dayPeriod = timeParts.find((part) => part.type === 'dayPeriod')?.value.toLowerCase() ?? ''
+
+  return `${datePart.replace(/\//g, '-')}, ${hour}:${minute}${dayPeriod}`
 }
 
 const getDefaultAnalyticsDateRange = () => {
@@ -641,6 +670,15 @@ export function CentralDashboard() {
     params: submissionStatusAnalyticsParams,
     enabled: true,
   })
+  const { data: readingComplianceApiData } = useReadingComplianceQuery({
+    params:
+      selectedVillage && selectedTenant?.tenantCode
+        ? {
+            tenantCode: selectedTenant.tenantCode,
+          }
+        : null,
+    enabled: Boolean(selectedVillage && selectedTenant?.tenantCode),
+  })
   const { data: outageReasonsData } = useOutageReasonsQuery({
     params: outageReasonsAnalyticsParams,
     enabled: Boolean(outageReasonsAnalyticsParams),
@@ -674,6 +712,19 @@ export function CentralDashboard() {
     data?.pumpOperators ?? []
   )
   const operatorsPerformanceAnalyticsTable = mapSchemePerformanceToTable(schemePerformanceData, [])
+  const readingComplianceRows: ReadingComplianceData[] =
+    readingComplianceApiData?.data.map((item) => ({
+      id: String(item.id),
+      name: item.name?.trim() || 'N/A',
+      village: selectedVillage || 'N/A',
+      lastSubmission: formatReadingComplianceTimestamp(item.lastSubmissionAt),
+      readingValue:
+        item.confirmedReading === null || item.confirmedReading === undefined
+          ? 'N/A'
+          : String(item.confirmedReading),
+    })) ??
+    data?.readingCompliance ??
+    []
   const overallPerformanceTableData = mapOverallPerformanceFromAnalytics(
     averageWaterSupplyData,
     averageSchemeRegularityData,
@@ -1048,7 +1099,7 @@ export function CentralDashboard() {
     operatorsPerformanceAnalyticsTable.length > 0
       ? operatorsPerformanceAnalyticsTable
       : [...leadingPumpOperators, ...bottomPumpOperators]
-  const villagePhotoEvidenceRows = data.readingCompliance
+  const villagePhotoEvidenceRows = readingComplianceRows
 
   return (
     <Box>

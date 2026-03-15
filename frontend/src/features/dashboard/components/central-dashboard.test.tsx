@@ -9,6 +9,7 @@ import { useLocationChildrenQuery } from '../services/query/use-location-childre
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
+import { useReadingComplianceQuery } from '../services/query/use-reading-compliance-query'
 import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
 
@@ -66,6 +67,10 @@ jest.mock('../services/query/use-average-scheme-regularity-query', () => ({
 
 jest.mock('../services/query/use-outage-reasons-query', () => ({
   useOutageReasonsQuery: jest.fn(),
+}))
+
+jest.mock('../services/query/use-reading-compliance-query', () => ({
+  useReadingComplianceQuery: jest.fn(),
 }))
 
 jest.mock('../services/query/use-scheme-performance-query', () => ({
@@ -160,6 +165,7 @@ describe('CentralDashboard', () => {
     ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useOutageReasonsQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useReadingComplianceQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useSchemePerformanceQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useSubmissionStatusQuery as jest.Mock).mockReturnValue({ data: undefined })
   })

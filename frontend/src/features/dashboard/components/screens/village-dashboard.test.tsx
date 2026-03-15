@@ -158,7 +158,29 @@ describe('VillageDashboardScreen', () => {
     let complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
       data: Array<{ name: string }>
     }
-    expect(complianceProps.data.every((row) => row.name === 'Ajay Yadav')).toBe(true)
+    expect(complianceProps.data).toEqual([
+      {
+        id: 'pe-1',
+        name: 'Vikash',
+        village: 'Asaihpura',
+        lastSubmission: '09-08-2025, 3:00pm',
+        readingValue: '017848',
+      },
+      {
+        id: 'pe-2',
+        name: 'Arjun',
+        village: 'Bhedoura',
+        lastSubmission: '11-02-2025, 1:00pm',
+        readingValue: '026537',
+      },
+      {
+        id: 'pe-3',
+        name: 'Shashwat',
+        village: 'Bispur',
+        lastSubmission: '03-19-2025, 9:00am',
+        readingValue: '034982',
+      },
+    ])
 
     const previousButton = screen.getByRole('button', { name: 'Previous' })
     const nextButton = screen.getByRole('button', { name: 'Next' })
@@ -171,7 +193,7 @@ describe('VillageDashboardScreen', () => {
     complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
       data: Array<{ name: string }>
     }
-    expect(complianceProps.data.every((row) => row.name === 'Vikram Singh')).toBe(true)
+    expect(complianceProps.data).toHaveLength(3)
 
     fireEvent.click(nextButton)
     expect(screen.getByText('Neha Kumari')).toBeTruthy()
@@ -198,5 +220,38 @@ describe('VillageDashboardScreen', () => {
 
     expect(screen.queryByRole('button', { name: 'Previous' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Next' })).toBeNull()
+  })
+
+  it('filters compliance rows when the operator name matches', () => {
+    renderVillageDashboard([
+      {
+        id: 'pe-1',
+        name: 'Ajay Yadav',
+        village: 'Asaihpura',
+        lastSubmission: '09-08-2025, 3:00pm',
+        readingValue: '017848',
+      },
+      {
+        id: 'pe-2',
+        name: 'Someone Else',
+        village: 'Bhedoura',
+        lastSubmission: '11-02-2025, 1:00pm',
+        readingValue: '026537',
+      },
+    ])
+
+    const complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
+      data: Array<{ name: string }>
+    }
+
+    expect(complianceProps.data).toEqual([
+      {
+        id: 'pe-1',
+        name: 'Ajay Yadav',
+        village: 'Asaihpura',
+        lastSubmission: '09-08-2025, 3:00pm',
+        readingValue: '017848',
+      },
+    ])
   })
 })
