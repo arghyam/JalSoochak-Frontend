@@ -24,6 +24,7 @@ export function SuperUsersPage() {
   }, [t])
 
   const handleReinvite = (id: string) => {
+    if (reinviteMutation.isPending) return
     reinviteMutation.mutate(id, {
       onSuccess: () => toast.success(t('common:toast.reinviteSent')),
       onError: () => toast.error(t('common:toast.reinviteFailed')),
