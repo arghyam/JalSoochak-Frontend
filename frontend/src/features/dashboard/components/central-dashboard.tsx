@@ -746,7 +746,11 @@ export function CentralDashboard() {
       />
 
       {/* KPI Cards */}
-      <Grid templateColumns={{ base: '1fr', lg: 'repeat(3, 1fr)' }} gap={4} mb={6}>
+      <Grid
+        templateColumns={{ base: '1fr', md: 'repeat(auto-fit, minmax(240px, 1fr))' }}
+        gap={4}
+        mb={6}
+      >
         {coreMetrics.map((metric) => (
           <KPICard
             key={metric.label}
