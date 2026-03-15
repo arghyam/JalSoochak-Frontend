@@ -78,7 +78,7 @@ export function AddStateUTPage() {
         })
         toast.addToast(t('statesUts.messages.inviteSent'), 'success')
         setTimeout(() => {
-          navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':id', String(tenant.id)))
+          navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':tenantCode', tenant.stateCode))
         }, 1000)
       } catch (adminError) {
         console.error('Admin invite failed:', adminError)
