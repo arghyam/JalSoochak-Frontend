@@ -28,16 +28,16 @@ const mockNavigate = jest.fn()
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual<typeof import('react-router-dom')>('react-router-dom'),
   useNavigate: () => mockNavigate,
-  useParams: () => ({ id: '1' }),
+  useParams: () => ({ tenantCode: 'MH' }),
 }))
 
-const mockUseTenantByIdQuery = jest.fn()
+const mockUseStatesUTsQuery = jest.fn()
 const mockUseStateAdminsByTenantQuery = jest.fn()
 const mockUseUpdateTenantStatusMutation = jest.fn()
 const mockUseUpdateUserMutation = jest.fn()
 
 jest.mock('../../services/query/use-super-admin-queries', () => ({
-  useTenantByIdQuery: () => mockUseTenantByIdQuery(),
+  useStatesUTsQuery: () => mockUseStatesUTsQuery(),
   useStateAdminsByTenantQuery: () => mockUseStateAdminsByTenantQuery(),
   useUpdateTenantStatusMutation: () => mockUseUpdateTenantStatusMutation(),
   useUpdateUserMutation: () => mockUseUpdateUserMutation(),
@@ -46,7 +46,7 @@ jest.mock('../../services/query/use-super-admin-queries', () => ({
 describe('EditStateUTPage', () => {
   beforeEach(() => {
     mockNavigate.mockReset()
-    mockUseTenantByIdQuery.mockReturnValue({ data: mockTenant, isLoading: false })
+    mockUseStatesUTsQuery.mockReturnValue({ data: [mockTenant], isLoading: false })
     mockUseStateAdminsByTenantQuery.mockReturnValue({ data: [mockAdmin], isLoading: false })
     mockUseUpdateTenantStatusMutation.mockReturnValue({
       mutateAsync: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
@@ -58,14 +58,14 @@ describe('EditStateUTPage', () => {
     })
   })
 
-  it('renders loading state when tenantQuery.isLoading', () => {
-    mockUseTenantByIdQuery.mockReturnValue({ data: undefined, isLoading: true })
+  it('renders loading state when tenantsQuery.isLoading', () => {
+    mockUseStatesUTsQuery.mockReturnValue({ data: undefined, isLoading: true })
     renderWithProviders(<EditStateUTPage />)
     expect(screen.getByRole('status')).toBeTruthy()
   })
 
-  it('renders not found text when tenant is null', () => {
-    mockUseTenantByIdQuery.mockReturnValue({ data: null, isLoading: false })
+  it('renders not found text when tenant is not in list', () => {
+    mockUseStatesUTsQuery.mockReturnValue({ data: [], isLoading: false })
     renderWithProviders(<EditStateUTPage />)
     expect(screen.getByText(/not found/i)).toBeTruthy()
   })
@@ -75,6 +75,20 @@ describe('EditStateUTPage', () => {
     const nameInput = screen.getByDisplayValue('Maharashtra') as HTMLInputElement
     expect(nameInput).toBeTruthy()
     expect(nameInput.readOnly || nameInput.disabled).toBe(true)
+  })
+
+  it('renders admin firstName as editable input', () => {
+    renderWithProviders(<EditStateUTPage />)
+    const firstNameInput = screen.getByDisplayValue('Raj') as HTMLInputElement
+    expect(firstNameInput).toBeTruthy()
+    expect(firstNameInput.readOnly || firstNameInput.disabled).toBe(false)
+  })
+
+  it('Save button is enabled after changing admin firstName', () => {
+    renderWithProviders(<EditStateUTPage />)
+    fireEvent.change(screen.getByDisplayValue('Raj'), { target: { value: 'Rahul' } })
+    const saveBtn = screen.getByRole('button', { name: /save changes/i })
+    expect((saveBtn as HTMLButtonElement).disabled).toBe(false)
   })
 
   it('renders admin email as readonly input', () => {
@@ -101,7 +115,7 @@ describe('EditStateUTPage', () => {
   it('Cancel navigates to view page', () => {
     renderWithProviders(<EditStateUTPage />)
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
-    expect(mockNavigate).toHaveBeenCalledWith('/super-admin/states-uts/1')
+    expect(mockNavigate).toHaveBeenCalledWith('/super-admin/states-uts/MH')
   })
 
   it('Save calls updateUserMutation for changed admin', async () => {

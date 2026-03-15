@@ -84,14 +84,6 @@ export function useStatesUTsQuery() {
   })
 }
 
-export function useTenantByIdQuery(id?: number) {
-  return useQuery({
-    queryKey: superAdminQueryKeys.stateUTById(String(id ?? '')),
-    queryFn: () => superAdminApi.getTenantById(id!),
-    enabled: id !== undefined && id !== null,
-  })
-}
-
 /** Fetch state admins for a specific tenant (used by view/edit pages). */
 export function useStateAdminsByTenantQuery(tenantCode?: string) {
   return useQuery({

@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
 import { ROUTES } from '@/shared/constants/routes'
 import {
-  useTenantByIdQuery,
+  useStatesUTsQuery,
   useStateAdminsByTenantQuery,
 } from '../../services/query/use-super-admin-queries'
 import type { UserAdminData } from '@/shared/components/common'
@@ -14,22 +14,21 @@ import type { UserAdminData } from '@/shared/components/common'
 export function ViewStateUTPage() {
   const { t } = useTranslation(['super-admin', 'common'])
   const navigate = useNavigate()
-  const { id } = useParams<{ id: string }>()
-  const tenantId = id ? Number(id) : undefined
+  const { tenantCode } = useParams<{ tenantCode: string }>()
 
-  const tenantQuery = useTenantByIdQuery(tenantId)
-  const tenant = tenantQuery.data ?? null
-  const adminsQuery = useStateAdminsByTenantQuery(tenant?.stateCode)
+  const tenantsQuery = useStatesUTsQuery()
+  const tenant = tenantsQuery.data?.find((t) => t.stateCode === tenantCode) ?? null
+  const adminsQuery = useStateAdminsByTenantQuery(tenantCode)
 
   useEffect(() => {
     document.title = `${t('statesUts.viewTitle')} | JalSoochak`
   }, [t])
 
   const handleEdit = () => {
-    if (id) navigate(ROUTES.SUPER_ADMIN_STATES_UTS_EDIT.replace(':id', id))
+    if (tenantCode) navigate(ROUTES.SUPER_ADMIN_STATES_UTS_EDIT.replace(':tenantCode', tenantCode))
   }
 
-  if (tenantQuery.isLoading) {
+  if (tenantsQuery.isLoading) {
     return (
       <Box w="full">
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>

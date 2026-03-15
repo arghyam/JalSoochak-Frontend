@@ -118,16 +118,6 @@ export const superAdminApi = {
     return allContent.map((t) => mapTenant(t))
   },
 
-  getTenantById: async (id: number): Promise<Tenant | null> => {
-    try {
-      const response = await apiClient.get<ApiResponse<TenantApiResponse>>(`/api/v1/tenants/${id}`)
-      return mapTenant(response.data.data)
-    } catch (error) {
-      if (isAxiosError(error) && error.response?.status === 404) return null
-      throw error
-    }
-  },
-
   createTenant: async (payload: { stateCode: string; name: string }): Promise<Tenant> => {
     const response = await apiClient.post<ApiResponse<TenantApiResponse>>(
       '/api/v1/tenants',

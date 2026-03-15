@@ -28,32 +28,32 @@ const mockNavigate = jest.fn()
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual<typeof import('react-router-dom')>('react-router-dom'),
   useNavigate: () => mockNavigate,
-  useParams: () => ({ id: '1' }),
+  useParams: () => ({ tenantCode: 'MH' }),
 }))
 
-const mockUseTenantByIdQuery = jest.fn()
+const mockUseStatesUTsQuery = jest.fn()
 const mockUseStateAdminsByTenantQuery = jest.fn()
 
 jest.mock('../../services/query/use-super-admin-queries', () => ({
-  useTenantByIdQuery: () => mockUseTenantByIdQuery(),
+  useStatesUTsQuery: () => mockUseStatesUTsQuery(),
   useStateAdminsByTenantQuery: () => mockUseStateAdminsByTenantQuery(),
 }))
 
 describe('ViewStateUTPage', () => {
   beforeEach(() => {
     mockNavigate.mockReset()
-    mockUseTenantByIdQuery.mockReturnValue({ data: mockTenant, isLoading: false })
+    mockUseStatesUTsQuery.mockReturnValue({ data: [mockTenant], isLoading: false })
     mockUseStateAdminsByTenantQuery.mockReturnValue({ data: [mockAdmin], isLoading: false })
   })
 
-  it('renders loading state when tenantQuery.isLoading', () => {
-    mockUseTenantByIdQuery.mockReturnValue({ data: undefined, isLoading: true })
+  it('renders loading state when tenantsQuery.isLoading', () => {
+    mockUseStatesUTsQuery.mockReturnValue({ data: undefined, isLoading: true })
     renderWithProviders(<ViewStateUTPage />)
     expect(screen.getByRole('status')).toBeTruthy()
   })
 
-  it('renders not found text when tenant is null', () => {
-    mockUseTenantByIdQuery.mockReturnValue({ data: null, isLoading: false })
+  it('renders not found text when tenant is not in list', () => {
+    mockUseStatesUTsQuery.mockReturnValue({ data: [], isLoading: false })
     renderWithProviders(<ViewStateUTPage />)
     expect(screen.getByText(/not found/i)).toBeTruthy()
   })
@@ -94,6 +94,6 @@ describe('ViewStateUTPage', () => {
     renderWithProviders(<ViewStateUTPage />)
     const editBtn = screen.getByRole('button', { name: /edit/i })
     fireEvent.click(editBtn)
-    expect(mockNavigate).toHaveBeenCalledWith('/super-admin/states-uts/1/edit')
+    expect(mockNavigate).toHaveBeenCalledWith('/super-admin/states-uts/MH/edit')
   })
 })
