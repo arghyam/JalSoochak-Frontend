@@ -64,7 +64,22 @@ export interface PumpOperatorPerformanceData {
 }
 
 export interface VillagePumpOperatorDetails {
+  id?: number
+  uuid?: string
   name: string
+  email?: string
+  phoneNumber?: string
+  status?: number
+  schemeId?: number
+  schemeName?: string
+  schemeLatitude?: number | null
+  schemeLongitude?: number | null
+  lastSubmissionAt?: string | null
+  firstSubmissionDate?: string | null
+  totalDaysSinceFirstSubmission?: number | null
+  submittedDays?: number
+  reportingRatePercent?: number | null
+  missedSubmissionDays?: number | null
   scheme: string
   stationLocation: string
   lastSubmission: string
@@ -211,6 +226,34 @@ export interface ReadingSubmissionRateQueryParams {
 export interface SchemePerformanceQueryParams {
   tenantId: number
   schemeId?: number
+}
+
+export interface PumpOperatorDetailsQueryParams {
+  pumpOperatorId: number
+  tenantCode: string
+}
+
+export interface PumpOperatorDetailsResponse {
+  status: number
+  message: string
+  data: {
+    id: number
+    uuid: string
+    name: string
+    email: string
+    phoneNumber: string
+    status: number
+    schemeId: number
+    schemeName: string
+    schemeLatitude: number | null
+    schemeLongitude: number | null
+    lastSubmissionAt: string | null
+    firstSubmissionDate: string | null
+    totalDaysSinceFirstSubmission: number | null
+    submittedDays: number
+    reportingRatePercent: number | null
+    missedSubmissionDays: number | null
+  }
 }
 
 export interface SchemePerformanceItem {

@@ -9,6 +9,8 @@ import type {
   DashboardLevel,
   OutageReasonsQueryParams,
   OutageReasonsResponse,
+  PumpOperatorDetailsQueryParams,
+  PumpOperatorDetailsResponse,
   ReadingSubmissionRateQueryParams,
   ReadingSubmissionRateResponse,
   SchemePerformanceQueryParams,
@@ -287,6 +289,20 @@ export const dashboardApi = {
         params: {
           tenantId: params.tenantId,
           schemeId: params.schemeId,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getPumpOperatorDetails: async (
+    params: PumpOperatorDetailsQueryParams
+  ): Promise<PumpOperatorDetailsResponse> => {
+    const response = await apiClient.get<PumpOperatorDetailsResponse>(
+      `/api/v1/pumpoperator/pump-operators/${params.pumpOperatorId}`,
+      {
+        params: {
+          tenantCode: params.tenantCode,
         },
       }
     )

@@ -9,6 +9,7 @@ import { useLocationSearchQuery } from '../services/query/use-location-search-qu
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
+import { usePumpOperatorDetailsQuery } from '../services/query/use-pump-operator-details-query'
 import { useReadingSubmissionRateQuery } from '../services/query/use-reading-submission-rate-query'
 import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
@@ -826,6 +827,43 @@ export function CentralDashboard() {
     // Hover tooltip is handled by ECharts
   }
 
+  const villagePumpOperators = [
+    {
+      id: 4,
+      name: 'Ajay Yadav',
+      scheme: 'Rural Water Supply 001',
+      stationLocation: 'Central Pumping Station',
+      lastSubmission: '11-02-24, 1:00pm',
+      reportingRate: '85%',
+      missingSubmissionCount: '3',
+      inactiveDays: '2',
+    },
+    {
+      id: 5,
+      name: 'Vikram Singh',
+      scheme: 'Rural Water Supply 002',
+      stationLocation: 'North Pumping Station',
+      lastSubmission: '13-02-24, 10:30am',
+      reportingRate: '78%',
+      missingSubmissionCount: '5',
+      inactiveDays: '4',
+    },
+  ]
+  const villagePumpOperatorDetails = villagePumpOperators[0]
+  const selectedVillagePumpOperatorId = selectedVillage ? villagePumpOperatorDetails?.id : undefined
+
+  usePumpOperatorDetailsQuery({
+    params:
+      selectedVillagePumpOperatorId && selectedTenant?.tenantCode
+        ? {
+            pumpOperatorId: selectedVillagePumpOperatorId,
+            tenantCode: selectedTenant.tenantCode,
+          }
+        : null,
+    // Keep the existing mock card as the display source until village/scheme -> operator mapping is available.
+    enabled: Boolean(selectedVillagePumpOperatorId && selectedTenant?.tenantCode),
+  })
+
   if (isLoading) {
     return (
       <Flex h="100vh" align="center" justify="center">
@@ -1000,28 +1038,6 @@ export function CentralDashboard() {
       ),
     },
   ] as const
-  const villagePumpOperators = [
-    {
-      name: 'Ajay Yadav',
-      scheme: 'Rural Water Supply 001',
-      stationLocation: 'Central Pumping Station',
-      lastSubmission: '11-02-24, 1:00pm',
-      reportingRate: '85%',
-      missingSubmissionCount: '3',
-      inactiveDays: '2',
-    },
-    {
-      name: 'Vikram Singh',
-      scheme: 'Rural Water Supply 002',
-      stationLocation: 'North Pumping Station',
-      lastSubmission: '13-02-24, 10:30am',
-      reportingRate: '78%',
-      missingSubmissionCount: '5',
-      inactiveDays: '4',
-    },
-  ]
-  const villagePumpOperatorDetails = villagePumpOperators[0]
-
   const pumpOperatorsTotal = resolvedDashboardData.pumpOperators.reduce(
     (total, item) => total + item.value,
     0
