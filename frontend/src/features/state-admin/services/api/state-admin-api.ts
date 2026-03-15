@@ -48,7 +48,7 @@ import type {
   HierarchyLevel,
   ApiHierarchyResponse,
 } from '../../types/hierarchy'
-import type { ConfigStatusMap } from '../../types/config-status'
+import type { ConfigKey, ConfigKeyStatus, ConfigStatusMap } from '../../types/config-status'
 import {
   mapApiHierarchyToLevels,
   mapLevelsToApiPayload,
@@ -517,9 +517,25 @@ export const stateAdminApi = {
       ApiEnvelope<{ configs: Record<string, { status: string }> }>
     >(`/api/v1/tenants/${tenantId}/config/status`)
     const configs = response.data.data.configs
+    const VALID_CONFIG_KEYS = new Set<string>([
+      'TENANT_SUPPORTED_CHANNELS',
+      'METER_CHANGE_REASONS',
+      'AVERAGE_MEMBERS_PER_HOUSEHOLD',
+      'DATA_CONSOLIDATION_TIME',
+      'PUMP_OPERATOR_REMINDER_NUDGE_TIME',
+      'LOCATION_CHECK_REQUIRED',
+      'TENANT_LOGO',
+      'SUPPORTED_LANGUAGES',
+      'WATER_NORM',
+      'TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD',
+      'MESSAGE_BROKER_CONNECTION_SETTINGS',
+      'FIELD_STAFF_ESCALATION_RULES',
+    ])
+    const VALID_STATUSES = new Set<string>(['CONFIGURED', 'PENDING'])
     const result: ConfigStatusMap = {}
     for (const [key, val] of Object.entries(configs)) {
-      result[key] = val.status as ConfigStatusMap[string]
+      if (!VALID_CONFIG_KEYS.has(key) || !VALID_STATUSES.has(val.status)) continue
+      result[key as ConfigKey] = val.status as ConfigKeyStatus
     }
     return result
   },

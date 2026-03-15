@@ -122,7 +122,7 @@ function Connector({ configured }: Readonly<ConnectorProps>) {
 }
 
 export function ConfigSetupWizard() {
-  const { t } = useTranslation('state-admin')
+  const { t } = useTranslation(['state-admin', 'common'])
   const navigate = useNavigate()
   const { data: statuses, isLoading, isError } = useConfigStatusQuery()
 

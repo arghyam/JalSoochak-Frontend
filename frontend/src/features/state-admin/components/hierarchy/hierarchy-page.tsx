@@ -33,15 +33,22 @@ export function HierarchyPage() {
     isLoading: deptLoading,
     isError: deptError,
   } = useDepartmentHierarchyQuery()
-  const { data: lgdConstraints, isLoading: lgdConstraintsLoading } = useLgdEditConstraintsQuery()
-  const { data: deptConstraints, isLoading: deptConstraintsLoading } =
-    useDepartmentEditConstraintsQuery()
+  const {
+    data: lgdConstraints,
+    isLoading: lgdConstraintsLoading,
+    isError: lgdConstraintsError,
+  } = useLgdEditConstraintsQuery()
+  const {
+    data: deptConstraints,
+    isLoading: deptConstraintsLoading,
+    isError: deptConstraintsError,
+  } = useDepartmentEditConstraintsQuery()
 
   const saveLgdMutation = useSaveLgdHierarchyMutation()
   const saveDeptMutation = useSaveDepartmentHierarchyMutation()
 
   const isLoading = lgdLoading || deptLoading || lgdConstraintsLoading || deptConstraintsLoading
-  const isError = lgdError || deptError
+  const isError = lgdError || deptError || lgdConstraintsError || deptConstraintsError
 
   useEffect(() => {
     document.title = `${t('hierarchy.pageTitle')} | JalSoochak`
@@ -72,16 +79,28 @@ export function HierarchyPage() {
       return
     }
 
-    try {
-      await Promise.all([
-        saveLgdMutation.mutateAsync(draft.lgd),
-        saveDeptMutation.mutateAsync(draft.department),
-      ])
+    const [lgdResult, deptResult] = await Promise.allSettled([
+      saveLgdMutation.mutateAsync(draft.lgd),
+      saveDeptMutation.mutateAsync(draft.department),
+    ])
+
+    const lgdFailed = lgdResult.status === 'rejected'
+    const deptFailed = deptResult.status === 'rejected'
+
+    if (!lgdFailed && !deptFailed) {
       setDraft(null)
       setIsEditing(false)
       toast.addToast(t('hierarchy.messages.saveSuccess'), 'success')
-    } catch {
-      toast.addToast(t('hierarchy.messages.saveFailed'), 'error')
+    } else {
+      if (lgdFailed) {
+        toast.addToast(`${t('hierarchy.lgdTitle')}: ${t('hierarchy.messages.saveFailed')}`, 'error')
+      }
+      if (deptFailed) {
+        toast.addToast(
+          `${t('hierarchy.departmentTitle')}: ${t('hierarchy.messages.saveFailed')}`,
+          'error'
+        )
+      }
     }
   }
 

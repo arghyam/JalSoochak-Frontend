@@ -38,18 +38,10 @@ interface ConfigDraft {
 function buildDraft(config?: SystemConfiguration): ConfigDraft {
   return {
     supportedChannels: config ? [...config.supportedChannels] : [],
-    oversupplyThreshold:
-      config && config.oversupplyThreshold > 0 ? String(config.oversupplyThreshold) : '',
-    undersupplyThreshold:
-      config && config.undersupplyThreshold > 0 ? String(config.undersupplyThreshold) : '',
-    bfmImageConfidenceThreshold:
-      config && config.bfmImageConfidenceThreshold > 0
-        ? String(config.bfmImageConfidenceThreshold)
-        : '',
-    locationAffinityThreshold:
-      config && config.locationAffinityThreshold > 0
-        ? String(config.locationAffinityThreshold)
-        : '',
+    oversupplyThreshold: config != null ? String(config.oversupplyThreshold) : '',
+    undersupplyThreshold: config != null ? String(config.undersupplyThreshold) : '',
+    bfmImageConfidenceThreshold: config != null ? String(config.bfmImageConfidenceThreshold) : '',
+    locationAffinityThreshold: config != null ? String(config.locationAffinityThreshold) : '',
   }
 }
 
@@ -424,11 +416,11 @@ function ViewMode({
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
         <ViewField
           label={t('configuration.sections.undersupplyThreshold.title')}
-          value={config.undersupplyThreshold > 0 ? String(config.undersupplyThreshold) : '-'}
+          value={String(config.undersupplyThreshold)}
         />
         <ViewField
           label={t('configuration.sections.oversupplyThreshold.title')}
-          value={config.oversupplyThreshold > 0 ? String(config.oversupplyThreshold) : '-'}
+          value={String(config.oversupplyThreshold)}
         />
       </SimpleGrid>
 
@@ -436,17 +428,11 @@ function ViewMode({
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
         <ViewField
           label={t('configuration.sections.bfmImageConfidence.title')}
-          value={
-            config.bfmImageConfidenceThreshold > 0
-              ? String(config.bfmImageConfidenceThreshold)
-              : '-'
-          }
+          value={String(config.bfmImageConfidenceThreshold)}
         />
         <ViewField
           label={t('configuration.sections.locationAffinity.title')}
-          value={
-            config.locationAffinityThreshold > 0 ? String(config.locationAffinityThreshold) : '-'
-          }
+          value={String(config.locationAffinityThreshold)}
         />
       </SimpleGrid>
     </VStack>

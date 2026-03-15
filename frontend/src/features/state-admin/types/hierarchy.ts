@@ -52,7 +52,7 @@ export function mapApiHierarchyToLevels(
   apiLevels: ApiHierarchyLevel[],
   defaults: HierarchyLevel[]
 ): HierarchyLevel[] {
-  if (!apiLevels?.length) return defaults
+  if (!apiLevels?.length) return [...defaults]
   return apiLevels.map((l) => ({
     level: l.level,
     name: l.levelName?.[0]?.title ?? '',

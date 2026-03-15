@@ -148,12 +148,30 @@ export function mapConfigurationDataToApiConfig(
 export function mapApiConfigToWaterNormsConfiguration(
   configs: TenantConfigMap
 ): Omit<WaterNormsConfiguration, 'id'> {
+  const waterNorm = configs.WATER_NORM
   const threshold = configs.TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD
+
+  const hasWaterNorm = waterNorm?.value != null
+  const hasThreshold =
+    threshold != null &&
+    threshold.undersupplyThresholdPercent != null &&
+    threshold.oversupplyThresholdPercent != null
+
+  if (!hasWaterNorm || !hasThreshold) {
+    return {
+      stateQuantity: hasWaterNorm ? Number(waterNorm!.value) || 0 : 0,
+      districtOverrides: [],
+      oversupplyThreshold: null,
+      undersupplyThreshold: null,
+      isConfigured: false,
+    }
+  }
+
   return {
-    stateQuantity: Number(configs.WATER_NORM?.value) || 0,
+    stateQuantity: Number(waterNorm!.value) || 0,
     districtOverrides: [],
-    oversupplyThreshold: threshold?.oversupplyThresholdPercent ?? 0,
-    undersupplyThreshold: threshold?.undersupplyThresholdPercent ?? 0,
+    oversupplyThreshold: threshold!.oversupplyThresholdPercent,
+    undersupplyThreshold: threshold!.undersupplyThresholdPercent,
     isConfigured: true,
   }
 }

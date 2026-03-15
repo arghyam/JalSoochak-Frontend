@@ -141,14 +141,15 @@ describe('mapApiConfigToWaterNormsConfiguration', () => {
     expect(result.isConfigured).toBe(true)
   })
 
-  it('defaults to 0 when keys are absent', () => {
+  it('returns isConfigured false with null thresholds when keys are absent', () => {
     const result = mapApiConfigToWaterNormsConfiguration({})
     expect(result.stateQuantity).toBe(0)
-    expect(result.undersupplyThreshold).toBe(0)
-    expect(result.oversupplyThreshold).toBe(0)
+    expect(result.undersupplyThreshold).toBeNull()
+    expect(result.oversupplyThreshold).toBeNull()
+    expect(result.isConfigured).toBe(false)
   })
 
-  it('defaults to 0 when threshold values are null', () => {
+  it('returns isConfigured false with null thresholds when threshold values are null', () => {
     const configs: TenantConfigMap = {
       TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD: {
         undersupplyThresholdPercent: null,
@@ -156,8 +157,9 @@ describe('mapApiConfigToWaterNormsConfiguration', () => {
       },
     }
     const result = mapApiConfigToWaterNormsConfiguration(configs)
-    expect(result.undersupplyThreshold).toBe(0)
-    expect(result.oversupplyThreshold).toBe(0)
+    expect(result.undersupplyThreshold).toBeNull()
+    expect(result.oversupplyThreshold).toBeNull()
+    expect(result.isConfigured).toBe(false)
   })
 })
 

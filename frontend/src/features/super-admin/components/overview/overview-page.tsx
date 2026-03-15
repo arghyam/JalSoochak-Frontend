@@ -70,7 +70,13 @@ export function OverviewPage() {
     )
   }
 
-  if (!data || !summaryData) return null
+  if (!data || !summaryData) {
+    return (
+      <Flex h="64" align="center" justify="center">
+        <Text color="error.500">{t('common:toast.failedToLoad')}</Text>
+      </Flex>
+    )
+  }
 
   const statsCards = [
     {
