@@ -16,12 +16,13 @@ import { useTranslation } from 'react-i18next'
 import { SearchIcon, EditIcon } from '@chakra-ui/icons'
 import { FiEye } from 'react-icons/fi'
 import { IoAddOutline } from 'react-icons/io5'
+import { MdOutlineEmail } from 'react-icons/md'
 import { DataTable, type DataTableColumn } from '../data-table'
 import { StatusChip } from '../atom/status-chip'
 import { SearchableSelect } from '../searchable-select'
 import type { UserAdminData, UserAdminRoutes, UserAdminListLabels } from './types'
 
-type StatusFilter = 'all' | 'active' | 'inactive'
+type StatusFilter = 'all' | 'active' | 'inactive' | 'pending'
 
 export interface UserAdminListPageProps {
   readonly data: UserAdminData[]
@@ -30,6 +31,7 @@ export interface UserAdminListPageProps {
   readonly onRefetch: () => void
   readonly routes: UserAdminRoutes
   readonly labels: UserAdminListLabels
+  readonly onReinvite?: (id: string) => void
 }
 
 export function UserAdminListPage({
@@ -39,6 +41,7 @@ export function UserAdminListPage({
   onRefetch,
   routes,
   labels,
+  onReinvite,
 }: UserAdminListPageProps) {
   const { t } = useTranslation('common')
   const navigate = useNavigate()
@@ -79,6 +82,7 @@ export function UserAdminListPage({
     { value: 'all', label: labels.allStatuses },
     { value: 'active', label: t('status.active') },
     { value: 'inactive', label: t('status.inactive') },
+    { value: 'pending', label: t('status.pending') },
   ]
 
   const filteredData = data.filter((item) => {
@@ -136,12 +140,17 @@ export function UserAdminListPage({
       key: 'status',
       header: labels.table.status,
       sortable: false,
-      render: (row) => (
-        <StatusChip
-          status={row.status}
-          label={row.status === 'active' ? t('status.active') : t('status.inactive')}
-        />
-      ),
+      render: (row) => {
+        let statusLabel: string
+        if (row.status === 'active') {
+          statusLabel = t('status.active')
+        } else if (row.status === 'pending') {
+          statusLabel = t('status.pending')
+        } else {
+          statusLabel = t('status.inactive')
+        }
+        return <StatusChip status={row.status} label={statusLabel} />
+      },
     },
     {
       key: 'id',
@@ -172,6 +181,20 @@ export function UserAdminListPage({
             onClick={() => handleEdit(row.id)}
             _hover={{ color: 'primary.500', bg: 'transparent' }}
           />
+          {row.status === 'pending' && onReinvite && (
+            <IconButton
+              aria-label={`${labels.aria.resendInvite} ${row.firstName} ${row.lastName}`}
+              icon={<MdOutlineEmail aria-hidden="true" size={20} />}
+              variant="ghost"
+              width={5}
+              minW={5}
+              height={5}
+              color="neutral.950"
+              fontWeight="400"
+              onClick={() => onReinvite(row.id)}
+              _hover={{ color: 'primary.500', bg: 'transparent' }}
+            />
+          )}
         </Flex>
       ),
     },

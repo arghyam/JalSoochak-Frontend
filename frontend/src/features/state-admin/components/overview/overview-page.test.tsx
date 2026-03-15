@@ -3,14 +3,7 @@ import { describe, expect, it, jest, beforeEach } from '@jest/globals'
 import { OverviewPage } from './overview-page'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { OverviewData } from '../../types/overview'
-
-jest.mock('@/shared/components/charts/line-chart', () => ({
-  LineChart: () => <div data-testid="line-chart" />,
-}))
-
-jest.mock('@/shared/components/charts/supply-outage-distribution-chart', () => ({
-  SupplyOutageDistributionChart: () => <div data-testid="supply-outage-distribution-chart" />,
-}))
+import type { ConfigStatusMap } from '../../types/config-status'
 
 const mockQueryState: {
   data: OverviewData | undefined
@@ -22,12 +15,26 @@ const mockQueryState: {
   isError: false,
 }
 
+const mockConfigStatusState: {
+  data: ConfigStatusMap | undefined
+  isLoading: boolean
+  isError: boolean
+} = {
+  data: {
+    TENANT_SUPPORTED_CHANNELS: 'CONFIGURED',
+    SUPPORTED_LANGUAGES: 'PENDING',
+  },
+  isLoading: false,
+  isError: false,
+}
+
 const mockAuthState: { user: { tenantCode: string } | null } = {
   user: { tenantCode: 'TG' },
 }
 
 jest.mock('../../services/query/use-state-admin-queries', () => ({
   useStateAdminOverviewQuery: () => mockQueryState,
+  useConfigStatusQuery: () => mockConfigStatusState,
 }))
 
 jest.mock('@/app/store', () => ({
@@ -41,32 +48,6 @@ const mockOverviewData: OverviewData = {
     activeSchemes: { value: 57, subtitle: '3 new this week' },
     activeIntegrations: { value: 4, subtitle: 'All systems active' },
   },
-  demandSupplyData: [
-    { period: '2023', Demand: 1200, Supply: 950 },
-    { period: '2024', Demand: 1350, Supply: 1100 },
-  ],
-  dailyIngestionData: [
-    { day: 'Mon', count: 420 },
-    { day: 'Tue', count: 380 },
-  ],
-  waterSupplyOutages: [
-    {
-      label: 'District A',
-      electricityFailure: 5,
-      pipelineLeak: 3,
-      pumpFailure: 2,
-      valveIssue: 1,
-      sourceDrying: 0,
-    },
-    {
-      label: 'District B',
-      electricityFailure: 2,
-      pipelineLeak: 7,
-      pumpFailure: 4,
-      valveIssue: 3,
-      sourceDrying: 1,
-    },
-  ],
 }
 
 beforeEach(() => {
@@ -107,14 +88,9 @@ describe('data state', () => {
     expect(screen.getByText('All systems active')).toBeTruthy()
   })
 
-  it('renders the Water Supply Outages chart section heading', () => {
+  it('renders the setup wizard section heading', () => {
     renderWithProviders(<OverviewPage />)
-    expect(screen.getByText('Water Supply Outages')).toBeTruthy()
-  })
-
-  it('renders the Demand vs Supply chart section heading', () => {
-    renderWithProviders(<OverviewPage />)
-    expect(screen.getByText('Demand vs Supply')).toBeTruthy()
+    expect(screen.getByText('Setup Progress')).toBeTruthy()
   })
 
   it('renders stats section with aria-label', () => {

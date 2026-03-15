@@ -24,6 +24,7 @@
   "status": {
     "active": "Active",
     "inactive": "Inactive",
+    "pending": "Pending",
     "successful": "Successful",
     "failed": "Failed",
     "warning": "Warning",
@@ -41,7 +42,9 @@
     "passwordCreateFailed": "Failed to create password.",
     "profileUpdated": "Profile updated successfully.",
     "profileUpdateFailed": "Failed to update profile.",
-    "sessionExpired": "Session expired. Please use the invite link again."
+    "sessionExpired": "Session expired. Please use the invite link again.",
+    "reinviteSent": "Invite resent successfully",
+    "reinviteFailed": "Failed to resend invite"
   },
 
   "sidebar": {
@@ -63,6 +66,7 @@
     "operatorSync": "Operator Sync",
     "staffSync": "Staff Sync",
     "configuration": "Configuration",
+    "hierarchy": "Hierarchy",
     "activity": "Activity",
     "stateUtAdmins": "State/UT Admins",
     "superUsers": "Super Users",

@@ -804,8 +804,8 @@ export const updateMockSuperUserStatus = (
 
 let mockSystemConfigData: SystemConfiguration = {
   supportedChannels: ['BFM', 'MAN', 'ELM', 'PDU', 'IOT'],
-  waterQuantityMaxThreshold: 100,
-  waterQuantityMinThreshold: 100,
+  oversupplyThreshold: 100,
+  undersupplyThreshold: 100,
   bfmImageConfidenceThreshold: 89,
   locationAffinityThreshold: 78,
 }

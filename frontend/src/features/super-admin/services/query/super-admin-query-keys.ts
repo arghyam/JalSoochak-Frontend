@@ -15,4 +15,5 @@ export const superAdminQueryKeys = {
   superUsers: () => [...superAdminQueryKeys.all, 'super-users'] as const,
   superUserById: (id: string) => [...superAdminQueryKeys.superUsers(), id] as const,
   systemConfiguration: () => [...superAdminQueryKeys.all, 'system-configuration'] as const,
+  tenantsSummary: () => [...superAdminQueryKeys.all, 'tenants-summary'] as const,
 }

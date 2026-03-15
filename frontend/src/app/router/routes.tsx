@@ -22,6 +22,7 @@ import {
   OverviewPage,
   ConfigurationPage,
   ActivityPage,
+  HierarchyPage,
   LanguagePage,
   IntegrationPage,
   WaterNormsPage,
@@ -188,6 +189,10 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.STATE_ADMIN_CONFIGURATION,
         element: <ConfigurationPage />,
+      },
+      {
+        path: ROUTES.STATE_ADMIN_HIERARCHY,
+        element: <HierarchyPage />,
       },
       {
         path: ROUTES.STATE_ADMIN_LANGUAGE,

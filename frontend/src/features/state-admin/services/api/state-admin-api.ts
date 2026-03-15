@@ -42,6 +42,19 @@ import type { StateUTAdmin, UpdateStateUTAdminInput } from '../../types/state-ut
 import type { StaffSyncData } from '../../types/staff-sync'
 import type { ThresholdConfiguration } from '../../types/thresholds'
 import type { WaterNormsConfiguration } from '../../types/water-norms'
+import type {
+  HierarchyData,
+  HierarchyEditConstraints,
+  HierarchyLevel,
+  ApiHierarchyResponse,
+} from '../../types/hierarchy'
+import type { ConfigKey, ConfigKeyStatus, ConfigStatusMap } from '../../types/config-status'
+import {
+  mapApiHierarchyToLevels,
+  mapLevelsToApiPayload,
+  DEFAULT_LGD_HIERARCHY,
+  DEFAULT_DEPARTMENT_HIERARCHY,
+} from '../../types/hierarchy'
 import {
   mapApiConfigToConfigurationData,
   mapApiConfigToEscalationRules,
@@ -117,7 +130,7 @@ interface ApiUser {
   firstName: string | null
   lastName: string | null
   phoneNumber: string
-  active: boolean
+  status: 'ACTIVE' | 'INACTIVE' | 'PENDING'
 }
 
 interface ApiUsersListResponse {
@@ -129,13 +142,21 @@ interface ApiUsersListResponse {
 }
 
 function mapApiUserToAdmin(u: ApiUser): StateUTAdmin {
+  let status: StateUTAdmin['status']
+  if (u.status === 'ACTIVE') {
+    status = 'active'
+  } else if (u.status === 'PENDING') {
+    status = 'pending'
+  } else {
+    status = 'inactive'
+  }
   return {
     id: String(u.id),
     firstName: u.firstName ?? '',
     lastName: u.lastName ?? '',
     email: u.email,
     phone: u.phoneNumber,
-    status: u.active ? 'active' : 'inactive',
+    status,
   }
 }
 
@@ -147,8 +168,6 @@ const CONFIGURATION_KEYS = [
   'DATA_CONSOLIDATION_TIME',
   'PUMP_OPERATOR_REMINDER_NUDGE_TIME',
   'AVERAGE_MEMBERS_PER_HOUSEHOLD',
-  'LGD_LOCATION_HIERARCHY',
-  'DEPT_LOCATION_HIERARCHY',
 ].join(',')
 
 const WATER_NORMS_KEYS = ['WATER_NORM', 'TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD'].join(',')
@@ -410,6 +429,10 @@ export const stateAdminApi = {
     })
   },
 
+  reinviteStateUTAdmin: async (id: string): Promise<void> => {
+    await apiClient.post(`/api/v1/users/${id}/reinvite`)
+  },
+
   // --- Real HTTP ---
   getLanguageConfiguration: () => httpProvider.getLanguageConfiguration(),
   saveLanguageConfiguration: (payload: SaveLanguageConfigurationPayload) =>
@@ -435,4 +458,97 @@ export const stateAdminApi = {
   getEscalationRules: () => httpProvider.getEscalationRules(),
   saveEscalationRules: (payload: SaveEscalationRulesPayload) =>
     httpProvider.saveEscalationRules(payload),
+
+  // --- Real HTTP: Hierarchy ---
+  getLgdHierarchy: async (): Promise<HierarchyData> => {
+    const tenantId = getTenantId()
+    const response = await apiClient.get<ApiEnvelope<ApiHierarchyResponse>>(
+      `/api/v1/tenants/${tenantId}/location-hierarchy/LGD`
+    )
+    return {
+      hierarchyType: 'LGD',
+      levels: mapApiHierarchyToLevels(response.data.data.levels, DEFAULT_LGD_HIERARCHY),
+    }
+  },
+
+  getDepartmentHierarchy: async (): Promise<HierarchyData> => {
+    const tenantId = getTenantId()
+    const response = await apiClient.get<ApiEnvelope<ApiHierarchyResponse>>(
+      `/api/v1/tenants/${tenantId}/location-hierarchy/DEPARTMENT`
+    )
+    return {
+      hierarchyType: 'DEPARTMENT',
+      levels: mapApiHierarchyToLevels(response.data.data.levels, DEFAULT_DEPARTMENT_HIERARCHY),
+    }
+  },
+
+  getLgdEditConstraints: async (): Promise<HierarchyEditConstraints> => {
+    const tenantId = getTenantId()
+    const response = await apiClient.get<ApiEnvelope<HierarchyEditConstraints>>(
+      `/api/v1/tenants/${tenantId}/location-hierarchy/LGD/edit-constraints`
+    )
+    return response.data.data
+  },
+
+  getDepartmentEditConstraints: async (): Promise<HierarchyEditConstraints> => {
+    const tenantId = getTenantId()
+    const response = await apiClient.get<ApiEnvelope<HierarchyEditConstraints>>(
+      `/api/v1/tenants/${tenantId}/location-hierarchy/DEPARTMENT/edit-constraints`
+    )
+    return response.data.data
+  },
+
+  saveLgdHierarchy: async (levels: HierarchyLevel[]): Promise<HierarchyData> => {
+    const tenantId = getTenantId()
+    const response = await apiClient.put<ApiEnvelope<ApiHierarchyResponse>>(
+      `/api/v1/tenants/${tenantId}/location-hierarchy/LGD`,
+      mapLevelsToApiPayload(levels)
+    )
+    return {
+      hierarchyType: 'LGD',
+      levels: mapApiHierarchyToLevels(response.data.data.levels, DEFAULT_LGD_HIERARCHY),
+    }
+  },
+
+  saveDepartmentHierarchy: async (levels: HierarchyLevel[]): Promise<HierarchyData> => {
+    const tenantId = getTenantId()
+    const response = await apiClient.put<ApiEnvelope<ApiHierarchyResponse>>(
+      `/api/v1/tenants/${tenantId}/location-hierarchy/DEPARTMENT`,
+      mapLevelsToApiPayload(levels)
+    )
+    return {
+      hierarchyType: 'DEPARTMENT',
+      levels: mapApiHierarchyToLevels(response.data.data.levels, DEFAULT_DEPARTMENT_HIERARCHY),
+    }
+  },
+
+  // --- Real HTTP: Config Status ---
+  getConfigStatus: async (): Promise<ConfigStatusMap> => {
+    const tenantId = getTenantId()
+    const response = await apiClient.get<
+      ApiEnvelope<{ configs: Record<string, { status: string }> }>
+    >(`/api/v1/tenants/${tenantId}/config/status`)
+    const configs = response.data.data.configs
+    const VALID_CONFIG_KEYS = new Set<string>([
+      'TENANT_SUPPORTED_CHANNELS',
+      'METER_CHANGE_REASONS',
+      'AVERAGE_MEMBERS_PER_HOUSEHOLD',
+      'DATA_CONSOLIDATION_TIME',
+      'PUMP_OPERATOR_REMINDER_NUDGE_TIME',
+      'LOCATION_CHECK_REQUIRED',
+      'TENANT_LOGO',
+      'SUPPORTED_LANGUAGES',
+      'WATER_NORM',
+      'TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD',
+      'MESSAGE_BROKER_CONNECTION_SETTINGS',
+      'FIELD_STAFF_ESCALATION_RULES',
+    ])
+    const VALID_STATUSES = new Set<string>(['CONFIGURED', 'PENDING'])
+    const result: ConfigStatusMap = {}
+    for (const [key, val] of Object.entries(configs)) {
+      if (!VALID_CONFIG_KEYS.has(key) || !VALID_STATUSES.has(val.status)) continue
+      result[key as ConfigKey] = val.status as ConfigKeyStatus
+    }
+    return result
+  },
 }

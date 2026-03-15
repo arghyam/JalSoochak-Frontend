@@ -14,6 +14,13 @@ export function useSuperAdminOverviewQuery() {
   })
 }
 
+export function useTenantsSummaryQuery() {
+  return useQuery({
+    queryKey: superAdminQueryKeys.tenantsSummary(),
+    queryFn: superAdminApi.getTenantsSummary,
+  })
+}
+
 export function useSystemRulesConfigurationQuery() {
   return useQuery({
     queryKey: superAdminQueryKeys.systemRulesConfiguration(),
@@ -166,6 +173,26 @@ export function useUpdateUserStatusMutation() {
         queryKey: superAdminQueryKeys.superUserById(variables.id),
       })
       await queryClient.invalidateQueries({ queryKey: superAdminQueryKeys.superUsers() })
+    },
+  })
+}
+
+export function useReinviteSuperUserMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => superAdminApi.reinviteUser(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: superAdminQueryKeys.superUsers() })
+    },
+  })
+}
+
+export function useReinviteStateAdminMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => superAdminApi.reinviteUser(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: superAdminQueryKeys.stateAdmins() })
     },
   })
 }
