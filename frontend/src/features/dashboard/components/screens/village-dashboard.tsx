@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Avatar, Box, Button, Flex, Grid, Icon, Text } from '@chakra-ui/react'
+import { Avatar, Box, Button, Flex, Grid, Icon, Text, useMediaQuery } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { LuArrowLeft, LuArrowRight } from 'react-icons/lu'
 import type {
@@ -28,6 +28,7 @@ export function VillageDashboardScreen({
   villagePumpOperators = [],
 }: VillageDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
+  const [isBelow500] = useMediaQuery('(max-width: 499.98px)')
   const [pumpOperatorPage, setPumpOperatorPage] = useState(1)
   const timeSeriesPerformanceData = useMemo<EntityPerformance[]>(
     () =>
@@ -182,7 +183,7 @@ export function VillageDashboardScreen({
           pb="24px"
           pl="16px"
           pr="16px"
-          h="430px"
+          h={isBelow500 ? 'auto' : '430px'}
           minW={0}
         >
           <Flex direction="column" h="full">
@@ -250,7 +251,14 @@ export function VillageDashboardScreen({
               </Grid>
             </Box>
             {totalPumpOperatorPages > 1 ? (
-              <Flex mt="auto" pt={6} align="center" justify="center" gap={2}>
+              <Flex
+                mt="auto"
+                pt={isBelow500 ? 4 : 6}
+                align="center"
+                justify="center"
+                gap={isBelow500 ? 1.5 : 2}
+                wrap={isBelow500 ? 'wrap' : 'nowrap'}
+              >
                 <Button
                   variant="ghost"
                   size="sm"
@@ -261,6 +269,7 @@ export function VillageDashboardScreen({
                     )
                   }
                   isDisabled={activePumpOperatorPage === 1}
+                  px={isBelow500 ? 2 : undefined}
                 >
                   {t('pumpOperators.details.pagination.previous', {
                     defaultValue: 'Previous',
@@ -298,6 +307,7 @@ export function VillageDashboardScreen({
                     )
                   }
                   isDisabled={activePumpOperatorPage === totalPumpOperatorPages}
+                  px={isBelow500 ? 2 : undefined}
                 >
                   {t('pumpOperators.details.pagination.next', {
                     defaultValue: 'Next',
