@@ -343,7 +343,7 @@ export function SearchLayout({
             </Flex>
           </>
         ) : (
-          <Flex w="full" align="center" justify="space-between" gap={{ base: 2, lg: '24px' }}>
+          <Flex w="full" align="center" justify="space-between" gap={{ base: 2, lg: '12px' }}>
             <InputGroup w="full" flex="1 1 auto" minW={{ base: 0, lg: '300px' }}>
               <InputLeftElement pointerEvents="none" p="12px" w="auto" h="32px" alignItems="center">
                 <SearchIcon mr="4px" color="neutral.300" />
@@ -362,7 +362,7 @@ export function SearchLayout({
                 {...inputProps}
               />
             </InputGroup>
-            <Flex align="center" gap={{ base: 2, lg: '24px' }} flex="0 0 auto" minW={0}>
+            <Flex align="center" gap={{ base: 2, lg: '12px' }} flex="0 0 auto" minW={0}>
               {filterSlot}
               {rightSlot ??
                 (isBelowLgLayout ? (

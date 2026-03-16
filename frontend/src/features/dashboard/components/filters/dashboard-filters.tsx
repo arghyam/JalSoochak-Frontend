@@ -298,6 +298,9 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     findLabel(selectedVillage, resolvedVillageOptions),
   ].filter((item): item is string => Boolean(item))
   const hasHierarchySelection = selectionTrail.length > 0
+  const clearButtonHoverStyles = hasHierarchySelection
+    ? { textDecoration: 'underline', textDecorationColor: 'neutral.300' }
+    : { textDecoration: 'none' }
 
   const trailSelectionValues = [
     selectedState,
@@ -411,7 +414,8 @@ export function DashboardFilters(props: DashboardFiltersProps) {
               whiteSpace="nowrap"
               onClick={onClear}
               minW={0}
-              _hover={{ textDecoration: 'underline', textDecorationColor: 'neutral.300' }}
+              isDisabled={!hasHierarchySelection}
+              _hover={clearButtonHoverStyles}
             >
               <Text textStyle="h10" fontWeight="600" color="neutral.300" fontSize="14px">
                 {t('filters.clear', 'Clear')}
@@ -445,7 +449,8 @@ export function DashboardFilters(props: DashboardFiltersProps) {
               whiteSpace="nowrap"
               onClick={onClear}
               minW={0}
-              _hover={{ textDecoration: 'underline', textDecorationColor: 'neutral.300' }}
+              isDisabled={!hasHierarchySelection}
+              _hover={clearButtonHoverStyles}
             >
               <Text
                 textStyle="h10"
