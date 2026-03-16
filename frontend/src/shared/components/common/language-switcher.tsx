@@ -11,7 +11,7 @@ import {
 } from '@chakra-ui/react'
 import { useLanguageStore } from '@/app/store'
 import type { LanguageCode } from '@/app/i18n'
-import localLogo from '@/assets/media/locallogo.svg'
+import languageIcon from '@/assets/media/Language icon.svg'
 
 interface LanguageSwitcherProps {
   isMobileHeader?: boolean
@@ -51,32 +51,8 @@ export function LanguageSwitcher({ isMobileHeader = false }: LanguageSwitcherPro
           _active={{ bg: 'transparent' }}
         >
           <Flex w="full" h="full" align="center" justify="center">
-            <Box position="relative" w="28px" h="29px" aria-hidden="true">
-              <Image src={localLogo} alt="" w="48px" h="48px" />
-              <Text
-                position="absolute"
-                top="70%"
-                left="25%"
-                fontSize="11px"
-                fontWeight="700"
-                lineHeight="1"
-                color="primary.500"
-                transform="translate(-50%, -50%)"
-              >
-                E
-              </Text>
-              <Text
-                position="absolute"
-                top="95%"
-                left="75%"
-                fontSize="10px"
-                fontWeight="700"
-                lineHeight="1"
-                color="primary.500"
-                transform="translate(-50%, -50%)"
-              >
-                हि
-              </Text>
+            <Box w="28px" h="29px" aria-hidden="true">
+              <Image src={languageIcon} alt="" w="28px" h="29px" />
             </Box>
           </Flex>
         </MenuButton>
