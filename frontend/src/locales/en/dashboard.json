@@ -166,7 +166,7 @@
     }
   },
   "pumpOperators": {
-    "title": "Active Schemes",
+    "title": "Schemes",
     "totalLabel": "Total",
     "note": "Note: Active schemes for at least 30 days in a month",
     "details": {

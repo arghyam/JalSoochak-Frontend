@@ -198,7 +198,7 @@ describe('BlockDashboardScreen', () => {
   it('renders pump operators row and all 3 charts under it', () => {
     renderBlockDashboard()
 
-    expect(screen.getByText('Active Schemes')).toBeTruthy()
+    expect(screen.getByText('Schemes')).toBeTruthy()
     expect(screen.getByText('Total: 15')).toBeTruthy()
     expect(screen.getByText('Reading Submission Status')).toBeTruthy()
     expect(screen.getByText('Reading Submission Rate')).toBeTruthy()
