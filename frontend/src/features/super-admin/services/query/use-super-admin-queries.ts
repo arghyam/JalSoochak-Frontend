@@ -111,7 +111,7 @@ export function useStateAdminsQuery() {
 export function useCreateTenantMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (payload: { stateCode: string; name: string }) =>
+    mutationFn: (payload: { stateCode: string; name: string; lgdCode: number }) =>
       superAdminApi.createTenant(payload),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: superAdminQueryKeys.statesUTs() })

@@ -136,7 +136,11 @@ export const superAdminApi = {
     return allContent.map((t) => mapTenant(t))
   },
 
-  createTenant: async (payload: { stateCode: string; name: string }): Promise<Tenant> => {
+  createTenant: async (payload: {
+    stateCode: string
+    name: string
+    lgdCode: number
+  }): Promise<Tenant> => {
     const response = await apiClient.post<ApiResponse<TenantApiResponse>>(
       '/api/v1/tenants',
       payload

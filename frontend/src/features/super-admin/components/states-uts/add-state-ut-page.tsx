@@ -37,6 +37,7 @@ export function AddStateUTPage() {
 
   const [stateName, setStateName] = useState('')
   const [stateCode, setStateCode] = useState('')
+  const [lgdCode, setLgdCode] = useState<number | null>(null)
   const [adminEmail, setAdminEmail] = useState('')
   const [emailTouched, setEmailTouched] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -50,24 +51,30 @@ export function AddStateUTPage() {
     setStateName(value)
     const selected = INDIA_STATES.find((s) => s.name === value)
     setStateCode(selected?.code ?? '')
+    setLgdCode(selected?.lgdCode ?? null)
   }
 
   const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
   const emailError = emailTouched && adminEmail !== '' && !isValidEmail(adminEmail)
 
   const isFormValid =
-    stateName !== '' && stateCode !== '' && adminEmail.trim() !== '' && isValidEmail(adminEmail)
+    stateName !== '' &&
+    stateCode !== '' &&
+    lgdCode !== null &&
+    adminEmail.trim() !== '' &&
+    isValidEmail(adminEmail)
 
   const handleCancel = () => navigate(ROUTES.SUPER_ADMIN_STATES_UTS)
 
   const handleSubmit = async () => {
-    if (!isFormValid) return
+    if (!isFormValid || lgdCode === null) return
 
     setIsSubmitting(true)
     try {
       const tenant = await createTenantMutation.mutateAsync({
         stateCode,
         name: stateName.trim(),
+        lgdCode: lgdCode,
       })
 
       try {
