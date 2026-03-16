@@ -33,7 +33,9 @@ import {
 export function ManageStateAdminsPage() {
   const { t } = useTranslation(['super-admin', 'common'])
   const navigate = useNavigate()
-  const { data: admins = [], isLoading, isError, refetch } = useStateAdminsQuery()
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const { data, isLoading, isError, refetch } = useStateAdminsQuery(page, pageSize)
   const reinviteMutation = useReinviteStateAdminMutation()
   const toast = useToast()
   const [searchQuery, setSearchQuery] = useState('')
@@ -67,7 +69,7 @@ export function ManageStateAdminsPage() {
     )
   }
 
-  const filteredAdmins = admins.filter(
+  const filteredAdmins = (data?.items ?? []).filter(
     (admin) =>
       admin.adminName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       admin.stateUt.toLowerCase().includes(searchQuery.toLowerCase())
@@ -255,7 +257,14 @@ export function ManageStateAdminsPage() {
         isLoading={isLoading}
         pagination={{
           enabled: true,
-          pageSize: 10,
+          page: page,
+          pageSize,
+          totalItems: data?.total,
+          onPageChange: setPage,
+          onPageSizeChange: (size) => {
+            setPageSize(size)
+            setPage(1)
+          },
           pageSizeOptions: [10, 25, 50],
         }}
       />

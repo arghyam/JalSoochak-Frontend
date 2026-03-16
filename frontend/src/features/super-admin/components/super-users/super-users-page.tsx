@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   UserAdminListPage,
@@ -15,7 +15,9 @@ import {
 
 export function SuperUsersPage() {
   const { t } = useTranslation(['super-admin', 'common'])
-  const { data: users = [], isLoading, isError, refetch } = useSuperUsersQuery()
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const { data, isLoading, isError, refetch } = useSuperUsersQuery(page, pageSize)
   const reinviteMutation = useReinviteSuperUserMutation()
   const toast = useToast()
 
@@ -61,13 +63,21 @@ export function SuperUsersPage() {
   return (
     <>
       <UserAdminListPage
-        data={users}
+        data={data?.items ?? []}
         isLoading={isLoading}
         isError={isError}
         onRefetch={() => void refetch()}
         routes={routes}
         labels={labels}
         onReinvite={handleReinvite}
+        page={page}
+        pageSize={pageSize}
+        totalItems={data?.total}
+        onPageChange={setPage}
+        onPageSizeChange={(size) => {
+          setPageSize(size)
+          setPage(1)
+        }}
       />
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </>

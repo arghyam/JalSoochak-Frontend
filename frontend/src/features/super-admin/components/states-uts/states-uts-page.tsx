@@ -19,12 +19,14 @@ import { IoAddOutline } from 'react-icons/io5'
 import { DataTable, type DataTableColumn, StatusChip } from '@/shared/components/common'
 import type { Tenant } from '../../types/states-uts'
 import { ROUTES } from '@/shared/constants/routes'
-import { useStatesUTsQuery } from '../../services/query/use-super-admin-queries'
+import { useStatesUTsPagedQuery } from '../../services/query/use-super-admin-queries'
 
 export function StatesUTsPage() {
   const { t } = useTranslation(['super-admin', 'common'])
   const navigate = useNavigate()
-  const { data: tenants = [], isLoading, isError, refetch } = useStatesUTsQuery()
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const { data, isLoading, isError, refetch } = useStatesUTsPagedQuery(page, pageSize)
   const [searchQuery, setSearchQuery] = useState('')
 
   const showAddButtonText = useBreakpointValue({ base: false, sm: true }) ?? true
@@ -49,7 +51,9 @@ export function StatesUTsPage() {
     )
   }
 
-  const filtered = tenants.filter((t) => t.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filtered = (data?.items ?? []).filter((t) =>
+    t.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   const handleView = (stateCode: string) => {
     navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':tenantCode', stateCode))
@@ -192,7 +196,18 @@ export function StatesUTsPage() {
         getRowKey={(row) => String(row.id)}
         emptyMessage={t('statesUts.messages.noStatesFound')}
         isLoading={isLoading}
-        pagination={{ enabled: true, pageSize: 10, pageSizeOptions: [10, 25, 50] }}
+        pagination={{
+          enabled: true,
+          page,
+          pageSize,
+          totalItems: data?.total,
+          onPageChange: setPage,
+          onPageSizeChange: (size) => {
+            setPageSize(size)
+            setPage(1)
+          },
+          pageSizeOptions: [10, 25, 50],
+        }}
       />
     </Box>
   )

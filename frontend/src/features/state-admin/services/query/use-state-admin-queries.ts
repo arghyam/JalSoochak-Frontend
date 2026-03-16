@@ -13,6 +13,7 @@ import type { SaveEscalationRulesPayload } from '../../types/escalation-rules'
 import type { HierarchyLevel } from '../../types/hierarchy'
 import { stateAdminQueryKeys } from './state-admin-query-keys'
 import { useAuthStore } from '@/app/store/auth-store'
+import type { StateUTAdmin } from '../../types/state-ut-admins'
 
 export function useStateAdminOverviewQuery() {
   return useQuery({
@@ -198,11 +199,35 @@ export function useSaveConfigurationMutation() {
   })
 }
 
-export function useStateUTAdminsQuery() {
+export function useStateUTAdminsQuery(page: number, pageSize: number) {
   const tenantCode = useAuthStore((state) => state.user?.tenantCode ?? '')
   return useQuery({
-    queryKey: stateAdminQueryKeys.stateUtAdmins(),
-    queryFn: () => stateAdminApi.getStateUTAdmins(tenantCode),
+    queryKey: stateAdminQueryKeys.stateUtAdmins(page, pageSize),
+    queryFn: async () => {
+      const apiPage = await stateAdminApi.getStateUTAdmins(tenantCode, {
+        page: page - 1,
+        size: pageSize,
+      })
+      const items: StateUTAdmin[] = apiPage.content.map((u) => {
+        let status: StateUTAdmin['status']
+        if (u.status === 'ACTIVE') {
+          status = 'active'
+        } else if (u.status === 'PENDING') {
+          status = 'pending'
+        } else {
+          status = 'inactive'
+        }
+        return {
+          id: String(u.id),
+          firstName: u.firstName ?? '',
+          lastName: u.lastName ?? '',
+          email: u.email,
+          phone: u.phoneNumber,
+          status,
+        }
+      })
+      return { items, total: apiPage.totalElements }
+    },
     enabled: Boolean(tenantCode),
   })
 }
@@ -221,7 +246,9 @@ export function useInviteStateUTAdminMutation() {
     mutationFn: (payload: { email: string; tenantCode: string }) =>
       stateAdminApi.inviteStateUTAdmin(payload.email, payload.tenantCode),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.stateUtAdmins() })
+      await queryClient.invalidateQueries({
+        queryKey: [...stateAdminQueryKeys.all, 'state-ut-admins'],
+      })
     },
   })
 }
@@ -237,7 +264,9 @@ export function useUpdateStateUTAdminMutation() {
       input: { firstName: string; lastName: string; phone: string }
     }) => stateAdminApi.updateStateUTAdmin(id, input),
     onSuccess: async (_data, variables) => {
-      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.stateUtAdmins() })
+      await queryClient.invalidateQueries({
+        queryKey: [...stateAdminQueryKeys.all, 'state-ut-admins'],
+      })
       queryClient.removeQueries({ queryKey: stateAdminQueryKeys.stateUtAdminById(variables.id) })
     },
   })
@@ -249,7 +278,9 @@ export function useUpdateStateUTAdminStatusMutation() {
     mutationFn: ({ id, status }: { id: string; status: 'active' | 'inactive' }) =>
       stateAdminApi.updateStateUTAdminStatus(id, status),
     onSuccess: async (_data, variables) => {
-      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.stateUtAdmins() })
+      await queryClient.invalidateQueries({
+        queryKey: [...stateAdminQueryKeys.all, 'state-ut-admins'],
+      })
       queryClient.removeQueries({ queryKey: stateAdminQueryKeys.stateUtAdminById(variables.id) })
     },
   })
@@ -260,7 +291,9 @@ export function useReinviteStateUTAdminMutation() {
   return useMutation({
     mutationFn: (id: string) => stateAdminApi.reinviteStateUTAdmin(id),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.stateUtAdmins() })
+      await queryClient.invalidateQueries({
+        queryKey: [...stateAdminQueryKeys.all, 'state-ut-admins'],
+      })
     },
   })
 }

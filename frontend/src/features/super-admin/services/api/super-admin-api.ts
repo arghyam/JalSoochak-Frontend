@@ -14,7 +14,6 @@ import type { IngestionMonitorData } from '../../types/ingestion-monitor'
 import type { SuperAdminOverviewData, SuperAdminStats } from '../../types/overview'
 import type { SystemRulesConfiguration } from '../../types/system-rules'
 import type { SystemConfiguration, SaveSystemConfigPayload } from '../../types/system-config'
-import type { StateAdmin } from '../../types/state-admins'
 import type { Tenant, TenantApiResponse, TenantsListApiResponse } from '../../types/states-uts'
 import { mapTenantApiToTenant as mapTenant } from '../../types/states-uts'
 import type {
@@ -117,6 +116,19 @@ export const superAdminApi = {
   },
 
   // ── Real HTTP: Tenants (States/UTs) ────────────────────────────────────────
+  /** Single-page fetch used by the list page (user-controlled page + size). */
+  getStatesUTsPage: async (params: {
+    page: number
+    size: number
+  }): Promise<{ items: Tenant[]; total: number }> => {
+    const response = await apiClient.get<ApiResponse<TenantsListApiResponse>>('/api/v1/tenants', {
+      params,
+    })
+    const data = response.data.data
+    return { items: data.content.map(mapTenant), total: data.totalElements }
+  },
+
+  /** All-pages fetch used by view/edit pages that need to find a tenant by stateCode in memory. */
   getStatesUTsData: async (): Promise<Tenant[]> => {
     const pageSize = 100
     const firstResponse = await apiClient.get<ApiResponse<TenantsListApiResponse>>(
@@ -166,36 +178,24 @@ export const superAdminApi = {
   },
 
   /** Kept for ManageStateAdminsPage which fetches all state admins (no tenantCode). */
-  getStateAdminsData: async (): Promise<StateAdmin[]> => {
+  getStateAdminsData: async (params: {
+    page: number
+    size: number
+  }): Promise<ApiUsersListResponse> => {
     const response = await apiClient.get<ApiResponse<ApiUsersListResponse>>(
-      '/api/v1/users/state-admins'
+      '/api/v1/users/state-admins',
+      { params }
     )
-    return response.data.data.content.map((u: ApiUser) => {
-      let signupStatus: StateAdmin['signupStatus']
-      if (u.status === 'ACTIVE') {
-        signupStatus = 'completed'
-      } else if (u.status === 'INACTIVE') {
-        signupStatus = 'inactive'
-      } else {
-        signupStatus = 'pending'
-      }
-      return {
-        id: String(u.id),
-        adminName: `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim(),
-        stateUt: u.tenantCode ?? '',
-        mobileNumber: u.phoneNumber,
-        emailAddress: u.email,
-        signupStatus,
-      }
-    })
+    return response.data.data
   },
 
   // ── Real HTTP: Users (super users + generic update/status) ─────────────────
-  getSuperUsers: async (): Promise<UserAdminData[]> => {
+  getSuperUsers: async (params: { page: number; size: number }): Promise<ApiUsersListResponse> => {
     const response = await apiClient.get<ApiResponse<ApiUsersListResponse>>(
-      '/api/v1/users/super-users'
+      '/api/v1/users/super-users',
+      { params }
     )
-    return response.data.data.content.map(mapApiUserToUserAdminData)
+    return response.data.data
   },
 
   getSuperUserById: async (id: string): Promise<UserAdminData | null> => {

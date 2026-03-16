@@ -29,9 +29,22 @@ export interface DataTableColumn<T> {
 }
 
 export interface PaginationConfig {
+  /** Whether pagination UI & logic are enabled. */
   enabled: boolean
+  /** Initial or controlled page size. */
   pageSize?: number
+  /** Page size options for the selector. */
   pageSizeOptions?: number[]
+  /**
+   * When provided, the table operates in controlled/server-side mode:
+   * - `page`, `pageSize`, `totalItems`, `onPageChange`, `onPageSizeChange`
+   *   are used and data is assumed to already be paginated.
+   * - Sorting is still client-side on the provided page data.
+   */
+  page?: number
+  totalItems?: number
+  onPageChange?: (page: number) => void
+  onPageSizeChange?: (pageSize: number) => void
 }
 
 export interface DataTableProps<T> {
@@ -56,8 +69,21 @@ export function DataTable<T extends object>({
   const { t } = useTranslation('common')
   const [sortColumn, setSortColumn] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>(null)
+  const isControlledPagination =
+    Boolean(pagination?.enabled) &&
+    typeof pagination?.page === 'number' &&
+    typeof pagination?.totalItems === 'number' &&
+    (typeof pagination?.onPageChange === 'function' ||
+      typeof pagination?.onPageSizeChange === 'function')
+
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(pagination?.pageSize ?? 10)
+
+  const effectivePage = isControlledPagination ? Math.max(1, pagination?.page ?? 1) : currentPage
+
+  const effectiveItemsPerPage = isControlledPagination
+    ? (pagination?.pageSize ?? itemsPerPage)
+    : itemsPerPage
 
   // Responsive values
   const showPaginationText = useBreakpointValue({ base: false, md: true }) ?? true
@@ -115,25 +141,44 @@ export function DataTable<T extends object>({
 
   // Pagination logic
   const totalPages = pagination?.enabled
-    ? Math.max(1, Math.ceil(sortedData.length / itemsPerPage))
+    ? Math.max(
+        1,
+        Math.ceil(
+          (isControlledPagination ? (pagination?.totalItems ?? 0) : sortedData.length) /
+            effectiveItemsPerPage
+        )
+      )
     : 1
 
-  const effectiveCurrentPage = Math.min(Math.max(1, currentPage), totalPages)
+  const effectiveCurrentPage = Math.min(Math.max(1, effectivePage), totalPages)
 
-  const paginatedData = pagination?.enabled
-    ? sortedData.slice(
-        (effectiveCurrentPage - 1) * itemsPerPage,
-        effectiveCurrentPage * itemsPerPage
-      )
-    : sortedData
+  const paginatedData =
+    pagination?.enabled && !isControlledPagination
+      ? sortedData.slice(
+          (effectiveCurrentPage - 1) * effectiveItemsPerPage,
+          effectiveCurrentPage * effectiveItemsPerPage
+        )
+      : sortedData
 
   const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page)
+    if (!pagination?.enabled || page < 1 || page > totalPages) return
+
+    if (isControlledPagination && pagination.onPageChange) {
+      pagination.onPageChange(page)
+      return
     }
+
+    setCurrentPage(page)
   }
 
   const handleItemsPerPageChange = (size: number) => {
+    if (!pagination?.enabled) return
+
+    if (isControlledPagination && pagination.onPageSizeChange) {
+      pagination.onPageSizeChange(size)
+      return
+    }
+
     setItemsPerPage(size)
     setCurrentPage(1) // Reset to first page when changing page size
   }
@@ -371,9 +416,9 @@ export function DataTable<T extends object>({
                 bg="neutral.100"
                 _hover={{ bg: 'white' }}
                 _active={{ bg: 'neutral.100' }}
-                aria-label={`${t('table.itemsPerPage')}: ${itemsPerPage}`}
+                aria-label={`${t('table.itemsPerPage')}: ${effectiveItemsPerPage}`}
               >
-                {itemsPerPage}
+                {effectiveItemsPerPage}
               </MenuButton>
               <MenuList minW="80px">
                 {pageSizeOptions.map((size) => (

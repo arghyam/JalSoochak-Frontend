@@ -391,12 +391,15 @@ export const stateAdminApi = {
     mockProvider.updateNudgeTemplate(id, payload),
 
   // --- Real HTTP: State/UT Admins ---
-  getStateUTAdmins: async (tenantCode: string): Promise<StateUTAdmin[]> => {
+  getStateUTAdmins: async (
+    tenantCode: string,
+    params: { page: number; size: number }
+  ): Promise<ApiUsersListResponse> => {
     const response = await apiClient.get<ApiEnvelope<ApiUsersListResponse>>(
       '/api/v1/users/state-admins',
-      { params: { tenantCode } }
+      { params: { tenantCode, ...params } }
     )
-    return response.data.data.content.map((u) => mapApiUserToAdmin(u))
+    return response.data.data
   },
   getStateUTAdminById: async (id: string): Promise<StateUTAdmin | null> => {
     try {

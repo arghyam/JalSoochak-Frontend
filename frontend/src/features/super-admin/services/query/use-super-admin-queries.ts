@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { superAdminApi, type SaveSystemRulesPayload } from '../api/super-admin-api'
+import { mapApiUserToUserAdminData } from '../api/super-admin-api'
 import { superAdminQueryKeys } from './super-admin-query-keys'
 import type { SaveSystemConfigPayload } from '../../types/system-config'
 import type { ApiCredentialsData } from '../../types/api-credentials'
-import type { InviteUserRequest, UpdateUserRequest } from '../../types/super-users'
+import type { InviteUserRequest, UpdateUserRequest, ApiUser } from '../../types/super-users'
+import type { StateAdmin } from '../../types/state-admins'
 
 // ── Overview & System Rules ──────────────────────────────────────────────────
 
@@ -84,10 +86,19 @@ export function useSendApiKeyMutation() {
 
 // ── States/UTs (Tenants) ─────────────────────────────────────────────────────
 
+/** All-pages query — used by view/edit pages that find a tenant by stateCode in memory. */
 export function useStatesUTsQuery() {
   return useQuery({
     queryKey: superAdminQueryKeys.statesUTs(),
     queryFn: superAdminApi.getStatesUTsData,
+  })
+}
+
+/** Paginated query — used by the list page with user-controlled page + size. */
+export function useStatesUTsPagedQuery(page: number, pageSize: number) {
+  return useQuery({
+    queryKey: superAdminQueryKeys.statesUTsPaged(page, pageSize),
+    queryFn: () => superAdminApi.getStatesUTsPage({ page: page - 1, size: pageSize }),
   })
 }
 
@@ -101,10 +112,34 @@ export function useStateAdminsByTenantQuery(tenantCode?: string) {
 }
 
 /** Fetch all state admins (for ManageStateAdminsPage). */
-export function useStateAdminsQuery() {
+export function useStateAdminsQuery(page: number, pageSize: number) {
   return useQuery({
-    queryKey: superAdminQueryKeys.stateAdmins(),
-    queryFn: superAdminApi.getStateAdminsData,
+    queryKey: superAdminQueryKeys.stateAdmins(page, pageSize),
+    queryFn: async () => {
+      const apiPage = await superAdminApi.getStateAdminsData({ page: page - 1, size: pageSize })
+      const items: StateAdmin[] = apiPage.content.map((u: ApiUser) => {
+        let signupStatus: StateAdmin['signupStatus']
+        if (u.status === 'ACTIVE') {
+          signupStatus = 'completed'
+        } else if (u.status === 'INACTIVE') {
+          signupStatus = 'inactive'
+        } else {
+          signupStatus = 'pending'
+        }
+        return {
+          id: String(u.id),
+          adminName: `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim(),
+          stateUt: u.tenantCode ?? '',
+          mobileNumber: u.phoneNumber,
+          emailAddress: u.email,
+          signupStatus,
+        }
+      })
+      return {
+        items,
+        total: apiPage.totalElements,
+      }
+    },
   })
 }
 
@@ -138,9 +173,10 @@ export function useInviteUserMutation() {
     mutationFn: (payload: InviteUserRequest) => superAdminApi.inviteUser(payload),
     onSuccess: async (_data, variables) => {
       if (variables.role === 'SUPER_USER') {
-        await queryClient.invalidateQueries({ queryKey: superAdminQueryKeys.superUsers() })
+        await queryClient.invalidateQueries({
+          queryKey: [...superAdminQueryKeys.all, 'super-users'],
+        })
       } else if (variables.tenantCode) {
-        // STATE_ADMIN: invalidate list for that tenant
         await queryClient.invalidateQueries({
           queryKey: superAdminQueryKeys.stateAdminsByTenant(variables.tenantCode),
         })
@@ -158,8 +194,12 @@ export function useUpdateUserMutation() {
       await queryClient.invalidateQueries({
         queryKey: superAdminQueryKeys.superUserById(variables.id),
       })
-      await queryClient.invalidateQueries({ queryKey: superAdminQueryKeys.superUsers() })
-      await queryClient.invalidateQueries({ queryKey: superAdminQueryKeys.stateAdmins() })
+      await queryClient.invalidateQueries({
+        queryKey: [...superAdminQueryKeys.all, 'super-users'],
+      })
+      await queryClient.invalidateQueries({
+        queryKey: [...superAdminQueryKeys.all, 'state-admins'],
+      })
     },
   })
 }
@@ -173,7 +213,9 @@ export function useUpdateUserStatusMutation() {
       await queryClient.invalidateQueries({
         queryKey: superAdminQueryKeys.superUserById(variables.id),
       })
-      await queryClient.invalidateQueries({ queryKey: superAdminQueryKeys.superUsers() })
+      await queryClient.invalidateQueries({
+        queryKey: [...superAdminQueryKeys.all, 'super-users'],
+      })
     },
   })
 }
@@ -183,7 +225,9 @@ export function useReinviteSuperUserMutation() {
   return useMutation({
     mutationFn: (id: string) => superAdminApi.reinviteUser(id),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: superAdminQueryKeys.superUsers() })
+      await queryClient.invalidateQueries({
+        queryKey: [...superAdminQueryKeys.all, 'super-users'],
+      })
     },
   })
 }
@@ -193,17 +237,25 @@ export function useReinviteStateAdminMutation() {
   return useMutation({
     mutationFn: (id: string) => superAdminApi.reinviteUser(id),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: superAdminQueryKeys.stateAdmins() })
+      await queryClient.invalidateQueries({
+        queryKey: [...superAdminQueryKeys.all, 'state-admins'],
+      })
     },
   })
 }
 
 // ── Super Users ──────────────────────────────────────────────────────────────
 
-export function useSuperUsersQuery() {
+export function useSuperUsersQuery(page: number, pageSize: number) {
   return useQuery({
-    queryKey: superAdminQueryKeys.superUsers(),
-    queryFn: superAdminApi.getSuperUsers,
+    queryKey: superAdminQueryKeys.superUsers(page, pageSize),
+    queryFn: async () => {
+      const apiPage = await superAdminApi.getSuperUsers({ page: page - 1, size: pageSize })
+      return {
+        items: apiPage.content.map(mapApiUserToUserAdminData),
+        total: apiPage.totalElements,
+      }
+    },
   })
 }
 
