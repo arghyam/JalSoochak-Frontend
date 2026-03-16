@@ -8,6 +8,7 @@ import { useLocationSearchQuery } from '../services/query/use-location-search-qu
 import { useLocationChildrenQuery } from '../services/query/use-location-children-query'
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
+import { useNationalDashboardQuery } from '../services/query/use-national-dashboard-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
 import { useReadingComplianceQuery } from '../services/query/use-reading-compliance-query'
 import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
@@ -63,6 +64,10 @@ jest.mock('../services/query/use-average-water-supply-per-region-query', () => (
 
 jest.mock('../services/query/use-average-scheme-regularity-query', () => ({
   useAverageSchemeRegularityQuery: jest.fn(),
+}))
+
+jest.mock('../services/query/use-national-dashboard-query', () => ({
+  useNationalDashboardQuery: jest.fn(),
 }))
 
 jest.mock('../services/query/use-outage-reasons-query', () => ({
@@ -164,6 +169,7 @@ describe('CentralDashboard', () => {
     ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useNationalDashboardQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useOutageReasonsQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useReadingComplianceQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useSchemePerformanceQuery as jest.Mock).mockReturnValue({ data: undefined })
@@ -182,6 +188,276 @@ describe('CentralDashboard', () => {
     expect(screen.getByText('Overall Performance')).toBeTruthy()
     expect(screen.getByTestId('overall-performance-table')).toBeTruthy()
     expect(screen.queryByText('Core Metrics')).toBeNull()
+  })
+
+  it('requests national dashboard analytics on the unfiltered central landing view', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useNationalDashboardQuery).toHaveBeenCalledWith({
+      params: {
+        startDate: expect.any(String),
+        endDate: expect.any(String),
+      },
+      enabled: true,
+    })
+  })
+
+  it('does not enable national dashboard analytics once a location filter is selected', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useNationalDashboardQuery).toHaveBeenCalledWith({
+      params: null,
+      enabled: false,
+    })
+  })
+
+  it('maps national dashboard analytics into central charts and overall performance table', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    ;(useNationalDashboardQuery as jest.Mock).mockReturnValue({
+      data: {
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        stateWiseQuantityPerformance: [
+          {
+            tenantId: 1,
+            stateCode: 'KA',
+            stateTitle: 'Karnataka',
+            schemeCount: 2,
+            totalHouseholdCount: 1000,
+            totalWaterSuppliedLiters: 90_000_000,
+            avgWaterSupplyPerScheme: 0,
+          },
+        ],
+        stateWiseRegularity: [
+          {
+            tenantId: 1,
+            stateCode: 'KA',
+            stateTitle: 'Karnataka',
+            schemeCount: 3,
+            totalSupplyDays: 45,
+            averageRegularity: 0,
+          },
+        ],
+        stateWiseReadingSubmissionRate: [
+          {
+            tenantId: 1,
+            stateCode: 'KA',
+            stateTitle: 'Karnataka',
+            schemeCount: 4,
+            totalSubmissionDays: 60,
+            readingSubmissionRate: 0,
+          },
+        ],
+        overallOutageReasonDistribution: {
+          electrical_failure: 7,
+          pipeline_break: 5,
+          pump_failure: 3,
+          valve_issue: 2,
+          source_drying: 1,
+        },
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{
+      quantityPerformanceData: Array<{ name: string; quantity: number }>
+      regularityPerformanceData: Array<{ name: string; regularity: number }>
+      supplySubmissionRateData: Array<{ name: string; regularity: number }>
+      waterSupplyOutagesData: Array<{
+        electricityFailure: number
+        pipelineLeak: number
+        pumpFailure: number
+        valveIssue: number
+        sourceDrying: number
+      }>
+    }>()
+    const overallPerformanceProps = (mockOverallPerformanceTable.mock.calls as unknown[][]).slice(
+      -1
+    )[0]?.[0] as {
+      data: Array<{ name: string; coverage: number; quantity: number; regularity: number }>
+    }
+
+    expect(dashboardBodyProps.quantityPerformanceData[0]).toEqual(
+      expect.objectContaining({
+        name: 'Karnataka',
+        quantity: 3,
+      })
+    )
+    expect(dashboardBodyProps.regularityPerformanceData[0]).toEqual(
+      expect.objectContaining({
+        name: 'Karnataka',
+        regularity: 50,
+      })
+    )
+    expect(dashboardBodyProps.supplySubmissionRateData[0]).toEqual(
+      expect.objectContaining({
+        name: 'Karnataka',
+        regularity: 50,
+      })
+    )
+    expect(dashboardBodyProps.waterSupplyOutagesData).toEqual([
+      expect.objectContaining({
+        electricityFailure: 7,
+        pipelineLeak: 5,
+        pumpFailure: 3,
+        valveIssue: 2,
+        sourceDrying: 1,
+      }),
+    ])
+    expect(overallPerformanceProps.data[0]).toEqual(
+      expect.objectContaining({
+        name: 'Karnataka',
+        coverage: 3,
+        quantity: 6,
+        regularity: 50,
+      })
+    )
+  })
+
+  it('uses national dashboard analytics for central landing KPI cards', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    ;(useNationalDashboardQuery as jest.Mock)
+      .mockReturnValueOnce({
+        data: {
+          startDate: '2026-03-01',
+          endDate: '2026-03-30',
+          daysInRange: 30,
+          stateWiseQuantityPerformance: [
+            {
+              tenantId: 1,
+              stateCode: 'KA',
+              stateTitle: 'Karnataka',
+              schemeCount: 2,
+              totalHouseholdCount: 1000,
+              totalWaterSuppliedLiters: 90_000_000,
+              avgWaterSupplyPerScheme: 0,
+            },
+            {
+              tenantId: 2,
+              stateCode: 'TN',
+              stateTitle: 'Tamil Nadu',
+              schemeCount: 2,
+              totalHouseholdCount: 1000,
+              totalWaterSuppliedLiters: 60_000_000,
+              avgWaterSupplyPerScheme: 0,
+            },
+          ],
+          stateWiseRegularity: [
+            {
+              tenantId: 1,
+              stateCode: 'KA',
+              stateTitle: 'Karnataka',
+              schemeCount: 2,
+              totalSupplyDays: 42,
+              averageRegularity: 0,
+            },
+            {
+              tenantId: 2,
+              stateCode: 'TN',
+              stateTitle: 'Tamil Nadu',
+              schemeCount: 2,
+              totalSupplyDays: 42,
+              averageRegularity: 0,
+            },
+          ],
+          stateWiseReadingSubmissionRate: [],
+          overallOutageReasonDistribution: {},
+        },
+      })
+      .mockReturnValueOnce({
+        data: {
+          startDate: '2026-01-30',
+          endDate: '2026-02-28',
+          daysInRange: 30,
+          stateWiseQuantityPerformance: [
+            {
+              tenantId: 1,
+              stateCode: 'KA',
+              stateTitle: 'Karnataka',
+              schemeCount: 2,
+              totalHouseholdCount: 1000,
+              totalWaterSuppliedLiters: 120_000_000,
+              avgWaterSupplyPerScheme: 0,
+            },
+            {
+              tenantId: 2,
+              stateCode: 'TN',
+              stateTitle: 'Tamil Nadu',
+              schemeCount: 2,
+              totalHouseholdCount: 1000,
+              totalWaterSuppliedLiters: 60_000_000,
+              avgWaterSupplyPerScheme: 0,
+            },
+          ],
+          stateWiseRegularity: [
+            {
+              tenantId: 1,
+              stateCode: 'KA',
+              stateTitle: 'Karnataka',
+              schemeCount: 2,
+              totalSupplyDays: 48,
+              averageRegularity: 0,
+            },
+            {
+              tenantId: 2,
+              stateCode: 'TN',
+              stateTitle: 'Tamil Nadu',
+              schemeCount: 2,
+              totalSupplyDays: 48,
+              averageRegularity: 0,
+            },
+          ],
+          stateWiseReadingSubmissionRate: [],
+          overallOutageReasonDistribution: {},
+        },
+      })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const kpiProps = mockKPICard.mock.calls.map(
+      (call) =>
+        call[0] as {
+          title: string
+          value: string
+          trend?: { direction: 'up' | 'down'; text: string }
+        }
+    )
+
+    expect(kpiProps).toHaveLength(3)
+    expect(kpiProps[0]?.title).toBe('Quantity in MLD')
+    expect(kpiProps[0]?.value).toBe('5')
+    expect(kpiProps[0]?.trend).toEqual({ direction: 'down', text: '-16.7% vs last 30 days' })
+
+    expect(kpiProps[1]?.title).toBe('Quantity in LPCD')
+    expect(kpiProps[1]?.value).toBe('500')
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-100 LPCD vs last month' })
+
+    expect(kpiProps[2]?.title).toBe('Regularity')
+    expect(kpiProps[2]?.value).toBe('70.0%')
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'down', text: '-12.5% vs last month' })
   })
 
   it('hydrates location filters from path and query params', () => {

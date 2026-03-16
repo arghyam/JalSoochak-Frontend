@@ -149,6 +149,51 @@ export interface AverageWaterSupplyPerRegionQueryParams {
   endDate: string
 }
 
+export interface NationalDashboardQueryParams {
+  startDate: string
+  endDate: string
+}
+
+export interface NationalDashboardQuantityPerformanceItem {
+  tenantId: number
+  stateCode: string
+  stateTitle: string
+  schemeCount: number
+  totalHouseholdCount: number
+  totalWaterSuppliedLiters: number
+  avgWaterSupplyPerScheme: number
+}
+
+export interface NationalDashboardRegularityItem {
+  tenantId: number
+  stateCode: string
+  stateTitle: string
+  schemeCount: number
+  totalSupplyDays: number
+  averageRegularity: number
+}
+
+export interface NationalDashboardReadingSubmissionRateItem {
+  tenantId: number
+  stateCode: string
+  stateTitle: string
+  schemeCount: number
+  totalSubmissionDays: number
+  readingSubmissionRate: number
+}
+
+export type NationalDashboardOutageReasonDistribution = Record<string, number>
+
+export interface NationalDashboardResponse {
+  startDate: string
+  endDate: string
+  daysInRange: number
+  stateWiseQuantityPerformance: NationalDashboardQuantityPerformanceItem[]
+  stateWiseRegularity: NationalDashboardRegularityItem[]
+  stateWiseReadingSubmissionRate: NationalDashboardReadingSubmissionRateItem[]
+  overallOutageReasonDistribution: NationalDashboardOutageReasonDistribution
+}
+
 export interface AverageWaterSupplyScheme {
   schemeId: number
   schemeName: string

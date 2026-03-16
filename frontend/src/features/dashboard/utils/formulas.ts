@@ -2,12 +2,14 @@ import type {
   AverageSchemeRegularityResponse,
   AverageWaterSupplyPerRegionResponse,
   EntityPerformance,
+  NationalDashboardResponse,
   PumpOperatorPerformanceData,
   PumpOperatorsData,
   ReadingSubmissionStatusData,
   ReadingSubmissionRateResponse,
   SchemePerformanceResponse,
   SubmissionStatusResponse,
+  WaterSupplyOutageData,
 } from '../types'
 import { slugify } from './format-location-label'
 
@@ -191,6 +193,35 @@ export const getWaterSupplyKpis = (
   }
 }
 
+export const getWaterSupplyKpisFromNationalDashboard = (
+  response: NationalDashboardResponse | undefined,
+  averagePersonsPerHousehold = 5
+) => {
+  if (!response?.stateWiseQuantityPerformance?.length) {
+    return { quantityMld: 0, quantityLpcd: 0 }
+  }
+
+  const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
+  const totals = response.stateWiseQuantityPerformance.reduce(
+    (acc, state) => ({
+      totalWaterSuppliedLiters:
+        acc.totalWaterSuppliedLiters + (state.totalWaterSuppliedLiters ?? 0),
+      totalHouseholdCount: acc.totalHouseholdCount + (state.totalHouseholdCount ?? 0),
+    }),
+    { totalWaterSuppliedLiters: 0, totalHouseholdCount: 0 }
+  )
+
+  return {
+    quantityMld: calculateQuantityMld(totals.totalWaterSuppliedLiters, daysInRange),
+    quantityLpcd: calculateQuantityLpcd(
+      totals.totalWaterSuppliedLiters,
+      totals.totalHouseholdCount,
+      daysInRange,
+      averagePersonsPerHousehold
+    ),
+  }
+}
+
 export const getRegularityKpi = (response: AverageSchemeRegularityResponse | undefined) => {
   if (!response) {
     return 0
@@ -202,6 +233,25 @@ export const getRegularityKpi = (response: AverageSchemeRegularityResponse | und
     response.schemeCount,
     daysInRange
   )
+}
+
+export const getRegularityKpiFromNationalDashboard = (
+  response: NationalDashboardResponse | undefined
+) => {
+  if (!response?.stateWiseRegularity?.length) {
+    return 0
+  }
+
+  const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
+  const totals = response.stateWiseRegularity.reduce(
+    (acc, state) => ({
+      totalSupplyDays: acc.totalSupplyDays + (state.totalSupplyDays ?? 0),
+      schemeCount: acc.schemeCount + (state.schemeCount ?? 0),
+    }),
+    { totalSupplyDays: 0, schemeCount: 0 }
+  )
+
+  return calculateAverageRegularityPercent(totals.totalSupplyDays, totals.schemeCount, daysInRange)
 }
 
 export const calculatePercentChange = (currentValue: number, previousValue: number) => {
@@ -317,6 +367,155 @@ export const mapReadingSubmissionRateFromAnalytics = (
       status: fallbackMatch?.status ?? 'needs-attention',
     }
   })
+}
+
+const mapNationalFallbackMatch = (
+  fallbackData: EntityPerformance[],
+  title: string,
+  index: number
+) => {
+  const fallbackByName = mapFallbackByName(fallbackData)
+  return fallbackByName.get(slugify(title)) ?? fallbackData[index]
+}
+
+export const mapQuantityPerformanceFromNationalDashboard = (
+  response: NationalDashboardResponse | undefined,
+  fallbackData: EntityPerformance[]
+): EntityPerformance[] => {
+  if (!response?.stateWiseQuantityPerformance?.length) {
+    return fallbackData
+  }
+
+  const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
+
+  return response.stateWiseQuantityPerformance.map((state, index) => {
+    const fallbackMatch = mapNationalFallbackMatch(fallbackData, state.stateTitle, index)
+
+    return {
+      id: fallbackMatch?.id ?? `national-quantity-${state.stateCode || index}`,
+      name: state.stateTitle || fallbackMatch?.name || `State ${index + 1}`,
+      coverage: fallbackMatch?.coverage ?? 0,
+      regularity: fallbackMatch?.regularity ?? 0,
+      continuity: fallbackMatch?.continuity ?? 0,
+      quantity: calculateQuantityMld(state.totalWaterSuppliedLiters, daysInRange),
+      compositeScore: fallbackMatch?.compositeScore ?? 0,
+      status: fallbackMatch?.status ?? 'needs-attention',
+    }
+  })
+}
+
+export const mapRegularityPerformanceFromNationalDashboard = (
+  response: NationalDashboardResponse | undefined,
+  fallbackData: EntityPerformance[]
+): EntityPerformance[] => {
+  if (!response?.stateWiseRegularity?.length) {
+    return fallbackData
+  }
+
+  const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
+
+  return response.stateWiseRegularity.map((state, index) => {
+    const fallbackMatch = mapNationalFallbackMatch(fallbackData, state.stateTitle, index)
+
+    return {
+      id: fallbackMatch?.id ?? `national-regularity-${state.stateCode || index}`,
+      name: state.stateTitle || fallbackMatch?.name || `State ${index + 1}`,
+      coverage: fallbackMatch?.coverage ?? 0,
+      regularity: calculateAverageRegularityPercent(
+        state.totalSupplyDays,
+        state.schemeCount,
+        daysInRange
+      ),
+      continuity: fallbackMatch?.continuity ?? 0,
+      quantity: fallbackMatch?.quantity ?? 0,
+      compositeScore: fallbackMatch?.compositeScore ?? 0,
+      status: fallbackMatch?.status ?? 'needs-attention',
+    }
+  })
+}
+
+export const mapReadingSubmissionRateFromNationalDashboard = (
+  response: NationalDashboardResponse | undefined,
+  fallbackData: EntityPerformance[]
+): EntityPerformance[] => {
+  if (!response?.stateWiseReadingSubmissionRate?.length) {
+    return fallbackData
+  }
+
+  const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
+
+  return response.stateWiseReadingSubmissionRate.map((state, index) => {
+    const fallbackMatch = mapNationalFallbackMatch(fallbackData, state.stateTitle, index)
+
+    return {
+      id: fallbackMatch?.id ?? `national-submission-rate-${state.stateCode || index}`,
+      name: state.stateTitle || fallbackMatch?.name || `State ${index + 1}`,
+      coverage: fallbackMatch?.coverage ?? 0,
+      regularity: calculateReadingSubmissionRatePercent(
+        state.totalSubmissionDays,
+        state.schemeCount,
+        daysInRange
+      ),
+      continuity: fallbackMatch?.continuity ?? 0,
+      quantity: fallbackMatch?.quantity ?? 0,
+      compositeScore: fallbackMatch?.compositeScore ?? 0,
+      status: fallbackMatch?.status ?? 'needs-attention',
+    }
+  })
+}
+
+const getOutageReasonCount = (distribution: Record<string, number>, keys: string[]) => {
+  return keys.reduce((total, key) => {
+    const value = distribution[key]
+    return total + (typeof value === 'number' && Number.isFinite(value) ? value : 0)
+  }, 0)
+}
+
+export const mapOutageReasonsFromNationalDashboard = (
+  response: NationalDashboardResponse | undefined,
+  fallbackData: WaterSupplyOutageData[]
+): WaterSupplyOutageData[] => {
+  if (!response?.overallOutageReasonDistribution) {
+    return fallbackData
+  }
+
+  const distribution = response.overallOutageReasonDistribution
+  const mappedData: WaterSupplyOutageData = {
+    label: 'Outages',
+    electricityFailure: getOutageReasonCount(distribution, [
+      'electrical_failure',
+      'electricity_failure',
+      'electricalFailure',
+      'electricityFailure',
+      'power_failure',
+      'powerFailure',
+    ]),
+    pipelineLeak: getOutageReasonCount(distribution, [
+      'pipeline_break',
+      'pipelineBreak',
+      'pipeline_leak',
+      'pipelineLeak',
+      'pipe_break',
+      'pipeBreak',
+    ]),
+    pumpFailure: getOutageReasonCount(distribution, ['pump_failure', 'pumpFailure']),
+    valveIssue: getOutageReasonCount(distribution, ['valve_issue', 'valveIssue']),
+    sourceDrying: getOutageReasonCount(distribution, [
+      'source_drying',
+      'sourceDrying',
+      'source_dry',
+      'sourceDry',
+    ]),
+  }
+
+  const totalMappedCount =
+    mappedData.electricityFailure +
+    mappedData.pipelineLeak +
+    mappedData.pumpFailure +
+    mappedData.valveIssue +
+    mappedData.sourceDrying
+
+  return totalMappedCount > 0 ? [mappedData] : fallbackData
 }
 
 export const mapReadingSubmissionStatusFromAnalytics = (
@@ -439,6 +638,49 @@ export const mapOverallPerformanceFromAnalytics = (
         region.totalWaterSuppliedLiters,
         region.totalHouseholdCount,
         waterDaysInRange,
+        averagePersonsPerHousehold
+      ),
+      compositeScore: fallbackMatch?.compositeScore ?? 0,
+      status: fallbackMatch?.status ?? 'needs-attention',
+    }
+  })
+}
+
+export const mapOverallPerformanceFromNationalDashboard = (
+  response: NationalDashboardResponse | undefined,
+  fallbackData: EntityPerformance[],
+  averagePersonsPerHousehold = 5
+): EntityPerformance[] => {
+  if (!response?.stateWiseQuantityPerformance?.length) {
+    return fallbackData
+  }
+
+  const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
+  const regularityByName = new Map(
+    (response.stateWiseRegularity ?? []).map((state) => [slugify(state.stateTitle), state] as const)
+  )
+  const fallbackByName = mapFallbackByName(fallbackData)
+
+  return response.stateWiseQuantityPerformance.map((state, index) => {
+    const fallbackMatch = fallbackByName.get(slugify(state.stateTitle)) ?? fallbackData[index]
+    const matchingRegularity = regularityByName.get(slugify(state.stateTitle))
+
+    return {
+      id: fallbackMatch?.id ?? `national-overall-${state.stateCode || index}`,
+      name: state.stateTitle || fallbackMatch?.name || `State ${index + 1}`,
+      coverage: calculateQuantityMld(state.totalWaterSuppliedLiters, daysInRange),
+      regularity: matchingRegularity
+        ? calculateAverageRegularityPercent(
+            matchingRegularity.totalSupplyDays,
+            matchingRegularity.schemeCount,
+            daysInRange
+          )
+        : (fallbackMatch?.regularity ?? 0),
+      continuity: fallbackMatch?.continuity ?? 0,
+      quantity: calculateQuantityLpcd(
+        state.totalWaterSuppliedLiters,
+        state.totalHouseholdCount,
+        daysInRange,
         averagePersonsPerHousehold
       ),
       compositeScore: fallbackMatch?.compositeScore ?? 0,

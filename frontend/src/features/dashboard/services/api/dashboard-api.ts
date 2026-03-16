@@ -3,6 +3,8 @@ import { isAxiosError } from 'axios'
 import type {
   AverageSchemeRegularityQueryParams,
   AverageSchemeRegularityResponse,
+  NationalDashboardQueryParams,
+  NationalDashboardResponse,
   AverageWaterSupplyPerRegionQueryParams,
   AverageWaterSupplyPerRegionResponse,
   DashboardData,
@@ -226,6 +228,21 @@ const provider: DashboardDataProvider = DASHBOARD_PROVIDER === 'http' ? httpProv
 export const dashboardApi = {
   getDashboardData: (params: DashboardQueryParams): Promise<DashboardData> => {
     return provider.getDashboardData(params)
+  },
+  getNationalDashboard: async (
+    params: NationalDashboardQueryParams
+  ): Promise<NationalDashboardResponse> => {
+    const response = await apiClient.get<NationalDashboardResponse>(
+      '/api/v1/analytics/national/dashboard',
+      {
+        params: {
+          start_date: params.startDate,
+          end_date: params.endDate,
+        },
+      }
+    )
+
+    return response.data
   },
   getAverageWaterSupplyPerRegion: async (
     params: AverageWaterSupplyPerRegionQueryParams

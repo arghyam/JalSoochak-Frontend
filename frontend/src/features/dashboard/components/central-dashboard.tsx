@@ -8,6 +8,7 @@ import { useLocationChildrenQuery } from '../services/query/use-location-childre
 import { useLocationSearchQuery } from '../services/query/use-location-search-query'
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
+import { useNationalDashboardQuery } from '../services/query/use-national-dashboard-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
 import { usePumpOperatorDetailsQuery } from '../services/query/use-pump-operator-details-query'
 import { useReadingComplianceQuery } from '../services/query/use-reading-compliance-query'
@@ -39,11 +40,18 @@ import {
   calculatePercentChange,
   getPreviousPeriodRange,
   getRegularityKpi,
+  getRegularityKpiFromNationalDashboard,
+  mapOutageReasonsFromNationalDashboard,
+  mapOverallPerformanceFromNationalDashboard,
+  mapQuantityPerformanceFromNationalDashboard,
+  mapReadingSubmissionRateFromNationalDashboard,
   mapReadingSubmissionRateFromAnalytics,
   mapReadingSubmissionStatusFromAnalytics,
+  mapRegularityPerformanceFromNationalDashboard,
   mapSchemePerformanceToTable,
   mapSchemePerformanceToPumpOperators,
   getWaterSupplyKpis,
+  getWaterSupplyKpisFromNationalDashboard,
   mapOverallPerformanceFromAnalytics,
   mapQuantityPerformanceFromAnalytics,
   mapRegularityPerformanceFromAnalytics,
@@ -544,6 +552,24 @@ export function CentralDashboard() {
     startDate: toIsoDate(selectedDuration?.startDate) ?? defaultAnalyticsRange.startDate,
     endDate: toIsoDate(selectedDuration?.endDate) ?? defaultAnalyticsRange.endDate,
   }
+  const hasCentralLandingFilters =
+    isStateSelected ||
+    isDistrictSelected ||
+    isBlockSelected ||
+    isGramPanchayatSelected ||
+    isVillageSelected ||
+    Boolean(selectedDepartmentState) ||
+    Boolean(selectedDepartmentZone) ||
+    Boolean(selectedDepartmentCircle) ||
+    Boolean(selectedDepartmentDivision) ||
+    Boolean(selectedDepartmentSubdivision) ||
+    Boolean(selectedDepartmentVillage)
+  const nationalDashboardParams = hasCentralLandingFilters
+    ? null
+    : {
+        startDate: analyticsDateRange.startDate,
+        endDate: analyticsDateRange.endDate,
+      }
   const analyticsParams =
     hierarchyType !== 'LGD' || isVillageSelected || !selectedTenant?.tenantId
       ? null
@@ -610,6 +636,12 @@ export function CentralDashboard() {
     analyticsParams?.startDate ?? defaultAnalyticsRange.startDate,
     analyticsParams?.endDate ?? defaultAnalyticsRange.endDate
   )
+  const previousNationalDashboardParams = hasCentralLandingFilters
+    ? null
+    : {
+        startDate: previousAnalyticsRange.startDate,
+        endDate: previousAnalyticsRange.endDate,
+      }
   const previousWaterSupplyAnalyticsParams =
     analyticsParams === null
       ? null
@@ -645,6 +677,14 @@ export function CentralDashboard() {
   const { data: averageWaterSupplyData } = useAverageWaterSupplyPerRegionQuery({
     params: analyticsParams,
     enabled: Boolean(analyticsParams),
+  })
+  const { data: nationalDashboardData } = useNationalDashboardQuery({
+    params: nationalDashboardParams,
+    enabled: Boolean(nationalDashboardParams),
+  })
+  const { data: previousNationalDashboardData } = useNationalDashboardQuery({
+    params: previousNationalDashboardParams,
+    enabled: Boolean(previousNationalDashboardParams),
   })
   const { data: currentWaterSupplyKpiData } = useAverageWaterSupplyPerRegionQuery({
     params: currentWaterSupplyAnalyticsParams,
@@ -691,18 +731,22 @@ export function CentralDashboard() {
     params: previousRegularityAnalyticsParams,
     enabled: Boolean(previousRegularityAnalyticsParams),
   })
-  const quantityPerformanceData = mapQuantityPerformanceFromAnalytics(
-    averageWaterSupplyData,
-    analyticsFallbackData
-  )
-  const regularityPerformanceData = mapRegularityPerformanceFromAnalytics(
-    averageSchemeRegularityData,
-    analyticsFallbackData
-  )
-  const supplySubmissionRateData = mapReadingSubmissionRateFromAnalytics(
-    readingSubmissionRateData,
-    supplySubmissionRateFallbackData
-  )
+  const isCentralLandingView = !hasCentralLandingFilters
+  const quantityPerformanceData = isCentralLandingView
+    ? mapQuantityPerformanceFromNationalDashboard(nationalDashboardData, analyticsFallbackData)
+    : mapQuantityPerformanceFromAnalytics(averageWaterSupplyData, analyticsFallbackData)
+  const regularityPerformanceData = isCentralLandingView
+    ? mapRegularityPerformanceFromNationalDashboard(nationalDashboardData, analyticsFallbackData)
+    : mapRegularityPerformanceFromAnalytics(averageSchemeRegularityData, analyticsFallbackData)
+  const supplySubmissionRateData = isCentralLandingView
+    ? mapReadingSubmissionRateFromNationalDashboard(
+        nationalDashboardData,
+        supplySubmissionRateFallbackData
+      )
+    : mapReadingSubmissionRateFromAnalytics(
+        readingSubmissionRateData,
+        supplySubmissionRateFallbackData
+      )
   const readingSubmissionStatusData = mapReadingSubmissionStatusFromAnalytics(
     submissionStatusData,
     data?.readingSubmissionStatus ?? []
@@ -725,16 +769,30 @@ export function CentralDashboard() {
     })) ??
     data?.readingCompliance ??
     []
-  const overallPerformanceTableData = mapOverallPerformanceFromAnalytics(
-    averageWaterSupplyData,
-    averageSchemeRegularityData,
-    overallPerformanceFallbackData,
-    5
-  )
-  const currentWaterSupplyKpis = getWaterSupplyKpis(currentWaterSupplyKpiData, 5)
-  const previousWaterSupplyKpis = getWaterSupplyKpis(previousWaterSupplyKpiData, 5)
-  const currentRegularityKpi = getRegularityKpi(currentRegularityKpiData)
-  const previousRegularityKpi = getRegularityKpi(previousRegularityKpiData)
+  const overallPerformanceTableData = isCentralLandingView
+    ? mapOverallPerformanceFromNationalDashboard(
+        nationalDashboardData,
+        overallPerformanceFallbackData,
+        5
+      )
+    : mapOverallPerformanceFromAnalytics(
+        averageWaterSupplyData,
+        averageSchemeRegularityData,
+        overallPerformanceFallbackData,
+        5
+      )
+  const currentWaterSupplyKpis = isCentralLandingView
+    ? getWaterSupplyKpisFromNationalDashboard(nationalDashboardData, 5)
+    : getWaterSupplyKpis(currentWaterSupplyKpiData, 5)
+  const previousWaterSupplyKpis = isCentralLandingView
+    ? getWaterSupplyKpisFromNationalDashboard(previousNationalDashboardData, 5)
+    : getWaterSupplyKpis(previousWaterSupplyKpiData, 5)
+  const currentRegularityKpi = isCentralLandingView
+    ? getRegularityKpiFromNationalDashboard(nationalDashboardData)
+    : getRegularityKpi(currentRegularityKpiData)
+  const previousRegularityKpi = isCentralLandingView
+    ? getRegularityKpiFromNationalDashboard(previousNationalDashboardData)
+    : getRegularityKpi(previousRegularityKpiData)
 
   const updateFilterUrl = (filters: {
     state?: string
@@ -985,10 +1043,16 @@ export function CentralDashboard() {
   const apiWaterSupplyOutageReasonsData = outageReasonsData?.outageReasonSchemeCount
     ? [toOutageReasonsData(outageReasonsData.outageReasonSchemeCount)]
     : null
+  const nationalWaterSupplyOutageReasonsData = isCentralLandingView
+    ? mapOutageReasonsFromNationalDashboard(nationalDashboardData, data.waterSupplyOutages)
+    : null
   const apiWaterSupplyOutageDistributionData = outageReasonsData?.childRegions?.length
     ? toOutageDistributionData(outageReasonsData.childRegions)
     : null
-  const waterSupplyOutagesData = apiWaterSupplyOutageReasonsData ?? data.waterSupplyOutages
+  const waterSupplyOutagesData =
+    nationalWaterSupplyOutageReasonsData ??
+    apiWaterSupplyOutageReasonsData ??
+    data.waterSupplyOutages
   const waterSupplyOutageDistributionData =
     apiWaterSupplyOutageDistributionData ?? data.waterSupplyOutages
   const resolvedDashboardData =
