@@ -14,6 +14,7 @@ import {
 } from '@chakra-ui/react'
 import type { ResponsiveValue } from '@chakra-ui/react'
 import type { Property } from 'csstype'
+import type { PlacementWithLogical } from '@chakra-ui/popper'
 import { useTranslation } from 'react-i18next'
 import { CalendarIcon } from './calendar-icon'
 
@@ -43,6 +44,9 @@ export interface DateRangePickerProps {
   textStyle?: string
   isFilter?: boolean
   placeholderColor?: string
+  iconOnly?: boolean
+  iconAriaLabel?: string
+  popoverPlacement?: PlacementWithLogical
 }
 
 const formatISODate = (date: Date) => {
@@ -109,6 +113,9 @@ export function DateRangePicker({
   textStyle = 'h10',
   isFilter = false,
   placeholderColor = 'neutral.500',
+  iconOnly = false,
+  iconAriaLabel,
+  popoverPlacement = 'bottom-start',
 }: DateRangePickerProps) {
   const { t } = useTranslation('dashboard')
   const [isTinyPicker] = useMediaQuery('(max-width: 499px)')
@@ -213,6 +220,7 @@ export function DateRangePicker({
     : textColor || (value ? 'neutral.950' : placeholderColor)
 
   const displayBorderColor = isFilter ? (value ? 'primary.500' : borderColor) : borderColor
+  const triggerAriaLabel = iconAriaLabel || placeholder
 
   const handleOpen = () => {
     if (!disabled) {
@@ -285,7 +293,7 @@ export function DateRangePicker({
       isOpen={isOpen}
       onOpen={handleOpen}
       onClose={handleClose}
-      placement="bottom-start"
+      placement={popoverPlacement}
       modifiers={[
         { name: 'offset', options: { offset: [-20, 8] } },
         { name: 'flip', enabled: false },
@@ -296,33 +304,36 @@ export function DateRangePicker({
         <Flex
           as="button"
           type="button"
+          aria-label={triggerAriaLabel}
           w={width}
           maxW={width}
           h={height}
           maxH={height}
-          px="12px"
+          px={iconOnly ? '8px' : '12px'}
           py="6px"
           bg="white"
           borderWidth="1px"
           borderColor={displayBorderColor}
           borderRadius={borderRadius}
           align="center"
-          justify="space-between"
+          justify={iconOnly ? 'center' : 'space-between'}
           cursor={disabled ? 'not-allowed' : 'pointer'}
           opacity={disabled ? 0.6 : 1}
           _hover={!disabled ? { borderColor: 'neutral.400' } : undefined}
           _focus={{ borderColor: 'primary.500', outline: 'none' }}
           _disabled={{ cursor: 'not-allowed', opacity: 0.6, pointerEvents: 'none' }}
         >
-          <Text
-            fontSize={fontSize}
-            color={displayColor}
-            textStyle={textStyle}
-            fontWeight={isFilter ? 'semibold' : '400'}
-            noOfLines={1}
-          >
-            {displayLabel}
-          </Text>
+          {iconOnly ? null : (
+            <Text
+              fontSize={fontSize}
+              color={displayColor}
+              textStyle={textStyle}
+              fontWeight={isFilter ? 'semibold' : '400'}
+              noOfLines={1}
+            >
+              {displayLabel}
+            </Text>
+          )}
           <CalendarIcon boxSize="16px" color={displayColor} />
         </Flex>
       </PopoverTrigger>

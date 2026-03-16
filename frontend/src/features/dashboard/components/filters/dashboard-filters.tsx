@@ -114,6 +114,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   const { t } = useTranslation('dashboard')
   const [isVeryCompactFilters] = useMediaQuery('(max-width: 569px)')
   const [isXsFilters] = useMediaQuery('(max-width: 479px)')
+  const [isBelowLgFilters] = useMediaQuery('(max-width: 991.98px)')
   const {
     filterTabIndex,
     onTabChange,
@@ -401,12 +402,12 @@ export function DashboardFilters(props: DashboardFiltersProps) {
         onTabChange,
       }}
       filterSlot={
-        <Flex align="center" gap={3} wrap="nowrap">
+        <Flex align="center" gap={{ base: 2, lg: 3 }} wrap="nowrap" minW={0}>
           <DateRangePicker
             value={selectedDuration}
             onChange={setSelectedDuration}
             placeholder={t('filters.duration', 'Duration')}
-            width="160px"
+            width={isBelowLgFilters ? '32px' : '160px'}
             height="32px"
             borderRadius="4px"
             fontSize={isVeryCompactFilters ? '11px' : 'sm'}
@@ -414,12 +415,16 @@ export function DashboardFilters(props: DashboardFiltersProps) {
             borderColor="neutral.400"
             disabled={false}
             isFilter={true}
+            iconOnly={isBelowLgFilters}
+            iconAriaLabel={t('filters.duration', 'Duration')}
+            popoverPlacement={isBelowLgFilters ? 'bottom-end' : 'bottom-start'}
           />
           <Button
             variant="link"
             size="sm"
             whiteSpace="nowrap"
             onClick={onClear}
+            minW={0}
             _hover={{ textDecoration: 'underline', textDecorationColor: 'neutral.300' }}
           >
             <Text
@@ -428,9 +433,11 @@ export function DashboardFilters(props: DashboardFiltersProps) {
               color="neutral.300"
               fontSize={isVeryCompactFilters ? '11px' : '14px'}
             >
-              {isXsFilters
+              {isBelowLgFilters
                 ? t('filters.clear', 'Clear')
-                : t('filters.clearAll', 'Clear all filters')}
+                : isXsFilters
+                  ? t('filters.clear', 'Clear')
+                  : t('filters.clearAll', 'Clear all filters')}
             </Text>
           </Button>
         </Flex>
