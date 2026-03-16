@@ -297,6 +297,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     findLabel(selectedGramPanchayat, resolvedGramPanchayatOptions),
     findLabel(selectedVillage, resolvedVillageOptions),
   ].filter((item): item is string => Boolean(item))
+  const hasHierarchySelection = selectionTrail.length > 0
 
   const trailSelectionValues = [
     selectedState,
@@ -401,6 +402,24 @@ export function DashboardFilters(props: DashboardFiltersProps) {
         activeTab: filterTabIndex,
         onTabChange,
       }}
+      closedTrailSlot={
+        isBelowLgFilters && hasHierarchySelection ? (
+          <Flex mt="4px" w="full" justify="flex-end">
+            <Button
+              variant="link"
+              size="sm"
+              whiteSpace="nowrap"
+              onClick={onClear}
+              minW={0}
+              _hover={{ textDecoration: 'underline', textDecorationColor: 'neutral.300' }}
+            >
+              <Text textStyle="h10" fontWeight="600" color="neutral.300" fontSize="14px">
+                {t('filters.clear', 'Clear')}
+              </Text>
+            </Button>
+          </Flex>
+        ) : null
+      }
       filterSlot={
         <Flex align="center" gap={{ base: 2, lg: 3 }} wrap="nowrap" minW={0}>
           <DateRangePicker
@@ -419,27 +438,27 @@ export function DashboardFilters(props: DashboardFiltersProps) {
             iconAriaLabel={t('filters.duration', 'Duration')}
             popoverPlacement={isBelowLgFilters ? 'bottom-end' : 'bottom-start'}
           />
-          <Button
-            variant="link"
-            size="sm"
-            whiteSpace="nowrap"
-            onClick={onClear}
-            minW={0}
-            _hover={{ textDecoration: 'underline', textDecorationColor: 'neutral.300' }}
-          >
-            <Text
-              textStyle="h10"
-              fontWeight="600"
-              color="neutral.300"
-              fontSize={isVeryCompactFilters ? '11px' : '14px'}
+          {!isBelowLgFilters ? (
+            <Button
+              variant="link"
+              size="sm"
+              whiteSpace="nowrap"
+              onClick={onClear}
+              minW={0}
+              _hover={{ textDecoration: 'underline', textDecorationColor: 'neutral.300' }}
             >
-              {isBelowLgFilters
-                ? t('filters.clear', 'Clear')
-                : isXsFilters
+              <Text
+                textStyle="h10"
+                fontWeight="600"
+                color="neutral.300"
+                fontSize={isVeryCompactFilters ? '11px' : '14px'}
+              >
+                {isXsFilters
                   ? t('filters.clear', 'Clear')
                   : t('filters.clearAll', 'Clear all filters')}
-            </Text>
-          </Button>
+              </Text>
+            </Button>
+          ) : null}
         </Flex>
       }
     />

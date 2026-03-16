@@ -54,6 +54,7 @@ interface SearchLayoutProps {
   actionProps?: ButtonProps
   filterSlot?: ReactNode
   rightSlot?: ReactNode
+  closedTrailSlot?: ReactNode
   breadcrumbPanelProps?: BreadcrumbPanelProps
   selectionTrail?: string[]
   activeTrailIndex?: number | null
@@ -67,6 +68,7 @@ export function SearchLayout({
   actionProps,
   filterSlot,
   rightSlot,
+  closedTrailSlot,
   breadcrumbPanelProps,
   selectionTrail,
   activeTrailIndex,
@@ -317,6 +319,7 @@ export function SearchLayout({
               />
             </InputGroup>
             {closedTrailContent}
+            {closedTrailContent ? closedTrailSlot : null}
             <Flex w="full" align="center" justify="space-between" gap={3}>
               <Box minW={0} flex="1 1 auto">
                 {filterSlot}
@@ -394,6 +397,7 @@ export function SearchLayout({
         )}
       </Flex>
       {!isCompactLayout ? closedTrailContent : null}
+      {!isCompactLayout && closedTrailContent ? closedTrailSlot : null}
       {showBreadcrumbPanel && isBreadcrumbPanelOpen ? (
         <Box
           position="absolute"
@@ -462,7 +466,7 @@ export function SearchLayout({
             </Box>
           ) : null}
           <Box bg="neutral.100" px="16px" py="8px">
-            <Flex align="center">
+            <Flex align="center" wrap="wrap" rowGap="4px">
               <Button
                 variant="unstyled"
                 onClick={() => handleTrailSelect(-1)}
@@ -481,7 +485,7 @@ export function SearchLayout({
                 {t('searchLayout.allStatesUTs', 'All States/UTs')}
               </Button>
               {effectiveSelectionTrail.map((item, index) => (
-                <Flex key={`${item}-${index}`} align="center">
+                <Flex key={`${item}-${index}`} align="center" wrap="nowrap" minW={0}>
                   <Icon
                     as={FiChevronDown}
                     color="neutral.500"
@@ -502,6 +506,8 @@ export function SearchLayout({
                     _active={{
                       color: index === effectiveActiveTrailIndex ? 'neutral.800' : 'primary.500',
                     }}
+                    whiteSpace="normal"
+                    textAlign="left"
                     aria-current={index === effectiveActiveTrailIndex ? 'page' : undefined}
                     aria-label={t('searchLayout.aria.breadcrumb', {
                       item,
