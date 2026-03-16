@@ -404,7 +404,11 @@ export function SearchLayout({
           top="56px"
           left="0"
           mt="16px"
-          width="798px"
+          width={{
+            base: '100%',
+            lg: 'min(960px, calc(100vw - 64px))',
+            xl: 'min(1120px, calc(100vw - 96px))',
+          }}
           maxW="100%"
           minH="375px"
           borderRadius="12px"
@@ -527,7 +531,8 @@ export function SearchLayout({
             <Box
               display="grid"
               gridTemplateColumns={{
-                base: 'repeat(2, minmax(0, 1fr))',
+                base: 'minmax(0, 1fr)',
+                sm: 'repeat(2, minmax(0, 1fr))',
                 md: 'repeat(3, minmax(0, 1fr))',
                 lg: 'repeat(5, minmax(0, 1fr))',
               }}
@@ -537,6 +542,9 @@ export function SearchLayout({
               rowGap="8px"
               alignItems="start"
               alignContent="start"
+              maxH={{ base: '272px', sm: 'none' }}
+              overflowY={{ base: 'auto', sm: 'visible' }}
+              pr={{ base: '4px', sm: 0 }}
               pb="16px"
               data-testid="search-options-grid"
             >
@@ -545,12 +553,16 @@ export function SearchLayout({
                   key={state.value}
                   variant="ghost"
                   justifyContent="flex-start"
+                  alignItems="flex-start"
                   fontWeight="400"
                   textStyle="bodyText5"
                   color="neutral.950"
                   p={0}
                   h="auto"
                   fontSize="14px"
+                  minW={0}
+                  whiteSpace="normal"
+                  textAlign="left"
                   onClick={() => handleStateSelect(state.value)}
                   _hover={{ bg: 'transparent', color: 'primary.500' }}
                   _active={{ bg: 'transparent', color: 'primary.500' }}
