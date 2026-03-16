@@ -21,6 +21,7 @@ import { INDIA_STATES } from '@/shared/constants/states'
 import {
   useCreateTenantMutation,
   useInviteUserMutation,
+  useStatesUTsQuery,
 } from '../../services/query/use-super-admin-queries'
 
 export function AddStateUTPage() {
@@ -34,6 +35,7 @@ export function AddStateUTPage() {
 
   const createTenantMutation = useCreateTenantMutation()
   const inviteUserMutation = useInviteUserMutation()
+  const { data: existingTenants, isLoading: isLoadingTenants } = useStatesUTsQuery()
 
   const [stateName, setStateName] = useState('')
   const [stateCode, setStateCode] = useState('')
@@ -42,9 +44,18 @@ export function AddStateUTPage() {
   const [emailTouched, setEmailTouched] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const takenStateCodes = useMemo<Set<string>>(
+    () => new Set((existingTenants ?? []).map((t) => t.stateCode)),
+    [existingTenants]
+  )
+
   const stateOptions = useMemo(
-    () => INDIA_STATES.map((s) => ({ value: s.name, label: s.name })),
-    []
+    () =>
+      INDIA_STATES.filter((s) => !takenStateCodes.has(s.code)).map((s) => ({
+        value: s.name,
+        label: s.name,
+      })),
+    [takenStateCodes]
   )
 
   const handleStateChange = (value: string) => {
@@ -99,7 +110,11 @@ export function AddStateUTPage() {
     }
   }
 
-  const isPending = isSubmitting || createTenantMutation.isPending || inviteUserMutation.isPending
+  const isPending =
+    isSubmitting ||
+    isLoadingTenants ||
+    createTenantMutation.isPending ||
+    inviteUserMutation.isPending
 
   return (
     <Box w="full">
