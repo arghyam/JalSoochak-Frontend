@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { useTheme } from '@chakra-ui/react'
+import { useMediaQuery, useTheme } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper, Toggle } from '@/shared/components/common'
@@ -22,6 +22,8 @@ export function IndiaMapChart({
   height = '600px',
 }: IndiaMapChartProps) {
   const theme = useTheme()
+  const [isBelow500] = useMediaQuery('(max-width: 499.98px)')
+  const [isBelowSm] = useMediaQuery('(max-width: 479.98px)')
   const { t } = useTranslation('dashboard')
   const [isRegularityView, setIsRegularityView] = useState(true)
   const metricKey: 'quantity' | 'regularity' = isRegularityView ? 'regularity' : 'quantity'
@@ -232,29 +234,35 @@ export function IndiaMapChart({
           >
             <span
               style={{
-                fontSize: bodyText6.fontSize,
-                lineHeight: `${bodyText6.lineHeight}px`,
+                fontSize: isBelowSm ? '12px' : bodyText6.fontSize,
+                lineHeight: isBelowSm ? '16px' : `${bodyText6.lineHeight}px`,
                 fontWeight: bodyText6.fontWeight,
                 color: bodyText6.color,
               }}
             >
               {quantityLabel}
             </span>
-            <Toggle
-              isChecked={isRegularityView}
-              alwaysPrimaryTrack
-              aria-label={t('map.metric.toggleAriaLabel', {
-                defaultValue: 'Switch map metric. Currently selected: {{metric}}',
-                metric: selectedMetricLabel,
-              })}
-              onChange={(event) => {
-                setIsRegularityView(event.target.checked)
-              }}
-            />
+            <div
+              style={
+                isBelowSm ? { transform: 'scale(0.85)', transformOrigin: 'center' } : undefined
+              }
+            >
+              <Toggle
+                isChecked={isRegularityView}
+                alwaysPrimaryTrack
+                aria-label={t('map.metric.toggleAriaLabel', {
+                  defaultValue: 'Switch map metric. Currently selected: {{metric}}',
+                  metric: selectedMetricLabel,
+                })}
+                onChange={(event) => {
+                  setIsRegularityView(event.target.checked)
+                }}
+              />
+            </div>
             <span
               style={{
-                fontSize: bodyText6.fontSize,
-                lineHeight: `${bodyText6.lineHeight}px`,
+                fontSize: isBelowSm ? '12px' : bodyText6.fontSize,
+                lineHeight: isBelowSm ? '16px' : `${bodyText6.lineHeight}px`,
                 fontWeight: bodyText6.fontWeight,
                 color: bodyText6.color,
               }}
@@ -267,11 +275,15 @@ export function IndiaMapChart({
       </div>
       <div
         style={{
-          display: 'flex',
+          display: 'grid',
+          gridTemplateColumns: isBelow500 ? 'repeat(3, minmax(0, 1fr))' : 'repeat(6, max-content)',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '16px',
+          justifyItems: isBelow500 ? 'start' : 'center',
+          columnGap: isBelow500 ? '12px' : '16px',
+          rowGap: isBelow500 ? '6px' : '0px',
           paddingTop: '8px',
+          width: '100%',
         }}
       >
         {legendItems.map((item) => (

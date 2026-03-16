@@ -407,7 +407,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
       }}
       closedTrailSlot={
         isBelowLgFilters && hasHierarchySelection ? (
-          <Flex mt="4px" w="full" justify="flex-end">
+          <Flex w="full" justify="flex-end">
             <Button
               variant="link"
               size="sm"

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { Box, Flex, Text, Heading, Grid, Icon, Image } from '@chakra-ui/react'
+import { Box, Flex, Text, Heading, Grid, Icon, Image, useBreakpointValue } from '@chakra-ui/react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDashboardData } from '../hooks/use-dashboard-data'
@@ -129,6 +129,8 @@ const renderFormulaTooltip = (title: string, formula: ReactNode, definitions: Re
 
 export function CentralDashboard() {
   const { t, i18n } = useTranslation('dashboard')
+  const overallPerformanceScrollHeight =
+    useBreakpointValue({ base: '320px', sm: '420px', lg: '620px' }) ?? '620px'
   const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -776,7 +778,8 @@ export function CentralDashboard() {
             pl="16px"
             pr="16px"
             w="full"
-            h="710px"
+            h={{ base: '420px', sm: '520px', lg: '710px' }}
+            minW={0}
           >
             <IndiaMapChart
               data={data.mapData}
@@ -795,7 +798,8 @@ export function CentralDashboard() {
             pl="16px"
             pr="16px"
             w="full"
-            h="710px"
+            h={{ base: '420px', sm: '520px', lg: '710px' }}
+            minW={0}
           >
             <Text textStyle="bodyText3" fontWeight="400" mb={4}>
               {t('overallPerformance.title', { defaultValue: 'Overall Performance' })}
@@ -803,7 +807,7 @@ export function CentralDashboard() {
             <OverallPerformanceTable
               data={overallPerformanceTableData}
               entityLabel={overallPerformanceEntityLabel}
-              scrollMaxHeight="620px"
+              scrollMaxHeight={overallPerformanceScrollHeight}
             />
           </Box>
         </Grid>
