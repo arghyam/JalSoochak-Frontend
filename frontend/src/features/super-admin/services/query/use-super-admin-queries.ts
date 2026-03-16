@@ -159,6 +159,7 @@ export function useUpdateUserMutation() {
         queryKey: superAdminQueryKeys.superUserById(variables.id),
       })
       await queryClient.invalidateQueries({ queryKey: superAdminQueryKeys.superUsers() })
+      await queryClient.invalidateQueries({ queryKey: superAdminQueryKeys.stateAdmins() })
     },
   })
 }

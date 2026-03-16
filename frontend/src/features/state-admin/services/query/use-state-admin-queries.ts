@@ -40,8 +40,11 @@ export function useSaveLanguageConfigurationMutation() {
   return useMutation({
     mutationFn: (payload: SaveLanguageConfigurationPayload) =>
       stateAdminApi.saveLanguageConfiguration(payload),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.setQueryData(stateAdminQueryKeys.languageConfiguration(), data)
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.configStatus() })
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.nudgeTemplates() })
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.messageTemplates() })
     },
   })
 }
@@ -58,8 +61,9 @@ export function useSaveIntegrationConfigurationMutation() {
   return useMutation({
     mutationFn: (payload: SaveIntegrationConfigurationPayload) =>
       stateAdminApi.saveIntegrationConfiguration(payload),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.setQueryData(stateAdminQueryKeys.integrationConfiguration(), data)
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.configStatus() })
     },
   })
 }
@@ -76,8 +80,9 @@ export function useSaveWaterNormsConfigurationMutation() {
   return useMutation({
     mutationFn: (payload: SaveWaterNormsConfigurationPayload) =>
       stateAdminApi.saveWaterNormsConfiguration(payload),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.setQueryData(stateAdminQueryKeys.waterNormsConfiguration(), data)
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.configStatus() })
     },
   })
 }
@@ -95,6 +100,7 @@ export function useCreateEscalationMutation() {
     mutationFn: (payload: SaveEscalationPayload) => stateAdminApi.createEscalation(payload),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.escalations() })
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.configStatus() })
     },
   })
 }
@@ -106,6 +112,7 @@ export function useUpdateEscalationMutation() {
       stateAdminApi.updateEscalation(id, payload),
     onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.escalations() })
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.configStatus() })
       queryClient.removeQueries({ queryKey: stateAdminQueryKeys.escalationById(variables.id) })
     },
   })
@@ -117,6 +124,7 @@ export function useDeleteEscalationMutation() {
     mutationFn: (id: string) => stateAdminApi.deleteEscalation(id),
     onSuccess: async (_data, id) => {
       await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.escalations() })
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.configStatus() })
       queryClient.removeQueries({ queryKey: stateAdminQueryKeys.escalationById(id) })
     },
   })
@@ -183,8 +191,9 @@ export function useSaveConfigurationMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (payload: SaveConfigurationPayload) => stateAdminApi.saveConfiguration(payload),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.setQueryData(stateAdminQueryKeys.configuration(), data)
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.configStatus() })
     },
   })
 }
