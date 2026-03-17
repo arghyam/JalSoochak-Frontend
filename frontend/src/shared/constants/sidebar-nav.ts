@@ -77,7 +77,7 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
     path: ROUTES.STATE_ADMIN_HIERARCHY,
     labelKey: 'sidebar.hierarchy',
     roles: [AUTH_ROLES.STATE_ADMIN],
-    icon: 'MdOutlineAccountTree',
+    icon: 'PiTreeStructure',
   },
   {
     type: 'simple',

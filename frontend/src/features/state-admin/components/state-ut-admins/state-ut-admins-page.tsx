@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   UserAdminListPage,
@@ -15,7 +15,9 @@ import {
 
 export function StateUTAdminsPage() {
   const { t } = useTranslation(['state-admin', 'common'])
-  const { data: admins = [], isLoading, isError, refetch } = useStateUTAdminsQuery()
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const { data, isLoading, isError, refetch } = useStateUTAdminsQuery(page, pageSize)
   const reinviteMutation = useReinviteStateUTAdminMutation()
   const toast = useToast()
 
@@ -60,13 +62,21 @@ export function StateUTAdminsPage() {
   return (
     <>
       <UserAdminListPage
-        data={admins}
+        data={data?.items ?? []}
         isLoading={isLoading}
         isError={isError}
         onRefetch={() => void refetch()}
         routes={routes}
         labels={labels}
         onReinvite={handleReinvite}
+        page={page}
+        pageSize={pageSize}
+        totalItems={data?.total}
+        onPageChange={setPage}
+        onPageSizeChange={(size) => {
+          setPageSize(size)
+          setPage(1)
+        }}
       />
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </>

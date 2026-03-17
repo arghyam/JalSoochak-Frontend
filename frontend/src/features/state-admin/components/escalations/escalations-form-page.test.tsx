@@ -22,7 +22,7 @@ const configuredData = {
   schedule: { hour: 9, minute: 0 },
   levels: [
     { days: 3, userType: 'SECTION_OFFICER' as const },
-    { days: 7, userType: 'SUBDIVISION_OFFICER' as const },
+    { days: 7, userType: 'DISTRICT_OFFICER' as const },
   ],
 }
 
@@ -60,7 +60,7 @@ describe('EscalationsFormPage', () => {
 
     expect(screen.getByText('09:00')).toBeInTheDocument()
     expect(screen.getByText('Section Officer')).toBeInTheDocument()
-    expect(screen.getByText('Sub-Division Officer')).toBeInTheDocument()
+    expect(screen.getByText('District Officer')).toBeInTheDocument()
   })
 
   it('shows edit button in view mode', () => {
@@ -172,7 +172,7 @@ describe('EscalationsFormPage', () => {
         schedule: { hour: 9, minute: 0 },
         levels: [
           { days: 3, userType: 'SECTION_OFFICER' },
-          { days: 7, userType: 'SUBDIVISION_OFFICER' },
+          { days: 7, userType: 'DISTRICT_OFFICER' },
         ],
       })
     })

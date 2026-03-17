@@ -32,6 +32,12 @@ export interface UserAdminListPageProps {
   readonly routes: UserAdminRoutes
   readonly labels: UserAdminListLabels
   readonly onReinvite?: (id: string) => void
+  /** Optional server-side pagination controls. When omitted, pagination is client-side. */
+  readonly page?: number
+  readonly pageSize?: number
+  readonly totalItems?: number
+  readonly onPageChange?: (page: number) => void
+  readonly onPageSizeChange?: (pageSize: number) => void
 }
 
 export function UserAdminListPage({
@@ -42,6 +48,11 @@ export function UserAdminListPage({
   routes,
   labels,
   onReinvite,
+  page,
+  pageSize,
+  totalItems,
+  onPageChange,
+  onPageSizeChange,
 }: UserAdminListPageProps) {
   const { t } = useTranslation('common')
   const navigate = useNavigate()
@@ -277,7 +288,11 @@ export function UserAdminListPage({
         isLoading={false}
         pagination={{
           enabled: true,
-          pageSize: 10,
+          page: page,
+          pageSize: pageSize ?? 10,
+          totalItems,
+          onPageChange,
+          onPageSizeChange,
           pageSizeOptions: [10, 25, 50],
         }}
       />

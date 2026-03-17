@@ -13,8 +13,9 @@ export const stateAdminQueryKeys = {
   nudgeTemplates: () => [...stateAdminQueryKeys.all, 'nudge-templates'] as const,
   staffSync: () => [...stateAdminQueryKeys.all, 'staff-sync'] as const,
   configuration: () => [...stateAdminQueryKeys.all, 'configuration'] as const,
-  stateUtAdmins: () => [...stateAdminQueryKeys.all, 'state-ut-admins'] as const,
-  stateUtAdminById: (id: string) => [...stateAdminQueryKeys.stateUtAdmins(), id] as const,
+  stateUtAdmins: (page: number, size: number) =>
+    [...stateAdminQueryKeys.all, 'state-ut-admins', page, size] as const,
+  stateUtAdminById: (id: string) => [...stateAdminQueryKeys.all, 'state-ut-admins', id] as const,
   escalationRules: () => [...stateAdminQueryKeys.all, 'escalation-rules'] as const,
   lgdHierarchy: () => [...stateAdminQueryKeys.all, 'lgd-hierarchy'] as const,
   departmentHierarchy: () => [...stateAdminQueryKeys.all, 'department-hierarchy'] as const,
