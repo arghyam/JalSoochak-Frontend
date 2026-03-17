@@ -2,8 +2,7 @@ import { screen } from '@testing-library/react'
 import { describe, expect, it, jest, beforeEach } from '@jest/globals'
 import { OverviewPage } from './overview-page'
 import { renderWithProviders } from '@/test/render-with-providers'
-import type { OverviewData } from '../../types/overview'
-import type { ConfigStatusMap } from '../../types/config-status'
+import type { OverviewData, StaffCountsData } from '../../types/overview'
 
 const mockQueryState: {
   data: OverviewData | undefined
@@ -15,14 +14,15 @@ const mockQueryState: {
   isError: false,
 }
 
-const mockConfigStatusState: {
-  data: ConfigStatusMap | undefined
+const mockStaffCountsState: {
+  data: StaffCountsData | undefined
   isLoading: boolean
   isError: boolean
 } = {
   data: {
-    TENANT_SUPPORTED_CHANNELS: 'CONFIGURED',
-    SUPPORTED_LANGUAGES: 'PENDING',
+    totalStaff: 243,
+    pumpOperators: 120,
+    totalAdmins: 15,
   },
   isLoading: false,
   isError: false,
@@ -34,7 +34,7 @@ const mockAuthState: { user: { tenantCode: string } | null } = {
 
 jest.mock('../../services/query/use-state-admin-queries', () => ({
   useStateAdminOverviewQuery: () => mockQueryState,
-  useConfigStatusQuery: () => mockConfigStatusState,
+  useStaffCountsQuery: () => mockStaffCountsState,
 }))
 
 jest.mock('@/app/store', () => ({
@@ -43,10 +43,7 @@ jest.mock('@/app/store', () => ({
 
 const mockOverviewData: OverviewData = {
   stats: {
-    configurationStatus: { value: '8/10', subtitle: '80% complete' },
-    activeStaff: { value: 243, subtitle: '+12 this month' },
     activeSchemes: { value: 57, subtitle: '3 new this week' },
-    activeIntegrations: { value: 4, subtitle: 'All systems active' },
   },
 }
 
@@ -54,6 +51,9 @@ beforeEach(() => {
   mockQueryState.data = mockOverviewData
   mockQueryState.isLoading = false
   mockQueryState.isError = false
+  mockStaffCountsState.data = { totalStaff: 243, pumpOperators: 120, totalAdmins: 15 }
+  mockStaffCountsState.isLoading = false
+  mockStaffCountsState.isError = false
   mockAuthState.user = { tenantCode: 'TG' }
 })
 
@@ -66,31 +66,18 @@ describe('data state', () => {
 
   it('renders all four stat card titles', () => {
     renderWithProviders(<OverviewPage />)
-    expect(screen.getByText('Configuration Status')).toBeTruthy()
-    expect(screen.getByText('Active Staff')).toBeTruthy()
+    expect(screen.getByText('Total Staff')).toBeTruthy()
+    expect(screen.getByText('Total Pump Operators')).toBeTruthy()
+    expect(screen.getByText('Total Admins')).toBeTruthy()
     expect(screen.getByText('Active Schemes')).toBeTruthy()
-    expect(screen.getByText('Active Integrations')).toBeTruthy()
   })
 
   it('renders stat card values', () => {
     renderWithProviders(<OverviewPage />)
-    expect(screen.getByText('8/10')).toBeTruthy()
     expect(screen.getByText('243')).toBeTruthy()
+    expect(screen.getByText('120')).toBeTruthy()
+    expect(screen.getByText('15')).toBeTruthy()
     expect(screen.getByText('57')).toBeTruthy()
-    expect(screen.getByText('4')).toBeTruthy()
-  })
-
-  it('renders stat card subtitles', () => {
-    renderWithProviders(<OverviewPage />)
-    expect(screen.getByText('80% complete')).toBeTruthy()
-    expect(screen.getByText('+12 this month')).toBeTruthy()
-    expect(screen.getByText('3 new this week')).toBeTruthy()
-    expect(screen.getByText('All systems active')).toBeTruthy()
-  })
-
-  it('renders the setup wizard section heading', () => {
-    renderWithProviders(<OverviewPage />)
-    expect(screen.getByText('Setup Progress')).toBeTruthy()
   })
 
   it('renders stats section with aria-label', () => {
@@ -107,20 +94,35 @@ describe('loading state', () => {
     renderWithProviders(<OverviewPage />)
 
     expect(screen.getByRole('status')).toBeTruthy()
-    expect(screen.getByText('Loading...', { selector: 'p' })).toBeTruthy()
+    expect(screen.queryByRole('heading', { level: 1 })).toBeNull()
+  })
 
+  it('renders loading spinner when staff counts are loading', () => {
+    mockStaffCountsState.data = undefined
+    mockStaffCountsState.isLoading = true
+
+    renderWithProviders(<OverviewPage />)
+
+    expect(screen.getByRole('status')).toBeTruthy()
     expect(screen.queryByRole('heading', { level: 1 })).toBeNull()
   })
 })
 
 describe('error state', () => {
-  it('renders error message and suppresses page content', () => {
+  it('renders error message and suppresses page content when overview query fails', () => {
     mockQueryState.isError = true
     mockQueryState.data = undefined
 
     renderWithProviders(<OverviewPage />)
 
-    expect(screen.getByText('Failed to load configuration')).toBeTruthy()
+    expect(screen.queryByRole('heading', { level: 1 })).toBeNull()
+  })
+
+  it('renders error message and suppresses page content when staff counts query fails', () => {
+    mockStaffCountsState.isError = true
+    mockStaffCountsState.data = undefined
+
+    renderWithProviders(<OverviewPage />)
 
     expect(screen.queryByRole('heading', { level: 1 })).toBeNull()
   })

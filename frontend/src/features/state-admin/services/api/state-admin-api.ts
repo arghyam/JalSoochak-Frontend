@@ -37,7 +37,7 @@ import type { IntegrationConfiguration } from '../../types/integration'
 import type { LanguageConfiguration } from '../../types/language'
 import type { MessageTemplatesData } from '../../types/message-templates'
 import type { NudgeTemplate } from '../../types/nudges'
-import type { OverviewData } from '../../types/overview'
+import type { OverviewData, StaffCountsData } from '../../types/overview'
 import type { StateUTAdmin, UpdateStateUTAdminInput } from '../../types/state-ut-admins'
 import type { StaffSyncData } from '../../types/staff-sync'
 import type { ThresholdConfiguration } from '../../types/thresholds'
@@ -382,6 +382,27 @@ const mockProvider: StateAdminDataProvider = {
 //            escalations, escalation rules, Glific message templates, state-ut-admins
 // Mock:      overview, activity, staff sync, nudge templates
 export const stateAdminApi = {
+  // --- Real HTTP: Staff Counts ---
+  getStaffCounts: async (): Promise<StaffCountsData> => {
+    const tenantCode = useAuthStore.getState().user?.tenantCode
+    if (!tenantCode) throw new Error('tenantCode unavailable — user not authenticated')
+    type RoleCount = { role: string; count: number }
+    const response = await apiClient.get<ApiEnvelope<RoleCount[]>>(
+      '/api/v1/tenant/user/staff/counts/by-role',
+      { params: { tenantCode } }
+    )
+    const counts = response.data.data
+    const get = (role: string) => counts.find((r) => r.role === role)?.count ?? 0
+    const pumpOperators = get('pump_operator')
+    const sectionOfficers = get('SECTION_OFFICER')
+    const districtOfficers = get('DISTRICT_OFFICER')
+    return {
+      totalStaff: pumpOperators + sectionOfficers + districtOfficers,
+      pumpOperators,
+      totalAdmins: get('STATE_ADMIN'),
+    }
+  },
+
   // --- Mock ---
   getOverviewData: () => mockProvider.getOverviewData(),
   getActivityData: () => mockProvider.getActivityData(),

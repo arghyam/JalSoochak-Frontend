@@ -22,6 +22,13 @@ export function useStateAdminOverviewQuery() {
   })
 }
 
+export function useStaffCountsQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.staffCounts(),
+    queryFn: stateAdminApi.getStaffCounts,
+  })
+}
+
 export function useStateAdminActivityQuery() {
   return useQuery({
     queryKey: stateAdminQueryKeys.activity(),
