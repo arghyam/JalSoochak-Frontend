@@ -17,33 +17,37 @@ import { Toggle, ToastContainer } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ROUTES } from '@/shared/constants/routes'
 import {
-  useTenantByIdQuery,
+  useStatesUTsQuery,
   useStateAdminsByTenantQuery,
   useUpdateTenantStatusMutation,
   useUpdateUserMutation,
 } from '../../services/query/use-super-admin-queries'
 import type { UserAdminData } from '@/shared/components/common'
 
-/** Per-admin draft: only lastName and phone are editable. */
+/** Per-admin draft: firstName, lastName and phone are editable. */
 interface AdminDraft {
+  firstName: string
   lastName: string
   phone: string
 }
 
 function hasAdminChanged(original: UserAdminData, draft: AdminDraft): boolean {
-  return draft.lastName !== original.lastName || draft.phone !== original.phone
+  return (
+    draft.firstName !== original.firstName ||
+    draft.lastName !== original.lastName ||
+    draft.phone !== original.phone
+  )
 }
 
 export function EditStateUTPage() {
   const { t } = useTranslation(['super-admin', 'common'])
   const navigate = useNavigate()
-  const { id } = useParams<{ id: string }>()
+  const { tenantCode } = useParams<{ tenantCode: string }>()
   const toast = useToast()
 
-  const tenantId = id && !Number.isNaN(Number(id)) ? Number(id) : undefined
-  const tenantQuery = useTenantByIdQuery(tenantId)
-  const tenant = tenantQuery.data ?? null
-  const adminsQuery = useStateAdminsByTenantQuery(tenant?.stateCode)
+  const tenantsQuery = useStatesUTsQuery()
+  const tenant = tenantsQuery.data?.find((t) => t.stateCode === tenantCode) ?? null
+  const adminsQuery = useStateAdminsByTenantQuery(tenantCode)
   const admins: UserAdminData[] = adminsQuery.data ?? []
 
   const updateStatusMutation = useUpdateTenantStatusMutation()
@@ -90,8 +94,8 @@ export function EditStateUTPage() {
   }
 
   const handleCancel = () => {
-    if (id) {
-      navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':id', id))
+    if (tenantCode) {
+      navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':tenantCode', tenantCode))
     } else {
       navigate(ROUTES.SUPER_ADMIN_STATES_UTS)
     }
@@ -108,7 +112,11 @@ export function EditStateUTPage() {
       try {
         await updateUserMutation.mutateAsync({
           id: admin.id,
-          payload: { lastName: draft.lastName, phoneNumber: draft.phone },
+          payload: {
+            firstName: draft.firstName,
+            lastName: draft.lastName,
+            phoneNumber: draft.phone,
+          },
         })
       } catch {
         failedEmails.push(admin.email)
@@ -119,13 +127,13 @@ export function EditStateUTPage() {
 
     if (failedEmails.length === 0) {
       toast.addToast(t('common:toast.changesSaved'), 'success')
-      if (id) {
+      if (tenantCode) {
         if (navigateTimerRef.current !== null) {
           clearTimeout(navigateTimerRef.current)
         }
         navigateTimerRef.current = setTimeout(() => {
           navigateTimerRef.current = null
-          navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':id', id))
+          navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':tenantCode', tenantCode))
         }, 500)
       }
     } else {
@@ -134,17 +142,21 @@ export function EditStateUTPage() {
   }
 
   const setAdminField = (adminId: string, field: keyof AdminDraft, value: string) => {
-    setAdminDrafts((prev) => ({
-      ...prev,
-      [adminId]: {
-        lastName: prev[adminId]?.lastName ?? admins.find((a) => a.id === adminId)?.lastName ?? '',
-        phone: prev[adminId]?.phone ?? admins.find((a) => a.id === adminId)?.phone ?? '',
-        [field]: value,
-      },
-    }))
+    setAdminDrafts((prev) => {
+      const source = admins.find((a) => a.id === adminId)
+      return {
+        ...prev,
+        [adminId]: {
+          firstName: prev[adminId]?.firstName ?? source?.firstName ?? '',
+          lastName: prev[adminId]?.lastName ?? source?.lastName ?? '',
+          phone: prev[adminId]?.phone ?? source?.phone ?? '',
+          [field]: value,
+        },
+      }
+    })
   }
 
-  if (tenantQuery.isLoading) {
+  if (tenantsQuery.isLoading) {
     return (
       <Box w="full">
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
@@ -306,6 +318,7 @@ export function EditStateUTPage() {
             {!adminsQuery.isLoading && admins.length > 0 && (
               <Flex direction="column" gap={6}>
                 {admins.map((admin) => {
+                  const firstName = adminDrafts[admin.id]?.firstName ?? admin.firstName
                   const lastName = adminDrafts[admin.id]?.lastName ?? admin.lastName
                   const phone = adminDrafts[admin.id]?.phone ?? admin.phone
                   return (
@@ -316,19 +329,17 @@ export function EditStateUTPage() {
                       aria-labelledby="admin-details-heading"
                     >
                       <FormControl>
-                        <FormLabel textStyle="h10" color="neutral.400" mb={1}>
+                        <FormLabel textStyle="h10" mb={1}>
                           {t('statesUts.adminDetails.firstName')}
                         </FormLabel>
                         <Input
-                          value={admin.firstName}
-                          isReadOnly
-                          isDisabled
-                          bg="neutral.50"
+                          value={firstName}
+                          onChange={(e) => setAdminField(admin.id, 'firstName', e.target.value)}
+                          placeholder={t('common:enter')}
                           borderColor="neutral.200"
-                          color="neutral.400"
                           h={9}
                           maxW={{ base: '100%', lg: '486px' }}
-                          aria-readonly="true"
+                          _placeholder={{ color: 'neutral.300' }}
                         />
                       </FormControl>
                       <FormControl>

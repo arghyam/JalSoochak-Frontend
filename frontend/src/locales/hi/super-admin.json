@@ -122,14 +122,16 @@
     },
     "status": {
       "completed": "पूर्ण",
-      "pending": "लंबित"
+      "pending": "लंबित",
+      "inactive": "निष्क्रिय"
     },
     "messages": {
       "noAdminsFound": "कोई व्यवस्थापक नहीं मिला"
     },
     "aria": {
       "viewAdmin": "व्यवस्थापक देखें",
-      "editAdmin": "व्यवस्थापक संपादित करें"
+      "editAdmin": "व्यवस्थापक संपादित करें",
+      "resendInvite": "व्यवस्थापक को पुनः आमंत्रण भेजें"
     }
   },
 
@@ -197,7 +199,8 @@
     },
     "aria": {
       "viewUser": "उपयोगकर्ता देखें",
-      "editUser": "उपयोगकर्ता संपादित करें"
+      "editUser": "उपयोगकर्ता संपादित करें",
+      "resendInvite": "सुपर उपयोगकर्ता को पुनः आमंत्रण भेजें"
     }
   },
 
@@ -208,11 +211,13 @@
       "supportedChannels": {
         "title": "समर्थित चैनल"
       },
-      "waterQuantityMax": {
-        "title": "अधिकतम मात्रा सीमा (%)"
+      "undersupplyThreshold": {
+        "title": "अंडरसप्लाई सीमा (%)",
+        "description": "वास्तविक मानक से नकारात्मक विचलन प्रतिशत में।"
       },
-      "waterQuantityMin": {
-        "title": "न्यूनतम मात्रा सीमा (%)"
+      "oversupplyThreshold": {
+        "title": "ओवरसप्लाई सीमा (%)",
+        "description": "वास्तविक मानक से सकारात्मक विचलन प्रतिशत में।"
       },
       "bfmImageConfidence": {
         "title": "BFM छवि विश्वास सीमा (%)"

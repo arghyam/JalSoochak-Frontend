@@ -122,14 +122,16 @@
     },
     "status": {
       "completed": "Completed",
-      "pending": "Pending"
+      "pending": "Pending",
+      "inactive": "Inactive"
     },
     "messages": {
       "noAdminsFound": "No admins found"
     },
     "aria": {
       "viewAdmin": "View admin",
-      "editAdmin": "Edit admin"
+      "editAdmin": "Edit admin",
+      "resendInvite": "Resend invite for admin"
     }
   },
 
@@ -197,7 +199,8 @@
     "aria": {
       "search": "Search super users",
       "view": "View super user",
-      "edit": "Edit super user"
+      "edit": "Edit super user",
+      "resendInvite": "Resend invite for super user"
     }
   },
 
@@ -208,11 +211,13 @@
       "supportedChannels": {
         "title": "Supported Channels"
       },
-      "waterQuantityMax": {
-        "title": "Max Quantity Threshold (%)"
+      "undersupplyThreshold": {
+        "title": "Undersupply Threshold (%)",
+        "description": "The negative deviation from the actual norm in percentage."
       },
-      "waterQuantityMin": {
-        "title": "Min Quantity Threshold (%)"
+      "oversupplyThreshold": {
+        "title": "Oversupply Threshold (%)",
+        "description": "The positive deviation from the actual norm in percentage."
       },
       "bfmImageConfidence": {
         "title": "BFM Image Confidence Threshold (%)"

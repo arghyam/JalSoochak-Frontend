@@ -7,16 +7,14 @@ describe('WaterNormsAlertThresholds', () => {
   it('renders numeric inputs for alert thresholds', () => {
     renderWithProviders(
       <WaterNormsAlertThresholds
-        maxQuantity="150"
-        minQuantity="50"
-        regularity="10"
-        onMaxQuantityChange={jest.fn()}
-        onMinQuantityChange={jest.fn()}
-        onRegularityChange={jest.fn()}
+        oversupplyThreshold="150"
+        undersupplyThreshold="50"
+        onOversupplyThresholdChange={jest.fn()}
+        onUndersupplyThresholdChange={jest.fn()}
       />
     )
 
     const inputs = screen.getAllByRole('spinbutton')
-    expect(inputs.length).toBeGreaterThanOrEqual(3)
+    expect(inputs.length).toBeGreaterThanOrEqual(2)
   })
 })

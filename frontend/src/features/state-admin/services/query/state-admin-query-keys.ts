@@ -16,4 +16,10 @@ export const stateAdminQueryKeys = {
   stateUtAdmins: () => [...stateAdminQueryKeys.all, 'state-ut-admins'] as const,
   stateUtAdminById: (id: string) => [...stateAdminQueryKeys.stateUtAdmins(), id] as const,
   escalationRules: () => [...stateAdminQueryKeys.all, 'escalation-rules'] as const,
+  lgdHierarchy: () => [...stateAdminQueryKeys.all, 'lgd-hierarchy'] as const,
+  departmentHierarchy: () => [...stateAdminQueryKeys.all, 'department-hierarchy'] as const,
+  lgdEditConstraints: () => [...stateAdminQueryKeys.all, 'lgd-edit-constraints'] as const,
+  departmentEditConstraints: () =>
+    [...stateAdminQueryKeys.all, 'department-edit-constraints'] as const,
+  configStatus: () => [...stateAdminQueryKeys.all, 'config-status'] as const,
 }

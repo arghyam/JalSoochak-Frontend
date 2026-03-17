@@ -27,7 +27,7 @@ export interface ApiUser {
   phoneNumber: string
   role: string
   tenantCode: string | null
-  active: boolean
+  status: 'ACTIVE' | 'INACTIVE' | 'PENDING'
   createdAt: string
 }
 
@@ -40,6 +40,12 @@ export interface ApiUsersListResponse {
   number: number
 }
 
+function mapApiStatus(status: ApiUser['status']): UserAdminData['status'] {
+  if (status === 'ACTIVE') return 'active'
+  if (status === 'PENDING') return 'pending'
+  return 'inactive'
+}
+
 /** Maps raw API user to the internal UserAdminData shape used by shared components */
 export function mapApiUserToUserAdminData(u: ApiUser): UserAdminData {
   return {
@@ -48,7 +54,7 @@ export function mapApiUserToUserAdminData(u: ApiUser): UserAdminData {
     lastName: u.lastName ?? '',
     email: u.email,
     phone: u.phoneNumber,
-    status: u.active ? 'active' : 'inactive',
+    status: mapApiStatus(u.status),
   }
 }
 

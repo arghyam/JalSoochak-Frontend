@@ -567,7 +567,6 @@ const mockStateAdminsData: StateAdmin[] = [
     mobileNumber: '+91 98452-85564',
     emailAddress: 'ravi@gmail.com',
     signupStatus: 'completed',
-    stateUtId: '1',
   },
   {
     id: 'sa-2',
@@ -576,7 +575,6 @@ const mockStateAdminsData: StateAdmin[] = [
     mobileNumber: '+91 74185-96321',
     emailAddress: 'vijay@gmail.com',
     signupStatus: 'pending',
-    stateUtId: '2',
   },
   {
     id: 'sa-3',
@@ -585,7 +583,6 @@ const mockStateAdminsData: StateAdmin[] = [
     mobileNumber: '+91 98765-43210',
     emailAddress: 'rohan@gmail.com',
     signupStatus: 'completed',
-    stateUtId: '3',
   },
   {
     id: 'sa-4',
@@ -594,7 +591,6 @@ const mockStateAdminsData: StateAdmin[] = [
     mobileNumber: '+91 87654-90123',
     emailAddress: 'sanjeev@gmail.com',
     signupStatus: 'pending',
-    stateUtId: '4',
   },
   {
     id: 'sa-5',
@@ -603,7 +599,6 @@ const mockStateAdminsData: StateAdmin[] = [
     mobileNumber: '+91 76543-21098',
     emailAddress: 'sunita.verma@jalsoochak.com',
     signupStatus: 'completed',
-    stateUtId: '5',
   },
   {
     id: 'sa-6',
@@ -612,7 +607,6 @@ const mockStateAdminsData: StateAdmin[] = [
     mobileNumber: '+91 65432-10987',
     emailAddress: 'miguel.fernandes@jalsoochak.com',
     signupStatus: 'completed',
-    stateUtId: '6',
   },
   {
     id: 'sa-7',
@@ -621,7 +615,6 @@ const mockStateAdminsData: StateAdmin[] = [
     mobileNumber: '+91 54321-09876',
     emailAddress: 'kiran.patel@jalsoochak.com',
     signupStatus: 'pending',
-    stateUtId: '7',
   },
   {
     id: 'sa-8',
@@ -630,7 +623,6 @@ const mockStateAdminsData: StateAdmin[] = [
     mobileNumber: '+91 43210-98765',
     emailAddress: 'deepak.yadav@jalsoochak.com',
     signupStatus: 'completed',
-    stateUtId: '8',
   },
   {
     id: 'sa-9',
@@ -639,7 +631,6 @@ const mockStateAdminsData: StateAdmin[] = [
     mobileNumber: '+91 32109-87654',
     emailAddress: 'anita.thakur@jalsoochak.com',
     signupStatus: 'completed',
-    stateUtId: '9',
   },
   {
     id: 'sa-10',
@@ -648,7 +639,6 @@ const mockStateAdminsData: StateAdmin[] = [
     mobileNumber: '+91 21098-76543',
     emailAddress: 'ravi.oraon@jalsoochak.com',
     signupStatus: 'completed',
-    stateUtId: '10',
   },
 ]
 
@@ -814,8 +804,8 @@ export const updateMockSuperUserStatus = (
 
 let mockSystemConfigData: SystemConfiguration = {
   supportedChannels: ['BFM', 'MAN', 'ELM', 'PDU', 'IOT'],
-  waterQuantityMaxThreshold: 100,
-  waterQuantityMinThreshold: 100,
+  oversupplyThreshold: 100,
+  undersupplyThreshold: 100,
   bfmImageConfidenceThreshold: 89,
   locationAffinityThreshold: 78,
 }

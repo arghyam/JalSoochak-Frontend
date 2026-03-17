@@ -11,7 +11,7 @@ import {
 } from '../mock-data'
 import type { ApiCredentialsData } from '../../types/api-credentials'
 import type { IngestionMonitorData } from '../../types/ingestion-monitor'
-import type { SuperAdminOverviewData } from '../../types/overview'
+import type { SuperAdminOverviewData, SuperAdminStats } from '../../types/overview'
 import type { SystemRulesConfiguration } from '../../types/system-rules'
 import type { SystemConfiguration, SaveSystemConfigPayload } from '../../types/system-config'
 import type { StateAdmin } from '../../types/state-admins'
@@ -98,6 +98,24 @@ export const superAdminApi = {
     )
   },
 
+  // ── Real HTTP: Tenants Summary ─────────────────────────────────────────────
+  getTenantsSummary: async (): Promise<SuperAdminStats> => {
+    const response = await apiClient.get<
+      ApiResponse<{
+        totalTenants: number
+        activeTenants: number
+        inactiveTenants: number
+        archivedTenants: number
+      }>
+    >('/api/v1/tenants/summary')
+    const { totalTenants, activeTenants, inactiveTenants } = response.data.data
+    return {
+      totalStatesManaged: totalTenants,
+      activeStates: activeTenants,
+      inactiveStates: inactiveTenants,
+    }
+  },
+
   // ── Real HTTP: Tenants (States/UTs) ────────────────────────────────────────
   getStatesUTsData: async (): Promise<Tenant[]> => {
     const pageSize = 100
@@ -118,17 +136,11 @@ export const superAdminApi = {
     return allContent.map((t) => mapTenant(t))
   },
 
-  getTenantById: async (id: number): Promise<Tenant | null> => {
-    try {
-      const response = await apiClient.get<ApiResponse<TenantApiResponse>>(`/api/v1/tenants/${id}`)
-      return mapTenant(response.data.data)
-    } catch (error) {
-      if (isAxiosError(error) && error.response?.status === 404) return null
-      throw error
-    }
-  },
-
-  createTenant: async (payload: { stateCode: string; name: string }): Promise<Tenant> => {
+  createTenant: async (payload: {
+    stateCode: string
+    name: string
+    lgdCode: number
+  }): Promise<Tenant> => {
     const response = await apiClient.post<ApiResponse<TenantApiResponse>>(
       '/api/v1/tenants',
       payload
@@ -158,14 +170,24 @@ export const superAdminApi = {
     const response = await apiClient.get<ApiResponse<ApiUsersListResponse>>(
       '/api/v1/users/state-admins'
     )
-    return response.data.data.content.map((u: ApiUser) => ({
-      id: String(u.id),
-      adminName: `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim(),
-      stateUt: u.tenantCode ?? '',
-      mobileNumber: u.phoneNumber,
-      emailAddress: u.email,
-      signupStatus: u.active ? ('completed' as const) : ('pending' as const),
-    }))
+    return response.data.data.content.map((u: ApiUser) => {
+      let signupStatus: StateAdmin['signupStatus']
+      if (u.status === 'ACTIVE') {
+        signupStatus = 'completed'
+      } else if (u.status === 'INACTIVE') {
+        signupStatus = 'inactive'
+      } else {
+        signupStatus = 'pending'
+      }
+      return {
+        id: String(u.id),
+        adminName: `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim(),
+        stateUt: u.tenantCode ?? '',
+        mobileNumber: u.phoneNumber,
+        emailAddress: u.email,
+        signupStatus,
+      }
+    })
   },
 
   // ── Real HTTP: Users (super users + generic update/status) ─────────────────
@@ -200,5 +222,9 @@ export const superAdminApi = {
     } else {
       await apiClient.put(`/api/v1/users/${id}/activate`)
     }
+  },
+
+  reinviteUser: async (id: string): Promise<void> => {
+    await apiClient.post(`/api/v1/users/${id}/reinvite`)
   },
 }

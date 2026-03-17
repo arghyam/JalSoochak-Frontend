@@ -18,8 +18,6 @@ import { SCREEN_NAMES } from '../../types/message-templates'
 import {
   CHANNEL_CODE_TO_NAME,
   CHANNEL_NAME_TO_CODE,
-  DEFAULT_DEPARTMENT_HIERARCHY,
-  DEFAULT_LGD_HIERARCHY,
   DEFAULT_METER_CHANGE_REASONS,
 } from '../../types/configuration'
 import type { EscalationRuleLevel, EscalationRulesConfig } from '../../types/escalation-rules'
@@ -30,15 +28,6 @@ import type { WaterNormsConfiguration } from '../../types/water-norms'
 // ---------------------------------------------------------------------------
 // Raw API shape (what the backend sends inside configs: { ... })
 // ---------------------------------------------------------------------------
-
-interface ApiHierarchyLevel {
-  level: number
-  levelName: { title: string }[]
-}
-
-interface ApiHierarchy {
-  locationHierarchy: ApiHierarchyLevel[]
-}
 
 interface ApiEscalationLevel {
   threshold: { days: number }
@@ -60,11 +49,12 @@ export interface TenantConfigMap {
   DATA_CONSOLIDATION_TIME?: { timeValue: string; description: string | null }
   PUMP_OPERATOR_REMINDER_NUDGE_TIME?: { nudge: { schedule: { hour: number; minute: number } } }
   AVERAGE_MEMBERS_PER_HOUSEHOLD?: { value: string }
-  LGD_LOCATION_HIERARCHY?: ApiHierarchy
-  DEPT_LOCATION_HIERARCHY?: ApiHierarchy
   SUPPORTED_LANGUAGES?: { languages: { language: string; preference: number }[] }
   WATER_NORM?: { value: string }
-  TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD?: { value: string }
+  TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD?: {
+    undersupplyThresholdPercent: number | null
+    oversupplyThresholdPercent: number | null
+  }
   FIELD_STAFF_ESCALATION_RULES?: ApiEscalationRules
   MESSAGE_BROKER_CONNECTION_SETTINGS?: { apiUrl: string; apiKey?: string; organizationId: string }
   GLIFIC_MESSAGE_TEMPLATES?: {
@@ -96,21 +86,6 @@ function formatHHmm(hour: number, minute: number): string {
 }
 
 // ---------------------------------------------------------------------------
-// Hierarchy helpers
-// ---------------------------------------------------------------------------
-
-function mapApiHierarchy(
-  apiHierarchy: ApiHierarchy | undefined,
-  defaults: typeof DEFAULT_LGD_HIERARCHY
-) {
-  if (!apiHierarchy?.locationHierarchy?.length) return defaults
-  return apiHierarchy.locationHierarchy.map((l) => ({
-    level: l.level,
-    name: l.levelName?.[0]?.title ?? '',
-  }))
-}
-
-// ---------------------------------------------------------------------------
 // Configuration page mappers
 // ---------------------------------------------------------------------------
 
@@ -129,11 +104,6 @@ export function mapApiConfigToConfigurationData(
   const nudgeSchedule = configs.PUMP_OPERATOR_REMINDER_NUDGE_TIME?.nudge?.schedule
 
   return {
-    lgdHierarchy: mapApiHierarchy(configs.LGD_LOCATION_HIERARCHY, DEFAULT_LGD_HIERARCHY),
-    departmentHierarchy: mapApiHierarchy(
-      configs.DEPT_LOCATION_HIERARCHY,
-      DEFAULT_DEPARTMENT_HIERARCHY
-    ),
     supportedChannels,
     logoUrl: configs.TENANT_LOGO,
     meterChangeReasons: meterReasons,
@@ -168,9 +138,6 @@ export function mapConfigurationDataToApiConfig(
     DATA_CONSOLIDATION_TIME: { timeValue: payload.dataConsolidationTime, description: null },
     PUMP_OPERATOR_REMINDER_NUDGE_TIME: { nudge: { schedule: { hour, minute } } },
     AVERAGE_MEMBERS_PER_HOUSEHOLD: { value: String(payload.averageMembersPerHousehold) },
-    // TODO: re-enable once backend supports updating hierarchy via PUT /config
-    // LGD_LOCATION_HIERARCHY: mapHierarchyToApi(payload.lgdHierarchy),
-    // DEPT_LOCATION_HIERARCHY: mapHierarchyToApi(payload.departmentHierarchy),
   }
 }
 
@@ -181,14 +148,30 @@ export function mapConfigurationDataToApiConfig(
 export function mapApiConfigToWaterNormsConfiguration(
   configs: TenantConfigMap
 ): Omit<WaterNormsConfiguration, 'id'> {
+  const waterNorm = configs.WATER_NORM
+  const threshold = configs.TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD
+
+  const hasWaterNorm = waterNorm?.value != null
+  const hasThreshold =
+    threshold != null &&
+    threshold.undersupplyThresholdPercent != null &&
+    threshold.oversupplyThresholdPercent != null
+
+  if (!hasWaterNorm || !hasThreshold) {
+    return {
+      stateQuantity: hasWaterNorm ? Number(waterNorm!.value) || 0 : 0,
+      districtOverrides: [],
+      oversupplyThreshold: null,
+      undersupplyThreshold: null,
+      isConfigured: false,
+    }
+  }
+
   return {
-    stateQuantity: Number(configs.WATER_NORM?.value) || 0,
-    //regularity not yet provided by the backend;
-    // they remain UI-local until the backend supports these fields
+    stateQuantity: Number(waterNorm!.value) || 0,
     districtOverrides: [],
-    regularity: 0,
-    maxQuantity: Number(configs.TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD?.value) || 0,
-    minQuantity: 0,
+    oversupplyThreshold: threshold!.oversupplyThresholdPercent,
+    undersupplyThreshold: threshold!.undersupplyThresholdPercent,
     isConfigured: true,
   }
 }
@@ -196,11 +179,12 @@ export function mapApiConfigToWaterNormsConfiguration(
 export function mapWaterNormsToApiConfig(
   payload: Omit<WaterNormsConfiguration, 'id'>
 ): TenantConfigMap {
-  // district overrides and regularity are intentionally excluded — not yet supported by backend
+  // district overrides are intentionally excluded — not yet supported by backend
   return {
     WATER_NORM: { value: String(payload.stateQuantity) },
     TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD: {
-      value: String(payload.maxQuantity),
+      undersupplyThresholdPercent: payload.undersupplyThreshold,
+      oversupplyThresholdPercent: payload.oversupplyThreshold,
     },
   }
 }

@@ -3,22 +3,18 @@ import { useTranslation } from 'react-i18next'
 import { MetricNumberCard } from '@/shared/components/common'
 
 export interface WaterNormsAlertThresholdsProps {
-  maxQuantity: string
-  minQuantity: string
-  regularity: string
-  onMaxQuantityChange: (value: string | null) => void
-  onMinQuantityChange: (value: string | null) => void
-  onRegularityChange: (value: string | null) => void
+  oversupplyThreshold: string
+  undersupplyThreshold: string
+  onOversupplyThresholdChange: (value: string) => void
+  onUndersupplyThresholdChange: (value: string) => void
 }
 
 export function WaterNormsAlertThresholds({
-  maxQuantity,
-  minQuantity,
-  regularity,
-  onMaxQuantityChange,
-  onMinQuantityChange,
-  onRegularityChange,
-}: WaterNormsAlertThresholdsProps) {
+  oversupplyThreshold,
+  undersupplyThreshold,
+  onOversupplyThresholdChange,
+  onUndersupplyThresholdChange,
+}: Readonly<WaterNormsAlertThresholdsProps>) {
   const { t } = useTranslation(['state-admin', 'common'])
 
   return (
@@ -29,36 +25,27 @@ export function WaterNormsAlertThresholds({
       <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={{ base: 4, md: 6 }}>
         <MetricNumberCard
           as="article"
-          cardAriaLabel={t('waterNorms.aria.maxQuantityCard')}
-          title={t('waterNorms.alertThresholds.maxQuantity.title')}
-          description={t('waterNorms.alertThresholds.maxQuantity.description')}
-          value={maxQuantity}
-          onChange={onMaxQuantityChange}
+          cardAriaLabel={t('waterNorms.aria.undersupplyThresholdCard')}
+          title={t('waterNorms.alertThresholds.undersupplyThreshold.title')}
+          description={t('waterNorms.alertThresholds.undersupplyThreshold.description')}
+          value={undersupplyThreshold}
+          onChange={onUndersupplyThresholdChange}
           placeholder={t('common:enter')}
-          min={100}
-          inputAriaLabel={t('waterNorms.aria.enterMaxQuantity')}
+          min={0}
+          max={100}
+          inputAriaLabel={t('waterNorms.aria.enterUndersupplyThreshold')}
         />
         <MetricNumberCard
           as="article"
-          cardAriaLabel={t('waterNorms.aria.minQuantityCard')}
-          title={t('waterNorms.alertThresholds.minQuantity.title')}
-          description={t('waterNorms.alertThresholds.minQuantity.description')}
-          value={minQuantity}
-          onChange={onMinQuantityChange}
+          cardAriaLabel={t('waterNorms.aria.oversupplyThresholdCard')}
+          title={t('waterNorms.alertThresholds.oversupplyThreshold.title')}
+          description={t('waterNorms.alertThresholds.oversupplyThreshold.description')}
+          value={oversupplyThreshold}
+          onChange={onOversupplyThresholdChange}
           placeholder={t('common:enter')}
           min={0}
-          inputAriaLabel={t('waterNorms.aria.enterMinQuantity')}
-        />
-        <MetricNumberCard
-          as="article"
-          cardAriaLabel={t('waterNorms.aria.regularityCard')}
-          title={t('waterNorms.alertThresholds.regularity.title')}
-          description={t('waterNorms.alertThresholds.regularity.description')}
-          value={regularity}
-          onChange={onRegularityChange}
-          placeholder={t('common:enter')}
-          min={0}
-          inputAriaLabel={t('waterNorms.aria.enterRegularity')}
+          max={1000}
+          inputAriaLabel={t('waterNorms.aria.enterOversupplyThreshold')}
         />
       </SimpleGrid>
     </Box>

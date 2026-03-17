@@ -1,4 +1,24 @@
 {
+  "hierarchy": {
+    "pageTitle": "पदानुक्रम",
+    "sectionTitle": "पदानुक्रम कॉन्फ़िगरेशन",
+    "lgdTitle": "LGD पदानुक्रम",
+    "departmentTitle": "विभाग पदानुक्रम",
+    "levelLabel": "स्तर {{level}}",
+    "addLevel": "स्तर जोड़ें",
+    "messages": {
+      "saveSuccess": "पदानुक्रम सफलतापूर्वक सहेजा गया",
+      "saveFailed": "पदानुक्रम सहेजने में विफल",
+      "failedToLoad": "पदानुक्रम लोड करने में विफल। कृपया बाद में पुनः प्रयास करें।",
+      "emptyLevelName": "सभी स्तरों का नाम होना चाहिए"
+    },
+    "aria": {
+      "editConfiguration": "पदानुक्रम कॉन्फ़िगरेशन संपादित करें",
+      "levelInput": "स्तर {{level}} के लिए नाम दर्ज करें",
+      "deleteLevel": "स्तर {{level}} हटाएं"
+    }
+  },
+
   "overview": {
     "title": "{{state}} का अवलोकन",
     "titleFallback": "राज्य का अवलोकन",
@@ -38,6 +58,14 @@
       "statsSection": "सांख्यिकी अवलोकन",
       "demandSupplyChart": "मांग बनाम आपूर्ति चार्ट",
       "ingestionChart": "दैनिक अंतर्ग्रहण मॉनिटर चार्ट"
+    },
+    "setupWizard": {
+      "title": "सेटअप प्रगति",
+      "configuration": "कॉन्फ़िगरेशन",
+      "language": "भाषा",
+      "waterNorms": "जल मानदंड",
+      "integration": "एकीकरण",
+      "escalations": "एस्केलेशन"
     }
   },
 
@@ -97,17 +125,13 @@
     "currentQuantity": "वर्तमान मात्रा (LPCD)",
     "alertThresholds": {
       "title": "अलर्ट सीमाएं",
-      "maxQuantity": {
-        "title": "अधिकतम मात्रा (प्रतिशत)",
-        "description": "निर्दिष्ट जल आपूर्ति का अधिकतम प्रतिशत जिससे अधिक होने पर अलर्ट ट्रिगर होगा।"
+      "undersupplyThreshold": {
+        "title": "अंडरसप्लाई सीमा (प्रतिशत)",
+        "description": "वास्तविक मानक से नकारात्मक विचलन प्रतिशत में।"
       },
-      "minQuantity": {
-        "title": "न्यूनतम मात्रा (प्रतिशत)",
-        "description": "निर्दिष्ट जल आपूर्ति का न्यूनतम प्रतिशत जिससे कम होने पर अलर्ट ट्रिगर होगा।"
-      },
-      "regularity": {
-        "title": "नियमितता सीमा (प्रतिशत)",
-        "description": "नियमितता अलर्ट से बचने के लिए चयनित अवधि के दौरान जल आपूर्ति किए जाने वाले दिनों का न्यूनतम प्रतिशत।"
+      "oversupplyThreshold": {
+        "title": "ओवरसप्लाई सीमा (प्रतिशत)",
+        "description": "वास्तविक मानक से सकारात्मक विचलन प्रतिशत में।"
       }
     },
     "districtOverrides": {
@@ -130,12 +154,10 @@
       "enterQuantity": "राज्य जल मात्रा LPCD में दर्ज करें",
       "selectDistrict": "जिले का नाम चुनें",
       "enterDistrictQuantity": "जिला जल मात्रा LPCD में दर्ज करें",
-      "maxQuantityCard": "अधिकतम मात्रा सीमा कॉन्फ़िगरेशन",
-      "minQuantityCard": "न्यूनतम मात्रा सीमा कॉन्फ़िगरेशन",
-      "regularityCard": "नियमितता सीमा कॉन्फ़िगरेशन",
-      "enterMaxQuantity": "अधिकतम मात्रा (LPCD का प्रतिशत) सीमा दर्ज करें",
-      "enterMinQuantity": "न्यूनतम मात्रा (LPCD का प्रतिशत) सीमा दर्ज करें",
-      "enterRegularity": "नियमितता सीमा प्रतिशत दर्ज करें"
+      "undersupplyThresholdCard": "अंडरसप्लाई सीमा कॉन्फ़िगरेशन",
+      "oversupplyThresholdCard": "ओवरसप्लाई सीमा कॉन्फ़िगरेशन",
+      "enterUndersupplyThreshold": "अंडरसप्लाई सीमा प्रतिशत दर्ज करें (0–100)",
+      "enterOversupplyThreshold": "ओवरसप्लाई सीमा प्रतिशत दर्ज करें (0–1000)"
     }
   },
 
@@ -379,7 +401,8 @@
     "aria": {
       "search": "व्यवस्थापक खोजें",
       "view": "व्यवस्थापक देखें",
-      "edit": "व्यवस्थापक संपादित करें"
+      "edit": "व्यवस्थापक संपादित करें",
+      "resendInvite": "व्यवस्थापक को पुनः आमंत्रण भेजें"
     }
   },
 

@@ -16,6 +16,7 @@ export interface MetricNumberCardProps {
   onChange: (valueString: string) => void
   placeholder?: string
   min?: number
+  max?: number
   /** When set, description Text gets this id and input gets aria-describedby (for fieldset flow) */
   descriptionId?: string
   /** When set, NumberInputField gets aria-label (for article flow) */
@@ -33,6 +34,7 @@ export function MetricNumberCard({
   onChange,
   placeholder,
   min = 0,
+  max,
   descriptionId,
   inputAriaLabel,
   as = 'fieldset',
@@ -61,7 +63,13 @@ export function MetricNumberCard({
       >
         {description}
       </Text>
-      <NumberInput value={value} onChange={onChange} min={min} w={{ base: 'full', xl: '490px' }}>
+      <NumberInput
+        value={value}
+        onChange={onChange}
+        min={min}
+        max={max}
+        w={{ base: 'full', xl: '490px' }}
+      >
         <NumberInputField
           placeholder={placeholder}
           h="36px"

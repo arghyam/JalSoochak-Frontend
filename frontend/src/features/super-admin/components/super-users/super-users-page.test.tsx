@@ -21,6 +21,14 @@ const mockUsers: SuperUser[] = [
     phone: '8765490123',
     status: 'inactive',
   },
+  {
+    id: 'user-3',
+    firstName: 'Priya',
+    lastName: 'Sharma',
+    email: 'priya@gmail.com',
+    phone: '7654321098',
+    status: 'pending',
+  },
 ]
 
 const mockNavigate = jest.fn()
@@ -31,14 +39,17 @@ jest.mock('react-router-dom', () => ({
 }))
 
 const mockUseSuperUsersQuery = jest.fn()
+const mockReinviteMutate = jest.fn()
 
 jest.mock('../../services/query/use-super-admin-queries', () => ({
   useSuperUsersQuery: () => mockUseSuperUsersQuery(),
+  useReinviteSuperUserMutation: () => ({ mutate: mockReinviteMutate }),
 }))
 
 describe('SuperUsersPage', () => {
   beforeEach(() => {
     mockNavigate.mockReset()
+    mockReinviteMutate.mockReset()
     mockUseSuperUsersQuery.mockReturnValue({
       data: mockUsers,
       isLoading: false,
@@ -130,5 +141,16 @@ describe('SuperUsersPage', () => {
     const editButtons = screen.getAllByRole('button', { name: /edit super user/i })
     fireEvent.click(editButtons[0])
     expect(mockNavigate).toHaveBeenCalledWith('/super-admin/super-users/user-1/edit')
+  })
+
+  it('renders resend invite button for pending users', () => {
+    renderWithProviders(<SuperUsersPage />)
+    expect(screen.getByRole('button', { name: /resend invite.*priya sharma/i })).toBeTruthy()
+  })
+
+  it('calls reinvite mutation when resend invite is clicked', () => {
+    renderWithProviders(<SuperUsersPage />)
+    fireEvent.click(screen.getByRole('button', { name: /resend invite.*priya sharma/i }))
+    expect(mockReinviteMutate).toHaveBeenCalledWith('user-3', expect.any(Object))
   })
 })

@@ -3,9 +3,8 @@ export type SystemSupportedChannel = (typeof SYSTEM_SUPPORTED_CHANNELS)[number]
 
 export interface SystemConfiguration {
   supportedChannels: SystemSupportedChannel[]
-  /** Both max and min read from WATER_QUANTITY_SUPPLY_THRESHOLD.value until backend supports separate bounds */
-  waterQuantityMaxThreshold: number
-  waterQuantityMinThreshold: number
+  oversupplyThreshold: number
+  undersupplyThreshold: number
   bfmImageConfidenceThreshold: number
   locationAffinityThreshold: number
 }
@@ -16,7 +15,10 @@ export type SaveSystemConfigPayload = SystemConfiguration
 
 export interface SystemConfigApiResponse {
   SYSTEM_SUPPORTED_CHANNELS?: { channels: string[] }
-  WATER_QUANTITY_SUPPLY_THRESHOLD?: { value: string }
+  WATER_QUANTITY_SUPPLY_THRESHOLD?: {
+    undersupplyThresholdPercent: number | null
+    oversupplyThresholdPercent: number | null
+  }
   BFM_IMAGE_READING_CONFIDENCE_LEVEL_THRESHOLD?: { value: string }
   LOCATION_AFFINITY_THRESHOLD?: { value: string }
 }
@@ -25,16 +27,15 @@ export function mapApiResponseToSystemConfig(
   configs: SystemConfigApiResponse
 ): SystemConfiguration {
   const channels = (configs.SYSTEM_SUPPORTED_CHANNELS?.channels ?? []) as SystemSupportedChannel[]
-  const rawQuantity = Number.parseFloat(configs.WATER_QUANTITY_SUPPLY_THRESHOLD?.value ?? '')
-  const quantityValue = Number.isFinite(rawQuantity) ? rawQuantity : 0
+  const threshold = configs.WATER_QUANTITY_SUPPLY_THRESHOLD
   const rawBfm = Number.parseFloat(
     configs.BFM_IMAGE_READING_CONFIDENCE_LEVEL_THRESHOLD?.value ?? ''
   )
   const rawLocation = Number.parseFloat(configs.LOCATION_AFFINITY_THRESHOLD?.value ?? '')
   return {
     supportedChannels: channels,
-    waterQuantityMaxThreshold: quantityValue,
-    waterQuantityMinThreshold: quantityValue,
+    oversupplyThreshold: threshold?.oversupplyThresholdPercent ?? 0,
+    undersupplyThreshold: threshold?.undersupplyThresholdPercent ?? 0,
     bfmImageConfidenceThreshold: Number.isFinite(rawBfm) ? rawBfm : 0,
     locationAffinityThreshold: Number.isFinite(rawLocation) ? rawLocation : 0,
   }
@@ -46,8 +47,10 @@ export function mapSystemConfigToApiPayload(config: SaveSystemConfigPayload): {
   return {
     configs: {
       SYSTEM_SUPPORTED_CHANNELS: { channels: config.supportedChannels },
-      // max is used as the single threshold value; min is a UI-only placeholder for future backend support
-      WATER_QUANTITY_SUPPLY_THRESHOLD: { value: String(config.waterQuantityMaxThreshold) },
+      WATER_QUANTITY_SUPPLY_THRESHOLD: {
+        undersupplyThresholdPercent: config.undersupplyThreshold,
+        oversupplyThresholdPercent: config.oversupplyThreshold,
+      },
       BFM_IMAGE_READING_CONFIDENCE_LEVEL_THRESHOLD: {
         value: String(config.bfmImageConfidenceThreshold),
       },
