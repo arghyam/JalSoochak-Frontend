@@ -323,8 +323,16 @@ export function GramPanchayatDashboardScreen({
       </Grid>
 
       {/* Reading Compliance */}
-      <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
-        <Box bg="white" borderWidth="0.5px" borderRadius="12px" borderColor="#E4E4E7" px={4} py={6}>
+      <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
+        <Box
+          bg="white"
+          borderWidth="0.5px"
+          borderRadius="12px"
+          borderColor="#E4E4E7"
+          px={4}
+          py={6}
+          minW={0}
+        >
           <ReadingComplianceTable
             data={data.readingCompliance}
             title={t('outageAndSubmissionCharts.titles.readingCompliance', {
