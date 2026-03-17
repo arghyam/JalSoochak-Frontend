@@ -6,11 +6,6 @@ import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
 import type { WaterSupplyOutageData } from '../../types'
 
-type TooltipSize = {
-  contentSize: [number, number]
-  viewSize: [number, number]
-}
-
 interface SupplyOutageReasonsChartProps {
   data: WaterSupplyOutageData[]
   className?: string
@@ -89,29 +84,23 @@ export function SupplyOutageReasonsChart({
         show: true,
         trigger: 'item',
         confine: true,
-        position: (
-          point: number[],
-          _params: unknown,
-          _dom: HTMLElement,
-          _rect: unknown,
-          size: TooltipSize
-        ) => {
+        position: (point, _params, _el, _rect, size) => {
           const viewWidth = size.viewSize[0]
           const viewHeight = size.viewSize[1]
           const contentWidth = size.contentSize[0]
           const contentHeight = size.contentSize[1]
           const spacingX = 12
           const spacingY = 12
-          const hoverX = Array.isArray(point) ? (point[0] ?? viewWidth / 2) : viewWidth / 2
-          const hoverY = Array.isArray(point) ? (point[1] ?? viewHeight / 2) : viewHeight / 2
+          const hoverX = point[0] ?? viewWidth / 2
+          const hoverY = point[1] ?? viewHeight / 2
 
           const preferredX = hoverX + spacingX
           const fallbackX = hoverX - contentWidth - spacingX
           const preferredY = hoverY - contentHeight / 2
 
           return [
-            preferredX + contentWidth <= viewWidth ? preferredX : Math.max(0, fallbackX),
-            Math.max(0, Math.min(preferredY, viewHeight - contentHeight - spacingY)),
+            preferredX + contentWidth <= viewWidth ? preferredX : Math.max(spacingX, fallbackX),
+            Math.max(spacingY, Math.min(preferredY, viewHeight - contentHeight - spacingY)),
           ]
         },
         formatter: (params: unknown) => {
