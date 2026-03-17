@@ -536,7 +536,7 @@ export const mapReadingSubmissionStatusFromAnalytics = (
   }
 
   return [
-    { label: 'Complaint Submission', value: compliantCount },
+    { label: 'Compliant Submissions', value: compliantCount },
     { label: 'Anomalous Submissions', value: anomalousCount },
   ]
 }

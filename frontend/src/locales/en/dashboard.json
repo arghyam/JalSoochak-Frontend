@@ -151,7 +151,7 @@
       "pumpFailure": "Pump failure",
       "valveIssue": "Valve issue",
       "sourceDrying": "Source Drying",
-      "complaintSubmission": "Complaint Submissios",
+      "complaintSubmission": "Complaint Submissions",
       "automatedSubmission": "Anomalous Submissions"
     },
     "tables": {
@@ -168,9 +168,9 @@
   "pumpOperators": {
     "title": "Schemes",
     "totalLabel": "Total",
-    "note": "Note: Active schemes for at least 30 days in a month",
+    "note": "Note: Schemes active for at least 30 days in a month.",
     "details": {
-      "title": "Pump Operator Details",
+      "title": "Scheme Details",
       "fields": {
         "schemeNameSchemeId": "Scheme name/ Scheme ID",
         "stationLocation": "Station location",
