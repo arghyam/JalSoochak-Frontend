@@ -269,7 +269,7 @@ export interface ReadingSubmissionRateQueryParams {
 }
 
 export interface ReadingComplianceQueryParams {
-  tenantCode: string
+  tenant_code: string
 }
 
 export interface ReadingComplianceItem {
@@ -296,12 +296,12 @@ export interface SchemePerformanceQueryParams {
 
 export interface PumpOperatorDetailsQueryParams {
   pumpOperatorId: number
-  tenantCode: string
+  tenant_code: string
 }
 
 export interface PumpOperatorsBySchemeQueryParams {
-  tenantCode: string
-  schemeId: number
+  tenant_code: string
+  scheme_id: number
 }
 
 export interface PumpOperatorsBySchemeItem {

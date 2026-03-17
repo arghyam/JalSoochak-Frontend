@@ -743,7 +743,7 @@ export function CentralDashboard() {
     params:
       selectedVillage && selectedTenant?.tenantCode
         ? {
-            tenantCode: selectedTenant.tenantCode,
+            tenant_code: selectedTenant.tenantCode,
           }
         : null,
     enabled: Boolean(selectedVillage && selectedTenant?.tenantCode),

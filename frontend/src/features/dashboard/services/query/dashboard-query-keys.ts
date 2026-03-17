@@ -64,11 +64,11 @@ export const dashboardQueryKeys = {
       params?.schemeCount,
     ] as const,
   pumpOperatorsByScheme: (params: PumpOperatorsBySchemeQueryParams | null) =>
-    ['dashboard', 'pump-operator', 'by-scheme', params?.tenantCode, params?.schemeId] as const,
+    ['dashboard', 'pump-operator', 'by-scheme', params?.tenant_code, params?.scheme_id] as const,
   pumpOperatorDetails: (params: PumpOperatorDetailsQueryParams | null) =>
-    ['dashboard', 'pump-operator', 'details', params?.pumpOperatorId, params?.tenantCode] as const,
+    ['dashboard', 'pump-operator', 'details', params?.pumpOperatorId, params?.tenant_code] as const,
   readingCompliance: (params: ReadingComplianceQueryParams | null) =>
-    ['dashboard', 'pump-operator', 'reading-compliance', params?.tenantCode] as const,
+    ['dashboard', 'pump-operator', 'reading-compliance', params?.tenant_code] as const,
   submissionStatus: (params: SubmissionStatusQueryParams | null) =>
     [
       'dashboard',

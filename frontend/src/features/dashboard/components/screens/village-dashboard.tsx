@@ -172,8 +172,8 @@ export function VillageDashboardScreen({
     params:
       tenantCode && typeof schemeId === 'number'
         ? {
-            tenantCode,
-            schemeId,
+            tenant_code: tenantCode,
+            scheme_id: schemeId,
           }
         : null,
     enabled: Boolean(tenantCode && typeof schemeId === 'number'),
@@ -208,7 +208,7 @@ export function VillageDashboardScreen({
       activePumpOperatorSummary.id && tenantCode
         ? {
             pumpOperatorId: activePumpOperatorSummary.id,
-            tenantCode,
+            tenant_code: tenantCode,
           }
         : null,
     enabled: Boolean(activePumpOperatorSummary.id && tenantCode),
@@ -220,7 +220,7 @@ export function VillageDashboardScreen({
   const { data: readingComplianceApiData } = useReadingComplianceQuery({
     params: tenantCode
       ? {
-          tenantCode,
+          tenant_code: tenantCode,
         }
       : null,
     enabled: Boolean(tenantCode),
