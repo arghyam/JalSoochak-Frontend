@@ -12,9 +12,12 @@ export interface StatsCard {
 
 export interface OverviewData {
   stats: {
-    configurationStatus: StatItem
-    activeStaff: StatItem
     activeSchemes: StatItem
-    activeIntegrations: StatItem
   }
+}
+
+export interface StaffCountsData {
+  totalStaff: number
+  pumpOperators: number
+  totalAdmins: number
 }

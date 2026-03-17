@@ -23,10 +23,10 @@
     "title": "{{state}} का अवलोकन",
     "titleFallback": "राज्य का अवलोकन",
     "stats": {
-      "configurationStatus": "कॉन्फ़िगरेशन स्थिति",
-      "activeStaff": "सक्रिय कर्मचारी",
-      "activeSchemes": "सक्रिय योजनाएँ",
-      "activeIntegrations": "सक्रिय एकीकरण"
+      "totalStaff": "कुल कर्मचारी",
+      "pumpOperators": "कुल पंप ऑपरेटर",
+      "totalAdmins": "कुल व्यवस्थापक",
+      "activeSchemes": "सक्रिय योजनाएँ"
     },
     "charts": {
       "waterSupplyOutages": "जल आपूर्ति व्यवधान",

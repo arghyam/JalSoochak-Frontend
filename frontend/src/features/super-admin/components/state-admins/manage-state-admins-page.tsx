@@ -10,11 +10,10 @@ import {
   InputLeftElement,
   Button,
   IconButton,
-  useBreakpointValue,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { SearchIcon, EditIcon } from '@chakra-ui/icons'
-import { FiEye, FiDownload } from 'react-icons/fi'
+import { FiEye } from 'react-icons/fi'
 import { MdOutlineEmail } from 'react-icons/md'
 import {
   DataTable,
@@ -46,8 +45,6 @@ export function ManageStateAdminsPage() {
       onError: () => toast.error(t('common:toast.reinviteFailed')),
     })
   }
-
-  const showDownloadButtonText = useBreakpointValue({ base: false, sm: true }) ?? true
 
   useEffect(() => {
     document.title = `${t('manageStateAdmins.title')} | JalSoochak`
@@ -85,10 +82,6 @@ export function ManageStateAdminsPage() {
     if (row.stateUt) {
       navigate(ROUTES.SUPER_ADMIN_STATES_UTS_EDIT.replace(':tenantCode', row.stateUt))
     }
-  }
-
-  const handleDownloadReport = () => {
-    // No-op for now
   }
 
   const columns: DataTableColumn<StateAdmin>[] = [
@@ -235,18 +228,6 @@ export function ManageStateAdminsPage() {
             _placeholder={{ color: 'neutral.300' }}
           />
         </InputGroup>
-        <Button
-          variant="secondary"
-          size="sm"
-          fontWeight="600"
-          onClick={handleDownloadReport}
-          gap={1}
-          w={{ base: 'full', md: '178px' }}
-          aria-label={t('manageStateAdmins.downloadReport')}
-        >
-          <FiDownload size={20} aria-hidden="true" />
-          {showDownloadButtonText && t('manageStateAdmins.downloadReport')}
-        </Button>
       </Flex>
 
       <DataTable<StateAdmin>

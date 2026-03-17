@@ -23,10 +23,10 @@
     "title": "Overview of {{state}}",
     "titleFallback": "Overview of State",
     "stats": {
-      "configurationStatus": "Configuration Status",
-      "activeStaff": "Active Staff",
-      "activeSchemes": "Active Schemes",
-      "activeIntegrations": "Active Integrations"
+      "totalStaff": "Total Staff",
+      "pumpOperators": "Total Pump Operators",
+      "totalAdmins": "Total Admins",
+      "activeSchemes": "Active Schemes"
     },
     "charts": {
       "waterSupplyOutages": "Water Supply Outages",

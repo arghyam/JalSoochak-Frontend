@@ -1,4 +1,4 @@
-import type { OverviewData } from '../types/overview'
+import type { OverviewData, StaffCountsData } from '../types/overview'
 import type { ActivityLog } from '../types/activity'
 import type { LanguageConfiguration } from '../types/language'
 import type { IntegrationConfiguration } from '../types/integration'
@@ -19,10 +19,7 @@ import type { MessageTemplatesData } from '../types/message-templates'
 
 export const mockOverviewData: OverviewData = {
   stats: {
-    configurationStatus: { value: 'Completed', subtitle: 'All modules configured' },
-    activeStaff: { value: 2543, subtitle: 'Out of 3000 total' },
     activeSchemes: { value: 147, subtitle: 'Across 12 Sub-Divisions' },
-    activeIntegrations: { value: 2, subtitle: 'WhatsApp, Email' },
   },
 }
 
@@ -30,6 +27,20 @@ export const getMockOverviewData = (): Promise<OverviewData> => {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(mockOverviewData)
+    }, 300)
+  })
+}
+
+export const mockStaffCountsData: StaffCountsData = {
+  totalStaff: 27928,
+  pumpOperators: 27651,
+  totalAdmins: 4,
+}
+
+export const getMockStaffCounts = (): Promise<StaffCountsData> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(mockStaffCountsData)
     }, 300)
   })
 }

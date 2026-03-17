@@ -10,37 +10,18 @@ import {
   Button,
   Heading,
   Spinner,
-  Menu,
-  MenuButton,
-  MenuList,
 } from '@chakra-ui/react'
-import { ChevronDownIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { MdOutlinePlace } from 'react-icons/md'
 import { BsCheck2Circle } from 'react-icons/bs'
 import { IoCloseCircleOutline, IoAddOutline } from 'react-icons/io5'
 import { ROUTES } from '@/shared/constants/routes'
-import {
-  useSuperAdminOverviewQuery,
-  useTenantsSummaryQuery,
-} from '../../services/query/use-super-admin-queries'
-import { SupplyOutageDistributionChart } from '@/shared/components/charts/supply-outage-distribution-chart'
+import { useTenantsSummaryQuery } from '../../services/query/use-super-admin-queries'
 
 export function OverviewPage() {
   const { t } = useTranslation(['super-admin', 'common'])
   const navigate = useNavigate()
-  const {
-    data,
-    isLoading: isOverviewLoading,
-    isError: isOverviewError,
-  } = useSuperAdminOverviewQuery()
-  const {
-    data: summaryData,
-    isLoading: isSummaryLoading,
-    isError: isSummaryError,
-  } = useTenantsSummaryQuery()
-  const isLoading = isOverviewLoading || isSummaryLoading
-  const isError = isOverviewError || isSummaryError
+  const { data: summaryData, isLoading, isError } = useTenantsSummaryQuery()
 
   useEffect(() => {
     document.title = `${t('overview.title')} | JalSoochak`
@@ -70,7 +51,7 @@ export function OverviewPage() {
     )
   }
 
-  if (!data || !summaryData) {
+  if (!summaryData) {
     return (
       <Flex h="64" align="center" justify="center">
         <Text color="error.500">{t('common:toast.failedToLoad')}</Text>
@@ -175,66 +156,6 @@ export function OverviewPage() {
             )
           })}
         </SimpleGrid>
-
-        {/* Water Supply Outages Chart */}
-        <Box
-          as="section"
-          aria-labelledby="water-supply-outages-heading"
-          bg="white"
-          borderWidth="0.5px"
-          borderColor="neutral.200"
-          borderRadius={{ base: '12px', md: '16px' }}
-          boxShadow="default"
-          py={{ base: 4, md: 6 }}
-          px={4}
-          display="flex"
-          flexDirection="column"
-          minH="380px"
-        >
-          <Flex justify="space-between" align="center" mb={4} flexShrink={0}>
-            <Heading
-              as="h2"
-              id="water-supply-outages-heading"
-              size="h3"
-              fontWeight="400"
-              fontSize={{ base: 'md', md: 'xl' }}
-            >
-              {t('overview.charts.waterSupplyOutages')}
-            </Heading>
-            <Menu>
-              <MenuButton
-                as={Button}
-                aria-label={t('overview.charts.select')}
-                h="32px"
-                minW={{ base: 'full', sm: '120px' }}
-                px="12px"
-                fontSize="14px"
-                fontWeight="600"
-                borderRadius="4px"
-                borderColor="neutral.300"
-                borderWidth="1px"
-                bg="white"
-                color="neutral.600"
-                variant="outline"
-                rightIcon={<ChevronDownIcon w={5} h={5} aria-hidden="true" />}
-                _hover={{ bg: 'neutral.50' }}
-                _active={{ bg: 'neutral.100' }}
-                _focusVisible={{ boxShadow: 'outline' }}
-                sx={{
-                  '& svg': {
-                    color: 'neutral.600',
-                  },
-                }}
-              >
-                {t('overview.charts.select')}
-              </MenuButton>
-              <MenuList p={0} minW="162px" borderRadius="4px" borderColor="neutral.200" />
-            </Menu>
-          </Flex>
-          <Box flex={1}>
-            <SupplyOutageDistributionChart data={data.waterSupplyOutages} height={420} />
-          </Box>
-        </Box>
       </Stack>
     </Box>
   )
