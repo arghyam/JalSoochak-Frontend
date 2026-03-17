@@ -6,11 +6,13 @@ import type {
   DashboardData,
   EntityPerformance,
   PumpOperatorDetailsResponse,
+  ReadingComplianceData,
   VillagePumpOperatorDetails,
   WaterSupplyOutageData,
 } from '../../types'
 import { usePumpOperatorDetailsQuery } from '../../services/query/use-pump-operator-details-query'
 import { usePumpOperatorsBySchemeQuery } from '../../services/query/use-pump-operators-by-scheme-query'
+import { useReadingComplianceQuery } from '../../services/query/use-reading-compliance-query'
 import { SupplyOutageReasonsChart, MetricPerformanceChart } from '../charts'
 import { ReadingComplianceTable } from '../tables'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
@@ -215,16 +217,35 @@ export function VillageDashboardScreen({
     () => mergeOperatorDetails(activePumpOperatorSummary, activePumpOperatorDetailsData?.data),
     [activePumpOperatorDetailsData?.data, activePumpOperatorSummary]
   )
+  const { data: readingComplianceApiData } = useReadingComplianceQuery({
+    params: tenantCode
+      ? {
+          tenantCode,
+        }
+      : null,
+    enabled: Boolean(tenantCode),
+  })
   const readingComplianceRows = useMemo(() => {
-    const operatorRows = villagePhotoEvidenceRows.filter(
-      (row) => row.name === activePumpOperator.name
-    )
+    const apiRows: ReadingComplianceData[] =
+      readingComplianceApiData?.data.map((item) => ({
+        id: String(item.id),
+        name: item.name?.trim() || 'N/A',
+        village: 'N/A',
+        lastSubmission: formatReadingComplianceTimestamp(item.lastSubmissionAt),
+        readingValue:
+          item.confirmedReading === null || item.confirmedReading === undefined
+            ? 'N/A'
+            : String(item.confirmedReading),
+      })) ?? []
+
+    const sourceRows = apiRows.length > 0 ? apiRows : villagePhotoEvidenceRows
+    const operatorRows = sourceRows.filter((row) => row.name === activePumpOperator.name)
     if (operatorRows.length > 0) {
       return operatorRows
     }
 
-    if (villagePhotoEvidenceRows.length > 0) {
-      return villagePhotoEvidenceRows
+    if (sourceRows.length > 0) {
+      return sourceRows
     }
 
     return [
@@ -236,7 +257,12 @@ export function VillageDashboardScreen({
         readingValue: 'N/A',
       },
     ]
-  }, [activePumpOperator.lastSubmission, activePumpOperator.name, villagePhotoEvidenceRows])
+  }, [
+    activePumpOperator.lastSubmission,
+    activePumpOperator.name,
+    readingComplianceApiData?.data,
+    villagePhotoEvidenceRows,
+  ])
   const visiblePageNumbers = useMemo(() => {
     if (totalPumpOperatorPages <= 3) {
       return Array.from({ length: totalPumpOperatorPages }, (_, index) => index + 1)

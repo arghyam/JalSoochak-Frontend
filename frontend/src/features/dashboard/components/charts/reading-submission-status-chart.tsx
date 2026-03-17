@@ -30,7 +30,7 @@ export function ReadingSubmissionStatusChart({
       const normalized = label.trim().toLowerCase()
       if (normalized === 'complaint submission' || normalized === 'complaint submissions') {
         return t('outageAndSubmissionCharts.legend.complaintSubmission', {
-          defaultValue: 'Complaint Submissios',
+          defaultValue: 'Complaint Submissions',
         })
       }
       if (normalized === 'automated submission' || normalized === 'automated submissions') {
