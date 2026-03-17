@@ -73,8 +73,10 @@ export function DataTable<T extends object>({
     Boolean(pagination?.enabled) &&
     typeof pagination?.page === 'number' &&
     typeof pagination?.totalItems === 'number' &&
-    (typeof pagination?.onPageChange === 'function' ||
-      typeof pagination?.onPageSizeChange === 'function')
+    typeof pagination?.onPageChange === 'function'
+
+  const isPageSizeControlled =
+    isControlledPagination && typeof pagination?.onPageSizeChange === 'function'
 
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(pagination?.pageSize ?? 10)
@@ -174,7 +176,7 @@ export function DataTable<T extends object>({
   const handleItemsPerPageChange = (size: number) => {
     if (!pagination?.enabled) return
 
-    if (isControlledPagination && pagination.onPageSizeChange) {
+    if (isPageSizeControlled && pagination.onPageSizeChange) {
       pagination.onPageSizeChange(size)
       return
     }
