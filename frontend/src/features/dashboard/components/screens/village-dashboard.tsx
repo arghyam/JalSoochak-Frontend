@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Avatar, Box, Button, Flex, Grid, Icon, Text, useMediaQuery } from '@chakra-ui/react'
+import { Avatar, Box, Button, Flex, Grid, Icon, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { LuArrowLeft, LuArrowRight } from 'react-icons/lu'
 import type {
@@ -28,7 +28,6 @@ export function VillageDashboardScreen({
   villagePumpOperators = [],
 }: VillageDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
-  const [isBelow500] = useMediaQuery('(max-width: 499.98px)')
   const [pumpOperatorPage, setPumpOperatorPage] = useState(1)
   const timeSeriesPerformanceData = useMemo<EntityPerformance[]>(
     () =>
@@ -183,8 +182,9 @@ export function VillageDashboardScreen({
           pb="24px"
           pl="16px"
           pr="16px"
-          h={isBelow500 ? 'auto' : '430px'}
+          h={{ base: 'auto', md: '430px' }}
           minW={0}
+          overflow="hidden"
         >
           <Flex direction="column" h="full">
             <Text textStyle="bodyText3" fontWeight="400" mb={4}>
@@ -199,13 +199,24 @@ export function VillageDashboardScreen({
                   {activePumpOperator.name}
                 </Text>
               </Flex>
-              <Grid templateColumns="1fr auto" columnGap="24px" rowGap="12px" alignItems="center">
+              <Grid
+                templateColumns={{ base: '1fr', sm: '1fr auto' }}
+                columnGap="24px"
+                rowGap="12px"
+                alignItems="center"
+              >
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
                   {t('pumpOperators.details.fields.schemeNameSchemeId', {
                     defaultValue: 'Scheme name/ Scheme ID',
                   })}
                 </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
+                <Text
+                  textStyle="bodyText4"
+                  fontWeight="400"
+                  color="neutral.950"
+                  textAlign={{ base: 'left', sm: 'right' }}
+                  wordBreak="break-word"
+                >
                   {activePumpOperator.scheme}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
@@ -213,7 +224,13 @@ export function VillageDashboardScreen({
                     defaultValue: 'Station location',
                   })}
                 </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
+                <Text
+                  textStyle="bodyText4"
+                  fontWeight="400"
+                  color="neutral.950"
+                  textAlign={{ base: 'left', sm: 'right' }}
+                  wordBreak="break-word"
+                >
                   {activePumpOperator.stationLocation}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
@@ -221,7 +238,12 @@ export function VillageDashboardScreen({
                     defaultValue: 'Last submission',
                   })}
                 </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
+                <Text
+                  textStyle="bodyText4"
+                  fontWeight="400"
+                  color="neutral.950"
+                  textAlign={{ base: 'left', sm: 'right' }}
+                >
                   {activePumpOperator.lastSubmission}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
@@ -229,7 +251,12 @@ export function VillageDashboardScreen({
                     defaultValue: 'Reporting rate',
                   })}
                 </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
+                <Text
+                  textStyle="bodyText4"
+                  fontWeight="400"
+                  color="neutral.950"
+                  textAlign={{ base: 'left', sm: 'right' }}
+                >
                   {activePumpOperator.reportingRate}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
@@ -237,7 +264,12 @@ export function VillageDashboardScreen({
                     defaultValue: 'Missing submission count',
                   })}
                 </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
+                <Text
+                  textStyle="bodyText4"
+                  fontWeight="400"
+                  color="neutral.950"
+                  textAlign={{ base: 'left', sm: 'right' }}
+                >
                   {activePumpOperator.missingSubmissionCount}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
@@ -245,19 +277,26 @@ export function VillageDashboardScreen({
                     defaultValue: 'Inactive days',
                   })}
                 </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.950" textAlign="right">
+                <Text
+                  textStyle="bodyText4"
+                  fontWeight="400"
+                  color="neutral.950"
+                  textAlign={{ base: 'left', sm: 'right' }}
+                >
                   {activePumpOperator.inactiveDays}
                 </Text>
               </Grid>
             </Box>
             {totalPumpOperatorPages > 1 ? (
               <Flex
-                mt="auto"
-                pt={isBelow500 ? 4 : 6}
+                mt={{ base: 4, md: 'auto' }}
+                pt={{ base: 4, md: 6 }}
                 align="center"
                 justify="center"
-                gap={isBelow500 ? 1.5 : 2}
-                wrap={isBelow500 ? 'wrap' : 'nowrap'}
+                gap={{ base: 1.5, sm: 2 }}
+                wrap="wrap"
+                w="full"
+                maxW="100%"
               >
                 <Button
                   variant="ghost"
@@ -269,11 +308,17 @@ export function VillageDashboardScreen({
                     )
                   }
                   isDisabled={activePumpOperatorPage === 1}
-                  px={isBelow500 ? 2 : undefined}
-                >
-                  {t('pumpOperators.details.pagination.previous', {
+                  px={{ base: 2, sm: 3 }}
+                  minW={0}
+                  aria-label={t('pumpOperators.details.pagination.previous', {
                     defaultValue: 'Previous',
                   })}
+                >
+                  <Text as="span" display={{ base: 'none', sm: 'inline' }}>
+                    {t('pumpOperators.details.pagination.previous', {
+                      defaultValue: 'Previous',
+                    })}
+                  </Text>
                 </Button>
                 {visiblePageNumbers.map((pageNumber) => (
                   <Button
@@ -290,6 +335,7 @@ export function VillageDashboardScreen({
                       bg: activePumpOperatorPage === pageNumber ? '#3291D1' : 'neutral.100',
                     }}
                     onClick={() => setPumpOperatorPage(pageNumber)}
+                    flexShrink={0}
                   >
                     {pageNumber}
                   </Button>
@@ -307,11 +353,17 @@ export function VillageDashboardScreen({
                     )
                   }
                   isDisabled={activePumpOperatorPage === totalPumpOperatorPages}
-                  px={isBelow500 ? 2 : undefined}
-                >
-                  {t('pumpOperators.details.pagination.next', {
+                  px={{ base: 2, sm: 3 }}
+                  minW={0}
+                  aria-label={t('pumpOperators.details.pagination.next', {
                     defaultValue: 'Next',
                   })}
+                >
+                  <Text as="span" display={{ base: 'none', sm: 'inline' }}>
+                    {t('pumpOperators.details.pagination.next', {
+                      defaultValue: 'Next',
+                    })}
+                  </Text>
                 </Button>
               </Flex>
             ) : null}
