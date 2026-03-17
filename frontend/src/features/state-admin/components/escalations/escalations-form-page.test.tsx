@@ -60,7 +60,7 @@ describe('EscalationsFormPage', () => {
 
     expect(screen.getByText('09:00')).toBeInTheDocument()
     expect(screen.getByText('Section Officer')).toBeInTheDocument()
-    expect(screen.getByText('Sub-Division Officer')).toBeInTheDocument()
+    expect(screen.getByText('District Officer')).toBeInTheDocument()
   })
 
   it('shows edit button in view mode', () => {

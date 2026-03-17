@@ -248,7 +248,7 @@ export function DataTable<T extends object>({
     )
   }
 
-  if (data.length === 0) {
+  if (data.length === 0 && !(isControlledPagination && (pagination?.totalItems ?? 0) > 0)) {
     return (
       <Box
         bg="white"
