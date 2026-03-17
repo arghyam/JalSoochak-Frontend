@@ -230,6 +230,29 @@ describe('CentralDashboard', () => {
     })
   })
 
+  it('does not enable LGD regularity analytics before the selected state resolves to a root location id', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({ data: undefined })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
+      params: null,
+      enabled: false,
+    })
+  })
+
   it('maps national dashboard analytics into central charts and overall performance table', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -1226,6 +1249,9 @@ describe('CentralDashboard', () => {
         },
       })
 
+    const initialWaterSupplyQueryCallCount = (useAverageWaterSupplyPerRegionQuery as jest.Mock).mock
+      .calls.length
+
     renderWithProviders(<CentralDashboard />)
 
     const kpiProps = mockKPICard.mock.calls.map(
@@ -1249,6 +1275,33 @@ describe('CentralDashboard', () => {
     expect(kpiProps[2]?.title).toBe('Regularity')
     expect(kpiProps[2]?.value).toBe('70.0%')
     expect(kpiProps[2]?.trend).toEqual({ direction: 'down', text: '-12.5% vs last month' })
+
+    const waterSupplyQueryCalls = (useAverageWaterSupplyPerRegionQuery as jest.Mock).mock.calls
+      .slice(initialWaterSupplyQueryCallCount)
+      .map(
+        ([args]) =>
+          args as {
+            enabled?: boolean
+            params?: {
+              tenantId?: number
+              parentLgdId?: number
+              scope?: 'child' | 'current'
+              startDate?: string
+              endDate?: string
+            } | null
+          }
+      )
+
+    expect(
+      waterSupplyQueryCalls.filter(
+        (call) =>
+          call?.enabled === true &&
+          call?.params?.tenantId === 16 &&
+          call?.params?.parentLgdId === 10 &&
+          call?.params?.scope === 'child'
+      )
+    ).toHaveLength(3)
+    expect(waterSupplyQueryCalls.some((call) => call?.params?.scope === 'current')).toBe(false)
   })
 
   it('hides map and overall performance panel when a village is selected', () => {

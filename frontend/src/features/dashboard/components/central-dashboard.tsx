@@ -537,6 +537,7 @@ export function CentralDashboard() {
     parseLocationId(effectiveSelectedDistrict) ??
     selectedRootOption?.locationId ??
     0
+  const hasValidAnalyticsParentId = analyticsParentId > 0
   const analyticsFallbackData = isGramPanchayatSelected
     ? villageTableData
     : isBlockSelected
@@ -570,7 +571,10 @@ export function CentralDashboard() {
         endDate: analyticsDateRange.endDate,
       }
   const analyticsParams =
-    hierarchyType !== 'LGD' || isVillageSelected || !selectedTenant?.tenantId
+    hierarchyType !== 'LGD' ||
+    isVillageSelected ||
+    !selectedTenant?.tenantId ||
+    !hasValidAnalyticsParentId
       ? null
       : {
           tenantId: selectedTenant.tenantId,
@@ -580,7 +584,7 @@ export function CentralDashboard() {
           endDate: analyticsDateRange.endDate,
         }
   const regularityAnalyticsParams =
-    hierarchyType !== 'LGD' || isVillageSelected
+    hierarchyType !== 'LGD' || isVillageSelected || !hasValidAnalyticsParentId
       ? null
       : {
           parentLgdId: analyticsParentId,
@@ -591,18 +595,22 @@ export function CentralDashboard() {
   const readingSubmissionRateAnalyticsParams = isVillageSelected
     ? null
     : hierarchyType === 'LGD'
-      ? {
-          parentLgdId: analyticsParentId,
-          scope: 'child' as const,
-          startDate: analyticsDateRange.startDate,
-          endDate: analyticsDateRange.endDate,
-        }
-      : {
-          parentDepartmentId: analyticsParentId,
-          scope: 'child' as const,
-          startDate: analyticsDateRange.startDate,
-          endDate: analyticsDateRange.endDate,
-        }
+      ? hasValidAnalyticsParentId
+        ? {
+            parentLgdId: analyticsParentId,
+            scope: 'child' as const,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+          }
+        : null
+      : hasValidAnalyticsParentId
+        ? {
+            parentDepartmentId: analyticsParentId,
+            scope: 'child' as const,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+          }
+        : null
   const parsedSelectedSchemeId = Number.parseInt(selectedScheme, 10)
   const selectedSchemeId = Number.isFinite(parsedSelectedSchemeId)
     ? parsedSelectedSchemeId
@@ -634,7 +642,7 @@ export function CentralDashboard() {
     endDate: analyticsDateRange.endDate,
   }
   const outageReasonsAnalyticsParams =
-    isVillageSelected || !selectedTenant?.tenantId
+    isVillageSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
@@ -662,7 +670,6 @@ export function CentralDashboard() {
       ? null
       : {
           ...analyticsParams,
-          scope: 'current' as const,
           startDate: previousAnalyticsRange.startDate,
           endDate: previousAnalyticsRange.endDate,
         }
@@ -671,7 +678,6 @@ export function CentralDashboard() {
       ? null
       : {
           ...analyticsParams,
-          scope: 'current' as const,
         }
   const previousRegularityAnalyticsParams =
     regularityAnalyticsParams === null
