@@ -68,8 +68,13 @@ export function OverallPerformanceTable({
           },
         }}
       >
-        <Box display="inline-block" minW={{ base: 'max-content', md: '100%' }}>
-          <Table size="sm" w={{ base: 'max-content', md: 'full' }} sx={{ tableLayout: 'auto' }}>
+        <Box w="full" minW={{ base: 'max-content', md: '100%' }}>
+          <Table
+            size="sm"
+            w="full"
+            minW={{ base: 'max-content', md: '100%' }}
+            sx={{ tableLayout: 'auto' }}
+          >
             <Thead
               sx={{
                 position: 'sticky',
