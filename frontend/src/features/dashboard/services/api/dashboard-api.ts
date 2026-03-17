@@ -200,6 +200,28 @@ type DashboardDataProvider = {
   getDashboardData: (params: DashboardQueryParams) => Promise<DashboardData>
 }
 
+const isDashboardDataPayload = (value: unknown): value is DashboardData => {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const candidate = value as Partial<DashboardData>
+
+  return (
+    Array.isArray(candidate.kpis) &&
+    Array.isArray(candidate.mapData) &&
+    Array.isArray(candidate.demandSupply) &&
+    Array.isArray(candidate.readingSubmissionStatus) &&
+    Array.isArray(candidate.readingCompliance) &&
+    Array.isArray(candidate.pumpOperators) &&
+    Array.isArray(candidate.waterSupplyOutages) &&
+    Array.isArray(candidate.topPerformers) &&
+    Array.isArray(candidate.worstPerformers) &&
+    Array.isArray(candidate.regularityData) &&
+    Array.isArray(candidate.continuityData)
+  )
+}
+
 const ensureValidParams = ({ level, entityId }: DashboardQueryParams): void => {
   if (level !== 'central' && !entityId) {
     throw new Error(`entityId is required for dashboard level: ${level}`)
@@ -223,9 +245,29 @@ const mockProvider: DashboardDataProvider = {
   },
 }
 
-const DASHBOARD_PROVIDER = import.meta.env.VITE_DASHBOARD_DATA_PROVIDER ?? 'mock'
+const httpWithMockFallbackProvider: DashboardDataProvider = {
+  getDashboardData: async (params) => {
+    try {
+      const response = await httpProvider.getDashboardData(params)
+      if (isDashboardDataPayload(response)) {
+        return response
+      }
+    } catch (error) {
+      console.warn('Dashboard API failed, falling back to mock data.', error)
+    }
 
-const provider: DashboardDataProvider = DASHBOARD_PROVIDER === 'http' ? httpProvider : mockProvider
+    return mockProvider.getDashboardData(params)
+  },
+}
+
+const DASHBOARD_PROVIDER = import.meta.env.VITE_DASHBOARD_DATA_PROVIDER ?? 'http-first'
+
+const provider: DashboardDataProvider =
+  DASHBOARD_PROVIDER === 'mock'
+    ? mockProvider
+    : DASHBOARD_PROVIDER === 'http'
+      ? httpProvider
+      : httpWithMockFallbackProvider
 
 export const dashboardApi = {
   getDashboardData: (params: DashboardQueryParams): Promise<DashboardData> => {
