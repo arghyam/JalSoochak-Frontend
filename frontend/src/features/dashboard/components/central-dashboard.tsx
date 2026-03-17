@@ -111,11 +111,8 @@ const formulaTooltipTextStyle = {
   lineHeight: '18px',
 } as const
 
-const renderFormulaTooltip = (title: string, formula: ReactNode, definitions: ReactNode[]) => (
-  <Box>
-    <Text fontWeight="600" mb="6px" sx={formulaTooltipTextStyle}>
-      {title}
-    </Text>
+const renderFormulaTooltip = (formula: ReactNode, definitions: ReactNode[]) => (
+  <Box w="296px" minH="80px">
     <Text sx={formulaTooltipTextStyle} mb="8px">
       {formula}
     </Text>
@@ -600,7 +597,6 @@ export function CentralDashboard() {
         </Flex>
       ),
       tooltipContent: renderFormulaTooltip(
-        'Quantity (MLD)',
         <>
           Quantity (MLD) = SUM(W<sub>k</sub>) / N
         </>,
@@ -629,7 +625,6 @@ export function CentralDashboard() {
         </Flex>
       ),
       tooltipContent: renderFormulaTooltip(
-        'Quantity (LPCD)',
         <>
           Quantity (LPCD) = SUM(W<sub>k</sub>) / (SUM(HC<sub>i</sub>) x P x N)
         </>,
@@ -661,7 +656,6 @@ export function CentralDashboard() {
         </Flex>
       ),
       tooltipContent: renderFormulaTooltip(
-        'Regularity of Scheme',
         <>
           Regularity of scheme = X<sub>i</sub> / N
         </>,

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Box, Flex, Icon, Text, Tooltip } from '@chakra-ui/react'
+import { Box, Flex, Icon, IconButton, Text, Tooltip } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { MdArrowDownward, MdArrowUpward } from 'react-icons/md'
@@ -58,7 +58,7 @@ export function KPICard({ title, value, icon, trend, tooltipContent }: KPICardPr
               <Tooltip
                 label={tooltipContent}
                 hasArrow
-                placement="bottom-end"
+                placement="top-end"
                 bg="white"
                 color="neutral.700"
                 borderWidth="1px"
@@ -68,9 +68,18 @@ export function KPICard({ title, value, icon, trend, tooltipContent }: KPICardPr
                 p="12px"
                 maxW="320px"
               >
-                <Box as="span" display="inline-flex" cursor="pointer">
-                  <Icon as={AiOutlineInfoCircle} boxSize="16px" color="neutral.400" />
-                </Box>
+                <IconButton
+                  aria-label="More info"
+                  icon={<AiOutlineInfoCircle />}
+                  variant="ghost"
+                  color="neutral.400"
+                  minW="auto"
+                  h="16px"
+                  w="16px"
+                  p="0"
+                  _hover={{ bg: 'transparent' }}
+                  _active={{ bg: 'transparent' }}
+                />
               </Tooltip>
             ) : (
               <Icon as={AiOutlineInfoCircle} boxSize="16px" color="neutral.400" />
