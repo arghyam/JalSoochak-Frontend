@@ -54,26 +54,66 @@ jest.mock('./village-dashboard', () => ({
   VillageDashboardScreen: () => <div data-testid="village-dashboard-screen" />,
 }))
 
-jest.mock('@/shared/components/common/view-by-select', () => ({
-  ViewBySelect: ({
-    value,
-    onChange,
-    ariaLabel,
-  }: {
-    value: 'geography' | 'time'
-    onChange: (value: 'geography' | 'time') => void
-    ariaLabel: string
-  }) => (
-    <select
-      aria-label={ariaLabel}
-      value={value}
-      onChange={(event) => onChange(event.target.value as 'geography' | 'time')}
-    >
-      <option value="geography">Geography</option>
-      <option value="time">Time</option>
-    </select>
-  ),
-}))
+jest.mock(
+  '@/shared/components/common/view-by-select',
+  () =>
+    ({
+      ViewBySelect: ({
+        value,
+        onChange,
+        ariaLabel,
+        color,
+        borderColor,
+      }: {
+        value: 'geography' | 'time'
+        onChange: (value: 'geography' | 'time') => void
+        ariaLabel: string
+        color?: string
+        borderColor?: string
+      }) => {
+        const { useState } = jest.requireActual<typeof import('react')>('react')
+        const [isOpen, setIsOpen] = useState(false)
+        const label = value === 'geography' ? 'Geography' : 'Time'
+
+        return (
+          <div data-testid="view-by-select-mock">
+            <button
+              aria-label={ariaLabel}
+              type="button"
+              onClick={() => setIsOpen((open: boolean) => !open)}
+              style={{ color, borderColor, borderStyle: 'solid', borderWidth: '1px' }}
+            >
+              {label}
+            </button>
+            {isOpen ? (
+              <div role="menu">
+                <button
+                  role="menuitem"
+                  type="button"
+                  onClick={() => {
+                    onChange('geography')
+                    setIsOpen(false)
+                  }}
+                >
+                  Geography
+                </button>
+                <button
+                  role="menuitem"
+                  type="button"
+                  onClick={() => {
+                    onChange('time')
+                    setIsOpen(false)
+                  }}
+                >
+                  Time
+                </button>
+              </div>
+            ) : null}
+          </div>
+        )
+      },
+    }) as unknown
+)
 
 const mockEntityData: EntityPerformance[] = [
   {
@@ -189,17 +229,17 @@ describe('DashboardBody', () => {
   it('renders independent geography/time selectors for both performance cards', () => {
     renderDashboardBody()
 
-    const quantitySelect = screen.getByRole('combobox', {
+    const quantitySelect = screen.getByRole('button', {
       name: 'Quantity performance view by',
-    }) as HTMLSelectElement
-    const regularitySelect = screen.getByRole('combobox', {
+    })
+    const regularitySelect = screen.getByRole('button', {
       name: 'Regularity performance view by',
-    }) as HTMLSelectElement
+    })
 
     expect(quantitySelect).toBeTruthy()
     expect(regularitySelect).toBeTruthy()
-    expect(quantitySelect.value).toBe('geography')
-    expect(regularitySelect.value).toBe('geography')
+    expect(quantitySelect.textContent).toContain('Geography')
+    expect(regularitySelect.textContent).toContain('Geography')
   })
 
   it('renders geography bar charts with full map data by default', () => {
@@ -222,17 +262,19 @@ describe('DashboardBody', () => {
   it('switches each card to time chart independently', () => {
     renderDashboardBody()
 
-    const quantitySelect = screen.getByRole('combobox', { name: 'Quantity performance view by' })
-    const regularitySelect = screen.getByRole('combobox', {
+    const quantitySelect = screen.getByRole('button', { name: 'Quantity performance view by' })
+    const regularitySelect = screen.getByRole('button', {
       name: 'Regularity performance view by',
     })
 
-    fireEvent.change(quantitySelect, { target: { value: 'time' } })
+    fireEvent.click(quantitySelect)
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
     expect(mockMonthlyTrendChart).toHaveBeenCalledTimes(1)
     expect(mockMonthlyTrendChart.mock.calls[0]?.[0].seriesName).toBe('Quantity')
     expect(mockMetricPerformanceChart).toHaveBeenCalledTimes(3)
 
-    fireEvent.change(regularitySelect, { target: { value: 'time' } })
+    fireEvent.click(regularitySelect)
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
     expect(mockMonthlyTrendChart).toHaveBeenCalledTimes(3)
     expect(mockMonthlyTrendChart.mock.calls[2]?.[0].seriesName).toBe('Regularity')
     expect(mockMonthlyTrendChart.mock.calls[2]?.[0].isPercent).toBe(true)

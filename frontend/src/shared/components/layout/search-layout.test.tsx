@@ -4,15 +4,16 @@ import { SearchLayout } from './search-layout'
 import { renderWithProviders } from '@/test/render-with-providers'
 
 describe('SearchLayout', () => {
+  const getSearchInput = () => screen.getByRole('textbox')
+
   it('renders default search placeholder and download button', () => {
     renderWithProviders(<SearchLayout />)
 
-    const searchInput = screen.getByPlaceholderText(
-      'Search by state/UT, district, block, gram panchayat, village'
-    )
+    const searchInput = getSearchInput()
     const downloadButton = screen.getByRole('button', { name: 'Download Report' })
 
     expect(searchInput).toBeTruthy()
+    expect(searchInput.getAttribute('placeholder')).toBe('Search')
     expect(downloadButton).toBeTruthy()
   })
 
@@ -26,9 +27,7 @@ describe('SearchLayout', () => {
       />
     )
 
-    const searchInput = screen.getByPlaceholderText(
-      'Search by state/UT, district, block, gram panchayat, village'
-    )
+    const searchInput = getSearchInput()
 
     fireEvent.focus(searchInput)
     expect(screen.getByText('States (36)')).toBeTruthy()
@@ -62,9 +61,7 @@ describe('SearchLayout', () => {
       />
     )
 
-    const searchInput = screen.getByPlaceholderText(
-      'Search by state/UT, district, block, gram panchayat, village'
-    )
+    const searchInput = getSearchInput()
     fireEvent.focus(searchInput)
     fireEvent.click(screen.getByRole('button', { name: 'Telangana' }))
     fireEvent.mouseDown(document.body)
@@ -85,9 +82,7 @@ describe('SearchLayout', () => {
       />
     )
 
-    const searchInput = screen.getByPlaceholderText(
-      'Search by state/UT, district, block, gram panchayat, village'
-    )
+    const searchInput = getSearchInput()
 
     expect(screen.getByTestId('search-trail-closed')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Breadcrumb: Sangareddy' })).toBeTruthy()
@@ -105,6 +100,29 @@ describe('SearchLayout', () => {
     expect(screen.getByRole('button', { name: 'Breadcrumb: Sangareddy' })).toBeTruthy()
   })
 
+  it('renders closed trail slot only while the search panel is closed', () => {
+    renderWithProviders(
+      <SearchLayout
+        selectionTrail={['Telangana', 'Sangareddy']}
+        closedTrailSlot={<button type="button">Clear</button>}
+        breadcrumbPanelProps={{
+          stateOptions: [{ value: 'telangana', label: 'Telangana' }],
+          totalStatesCount: 36,
+        }}
+      />
+    )
+
+    const searchInput = getSearchInput()
+
+    expect(screen.getByRole('button', { name: 'Clear' })).toBeTruthy()
+
+    fireEvent.focus(searchInput)
+    expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull()
+
+    fireEvent.click(screen.getByTestId('search-dropdown-close'))
+    expect(screen.getByRole('button', { name: 'Clear' })).toBeTruthy()
+  })
+
   it('closes dropdown when close icon is clicked', () => {
     renderWithProviders(
       <SearchLayout
@@ -115,9 +133,7 @@ describe('SearchLayout', () => {
       />
     )
 
-    const searchInput = screen.getByPlaceholderText(
-      'Search by state/UT, district, block, gram panchayat, village'
-    )
+    const searchInput = getSearchInput()
     fireEvent.focus(searchInput)
 
     expect(screen.getByTestId('search-dropdown-close')).toBeTruthy()

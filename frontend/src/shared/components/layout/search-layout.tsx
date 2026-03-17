@@ -12,6 +12,8 @@ import {
   Text,
   Icon,
   useOutsideClick,
+  useBreakpointValue,
+  useMediaQuery,
   Tabs,
   TabList,
   Tab,
@@ -52,6 +54,7 @@ interface SearchLayoutProps {
   actionProps?: ButtonProps
   filterSlot?: ReactNode
   rightSlot?: ReactNode
+  closedTrailSlot?: ReactNode
   breadcrumbPanelProps?: BreadcrumbPanelProps
   selectionTrail?: string[]
   activeTrailIndex?: number | null
@@ -65,11 +68,16 @@ export function SearchLayout({
   actionProps,
   filterSlot,
   rightSlot,
+  closedTrailSlot,
   breadcrumbPanelProps,
   selectionTrail,
   activeTrailIndex,
 }: SearchLayoutProps) {
   const { t } = useTranslation('dashboard')
+  const isCompactLayout = useBreakpointValue({ base: false, lg: false }) ?? false
+  const isBelowLgLayout = useBreakpointValue({ base: true, lg: false }) ?? true
+  const isBelowMdLayout = useBreakpointValue({ base: true, md: false }) ?? true
+  const [isVeryCompactLayout] = useMediaQuery('(max-width: 569px)')
   const [searchValue, setSearchValue] = useState('')
   const [isBreadcrumbPanelOpen, setIsBreadcrumbPanelOpen] = useState(false)
   const [selectedStateValue, setSelectedStateValue] = useState('')
@@ -96,6 +104,9 @@ export function SearchLayout({
   const resolvedPlaceholder =
     placeholder ??
     t('searchLayout.placeholder', 'Search by state/UT, district, block, gram panchayat, village')
+  const inputPlaceholder = isBelowMdLayout
+    ? t('searchLayout.search', 'Search')
+    : resolvedPlaceholder
   const resolvedActionLabel = actionLabel ?? t('searchLayout.downloadReport', 'Download Report')
   const inputValue = inputProps?.value !== undefined ? String(inputProps.value ?? '') : searchValue
   const selectedState = useMemo(
@@ -190,6 +201,127 @@ export function SearchLayout({
     setBreadcrumbPanelOpen(false)
   }
 
+  const closedTrailContent =
+    closedSelectionTrail.length > 0 && !isBreadcrumbPanelOpen ? (
+      <Flex
+        mt={{ base: '8px', lg: '12px' }}
+        align="center"
+        gap="8px"
+        wrap="wrap"
+        data-testid="search-trail-closed"
+      >
+        {closedSelectionTrail.map((item, index) => {
+          const isActive = index === effectiveActiveTrailIndex
+
+          if (isActive) {
+            return (
+              <Flex key={`${item}-${index}`} align="center" gap="8px">
+                {index > 0 ? (
+                  <Icon
+                    as={FiChevronDown}
+                    color="neutral.500"
+                    boxSize="14px"
+                    transform="rotate(-90deg)"
+                  />
+                ) : null}
+                <Button
+                  h="26px"
+                  minW="66px"
+                  px="8px"
+                  py="4px"
+                  borderRadius="16px"
+                  borderColor="neutral.300"
+                  bg="primary.25"
+                  color="primary.600"
+                  fontSize="14px"
+                  fontWeight="400"
+                  variant="ghost"
+                  onClick={() => handleTrailSelect(index)}
+                  _hover={{ bg: 'neutral.100' }}
+                  _active={{ bg: 'neutral.100' }}
+                  aria-label={t('searchLayout.aria.breadcrumb', {
+                    item,
+                    defaultValue: `Breadcrumb: ${item}`,
+                  })}
+                  aria-current="page"
+                >
+                  {item}
+                </Button>
+              </Flex>
+            )
+          }
+
+          return (
+            <Flex key={`${item}-${index}`} align="center" gap="8px">
+              {index > 0 ? (
+                <Icon
+                  as={FiChevronDown}
+                  color="neutral.500"
+                  boxSize="14px"
+                  transform="rotate(-90deg)"
+                />
+              ) : null}
+              <Button
+                variant="unstyled"
+                h="auto"
+                minH="auto"
+                fontSize="14px"
+                color="neutral.500"
+                fontWeight="400"
+                onClick={() => handleTrailSelect(index)}
+                _hover={{ color: 'primary.500' }}
+                _active={{ color: 'primary.500' }}
+                aria-label={t('searchLayout.aria.breadcrumb', {
+                  item,
+                  defaultValue: `Breadcrumb: ${item}`,
+                })}
+              >
+                {item}
+              </Button>
+            </Flex>
+          )
+        })}
+      </Flex>
+    ) : null
+
+  const searchInput = (
+    <>
+      <InputLeftElement pointerEvents="none" p="12px" w="auto" h="32px" alignItems="center">
+        <SearchIcon mr="4px" color="neutral.300" />
+      </InputLeftElement>
+      <Input
+        px="12px"
+        pl="32px"
+        placeholder={inputPlaceholder}
+        fontSize="14px"
+        h="32px"
+        borderColor="neutral.300"
+        _placeholder={{ color: 'neutral.300' }}
+        value={inputValue}
+        onFocus={handleFocus}
+        onChange={handleInputChange}
+        {...inputProps}
+      />
+    </>
+  )
+
+  const actionButton = (
+    <Button
+      onClick={onActionClick}
+      h="32px"
+      w="full"
+      maxW="160px"
+      minW="112px"
+      flex="0 1 160px"
+      fontSize={isVeryCompactLayout ? '11px' : '14px'}
+      variant="primary"
+      leftIcon={<FiDownload size="16" />}
+      {...actionProps}
+    >
+      {resolvedActionLabel}
+    </Button>
+  )
+
   return (
     <Box
       as="section"
@@ -203,142 +335,60 @@ export function SearchLayout({
       position="relative"
       ref={panelContainerRef}
     >
-      <Flex
-        w="full"
-        align={{ base: 'stretch', lg: 'center' }}
-        justify="space-between"
-        gap="24px"
-        direction={{ base: 'column', lg: 'row' }}
-      >
-        <Flex
-          w="full"
-          flex={{ base: '1 1 auto', lg: '1 1 auto' }}
-          minW={0}
-          maxW={{ base: 'full', lg: 'calc(100% - 184px)' }}
-          gap={3}
-          wrap={{ base: 'wrap', lg: 'nowrap' }}
-        >
-          <InputGroup
-            w={{ base: 'full', lg: 'auto' }}
-            flex={{ base: '1 1 100%', lg: '1 1 auto' }}
-            minW={{ base: 0, lg: '320px' }}
-          >
-            <InputLeftElement pointerEvents="none" p="12px" w="auto" h="32px" alignItems="center">
-              <SearchIcon mr="4px" color="neutral.300" />
-            </InputLeftElement>
-            <Input
-              px="12px"
-              pl="32px"
-              placeholder={resolvedPlaceholder}
-              fontSize="14px"
-              h="32px"
-              borderColor="neutral.300"
-              _placeholder={{ color: 'neutral.300' }}
-              value={inputValue}
-              onFocus={handleFocus}
-              onChange={handleInputChange}
-              {...inputProps}
-            />
-          </InputGroup>
-          {filterSlot}
-        </Flex>
-        {rightSlot ?? (
-          <Button
-            onClick={onActionClick}
-            h="32px"
-            w={{ base: 'full', lg: '160px' }}
-            minW={{ lg: '160px' }}
-            fontSize="14px"
-            variant="primary"
-            leftIcon={<FiDownload size="16" />}
-            {...actionProps}
-          >
-            {resolvedActionLabel}
-          </Button>
+      <Flex w="full" direction="column" gap={{ base: 3, lg: '24px' }}>
+        {isCompactLayout ? (
+          <>
+            <InputGroup w="full" minW={0}>
+              {searchInput}
+            </InputGroup>
+            {closedTrailContent}
+            {closedTrailContent ? closedTrailSlot : null}
+            <Flex w="full" align="center" justify="space-between" gap={3}>
+              <Box minW={0} flex="1 1 auto">
+                {filterSlot}
+              </Box>
+              {rightSlot ?? actionButton}
+            </Flex>
+          </>
+        ) : (
+          <Flex w="full" align="center" justify="space-between" gap={{ base: 2, lg: '12px' }}>
+            <InputGroup w="full" flex="1 1 auto" minW={{ base: 0, lg: '300px' }}>
+              {searchInput}
+            </InputGroup>
+            <Flex align="center" gap={{ base: 2, lg: '12px' }} flex="0 0 auto" minW={0}>
+              {filterSlot}
+              {rightSlot ??
+                (isBelowLgLayout ? (
+                  <IconButton
+                    aria-label={resolvedActionLabel}
+                    onClick={onActionClick}
+                    h="32px"
+                    minW="32px"
+                    w="32px"
+                    icon={<FiDownload size="16" />}
+                    variant="primary"
+                    {...actionProps}
+                  />
+                ) : (
+                  actionButton
+                ))}
+            </Flex>
+          </Flex>
         )}
       </Flex>
-      {closedSelectionTrail.length > 0 && !isBreadcrumbPanelOpen ? (
-        <Flex mt="12px" align="center" gap="8px" wrap="wrap" data-testid="search-trail-closed">
-          {closedSelectionTrail.map((item, index) => {
-            const isActive = index === effectiveActiveTrailIndex
-
-            if (isActive) {
-              return (
-                <Flex key={`${item}-${index}`} align="center" gap="8px">
-                  {index > 0 ? (
-                    <Icon
-                      as={FiChevronDown}
-                      color="neutral.500"
-                      boxSize="14px"
-                      transform="rotate(-90deg)"
-                    />
-                  ) : null}
-                  <Button
-                    h="26px"
-                    minW="66px"
-                    px="8px"
-                    py="4px"
-                    borderRadius="16px"
-                    borderColor="neutral.300"
-                    bg="primary.25"
-                    color="primary.600"
-                    fontSize="14px"
-                    fontWeight="400"
-                    variant="ghost"
-                    onClick={() => handleTrailSelect(index)}
-                    _hover={{ bg: 'neutral.100' }}
-                    _active={{ bg: 'neutral.100' }}
-                    aria-label={t('searchLayout.aria.breadcrumb', {
-                      item,
-                      defaultValue: `Breadcrumb: ${item}`,
-                    })}
-                    aria-current="page"
-                  >
-                    {item}
-                  </Button>
-                </Flex>
-              )
-            }
-
-            return (
-              <Flex key={`${item}-${index}`} align="center" gap="8px">
-                {index > 0 ? (
-                  <Icon
-                    as={FiChevronDown}
-                    color="neutral.500"
-                    boxSize="14px"
-                    transform="rotate(-90deg)"
-                  />
-                ) : null}
-                <Button
-                  variant="unstyled"
-                  h="auto"
-                  minH="auto"
-                  fontSize="14px"
-                  color="neutral.500"
-                  fontWeight="400"
-                  onClick={() => handleTrailSelect(index)}
-                  _hover={{ color: 'primary.500' }}
-                  _active={{ color: 'primary.500' }}
-                  aria-label={t('searchLayout.aria.breadcrumb', {
-                    item,
-                    defaultValue: `Breadcrumb: ${item}`,
-                  })}
-                >
-                  {item}
-                </Button>
-              </Flex>
-            )
-          })}
-        </Flex>
-      ) : null}
+      {!isCompactLayout ? closedTrailContent : null}
+      {!isCompactLayout && closedTrailContent ? closedTrailSlot : null}
       {showBreadcrumbPanel && isBreadcrumbPanelOpen ? (
         <Box
           position="absolute"
           top="56px"
           left="0"
           mt="16px"
-          width="798px"
+          width={{
+            base: '100%',
+            lg: 'min(960px, calc(100vw - 64px))',
+            xl: 'min(1120px, calc(100vw - 96px))',
+          }}
           maxW="100%"
           minH="375px"
           borderRadius="12px"
@@ -400,7 +450,7 @@ export function SearchLayout({
             </Box>
           ) : null}
           <Box bg="neutral.100" px="16px" py="8px">
-            <Flex align="center">
+            <Flex align="center" wrap="wrap" rowGap="4px">
               <Button
                 variant="unstyled"
                 onClick={() => handleTrailSelect(-1)}
@@ -419,7 +469,7 @@ export function SearchLayout({
                 {t('searchLayout.allStatesUTs', 'All States/UTs')}
               </Button>
               {effectiveSelectionTrail.map((item, index) => (
-                <Flex key={`${item}-${index}`} align="center">
+                <Flex key={`${item}-${index}`} align="center" wrap="nowrap" minW={0}>
                   <Icon
                     as={FiChevronDown}
                     color="neutral.500"
@@ -440,6 +490,8 @@ export function SearchLayout({
                     _active={{
                       color: index === effectiveActiveTrailIndex ? 'neutral.800' : 'primary.500',
                     }}
+                    whiteSpace="normal"
+                    textAlign="left"
                     aria-current={index === effectiveActiveTrailIndex ? 'page' : undefined}
                     aria-label={t('searchLayout.aria.breadcrumb', {
                       item,
@@ -459,7 +511,8 @@ export function SearchLayout({
             <Box
               display="grid"
               gridTemplateColumns={{
-                base: 'repeat(2, minmax(0, 1fr))',
+                base: 'minmax(0, 1fr)',
+                sm: 'repeat(2, minmax(0, 1fr))',
                 md: 'repeat(3, minmax(0, 1fr))',
                 lg: 'repeat(5, minmax(0, 1fr))',
               }}
@@ -469,6 +522,9 @@ export function SearchLayout({
               rowGap="8px"
               alignItems="start"
               alignContent="start"
+              maxH={{ base: '272px', sm: 'none' }}
+              overflowY={{ base: 'auto', sm: 'visible' }}
+              pr={{ base: '4px', sm: 0 }}
               pb="16px"
               data-testid="search-options-grid"
             >
@@ -477,12 +533,16 @@ export function SearchLayout({
                   key={state.value}
                   variant="ghost"
                   justifyContent="flex-start"
+                  alignItems="flex-start"
                   fontWeight="400"
                   textStyle="bodyText5"
                   color="neutral.950"
                   p={0}
                   h="auto"
                   fontSize="14px"
+                  minW={0}
+                  whiteSpace="normal"
+                  textAlign="left"
                   onClick={() => handleStateSelect(state.value)}
                   _hover={{ bg: 'transparent', color: 'primary.500' }}
                   _active={{ bg: 'transparent', color: 'primary.500' }}

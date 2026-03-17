@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Box, Flex, Icon, Text } from '@chakra-ui/react'
+import { Box, Flex, Icon, IconButton, Text, Tooltip } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { MdArrowDownward, MdArrowUpward } from 'react-icons/md'
@@ -14,9 +14,10 @@ interface KPICardProps {
   value: string | number
   icon?: ReactNode
   trend?: KPITrend
+  tooltipContent?: ReactNode
 }
 
-export function KPICard({ title, value, icon, trend }: KPICardProps) {
+export function KPICard({ title, value, icon, trend, tooltipContent }: KPICardProps) {
   const { i18n } = useTranslation()
   const numberLocale = i18n.resolvedLanguage === 'hi' ? 'hi-IN' : 'en-IN'
   const formattedValue = typeof value === 'number' ? value.toLocaleString(numberLocale) : value
@@ -53,7 +54,36 @@ export function KPICard({ title, value, icon, trend }: KPICardProps) {
             >
               {title}
             </Text>
-            <Icon as={AiOutlineInfoCircle} boxSize="16px" color="neutral.400" />
+            {tooltipContent ? (
+              <Tooltip
+                label={tooltipContent}
+                hasArrow
+                placement="top-end"
+                bg="white"
+                color="neutral.700"
+                borderWidth="1px"
+                borderColor="neutral.200"
+                borderRadius="8px"
+                boxShadow="md"
+                p="12px"
+                maxW="320px"
+              >
+                <IconButton
+                  aria-label="More info"
+                  icon={<AiOutlineInfoCircle />}
+                  variant="ghost"
+                  color="neutral.400"
+                  minW="auto"
+                  h="16px"
+                  w="16px"
+                  p="0"
+                  _hover={{ bg: 'transparent' }}
+                  _active={{ bg: 'transparent' }}
+                />
+              </Tooltip>
+            ) : (
+              <Icon as={AiOutlineInfoCircle} boxSize="16px" color="neutral.400" />
+            )}
           </Flex>
           <Text textStyle="bodyText2" color="neutral.950" mb={1}>
             {formattedValue}

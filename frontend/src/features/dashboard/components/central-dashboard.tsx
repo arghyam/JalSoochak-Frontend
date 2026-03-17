@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { Box, Flex, Text, Heading, Grid, Icon, Image } from '@chakra-ui/react'
+import { Box, Flex, Text, Heading, Grid, Icon, Image, useBreakpointValue } from '@chakra-ui/react'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDashboardData } from '../hooks/use-dashboard-data'
 import { KPICard } from './kpi-card'
@@ -9,8 +10,8 @@ import { DashboardBody } from './screens/dashboard-body'
 import { IndiaMapChart } from './charts'
 import { LoadingSpinner } from '@/shared/components/common'
 import { MdOutlineWaterDrop } from 'react-icons/md'
-import { LuClock3 } from 'react-icons/lu'
 import waterTapIcon from '@/assets/media/water-tap_1822589 1.svg'
+import wallClockIcon from '@/assets/media/wall-clock.svg'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
 import type { EntityPerformance } from '../types'
 import { DashboardFilters } from './filters/dashboard-filters'
@@ -105,8 +106,28 @@ const toStateSlug = (stateName: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
 
+const formulaTooltipTextStyle = {
+  fontSize: '12px',
+  lineHeight: '18px',
+} as const
+
+const renderFormulaTooltip = (formula: ReactNode, definitions: ReactNode[]) => (
+  <Box w="296px" minH="80px">
+    <Text sx={formulaTooltipTextStyle} mb="8px">
+      {formula}
+    </Text>
+    {definitions.map((definition, index) => (
+      <Text key={index} sx={formulaTooltipTextStyle}>
+        {definition}
+      </Text>
+    ))}
+  </Box>
+)
+
 export function CentralDashboard() {
   const { t, i18n } = useTranslation('dashboard')
+  const overallPerformanceScrollHeight =
+    useBreakpointValue({ base: '320px', sm: '420px', lg: '620px' }) ?? '620px'
   const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -572,8 +593,20 @@ export function CentralDashboard() {
       },
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#E6F7EC" align="center" justify="center">
-          <Image src={waterTapIcon} alt="" boxSize="24px" />
+          <Image src={waterTapIcon} alt="" w="24px" h="24px" />
         </Flex>
+      ),
+      tooltipContent: renderFormulaTooltip(
+        <>
+          Quantity (MLD) = SUM(W<sub>k</sub>) / N
+        </>,
+        [
+          <>
+            W<sub>k</sub> = water quantity supplied on day k
+          </>,
+          <>SUM(Wk) = total water supplied across all days</>,
+          <>N = total number of days</>,
+        ]
       ),
     },
     {
@@ -588,8 +621,23 @@ export function CentralDashboard() {
       },
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
-          <Icon as={MdOutlineWaterDrop} boxSize="22px" color="#2E90FA" />
+          <Icon as={MdOutlineWaterDrop} w="24px" h="24px" color="#2E90FA" />
         </Flex>
+      ),
+      tooltipContent: renderFormulaTooltip(
+        <>
+          Quantity (LPCD) = SUM(W<sub>k</sub>) / (SUM(HC<sub>i</sub>) x P x N)
+        </>,
+        [
+          <>
+            W<sub>k</sub> = water quantity supplied on day k
+          </>,
+          <>
+            HC<sub>i</sub> = household count of scheme i
+          </>,
+          <>P = average persons per household</>,
+          <>N = number of days</>,
+        ]
       ),
     },
     {
@@ -604,8 +652,19 @@ export function CentralDashboard() {
       },
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#FFF4CC" align="center" justify="center">
-          <Icon as={LuClock3} boxSize="22px" color="#CA8A04" />
+          <Image src={wallClockIcon} alt="" w="24px" h="24px" />
         </Flex>
+      ),
+      tooltipContent: renderFormulaTooltip(
+        <>
+          Regularity of scheme = X<sub>i</sub> / N
+        </>,
+        [
+          <>
+            X<sub>i</sub> = number of supply-days of scheme i
+          </>,
+          <>N = total number of days in the selected time period</>,
+        ]
       ),
     },
   ] as const
@@ -683,7 +742,11 @@ export function CentralDashboard() {
       />
 
       {/* KPI Cards */}
-      <Grid templateColumns={{ base: '1fr', lg: 'repeat(3, 1fr)' }} gap={4} mb={6}>
+      <Grid
+        templateColumns={{ base: '1fr', md: 'repeat(auto-fit, minmax(240px, 1fr))' }}
+        gap={4}
+        mb={6}
+      >
         {coreMetrics.map((metric) => (
           <KPICard
             key={metric.label}
@@ -691,6 +754,7 @@ export function CentralDashboard() {
             value={metric.value}
             icon={metric.icon}
             trend={metric.trend}
+            tooltipContent={metric.tooltipContent}
           />
         ))}
       </Grid>
@@ -708,7 +772,8 @@ export function CentralDashboard() {
             pl="16px"
             pr="16px"
             w="full"
-            h="710px"
+            h={{ base: '420px', sm: '520px', lg: '710px' }}
+            minW={0}
           >
             <IndiaMapChart
               data={data.mapData}
@@ -727,7 +792,8 @@ export function CentralDashboard() {
             pl="16px"
             pr="16px"
             w="full"
-            h="710px"
+            h={{ base: '420px', sm: '520px', lg: '710px' }}
+            minW={0}
           >
             <Text textStyle="bodyText3" fontWeight="400" mb={4}>
               {t('overallPerformance.title', { defaultValue: 'Overall Performance' })}
@@ -735,7 +801,7 @@ export function CentralDashboard() {
             <OverallPerformanceTable
               data={overallPerformanceTableData}
               entityLabel={overallPerformanceEntityLabel}
-              scrollMaxHeight="620px"
+              scrollMaxHeight={overallPerformanceScrollHeight}
             />
           </Box>
         </Grid>

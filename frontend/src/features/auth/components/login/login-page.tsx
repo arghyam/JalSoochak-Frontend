@@ -15,6 +15,7 @@ import {
   Checkbox,
   Link,
   useDisclosure,
+  useMediaQuery,
   VStack,
 } from '@chakra-ui/react'
 import { AuthSideImage } from '@/features/auth/components/signup/auth-side-image'
@@ -27,6 +28,7 @@ export function LoginPage() {
   const navigate = useNavigate()
   const { login, loading, error } = useAuthStore()
   const { isOpen: isForgotPasswordOpen, onOpen, onClose } = useDisclosure()
+  const [showBannerImage] = useMediaQuery('(min-width: 992px)')
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -60,16 +62,17 @@ export function LoginPage() {
   }
 
   return (
-    <Flex minH="100vh" w="full" direction={{ base: 'column', md: 'row' }}>
+    <Flex minH="100vh" w="full" direction={showBannerImage ? 'row' : 'column'}>
       <Flex
-        w={{ base: '100%', md: '50%' }}
+        w={showBannerImage ? '50%' : '100%'}
+        minH="100vh"
         align="stretch"
         justify="flex-start"
         bg="white"
         px={{ base: 10, md: 8 }}
         py={{ base: 10, md: 8 }}
       >
-        <Flex w="full" direction="column">
+        <Flex w="full" minH="full" direction="column">
           <Box w="full" maxW="420px">
             <Image
               src={jalsoochakLogo}
@@ -221,7 +224,7 @@ export function LoginPage() {
         </Flex>
       </Flex>
 
-      <AuthSideImage />
+      <AuthSideImage isVisible={showBannerImage} />
       <ForgotPasswordModal isOpen={isForgotPasswordOpen} onClose={onClose} />
     </Flex>
   )
