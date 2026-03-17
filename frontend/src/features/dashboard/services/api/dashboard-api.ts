@@ -15,6 +15,8 @@ import type {
   ReadingComplianceResponse,
   PumpOperatorDetailsQueryParams,
   PumpOperatorDetailsResponse,
+  PumpOperatorsBySchemeQueryParams,
+  PumpOperatorsBySchemeResponse,
   ReadingSubmissionRateQueryParams,
   ReadingSubmissionRateResponse,
   SchemePerformanceQueryParams,
@@ -322,6 +324,21 @@ export const dashboardApi = {
       {
         params: {
           tenantCode: params.tenantCode,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getPumpOperatorsByScheme: async (
+    params: PumpOperatorsBySchemeQueryParams
+  ): Promise<PumpOperatorsBySchemeResponse> => {
+    const response = await apiClient.get<PumpOperatorsBySchemeResponse>(
+      '/api/v1/pumpoperator/pump-operators/by-scheme',
+      {
+        params: {
+          tenantCode: params.tenantCode,
+          schemeId: params.schemeId,
         },
       }
     )

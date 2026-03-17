@@ -296,6 +296,30 @@ export interface PumpOperatorDetailsQueryParams {
   tenantCode: string
 }
 
+export interface PumpOperatorsBySchemeQueryParams {
+  tenantCode: string
+  schemeId: number
+}
+
+export interface PumpOperatorsBySchemeItem {
+  schemeId: number
+  schemeName: string
+  pumpOperators: Array<{
+    id: number
+    uuid: string
+    name: string
+    email: string
+    phoneNumber: string
+    status: number
+  }>
+}
+
+export interface PumpOperatorsBySchemeResponse {
+  status: number
+  message: string
+  data: PumpOperatorsBySchemeItem[]
+}
+
 export interface PumpOperatorDetailsResponse {
   status: number
   message: string

@@ -10,7 +10,6 @@ import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-avera
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
 import { useNationalDashboardQuery } from '../services/query/use-national-dashboard-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
-import { usePumpOperatorDetailsQuery } from '../services/query/use-pump-operator-details-query'
 import { useReadingComplianceQuery } from '../services/query/use-reading-compliance-query'
 import { useReadingSubmissionRateQuery } from '../services/query/use-reading-submission-rate-query'
 import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
@@ -938,7 +937,6 @@ export function CentralDashboard() {
 
   const villagePumpOperators = [
     {
-      id: 4,
       name: 'Ajay Yadav',
       scheme: 'Rural Water Supply 001',
       stationLocation: 'Central Pumping Station',
@@ -948,7 +946,6 @@ export function CentralDashboard() {
       inactiveDays: '2',
     },
     {
-      id: 5,
       name: 'Vikram Singh',
       scheme: 'Rural Water Supply 002',
       stationLocation: 'North Pumping Station',
@@ -959,19 +956,6 @@ export function CentralDashboard() {
     },
   ]
   const villagePumpOperatorDetails = villagePumpOperators[0]
-  const selectedVillagePumpOperatorId = selectedVillage ? villagePumpOperatorDetails?.id : undefined
-
-  usePumpOperatorDetailsQuery({
-    params:
-      selectedVillagePumpOperatorId && selectedTenant?.tenantCode
-        ? {
-            pumpOperatorId: selectedVillagePumpOperatorId,
-            tenantCode: selectedTenant.tenantCode,
-          }
-        : null,
-    // Keep the existing mock card as the display source until village/scheme -> operator mapping is available.
-    enabled: Boolean(selectedVillagePumpOperatorId && selectedTenant?.tenantCode),
-  })
 
   if (isLoading) {
     return (
@@ -1290,6 +1274,8 @@ export function CentralDashboard() {
         villagePhotoEvidenceRows={villagePhotoEvidenceRows}
         villagePumpOperatorDetails={villagePumpOperatorDetails}
         villagePumpOperators={villagePumpOperators}
+        tenantCode={selectedTenant?.tenantCode}
+        schemeId={selectedSchemeId}
       />
     </Box>
   )

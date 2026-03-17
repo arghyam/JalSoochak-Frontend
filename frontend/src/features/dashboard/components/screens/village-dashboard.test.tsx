@@ -27,6 +27,14 @@ jest.mock('../tables', () => ({
   ReadingComplianceTable: (props: unknown) => mockReadingComplianceTable(props),
 }))
 
+jest.mock('../../services/query/use-pump-operators-by-scheme-query', () => ({
+  usePumpOperatorsBySchemeQuery: () => ({ data: undefined }),
+}))
+
+jest.mock('../../services/query/use-pump-operator-details-query', () => ({
+  usePumpOperatorDetailsQuery: () => ({ data: undefined }),
+}))
+
 const data: DashboardData = {
   level: 'village',
   kpis: {

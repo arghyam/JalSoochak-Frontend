@@ -6,6 +6,7 @@ import type {
   OutageReasonsQueryParams,
   ReadingComplianceQueryParams,
   PumpOperatorDetailsQueryParams,
+  PumpOperatorsBySchemeQueryParams,
   ReadingSubmissionRateQueryParams,
   SchemePerformanceQueryParams,
   SubmissionStatusQueryParams,
@@ -53,6 +54,8 @@ export const dashboardQueryKeys = {
     ] as const,
   schemePerformance: (params: SchemePerformanceQueryParams | null) =>
     ['dashboard', 'analytics', 'scheme-performance', params?.tenantId, params?.schemeId] as const,
+  pumpOperatorsByScheme: (params: PumpOperatorsBySchemeQueryParams | null) =>
+    ['dashboard', 'pump-operator', 'by-scheme', params?.tenantCode, params?.schemeId] as const,
   pumpOperatorDetails: (params: PumpOperatorDetailsQueryParams | null) =>
     ['dashboard', 'pump-operator', 'details', params?.pumpOperatorId, params?.tenantCode] as const,
   readingCompliance: (params: ReadingComplianceQueryParams | null) =>

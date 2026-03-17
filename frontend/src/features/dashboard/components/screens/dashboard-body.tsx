@@ -44,6 +44,8 @@ type DashboardBodyProps = {
   villagePhotoEvidenceRows: DashboardData['readingCompliance']
   villagePumpOperatorDetails?: VillagePumpOperatorDetails
   villagePumpOperators?: VillagePumpOperatorDetails[]
+  tenantCode?: string
+  schemeId?: number
 }
 
 type ViewBy = 'geography' | 'time'
@@ -69,6 +71,8 @@ export function DashboardBody({
   villagePhotoEvidenceRows,
   villagePumpOperatorDetails,
   villagePumpOperators,
+  tenantCode,
+  schemeId,
 }: DashboardBodyProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
@@ -269,6 +273,8 @@ export function DashboardBody({
           waterSupplyOutagesData={waterSupplyOutagesData}
           villagePumpOperatorDetails={villagePumpOperatorDetails}
           villagePumpOperators={villagePumpOperators}
+          tenantCode={tenantCode}
+          schemeId={schemeId}
         />
       ) : null}
 
