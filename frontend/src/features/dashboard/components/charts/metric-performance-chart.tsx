@@ -63,7 +63,6 @@ export function MetricPerformanceChart({
       : defaultItemWidth
   const itemWidth = Math.min(defaultItemWidth, effectiveItemWidth)
   const axisWidth = '56px'
-  const axisLabelOffset = '-25px'
   const dynamicBarWidth = Math.min(barWidth, Math.max(12, Math.floor(itemWidth * 0.6)))
   const longestEntityLabel = useMemo(() => {
     return data.reduce((longest, item) => {
@@ -238,7 +237,7 @@ export function MetricPerformanceChart({
         show: false,
       },
       grid: {
-        left: '20%',
+        left: 0,
         right: 0,
         top: '10%',
         bottom: '5%',
@@ -269,7 +268,7 @@ export function MetricPerformanceChart({
         position: 'right',
         axisLabel: {
           align: 'right',
-          margin: 5,
+          margin: 1,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
@@ -465,14 +464,16 @@ export function MetricPerformanceChart({
           <EChartsWrapper option={axisOption} height="100%" />
           <Box
             position="absolute"
-            left={axisLabelOffset}
+            left="6px"
             top="50%"
             transform="translateY(-50%) rotate(-90deg)"
-            transformOrigin="center"
+            transformOrigin="left center"
             textStyle="bodyText7"
             fontWeight="400"
             color={bodyText7.color}
             whiteSpace="nowrap"
+            zIndex={1}
+            pointerEvents="none"
           >
             {yAxisLabel}
           </Box>
