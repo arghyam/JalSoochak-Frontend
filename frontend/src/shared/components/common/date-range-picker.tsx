@@ -14,7 +14,6 @@ import {
 } from '@chakra-ui/react'
 import type { ResponsiveValue } from '@chakra-ui/react'
 import type { Property } from 'csstype'
-import type { PlacementWithLogical } from '@chakra-ui/popper'
 import { useTranslation } from 'react-i18next'
 import { CalendarIcon } from './calendar-icon'
 
@@ -29,6 +28,20 @@ type PresetDefinition = {
   label: string
   getRange: (baseDate: Date) => { startDate: string; endDate: string }
 }
+
+type PopoverPlacement =
+  | 'top'
+  | 'top-start'
+  | 'top-end'
+  | 'bottom'
+  | 'bottom-start'
+  | 'bottom-end'
+  | 'left'
+  | 'left-start'
+  | 'left-end'
+  | 'right'
+  | 'right-start'
+  | 'right-end'
 
 export interface DateRangePickerProps {
   value: DateRange | null
@@ -46,7 +59,7 @@ export interface DateRangePickerProps {
   placeholderColor?: string
   iconOnly?: boolean
   iconAriaLabel?: string
-  popoverPlacement?: PlacementWithLogical
+  popoverPlacement?: PopoverPlacement
 }
 
 const formatISODate = (date: Date) => {
@@ -118,9 +131,11 @@ export function DateRangePicker({
   popoverPlacement = 'bottom-start',
 }: DateRangePickerProps) {
   const { t } = useTranslation('dashboard')
-  const [isTinyPicker] = useMediaQuery('(max-width: 499px)')
+  const [isTinyPicker] = useMediaQuery('(max-width: 599px)')
   const [isOpen, setIsOpen] = useState(false)
   const [draft, setDraft] = useState<DateRange | null>(value)
+  const [tinyPopoverWidth, setTinyPopoverWidth] = useState<number | null>(null)
+  const [tinyPopoverOffset, setTinyPopoverOffset] = useState(0)
   const [draftIso, setDraftIso] = useState<{ startDate: string; endDate: string } | null>(
     value
       ? {
@@ -131,6 +146,7 @@ export function DateRangePicker({
   )
   const startDateInputRef = useRef<HTMLInputElement | null>(null)
   const endDateInputRef = useRef<HTMLInputElement | null>(null)
+  const triggerRef = useRef<HTMLButtonElement | null>(null)
 
   const syncDraftFromValue = (nextValue: DateRange | null) => {
     setDraft(nextValue)
@@ -221,9 +237,34 @@ export function DateRangePicker({
 
   const displayBorderColor = isFilter ? (value ? 'primary.500' : borderColor) : borderColor
   const triggerAriaLabel = iconAriaLabel || placeholder
+  const placement = isTinyPicker ? 'bottom-start' : popoverPlacement
+  const modifiers = isTinyPicker
+    ? [
+        { name: 'offset', options: { offset: [tinyPopoverOffset, 8] } },
+        { name: 'flip', enabled: true },
+        {
+          name: 'preventOverflow',
+          options: { mainAxis: true, altAxis: true, tether: true, padding: 8 },
+        },
+      ]
+    : [
+        { name: 'offset', options: { offset: [-20, 8] } },
+        { name: 'flip', enabled: false },
+        { name: 'preventOverflow', options: { mainAxis: false, altAxis: false, tether: false } },
+      ]
 
   const handleOpen = () => {
     if (!disabled) {
+      if (isTinyPicker && triggerRef.current) {
+        const dashboardContent = document.getElementById('main-content')
+        if (dashboardContent instanceof HTMLElement) {
+          const searchLayoutRect = dashboardContent.getBoundingClientRect()
+          const triggerRect = triggerRef.current.getBoundingClientRect()
+
+          setTinyPopoverWidth(searchLayoutRect.width)
+          setTinyPopoverOffset(searchLayoutRect.left - triggerRect.left)
+        }
+      }
       syncDraftFromValue(value)
       setIsOpen(true)
     }
@@ -293,16 +334,13 @@ export function DateRangePicker({
       isOpen={isOpen}
       onOpen={handleOpen}
       onClose={handleClose}
-      placement={popoverPlacement}
-      modifiers={[
-        { name: 'offset', options: { offset: [-20, 8] } },
-        { name: 'flip', enabled: false },
-        { name: 'preventOverflow', options: { mainAxis: false, altAxis: false, tether: false } },
-      ]}
+      placement={placement}
+      modifiers={modifiers}
     >
       <PopoverTrigger>
         <Flex
           as="button"
+          ref={triggerRef}
           type="button"
           aria-label={triggerAriaLabel}
           w={width}
@@ -338,8 +376,8 @@ export function DateRangePicker({
         </Flex>
       </PopoverTrigger>
       <PopoverContent
-        w="full"
-        minW="320px"
+        w={isTinyPicker && tinyPopoverWidth ? `${tinyPopoverWidth}px` : 'full'}
+        minW={isTinyPicker ? 'auto' : '250'}
         maxW="min(420px, calc(100vw - 32px))"
         borderColor="neutral.100"
         boxShadow="md"
