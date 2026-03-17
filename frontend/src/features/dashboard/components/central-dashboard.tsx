@@ -10,8 +10,8 @@ import { DashboardBody } from './screens/dashboard-body'
 import { IndiaMapChart } from './charts'
 import { LoadingSpinner } from '@/shared/components/common'
 import { MdOutlineWaterDrop } from 'react-icons/md'
-import { LuClock3 } from 'react-icons/lu'
 import waterTapIcon from '@/assets/media/water-tap_1822589 1.svg'
+import wallClockIcon from '@/assets/media/wall-clock.svg'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
 import type { EntityPerformance } from '../types'
 import { DashboardFilters } from './filters/dashboard-filters'
@@ -593,7 +593,7 @@ export function CentralDashboard() {
       },
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#E6F7EC" align="center" justify="center">
-          <Image src={waterTapIcon} alt="" boxSize="24px" />
+          <Image src={waterTapIcon} alt="" w="24px" h="24px" />
         </Flex>
       ),
       tooltipContent: renderFormulaTooltip(
@@ -621,7 +621,7 @@ export function CentralDashboard() {
       },
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
-          <Icon as={MdOutlineWaterDrop} boxSize="22px" color="#2E90FA" />
+          <Icon as={MdOutlineWaterDrop} w="24px" h="24px" color="#2E90FA" />
         </Flex>
       ),
       tooltipContent: renderFormulaTooltip(
@@ -652,7 +652,7 @@ export function CentralDashboard() {
       },
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#FFF4CC" align="center" justify="center">
-          <Icon as={LuClock3} boxSize="22px" color="#CA8A04" />
+          <Image src={wallClockIcon} alt="" w="24px" h="24px" />
         </Flex>
       ),
       tooltipContent: renderFormulaTooltip(
