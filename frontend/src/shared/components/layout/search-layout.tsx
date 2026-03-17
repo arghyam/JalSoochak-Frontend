@@ -284,6 +284,44 @@ export function SearchLayout({
       </Flex>
     ) : null
 
+  const searchInput = (
+    <>
+      <InputLeftElement pointerEvents="none" p="12px" w="auto" h="32px" alignItems="center">
+        <SearchIcon mr="4px" color="neutral.300" />
+      </InputLeftElement>
+      <Input
+        px="12px"
+        pl="32px"
+        placeholder={inputPlaceholder}
+        fontSize="14px"
+        h="32px"
+        borderColor="neutral.300"
+        _placeholder={{ color: 'neutral.300' }}
+        value={inputValue}
+        onFocus={handleFocus}
+        onChange={handleInputChange}
+        {...inputProps}
+      />
+    </>
+  )
+
+  const actionButton = (
+    <Button
+      onClick={onActionClick}
+      h="32px"
+      w="full"
+      maxW="160px"
+      minW="112px"
+      flex="0 1 160px"
+      fontSize={isVeryCompactLayout ? '11px' : '14px'}
+      variant="primary"
+      leftIcon={<FiDownload size="16" />}
+      {...actionProps}
+    >
+      {resolvedActionLabel}
+    </Button>
+  )
+
   return (
     <Box
       as="section"
@@ -301,22 +339,7 @@ export function SearchLayout({
         {isCompactLayout ? (
           <>
             <InputGroup w="full" minW={0}>
-              <InputLeftElement pointerEvents="none" p="12px" w="auto" h="32px" alignItems="center">
-                <SearchIcon mr="4px" color="neutral.300" />
-              </InputLeftElement>
-              <Input
-                px="12px"
-                pl="32px"
-                placeholder={inputPlaceholder}
-                fontSize="14px"
-                h="32px"
-                borderColor="neutral.300"
-                _placeholder={{ color: 'neutral.300' }}
-                value={inputValue}
-                onFocus={handleFocus}
-                onChange={handleInputChange}
-                {...inputProps}
-              />
+              {searchInput}
             </InputGroup>
             {closedTrailContent}
             {closedTrailContent ? closedTrailSlot : null}
@@ -324,43 +347,13 @@ export function SearchLayout({
               <Box minW={0} flex="1 1 auto">
                 {filterSlot}
               </Box>
-              {rightSlot ?? (
-                <Button
-                  onClick={onActionClick}
-                  h="32px"
-                  w="full"
-                  maxW="160px"
-                  minW="112px"
-                  flex="0 1 160px"
-                  fontSize={isVeryCompactLayout ? '11px' : '14px'}
-                  variant="primary"
-                  leftIcon={<FiDownload size="16" />}
-                  {...actionProps}
-                >
-                  {resolvedActionLabel}
-                </Button>
-              )}
+              {rightSlot ?? actionButton}
             </Flex>
           </>
         ) : (
           <Flex w="full" align="center" justify="space-between" gap={{ base: 2, lg: '12px' }}>
             <InputGroup w="full" flex="1 1 auto" minW={{ base: 0, lg: '300px' }}>
-              <InputLeftElement pointerEvents="none" p="12px" w="auto" h="32px" alignItems="center">
-                <SearchIcon mr="4px" color="neutral.300" />
-              </InputLeftElement>
-              <Input
-                px="12px"
-                pl="32px"
-                placeholder={inputPlaceholder}
-                fontSize="14px"
-                h="32px"
-                borderColor="neutral.300"
-                _placeholder={{ color: 'neutral.300' }}
-                value={inputValue}
-                onFocus={handleFocus}
-                onChange={handleInputChange}
-                {...inputProps}
-              />
+              {searchInput}
             </InputGroup>
             <Flex align="center" gap={{ base: 2, lg: '12px' }} flex="0 0 auto" minW={0}>
               {filterSlot}
@@ -377,20 +370,7 @@ export function SearchLayout({
                     {...actionProps}
                   />
                 ) : (
-                  <Button
-                    onClick={onActionClick}
-                    h="32px"
-                    w="full"
-                    maxW="160px"
-                    minW="112px"
-                    flex="0 1 160px"
-                    fontSize={isVeryCompactLayout ? '11px' : '14px'}
-                    variant="primary"
-                    leftIcon={<FiDownload size="16" />}
-                    {...actionProps}
-                  >
-                    {resolvedActionLabel}
-                  </Button>
+                  actionButton
                 ))}
             </Flex>
           </Flex>
