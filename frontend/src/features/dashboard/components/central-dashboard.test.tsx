@@ -14,6 +14,7 @@ import { useReadingComplianceQuery } from '../services/query/use-reading-complia
 import { useReadingSubmissionRateQuery } from '../services/query/use-reading-submission-rate-query'
 import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
+import { useAuthStore } from '@/app/store'
 
 const mockNavigate = jest.fn()
 const mockUseParams = jest.fn(() => ({}))
@@ -39,6 +40,16 @@ const getLatestDashboardBodyProps = <T extends object>() => {
 const getLatestIndiaMapChartProps = <T extends object>() => {
   const calls = mockIndiaMapChart.mock.calls as unknown[][]
   return calls[calls.length - 1]?.[0] as T
+}
+
+const mockAuthStoreState = (userId: string | null) => {
+  ;(useAuthStore as unknown as jest.Mock).mockImplementation((...args: unknown[]) => {
+    const selector = args[0] as (state: { user: { id: string } | null }) => unknown
+
+    return selector({
+      user: userId ? { id: userId } : null,
+    })
+  })
 }
 
 jest.mock('react-router-dom', () => ({
@@ -89,6 +100,10 @@ jest.mock('../services/query/use-scheme-performance-query', () => ({
 
 jest.mock('../services/query/use-submission-status-query', () => ({
   useSubmissionStatusQuery: jest.fn(),
+}))
+
+jest.mock('@/app/store', () => ({
+  useAuthStore: jest.fn(),
 }))
 
 jest.mock('./filters/dashboard-filters', () => ({
@@ -180,6 +195,7 @@ describe('CentralDashboard', () => {
     ;(useReadingSubmissionRateQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useSchemePerformanceQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useSubmissionStatusQuery as jest.Mock).mockReturnValue({ data: undefined })
+    mockAuthStoreState(null)
   })
 
   it('renders Overall Performance table panel for central view', () => {
@@ -225,6 +241,21 @@ describe('CentralDashboard', () => {
     renderWithProviders(<CentralDashboard />)
 
     expect(useNationalDashboardQuery).toHaveBeenCalledWith({
+      params: null,
+      enabled: false,
+    })
+  })
+
+  it('does not enable submission status analytics on the public central landing view', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useSubmissionStatusQuery).toHaveBeenCalledWith({
       params: null,
       enabled: false,
     })
@@ -541,15 +572,17 @@ describe('CentralDashboard', () => {
     expect(tableProps.data.some((row) => row.name === 'Alpha')).toBe(false)
   })
 
-  it('overrides reading submission status from analytics when counts are available', () => {
+  it('overrides reading submission status from analytics when a logged-in user opens a filtered view', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
       error: null,
     })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    mockAuthStoreState('42')
     ;(useSubmissionStatusQuery as jest.Mock).mockReturnValue({
       data: {
-        userId: 0,
+        userId: 42,
         startDate: '2026-03-14',
         endDate: '2026-03-14',
         schemeCount: 12,
@@ -560,6 +593,15 @@ describe('CentralDashboard', () => {
     })
 
     renderWithProviders(<CentralDashboard />)
+
+    expect(useSubmissionStatusQuery).toHaveBeenCalledWith({
+      params: {
+        userId: 42,
+        startDate: expect.any(String),
+        endDate: expect.any(String),
+      },
+      enabled: true,
+    })
 
     const dashboardBodyProps = getLatestDashboardBodyProps<{ data: DashboardData }>()
 

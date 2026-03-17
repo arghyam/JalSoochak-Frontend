@@ -18,6 +18,7 @@ import { KPICard } from './kpi-card'
 import { DashboardBody } from './screens/dashboard-body'
 import { IndiaMapChart } from './charts'
 import { LoadingSpinner } from '@/shared/components/common'
+import { useAuthStore } from '@/app/store'
 import { MdOutlineWaterDrop } from 'react-icons/md'
 import { LuClock3 } from 'react-icons/lu'
 import waterTapIcon from '@/assets/media/water-tap_1822589 1.svg'
@@ -343,6 +344,7 @@ export function CentralDashboard() {
   const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const authUserId = useAuthStore((state) => state.user?.id)
   const { data, isLoading, error } = useDashboardData('central')
   const [storedFilters] = useState(() => getStoredFilters())
   const initialDuration =
@@ -615,6 +617,8 @@ export function CentralDashboard() {
   const selectedSchemeId = Number.isFinite(parsedSelectedSchemeId)
     ? parsedSelectedSchemeId
     : undefined
+  const parsedAuthUserId = Number.parseInt(authUserId ?? '', 10)
+  const submissionStatusUserId = Number.isFinite(parsedAuthUserId) ? parsedAuthUserId : undefined
   const shouldFetchSchemePerformanceAnalytics =
     (isStateSelected ||
       isDistrictSelected ||
@@ -637,10 +641,14 @@ export function CentralDashboard() {
           endDate: analyticsDateRange.endDate,
           schemeCount: 10,
         }
-  const submissionStatusAnalyticsParams = {
-    startDate: analyticsDateRange.startDate,
-    endDate: analyticsDateRange.endDate,
-  }
+  const submissionStatusAnalyticsParams =
+    hasCentralLandingFilters && typeof submissionStatusUserId === 'number'
+      ? {
+          userId: submissionStatusUserId,
+          startDate: analyticsDateRange.startDate,
+          endDate: analyticsDateRange.endDate,
+        }
+      : null
   const outageReasonsAnalyticsParams =
     isVillageSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
@@ -729,7 +737,7 @@ export function CentralDashboard() {
   })
   const { data: submissionStatusData } = useSubmissionStatusQuery({
     params: submissionStatusAnalyticsParams,
-    enabled: true,
+    enabled: Boolean(submissionStatusAnalyticsParams),
   })
   const { data: readingComplianceApiData } = useReadingComplianceQuery({
     params:
