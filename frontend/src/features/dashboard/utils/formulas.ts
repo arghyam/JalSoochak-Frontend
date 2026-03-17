@@ -541,31 +541,17 @@ export const mapReadingSubmissionStatusFromAnalytics = (
   ]
 }
 
-const isSchemePerformanceRecordActive = (
-  record: NonNullable<SchemePerformanceResponse>[number]
-): boolean => {
-  if (typeof record.performanceScore === 'number' && Number.isFinite(record.performanceScore)) {
-    return record.performanceScore > 0
-  }
-
-  return Boolean(record.lastWaterSupplyDate)
-}
-
 export const mapSchemePerformanceToPumpOperators = (
   response: SchemePerformanceResponse | undefined,
   fallbackData: PumpOperatorsData[]
 ): PumpOperatorsData[] => {
-  if (!response?.length) {
+  if (!response) {
     return fallbackData
   }
 
-  const totalSchemes = response.length
-  const activeSchemes = response.filter(isSchemePerformanceRecordActive).length
-  const inactiveSchemes = Math.max(0, totalSchemes - activeSchemes)
-
   return [
-    { label: 'Active schemes', value: activeSchemes },
-    { label: 'Non-active schemes', value: inactiveSchemes },
+    { label: 'Active schemes', value: response.activeSchemeCount ?? 0 },
+    { label: 'Non-active schemes', value: response.inactiveSchemeCount ?? 0 },
   ]
 }
 
@@ -573,18 +559,24 @@ export const mapSchemePerformanceToTable = (
   response: SchemePerformanceResponse | undefined,
   fallbackData: PumpOperatorPerformanceData[]
 ): PumpOperatorPerformanceData[] => {
-  if (!response?.length) {
+  if (!response?.topSchemes?.length) {
     return fallbackData
   }
 
-  return response.map((scheme, index) => ({
-    id: `scheme-performance-${scheme.schemeId ?? scheme.id ?? index}`,
-    name: `Scheme ${scheme.schemeId ?? scheme.id ?? index + 1}`,
-    village: null,
-    block: null,
-    reportingRate: null,
+  return response.topSchemes.map((scheme, index) => ({
+    id: `scheme-performance-${scheme.schemeId ?? index}`,
+    name: scheme.schemeName?.trim() || `Scheme ${scheme.schemeId ?? index + 1}`,
+    village: scheme.immediateParentLgdTitle?.trim() || null,
+    block: scheme.immediateParentDepartmentTitle?.trim() || null,
+    reportingRate:
+      typeof scheme.reportingRate === 'number' && Number.isFinite(scheme.reportingRate)
+        ? scheme.reportingRate
+        : null,
     photoCompliance: 0,
-    waterSupplied: null,
+    waterSupplied:
+      typeof scheme.totalWaterSupplied === 'number' && Number.isFinite(scheme.totalWaterSupplied)
+        ? scheme.totalWaterSupplied
+        : null,
   }))
 }
 

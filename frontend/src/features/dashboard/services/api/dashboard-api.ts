@@ -305,11 +305,14 @@ export const dashboardApi = {
     params: SchemePerformanceQueryParams
   ): Promise<SchemePerformanceResponse> => {
     const response = await apiClient.get<SchemePerformanceResponse>(
-      '/api/v1/analytics/scheme-performance',
+      '/api/v1/analytics/schemes/dashboard',
       {
         params: {
-          tenantId: params.tenantId,
-          schemeId: params.schemeId,
+          parent_lgd_id: params.parentLgdId,
+          parent_department_id: params.parentDepartmentId,
+          start_date: params.startDate,
+          end_date: params.endDate,
+          scheme_count: params.schemeCount ?? 10,
         },
       }
     )

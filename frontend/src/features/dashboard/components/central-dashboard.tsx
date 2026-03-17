@@ -607,12 +607,28 @@ export function CentralDashboard() {
   const selectedSchemeId = Number.isFinite(parsedSelectedSchemeId)
     ? parsedSelectedSchemeId
     : undefined
-  const schemePerformanceAnalyticsParams = selectedTenant?.tenantId
-    ? {
-        tenantId: selectedTenant.tenantId,
-        schemeId: selectedSchemeId,
-      }
-    : null
+  const shouldFetchSchemePerformanceAnalytics =
+    (isStateSelected ||
+      isDistrictSelected ||
+      isBlockSelected ||
+      isGramPanchayatSelected ||
+      isVillageSelected) &&
+    analyticsParentId > 0
+  const schemePerformanceAnalyticsParams = !shouldFetchSchemePerformanceAnalytics
+    ? null
+    : hierarchyType === 'LGD'
+      ? {
+          parentLgdId: analyticsParentId,
+          startDate: analyticsDateRange.startDate,
+          endDate: analyticsDateRange.endDate,
+          schemeCount: 10,
+        }
+      : {
+          parentDepartmentId: analyticsParentId,
+          startDate: analyticsDateRange.startDate,
+          endDate: analyticsDateRange.endDate,
+          schemeCount: 10,
+        }
   const submissionStatusAnalyticsParams = {
     startDate: analyticsDateRange.startDate,
     endDate: analyticsDateRange.endDate,
@@ -755,6 +771,11 @@ export function CentralDashboard() {
     data?.pumpOperators ?? []
   )
   const operatorsPerformanceAnalyticsTable = mapSchemePerformanceToTable(schemePerformanceData, [])
+  const derivedVillageSchemeId =
+    selectedSchemeId ??
+    (isVillageSelected && schemePerformanceData?.topSchemes?.length === 1
+      ? schemePerformanceData.topSchemes[0]?.schemeId
+      : undefined)
   const readingComplianceRows: ReadingComplianceData[] =
     readingComplianceApiData?.data.map((item) => ({
       id: String(item.id),
@@ -1275,7 +1296,7 @@ export function CentralDashboard() {
         villagePumpOperatorDetails={villagePumpOperatorDetails}
         villagePumpOperators={villagePumpOperators}
         tenantCode={selectedTenant?.tenantCode}
-        schemeId={selectedSchemeId}
+        schemeId={derivedVillageSchemeId}
       />
     </Box>
   )

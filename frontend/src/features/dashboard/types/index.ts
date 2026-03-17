@@ -287,8 +287,11 @@ export interface ReadingComplianceResponse {
 }
 
 export interface SchemePerformanceQueryParams {
-  tenantId: number
-  schemeId?: number
+  parentLgdId?: number
+  parentDepartmentId?: number
+  startDate: string
+  endDate: string
+  schemeCount?: number
 }
 
 export interface PumpOperatorDetailsQueryParams {
@@ -344,16 +347,36 @@ export interface PumpOperatorDetailsResponse {
 }
 
 export interface SchemePerformanceItem {
-  id: number
   schemeId: number
-  tenantId: number
-  performanceScore: number
-  lastWaterSupplyDate: string
-  createdAt: string
-  updatedAt: string
+  schemeName: string
+  statusCode: number
+  status: string
+  submissionDays: number
+  reportingRate: number
+  totalWaterSupplied: number
+  immediateParentLgdId: number
+  immediateParentLgdCName: string
+  immediateParentLgdTitle: string
+  immediateParentDepartmentId: number
+  immediateParentDepartmentCName: string
+  immediateParentDepartmentTitle: string
 }
 
-export type SchemePerformanceResponse = SchemePerformanceItem[]
+export interface SchemePerformanceResponse {
+  parentLgdId: number
+  parentDepartmentId: number
+  parentLgdCName: string
+  parentDepartmentCName: string
+  parentLgdTitle: string
+  parentDepartmentTitle: string
+  startDate: string
+  endDate: string
+  daysInRange: number
+  activeSchemeCount: number
+  inactiveSchemeCount: number
+  topSchemeCount: number
+  topSchemes: SchemePerformanceItem[]
+}
 
 export interface ReadingSubmissionRateChildRegion {
   lgdId: number

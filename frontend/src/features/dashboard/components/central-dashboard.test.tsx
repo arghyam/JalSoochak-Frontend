@@ -11,6 +11,7 @@ import { useAverageSchemeRegularityQuery } from '../services/query/use-average-s
 import { useNationalDashboardQuery } from '../services/query/use-national-dashboard-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
 import { useReadingComplianceQuery } from '../services/query/use-reading-compliance-query'
+import { useReadingSubmissionRateQuery } from '../services/query/use-reading-submission-rate-query'
 import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
 
@@ -76,6 +77,10 @@ jest.mock('../services/query/use-outage-reasons-query', () => ({
 
 jest.mock('../services/query/use-reading-compliance-query', () => ({
   useReadingComplianceQuery: jest.fn(),
+}))
+
+jest.mock('../services/query/use-reading-submission-rate-query', () => ({
+  useReadingSubmissionRateQuery: jest.fn(),
 }))
 
 jest.mock('../services/query/use-scheme-performance-query', () => ({
@@ -172,6 +177,7 @@ describe('CentralDashboard', () => {
     ;(useNationalDashboardQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useOutageReasonsQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useReadingComplianceQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useReadingSubmissionRateQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useSchemePerformanceQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useSubmissionStatusQuery as jest.Mock).mockReturnValue({ data: undefined })
   })
@@ -327,7 +333,7 @@ describe('CentralDashboard', () => {
       expect.objectContaining({
         name: 'Karnataka',
         coverage: 3,
-        quantity: 6,
+        quantity: 600,
         regularity: 50,
       })
     )
@@ -554,26 +560,52 @@ describe('CentralDashboard', () => {
     })
     mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
     ;(useSchemePerformanceQuery as jest.Mock).mockReturnValue({
-      data: [
-        {
-          id: 1,
-          schemeId: 101,
-          tenantId: 16,
-          performanceScore: 82,
-          lastWaterSupplyDate: '2026-03-14',
-          createdAt: '2026-03-14T00:00:00.000Z',
-          updatedAt: '2026-03-14T00:00:00.000Z',
-        },
-        {
-          id: 2,
-          schemeId: 102,
-          tenantId: 16,
-          performanceScore: 0,
-          lastWaterSupplyDate: '2026-03-10',
-          createdAt: '2026-03-14T00:00:00.000Z',
-          updatedAt: '2026-03-14T00:00:00.000Z',
-        },
-      ],
+      data: {
+        parentLgdId: 1,
+        parentDepartmentId: 0,
+        parentLgdCName: 'state',
+        parentDepartmentCName: '',
+        parentLgdTitle: 'Telangana',
+        parentDepartmentTitle: '',
+        startDate: '2026-03-14',
+        endDate: '2026-03-14',
+        daysInRange: 1,
+        activeSchemeCount: 1,
+        inactiveSchemeCount: 1,
+        topSchemeCount: 2,
+        topSchemes: [
+          {
+            schemeId: 101,
+            schemeName: 'Scheme 101',
+            statusCode: 1,
+            status: 'Active',
+            submissionDays: 30,
+            reportingRate: 82,
+            totalWaterSupplied: 4500,
+            immediateParentLgdId: 11,
+            immediateParentLgdCName: 'district',
+            immediateParentLgdTitle: 'Sangareddy',
+            immediateParentDepartmentId: 0,
+            immediateParentDepartmentCName: '',
+            immediateParentDepartmentTitle: '',
+          },
+          {
+            schemeId: 102,
+            schemeName: 'Scheme 102',
+            statusCode: 0,
+            status: 'Inactive',
+            submissionDays: 0,
+            reportingRate: 0,
+            totalWaterSupplied: 0,
+            immediateParentLgdId: 12,
+            immediateParentLgdCName: 'district',
+            immediateParentLgdTitle: 'Ranga Reddy',
+            immediateParentDepartmentId: 0,
+            immediateParentDepartmentCName: '',
+            immediateParentDepartmentTitle: '',
+          },
+        ],
+      },
     })
 
     renderWithProviders(<CentralDashboard />)
@@ -600,17 +632,37 @@ describe('CentralDashboard', () => {
     })
     mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
     ;(useSchemePerformanceQuery as jest.Mock).mockReturnValue({
-      data: [
-        {
-          id: 1,
-          schemeId: 101,
-          tenantId: 16,
-          performanceScore: 82,
-          lastWaterSupplyDate: '2026-03-14',
-          createdAt: '2026-03-14T00:00:00.000Z',
-          updatedAt: '2026-03-14T00:00:00.000Z',
-        },
-      ],
+      data: {
+        parentLgdId: 1,
+        parentDepartmentId: 0,
+        parentLgdCName: 'state',
+        parentDepartmentCName: '',
+        parentLgdTitle: 'Telangana',
+        parentDepartmentTitle: '',
+        startDate: '2026-03-14',
+        endDate: '2026-03-14',
+        daysInRange: 1,
+        activeSchemeCount: 1,
+        inactiveSchemeCount: 0,
+        topSchemeCount: 1,
+        topSchemes: [
+          {
+            schemeId: 101,
+            schemeName: 'Scheme 101',
+            statusCode: 1,
+            status: 'Active',
+            submissionDays: 30,
+            reportingRate: 82,
+            totalWaterSupplied: 4500,
+            immediateParentLgdId: 11,
+            immediateParentLgdCName: 'district',
+            immediateParentLgdTitle: 'Sangareddy',
+            immediateParentDepartmentId: 0,
+            immediateParentDepartmentCName: '',
+            immediateParentDepartmentTitle: '',
+          },
+        ],
+      },
     })
 
     renderWithProviders(<CentralDashboard />)
@@ -629,11 +681,11 @@ describe('CentralDashboard', () => {
       {
         id: 'scheme-performance-101',
         name: 'Scheme 101',
-        village: null,
+        village: 'Sangareddy',
         block: null,
-        reportingRate: null,
+        reportingRate: 82,
         photoCompliance: 0,
-        waterSupplied: null,
+        waterSupplied: 4500,
       },
     ])
   })

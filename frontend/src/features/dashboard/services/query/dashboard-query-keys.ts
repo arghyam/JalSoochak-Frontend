@@ -53,7 +53,16 @@ export const dashboardQueryKeys = {
       params?.endDate,
     ] as const,
   schemePerformance: (params: SchemePerformanceQueryParams | null) =>
-    ['dashboard', 'analytics', 'scheme-performance', params?.tenantId, params?.schemeId] as const,
+    [
+      'dashboard',
+      'analytics',
+      'scheme-performance',
+      params?.parentLgdId,
+      params?.parentDepartmentId,
+      params?.startDate,
+      params?.endDate,
+      params?.schemeCount,
+    ] as const,
   pumpOperatorsByScheme: (params: PumpOperatorsBySchemeQueryParams | null) =>
     ['dashboard', 'pump-operator', 'by-scheme', params?.tenantCode, params?.schemeId] as const,
   pumpOperatorDetails: (params: PumpOperatorDetailsQueryParams | null) =>

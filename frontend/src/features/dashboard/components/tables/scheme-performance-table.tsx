@@ -211,7 +211,7 @@ export function SchemePerformanceTable({
                 <Td>{formatCellValue(operator.village)}</Td>
                 <Td>{formatCellValue(operator.block)}</Td>
                 <Td>{formatMetricValue(operator.reportingRate)}</Td>
-                <Td>{formatMetricValue(operator.waterSupplied, ' LPCD')}</Td>
+                <Td>{formatMetricValue(operator.waterSupplied)}</Td>
               </Tr>
             ))}
           </Tbody>
