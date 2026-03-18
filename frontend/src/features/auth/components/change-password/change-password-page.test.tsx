@@ -3,33 +3,36 @@ import { describe, expect, it, jest, beforeEach } from '@jest/globals'
 import '@/app/i18n'
 import { ChangePasswordPage } from './change-password-page'
 import { renderWithProviders } from '@/test/render-with-providers'
-import type { AuthUser } from '@/features/auth/services/auth-api'
 
-const mockUser: AuthUser = {
-  id: 'user-1',
-  name: 'Mahesh Yadav',
-  email: 'mahesh@jalsoochak.com',
-  role: 'state_admin',
-  phoneNumber: '8564254517',
-  tenantId: 'tenant-1',
-  personId: 'person-1',
+const mockMutate = jest.fn()
+
+// Test credential values — not real passwords
+const CURRENT_CRED = 'Current-test-1'
+const NEW_CRED = 'New-test-2'
+const SAME_CRED = 'Same-test-3'
+const DIFF_CRED = 'Diff-test-4'
+
+jest.mock('@/features/auth/services/query/use-auth-queries', () => ({
+  useChangeMyPasswordMutation: jest.fn(),
+}))
+
+import { useChangeMyPasswordMutation } from '@/features/auth/services/query/use-auth-queries'
+
+const mockUseChangeMyPasswordMutation = useChangeMyPasswordMutation as jest.MockedFunction<
+  typeof useChangeMyPasswordMutation
+>
+
+function setupMutation(isPending = false) {
+  mockUseChangeMyPasswordMutation.mockReturnValue({
+    mutate: mockMutate,
+    isPending,
+  } as unknown as ReturnType<typeof useChangeMyPasswordMutation>)
 }
-
-jest.mock('@/app/store', () => ({
-  useAuthStore: jest.fn((selector: (state: Record<string, unknown>) => unknown) =>
-    selector({ user: mockUser })
-  ),
-}))
-
-jest.mock('@/features/auth/services/auth-api', () => ({
-  authApi: {
-    changePassword: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
-  },
-}))
 
 describe('ChangePasswordPage', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    setupMutation()
   })
 
   it('renders page title', () => {
@@ -46,35 +49,33 @@ describe('ChangePasswordPage', () => {
 
   it('submit button is disabled when form is empty', () => {
     renderWithProviders(<ChangePasswordPage />)
-    const btn = screen.getByRole('button', { name: /update password/i }) as HTMLButtonElement
-    expect(btn.disabled).toBe(true)
+    expect(
+      (screen.getByRole('button', { name: /update password/i }) as HTMLButtonElement).disabled
+    ).toBe(true)
   })
 
   it('submit button is enabled when form is valid', () => {
     renderWithProviders(<ChangePasswordPage />)
     fireEvent.change(screen.getByLabelText(/current password/i), {
-      target: { value: 'OldPass@123' },
+      target: { value: CURRENT_CRED },
     })
-    fireEvent.change(screen.getByLabelText(/^new password/i), {
-      target: { value: 'NewPass@456' },
-    })
+    fireEvent.change(screen.getByLabelText(/^new password/i), { target: { value: NEW_CRED } })
     fireEvent.change(screen.getByLabelText(/confirm new password/i), {
-      target: { value: 'NewPass@456' },
+      target: { value: NEW_CRED },
     })
-    const btn = screen.getByRole('button', { name: /update password/i }) as HTMLButtonElement
-    expect(btn.disabled).toBe(false)
+    expect(
+      (screen.getByRole('button', { name: /update password/i }) as HTMLButtonElement).disabled
+    ).toBe(false)
   })
 
   it('shows mismatch error when confirm password differs', () => {
     renderWithProviders(<ChangePasswordPage />)
     fireEvent.change(screen.getByLabelText(/current password/i), {
-      target: { value: 'OldPass@123' },
+      target: { value: CURRENT_CRED },
     })
-    fireEvent.change(screen.getByLabelText(/^new password/i), {
-      target: { value: 'NewPass@456' },
-    })
+    fireEvent.change(screen.getByLabelText(/^new password/i), { target: { value: NEW_CRED } })
     fireEvent.change(screen.getByLabelText(/confirm new password/i), {
-      target: { value: 'Different@789' },
+      target: { value: DIFF_CRED },
     })
     fireEvent.blur(screen.getByLabelText(/confirm new password/i))
     expect(screen.getByText('Passwords do not match')).toBeTruthy()
@@ -82,91 +83,65 @@ describe('ChangePasswordPage', () => {
 
   it('shows sameAsCurrent error when new password equals current', () => {
     renderWithProviders(<ChangePasswordPage />)
-    fireEvent.change(screen.getByLabelText(/current password/i), {
-      target: { value: 'SamePass@123' },
-    })
-    fireEvent.change(screen.getByLabelText(/^new password/i), {
-      target: { value: 'SamePass@123' },
-    })
+    fireEvent.change(screen.getByLabelText(/current password/i), { target: { value: SAME_CRED } })
+    fireEvent.change(screen.getByLabelText(/^new password/i), { target: { value: SAME_CRED } })
     fireEvent.blur(screen.getByLabelText(/^new password/i))
     expect(screen.getByText('New password must differ from current password')).toBeTruthy()
   })
 
-  it('does not call changePassword API twice on rapid double submit', async () => {
-    const { authApi } = await import('@/features/auth/services/auth-api')
-    const changePasswordMock = authApi.changePassword as ReturnType<typeof jest.fn>
-    // Hold the first call unresolved so the ref guard is still set when the second click fires
-    let resolveFirst!: () => void
-    changePasswordMock.mockReturnValueOnce(
-      new Promise<void>((res) => {
-        resolveFirst = res
-      })
-    )
-
+  it('calls mutation with currentPassword and newPassword only (no confirmPassword)', async () => {
     renderWithProviders(<ChangePasswordPage />)
     fireEvent.change(screen.getByLabelText(/current password/i), {
-      target: { value: 'OldPass@123' },
+      target: { value: CURRENT_CRED },
     })
-    fireEvent.change(screen.getByLabelText(/^new password/i), { target: { value: 'NewPass@456' } })
+    fireEvent.change(screen.getByLabelText(/^new password/i), { target: { value: NEW_CRED } })
     fireEvent.change(screen.getByLabelText(/confirm new password/i), {
-      target: { value: 'NewPass@456' },
-    })
-
-    const btn = screen.getByRole('button', { name: /update password/i })
-    fireEvent.click(btn)
-    fireEvent.click(btn)
-
-    resolveFirst()
-    await waitFor(() => {
-      expect(changePasswordMock).toHaveBeenCalledTimes(1)
-    })
-  })
-
-  it('calls changePassword API on valid submit', async () => {
-    const { authApi } = await import('@/features/auth/services/auth-api')
-    renderWithProviders(<ChangePasswordPage />)
-    fireEvent.change(screen.getByLabelText(/current password/i), {
-      target: { value: 'OldPass@123' },
-    })
-    fireEvent.change(screen.getByLabelText(/^new password/i), {
-      target: { value: 'NewPass@456' },
-    })
-    fireEvent.change(screen.getByLabelText(/confirm new password/i), {
-      target: { value: 'NewPass@456' },
+      target: { value: NEW_CRED },
     })
     fireEvent.click(screen.getByRole('button', { name: /update password/i }))
     await waitFor(() => {
-      expect(authApi.changePassword).toHaveBeenCalledWith('user-1', {
-        currentPassword: 'OldPass@123',
-        newPassword: 'NewPass@456',
-        confirmPassword: 'NewPass@456',
-      })
+      expect(mockMutate).toHaveBeenCalledWith(
+        { currentPassword: CURRENT_CRED, newPassword: NEW_CRED },
+        expect.any(Object)
+      )
+      expect(mockMutate).not.toHaveBeenCalledWith(
+        expect.objectContaining({ confirmPassword: expect.anything() }),
+        expect.any(Object)
+      )
     })
+  })
+
+  it('submit button is disabled while mutation is pending', () => {
+    setupMutation(true)
+    renderWithProviders(<ChangePasswordPage />)
+    expect(
+      (screen.getByRole('button', { name: /update password/i }) as HTMLButtonElement).disabled
+    ).toBe(true)
   })
 
   it('toggles password visibility using localized aria-labels', () => {
     renderWithProviders(<ChangePasswordPage />)
-    const showBtn = screen.getAllByRole('button', { name: /show password/i })
-    expect(showBtn.length).toBe(3)
-    fireEvent.click(showBtn[0])
+    const showBtns = screen.getAllByRole('button', { name: /show password/i })
+    expect(showBtns.length).toBe(3)
+    fireEvent.click(showBtns[0])
     expect(screen.getByRole('button', { name: /hide password/i })).toBeTruthy()
   })
 
-  it('clears form fields after successful submit', async () => {
+  it('clears form fields after successful submit via onSuccess callback', async () => {
+    mockMutate.mockImplementation((_payload: unknown, opts: unknown) => {
+      ;(opts as { onSuccess?: () => void })?.onSuccess?.()
+    })
     renderWithProviders(<ChangePasswordPage />)
     fireEvent.change(screen.getByLabelText(/current password/i), {
-      target: { value: 'OldPass@123' },
+      target: { value: CURRENT_CRED },
     })
-    fireEvent.change(screen.getByLabelText(/^new password/i), {
-      target: { value: 'NewPass@456' },
-    })
+    fireEvent.change(screen.getByLabelText(/^new password/i), { target: { value: NEW_CRED } })
     fireEvent.change(screen.getByLabelText(/confirm new password/i), {
-      target: { value: 'NewPass@456' },
+      target: { value: NEW_CRED },
     })
     fireEvent.click(screen.getByRole('button', { name: /update password/i }))
     await waitFor(() => {
-      const currentInput = screen.getByLabelText(/current password/i) as HTMLInputElement
-      expect(currentInput.value).toBe('')
+      expect((screen.getByLabelText(/current password/i) as HTMLInputElement).value).toBe('')
     })
   })
 })

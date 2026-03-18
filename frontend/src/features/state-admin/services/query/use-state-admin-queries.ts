@@ -9,12 +9,23 @@ import {
   type SaveWaterNormsConfigurationPayload,
   type UpdateNudgeTemplatePayload,
 } from '../api/state-admin-api'
+import type { SaveEscalationRulesPayload } from '../../types/escalation-rules'
+import type { HierarchyLevel } from '../../types/hierarchy'
 import { stateAdminQueryKeys } from './state-admin-query-keys'
+import { useAuthStore } from '@/app/store/auth-store'
+import type { StateUTAdmin } from '../../types/state-ut-admins'
 
 export function useStateAdminOverviewQuery() {
   return useQuery({
     queryKey: stateAdminQueryKeys.overview(),
     queryFn: stateAdminApi.getOverviewData,
+  })
+}
+
+export function useStaffCountsQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.staffCounts(),
+    queryFn: stateAdminApi.getStaffCounts,
   })
 }
 
@@ -37,8 +48,11 @@ export function useSaveLanguageConfigurationMutation() {
   return useMutation({
     mutationFn: (payload: SaveLanguageConfigurationPayload) =>
       stateAdminApi.saveLanguageConfiguration(payload),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.setQueryData(stateAdminQueryKeys.languageConfiguration(), data)
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.configStatus() })
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.nudgeTemplates() })
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.messageTemplates() })
     },
   })
 }
@@ -55,8 +69,9 @@ export function useSaveIntegrationConfigurationMutation() {
   return useMutation({
     mutationFn: (payload: SaveIntegrationConfigurationPayload) =>
       stateAdminApi.saveIntegrationConfiguration(payload),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.setQueryData(stateAdminQueryKeys.integrationConfiguration(), data)
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.configStatus() })
     },
   })
 }
@@ -73,8 +88,9 @@ export function useSaveWaterNormsConfigurationMutation() {
   return useMutation({
     mutationFn: (payload: SaveWaterNormsConfigurationPayload) =>
       stateAdminApi.saveWaterNormsConfiguration(payload),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.setQueryData(stateAdminQueryKeys.waterNormsConfiguration(), data)
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.configStatus() })
     },
   })
 }
@@ -92,6 +108,7 @@ export function useCreateEscalationMutation() {
     mutationFn: (payload: SaveEscalationPayload) => stateAdminApi.createEscalation(payload),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.escalations() })
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.configStatus() })
     },
   })
 }
@@ -103,6 +120,7 @@ export function useUpdateEscalationMutation() {
       stateAdminApi.updateEscalation(id, payload),
     onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.escalations() })
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.configStatus() })
       queryClient.removeQueries({ queryKey: stateAdminQueryKeys.escalationById(variables.id) })
     },
   })
@@ -114,6 +132,7 @@ export function useDeleteEscalationMutation() {
     mutationFn: (id: string) => stateAdminApi.deleteEscalation(id),
     onSuccess: async (_data, id) => {
       await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.escalations() })
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.configStatus() })
       queryClient.removeQueries({ queryKey: stateAdminQueryKeys.escalationById(id) })
     },
   })
@@ -134,6 +153,13 @@ export function useSaveThresholdConfigurationMutation() {
     onSuccess: (data) => {
       queryClient.setQueryData(stateAdminQueryKeys.thresholdConfiguration(), data)
     },
+  })
+}
+
+export function useMessageTemplatesQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.messageTemplates(),
+    queryFn: stateAdminApi.getMessageTemplates,
   })
 }
 
@@ -173,16 +199,43 @@ export function useSaveConfigurationMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (payload: SaveConfigurationPayload) => stateAdminApi.saveConfiguration(payload),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.setQueryData(stateAdminQueryKeys.configuration(), data)
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.configStatus() })
     },
   })
 }
 
-export function useStateUTAdminsQuery() {
+export function useStateUTAdminsQuery(page: number, pageSize: number) {
+  const tenantCode = useAuthStore((state) => state.user?.tenantCode ?? '')
   return useQuery({
-    queryKey: stateAdminQueryKeys.stateUtAdmins(),
-    queryFn: stateAdminApi.getStateUTAdmins,
+    queryKey: stateAdminQueryKeys.stateUtAdmins(page, pageSize),
+    queryFn: async () => {
+      const apiPage = await stateAdminApi.getStateUTAdmins(tenantCode, {
+        page: page - 1,
+        size: pageSize,
+      })
+      const items: StateUTAdmin[] = apiPage.content.map((u) => {
+        let status: StateUTAdmin['status']
+        if (u.status === 'ACTIVE') {
+          status = 'active'
+        } else if (u.status === 'PENDING') {
+          status = 'pending'
+        } else {
+          status = 'inactive'
+        }
+        return {
+          id: String(u.id),
+          firstName: u.firstName ?? '',
+          lastName: u.lastName ?? '',
+          email: u.email,
+          phone: u.phoneNumber,
+          status,
+        }
+      })
+      return { items, total: apiPage.totalElements }
+    },
+    enabled: Boolean(tenantCode),
   })
 }
 
@@ -194,13 +247,15 @@ export function useStateUTAdminByIdQuery(id: string | undefined) {
   })
 }
 
-export function useCreateStateUTAdminMutation() {
+export function useInviteStateUTAdminMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (input: { firstName: string; lastName: string; email: string; phone: string }) =>
-      stateAdminApi.createStateUTAdmin(input),
+    mutationFn: (payload: { email: string; tenantCode: string }) =>
+      stateAdminApi.inviteStateUTAdmin(payload.email, payload.tenantCode),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.stateUtAdmins() })
+      await queryClient.invalidateQueries({
+        queryKey: [...stateAdminQueryKeys.all, 'state-ut-admins'],
+      })
     },
   })
 }
@@ -216,7 +271,9 @@ export function useUpdateStateUTAdminMutation() {
       input: { firstName: string; lastName: string; phone: string }
     }) => stateAdminApi.updateStateUTAdmin(id, input),
     onSuccess: async (_data, variables) => {
-      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.stateUtAdmins() })
+      await queryClient.invalidateQueries({
+        queryKey: [...stateAdminQueryKeys.all, 'state-ut-admins'],
+      })
       queryClient.removeQueries({ queryKey: stateAdminQueryKeys.stateUtAdminById(variables.id) })
     },
   })
@@ -228,8 +285,96 @@ export function useUpdateStateUTAdminStatusMutation() {
     mutationFn: ({ id, status }: { id: string; status: 'active' | 'inactive' }) =>
       stateAdminApi.updateStateUTAdminStatus(id, status),
     onSuccess: async (_data, variables) => {
-      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.stateUtAdmins() })
+      await queryClient.invalidateQueries({
+        queryKey: [...stateAdminQueryKeys.all, 'state-ut-admins'],
+      })
       queryClient.removeQueries({ queryKey: stateAdminQueryKeys.stateUtAdminById(variables.id) })
     },
+  })
+}
+
+export function useReinviteStateUTAdminMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => stateAdminApi.reinviteStateUTAdmin(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: [...stateAdminQueryKeys.all, 'state-ut-admins'],
+      })
+    },
+  })
+}
+
+export function useEscalationRulesQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.escalationRules(),
+    queryFn: stateAdminApi.getEscalationRules,
+  })
+}
+
+export function useSaveEscalationRulesMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: SaveEscalationRulesPayload) => stateAdminApi.saveEscalationRules(payload),
+    onSuccess: (data) => {
+      queryClient.setQueryData(stateAdminQueryKeys.escalationRules(), data)
+    },
+  })
+}
+
+// ── Hierarchy ────────────────────────────────────────────────────────────────
+
+export function useLgdHierarchyQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.lgdHierarchy(),
+    queryFn: stateAdminApi.getLgdHierarchy,
+  })
+}
+
+export function useDepartmentHierarchyQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.departmentHierarchy(),
+    queryFn: stateAdminApi.getDepartmentHierarchy,
+  })
+}
+
+export function useLgdEditConstraintsQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.lgdEditConstraints(),
+    queryFn: stateAdminApi.getLgdEditConstraints,
+  })
+}
+
+export function useDepartmentEditConstraintsQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.departmentEditConstraints(),
+    queryFn: stateAdminApi.getDepartmentEditConstraints,
+  })
+}
+
+export function useSaveLgdHierarchyMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (levels: HierarchyLevel[]) => stateAdminApi.saveLgdHierarchy(levels),
+    onSuccess: (data) => {
+      queryClient.setQueryData(stateAdminQueryKeys.lgdHierarchy(), data)
+    },
+  })
+}
+
+export function useSaveDepartmentHierarchyMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (levels: HierarchyLevel[]) => stateAdminApi.saveDepartmentHierarchy(levels),
+    onSuccess: (data) => {
+      queryClient.setQueryData(stateAdminQueryKeys.departmentHierarchy(), data)
+    },
+  })
+}
+
+export function useConfigStatusQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.configStatus(),
+    queryFn: stateAdminApi.getConfigStatus,
   })
 }

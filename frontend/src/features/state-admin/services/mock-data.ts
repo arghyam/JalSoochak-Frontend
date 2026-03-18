@@ -1,4 +1,4 @@
-import type { OverviewData } from '../types/overview'
+import type { OverviewData, StaffCountsData } from '../types/overview'
 import type { ActivityLog } from '../types/activity'
 import type { LanguageConfiguration } from '../types/language'
 import type { IntegrationConfiguration } from '../types/integration'
@@ -8,118 +8,39 @@ import type { ThresholdConfiguration } from '../types/thresholds'
 import type { NudgeTemplate } from '../types/nudges'
 import type { StaffSyncData } from '../types/staff-sync'
 import type { ConfigurationData } from '../types/configuration'
-import {
-  DEFAULT_LGD_HIERARCHY,
-  DEFAULT_DEPARTMENT_HIERARCHY,
-  DEFAULT_METER_CHANGE_REASONS,
-} from '../types/configuration'
+import { DEFAULT_METER_CHANGE_REASONS } from '../types/configuration'
 import type {
   StateUTAdmin,
   CreateStateUTAdminInput,
   UpdateStateUTAdminInput,
 } from '../types/state-ut-admins'
+import type { EscalationRulesConfig } from '../types/escalation-rules'
+import type { MessageTemplatesData } from '../types/message-templates'
 
 export const mockOverviewData: OverviewData = {
   stats: {
-    configurationStatus: { value: 'Completed', subtitle: 'All modules configured' },
-    activeStaff: { value: 2543, subtitle: 'Out of 3000 total' },
     activeSchemes: { value: 147, subtitle: 'Across 12 Sub-Divisions' },
-    activeIntegrations: { value: 2, subtitle: 'WhatsApp, Email' },
   },
-  demandSupplyData: [
-    { period: 'FY20', Demand: 450, Supply: 380 },
-    { period: 'FY21', Demand: 480, Supply: 420 },
-    { period: 'FY22', Demand: 520, Supply: 460 },
-    { period: 'FY23', Demand: 490, Supply: 440 },
-    { period: 'FY24', Demand: 510, Supply: 470 },
-    { period: 'FY25', Demand: 530, Supply: 490 },
-  ],
-  dailyIngestionData: [
-    { day: 'Day 1', count: 2100 },
-    { day: 'Day 2', count: 2300 },
-    { day: 'Day 3', count: 2200 },
-    { day: 'Day 4', count: 2500 },
-    { day: 'Day 5', count: 2400 },
-    { day: 'Day 6', count: 2600 },
-    { day: 'Day 7', count: 2700 },
-    { day: 'Day 8', count: 2550 },
-    { day: 'Day 9', count: 2450 },
-    { day: 'Day 10', count: 2650 },
-    { day: 'Day 11', count: 2750 },
-    { day: 'Day 12', count: 2800 },
-  ],
-  waterSupplyOutages: [
-    {
-      label: 'Achampet',
-      electricityFailure: 12,
-      pipelineLeak: 18,
-      pumpFailure: 10,
-      valveIssue: 20,
-      sourceDrying: 15,
-    },
-    {
-      label: 'Bhongir',
-      electricityFailure: 8,
-      pipelineLeak: 14,
-      pumpFailure: 16,
-      valveIssue: 12,
-      sourceDrying: 22,
-    },
-    {
-      label: 'Bodhan',
-      electricityFailure: 15,
-      pipelineLeak: 10,
-      pumpFailure: 20,
-      valveIssue: 18,
-      sourceDrying: 17,
-    },
-    {
-      label: 'Nalgonda',
-      electricityFailure: 10,
-      pipelineLeak: 22,
-      pumpFailure: 14,
-      valveIssue: 16,
-      sourceDrying: 20,
-    },
-    {
-      label: 'Medak',
-      electricityFailure: 18,
-      pipelineLeak: 12,
-      pumpFailure: 8,
-      valveIssue: 24,
-      sourceDrying: 14,
-    },
-    {
-      label: 'Karimnagar',
-      electricityFailure: 6,
-      pipelineLeak: 16,
-      pumpFailure: 22,
-      valveIssue: 14,
-      sourceDrying: 18,
-    },
-    {
-      label: 'Warangal',
-      electricityFailure: 20,
-      pipelineLeak: 8,
-      pumpFailure: 12,
-      valveIssue: 10,
-      sourceDrying: 25,
-    },
-    {
-      label: 'Nizamabad',
-      electricityFailure: 14,
-      pipelineLeak: 20,
-      pumpFailure: 18,
-      valveIssue: 22,
-      sourceDrying: 10,
-    },
-  ],
 }
 
 export const getMockOverviewData = (): Promise<OverviewData> => {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(mockOverviewData)
+    }, 300)
+  })
+}
+
+export const mockStaffCountsData: StaffCountsData = {
+  totalStaff: 27928,
+  pumpOperators: 27651,
+  totalAdmins: 4,
+}
+
+export const getMockStaffCounts = (): Promise<StaffCountsData> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(mockStaffCountsData)
     }, 300)
   })
 }
@@ -232,10 +153,9 @@ export const saveMockLanguageConfiguration = (
 // Integration Configuration Mock Data
 export const mockIntegrationConfiguration: IntegrationConfiguration = {
   id: '',
-  whatsappBusinessAccountName: '',
-  senderPhoneNumber: '',
-  whatsappBusinessAccountId: '',
-  apiAccessToken: '',
+  apiUrl: '',
+  apiKey: '',
+  organizationId: '',
   isConfigured: false,
 }
 
@@ -248,16 +168,15 @@ export const getMockIntegrationConfiguration = (): Promise<IntegrationConfigurat
 }
 
 export const saveMockIntegrationConfiguration = (
-  config: Omit<IntegrationConfiguration, 'id' | 'isConfigured'>
+  config: Omit<IntegrationConfiguration, 'id' | 'isConfigured' | 'apiKey'> & { apiKey?: string }
 ): Promise<IntegrationConfiguration> => {
   return new Promise((resolve) => {
     setTimeout(() => {
       const savedConfig: IntegrationConfiguration = {
         id: '1',
-        whatsappBusinessAccountName: config.whatsappBusinessAccountName as string,
-        senderPhoneNumber: config.senderPhoneNumber as string,
-        whatsappBusinessAccountId: config.whatsappBusinessAccountId as string,
-        apiAccessToken: config.apiAccessToken as string,
+        apiUrl: config.apiUrl as string,
+        apiKey: config.apiKey ?? '',
+        organizationId: config.organizationId as string,
         isConfigured: true,
       }
       resolve(savedConfig)
@@ -270,9 +189,8 @@ let mockWaterNormsConfiguration: WaterNormsConfiguration = {
   id: '',
   stateQuantity: 0,
   districtOverrides: [],
-  maxQuantity: 0,
-  minQuantity: 0,
-  regularity: 0,
+  oversupplyThreshold: 0,
+  undersupplyThreshold: 0,
   isConfigured: false,
 }
 
@@ -293,9 +211,8 @@ export const saveMockWaterNormsConfiguration = (
         id: '1',
         stateQuantity: Number(config.stateQuantity),
         districtOverrides: Array.isArray(config.districtOverrides) ? config.districtOverrides : [],
-        maxQuantity: Number(config.maxQuantity),
-        minQuantity: Number(config.minQuantity),
-        regularity: Number(config.regularity),
+        oversupplyThreshold: Number(config.oversupplyThreshold),
+        undersupplyThreshold: Number(config.undersupplyThreshold),
         isConfigured: true,
       }
       mockWaterNormsConfiguration = savedConfig
@@ -941,13 +858,12 @@ export const getMockStaffSyncData = (): Promise<StaffSyncData> => {
 // Configuration Mock Data
 let mockConfigurationData: ConfigurationData = {
   id: '',
-  lgdHierarchy: DEFAULT_LGD_HIERARCHY.map((l) => ({ ...l })),
-  departmentHierarchy: DEFAULT_DEPARTMENT_HIERARCHY.map((l) => ({ ...l })),
   supportedChannels: [],
   logoUrl: undefined,
   meterChangeReasons: DEFAULT_METER_CHANGE_REASONS.map((r) => ({ ...r })),
   locationCheckRequired: false,
   dataConsolidationTime: '',
+  pumpOperatorReminderNudgeTime: '',
   averageMembersPerHousehold: 0,
   isConfigured: false,
 }
@@ -1079,5 +995,469 @@ export const updateMockStateUTAdminStatus = (
       mockStateUTAdmins = mockStateUTAdmins.map((a) => (a.id === id ? updated : a))
       resolve(updated)
     }, 300)
+  })
+}
+
+// Escalation Rules Mock Data
+let mockEscalationRules: EscalationRulesConfig = {
+  schedule: { hour: 9, minute: 0 },
+  levels: [
+    { days: 3, userType: 'SECTION_OFFICER' },
+    { days: 7, userType: 'DISTRICT_OFFICER' },
+  ],
+}
+
+export const getMockEscalationRules = (): Promise<EscalationRulesConfig> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({ ...mockEscalationRules, levels: [...mockEscalationRules.levels] })
+    }, 300)
+  })
+}
+
+export const saveMockEscalationRules = (
+  payload: EscalationRulesConfig
+): Promise<EscalationRulesConfig> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      mockEscalationRules = { ...payload, levels: [...payload.levels] }
+      resolve(mockEscalationRules)
+    }, 500)
+  })
+}
+
+// Message Templates Mock Data
+const mockMessageTemplatesData: MessageTemplatesData = {
+  supportedLanguages: [
+    { language: 'English', preference: 1 },
+    { language: 'Hindi', preference: 2 },
+  ],
+  screens: {
+    ISSUE_REPORT: {
+      prompt: {
+        en: 'Please type your issue in a few words.',
+        hi: 'कृपया अपनी समस्या संक्षेप में लिखें।',
+        ta: null,
+        te: null,
+        kn: null,
+        ml: null,
+        mr: null,
+        gu: null,
+        bn: null,
+        pa: null,
+        ur: null,
+        or: null,
+        as: null,
+      },
+      options: null,
+      reasons: {
+        REASON_1: {
+          order: 1,
+          label: {
+            en: 'Meter Replaced',
+            hi: 'मीटर बदला गया',
+            ta: null,
+            te: null,
+            kn: null,
+            ml: null,
+            mr: null,
+            gu: null,
+            bn: null,
+            pa: null,
+            ur: null,
+            or: null,
+            as: null,
+          },
+        },
+        REASON_2: {
+          order: 2,
+          label: {
+            en: 'Meter not working',
+            hi: 'मीटर काम नहीं कर रहा',
+            ta: null,
+            te: null,
+            kn: null,
+            ml: null,
+            mr: null,
+            gu: null,
+            bn: null,
+            pa: null,
+            ur: null,
+            or: null,
+            as: null,
+          },
+        },
+        REASON_3: {
+          order: 3,
+          label: {
+            en: 'Meter damage',
+            hi: 'मीटर खराब है',
+            ta: null,
+            te: null,
+            kn: null,
+            ml: null,
+            mr: null,
+            gu: null,
+            bn: null,
+            pa: null,
+            ur: null,
+            or: null,
+            as: null,
+          },
+        },
+        REASON_4: {
+          order: 4,
+          label: {
+            en: 'Incorrect Reading Entered Previously',
+            hi: 'पहले गलत रीडिंग दर्ज हुई थी',
+            ta: null,
+            te: null,
+            kn: null,
+            ml: null,
+            mr: null,
+            gu: null,
+            bn: null,
+            pa: null,
+            ur: null,
+            or: null,
+            as: null,
+          },
+        },
+        REASON_5: {
+          order: 5,
+          label: {
+            en: 'Others',
+            hi: 'अन्य',
+            ta: null,
+            te: null,
+            kn: null,
+            ml: null,
+            mr: null,
+            gu: null,
+            bn: null,
+            pa: null,
+            ur: null,
+            or: null,
+            as: null,
+          },
+        },
+      },
+      confirmationTemplate: {
+        en: 'Issue reported. Thank you.',
+        hi: 'समस्या रिपोर्ट हो गई है। धन्यवाद।',
+        ta: null,
+        te: null,
+        kn: null,
+        ml: null,
+        mr: null,
+        gu: null,
+        bn: null,
+        pa: null,
+        ur: null,
+        or: null,
+        as: null,
+      },
+      message: null,
+    },
+    INTRO_MESSAGE: {
+      prompt: null,
+      options: null,
+      reasons: null,
+      confirmationTemplate: null,
+      message: {
+        en: 'Hello {name}, please send a clear meter reading image.',
+        hi: 'नमस्ते {name}, कृपया मीटर की स्पष्ट रीडिंग फोटो भेजें।',
+        ta: null,
+        te: null,
+        kn: null,
+        ml: null,
+        mr: null,
+        gu: null,
+        bn: null,
+        pa: null,
+        ur: null,
+        or: null,
+        as: null,
+      },
+    },
+    ITEM_SELECTION: {
+      prompt: {
+        en: 'Please select what you want to do:',
+        hi: 'कृपया चुनें कि आप क्या करना चाहते हैं:',
+        ta: null,
+        te: null,
+        kn: null,
+        ml: null,
+        mr: null,
+        gu: null,
+        bn: null,
+        pa: null,
+        ur: null,
+        or: null,
+        as: null,
+      },
+      options: {
+        OPTION_1: {
+          order: 1,
+          label: {
+            en: 'Submit Reading',
+            hi: 'रीडिंग जमा करें',
+            ta: null,
+            te: null,
+            kn: null,
+            ml: null,
+            mr: null,
+            gu: null,
+            bn: null,
+            pa: null,
+            ur: null,
+            or: null,
+            as: null,
+          },
+        },
+        OPTION_2: {
+          order: 2,
+          label: {
+            en: 'Report Issue',
+            hi: 'समस्या दर्ज करें',
+            ta: null,
+            te: null,
+            kn: null,
+            ml: null,
+            mr: null,
+            gu: null,
+            bn: null,
+            pa: null,
+            ur: null,
+            or: null,
+            as: null,
+          },
+        },
+        OPTION_3: {
+          order: 3,
+          label: {
+            en: 'Select Language',
+            hi: 'भाषा चुनें',
+            ta: null,
+            te: null,
+            kn: null,
+            ml: null,
+            mr: null,
+            gu: null,
+            bn: null,
+            pa: null,
+            ur: null,
+            or: null,
+            as: null,
+          },
+        },
+        OPTION_4: {
+          order: 4,
+          label: {
+            en: 'Select Channel',
+            hi: 'चैनल चुनें',
+            ta: null,
+            te: null,
+            kn: null,
+            ml: null,
+            mr: null,
+            gu: null,
+            bn: null,
+            pa: null,
+            ur: null,
+            or: null,
+            as: null,
+          },
+        },
+      },
+      reasons: null,
+      confirmationTemplate: {
+        en: '{item} selected',
+        hi: '{item} चुना गया है',
+        ta: null,
+        te: null,
+        kn: null,
+        ml: null,
+        mr: null,
+        gu: null,
+        bn: null,
+        pa: null,
+        ur: null,
+        or: null,
+        as: null,
+      },
+      message: null,
+    },
+    CLOSING_MESSAGE: {
+      prompt: null,
+      options: null,
+      reasons: null,
+      confirmationTemplate: null,
+      message: {
+        en: 'Thank you. Your reading has been recorded.',
+        hi: 'धन्यवाद। आपकी रीडिंग दर्ज कर ली गई है।',
+        ta: null,
+        te: null,
+        kn: null,
+        ml: null,
+        mr: null,
+        gu: null,
+        bn: null,
+        pa: null,
+        ur: null,
+        or: null,
+        as: null,
+      },
+    },
+    CHANNEL_SELECTION: {
+      prompt: {
+        en: 'Please select your preferred channel by typing the corresponding number:',
+        hi: 'कृपया संबंधित संख्या लिखकर अपना पसंदीदा चैनल चुनें:',
+        ta: null,
+        te: null,
+        kn: null,
+        ml: null,
+        mr: null,
+        gu: null,
+        bn: null,
+        pa: null,
+        ur: null,
+        or: null,
+        as: null,
+      },
+      options: {
+        OPTION_1: {
+          order: 1,
+          label: {
+            en: 'BFM',
+            hi: 'बीएफएम',
+            ta: null,
+            te: null,
+            kn: null,
+            ml: null,
+            mr: null,
+            gu: null,
+            bn: null,
+            pa: null,
+            ur: null,
+            or: null,
+            as: null,
+          },
+        },
+        OPTION_2: {
+          order: 2,
+          label: {
+            en: 'Electric',
+            hi: 'इलेक्ट्रिक',
+            ta: null,
+            te: null,
+            kn: null,
+            ml: null,
+            mr: null,
+            gu: null,
+            bn: null,
+            pa: null,
+            ur: null,
+            or: null,
+            as: null,
+          },
+        },
+      },
+      reasons: null,
+      confirmationTemplate: {
+        en: 'Your preferred channel has been set to {channel}.',
+        hi: 'आपका पसंदीदा चैनल {channel} सेट कर दिया गया है।',
+        ta: null,
+        te: null,
+        kn: null,
+        ml: null,
+        mr: null,
+        gu: null,
+        bn: null,
+        pa: null,
+        ur: null,
+        or: null,
+        as: null,
+      },
+      message: null,
+    },
+    LANGUAGE_SELECTION: {
+      prompt: {
+        en: 'Please select your preferred language by typing the corresponding number:',
+        hi: 'कृपया संबंधित संख्या टाइप करके अपनी पसंदीदा भाषा चुनें:',
+        ta: null,
+        te: null,
+        kn: null,
+        ml: null,
+        mr: null,
+        gu: null,
+        bn: null,
+        pa: null,
+        ur: null,
+        or: null,
+        as: null,
+      },
+      options: {
+        OPTION_1: {
+          order: 1,
+          label: {
+            en: 'English',
+            hi: 'अंग्रेज़ी',
+            ta: null,
+            te: null,
+            kn: null,
+            ml: null,
+            mr: null,
+            gu: null,
+            bn: null,
+            pa: null,
+            ur: null,
+            or: null,
+            as: null,
+          },
+        },
+        OPTION_2: {
+          order: 2,
+          label: {
+            en: 'Hindi',
+            hi: 'हिंदी',
+            ta: null,
+            te: null,
+            kn: null,
+            ml: null,
+            mr: null,
+            gu: null,
+            bn: null,
+            pa: null,
+            ur: null,
+            or: null,
+            as: null,
+          },
+        },
+      },
+      reasons: null,
+      confirmationTemplate: {
+        en: 'Your preferred language has been set to {language}.',
+        hi: 'आपकी पसंदीदा भाषा {language} सेट कर दी गई है।',
+        ta: null,
+        te: null,
+        kn: null,
+        ml: null,
+        mr: null,
+        gu: null,
+        bn: null,
+        pa: null,
+        ur: null,
+        or: null,
+        as: null,
+      },
+      message: null,
+    },
+  },
+}
+
+export const getMockMessageTemplates = (): Promise<MessageTemplatesData> => {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(mockMessageTemplatesData), 300)
   })
 }

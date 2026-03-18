@@ -1,11 +1,19 @@
 import { Box, Image } from '@chakra-ui/react'
 import bannerImage from '@/assets/media/banner.png'
 
-export function AuthSideImage() {
+type AuthSideImageProps = {
+  isVisible?: boolean
+}
+
+export function AuthSideImage({ isVisible = true }: AuthSideImageProps) {
+  if (!isVisible) {
+    return null
+  }
+
   return (
     <Box
-      w={{ base: '100%', md: '50%' }}
-      h={{ base: '260px', md: '100vh' }}
+      w="50%"
+      h="100vh"
       position="relative"
       overflow="hidden"
       display={{ base: 'none', md: 'block' }}

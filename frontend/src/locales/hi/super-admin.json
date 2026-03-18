@@ -51,6 +51,8 @@
     },
     "table": {
       "stateUt": "राज्य/केंद्र शासित प्रदेश",
+      "stateCode": "राज्य कोड",
+      "lgdCode": "LGD कोड",
       "status": "स्थिति",
       "lastSyncDate": "अंतिम सिंक तिथि",
       "totalDistricts": "कुल जिले",
@@ -59,7 +61,11 @@
     "details": {
       "title": "राज्य/केंद्र शासित प्रदेश विवरण",
       "name": "राज्य/केंद्र शासित प्रदेश का नाम",
-      "code": "राज्य/केंद्र शासित प्रदेश कोड"
+      "code": "राज्य/केंद्र शासित प्रदेश कोड",
+      "autoFilledOnStateSelection": "राज्य चुनने पर स्वतः भरा जाएगा",
+      "stateCode": "राज्य कोड",
+      "lgdCode": "LGD कोड",
+      "createdAt": "बनाया गया"
     },
     "adminDetails": {
       "title": "राज्य व्यवस्थापक विवरण",
@@ -116,14 +122,16 @@
     },
     "status": {
       "completed": "पूर्ण",
-      "pending": "लंबित"
+      "pending": "लंबित",
+      "inactive": "निष्क्रिय"
     },
     "messages": {
       "noAdminsFound": "कोई व्यवस्थापक नहीं मिला"
     },
     "aria": {
       "viewAdmin": "व्यवस्थापक देखें",
-      "editAdmin": "व्यवस्थापक संपादित करें"
+      "editAdmin": "व्यवस्थापक संपादित करें",
+      "resendInvite": "व्यवस्थापक को पुनः आमंत्रण भेजें"
     }
   },
 
@@ -191,7 +199,43 @@
     },
     "aria": {
       "viewUser": "उपयोगकर्ता देखें",
-      "editUser": "उपयोगकर्ता संपादित करें"
+      "editUser": "उपयोगकर्ता संपादित करें",
+      "resendInvite": "सुपर उपयोगकर्ता को पुनः आमंत्रण भेजें"
+    }
+  },
+
+  "configuration": {
+    "pageTitle": "कॉन्फ़िगरेशन",
+    "sectionTitle": "सिस्टम कॉन्फ़िगरेशन",
+    "sections": {
+      "supportedChannels": {
+        "title": "समर्थित चैनल"
+      },
+      "undersupplyThreshold": {
+        "title": "अंडरसप्लाई सीमा (%)",
+        "description": "वास्तविक मानक से नकारात्मक विचलन प्रतिशत में।"
+      },
+      "oversupplyThreshold": {
+        "title": "ओवरसप्लाई सीमा (%)",
+        "description": "वास्तविक मानक से सकारात्मक विचलन प्रतिशत में।"
+      },
+      "bfmImageConfidence": {
+        "title": "BFM छवि विश्वास सीमा (%)"
+      },
+      "locationAffinity": {
+        "title": "स्थान आत्मीयता सीमा"
+      }
+    },
+    "messages": {
+      "saveSuccess": "कॉन्फ़िगरेशन सफलतापूर्वक सहेजा गया",
+      "saveFailed": "कॉन्फ़िगरेशन सहेजने में विफल",
+      "validation": {
+        "channelRequired": "कम से कम एक समर्थित चैनल चुना जाना चाहिए"
+      }
+    },
+    "aria": {
+      "editConfiguration": "कॉन्फ़िगरेशन संपादित करें",
+      "form": "सिस्टम कॉन्फ़िगरेशन फ़ॉर्म"
     }
   },
 

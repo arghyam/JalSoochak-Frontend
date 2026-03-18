@@ -10,23 +10,18 @@ import {
   Button,
   Heading,
   Spinner,
-  Menu,
-  MenuButton,
-  MenuList,
 } from '@chakra-ui/react'
-import { ChevronDownIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { MdOutlinePlace } from 'react-icons/md'
 import { BsCheck2Circle } from 'react-icons/bs'
 import { IoCloseCircleOutline, IoAddOutline } from 'react-icons/io5'
 import { ROUTES } from '@/shared/constants/routes'
-import { useSuperAdminOverviewQuery } from '../../services/query/use-super-admin-queries'
-import { SupplyOutageDistributionChart } from '@/shared/components/charts/supply-outage-distribution-chart'
+import { useTenantsSummaryQuery } from '../../services/query/use-super-admin-queries'
 
 export function OverviewPage() {
   const { t } = useTranslation(['super-admin', 'common'])
   const navigate = useNavigate()
-  const { data, isLoading, isError } = useSuperAdminOverviewQuery()
+  const { data: summaryData, isLoading, isError } = useTenantsSummaryQuery()
 
   useEffect(() => {
     document.title = `${t('overview.title')} | JalSoochak`
@@ -56,26 +51,32 @@ export function OverviewPage() {
     )
   }
 
-  if (!data) return null
+  if (!summaryData) {
+    return (
+      <Flex h="64" align="center" justify="center">
+        <Text color="error.500">{t('common:toast.failedToLoad')}</Text>
+      </Flex>
+    )
+  }
 
   const statsCards = [
     {
       title: t('overview.stats.totalStatesManaged'),
-      value: data.stats.totalStatesManaged,
+      value: summaryData.totalStatesManaged,
       icon: MdOutlinePlace,
       iconBg: '#EBF4FA',
       iconColor: '#3291D1',
     },
     {
       title: t('overview.stats.activeStates'),
-      value: data.stats.activeStates,
+      value: summaryData.activeStates,
       icon: BsCheck2Circle,
       iconBg: '#E1FFEA',
       iconColor: '#079455',
     },
     {
       title: t('overview.stats.inactiveStates'),
-      value: data.stats.inactiveStates,
+      value: summaryData.inactiveStates,
       icon: IoCloseCircleOutline,
       iconBg: '#FFFBD7',
       iconColor: '#CA8A04',
@@ -155,66 +156,6 @@ export function OverviewPage() {
             )
           })}
         </SimpleGrid>
-
-        {/* Water Supply Outages Chart */}
-        <Box
-          as="section"
-          aria-labelledby="water-supply-outages-heading"
-          bg="white"
-          borderWidth="0.5px"
-          borderColor="neutral.200"
-          borderRadius={{ base: '12px', md: '16px' }}
-          boxShadow="default"
-          py={{ base: 4, md: 6 }}
-          px={4}
-          display="flex"
-          flexDirection="column"
-          minH="380px"
-        >
-          <Flex justify="space-between" align="center" mb={4} flexShrink={0}>
-            <Heading
-              as="h2"
-              id="water-supply-outages-heading"
-              size="h3"
-              fontWeight="400"
-              fontSize={{ base: 'md', md: 'xl' }}
-            >
-              {t('overview.charts.waterSupplyOutages')}
-            </Heading>
-            <Menu>
-              <MenuButton
-                as={Button}
-                aria-label={t('overview.charts.select')}
-                h="32px"
-                minW={{ base: 'full', sm: '120px' }}
-                px="12px"
-                fontSize="14px"
-                fontWeight="600"
-                borderRadius="4px"
-                borderColor="neutral.300"
-                borderWidth="1px"
-                bg="white"
-                color="neutral.600"
-                variant="outline"
-                rightIcon={<ChevronDownIcon w={5} h={5} aria-hidden="true" />}
-                _hover={{ bg: 'neutral.50' }}
-                _active={{ bg: 'neutral.100' }}
-                _focusVisible={{ boxShadow: 'outline' }}
-                sx={{
-                  '& svg': {
-                    color: 'neutral.600',
-                  },
-                }}
-              >
-                {t('overview.charts.select')}
-              </MenuButton>
-              <MenuList p={0} minW="162px" borderRadius="4px" borderColor="neutral.200" />
-            </Menu>
-          </Flex>
-          <Box flex={1}>
-            <SupplyOutageDistributionChart data={data.waterSupplyOutages} height={420} />
-          </Box>
-        </Box>
       </Stack>
     </Box>
   )

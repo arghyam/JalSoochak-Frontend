@@ -1,20 +1,36 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   UserAdminListPage,
+  ToastContainer,
   type UserAdminRoutes,
   type UserAdminListLabels,
 } from '@/shared/components/common'
+import { useToast } from '@/shared/hooks/use-toast'
 import { ROUTES } from '@/shared/constants/routes'
-import { useStateUTAdminsQuery } from '../../services/query/use-state-admin-queries'
+import {
+  useStateUTAdminsQuery,
+  useReinviteStateUTAdminMutation,
+} from '../../services/query/use-state-admin-queries'
 
 export function StateUTAdminsPage() {
   const { t } = useTranslation(['state-admin', 'common'])
-  const { data: admins = [], isLoading, isError, refetch } = useStateUTAdminsQuery()
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const { data, isLoading, isError, refetch } = useStateUTAdminsQuery(page, pageSize)
+  const reinviteMutation = useReinviteStateUTAdminMutation()
+  const toast = useToast()
 
   useEffect(() => {
     document.title = `${t('stateUtAdmins.title')} | JalSoochak`
   }, [t])
+
+  const handleReinvite = (id: string) => {
+    reinviteMutation.mutate(id, {
+      onSuccess: () => toast.success(t('common:toast.reinviteSent')),
+      onError: () => toast.error(t('common:toast.reinviteFailed')),
+    })
+  }
 
   const routes: UserAdminRoutes = {
     list: ROUTES.STATE_ADMIN_STATE_UT_ADMINS,
@@ -39,17 +55,30 @@ export function StateUTAdminsPage() {
       search: t('stateUtAdmins.aria.search'),
       view: t('stateUtAdmins.aria.view'),
       edit: t('stateUtAdmins.aria.edit'),
+      resendInvite: t('stateUtAdmins.aria.resendInvite'),
     },
   }
 
   return (
-    <UserAdminListPage
-      data={admins}
-      isLoading={isLoading}
-      isError={isError}
-      onRefetch={() => void refetch()}
-      routes={routes}
-      labels={labels}
-    />
+    <>
+      <UserAdminListPage
+        data={data?.items ?? []}
+        isLoading={isLoading}
+        isError={isError}
+        onRefetch={() => void refetch()}
+        routes={routes}
+        labels={labels}
+        onReinvite={handleReinvite}
+        page={page}
+        pageSize={pageSize}
+        totalItems={data?.total}
+        onPageChange={setPage}
+        onPageSizeChange={(size) => {
+          setPageSize(size)
+          setPage(1)
+        }}
+      />
+      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
+    </>
   )
 }

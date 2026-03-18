@@ -26,7 +26,7 @@ export function StatCard({
       bg="white"
       borderWidth="1px"
       borderColor="neutral.100"
-      height={{ base: 'auto', xl: height ?? '200px' }}
+      height={{ base: 'auto', xl: height ?? 'auto' }}
       borderRadius="lg"
       boxShadow="default"
       p={4}

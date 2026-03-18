@@ -25,46 +25,34 @@ import {
   useSaveConfigurationMutation,
 } from '../../services/query/use-state-admin-queries'
 import {
-  DEFAULT_LGD_HIERARCHY,
-  DEFAULT_DEPARTMENT_HIERARCHY,
   DEFAULT_METER_CHANGE_REASONS,
   SUPPORTED_CHANNELS,
-  type HierarchyLevel,
   type MeterChangeReason,
   type SupportedChannel,
 } from '../../types/configuration'
-import { HierarchySection } from './hierarchy-section'
 import { MeterChangeReasonsSection } from './meter-change-reasons-section'
 
 interface ConfigDraft {
-  lgdHierarchy: HierarchyLevel[]
-  departmentHierarchy: HierarchyLevel[]
   supportedChannels: SupportedChannel[]
   logoFile: File | null
   logoUrl?: string
   meterChangeReasons: MeterChangeReason[]
   locationCheckRequired: boolean
   dataConsolidationTime: string
+  pumpOperatorReminderNudgeTime: string
   averageMembersPerHousehold: number
 }
 
 function buildInitialDraft(config?: {
-  lgdHierarchy: HierarchyLevel[]
-  departmentHierarchy: HierarchyLevel[]
   supportedChannels: SupportedChannel[]
   logoUrl?: string
   meterChangeReasons: MeterChangeReason[]
   locationCheckRequired: boolean
   dataConsolidationTime: string
+  pumpOperatorReminderNudgeTime: string
   averageMembersPerHousehold: number
 }): ConfigDraft {
   return {
-    lgdHierarchy: config
-      ? config.lgdHierarchy.map((l) => ({ ...l }))
-      : DEFAULT_LGD_HIERARCHY.map((l) => ({ ...l })),
-    departmentHierarchy: config
-      ? config.departmentHierarchy.map((l) => ({ ...l }))
-      : DEFAULT_DEPARTMENT_HIERARCHY.map((l) => ({ ...l })),
     supportedChannels: config ? [...config.supportedChannels] : [],
     logoFile: null,
     logoUrl: config?.logoUrl,
@@ -73,6 +61,7 @@ function buildInitialDraft(config?: {
       : DEFAULT_METER_CHANGE_REASONS.map((r) => ({ ...r })),
     locationCheckRequired: config?.locationCheckRequired ?? false,
     dataConsolidationTime: config?.dataConsolidationTime ?? '',
+    pumpOperatorReminderNudgeTime: config?.pumpOperatorReminderNudgeTime ?? '',
     averageMembersPerHousehold: config?.averageMembersPerHousehold ?? 0,
   }
 }
@@ -111,12 +100,6 @@ export function ConfigurationPage() {
   const handleSave = async () => {
     const current = draft ?? buildInitialDraft(config ?? undefined)
 
-    const emptyLgd = current.lgdHierarchy.some((l) => !l.name.trim())
-    const emptyDept = current.departmentHierarchy.some((l) => !l.name.trim())
-    if (emptyLgd || emptyDept) {
-      toast.addToast(t('configuration.messages.validation.hierarchyRequired'), 'error')
-      return
-    }
     if (current.supportedChannels.length === 0) {
       toast.addToast(t('configuration.messages.validation.channelRequired'), 'error')
       return
@@ -129,13 +112,12 @@ export function ConfigurationPage() {
       }
 
       await saveMutation.mutateAsync({
-        lgdHierarchy: current.lgdHierarchy,
-        departmentHierarchy: current.departmentHierarchy,
         supportedChannels: current.supportedChannels,
         logoUrl,
         meterChangeReasons: current.meterChangeReasons,
         locationCheckRequired: current.locationCheckRequired,
         dataConsolidationTime: current.dataConsolidationTime,
+        pumpOperatorReminderNudgeTime: current.pumpOperatorReminderNudgeTime,
         averageMembersPerHousehold: current.averageMembersPerHousehold,
         isConfigured: true,
       })
@@ -273,35 +255,7 @@ export function ConfigurationPage() {
               gap={{ base: 6, lg: 0 }}
             >
               <VStack spacing={6} align="stretch">
-                {/* 1 & 2. LGD + Department Hierarchy side by side */}
-                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                  <HierarchySection
-                    sectionId="lgd"
-                    title={t('configuration.sections.lgdHierarchy.title')}
-                    levels={activeDraft.lgdHierarchy}
-                    onChange={(levels) =>
-                      setDraft((prev) => ({
-                        ...(prev ?? buildInitialDraft(config)),
-                        lgdHierarchy: levels,
-                      }))
-                    }
-                    ariaLevelKey="configuration.aria.lgdLevel"
-                  />
-                  <HierarchySection
-                    sectionId="dept"
-                    title={t('configuration.sections.departmentHierarchy.title')}
-                    levels={activeDraft.departmentHierarchy}
-                    onChange={(levels) =>
-                      setDraft((prev) => ({
-                        ...(prev ?? buildInitialDraft(config)),
-                        departmentHierarchy: levels,
-                      }))
-                    }
-                    ariaLevelKey="configuration.aria.deptLevel"
-                  />
-                </SimpleGrid>
-
-                {/* 3. Supported Channels — 2-column vertical flow */}
+                {/* Supported Channels — 2-column vertical flow */}
                 <Box>
                   <Text
                     fontSize={{ base: 'xs', md: 'sm' }}
@@ -438,7 +392,7 @@ export function ConfigurationPage() {
                   </Box>
                 </SimpleGrid>
 
-                {/* 6. Data Consolidation Time + Average Members Per Household */}
+                {/* 6. Data Consolidation Time + Pump Operator Reminder Nudge Time */}
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
                   <Box>
                     <Text
@@ -471,6 +425,41 @@ export function ConfigurationPage() {
                       _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
                     />
                   </Box>
+                  <Box>
+                    <Text
+                      as="label"
+                      htmlFor="pump-operator-nudge-time"
+                      fontSize={{ base: 'xs', md: 'sm' }}
+                      fontWeight="medium"
+                      color="neutral.950"
+                      mb={1}
+                      display="block"
+                    >
+                      {t('configuration.sections.pumpOperatorReminderNudgeTime.title')}
+                    </Text>
+                    <Input
+                      id="pump-operator-nudge-time"
+                      type="time"
+                      value={activeDraft.pumpOperatorReminderNudgeTime}
+                      onChange={(e) =>
+                        setDraft((prev) => ({
+                          ...(prev ?? buildInitialDraft(config)),
+                          pumpOperatorReminderNudgeTime: e.target.value,
+                        }))
+                      }
+                      h="36px"
+                      w={{ base: 'full', xl: '486px' }}
+                      fontSize="sm"
+                      borderColor="neutral.300"
+                      borderRadius="6px"
+                      _hover={{ borderColor: 'neutral.400' }}
+                      _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
+                    />
+                  </Box>
+                </SimpleGrid>
+
+                {/* 7. Average Members Per Household */}
+                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
                   <Box>
                     <Text
                       as="label"
@@ -595,37 +584,6 @@ function ViewMode({
 }) {
   return (
     <VStack spacing={6} align="stretch">
-      {/* LGD + Department Hierarchy side by side */}
-      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-        <ViewSection title={t('configuration.sections.lgdHierarchy.title')}>
-          <VStack align="stretch" spacing={3}>
-            {config.lgdHierarchy.map((level) => (
-              <ViewField
-                key={level.level}
-                label={t('configuration.sections.lgdHierarchy.levelLabel', {
-                  level: level.level,
-                })}
-                value={level.name}
-              />
-            ))}
-          </VStack>
-        </ViewSection>
-
-        <ViewSection title={t('configuration.sections.departmentHierarchy.title')}>
-          <VStack align="stretch" spacing={3}>
-            {config.departmentHierarchy.map((level) => (
-              <ViewField
-                key={level.level}
-                label={t('configuration.sections.lgdHierarchy.levelLabel', {
-                  level: level.level,
-                })}
-                value={level.name}
-              />
-            ))}
-          </VStack>
-        </ViewSection>
-      </SimpleGrid>
-
       {/* Supported Channels */}
       <ViewSection title={t('configuration.sections.supportedChannels.title')}>
         <Text fontSize="sm" color="neutral.950">
@@ -678,13 +636,22 @@ function ViewMode({
         </ViewSection>
       </SimpleGrid>
 
-      {/* Data Consolidation Time + Average Members Per Household */}
+      {/* Data Consolidation Time + Pump Operator Reminder Nudge Time */}
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
         <ViewField
           label={t('configuration.sections.dataConsolidationTime.title')}
           value={config.dataConsolidationTime}
           color="neutral.950"
         />
+        <ViewField
+          label={t('configuration.sections.pumpOperatorReminderNudgeTime.title')}
+          value={config.pumpOperatorReminderNudgeTime}
+          color="neutral.950"
+        />
+      </SimpleGrid>
+
+      {/* Average Members Per Household */}
+      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
         <ViewField
           label={t('configuration.sections.averageMembersPerHousehold.title')}
           value={

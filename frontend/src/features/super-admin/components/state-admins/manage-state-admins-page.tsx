@@ -10,24 +10,41 @@ import {
   InputLeftElement,
   Button,
   IconButton,
-  useBreakpointValue,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { SearchIcon, EditIcon } from '@chakra-ui/icons'
 import { FiEye } from 'react-icons/fi'
-import { FiDownload } from 'react-icons/fi'
-import { DataTable, type DataTableColumn, StatusChip } from '@/shared/components/common'
+import { MdOutlineEmail } from 'react-icons/md'
+import {
+  DataTable,
+  type DataTableColumn,
+  StatusChip,
+  ToastContainer,
+} from '@/shared/components/common'
+import { useToast } from '@/shared/hooks/use-toast'
 import type { StateAdmin } from '../../types/state-admins'
 import { ROUTES } from '@/shared/constants/routes'
-import { useStateAdminsQuery } from '../../services/query/use-super-admin-queries'
+import {
+  useStateAdminsQuery,
+  useReinviteStateAdminMutation,
+} from '../../services/query/use-super-admin-queries'
 
 export function ManageStateAdminsPage() {
   const { t } = useTranslation(['super-admin', 'common'])
   const navigate = useNavigate()
-  const { data: admins = [], isLoading, isError, refetch } = useStateAdminsQuery()
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const { data, isLoading, isError, refetch } = useStateAdminsQuery(page, pageSize)
+  const reinviteMutation = useReinviteStateAdminMutation()
+  const toast = useToast()
   const [searchQuery, setSearchQuery] = useState('')
 
-  const showDownloadButtonText = useBreakpointValue({ base: false, sm: true }) ?? true
+  const handleReinvite = (id: string) => {
+    reinviteMutation.mutate(id, {
+      onSuccess: () => toast.success(t('common:toast.reinviteSent')),
+      onError: () => toast.error(t('common:toast.reinviteFailed')),
+    })
+  }
 
   useEffect(() => {
     document.title = `${t('manageStateAdmins.title')} | JalSoochak`
@@ -49,26 +66,22 @@ export function ManageStateAdminsPage() {
     )
   }
 
-  const filteredAdmins = admins.filter(
+  const filteredAdmins = (data?.items ?? []).filter(
     (admin) =>
       admin.adminName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       admin.stateUt.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const handleView = (row: StateAdmin) => {
-    if (row.stateUtId) {
-      navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':id', row.stateUtId))
+    if (row.stateUt) {
+      navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':tenantCode', row.stateUt))
     }
   }
 
   const handleEdit = (row: StateAdmin) => {
-    if (row.stateUtId) {
-      navigate(ROUTES.SUPER_ADMIN_STATES_UTS_EDIT.replace(':id', row.stateUtId))
+    if (row.stateUt) {
+      navigate(ROUTES.SUPER_ADMIN_STATES_UTS_EDIT.replace(':tenantCode', row.stateUt))
     }
-  }
-
-  const handleDownloadReport = () => {
-    // No-op for now
   }
 
   const columns: DataTableColumn<StateAdmin>[] = [
@@ -116,16 +129,17 @@ export function ManageStateAdminsPage() {
       key: 'signupStatus',
       header: t('manageStateAdmins.table.signupStatus'),
       sortable: false,
-      render: (row) => (
-        <StatusChip
-          status={row.signupStatus}
-          label={
-            row.signupStatus === 'completed'
-              ? t('manageStateAdmins.status.completed')
-              : t('manageStateAdmins.status.pending')
-          }
-        />
-      ),
+      render: (row) => {
+        let statusLabel: string
+        if (row.signupStatus === 'completed') {
+          statusLabel = t('manageStateAdmins.status.completed')
+        } else if (row.signupStatus === 'inactive') {
+          statusLabel = t('manageStateAdmins.status.inactive')
+        } else {
+          statusLabel = t('manageStateAdmins.status.pending')
+        }
+        return <StatusChip status={row.signupStatus} label={statusLabel} />
+      },
     },
     {
       key: 'actions',
@@ -156,6 +170,20 @@ export function ManageStateAdminsPage() {
             onClick={() => handleEdit(row)}
             _hover={{ color: 'primary.500', bg: 'transparent' }}
           />
+          {row.signupStatus === 'pending' && (
+            <IconButton
+              aria-label={`${t('manageStateAdmins.aria.resendInvite')} ${row.adminName}`}
+              icon={<MdOutlineEmail aria-hidden="true" size={20} />}
+              variant="ghost"
+              width={5}
+              minW={5}
+              height={5}
+              color="neutral.950"
+              fontWeight="400"
+              onClick={() => handleReinvite(row.id)}
+              _hover={{ color: 'primary.500', bg: 'transparent' }}
+            />
+          )}
         </Flex>
       ),
     },
@@ -200,18 +228,6 @@ export function ManageStateAdminsPage() {
             _placeholder={{ color: 'neutral.300' }}
           />
         </InputGroup>
-        <Button
-          variant="secondary"
-          size="sm"
-          fontWeight="600"
-          onClick={handleDownloadReport}
-          gap={1}
-          w={{ base: 'full', md: '178px' }}
-          aria-label={t('manageStateAdmins.downloadReport')}
-        >
-          <FiDownload size={20} aria-hidden="true" />
-          {showDownloadButtonText && t('manageStateAdmins.downloadReport')}
-        </Button>
       </Flex>
 
       <DataTable<StateAdmin>
@@ -222,10 +238,18 @@ export function ManageStateAdminsPage() {
         isLoading={isLoading}
         pagination={{
           enabled: true,
-          pageSize: 10,
+          page: page,
+          pageSize,
+          totalItems: data?.total,
+          onPageChange: setPage,
+          onPageSizeChange: (size) => {
+            setPageSize(size)
+            setPage(1)
+          },
           pageSizeOptions: [10, 25, 50],
         }}
       />
+      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </Box>
   )
 }

@@ -1,12 +1,32 @@
 {
+  "hierarchy": {
+    "pageTitle": "पदानुक्रम",
+    "sectionTitle": "पदानुक्रम कॉन्फ़िगरेशन",
+    "lgdTitle": "LGD पदानुक्रम",
+    "departmentTitle": "विभाग पदानुक्रम",
+    "levelLabel": "स्तर {{level}}",
+    "addLevel": "स्तर जोड़ें",
+    "messages": {
+      "saveSuccess": "पदानुक्रम सफलतापूर्वक सहेजा गया",
+      "saveFailed": "पदानुक्रम सहेजने में विफल",
+      "failedToLoad": "पदानुक्रम लोड करने में विफल। कृपया बाद में पुनः प्रयास करें।",
+      "emptyLevelName": "सभी स्तरों का नाम होना चाहिए"
+    },
+    "aria": {
+      "editConfiguration": "पदानुक्रम कॉन्फ़िगरेशन संपादित करें",
+      "levelInput": "स्तर {{level}} के लिए नाम दर्ज करें",
+      "deleteLevel": "स्तर {{level}} हटाएं"
+    }
+  },
+
   "overview": {
     "title": "{{state}} का अवलोकन",
     "titleFallback": "राज्य का अवलोकन",
     "stats": {
-      "configurationStatus": "कॉन्फ़िगरेशन स्थिति",
-      "activeStaff": "सक्रिय कर्मचारी",
-      "activeSchemes": "सक्रिय योजनाएँ",
-      "activeIntegrations": "सक्रिय एकीकरण"
+      "totalStaff": "कुल कर्मचारी",
+      "pumpOperators": "कुल पंप ऑपरेटर",
+      "totalAdmins": "कुल व्यवस्थापक",
+      "activeSchemes": "सक्रिय योजनाएँ"
     },
     "charts": {
       "waterSupplyOutages": "जल आपूर्ति व्यवधान",
@@ -38,6 +58,14 @@
       "statsSection": "सांख्यिकी अवलोकन",
       "demandSupplyChart": "मांग बनाम आपूर्ति चार्ट",
       "ingestionChart": "दैनिक अंतर्ग्रहण मॉनिटर चार्ट"
+    },
+    "setupWizard": {
+      "title": "सेटअप प्रगति",
+      "configuration": "कॉन्फ़िगरेशन",
+      "language": "भाषा",
+      "waterNorms": "जल मानदंड",
+      "integration": "एकीकरण",
+      "escalations": "एस्केलेशन"
     }
   },
 
@@ -73,24 +101,21 @@
 
   "integration": {
     "title": "एकीकरण",
-    "whatsappDetails": "Whatsapp विवरण",
+    "messageBrokerDetails": "मैसेज ब्रोकर विवरण",
     "fields": {
-      "businessAccountName": "Whatsapp व्यवसाय खाता नाम",
-      "businessAccountNamePlaceholder": "उदाहरण: राज्य जल प्राधिकरण",
-      "senderPhoneNumber": "प्रेषक फ़ोन नंबर",
-      "senderPhoneNumberPlaceholder": "+91",
-      "businessAccountId": "Whatsapp व्यवसाय खाता ID",
-      "apiAccessToken": "API एक्सेस टोकन/ API कुंजी"
+      "apiUrl": "API URL",
+      "apiUrlPlaceholder": "https://api.example.com",
+      "apiKey": "API कुंजी",
+      "organizationId": "संगठन ID"
     },
     "messages": {
       "failedToLoad": "कॉन्फ़िगरेशन लोड करने में विफल"
     },
     "aria": {
-      "formLabel": "Whatsapp एकीकरण कॉन्फ़िगरेशन फ़ॉर्म",
-      "enterBusinessAccountName": "Whatsapp व्यवसाय खाता नाम दर्ज करें",
-      "enterPhoneNumber": "प्रेषक फ़ोन नंबर दर्ज करें",
-      "enterAccountId": "Whatsapp व्यवसाय खाता ID दर्ज करें",
-      "enterApiToken": "API एक्सेस टोकन दर्ज करें"
+      "formLabel": "एकीकरण कॉन्फ़िगरेशन फ़ॉर्म",
+      "enterApiUrl": "API URL दर्ज करें",
+      "enterApiKey": "API कुंजी दर्ज करें",
+      "enterOrganizationId": "संगठन ID दर्ज करें"
     }
   },
 
@@ -100,17 +125,13 @@
     "currentQuantity": "वर्तमान मात्रा (LPCD)",
     "alertThresholds": {
       "title": "अलर्ट सीमाएं",
-      "maxQuantity": {
-        "title": "अधिकतम मात्रा (प्रतिशत)",
-        "description": "निर्दिष्ट जल आपूर्ति का अधिकतम प्रतिशत जिससे अधिक होने पर अलर्ट ट्रिगर होगा।"
+      "undersupplyThreshold": {
+        "title": "अंडरसप्लाई सीमा (प्रतिशत)",
+        "description": "वास्तविक मानक से नकारात्मक विचलन प्रतिशत में।"
       },
-      "minQuantity": {
-        "title": "न्यूनतम मात्रा (प्रतिशत)",
-        "description": "निर्दिष्ट जल आपूर्ति का न्यूनतम प्रतिशत जिससे कम होने पर अलर्ट ट्रिगर होगा।"
-      },
-      "regularity": {
-        "title": "नियमितता सीमा (प्रतिशत)",
-        "description": "नियमितता अलर्ट से बचने के लिए चयनित अवधि के दौरान जल आपूर्ति किए जाने वाले दिनों का न्यूनतम प्रतिशत।"
+      "oversupplyThreshold": {
+        "title": "ओवरसप्लाई सीमा (प्रतिशत)",
+        "description": "वास्तविक मानक से सकारात्मक विचलन प्रतिशत में।"
       }
     },
     "districtOverrides": {
@@ -133,12 +154,10 @@
       "enterQuantity": "राज्य जल मात्रा LPCD में दर्ज करें",
       "selectDistrict": "जिले का नाम चुनें",
       "enterDistrictQuantity": "जिला जल मात्रा LPCD में दर्ज करें",
-      "maxQuantityCard": "अधिकतम मात्रा सीमा कॉन्फ़िगरेशन",
-      "minQuantityCard": "न्यूनतम मात्रा सीमा कॉन्फ़िगरेशन",
-      "regularityCard": "नियमितता सीमा कॉन्फ़िगरेशन",
-      "enterMaxQuantity": "अधिकतम मात्रा (LPCD का प्रतिशत) सीमा दर्ज करें",
-      "enterMinQuantity": "न्यूनतम मात्रा (LPCD का प्रतिशत) सीमा दर्ज करें",
-      "enterRegularity": "नियमितता सीमा प्रतिशत दर्ज करें"
+      "undersupplyThresholdCard": "अंडरसप्लाई सीमा कॉन्फ़िगरेशन",
+      "oversupplyThresholdCard": "ओवरसप्लाई सीमा कॉन्फ़िगरेशन",
+      "enterUndersupplyThreshold": "अंडरसप्लाई सीमा प्रतिशत दर्ज करें (0–100)",
+      "enterOversupplyThreshold": "ओवरसप्लाई सीमा प्रतिशत दर्ज करें (0–1000)"
     }
   },
 
@@ -158,9 +177,14 @@
     "buttons": {
       "addEscalation": "वृद्धि जोड़ें"
     },
+    "scheduleTime": "अनुसूची समय",
+    "escalateAfterDays": "इसके बाद वृद्धि (दिन)",
+    "escalateAfterDaysValue": "{{days}} दिन बाद वृद्धि",
+    "levelRole": "भूमिका",
     "messages": {
       "selectAlertType": "कृपया एक अलर्ट प्रकार चुनें",
       "invalidLevels": "सभी स्तरों में वैध भूमिका और घंटे होने चाहिए",
+      "invalidRulesDays": "सभी स्तरों में भूमिका और कम से कम 1 दिन होना चाहिए",
       "addedSuccess": "वृद्धि सफलतापूर्वक जोड़ी गई",
       "deletedSuccess": "वृद्धि सफलतापूर्वक हटाई गई",
       "notFound": "वृद्धि नहीं मिली",
@@ -168,9 +192,12 @@
       "failedToLoadSingle": "वृद्धि लोड करने में विफल",
       "failedToDelete": "वृद्धि हटाने में विफल",
       "failedToSave": "वृद्धि सहेजने में विफल",
+      "rulesSaveSuccess": "वृद्धि नियम सफलतापूर्वक सहेजे गए",
+      "rulesSaveFailed": "वृद्धि नियम सहेजने में विफल",
       "confirmDeleteTitle": "वृद्धि हटाएं",
       "confirmDelete": "क्या आप वाकई इस वृद्धि को हटाना चाहते हैं?",
-      "fillExisting": "कृपया पहले मौजूदा वृद्धि स्तर भरें"
+      "fillExisting": "कृपया पहले मौजूदा वृद्धि स्तर भरें",
+      "fillExistingRules": "कृपया दूसरा जोड़ने से पहले मौजूदा स्तर भरें"
     },
     "aria": {
       "editEscalation": "{{name}} वृद्धि संपादित करें",
@@ -304,6 +331,9 @@
       "dataConsolidationTime": {
         "title": "डेटा समेकन समय"
       },
+      "pumpOperatorReminderNudgeTime": {
+        "title": "पंप ऑपरेटर रिमाइंडर नज समय"
+      },
       "averageMembersPerHousehold": {
         "title": "प्रति परिवार औसत सदस्य"
       }
@@ -371,7 +401,37 @@
     "aria": {
       "search": "व्यवस्थापक खोजें",
       "view": "व्यवस्थापक देखें",
-      "edit": "व्यवस्थापक संपादित करें"
+      "edit": "व्यवस्थापक संपादित करें",
+      "resendInvite": "व्यवस्थापक को पुनः आमंत्रण भेजें"
+    }
+  },
+
+  "messageTemplates": {
+    "title": "टेम्पलेट",
+    "selectLanguage": "भाषा चुनें",
+    "selectTemplate": "टेम्पलेट चुनें",
+    "language": "भाषा",
+    "template": "टेम्पलेट",
+    "prompt": "प्रॉम्प्ट",
+    "message": "संदेश",
+    "confirmationTemplate": "पुष्टि संदेश",
+    "options": "विकल्प",
+    "reasons": "कारण",
+    "noContent": "इस चयन के लिए कोई सामग्री उपलब्ध नहीं है",
+    "screens": {
+      "ISSUE_REPORT": "समस्या रिपोर्ट",
+      "INTRO_MESSAGE": "परिचय संदेश",
+      "ITEM_SELECTION": "आइटम चयन",
+      "CLOSING_MESSAGE": "समापन संदेश",
+      "CHANNEL_SELECTION": "चैनल चयन",
+      "LANGUAGE_SELECTION": "भाषा चयन"
+    },
+    "messages": {
+      "failedToLoad": "संदेश टेम्पलेट लोड करने में विफल"
+    },
+    "aria": {
+      "selectLanguage": "भाषा चुनें",
+      "selectTemplate": "टेम्पलेट चुनें"
     }
   },
 

@@ -17,36 +17,23 @@ import { SearchIcon, EditIcon } from '@chakra-ui/icons'
 import { FiEye } from 'react-icons/fi'
 import { IoAddOutline } from 'react-icons/io5'
 import { DataTable, type DataTableColumn, StatusChip } from '@/shared/components/common'
-import type { StateUT } from '../../types/states-uts'
+import type { Tenant } from '../../types/states-uts'
 import { ROUTES } from '@/shared/constants/routes'
-import { useStatesUTsQuery } from '../../services/query/use-super-admin-queries'
+import { useStatesUTsPagedQuery } from '../../services/query/use-super-admin-queries'
 
 export function StatesUTsPage() {
   const { t } = useTranslation(['super-admin', 'common'])
   const navigate = useNavigate()
-  const { data: states = [], isLoading, isError, refetch } = useStatesUTsQuery()
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const { data, isLoading, isError, refetch } = useStatesUTsPagedQuery(page, pageSize)
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Responsive values
   const showAddButtonText = useBreakpointValue({ base: false, sm: true }) ?? true
 
   useEffect(() => {
     document.title = `${t('statesUts.title')} | JalSoochak`
   }, [t])
-
-  const formatTimestamp = (date: Date): string => {
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-    const year = date.getFullYear()
-    let hours = date.getHours()
-    const minutes = String(date.getMinutes()).padStart(2, '0')
-    const ampm = hours >= 12 ? 'pm' : 'am'
-
-    hours = hours % 12
-    hours = hours ? hours : 12
-
-    return `${day}-${month}-${year}, ${hours}:${minutes}${ampm}`
-  }
 
   if (isError) {
     return (
@@ -64,23 +51,19 @@ export function StatesUTsPage() {
     )
   }
 
-  const filteredStates = states.filter((state) =>
-    state.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filtered = (data?.items ?? []).filter((t) =>
+    t.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const handleAddNew = () => {
-    navigate(ROUTES.SUPER_ADMIN_STATES_UTS_ADD)
+  const handleView = (stateCode: string) => {
+    navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':tenantCode', stateCode))
   }
 
-  const handleView = (id: string) => {
-    navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':id', id))
+  const handleEdit = (stateCode: string) => {
+    navigate(ROUTES.SUPER_ADMIN_STATES_UTS_EDIT.replace(':tenantCode', stateCode))
   }
 
-  const handleEdit = (id: string) => {
-    navigate(ROUTES.SUPER_ADMIN_STATES_UTS_EDIT.replace(':id', id))
-  }
-
-  const columns: DataTableColumn<StateUT>[] = [
+  const columns: DataTableColumn<Tenant>[] = [
     {
       key: 'name',
       header: t('statesUts.table.stateUt'),
@@ -92,34 +75,34 @@ export function StatesUTsPage() {
       ),
     },
     {
+      key: 'stateCode',
+      header: t('statesUts.table.stateCode'),
+      sortable: false,
+      render: (row) => (
+        <Text textStyle="h10" fontWeight="400">
+          {row.stateCode}
+        </Text>
+      ),
+    },
+    {
+      key: 'lgdCode',
+      header: t('statesUts.table.lgdCode'),
+      sortable: false,
+      render: (row) => (
+        <Text textStyle="h10" fontWeight="400">
+          {row.lgdCode}
+        </Text>
+      ),
+    },
+    {
       key: 'status',
       header: t('statesUts.table.status'),
       sortable: false,
       render: (row) => (
         <StatusChip
-          status={row.status}
-          label={row.status === 'active' ? t('common:status.active') : t('common:status.inactive')}
+          status={row.status === 'ACTIVE' ? 'active' : 'inactive'}
+          label={row.status === 'ACTIVE' ? t('common:status.active') : t('common:status.inactive')}
         />
-      ),
-    },
-    {
-      key: 'lastSyncDate',
-      header: t('statesUts.table.lastSyncDate'),
-      sortable: true,
-      render: (row) => (
-        <Text textStyle="h10" fontWeight="400">
-          {formatTimestamp(row.lastSyncDate)}
-        </Text>
-      ),
-    },
-    {
-      key: 'totalDistricts',
-      header: t('statesUts.table.totalDistricts'),
-      sortable: true,
-      render: (row) => (
-        <Text textStyle="h10" fontWeight="400">
-          {row.totalDistricts}
-        </Text>
       ),
     },
     {
@@ -135,8 +118,7 @@ export function StatesUTsPage() {
             minW={5}
             height={5}
             color="neutral.950"
-            fontWeight="400"
-            onClick={() => handleView(row.id)}
+            onClick={() => handleView(row.stateCode)}
             _hover={{ color: 'primary.500', bg: 'transparent' }}
           />
           <IconButton
@@ -147,8 +129,7 @@ export function StatesUTsPage() {
             minW={5}
             height={5}
             color="neutral.950"
-            fontWeight="400"
-            onClick={() => handleEdit(row.id)}
+            onClick={() => handleEdit(row.stateCode)}
             _hover={{ color: 'primary.500', bg: 'transparent' }}
           />
         </Flex>
@@ -158,14 +139,12 @@ export function StatesUTsPage() {
 
   return (
     <Box w="full" maxW="100%" minW={0}>
-      {/* Page Header */}
       <Box mb={5}>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
           {t('statesUts.title')}
         </Heading>
       </Box>
 
-      {/* Search and Add Button */}
       <Flex
         justify="space-between"
         align="center"
@@ -201,7 +180,7 @@ export function StatesUTsPage() {
           variant="secondary"
           size="sm"
           fontWeight="600"
-          onClick={handleAddNew}
+          onClick={() => navigate(ROUTES.SUPER_ADMIN_STATES_UTS_ADD)}
           gap={1}
           w={{ base: 'full', md: '178px' }}
           aria-label={t('statesUts.addNewStateUt')}
@@ -211,16 +190,22 @@ export function StatesUTsPage() {
         </Button>
       </Flex>
 
-      {/* Data Table */}
-      <DataTable<StateUT>
+      <DataTable<Tenant>
         columns={columns}
-        data={filteredStates}
-        getRowKey={(row) => row.id}
+        data={filtered}
+        getRowKey={(row) => String(row.id)}
         emptyMessage={t('statesUts.messages.noStatesFound')}
         isLoading={isLoading}
         pagination={{
           enabled: true,
-          pageSize: 10,
+          page,
+          pageSize,
+          totalItems: data?.total,
+          onPageChange: setPage,
+          onPageSizeChange: (size) => {
+            setPageSize(size)
+            setPage(1)
+          },
           pageSizeOptions: [10, 25, 50],
         }}
       />

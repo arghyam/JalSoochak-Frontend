@@ -4,26 +4,38 @@ import { Box, Flex, SimpleGrid, Stack, Heading, Spinner, Text } from '@chakra-ui
 import { useTranslation } from 'react-i18next'
 import i18n from '@/app/i18n'
 import { useAuthStore } from '@/app/store'
-import { LineChart } from '@/shared/components/charts/line-chart'
+import { INDIA_STATES } from '@/shared/constants/states'
 import { StatCard } from '@/shared/components/common'
-import { SupplyOutageDistributionChart } from '@/shared/components/charts/supply-outage-distribution-chart'
-import { useStateAdminOverviewQuery } from '../../services/query/use-state-admin-queries'
-import { BsCheck2Circle, BsDroplet, BsPerson } from 'react-icons/bs'
-import { BiMessageDetail } from 'react-icons/bi'
+import {
+  useStaffCountsQuery,
+  useStateAdminOverviewQuery,
+} from '../../services/query/use-state-admin-queries'
+import { BsDroplet, BsPerson } from 'react-icons/bs'
+import { ConfigSetupWizard } from './config-setup-wizard'
 
 export function OverviewPage() {
   const { t } = useTranslation(['state-admin', 'common'])
   const user = useAuthStore((state) => state.user)
   const { data, isLoading, isError } = useStateAdminOverviewQuery()
+  const {
+    data: staffCountsData,
+    isLoading: isStaffCountsLoading,
+    isError: isStaffCountsError,
+  } = useStaffCountsQuery()
+
+  const stateName =
+    INDIA_STATES.find((s) => s.code === user?.tenantCode?.toUpperCase())?.name ??
+    user?.tenantCode ??
+    null
 
   useEffect(() => {
-    const pageTitle = user?.tenantId
-      ? t('overview.title', { state: user.tenantId })
+    const pageTitle = stateName
+      ? t('overview.title', { state: stateName })
       : t('overview.titleFallback')
     document.title = `${pageTitle} | JalSoochak`
-  }, [t, user?.tenantId])
+  }, [t, stateName])
 
-  if (isLoading) {
+  if (isLoading || isStaffCountsLoading) {
     return (
       <Flex
         h="64"
@@ -39,7 +51,7 @@ export function OverviewPage() {
     )
   }
 
-  if (isError) {
+  if (isError || isStaffCountsError) {
     return (
       <Flex h="64" align="center" justify="center">
         <Text color="error.500">{t('common:toast.failedToLoad')}</Text>
@@ -56,36 +68,32 @@ export function OverviewPage() {
 
   const statsCards = [
     {
-      title: t('overview.stats.configurationStatus'),
-      value: formatStatValue(data.stats.configurationStatus.value),
-      subtitle: data.stats.configurationStatus.subtitle,
-      icon: BsCheck2Circle,
-      iconBg: '#E1FFEA',
-      iconColor: '#079455',
-    },
-    {
-      title: t('overview.stats.activeStaff'),
-      value: formatStatValue(data.stats.activeStaff.value),
-      subtitle: data.stats.activeStaff.subtitle,
+      title: t('overview.stats.totalStaff'),
+      value: formatStatValue(staffCountsData?.totalStaff ?? 0),
       icon: BsPerson,
       iconBg: '#F1EEFF',
       iconColor: '#584C93',
     },
     {
+      title: t('overview.stats.pumpOperators'),
+      value: formatStatValue(staffCountsData?.pumpOperators ?? 0),
+      icon: BsPerson,
+      iconBg: '#E1FFEA',
+      iconColor: '#079455',
+    },
+    {
+      title: t('overview.stats.totalAdmins'),
+      value: formatStatValue(staffCountsData?.totalAdmins ?? 0),
+      icon: BsPerson,
+      iconBg: '#FBEAFF',
+      iconColor: '#DC72F2',
+    },
+    {
       title: t('overview.stats.activeSchemes'),
       value: formatStatValue(data.stats.activeSchemes.value),
-      subtitle: data.stats.activeSchemes.subtitle,
       icon: BsDroplet,
       iconBg: '#EBF4FA',
       iconColor: '#3291D1',
-    },
-    {
-      title: t('overview.stats.activeIntegrations'),
-      value: formatStatValue(data.stats.activeIntegrations.value),
-      subtitle: data.stats.activeIntegrations.subtitle,
-      icon: BiMessageDetail,
-      iconBg: '#FBEAFF',
-      iconColor: '#DC72F2',
     },
   ]
 
@@ -94,9 +102,7 @@ export function OverviewPage() {
       {/* Page Header */}
       <Box mb={5}>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
-          {user?.tenantId
-            ? t('overview.title', { state: user.tenantId })
-            : t('overview.titleFallback')}
+          {stateName ? t('overview.title', { state: stateName }) : t('overview.titleFallback')}
         </Heading>
       </Box>
 
@@ -113,7 +119,7 @@ export function OverviewPage() {
               key={stat.title}
               title={stat.title}
               value={stat.value}
-              subtitle={stat.subtitle}
+              // height="172px"
               icon={stat.icon}
               iconBg={stat.iconBg}
               iconColor={stat.iconColor}
@@ -121,74 +127,8 @@ export function OverviewPage() {
           ))}
         </SimpleGrid>
 
-        {/* Water Supply Outages Chart */}
-        <Box
-          as="section"
-          aria-labelledby="water-supply-outages-heading"
-          bg="white"
-          borderWidth="1px"
-          borderColor="neutral.100"
-          borderRadius={{ base: 'lg', md: 'xl' }}
-          boxShadow="default"
-          py={{ base: 4, md: 6 }}
-          px={4}
-          display="flex"
-          flexDirection="column"
-          minH="380px"
-        >
-          <Heading
-            as="h2"
-            id="water-supply-outages-heading"
-            size="h3"
-            fontWeight="400"
-            mb={4}
-            fontSize={{ base: 'md', md: 'xl' }}
-          >
-            {t('overview.charts.waterSupplyOutages')}
-          </Heading>
-          <Box flex={1}>
-            <SupplyOutageDistributionChart
-              data={data.waterSupplyOutages}
-              height={300}
-              xAxisLabel={t('overview.charts.Districts')}
-            />
-          </Box>
-        </Box>
-
-        {/* Demand vs Supply Chart */}
-        <Box
-          as="section"
-          aria-labelledby="demand-supply-chart-heading"
-          bg="white"
-          borderWidth="1px"
-          borderColor="neutral.100"
-          borderRadius={{ base: 'lg', md: 'xl' }}
-          boxShadow="default"
-          height={{ base: 'auto', md: '534px' }}
-          py={{ base: 4, md: 6 }}
-          px={4}
-        >
-          <Heading
-            as="h2"
-            id="demand-supply-chart-heading"
-            size="h3"
-            fontWeight="400"
-            mb={4}
-            fontSize={{ base: 'md', md: 'xl' }}
-          >
-            {t('overview.charts.demandVsSupply')}
-          </Heading>
-          <LineChart
-            data={data.demandSupplyData}
-            xKey="period"
-            yKeys={['Demand', 'Supply']}
-            colors={['#3291D1', '#ADD3EB']}
-            height="416px"
-            xAxisLabel={t('overview.charts.Year')}
-            legendLabels={[t('overview.charts.Demand'), t('overview.charts.Supply')]}
-            yAxisLabel={t('overview.charts.Quantity')}
-          />
-        </Box>
+        {/* Configuration Setup Wizard */}
+        <ConfigSetupWizard />
       </Stack>
     </Box>
   )

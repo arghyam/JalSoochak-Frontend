@@ -1,8 +1,3 @@
-export interface HierarchyLevel {
-  level: number
-  name: string
-}
-
 export interface MeterChangeReason {
   id: string
   name: string
@@ -18,21 +13,19 @@ export const SUPPORTED_CHANNELS = [
 
 export type SupportedChannel = (typeof SUPPORTED_CHANNELS)[number]
 
-export const DEFAULT_LGD_HIERARCHY: HierarchyLevel[] = [
-  { level: 1, name: 'State' },
-  { level: 2, name: 'District' },
-  { level: 3, name: 'Block' },
-  { level: 4, name: 'Panchayat' },
-  { level: 5, name: 'Village' },
-]
+export const CHANNEL_CODE_TO_NAME = {
+  BFM: 'Bulk Flow Meter',
+  ELM: 'Electric Meter',
+  PDU: 'Pump Duration',
+  IOT: 'IOT',
+  MAN: 'Manual',
+} as const satisfies Record<string, SupportedChannel>
 
-export const DEFAULT_DEPARTMENT_HIERARCHY: HierarchyLevel[] = [
-  { level: 1, name: 'State' },
-  { level: 2, name: 'Zone' },
-  { level: 3, name: 'Circle' },
-  { level: 4, name: 'Division' },
-  { level: 5, name: 'Sub-division' },
-]
+export const CHANNEL_NAME_TO_CODE = Object.fromEntries(
+  Object.entries(CHANNEL_CODE_TO_NAME).map(([code, name]) => [name, code])
+) as Record<SupportedChannel, keyof typeof CHANNEL_CODE_TO_NAME>
+
+export type SupportedChannelCode = keyof typeof CHANNEL_CODE_TO_NAME
 
 export const DEFAULT_METER_CHANGE_REASONS: MeterChangeReason[] = [
   { id: 'r1', name: 'Meter Replaced' },
@@ -40,15 +33,14 @@ export const DEFAULT_METER_CHANGE_REASONS: MeterChangeReason[] = [
   { id: 'r3', name: 'Meter Damaged' },
 ]
 
-export interface ConfigurationData extends Record<string, unknown> {
+export interface ConfigurationData {
   id: string
-  lgdHierarchy: HierarchyLevel[]
-  departmentHierarchy: HierarchyLevel[]
   supportedChannels: SupportedChannel[]
   logoUrl?: string
   meterChangeReasons: MeterChangeReason[]
   locationCheckRequired: boolean
   dataConsolidationTime: string
+  pumpOperatorReminderNudgeTime: string
   averageMembersPerHousehold: number
   isConfigured: boolean
 }

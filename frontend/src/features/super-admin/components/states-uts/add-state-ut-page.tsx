@@ -11,17 +11,17 @@ import {
   HStack,
   FormControl,
   FormLabel,
-  Alert,
-  AlertIcon,
+  FormErrorMessage,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { SearchableSelect, ToastContainer } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ROUTES } from '@/shared/constants/routes'
+import { INDIA_STATES } from '@/shared/constants/states'
 import {
-  useCreateStateAdminMutation,
   useCreateTenantMutation,
-  useStateUTOptionsQuery,
+  useInviteUserMutation,
+  useStatesUTsQuery,
 } from '../../services/query/use-super-admin-queries'
 
 export function AddStateUTPage() {
@@ -33,112 +33,73 @@ export function AddStateUTPage() {
     document.title = `${t('statesUts.addTitle')} | JalSoochak`
   }, [t])
 
-  const {
-    data: stateUTOptions = [],
-    isLoading: isStateUTOptionsLoading,
-    isError: isStateUTOptionsError,
-  } = useStateUTOptionsQuery()
   const createTenantMutation = useCreateTenantMutation()
-  const createStateAdminMutation = useCreateStateAdminMutation()
+  const inviteUserMutation = useInviteUserMutation()
+  const { data: existingTenants, isLoading: isLoadingTenants } = useStatesUTsQuery()
 
-  // Form state
   const [stateName, setStateName] = useState('')
   const [stateCode, setStateCode] = useState('')
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
-  const [secondaryEmail, setSecondaryEmail] = useState('')
-  const [contactNumber, setContactNumber] = useState('')
+  const [lgdCode, setLgdCode] = useState<number | null>(null)
+  const [adminEmail, setAdminEmail] = useState('')
+  const [emailTouched, setEmailTouched] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const availableStates = useMemo(() => {
-    return stateUTOptions.map((state) => ({
-      value: state.name,
-      label: state.name,
-    }))
-  }, [stateUTOptions])
+  const takenStateCodes = useMemo<Set<string>>(
+    () => new Set((existingTenants ?? []).map((t) => t.stateCode)),
+    [existingTenants]
+  )
+
+  const stateOptions = useMemo(
+    () =>
+      INDIA_STATES.filter((s) => !takenStateCodes.has(s.code)).map((s) => ({
+        value: s.name,
+        label: s.name,
+      })),
+    [takenStateCodes]
+  )
 
   const handleStateChange = (value: string) => {
     setStateName(value)
-    const selectedState = stateUTOptions.find((s) => s.name === value)
-    setStateCode(selectedState?.code ?? '')
+    const selected = INDIA_STATES.find((s) => s.name === value)
+    setStateCode(selected?.code ?? '')
+    setLgdCode(selected?.lgdCode ?? null)
   }
 
-  // Validation
-  const isValidEmail = (emailStr: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(emailStr)
-  }
+  const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+  const emailError = emailTouched && adminEmail !== '' && !isValidEmail(adminEmail)
 
-  const isValidPhone = (phoneStr: string): boolean => {
-    const phoneRegex = /^\d{10}$/
-    return phoneRegex.test(phoneStr)
-  }
+  const isFormValid =
+    stateName !== '' &&
+    stateCode !== '' &&
+    lgdCode !== null &&
+    adminEmail.trim() !== '' &&
+    isValidEmail(adminEmail)
 
-  const isFormValid = useMemo(() => {
-    const requiredFieldsValid =
-      stateName !== '' &&
-      firstName.trim() !== '' &&
-      lastName.trim() !== '' &&
-      email.trim() !== '' &&
-      phone.trim() !== ''
-
-    const emailValid = isValidEmail(email)
-    const phoneValid = isValidPhone(phone)
-
-    // Optional fields validation (if provided)
-    const secondaryEmailValid = secondaryEmail === '' || isValidEmail(secondaryEmail)
-    const contactNumberValid = contactNumber === '' || isValidPhone(contactNumber)
-
-    return (
-      requiredFieldsValid && emailValid && phoneValid && secondaryEmailValid && contactNumberValid
-    )
-  }, [stateName, firstName, lastName, email, phone, secondaryEmail, contactNumber])
-
-  const handleCancel = () => {
-    navigate(ROUTES.SUPER_ADMIN_STATES_UTS)
-  }
+  const handleCancel = () => navigate(ROUTES.SUPER_ADMIN_STATES_UTS)
 
   const handleSubmit = async () => {
-    if (!isFormValid) {
-      toast.addToast(t('common:toast.fillAllFieldsCorrectly'), 'error')
-      return
-    }
-
-    const lgdCode = parseInt(stateCode, 10)
-    if (!stateCode.trim() || Number.isNaN(lgdCode)) {
-      toast.addToast(t('common:toast.fillAllFieldsCorrectly'), 'error')
-      return
-    }
+    if (!isFormValid || lgdCode === null) return
 
     setIsSubmitting(true)
-    const tenantPayload = {
-      stateCode: stateCode.trim(),
-      lgdCode,
-      name: stateName.trim(),
-    }
-
     try {
-      const tenant = await createTenantMutation.mutateAsync(tenantPayload)
+      const tenant = await createTenantMutation.mutateAsync({
+        stateCode,
+        name: stateName.trim(),
+        lgdCode: lgdCode,
+      })
+
       try {
-        await createStateAdminMutation.mutateAsync({
-          tenantId: String(tenant.id),
-          admin: {
-            firstName: firstName.trim(),
-            lastName: lastName.trim(),
-            email: email.trim(),
-            phone: phone.trim(),
-            secondaryEmail: secondaryEmail.trim() || undefined,
-            contactNumber: contactNumber.trim() || undefined,
-          },
+        await inviteUserMutation.mutateAsync({
+          email: adminEmail.trim(),
+          role: 'STATE_ADMIN',
+          tenantCode: tenant.stateCode,
         })
         toast.addToast(t('statesUts.messages.inviteSent'), 'success')
         setTimeout(() => {
-          navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':id', String(tenant.id)))
+          navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':tenantCode', tenant.stateCode))
         }, 1000)
       } catch (adminError) {
-        console.error('Admin creation failed:', adminError)
+        console.error('Admin invite failed:', adminError)
         toast.addToast(t('statesUts.messages.tenantCreatedAdminFailed'), 'error')
       }
     } catch (error) {
@@ -149,9 +110,15 @@ export function AddStateUTPage() {
     }
   }
 
+  const isPending =
+    isSubmitting ||
+    isLoadingTenants ||
+    createTenantMutation.isPending ||
+    inviteUserMutation.isPending
+
   return (
     <Box w="full">
-      {/* Page Header with Breadcrumb */}
+      {/* Breadcrumb */}
       <Box mb={5}>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={2}>
           {t('statesUts.addTitle')}
@@ -181,14 +148,6 @@ export function AddStateUTPage() {
         </Flex>
       </Box>
 
-      {/* Assigned states fetch error */}
-      {isStateUTOptionsError && (
-        <Alert status="error" borderRadius="8px" mb={4}>
-          <AlertIcon />
-          {t('statesUts.messages.failedToLoadStateOptions')}
-        </Alert>
-      )}
-
       {/* Form Card */}
       <Box
         as="form"
@@ -204,7 +163,7 @@ export function AddStateUTPage() {
         px={{ base: 3, md: 4 }}
         onSubmit={(e: React.FormEvent) => {
           e.preventDefault()
-          handleSubmit()
+          void handleSubmit()
         }}
       >
         <Flex
@@ -214,7 +173,7 @@ export function AddStateUTPage() {
           minH={{ base: 'auto', lg: 'calc(100vh - 232px)' }}
         >
           <Box>
-            {/* State/UT Details Section */}
+            {/* State/UT Details */}
             <Heading as="h2" size="h3" fontWeight="400" mb={4} id="state-details-heading">
               {t('statesUts.details.title')}
             </Heading>
@@ -230,13 +189,12 @@ export function AddStateUTPage() {
                 </FormLabel>
                 <SearchableSelect
                   id="state-name-select"
-                  options={availableStates}
+                  options={stateOptions}
                   value={stateName}
                   onChange={handleStateChange}
                   placeholder={t('common:select')}
                   placeholderColor="neutral.300"
                   width={{ base: '100%', xl: '486px' }}
-                  disabled={isStateUTOptionsLoading || isStateUTOptionsError}
                 />
               </FormControl>
               <FormControl>
@@ -250,58 +208,32 @@ export function AddStateUTPage() {
                   h={9}
                   maxW={{ base: '100%', lg: '486px' }}
                   borderColor="neutral.200"
+                  color="neutral.500"
                   aria-readonly="true"
+                  placeholder={t('statesUts.details.autoFilledOnStateSelection')}
+                  _placeholder={{ color: 'neutral.300' }}
                 />
               </FormControl>
             </SimpleGrid>
 
-            {/* State Admin Details Section */}
+            {/* State Admin Invite */}
             <Heading as="h2" size="h3" fontWeight="400" mb={4} id="admin-details-heading">
               {t('statesUts.adminDetails.title')}
             </Heading>
             <SimpleGrid
               columns={{ base: 1, lg: 2 }}
-              spacing={3}
+              spacing={6}
               aria-labelledby="admin-details-heading"
             >
-              <FormControl isRequired>
-                <FormLabel textStyle="h10" mb={1}>
-                  {t('statesUts.adminDetails.firstName')}
-                </FormLabel>
-                <Input
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder={t('common:enter')}
-                  h={9}
-                  maxW={{ base: '100%', lg: '486px' }}
-                  borderColor="neutral.200"
-                  _placeholder={{ color: 'neutral.300' }}
-                  aria-required="true"
-                />
-              </FormControl>
-              <FormControl isRequired>
-                <FormLabel textStyle="h10" mb={1}>
-                  {t('statesUts.adminDetails.lastName')}
-                </FormLabel>
-                <Input
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder={t('common:enter')}
-                  h={9}
-                  maxW={{ base: '100%', lg: '486px' }}
-                  borderColor="neutral.200"
-                  _placeholder={{ color: 'neutral.300' }}
-                  aria-required="true"
-                />
-              </FormControl>
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={emailError}>
                 <FormLabel textStyle="h10" mb={1}>
                   {t('statesUts.adminDetails.email')}
                 </FormLabel>
                 <Input
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={adminEmail}
+                  onChange={(e) => setAdminEmail(e.target.value)}
+                  onBlur={() => setEmailTouched(true)}
                   placeholder={t('common:enter')}
                   h={9}
                   maxW={{ base: '100%', lg: '486px' }}
@@ -309,66 +241,7 @@ export function AddStateUTPage() {
                   _placeholder={{ color: 'neutral.300' }}
                   aria-required="true"
                 />
-              </FormControl>
-              <FormControl isRequired>
-                <FormLabel textStyle="h10" mb={1}>
-                  {t('statesUts.adminDetails.phone')}
-                </FormLabel>
-                <Input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => {
-                    // Only allow digits
-                    const value = e.target.value.replace(/\D/g, '')
-                    if (value.length <= 10) {
-                      setPhone(value)
-                    }
-                  }}
-                  placeholder="+91"
-                  h={9}
-                  maxW={{ base: '100%', lg: '486px' }}
-                  borderColor="neutral.200"
-                  _placeholder={{ color: 'neutral.300' }}
-                  aria-required="true"
-                  inputMode="numeric"
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel textStyle="h10" mb={1}>
-                  {t('statesUts.adminDetails.secondaryEmail')}
-                </FormLabel>
-                <Input
-                  type="email"
-                  value={secondaryEmail}
-                  onChange={(e) => setSecondaryEmail(e.target.value)}
-                  placeholder={t('common:enter')}
-                  h={9}
-                  maxW={{ base: '100%', lg: '486px' }}
-                  borderColor="neutral.200"
-                  _placeholder={{ color: 'neutral.300' }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel textStyle="h10" mb={1}>
-                  {t('statesUts.adminDetails.contactNumber')}
-                </FormLabel>
-                <Input
-                  type="tel"
-                  value={contactNumber}
-                  onChange={(e) => {
-                    // Only allow digits
-                    const value = e.target.value.replace(/\D/g, '')
-                    if (value.length <= 10) {
-                      setContactNumber(value)
-                    }
-                  }}
-                  placeholder={t('common:enter')}
-                  h={9}
-                  maxW={{ base: '100%', lg: '486px' }}
-                  borderColor="neutral.200"
-                  _placeholder={{ color: 'neutral.300' }}
-                  inputMode="numeric"
-                />
+                <FormErrorMessage>{t('common:validation.invalidEmail')}</FormErrorMessage>
               </FormControl>
             </SimpleGrid>
           </Box>
@@ -385,9 +258,7 @@ export function AddStateUTPage() {
               size="md"
               width={{ base: 'full', sm: '174px' }}
               onClick={handleCancel}
-              isDisabled={
-                isSubmitting || createTenantMutation.isPending || createStateAdminMutation.isPending
-              }
+              isDisabled={isPending}
             >
               {t('common:button.cancel')}
             </Button>
@@ -397,15 +268,8 @@ export function AddStateUTPage() {
               size="md"
               width={{ base: 'full', sm: 'auto' }}
               maxWidth={{ base: '100%', sm: '275px' }}
-              isLoading={
-                isSubmitting || createTenantMutation.isPending || createStateAdminMutation.isPending
-              }
-              isDisabled={
-                !isFormValid ||
-                isSubmitting ||
-                createTenantMutation.isPending ||
-                createStateAdminMutation.isPending
-              }
+              isLoading={isPending}
+              isDisabled={!isFormValid || isPending}
             >
               {t('statesUts.buttons.addAndSendLink')}
             </Button>
@@ -413,7 +277,6 @@ export function AddStateUTPage() {
         </Flex>
       </Box>
 
-      {/* Toast Container */}
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </Box>
   )

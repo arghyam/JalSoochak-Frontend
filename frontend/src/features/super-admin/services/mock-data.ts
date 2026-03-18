@@ -3,14 +3,15 @@ import type { SuperUser, CreateSuperUserInput, UpdateSuperUserInput } from '../t
 import type { SystemRulesConfiguration } from '../types/system-rules'
 import type { IngestionMonitorData } from '../types/ingestion-monitor'
 import type { ApiCredentialsData } from '../types/api-credentials'
+import type { SystemConfiguration, SaveSystemConfigPayload } from '../types/system-config'
 import {
-  INDIAN_STATES_UTS,
   type StateUT,
   type CreateStateUTInput,
   type UpdateStateUTInput,
   type StateUTOption,
   type StateAdminDetails,
 } from '../types/states-uts'
+import { INDIA_STATES } from '@/shared/constants/states'
 import type { StateAdmin } from '../types/state-admins'
 import type { CreateTenantInput, Tenant } from '../types/tenant'
 
@@ -566,7 +567,6 @@ const mockStateAdminsData: StateAdmin[] = [
     mobileNumber: '+91 98452-85564',
     emailAddress: 'ravi@gmail.com',
     signupStatus: 'completed',
-    stateUtId: '1',
   },
   {
     id: 'sa-2',
@@ -575,7 +575,6 @@ const mockStateAdminsData: StateAdmin[] = [
     mobileNumber: '+91 74185-96321',
     emailAddress: 'vijay@gmail.com',
     signupStatus: 'pending',
-    stateUtId: '2',
   },
   {
     id: 'sa-3',
@@ -584,7 +583,6 @@ const mockStateAdminsData: StateAdmin[] = [
     mobileNumber: '+91 98765-43210',
     emailAddress: 'rohan@gmail.com',
     signupStatus: 'completed',
-    stateUtId: '3',
   },
   {
     id: 'sa-4',
@@ -593,7 +591,6 @@ const mockStateAdminsData: StateAdmin[] = [
     mobileNumber: '+91 87654-90123',
     emailAddress: 'sanjeev@gmail.com',
     signupStatus: 'pending',
-    stateUtId: '4',
   },
   {
     id: 'sa-5',
@@ -602,7 +599,6 @@ const mockStateAdminsData: StateAdmin[] = [
     mobileNumber: '+91 76543-21098',
     emailAddress: 'sunita.verma@jalsoochak.com',
     signupStatus: 'completed',
-    stateUtId: '5',
   },
   {
     id: 'sa-6',
@@ -611,7 +607,6 @@ const mockStateAdminsData: StateAdmin[] = [
     mobileNumber: '+91 65432-10987',
     emailAddress: 'miguel.fernandes@jalsoochak.com',
     signupStatus: 'completed',
-    stateUtId: '6',
   },
   {
     id: 'sa-7',
@@ -620,7 +615,6 @@ const mockStateAdminsData: StateAdmin[] = [
     mobileNumber: '+91 54321-09876',
     emailAddress: 'kiran.patel@jalsoochak.com',
     signupStatus: 'pending',
-    stateUtId: '7',
   },
   {
     id: 'sa-8',
@@ -629,7 +623,6 @@ const mockStateAdminsData: StateAdmin[] = [
     mobileNumber: '+91 43210-98765',
     emailAddress: 'deepak.yadav@jalsoochak.com',
     signupStatus: 'completed',
-    stateUtId: '8',
   },
   {
     id: 'sa-9',
@@ -638,7 +631,6 @@ const mockStateAdminsData: StateAdmin[] = [
     mobileNumber: '+91 32109-87654',
     emailAddress: 'anita.thakur@jalsoochak.com',
     signupStatus: 'completed',
-    stateUtId: '9',
   },
   {
     id: 'sa-10',
@@ -647,7 +639,6 @@ const mockStateAdminsData: StateAdmin[] = [
     mobileNumber: '+91 21098-76543',
     emailAddress: 'ravi.oraon@jalsoochak.com',
     signupStatus: 'completed',
-    stateUtId: '10',
   },
 ]
 
@@ -666,7 +657,7 @@ export const getAssignedStateNames = (): string[] => {
 export const getStateUTOptions = (): Promise<StateUTOption[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve([...INDIAN_STATES_UTS])
+      resolve([...INDIA_STATES])
     }, 300)
   })
 }
@@ -687,7 +678,6 @@ export function mockCreateTenant(payload: CreateTenantInput): Promise<Tenant> {
     id: 1,
     uuid: `mock-${payload.stateCode.toLowerCase()}-${Date.now()}`,
     stateCode: payload.stateCode,
-    lgdCode: payload.lgdCode,
     name: payload.name,
     status: 'ACTIVE',
     createdAt: now,
@@ -807,5 +797,34 @@ export const updateMockSuperUserStatus = (
       mockSuperUsersData[index] = { ...mockSuperUsersData[index], status }
       resolve({ ...mockSuperUsersData[index] })
     }, 300)
+  })
+}
+
+// ─── System Configuration ─────────────────────────────────────────────────────
+
+let mockSystemConfigData: SystemConfiguration = {
+  supportedChannels: ['BFM', 'MAN', 'ELM', 'PDU', 'IOT'],
+  oversupplyThreshold: 100,
+  undersupplyThreshold: 100,
+  bfmImageConfidenceThreshold: 89,
+  locationAffinityThreshold: 78,
+}
+
+export function getMockSystemConfiguration(): Promise<SystemConfiguration> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({ ...mockSystemConfigData })
+    }, 300)
+  })
+}
+
+export function saveMockSystemConfiguration(
+  payload: SaveSystemConfigPayload
+): Promise<SystemConfiguration> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      mockSystemConfigData = { ...payload }
+      resolve({ ...mockSystemConfigData })
+    }, 500)
   })
 }

@@ -5,7 +5,7 @@ export interface UserAdminData extends Record<string, unknown> {
   lastName: string
   email: string
   phone: string
-  status: 'active' | 'inactive'
+  status: 'active' | 'inactive' | 'pending'
 }
 
 export interface UserAdminRoutes {
@@ -43,6 +43,7 @@ export interface UserAdminListLabels {
     search: string
     view: string
     edit: string
+    resendInvite: string
   }
 }
 

@@ -26,9 +26,10 @@ export function ReadingComplianceTable({
   const safeMaxItems =
     typeof maxItems === 'number' && Number.isFinite(maxItems) ? Math.max(0, maxItems) : undefined
   const rows = typeof safeMaxItems === 'number' ? data.slice(0, safeMaxItems) : data
+  const tableMinWidth = showVillageColumn ? '640px' : '100%'
 
   return (
-    <Box borderRadius="lg" overflow="hidden">
+    <Box borderRadius="lg" overflow="hidden" w="full" minW={0}>
       <Box textStyle="bodyText3" fontWeight="400" mb="16px">
         {resolvedTitle}
       </Box>
@@ -36,81 +37,93 @@ export function ReadingComplianceTable({
         maxH={scrollAreaMaxH}
         overflowY="auto"
         overflowX="auto"
+        w="full"
+        maxW="100%"
+        minW={0}
         pr={2}
+        pb={2}
+        cursor={{ base: 'grab', md: 'auto' }}
         sx={{
-          '&::-webkit-scrollbar': { width: '4px' },
+          WebkitOverflowScrolling: 'touch',
+          '&::-webkit-scrollbar': { width: '4px', height: '4px' },
           '&::-webkit-scrollbar-track': { bg: 'neutral.100', borderRadius: '999px' },
           '&::-webkit-scrollbar-thumb': {
             bg: 'neutral.300',
             borderRadius: '999px',
             minHeight: '165px',
           },
+          '&:active': {
+            cursor: 'grabbing',
+          },
         }}
       >
-        <Table size="sm">
-          <Thead
-            sx={{
-              position: 'sticky',
-              top: 0,
-              zIndex: 1,
-              bg: 'white',
-              th: {
-                textStyle: 'bodyText7',
-                textTransform: 'none',
-                fontWeight: '500',
-                px: 3,
-                py: 4,
-              },
-            }}
-          >
-            <Tr>
-              <Th>
-                {t('outageAndSubmissionCharts.tables.readingCompliance.columns.name', {
-                  defaultValue: 'Name',
-                })}
-              </Th>
-              {showVillageColumn ? (
+        <Box w="full" minW={tableMinWidth}>
+          <Table size="sm" w="full" minW={tableMinWidth} sx={{ tableLayout: 'auto' }}>
+            <Thead
+              sx={{
+                position: 'sticky',
+                top: 0,
+                zIndex: 1,
+                bg: 'white',
+                th: {
+                  textStyle: 'bodyText7',
+                  textTransform: 'none',
+                  fontWeight: '500',
+                  px: { base: 2, md: 3 },
+                  py: { base: 3, md: 4 },
+                  whiteSpace: 'nowrap',
+                },
+              }}
+            >
+              <Tr>
                 <Th>
-                  {t('outageAndSubmissionCharts.tables.readingCompliance.columns.village', {
-                    defaultValue: 'Village',
+                  {t('outageAndSubmissionCharts.tables.readingCompliance.columns.name', {
+                    defaultValue: 'Name',
                   })}
                 </Th>
-              ) : null}
-              <Th>
-                {t('outageAndSubmissionCharts.tables.readingCompliance.columns.lastSubmission', {
-                  defaultValue: 'Last Submission',
-                })}
-              </Th>
-              <Th>
-                {t('outageAndSubmissionCharts.tables.readingCompliance.columns.readingValue', {
-                  defaultValue: 'Reading Value',
-                })}
-              </Th>
-            </Tr>
-          </Thead>
-          <Tbody
-            sx={{
-              td: {
-                textStyle: 'bodyText7',
-                fontWeight: '400',
-                px: 3,
-                py: 0,
-                height: '40px',
-                lineHeight: '40px',
-                whiteSpace: 'nowrap',
-              },
-            }}
-          >
-            {rows.map((row) => (
-              <Tr key={row.id} _odd={{ bg: 'primary.25' }}>
-                <Td>{row.name}</Td>
-                {showVillageColumn ? <Td>{row.village}</Td> : null}
-                <Td>{row.lastSubmission}</Td>
-                <Td>{row.readingValue}</Td>
+                {showVillageColumn ? (
+                  <Th>
+                    {t('outageAndSubmissionCharts.tables.readingCompliance.columns.village', {
+                      defaultValue: 'Village',
+                    })}
+                  </Th>
+                ) : null}
+                <Th>
+                  {t('outageAndSubmissionCharts.tables.readingCompliance.columns.lastSubmission', {
+                    defaultValue: 'Last Submission',
+                  })}
+                </Th>
+                <Th>
+                  {t('outageAndSubmissionCharts.tables.readingCompliance.columns.readingValue', {
+                    defaultValue: 'Reading Value',
+                  })}
+                </Th>
               </Tr>
-            ))}
-          </Tbody>
-        </Table>
+            </Thead>
+            <Tbody
+              sx={{
+                td: {
+                  textStyle: 'bodyText7',
+                  fontWeight: '400',
+                  px: { base: 2, md: 3 },
+                  py: { base: 2, md: 0 },
+                  height: { base: 'auto', md: '40px' },
+                  lineHeight: { base: '20px', md: '40px' },
+                  whiteSpace: 'nowrap',
+                },
+              }}
+            >
+              {rows.map((row) => (
+                <Tr key={row.id} _odd={{ bg: 'primary.25' }}>
+                  <Td>{row.name}</Td>
+                  {showVillageColumn ? <Td>{row.village}</Td> : null}
+                  <Td>{row.lastSubmission}</Td>
+                  <Td>{row.readingValue}</Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </Box>
       </Box>
     </Box>
   )

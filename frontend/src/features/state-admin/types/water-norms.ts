@@ -4,13 +4,12 @@ export interface DistrictOverride {
   quantity: number
 }
 
-export interface WaterNormsConfiguration extends Record<string, unknown> {
+export interface WaterNormsConfiguration {
   id: string
   stateQuantity: number
   districtOverrides: DistrictOverride[]
-  maxQuantity: number
-  minQuantity: number
-  regularity: number
+  oversupplyThreshold: number | null
+  undersupplyThreshold: number | null
   isConfigured: boolean
 }
 

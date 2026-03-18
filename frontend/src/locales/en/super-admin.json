@@ -51,6 +51,8 @@
     },
     "table": {
       "stateUt": "State/UT",
+      "stateCode": "State Code",
+      "lgdCode": "LGD Code",
       "status": "Status",
       "lastSyncDate": "Last Sync Date",
       "totalDistricts": "Total Districts",
@@ -59,7 +61,11 @@
     "details": {
       "title": "State/UT Details",
       "name": "State/UT name",
-      "code": "State/UT code"
+      "code": "State/UT code",
+      "autoFilledOnStateSelection": "Auto-filled on state selection",
+      "stateCode": "State Code",
+      "lgdCode": "LGD Code",
+      "createdAt": "Created At"
     },
     "adminDetails": {
       "title": "State Admin Details",
@@ -116,14 +122,16 @@
     },
     "status": {
       "completed": "Completed",
-      "pending": "Pending"
+      "pending": "Pending",
+      "inactive": "Inactive"
     },
     "messages": {
       "noAdminsFound": "No admins found"
     },
     "aria": {
       "viewAdmin": "View admin",
-      "editAdmin": "Edit admin"
+      "editAdmin": "Edit admin",
+      "resendInvite": "Resend invite for admin"
     }
   },
 
@@ -191,7 +199,43 @@
     "aria": {
       "search": "Search super users",
       "view": "View super user",
-      "edit": "Edit super user"
+      "edit": "Edit super user",
+      "resendInvite": "Resend invite for super user"
+    }
+  },
+
+  "configuration": {
+    "pageTitle": "Configuration",
+    "sectionTitle": "System Configuration",
+    "sections": {
+      "supportedChannels": {
+        "title": "Supported Channels"
+      },
+      "undersupplyThreshold": {
+        "title": "Undersupply Threshold (%)",
+        "description": "The negative deviation from the actual norm in percentage."
+      },
+      "oversupplyThreshold": {
+        "title": "Oversupply Threshold (%)",
+        "description": "The positive deviation from the actual norm in percentage."
+      },
+      "bfmImageConfidence": {
+        "title": "BFM Image Confidence Threshold (%)"
+      },
+      "locationAffinity": {
+        "title": "Location Affinity Threshold"
+      }
+    },
+    "messages": {
+      "saveSuccess": "Configuration saved successfully",
+      "saveFailed": "Failed to save configuration",
+      "validation": {
+        "channelRequired": "At least one supported channel must be selected"
+      }
+    },
+    "aria": {
+      "editConfiguration": "Edit configuration",
+      "form": "System configuration form"
     }
   },
 

@@ -15,6 +15,7 @@ import {
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { MdOutlineMoving, MdOutlinePlace, MdExpandMore, MdExpandLess } from 'react-icons/md'
+import { PiTreeStructure } from 'react-icons/pi'
 import { AiOutlineEye, AiOutlineSetting, AiOutlineWarning, AiOutlineApi } from 'react-icons/ai'
 import { BiKey } from 'react-icons/bi'
 import { FiLogOut } from 'react-icons/fi'
@@ -43,6 +44,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   AiOutlineApi,
   MdOutlinePlace,
   MdOutlineMoving,
+  PiTreeStructure,
   BiKey,
   IoLanguageOutline,
   IoSettingsOutline,

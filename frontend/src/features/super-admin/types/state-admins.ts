@@ -1,4 +1,4 @@
-export type StateAdminSignupStatus = 'completed' | 'pending'
+export type StateAdminSignupStatus = 'completed' | 'pending' | 'inactive'
 
 export interface StateAdmin {
   id: string
@@ -7,5 +7,4 @@ export interface StateAdmin {
   mobileNumber: string
   emailAddress: string
   signupStatus: StateAdminSignupStatus
-  stateUtId?: string
 }

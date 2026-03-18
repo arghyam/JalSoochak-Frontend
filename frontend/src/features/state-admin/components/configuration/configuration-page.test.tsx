@@ -17,20 +17,6 @@ jest.mock('../../services/query/use-state-admin-queries', () => ({
 
 const configuredConfig = {
   id: '1',
-  lgdHierarchy: [
-    { level: 1, name: 'State' },
-    { level: 2, name: 'District' },
-    { level: 3, name: 'Block' },
-    { level: 4, name: 'Panchayat' },
-    { level: 5, name: 'Village' },
-  ],
-  departmentHierarchy: [
-    { level: 1, name: 'State' },
-    { level: 2, name: 'Zone' },
-    { level: 3, name: 'Circle' },
-    { level: 4, name: 'Division' },
-    { level: 5, name: 'Sub-division' },
-  ],
   supportedChannels: ['IOT', 'Manual'],
   logoUrl: undefined,
   meterChangeReasons: [
@@ -45,20 +31,6 @@ const configuredConfig = {
 
 const unconfiguredConfig = {
   id: '',
-  lgdHierarchy: [
-    { level: 1, name: 'State' },
-    { level: 2, name: 'District' },
-    { level: 3, name: 'Block' },
-    { level: 4, name: 'Panchayat' },
-    { level: 5, name: 'Village' },
-  ],
-  departmentHierarchy: [
-    { level: 1, name: 'State' },
-    { level: 2, name: 'Zone' },
-    { level: 3, name: 'Circle' },
-    { level: 4, name: 'Division' },
-    { level: 5, name: 'Sub-division' },
-  ],
   supportedChannels: [],
   logoUrl: undefined,
   meterChangeReasons: [
@@ -105,8 +77,6 @@ describe('ConfigurationPage', () => {
   it('renders view mode when configured', () => {
     renderWithProviders(<ConfigurationPage />)
 
-    expect(screen.getByText('LGD Hierarchy')).toBeTruthy()
-    expect(screen.getByText('Department Hierarchy')).toBeTruthy()
     expect(screen.getByText('Supported Channels')).toBeTruthy()
     expect(screen.getByText('Meter Change Reasons')).toBeTruthy()
     expect(screen.getByText('Record Location')).toBeTruthy()
@@ -168,31 +138,6 @@ describe('ConfigurationPage', () => {
     })
   })
 
-  it('shows validation error when a hierarchy level name is empty on save', async () => {
-    mockUseConfigurationQuery.mockReturnValue({
-      data: {
-        ...unconfiguredConfig,
-        supportedChannels: ['IOT'],
-        lgdHierarchy: [
-          { level: 1, name: '' },
-          { level: 2, name: 'District' },
-          { level: 3, name: 'Block' },
-          { level: 4, name: 'Panchayat' },
-          { level: 5, name: 'Village' },
-        ],
-      },
-      isLoading: false,
-      isError: false,
-    })
-    renderWithProviders(<ConfigurationPage />)
-
-    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
-
-    await waitFor(() => {
-      expect(mockMutateAsync).not.toHaveBeenCalled()
-    })
-  })
-
   it('calls mutateAsync with correct payload on save', async () => {
     mockMutateAsync.mockResolvedValue({ ...configuredConfig })
     renderWithProviders(<ConfigurationPage />)
@@ -203,7 +148,6 @@ describe('ConfigurationPage', () => {
     await waitFor(() => {
       expect(mockMutateAsync).toHaveBeenCalledWith(
         expect.objectContaining({
-          lgdHierarchy: configuredConfig.lgdHierarchy,
           supportedChannels: configuredConfig.supportedChannels,
           isConfigured: true,
         })

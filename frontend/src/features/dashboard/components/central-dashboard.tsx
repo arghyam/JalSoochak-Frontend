@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { Box, Flex, Text, Heading, Grid, Icon, Image } from '@chakra-ui/react'
+import { Box, Flex, Text, Heading, Grid, Icon, Image, useBreakpointValue } from '@chakra-ui/react'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDashboardData } from '../hooks/use-dashboard-data'
 import { useLocationChildrenQuery } from '../services/query/use-location-children-query'
@@ -20,16 +21,10 @@ import { IndiaMapChart } from './charts'
 import { LoadingSpinner } from '@/shared/components/common'
 import { useAuthStore } from '@/app/store'
 import { MdOutlineWaterDrop } from 'react-icons/md'
-import { LuClock3 } from 'react-icons/lu'
 import waterTapIcon from '@/assets/media/water-tap_1822589 1.svg'
+import wallClockIcon from '@/assets/media/wall-clock.svg'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
-import type {
-  EntityPerformance,
-  OutageReasonSchemeCount,
-  OutageReasonsResponse,
-  ReadingComplianceData,
-  WaterSupplyOutageData,
-} from '../types'
+import type { EntityPerformance, ReadingComplianceData } from '../types'
 import { DashboardFilters } from './filters/dashboard-filters'
 import { OverallPerformanceTable } from './tables'
 import { ROUTES } from '@/shared/constants/routes'
@@ -86,6 +81,8 @@ type StoredFilters = {
   filterTabIndex?: number
 }
 
+type LocationOption = SearchableSelectOption & { locationId?: number }
+
 const getOwnLookupValue = <T,>(record: Record<string, T>, key: string, fallback: T): T => {
   if (Object.prototype.hasOwnProperty.call(record, key)) {
     return record[key] as T
@@ -106,6 +103,29 @@ const getFirstRecordValue = <T,>(record: Record<string, T>, fallback: T): T => {
 const isUnsafeLookupKey = (key: string) =>
   key === '__proto__' || key === 'prototype' || key === 'constructor'
 
+const parseLocationId = (value: string): number | undefined => {
+  if (!value) {
+    return undefined
+  }
+
+  const idPrefix = value.split(LOCATION_VALUE_SEPARATOR, 1)[0]
+  const parsedId = Number.parseInt(idPrefix, 10)
+  return Number.isFinite(parsedId) ? parsedId : undefined
+}
+
+const normalizeMockLookupKey = (value: string): string => {
+  if (!value) {
+    return ''
+  }
+
+  const separatorIndex = value.indexOf(LOCATION_VALUE_SEPARATOR)
+  const rawKey = separatorIndex >= 0 ? value.slice(separatorIndex + 1) : value
+  if (isUnsafeLookupKey(rawKey)) {
+    return rawKey
+  }
+  return slugify(rawKey)
+}
+
 const getLookupValueWithFallback = <T,>(
   record: Record<string, T>,
   key: string,
@@ -123,116 +143,27 @@ const getLookupValueWithFallback = <T,>(
   return getOwnLookupValue(record, key, emptyFallback)
 }
 
-const getStoredFilters = (): StoredFilters => {
-  if (typeof window === 'undefined') return {}
-  try {
-    const saved = window.localStorage.getItem(storageKey)
-    if (!saved) return {}
-    const parsed = JSON.parse(saved) as StoredFilters
-    return parsed && typeof parsed === 'object' ? parsed : {}
-  } catch {
-    try {
-      window.localStorage.removeItem(storageKey)
-    } catch {
-      // Ignore storage errors (quota/private mode)
-    }
-    return {}
-  }
-}
-
-const toStateSlug = (stateName: string) =>
-  stateName
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-
-const normalizeMockLookupKey = (value: string) => {
-  if (!value) {
-    return ''
+const toIsoDate = (date?: string | Date | null): string | undefined => {
+  if (typeof date === 'string') {
+    return date || undefined
   }
 
-  const normalizedValue = value.includes(':') ? value.split(':').slice(1).join(':') : value
-  return normalizedValue.trim().toLowerCase()
-}
-
-const parseLocationId = (value: string): number | undefined => {
-  if (!value) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
     return undefined
   }
 
-  const idPrefix = value.split(LOCATION_VALUE_SEPARATOR, 1)[0]
-  const parsedId = Number.parseInt(idPrefix, 10)
-  return Number.isFinite(parsedId) ? parsedId : undefined
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
-type LocationOption = {
-  value: string
-  label: string
-  locationId?: number
-}
+const getDefaultAnalyticsDateRange = () => {
+  const endDate = new Date()
+  const startDate = new Date(endDate)
+  startDate.setDate(endDate.getDate() - 29)
 
-const toStableLocationValue = (locationId: number, label: string): string =>
-  `${locationId}${LOCATION_VALUE_SEPARATOR}${slugify(label)}`
-
-const mapLocationOptions = (locations: TenantChildLocation[] | undefined): LocationOption[] => {
-  if (!locations?.length) {
-    return []
+  return {
+    startDate: toIsoDate(startDate) ?? '',
+    endDate: toIsoDate(endDate) ?? '',
   }
-
-  return locations
-    .filter((location) => typeof location.id === 'number' && Boolean(location.title?.trim()))
-    .map((location) => {
-      const locationId = location.id as number
-      const normalizedTitle = toCapitalizedWords(location.title?.trim() ?? '')
-
-      return {
-        value: toStableLocationValue(locationId, normalizedTitle),
-        label: normalizedTitle,
-        locationId,
-      }
-    })
-}
-
-const findLocationOption = (
-  options: LocationOption[],
-  selectedValue: string
-): LocationOption | undefined => {
-  if (!selectedValue) {
-    return undefined
-  }
-
-  const selectedId = parseLocationId(selectedValue)
-  if (typeof selectedId === 'number') {
-    return options.find((option) => option.locationId === selectedId)
-  }
-
-  return options.find(
-    (option) => option.value === selectedValue || slugify(option.label) === selectedValue
-  )
-}
-
-const toIsoDate = (value?: string | null): string | null => {
-  if (!value) {
-    return null
-  }
-
-  const parts = value.split('/')
-  if (parts.length === 3) {
-    const [day, month, year] = parts
-    if (year && month && day) {
-      return `${year}-${month}-${day}`
-    }
-  }
-
-  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null
-}
-
-const formatDateForApi = (date: Date) => {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
 }
 
 const formatReadingComplianceTimestamp = (value?: string | null) => {
@@ -262,85 +193,130 @@ const formatReadingComplianceTimestamp = (value?: string | null) => {
   return `${datePart.replace(/\//g, '-')}, ${hour}:${minute}${dayPeriod}`
 }
 
-const getDefaultAnalyticsDateRange = () => {
-  const endDate = new Date()
-  const startDate = new Date(endDate)
-  startDate.setDate(endDate.getDate() - 29)
-
-  return {
-    startDate: formatDateForApi(startDate),
-    endDate: formatDateForApi(endDate),
+const getStoredFilters = (): StoredFilters => {
+  if (typeof window === 'undefined') return {}
+  try {
+    const saved = window.localStorage.getItem(storageKey)
+    if (!saved) return {}
+    const parsed = JSON.parse(saved) as StoredFilters
+    return parsed && typeof parsed === 'object' ? parsed : {}
+  } catch {
+    try {
+      window.localStorage.removeItem(storageKey)
+    } catch {
+      // Ignore storage errors (quota/private mode)
+    }
+    return {}
   }
 }
 
-const emptyOutageReasons: WaterSupplyOutageData = {
-  label: 'Outages',
-  electricityFailure: 0,
-  pipelineLeak: 0,
-  pumpFailure: 0,
-  valveIssue: 0,
-  sourceDrying: 0,
-}
+const toStateSlug = (stateName: string) =>
+  stateName
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
 
-const normalizeOutageReasonKey = (value: string) => value.replace(/[^a-z]/gi, '').toLowerCase()
-
-const toOutageReasonsData = (
-  outageReasonSchemeCount: OutageReasonSchemeCount | undefined
-): WaterSupplyOutageData => {
-  if (!outageReasonSchemeCount) {
-    return emptyOutageReasons
+const findLocationOption = (
+  options: LocationOption[],
+  selectedValue: string
+): LocationOption | undefined => {
+  if (!selectedValue) {
+    return undefined
   }
 
-  return Object.entries(outageReasonSchemeCount).reduce<WaterSupplyOutageData>(
-    (acc, [key, value]) => {
-      const numericValue = typeof value === 'number' && Number.isFinite(value) ? value : 0
+  const selectedId = parseLocationId(selectedValue)
+  if (typeof selectedId === 'number') {
+    return options.find((option) => option.locationId === selectedId)
+  }
 
-      switch (normalizeOutageReasonKey(key)) {
-        case 'electricityfailure':
-        case 'electricalfailure':
-        case 'powerfailure':
-          acc.electricityFailure += numericValue
-          break
-        case 'pipelineleak':
-        case 'pipelinebreak':
-        case 'pipebreak':
-          acc.pipelineLeak += numericValue
-          break
-        case 'pumpfailure':
-          acc.pumpFailure += numericValue
-          break
-        case 'valveissue':
-          acc.valveIssue += numericValue
-          break
-        case 'sourcedrying':
-        case 'sourcedry':
-          acc.sourceDrying += numericValue
-          break
-        default:
-          break
-      }
-
-      return acc
-    },
-    { ...emptyOutageReasons }
+  return options.find(
+    (option) => option.value === selectedValue || slugify(option.label) === selectedValue
   )
 }
 
-const toOutageDistributionData = (
-  childRegions: OutageReasonsResponse['childRegions'] | undefined
-): WaterSupplyOutageData[] => {
-  if (!childRegions?.length) {
+const mapLocationOptions = (locations: TenantChildLocation[] | undefined): LocationOption[] => {
+  if (!locations?.length) {
     return []
   }
 
-  return childRegions.map((childRegion) => ({
-    ...toOutageReasonsData(childRegion.outageReasonSchemeCount),
-    label: childRegion.title,
-  }))
+  return locations
+    .filter((location) => typeof location.id === 'number' && Boolean(location.title?.trim()))
+    .map((location) => {
+      const locationId = location.id as number
+      const normalizedTitle = toCapitalizedWords(location.title?.trim() ?? '')
+      return {
+        value: `${locationId}${LOCATION_VALUE_SEPARATOR}${slugify(normalizedTitle)}`,
+        label: normalizedTitle,
+        locationId,
+      }
+    })
 }
+
+const getOutageReasonCount = (distribution: Record<string, number>, keys: string[]) =>
+  keys.reduce((total, key) => {
+    const value = distribution[key]
+    return total + (typeof value === 'number' && Number.isFinite(value) ? value : 0)
+  }, 0)
+
+const toOutageReasonsData = (distribution: Record<string, number>) => ({
+  label: 'Outages',
+  electricityFailure: getOutageReasonCount(distribution, [
+    'electrical_failure',
+    'electricity_failure',
+    'electricalFailure',
+    'electricityFailure',
+    'power_failure',
+    'powerFailure',
+  ]),
+  pipelineLeak: getOutageReasonCount(distribution, [
+    'pipeline_break',
+    'pipelineBreak',
+    'pipeline_leak',
+    'pipelineLeak',
+    'pipe_break',
+    'pipeBreak',
+  ]),
+  pumpFailure: getOutageReasonCount(distribution, ['pump_failure', 'pumpFailure']),
+  valveIssue: getOutageReasonCount(distribution, ['valve_issue', 'valveIssue']),
+  sourceDrying: getOutageReasonCount(distribution, [
+    'source_drying',
+    'sourceDrying',
+    'source_dry',
+    'sourceDry',
+  ]),
+})
+
+const toOutageDistributionData = (
+  childRegions: Array<{ title: string; outageReasonSchemeCount: Record<string, number> }>
+) =>
+  childRegions.map((region) => ({
+    ...toOutageReasonsData(region.outageReasonSchemeCount),
+    label: region.title,
+  }))
+
+const formulaTooltipTextStyle = {
+  fontSize: '12px',
+  lineHeight: '18px',
+} as const
+
+const renderFormulaTooltip = (formula: ReactNode, definitions: ReactNode[]) => (
+  <Box w="296px" minH="80px">
+    <Text sx={formulaTooltipTextStyle} mb="8px">
+      {formula}
+    </Text>
+    {definitions.map((definition, index) => (
+      <Text key={index} sx={formulaTooltipTextStyle}>
+        {definition}
+      </Text>
+    ))}
+  </Box>
+)
 
 export function CentralDashboard() {
   const { t, i18n } = useTranslation('dashboard')
+  const overallPerformanceScrollHeight =
+    useBreakpointValue({ base: '320px', sm: '420px', lg: '620px' }) ?? '620px'
   const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -1153,8 +1129,20 @@ export function CentralDashboard() {
       },
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#E6F7EC" align="center" justify="center">
-          <Image src={waterTapIcon} alt="" boxSize="24px" />
+          <Image src={waterTapIcon} alt="" w="24px" h="24px" />
         </Flex>
+      ),
+      tooltipContent: renderFormulaTooltip(
+        <>
+          Quantity (MLD) = SUM(W<sub>k</sub>) / N
+        </>,
+        [
+          <>
+            W<sub>k</sub> = water quantity supplied on day k
+          </>,
+          <>SUM(Wk) = total water supplied across all days</>,
+          <>N = total number of days</>,
+        ]
       ),
     },
     {
@@ -1172,8 +1160,23 @@ export function CentralDashboard() {
       },
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
-          <Icon as={MdOutlineWaterDrop} boxSize="22px" color="#2E90FA" />
+          <Icon as={MdOutlineWaterDrop} w="24px" h="24px" color="#2E90FA" />
         </Flex>
+      ),
+      tooltipContent: renderFormulaTooltip(
+        <>
+          Quantity (LPCD) = SUM(W<sub>k</sub>) / (SUM(HC<sub>i</sub>) x P x N)
+        </>,
+        [
+          <>
+            W<sub>k</sub> = water quantity supplied on day k
+          </>,
+          <>
+            HC<sub>i</sub> = household count of scheme i
+          </>,
+          <>P = average persons per household</>,
+          <>N = number of days</>,
+        ]
       ),
     },
     {
@@ -1191,8 +1194,19 @@ export function CentralDashboard() {
       },
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#FFF4CC" align="center" justify="center">
-          <Icon as={LuClock3} boxSize="22px" color="#CA8A04" />
+          <Image src={wallClockIcon} alt="" w="24px" h="24px" />
         </Flex>
+      ),
+      tooltipContent: renderFormulaTooltip(
+        <>
+          Regularity of scheme = X<sub>i</sub> / N
+        </>,
+        [
+          <>
+            X<sub>i</sub> = number of supply-days of scheme i
+          </>,
+          <>N = total number of days in the selected time period</>,
+        ]
       ),
     },
   ] as const
@@ -1254,7 +1268,11 @@ export function CentralDashboard() {
       />
 
       {/* KPI Cards */}
-      <Grid templateColumns={{ base: '1fr', lg: 'repeat(3, 1fr)' }} gap={4} mb={6}>
+      <Grid
+        templateColumns={{ base: '1fr', md: 'repeat(auto-fit, minmax(240px, 1fr))' }}
+        gap={4}
+        mb={6}
+      >
         {coreMetrics.map((metric) => (
           <KPICard
             key={metric.label}
@@ -1262,6 +1280,7 @@ export function CentralDashboard() {
             value={metric.value}
             icon={metric.icon}
             trend={metric.trend}
+            tooltipContent={metric.tooltipContent}
           />
         ))}
       </Grid>
@@ -1279,7 +1298,8 @@ export function CentralDashboard() {
             pl="16px"
             pr="16px"
             w="full"
-            h="710px"
+            h={{ base: '420px', sm: '520px', lg: '710px' }}
+            minW={0}
           >
             <IndiaMapChart
               data={data.mapData}
@@ -1298,7 +1318,8 @@ export function CentralDashboard() {
             pl="16px"
             pr="16px"
             w="full"
-            h="710px"
+            h={{ base: '420px', sm: '520px', lg: '710px' }}
+            minW={0}
           >
             <Text textStyle="bodyText3" fontWeight="400" mb={4}>
               {t('overallPerformance.title', { defaultValue: 'Overall Performance' })}
@@ -1306,7 +1327,7 @@ export function CentralDashboard() {
             <OverallPerformanceTable
               data={overallPerformanceTableData}
               entityLabel={overallPerformanceEntityLabel}
-              scrollMaxHeight="620px"
+              scrollMaxHeight={overallPerformanceScrollHeight}
             />
           </Box>
         </Grid>

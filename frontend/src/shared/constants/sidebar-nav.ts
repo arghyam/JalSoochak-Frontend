@@ -13,10 +13,10 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
   },
   {
     type: 'simple',
-    path: ROUTES.SUPER_ADMIN_SYSTEM_RULES,
-    labelKey: 'sidebar.systemRules',
+    path: ROUTES.SUPER_ADMIN_CONFIGURATION,
+    labelKey: 'sidebar.configuration',
     roles: [AUTH_ROLES.SUPER_ADMIN],
-    icon: 'AiOutlineSetting',
+    icon: 'IoSettingsOutline',
   },
   {
     type: 'expandable',
@@ -74,6 +74,13 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
   },
   {
     type: 'simple',
+    path: ROUTES.STATE_ADMIN_HIERARCHY,
+    labelKey: 'sidebar.hierarchy',
+    roles: [AUTH_ROLES.STATE_ADMIN],
+    icon: 'PiTreeStructure',
+  },
+  {
+    type: 'simple',
     path: ROUTES.STATE_ADMIN_LANGUAGE,
     labelKey: 'sidebar.language',
     roles: [AUTH_ROLES.STATE_ADMIN],
@@ -102,8 +109,8 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
   },
   {
     type: 'simple',
-    path: ROUTES.STATE_ADMIN_NUDGES,
-    labelKey: 'sidebar.nudgesTemplate',
+    path: ROUTES.STATE_ADMIN_TEMPLATES,
+    labelKey: 'sidebar.templates',
     roles: [AUTH_ROLES.STATE_ADMIN],
     icon: 'HiOutlineTemplate',
   },
@@ -121,11 +128,11 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
     roles: [AUTH_ROLES.STATE_ADMIN],
     icon: 'BsPeople',
   },
-  {
-    type: 'simple',
-    path: ROUTES.STATE_ADMIN_ACTIVITY,
-    labelKey: 'sidebar.activity',
-    roles: [AUTH_ROLES.STATE_ADMIN],
-    icon: 'BsListUl',
-  },
+  // {
+  //   type: 'simple',
+  //   path: ROUTES.STATE_ADMIN_ACTIVITY,
+  //   labelKey: 'sidebar.activity',
+  //   roles: [AUTH_ROLES.STATE_ADMIN],
+  //   icon: 'BsListUl',
+  // },
 ]

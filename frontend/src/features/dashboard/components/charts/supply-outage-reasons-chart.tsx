@@ -71,7 +71,7 @@ export function SupplyOutageReasonsChart({
     [data]
   )
 
-  const option = useMemo<echarts.EChartsOption>(() => {
+  const option: echarts.EChartsOption = useMemo(() => {
     const totalOutages =
       totals.electricityFailure +
       totals.pipelineLeak +
@@ -83,6 +83,26 @@ export function SupplyOutageReasonsChart({
       tooltip: {
         show: true,
         trigger: 'item',
+        confine: true,
+        position: (point, _params, _el, _rect, size) => {
+          const viewWidth = size.viewSize[0]
+          const viewHeight = size.viewSize[1]
+          const contentWidth = size.contentSize[0]
+          const contentHeight = size.contentSize[1]
+          const spacingX = 12
+          const spacingY = 12
+          const hoverX = point[0] ?? viewWidth / 2
+          const hoverY = point[1] ?? viewHeight / 2
+
+          const preferredX = hoverX + spacingX
+          const fallbackX = hoverX - contentWidth - spacingX
+          const preferredY = hoverY - contentHeight / 2
+
+          return [
+            preferredX + contentWidth <= viewWidth ? preferredX : Math.max(spacingX, fallbackX),
+            Math.max(spacingY, Math.min(preferredY, viewHeight - contentHeight - spacingY)),
+          ]
+        },
         formatter: (params: unknown) => {
           const point = params as { name?: string; value?: number | string }
           const rawValue =

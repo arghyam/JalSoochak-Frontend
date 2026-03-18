@@ -7,10 +7,17 @@ export const superAdminQueryKeys = {
     [...superAdminQueryKeys.all, 'ingestion-monitor', stateFilter, timeFilter] as const,
   apiCredentials: () => [...superAdminQueryKeys.all, 'api-credentials'] as const,
   statesUTs: () => [...superAdminQueryKeys.all, 'states-uts'] as const,
-  stateAdmins: () => [...superAdminQueryKeys.all, 'state-admins'] as const,
-  stateUTById: (id: string) => [...superAdminQueryKeys.statesUTs(), id] as const,
+  statesUTsPaged: (page: number, size: number) =>
+    [...superAdminQueryKeys.all, 'states-uts', page, size] as const,
+  stateAdmins: (page: number, size: number) =>
+    [...superAdminQueryKeys.all, 'state-admins', page, size] as const,
+  stateAdminsByTenant: (tenantCode: string) =>
+    [...superAdminQueryKeys.all, 'state-admins', 'by-tenant', tenantCode] as const,
   assignedStateNames: () => [...superAdminQueryKeys.statesUTs(), 'assigned-state-names'] as const,
   stateUTOptions: () => [...superAdminQueryKeys.statesUTs(), 'options'] as const,
-  superUsers: () => [...superAdminQueryKeys.all, 'super-users'] as const,
-  superUserById: (id: string) => [...superAdminQueryKeys.superUsers(), id] as const,
+  superUsers: (page: number, size: number) =>
+    [...superAdminQueryKeys.all, 'super-users', page, size] as const,
+  superUserById: (id: string) => [...superAdminQueryKeys.all, 'super-users', id] as const,
+  systemConfiguration: () => [...superAdminQueryKeys.all, 'system-configuration'] as const,
+  tenantsSummary: () => [...superAdminQueryKeys.all, 'tenants-summary'] as const,
 }

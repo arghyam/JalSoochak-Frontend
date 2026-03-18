@@ -2,15 +2,7 @@ import { screen } from '@testing-library/react'
 import { describe, expect, it, jest, beforeEach } from '@jest/globals'
 import { OverviewPage } from './overview-page'
 import { renderWithProviders } from '@/test/render-with-providers'
-import type { OverviewData } from '../../types/overview'
-
-jest.mock('@/shared/components/charts/line-chart', () => ({
-  LineChart: () => <div data-testid="line-chart" />,
-}))
-
-jest.mock('@/shared/components/charts/supply-outage-distribution-chart', () => ({
-  SupplyOutageDistributionChart: () => <div data-testid="supply-outage-distribution-chart" />,
-}))
+import type { OverviewData, StaffCountsData } from '../../types/overview'
 
 const mockQueryState: {
   data: OverviewData | undefined
@@ -22,12 +14,27 @@ const mockQueryState: {
   isError: false,
 }
 
-const mockAuthState: { user: { tenantId: string } | null } = {
-  user: { tenantId: 'Telangana' },
+const mockStaffCountsState: {
+  data: StaffCountsData | undefined
+  isLoading: boolean
+  isError: boolean
+} = {
+  data: {
+    totalStaff: 243,
+    pumpOperators: 120,
+    totalAdmins: 15,
+  },
+  isLoading: false,
+  isError: false,
+}
+
+const mockAuthState: { user: { tenantCode: string } | null } = {
+  user: { tenantCode: 'TG' },
 }
 
 jest.mock('../../services/query/use-state-admin-queries', () => ({
   useStateAdminOverviewQuery: () => mockQueryState,
+  useStaffCountsQuery: () => mockStaffCountsState,
 }))
 
 jest.mock('@/app/store', () => ({
@@ -36,48 +43,22 @@ jest.mock('@/app/store', () => ({
 
 const mockOverviewData: OverviewData = {
   stats: {
-    configurationStatus: { value: '8/10', subtitle: '80% complete' },
-    activeStaff: { value: 243, subtitle: '+12 this month' },
     activeSchemes: { value: 57, subtitle: '3 new this week' },
-    activeIntegrations: { value: 4, subtitle: 'All systems active' },
   },
-  demandSupplyData: [
-    { period: '2023', Demand: 1200, Supply: 950 },
-    { period: '2024', Demand: 1350, Supply: 1100 },
-  ],
-  dailyIngestionData: [
-    { day: 'Mon', count: 420 },
-    { day: 'Tue', count: 380 },
-  ],
-  waterSupplyOutages: [
-    {
-      label: 'District A',
-      electricityFailure: 5,
-      pipelineLeak: 3,
-      pumpFailure: 2,
-      valveIssue: 1,
-      sourceDrying: 0,
-    },
-    {
-      label: 'District B',
-      electricityFailure: 2,
-      pipelineLeak: 7,
-      pumpFailure: 4,
-      valveIssue: 3,
-      sourceDrying: 1,
-    },
-  ],
 }
 
 beforeEach(() => {
   mockQueryState.data = mockOverviewData
   mockQueryState.isLoading = false
   mockQueryState.isError = false
-  mockAuthState.user = { tenantId: 'Telangana' }
+  mockStaffCountsState.data = { totalStaff: 243, pumpOperators: 120, totalAdmins: 15 }
+  mockStaffCountsState.isLoading = false
+  mockStaffCountsState.isError = false
+  mockAuthState.user = { tenantCode: 'TG' }
 })
 
 describe('data state', () => {
-  it('renders the page heading with tenantId', () => {
+  it('renders the page heading with state name derived from tenantCode', () => {
     renderWithProviders(<OverviewPage />)
     expect(screen.getByRole('heading', { level: 1 })).toBeTruthy()
     expect(screen.getByText(/Overview of Telangana/i)).toBeTruthy()
@@ -85,36 +66,18 @@ describe('data state', () => {
 
   it('renders all four stat card titles', () => {
     renderWithProviders(<OverviewPage />)
-    expect(screen.getByText('Configuration Status')).toBeTruthy()
-    expect(screen.getByText('Active Staff')).toBeTruthy()
+    expect(screen.getByText('Total Staff')).toBeTruthy()
+    expect(screen.getByText('Total Pump Operators')).toBeTruthy()
+    expect(screen.getByText('Total Admins')).toBeTruthy()
     expect(screen.getByText('Active Schemes')).toBeTruthy()
-    expect(screen.getByText('Active Integrations')).toBeTruthy()
   })
 
   it('renders stat card values', () => {
     renderWithProviders(<OverviewPage />)
-    expect(screen.getByText('8/10')).toBeTruthy()
     expect(screen.getByText('243')).toBeTruthy()
+    expect(screen.getByText('120')).toBeTruthy()
+    expect(screen.getByText('15')).toBeTruthy()
     expect(screen.getByText('57')).toBeTruthy()
-    expect(screen.getByText('4')).toBeTruthy()
-  })
-
-  it('renders stat card subtitles', () => {
-    renderWithProviders(<OverviewPage />)
-    expect(screen.getByText('80% complete')).toBeTruthy()
-    expect(screen.getByText('+12 this month')).toBeTruthy()
-    expect(screen.getByText('3 new this week')).toBeTruthy()
-    expect(screen.getByText('All systems active')).toBeTruthy()
-  })
-
-  it('renders the Water Supply Outages chart section heading', () => {
-    renderWithProviders(<OverviewPage />)
-    expect(screen.getByText('Water Supply Outages')).toBeTruthy()
-  })
-
-  it('renders the Demand vs Supply chart section heading', () => {
-    renderWithProviders(<OverviewPage />)
-    expect(screen.getByText('Demand vs Supply')).toBeTruthy()
   })
 
   it('renders stats section with aria-label', () => {
@@ -131,20 +94,35 @@ describe('loading state', () => {
     renderWithProviders(<OverviewPage />)
 
     expect(screen.getByRole('status')).toBeTruthy()
-    expect(screen.getByText('Loading...', { selector: 'p' })).toBeTruthy()
+    expect(screen.queryByRole('heading', { level: 1 })).toBeNull()
+  })
 
+  it('renders loading spinner when staff counts are loading', () => {
+    mockStaffCountsState.data = undefined
+    mockStaffCountsState.isLoading = true
+
+    renderWithProviders(<OverviewPage />)
+
+    expect(screen.getByRole('status')).toBeTruthy()
     expect(screen.queryByRole('heading', { level: 1 })).toBeNull()
   })
 })
 
 describe('error state', () => {
-  it('renders error message and suppresses page content', () => {
+  it('renders error message and suppresses page content when overview query fails', () => {
     mockQueryState.isError = true
     mockQueryState.data = undefined
 
     renderWithProviders(<OverviewPage />)
 
-    expect(screen.getByText('Failed to load configuration')).toBeTruthy()
+    expect(screen.queryByRole('heading', { level: 1 })).toBeNull()
+  })
+
+  it('renders error message and suppresses page content when staff counts query fails', () => {
+    mockStaffCountsState.isError = true
+    mockStaffCountsState.data = undefined
+
+    renderWithProviders(<OverviewPage />)
 
     expect(screen.queryByRole('heading', { level: 1 })).toBeNull()
   })
@@ -164,8 +142,8 @@ describe('null/no data state', () => {
 })
 
 describe('fallback heading', () => {
-  it('renders fallback title when user has no tenantId', () => {
-    mockAuthState.user = null
+  it('renders fallback title when user has no tenantCode', () => {
+    mockAuthState.user = { tenantCode: '' }
 
     renderWithProviders(<OverviewPage />)
 

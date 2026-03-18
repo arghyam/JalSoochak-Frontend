@@ -24,6 +24,7 @@
   "status": {
     "active": "सक्रिय",
     "inactive": "निष्क्रिय",
+    "pending": "लंबित",
     "successful": "सफल",
     "failed": "विफल",
     "warning": "चेतावनी",
@@ -41,7 +42,9 @@
     "passwordCreateFailed": "पासवर्ड बनाने में विफल।",
     "profileUpdated": "प्रोफ़ाइल सफलतापूर्वक अपडेट की गई।",
     "profileUpdateFailed": "प्रोफ़ाइल अपडेट करने में विफल।",
-    "sessionExpired": "सत्र समाप्त हो गया। कृपया पुनः आमंत्रण लिंक का उपयोग करें।"
+    "sessionExpired": "सत्र समाप्त हो गया। कृपया पुनः आमंत्रण लिंक का उपयोग करें।",
+    "reinviteSent": "आमंत्रण पुनः भेजा गया",
+    "reinviteFailed": "आमंत्रण पुनः भेजने में विफल"
   },
 
   "sidebar": {
@@ -58,10 +61,12 @@
     "escalations": "वृद्धि",
     "thresholds": "सीमाएं",
     "nudgesTemplate": "नज टेम्पलेट",
+    "templates": "टेम्पलेट",
     "apiIngestion": "API अंतर्ग्रहण",
     "operatorSync": "ऑपरेटर सिंक",
     "staffSync": "स्टाफ सिंक",
     "configuration": "कॉन्फ़िगरेशन",
+    "hierarchy": "पदानुक्रम",
     "activity": "गतिविधि",
     "stateUtAdmins": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक",
     "superUsers": "सुपर उपयोगकर्ता",

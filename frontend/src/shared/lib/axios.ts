@@ -5,18 +5,25 @@ import { getApiBaseUrl } from '@/config/runtime-config'
 export const apiClient = axios.create({
   baseURL: getApiBaseUrl(),
   timeout: 30000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 })
 
+// Auth endpoints that should not receive the Authorization header
+const AUTH_ENDPOINTS = ['/api/v1/auth/login', '/api/v1/auth/refresh', '/api/v1/auth/logout']
+
 // Request interceptor to add access token
 apiClient.interceptors.request.use(
   (config) => {
-    const accessToken = useAuthStore.getState().accessToken
-    if (accessToken) {
-      config.headers = config.headers ?? {}
-      config.headers.Authorization = `Bearer ${accessToken}`
+    const isAuthEndpoint = AUTH_ENDPOINTS.some((ep) => config.url?.includes(ep))
+    if (!isAuthEndpoint) {
+      const accessToken = useAuthStore.getState().accessToken
+      if (accessToken) {
+        config.headers = config.headers ?? {}
+        config.headers.Authorization = `Bearer ${accessToken}`
+      }
     }
     return config
   },
@@ -43,20 +50,15 @@ apiClient.interceptors.response.use(
 
     // Do not attempt refresh for auth endpoints themselves
     if (
-      originalRequest?.url?.includes('/api/v2/auth/login') ||
-      originalRequest?.url?.includes('/api/v2/auth/refresh') ||
-      originalRequest?.url?.includes('/api/v2/auth/register') ||
+      originalRequest?.url?.includes('/api/v1/auth/login') ||
+      originalRequest?.url?.includes('/api/v1/auth/refresh') ||
+      originalRequest?.url?.includes('/api/v1/auth/register') ||
       originalRequest?._retry
     ) {
       return Promise.reject(error)
     }
 
-    // If we don't have a refresh token, nothing to refresh
-    const { refreshToken, setSessionExpired } = useAuthStore.getState()
-    if (!refreshToken) {
-      setSessionExpired()
-      return Promise.reject(error)
-    }
+    const { setSessionExpired } = useAuthStore.getState()
 
     // Mark request as retry to prevent infinite loops
     originalRequest._retry = true

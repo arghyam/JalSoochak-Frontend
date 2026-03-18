@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Box, Flex, Image } from '@chakra-ui/react'
+import { Box, Flex, Image, useMediaQuery } from '@chakra-ui/react'
 import jalsoochakLogo from '@/assets/media/jalsoochak-logo.svg'
 import { AuthSideImage } from '@/features/auth/components/signup/auth-side-image'
 import { SignupPage } from '@/features/auth/components/signup/signup-page'
@@ -17,6 +17,7 @@ type SignupFlowPageProps = {
 
 export function SignupFlowPage({ initialStep = 'signup' }: SignupFlowPageProps) {
   const [step, setStep] = useState<SignupStep>(initialStep)
+  const [showBannerImage] = useMediaQuery('(min-width: 992px)')
   const location = useLocation()
   const state = location.state as { email?: string; userId?: string } | null
   const email = state?.email ?? ''
@@ -46,14 +47,15 @@ export function SignupFlowPage({ initialStep = 'signup' }: SignupFlowPageProps) 
   return (
     <Flex minH="100vh" w="full" direction={{ base: 'column', md: 'row' }} bg="white">
       <Flex
-        w={{ base: '100%', md: '50%' }}
+        w={showBannerImage ? '50%' : '100%'}
+        minH="100vh"
         align="stretch"
         justify="flex-start"
         bg="white"
         px={{ base: 10, md: 8 }}
         py={{ base: 10, md: 8 }}
       >
-        <Flex w="full" direction="column">
+        <Flex w="full" minH="full" direction="column">
           {showLogo ? (
             <Box w="full" maxW="420px">
               <Image
@@ -74,7 +76,7 @@ export function SignupFlowPage({ initialStep = 'signup' }: SignupFlowPageProps) 
         </Flex>
       </Flex>
 
-      <AuthSideImage />
+      <AuthSideImage isVisible={showBannerImage} />
 
       <ToastContainer
         toasts={toast.toasts}

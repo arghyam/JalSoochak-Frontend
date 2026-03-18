@@ -8,11 +8,11 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <Flex minH="100vh" direction="column" bg="neutral.50">
+    <Flex minH="100vh" direction="column" bg="neutral.50" overflowX="hidden">
       <Header />
 
-      <Box as="main" flex="1" overflowY="auto" px={{ base: '40px', md: '80px' }} pb="48px">
-        <Box w="full" maxW="1440px" mx="auto">
+      <Box as="main" flex="1" overflowX="hidden" px={{ base: '40px', md: '80px' }} pb="24px">
+        <Box w="full" maxW="1440px" mx="auto" minW={0}>
           {children}
         </Box>
       </Box>

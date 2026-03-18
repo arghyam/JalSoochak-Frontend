@@ -92,10 +92,13 @@ export function SchemePerformanceTable({
         overflowY="auto"
         overflowX="auto"
         w="full"
+        maxW="100%"
         minW={0}
         pr={2}
+        pb={2}
         sx={{
-          '&::-webkit-scrollbar': { width: '4px' },
+          WebkitOverflowScrolling: 'touch',
+          '&::-webkit-scrollbar': { width: '4px', height: '4px' },
           '&::-webkit-scrollbar-track': { bg: 'neutral.100', borderRadius: '999px' },
           '&::-webkit-scrollbar-thumb': {
             bg: 'neutral.300',

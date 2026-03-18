@@ -118,13 +118,14 @@ export function ActiveSchemesChart({
   }, [data, localizedLegendLabel])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
-  const chartSize = 350
+  const chartSize = 300
 
   return (
     <div
       className={className}
       style={{
         width: '100%',
+        minWidth: 0,
         height: containerHeight,
         display: 'flex',
         flexDirection: 'column',
@@ -135,7 +136,8 @@ export function ActiveSchemesChart({
         style={{
           width: '100%',
           maxWidth: '594px',
-          height: '336px',
+          minWidth: 0,
+          minHeight: '336px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -145,8 +147,9 @@ export function ActiveSchemesChart({
       >
         <div
           style={{
-            width: `${chartSize}px`,
-            height: `${chartSize}px`,
+            width: '100%',
+            maxWidth: `${chartSize}px`,
+            aspectRatio: '1 / 1',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -161,6 +164,8 @@ export function ActiveSchemesChart({
             justifyContent: 'center',
             gap: '16px',
             width: '100%',
+            flexWrap: 'wrap',
+            rowGap: '6px',
           }}
         >
           {data.map((entry, index) => (
