@@ -160,6 +160,8 @@ export interface NationalDashboardQuantityPerformanceItem {
   stateTitle: string
   schemeCount: number
   totalHouseholdCount: number
+  totalFhtcCount?: number
+  totalPlannedFhtc?: number
   totalWaterSuppliedLiters: number
   avgWaterSupplyPerScheme: number
 }
@@ -198,6 +200,8 @@ export interface AverageWaterSupplyScheme {
   schemeId: number
   schemeName: string
   householdCount: number
+  fhtcCount?: number
+  plannedFhtc?: number
   totalWaterSuppliedLiters: number
   supplyDays: number
   avgLitersPerHousehold: number
@@ -208,6 +212,8 @@ export interface AverageWaterSupplyChildRegion {
   departmentId: number
   title: string
   totalHouseholdCount: number
+  totalFhtcCount?: number
+  totalPlannedFhtc?: number
   totalWaterSuppliedLiters: number
   schemeCount: number
   avgWaterSupplyPerScheme: number

@@ -14,6 +14,7 @@ import {
   calculateReadingSubmissionRatePercent,
   calculateQuantityMld,
   calculateQuantityLpcd,
+  getWaterSupplyKpis,
   mapOutageReasonsFromNationalDashboard,
   mapReadingSubmissionStatusFromAnalytics,
   mapReadingSubmissionRateFromAnalytics,
@@ -36,8 +37,48 @@ describe('dashboard formulas', () => {
     expect(calculateQuantityMld(90_000_000, 30)).toBe(3)
   })
 
-  it('calculates quantity in LPCD from liters, households, day range, and P', () => {
-    expect(calculateQuantityLpcd(90_000_000, 1000, 30, 5)).toBe(600)
+  it('calculates quantity in LPCD from liters, FHTC count, day range, and P', () => {
+    expect(calculateQuantityLpcd(90_000_000, 500, 30, 5)).toBe(1200)
+  })
+
+  it('calculates state KPI totals from child regions when scheme rows are absent', () => {
+    const response: AverageWaterSupplyPerRegionResponse = {
+      tenantId: 17,
+      stateCode: 'AS',
+      parentLgdLevel: 1,
+      parentDepartmentLevel: 0,
+      startDate: '2026-02-17',
+      endDate: '2026-03-18',
+      daysInRange: 30,
+      schemeCount: 0,
+      childRegionCount: 2,
+      schemes: [],
+      childRegions: [
+        {
+          lgdId: 2,
+          departmentId: 0,
+          title: 'Bajali',
+          totalHouseholdCount: 0,
+          totalWaterSuppliedLiters: 216_834_394,
+          schemeCount: 214,
+          avgWaterSupplyPerScheme: 0,
+        },
+        {
+          lgdId: 3,
+          departmentId: 0,
+          title: 'Baksa',
+          totalHouseholdCount: 0,
+          totalWaterSuppliedLiters: 469_808_868,
+          schemeCount: 523,
+          avgWaterSupplyPerScheme: 0,
+        },
+      ],
+    }
+
+    expect(getWaterSupplyKpis(response, 5)).toEqual({
+      quantityMld: 22.89,
+      quantityLpcd: 0,
+    })
   })
 
   it('calculates average regularity percent from supply days, schemes, and day range', () => {
@@ -78,6 +119,7 @@ describe('dashboard formulas', () => {
           departmentId: 0,
           title: 'Region Alpha',
           totalHouseholdCount: 1000,
+          totalFhtcCount: 500,
           totalWaterSuppliedLiters: 90_000_000,
           schemeCount: 2,
           avgWaterSupplyPerScheme: 0,
@@ -169,6 +211,7 @@ describe('dashboard formulas', () => {
           departmentId: 0,
           title: 'Region Alpha',
           totalHouseholdCount: 1000,
+          totalFhtcCount: 500,
           totalWaterSuppliedLiters: 90_000_000,
           schemeCount: 2,
           avgWaterSupplyPerScheme: 0,
@@ -206,7 +249,7 @@ describe('dashboard formulas', () => {
       {
         ...fallbackData[0],
         coverage: 3,
-        quantity: 600,
+        quantity: 1200,
         regularity: 50,
       },
     ])

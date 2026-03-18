@@ -271,6 +271,10 @@ const provider: DashboardDataProvider =
 
 export const dashboardApi = {
   getDashboardData: (params: DashboardQueryParams): Promise<DashboardData> => {
+    if (params.level === 'central') {
+      return mockProvider.getDashboardData(params)
+    }
+
     return provider.getDashboardData(params)
   },
   getNationalDashboard: async (

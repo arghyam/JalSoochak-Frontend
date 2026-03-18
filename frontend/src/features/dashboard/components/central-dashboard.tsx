@@ -1165,14 +1165,14 @@ export function CentralDashboard() {
       ),
       tooltipContent: renderFormulaTooltip(
         <>
-          Quantity (LPCD) = SUM(W<sub>k</sub>) / (SUM(HC<sub>i</sub>) x P x N)
+          Quantity (LPCD) = SUM(W<sub>k</sub>) / (SUM(FHTC<sub>i</sub>) x P x N)
         </>,
         [
           <>
             W<sub>k</sub> = water quantity supplied on day k
           </>,
           <>
-            HC<sub>i</sub> = household count of scheme i
+            FHTC<sub>i</sub> = functional household tap connections of scheme i
           </>,
           <>P = average persons per household</>,
           <>N = number of days</>,
