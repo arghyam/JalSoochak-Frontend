@@ -3,13 +3,19 @@ import type {
   AverageSchemeRegularityResponse,
   AverageWaterSupplyPerRegionResponse,
   EntityPerformance,
+  NationalDashboardResponse,
+  ReadingSubmissionStatusData,
   ReadingSubmissionRateResponse,
+  SubmissionStatusResponse,
+  WaterSupplyOutageData,
 } from '../types'
 import {
   calculateAverageRegularityPercent,
   calculateReadingSubmissionRatePercent,
   calculateQuantityMld,
   calculateQuantityLpcd,
+  mapOutageReasonsFromNationalDashboard,
+  mapReadingSubmissionStatusFromAnalytics,
   mapReadingSubmissionRateFromAnalytics,
   mapQuantityPerformanceFromAnalytics,
   mapRegularityPerformanceFromAnalytics,
@@ -249,6 +255,66 @@ describe('dashboard formulas', () => {
         ...fallbackData[0],
         regularity: 50,
       },
+    ])
+  })
+
+  it('uses a zero-valued outage distribution instead of fallback data', () => {
+    const fallbackData: WaterSupplyOutageData[] = [
+      {
+        label: 'Fallback',
+        electricityFailure: 2,
+        pipelineLeak: 1,
+        pumpFailure: 3,
+        valveIssue: 4,
+        sourceDrying: 5,
+      },
+    ]
+    const response: NationalDashboardResponse = {
+      startDate: '2026-03-01',
+      endDate: '2026-03-31',
+      daysInRange: 31,
+      stateWiseQuantityPerformance: [],
+      stateWiseRegularity: [],
+      stateWiseReadingSubmissionRate: [],
+      overallOutageReasonDistribution: {
+        electrical_failure: 0,
+        pipeline_leak: 0,
+        pump_failure: 0,
+        valve_issue: 0,
+        source_drying: 0,
+      },
+    }
+
+    expect(mapOutageReasonsFromNationalDashboard(response, fallbackData)).toEqual([
+      {
+        label: 'Outages',
+        electricityFailure: 0,
+        pipelineLeak: 0,
+        pumpFailure: 0,
+        valveIssue: 0,
+        sourceDrying: 0,
+      },
+    ])
+  })
+
+  it('uses a zero-valued submission status response instead of fallback data', () => {
+    const fallbackData: ReadingSubmissionStatusData[] = [
+      { label: 'Compliant Submissions', value: 7 },
+      { label: 'Anomalous Submissions', value: 5 },
+    ]
+    const response: SubmissionStatusResponse = {
+      userId: 12,
+      startDate: '2026-03-01',
+      endDate: '2026-03-31',
+      schemeCount: 0,
+      compliantSubmissionCount: 0,
+      anomalousSubmissionCount: 0,
+      dailySubmissionSchemeDistribution: [],
+    }
+
+    expect(mapReadingSubmissionStatusFromAnalytics(response, fallbackData)).toEqual([
+      { label: 'Compliant Submissions', value: 0 },
+      { label: 'Anomalous Submissions', value: 0 },
     ])
   })
 })

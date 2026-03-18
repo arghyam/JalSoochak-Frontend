@@ -12,6 +12,15 @@ import type {
   SubmissionStatusQueryParams,
 } from '../../types'
 
+const DEFAULT_ANALYTICS_SCOPE = 'child'
+const DEFAULT_SCHEME_COUNT = 10
+
+const normalizeAnalyticsScope = <T extends { scope?: 'current' | 'child' } | null>(params: T) =>
+  params?.scope ?? DEFAULT_ANALYTICS_SCOPE
+
+const normalizeSchemeCount = <T extends { schemeCount?: number } | null>(params: T) =>
+  params?.schemeCount ?? DEFAULT_SCHEME_COUNT
+
 export const dashboardQueryKeys = {
   all: ['dashboard'] as const,
   data: (level: DashboardLevel, entityId?: string) =>
@@ -26,7 +35,7 @@ export const dashboardQueryKeys = {
       params?.tenantId,
       params?.parentLgdId,
       params?.parentDepartmentId,
-      params?.scope,
+      normalizeAnalyticsScope(params),
       params?.startDate,
       params?.endDate,
     ] as const,
@@ -37,7 +46,7 @@ export const dashboardQueryKeys = {
       'average-scheme-regularity',
       params?.parentLgdId,
       params?.parentDepartmentId,
-      params?.scope,
+      normalizeAnalyticsScope(params),
       params?.startDate,
       params?.endDate,
     ] as const,
@@ -48,7 +57,7 @@ export const dashboardQueryKeys = {
       'reading-submission-rate',
       params?.parentLgdId,
       params?.parentDepartmentId,
-      params?.scope,
+      normalizeAnalyticsScope(params),
       params?.startDate,
       params?.endDate,
     ] as const,
@@ -61,7 +70,7 @@ export const dashboardQueryKeys = {
       params?.parentDepartmentId,
       params?.startDate,
       params?.endDate,
-      params?.schemeCount,
+      normalizeSchemeCount(params),
     ] as const,
   pumpOperatorsByScheme: (params: PumpOperatorsBySchemeQueryParams | null) =>
     ['dashboard', 'pump-operator', 'by-scheme', params?.tenant_code, params?.scheme_id] as const,

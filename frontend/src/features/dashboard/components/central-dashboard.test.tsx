@@ -14,6 +14,7 @@ import { useReadingComplianceQuery } from '../services/query/use-reading-complia
 import { useReadingSubmissionRateQuery } from '../services/query/use-reading-submission-rate-query'
 import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
+import { getPreviousPeriodRange } from '../utils/formulas'
 import { useAuthStore } from '@/app/store'
 
 const mockNavigate = jest.fn()
@@ -175,6 +176,7 @@ const mockDashboardData: DashboardData = {
 
 describe('CentralDashboard', () => {
   beforeEach(() => {
+    window.localStorage.clear()
     mockNavigate.mockReset()
     mockUseParams.mockReset()
     mockUseSearchParams.mockReset()
@@ -228,6 +230,43 @@ describe('CentralDashboard', () => {
       },
       enabled: true,
     })
+  })
+
+  it('computes previous national dashboard analytics from the active selected duration', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedDuration: {
+          startDate: '2026-03-10',
+          endDate: '2026-03-20',
+        },
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    const previousRange = getPreviousPeriodRange('2026-03-10', '2026-03-20')
+
+    expect((useNationalDashboardQuery as jest.Mock).mock.calls).toContainEqual([
+      {
+        params: {
+          startDate: '2026-03-10',
+          endDate: '2026-03-20',
+        },
+        enabled: true,
+      },
+    ])
+    expect((useNationalDashboardQuery as jest.Mock).mock.calls).toContainEqual([
+      {
+        params: previousRange,
+        enabled: true,
+      },
+    ])
   })
 
   it('does not enable national dashboard analytics once a location filter is selected', () => {

@@ -663,9 +663,14 @@ export function CentralDashboard() {
             endDate: analyticsDateRange.endDate,
             parentDepartmentId: analyticsParentId,
           }
+  const activePreviousPeriodSource = analyticsParams ??
+    nationalDashboardParams ?? {
+      startDate: analyticsDateRange.startDate,
+      endDate: analyticsDateRange.endDate,
+    }
   const previousAnalyticsRange = getPreviousPeriodRange(
-    analyticsParams?.startDate ?? defaultAnalyticsRange.startDate,
-    analyticsParams?.endDate ?? defaultAnalyticsRange.endDate
+    activePreviousPeriodSource.startDate,
+    activePreviousPeriodSource.endDate
   )
   const previousNationalDashboardParams = hasCentralLandingFilters
     ? null

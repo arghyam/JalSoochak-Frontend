@@ -515,7 +515,11 @@ export const mapOutageReasonsFromNationalDashboard = (
     mappedData.valveIssue +
     mappedData.sourceDrying
 
-  return totalMappedCount > 0 ? [mappedData] : fallbackData
+  if (Number.isNaN(totalMappedCount)) {
+    return fallbackData
+  }
+
+  return [mappedData]
 }
 
 export const mapReadingSubmissionStatusFromAnalytics = (
@@ -530,8 +534,7 @@ export const mapReadingSubmissionStatusFromAnalytics = (
   const anomalousCount = response.anomalousSubmissionCount ?? 0
   const totalCount = compliantCount + anomalousCount
 
-  // Keep current mock-backed chart data until the submission-status API is populated.
-  if (totalCount <= 0) {
+  if (Number.isNaN(totalCount)) {
     return fallbackData
   }
 
