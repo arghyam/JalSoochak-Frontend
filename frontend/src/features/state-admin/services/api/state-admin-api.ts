@@ -393,11 +393,11 @@ export const stateAdminApi = {
     )
     const counts = response.data.data
     const get = (role: string) => counts.find((r) => r.role === role)?.count ?? 0
-    const pumpOperators = get('pump_operator')
+    const pumpOperators = get('PUMP_OPERATOR')
     const sectionOfficers = get('SECTION_OFFICER')
-    const districtOfficers = get('DISTRICT_OFFICER')
+    const subDivisionOfficers = get('SUB_DIVISIONAL_OFFICER')
     return {
-      totalStaff: pumpOperators + sectionOfficers + districtOfficers,
+      totalStaff: pumpOperators + sectionOfficers + subDivisionOfficers,
       pumpOperators,
       totalAdmins: get('STATE_ADMIN'),
     }
