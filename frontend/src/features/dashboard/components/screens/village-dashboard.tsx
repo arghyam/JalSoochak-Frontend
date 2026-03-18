@@ -233,13 +233,15 @@ export function VillageDashboardScreen({
     params: tenantCode
       ? {
           tenant_code: tenantCode,
+          page: 0,
+          size: 50,
         }
       : null,
     enabled: Boolean(tenantCode),
   })
   const readingComplianceRows = useMemo(() => {
     const apiRows: ReadingComplianceData[] =
-      readingComplianceApiData?.data.map((item) => ({
+      readingComplianceApiData?.data.content.map((item) => ({
         id: String(item.id),
         name: item.name?.trim() || 'N/A',
         village: 'N/A',
@@ -272,7 +274,7 @@ export function VillageDashboardScreen({
   }, [
     activePumpOperator.lastSubmission,
     activePumpOperator.name,
-    readingComplianceApiData?.data,
+    readingComplianceApiData?.data.content,
     villagePhotoEvidenceRows,
   ])
   const visiblePageNumbers = useMemo(() => {

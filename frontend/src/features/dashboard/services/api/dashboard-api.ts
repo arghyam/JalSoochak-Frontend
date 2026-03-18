@@ -372,7 +372,7 @@ export const dashboardApi = {
       `/api/v1/pumpoperator/pump-operators/${params.pumpOperatorId}`,
       {
         params: {
-          tenant_code: params.tenant_code,
+          tenantCode: params.tenant_code,
         },
       }
     )
@@ -386,8 +386,8 @@ export const dashboardApi = {
       '/api/v1/pumpoperator/pump-operators/by-scheme',
       {
         params: {
-          tenant_code: params.tenant_code,
-          scheme_id: params.scheme_id,
+          tenantCode: params.tenant_code,
+          schemeId: params.scheme_id,
         },
       }
     )
@@ -401,7 +401,9 @@ export const dashboardApi = {
       '/api/v1/pumpoperator/pump-operators/reading-compliance',
       {
         params: {
-          tenant_code: params.tenant_code,
+          tenantCode: params.tenant_code,
+          page: params.page ?? 0,
+          size: params.size ?? 50,
         },
       }
     )

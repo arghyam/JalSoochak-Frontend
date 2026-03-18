@@ -725,6 +725,8 @@ export function CentralDashboard() {
       selectedVillage && selectedTenant?.tenantCode
         ? {
             tenant_code: selectedTenant.tenantCode,
+            page: 0,
+            size: 50,
           }
         : null,
     enabled: Boolean(selectedVillage && selectedTenant?.tenantCode),
@@ -777,7 +779,7 @@ export function CentralDashboard() {
       ? schemePerformanceData.topSchemes[0]?.schemeId
       : undefined)
   const readingComplianceRows: ReadingComplianceData[] =
-    readingComplianceApiData?.data.map((item) => ({
+    readingComplianceApiData?.data.content.map((item) => ({
       id: String(item.id),
       name: item.name?.trim() || 'N/A',
       village: selectedVillage || 'N/A',

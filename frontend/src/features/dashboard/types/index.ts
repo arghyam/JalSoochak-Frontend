@@ -276,6 +276,8 @@ export interface ReadingSubmissionRateQueryParams {
 
 export interface ReadingComplianceQueryParams {
   tenant_code: string
+  page?: number
+  size?: number
 }
 
 export interface ReadingComplianceItem {
@@ -289,7 +291,9 @@ export interface ReadingComplianceItem {
 export interface ReadingComplianceResponse {
   status: number
   message: string
-  data: ReadingComplianceItem[]
+  data: {
+    content: ReadingComplianceItem[]
+  }
 }
 
 export interface SchemePerformanceQueryParams {
