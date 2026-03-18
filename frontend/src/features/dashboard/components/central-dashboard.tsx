@@ -790,8 +790,13 @@ export function CentralDashboard() {
     data?.pumpOperators ?? []
   )
   const operatorsPerformanceAnalyticsTable = mapSchemePerformanceToTable(schemePerformanceData, [])
+  const validatedSelectedSchemeId =
+    isVillageSelected &&
+    schemePerformanceData?.topSchemes?.some((scheme) => scheme.schemeId === selectedSchemeId)
+      ? selectedSchemeId
+      : undefined
   const derivedVillageSchemeId =
-    selectedSchemeId ??
+    validatedSelectedSchemeId ??
     (isVillageSelected && schemePerformanceData?.topSchemes?.length === 1
       ? schemePerformanceData.topSchemes[0]?.schemeId
       : undefined)
@@ -867,14 +872,17 @@ export function CentralDashboard() {
   const handleStateChange = (value: string) => {
     setActiveTrailIndex(null)
     setFilterTabIndex(0)
+    setSelectedScheme('')
     updateFilterUrl({ state: value })
   }
   const handleDistrictChange = (value: string) => {
     setActiveTrailIndex(null)
+    setSelectedScheme('')
     updateFilterUrl({ state: selectedState, district: value })
   }
   const handleBlockChange = (value: string) => {
     setActiveTrailIndex(null)
+    setSelectedScheme('')
     updateFilterUrl({
       state: selectedState,
       district: selectedDistrict,
@@ -883,6 +891,7 @@ export function CentralDashboard() {
   }
   const handleGramPanchayatChange = (value: string) => {
     setActiveTrailIndex(null)
+    setSelectedScheme('')
     updateFilterUrl({
       state: selectedState,
       district: selectedDistrict,
@@ -892,6 +901,7 @@ export function CentralDashboard() {
   }
   const handleVillageChange: Dispatch<SetStateAction<string>> = (value) => {
     setActiveTrailIndex(null)
+    setSelectedScheme('')
     const nextVillage = typeof value === 'function' ? value(selectedVillage) : value
     updateFilterUrl({
       state: selectedState,
@@ -965,6 +975,7 @@ export function CentralDashboard() {
   const handleStateClick = (_stateId: string, stateName: string) => {
     setActiveTrailIndex(null)
     setFilterTabIndex(0)
+    setSelectedScheme('')
     const stateOption = mockFilterStates.find(
       (option) => option.label.toLowerCase() === stateName.toLowerCase()
     )
@@ -1112,7 +1123,15 @@ export function CentralDashboard() {
     }
     return formatted
   }
-  const toTrendDirection = (value: number): 'up' | 'down' => (value < 0 ? 'down' : 'up')
+  const toTrendDirection = (value: number): 'up' | 'down' | 'neutral' => {
+    if (value > 0) {
+      return 'up'
+    }
+    if (value < 0) {
+      return 'down'
+    }
+    return 'neutral'
+  }
 
   const coreMetrics = [
     {

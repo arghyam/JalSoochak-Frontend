@@ -68,10 +68,36 @@ jest.mock('@/shared/components/common/view-by-select', () => ({
   ),
 }))
 
+const quantityPerformanceData: EntityPerformance[] = [
+  {
+    id: 'quantity-gp-1',
+    name: 'Quantity Gram Panchayat',
+    coverage: 61,
+    regularity: 41,
+    continuity: 0,
+    quantity: 55,
+    compositeScore: 68,
+    status: 'good',
+  },
+]
+
+const regularityPerformanceData: EntityPerformance[] = [
+  {
+    id: 'regularity-gp-1',
+    name: 'Regularity Gram Panchayat',
+    coverage: 73,
+    regularity: 89,
+    continuity: 0,
+    quantity: 38,
+    compositeScore: 81,
+    status: 'good',
+  },
+]
+
 const gramPanchayatTableData: EntityPerformance[] = [
   {
-    id: 'gp-1',
-    name: 'Gram Panchayat 1',
+    id: 'table-gp-1',
+    name: 'Table Gram Panchayat',
     coverage: 70,
     regularity: 82,
     continuity: 0,
@@ -153,8 +179,8 @@ function renderBlockDashboard() {
   return renderWithProviders(
     <BlockDashboardScreen
       data={data}
-      quantityPerformanceData={gramPanchayatTableData}
-      regularityPerformanceData={gramPanchayatTableData}
+      quantityPerformanceData={quantityPerformanceData}
+      regularityPerformanceData={regularityPerformanceData}
       gramPanchayatTableData={gramPanchayatTableData}
       supplySubmissionRateData={supplySubmissionRateData}
       supplySubmissionRateLabel="Gram Panchayats"
@@ -221,6 +247,8 @@ describe('BlockDashboardScreen', () => {
 
     expect(quantityMetricCall?.entityLabel).toBe('Gram Panchayats')
     expect(regularityMetricCall?.entityLabel).toBe('Gram Panchayats')
+    expect(quantityMetricCall?.data).toEqual(quantityPerformanceData)
+    expect(regularityMetricCall?.data).toEqual(regularityPerformanceData)
     expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
 
     const outagesProps = mockSupplyOutageDistributionChart.mock.calls[0]?.[0] as {

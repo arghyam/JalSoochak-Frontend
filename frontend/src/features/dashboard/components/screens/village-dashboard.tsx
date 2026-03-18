@@ -129,16 +129,28 @@ const mergeOperatorDetails = (
       detail.schemeName && detail.schemeId
         ? `${detail.schemeName} / ${detail.schemeId}`
         : summary.scheme,
-    stationLocation: formatStationLocation(
-      detail.schemeLatitude,
-      detail.schemeLongitude,
-      summary.stationLocation
-    ),
+    stationLocation:
+      detail.schemeLatitude != null && detail.schemeLongitude != null
+        ? formatStationLocation(
+            detail.schemeLatitude,
+            detail.schemeLongitude,
+            summary.stationLocation
+          )
+        : summary.stationLocation,
     lastSubmission:
-      formatReadingComplianceTimestamp(detail.lastSubmissionAt) || summary.lastSubmission,
-    reportingRate: formatPercent(detail.reportingRatePercent),
-    missingSubmissionCount: formatCount(detail.missedSubmissionDays),
-    inactiveDays: formatCount(detail.missedSubmissionDays),
+      detail.lastSubmissionAt != null
+        ? formatReadingComplianceTimestamp(detail.lastSubmissionAt)
+        : summary.lastSubmission,
+    reportingRate:
+      detail.reportingRatePercent != null
+        ? formatPercent(detail.reportingRatePercent)
+        : summary.reportingRate,
+    missingSubmissionCount:
+      detail.missedSubmissionDays != null
+        ? formatCount(detail.missedSubmissionDays)
+        : summary.missingSubmissionCount,
+    inactiveDays:
+      detail.inactiveDays != null ? formatCount(detail.inactiveDays) : summary.inactiveDays,
   }
 }
 

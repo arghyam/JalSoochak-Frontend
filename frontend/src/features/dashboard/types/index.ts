@@ -343,6 +343,7 @@ export interface PumpOperatorDetailsResponse {
     submittedDays: number
     reportingRatePercent: number | null
     missedSubmissionDays: number | null
+    inactiveDays?: number | null
   }
 }
 

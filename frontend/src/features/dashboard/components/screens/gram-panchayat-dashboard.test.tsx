@@ -68,9 +68,35 @@ jest.mock('@/shared/components/common/view-by-select', () => ({
   ),
 }))
 
+const villageQuantityData: EntityPerformance[] = [
+  {
+    id: 'quantity-v-1',
+    name: 'Quantity Village',
+    coverage: 64,
+    regularity: 46,
+    continuity: 0,
+    quantity: 55,
+    compositeScore: 69,
+    status: 'good',
+  },
+]
+
+const villageRegularityData: EntityPerformance[] = [
+  {
+    id: 'regularity-v-1',
+    name: 'Regularity Village',
+    coverage: 78,
+    regularity: 91,
+    continuity: 0,
+    quantity: 39,
+    compositeScore: 83,
+    status: 'good',
+  },
+]
+
 const villageTableData: EntityPerformance[] = [
   {
-    id: 'v-1',
+    id: 'table-v-1',
     name: 'Village 1',
     coverage: 70,
     regularity: 82,
@@ -153,8 +179,8 @@ function renderGramPanchayatDashboard() {
   return renderWithProviders(
     <GramPanchayatDashboardScreen
       data={data}
-      quantityPerformanceData={villageTableData}
-      regularityPerformanceData={villageTableData}
+      quantityPerformanceData={villageQuantityData}
+      regularityPerformanceData={villageRegularityData}
       villageTableData={villageTableData}
       supplySubmissionRateData={supplySubmissionRateData}
       supplySubmissionRateLabel="Villages"
@@ -219,6 +245,8 @@ describe('GramPanchayatDashboardScreen', () => {
     expect(metricCalls[1]?.[0].metric).toBe('regularity')
     expect(metricCalls[0]?.[0].entityLabel).toBe('Villages')
     expect(metricCalls[1]?.[0].entityLabel).toBe('Villages')
+    expect(metricCalls[0]?.[0].data).toEqual(villageQuantityData)
+    expect(metricCalls[1]?.[0].data).toEqual(villageRegularityData)
     expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
 
     const outagesProps = mockSupplyOutageDistributionChart.mock.calls[0]?.[0] as {
