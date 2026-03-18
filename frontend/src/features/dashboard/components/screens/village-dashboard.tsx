@@ -5,9 +5,14 @@ import { LuArrowLeft, LuArrowRight } from 'react-icons/lu'
 import type {
   DashboardData,
   EntityPerformance,
+  PumpOperatorDetailsResponse,
+  ReadingComplianceData,
   VillagePumpOperatorDetails,
   WaterSupplyOutageData,
 } from '../../types'
+import { usePumpOperatorDetailsQuery } from '../../services/query/use-pump-operator-details-query'
+import { usePumpOperatorsBySchemeQuery } from '../../services/query/use-pump-operators-by-scheme-query'
+import { useReadingComplianceQuery } from '../../services/query/use-reading-compliance-query'
 import { SupplyOutageReasonsChart, MetricPerformanceChart } from '../charts'
 import { ReadingComplianceTable } from '../tables'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
@@ -18,6 +23,135 @@ type VillageDashboardScreenProps = {
   waterSupplyOutagesData: WaterSupplyOutageData[]
   villagePumpOperatorDetails: VillagePumpOperatorDetails
   villagePumpOperators?: VillagePumpOperatorDetails[]
+  tenantCode?: string
+  schemeId?: number
+}
+
+const formatReadingComplianceTimestamp = (value?: string | null) => {
+  if (!value) {
+    return 'N/A'
+  }
+
+  const parsedDate = new Date(value)
+  if (Number.isNaN(parsedDate.getTime())) {
+    return value
+  }
+
+  const datePart = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit',
+  }).format(parsedDate)
+  const timeParts = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).formatToParts(parsedDate)
+  const hour = timeParts.find((part) => part.type === 'hour')?.value ?? ''
+  const minute = timeParts.find((part) => part.type === 'minute')?.value ?? ''
+  const dayPeriod = timeParts.find((part) => part.type === 'dayPeriod')?.value.toLowerCase() ?? ''
+
+  return `${datePart.replace(/\//g, '-')}, ${hour}:${minute}${dayPeriod}`
+}
+
+const formatPercent = (value?: number | null) => {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return 'N/A'
+  }
+
+  return `${value}%`
+}
+
+const formatCount = (value?: number | null) => {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return 'N/A'
+  }
+
+  return String(value)
+}
+
+const formatStationLocation = (
+  latitude?: number | null,
+  longitude?: number | null,
+  fallback = 'N/A'
+) => {
+  if (typeof latitude !== 'number' || typeof longitude !== 'number') {
+    return fallback
+  }
+
+  return `${latitude}, ${longitude}`
+}
+
+const mapOperatorSummaryToVillageDetails = (
+  operator: {
+    id: number
+    uuid: string
+    name: string
+    email: string
+    phoneNumber: string
+    status: number
+    schemeId: number
+    schemeName: string
+  },
+  fallback?: VillagePumpOperatorDetails
+): VillagePumpOperatorDetails => ({
+  id: operator.id,
+  uuid: operator.uuid,
+  name: operator.name?.trim() || fallback?.name || 'N/A',
+  email: operator.email,
+  phoneNumber: operator.phoneNumber,
+  status: operator.status,
+  schemeId: operator.schemeId,
+  schemeName: operator.schemeName,
+  scheme:
+    operator.schemeName && operator.schemeId
+      ? `${operator.schemeName} / ${operator.schemeId}`
+      : fallback?.scheme || 'N/A',
+  stationLocation: fallback?.stationLocation || 'N/A',
+  lastSubmission: fallback?.lastSubmission || 'N/A',
+  reportingRate: fallback?.reportingRate || 'N/A',
+  missingSubmissionCount: fallback?.missingSubmissionCount || 'N/A',
+  inactiveDays: fallback?.inactiveDays || 'N/A',
+})
+
+const mergeOperatorDetails = (
+  summary: VillagePumpOperatorDetails,
+  detail?: PumpOperatorDetailsResponse['data']
+): VillagePumpOperatorDetails => {
+  if (!detail) {
+    return summary
+  }
+
+  return {
+    ...summary,
+    ...detail,
+    scheme:
+      detail.schemeName && detail.schemeId
+        ? `${detail.schemeName} / ${detail.schemeId}`
+        : summary.scheme,
+    stationLocation:
+      detail.schemeLatitude != null && detail.schemeLongitude != null
+        ? formatStationLocation(
+            detail.schemeLatitude,
+            detail.schemeLongitude,
+            summary.stationLocation
+          )
+        : summary.stationLocation,
+    lastSubmission:
+      detail.lastSubmissionAt != null
+        ? formatReadingComplianceTimestamp(detail.lastSubmissionAt)
+        : summary.lastSubmission,
+    reportingRate:
+      detail.reportingRatePercent != null
+        ? formatPercent(detail.reportingRatePercent)
+        : summary.reportingRate,
+    missingSubmissionCount:
+      detail.missedSubmissionDays != null
+        ? formatCount(detail.missedSubmissionDays)
+        : summary.missingSubmissionCount,
+    inactiveDays:
+      detail.inactiveDays != null ? formatCount(detail.inactiveDays) : summary.inactiveDays,
+  }
 }
 
 export function VillageDashboardScreen({
@@ -26,6 +160,8 @@ export function VillageDashboardScreen({
   waterSupplyOutagesData,
   villagePumpOperatorDetails,
   villagePumpOperators = [],
+  tenantCode,
+  schemeId,
 }: VillageDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const [pumpOperatorPage, setPumpOperatorPage] = useState(1)
@@ -44,20 +180,84 @@ export function VillageDashboardScreen({
       })),
     [data.demandSupply]
   )
-  const pumpOperatorPages = useMemo(
+  const { data: pumpOperatorsBySchemeData } = usePumpOperatorsBySchemeQuery({
+    params:
+      tenantCode && typeof schemeId === 'number'
+        ? {
+            tenant_code: tenantCode,
+            scheme_id: schemeId,
+          }
+        : null,
+    enabled: Boolean(tenantCode && typeof schemeId === 'number'),
+  })
+  const fallbackPumpOperatorPages = useMemo(
     () => (villagePumpOperators.length > 0 ? villagePumpOperators : [villagePumpOperatorDetails]),
     [villagePumpOperatorDetails, villagePumpOperators]
   )
-  const totalPumpOperatorPages = pumpOperatorPages.length
+  const pumpOperatorPages = useMemo(() => {
+    const apiPumpOperators =
+      pumpOperatorsBySchemeData?.data.flatMap((schemeItem) =>
+        schemeItem.pumpOperators.map((operator) =>
+          mapOperatorSummaryToVillageDetails(
+            {
+              ...operator,
+              schemeId: schemeItem.schemeId,
+              schemeName: schemeItem.schemeName,
+            },
+            villagePumpOperatorDetails
+          )
+        )
+      ) ?? []
+
+    return apiPumpOperators.length > 0 ? apiPumpOperators : fallbackPumpOperatorPages
+  }, [fallbackPumpOperatorPages, pumpOperatorsBySchemeData?.data, villagePumpOperatorDetails])
+  const totalPumpOperatorPages = Math.max(1, pumpOperatorPages.length)
   const activePumpOperatorPage = Math.min(pumpOperatorPage, totalPumpOperatorPages)
-  const activePumpOperator =
+  const activePumpOperatorSummary =
     pumpOperatorPages[activePumpOperatorPage - 1] ?? villagePumpOperatorDetails
+  const { data: activePumpOperatorDetailsData } = usePumpOperatorDetailsQuery({
+    params:
+      activePumpOperatorSummary.id && tenantCode
+        ? {
+            pumpOperatorId: activePumpOperatorSummary.id,
+            tenant_code: tenantCode,
+          }
+        : null,
+    enabled: Boolean(activePumpOperatorSummary.id && tenantCode),
+  })
+  const activePumpOperator = useMemo(
+    () => mergeOperatorDetails(activePumpOperatorSummary, activePumpOperatorDetailsData?.data),
+    [activePumpOperatorDetailsData?.data, activePumpOperatorSummary]
+  )
+  const { data: readingComplianceApiData } = useReadingComplianceQuery({
+    params: tenantCode
+      ? {
+          tenant_code: tenantCode,
+        }
+      : null,
+    enabled: Boolean(tenantCode),
+  })
   const readingComplianceRows = useMemo(() => {
-    const operatorRows = villagePhotoEvidenceRows.filter(
-      (row) => row.name === activePumpOperator.name
-    )
+    const apiRows: ReadingComplianceData[] =
+      readingComplianceApiData?.data.map((item) => ({
+        id: String(item.id),
+        name: item.name?.trim() || 'N/A',
+        village: 'N/A',
+        lastSubmission: formatReadingComplianceTimestamp(item.lastSubmissionAt),
+        readingValue:
+          item.confirmedReading === null || item.confirmedReading === undefined
+            ? 'N/A'
+            : String(item.confirmedReading),
+      })) ?? []
+
+    const sourceRows = apiRows.length > 0 ? apiRows : villagePhotoEvidenceRows
+    const operatorRows = sourceRows.filter((row) => row.name === activePumpOperator.name)
     if (operatorRows.length > 0) {
       return operatorRows
+    }
+
+    if (sourceRows.length > 0) {
+      return sourceRows
     }
 
     return [
@@ -69,7 +269,12 @@ export function VillageDashboardScreen({
         readingValue: 'N/A',
       },
     ]
-  }, [activePumpOperator.lastSubmission, activePumpOperator.name, villagePhotoEvidenceRows])
+  }, [
+    activePumpOperator.lastSubmission,
+    activePumpOperator.name,
+    readingComplianceApiData?.data,
+    villagePhotoEvidenceRows,
+  ])
   const visiblePageNumbers = useMemo(() => {
     if (totalPumpOperatorPages <= 3) {
       return Array.from({ length: totalPumpOperatorPages }, (_, index) => index + 1)

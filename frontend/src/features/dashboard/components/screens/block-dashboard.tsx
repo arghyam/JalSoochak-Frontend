@@ -1,21 +1,30 @@
 import { useMemo, useState } from 'react'
 import { Box, Flex, Grid, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import type { DashboardData, EntityPerformance, PumpOperatorPerformanceData } from '../../types'
+import type {
+  DashboardData,
+  EntityPerformance,
+  PumpOperatorPerformanceData,
+  WaterSupplyOutageData,
+} from '../../types'
 import {
   SupplyOutageReasonsChart,
   MetricPerformanceChart,
   MonthlyTrendChart,
-  PumpOperatorsChart,
+  ActiveSchemesChart,
   ReadingSubmissionRateChart,
   SupplyOutageDistributionChart,
 } from '../charts'
-import { ReadingComplianceTable, PumpOperatorsPerformanceTable } from '../tables'
+import { ReadingComplianceTable, SchemePerformanceTable } from '../tables'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 import { ViewBySelect } from '@/shared/components/common'
 
 type BlockDashboardScreenProps = {
   data: DashboardData
+  waterSupplyOutagesData?: WaterSupplyOutageData[]
+  waterSupplyOutageDistributionData?: WaterSupplyOutageData[]
+  quantityPerformanceData: EntityPerformance[]
+  regularityPerformanceData: EntityPerformance[]
   gramPanchayatTableData: EntityPerformance[]
   supplySubmissionRateData: EntityPerformance[]
   supplySubmissionRateLabel: string
@@ -27,7 +36,10 @@ type ViewBy = 'geography' | 'time'
 
 export function BlockDashboardScreen({
   data,
-  gramPanchayatTableData,
+  waterSupplyOutagesData = data.waterSupplyOutages,
+  waterSupplyOutageDistributionData = data.waterSupplyOutages,
+  quantityPerformanceData,
+  regularityPerformanceData,
   supplySubmissionRateData,
   supplySubmissionRateLabel,
   pumpOperatorsTotal,
@@ -92,7 +104,7 @@ export function BlockDashboardScreen({
           </Flex>
           {quantityViewBy === 'geography' ? (
             <MetricPerformanceChart
-              data={gramPanchayatTableData}
+              data={quantityPerformanceData}
               metric="quantity"
               height="400px"
               entityLabel={t('performanceCharts.viewBy.gramPanchayats', {
@@ -144,7 +156,7 @@ export function BlockDashboardScreen({
           </Flex>
           {regularityViewBy === 'geography' ? (
             <MetricPerformanceChart
-              data={gramPanchayatTableData}
+              data={regularityPerformanceData}
               metric="regularity"
               height="400px"
               entityLabel={t('performanceCharts.viewBy.gramPanchayats', {
@@ -193,7 +205,7 @@ export function BlockDashboardScreen({
               defaultValue: 'Supply Outage Reasons',
             })}
           </Text>
-          <SupplyOutageReasonsChart data={data.waterSupplyOutages} height="400px" />
+          <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
         </Box>
         <Box
           bg="white"
@@ -224,7 +236,7 @@ export function BlockDashboardScreen({
           </Flex>
           {outageDistributionViewBy === 'geography' ? (
             <SupplyOutageDistributionChart
-              data={data.waterSupplyOutages}
+              data={waterSupplyOutageDistributionData}
               height="400px"
               xAxisLabel={t('performanceCharts.viewBy.gramPanchayats', {
                 defaultValue: 'Gram Panchayats',
@@ -260,18 +272,17 @@ export function BlockDashboardScreen({
         >
           <Flex align="center" justify="space-between" mb="40px">
             <Text textStyle="bodyText3" fontWeight="400">
-              {t('pumpOperators.title', { defaultValue: 'Pump Operators' })}
+              {t('pumpOperators.title', { defaultValue: 'Active Schemes' })}
             </Text>
             <Text textStyle="bodyText3" fontWeight="400">
               {t('pumpOperators.totalLabel', { defaultValue: 'Total' })}: {pumpOperatorsTotal}
             </Text>
           </Flex>
-          <PumpOperatorsChart
+          <ActiveSchemesChart
             data={data.pumpOperators}
             height="360px"
             note={t('pumpOperators.note', {
-              defaultValue:
-                'Note: Active pump operators submit readings at least 30 days in a month.',
+              defaultValue: 'Note: Active schemes for at least 30 days in a month',
             })}
           />
         </Box>
@@ -285,9 +296,9 @@ export function BlockDashboardScreen({
           h="510px"
           minW={0}
         >
-          <PumpOperatorsPerformanceTable
+          <SchemePerformanceTable
             title={t('pumpOperators.performanceTable.title', {
-              defaultValue: 'Pump Operators Performance',
+              defaultValue: 'Scheme Performance',
             })}
             data={operatorsPerformanceTable}
             fillHeight

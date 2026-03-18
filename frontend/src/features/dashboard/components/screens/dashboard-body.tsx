@@ -29,6 +29,8 @@ type DashboardBodyProps = {
   isBlockSelected: boolean
   isGramPanchayatSelected: boolean
   selectedVillage: string
+  quantityPerformanceData: EntityPerformance[]
+  regularityPerformanceData: EntityPerformance[]
   districtTableData: EntityPerformance[]
   blockTableData: EntityPerformance[]
   gramPanchayatTableData: EntityPerformance[]
@@ -36,11 +38,14 @@ type DashboardBodyProps = {
   supplySubmissionRateData: EntityPerformance[]
   supplySubmissionRateLabel: string
   waterSupplyOutagesData: WaterSupplyOutageData[]
+  waterSupplyOutageDistributionData: WaterSupplyOutageData[]
   pumpOperatorsTotal: number
   operatorsPerformanceTable: PumpOperatorPerformanceData[]
   villagePhotoEvidenceRows: DashboardData['readingCompliance']
   villagePumpOperatorDetails?: VillagePumpOperatorDetails
   villagePumpOperators?: VillagePumpOperatorDetails[]
+  tenantCode?: string
+  schemeId?: number
 }
 
 type ViewBy = 'geography' | 'time'
@@ -52,18 +57,22 @@ export function DashboardBody({
   isBlockSelected,
   isGramPanchayatSelected,
   selectedVillage,
-  districtTableData,
+  quantityPerformanceData,
+  regularityPerformanceData,
   blockTableData,
   gramPanchayatTableData,
   villageTableData,
   supplySubmissionRateData,
   supplySubmissionRateLabel,
   waterSupplyOutagesData,
+  waterSupplyOutageDistributionData,
   pumpOperatorsTotal,
   operatorsPerformanceTable,
   villagePhotoEvidenceRows,
   villagePumpOperatorDetails,
   villagePumpOperators,
+  tenantCode,
+  schemeId,
 }: DashboardBodyProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
@@ -95,7 +104,6 @@ export function DashboardBody({
       })),
     [data.demandSupply]
   )
-  const geographyMetricData = isStateScreen ? districtTableData : data.mapData
   const geographyEntityLabel = isStateScreen
     ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
     : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
@@ -130,7 +138,7 @@ export function DashboardBody({
             </Flex>
             {quantityViewBy === 'geography' ? (
               <MetricPerformanceChart
-                data={geographyMetricData}
+                data={quantityPerformanceData}
                 metric="quantity"
                 height="400px"
                 entityLabel={geographyEntityLabel}
@@ -186,7 +194,7 @@ export function DashboardBody({
             </Flex>
             {regularityViewBy === 'geography' ? (
               <MetricPerformanceChart
-                data={geographyMetricData}
+                data={regularityPerformanceData}
                 metric="regularity"
                 height="400px"
                 entityLabel={geographyEntityLabel}
@@ -218,6 +226,10 @@ export function DashboardBody({
       {isDistrictScreen ? (
         <DistrictDashboardScreen
           data={data}
+          waterSupplyOutagesData={waterSupplyOutagesData}
+          waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
+          quantityPerformanceData={quantityPerformanceData}
+          regularityPerformanceData={regularityPerformanceData}
           blockTableData={blockTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
@@ -228,6 +240,10 @@ export function DashboardBody({
       {isBlockScreen ? (
         <BlockDashboardScreen
           data={data}
+          waterSupplyOutagesData={waterSupplyOutagesData}
+          waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
+          quantityPerformanceData={quantityPerformanceData}
+          regularityPerformanceData={regularityPerformanceData}
           gramPanchayatTableData={gramPanchayatTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
@@ -238,6 +254,10 @@ export function DashboardBody({
       {isGramPanchayatScreen ? (
         <GramPanchayatDashboardScreen
           data={data}
+          waterSupplyOutagesData={waterSupplyOutagesData}
+          waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
+          quantityPerformanceData={quantityPerformanceData}
+          regularityPerformanceData={regularityPerformanceData}
           villageTableData={villageTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
@@ -253,6 +273,8 @@ export function DashboardBody({
           waterSupplyOutagesData={waterSupplyOutagesData}
           villagePumpOperatorDetails={villagePumpOperatorDetails}
           villagePumpOperators={villagePumpOperators}
+          tenantCode={tenantCode}
+          schemeId={schemeId}
         />
       ) : null}
 
@@ -288,7 +310,7 @@ export function DashboardBody({
                   })}
                 </Text>
                 <SupplyOutageDistributionChart
-                  data={waterSupplyOutagesData}
+                  data={waterSupplyOutageDistributionData}
                   height="400px"
                   xAxisLabel={geographyEntityLabel}
                 />

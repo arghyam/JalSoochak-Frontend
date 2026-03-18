@@ -22,10 +22,10 @@ const mockReadingSubmissionStatusChart = jest.fn((_props: unknown) => (
 const mockReadingSubmissionRateChart = jest.fn((_props: unknown) => (
   <div data-testid="reading-submission-rate-chart" />
 ))
-const mockPumpOperatorsChart = jest.fn((_props: unknown) => (
+const mockActiveSchemesChart = jest.fn((_props: unknown) => (
   <div data-testid="pump-operators-chart" />
 ))
-const mockPumpOperatorsPerformanceTable = jest.fn((_props: unknown) => (
+const mockSchemePerformanceTable = jest.fn((_props: unknown) => (
   <div data-testid="pump-operators-performance-table" />
 ))
 
@@ -36,11 +36,11 @@ jest.mock('../charts', () => ({
   SupplyOutageDistributionChart: (props: unknown) => mockSupplyOutageDistributionChart(props),
   ReadingSubmissionStatusChart: (props: unknown) => mockReadingSubmissionStatusChart(props),
   ReadingSubmissionRateChart: (props: unknown) => mockReadingSubmissionRateChart(props),
-  PumpOperatorsChart: (props: unknown) => mockPumpOperatorsChart(props),
+  ActiveSchemesChart: (props: unknown) => mockActiveSchemesChart(props),
 }))
 
 jest.mock('../tables', () => ({
-  PumpOperatorsPerformanceTable: (props: unknown) => mockPumpOperatorsPerformanceTable(props),
+  SchemePerformanceTable: (props: unknown) => mockSchemePerformanceTable(props),
 }))
 
 jest.mock('@/shared/components/common/view-by-select', () => ({
@@ -141,6 +141,8 @@ function renderDistrictDashboard() {
   return renderWithProviders(
     <DistrictDashboardScreen
       data={data}
+      quantityPerformanceData={blockTableData}
+      regularityPerformanceData={blockTableData}
       blockTableData={blockTableData}
       supplySubmissionRateData={supplySubmissionRateData}
       supplySubmissionRateLabel="Blocks"
@@ -158,8 +160,8 @@ describe('DistrictDashboardScreen', () => {
     mockSupplyOutageDistributionChart.mockClear()
     mockReadingSubmissionStatusChart.mockClear()
     mockReadingSubmissionRateChart.mockClear()
-    mockPumpOperatorsChart.mockClear()
-    mockPumpOperatorsPerformanceTable.mockClear()
+    mockActiveSchemesChart.mockClear()
+    mockSchemePerformanceTable.mockClear()
   })
 
   it('renders all district view selectors with Geography selected by default', () => {
@@ -207,7 +209,7 @@ describe('DistrictDashboardScreen', () => {
     }
     expect(submissionProps.entityLabel).toBe('Blocks')
 
-    const operatorsTableProps = mockPumpOperatorsPerformanceTable.mock.calls[0]?.[0] as {
+    const operatorsTableProps = mockSchemePerformanceTable.mock.calls[0]?.[0] as {
       fillHeight: boolean
     }
     expect(operatorsTableProps.fillHeight).toBe(true)

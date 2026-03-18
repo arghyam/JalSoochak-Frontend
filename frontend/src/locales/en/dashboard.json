@@ -151,8 +151,8 @@
       "pumpFailure": "Pump failure",
       "valveIssue": "Valve issue",
       "sourceDrying": "Source Drying",
-      "complaintSubmission": "Complaint Submission",
-      "automatedSubmission": "Automated Submission"
+      "complaintSubmission": "Complaint Submissions",
+      "automatedSubmission": "Anomalous Submissions"
     },
     "tables": {
       "readingCompliance": {
@@ -166,11 +166,11 @@
     }
   },
   "pumpOperators": {
-    "title": "Pump Operators",
+    "title": "Schemes",
     "totalLabel": "Total",
-    "note": "Note: Active pump operators submit readings at least 30 days in a month.",
+    "note": "Note: Schemes active for at least 30 days in a month.",
     "details": {
-      "title": "Pump Operator Details",
+      "title": "Scheme Details",
       "fields": {
         "schemeNameSchemeId": "Scheme name/ Scheme ID",
         "stationLocation": "Station location",
@@ -185,11 +185,11 @@
       }
     },
     "legend": {
-      "active": "Active pump operators",
-      "inactive": "Non-active pump operators"
+      "active": "Active schemes",
+      "inactive": "Non-active schemes"
     },
     "performanceTable": {
-      "title": "Pump Operators Performance",
+      "title": "Scheme Performance",
       "columns": {
         "name": "Name",
         "village": "Village",

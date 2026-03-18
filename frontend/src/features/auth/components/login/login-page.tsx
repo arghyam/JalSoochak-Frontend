@@ -62,7 +62,7 @@ export function LoginPage() {
   }
 
   return (
-    <Flex minH="100vh" w="full" direction={showBannerImage ? 'row' : 'column'}>
+    <Flex minH="100vh" w="full" direction={{ base: 'column', md: 'row' }} bg="white">
       <Flex
         w={showBannerImage ? '50%' : '100%'}
         minH="100vh"

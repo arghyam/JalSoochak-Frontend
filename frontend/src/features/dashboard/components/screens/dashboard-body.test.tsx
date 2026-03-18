@@ -195,6 +195,8 @@ function renderDashboardBody(overrides: Partial<ComponentProps<typeof DashboardB
       isBlockSelected={false}
       isGramPanchayatSelected={false}
       selectedVillage=""
+      quantityPerformanceData={mockEntityData}
+      regularityPerformanceData={mockEntityData}
       districtTableData={mockEntityData}
       blockTableData={mockEntityData}
       gramPanchayatTableData={mockEntityData}
@@ -202,6 +204,7 @@ function renderDashboardBody(overrides: Partial<ComponentProps<typeof DashboardB
       supplySubmissionRateData={mockEntityData}
       supplySubmissionRateLabel="States/UTs"
       waterSupplyOutagesData={mockDashboardData.waterSupplyOutages}
+      waterSupplyOutageDistributionData={mockDashboardData.waterSupplyOutages}
       pumpOperatorsTotal={12}
       operatorsPerformanceTable={mockOperatorsPerformanceTable}
       villagePhotoEvidenceRows={mockDashboardData.readingCompliance}
@@ -307,6 +310,30 @@ describe('DashboardBody', () => {
       isBlockSelected: false,
       isGramPanchayatSelected: false,
       selectedVillage: '',
+      quantityPerformanceData: [
+        {
+          id: 'qd1',
+          name: 'District A',
+          coverage: 60,
+          regularity: 70,
+          continuity: 0,
+          quantity: 50,
+          compositeScore: 65,
+          status: 'needs-attention',
+        },
+      ],
+      regularityPerformanceData: [
+        {
+          id: 'rd1',
+          name: 'District A',
+          coverage: 60,
+          regularity: 70,
+          continuity: 0,
+          quantity: 50,
+          compositeScore: 65,
+          status: 'needs-attention',
+        },
+      ],
       districtTableData: [
         {
           id: 'd1',
@@ -327,6 +354,7 @@ describe('DashboardBody', () => {
 
     expect(metricChartCalls).toHaveLength(2)
     expect(metricChartCalls[0][0].data[0]?.name).toBe('District A')
+    expect(metricChartCalls[1][0].data[0]?.name).toBe('District A')
     expect(metricChartCalls[0][0].entityLabel).toBe('Districts')
     expect(metricChartCalls[1][0].entityLabel).toBe('Districts')
   })

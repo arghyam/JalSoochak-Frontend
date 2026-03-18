@@ -16,7 +16,7 @@ const mockSupplyOutageReasonsChart = jest.fn((_props: unknown) => (
 const mockSupplyOutageDistributionChart = jest.fn((_props: unknown) => (
   <div data-testid="supply-outage-distribution-chart" />
 ))
-const mockPumpOperatorsChart = jest.fn((_props: unknown) => (
+const mockActiveSchemesChart = jest.fn((_props: unknown) => (
   <div data-testid="pump-operators-chart" />
 ))
 const mockReadingSubmissionStatusChart = jest.fn((_props: unknown) => (
@@ -25,7 +25,7 @@ const mockReadingSubmissionStatusChart = jest.fn((_props: unknown) => (
 const mockReadingSubmissionRateChart = jest.fn((_props: unknown) => (
   <div data-testid="reading-submission-rate-chart" />
 ))
-const mockPumpOperatorsPerformanceTable = jest.fn((_props: unknown) => (
+const mockSchemePerformanceTable = jest.fn((_props: unknown) => (
   <div data-testid="pump-operators-performance-table" />
 ))
 const mockReadingComplianceTable = jest.fn((_props: unknown) => (
@@ -37,13 +37,13 @@ jest.mock('../charts', () => ({
   MonthlyTrendChart: (props: unknown) => mockMonthlyTrendChart(props),
   SupplyOutageReasonsChart: (props: unknown) => mockSupplyOutageReasonsChart(props),
   SupplyOutageDistributionChart: (props: unknown) => mockSupplyOutageDistributionChart(props),
-  PumpOperatorsChart: (props: unknown) => mockPumpOperatorsChart(props),
+  ActiveSchemesChart: (props: unknown) => mockActiveSchemesChart(props),
   ReadingSubmissionStatusChart: (props: unknown) => mockReadingSubmissionStatusChart(props),
   ReadingSubmissionRateChart: (props: unknown) => mockReadingSubmissionRateChart(props),
 }))
 
 jest.mock('../tables', () => ({
-  PumpOperatorsPerformanceTable: (props: unknown) => mockPumpOperatorsPerformanceTable(props),
+  SchemePerformanceTable: (props: unknown) => mockSchemePerformanceTable(props),
   ReadingComplianceTable: (props: unknown) => mockReadingComplianceTable(props),
 }))
 
@@ -68,10 +68,36 @@ jest.mock('@/shared/components/common/view-by-select', () => ({
   ),
 }))
 
+const quantityPerformanceData: EntityPerformance[] = [
+  {
+    id: 'quantity-gp-1',
+    name: 'Quantity Gram Panchayat',
+    coverage: 61,
+    regularity: 41,
+    continuity: 0,
+    quantity: 55,
+    compositeScore: 68,
+    status: 'good',
+  },
+]
+
+const regularityPerformanceData: EntityPerformance[] = [
+  {
+    id: 'regularity-gp-1',
+    name: 'Regularity Gram Panchayat',
+    coverage: 73,
+    regularity: 89,
+    continuity: 0,
+    quantity: 38,
+    compositeScore: 81,
+    status: 'good',
+  },
+]
+
 const gramPanchayatTableData: EntityPerformance[] = [
   {
-    id: 'gp-1',
-    name: 'Gram Panchayat 1',
+    id: 'table-gp-1',
+    name: 'Table Gram Panchayat',
     coverage: 70,
     regularity: 82,
     continuity: 0,
@@ -153,6 +179,8 @@ function renderBlockDashboard() {
   return renderWithProviders(
     <BlockDashboardScreen
       data={data}
+      quantityPerformanceData={quantityPerformanceData}
+      regularityPerformanceData={regularityPerformanceData}
       gramPanchayatTableData={gramPanchayatTableData}
       supplySubmissionRateData={supplySubmissionRateData}
       supplySubmissionRateLabel="Gram Panchayats"
@@ -168,10 +196,10 @@ describe('BlockDashboardScreen', () => {
     mockMonthlyTrendChart.mockClear()
     mockSupplyOutageReasonsChart.mockClear()
     mockSupplyOutageDistributionChart.mockClear()
-    mockPumpOperatorsChart.mockClear()
+    mockActiveSchemesChart.mockClear()
     mockReadingSubmissionStatusChart.mockClear()
     mockReadingSubmissionRateChart.mockClear()
-    mockPumpOperatorsPerformanceTable.mockClear()
+    mockSchemePerformanceTable.mockClear()
     mockReadingComplianceTable.mockClear()
   })
 
@@ -196,7 +224,7 @@ describe('BlockDashboardScreen', () => {
   it('renders pump operators row and all 3 charts under it', () => {
     renderBlockDashboard()
 
-    expect(screen.getByText('Pump Operators')).toBeTruthy()
+    expect(screen.getByText('Schemes')).toBeTruthy()
     expect(screen.getByText('Total: 15')).toBeTruthy()
     expect(screen.getByText('Reading Submission Status')).toBeTruthy()
     expect(screen.getByText('Reading Submission Rate')).toBeTruthy()
@@ -219,6 +247,8 @@ describe('BlockDashboardScreen', () => {
 
     expect(quantityMetricCall?.entityLabel).toBe('Gram Panchayats')
     expect(regularityMetricCall?.entityLabel).toBe('Gram Panchayats')
+    expect(quantityMetricCall?.data).toEqual(quantityPerformanceData)
+    expect(regularityMetricCall?.data).toEqual(regularityPerformanceData)
     expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
 
     const outagesProps = mockSupplyOutageDistributionChart.mock.calls[0]?.[0] as {
