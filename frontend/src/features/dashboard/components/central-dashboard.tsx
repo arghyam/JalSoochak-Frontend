@@ -24,7 +24,7 @@ import { MdOutlineWaterDrop } from 'react-icons/md'
 import waterTapIcon from '@/assets/media/water-tap_1822589 1.svg'
 import wallClockIcon from '@/assets/media/wall-clock.svg'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
-import type { EntityPerformance, ReadingComplianceData } from '../types'
+import type { EntityPerformance, ReadingComplianceData, VillagePumpOperatorDetails } from '../types'
 import { DashboardFilters } from './filters/dashboard-filters'
 import { OverallPerformanceTable } from './tables'
 import { ROUTES } from '@/shared/constants/routes'
@@ -510,6 +510,7 @@ export function CentralDashboard() {
   const rootLocationOptions = mapLocationOptions(rootLocationsData?.data)
   const selectedRootOption = findLocationOption(rootLocationOptions, selectedState)
   const analyticsParentId =
+    parseLocationId(effectiveSelectedVillage) ??
     parseLocationId(effectiveSelectedGramPanchayat) ??
     parseLocationId(effectiveSelectedBlock) ??
     parseLocationId(effectiveSelectedDistrict) ??
@@ -768,16 +769,15 @@ export function CentralDashboard() {
     data?.pumpOperators ?? []
   )
   const operatorsPerformanceAnalyticsTable = mapSchemePerformanceToTable(schemePerformanceData, [])
-  const validatedSelectedSchemeId =
-    isVillageSelected &&
-    schemePerformanceData?.topSchemes?.some((scheme) => scheme.schemeId === selectedSchemeId)
-      ? selectedSchemeId
-      : undefined
-  const derivedVillageSchemeId =
-    validatedSelectedSchemeId ??
-    (isVillageSelected && schemePerformanceData?.topSchemes?.length === 1
-      ? schemePerformanceData.topSchemes[0]?.schemeId
-      : undefined)
+  const derivedVillageSchemeId = isVillageSelected
+    ? (selectedSchemeId ?? schemePerformanceData?.topSchemes?.[0]?.schemeId)
+    : undefined
+  const derivedVillageScheme =
+    (typeof derivedVillageSchemeId === 'number'
+      ? schemePerformanceData?.topSchemes?.find(
+          (scheme) => scheme.schemeId === derivedVillageSchemeId
+        )
+      : undefined) ?? (isVillageSelected ? schemePerformanceData?.topSchemes?.[0] : undefined)
   const readingComplianceRows: ReadingComplianceData[] =
     readingComplianceApiData?.data.content.map((item) => ({
       id: String(item.id),
@@ -964,27 +964,20 @@ export function CentralDashboard() {
     // Hover tooltip is handled by ECharts
   }
 
-  const villagePumpOperators = [
-    {
-      name: 'Ajay Yadav',
-      scheme: 'Rural Water Supply 001',
-      stationLocation: 'Central Pumping Station',
-      lastSubmission: '11-02-24, 1:00pm',
-      reportingRate: '85%',
-      missingSubmissionCount: '3',
-      inactiveDays: '2',
-    },
-    {
-      name: 'Vikram Singh',
-      scheme: 'Rural Water Supply 002',
-      stationLocation: 'North Pumping Station',
-      lastSubmission: '13-02-24, 10:30am',
-      reportingRate: '78%',
-      missingSubmissionCount: '5',
-      inactiveDays: '4',
-    },
-  ]
-  const villagePumpOperatorDetails = villagePumpOperators[0]
+  const villagePumpOperatorDetails: VillagePumpOperatorDetails = {
+    schemeId: derivedVillageSchemeId,
+    schemeName: derivedVillageScheme?.schemeName,
+    name: 'N/A',
+    scheme:
+      derivedVillageScheme?.schemeName && derivedVillageSchemeId
+        ? `${derivedVillageScheme.schemeName} / ${derivedVillageSchemeId}`
+        : 'N/A',
+    stationLocation: 'N/A',
+    lastSubmission: 'N/A',
+    reportingRate: 'N/A',
+    missingSubmissionCount: 'N/A',
+    inactiveDays: 'N/A',
+  }
 
   if (isLoading) {
     return (
@@ -1355,7 +1348,6 @@ export function CentralDashboard() {
         operatorsPerformanceTable={operatorsPerformanceTable}
         villagePhotoEvidenceRows={villagePhotoEvidenceRows}
         villagePumpOperatorDetails={villagePumpOperatorDetails}
-        villagePumpOperators={villagePumpOperators}
         tenantCode={selectedTenant?.tenantCode}
         schemeId={derivedVillageSchemeId}
       />

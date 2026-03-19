@@ -66,6 +66,7 @@ export interface PumpOperatorPerformanceData {
 export interface VillagePumpOperatorDetails {
   id?: number
   uuid?: string
+  mappingKey?: string
   name: string
   email?: string
   phoneNumber?: string
@@ -276,6 +277,7 @@ export interface ReadingSubmissionRateQueryParams {
 
 export interface ReadingComplianceQueryParams {
   tenant_code: string
+  scheme_id?: number
   page?: number
   size?: number
 }
@@ -284,6 +286,8 @@ export interface ReadingComplianceItem {
   id: number
   uuid: string
   name: string
+  schemeId?: number
+  readingAt?: string | null
   lastSubmissionAt: string | null
   confirmedReading: number | null
 }

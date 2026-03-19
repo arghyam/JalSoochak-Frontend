@@ -1597,6 +1597,36 @@ describe('CentralDashboard', () => {
     expect(screen.queryByTestId('overall-performance-table')).toBeNull()
   })
 
+  it('uses the selected village LGD id for scheme performance analytics', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams(
+        'district=101:sangareddy&block=202:patancheru&gramPanchayat=303:ismailkhanpet&village=404:rudraram'
+      ),
+      jest.fn(),
+    ])
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useSchemePerformanceQuery).toHaveBeenCalledWith({
+      params: expect.objectContaining({
+        parentLgdId: 404,
+      }),
+      enabled: true,
+    })
+  })
+
   it('updates URL with state in pathname and district in query params', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
