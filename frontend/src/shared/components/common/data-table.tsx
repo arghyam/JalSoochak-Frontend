@@ -26,6 +26,10 @@ export interface DataTableColumn<T> {
   header: string
   sortable?: boolean
   render?: (row: T) => React.ReactNode
+  /** Column width (e.g. '20%', '150px'). Required when tableLayout='fixed' is set on DataTable. */
+  width?: string
+  /** Minimum column width (e.g. '200px'). Applied to the Th element. */
+  minWidth?: string
 }
 
 export interface PaginationConfig {
@@ -54,6 +58,18 @@ export interface DataTableProps<T> {
   emptyMessage?: string
   isLoading?: boolean
   pagination?: PaginationConfig
+  /**
+   * When 'fixed', the table uses CSS table-layout: fixed so column widths
+   * are respected and overflowing cell content is clipped with ellipsis.
+   * Defaults to 'auto'.
+   */
+  tableLayout?: 'auto' | 'fixed'
+  /**
+   * Minimum width for the entire table (e.g. '1000px'). When set, the
+   * overflowX container scrolls horizontally instead of squashing columns.
+   * Useful with tableLayout='fixed' to enforce per-column minimum widths.
+   */
+  tableMinWidth?: string
 }
 
 type SortDirection = 'asc' | 'desc' | null
@@ -65,7 +81,10 @@ export function DataTable<T extends object>({
   emptyMessage,
   isLoading = false,
   pagination,
+  tableLayout = 'auto',
+  tableMinWidth,
 }: DataTableProps<T>) {
+  const isFixedLayout = tableLayout === 'fixed'
   const { t } = useTranslation('common')
   const [sortColumn, setSortColumn] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>(null)
@@ -299,7 +318,13 @@ export function DataTable<T extends object>({
             },
           }}
         >
-          <Table size="sm" variant="simple" w="max-content" minW="100%">
+          <Table
+            size="sm"
+            variant="simple"
+            w={isFixedLayout ? '100%' : 'max-content'}
+            minW={tableMinWidth ?? '100%'}
+            sx={isFixedLayout ? { tableLayout: 'fixed' } : undefined}
+          >
             <Thead>
               <Tr>
                 {columns.map((column) => {
@@ -314,6 +339,8 @@ export function DataTable<T extends object>({
                     <Th
                       key={column.key}
                       scope="col"
+                      width={column.width}
+                      minWidth={column.minWidth}
                       cursor={column.sortable ? 'pointer' : 'default'}
                       onClick={() => handleSort(column.key, column.sortable)}
                       onKeyDown={(e) => {
@@ -369,6 +396,8 @@ export function DataTable<T extends object>({
                       py={3}
                       h={12}
                       whiteSpace="nowrap"
+                      overflow={isFixedLayout ? 'hidden' : undefined}
+                      textOverflow={isFixedLayout ? 'ellipsis' : undefined}
                     >
                       {column.render
                         ? column.render(row)

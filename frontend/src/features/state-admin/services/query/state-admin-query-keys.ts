@@ -11,7 +11,13 @@ export const stateAdminQueryKeys = {
   thresholdConfiguration: () => [...stateAdminQueryKeys.all, 'threshold-configuration'] as const,
   messageTemplates: () => [...stateAdminQueryKeys.all, 'message-templates'] as const,
   nudgeTemplates: () => [...stateAdminQueryKeys.all, 'nudge-templates'] as const,
-  staffSync: () => [...stateAdminQueryKeys.all, 'staff-sync'] as const,
+  staffList: (params: {
+    roles: string[]
+    status?: string
+    page: number
+    limit: number
+    tenantCode: string
+  }) => [...stateAdminQueryKeys.all, 'staff-list', params] as const,
   configuration: () => [...stateAdminQueryKeys.all, 'configuration'] as const,
   stateUtAdmins: (page: number, size: number) =>
     [...stateAdminQueryKeys.all, 'state-ut-admins', page, size] as const,

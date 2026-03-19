@@ -252,11 +252,8 @@
     "title": "स्टाफ सिंक",
     "searchPlaceholder": "नाम से खोजें",
     "uploadData": "डेटा अपलोड करें",
-    "downloadData": "डेटा डाउनलोड करें",
     "filters": {
       "label": "फ़िल्टर",
-      "gramPanchayat": "ग्राम पंचायत",
-      "village": "गाँव",
       "role": "भूमिका",
       "status": "स्थिति",
       "clearAll": "सभी फ़िल्टर हटाएं"
@@ -272,24 +269,31 @@
       "sectionOfficer": "सेक्शन अधिकारी"
     },
     "table": {
-      "allGpVillage": "सभी GP और गाँव",
       "name": "नाम",
       "role": "भूमिका",
       "mobileNumber": "मोबाइल नंबर",
-      "lastSubmission": "अंतिम सबमिशन",
+      "schemes": "योजनाएं",
       "activityStatus": "गतिविधि स्थिति"
+    },
+    "upload": {
+      "title": "स्टाफ डेटा अपलोड करें",
+      "description": "स्टाफ डेटा युक्त एक Excel फ़ाइल (.xlsx या .xls) अपलोड करें।",
+      "selectFile": "फ़ाइल चुनें",
+      "clickToSelect": "फ़ाइल चुनने के लिए क्लिक करें",
+      "fileTypes": "केवल .xlsx या .xls",
+      "submit": "अपलोड करें",
+      "success": "स्टाफ डेटा सफलतापूर्वक अपलोड किया गया",
+      "error": "स्टाफ डेटा अपलोड करने में विफल। कृपया पुनः प्रयास करें।"
     },
     "messages": {
       "noStaffFound": "कोई स्टाफ सदस्य नहीं मिला",
-      "failedToLoad": "स्टाफ डेटा लोड करने में विफल",
-      "naSubmission": "N/A"
+      "failedToLoad": "स्टाफ डेटा लोड करने में विफल"
     },
     "aria": {
       "statsSection": "स्टाफ सिंक सांख्यिकी",
       "searchStaff": "नाम से स्टाफ खोजें",
       "filterSection": "स्टाफ सदस्यों को फ़िल्टर करें",
-      "uploadData": "स्टाफ डेटा अपलोड करें",
-      "downloadData": "स्टाफ डेटा डाउनलोड करें"
+      "uploadData": "स्टाफ डेटा अपलोड करें"
     }
   },
 

@@ -13,7 +13,6 @@ import {
   getMockMessageTemplates,
   getMockNudgeTemplates,
   getMockOverviewData,
-  getMockStaffSyncData,
   getMockThresholdConfiguration,
   getMockWaterNormsConfiguration,
   saveMockConfigurationData,
@@ -39,7 +38,7 @@ import type { MessageTemplatesData } from '../../types/message-templates'
 import type { NudgeTemplate } from '../../types/nudges'
 import type { OverviewData, StaffCountsData } from '../../types/overview'
 import type { StateUTAdmin, UpdateStateUTAdminInput } from '../../types/state-ut-admins'
-import type { StaffSyncData } from '../../types/staff-sync'
+import type { StaffListParams, StaffListResponse } from '../../types/staff-sync'
 import type { ThresholdConfiguration } from '../../types/thresholds'
 import type { WaterNormsConfiguration } from '../../types/water-norms'
 import type {
@@ -83,7 +82,6 @@ export type SaveConfigurationPayload = Omit<ConfigurationData, 'id'>
 type StateAdminDataProvider = {
   getOverviewData: () => Promise<OverviewData>
   getActivityData: () => Promise<ActivityLog[]>
-  getStaffSyncData: () => Promise<StaffSyncData>
   getLanguageConfiguration: () => Promise<LanguageConfiguration>
   saveLanguageConfiguration: (
     payload: SaveLanguageConfigurationPayload
@@ -183,10 +181,6 @@ const httpProvider: StateAdminDataProvider = {
   },
   getActivityData: async () => {
     const response = await apiClient.get<ApiEnvelope<ActivityLog[]>>('/api/state-admin/activity')
-    return response.data.data
-  },
-  getStaffSyncData: async () => {
-    const response = await apiClient.get<ApiEnvelope<StaffSyncData>>('/api/state-admin/staff-sync')
     return response.data.data
   },
   getLanguageConfiguration: async () => {
@@ -355,7 +349,6 @@ const httpProvider: StateAdminDataProvider = {
 const mockProvider: StateAdminDataProvider = {
   getOverviewData: () => getMockOverviewData(),
   getActivityData: () => getMockActivityData(),
-  getStaffSyncData: () => getMockStaffSyncData(),
   getLanguageConfiguration: () => getMockLanguageConfiguration(),
   saveLanguageConfiguration: (payload) => saveMockLanguageConfiguration(payload),
   getIntegrationConfiguration: () => getMockIntegrationConfiguration(),
@@ -399,14 +392,51 @@ export const stateAdminApi = {
     return {
       totalStaff: pumpOperators + sectionOfficers + subDivisionOfficers,
       pumpOperators,
+      sectionOfficers,
+      subDivisionOfficers,
       totalAdmins: get('STATE_ADMIN'),
     }
+  },
+
+  // --- Real HTTP: Staff List ---
+  getStaffList: async (params: StaffListParams): Promise<StaffListResponse> => {
+    type ApiStaffResponse = {
+      content: StaffListResponse['items']
+      totalElements: number
+    }
+    const response = await apiClient.get<ApiEnvelope<ApiStaffResponse>>(
+      '/api/v1/tenant/user/staff',
+      {
+        params: {
+          role: params.roles.join(','),
+          ...(params.status ? { status: params.status } : {}),
+          page: params.page,
+          limit: params.limit,
+          tenantCode: params.tenantCode,
+        },
+      }
+    )
+    return {
+      items: response.data.data.content,
+      totalElements: response.data.data.totalElements,
+    }
+  },
+
+  // --- Real HTTP: Upload Staff ---
+  uploadPumpOperators: async (file: File, tenantCode: string): Promise<void> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    await apiClient.post('/api/v1/state-admin/pump-operators/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'X-Tenant-Code': tenantCode,
+      },
+    })
   },
 
   // --- Mock ---
   getOverviewData: () => mockProvider.getOverviewData(),
   getActivityData: () => mockProvider.getActivityData(),
-  getStaffSyncData: () => mockProvider.getStaffSyncData(),
   getNudgeTemplates: () => mockProvider.getNudgeTemplates(),
   updateNudgeTemplate: (id: string, payload: UpdateNudgeTemplatePayload) =>
     mockProvider.updateNudgeTemplate(id, payload),

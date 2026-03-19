@@ -181,10 +181,24 @@ export function useUpdateNudgeTemplateMutation() {
   })
 }
 
-export function useStaffSyncQuery() {
+export function useStaffListQuery(params: Parameters<typeof stateAdminApi.getStaffList>[0]) {
   return useQuery({
-    queryKey: stateAdminQueryKeys.staffSync(),
-    queryFn: stateAdminApi.getStaffSyncData,
+    queryKey: stateAdminQueryKeys.staffList(params),
+    queryFn: () => stateAdminApi.getStaffList(params),
+    enabled: Boolean(params.tenantCode),
+  })
+}
+
+export function useUploadPumpOperatorsMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ file, tenantCode }: { file: File; tenantCode: string }) =>
+      stateAdminApi.uploadPumpOperators(file, tenantCode),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: [...stateAdminQueryKeys.all, 'staff-list'],
+      })
+    },
   })
 }
 

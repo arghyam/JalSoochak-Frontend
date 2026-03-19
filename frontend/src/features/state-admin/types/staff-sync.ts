@@ -1,37 +1,34 @@
-export type StaffRole = 'pump-operator' | 'sub-division-officer' | 'section-officer'
+export type StaffRole = 'PUMP_OPERATOR' | 'SECTION_OFFICER' | 'SUB_DIVISIONAL_OFFICER'
 
-export type ActivityStatus = 'active' | 'inactive'
+export type StaffStatus = 'ACTIVE' | 'INACTIVE'
 
-export interface StaffMember {
-  id: string
-  gramPanchayat: string
-  village: string
-  name: string
+export interface StaffScheme {
+  schemeId: number
+  schemeName: string
+  workStatus: string
+  operatingStatus: string
+}
+
+export interface StaffMember extends Record<string, unknown> {
+  id: number
+  uuid: string
+  title: string
+  email: string
+  phoneNumber: string
+  status: StaffStatus
   role: StaffRole
-  mobileNumber: string
-  lastSubmission: string | null
-  activityStatus: ActivityStatus
+  schemes: StaffScheme[]
 }
 
-export interface StaffSyncStats {
-  totalPumpOperators: number
-  totalSubDivisionOfficers: number
-  totalSectionOfficers: number
+export interface StaffListParams {
+  roles: StaffRole[]
+  status?: StaffStatus
+  page: number
+  limit: number
+  tenantCode: string
 }
 
-export interface VillageOption {
-  value: string
-  label: string
-}
-
-export interface GramPanchayatOption {
-  value: string
-  label: string
-  villages: VillageOption[]
-}
-
-export interface StaffSyncData {
-  stats: StaffSyncStats
-  staff: StaffMember[]
-  gramPanchayats: GramPanchayatOption[]
+export interface StaffListResponse {
+  items: StaffMember[]
+  totalElements: number
 }

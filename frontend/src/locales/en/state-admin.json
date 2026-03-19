@@ -252,11 +252,8 @@
     "title": "Staff Sync",
     "searchPlaceholder": "Search by name",
     "uploadData": "Upload Data",
-    "downloadData": "Download Data",
     "filters": {
       "label": "Filters",
-      "gramPanchayat": "Gram Panchayat",
-      "village": "Village",
       "role": "Role",
       "status": "Status",
       "clearAll": "clear all filters"
@@ -272,24 +269,31 @@
       "sectionOfficer": "Section Officer"
     },
     "table": {
-      "allGpVillage": "All GP & Village",
       "name": "Name",
       "role": "Role",
       "mobileNumber": "Mobile Number",
-      "lastSubmission": "Last Submission",
+      "schemes": "Schemes",
       "activityStatus": "Activity Status"
+    },
+    "upload": {
+      "title": "Upload Staff Data",
+      "description": "Upload an Excel file (.xlsx or .xls) containing staff data.",
+      "selectFile": "Select file",
+      "clickToSelect": "Click to select a file",
+      "fileTypes": ".xlsx or .xls only",
+      "submit": "Upload",
+      "success": "Staff data uploaded successfully",
+      "error": "Failed to upload staff data. Please try again."
     },
     "messages": {
       "noStaffFound": "No staff members found",
-      "failedToLoad": "Failed to load staff data",
-      "naSubmission": "N/A"
+      "failedToLoad": "Failed to load staff data"
     },
     "aria": {
       "statsSection": "Staff sync statistics",
       "searchStaff": "Search staff by name",
       "filterSection": "Filter staff members",
-      "uploadData": "Upload staff data",
-      "downloadData": "Download staff data"
+      "uploadData": "Upload staff data"
     }
   },
 
