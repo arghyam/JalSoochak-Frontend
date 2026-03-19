@@ -112,6 +112,19 @@ const villagePumpOperators = [
   },
 ]
 
+const secondVillagePumpOperatorDetails = {
+  id: 7,
+  uuid: 'uuid-7',
+  schemeId: 9,
+  name: 'Sanjay Roy',
+  scheme: 'Haluwating Bazar PWSS / 7714',
+  stationLocation: '26.7783233, 94.5703217',
+  lastSubmission: '17-03-26, 3:06pm',
+  reportingRate: '68.75%',
+  missingSubmissionCount: '10',
+  inactiveDays: 'N/A',
+}
+
 function renderVillageDashboard(
   villagePhotoEvidenceRows: DashboardData['readingCompliance'] = [
     {
@@ -410,6 +423,108 @@ describe('VillageDashboardScreen', () => {
         village: 'N/A',
         lastSubmission: '19-03-26, 10:00am',
         readingValue: '103400',
+      },
+    ])
+  })
+
+  it('clears old operator compliance rows when the village props change without a refresh', () => {
+    mockUseReadingComplianceQuery.mockImplementation((options) => {
+      const params = (options as { params?: { scheme_id?: number } | null }).params
+
+      if (params?.scheme_id === 3) {
+        return {
+          data: {
+            status: 200,
+            message: 'Pump operators retrieved',
+            data: {
+              content: [
+                {
+                  id: 4,
+                  uuid: 'uuid-1',
+                  name: 'Ajay Yadav',
+                  schemeId: 3,
+                  readingAt: '2026-03-17T15:06:20.896445',
+                  lastSubmissionAt: '2026-03-17T15:06:20.896445',
+                  confirmedReading: 104602.8,
+                },
+              ],
+            },
+          },
+        }
+      }
+
+      if (params?.scheme_id === 9) {
+        return {
+          data: {
+            status: 200,
+            message: 'Pump operators retrieved',
+            data: {
+              content: [
+                {
+                  id: 7,
+                  uuid: 'uuid-7',
+                  name: 'Sanjay Roy',
+                  schemeId: 9,
+                  readingAt: '2026-03-17T15:06:10.896445',
+                  lastSubmissionAt: '2026-03-17T15:06:10.896445',
+                  confirmedReading: 103985.13,
+                },
+              ],
+            },
+          },
+        }
+      }
+
+      return { data: undefined }
+    })
+
+    const view = renderWithProviders(
+      <VillageDashboardScreen
+        data={data}
+        villagePhotoEvidenceRows={[]}
+        waterSupplyOutagesData={waterSupplyOutagesData}
+        villagePumpOperatorDetails={villagePumpOperatorDetails}
+        villagePumpOperators={[villagePumpOperatorDetails]}
+        tenantCode="as"
+        schemeId={3}
+      />
+    )
+
+    let complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
+      data: Array<{ name: string; readingValue: string }>
+    }
+    expect(complianceProps.data).toEqual([
+      {
+        id: '3-4-2026-03-17T15:06:20.896445',
+        name: 'Ajay Yadav',
+        village: 'N/A',
+        lastSubmission: '17-03-26, 3:06pm',
+        readingValue: '104602.8',
+      },
+    ])
+
+    view.rerender(
+      <VillageDashboardScreen
+        data={data}
+        villagePhotoEvidenceRows={[]}
+        waterSupplyOutagesData={waterSupplyOutagesData}
+        villagePumpOperatorDetails={secondVillagePumpOperatorDetails}
+        villagePumpOperators={[secondVillagePumpOperatorDetails]}
+        tenantCode="as"
+        schemeId={9}
+      />
+    )
+
+    complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
+      data: Array<{ name: string; readingValue: string }>
+    }
+    expect(complianceProps.data).toEqual([
+      {
+        id: '9-7-2026-03-17T15:06:10.896445',
+        name: 'Sanjay Roy',
+        village: 'N/A',
+        lastSubmission: '17-03-26, 3:06pm',
+        readingValue: '103985.13',
       },
     ])
   })

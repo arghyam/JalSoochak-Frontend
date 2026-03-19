@@ -255,6 +255,7 @@ export function VillageDashboardScreen({
   const { t } = useTranslation('dashboard')
   const [pumpOperatorPage, setPumpOperatorPage] = useState(1)
   const effectiveSchemeId = schemeId ?? villagePumpOperatorDetails.schemeId
+
   const timeSeriesPerformanceData = useMemo<EntityPerformance[]>(
     () =>
       data.demandSupply.map((item, index) => ({
