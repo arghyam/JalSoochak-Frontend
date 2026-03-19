@@ -7,8 +7,8 @@ import { useAuthStore } from '@/app/store'
 import { INDIA_STATES } from '@/shared/constants/states'
 import { StatCard } from '@/shared/components/common'
 import {
+  useSchemeCountsQuery,
   useStaffCountsQuery,
-  useStateAdminOverviewQuery,
 } from '../../services/query/use-state-admin-queries'
 import { BsDroplet, BsPerson } from 'react-icons/bs'
 import { ConfigSetupWizard } from './config-setup-wizard'
@@ -16,12 +16,17 @@ import { ConfigSetupWizard } from './config-setup-wizard'
 export function OverviewPage() {
   const { t } = useTranslation(['state-admin', 'common'])
   const user = useAuthStore((state) => state.user)
-  const { data, isLoading, isError } = useStateAdminOverviewQuery()
+  const tenantCode = user?.tenantCode ?? ''
   const {
     data: staffCountsData,
     isLoading: isStaffCountsLoading,
     isError: isStaffCountsError,
   } = useStaffCountsQuery()
+  const {
+    data: schemeCountsData,
+    isLoading: isSchemeCountsLoading,
+    isError: isSchemeCountsError,
+  } = useSchemeCountsQuery(tenantCode)
 
   const stateName =
     INDIA_STATES.find((s) => s.code === user?.tenantCode?.toUpperCase())?.name ??
@@ -35,7 +40,7 @@ export function OverviewPage() {
     document.title = `${pageTitle} | JalSoochak`
   }, [t, stateName])
 
-  if (isLoading || isStaffCountsLoading) {
+  if (isStaffCountsLoading || isSchemeCountsLoading) {
     return (
       <Flex
         h="64"
@@ -51,16 +56,12 @@ export function OverviewPage() {
     )
   }
 
-  if (isError || isStaffCountsError) {
+  if (isStaffCountsError || isSchemeCountsError) {
     return (
       <Flex h="64" align="center" justify="center">
         <Text color="error.500">{t('common:toast.failedToLoad')}</Text>
       </Flex>
     )
-  }
-
-  if (!data) {
-    return null
   }
 
   const formatStatValue = (value: string | number): string =>
@@ -90,7 +91,7 @@ export function OverviewPage() {
     },
     {
       title: t('overview.stats.activeSchemes'),
-      value: formatStatValue(data.stats.activeSchemes.value),
+      value: formatStatValue(schemeCountsData?.activeSchemes ?? 0),
       icon: BsDroplet,
       iconBg: '#EBF4FA',
       iconColor: '#3291D1',
