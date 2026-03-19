@@ -19,5 +19,7 @@ export interface OverviewData {
 export interface StaffCountsData {
   totalStaff: number
   pumpOperators: number
+  sectionOfficers: number
+  subDivisionOfficers: number
   totalAdmins: number
 }

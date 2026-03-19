@@ -31,6 +31,8 @@ export const ROUTES = {
   STATE_ADMIN_API_INGESTION: '/state-admin/api-ingestion',
   STATE_ADMIN_OPERATOR_SYNC: '/state-admin/operator-sync',
   STATE_ADMIN_STAFF_SYNC: '/state-admin/staff-sync',
+  STATE_ADMIN_SCHEME_SYNC: '/state-admin/scheme-sync',
+  STATE_ADMIN_SCHEME_MAPPINGS_SYNC: '/state-admin/scheme-mappings-sync',
   STATE_ADMIN_ACTIVITY: '/state-admin/activity',
   STATE_ADMIN_STATE_UT_ADMINS: '/state-admin/state-ut-admins',
   STATE_ADMIN_STATE_UT_ADMINS_ADD: '/state-admin/state-ut-admins/add',

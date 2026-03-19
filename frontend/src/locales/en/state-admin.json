@@ -252,11 +252,8 @@
     "title": "Staff Sync",
     "searchPlaceholder": "Search by name",
     "uploadData": "Upload Data",
-    "downloadData": "Download Data",
     "filters": {
       "label": "Filters",
-      "gramPanchayat": "Gram Panchayat",
-      "village": "Village",
       "role": "Role",
       "status": "Status",
       "clearAll": "clear all filters"
@@ -272,24 +269,109 @@
       "sectionOfficer": "Section Officer"
     },
     "table": {
-      "allGpVillage": "All GP & Village",
       "name": "Name",
       "role": "Role",
       "mobileNumber": "Mobile Number",
-      "lastSubmission": "Last Submission",
+      "schemes": "Schemes",
       "activityStatus": "Activity Status"
+    },
+    "upload": {
+      "title": "Upload Staff Data",
+      "description": "Upload an Excel file (.xlsx or .xls) containing staff data.",
+      "selectFile": "Select file",
+      "clickToSelect": "Click to select a file",
+      "fileTypes": ".xlsx or .xls only",
+      "submit": "Upload",
+      "success": "Staff data uploaded successfully",
+      "error": "Failed to upload staff data. Please try again.",
+      "close": "Close",
+      "cancel": "Cancel"
     },
     "messages": {
       "noStaffFound": "No staff members found",
-      "failedToLoad": "Failed to load staff data",
-      "naSubmission": "N/A"
+      "failedToLoad": "Failed to load staff data"
     },
     "aria": {
       "statsSection": "Staff sync statistics",
       "searchStaff": "Search staff by name",
       "filterSection": "Filter staff members",
-      "uploadData": "Upload staff data",
-      "downloadData": "Download staff data"
+      "uploadData": "Upload staff data"
+    }
+  },
+
+  "schemeSync": {
+    "title": "Scheme Sync",
+    "searchPlaceholder": "Search by scheme name",
+    "uploadData": "Upload Data",
+    "filters": {
+      "workStatus": "Work Status",
+      "operatingStatus": "Operating Status",
+      "clearAll": "clear all filters"
+    },
+    "stats": {
+      "totalSchemes": "Total Schemes",
+      "activeSchemes": "Active Schemes",
+      "inactiveSchemes": "Inactive Schemes"
+    },
+    "table": {
+      "schemeName": "Scheme Name",
+      "fhtcCount": "FHTC Count",
+      "houseHoldCount": "Household Count",
+      "workStatus": "Work Status",
+      "operatingStatus": "Operating Status"
+    },
+    "upload": {
+      "title": "Upload Scheme Data",
+      "description": "Upload an Excel file (.xlsx or .xls) containing scheme data.",
+      "clickToSelect": "Click to select a file",
+      "fileTypes": ".xlsx or .xls only",
+      "submit": "Upload",
+      "success": "Scheme data uploaded successfully",
+      "error": "Failed to upload scheme data. Please try again.",
+      "close": "Close",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "noSchemesFound": "No schemes found",
+      "failedToLoad": "Failed to load scheme data"
+    },
+    "aria": {
+      "statsSection": "Scheme sync statistics",
+      "searchSchemes": "Search schemes by name",
+      "filterSection": "Filter schemes",
+      "uploadData": "Upload scheme data"
+    }
+  },
+
+  "schemeMappingsSync": {
+    "title": "Scheme Mappings Sync",
+    "searchPlaceholder": "Search by scheme name",
+    "uploadData": "Upload Data",
+    "table": {
+      "schemeName": "Scheme Name",
+      "stateSchemeId": "State Scheme ID",
+      "villageName": "Village Name",
+      "subDivisionName": "Sub Division Name"
+    },
+    "upload": {
+      "title": "Upload Scheme Mappings Data",
+      "description": "Upload an Excel file (.xlsx or .xls) containing scheme mappings data.",
+      "clickToSelect": "Click to select a file",
+      "fileTypes": ".xlsx or .xls only",
+      "submit": "Upload",
+      "success": "Scheme mappings data uploaded successfully",
+      "error": "Failed to upload scheme mappings data. Please try again.",
+      "close": "Close",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "noMappingsFound": "No scheme mappings found",
+      "failedToLoad": "Failed to load scheme mappings data"
+    },
+    "aria": {
+      "searchMappings": "Search scheme mappings by scheme name",
+      "filterSection": "Filter scheme mappings",
+      "uploadData": "Upload scheme mappings data"
     }
   },
 

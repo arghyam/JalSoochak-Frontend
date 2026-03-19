@@ -181,10 +181,27 @@ export function useUpdateNudgeTemplateMutation() {
   })
 }
 
-export function useStaffSyncQuery() {
+export function useStaffListQuery(params: Parameters<typeof stateAdminApi.getStaffList>[0]) {
   return useQuery({
-    queryKey: stateAdminQueryKeys.staffSync(),
-    queryFn: stateAdminApi.getStaffSyncData,
+    queryKey: stateAdminQueryKeys.staffList(params),
+    queryFn: () => stateAdminApi.getStaffList(params),
+    enabled: Boolean(params.tenantCode),
+  })
+}
+
+export function useUploadPumpOperatorsMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ file, tenantCode }: { file: File; tenantCode: string }) =>
+      stateAdminApi.uploadPumpOperators(file, tenantCode),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: [...stateAdminQueryKeys.all, 'staff-list'],
+      })
+      await queryClient.invalidateQueries({
+        queryKey: stateAdminQueryKeys.staffCounts(),
+      })
+    },
   })
 }
 
@@ -368,6 +385,61 @@ export function useSaveDepartmentHierarchyMutation() {
     mutationFn: (levels: HierarchyLevel[]) => stateAdminApi.saveDepartmentHierarchy(levels),
     onSuccess: (data) => {
       queryClient.setQueryData(stateAdminQueryKeys.departmentHierarchy(), data)
+    },
+  })
+}
+
+export function useSchemeCountsQuery(tenantCode: string) {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.schemeCounts(tenantCode),
+    queryFn: () => stateAdminApi.getSchemeCounts(tenantCode),
+    enabled: Boolean(tenantCode),
+  })
+}
+
+export function useSchemeListQuery(params: Parameters<typeof stateAdminApi.getSchemeList>[0]) {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.schemeList(params),
+    queryFn: () => stateAdminApi.getSchemeList(params),
+    enabled: Boolean(params.tenantCode),
+  })
+}
+
+export function useUploadSchemesMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ file, tenantCode }: { file: File; tenantCode: string }) =>
+      stateAdminApi.uploadSchemes(file, tenantCode),
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({
+        queryKey: [...stateAdminQueryKeys.all, 'scheme-list'],
+      })
+      await queryClient.invalidateQueries({
+        queryKey: stateAdminQueryKeys.schemeCounts(variables.tenantCode),
+      })
+    },
+  })
+}
+
+export function useSchemeMappingsListQuery(
+  params: Parameters<typeof stateAdminApi.getSchemeMappingsList>[0]
+) {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.schemeMappingsList(params),
+    queryFn: () => stateAdminApi.getSchemeMappingsList(params),
+    enabled: Boolean(params.tenantCode),
+  })
+}
+
+export function useUploadSchemeMappingsMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ file, tenantCode }: { file: File; tenantCode: string }) =>
+      stateAdminApi.uploadSchemeMappings(file, tenantCode),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: [...stateAdminQueryKeys.all, 'scheme-mappings-list'],
+      })
     },
   })
 }

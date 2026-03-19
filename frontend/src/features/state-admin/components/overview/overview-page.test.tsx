@@ -22,6 +22,8 @@ const mockStaffCountsState: {
   data: {
     totalStaff: 243,
     pumpOperators: 120,
+    sectionOfficers: 60,
+    subDivisionOfficers: 63,
     totalAdmins: 15,
   },
   isLoading: false,
@@ -51,7 +53,13 @@ beforeEach(() => {
   mockQueryState.data = mockOverviewData
   mockQueryState.isLoading = false
   mockQueryState.isError = false
-  mockStaffCountsState.data = { totalStaff: 243, pumpOperators: 120, totalAdmins: 15 }
+  mockStaffCountsState.data = {
+    totalStaff: 243,
+    pumpOperators: 120,
+    sectionOfficers: 60,
+    subDivisionOfficers: 63,
+    totalAdmins: 15,
+  }
   mockStaffCountsState.isLoading = false
   mockStaffCountsState.isError = false
   mockAuthState.user = { tenantCode: 'TG' }

@@ -1,0 +1,242 @@
+import { useEffect, useMemo, useState } from 'react'
+import {
+  Box,
+  Button,
+  Flex,
+  Heading,
+  Input,
+  InputGroup,
+  InputLeftElement,
+  Text,
+} from '@chakra-ui/react'
+import { SearchIcon } from '@chakra-ui/icons'
+import { useTranslation } from 'react-i18next'
+import { FiUpload } from 'react-icons/fi'
+import { DataTable, ToastContainer, UploadFileModal } from '@/shared/components/common'
+import type { DataTableColumn } from '@/shared/components/common'
+import type { SchemeMapping } from '../../types/scheme-mappings-sync'
+import {
+  useSchemeMappingsListQuery,
+  useUploadSchemeMappingsMutation,
+} from '../../services/query/use-state-admin-queries'
+import { useAuthStore } from '@/app/store/auth-store'
+import { useToast } from '@/shared/hooks/use-toast'
+
+const PAGE_SIZE = 10
+const PAGE_SIZE_OPTIONS = [10, 25, 50]
+
+export function SchemeMappingsSyncPage() {
+  const { t } = useTranslation('state-admin')
+  const toast = useToast()
+  const tenantCode = useAuthStore((s) => s.user?.tenantCode ?? '')
+
+  const [searchQuery, setSearchQuery] = useState('')
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(PAGE_SIZE)
+  const [isUploadOpen, setIsUploadOpen] = useState(false)
+
+  useEffect(() => {
+    document.title = `${t('schemeMappingsSync.title')} | JalSoochak`
+  }, [t])
+
+  const mappingParams = useMemo(
+    () => ({
+      tenantCode,
+      page: page - 1,
+      limit: pageSize,
+    }),
+    [tenantCode, page, pageSize]
+  )
+
+  const { data, isLoading, isError, refetch } = useSchemeMappingsListQuery(mappingParams)
+  const { mutate: upload, isPending: isUploading } = useUploadSchemeMappingsMutation()
+
+  const displayedMappings = useMemo(() => {
+    if (!data) return []
+    if (!searchQuery) return data.items
+    return data.items.filter((m) => m.schemeName.toLowerCase().includes(searchQuery.toLowerCase()))
+  }, [data, searchQuery])
+
+  const handleUpload = (file: File) => {
+    upload(
+      { file, tenantCode },
+      {
+        onSuccess: () => {
+          toast.success(t('schemeMappingsSync.upload.success'))
+          setIsUploadOpen(false)
+        },
+        onError: () => {
+          toast.error(t('schemeMappingsSync.upload.error'))
+        },
+      }
+    )
+  }
+
+  const columns: DataTableColumn<SchemeMapping>[] = [
+    {
+      key: 'schemeName',
+      header: t('schemeMappingsSync.table.schemeName'),
+      sortable: true,
+      width: '30%',
+      minWidth: '200px',
+      render: (row) => (
+        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
+          {row.schemeName}
+        </Text>
+      ),
+    },
+    {
+      key: 'stateSchemeId',
+      header: t('schemeMappingsSync.table.stateSchemeId'),
+      sortable: false,
+      width: '20%',
+      minWidth: '140px',
+      render: (row) => (
+        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
+          {row.stateSchemeId}
+        </Text>
+      ),
+    },
+    {
+      key: 'villageName',
+      header: t('schemeMappingsSync.table.villageName'),
+      sortable: false,
+      width: '25%',
+      minWidth: '150px',
+      render: (row) => (
+        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
+          {row.villageName}
+        </Text>
+      ),
+    },
+    {
+      key: 'subDivisionName',
+      header: t('schemeMappingsSync.table.subDivisionName'),
+      sortable: false,
+      width: '25%',
+      minWidth: '160px',
+      render: (row) => (
+        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
+          {row.subDivisionName}
+        </Text>
+      ),
+    },
+  ]
+
+  if (isError) {
+    return (
+      <Box w="full">
+        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
+          {t('schemeMappingsSync.title')}
+        </Heading>
+        <Flex h="64" align="center" justify="center" direction="column" gap={4} role="alert">
+          <Text color="error.500">{t('schemeMappingsSync.messages.failedToLoad')}</Text>
+          <Button variant="secondary" size="sm" onClick={() => void refetch()}>
+            {t('common:retry')}
+          </Button>
+        </Flex>
+      </Box>
+    )
+  }
+
+  return (
+    <Box w="full" maxW="100%" minW={0}>
+      {/* Page Header */}
+      <Box mb={5}>
+        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+          {t('schemeMappingsSync.title')}
+        </Heading>
+      </Box>
+
+      {/* Toolbar: search + upload */}
+      <Flex
+        as="section"
+        aria-label={t('schemeMappingsSync.aria.filterSection')}
+        justify="space-between"
+        align="center"
+        mb={6}
+        py={3}
+        px={{ base: 3, md: 6 }}
+        h={{ base: 'auto', md: 16 }}
+        gap={{ base: 3, md: 4 }}
+        flexDirection={{ base: 'column', md: 'row' }}
+        borderWidth="0.5px"
+        borderColor="neutral.200"
+        borderRadius="12px"
+        bg="white"
+      >
+        {/* Left: search */}
+        <InputGroup w={{ base: 'full', md: '260px' }} flexShrink={0}>
+          <InputLeftElement pointerEvents="none" h={8}>
+            <SearchIcon color="neutral.300" aria-hidden="true" />
+          </InputLeftElement>
+          <Input
+            placeholder={t('schemeMappingsSync.searchPlaceholder')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label={t('schemeMappingsSync.aria.searchMappings')}
+            bg="white"
+            h={8}
+            borderWidth="1px"
+            borderRadius="4px"
+            borderColor="neutral.300"
+            _placeholder={{ color: 'neutral.300' }}
+          />
+        </InputGroup>
+
+        {/* Right: upload */}
+        <Button
+          variant="secondary"
+          size="sm"
+          fontWeight="600"
+          gap={1}
+          flexShrink={0}
+          aria-label={t('schemeMappingsSync.aria.uploadData')}
+          leftIcon={<FiUpload aria-hidden="true" />}
+          onClick={() => setIsUploadOpen(true)}
+        >
+          {t('schemeMappingsSync.uploadData')}
+        </Button>
+      </Flex>
+
+      {/* Data Table */}
+      <DataTable<SchemeMapping>
+        columns={columns}
+        data={displayedMappings}
+        getRowKey={(row) => row.id}
+        emptyMessage={t('schemeMappingsSync.messages.noMappingsFound')}
+        isLoading={isLoading}
+        tableLayout="fixed"
+        tableMinWidth="800px"
+        pagination={{
+          enabled: true,
+          page,
+          pageSize,
+          pageSizeOptions: PAGE_SIZE_OPTIONS,
+          totalItems: data?.totalElements ?? 0,
+          onPageChange: setPage,
+          onPageSizeChange: (size) => {
+            setPageSize(size)
+            setPage(1)
+          },
+        }}
+      />
+
+      <UploadFileModal
+        isOpen={isUploadOpen}
+        onClose={() => setIsUploadOpen(false)}
+        title={t('schemeMappingsSync.upload.title')}
+        description={t('schemeMappingsSync.upload.description')}
+        isPending={isUploading}
+        onSubmit={handleUpload}
+        submitLabel={t('schemeMappingsSync.upload.submit')}
+        selectFileLabel={t('schemeMappingsSync.upload.clickToSelect')}
+        fileTypesLabel={t('schemeMappingsSync.upload.fileTypes')}
+        closeAriaLabel={t('schemeMappingsSync.upload.close')}
+        cancelLabel={t('schemeMappingsSync.upload.cancel')}
+      />
+
+      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
+    </Box>
+  )
+}

@@ -11,7 +11,13 @@ export const stateAdminQueryKeys = {
   thresholdConfiguration: () => [...stateAdminQueryKeys.all, 'threshold-configuration'] as const,
   messageTemplates: () => [...stateAdminQueryKeys.all, 'message-templates'] as const,
   nudgeTemplates: () => [...stateAdminQueryKeys.all, 'nudge-templates'] as const,
-  staffSync: () => [...stateAdminQueryKeys.all, 'staff-sync'] as const,
+  staffList: (params: {
+    roles: string[]
+    status?: string
+    page: number
+    limit: number
+    tenantCode: string
+  }) => [...stateAdminQueryKeys.all, 'staff-list', params] as const,
   configuration: () => [...stateAdminQueryKeys.all, 'configuration'] as const,
   stateUtAdmins: (page: number, size: number) =>
     [...stateAdminQueryKeys.all, 'state-ut-admins', page, size] as const,
@@ -24,4 +30,15 @@ export const stateAdminQueryKeys = {
     [...stateAdminQueryKeys.all, 'department-edit-constraints'] as const,
   configStatus: () => [...stateAdminQueryKeys.all, 'config-status'] as const,
   staffCounts: () => [...stateAdminQueryKeys.all, 'staff-counts'] as const,
+  schemeCounts: (tenantCode: string) =>
+    [...stateAdminQueryKeys.all, 'scheme-counts', tenantCode] as const,
+  schemeList: (params: {
+    tenantCode: string
+    page: number
+    limit: number
+    workStatus?: string
+    operatingStatus?: string
+  }) => [...stateAdminQueryKeys.all, 'scheme-list', params] as const,
+  schemeMappingsList: (params: { tenantCode: string; page: number; limit: number }) =>
+    [...stateAdminQueryKeys.all, 'scheme-mappings-list', params] as const,
 }
