@@ -50,12 +50,19 @@ export function UploadFileModal({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
+  const resetFileState = () => {
+    setSelectedFile(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isPending) return
     const file = e.target.files?.[0] ?? null
     setSelectedFile(file)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (isPending) return
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
       fileInputRef.current?.click()
@@ -63,18 +70,17 @@ export function UploadFileModal({
   }
 
   const handleClose = () => {
-    setSelectedFile(null)
-    if (fileInputRef.current) fileInputRef.current.value = ''
+    if (isPending) return
     onClose()
   }
 
   const handleSubmit = () => {
-    if (!selectedFile) return
+    if (isPending || !selectedFile) return
     onSubmit(selectedFile)
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} isCentered>
+    <Modal isOpen={isOpen} onClose={handleClose} onCloseComplete={resetFileState} isCentered>
       <ModalOverlay bg="blackAlpha.600" />
       <ModalContent maxW="448px" borderRadius="12px" p={6}>
         <ModalBody p={0}>
@@ -90,6 +96,7 @@ export function UploadFileModal({
               h="auto"
               onClick={handleClose}
               aria-label={closeAriaLabel}
+              isDisabled={isPending}
             >
               <FiX size={18} />
             </Button>
@@ -106,11 +113,14 @@ export function UploadFileModal({
             p={6}
             textAlign="center"
             bg={selectedFile ? 'primary.50' : 'neutral.50'}
-            cursor="pointer"
-            onClick={() => fileInputRef.current?.click()}
+            cursor={isPending ? 'not-allowed' : 'pointer'}
+            onClick={() => {
+              if (!isPending) fileInputRef.current?.click()
+            }}
             tabIndex={0}
             role="button"
-            aria-label={selectFileLabel}
+            aria-label={selectedFile ? `${selectFileLabel}: ${selectedFile.name}` : selectFileLabel}
+            aria-disabled={isPending}
             onKeyDown={handleKeyDown}
           >
             <input
