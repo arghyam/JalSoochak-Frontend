@@ -55,6 +55,13 @@ export function UploadFileModal({
     setSelectedFile(file)
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      fileInputRef.current?.click()
+    }
+  }
+
   const handleClose = () => {
     setSelectedFile(null)
     if (fileInputRef.current) fileInputRef.current.value = ''
@@ -101,6 +108,10 @@ export function UploadFileModal({
             bg={selectedFile ? 'primary.50' : 'neutral.50'}
             cursor="pointer"
             onClick={() => fileInputRef.current?.click()}
+            tabIndex={0}
+            role="button"
+            aria-label={selectFileLabel}
+            onKeyDown={handleKeyDown}
           >
             <input
               ref={fileInputRef}

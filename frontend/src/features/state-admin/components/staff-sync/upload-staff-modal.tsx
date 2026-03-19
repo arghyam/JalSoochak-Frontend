@@ -16,6 +16,7 @@ export function UploadStaffModal({ isOpen, onClose }: UploadStaffModalProps) {
   const { mutate: upload, isPending } = useUploadPumpOperatorsMutation()
 
   const handleSubmit = (file: File) => {
+    if (!file || !tenantCode) return
     upload(
       { file, tenantCode },
       {

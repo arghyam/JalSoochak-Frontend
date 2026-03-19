@@ -198,6 +198,9 @@ export function useUploadPumpOperatorsMutation() {
       await queryClient.invalidateQueries({
         queryKey: [...stateAdminQueryKeys.all, 'staff-list'],
       })
+      await queryClient.invalidateQueries({
+        queryKey: stateAdminQueryKeys.staffCounts(),
+      })
     },
   })
 }

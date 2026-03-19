@@ -283,7 +283,9 @@
       "fileTypes": ".xlsx or .xls only",
       "submit": "Upload",
       "success": "Staff data uploaded successfully",
-      "error": "Failed to upload staff data. Please try again."
+      "error": "Failed to upload staff data. Please try again.",
+      "close": "Close",
+      "cancel": "Cancel"
     },
     "messages": {
       "noStaffFound": "No staff members found",

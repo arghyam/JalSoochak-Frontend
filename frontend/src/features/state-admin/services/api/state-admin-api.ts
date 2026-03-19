@@ -433,7 +433,6 @@ export const stateAdminApi = {
     formData.append('file', file)
     await apiClient.post('/api/v1/state-admin/pump-operators/upload', formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
         'X-Tenant-Code': tenantCode,
       },
     })
@@ -441,10 +440,11 @@ export const stateAdminApi = {
 
   // --- Real HTTP: Scheme Counts ---
   getSchemeCounts: async (tenantCode: string): Promise<SchemeCounts> => {
-    const response = await apiClient.get<SchemeCounts>('/api/v1/scheme/schemes/counts/by-status', {
-      params: { tenantCode },
-    })
-    return response.data
+    const response = await apiClient.get<{ data: SchemeCounts }>(
+      '/api/v1/scheme/schemes/counts/by-status',
+      { params: { tenantCode } }
+    )
+    return response.data.data
   },
 
   // --- Real HTTP: Scheme List ---
