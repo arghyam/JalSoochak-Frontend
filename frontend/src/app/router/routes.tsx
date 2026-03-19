@@ -30,6 +30,8 @@ import {
   NudgesTemplatePage,
   MessageTemplatesPage,
   StaffSyncPage,
+  SchemeSyncPage,
+  SchemeMappingsSyncPage,
   StateUTAdminsPage,
   StateUTAdminFormPage,
   InviteStateUTAdminPage,
@@ -232,6 +234,14 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.STATE_ADMIN_STAFF_SYNC,
         element: <StaffSyncPage />,
+      },
+      {
+        path: ROUTES.STATE_ADMIN_SCHEME_SYNC,
+        element: <SchemeSyncPage />,
+      },
+      {
+        path: ROUTES.STATE_ADMIN_SCHEME_MAPPINGS_SYNC,
+        element: <SchemeMappingsSyncPage />,
       },
       {
         path: ROUTES.STATE_ADMIN_ACTIVITY,

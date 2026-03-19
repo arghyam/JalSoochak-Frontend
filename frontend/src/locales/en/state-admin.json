@@ -297,6 +297,82 @@
     }
   },
 
+  "schemeSync": {
+    "title": "Scheme Sync",
+    "searchPlaceholder": "Search by scheme name",
+    "uploadData": "Upload Data",
+    "filters": {
+      "workStatus": "Work Status",
+      "operatingStatus": "Operating Status",
+      "clearAll": "clear all filters"
+    },
+    "stats": {
+      "totalSchemes": "Total Schemes",
+      "activeSchemes": "Active Schemes",
+      "inactiveSchemes": "Inactive Schemes"
+    },
+    "table": {
+      "schemeName": "Scheme Name",
+      "fhtcCount": "FHTC Count",
+      "houseHoldCount": "Household Count",
+      "workStatus": "Work Status",
+      "operatingStatus": "Operating Status"
+    },
+    "upload": {
+      "title": "Upload Scheme Data",
+      "description": "Upload an Excel file (.xlsx or .xls) containing scheme data.",
+      "clickToSelect": "Click to select a file",
+      "fileTypes": ".xlsx or .xls only",
+      "submit": "Upload",
+      "success": "Scheme data uploaded successfully",
+      "error": "Failed to upload scheme data. Please try again.",
+      "close": "Close",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "noSchemesFound": "No schemes found",
+      "failedToLoad": "Failed to load scheme data"
+    },
+    "aria": {
+      "statsSection": "Scheme sync statistics",
+      "searchSchemes": "Search schemes by name",
+      "filterSection": "Filter schemes",
+      "uploadData": "Upload scheme data"
+    }
+  },
+
+  "schemeMappingsSync": {
+    "title": "Scheme Mappings Sync",
+    "searchPlaceholder": "Search by scheme name",
+    "uploadData": "Upload Data",
+    "table": {
+      "schemeName": "Scheme Name",
+      "stateSchemeId": "State Scheme ID",
+      "villageName": "Village Name",
+      "subDivisionName": "Sub Division Name"
+    },
+    "upload": {
+      "title": "Upload Scheme Mappings Data",
+      "description": "Upload an Excel file (.xlsx or .xls) containing scheme mappings data.",
+      "clickToSelect": "Click to select a file",
+      "fileTypes": ".xlsx or .xls only",
+      "submit": "Upload",
+      "success": "Scheme mappings data uploaded successfully",
+      "error": "Failed to upload scheme mappings data. Please try again.",
+      "close": "Close",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "noMappingsFound": "No scheme mappings found",
+      "failedToLoad": "Failed to load scheme mappings data"
+    },
+    "aria": {
+      "searchMappings": "Search scheme mappings by scheme name",
+      "filterSection": "Filter scheme mappings",
+      "uploadData": "Upload scheme mappings data"
+    }
+  },
+
   "configuration": {
     "pageTitle": "Configuration",
     "sectionTitle": "State/UT Configuration",

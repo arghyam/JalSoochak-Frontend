@@ -115,11 +115,27 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
     icon: 'HiOutlineTemplate',
   },
   {
-    type: 'simple',
-    path: ROUTES.STATE_ADMIN_STAFF_SYNC,
-    labelKey: 'sidebar.staffSync',
+    type: 'expandable',
+    labelKey: 'sidebar.dataSync',
     roles: [AUTH_ROLES.STATE_ADMIN],
-    icon: 'BsPerson',
+    icon: 'IoSyncOutline',
+    children: [
+      {
+        path: ROUTES.STATE_ADMIN_STAFF_SYNC,
+        labelKey: 'sidebar.staffSync',
+        roles: [AUTH_ROLES.STATE_ADMIN],
+      },
+      {
+        path: ROUTES.STATE_ADMIN_SCHEME_SYNC,
+        labelKey: 'sidebar.schemeSync',
+        roles: [AUTH_ROLES.STATE_ADMIN],
+      },
+      {
+        path: ROUTES.STATE_ADMIN_SCHEME_MAPPINGS_SYNC,
+        labelKey: 'sidebar.schemeMappingsSync',
+        roles: [AUTH_ROLES.STATE_ADMIN],
+      },
+    ],
   },
   {
     type: 'simple',

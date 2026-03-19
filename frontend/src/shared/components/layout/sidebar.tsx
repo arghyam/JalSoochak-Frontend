@@ -19,7 +19,12 @@ import { PiTreeStructure } from 'react-icons/pi'
 import { AiOutlineEye, AiOutlineSetting, AiOutlineWarning, AiOutlineApi } from 'react-icons/ai'
 import { BiKey } from 'react-icons/bi'
 import { FiLogOut } from 'react-icons/fi'
-import { IoLanguageOutline, IoSettingsOutline, IoWaterOutline } from 'react-icons/io5'
+import {
+  IoLanguageOutline,
+  IoSettingsOutline,
+  IoSyncOutline,
+  IoWaterOutline,
+} from 'react-icons/io5'
 import { HiOutlineTemplate } from 'react-icons/hi'
 import { AiOutlineMessage } from 'react-icons/ai'
 import { BsPerson, BsListUl, BsPeople } from 'react-icons/bs'
@@ -48,6 +53,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   BiKey,
   IoLanguageOutline,
   IoSettingsOutline,
+  IoSyncOutline,
   IoWaterOutline,
   HiOutlineTemplate,
   AiOutlineMessage,

@@ -39,6 +39,11 @@ import type { NudgeTemplate } from '../../types/nudges'
 import type { OverviewData, StaffCountsData } from '../../types/overview'
 import type { StateUTAdmin, UpdateStateUTAdminInput } from '../../types/state-ut-admins'
 import type { StaffListParams, StaffListResponse } from '../../types/staff-sync'
+import type { SchemeCounts, SchemeListParams, SchemeListResponse } from '../../types/scheme-sync'
+import type {
+  SchemeMappingListParams,
+  SchemeMappingListResponse,
+} from '../../types/scheme-mappings-sync'
 import type { ThresholdConfiguration } from '../../types/thresholds'
 import type { WaterNormsConfiguration } from '../../types/water-norms'
 import type {
@@ -427,6 +432,83 @@ export const stateAdminApi = {
     const formData = new FormData()
     formData.append('file', file)
     await apiClient.post('/api/v1/state-admin/pump-operators/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'X-Tenant-Code': tenantCode,
+      },
+    })
+  },
+
+  // --- Real HTTP: Scheme Counts ---
+  getSchemeCounts: async (tenantCode: string): Promise<SchemeCounts> => {
+    const response = await apiClient.get<SchemeCounts>('/api/v1/scheme/schemes/counts/by-status', {
+      params: { tenantCode },
+    })
+    return response.data
+  },
+
+  // --- Real HTTP: Scheme List ---
+  getSchemeList: async (params: SchemeListParams): Promise<SchemeListResponse> => {
+    type ApiSchemeListResponse = {
+      content: SchemeListResponse['items']
+      totalElements: number
+    }
+    const response = await apiClient.get<ApiSchemeListResponse>('/api/v1/scheme/schemes', {
+      params: {
+        tenantCode: params.tenantCode,
+        page: params.page,
+        limit: params.limit,
+        ...(params.workStatus ? { workStatus: params.workStatus } : {}),
+        ...(params.operatingStatus ? { operatingStatus: params.operatingStatus } : {}),
+      },
+    })
+    return {
+      items: response.data.content,
+      totalElements: response.data.totalElements,
+    }
+  },
+
+  // --- Real HTTP: Upload Schemes ---
+  uploadSchemes: async (file: File, tenantCode: string): Promise<void> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    await apiClient.post('/api/v1/scheme/schemes/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'X-Tenant-Code': tenantCode,
+      },
+    })
+  },
+
+  // --- Real HTTP: Scheme Mappings List ---
+  getSchemeMappingsList: async (
+    params: SchemeMappingListParams
+  ): Promise<SchemeMappingListResponse> => {
+    type ApiSchemeMappingsResponse = {
+      content: SchemeMappingListResponse['items']
+      totalElements: number
+    }
+    const response = await apiClient.get<ApiSchemeMappingsResponse>(
+      '/api/v1/scheme/schemes/mappings',
+      {
+        params: {
+          tenantCode: params.tenantCode,
+          page: params.page,
+          limit: params.limit,
+        },
+      }
+    )
+    return {
+      items: response.data.content,
+      totalElements: response.data.totalElements,
+    }
+  },
+
+  // --- Real HTTP: Upload Scheme Mappings ---
+  uploadSchemeMappings: async (file: File, tenantCode: string): Promise<void> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    await apiClient.post('/api/v1/scheme/schemes/mappings/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         'X-Tenant-Code': tenantCode,
