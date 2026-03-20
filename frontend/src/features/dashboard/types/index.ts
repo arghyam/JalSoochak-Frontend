@@ -70,7 +70,7 @@ export interface VillagePumpOperatorDetails {
   name: string
   email?: string
   phoneNumber?: string
-  status?: number
+  status?: number | string
   schemeId?: number
   schemeName?: string
   schemeLatitude?: number | null
@@ -286,7 +286,20 @@ export interface ReadingComplianceItem {
   id: number
   uuid: string
   name: string
+  email?: string
+  phoneNumber?: string
+  status?: string
   schemeId?: number
+  schemeName?: string
+  schemeMappingStatus?: number
+  onboardingDate?: string | null
+  totalActiveDays?: number | null
+  submittedDays?: number | null
+  missedSubmissionDays?: number | string[] | null
+  inactiveDays?: number | null
+  missingSubmissionCount?: number | null
+  reportingRatePercent?: number | null
+  readingDate?: string | null
   readingAt?: string | null
   lastSubmissionAt: string | null
   confirmedReading: number | null
