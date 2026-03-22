@@ -268,6 +268,7 @@ export function DashboardBody({
 
       {selectedVillage && villagePumpOperatorDetails ? (
         <VillageDashboardScreen
+          key={`${selectedVillage}:${schemeId ?? villagePumpOperatorDetails.schemeId ?? 'unknown-scheme'}`}
           data={data}
           villagePhotoEvidenceRows={villagePhotoEvidenceRows}
           waterSupplyOutagesData={waterSupplyOutagesData}

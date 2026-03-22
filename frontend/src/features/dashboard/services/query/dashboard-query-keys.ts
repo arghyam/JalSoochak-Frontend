@@ -77,7 +77,15 @@ export const dashboardQueryKeys = {
   pumpOperatorDetails: (params: PumpOperatorDetailsQueryParams | null) =>
     ['dashboard', 'pump-operator', 'details', params?.pumpOperatorId, params?.tenant_code] as const,
   readingCompliance: (params: ReadingComplianceQueryParams | null) =>
-    ['dashboard', 'pump-operator', 'reading-compliance', params?.tenant_code] as const,
+    [
+      'dashboard',
+      'pump-operator',
+      'reading-compliance',
+      params?.tenant_code,
+      params?.scheme_id,
+      params?.page,
+      params?.size,
+    ] as const,
   submissionStatus: (params: SubmissionStatusQueryParams | null) =>
     [
       'dashboard',

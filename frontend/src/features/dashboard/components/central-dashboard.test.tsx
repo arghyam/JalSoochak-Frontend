@@ -341,6 +341,7 @@ describe('CentralDashboard', () => {
             stateTitle: 'Karnataka',
             schemeCount: 2,
             totalHouseholdCount: 1000,
+            totalFhtcCount: 500,
             totalWaterSuppliedLiters: 90_000_000,
             avgWaterSupplyPerScheme: 0,
           },
@@ -426,7 +427,7 @@ describe('CentralDashboard', () => {
       expect.objectContaining({
         name: 'Karnataka',
         coverage: 3,
-        quantity: 600,
+        quantity: 1200,
         regularity: 50,
       })
     )
@@ -451,6 +452,7 @@ describe('CentralDashboard', () => {
               stateTitle: 'Karnataka',
               schemeCount: 2,
               totalHouseholdCount: 1000,
+              totalFhtcCount: 500,
               totalWaterSuppliedLiters: 90_000_000,
               avgWaterSupplyPerScheme: 0,
             },
@@ -460,6 +462,7 @@ describe('CentralDashboard', () => {
               stateTitle: 'Tamil Nadu',
               schemeCount: 2,
               totalHouseholdCount: 1000,
+              totalFhtcCount: 500,
               totalWaterSuppliedLiters: 60_000_000,
               avgWaterSupplyPerScheme: 0,
             },
@@ -498,6 +501,7 @@ describe('CentralDashboard', () => {
               stateTitle: 'Karnataka',
               schemeCount: 2,
               totalHouseholdCount: 1000,
+              totalFhtcCount: 500,
               totalWaterSuppliedLiters: 120_000_000,
               avgWaterSupplyPerScheme: 0,
             },
@@ -507,6 +511,7 @@ describe('CentralDashboard', () => {
               stateTitle: 'Tamil Nadu',
               schemeCount: 2,
               totalHouseholdCount: 1000,
+              totalFhtcCount: 500,
               totalWaterSuppliedLiters: 60_000_000,
               avgWaterSupplyPerScheme: 0,
             },
@@ -536,7 +541,7 @@ describe('CentralDashboard', () => {
 
     renderWithProviders(<CentralDashboard />)
 
-    const kpiProps = mockKPICard.mock.calls.map(
+    const kpiProps = mockKPICard.mock.calls.slice(0, 3).map(
       (call) =>
         call[0] as {
           title: string
@@ -551,8 +556,8 @@ describe('CentralDashboard', () => {
     expect(kpiProps[0]?.trend).toEqual({ direction: 'down', text: '-16.7% vs last 30 days' })
 
     expect(kpiProps[1]?.title).toBe('Quantity in LPCD')
-    expect(kpiProps[1]?.value).toBe('500')
-    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-100 LPCD vs last month' })
+    expect(kpiProps[1]?.value).toBe('1000')
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-200 LPCD vs last month' })
 
     expect(kpiProps[2]?.title).toBe('Regularity')
     expect(kpiProps[2]?.value).toBe('70.0%')
@@ -1335,7 +1340,7 @@ describe('CentralDashboard', () => {
 
     renderWithProviders(<CentralDashboard />)
 
-    const kpiProps = mockKPICard.mock.calls.map(
+    const kpiProps = mockKPICard.mock.calls.slice(-3).map(
       (call) =>
         call[0] as {
           title: string
@@ -1557,7 +1562,7 @@ describe('CentralDashboard', () => {
 
     renderWithProviders(<CentralDashboard />)
 
-    const kpiProps = mockKPICard.mock.calls.map(
+    const kpiProps = mockKPICard.mock.calls.slice(0, 3).map(
       (call) =>
         call[0] as {
           title: string
@@ -1590,6 +1595,36 @@ describe('CentralDashboard', () => {
 
     expect(screen.queryByTestId('india-map-chart')).toBeNull()
     expect(screen.queryByTestId('overall-performance-table')).toBeNull()
+  })
+
+  it('uses the selected village LGD id for scheme performance analytics', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams(
+        'district=101:sangareddy&block=202:patancheru&gramPanchayat=303:ismailkhanpet&village=404:rudraram'
+      ),
+      jest.fn(),
+    ])
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useSchemePerformanceQuery).toHaveBeenCalledWith({
+      params: expect.objectContaining({
+        parentLgdId: 404,
+      }),
+      enabled: true,
+    })
   })
 
   it('updates URL with state in pathname and district in query params', () => {

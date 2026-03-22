@@ -207,7 +207,7 @@ export function OverallPerformanceTable({
               {rows.map((state) => (
                 <Tr key={state.id} _odd={{ bg: 'primary.25' }}>
                   <Td>{state.name}</Td>
-                  <Td>{state.coverage.toFixed(0)}%</Td>
+                  <Td>{state.coverage.toFixed(0)}</Td>
                   <Td>{state.quantity}</Td>
                   <Td>{state.regularity.toFixed(0)}%</Td>
                 </Tr>

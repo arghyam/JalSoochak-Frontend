@@ -66,10 +66,11 @@ export interface PumpOperatorPerformanceData {
 export interface VillagePumpOperatorDetails {
   id?: number
   uuid?: string
+  mappingKey?: string
   name: string
   email?: string
   phoneNumber?: string
-  status?: number
+  status?: number | string
   schemeId?: number
   schemeName?: string
   schemeLatitude?: number | null
@@ -160,6 +161,8 @@ export interface NationalDashboardQuantityPerformanceItem {
   stateTitle: string
   schemeCount: number
   totalHouseholdCount: number
+  totalFhtcCount?: number
+  totalPlannedFhtc?: number
   totalWaterSuppliedLiters: number
   avgWaterSupplyPerScheme: number
 }
@@ -198,6 +201,8 @@ export interface AverageWaterSupplyScheme {
   schemeId: number
   schemeName: string
   householdCount: number
+  fhtcCount?: number
+  plannedFhtc?: number
   totalWaterSuppliedLiters: number
   supplyDays: number
   avgLitersPerHousehold: number
@@ -208,6 +213,8 @@ export interface AverageWaterSupplyChildRegion {
   departmentId: number
   title: string
   totalHouseholdCount: number
+  totalFhtcCount?: number
+  totalPlannedFhtc?: number
   totalWaterSuppliedLiters: number
   schemeCount: number
   avgWaterSupplyPerScheme: number
@@ -270,12 +277,30 @@ export interface ReadingSubmissionRateQueryParams {
 
 export interface ReadingComplianceQueryParams {
   tenant_code: string
+  scheme_id?: number
+  page?: number
+  size?: number
 }
 
 export interface ReadingComplianceItem {
   id: number
   uuid: string
   name: string
+  email?: string
+  phoneNumber?: string
+  status?: string
+  schemeId?: number
+  schemeName?: string
+  schemeMappingStatus?: number
+  onboardingDate?: string | null
+  totalActiveDays?: number | null
+  submittedDays?: number | null
+  missedSubmissionDays?: number | string[] | null
+  inactiveDays?: number | null
+  missingSubmissionCount?: number | null
+  reportingRatePercent?: number | null
+  readingDate?: string | null
+  readingAt?: string | null
   lastSubmissionAt: string | null
   confirmedReading: number | null
 }
@@ -283,7 +308,13 @@ export interface ReadingComplianceItem {
 export interface ReadingComplianceResponse {
   status: number
   message: string
-  data: ReadingComplianceItem[]
+  data: {
+    content: ReadingComplianceItem[]
+    totalElements?: number
+    totalPages?: number
+    size?: number
+    number?: number
+  }
 }
 
 export interface SchemePerformanceQueryParams {

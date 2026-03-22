@@ -55,6 +55,22 @@ export type TenantListResponse = {
 const TENANTS_PAGE_SIZE = 10
 const TENANTS_MAX_PAGES = 1000
 
+type RawPumpOperatorDetailsResponse = Omit<PumpOperatorDetailsResponse, 'data'> & {
+  data: Omit<PumpOperatorDetailsResponse['data'], 'missedSubmissionDays'> & {
+    missedSubmissionDays: number | string[] | null
+  }
+}
+
+const normalizeMissedSubmissionDays = (
+  value: RawPumpOperatorDetailsResponse['data']['missedSubmissionDays']
+) => {
+  if (Array.isArray(value)) {
+    return value.length
+  }
+
+  return typeof value === 'number' ? value : null
+}
+
 const toTenantListContainer = (value: unknown): TenantListContainer | null => {
   if (!value || typeof value !== 'object') {
     return null
@@ -270,9 +286,8 @@ const provider: DashboardDataProvider =
       : httpWithMockFallbackProvider
 
 export const dashboardApi = {
-  getDashboardData: (params: DashboardQueryParams): Promise<DashboardData> => {
-    return provider.getDashboardData(params)
-  },
+  getDashboardData: (params: DashboardQueryParams): Promise<DashboardData> =>
+    provider.getDashboardData(params),
   getNationalDashboard: async (
     params: NationalDashboardQueryParams
   ): Promise<NationalDashboardResponse> => {
@@ -364,16 +379,24 @@ export const dashboardApi = {
   getPumpOperatorDetails: async (
     params: PumpOperatorDetailsQueryParams
   ): Promise<PumpOperatorDetailsResponse> => {
-    const response = await apiClient.get<PumpOperatorDetailsResponse>(
+    const response = await apiClient.get<RawPumpOperatorDetailsResponse>(
       `/api/v1/pumpoperator/pump-operators/${params.pumpOperatorId}`,
       {
         params: {
-          tenant_code: params.tenant_code,
+          tenantCode: params.tenant_code,
         },
       }
     )
 
-    return response.data
+    return {
+      ...response.data,
+      data: {
+        ...response.data.data,
+        missedSubmissionDays: normalizeMissedSubmissionDays(
+          response.data.data.missedSubmissionDays
+        ),
+      },
+    }
   },
   getPumpOperatorsByScheme: async (
     params: PumpOperatorsBySchemeQueryParams
@@ -382,8 +405,8 @@ export const dashboardApi = {
       '/api/v1/pumpoperator/pump-operators/by-scheme',
       {
         params: {
-          tenant_code: params.tenant_code,
-          scheme_id: params.scheme_id,
+          tenantCode: params.tenant_code,
+          schemeId: params.scheme_id,
         },
       }
     )
@@ -394,10 +417,15 @@ export const dashboardApi = {
     params: ReadingComplianceQueryParams
   ): Promise<ReadingComplianceResponse> => {
     const response = await apiClient.get<ReadingComplianceResponse>(
-      '/api/v1/pumpoperator/pump-operators/reading-compliance',
+      params.scheme_id != null
+        ? '/api/v1/pumpoperator/pump-operators/by-scheme/reading-compliance'
+        : '/api/v1/pumpoperator/pump-operators/reading-compliance',
       {
         params: {
-          tenant_code: params.tenant_code,
+          tenantCode: params.tenant_code,
+          schemeId: params.scheme_id,
+          page: params.page ?? 0,
+          size: params.size ?? 50,
         },
       }
     )

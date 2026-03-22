@@ -170,7 +170,7 @@
     "totalLabel": "Total",
     "note": "Note: Schemes active for at least 30 days in a month.",
     "details": {
-      "title": "Scheme Details",
+      "title": "Pump Operator Details",
       "fields": {
         "schemeNameSchemeId": "Scheme name/ Scheme ID",
         "stationLocation": "Station location",
