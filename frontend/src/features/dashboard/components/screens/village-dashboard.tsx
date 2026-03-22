@@ -366,6 +366,14 @@ function ReadingComplianceSection({
     () => currentPageItems.some((item) => getOperatorMappingKey(item) === activePumpOperatorKey),
     [activePumpOperatorKey, currentPageItems]
   )
+  const currentPageActiveOperatorCount = useMemo(
+    () =>
+      currentPageItems.reduce(
+        (count, item) => count + (getOperatorMappingKey(item) === activePumpOperatorKey ? 1 : 0),
+        0
+      ),
+    [activePumpOperatorKey, currentPageItems]
+  )
   const readingComplianceRows = useMemo(() => {
     const selectedOperatorRows =
       readingComplianceDataByOperator.rowsByOperatorKey.get(activePumpOperatorKey) ?? []
@@ -420,6 +428,7 @@ function ReadingComplianceSection({
     if (
       currentPageItems.length === 0 ||
       selectedOperatorHistoryCount > 1 ||
+      currentPageActiveOperatorCount >= 2 ||
       !currentPageIncludesActiveOperator
     ) {
       return
@@ -430,6 +439,7 @@ function ReadingComplianceSection({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setReadingCompliancePage((currentPage) => currentPage + 1)
   }, [
+    currentPageActiveOperatorCount,
     currentPageIncludesActiveOperator,
     currentPageItems.length,
     hasMoreReadingCompliancePages,
