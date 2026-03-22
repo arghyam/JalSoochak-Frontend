@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Button,
@@ -56,6 +57,7 @@ export function UploadFileModal({
   cancelLabel = 'Cancel',
   validationErrors,
 }: UploadFileModalProps) {
+  const { t } = useTranslation('common')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
@@ -180,8 +182,7 @@ export function UploadFileModal({
               >
                 <FiAlertCircle size={15} color="#C53030" />
                 <Text fontSize="sm" fontWeight="600" color="red.700">
-                  {validationErrors.length} validation error
-                  {validationErrors.length > 1 ? 's' : ''} found — fix and re-upload
+                  {t('upload.validationSummary', { count: validationErrors.length })}
                 </Text>
               </Flex>
 
@@ -203,7 +204,7 @@ export function UploadFileModal({
                   w="52px"
                   flexShrink={0}
                 >
-                  Row
+                  {t('upload.columnRow')}
                 </Text>
                 <Text
                   fontSize="xs"
@@ -214,7 +215,7 @@ export function UploadFileModal({
                   w="160px"
                   flexShrink={0}
                 >
-                  Field
+                  {t('upload.columnField')}
                 </Text>
                 <Text
                   fontSize="xs"
@@ -224,7 +225,7 @@ export function UploadFileModal({
                   letterSpacing="wider"
                   flex={1}
                 >
-                  Error
+                  {t('upload.columnError')}
                 </Text>
               </Flex>
 

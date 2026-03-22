@@ -107,6 +107,14 @@
     "noResults": "No results found"
   },
 
+  "upload": {
+    "validationSummary_one": "{{count}} validation error found — fix and re-upload",
+    "validationSummary_other": "{{count}} validation errors found — fix and re-upload",
+    "columnRow": "Row",
+    "columnField": "Field",
+    "columnError": "Error"
+  },
+
   "profile": {
     "title": "Profile",
     "details": "Profile Details",

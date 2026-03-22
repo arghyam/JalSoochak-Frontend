@@ -6,14 +6,11 @@ import type { ValidationFieldError } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
 import { useUploadPumpOperatorsMutation } from '../../services/query/use-state-admin-queries'
 import { useAuthStore } from '@/app/store/auth-store'
+import { extractUploadValidationErrors } from '../../utils/extract-upload-validation-errors'
 
 interface UploadStaffModalProps {
   isOpen: boolean
   onClose: () => void
-}
-
-interface ValidationErrorResponse {
-  fieldErrors?: ValidationFieldError[]
 }
 
 export function UploadStaffModal({ isOpen, onClose }: UploadStaffModalProps) {
@@ -40,9 +37,9 @@ export function UploadStaffModal({ isOpen, onClose }: UploadStaffModalProps) {
         },
         onError: (error: unknown) => {
           if (axios.isAxiosError(error)) {
-            const data = error.response?.data as ValidationErrorResponse | undefined
-            if (data?.fieldErrors?.length) {
-              setValidationErrors(data.fieldErrors)
+            const errors = extractUploadValidationErrors(error.response?.data)
+            if (errors.length > 0) {
+              setValidationErrors(errors)
               return
             }
           }

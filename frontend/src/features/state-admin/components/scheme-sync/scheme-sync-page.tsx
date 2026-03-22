@@ -31,6 +31,7 @@ import {
 } from '../../services/query/use-state-admin-queries'
 import { useAuthStore } from '@/app/store/auth-store'
 import { useToast } from '@/shared/hooks/use-toast'
+import { extractUploadValidationErrors } from '../../utils/extract-upload-validation-errors'
 
 const PAGE_SIZE = 10
 const PAGE_SIZE_OPTIONS = [10, 25, 50]
@@ -120,11 +121,9 @@ export function SchemeSyncPage() {
         },
         onError: (error: unknown) => {
           if (axios.isAxiosError(error)) {
-            const data = error.response?.data as
-              | { fieldErrors?: ValidationFieldError[] }
-              | undefined
-            if (data?.fieldErrors?.length) {
-              setUploadValidationErrors(data.fieldErrors)
+            const errors = extractUploadValidationErrors(error.response?.data)
+            if (errors.length > 0) {
+              setUploadValidationErrors(errors)
               return
             }
           }
