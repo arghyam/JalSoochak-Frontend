@@ -1,8 +1,12 @@
+import { useState } from 'react'
+import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { ToastContainer, UploadFileModal } from '@/shared/components/common'
+import type { ValidationFieldError } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
 import { useUploadPumpOperatorsMutation } from '../../services/query/use-state-admin-queries'
 import { useAuthStore } from '@/app/store/auth-store'
+import { extractUploadValidationErrors } from '../../utils/extract-upload-validation-errors'
 
 interface UploadStaffModalProps {
   isOpen: boolean
@@ -14,17 +18,31 @@ export function UploadStaffModal({ isOpen, onClose }: UploadStaffModalProps) {
   const toast = useToast()
   const tenantCode = useAuthStore((s) => s.user?.tenantCode ?? '')
   const { mutate: upload, isPending } = useUploadPumpOperatorsMutation()
+  const [validationErrors, setValidationErrors] = useState<ValidationFieldError[]>([])
+
+  const handleClose = () => {
+    setValidationErrors([])
+    onClose()
+  }
 
   const handleSubmit = (file: File) => {
     if (!file || !tenantCode) return
+    setValidationErrors([])
     upload(
       { file, tenantCode },
       {
         onSuccess: () => {
           toast.success(t('staffSync.upload.success'))
-          onClose()
+          handleClose()
         },
-        onError: () => {
+        onError: (error: unknown) => {
+          if (axios.isAxiosError(error)) {
+            const errors = extractUploadValidationErrors(error.response?.data)
+            if (errors.length > 0) {
+              setValidationErrors(errors)
+              return
+            }
+          }
           toast.error(t('staffSync.upload.error'))
         },
       }
@@ -35,7 +53,7 @@ export function UploadStaffModal({ isOpen, onClose }: UploadStaffModalProps) {
     <>
       <UploadFileModal
         isOpen={isOpen}
-        onClose={onClose}
+        onClose={handleClose}
         title={t('staffSync.upload.title')}
         description={t('staffSync.upload.description')}
         isPending={isPending}
@@ -45,6 +63,7 @@ export function UploadStaffModal({ isOpen, onClose }: UploadStaffModalProps) {
         fileTypesLabel={t('staffSync.upload.fileTypes')}
         closeAriaLabel={t('staffSync.upload.close', 'Close')}
         cancelLabel={t('staffSync.upload.cancel', 'Cancel')}
+        validationErrors={validationErrors}
       />
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </>

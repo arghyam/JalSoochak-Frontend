@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Button,
@@ -9,7 +10,13 @@ import {
   ModalOverlay,
   Text,
 } from '@chakra-ui/react'
-import { FiUpload, FiX } from 'react-icons/fi'
+import { FiUpload, FiX, FiAlertCircle } from 'react-icons/fi'
+
+export interface ValidationFieldError {
+  row: number
+  field: string
+  message: string
+}
 
 export interface UploadFileModalProps {
   isOpen: boolean
@@ -32,6 +39,8 @@ export interface UploadFileModalProps {
   closeAriaLabel?: string
   /** Label for the cancel button */
   cancelLabel?: string
+  /** Validation field errors returned by the server on a 400 response */
+  validationErrors?: ValidationFieldError[]
 }
 
 export function UploadFileModal({
@@ -46,7 +55,9 @@ export function UploadFileModal({
   fileTypesLabel = '.xlsx or .xls only',
   closeAriaLabel = 'Close',
   cancelLabel = 'Cancel',
+  validationErrors,
 }: UploadFileModalProps) {
+  const { t } = useTranslation('common')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
@@ -79,10 +90,12 @@ export function UploadFileModal({
     onSubmit(selectedFile)
   }
 
+  const hasValidationErrors = validationErrors && validationErrors.length > 0
+
   return (
     <Modal isOpen={isOpen} onClose={handleClose} onCloseComplete={resetFileState} isCentered>
       <ModalOverlay bg="blackAlpha.600" />
-      <ModalContent maxW="448px" borderRadius="12px" p={6}>
+      <ModalContent maxW="640px" borderRadius="12px" p={6}>
         <ModalBody p={0}>
           <Flex justify="space-between" align="center" mb={5}>
             <Text textStyle="h6" fontWeight="600">
@@ -149,6 +162,114 @@ export function UploadFileModal({
               </>
             )}
           </Box>
+
+          {hasValidationErrors && (
+            <Box
+              mt={4}
+              borderRadius="8px"
+              overflow="hidden"
+              border="1px solid"
+              borderColor="red.200"
+            >
+              <Flex
+                align="center"
+                gap={2}
+                px={4}
+                py={2.5}
+                bg="red.50"
+                borderBottom="1px solid"
+                borderColor="red.200"
+              >
+                <FiAlertCircle size={15} color="#C53030" />
+                <Text fontSize="sm" fontWeight="600" color="red.700">
+                  {t('upload.validationSummary', { count: validationErrors.length })}
+                </Text>
+              </Flex>
+
+              {/* Header row */}
+              <Flex
+                px={4}
+                py={2}
+                gap={4}
+                bg="red.50"
+                borderBottom="1px solid"
+                borderColor="red.100"
+              >
+                <Text
+                  fontSize="xs"
+                  fontWeight="700"
+                  color="red.600"
+                  textTransform="uppercase"
+                  letterSpacing="wider"
+                  w="52px"
+                  flexShrink={0}
+                >
+                  {t('upload.columnRow')}
+                </Text>
+                <Text
+                  fontSize="xs"
+                  fontWeight="700"
+                  color="red.600"
+                  textTransform="uppercase"
+                  letterSpacing="wider"
+                  w="160px"
+                  flexShrink={0}
+                >
+                  {t('upload.columnField')}
+                </Text>
+                <Text
+                  fontSize="xs"
+                  fontWeight="700"
+                  color="red.600"
+                  textTransform="uppercase"
+                  letterSpacing="wider"
+                  flex={1}
+                >
+                  {t('upload.columnError')}
+                </Text>
+              </Flex>
+
+              {/* Error rows */}
+              <Box maxH="220px" overflowY="auto" bg="white">
+                {validationErrors.map((err, idx) => (
+                  <Flex
+                    key={idx}
+                    px={4}
+                    py={2.5}
+                    gap={4}
+                    align="flex-start"
+                    borderTop={idx === 0 ? 'none' : '1px solid'}
+                    borderColor="red.50"
+                    _hover={{ bg: 'red.50' }}
+                  >
+                    <Text
+                      fontSize="sm"
+                      fontWeight="500"
+                      color="neutral.500"
+                      w="52px"
+                      flexShrink={0}
+                    >
+                      {err.row}
+                    </Text>
+                    <Text
+                      fontSize="sm"
+                      fontWeight="500"
+                      color="neutral.700"
+                      w="160px"
+                      flexShrink={0}
+                      fontFamily="mono"
+                      wordBreak="break-all"
+                    >
+                      {err.field}
+                    </Text>
+                    <Text fontSize="sm" color="red.700" flex={1}>
+                      {err.message}
+                    </Text>
+                  </Flex>
+                ))}
+              </Box>
+            </Box>
+          )}
 
           <Flex gap={3} mt={6} justify="flex-end">
             <Button variant="secondary" size="sm" onClick={handleClose} isDisabled={isPending}>
