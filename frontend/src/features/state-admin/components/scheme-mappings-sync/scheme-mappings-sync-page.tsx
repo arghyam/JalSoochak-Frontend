@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import axios from 'axios'
 import {
   Box,
   Button,
@@ -13,7 +14,7 @@ import { SearchIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { FiUpload } from 'react-icons/fi'
 import { DataTable, ToastContainer, UploadFileModal } from '@/shared/components/common'
-import type { DataTableColumn } from '@/shared/components/common'
+import type { DataTableColumn, ValidationFieldError } from '@/shared/components/common'
 import type { SchemeMapping } from '../../types/scheme-mappings-sync'
 import {
   useSchemeMappingsListQuery,
@@ -34,6 +35,7 @@ export function SchemeMappingsSyncPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
+  const [uploadValidationErrors, setUploadValidationErrors] = useState<ValidationFieldError[]>([])
 
   useEffect(() => {
     document.title = `${t('schemeMappingsSync.title')} | JalSoochak`
@@ -58,6 +60,7 @@ export function SchemeMappingsSyncPage() {
   }, [data, searchQuery])
 
   const handleUpload = (file: File) => {
+    setUploadValidationErrors([])
     upload(
       { file, tenantCode },
       {
@@ -65,7 +68,16 @@ export function SchemeMappingsSyncPage() {
           toast.success(t('schemeMappingsSync.upload.success'))
           setIsUploadOpen(false)
         },
-        onError: () => {
+        onError: (error: unknown) => {
+          if (axios.isAxiosError(error)) {
+            const data = error.response?.data as
+              | { fieldErrors?: ValidationFieldError[] }
+              | undefined
+            if (data?.fieldErrors?.length) {
+              setUploadValidationErrors(data.fieldErrors)
+              return
+            }
+          }
           toast.error(t('schemeMappingsSync.upload.error'))
         },
       }
@@ -224,7 +236,10 @@ export function SchemeMappingsSyncPage() {
 
       <UploadFileModal
         isOpen={isUploadOpen}
-        onClose={() => setIsUploadOpen(false)}
+        onClose={() => {
+          setUploadValidationErrors([])
+          setIsUploadOpen(false)
+        }}
         title={t('schemeMappingsSync.upload.title')}
         description={t('schemeMappingsSync.upload.description')}
         isPending={isUploading}
@@ -234,6 +249,7 @@ export function SchemeMappingsSyncPage() {
         fileTypesLabel={t('schemeMappingsSync.upload.fileTypes')}
         closeAriaLabel={t('schemeMappingsSync.upload.close')}
         cancelLabel={t('schemeMappingsSync.upload.cancel')}
+        validationErrors={uploadValidationErrors}
       />
 
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />

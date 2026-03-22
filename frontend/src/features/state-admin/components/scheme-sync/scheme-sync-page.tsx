@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import axios from 'axios'
 import {
   Box,
   Button,
@@ -21,7 +22,7 @@ import {
   ToastContainer,
   UploadFileModal,
 } from '@/shared/components/common'
-import type { DataTableColumn } from '@/shared/components/common'
+import type { DataTableColumn, ValidationFieldError } from '@/shared/components/common'
 import type { Scheme } from '../../types/scheme-sync'
 import {
   useSchemeCountsQuery,
@@ -45,6 +46,7 @@ export function SchemeSyncPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
+  const [uploadValidationErrors, setUploadValidationErrors] = useState<ValidationFieldError[]>([])
 
   useEffect(() => {
     document.title = `${t('schemeSync.title')} | JalSoochak`
@@ -108,6 +110,7 @@ export function SchemeSyncPage() {
   }, [data, searchQuery])
 
   const handleUpload = (file: File) => {
+    setUploadValidationErrors([])
     upload(
       { file, tenantCode },
       {
@@ -115,7 +118,16 @@ export function SchemeSyncPage() {
           toast.success(t('schemeSync.upload.success'))
           setIsUploadOpen(false)
         },
-        onError: () => {
+        onError: (error: unknown) => {
+          if (axios.isAxiosError(error)) {
+            const data = error.response?.data as
+              | { fieldErrors?: ValidationFieldError[] }
+              | undefined
+            if (data?.fieldErrors?.length) {
+              setUploadValidationErrors(data.fieldErrors)
+              return
+            }
+          }
           toast.error(t('schemeSync.upload.error'))
         },
       }
@@ -363,7 +375,10 @@ export function SchemeSyncPage() {
 
       <UploadFileModal
         isOpen={isUploadOpen}
-        onClose={() => setIsUploadOpen(false)}
+        onClose={() => {
+          setUploadValidationErrors([])
+          setIsUploadOpen(false)
+        }}
         title={t('schemeSync.upload.title')}
         description={t('schemeSync.upload.description')}
         isPending={isUploading}
@@ -373,6 +388,7 @@ export function SchemeSyncPage() {
         fileTypesLabel={t('schemeSync.upload.fileTypes')}
         closeAriaLabel={t('schemeSync.upload.close')}
         cancelLabel={t('schemeSync.upload.cancel')}
+        validationErrors={uploadValidationErrors}
       />
 
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
