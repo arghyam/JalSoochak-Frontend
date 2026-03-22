@@ -433,6 +433,7 @@ export const stateAdminApi = {
     formData.append('file', file)
     await apiClient.post('/api/v1/state-admin/pump-operators/upload', formData, {
       headers: {
+        'Content-Type': 'multipart/form-data',
         'X-Tenant-Code': tenantCode,
       },
     })
