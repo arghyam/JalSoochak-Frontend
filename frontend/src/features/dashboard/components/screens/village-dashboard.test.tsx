@@ -13,8 +13,15 @@ const mockSupplyOutageReasonsChart = jest.fn((_props: unknown) => (
 const mockReadingSubmissionStatusChart = jest.fn((_props: unknown) => (
   <div data-testid="reading-submission-status-chart" />
 ))
-const mockReadingComplianceTable = jest.fn((_props: unknown) => (
-  <div data-testid="reading-compliance-table" />
+const mockReadingComplianceTable = jest.fn((props: { onReachEnd?: () => void }) => (
+  <div>
+    <div data-testid="reading-compliance-table" />
+    {props.onReachEnd ? (
+      <button onClick={props.onReachEnd} type="button">
+        Load more compliance
+      </button>
+    ) : null}
+  </div>
 ))
 const mockUsePumpOperatorsBySchemeQuery = jest.fn<(options: unknown) => { data: unknown }>(
   (_options: unknown) => ({ data: undefined })
@@ -22,9 +29,9 @@ const mockUsePumpOperatorsBySchemeQuery = jest.fn<(options: unknown) => { data: 
 const mockUsePumpOperatorDetailsQuery = jest.fn<(options: unknown) => { data: unknown }>(
   (_options: unknown) => ({ data: undefined })
 )
-const mockUseReadingComplianceQuery = jest.fn<(options: unknown) => { data: unknown }>(
-  (_options: unknown) => ({ data: undefined })
-)
+const mockUseReadingComplianceQuery = jest.fn<
+  (options: unknown) => { data: unknown; isFetching: boolean }
+>((_options: unknown) => ({ data: undefined, isFetching: false }))
 
 jest.mock('../charts', () => ({
   MetricPerformanceChart: (props: unknown) => mockMetricPerformanceChart(props),
@@ -33,7 +40,8 @@ jest.mock('../charts', () => ({
 }))
 
 jest.mock('../tables', () => ({
-  ReadingComplianceTable: (props: unknown) => mockReadingComplianceTable(props),
+  ReadingComplianceTable: (props: unknown) =>
+    mockReadingComplianceTable(props as { onReachEnd?: () => void }),
 }))
 
 jest.mock('../../services/query/use-pump-operators-by-scheme-query', () => ({
@@ -175,19 +183,20 @@ describe('VillageDashboardScreen', () => {
     mockUseReadingComplianceQuery.mockReset()
     mockUsePumpOperatorsBySchemeQuery.mockReturnValue({ data: undefined })
     mockUsePumpOperatorDetailsQuery.mockReturnValue({ data: undefined })
-    mockUseReadingComplianceQuery.mockReturnValue({ data: undefined })
+    mockUseReadingComplianceQuery.mockReturnValue({ data: undefined, isFetching: false })
   })
 
   it('renders quantity and regularity using metric performance charts', () => {
     renderVillageDashboard()
 
     const metricCalls = mockMetricPerformanceChart.mock.calls as Array<[Record<string, unknown>]>
-    expect(metricCalls).toHaveLength(2)
-    expect(metricCalls[0]?.[0].metric).toBe('quantity')
-    expect(metricCalls[0]?.[0].showAreaLine).toBe(true)
-    expect(metricCalls[0]?.[0].seriesName).toBe('Quantity')
-    expect(metricCalls[1]?.[0].metric).toBe('regularity')
-    expect(metricCalls[1]?.[0].seriesName).toBe('Regularity')
+    expect(metricCalls.length).toBeGreaterThanOrEqual(2)
+    const latestMetricCalls = metricCalls.slice(-2)
+    expect(latestMetricCalls[0]?.[0].metric).toBe('quantity')
+    expect(latestMetricCalls[0]?.[0].showAreaLine).toBe(true)
+    expect(latestMetricCalls[0]?.[0].seriesName).toBe('Quantity')
+    expect(latestMetricCalls[1]?.[0].metric).toBe('regularity')
+    expect(latestMetricCalls[1]?.[0].seriesName).toBe('Regularity')
 
     expect(screen.getByTestId('supply-outage-reasons-chart')).toBeTruthy()
     expect(screen.getByTestId('reading-submission-status-chart')).toBeTruthy()
@@ -310,7 +319,7 @@ describe('VillageDashboardScreen', () => {
         tenant_code: 'as',
         scheme_id: 3,
         page: 0,
-        size: 800,
+        size: 50,
       },
       enabled: true,
     })
@@ -716,7 +725,7 @@ describe('VillageDashboardScreen', () => {
         tenant_code: 'as',
         scheme_id: 3,
         page: 0,
-        size: 800,
+        size: 50,
       },
       enabled: true,
     })
@@ -939,5 +948,176 @@ describe('VillageDashboardScreen', () => {
         readingValue: '104602.8',
       },
     ])
+  })
+
+  it('loads the next scheme compliance page when the table reaches the bottom', () => {
+    mockUseReadingComplianceQuery.mockImplementation((options) => {
+      const params = (options as { params?: { page?: number } | null }).params
+
+      if (params?.page === 1) {
+        return {
+          data: {
+            status: 200,
+            message: 'Pump operators retrieved',
+            data: {
+              content: [
+                {
+                  id: 4,
+                  uuid: 'uuid-1',
+                  name: 'Ajay Yadav',
+                  schemeId: 3,
+                  schemeName: 'Rural Water Supply 001',
+                  readingAt: '2026-03-17T15:04:10.896445',
+                  lastSubmissionAt: '2026-03-17T15:04:10.896445',
+                  confirmedReading: 104500.12,
+                },
+              ],
+              totalPages: 2,
+              number: 1,
+            },
+          },
+          isFetching: false,
+        }
+      }
+
+      return {
+        data: {
+          status: 200,
+          message: 'Pump operators retrieved',
+          data: {
+            content: Array.from({ length: 50 }, (_, index) => ({
+              id: 4,
+              uuid: 'uuid-1',
+              name: 'Ajay Yadav',
+              schemeId: 3,
+              schemeName: 'Rural Water Supply 001',
+              readingAt: `2026-03-17T15:${String(59 - index).padStart(2, '0')}:10.896445`,
+              lastSubmissionAt: `2026-03-17T15:${String(59 - index).padStart(2, '0')}:10.896445`,
+              confirmedReading: 104958.72 - index,
+            })),
+            totalPages: 2,
+            number: 0,
+          },
+        },
+        isFetching: false,
+      }
+    })
+
+    renderVillageDashboard([], [villagePumpOperatorDetails])
+
+    fireEvent.click(screen.getByRole('button', { name: 'Load more compliance' }))
+
+    expect(mockUseReadingComplianceQuery).toHaveBeenCalledWith({
+      params: {
+        tenant_code: 'as',
+        scheme_id: 3,
+        page: 1,
+        size: 50,
+      },
+      enabled: true,
+    })
+
+    const complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
+      data: Array<{ lastSubmission: string }>
+    }
+    expect(complianceProps.data).toHaveLength(51)
+    expect(complianceProps.data.at(-1)?.lastSubmission).toBe('17-03-26, 3:04pm')
+  })
+
+  it('uses pagination metadata instead of only content length to continue loading pages', () => {
+    mockUseReadingComplianceQuery.mockImplementation((options) => {
+      const params = (options as { params?: { page?: number } | null }).params
+
+      if (params?.page === 1) {
+        return {
+          data: {
+            status: 200,
+            message: 'Pump operators retrieved',
+            data: {
+              content: [
+                {
+                  id: 4,
+                  uuid: 'uuid-1',
+                  name: 'Ajay Yadav',
+                  schemeId: 3,
+                  schemeName: 'Rural Water Supply 001',
+                  readingAt: '2026-03-17T15:04:10.896445',
+                  lastSubmissionAt: '2026-03-17T15:04:10.896445',
+                  confirmedReading: 104500.12,
+                },
+              ],
+              totalPages: 3,
+              number: 1,
+            },
+          },
+          isFetching: false,
+        }
+      }
+
+      if (params?.page === 2) {
+        return {
+          data: {
+            status: 200,
+            message: 'Pump operators retrieved',
+            data: {
+              content: [
+                {
+                  id: 4,
+                  uuid: 'uuid-1',
+                  name: 'Ajay Yadav',
+                  schemeId: 3,
+                  schemeName: 'Rural Water Supply 001',
+                  readingAt: '2026-03-17T15:03:10.896445',
+                  lastSubmissionAt: '2026-03-17T15:03:10.896445',
+                  confirmedReading: 104400.12,
+                },
+              ],
+              totalPages: 3,
+              number: 2,
+            },
+          },
+          isFetching: false,
+        }
+      }
+
+      return {
+        data: {
+          status: 200,
+          message: 'Pump operators retrieved',
+          data: {
+            content: [
+              {
+                id: 4,
+                uuid: 'uuid-1',
+                name: 'Ajay Yadav',
+                schemeId: 3,
+                schemeName: 'Rural Water Supply 001',
+                readingAt: '2026-03-17T15:06:10.896445',
+                lastSubmissionAt: '2026-03-17T15:06:10.896445',
+                confirmedReading: 104958.72,
+              },
+            ],
+            totalPages: 3,
+            number: 0,
+          },
+        },
+        isFetching: false,
+      }
+    })
+
+    renderVillageDashboard([], [villagePumpOperatorDetails])
+
+    fireEvent.click(screen.getByRole('button', { name: 'Load more compliance' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Load more compliance' }))
+
+    expect(mockUseReadingComplianceQuery).toHaveBeenCalledWith({
+      params: {
+        tenant_code: 'as',
+        scheme_id: 3,
+        page: 2,
+        size: 50,
+      },
+      enabled: true,
+    })
   })
 })

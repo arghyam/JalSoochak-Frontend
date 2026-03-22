@@ -1,16 +1,20 @@
 import { useMemo, useState } from 'react'
 import { Avatar, Box, Button, Flex, Grid, Icon, Text } from '@chakra-ui/react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { LuArrowLeft, LuArrowRight } from 'react-icons/lu'
 import type {
   DashboardData,
   EntityPerformance,
   ReadingComplianceData,
+  ReadingComplianceQueryParams,
   ReadingComplianceItem,
+  ReadingComplianceResponse,
   VillagePumpOperatorDetails,
   WaterSupplyOutageData,
 } from '../../types'
 import { useReadingComplianceQuery } from '../../services/query/use-reading-compliance-query'
+import { dashboardQueryKeys } from '../../services/query/dashboard-query-keys'
 import { SupplyOutageReasonsChart, MetricPerformanceChart } from '../charts'
 import { ReadingComplianceTable } from '../tables'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
@@ -24,6 +28,8 @@ type VillageDashboardScreenProps = {
   tenantCode?: string
   schemeId?: number
 }
+
+const READING_COMPLIANCE_PAGE_SIZE = 50
 
 const formatReadingComplianceTimestamp = (value?: string | null) => {
   if (!value) {
@@ -51,6 +57,12 @@ const formatReadingComplianceTimestamp = (value?: string | null) => {
 
   return `${datePart.replace(/\//g, '-')}, ${hour}:${minute}${dayPeriod}`
 }
+
+const getReadingComplianceTimestampValue = (item: {
+  lastSubmissionAt?: string | null
+  readingAt?: string | null
+  readingDate?: string | null
+}) => item.lastSubmissionAt ?? item.readingAt ?? item.readingDate ?? null
 
 const formatPercent = (value?: number | null) => {
   if (typeof value !== 'number' || Number.isNaN(value)) {
@@ -153,8 +165,8 @@ const mapReadingComplianceItemToVillageDetails = (
         : matchingFallback?.scheme || 'N/A',
     stationLocation: matchingFallback?.stationLocation || 'N/A',
     lastSubmission:
-      item.lastSubmissionAt != null
-        ? formatReadingComplianceTimestamp(item.lastSubmissionAt)
+      getReadingComplianceTimestampValue(item) != null
+        ? formatReadingComplianceTimestamp(getReadingComplianceTimestampValue(item))
         : matchingFallback?.lastSubmission || 'N/A',
     reportingRate:
       item.reportingRatePercent != null
@@ -172,7 +184,7 @@ const mapReadingComplianceItemToVillageDetails = (
 }
 
 const getSubmissionTime = (item: ReadingComplianceItem) => {
-  const value = item.lastSubmissionAt ?? item.readingAt ?? item.readingDate ?? null
+  const value = getReadingComplianceTimestampValue(item)
 
   if (!value) {
     return 0
@@ -182,45 +194,85 @@ const getSubmissionTime = (item: ReadingComplianceItem) => {
   return Number.isNaN(parsedDate.getTime()) ? 0 : parsedDate.getTime()
 }
 
-export function VillageDashboardScreen({
-  data,
-  waterSupplyOutagesData,
-  villagePumpOperatorDetails,
-  villagePumpOperators = [],
-  tenantCode,
-  schemeId,
-}: VillageDashboardScreenProps) {
-  const { t } = useTranslation('dashboard')
-  const [pumpOperatorPage, setPumpOperatorPage] = useState(1)
-  const effectiveSchemeId = schemeId ?? villagePumpOperatorDetails.schemeId
+const getReadingComplianceItemKey = (item: ReadingComplianceItem, index: number) =>
+  [item.schemeId ?? 'scheme', item.id, item.readingAt ?? item.lastSubmissionAt ?? index].join('-')
 
-  const timeSeriesPerformanceData = useMemo<EntityPerformance[]>(
+type ReadingComplianceSectionProps = {
+  villagePumpOperatorDetails: VillagePumpOperatorDetails
+  villagePumpOperators: VillagePumpOperatorDetails[]
+  tenantCode?: string
+  effectiveSchemeId?: number
+}
+
+function ReadingComplianceSection({
+  villagePumpOperatorDetails,
+  villagePumpOperators,
+  tenantCode,
+  effectiveSchemeId,
+}: ReadingComplianceSectionProps) {
+  const { t } = useTranslation('dashboard')
+  const queryClient = useQueryClient()
+  const [pumpOperatorPage, setPumpOperatorPage] = useState(1)
+  const [readingCompliancePage, setReadingCompliancePage] = useState(0)
+  const readingComplianceParams = useMemo(
     () =>
-      data.demandSupply.map((item, index) => ({
-        id: `performance-${index}-${item.period}`,
-        name: item.period,
-        coverage: item.demand,
-        regularity:
-          item.demand > 0 ? Math.min(100, Math.round((item.supply / item.demand) * 100)) : 0,
-        continuity: 0,
-        quantity: item.supply,
-        compositeScore: 0,
-        status: 'needs-attention',
-      })),
-    [data.demandSupply]
-  )
-  const { data: readingComplianceApiData } = useReadingComplianceQuery({
-    params:
       tenantCode && typeof effectiveSchemeId === 'number'
         ? {
             tenant_code: tenantCode,
             scheme_id: effectiveSchemeId,
-            page: 0,
-            size: 800,
+            page: readingCompliancePage,
+            size: READING_COMPLIANCE_PAGE_SIZE,
           }
         : null,
-    enabled: Boolean(tenantCode && typeof effectiveSchemeId === 'number'),
-  })
+    [effectiveSchemeId, readingCompliancePage, tenantCode]
+  )
+  const { data: readingComplianceApiData, isFetching: isReadingComplianceFetching } =
+    useReadingComplianceQuery({
+      params: readingComplianceParams,
+      enabled: Boolean(readingComplianceParams),
+    })
+  const currentPageItems = useMemo(
+    () => readingComplianceApiData?.data.content ?? [],
+    [readingComplianceApiData?.data.content]
+  )
+  const readingComplianceItems = useMemo(() => {
+    if (!readingComplianceParams) {
+      return []
+    }
+
+    const mergedItems: ReadingComplianceItem[] = []
+    const existingKeys = new Set<string>()
+
+    for (let pageIndex = 0; pageIndex <= readingCompliancePage; pageIndex += 1) {
+      const pageParams: ReadingComplianceQueryParams = {
+        ...readingComplianceParams,
+        page: pageIndex,
+      }
+      const pageItems =
+        pageIndex === readingCompliancePage
+          ? currentPageItems
+          : (queryClient.getQueryData<ReadingComplianceResponse>(
+              dashboardQueryKeys.readingCompliance(pageParams)
+            )?.data.content ?? [])
+
+      pageItems.forEach((item, index) => {
+        const itemKey = getReadingComplianceItemKey(item, index)
+
+        if (!existingKeys.has(itemKey)) {
+          existingKeys.add(itemKey)
+          mergedItems.push(item)
+        }
+      })
+    }
+
+    return mergedItems
+  }, [currentPageItems, queryClient, readingCompliancePage, readingComplianceParams])
+  const currentResponsePage = readingComplianceApiData?.data.number ?? readingCompliancePage
+  const totalPages = readingComplianceApiData?.data.totalPages
+  const hasMoreReadingCompliancePages =
+    typeof totalPages === 'number'
+      ? currentResponsePage + 1 < totalPages
+      : currentPageItems.length === READING_COMPLIANCE_PAGE_SIZE
   const fallbackPumpOperatorPages = useMemo(
     () => (villagePumpOperators.length > 0 ? villagePumpOperators : [villagePumpOperatorDetails]),
     [villagePumpOperatorDetails, villagePumpOperators]
@@ -229,7 +281,7 @@ export function VillageDashboardScreen({
     const rowsByOperatorKey = new Map<string, ReadingComplianceItem[]>()
     const latestEntryByOperatorKey = new Map<string, ReadingComplianceItem>()
 
-    for (const item of readingComplianceApiData?.data.content ?? []) {
+    for (const item of readingComplianceItems) {
       const operatorKey = getOperatorMappingKey(item)
       const rows = rowsByOperatorKey.get(operatorKey)
 
@@ -252,7 +304,7 @@ export function VillageDashboardScreen({
       rowsByOperatorKey,
       latestEntryByOperatorKey,
     }
-  }, [readingComplianceApiData?.data.content])
+  }, [readingComplianceItems])
   const pumpOperatorPages = useMemo(() => {
     const apiPumpOperators = Array.from(
       readingComplianceDataByOperator.latestEntryByOperatorKey.values()
@@ -277,7 +329,7 @@ export function VillageDashboardScreen({
       ].join('-'),
       name: item.name?.trim() || 'N/A',
       village: 'N/A',
-      lastSubmission: formatReadingComplianceTimestamp(item.lastSubmissionAt),
+      lastSubmission: formatReadingComplianceTimestamp(getReadingComplianceTimestampValue(item)),
       readingValue:
         item.confirmedReading === null || item.confirmedReading === undefined
           ? 'N/A'
@@ -309,6 +361,17 @@ export function VillageDashboardScreen({
     effectiveSchemeId,
     readingComplianceDataByOperator,
   ])
+  const handleReachReadingComplianceEnd = () => {
+    if (!hasMoreReadingCompliancePages || isReadingComplianceFetching) {
+      return
+    }
+
+    if ((readingComplianceApiData?.data.content ?? []).length === 0) {
+      return
+    }
+
+    setReadingCompliancePage((currentPage) => currentPage + 1)
+  }
   const visiblePageNumbers = useMemo(() => {
     if (totalPumpOperatorPages <= 3) {
       return Array.from({ length: totalPumpOperatorPages }, (_, index) => index + 1)
@@ -324,6 +387,265 @@ export function VillageDashboardScreen({
 
     return [activePumpOperatorPage - 1, activePumpOperatorPage, activePumpOperatorPage + 1]
   }, [activePumpOperatorPage, totalPumpOperatorPages])
+
+  return (
+    <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
+      <Box
+        bg="white"
+        borderWidth="0.5px"
+        borderRadius="12px"
+        borderColor="#E4E4E7"
+        pt="24px"
+        pb="24px"
+        pl="16px"
+        pr="16px"
+        h={{ base: 'auto', md: '430px' }}
+        minW={0}
+        overflow="hidden"
+      >
+        <Flex direction="column" h="full">
+          <Text textStyle="bodyText3" fontWeight="400" mb={4}>
+            {t('pumpOperators.details.title', {
+              defaultValue: 'Pump Operator Details',
+            })}
+          </Text>
+          <Box>
+            <Flex align="center" gap={3} mb={6}>
+              <Avatar name={activePumpOperator.name} boxSize="44px" />
+              <Text textStyle="bodyText4" fontSize="14px" fontWeight="500" color="neutral.950">
+                {activePumpOperator.name}
+              </Text>
+            </Flex>
+            <Grid
+              templateColumns={{ base: '1fr', sm: '1fr auto' }}
+              columnGap="24px"
+              rowGap="12px"
+              alignItems="center"
+            >
+              <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                {t('pumpOperators.details.fields.schemeNameSchemeId', {
+                  defaultValue: 'Scheme name/ Scheme ID',
+                })}
+              </Text>
+              <Text
+                textStyle="bodyText4"
+                fontWeight="400"
+                color="neutral.950"
+                textAlign={{ base: 'left', sm: 'right' }}
+                wordBreak="break-word"
+              >
+                {activePumpOperator.scheme}
+              </Text>
+              <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                {t('pumpOperators.details.fields.stationLocation', {
+                  defaultValue: 'Station location',
+                })}
+              </Text>
+              <Text
+                textStyle="bodyText4"
+                fontWeight="400"
+                color="neutral.950"
+                textAlign={{ base: 'left', sm: 'right' }}
+                wordBreak="break-word"
+              >
+                {activePumpOperator.stationLocation}
+              </Text>
+              <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                {t('pumpOperators.details.fields.lastSubmission', {
+                  defaultValue: 'Last submission',
+                })}
+              </Text>
+              <Text
+                textStyle="bodyText4"
+                fontWeight="400"
+                color="neutral.950"
+                textAlign={{ base: 'left', sm: 'right' }}
+              >
+                {activePumpOperator.lastSubmission}
+              </Text>
+              <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                {t('pumpOperators.details.fields.reportingRate', {
+                  defaultValue: 'Reporting rate',
+                })}
+              </Text>
+              <Text
+                textStyle="bodyText4"
+                fontWeight="400"
+                color="neutral.950"
+                textAlign={{ base: 'left', sm: 'right' }}
+              >
+                {activePumpOperator.reportingRate}
+              </Text>
+              <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                {t('pumpOperators.details.fields.missingSubmissionCount', {
+                  defaultValue: 'Missing submission count',
+                })}
+              </Text>
+              <Text
+                textStyle="bodyText4"
+                fontWeight="400"
+                color="neutral.950"
+                textAlign={{ base: 'left', sm: 'right' }}
+              >
+                {activePumpOperator.missingSubmissionCount}
+              </Text>
+              <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                {t('pumpOperators.details.fields.inactiveDays', {
+                  defaultValue: 'Inactive days',
+                })}
+              </Text>
+              <Text
+                textStyle="bodyText4"
+                fontWeight="400"
+                color="neutral.950"
+                textAlign={{ base: 'left', sm: 'right' }}
+              >
+                {activePumpOperator.inactiveDays}
+              </Text>
+            </Grid>
+          </Box>
+          {totalPumpOperatorPages > 1 ? (
+            <Flex
+              mt={{ base: 4, md: 'auto' }}
+              pt={{ base: 4, md: 6 }}
+              align="center"
+              justify="center"
+              gap={{ base: 1.5, sm: 2 }}
+              wrap="wrap"
+              w="full"
+              maxW="100%"
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                leftIcon={<Icon as={LuArrowLeft} boxSize={4} />}
+                onClick={() =>
+                  setPumpOperatorPage((previousPage) =>
+                    Math.max(1, Math.min(previousPage, totalPumpOperatorPages) - 1)
+                  )
+                }
+                isDisabled={activePumpOperatorPage === 1}
+                px={{ base: 2, sm: 3 }}
+                minW={0}
+                aria-label={t('pumpOperators.details.pagination.previous', {
+                  defaultValue: 'Previous',
+                })}
+              >
+                <Text as="span" display={{ base: 'none', sm: 'inline' }}>
+                  {t('pumpOperators.details.pagination.previous', {
+                    defaultValue: 'Previous',
+                  })}
+                </Text>
+              </Button>
+              {visiblePageNumbers.map((pageNumber) => (
+                <Button
+                  key={pageNumber}
+                  variant="outline"
+                  size="sm"
+                  minW="34px"
+                  px={0}
+                  borderRadius="8px"
+                  borderColor="#D4D4D8"
+                  bg={activePumpOperatorPage === pageNumber ? '#3291D1' : 'white'}
+                  color={activePumpOperatorPage === pageNumber ? 'white' : 'neutral.700'}
+                  _hover={{
+                    bg: activePumpOperatorPage === pageNumber ? '#3291D1' : 'neutral.100',
+                  }}
+                  onClick={() => setPumpOperatorPage(pageNumber)}
+                  flexShrink={0}
+                >
+                  {pageNumber}
+                </Button>
+              ))}
+              <Button
+                variant="ghost"
+                size="sm"
+                rightIcon={<Icon as={LuArrowRight} boxSize={4} />}
+                onClick={() =>
+                  setPumpOperatorPage((previousPage) =>
+                    Math.min(
+                      totalPumpOperatorPages,
+                      Math.min(previousPage, totalPumpOperatorPages) + 1
+                    )
+                  )
+                }
+                isDisabled={activePumpOperatorPage === totalPumpOperatorPages}
+                px={{ base: 2, sm: 3 }}
+                minW={0}
+                aria-label={t('pumpOperators.details.pagination.next', {
+                  defaultValue: 'Next',
+                })}
+              >
+                <Text as="span" display={{ base: 'none', sm: 'inline' }}>
+                  {t('pumpOperators.details.pagination.next', {
+                    defaultValue: 'Next',
+                  })}
+                </Text>
+              </Button>
+            </Flex>
+          ) : null}
+        </Flex>
+      </Box>
+      <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="430px" minW={0}>
+        <ReadingComplianceTable
+          key={activePumpOperatorKey}
+          data={readingComplianceRows}
+          showVillageColumn={false}
+          scrollAreaMaxH="320px"
+          onReachEnd={handleReachReadingComplianceEnd}
+          title={t('outageAndSubmissionCharts.titles.readingCompliance', {
+            defaultValue: 'Reading Compliance',
+          })}
+        />
+        {hasMoreReadingCompliancePages ? (
+          <Flex justify="center" mt={4}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleReachReadingComplianceEnd}
+              isLoading={isReadingComplianceFetching}
+              loadingText={t('outageAndSubmissionCharts.tables.readingCompliance.loadingOlder', {
+                defaultValue: 'Loading...',
+              })}
+            >
+              {t('outageAndSubmissionCharts.tables.readingCompliance.loadOlder', {
+                defaultValue: 'Load older submissions',
+              })}
+            </Button>
+          </Flex>
+        ) : null}
+      </Box>
+    </Grid>
+  )
+}
+
+export function VillageDashboardScreen({
+  data,
+  waterSupplyOutagesData,
+  villagePumpOperatorDetails,
+  villagePumpOperators = [],
+  tenantCode,
+  schemeId,
+}: VillageDashboardScreenProps) {
+  const { t } = useTranslation('dashboard')
+  const effectiveSchemeId = schemeId ?? villagePumpOperatorDetails.schemeId
+
+  const timeSeriesPerformanceData = useMemo<EntityPerformance[]>(
+    () =>
+      data.demandSupply.map((item, index) => ({
+        id: `performance-${index}-${item.period}`,
+        name: item.period,
+        coverage: item.demand,
+        regularity:
+          item.demand > 0 ? Math.min(100, Math.round((item.supply / item.demand) * 100)) : 0,
+        continuity: 0,
+        quantity: item.supply,
+        compositeScore: 0,
+        status: 'needs-attention',
+      })),
+    [data.demandSupply]
+  )
+  const readingComplianceScopeKey = `${tenantCode ?? 'no-tenant'}:${effectiveSchemeId ?? 'no-scheme'}`
 
   return (
     <>
@@ -411,215 +733,13 @@ export function VillageDashboardScreen({
           boxProps={{ w: 'full' }}
         />
       </Grid>
-      <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
-        <Box
-          bg="white"
-          borderWidth="0.5px"
-          borderRadius="12px"
-          borderColor="#E4E4E7"
-          pt="24px"
-          pb="24px"
-          pl="16px"
-          pr="16px"
-          h={{ base: 'auto', md: '430px' }}
-          minW={0}
-          overflow="hidden"
-        >
-          <Flex direction="column" h="full">
-            <Text textStyle="bodyText3" fontWeight="400" mb={4}>
-              {t('pumpOperators.details.title', {
-                defaultValue: 'Pump Operator Details',
-              })}
-            </Text>
-            <Box>
-              <Flex align="center" gap={3} mb={6}>
-                <Avatar name={activePumpOperator.name} boxSize="44px" />
-                <Text textStyle="bodyText4" fontSize="14px" fontWeight="500" color="neutral.950">
-                  {activePumpOperator.name}
-                </Text>
-              </Flex>
-              <Grid
-                templateColumns={{ base: '1fr', sm: '1fr auto' }}
-                columnGap="24px"
-                rowGap="12px"
-                alignItems="center"
-              >
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.schemeNameSchemeId', {
-                    defaultValue: 'Scheme name/ Scheme ID',
-                  })}
-                </Text>
-                <Text
-                  textStyle="bodyText4"
-                  fontWeight="400"
-                  color="neutral.950"
-                  textAlign={{ base: 'left', sm: 'right' }}
-                  wordBreak="break-word"
-                >
-                  {activePumpOperator.scheme}
-                </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.stationLocation', {
-                    defaultValue: 'Station location',
-                  })}
-                </Text>
-                <Text
-                  textStyle="bodyText4"
-                  fontWeight="400"
-                  color="neutral.950"
-                  textAlign={{ base: 'left', sm: 'right' }}
-                  wordBreak="break-word"
-                >
-                  {activePumpOperator.stationLocation}
-                </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.lastSubmission', {
-                    defaultValue: 'Last submission',
-                  })}
-                </Text>
-                <Text
-                  textStyle="bodyText4"
-                  fontWeight="400"
-                  color="neutral.950"
-                  textAlign={{ base: 'left', sm: 'right' }}
-                >
-                  {activePumpOperator.lastSubmission}
-                </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.reportingRate', {
-                    defaultValue: 'Reporting rate',
-                  })}
-                </Text>
-                <Text
-                  textStyle="bodyText4"
-                  fontWeight="400"
-                  color="neutral.950"
-                  textAlign={{ base: 'left', sm: 'right' }}
-                >
-                  {activePumpOperator.reportingRate}
-                </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.missingSubmissionCount', {
-                    defaultValue: 'Missing submission count',
-                  })}
-                </Text>
-                <Text
-                  textStyle="bodyText4"
-                  fontWeight="400"
-                  color="neutral.950"
-                  textAlign={{ base: 'left', sm: 'right' }}
-                >
-                  {activePumpOperator.missingSubmissionCount}
-                </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.inactiveDays', {
-                    defaultValue: 'Inactive days',
-                  })}
-                </Text>
-                <Text
-                  textStyle="bodyText4"
-                  fontWeight="400"
-                  color="neutral.950"
-                  textAlign={{ base: 'left', sm: 'right' }}
-                >
-                  {activePumpOperator.inactiveDays}
-                </Text>
-              </Grid>
-            </Box>
-            {totalPumpOperatorPages > 1 ? (
-              <Flex
-                mt={{ base: 4, md: 'auto' }}
-                pt={{ base: 4, md: 6 }}
-                align="center"
-                justify="center"
-                gap={{ base: 1.5, sm: 2 }}
-                wrap="wrap"
-                w="full"
-                maxW="100%"
-              >
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  leftIcon={<Icon as={LuArrowLeft} boxSize={4} />}
-                  onClick={() =>
-                    setPumpOperatorPage((previousPage) =>
-                      Math.max(1, Math.min(previousPage, totalPumpOperatorPages) - 1)
-                    )
-                  }
-                  isDisabled={activePumpOperatorPage === 1}
-                  px={{ base: 2, sm: 3 }}
-                  minW={0}
-                  aria-label={t('pumpOperators.details.pagination.previous', {
-                    defaultValue: 'Previous',
-                  })}
-                >
-                  <Text as="span" display={{ base: 'none', sm: 'inline' }}>
-                    {t('pumpOperators.details.pagination.previous', {
-                      defaultValue: 'Previous',
-                    })}
-                  </Text>
-                </Button>
-                {visiblePageNumbers.map((pageNumber) => (
-                  <Button
-                    key={pageNumber}
-                    variant="outline"
-                    size="sm"
-                    minW="34px"
-                    px={0}
-                    borderRadius="8px"
-                    borderColor="#D4D4D8"
-                    bg={activePumpOperatorPage === pageNumber ? '#3291D1' : 'white'}
-                    color={activePumpOperatorPage === pageNumber ? 'white' : 'neutral.700'}
-                    _hover={{
-                      bg: activePumpOperatorPage === pageNumber ? '#3291D1' : 'neutral.100',
-                    }}
-                    onClick={() => setPumpOperatorPage(pageNumber)}
-                    flexShrink={0}
-                  >
-                    {pageNumber}
-                  </Button>
-                ))}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  rightIcon={<Icon as={LuArrowRight} boxSize={4} />}
-                  onClick={() =>
-                    setPumpOperatorPage((previousPage) =>
-                      Math.min(
-                        totalPumpOperatorPages,
-                        Math.min(previousPage, totalPumpOperatorPages) + 1
-                      )
-                    )
-                  }
-                  isDisabled={activePumpOperatorPage === totalPumpOperatorPages}
-                  px={{ base: 2, sm: 3 }}
-                  minW={0}
-                  aria-label={t('pumpOperators.details.pagination.next', {
-                    defaultValue: 'Next',
-                  })}
-                >
-                  <Text as="span" display={{ base: 'none', sm: 'inline' }}>
-                    {t('pumpOperators.details.pagination.next', {
-                      defaultValue: 'Next',
-                    })}
-                  </Text>
-                </Button>
-              </Flex>
-            ) : null}
-          </Flex>
-        </Box>
-        <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="430px" minW={0}>
-          <ReadingComplianceTable
-            key={activePumpOperatorKey}
-            data={readingComplianceRows}
-            showVillageColumn={false}
-            scrollAreaMaxH="320px"
-            title={t('outageAndSubmissionCharts.titles.readingCompliance', {
-              defaultValue: 'Reading Compliance',
-            })}
-          />
-        </Box>
-      </Grid>
+      <ReadingComplianceSection
+        key={readingComplianceScopeKey}
+        villagePumpOperatorDetails={villagePumpOperatorDetails}
+        villagePumpOperators={villagePumpOperators}
+        tenantCode={tenantCode}
+        effectiveSchemeId={effectiveSchemeId}
+      />
     </>
   )
 }

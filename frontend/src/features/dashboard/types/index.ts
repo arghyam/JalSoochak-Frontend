@@ -310,6 +310,10 @@ export interface ReadingComplianceResponse {
   message: string
   data: {
     content: ReadingComplianceItem[]
+    totalElements?: number
+    totalPages?: number
+    size?: number
+    number?: number
   }
 }
 

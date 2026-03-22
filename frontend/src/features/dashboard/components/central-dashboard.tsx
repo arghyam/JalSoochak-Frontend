@@ -11,7 +11,6 @@ import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-avera
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
 import { useNationalDashboardQuery } from '../services/query/use-national-dashboard-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
-import { useReadingComplianceQuery } from '../services/query/use-reading-compliance-query'
 import { useReadingSubmissionRateQuery } from '../services/query/use-reading-submission-rate-query'
 import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
@@ -24,7 +23,7 @@ import { MdOutlineWaterDrop } from 'react-icons/md'
 import waterTapIcon from '@/assets/media/water-tap_1822589 1.svg'
 import wallClockIcon from '@/assets/media/wall-clock.svg'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
-import type { EntityPerformance, ReadingComplianceData, VillagePumpOperatorDetails } from '../types'
+import type { EntityPerformance, VillagePumpOperatorDetails } from '../types'
 import { DashboardFilters } from './filters/dashboard-filters'
 import { OverallPerformanceTable } from './tables'
 import { ROUTES } from '@/shared/constants/routes'
@@ -164,33 +163,6 @@ const getDefaultAnalyticsDateRange = () => {
     startDate: toIsoDate(startDate) ?? '',
     endDate: toIsoDate(endDate) ?? '',
   }
-}
-
-const formatReadingComplianceTimestamp = (value?: string | null) => {
-  if (!value) {
-    return 'N/A'
-  }
-
-  const parsedDate = new Date(value)
-  if (Number.isNaN(parsedDate.getTime())) {
-    return value
-  }
-
-  const datePart = new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: '2-digit',
-    year: '2-digit',
-  }).format(parsedDate)
-  const timeParts = new Intl.DateTimeFormat('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  }).formatToParts(parsedDate)
-  const hour = timeParts.find((part) => part.type === 'hour')?.value ?? ''
-  const minute = timeParts.find((part) => part.type === 'minute')?.value ?? ''
-  const dayPeriod = timeParts.find((part) => part.type === 'dayPeriod')?.value.toLowerCase() ?? ''
-
-  return `${datePart.replace(/\//g, '-')}, ${hour}:${minute}${dayPeriod}`
 }
 
 const getStoredFilters = (): StoredFilters => {
@@ -721,17 +693,6 @@ export function CentralDashboard() {
     params: submissionStatusAnalyticsParams,
     enabled: Boolean(submissionStatusAnalyticsParams),
   })
-  const { data: readingComplianceApiData } = useReadingComplianceQuery({
-    params:
-      selectedVillage && selectedTenant?.tenantCode
-        ? {
-            tenant_code: selectedTenant.tenantCode,
-            page: 0,
-            size: 50,
-          }
-        : null,
-    enabled: Boolean(selectedVillage && selectedTenant?.tenantCode),
-  })
   const { data: outageReasonsData } = useOutageReasonsQuery({
     params: outageReasonsAnalyticsParams,
     enabled: Boolean(outageReasonsAnalyticsParams),
@@ -778,19 +739,6 @@ export function CentralDashboard() {
           (scheme) => scheme.schemeId === derivedVillageSchemeId
         )
       : undefined) ?? (isVillageSelected ? schemePerformanceData?.topSchemes?.[0] : undefined)
-  const readingComplianceRows: ReadingComplianceData[] =
-    readingComplianceApiData?.data.content.map((item) => ({
-      id: String(item.id),
-      name: item.name?.trim() || 'N/A',
-      village: selectedVillage || 'N/A',
-      lastSubmission: formatReadingComplianceTimestamp(item.lastSubmissionAt),
-      readingValue:
-        item.confirmedReading === null || item.confirmedReading === undefined
-          ? 'N/A'
-          : String(item.confirmedReading),
-    })) ??
-    data?.readingCompliance ??
-    []
   const overallPerformanceTableData = isCentralLandingView
     ? mapOverallPerformanceFromNationalDashboard(
         nationalDashboardData,
@@ -1215,7 +1163,7 @@ export function CentralDashboard() {
     operatorsPerformanceAnalyticsTable.length > 0
       ? operatorsPerformanceAnalyticsTable
       : [...leadingPumpOperators, ...bottomPumpOperators]
-  const villagePhotoEvidenceRows = readingComplianceRows
+  const villagePhotoEvidenceRows = data?.readingCompliance ?? []
 
   return (
     <Box>
