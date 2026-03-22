@@ -30,7 +30,7 @@ const mockUsePumpOperatorDetailsQuery = jest.fn<(options: unknown) => { data: un
   (_options: unknown) => ({ data: undefined })
 )
 const mockUseReadingComplianceQuery = jest.fn<
-  (options: unknown) => { data: unknown; isFetching: boolean }
+  (options: unknown) => { data: unknown; isFetching?: boolean }
 >((_options: unknown) => ({ data: undefined, isFetching: false }))
 
 jest.mock('../charts', () => ({
@@ -951,54 +951,57 @@ describe('VillageDashboardScreen', () => {
   })
 
   it('loads the next scheme compliance page when the table reaches the bottom', () => {
+    const firstPageResponse = {
+      status: 200,
+      message: 'Pump operators retrieved',
+      data: {
+        content: Array.from({ length: 50 }, (_, index) => ({
+          id: 4,
+          uuid: 'uuid-1',
+          name: 'Ajay Yadav',
+          schemeId: 3,
+          schemeName: 'Rural Water Supply 001',
+          readingAt: `2026-03-17T15:${String(59 - index).padStart(2, '0')}:10.896445`,
+          lastSubmissionAt: `2026-03-17T15:${String(59 - index).padStart(2, '0')}:10.896445`,
+          confirmedReading: 104958.72 - index,
+        })),
+        totalPages: 2,
+        number: 0,
+      },
+    }
+    const secondPageResponse = {
+      status: 200,
+      message: 'Pump operators retrieved',
+      data: {
+        content: [
+          {
+            id: 4,
+            uuid: 'uuid-1',
+            name: 'Ajay Yadav',
+            schemeId: 3,
+            schemeName: 'Rural Water Supply 001',
+            readingAt: '2026-03-17T15:04:10.896445',
+            lastSubmissionAt: '2026-03-17T15:04:10.896445',
+            confirmedReading: 104500.12,
+          },
+        ],
+        totalPages: 2,
+        number: 1,
+      },
+    }
+
     mockUseReadingComplianceQuery.mockImplementation((options) => {
       const params = (options as { params?: { page?: number } | null }).params
 
       if (params?.page === 1) {
         return {
-          data: {
-            status: 200,
-            message: 'Pump operators retrieved',
-            data: {
-              content: [
-                {
-                  id: 4,
-                  uuid: 'uuid-1',
-                  name: 'Ajay Yadav',
-                  schemeId: 3,
-                  schemeName: 'Rural Water Supply 001',
-                  readingAt: '2026-03-17T15:04:10.896445',
-                  lastSubmissionAt: '2026-03-17T15:04:10.896445',
-                  confirmedReading: 104500.12,
-                },
-              ],
-              totalPages: 2,
-              number: 1,
-            },
-          },
+          data: secondPageResponse,
           isFetching: false,
         }
       }
 
       return {
-        data: {
-          status: 200,
-          message: 'Pump operators retrieved',
-          data: {
-            content: Array.from({ length: 50 }, (_, index) => ({
-              id: 4,
-              uuid: 'uuid-1',
-              name: 'Ajay Yadav',
-              schemeId: 3,
-              schemeName: 'Rural Water Supply 001',
-              readingAt: `2026-03-17T15:${String(59 - index).padStart(2, '0')}:10.896445`,
-              lastSubmissionAt: `2026-03-17T15:${String(59 - index).padStart(2, '0')}:10.896445`,
-              confirmedReading: 104958.72 - index,
-            })),
-            totalPages: 2,
-            number: 0,
-          },
-        },
+        data: firstPageResponse,
         isFetching: false,
       }
     })
@@ -1020,7 +1023,7 @@ describe('VillageDashboardScreen', () => {
     const complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
       data: Array<{ lastSubmission: string }>
     }
-    expect(complianceProps.data).toHaveLength(51)
+    expect(complianceProps.data).toHaveLength(1)
     expect(complianceProps.data.at(-1)?.lastSubmission).toBe('17-03-26, 3:04pm')
   })
 
