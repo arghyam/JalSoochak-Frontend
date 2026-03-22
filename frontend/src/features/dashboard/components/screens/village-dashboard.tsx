@@ -92,11 +92,20 @@ const isSameOperator = (
   operator: {
     id?: number
     uuid?: string
+    schemeId?: number
     name?: string
   },
   fallback?: VillagePumpOperatorDetails
 ) => {
   if (!fallback) {
+    return false
+  }
+
+  if (typeof operator.schemeId !== 'number' || typeof fallback.schemeId !== 'number') {
+    return false
+  }
+
+  if (operator.schemeId !== fallback.schemeId) {
     return false
   }
 

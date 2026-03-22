@@ -161,7 +161,7 @@ export const calculateReadingSubmissionRatePercent = (
 
 const sumWaterSupplyField = (
   response: AverageWaterSupplyPerRegionResponse | undefined,
-  field: 'totalWaterSuppliedLiters' | 'servedConnectionCount'
+  field: 'totalWaterSuppliedLiters' | 'fhtcCount'
 ) => {
   if (!response) {
     return 0
@@ -204,7 +204,7 @@ export const getWaterSupplyKpis = (
 
   const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
   const totalWaterSuppliedLiters = sumWaterSupplyField(response, 'totalWaterSuppliedLiters')
-  const servedConnectionCount = sumWaterSupplyField(response, 'servedConnectionCount')
+  const servedConnectionCount = sumWaterSupplyField(response, 'fhtcCount')
 
   return {
     quantityMld: calculateQuantityMld(totalWaterSuppliedLiters, daysInRange),

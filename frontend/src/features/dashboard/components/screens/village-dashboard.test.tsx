@@ -804,6 +804,8 @@ describe('VillageDashboardScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: '2' }))
 
     expect(screen.getByText('GELABIL PWSS / 8')).toBeTruthy()
+    expect(screen.queryByText('Central Pumping Station')).toBeNull()
+    expect(screen.getAllByText('N/A').length).toBeGreaterThan(0)
   })
 
   it('shows missing submission count from the reading compliance api when missed submission dates are returned', () => {

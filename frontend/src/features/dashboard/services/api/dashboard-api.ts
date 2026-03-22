@@ -286,13 +286,8 @@ const provider: DashboardDataProvider =
       : httpWithMockFallbackProvider
 
 export const dashboardApi = {
-  getDashboardData: (params: DashboardQueryParams): Promise<DashboardData> => {
-    if (params.level === 'central') {
-      return mockProvider.getDashboardData(params)
-    }
-
-    return provider.getDashboardData(params)
-  },
+  getDashboardData: (params: DashboardQueryParams): Promise<DashboardData> =>
+    provider.getDashboardData(params),
   getNationalDashboard: async (
     params: NationalDashboardQueryParams
   ): Promise<NationalDashboardResponse> => {
