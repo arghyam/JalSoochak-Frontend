@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import axios from 'axios'
 import {
   Box,
   Button,
@@ -15,30 +14,21 @@ import { SearchIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { FiUpload } from 'react-icons/fi'
 import { MdOutlineListAlt } from 'react-icons/md'
-import {
-  DataTable,
-  SearchableSelect,
-  StatCard,
-  ToastContainer,
-  UploadFileModal,
-} from '@/shared/components/common'
-import type { DataTableColumn, ValidationFieldError } from '@/shared/components/common'
+import { DataTable, SearchableSelect, StatCard } from '@/shared/components/common'
+import type { DataTableColumn } from '@/shared/components/common'
 import type { Scheme } from '../../types/scheme-sync'
 import {
   useSchemeCountsQuery,
   useSchemeListQuery,
-  useUploadSchemesMutation,
 } from '../../services/query/use-state-admin-queries'
 import { useAuthStore } from '@/app/store/auth-store'
-import { useToast } from '@/shared/hooks/use-toast'
-import { extractUploadValidationErrors } from '../../utils/extract-upload-validation-errors'
+import { UploadSchemesModal } from './upload-schemes-modal'
 
 const PAGE_SIZE = 10
 const PAGE_SIZE_OPTIONS = [10, 25, 50]
 
 export function SchemeSyncPage() {
   const { t } = useTranslation('state-admin')
-  const toast = useToast()
   const tenantCode = useAuthStore((s) => s.user?.tenantCode ?? '')
 
   const [searchQuery, setSearchQuery] = useState('')
@@ -47,7 +37,6 @@ export function SchemeSyncPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
-  const [uploadValidationErrors, setUploadValidationErrors] = useState<ValidationFieldError[]>([])
 
   useEffect(() => {
     document.title = `${t('schemeSync.title')} | JalSoochak`
@@ -66,7 +55,6 @@ export function SchemeSyncPage() {
 
   const { data, isLoading, isError, refetch } = useSchemeListQuery(schemeParams)
   const { data: counts, isLoading: countsLoading } = useSchemeCountsQuery(tenantCode)
-  const { mutate: upload, isPending: isUploading } = useUploadSchemesMutation()
 
   const workStatusOptions = useMemo(
     () =>
@@ -109,29 +97,6 @@ export function SchemeSyncPage() {
     if (!searchQuery) return data.items
     return data.items.filter((s) => s.schemeName.toLowerCase().includes(searchQuery.toLowerCase()))
   }, [data, searchQuery])
-
-  const handleUpload = (file: File) => {
-    setUploadValidationErrors([])
-    upload(
-      { file, tenantCode },
-      {
-        onSuccess: () => {
-          toast.success(t('schemeSync.upload.success'))
-          setIsUploadOpen(false)
-        },
-        onError: (error: unknown) => {
-          if (axios.isAxiosError(error)) {
-            const errors = extractUploadValidationErrors(error.response?.data)
-            if (errors.length > 0) {
-              setUploadValidationErrors(errors)
-              return
-            }
-          }
-          toast.error(t('schemeSync.upload.error'))
-        },
-      }
-    )
-  }
 
   const columns: DataTableColumn<Scheme>[] = [
     {
@@ -372,25 +337,7 @@ export function SchemeSyncPage() {
         }}
       />
 
-      <UploadFileModal
-        isOpen={isUploadOpen}
-        onClose={() => {
-          setUploadValidationErrors([])
-          setIsUploadOpen(false)
-        }}
-        title={t('schemeSync.upload.title')}
-        description={t('schemeSync.upload.description')}
-        isPending={isUploading}
-        onSubmit={handleUpload}
-        submitLabel={t('schemeSync.upload.submit')}
-        selectFileLabel={t('schemeSync.upload.clickToSelect')}
-        fileTypesLabel={t('schemeSync.upload.fileTypes')}
-        closeAriaLabel={t('schemeSync.upload.close')}
-        cancelLabel={t('schemeSync.upload.cancel')}
-        validationErrors={uploadValidationErrors}
-      />
-
-      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
+      <UploadSchemesModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />
     </Box>
   )
 }

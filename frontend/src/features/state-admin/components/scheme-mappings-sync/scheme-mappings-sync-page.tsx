@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import axios from 'axios'
 import {
   Box,
   Button,
@@ -13,30 +12,24 @@ import {
 import { SearchIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { FiUpload } from 'react-icons/fi'
-import { DataTable, ToastContainer, UploadFileModal } from '@/shared/components/common'
-import type { DataTableColumn, ValidationFieldError } from '@/shared/components/common'
+import { DataTable } from '@/shared/components/common'
+import type { DataTableColumn } from '@/shared/components/common'
 import type { SchemeMapping } from '../../types/scheme-mappings-sync'
-import {
-  useSchemeMappingsListQuery,
-  useUploadSchemeMappingsMutation,
-} from '../../services/query/use-state-admin-queries'
+import { useSchemeMappingsListQuery } from '../../services/query/use-state-admin-queries'
 import { useAuthStore } from '@/app/store/auth-store'
-import { useToast } from '@/shared/hooks/use-toast'
-import { extractUploadValidationErrors } from '../../utils/extract-upload-validation-errors'
+import { UploadSchemeMappingsModal } from './upload-scheme-mappings-modal'
 
 const PAGE_SIZE = 10
 const PAGE_SIZE_OPTIONS = [10, 25, 50]
 
 export function SchemeMappingsSyncPage() {
   const { t } = useTranslation('state-admin')
-  const toast = useToast()
   const tenantCode = useAuthStore((s) => s.user?.tenantCode ?? '')
 
   const [searchQuery, setSearchQuery] = useState('')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
-  const [uploadValidationErrors, setUploadValidationErrors] = useState<ValidationFieldError[]>([])
 
   useEffect(() => {
     document.title = `${t('schemeMappingsSync.title')} | JalSoochak`
@@ -52,36 +45,12 @@ export function SchemeMappingsSyncPage() {
   )
 
   const { data, isLoading, isError, refetch } = useSchemeMappingsListQuery(mappingParams)
-  const { mutate: upload, isPending: isUploading } = useUploadSchemeMappingsMutation()
 
   const displayedMappings = useMemo(() => {
     if (!data) return []
     if (!searchQuery) return data.items
     return data.items.filter((m) => m.schemeName.toLowerCase().includes(searchQuery.toLowerCase()))
   }, [data, searchQuery])
-
-  const handleUpload = (file: File) => {
-    setUploadValidationErrors([])
-    upload(
-      { file, tenantCode },
-      {
-        onSuccess: () => {
-          toast.success(t('schemeMappingsSync.upload.success'))
-          setIsUploadOpen(false)
-        },
-        onError: (error: unknown) => {
-          if (axios.isAxiosError(error)) {
-            const errors = extractUploadValidationErrors(error.response?.data)
-            if (errors.length > 0) {
-              setUploadValidationErrors(errors)
-              return
-            }
-          }
-          toast.error(t('schemeMappingsSync.upload.error'))
-        },
-      }
-    )
-  }
 
   const columns: DataTableColumn<SchemeMapping>[] = [
     {
@@ -233,25 +202,7 @@ export function SchemeMappingsSyncPage() {
         }}
       />
 
-      <UploadFileModal
-        isOpen={isUploadOpen}
-        onClose={() => {
-          setUploadValidationErrors([])
-          setIsUploadOpen(false)
-        }}
-        title={t('schemeMappingsSync.upload.title')}
-        description={t('schemeMappingsSync.upload.description')}
-        isPending={isUploading}
-        onSubmit={handleUpload}
-        submitLabel={t('schemeMappingsSync.upload.submit')}
-        selectFileLabel={t('schemeMappingsSync.upload.clickToSelect')}
-        fileTypesLabel={t('schemeMappingsSync.upload.fileTypes')}
-        closeAriaLabel={t('schemeMappingsSync.upload.close')}
-        cancelLabel={t('schemeMappingsSync.upload.cancel')}
-        validationErrors={uploadValidationErrors}
-      />
-
-      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
+      <UploadSchemeMappingsModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />
     </Box>
   )
 }
