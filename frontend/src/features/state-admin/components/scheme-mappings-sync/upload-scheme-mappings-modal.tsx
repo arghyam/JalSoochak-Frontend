@@ -49,8 +49,6 @@ export function UploadSchemeMappingsModal({ isOpen, onClose }: UploadSchemeMappi
     )
   }
 
-  console.log('validationErrors', validationErrors)
-
   return (
     <>
       <UploadFileModal
