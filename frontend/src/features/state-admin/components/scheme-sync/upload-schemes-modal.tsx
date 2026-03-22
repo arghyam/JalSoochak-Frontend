@@ -48,6 +48,7 @@ export function UploadSchemesModal({ isOpen, onClose }: UploadSchemesModalProps)
       }
     )
   }
+  console.log('validationErrors', validationErrors)
 
   return (
     <>
