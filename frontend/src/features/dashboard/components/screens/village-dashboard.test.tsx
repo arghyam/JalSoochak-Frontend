@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
-import { fireEvent, screen } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { DashboardData, WaterSupplyOutageData } from '../../types'
 import { VillageDashboardScreen } from './village-dashboard'
@@ -417,7 +417,7 @@ describe('VillageDashboardScreen', () => {
     }
     expect(complianceProps.data).toEqual([
       {
-        id: '3-4-2026-03-17T15:06:10.896445',
+        id: '3-4-2026-03-17T15:06:10.896445-104958.72-0',
         name: 'Ajay Yadav',
         village: 'N/A',
         lastSubmission: '17-03-26, 3:06pm',
@@ -432,14 +432,14 @@ describe('VillageDashboardScreen', () => {
     }
     expect(complianceProps.data).toEqual([
       {
-        id: '3-5-2026-03-19T10:00:00.000000',
+        id: '3-5-2026-03-19T10:00:00.000000-103400-0',
         name: 'Vikram Singh',
         village: 'N/A',
         lastSubmission: '19-03-26, 10:00am',
         readingValue: '103400',
       },
       {
-        id: '3-5-2026-03-18T10:00:00.000000',
+        id: '3-5-2026-03-18T10:00:00.000000-103361.57-1',
         name: 'Vikram Singh',
         village: 'N/A',
         lastSubmission: '18-03-26, 10:00am',
@@ -548,14 +548,14 @@ describe('VillageDashboardScreen', () => {
     }
     expect(complianceProps.data).toEqual([
       {
-        id: '3-5-2026-03-19T10:00:00.000000',
+        id: '3-5-2026-03-19T10:00:00.000000-103400-0',
         name: 'Vikram Singh',
         village: 'N/A',
         lastSubmission: '19-03-26, 10:00am',
         readingValue: '103400',
       },
       {
-        id: '3-5-2026-03-18T10:00:00.000000',
+        id: '3-5-2026-03-18T10:00:00.000000-103361.57-1',
         name: 'Vikram Singh',
         village: 'N/A',
         lastSubmission: '18-03-26, 10:00am',
@@ -632,7 +632,7 @@ describe('VillageDashboardScreen', () => {
     }
     expect(complianceProps.data).toEqual([
       {
-        id: '3-4-2026-03-17T15:06:20.896445',
+        id: '3-4-2026-03-17T15:06:20.896445-104602.8-0',
         name: 'Ajay Yadav',
         village: 'N/A',
         lastSubmission: '17-03-26, 3:06pm',
@@ -657,7 +657,7 @@ describe('VillageDashboardScreen', () => {
     }
     expect(complianceProps.data).toEqual([
       {
-        id: '9-7-2026-03-17T15:06:10.896445',
+        id: '9-7-2026-03-17T15:06:10.896445-103985.13-0',
         name: 'Sanjay Roy',
         village: 'N/A',
         lastSubmission: '17-03-26, 3:06pm',
@@ -799,7 +799,7 @@ describe('VillageDashboardScreen', () => {
     const complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
       data: Array<{ id: string }>
     }
-    expect(complianceProps.data[0]?.id).toBe('3-4-2024-02-11T13:00:00Z')
+    expect(complianceProps.data[0]?.id).toBe('3-4-2024-02-11T13:00:00Z-100-0')
 
     fireEvent.click(screen.getByRole('button', { name: '2' }))
 
@@ -921,14 +921,14 @@ describe('VillageDashboardScreen', () => {
     }
     expect(complianceProps.data).toEqual([
       {
-        id: '4500-6040-2026-03-17T15:06:10.896445',
+        id: '4500-6040-2026-03-17T15:06:10.896445-104958.72-0',
         name: 'Sanjay Das',
         village: 'N/A',
         lastSubmission: '17-03-26, 3:06pm',
         readingValue: '104958.72',
       },
       {
-        id: '4500-6040-2026-03-17T15:05:10.896445',
+        id: '4500-6040-2026-03-17T15:05:10.896445-101419.13-1',
         name: 'Sanjay Das',
         village: 'N/A',
         lastSubmission: '17-03-26, 3:05pm',
@@ -943,13 +943,240 @@ describe('VillageDashboardScreen', () => {
     }
     expect(complianceProps.data).toEqual([
       {
-        id: '4500-8877-2026-03-17T15:06:10.896445',
+        id: '4500-8877-2026-03-17T15:06:10.896445-104602.8-0',
         name: 'Anil Roy',
         village: 'N/A',
         lastSubmission: '17-03-26, 3:06pm',
         readingValue: '104602.8',
       },
     ])
+  })
+
+  it('auto-loads older compliance pages until the selected operator history is available', async () => {
+    mockUseReadingComplianceQuery.mockImplementation((options) => {
+      const params = (options as { params?: { page?: number } | null }).params
+
+      if (params?.page === 1) {
+        return {
+          data: {
+            status: 200,
+            message: 'Pump operators retrieved',
+            data: {
+              content: [
+                {
+                  id: 6040,
+                  uuid: 'uuid-sanjay',
+                  name: 'Sanjay Das',
+                  status: 'INACTIVE',
+                  schemeId: 4500,
+                  schemeName: 'CHARBARI STATION WEST PWSS',
+                  reportingRatePercent: 14.29,
+                  missingSubmissionCount: 6,
+                  inactiveDays: 6,
+                  readingAt: '2026-03-17T15:05:10.896445',
+                  lastSubmissionAt: '2026-03-17T15:05:10.896445',
+                  confirmedReading: 101419.13,
+                },
+              ],
+              totalPages: 2,
+              number: 1,
+            },
+          },
+          isFetching: false,
+        }
+      }
+
+      return {
+        data: {
+          status: 200,
+          message: 'Pump operators retrieved',
+          data: {
+            content: [
+              {
+                id: 6040,
+                uuid: 'uuid-sanjay',
+                name: 'Sanjay Das',
+                status: 'INACTIVE',
+                schemeId: 4500,
+                schemeName: 'CHARBARI STATION WEST PWSS',
+                reportingRatePercent: 14.29,
+                missingSubmissionCount: 6,
+                inactiveDays: 6,
+                readingAt: '2026-03-17T15:06:10.896445',
+                lastSubmissionAt: '2026-03-17T15:06:10.896445',
+                confirmedReading: 104958.72,
+              },
+              {
+                id: 8877,
+                uuid: 'uuid-anil',
+                name: 'Anil Roy',
+                status: 'INACTIVE',
+                schemeId: 4500,
+                schemeName: 'CHARBARI STATION WEST PWSS',
+                reportingRatePercent: 14.29,
+                missingSubmissionCount: 6,
+                inactiveDays: 6,
+                readingAt: '2026-03-17T15:06:00.896445',
+                lastSubmissionAt: '2026-03-17T15:06:00.896445',
+                confirmedReading: 104602.8,
+              },
+            ],
+            totalPages: 2,
+            number: 0,
+          },
+        },
+        isFetching: false,
+      }
+    })
+
+    renderWithProviders(
+      <VillageDashboardScreen
+        data={data}
+        villagePhotoEvidenceRows={[]}
+        waterSupplyOutagesData={waterSupplyOutagesData}
+        villagePumpOperatorDetails={villagePumpOperatorDetails}
+        villagePumpOperators={[villagePumpOperatorDetails]}
+        tenantCode="as"
+        schemeId={4500}
+      />
+    )
+
+    await waitFor(() =>
+      expect(mockUseReadingComplianceQuery).toHaveBeenCalledWith({
+        params: {
+          tenant_code: 'as',
+          scheme_id: 4500,
+          page: 1,
+          size: 50,
+        },
+        enabled: true,
+      })
+    )
+
+    await waitFor(() => {
+      const complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
+        data: Array<{ name: string; readingValue: string }>
+      }
+
+      expect(complianceProps.data).toEqual([
+        {
+          id: '4500-6040-2026-03-17T15:06:10.896445-104958.72-0',
+          name: 'Sanjay Das',
+          village: 'N/A',
+          lastSubmission: '17-03-26, 3:06pm',
+          readingValue: '104958.72',
+        },
+        {
+          id: '4500-6040-2026-03-17T15:05:10.896445-101419.13-1',
+          name: 'Sanjay Das',
+          village: 'N/A',
+          lastSubmission: '17-03-26, 3:05pm',
+          readingValue: '101419.13',
+        },
+      ])
+    })
+  })
+
+  it('stops auto-loading when the next page does not contain the selected operator', async () => {
+    mockUseReadingComplianceQuery.mockImplementation((options) => {
+      const params = (options as { params?: { page?: number } | null }).params
+
+      if (params?.page === 1) {
+        return {
+          data: {
+            status: 200,
+            message: 'Pump operators retrieved',
+            data: {
+              content: [
+                {
+                  id: 8877,
+                  uuid: 'uuid-anil',
+                  name: 'Anil Roy',
+                  status: 'INACTIVE',
+                  schemeId: 4500,
+                  schemeName: 'CHARBARI STATION WEST PWSS',
+                  reportingRatePercent: 14.29,
+                  missingSubmissionCount: 6,
+                  inactiveDays: 6,
+                  readingAt: '2026-03-17T15:05:10.896445',
+                  lastSubmissionAt: '2026-03-17T15:05:10.896445',
+                  confirmedReading: 101419.13,
+                },
+              ],
+              totalPages: 5,
+              number: 1,
+            },
+          },
+          isFetching: false,
+        }
+      }
+
+      if ((params?.page ?? 0) > 1) {
+        throw new Error(`unexpected auto-load for page ${params?.page}`)
+      }
+
+      return {
+        data: {
+          status: 200,
+          message: 'Pump operators retrieved',
+          data: {
+            content: [
+              {
+                id: 6040,
+                uuid: 'uuid-sanjay',
+                name: 'Sanjay Das',
+                status: 'INACTIVE',
+                schemeId: 4500,
+                schemeName: 'CHARBARI STATION WEST PWSS',
+                reportingRatePercent: 14.29,
+                missingSubmissionCount: 6,
+                inactiveDays: 6,
+                readingAt: '2026-03-17T15:06:10.896445',
+                lastSubmissionAt: '2026-03-17T15:06:10.896445',
+                confirmedReading: 104958.72,
+              },
+            ],
+            totalPages: 5,
+            number: 0,
+          },
+        },
+        isFetching: false,
+      }
+    })
+
+    renderWithProviders(
+      <VillageDashboardScreen
+        data={data}
+        villagePhotoEvidenceRows={[]}
+        waterSupplyOutagesData={waterSupplyOutagesData}
+        villagePumpOperatorDetails={villagePumpOperatorDetails}
+        villagePumpOperators={[villagePumpOperatorDetails]}
+        tenantCode="as"
+        schemeId={4500}
+      />
+    )
+
+    await waitFor(() =>
+      expect(mockUseReadingComplianceQuery).toHaveBeenCalledWith({
+        params: {
+          tenant_code: 'as',
+          scheme_id: 4500,
+          page: 1,
+          size: 50,
+        },
+        enabled: true,
+      })
+    )
+
+    expect(mockUseReadingComplianceQuery).not.toHaveBeenCalledWith({
+      params: {
+        tenant_code: 'as',
+        scheme_id: 4500,
+        page: 2,
+        size: 50,
+      },
+      enabled: true,
+    })
   })
 
   it('loads the next scheme compliance page when the table reaches the bottom', () => {
@@ -1025,7 +1252,7 @@ describe('VillageDashboardScreen', () => {
     const complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
       data: Array<{ lastSubmission: string }>
     }
-    expect(complianceProps.data).toHaveLength(1)
+    expect(complianceProps.data).toHaveLength(51)
     expect(complianceProps.data.at(-1)?.lastSubmission).toBe('17-03-26, 3:04pm')
   })
 

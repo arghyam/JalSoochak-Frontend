@@ -1,20 +1,16 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Avatar, Box, Button, Flex, Grid, Icon, Text } from '@chakra-ui/react'
-import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { LuArrowLeft, LuArrowRight } from 'react-icons/lu'
 import type {
   DashboardData,
   EntityPerformance,
   ReadingComplianceData,
-  ReadingComplianceQueryParams,
   ReadingComplianceItem,
-  ReadingComplianceResponse,
   VillagePumpOperatorDetails,
   WaterSupplyOutageData,
 } from '../../types'
 import { useReadingComplianceQuery } from '../../services/query/use-reading-compliance-query'
-import { dashboardQueryKeys } from '../../services/query/dashboard-query-keys'
 import { SupplyOutageReasonsChart, MetricPerformanceChart } from '../charts'
 import { ReadingComplianceTable } from '../tables'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
@@ -203,8 +199,18 @@ const getSubmissionTime = (item: ReadingComplianceItem) => {
   return Number.isNaN(parsedDate.getTime()) ? 0 : parsedDate.getTime()
 }
 
-const getReadingComplianceItemKey = (item: ReadingComplianceItem, index: number) =>
-  [item.schemeId ?? 'scheme', item.id, item.readingAt ?? item.lastSubmissionAt ?? index].join('-')
+const getReadingComplianceItemKey = (
+  item: ReadingComplianceItem,
+  index: number,
+  pageIndex?: number
+) =>
+  [
+    item.schemeId ?? 'scheme',
+    item.id,
+    item.readingAt ?? item.lastSubmissionAt ?? 'no-timestamp',
+    item.confirmedReading ?? 'no-reading',
+    pageIndex ?? index,
+  ].join('-')
 
 type ReadingComplianceSectionProps = {
   villagePumpOperatorDetails: VillagePumpOperatorDetails
@@ -220,9 +226,11 @@ function ReadingComplianceSection({
   effectiveSchemeId,
 }: ReadingComplianceSectionProps) {
   const { t } = useTranslation('dashboard')
-  const queryClient = useQueryClient()
   const [pumpOperatorPage, setPumpOperatorPage] = useState(1)
   const [readingCompliancePage, setReadingCompliancePage] = useState(0)
+  const [loadedReadingCompliancePages, setLoadedReadingCompliancePages] = useState<
+    Record<number, ReadingComplianceItem[]>
+  >({})
   const readingComplianceParams = useMemo(
     () =>
       tenantCode && typeof effectiveSchemeId === 'number'
@@ -244,6 +252,36 @@ function ReadingComplianceSection({
     () => readingComplianceApiData?.data.content ?? [],
     [readingComplianceApiData?.data.content]
   )
+  const currentResponsePage = readingComplianceApiData?.data.number ?? readingCompliancePage
+  const currentPageSignature = useMemo(
+    () =>
+      currentPageItems
+        .map((item, index) => getReadingComplianceItemKey(item, index, currentResponsePage))
+        .join('|'),
+    [currentPageItems, currentResponsePage]
+  )
+
+  useEffect(() => {
+    // This effect intentionally snapshots fetched pages into local state so
+    // older history remains available while newer pages are loaded.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoadedReadingCompliancePages((currentPages) => {
+      const existingPageItems = currentPages[currentResponsePage] ?? []
+      const existingPageSignature = existingPageItems
+        .map((item, index) => getReadingComplianceItemKey(item, index, currentResponsePage))
+        .join('|')
+
+      if (existingPageSignature === currentPageSignature) {
+        return currentPages
+      }
+
+      return {
+        ...currentPages,
+        [currentResponsePage]: currentPageItems,
+      }
+    })
+  }, [currentPageItems, currentPageSignature, currentResponsePage])
+
   const readingComplianceItems = useMemo(() => {
     if (!readingComplianceParams) {
       return []
@@ -252,20 +290,16 @@ function ReadingComplianceSection({
     const mergedItems: ReadingComplianceItem[] = []
     const existingKeys = new Set<string>()
 
-    for (let pageIndex = 0; pageIndex <= readingCompliancePage; pageIndex += 1) {
-      const pageParams: ReadingComplianceQueryParams = {
-        ...readingComplianceParams,
-        page: pageIndex,
-      }
-      const pageItems =
-        pageIndex === readingCompliancePage
-          ? currentPageItems
-          : (queryClient.getQueryData<ReadingComplianceResponse>(
-              dashboardQueryKeys.readingCompliance(pageParams)
-            )?.data.content ?? [])
+    const loadedPageNumbers = Object.keys(loadedReadingCompliancePages)
+      .map((pageNumber) => Number(pageNumber))
+      .filter((pageNumber) => Number.isFinite(pageNumber))
+      .sort((left, right) => left - right)
+
+    for (const pageIndex of loadedPageNumbers) {
+      const pageItems = loadedReadingCompliancePages[pageIndex] ?? []
 
       pageItems.forEach((item, index) => {
-        const itemKey = getReadingComplianceItemKey(item, index)
+        const itemKey = getReadingComplianceItemKey(item, index, pageIndex)
 
         if (!existingKeys.has(itemKey)) {
           existingKeys.add(itemKey)
@@ -275,8 +309,7 @@ function ReadingComplianceSection({
     }
 
     return mergedItems
-  }, [currentPageItems, queryClient, readingCompliancePage, readingComplianceParams])
-  const currentResponsePage = readingComplianceApiData?.data.number ?? readingCompliancePage
+  }, [loadedReadingCompliancePages, readingComplianceParams])
   const totalPages = readingComplianceApiData?.data.totalPages
   const hasMoreReadingCompliancePages =
     typeof totalPages === 'number'
@@ -327,6 +360,12 @@ function ReadingComplianceSection({
     pumpOperatorPages[activePumpOperatorPage - 1] ?? villagePumpOperatorDetails
   const activePumpOperatorKey =
     activePumpOperator.mappingKey ?? getOperatorMappingKey(activePumpOperator)
+  const selectedOperatorHistoryCount =
+    readingComplianceDataByOperator.rowsByOperatorKey.get(activePumpOperatorKey)?.length ?? 0
+  const currentPageIncludesActiveOperator = useMemo(
+    () => currentPageItems.some((item) => getOperatorMappingKey(item) === activePumpOperatorKey),
+    [activePumpOperatorKey, currentPageItems]
+  )
   const readingComplianceRows = useMemo(() => {
     const selectedOperatorRows =
       readingComplianceDataByOperator.rowsByOperatorKey.get(activePumpOperatorKey) ?? []
@@ -334,7 +373,9 @@ function ReadingComplianceSection({
       id: [
         item.schemeId ?? effectiveSchemeId ?? 'scheme',
         item.id,
-        item.readingAt ?? item.lastSubmissionAt ?? index,
+        item.readingAt ?? item.lastSubmissionAt ?? 'no-timestamp',
+        item.confirmedReading ?? 'no-reading',
+        index,
       ].join('-'),
       name: item.name?.trim() || 'N/A',
       village: 'N/A',
@@ -370,6 +411,33 @@ function ReadingComplianceSection({
     effectiveSchemeId,
     readingComplianceDataByOperator,
   ])
+
+  useEffect(() => {
+    if (!readingComplianceParams || isReadingComplianceFetching || !hasMoreReadingCompliancePages) {
+      return
+    }
+
+    if (
+      currentPageItems.length === 0 ||
+      selectedOperatorHistoryCount > 1 ||
+      !currentPageIncludesActiveOperator
+    ) {
+      return
+    }
+
+    // This effect intentionally advances through contiguous history pages for
+    // the selected operator until an older submission is found.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setReadingCompliancePage((currentPage) => currentPage + 1)
+  }, [
+    currentPageIncludesActiveOperator,
+    currentPageItems.length,
+    hasMoreReadingCompliancePages,
+    isReadingComplianceFetching,
+    readingComplianceParams,
+    selectedOperatorHistoryCount,
+  ])
+
   const handleReachReadingComplianceEnd = () => {
     if (!hasMoreReadingCompliancePages || isReadingComplianceFetching) {
       return
@@ -606,23 +674,6 @@ function ReadingComplianceSection({
             defaultValue: 'Reading Compliance',
           })}
         />
-        {hasMoreReadingCompliancePages ? (
-          <Flex justify="center" mt={4}>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleReachReadingComplianceEnd}
-              isLoading={isReadingComplianceFetching}
-              loadingText={t('outageAndSubmissionCharts.tables.readingCompliance.loadingOlder', {
-                defaultValue: 'Loading...',
-              })}
-            >
-              {t('outageAndSubmissionCharts.tables.readingCompliance.loadOlder', {
-                defaultValue: 'Load older submissions',
-              })}
-            </Button>
-          </Flex>
-        ) : null}
       </Box>
     </Grid>
   )

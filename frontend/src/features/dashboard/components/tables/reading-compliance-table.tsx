@@ -23,6 +23,7 @@ export function ReadingComplianceTable({
 }: ReadingComplianceTableProps) {
   const { t } = useTranslation('dashboard')
   const hasReachedEndRef = useRef(false)
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null)
   const resolvedTitle =
     title?.trim() ||
     t('outageAndSubmissionCharts.titles.readingCompliance', {
@@ -36,6 +37,25 @@ export function ReadingComplianceTable({
   useEffect(() => {
     hasReachedEndRef.current = false
   }, [rows.length])
+
+  useEffect(() => {
+    if (!onReachEnd || rows.length === 0) {
+      return
+    }
+
+    const container = scrollContainerRef.current
+
+    if (!container) {
+      return
+    }
+
+    const hasOverflow = container.scrollHeight - container.clientHeight > 24
+
+    if (!hasOverflow && !hasReachedEndRef.current) {
+      hasReachedEndRef.current = true
+      onReachEnd()
+    }
+  }, [onReachEnd, rows.length])
 
   const handleScroll = (event: UIEvent<HTMLDivElement>) => {
     if (!onReachEnd) {
@@ -62,6 +82,7 @@ export function ReadingComplianceTable({
         {resolvedTitle}
       </Box>
       <Box
+        ref={scrollContainerRef}
         maxH={scrollAreaMaxH}
         overflowY="auto"
         overflowX="auto"
