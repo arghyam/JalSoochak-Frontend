@@ -4,31 +4,45 @@ import type { ValidationFieldError } from '@/shared/components/common'
  * Safely extracts and validates a `ValidationFieldError[]` from an unknown
  * API error response body.
  *
- * - Returns an empty array for any non-conforming input (null, missing keys,
- *   wrong types, non-JSON bodies, etc.) instead of throwing.
- * - Filters out malformed items so callers always receive a clean, typed array.
- * - Coerces `row` from string or number to number for resilience against
- *   API serialisation differences between endpoints.
+ * Handles two response shapes used by different endpoints:
+ *   - `{ fieldErrors: [{ row, field, message }] }`   — staff upload
+ *   - `{ errors:      [{ rowNumber, field, message }] }` — scheme / scheme-mappings upload
+ *
+ * In both cases `row`/`rowNumber` may be a number or a string; it is coerced
+ * to a number. Items missing required keys or producing NaN rows are dropped.
  */
 export function extractUploadValidationErrors(data: unknown): ValidationFieldError[] {
   if (data === null || typeof data !== 'object') return []
 
   const raw = data as Record<string, unknown>
-  if (!Array.isArray(raw.fieldErrors)) return []
 
-  return raw.fieldErrors
+  // Accept either the `fieldErrors` or `errors` array, whichever is present.
+  const items = Array.isArray(raw.fieldErrors)
+    ? raw.fieldErrors
+    : Array.isArray(raw.errors)
+      ? raw.errors
+      : null
+
+  if (!items) return []
+
+  return items
     .filter((item): item is Record<string, unknown> => {
       if (item === null || typeof item !== 'object') return false
       const it = item as Record<string, unknown>
-      const rowOk = typeof it.row === 'number' || typeof it.row === 'string'
+      // Accept `row` (staff) or `rowNumber` (schemes/mappings)
+      const rawRow = it.row ?? it.rowNumber
+      const rowOk = typeof rawRow === 'number' || typeof rawRow === 'string'
       const fieldOk = typeof it.field === 'string'
       const messageOk = typeof it.message === 'string'
       return rowOk && fieldOk && messageOk
     })
-    .map((item) => ({
-      row: Number(item.row),
-      field: item.field as string,
-      message: item.message as string,
-    }))
+    .map((item) => {
+      const rawRow = item.row ?? item.rowNumber
+      return {
+        row: Number(rawRow),
+        field: item.field as string,
+        message: item.message as string,
+      }
+    })
     .filter((item) => !Number.isNaN(item.row))
 }
