@@ -49,8 +49,6 @@ export function DistrictDashboardScreen({
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
   const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
-  const [readingSubmissionRateViewBy, setReadingSubmissionRateViewBy] =
-    useState<ViewBy>('geography')
   const quantityTimeTrendData = useMemo(
     () =>
       data.demandSupply.map((item) => ({
@@ -73,12 +71,6 @@ export function DistrictDashboardScreen({
     () => data.supplyOutageTrend ?? [],
     [data.supplyOutageTrend]
   )
-
-  const readingSubmissionTimeTrendData = useMemo(
-    () => data.readingSubmissionTrend ?? [],
-    [data.readingSubmissionTrend]
-  )
-
   return (
     <>
       {/* Quantity + Regularity */}
@@ -267,42 +259,16 @@ export function DistrictDashboardScreen({
           h="510px"
           minW={0}
         >
-          <Flex align="center" justify="space-between">
-            <Text textStyle="bodyText3" fontWeight="400">
-              {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
-                defaultValue: 'Reading Submission Rate',
-              })}
-            </Text>
-            <ViewBySelect
-              ariaLabel={t('outageAndSubmissionCharts.ariaViewByReadingSubmissionDistrict', {
-                defaultValue: 'District reading submission rate view by',
-              })}
-              value={readingSubmissionRateViewBy}
-              onChange={setReadingSubmissionRateViewBy}
-              color="primary.500"
-              borderColor="primary.500"
-            />
-          </Flex>
-          {readingSubmissionRateViewBy === 'geography' ? (
-            <ReadingSubmissionRateChart
-              data={supplySubmissionRateData}
-              height="383px"
-              entityLabel={supplySubmissionRateLabel}
-            />
-          ) : (
-            <MonthlyTrendChart
-              data={readingSubmissionTimeTrendData}
-              height="383px"
-              isPercent
-              xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-              yAxisLabel={t('outageAndSubmissionCharts.axis.percentage', {
-                defaultValue: 'Percentage',
-              })}
-              seriesName={t('outageAndSubmissionCharts.series.readingSubmission', {
-                defaultValue: 'Reading submission',
-              })}
-            />
-          )}
+          <Text textStyle="bodyText3" fontWeight="400">
+            {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
+              defaultValue: 'Reading Submission Rate',
+            })}
+          </Text>
+          <ReadingSubmissionRateChart
+            data={supplySubmissionRateData}
+            height="383px"
+            entityLabel={supplySubmissionRateLabel}
+          />
         </Box>
       </Grid>
 

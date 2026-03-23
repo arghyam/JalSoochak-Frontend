@@ -77,6 +77,7 @@ export function DashboardBody({
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
   const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
+  const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
   const isStateScreen =
     isStateSelected &&
     !isDistrictSelected &&
@@ -103,6 +104,10 @@ export function DashboardBody({
         value: item.demand > 0 ? Math.min(100, Math.round((item.supply / item.demand) * 100)) : 0,
       })),
     [data.demandSupply]
+  )
+  const outageDistributionTimeTrendData = useMemo(
+    () => data.supplyOutageTrend ?? [],
+    [data.supplyOutageTrend]
   )
   const geographyEntityLabel = isStateScreen
     ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
@@ -301,16 +306,39 @@ export function DashboardBody({
           <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="510px" minW={0}>
             {isStateScreen ? (
               <>
-                <Text textStyle="bodyText3" fontWeight="400" mb="16px">
-                  {t('outageAndSubmissionCharts.titles.supplyOutageDistribution', {
-                    defaultValue: 'Supply Outage Distribution',
-                  })}
-                </Text>
-                <SupplyOutageDistributionChart
-                  data={waterSupplyOutageDistributionData}
-                  height="400px"
-                  xAxisLabel={geographyEntityLabel}
-                />
+                <Flex align="center" justify="space-between" mb="16px">
+                  <Text textStyle="bodyText3" fontWeight="400">
+                    {t('outageAndSubmissionCharts.titles.supplyOutageDistribution', {
+                      defaultValue: 'Supply Outage Distribution',
+                    })}
+                  </Text>
+                  <ViewBySelect
+                    ariaLabel={t('outageAndSubmissionCharts.ariaViewByState', {
+                      defaultValue: 'State supply outage distribution view by',
+                    })}
+                    value={outageDistributionViewBy}
+                    onChange={setOutageDistributionViewBy}
+                  />
+                </Flex>
+                {outageDistributionViewBy === 'geography' ? (
+                  <SupplyOutageDistributionChart
+                    data={waterSupplyOutageDistributionData}
+                    height="400px"
+                    xAxisLabel={geographyEntityLabel}
+                  />
+                ) : (
+                  <MonthlyTrendChart
+                    data={outageDistributionTimeTrendData}
+                    height="400px"
+                    xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+                    yAxisLabel={t('outageAndSubmissionCharts.axis.noOfDays', {
+                      defaultValue: 'No. of days',
+                    })}
+                    seriesName={t('outageAndSubmissionCharts.series.supplyOutage', {
+                      defaultValue: 'Supply outage',
+                    })}
+                  />
+                )}
               </>
             ) : (
               <>
