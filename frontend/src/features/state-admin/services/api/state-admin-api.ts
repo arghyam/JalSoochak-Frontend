@@ -557,11 +557,20 @@ export const stateAdminApi = {
       await apiClient.put(`/api/v1/users/${id}/activate`)
     }
   },
-  inviteStateUTAdmin: async (email: string, tenantCode: string): Promise<void> => {
+  inviteStateUTAdmin: async (payload: {
+    firstName: string
+    lastName: string
+    phoneNumber: string
+    email: string
+    tenantCode: string
+  }): Promise<void> => {
     await apiClient.post('/api/v1/users/invite', {
-      email,
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+      phoneNumber: payload.phoneNumber,
+      email: payload.email,
       role: 'STATE_ADMIN',
-      tenantCode,
+      tenantCode: payload.tenantCode,
     })
   },
 
