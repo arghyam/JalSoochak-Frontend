@@ -3,6 +3,7 @@ import { Box, useBreakpointValue, useTheme } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
+import { formatAxisLabel } from './axis-label-format'
 import { getBodyText7Style } from './chart-text-style'
 
 export interface WaterSupplyOutageData {
@@ -119,13 +120,18 @@ export function SupplyOutageDistributionChart({
         formatter: (params: unknown) => {
           const point = params as {
             name?: string
+            dataIndex?: number
             seriesName?: string
             value?: number | string
           }
           const rawValue =
             typeof point.value === 'number' ? point.value : Number(point.value ?? Number.NaN)
           const formattedValue = Number.isFinite(rawValue) ? rawValue.toFixed(1) : '-'
-          const safeName = echarts.format.encodeHTML(point.name ?? '')
+          const label =
+            typeof point.dataIndex === 'number'
+              ? (data[point.dataIndex]?.label ?? '')
+              : (point.name ?? '')
+          const safeName = echarts.format.encodeHTML(label)
           const safeSeriesName = echarts.format.encodeHTML(point.seriesName ?? '')
 
           return `<strong>${safeName}</strong><br/>${safeSeriesName}: ${formattedValue}`
@@ -155,6 +161,7 @@ export function SupplyOutageDistributionChart({
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
+          formatter: (value: string) => formatAxisLabel(value),
           color: bodyText7.color || '#374151',
           overflow: 'none',
         },
@@ -251,8 +258,11 @@ export function SupplyOutageDistributionChart({
           show: true,
           rotate: 45,
           margin: 8,
-          formatter: () => '',
-          // color: 'transparent',
+          fontSize: bodyText7.fontSize,
+          lineHeight: bodyText7.lineHeight,
+          fontWeight: 400,
+          formatter: (value: string) => formatAxisLabel(value),
+          color: 'transparent',
         },
       },
       yAxis: {

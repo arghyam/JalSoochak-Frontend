@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { renderWithProviders } from '@/test/render-with-providers'
+import { formatAxisLabel } from './axis-label-format'
 import {
   SupplyOutageDistributionChart,
   type WaterSupplyOutageData,
@@ -59,6 +60,13 @@ const chartData: WaterSupplyOutageData[] = [
 ]
 
 describe('SupplyOutageDistributionChart', () => {
+  it('formats long axis labels to two lines with ellipsis on overflow', () => {
+    expect(formatAxisLabel('South Salmara Mankachar')).toBe('South Salmara\nMankachar')
+    expect(formatAxisLabel('Dadra and Nagar Haveli and Daman and Diu')).toBe(
+      'Dadra and\nNagar Havel...'
+    )
+  })
+
   it('shows hover tooltip value and keeps segment color unchanged on emphasis', () => {
     renderWithProviders(<SupplyOutageDistributionChart data={chartData} height="300px" />)
 
@@ -99,5 +107,55 @@ describe('SupplyOutageDistributionChart', () => {
       expect(stack.emphasis?.itemStyle?.color).toBe(stack.itemStyle?.color)
       expect(stack.emphasis?.itemStyle?.borderRadius).toEqual(stack.itemStyle?.borderRadius)
     })
+  })
+
+  it('keeps the full category name in tooltip when the axis label is shortened', () => {
+    renderWithProviders(
+      <SupplyOutageDistributionChart
+        data={[
+          {
+            label: 'Dadra and Nagar Haveli and Daman and Diu',
+            reasons: {
+              electricityFailure: 12,
+            },
+            electricityFailure: 12,
+            pipelineLeak: 0,
+            pumpFailure: 0,
+            valveIssue: 0,
+            sourceDrying: 0,
+          },
+        ]}
+        height="300px"
+      />
+    )
+
+    const option = (
+      mockEChartsWrapper.mock.calls as Array<
+        [
+          {
+            option?: {
+              tooltip?: { show?: boolean; formatter?: (params: unknown) => string }
+              xAxis?: { axisLabel?: { formatter?: (value: string) => string } }
+            }
+          },
+        ]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((entry) => entry?.tooltip?.show === true)
+
+    expect(option?.xAxis?.axisLabel?.formatter?.('Dadra and Nagar Haveli and Daman and Diu')).toBe(
+      'Dadra and\nNagar Havel...'
+    )
+
+    const tooltipText = option?.tooltip?.formatter?.({
+      name: 'Dadra and\nNagar Havel...',
+      dataIndex: 0,
+      seriesName: 'Electricity Failure',
+      value: 12,
+    })
+
+    expect(tooltipText).toContain('Dadra and Nagar Haveli and Daman and Diu')
+    expect(tooltipText).not.toContain('Dadra and\nNagar Havel...')
   })
 })

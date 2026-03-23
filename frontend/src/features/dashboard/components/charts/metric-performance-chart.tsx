@@ -10,6 +10,7 @@ import {
 import { Box, useBreakpointValue, useTheme } from '@chakra-ui/react'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
+import { formatAxisLabel } from '@/shared/components/charts/axis-label-format'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
 import type { EntityPerformance } from '../../types'
 
@@ -27,6 +28,8 @@ interface MetricPerformanceChartProps {
   showAreaLine?: boolean
   areaSeriesName?: string
 }
+
+export const formatMetricAxisLabel = formatAxisLabel
 
 export function MetricPerformanceChart({
   data,
@@ -138,6 +141,7 @@ export function MetricPerformanceChart({
           const points = Array.isArray(params)
             ? (params as Array<{
                 axisValueLabel?: string
+                dataIndex?: number
                 seriesName?: string
                 seriesType?: string
                 value?: number | string
@@ -148,7 +152,12 @@ export function MetricPerformanceChart({
             return ''
           }
 
-          const entityName = echarts.format.encodeHTML(points[0]?.axisValueLabel ?? '')
+          const firstPoint = points[0]
+          const entityName =
+            typeof firstPoint?.dataIndex === 'number'
+              ? (data[firstPoint.dataIndex]?.name ?? '')
+              : (firstPoint?.axisValueLabel ?? '')
+          const safeEntityName = echarts.format.encodeHTML(entityName)
           const rows = points
             .map((point) => {
               const rawValue = typeof point.value === 'number' ? point.value : Number(point.value)
@@ -167,7 +176,7 @@ export function MetricPerformanceChart({
             })
             .join('<br/>')
 
-          return `<strong>${entityName}</strong><br/>${rows}`
+          return `<strong>${safeEntityName}</strong><br/>${rows}`
         },
       },
       legend: {
@@ -198,6 +207,7 @@ export function MetricPerformanceChart({
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
+          formatter: (value: string) => formatMetricAxisLabel(value),
           color: bodyText7.color,
         },
       },
@@ -260,7 +270,7 @@ export function MetricPerformanceChart({
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
-          formatter: (value: string) => value,
+          formatter: (value: string) => formatMetricAxisLabel(value),
           color: 'transparent',
         },
       },

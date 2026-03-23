@@ -121,4 +121,48 @@ describe('ReadingSubmissionRateChart', () => {
     expect(content).toContain('Submission Rate')
     expect(content).toContain('90.0%')
   })
+
+  it('formats long axis labels and keeps the full entity name in tooltip', () => {
+    renderWithProviders(
+      <ReadingSubmissionRateChart
+        data={[
+          {
+            ...chartData[0],
+            name: 'Dadra and Nagar Haveli and Daman and Diu',
+            regularity: 28,
+          },
+        ]}
+      />
+    )
+
+    const options = (
+      mockEChartsWrapper.mock.calls as Array<[{ option?: Record<string, unknown> }]>
+    ).map(([props]) => props.option)
+
+    const mainOption = options.find(
+      (option) =>
+        (option?.tooltip as { show?: boolean } | undefined)?.show === true &&
+        Array.isArray(option?.series)
+    )
+    const axisLabel = (
+      mainOption?.xAxis as { axisLabel?: { formatter?: (value: string) => string } }
+    )?.axisLabel
+    expect(axisLabel?.formatter?.('Dadra and Nagar Haveli and Daman and Diu')).toBe(
+      'Dadra and\nNagar Havel...'
+    )
+
+    const formatter = (mainOption?.tooltip as { formatter?: (params: unknown) => string })
+      ?.formatter
+    const content = formatter?.([
+      {
+        axisValueLabel: 'Dadra and\nNagar Havel...',
+        dataIndex: 0,
+        seriesName: 'Submission Rate',
+        value: 28,
+      },
+    ])
+
+    expect(content).toContain('Dadra and Nagar Haveli and Daman and Diu')
+    expect(content).not.toContain('Dadra and\nNagar Havel...')
+  })
 })
