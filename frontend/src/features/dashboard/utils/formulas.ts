@@ -507,6 +507,7 @@ export const mapOutageReasonsFromNationalDashboard = (
   const distribution = response.overallOutageReasonDistribution
   const mappedData: WaterSupplyOutageData = {
     label: 'Outages',
+    reasons: distribution,
     electricityFailure: getOutageReasonCount(distribution, [
       'electrical_failure',
       'electricity_failure',

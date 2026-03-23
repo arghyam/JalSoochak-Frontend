@@ -268,6 +268,7 @@ const getOutageReasonCount = (distribution: Record<string, number>, keys: string
 
 const toOutageReasonsData = (distribution: Record<string, number>) => ({
   label: 'Outages',
+  reasons: distribution,
   electricityFailure: getOutageReasonCount(distribution, [
     'electrical_failure',
     'electricity_failure',

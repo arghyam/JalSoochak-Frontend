@@ -45,6 +45,11 @@ beforeEach(() => {
 const chartData: WaterSupplyOutageData[] = [
   {
     label: 'Adilabad',
+    reasons: {
+      additionalProp1: 12,
+      additionalProp2: 18,
+      additionalProp3: 14,
+    },
     electricityFailure: 12,
     pipelineLeak: 15,
     pumpFailure: 10,
@@ -81,14 +86,15 @@ describe('SupplyOutageDistributionChart', () => {
     expect(typeof formatter).toBe('function')
     const tooltipText = formatter?.({
       name: 'Adilabad',
-      seriesName: 'Valve issue',
+      seriesName: 'Additional Prop2',
       value: 18,
     })
     expect(tooltipText).toContain('Adilabad')
-    expect(tooltipText).toContain('Valve issue')
+    expect(tooltipText).toContain('Additional Prop2')
     expect(tooltipText).toContain('18.0')
 
     const series = option?.series ?? []
+    expect(series).toHaveLength(3)
     series.forEach((stack) => {
       expect(stack.emphasis?.itemStyle?.color).toBe(stack.itemStyle?.color)
       expect(stack.emphasis?.itemStyle?.borderRadius).toEqual(stack.itemStyle?.borderRadius)
