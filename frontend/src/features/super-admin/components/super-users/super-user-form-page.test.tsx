@@ -103,7 +103,7 @@ describe('SuperUserFormPage — Add Mode', () => {
   it('navigates to list on Cancel click', () => {
     renderWithProviders(<SuperUserFormPage />)
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
-    expect(mockNavigate).toHaveBeenCalledWith('/super-admin/super-users')
+    expect(mockNavigate).toHaveBeenCalledWith('/super-user/super-users')
   })
 })
 
@@ -163,6 +163,6 @@ describe('SuperUserFormPage — Edit Mode', () => {
   it('navigates to view page on Cancel click in edit mode', () => {
     renderWithProviders(<SuperUserFormPage />)
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
-    expect(mockNavigate).toHaveBeenCalledWith('/super-admin/super-users/user-1')
+    expect(mockNavigate).toHaveBeenCalledWith('/super-user/super-users/user-1')
   })
 })

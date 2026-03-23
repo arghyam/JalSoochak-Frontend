@@ -8,6 +8,7 @@ import {
   Input,
   Button,
   HStack,
+  SimpleGrid,
   FormControl,
   FormLabel,
   FormErrorMessage,
@@ -28,20 +29,37 @@ export function InviteStateUTAdminPage() {
   const tenantCode = useAuthStore((state) => state.user?.tenantCode ?? '')
   const inviteMutation = useInviteStateUTAdminMutation()
 
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
   const [email, setEmail] = useState('')
   const [emailTouched, setEmailTouched] = useState(false)
+  const [phoneTouched, setPhoneTouched] = useState(false)
 
   useEffect(() => {
     document.title = `${t('stateUtAdmins.addTitle')} | JalSoochak`
   }, [t])
 
+  const isPhoneValid = /^\d{10}$/.test(phoneNumber)
+  const phoneError = phoneTouched && phoneNumber !== '' && !isPhoneValid
   const emailError = emailTouched && email !== '' && !isValidEmail(email)
-  const isFormValid = email.trim() !== '' && isValidEmail(email)
+  const isFormValid =
+    firstName.trim() !== '' &&
+    lastName.trim() !== '' &&
+    isPhoneValid &&
+    email.trim() !== '' &&
+    isValidEmail(email)
 
   const handleSubmit = async () => {
     if (!isFormValid || inviteMutation.isPending) return
     try {
-      await inviteMutation.mutateAsync({ email: email.trim(), tenantCode })
+      await inviteMutation.mutateAsync({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phoneNumber,
+        email: email.trim(),
+        tenantCode,
+      })
       toast.addToast(t('stateUtAdmins.messages.adminAdded'), 'success')
       setTimeout(() => {
         navigate(ROUTES.STATE_ADMIN_STATE_UT_ADMINS)
@@ -111,23 +129,82 @@ export function InviteStateUTAdminPage() {
             <Heading as="h2" size="h3" fontWeight="400" mb={4} id="user-details-heading">
               {t('stateUtAdmins.form.userDetails')}
             </Heading>
-            <FormControl isRequired isInvalid={emailError} maxW={{ base: '100%', lg: '486px' }}>
-              <FormLabel textStyle="h10" mb={1}>
-                {t('stateUtAdmins.form.emailAddress')}
-              </FormLabel>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onBlur={() => setEmailTouched(true)}
-                placeholder={t('common:enter')}
-                h={9}
-                borderColor="neutral.200"
-                _placeholder={{ color: 'neutral.300' }}
-                aria-required="true"
-              />
-              <FormErrorMessage>{t('common:validation.invalidEmail')}</FormErrorMessage>
-            </FormControl>
+            <SimpleGrid
+              columns={{ base: 1, lg: 2 }}
+              spacing={6}
+              aria-labelledby="user-details-heading"
+            >
+              <FormControl isRequired>
+                <FormLabel textStyle="h10" mb={1}>
+                  {t('stateUtAdmins.form.firstName')}
+                </FormLabel>
+                <Input
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder={t('common:enter')}
+                  h={9}
+                  borderColor="neutral.200"
+                  maxW={{ base: '100%', lg: '486px' }}
+                  _placeholder={{ color: 'neutral.300' }}
+                  aria-required="true"
+                />
+              </FormControl>
+              <FormControl isRequired>
+                <FormLabel textStyle="h10" mb={1}>
+                  {t('stateUtAdmins.form.lastName')}
+                </FormLabel>
+                <Input
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder={t('common:enter')}
+                  h={9}
+                  borderColor="neutral.200"
+                  maxW={{ base: '100%', lg: '486px' }}
+                  _placeholder={{ color: 'neutral.300' }}
+                  aria-required="true"
+                />
+              </FormControl>
+              <FormControl isRequired isInvalid={phoneError}>
+                <FormLabel textStyle="h10" mb={1}>
+                  {t('stateUtAdmins.form.phoneNumber')}
+                </FormLabel>
+                <Input
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => {
+                    const val = e.target.value.replaceAll(/\D/g, '')
+                    if (val.length <= 10) setPhoneNumber(val)
+                  }}
+                  onBlur={() => setPhoneTouched(true)}
+                  placeholder={t('common:enter')}
+                  inputMode="numeric"
+                  h={9}
+                  borderColor="neutral.200"
+                  maxW={{ base: '100%', lg: '486px' }}
+                  _placeholder={{ color: 'neutral.300' }}
+                  aria-required="true"
+                />
+                <FormErrorMessage>{t('common:validation.invalidPhone')}</FormErrorMessage>
+              </FormControl>
+              <FormControl isRequired isInvalid={emailError}>
+                <FormLabel textStyle="h10" mb={1}>
+                  {t('stateUtAdmins.form.emailAddress')}
+                </FormLabel>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => setEmailTouched(true)}
+                  placeholder={t('common:enter')}
+                  h={9}
+                  borderColor="neutral.200"
+                  maxW={{ base: '100%', lg: '486px' }}
+                  _placeholder={{ color: 'neutral.300' }}
+                  aria-required="true"
+                />
+                <FormErrorMessage>{t('common:validation.invalidEmail')}</FormErrorMessage>
+              </FormControl>
+            </SimpleGrid>
           </Box>
 
           {/* Action Buttons */}

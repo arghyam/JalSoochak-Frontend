@@ -126,21 +126,21 @@ describe('SuperUsersPage', () => {
   it('navigates to add page when Add Super User button is clicked', () => {
     renderWithProviders(<SuperUsersPage />)
     fireEvent.click(screen.getByRole('button', { name: /add super user/i }))
-    expect(mockNavigate).toHaveBeenCalledWith('/super-admin/super-users/add')
+    expect(mockNavigate).toHaveBeenCalledWith('/super-user/super-users/add')
   })
 
   it('navigates to view page when view icon is clicked', () => {
     renderWithProviders(<SuperUsersPage />)
     const viewButtons = screen.getAllByRole('button', { name: /view super user/i })
     fireEvent.click(viewButtons[0])
-    expect(mockNavigate).toHaveBeenCalledWith('/super-admin/super-users/user-1')
+    expect(mockNavigate).toHaveBeenCalledWith('/super-user/super-users/user-1')
   })
 
   it('navigates to edit page when edit icon is clicked', () => {
     renderWithProviders(<SuperUsersPage />)
     const editButtons = screen.getAllByRole('button', { name: /edit super user/i })
     fireEvent.click(editButtons[0])
-    expect(mockNavigate).toHaveBeenCalledWith('/super-admin/super-users/user-1/edit')
+    expect(mockNavigate).toHaveBeenCalledWith('/super-user/super-users/user-1/edit')
   })
 
   it('renders resend invite button for pending users', () => {

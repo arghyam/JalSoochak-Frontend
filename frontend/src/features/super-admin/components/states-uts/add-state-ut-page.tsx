@@ -40,8 +40,12 @@ export function AddStateUTPage() {
   const [stateName, setStateName] = useState('')
   const [stateCode, setStateCode] = useState('')
   const [lgdCode, setLgdCode] = useState<number | null>(null)
+  const [adminFirstName, setAdminFirstName] = useState('')
+  const [adminLastName, setAdminLastName] = useState('')
+  const [adminPhone, setAdminPhone] = useState('')
   const [adminEmail, setAdminEmail] = useState('')
   const [emailTouched, setEmailTouched] = useState(false)
+  const [phoneTouched, setPhoneTouched] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const takenStateCodes = useMemo<Set<string>>(
@@ -66,12 +70,17 @@ export function AddStateUTPage() {
   }
 
   const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+  const isPhoneValid = /^\d{10}$/.test(adminPhone)
   const emailError = emailTouched && adminEmail !== '' && !isValidEmail(adminEmail)
+  const phoneError = phoneTouched && adminPhone !== '' && !isPhoneValid
 
   const isFormValid =
     stateName !== '' &&
     stateCode !== '' &&
     lgdCode !== null &&
+    adminFirstName.trim() !== '' &&
+    adminLastName.trim() !== '' &&
+    isPhoneValid &&
     adminEmail.trim() !== '' &&
     isValidEmail(adminEmail)
 
@@ -90,6 +99,9 @@ export function AddStateUTPage() {
 
       try {
         await inviteUserMutation.mutateAsync({
+          firstName: adminFirstName.trim(),
+          lastName: adminLastName.trim(),
+          phoneNumber: adminPhone,
           email: adminEmail.trim(),
           role: 'STATE_ADMIN',
           tenantCode: tenant.stateCode,
@@ -225,6 +237,58 @@ export function AddStateUTPage() {
               spacing={6}
               aria-labelledby="admin-details-heading"
             >
+              <FormControl isRequired>
+                <FormLabel textStyle="h10" mb={1}>
+                  {t('statesUts.adminDetails.firstName')}
+                </FormLabel>
+                <Input
+                  value={adminFirstName}
+                  onChange={(e) => setAdminFirstName(e.target.value)}
+                  placeholder={t('common:enter')}
+                  h={9}
+                  maxW={{ base: '100%', lg: '486px' }}
+                  borderColor="neutral.200"
+                  _placeholder={{ color: 'neutral.300' }}
+                  aria-required="true"
+                />
+              </FormControl>
+              <FormControl isRequired>
+                <FormLabel textStyle="h10" mb={1}>
+                  {t('statesUts.adminDetails.lastName')}
+                </FormLabel>
+                <Input
+                  value={adminLastName}
+                  onChange={(e) => setAdminLastName(e.target.value)}
+                  placeholder={t('common:enter')}
+                  h={9}
+                  borderColor="neutral.200"
+                  _placeholder={{ color: 'neutral.300' }}
+                  maxW={{ base: '100%', lg: '486px' }}
+                  aria-required="true"
+                />
+              </FormControl>
+              <FormControl isRequired isInvalid={phoneError}>
+                <FormLabel textStyle="h10" mb={1}>
+                  {t('statesUts.adminDetails.phone')}
+                </FormLabel>
+                <Input
+                  type="tel"
+                  value={adminPhone}
+                  onChange={(e) => {
+                    const val = e.target.value.replaceAll(/\D/g, '')
+                    if (val.length <= 10) setAdminPhone(val)
+                  }}
+                  onBlur={() => setPhoneTouched(true)}
+                  placeholder={t('common:enter')}
+                  inputMode="numeric"
+                  h={9}
+                  borderColor="neutral.200"
+                  maxW={{ base: '100%', lg: '486px' }}
+                  _placeholder={{ color: 'neutral.300' }}
+                  aria-required="true"
+                />
+                <FormErrorMessage>{t('common:validation.invalidPhone')}</FormErrorMessage>
+              </FormControl>
               <FormControl isRequired isInvalid={emailError}>
                 <FormLabel textStyle="h10" mb={1}>
                   {t('statesUts.adminDetails.email')}
@@ -236,9 +300,9 @@ export function AddStateUTPage() {
                   onBlur={() => setEmailTouched(true)}
                   placeholder={t('common:enter')}
                   h={9}
-                  maxW={{ base: '100%', lg: '486px' }}
                   borderColor="neutral.200"
                   _placeholder={{ color: 'neutral.300' }}
+                  maxW={{ base: '100%', lg: '486px' }}
                   aria-required="true"
                 />
                 <FormErrorMessage>{t('common:validation.invalidEmail')}</FormErrorMessage>

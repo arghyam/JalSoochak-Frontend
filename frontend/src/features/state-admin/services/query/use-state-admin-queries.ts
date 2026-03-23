@@ -267,8 +267,13 @@ export function useStateUTAdminByIdQuery(id: string | undefined) {
 export function useInviteStateUTAdminMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (payload: { email: string; tenantCode: string }) =>
-      stateAdminApi.inviteStateUTAdmin(payload.email, payload.tenantCode),
+    mutationFn: (payload: {
+      firstName: string
+      lastName: string
+      phoneNumber: string
+      email: string
+      tenantCode: string
+    }) => stateAdminApi.inviteStateUTAdmin(payload),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: [...stateAdminQueryKeys.all, 'state-ut-admins'],

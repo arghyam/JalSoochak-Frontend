@@ -8,6 +8,7 @@ import {
   Input,
   Button,
   HStack,
+  SimpleGrid,
   FormControl,
   FormLabel,
   FormErrorMessage,
@@ -26,8 +27,12 @@ export function InviteSuperUserPage() {
   const toast = useToast()
   const inviteMutation = useInviteUserMutation()
 
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
   const [email, setEmail] = useState('')
   const [emailTouched, setEmailTouched] = useState(false)
+  const [phoneTouched, setPhoneTouched] = useState(false)
   const navigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -40,13 +45,26 @@ export function InviteSuperUserPage() {
     }
   }, [])
 
+  const isPhoneValid = /^\d{10}$/.test(phoneNumber)
+  const phoneError = phoneTouched && phoneNumber !== '' && !isPhoneValid
   const emailError = emailTouched && email !== '' && !isValidEmail(email)
-  const isFormValid = email.trim() !== '' && isValidEmail(email)
+  const isFormValid =
+    firstName.trim() !== '' &&
+    lastName.trim() !== '' &&
+    isPhoneValid &&
+    email.trim() !== '' &&
+    isValidEmail(email)
 
   const handleSubmit = async () => {
     if (!isFormValid || inviteMutation.isPending) return
     try {
-      await inviteMutation.mutateAsync({ email: email.trim(), role: 'SUPER_USER' })
+      await inviteMutation.mutateAsync({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phoneNumber,
+        email: email.trim(),
+        role: 'SUPER_USER',
+      })
       toast.addToast(t('superUsers.messages.userAdded'), 'success')
       navigateTimerRef.current = setTimeout(() => {
         navigate(ROUTES.SUPER_ADMIN_SUPER_USERS)
@@ -116,23 +134,82 @@ export function InviteSuperUserPage() {
             <Heading as="h2" size="h3" fontWeight="400" mb={4} id="user-details-heading">
               {t('superUsers.form.userDetails')}
             </Heading>
-            <FormControl isRequired isInvalid={emailError} maxW={{ base: '100%', lg: '486px' }}>
-              <FormLabel textStyle="h10" mb={1}>
-                {t('superUsers.form.emailAddress')}
-              </FormLabel>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onBlur={() => setEmailTouched(true)}
-                placeholder={t('common:enter')}
-                h={9}
-                borderColor="neutral.200"
-                _placeholder={{ color: 'neutral.300' }}
-                aria-required="true"
-              />
-              <FormErrorMessage>{t('common:validation.invalidEmail')}</FormErrorMessage>
-            </FormControl>
+            <SimpleGrid
+              columns={{ base: 1, lg: 2 }}
+              spacing={6}
+              aria-labelledby="user-details-heading"
+            >
+              <FormControl isRequired>
+                <FormLabel textStyle="h10" mb={1}>
+                  {t('superUsers.form.firstName')}
+                </FormLabel>
+                <Input
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder={t('common:enter')}
+                  h={9}
+                  borderColor="neutral.200"
+                  maxW={{ base: '100%', lg: '486px' }}
+                  _placeholder={{ color: 'neutral.300' }}
+                  aria-required="true"
+                />
+              </FormControl>
+              <FormControl isRequired>
+                <FormLabel textStyle="h10" mb={1}>
+                  {t('superUsers.form.lastName')}
+                </FormLabel>
+                <Input
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder={t('common:enter')}
+                  h={9}
+                  borderColor="neutral.200"
+                  maxW={{ base: '100%', lg: '486px' }}
+                  _placeholder={{ color: 'neutral.300' }}
+                  aria-required="true"
+                />
+              </FormControl>
+              <FormControl isRequired isInvalid={phoneError}>
+                <FormLabel textStyle="h10" mb={1}>
+                  {t('superUsers.form.phoneNumber')}
+                </FormLabel>
+                <Input
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => {
+                    const val = e.target.value.replaceAll(/\D/g, '')
+                    if (val.length <= 10) setPhoneNumber(val)
+                  }}
+                  onBlur={() => setPhoneTouched(true)}
+                  placeholder={t('common:enter')}
+                  inputMode="numeric"
+                  maxW={{ base: '100%', lg: '486px' }}
+                  h={9}
+                  borderColor="neutral.200"
+                  _placeholder={{ color: 'neutral.300' }}
+                  aria-required="true"
+                />
+                <FormErrorMessage>{t('common:validation.invalidPhone')}</FormErrorMessage>
+              </FormControl>
+              <FormControl isRequired isInvalid={emailError}>
+                <FormLabel textStyle="h10" mb={1}>
+                  {t('superUsers.form.emailAddress')}
+                </FormLabel>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => setEmailTouched(true)}
+                  placeholder={t('common:enter')}
+                  h={9}
+                  maxW={{ base: '100%', lg: '486px' }}
+                  borderColor="neutral.200"
+                  _placeholder={{ color: 'neutral.300' }}
+                  aria-required="true"
+                />
+                <FormErrorMessage>{t('common:validation.invalidEmail')}</FormErrorMessage>
+              </FormControl>
+            </SimpleGrid>
           </Box>
 
           {/* Action Buttons */}

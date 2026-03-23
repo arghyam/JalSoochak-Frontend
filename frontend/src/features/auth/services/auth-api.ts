@@ -341,10 +341,24 @@ export const authApi = {
   /** GET /api/v1/auth/invite/info?token=... — fetch invite metadata from token. */
   getInviteInfo: async (
     token: string
-  ): Promise<{ email: string; role: string; tenantName: string }> => {
+  ): Promise<{
+    email: string
+    role: string
+    tenantName: string
+    firstName: string
+    lastName: string
+    phoneNumber: string
+  }> => {
     try {
       const response = await apiClient.get<
-        ApiResponse<{ email: string; role: string; tenantName: string }>
+        ApiResponse<{
+          email: string
+          role: string
+          tenantName: string
+          firstName: string
+          lastName: string
+          phoneNumber: string
+        }>
       >('/api/v1/auth/invite/info', { params: { token } })
       return response.data.data
     } catch (err: unknown) {
@@ -408,16 +422,27 @@ export const authApi = {
     }
   },
 
-  /** POST /api/v1/auth/activate-account — set password + profile for invited user. */
+  /** POST /api/v1/auth/activate-account — set password + profile for invited user. Returns session. */
   activateAccount: async (payload: {
     inviteToken: string
     firstName: string
     lastName: string
     phoneNumber: string
     password: string
-  }): Promise<void> => {
+  }): Promise<LoginResponse> => {
     try {
-      await apiClient.post('/api/v1/auth/activate-account', payload)
+      const response = await apiClient.post<ApiResponse<TokenResponse>>(
+        '/api/v1/auth/activate-account',
+        payload
+      )
+      const tokenData = response.data.data
+      if (!tokenData?.access_token) {
+        throw new Error('Invalid activation response')
+      }
+      return {
+        user: buildUserFromTokenResponse(tokenData),
+        accessToken: tokenData.access_token,
+      }
     } catch (err: unknown) {
       let message = 'Failed to activate account.'
       if (isAxiosError(err) && typeof err.response?.data?.message === 'string') {
