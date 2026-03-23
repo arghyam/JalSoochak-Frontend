@@ -741,10 +741,6 @@ export function VillageDashboardScreen({
             entityLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
             yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
             seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
-            showAreaLine
-            areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
-              defaultValue: 'Demand',
-            })}
           />
         </Box>
         <Box

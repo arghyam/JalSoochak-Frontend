@@ -117,10 +117,6 @@ export function DistrictDashboardScreen({
               entityLabel={t('performanceCharts.viewBy.blocks', { defaultValue: 'Blocks' })}
               yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
               seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
-              showAreaLine
-              areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
-                defaultValue: 'Demand',
-              })}
             />
           ) : (
             <MonthlyTrendChart

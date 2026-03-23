@@ -256,7 +256,7 @@ describe('DashboardBody', () => {
 
     expect(metricChartCalls).toHaveLength(2)
     expect(metricChartCalls[0][0].data).toEqual(mockEntityData)
-    expect(metricChartCalls[0][0].showAreaLine).toBe(true)
+    expect(metricChartCalls[0][0].showAreaLine).toBeUndefined()
     expect(metricChartCalls[1][0].data).toEqual(mockEntityData)
     expect(metricChartCalls[1][0].showAreaLine).toBeUndefined()
     expect(mockMonthlyTrendChart).not.toHaveBeenCalled()

@@ -269,6 +269,37 @@ describe('CentralDashboard', () => {
     ])
   })
 
+  it('ignores a future stored selected duration and falls back to the default analytics range', () => {
+    jest.useFakeTimers()
+    jest.setSystemTime(new Date('2025-02-21T09:00:00'))
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedDuration: {
+          startDate: '2026-01-23',
+          endDate: '2026-02-21',
+        },
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useNationalDashboardQuery).toHaveBeenCalledWith({
+      params: {
+        startDate: '2025-01-23',
+        endDate: '2025-02-21',
+      },
+      enabled: true,
+    })
+
+    jest.useRealTimers()
+  })
+
   it('does not enable national dashboard analytics once a location filter is selected', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,

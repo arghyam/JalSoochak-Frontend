@@ -182,6 +182,41 @@ const getStoredFilters = (): StoredFilters => {
   }
 }
 
+const parseStoredDateValue = (value: unknown) => {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return null
+  }
+
+  const date = new Date(`${value}T00:00:00`)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+const getInitialStoredDuration = (storedFilters: StoredFilters): DateRange | null => {
+  const storedDuration = storedFilters.selectedDuration
+  if (
+    !storedDuration ||
+    typeof storedDuration !== 'object' ||
+    !('startDate' in storedDuration) ||
+    !('endDate' in storedDuration)
+  ) {
+    return null
+  }
+
+  const startDate = parseStoredDateValue(storedDuration.startDate)
+  const endDate = parseStoredDateValue(storedDuration.endDate)
+  if (!startDate || !endDate || startDate > endDate) {
+    return null
+  }
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  if (endDate > today) {
+    return null
+  }
+
+  return storedDuration
+}
+
 const toStateSlug = (stateName: string) =>
   stateName
     .trim()
@@ -295,13 +330,7 @@ export function CentralDashboard() {
   const authUserId = useAuthStore((state) => state.user?.id)
   const { data, isLoading, error } = useDashboardData('central')
   const [storedFilters] = useState(() => getStoredFilters())
-  const initialDuration =
-    storedFilters.selectedDuration &&
-    typeof storedFilters.selectedDuration === 'object' &&
-    'startDate' in storedFilters.selectedDuration &&
-    'endDate' in storedFilters.selectedDuration
-      ? storedFilters.selectedDuration
-      : null
+  const initialDuration = getInitialStoredDuration(storedFilters)
   const selectedState = stateSlug
   const selectedDistrict = selectedState ? (searchParams.get('district') ?? '') : ''
   const selectedBlock = selectedDistrict ? (searchParams.get('block') ?? '') : ''

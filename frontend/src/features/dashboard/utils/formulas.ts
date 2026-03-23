@@ -302,7 +302,7 @@ export const mapQuantityPerformanceFromAnalytics = (
   fallbackData: EntityPerformance[]
 ): EntityPerformance[] => {
   if (!response?.childRegions?.length) {
-    return fallbackData
+    return []
   }
 
   const childRegions = response.childRegions
@@ -317,7 +317,7 @@ export const mapQuantityPerformanceFromAnalytics = (
         fallbackMatch?.id ??
         `quantity-performance-${index}-${slugify(region.title || String(index))}`,
       name: region.title || fallbackMatch?.name || `Region ${index + 1}`,
-      coverage: fallbackMatch?.coverage ?? 0,
+      coverage: 0,
       regularity: fallbackMatch?.regularity ?? 0,
       continuity: fallbackMatch?.continuity ?? 0,
       quantity: calculateQuantityMld(region.totalWaterSuppliedLiters, daysInRange),
@@ -408,7 +408,7 @@ export const mapQuantityPerformanceFromNationalDashboard = (
   fallbackData: EntityPerformance[]
 ): EntityPerformance[] => {
   if (!response?.stateWiseQuantityPerformance?.length) {
-    return fallbackData
+    return []
   }
 
   const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
@@ -419,7 +419,7 @@ export const mapQuantityPerformanceFromNationalDashboard = (
     return {
       id: fallbackMatch?.id ?? `national-quantity-${state.stateCode || index}`,
       name: state.stateTitle || fallbackMatch?.name || `State ${index + 1}`,
-      coverage: fallbackMatch?.coverage ?? 0,
+      coverage: 0,
       regularity: fallbackMatch?.regularity ?? 0,
       continuity: fallbackMatch?.continuity ?? 0,
       quantity: calculateQuantityMld(state.totalWaterSuppliedLiters, daysInRange),

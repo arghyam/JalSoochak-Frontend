@@ -148,10 +148,6 @@ export function DashboardBody({
                 seriesName={t('performanceCharts.quantity.seriesName', {
                   defaultValue: 'Quantity',
                 })}
-                showAreaLine
-                areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
-                  defaultValue: 'Demand',
-                })}
               />
             ) : (
               <MonthlyTrendChart

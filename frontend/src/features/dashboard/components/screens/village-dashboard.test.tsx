@@ -193,7 +193,7 @@ describe('VillageDashboardScreen', () => {
     expect(metricCalls.length).toBeGreaterThanOrEqual(2)
     const latestMetricCalls = metricCalls.slice(-2)
     expect(latestMetricCalls[0]?.[0].metric).toBe('quantity')
-    expect(latestMetricCalls[0]?.[0].showAreaLine).toBe(true)
+    expect(latestMetricCalls[0]?.[0].showAreaLine).toBeUndefined()
     expect(latestMetricCalls[0]?.[0].seriesName).toBe('Quantity')
     expect(latestMetricCalls[1]?.[0].metric).toBe('regularity')
     expect(latestMetricCalls[1]?.[0].seriesName).toBe('Regularity')

@@ -130,6 +130,7 @@ describe('dashboard formulas', () => {
     expect(mapQuantityPerformanceFromAnalytics(response, fallbackData)).toEqual([
       {
         ...fallbackData[0],
+        coverage: 0,
         quantity: 3,
       },
     ])
