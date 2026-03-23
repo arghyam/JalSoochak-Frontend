@@ -290,7 +290,7 @@ const toOutageDistributionData = (
 ) =>
   childRegions.map((region) => ({
     ...toOutageReasonsData(region.outageReasonSchemeCount),
-    label: region.title,
+    label: toCapitalizedWords(region.title),
   }))
 
 const formulaTooltipTextStyle = {
@@ -914,11 +914,13 @@ export function CentralDashboard() {
 
   const villagePumpOperatorDetails: VillagePumpOperatorDetails = {
     schemeId: derivedVillageSchemeId,
-    schemeName: derivedVillageScheme?.schemeName,
+    schemeName: derivedVillageScheme?.schemeName
+      ? toCapitalizedWords(derivedVillageScheme.schemeName)
+      : undefined,
     name: 'N/A',
     scheme:
       derivedVillageScheme?.schemeName && derivedVillageSchemeId
-        ? `${derivedVillageScheme.schemeName} / ${derivedVillageSchemeId}`
+        ? `${toCapitalizedWords(derivedVillageScheme.schemeName)} / ${derivedVillageSchemeId}`
         : 'N/A',
     stationLocation: 'N/A',
     lastSubmission: 'N/A',

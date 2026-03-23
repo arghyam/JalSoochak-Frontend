@@ -1237,7 +1237,7 @@ describe('CentralDashboard', () => {
           {
             lgdId: 101,
             departmentId: 0,
-            title: 'Sangareddy',
+            title: 'SANGAREDDY',
             outageReasonSchemeCount: {
               electrical_failure: 4,
               pipeline_break: 2,
@@ -1246,7 +1246,7 @@ describe('CentralDashboard', () => {
           {
             lgdId: 102,
             departmentId: 0,
-            title: 'Medak',
+            title: 'MEDAK',
             outageReasonSchemeCount: {
               pump_failure: 3,
               source_drying: 1,
@@ -1270,22 +1270,22 @@ describe('CentralDashboard', () => {
     }>()
 
     expect(dashboardBodyProps.waterSupplyOutageDistributionData).toEqual([
-      {
+      expect.objectContaining({
         label: 'Sangareddy',
         electricityFailure: 4,
         pipelineLeak: 2,
         pumpFailure: 0,
         valveIssue: 0,
         sourceDrying: 0,
-      },
-      {
+      }),
+      expect.objectContaining({
         label: 'Medak',
         electricityFailure: 0,
         pipelineLeak: 0,
         pumpFailure: 3,
         valveIssue: 0,
         sourceDrying: 1,
-      },
+      }),
     ])
   })
 

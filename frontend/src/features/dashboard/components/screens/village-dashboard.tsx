@@ -14,6 +14,7 @@ import { useReadingComplianceQuery } from '../../services/query/use-reading-comp
 import { SupplyOutageReasonsChart, MetricPerformanceChart } from '../charts'
 import { ReadingComplianceTable } from '../tables'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
+import { toCapitalizedWords } from '../../utils/format-location-label'
 
 type VillageDashboardScreenProps = {
   data: DashboardData
@@ -144,6 +145,11 @@ const getOperatorMappingKey = (operator: {
   return operator.name?.trim().toLowerCase().replace(/\s+/g, '-') || 'unknown-operator'
 }
 
+const normalizeSchemeLabel = (value?: string | null) => {
+  const trimmedValue = value?.trim()
+  return trimmedValue ? toCapitalizedWords(trimmedValue) : undefined
+}
+
 const mapReadingComplianceItemToVillageDetails = (
   item: ReadingComplianceItem,
   fallback?: VillagePumpOperatorDetails
@@ -153,6 +159,7 @@ const mapReadingComplianceItemToVillageDetails = (
     typeof item.missingSubmissionCount === 'number'
       ? item.missingSubmissionCount
       : getMissedSubmissionCount(item.missedSubmissionDays)
+  const normalizedSchemeName = normalizeSchemeLabel(item.schemeName)
 
   return {
     id: item.id,
@@ -163,10 +170,10 @@ const mapReadingComplianceItemToVillageDetails = (
     phoneNumber: item.phoneNumber,
     status: item.status,
     schemeId: item.schemeId,
-    schemeName: item.schemeName,
+    schemeName: normalizedSchemeName,
     scheme:
-      item.schemeName && item.schemeId
-        ? `${item.schemeName} / ${item.schemeId}`
+      normalizedSchemeName && item.schemeId
+        ? `${normalizedSchemeName} / ${item.schemeId}`
         : matchingFallback?.scheme || 'N/A',
     stationLocation: matchingFallback?.stationLocation || 'N/A',
     lastSubmission:
