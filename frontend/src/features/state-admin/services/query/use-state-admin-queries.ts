@@ -455,3 +455,22 @@ export function useConfigStatusQuery() {
     queryFn: stateAdminApi.getConfigStatus,
   })
 }
+
+export function useLogoQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.logo(),
+    queryFn: stateAdminApi.getLogo,
+    retry: false,
+  })
+}
+
+export function useUpdateLogoMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (file: File) => stateAdminApi.updateLogo(file),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.logo() })
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.configStatus() })
+    },
+  })
+}

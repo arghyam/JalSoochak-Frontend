@@ -113,6 +113,8 @@ type StateAdminDataProvider = {
   updateNudgeTemplate: (id: string, payload: UpdateNudgeTemplatePayload) => Promise<NudgeTemplate>
   getConfiguration: () => Promise<ConfigurationData>
   saveConfiguration: (payload: SaveConfigurationPayload) => Promise<ConfigurationData>
+  getLogo: () => Promise<string | null>
+  updateLogo: (file: File) => Promise<void>
   getEscalationRules: () => Promise<EscalationRulesConfig>
   saveEscalationRules: (payload: SaveEscalationRulesPayload) => Promise<EscalationRulesConfig>
 }
@@ -165,7 +167,6 @@ function mapApiUserToAdmin(u: ApiUser): StateUTAdmin {
 
 const CONFIGURATION_KEYS = [
   'TENANT_SUPPORTED_CHANNELS',
-  'TENANT_LOGO',
   'METER_CHANGE_REASONS',
   'LOCATION_CHECK_REQUIRED',
   'DATA_CONSOLIDATION_TIME',
@@ -334,6 +335,26 @@ const httpProvider: StateAdminDataProvider = {
       ...mapApiConfigToConfigurationData(response.data.data.configs),
     } as ConfigurationData
   },
+  getLogo: async () => {
+    const tenantId = getTenantId()
+    try {
+      const response = await apiClient.get(`/api/v1/tenants/${tenantId}/logo`, {
+        responseType: 'blob',
+      })
+      return URL.createObjectURL(response.data as Blob)
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.status === 404) return null
+      throw error
+    }
+  },
+  updateLogo: async (file: File) => {
+    const tenantId = getTenantId()
+    const formData = new FormData()
+    formData.append('file', file)
+    await apiClient.put(`/api/v1/tenants/${tenantId}/logo`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
   getEscalationRules: async () => {
     const tenantId = getTenantId()
     const response = await apiClient.get<ApiEnvelope<{ configs: Record<string, unknown> }>>(
@@ -372,6 +393,13 @@ const mockProvider: StateAdminDataProvider = {
   updateNudgeTemplate: (id, payload) => updateMockNudgeTemplate(id, payload),
   getConfiguration: () => getMockConfigurationData(),
   saveConfiguration: (payload) => saveMockConfigurationData(payload),
+  getLogo: async () => {
+    await new Promise((r) => setTimeout(r, 300))
+    return null
+  },
+  updateLogo: async (_file: File) => {
+    await new Promise((r) => setTimeout(r, 300))
+  },
   getEscalationRules: () => getMockEscalationRules(),
   saveEscalationRules: (payload) => saveMockEscalationRules(payload),
 }
@@ -600,6 +628,8 @@ export const stateAdminApi = {
   getMessageTemplates: () => httpProvider.getMessageTemplates(),
   getConfiguration: () => httpProvider.getConfiguration(),
   saveConfiguration: (payload: SaveConfigurationPayload) => httpProvider.saveConfiguration(payload),
+  getLogo: () => httpProvider.getLogo(),
+  updateLogo: (file: File) => httpProvider.updateLogo(file),
   getEscalationRules: () => httpProvider.getEscalationRules(),
   saveEscalationRules: (payload: SaveEscalationRulesPayload) =>
     httpProvider.saveEscalationRules(payload),

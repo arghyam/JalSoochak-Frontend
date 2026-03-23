@@ -105,7 +105,6 @@ export function mapApiConfigToConfigurationData(
 
   return {
     supportedChannels,
-    logoUrl: configs.TENANT_LOGO,
     meterChangeReasons: meterReasons,
     locationCheckRequired: configs.LOCATION_CHECK_REQUIRED?.value === 'YES',
     dataConsolidationTime: configs.DATA_CONSOLIDATION_TIME?.timeValue ?? '',
@@ -126,7 +125,6 @@ export function mapConfigurationDataToApiConfig(
 
   return {
     TENANT_SUPPORTED_CHANNELS: { channels: channelCodes },
-    TENANT_LOGO: payload.logoUrl,
     METER_CHANGE_REASONS: {
       reasons: payload.meterChangeReasons.map((r, i) => ({
         id: r.id,

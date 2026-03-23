@@ -670,7 +670,7 @@ let mockEscalationRules: EscalationRulesConfig = {
   schedule: { hour: 9, minute: 0 },
   levels: [
     { days: 3, userType: 'SECTION_OFFICER' },
-    { days: 7, userType: 'DISTRICT_OFFICER' },
+    { days: 7, userType: 'SUB_DIVISIONAL_OFFICER' },
   ],
 }
 

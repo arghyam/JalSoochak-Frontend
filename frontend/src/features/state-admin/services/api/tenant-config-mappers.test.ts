@@ -287,7 +287,7 @@ describe('mapApiConfigToEscalationRules', () => {
         escalation: {
           schedule: { hour: 9, minute: 0 },
           level1: { threshold: { days: 3 }, officer: { userType: 'SECTION_OFFICER' } },
-          level2: { threshold: { days: 7 }, officer: { userType: 'DISTRICT_OFFICER' } },
+          level2: { threshold: { days: 7 }, officer: { userType: 'SUB_DIVISIONAL_OFFICER' } },
         },
       },
     }
@@ -297,7 +297,7 @@ describe('mapApiConfigToEscalationRules', () => {
     expect(result.schedule).toEqual({ hour: 9, minute: 0 })
     expect(result.levels).toHaveLength(2)
     expect(result.levels[0]).toEqual({ days: 3, userType: 'SECTION_OFFICER' })
-    expect(result.levels[1]).toEqual({ days: 7, userType: 'DISTRICT_OFFICER' })
+    expect(result.levels[1]).toEqual({ days: 7, userType: 'SUB_DIVISIONAL_OFFICER' })
   })
 
   it('returns empty levels when key is absent', () => {
@@ -311,7 +311,7 @@ describe('mapApiConfigToEscalationRules', () => {
       FIELD_STAFF_ESCALATION_RULES: {
         escalation: {
           schedule: { hour: 8, minute: 30 },
-          level2: { threshold: { days: 7 }, officer: { userType: 'DISTRICT_OFFICER' } },
+          level2: { threshold: { days: 7 }, officer: { userType: 'SUB_DIVISIONAL_OFFICER' } },
           level1: { threshold: { days: 3 }, officer: { userType: 'SECTION_OFFICER' } },
         },
       },
@@ -320,7 +320,7 @@ describe('mapApiConfigToEscalationRules', () => {
     const result = mapApiConfigToEscalationRules(configs)
 
     expect(result.levels[0].userType).toBe('SECTION_OFFICER')
-    expect(result.levels[1].userType).toBe('DISTRICT_OFFICER')
+    expect(result.levels[1].userType).toBe('SUB_DIVISIONAL_OFFICER')
   })
 })
 
@@ -330,7 +330,7 @@ describe('mapEscalationRulesToApiConfig', () => {
       schedule: { hour: 9, minute: 0 },
       levels: [
         { days: 3, userType: 'SECTION_OFFICER' as const },
-        { days: 7, userType: 'DISTRICT_OFFICER' as const },
+        { days: 7, userType: 'SUB_DIVISIONAL_OFFICER' as const },
       ],
     }
 
@@ -346,7 +346,7 @@ describe('mapEscalationRulesToApiConfig', () => {
     })
     expect(result.FIELD_STAFF_ESCALATION_RULES?.escalation?.level2).toEqual({
       threshold: { days: 7 },
-      officer: { userType: 'DISTRICT_OFFICER' },
+      officer: { userType: 'SUB_DIVISIONAL_OFFICER' },
     })
   })
 
