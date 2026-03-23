@@ -206,14 +206,20 @@ export function ConfigurationPage() {
     if (!file) return
     const MAX_LOGO_SIZE = 2 * 1024 * 1024 // 2MB
     if (file.size > MAX_LOGO_SIZE) {
-      toast.addToast(t('configuration.messages.validation.logoTooLarge'), 'error')
+      setErrors((prev) => ({ ...prev, logo: t('configuration.messages.validation.logoTooLarge') }))
+      if (fileInputRef.current) fileInputRef.current.value = ''
       return
     }
     const ALLOWED_TYPES = ['image/png', 'image/jpeg']
     if (!ALLOWED_TYPES.includes(file.type)) {
-      toast.addToast(t('configuration.messages.validation.logoInvalidType'), 'error')
+      setErrors((prev) => ({
+        ...prev,
+        logo: t('configuration.messages.validation.logoInvalidType'),
+      }))
+      if (fileInputRef.current) fileInputRef.current.value = ''
       return
     }
+    clearError('logo')
     setDraft((prev) => ({
       ...(prev ?? buildInitialDraft(config, fetchedLogoUrl ?? undefined)),
       logoFile: file,
@@ -416,7 +422,7 @@ export function ConfigurationPage() {
                   </Box>
 
                   {/* Logo */}
-                  <Box>
+                  <FormControl isInvalid={!!errors.logo}>
                     <Text
                       fontSize={{ base: 'xs', md: 'sm' }}
                       fontWeight="medium"
@@ -461,7 +467,8 @@ export function ConfigurationPage() {
                         {t('configuration.sections.logo.hint')}
                       </Text>
                     </HStack>
-                  </Box>
+                    <FormErrorMessage>{errors.logo}</FormErrorMessage>
+                  </FormControl>
                 </SimpleGrid>
 
                 {/* 6. Data Consolidation Time + Pump Operator Reminder Nudge Time */}

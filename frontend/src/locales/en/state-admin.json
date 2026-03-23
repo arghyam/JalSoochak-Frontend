@@ -432,7 +432,8 @@
       "validation": {
         "channelRequired": "Select at least one supported channel",
         "hierarchyRequired": "All hierarchy level names are required",
-        "logoTooLarge": "Logo file must be 2 MB or smaller"
+        "logoTooLarge": "Logo file must be 2 MB or smaller",
+        "logoInvalidType": "Logo must be a PNG or JPG file"
       }
     }
   },

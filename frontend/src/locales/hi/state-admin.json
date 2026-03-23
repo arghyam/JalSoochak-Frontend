@@ -432,7 +432,8 @@
       "validation": {
         "channelRequired": "कम से कम एक समर्थित चैनल चुनें",
         "hierarchyRequired": "सभी पदानुक्रम स्तर के नाम आवश्यक हैं",
-        "logoTooLarge": "लोगो फ़ाइल 2 MB या उससे छोटी होनी चाहिए"
+        "logoTooLarge": "लोगो फ़ाइल 2 MB या उससे छोटी होनी चाहिए",
+        "logoInvalidType": "लोगो PNG या JPG फ़ाइल होनी चाहिए"
       }
     }
   },
