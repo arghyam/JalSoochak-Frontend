@@ -537,5 +537,29 @@
       "selectLanguage": "{{name}} टेम्पलेट के लिए भाषा चुनें",
       "enterMessage": "{{name}} टेम्पलेट के लिए संदेश दर्ज करें"
     }
+  },
+
+  "validation": {
+    "required": "यह फ़ील्ड आवश्यक है",
+    "emptyOrWhitespace": "यह फ़ील्ड खाली नहीं हो सकती या केवल रिक्त स्थान नहीं हो सकते",
+    "containsHtmlTags": "HTML टैग की अनुमति नहीं है",
+    "containsSqlInjection": "अमान्य अक्षर पाए गए",
+    "alphanumericOnly": "केवल अक्षर, संख्याएँ और रिक्त स्थान की अनुमति है",
+    "invalidUrl": "कृपया https:// से शुरू होने वाला एक मान्य URL दर्ज करें",
+    "noSpaces": "रिक्त स्थान की अनुमति नहीं है",
+    "maxLength": "{{max}} अक्षरों से अधिक नहीं होना चाहिए",
+    "httpsOnce": "URL को ठीक एक बार https:// से शुरू होना चाहिए",
+    "duplicateValue": "यह मान पहले से मौजूद है",
+    "mustBePositive": "मान 0 से अधिक होना चाहिए",
+    "mustBeInRange": "मान {{min}} और {{max}} के बीच होना चाहिए",
+    "selectAtLeastOne": "कम से कम एक विकल्प चुनें",
+    "fillPreviousFirst": "नया जोड़ने से पहले कृपया पिछली प्रविष्टि भरें",
+    "duplicateDistrict": "यह जिला पहले से जोड़ा जा चुका है",
+    "duplicateLevelName": "डुप्लिकेट स्तर नामों की अनुमति नहीं है",
+    "minLength": "कम से कम {{min}} अक्षर होने चाहिए",
+    "timeRequired": "कृपया एक समय चुनें",
+    "daysMinimum": "दिन कम से कम 1 होने चाहिए",
+    "selectRole": "कृपया एक भूमिका चुनें",
+    "selectAlertType": "कृपया एक अलर्ट प्रकार चुनें"
   }
 }

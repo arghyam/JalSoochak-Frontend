@@ -178,6 +178,67 @@ describe('EscalationsFormPage', () => {
     })
   })
 
+  it('shows inline error for empty schedule time on save', async () => {
+    useEscalationRulesQuery.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: { schedule: { hour: 0, minute: 0 }, levels: [] },
+    })
+    renderWithProviders(<EscalationsFormPage />)
+
+    // Clear the schedule time field
+    const timeInput = screen.getByLabelText(/schedule time/i)
+    fireEvent.change(timeInput, { target: { value: '' } })
+
+    // Add a level so there's something to save
+    fireEvent.click(screen.getByText(/add new level/i))
+
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/please select a time/i)).toBeInTheDocument()
+    })
+    expect(mockMutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('shows inline error for level with days < 1 on save', async () => {
+    useEscalationRulesQuery.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: {
+        schedule: { hour: 9, minute: 0 },
+        levels: [{ days: 0, userType: 'SECTION_OFFICER' as const }],
+      },
+    })
+    renderWithProviders(<EscalationsFormPage />)
+    fireEvent.click(screen.getByLabelText(/edit mode/i))
+
+    fireEvent.click(screen.getByText(/save changes/i))
+
+    await waitFor(() => {
+      expect(screen.getByText(/days must be at least 1/i)).toBeInTheDocument()
+    })
+    expect(mockMutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('shows inline error when adding level with unfilled existing level', async () => {
+    useEscalationRulesQuery.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: { schedule: { hour: 9, minute: 0 }, levels: [] },
+    })
+    renderWithProviders(<EscalationsFormPage />)
+
+    // Add first level (empty)
+    fireEvent.click(screen.getByText(/add new level/i))
+    // Try to add another while first is unfilled
+    fireEvent.click(screen.getByText(/add new level/i))
+
+    await waitFor(() => {
+      expect(screen.getByText(/please select a role/i)).toBeInTheDocument()
+    })
+  })
+
   it('shows error toast when save fails', async () => {
     mockMutateAsync.mockRejectedValue(new Error('Network error'))
     useEscalationRulesQuery.mockReturnValue({

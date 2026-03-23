@@ -137,4 +137,107 @@ describe('IntegrationPage', () => {
       })
     })
   })
+
+  it('shows inline error for spaces in API URL on save', async () => {
+    renderWithProviders(<IntegrationPage />)
+    const apiUrlInput = screen.getByDisplayValue('https://api.example.com')
+    fireEvent.change(apiUrlInput, { target: { value: 'https://api.example.com/path with spaces' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/spaces are not allowed/i)).toBeTruthy()
+    })
+    expect(mockMutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('shows inline error for invalid URL format on save', async () => {
+    renderWithProviders(<IntegrationPage />)
+    const apiUrlInput = screen.getByDisplayValue('https://api.example.com')
+    fireEvent.change(apiUrlInput, { target: { value: 'not-a-url' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/valid URL starting with https/i)).toBeTruthy()
+    })
+    expect(mockMutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('shows inline error for HTML tags in organization ID', async () => {
+    renderWithProviders(<IntegrationPage />)
+    const orgInput = screen.getByDisplayValue('org-123')
+    fireEvent.change(orgInput, { target: { value: '<script>alert(1)</script>' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/HTML tags are not allowed/i)).toBeTruthy()
+    })
+    expect(mockMutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('shows inline error for SQL injection in organization ID', async () => {
+    renderWithProviders(<IntegrationPage />)
+    const orgInput = screen.getByDisplayValue('org-123')
+    fireEvent.change(orgInput, { target: { value: "'; DROP TABLE users;--" } })
+
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/invalid characters detected/i)).toBeTruthy()
+    })
+    expect(mockMutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('shows required error for empty API key when unconfigured', async () => {
+    mockUseIntegrationConfigurationQuery.mockReturnValue({
+      data: emptyConfig,
+      isLoading: false,
+      isError: false,
+    })
+    renderWithProviders(<IntegrationPage />)
+
+    const apiUrlInput = screen.getByLabelText(/enter api url/i)
+    fireEvent.change(apiUrlInput, { target: { value: 'https://api.example.com' } })
+    const orgInput = screen.getByLabelText(/enter organization id/i)
+    fireEvent.change(orgInput, { target: { value: 'org123' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/this field is required/i)).toBeTruthy()
+    })
+    expect(mockMutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('clears inline error when user modifies the field', async () => {
+    renderWithProviders(<IntegrationPage />)
+    const apiUrlInput = screen.getByDisplayValue('https://api.example.com')
+    fireEvent.change(apiUrlInput, { target: { value: 'not-a-url' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/valid URL starting with https/i)).toBeTruthy()
+    })
+
+    fireEvent.change(apiUrlInput, { target: { value: 'https://fixed.example.com' } })
+    expect(screen.queryByText(/valid URL starting with https/i)).toBeNull()
+  })
+
+  it('cancel clears validation errors', async () => {
+    renderWithProviders(<IntegrationPage />)
+    const apiUrlInput = screen.getByDisplayValue('https://api.example.com')
+    fireEvent.change(apiUrlInput, { target: { value: 'bad-url' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/valid URL starting with https/i)).toBeTruthy()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
+    expect(screen.queryByText(/valid URL starting with https/i)).toBeNull()
+  })
 })
