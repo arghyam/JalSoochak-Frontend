@@ -436,6 +436,9 @@ export const authApi = {
         payload
       )
       const tokenData = response.data.data
+      if (!tokenData?.access_token) {
+        throw new Error('Invalid activation response')
+      }
       return {
         user: buildUserFromTokenResponse(tokenData),
         accessToken: tokenData.access_token,
