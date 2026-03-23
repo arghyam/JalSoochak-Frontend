@@ -757,7 +757,7 @@ export function CentralDashboard() {
   )
   const pumpOperatorsData = mapSchemePerformanceToPumpOperators(
     schemePerformanceData,
-    data?.pumpOperators ?? []
+    shouldFetchSchemePerformanceAnalytics ? [] : (data?.pumpOperators ?? [])
   )
   const operatorsPerformanceAnalyticsTable = mapSchemePerformanceToTable(schemePerformanceData, [])
   const derivedVillageSchemeId = isVillageSelected
@@ -1189,10 +1189,9 @@ export function CentralDashboard() {
   )
   const leadingPumpOperators = data.leadingPumpOperators ?? []
   const bottomPumpOperators = data.bottomPumpOperators ?? []
-  const operatorsPerformanceTable =
-    operatorsPerformanceAnalyticsTable.length > 0
-      ? operatorsPerformanceAnalyticsTable
-      : [...leadingPumpOperators, ...bottomPumpOperators]
+  const operatorsPerformanceTable = shouldFetchSchemePerformanceAnalytics
+    ? operatorsPerformanceAnalyticsTable
+    : [...leadingPumpOperators, ...bottomPumpOperators]
   const villagePhotoEvidenceRows = data?.readingCompliance ?? []
 
   return (
