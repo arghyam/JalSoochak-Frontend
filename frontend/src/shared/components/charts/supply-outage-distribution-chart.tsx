@@ -25,6 +25,20 @@ interface SupplyOutageDistributionChartProps {
 }
 
 const outageColors = ['#D6E9F6', '#ADD3ED', '#84BDE3', '#3291D1', '#1E577D', '#6BAED6', '#9ECAE1']
+const legacyOutageReasonKeys = [
+  'electricityFailure',
+  'pipelineLeak',
+  'pumpFailure',
+  'valveIssue',
+  'sourceDrying',
+] as const
+const outageReasonTranslationKeys: Record<string, string> = {
+  electricityFailure: 'outageAndSubmissionCharts.legend.electricalFailure',
+  pipelineLeak: 'outageAndSubmissionCharts.legend.pipelineBreak',
+  pumpFailure: 'outageAndSubmissionCharts.legend.pumpFailure',
+  valveIssue: 'outageAndSubmissionCharts.legend.valveIssue',
+  sourceDrying: 'outageAndSubmissionCharts.legend.sourceDrying',
+}
 
 const toTitleCase = (value: string) =>
   value
@@ -33,6 +47,35 @@ const toTitleCase = (value: string) =>
     .replace(/\s+/g, ' ')
     .trim()
     .replace(/\b\w/g, (character) => character.toUpperCase())
+
+const getOutageReasonLabel = (
+  reasonKey: string,
+  t: (key: string, options?: { defaultValue?: string }) => string
+) => {
+  const translationKey = outageReasonTranslationKeys[reasonKey]
+  if (translationKey) {
+    return t(translationKey, { defaultValue: toTitleCase(reasonKey) })
+  }
+
+  return toTitleCase(reasonKey)
+}
+
+const getLegacyOutageReasonValue = (entry: WaterSupplyOutageData, reasonKey: string) => {
+  switch (reasonKey) {
+    case 'electricityFailure':
+      return entry.electricityFailure
+    case 'pipelineLeak':
+      return entry.pipelineLeak
+    case 'pumpFailure':
+      return entry.pumpFailure
+    case 'valveIssue':
+      return entry.valveIssue
+    case 'sourceDrying':
+      return entry.sourceDrying
+    default:
+      return 0
+  }
+}
 
 export function SupplyOutageDistributionChart({
   data,
@@ -57,60 +100,57 @@ export function SupplyOutageDistributionChart({
 
   const itemWidth = barWidth + 24
   const chartItems = useMemo(() => {
-    const reasonsPresent = data.some(
-      (entry) => entry.reasons && Object.keys(entry.reasons).length > 0
-    )
     const reasonKeys = new Set<string>()
 
-    if (reasonsPresent) {
-      data.forEach((entry) => {
+    data.forEach((entry) => {
+      if (entry.reasons && Object.keys(entry.reasons).length > 0) {
         Object.keys(entry.reasons ?? {}).forEach((reasonKey) => reasonKeys.add(reasonKey))
-      })
-    } else {
-      ;['electricityFailure', 'pipelineLeak', 'pumpFailure', 'valveIssue', 'sourceDrying'].forEach(
-        (reasonKey) => reasonKeys.add(reasonKey)
-      )
-    }
+        return
+      }
+
+      legacyOutageReasonKeys.forEach((reasonKey) => reasonKeys.add(reasonKey))
+    })
 
     return Array.from(reasonKeys)
       .sort((left, right) => left.localeCompare(right))
       .map((reasonKey, index) => ({
         key: reasonKey,
-        label: toTitleCase(reasonKey),
+        label: getOutageReasonLabel(reasonKey, t),
         color: outageColors[index % outageColors.length],
         data: data.length
           ? data.map((entry) => {
-              if (reasonsPresent) {
+              if (entry.reasons && Object.keys(entry.reasons).length > 0) {
                 const rawValue = entry.reasons?.[reasonKey]
-                return typeof rawValue === 'number' && Number.isFinite(rawValue) ? rawValue : 0
+                if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
+                  return rawValue
+                }
               }
 
-              switch (reasonKey) {
-                case 'electricityFailure':
-                  return entry.electricityFailure
-                case 'pipelineLeak':
-                  return entry.pipelineLeak
-                case 'pumpFailure':
-                  return entry.pumpFailure
-                case 'valveIssue':
-                  return entry.valveIssue
-                case 'sourceDrying':
-                  return entry.sourceDrying
-                default:
-                  return 0
-              }
+              return getLegacyOutageReasonValue(entry, reasonKey)
             })
           : [0],
       }))
-  }, [data])
+  }, [data, t])
+
+  const isEmpty = data.length === 0
+  const categories = useMemo(
+    () => (isEmpty ? [''] : data.map((entry) => entry.label)),
+    [data, isEmpty]
+  )
+  const stackedValues = useMemo(
+    () =>
+      categories.map((_, categoryIndex) =>
+        chartItems.reduce((sum, item) => sum + (item.data[categoryIndex] ?? 0), 0)
+      ),
+    [categories, chartItems]
+  )
+  const yAxisMax = useMemo(
+    () => (isEmpty ? 100 : Math.max(100, ...stackedValues)),
+    [isEmpty, stackedValues]
+  )
+  const yAxisInterval = useMemo(() => Math.max(1, Math.ceil(yAxisMax / 25)) * 5, [yAxisMax])
 
   const option = useMemo<echarts.EChartsOption>(() => {
-    const isEmpty = data.length === 0
-    const categories = isEmpty ? [''] : data.map((entry) => entry.label)
-    const stackedValues = categories.map((_, categoryIndex) =>
-      chartItems.reduce((sum, item) => sum + (item.data[categoryIndex] ?? 0), 0)
-    )
-    const yAxisMax = isEmpty ? 100 : Math.max(100, ...stackedValues)
     const seriesCount = chartItems.length
 
     return {
@@ -192,7 +232,7 @@ export function SupplyOutageDistributionChart({
         },
         position: 'right',
         max: yAxisMax,
-        interval: yAxisMax / 4,
+        interval: yAxisInterval,
         splitLine: {
           lineStyle: {
             color: '#E4E4E7',
@@ -231,7 +271,17 @@ export function SupplyOutageDistributionChart({
         }
       }),
     }
-  }, [barCategoryGap, barRadius, barWidth, bodyText7, chartItems, data])
+  }, [
+    barCategoryGap,
+    barRadius,
+    barWidth,
+    bodyText7,
+    categories,
+    chartItems,
+    data,
+    yAxisInterval,
+    yAxisMax,
+  ])
 
   const axisOption = useMemo<echarts.EChartsOption>(() => {
     return {
@@ -278,8 +328,8 @@ export function SupplyOutageDistributionChart({
         },
         position: 'right',
         min: 0,
-        max: 100,
-        interval: 25,
+        max: yAxisMax,
+        interval: yAxisInterval,
         splitLine: {
           show: false,
         },
@@ -296,7 +346,7 @@ export function SupplyOutageDistributionChart({
       ],
       animation: false,
     }
-  }, [bodyText7])
+  }, [bodyText7, yAxisInterval, yAxisMax])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
   const legendItems = chartItems.map((item) => ({

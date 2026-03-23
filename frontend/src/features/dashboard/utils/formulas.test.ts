@@ -138,6 +138,53 @@ describe('dashboard formulas', () => {
     ])
   })
 
+  it('intentionally returns an empty array for quantity analytics when the response is undefined, even if fallback data exists', () => {
+    const fallbackData: EntityPerformance[] = [
+      {
+        id: 'alpha',
+        name: 'Region Alpha',
+        coverage: 72,
+        regularity: 65,
+        continuity: 0,
+        quantity: 0,
+        compositeScore: 68,
+        status: 'good',
+      },
+    ]
+
+    expect(mapQuantityPerformanceFromAnalytics(undefined, fallbackData)).toEqual([])
+  })
+
+  it('intentionally returns an empty array for quantity analytics when childRegions is empty, even if fallback data exists', () => {
+    const fallbackData: EntityPerformance[] = [
+      {
+        id: 'alpha',
+        name: 'Region Alpha',
+        coverage: 72,
+        regularity: 65,
+        continuity: 0,
+        quantity: 0,
+        compositeScore: 68,
+        status: 'good',
+      },
+    ]
+    const response: AverageWaterSupplyPerRegionResponse = {
+      tenantId: 16,
+      stateCode: 'TG',
+      parentLgdLevel: 1,
+      parentDepartmentLevel: 0,
+      startDate: '2026-03-01',
+      endDate: '2026-03-30',
+      daysInRange: 30,
+      schemeCount: 0,
+      childRegionCount: 0,
+      schemes: [],
+      childRegions: [],
+    }
+
+    expect(mapQuantityPerformanceFromAnalytics(response, fallbackData)).toEqual([])
+  })
+
   it('maps regularity analytics response into chart data with fallback metadata', () => {
     const fallbackData: EntityPerformance[] = [
       {
@@ -439,6 +486,13 @@ describe('dashboard formulas', () => {
     expect(mapOutageReasonsFromNationalDashboard(response, fallbackData)).toEqual([
       {
         label: 'Outages',
+        reasons: {
+          electrical_failure: 0,
+          pipeline_leak: 0,
+          pump_failure: 0,
+          valve_issue: 0,
+          source_drying: 0,
+        },
         electricityFailure: 0,
         pipelineLeak: 0,
         pumpFailure: 0,

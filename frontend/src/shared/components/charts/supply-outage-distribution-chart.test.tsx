@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals'
+import { screen } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
 import { formatAxisLabel } from './axis-label-format'
 import {
@@ -157,5 +158,120 @@ describe('SupplyOutageDistributionChart', () => {
 
     expect(tooltipText).toContain('Dadra and Nagar Haveli and Daman and Diu')
     expect(tooltipText).not.toContain('Dadra and\nNagar Havel...')
+  })
+
+  it('prefers translated labels for known outage reasons and falls back for dynamic ones', () => {
+    renderWithProviders(
+      <SupplyOutageDistributionChart
+        data={[
+          {
+            label: 'Adilabad',
+            reasons: {
+              electricityFailure: 12,
+              customReason: 4,
+            },
+            electricityFailure: 12,
+            pipelineLeak: 0,
+            pumpFailure: 0,
+            valveIssue: 0,
+            sourceDrying: 0,
+          },
+        ]}
+        height="300px"
+      />
+    )
+
+    expect(screen.getByText('Electrical failure')).toBeTruthy()
+    expect(screen.getByText('Custom Reason')).toBeTruthy()
+  })
+
+  it('uses legacy outage counts for rows without reasons when payload shapes are mixed', () => {
+    renderWithProviders(
+      <SupplyOutageDistributionChart
+        data={[
+          {
+            label: 'Mapped row',
+            reasons: {
+              pumpFailure: 3,
+            },
+            electricityFailure: 0,
+            pipelineLeak: 0,
+            pumpFailure: 0,
+            valveIssue: 0,
+            sourceDrying: 0,
+          },
+          {
+            label: 'Legacy row',
+            electricityFailure: 0,
+            pipelineLeak: 0,
+            pumpFailure: 7,
+            valveIssue: 2,
+            sourceDrying: 0,
+          },
+        ]}
+        height="300px"
+      />
+    )
+
+    const option = (
+      mockEChartsWrapper.mock.calls as Array<
+        [
+          {
+            option?: {
+              tooltip?: { show?: boolean }
+              series?: Array<{ name?: string; data?: number[] }>
+            }
+          },
+        ]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((entry) => entry?.tooltip?.show === true)
+
+    const series = option?.series ?? []
+    const pumpFailureSeries = series.find((entry) => entry.name === 'Pump failure')
+    const valveIssueSeries = series.find((entry) => entry.name === 'Valve issue')
+
+    expect(pumpFailureSeries?.data).toEqual([3, 7])
+    expect(valveIssueSeries?.data).toEqual([0, 2])
+  })
+
+  it('keeps the left axis scale aligned with the plotted bar chart scale', () => {
+    renderWithProviders(
+      <SupplyOutageDistributionChart
+        data={[
+          {
+            label: 'High total',
+            electricityFailure: 60,
+            pipelineLeak: 55,
+            pumpFailure: 40,
+            valveIssue: 35,
+            sourceDrying: 20,
+          },
+        ]}
+        height="300px"
+      />
+    )
+
+    const options = (
+      mockEChartsWrapper.mock.calls as Array<
+        [
+          {
+            option?: {
+              tooltip?: { show?: boolean }
+              yAxis?: { max?: number; interval?: number }
+            }
+          },
+        ]
+      >
+    ).map(([props]) => props.option)
+
+    const chartOption = options.find((entry) => entry?.tooltip?.show === true)
+    const leftAxisOption = options.find((entry) => entry?.tooltip?.show === false)
+
+    expect(chartOption?.yAxis?.max).toBe(210)
+    expect(chartOption?.yAxis?.interval).toBe(45)
+    expect(leftAxisOption?.yAxis?.max).toBe(210)
+    expect(leftAxisOption?.yAxis?.interval).toBe(45)
   })
 })

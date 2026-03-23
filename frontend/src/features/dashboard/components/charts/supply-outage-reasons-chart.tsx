@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { useTheme } from '@chakra-ui/react'
-import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
@@ -30,7 +29,6 @@ export function SupplyOutageReasonsChart({
   height = '300px',
   pieSize = 300,
 }: SupplyOutageReasonsChartProps) {
-  useTranslation('dashboard')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
   const chartItems = useMemo(() => {
