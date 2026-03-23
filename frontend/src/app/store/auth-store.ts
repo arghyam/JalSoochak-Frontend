@@ -42,7 +42,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
       })
 
       if (user.role === AUTH_ROLES.SUPER_ADMIN) {
-        return '/super-admin'
+        return '/super-user'
       } else if (user.role === AUTH_ROLES.STATE_ADMIN) {
         return '/state-admin'
       } else {

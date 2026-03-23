@@ -94,6 +94,6 @@ describe('ViewStateUTPage', () => {
     renderWithProviders(<ViewStateUTPage />)
     const editBtn = screen.getByRole('button', { name: /edit/i })
     fireEvent.click(editBtn)
-    expect(mockNavigate).toHaveBeenCalledWith('/super-admin/states-uts/MH/edit')
+    expect(mockNavigate).toHaveBeenCalledWith('/super-user/states-uts/MH/edit')
   })
 })

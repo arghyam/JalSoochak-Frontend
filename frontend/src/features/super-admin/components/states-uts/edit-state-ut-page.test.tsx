@@ -115,7 +115,7 @@ describe('EditStateUTPage', () => {
   it('Cancel navigates to view page', () => {
     renderWithProviders(<EditStateUTPage />)
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
-    expect(mockNavigate).toHaveBeenCalledWith('/super-admin/states-uts/MH')
+    expect(mockNavigate).toHaveBeenCalledWith('/super-user/states-uts/MH')
   })
 
   it('Save calls updateUserMutation for changed admin', async () => {
