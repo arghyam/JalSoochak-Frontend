@@ -81,7 +81,7 @@ describe('EscalationsPage', () => {
     expect(screen.getByRole('form')).toBeTruthy()
   })
 
-  it('shows inline error for missing alert type on save', async () => {
+  it('shows inline error for missing role when adding new level', async () => {
     renderWithProviders(<EscalationsPage />)
     fireEvent.click(screen.getByText(/add new/i))
 

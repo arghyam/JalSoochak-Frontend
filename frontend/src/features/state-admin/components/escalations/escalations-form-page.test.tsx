@@ -193,7 +193,7 @@ describe('EscalationsFormPage', () => {
     // Add a level so there's something to save
     fireEvent.click(screen.getByText(/add new level/i))
 
-    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
 
     await waitFor(() => {
       expect(screen.getByText(/please select a time/i)).toBeInTheDocument()

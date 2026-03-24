@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import {
   Box,
   Text,
@@ -76,7 +76,23 @@ function buildInitialDraft(
 export function ConfigurationPage() {
   const { t } = useTranslation(['state-admin', 'common'])
   const { data: config, isLoading, isError } = useConfigurationQuery()
-  const { data: fetchedLogoUrl } = useLogoQuery()
+  const {
+    data: logoBlobData,
+    isLoading: isLogoLoading,
+    isError: isLogoError,
+    error: logoError,
+  } = useLogoQuery()
+
+  const logoObjectUrl = useMemo(() => {
+    if (logoBlobData instanceof Blob) return URL.createObjectURL(logoBlobData)
+    return null
+  }, [logoBlobData])
+
+  useEffect(() => {
+    return () => {
+      if (logoObjectUrl) URL.revokeObjectURL(logoObjectUrl)
+    }
+  }, [logoObjectUrl])
   const saveMutation = useSaveConfigurationMutation()
   const updateLogoMutation = useUpdateLogoMutation()
   const [isEditing, setIsEditing] = useState(false)
@@ -93,7 +109,7 @@ export function ConfigurationPage() {
   const effectiveIsEditing = isEditing || Boolean(config && !config.isConfigured)
 
   const handleEdit = () => {
-    const initial = buildInitialDraft(config, fetchedLogoUrl ?? undefined)
+    const initial = buildInitialDraft(config, logoObjectUrl ?? undefined)
     setDraft(initial)
     setIsEditing(true)
     setAvgMembersStr(
@@ -165,7 +181,7 @@ export function ConfigurationPage() {
   }
 
   const handleSave = async () => {
-    const current = draft ?? buildInitialDraft(config ?? undefined, fetchedLogoUrl ?? undefined)
+    const current = draft ?? buildInitialDraft(config ?? undefined, logoObjectUrl ?? undefined)
 
     if (!validateForm(current)) return
 
@@ -195,7 +211,7 @@ export function ConfigurationPage() {
 
   const handleChannelChange = (values: string[]) => {
     setDraft((prev) => ({
-      ...(prev ?? buildInitialDraft(config, fetchedLogoUrl ?? undefined)),
+      ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
       supportedChannels: values as SupportedChannel[],
     }))
     clearError('supportedChannels')
@@ -221,7 +237,7 @@ export function ConfigurationPage() {
     }
     clearError('logo')
     setDraft((prev) => ({
-      ...(prev ?? buildInitialDraft(config, fetchedLogoUrl ?? undefined)),
+      ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
       logoFile: file,
       logoUrl: URL.createObjectURL(file),
     }))
@@ -252,7 +268,7 @@ export function ConfigurationPage() {
     )
   }
 
-  const activeDraft = draft ?? buildInitialDraft(config, fetchedLogoUrl ?? undefined)
+  const activeDraft = draft ?? buildInitialDraft(config, logoObjectUrl ?? undefined)
 
   const displayAvgStr =
     avgMembersStr !== '' || effectiveIsEditing
@@ -316,7 +332,17 @@ export function ConfigurationPage() {
 
           {/* View Mode */}
           {!effectiveIsEditing && config.isConfigured ? (
-            <ViewMode config={config} logoUrl={fetchedLogoUrl ?? undefined} t={t} />
+            <ViewMode
+              config={config}
+              logoUrl={logoObjectUrl ?? undefined}
+              isLogoLoading={isLogoLoading}
+              isLogoError={isLogoError}
+              notFound={
+                (logoError as { status?: number } | null)?.status === 404 ||
+                (logoError as { response?: { status?: number } } | null)?.response?.status === 404
+              }
+              t={t}
+            />
           ) : (
             /* Edit Mode */
             <Flex
@@ -379,7 +405,7 @@ export function ConfigurationPage() {
                   onClearError={clearError}
                   onChange={(reasons) =>
                     setDraft((prev) => ({
-                      ...(prev ?? buildInitialDraft(config, fetchedLogoUrl ?? undefined)),
+                      ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
                       meterChangeReasons: reasons,
                     }))
                   }
@@ -401,7 +427,7 @@ export function ConfigurationPage() {
                       value={activeDraft.locationCheckRequired ? 'yes' : 'no'}
                       onChange={(val) =>
                         setDraft((prev) => ({
-                          ...(prev ?? buildInitialDraft(config, fetchedLogoUrl ?? undefined)),
+                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
                           locationCheckRequired: val === 'yes',
                         }))
                       }
@@ -491,7 +517,7 @@ export function ConfigurationPage() {
                       value={activeDraft.dataConsolidationTime}
                       onChange={(e) => {
                         setDraft((prev) => ({
-                          ...(prev ?? buildInitialDraft(config, fetchedLogoUrl ?? undefined)),
+                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
                           dataConsolidationTime: e.target.value,
                         }))
                         clearError('dataConsolidationTime')
@@ -524,7 +550,7 @@ export function ConfigurationPage() {
                       value={activeDraft.pumpOperatorReminderNudgeTime}
                       onChange={(e) => {
                         setDraft((prev) => ({
-                          ...(prev ?? buildInitialDraft(config, fetchedLogoUrl ?? undefined)),
+                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
                           pumpOperatorReminderNudgeTime: e.target.value,
                         }))
                         clearError('pumpOperatorReminderNudgeTime')
@@ -567,7 +593,7 @@ export function ConfigurationPage() {
                         clearError('averageMembersPerHousehold')
                         if (raw.trim() === '') {
                           setDraft((prev) => ({
-                            ...(prev ?? buildInitialDraft(config, fetchedLogoUrl ?? undefined)),
+                            ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
                             averageMembersPerHousehold: 0,
                           }))
                           return
@@ -575,7 +601,7 @@ export function ConfigurationPage() {
                         const parsed = Number(raw)
                         if (!Number.isFinite(parsed) || parsed < 0) return
                         setDraft((prev) => ({
-                          ...(prev ?? buildInitialDraft(config, fetchedLogoUrl ?? undefined)),
+                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
                           averageMembersPerHousehold: parsed,
                         }))
                       }}
@@ -663,10 +689,16 @@ function ViewSection({ title, children }: { title: string; children: React.React
 function ViewMode({
   config,
   logoUrl,
+  isLogoLoading,
+  isLogoError,
+  notFound,
   t,
 }: {
   config: NonNullable<ReturnType<typeof useConfigurationQuery>['data']>
   logoUrl: string | undefined
+  isLogoLoading: boolean
+  isLogoError: boolean
+  notFound: boolean
   t: ReturnType<typeof useTranslation<['state-admin', 'common']>>['t']
 }) {
   return (
@@ -707,7 +739,13 @@ function ViewMode({
           color="neutral.950"
         />
         <ViewSection title={t('configuration.sections.logo.title')}>
-          {logoUrl ? (
+          {isLogoLoading ? (
+            <Spinner size="sm" color="primary.500" aria-label="Loading logo" />
+          ) : isLogoError && !notFound ? (
+            <Text fontSize="sm" color="error.500">
+              {t('common:toast.failedToLoad')}
+            </Text>
+          ) : logoUrl ? (
             <Box
               as="img"
               src={logoUrl}

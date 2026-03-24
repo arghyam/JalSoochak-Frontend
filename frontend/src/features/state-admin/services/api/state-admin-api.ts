@@ -113,7 +113,7 @@ type StateAdminDataProvider = {
   updateNudgeTemplate: (id: string, payload: UpdateNudgeTemplatePayload) => Promise<NudgeTemplate>
   getConfiguration: () => Promise<ConfigurationData>
   saveConfiguration: (payload: SaveConfigurationPayload) => Promise<ConfigurationData>
-  getLogo: () => Promise<string | null>
+  getLogo: () => Promise<Blob | null>
   updateLogo: (file: File) => Promise<void>
   getEscalationRules: () => Promise<EscalationRulesConfig>
   saveEscalationRules: (payload: SaveEscalationRulesPayload) => Promise<EscalationRulesConfig>
@@ -341,7 +341,7 @@ const httpProvider: StateAdminDataProvider = {
       const response = await apiClient.get(`/api/v1/tenants/${tenantId}/logo`, {
         responseType: 'blob',
       })
-      return URL.createObjectURL(response.data as Blob)
+      return response.data as Blob
     } catch (error) {
       if (isAxiosError(error) && error.response?.status === 404) return null
       throw error
