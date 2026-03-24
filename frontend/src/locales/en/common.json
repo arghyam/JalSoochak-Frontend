@@ -86,7 +86,11 @@
   "validation": {
     "required": "This field is required",
     "invalidEmail": "Please enter a valid email address",
-    "invalidPhone": "Please enter a valid phone number"
+    "invalidPhone": "Please enter a valid 10-digit phone number",
+    "alphabeticOnly": "Only letters and spaces are allowed",
+    "maxLength": "Must not exceed {{max}} characters",
+    "maxValue": "Value must not exceed {{max}}",
+    "passwordComplexity": "Password must be at least 8 characters and include at least one uppercase letter, one lowercase letter, one number, and one special character"
   },
 
   "time": {

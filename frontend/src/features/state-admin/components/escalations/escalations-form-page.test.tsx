@@ -100,6 +100,35 @@ describe('EscalationsFormPage', () => {
     expect(screen.getByRole('form')).toBeInTheDocument()
   })
 
+  it('always renders exactly 2 fixed level rows in edit mode', () => {
+    useEscalationRulesQuery.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: configuredData,
+    })
+    renderWithProviders(<EscalationsFormPage />)
+    fireEvent.click(screen.getByLabelText(/edit mode/i))
+
+    const levelNumbers = screen.getAllByText(/^Level \d+$/i)
+    expect(levelNumbers.length).toBe(2)
+
+    expect(screen.getByText('Section Officer')).toBeInTheDocument()
+    expect(screen.getByText('Sub Divisional Officer')).toBeInTheDocument()
+  })
+
+  it('does not render add or delete level buttons in edit mode', () => {
+    useEscalationRulesQuery.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: configuredData,
+    })
+    renderWithProviders(<EscalationsFormPage />)
+    fireEvent.click(screen.getByLabelText(/edit mode/i))
+
+    expect(screen.queryByText(/add new level/i)).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/delete level/i)).not.toBeInTheDocument()
+  })
+
   it('cancels edit mode and returns to view', () => {
     useEscalationRulesQuery.mockReturnValue({
       isLoading: false,
@@ -113,44 +142,6 @@ describe('EscalationsFormPage', () => {
 
     fireEvent.click(screen.getByText(/cancel/i))
     expect(screen.queryByRole('form')).not.toBeInTheDocument()
-  })
-
-  // ── Add / remove levels ────────────────────────────────────────────────────
-
-  it('adds a new level row', async () => {
-    useEscalationRulesQuery.mockReturnValue({
-      isLoading: false,
-      isError: false,
-      data: configuredData,
-    })
-    renderWithProviders(<EscalationsFormPage />)
-    fireEvent.click(screen.getByLabelText(/edit mode/i))
-
-    // The two existing levels are prefilled — add button should work
-    const addButton = screen.getByText(/add new level/i)
-    fireEvent.click(addButton)
-
-    // Now there should be 3 level number indicators
-    const levelNumbers = screen.getAllByText(/^Level \d+$/i)
-    expect(levelNumbers.length).toBe(3)
-  })
-
-  it('removes a level row', () => {
-    useEscalationRulesQuery.mockReturnValue({
-      isLoading: false,
-      isError: false,
-      data: configuredData,
-    })
-    renderWithProviders(<EscalationsFormPage />)
-    fireEvent.click(screen.getByLabelText(/edit mode/i))
-
-    const deleteButtons = screen.getAllByLabelText(/delete level/i)
-    expect(deleteButtons.length).toBe(2)
-
-    fireEvent.click(deleteButtons[1])
-
-    const levelNumbers = screen.getAllByText(/^Level \d+$/i)
-    expect(levelNumbers.length).toBe(1)
   })
 
   // ── Save ───────────────────────────────────────────────────────────────────
@@ -190,10 +181,7 @@ describe('EscalationsFormPage', () => {
     const timeInput = screen.getByLabelText(/schedule time/i)
     fireEvent.change(timeInput, { target: { value: '' } })
 
-    // Add a level so there's something to save
-    fireEvent.click(screen.getByText(/add new level/i))
-
-    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+    fireEvent.click(screen.getByRole('button', { name: /save/i }))
 
     await waitFor(() => {
       expect(screen.getByText(/please select a time/i)).toBeInTheDocument()
@@ -207,7 +195,10 @@ describe('EscalationsFormPage', () => {
       isError: false,
       data: {
         schedule: { hour: 9, minute: 0 },
-        levels: [{ days: 0, userType: 'SECTION_OFFICER' as const }],
+        levels: [
+          { days: 0, userType: 'SECTION_OFFICER' as const },
+          { days: 7, userType: 'SUB_DIVISIONAL_OFFICER' as const },
+        ],
       },
     })
     renderWithProviders(<EscalationsFormPage />)
@@ -221,22 +212,55 @@ describe('EscalationsFormPage', () => {
     expect(mockMutateAsync).not.toHaveBeenCalled()
   })
 
-  it('shows inline error when adding level with unfilled existing level', async () => {
+  it('shows cross-level error when SDO days are less than SO days', async () => {
     useEscalationRulesQuery.mockReturnValue({
       isLoading: false,
       isError: false,
-      data: { schedule: { hour: 9, minute: 0 }, levels: [] },
+      data: {
+        schedule: { hour: 9, minute: 0 },
+        levels: [
+          { days: 7, userType: 'SECTION_OFFICER' as const },
+          { days: 3, userType: 'SUB_DIVISIONAL_OFFICER' as const },
+        ],
+      },
     })
     renderWithProviders(<EscalationsFormPage />)
+    fireEvent.click(screen.getByLabelText(/edit mode/i))
 
-    // Add first level (empty)
-    fireEvent.click(screen.getByText(/add new level/i))
-    // Try to add another while first is unfilled
-    fireEvent.click(screen.getByText(/add new level/i))
+    fireEvent.click(screen.getByText(/save changes/i))
 
     await waitFor(() => {
-      expect(screen.getByText(/please select a role/i)).toBeInTheDocument()
+      expect(
+        screen.getByText(/sub divisional officer escalation days must be greater than or equal/i)
+      ).toBeInTheDocument()
     })
+    expect(mockMutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('does not show cross-level error when SDO days equal SO days', async () => {
+    mockMutateAsync.mockResolvedValue({})
+    useEscalationRulesQuery.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: {
+        schedule: { hour: 9, minute: 0 },
+        levels: [
+          { days: 5, userType: 'SECTION_OFFICER' as const },
+          { days: 5, userType: 'SUB_DIVISIONAL_OFFICER' as const },
+        ],
+      },
+    })
+    renderWithProviders(<EscalationsFormPage />)
+    fireEvent.click(screen.getByLabelText(/edit mode/i))
+
+    fireEvent.click(screen.getByText(/save changes/i))
+
+    await waitFor(() => {
+      expect(mockMutateAsync).toHaveBeenCalled()
+    })
+    expect(
+      screen.queryByText(/sub divisional officer escalation days must be greater than or equal/i)
+    ).not.toBeInTheDocument()
   })
 
   it('shows error toast when save fails', async () => {

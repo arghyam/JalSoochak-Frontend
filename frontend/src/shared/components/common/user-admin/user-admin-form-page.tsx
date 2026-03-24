@@ -12,12 +12,14 @@ import {
   HStack,
   FormControl,
   FormLabel,
+  FormErrorMessage,
   Spinner,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
 import { Toggle, ToastContainer } from '../index'
 import { useToast } from '@/shared/hooks/use-toast'
+import { isAlphabeticWithSpaces, exceedsMaxLength } from '@/shared/utils/validation'
 import type {
   UserAdminData,
   UserAdminRoutes,
@@ -26,6 +28,9 @@ import type {
   UserAdminUpdateMutation,
   UserAdminStatusMutation,
 } from './types'
+
+const MAX_NAME_LENGTH = 25
+const MAX_EMAIL_LENGTH = 60
 
 const isValidEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)
 const isValidPhone = (val: string) => /^\d{10}$/.test(val)
@@ -58,6 +63,12 @@ function FormContent({
   const toast = useToast()
 
   const [isBusy, setIsBusy] = useState(false)
+  const [touched, setTouched] = useState({
+    firstName: false,
+    lastName: false,
+    email: false,
+    phone: false,
+  })
   const createTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const updateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -76,16 +87,60 @@ function FormContent({
     status: (original?.status ?? 'active') as 'active' | 'inactive',
   })
 
+  const isNameValid = (name: string) =>
+    name.trim() !== '' &&
+    !exceedsMaxLength(name, MAX_NAME_LENGTH) &&
+    isAlphabeticWithSpaces(name.trim())
+
   const isFormValid = useMemo(
     () =>
-      form.firstName.trim() !== '' &&
-      form.lastName.trim() !== '' &&
+      isNameValid(form.firstName) &&
+      isNameValid(form.lastName) &&
       form.email.trim() !== '' &&
-      form.phone.trim() !== '' &&
+      !exceedsMaxLength(form.email, MAX_EMAIL_LENGTH) &&
       isValidEmail(form.email) &&
+      form.phone.trim() !== '' &&
       isValidPhone(form.phone),
+
     [form.firstName, form.lastName, form.email, form.phone]
   )
+
+  const fieldErrors = {
+    firstName: (() => {
+      if (!touched.firstName) return ''
+      if (!form.firstName.trim()) return t('validation.required')
+      if (exceedsMaxLength(form.firstName, MAX_NAME_LENGTH))
+        return t('validation.maxLength', { max: MAX_NAME_LENGTH })
+      if (!isAlphabeticWithSpaces(form.firstName.trim())) return t('validation.alphabeticOnly')
+      return ''
+    })(),
+    lastName: (() => {
+      if (!touched.lastName) return ''
+      if (!form.lastName.trim()) return t('validation.required')
+      if (exceedsMaxLength(form.lastName, MAX_NAME_LENGTH))
+        return t('validation.maxLength', { max: MAX_NAME_LENGTH })
+      if (!isAlphabeticWithSpaces(form.lastName.trim())) return t('validation.alphabeticOnly')
+      return ''
+    })(),
+    email: (() => {
+      if (!touched.email || isEditMode) return ''
+      if (!form.email.trim()) return t('validation.required')
+      if (exceedsMaxLength(form.email, MAX_EMAIL_LENGTH))
+        return t('validation.maxLength', { max: MAX_EMAIL_LENGTH })
+      if (!isValidEmail(form.email)) return t('validation.invalidEmail')
+      return ''
+    })(),
+    phone: (() => {
+      if (!touched.phone) return ''
+      if (!form.phone.trim()) return t('validation.required')
+      if (!isValidPhone(form.phone)) return t('validation.invalidPhone')
+      return ''
+    })(),
+  }
+
+  const handleBlur = (field: keyof typeof touched) => {
+    setTouched((prev) => ({ ...prev, [field]: true }))
+  }
 
   const hasChanges = useMemo(() => {
     if (!isEditMode || !original) return true
@@ -173,6 +228,7 @@ function FormContent({
   }
 
   const handleSubmit = async () => {
+    setTouched({ firstName: true, lastName: true, email: true, phone: true })
     if (!isFormValid) {
       toast.addToast(t('toast.fillAllFieldsCorrectly'), 'error')
       return
@@ -257,13 +313,14 @@ function FormContent({
               spacing={3}
               aria-labelledby="user-details-heading"
             >
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={!!fieldErrors.firstName}>
                 <FormLabel textStyle="h10" mb={1}>
                   {labels.form.firstName}
                 </FormLabel>
                 <Input
                   value={form.firstName}
                   onChange={(e) => setForm((prev) => ({ ...prev, firstName: e.target.value }))}
+                  onBlur={() => handleBlur('firstName')}
                   placeholder={t('enter')}
                   h={9}
                   maxW={{ base: '100%', lg: '486px' }}
@@ -271,15 +328,19 @@ function FormContent({
                   _placeholder={{ color: 'neutral.300' }}
                   aria-required="true"
                 />
+                {fieldErrors.firstName && (
+                  <FormErrorMessage>{fieldErrors.firstName}</FormErrorMessage>
+                )}
               </FormControl>
 
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={!!fieldErrors.lastName}>
                 <FormLabel textStyle="h10" mb={1}>
                   {labels.form.lastName}
                 </FormLabel>
                 <Input
                   value={form.lastName}
                   onChange={(e) => setForm((prev) => ({ ...prev, lastName: e.target.value }))}
+                  onBlur={() => handleBlur('lastName')}
                   placeholder={t('enter')}
                   h={9}
                   maxW={{ base: '100%', lg: '486px' }}
@@ -287,9 +348,12 @@ function FormContent({
                   _placeholder={{ color: 'neutral.300' }}
                   aria-required="true"
                 />
+                {fieldErrors.lastName && (
+                  <FormErrorMessage>{fieldErrors.lastName}</FormErrorMessage>
+                )}
               </FormControl>
 
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={!!fieldErrors.email}>
                 <FormLabel textStyle="h10" mb={1} color={isEditMode ? 'neutral.400' : undefined}>
                   {labels.form.emailAddress}
                 </FormLabel>
@@ -301,6 +365,7 @@ function FormContent({
                       ? undefined
                       : (e) => setForm((prev) => ({ ...prev, email: e.target.value }))
                   }
+                  onBlur={isEditMode ? undefined : () => handleBlur('email')}
                   isReadOnly={isEditMode}
                   isDisabled={isEditMode}
                   bg={isEditMode ? 'neutral.50' : undefined}
@@ -313,9 +378,10 @@ function FormContent({
                   aria-required="true"
                   aria-readonly={isEditMode ? 'true' : undefined}
                 />
+                {fieldErrors.email && <FormErrorMessage>{fieldErrors.email}</FormErrorMessage>}
               </FormControl>
 
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={!!fieldErrors.phone}>
                 <FormLabel textStyle="h10" mb={1}>
                   {labels.form.phoneNumber}
                 </FormLabel>
@@ -326,6 +392,7 @@ function FormContent({
                     const digits = e.target.value.replaceAll(/\D/g, '')
                     if (digits.length <= 10) setForm((prev) => ({ ...prev, phone: digits }))
                   }}
+                  onBlur={() => handleBlur('phone')}
                   placeholder="+91"
                   h={9}
                   maxW={{ base: '100%', lg: '486px' }}
@@ -334,6 +401,7 @@ function FormContent({
                   aria-required="true"
                   inputMode="numeric"
                 />
+                {fieldErrors.phone && <FormErrorMessage>{fieldErrors.phone}</FormErrorMessage>}
               </FormControl>
             </SimpleGrid>
 

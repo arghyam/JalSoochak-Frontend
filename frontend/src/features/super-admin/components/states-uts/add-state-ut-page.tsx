@@ -18,6 +18,7 @@ import { SearchableSelect, ToastContainer } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ROUTES } from '@/shared/constants/routes'
 import { INDIA_STATES } from '@/shared/constants/states'
+import { isAlphabeticWithSpaces, exceedsMaxLength } from '@/shared/utils/validation'
 import {
   useCreateTenantMutation,
   useInviteUserMutation,
@@ -44,8 +45,12 @@ export function AddStateUTPage() {
   const [adminLastName, setAdminLastName] = useState('')
   const [adminPhone, setAdminPhone] = useState('')
   const [adminEmail, setAdminEmail] = useState('')
-  const [emailTouched, setEmailTouched] = useState(false)
-  const [phoneTouched, setPhoneTouched] = useState(false)
+  const [adminTouched, setAdminTouched] = useState({
+    firstName: false,
+    lastName: false,
+    phone: false,
+    email: false,
+  })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const takenStateCodes = useMemo<Set<string>>(
@@ -69,24 +74,69 @@ export function AddStateUTPage() {
     setLgdCode(selected?.lgdCode ?? null)
   }
 
+  const MAX_NAME_LENGTH = 25
+  const MAX_EMAIL_LENGTH = 60
   const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
-  const isPhoneValid = /^\d{10}$/.test(adminPhone)
-  const emailError = emailTouched && adminEmail !== '' && !isValidEmail(adminEmail)
-  const phoneError = phoneTouched && adminPhone !== '' && !isPhoneValid
+  const isValidPhone = (v: string) => /^\d{10}$/.test(v)
+  const isNameValid = (name: string) =>
+    name.trim() !== '' &&
+    !exceedsMaxLength(name, MAX_NAME_LENGTH) &&
+    isAlphabeticWithSpaces(name.trim())
 
   const isFormValid =
     stateName !== '' &&
     stateCode !== '' &&
     lgdCode !== null &&
-    adminFirstName.trim() !== '' &&
-    adminLastName.trim() !== '' &&
-    isPhoneValid &&
+    isNameValid(adminFirstName) &&
+    isNameValid(adminLastName) &&
+    isValidPhone(adminPhone) &&
     adminEmail.trim() !== '' &&
+    !exceedsMaxLength(adminEmail, MAX_EMAIL_LENGTH) &&
     isValidEmail(adminEmail)
+
+  const adminFieldErrors = {
+    firstName: (() => {
+      if (!adminTouched.firstName) return ''
+      if (!adminFirstName.trim()) return t('common:validation.required')
+      if (exceedsMaxLength(adminFirstName, MAX_NAME_LENGTH))
+        return t('common:validation.maxLength', { max: MAX_NAME_LENGTH })
+      if (!isAlphabeticWithSpaces(adminFirstName.trim()))
+        return t('common:validation.alphabeticOnly')
+      return ''
+    })(),
+    lastName: (() => {
+      if (!adminTouched.lastName) return ''
+      if (!adminLastName.trim()) return t('common:validation.required')
+      if (exceedsMaxLength(adminLastName, MAX_NAME_LENGTH))
+        return t('common:validation.maxLength', { max: MAX_NAME_LENGTH })
+      if (!isAlphabeticWithSpaces(adminLastName.trim()))
+        return t('common:validation.alphabeticOnly')
+      return ''
+    })(),
+    phone: (() => {
+      if (!adminTouched.phone) return ''
+      if (!adminPhone.trim()) return t('common:validation.required')
+      if (!isValidPhone(adminPhone)) return t('common:validation.invalidPhone')
+      return ''
+    })(),
+    email: (() => {
+      if (!adminTouched.email) return ''
+      if (!adminEmail.trim()) return t('common:validation.required')
+      if (exceedsMaxLength(adminEmail, MAX_EMAIL_LENGTH))
+        return t('common:validation.maxLength', { max: MAX_EMAIL_LENGTH })
+      if (!isValidEmail(adminEmail)) return t('common:validation.invalidEmail')
+      return ''
+    })(),
+  }
+
+  const handleAdminBlur = (field: keyof typeof adminTouched) => {
+    setAdminTouched((prev) => ({ ...prev, [field]: true }))
+  }
 
   const handleCancel = () => navigate(ROUTES.SUPER_ADMIN_STATES_UTS)
 
   const handleSubmit = async () => {
+    setAdminTouched({ firstName: true, lastName: true, phone: true, email: true })
     if (!isFormValid || lgdCode === null) return
 
     setIsSubmitting(true)
@@ -237,13 +287,14 @@ export function AddStateUTPage() {
               spacing={6}
               aria-labelledby="admin-details-heading"
             >
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={!!adminFieldErrors.firstName}>
                 <FormLabel textStyle="h10" mb={1}>
                   {t('statesUts.adminDetails.firstName')}
                 </FormLabel>
                 <Input
                   value={adminFirstName}
                   onChange={(e) => setAdminFirstName(e.target.value)}
+                  onBlur={() => handleAdminBlur('firstName')}
                   placeholder={t('common:enter')}
                   h={9}
                   maxW={{ base: '100%', lg: '486px' }}
@@ -251,14 +302,18 @@ export function AddStateUTPage() {
                   _placeholder={{ color: 'neutral.300' }}
                   aria-required="true"
                 />
+                {adminFieldErrors.firstName && (
+                  <FormErrorMessage>{adminFieldErrors.firstName}</FormErrorMessage>
+                )}
               </FormControl>
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={!!adminFieldErrors.lastName}>
                 <FormLabel textStyle="h10" mb={1}>
                   {t('statesUts.adminDetails.lastName')}
                 </FormLabel>
                 <Input
                   value={adminLastName}
                   onChange={(e) => setAdminLastName(e.target.value)}
+                  onBlur={() => handleAdminBlur('lastName')}
                   placeholder={t('common:enter')}
                   h={9}
                   borderColor="neutral.200"
@@ -266,8 +321,11 @@ export function AddStateUTPage() {
                   maxW={{ base: '100%', lg: '486px' }}
                   aria-required="true"
                 />
+                {adminFieldErrors.lastName && (
+                  <FormErrorMessage>{adminFieldErrors.lastName}</FormErrorMessage>
+                )}
               </FormControl>
-              <FormControl isRequired isInvalid={phoneError}>
+              <FormControl isRequired isInvalid={!!adminFieldErrors.phone}>
                 <FormLabel textStyle="h10" mb={1}>
                   {t('statesUts.adminDetails.phone')}
                 </FormLabel>
@@ -278,7 +336,7 @@ export function AddStateUTPage() {
                     const val = e.target.value.replaceAll(/\D/g, '')
                     if (val.length <= 10) setAdminPhone(val)
                   }}
-                  onBlur={() => setPhoneTouched(true)}
+                  onBlur={() => handleAdminBlur('phone')}
                   placeholder={t('common:enter')}
                   inputMode="numeric"
                   h={9}
@@ -287,9 +345,11 @@ export function AddStateUTPage() {
                   _placeholder={{ color: 'neutral.300' }}
                   aria-required="true"
                 />
-                <FormErrorMessage>{t('common:validation.invalidPhone')}</FormErrorMessage>
+                {adminFieldErrors.phone && (
+                  <FormErrorMessage>{adminFieldErrors.phone}</FormErrorMessage>
+                )}
               </FormControl>
-              <FormControl isRequired isInvalid={emailError}>
+              <FormControl isRequired isInvalid={!!adminFieldErrors.email}>
                 <FormLabel textStyle="h10" mb={1}>
                   {t('statesUts.adminDetails.email')}
                 </FormLabel>
@@ -297,7 +357,7 @@ export function AddStateUTPage() {
                   type="email"
                   value={adminEmail}
                   onChange={(e) => setAdminEmail(e.target.value)}
-                  onBlur={() => setEmailTouched(true)}
+                  onBlur={() => handleAdminBlur('email')}
                   placeholder={t('common:enter')}
                   h={9}
                   borderColor="neutral.200"
@@ -305,7 +365,9 @@ export function AddStateUTPage() {
                   maxW={{ base: '100%', lg: '486px' }}
                   aria-required="true"
                 />
-                <FormErrorMessage>{t('common:validation.invalidEmail')}</FormErrorMessage>
+                {adminFieldErrors.email && (
+                  <FormErrorMessage>{adminFieldErrors.email}</FormErrorMessage>
+                )}
               </FormControl>
             </SimpleGrid>
           </Box>

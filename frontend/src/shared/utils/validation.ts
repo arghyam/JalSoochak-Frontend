@@ -93,3 +93,25 @@ export function validateDescriptiveField(value: string): string | null {
   if (!isAlphanumericWithSpaces(value)) return 'alphanumericOnly'
   return null
 }
+
+/**
+ * Returns true if the value contains only alphabetic characters and spaces.
+ * Used for name fields (firstName, lastName).
+ */
+export function isAlphabeticWithSpaces(value: string): boolean {
+  return /^[a-zA-Z\s]+$/.test(value)
+}
+
+/**
+ * Returns true if the value meets password complexity requirements:
+ * min 8 chars, at least one uppercase, one lowercase, one digit, one special character.
+ */
+export function isValidPassword(value: string): boolean {
+  return (
+    value.length >= 8 &&
+    /[A-Z]/.test(value) &&
+    /[a-z]/.test(value) &&
+    /\d/.test(value) &&
+    /[^A-Za-z0-9]/.test(value)
+  )
+}

@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next'
 import { useChangeMyPasswordMutation } from '@/features/auth/services/query/use-auth-queries'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ToastContainer } from '@/shared/components/common'
+import { isValidPassword } from '@/shared/utils/validation'
 
 interface ChangePasswordForm {
   currentPassword: string
@@ -59,6 +60,8 @@ export function ChangePasswordPage() {
     let newPasswordError = ''
     if (touched.newPassword && !form.newPassword) {
       newPasswordError = t('validation.required')
+    } else if (touched.newPassword && form.newPassword && !isValidPassword(form.newPassword)) {
+      newPasswordError = t('validation.passwordComplexity')
     } else if (
       touched.newPassword &&
       form.currentPassword &&
@@ -86,6 +89,7 @@ export function ChangePasswordPage() {
   const isFormValid =
     form.currentPassword.length > 0 &&
     form.newPassword.length > 0 &&
+    isValidPassword(form.newPassword) &&
     form.confirmPassword.length > 0 &&
     form.newPassword === form.confirmPassword &&
     form.newPassword !== form.currentPassword
