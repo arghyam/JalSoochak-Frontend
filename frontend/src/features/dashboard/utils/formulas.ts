@@ -22,6 +22,14 @@ const isFiniteNumber = (value: number) => Number.isFinite(value)
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
 
+const getSchemeAchievedFhtcCount = (
+  scheme: AverageWaterSupplyPerRegionResponse['schemes'][number]
+) => scheme.achievedFhtcCount ?? 0
+
+const getChildRegionAchievedFhtcCount = (
+  region: AverageWaterSupplyPerRegionResponse['childRegions'][number]
+) => region.totalAchievedFhtcCount ?? 0
+
 const parseIsoDate = (value?: string) => {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return null
@@ -187,7 +195,7 @@ export const calculateReadingSubmissionRatePercent = (
 
 const sumWaterSupplyField = (
   response: AverageWaterSupplyPerRegionResponse | undefined,
-  field: 'totalWaterSuppliedLiters' | 'fhtcCount'
+  field: 'totalWaterSuppliedLiters' | 'achievedFhtcCount'
 ) => {
   if (!response) {
     return 0
@@ -199,7 +207,7 @@ const sumWaterSupplyField = (
         return total + (scheme.totalWaterSuppliedLiters ?? 0)
       }
 
-      return total + (scheme.fhtcCount ?? scheme.householdCount ?? 0)
+      return total + getSchemeAchievedFhtcCount(scheme)
     }, 0)
   }
 
@@ -215,7 +223,7 @@ const sumWaterSupplyField = (
   }
 
   return response.childRegions.reduce(
-    (total, region) => total + (region.totalFhtcCount ?? region.totalHouseholdCount ?? 0),
+    (total, region) => total + getChildRegionAchievedFhtcCount(region),
     0
   )
 }
@@ -230,7 +238,7 @@ export const getWaterSupplyKpis = (
 
   const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
   const totalWaterSuppliedLiters = sumWaterSupplyField(response, 'totalWaterSuppliedLiters')
-  const servedConnectionCount = sumWaterSupplyField(response, 'fhtcCount')
+  const servedConnectionCount = sumWaterSupplyField(response, 'achievedFhtcCount')
 
   return {
     quantityMld: calculateQuantityMld(totalWaterSuppliedLiters, daysInRange),
@@ -351,7 +359,7 @@ export const mapQuantityPerformanceFromAnalytics = (
         `quantity-performance-${index}-${slugify(region.title || String(index))}`,
       name: formatEntityName(region.title, fallbackMatch?.name, `Region ${index + 1}`),
       coverage: calculateDemandMld(
-        region.totalFhtcCount ?? region.totalHouseholdCount,
+        getChildRegionAchievedFhtcCount(region),
         averagePersonsPerHousehold,
         litersPerPersonPerDay
       ),
@@ -708,7 +716,7 @@ export const mapOverallPerformanceFromAnalytics = (
       continuity: fallbackMatch?.continuity ?? 0,
       quantity: calculateQuantityLpcd(
         region.totalWaterSuppliedLiters,
-        region.totalFhtcCount ?? region.totalHouseholdCount,
+        getChildRegionAchievedFhtcCount(region),
         waterDaysInRange,
         averagePersonsPerHousehold
       ),
