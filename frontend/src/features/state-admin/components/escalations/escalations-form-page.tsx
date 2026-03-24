@@ -124,7 +124,7 @@ export function EscalationsFormPage() {
 
     activeLevels.forEach((level, i) => {
       const daysNum = Number(level.days)
-      if (!level.days || daysNum < 1) {
+      if (!level.days || Number.isNaN(daysNum) || daysNum < 1) {
         newErrors[`levels.${i}.days`] = t('state-admin:validation.daysMinimum')
       } else if (daysNum > MAX_ESCALATION_DAYS) {
         newErrors[`levels.${i}.days`] = t('state-admin:validation.daysMaximum', {
