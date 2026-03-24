@@ -9,18 +9,15 @@ import {
   Heading,
   Spinner,
   Input,
-  IconButton,
   SimpleGrid,
   Stack,
   FormControl,
   FormErrorMessage,
 } from '@chakra-ui/react'
 import { EditIcon } from '@chakra-ui/icons'
-import { MdDeleteOutline } from 'react-icons/md'
-import { IoAddOutline } from 'react-icons/io5'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer, SearchableSelect } from '@/shared/components/common'
+import { ToastContainer } from '@/shared/components/common'
 
 const MAX_ESCALATION_DAYS = 365
 import {
@@ -28,25 +25,30 @@ import {
   useSaveEscalationRulesMutation,
 } from '../../services/query/use-state-admin-queries'
 import {
-  ESCALATION_USER_TYPE_OPTIONS,
   ESCALATION_USER_TYPE_LABELS,
   type EscalationUserType,
   type EscalationRuleLevel,
 } from '../../types/escalation-rules'
 
+/** Fixed role order: Level 1 = Section Officer, Level 2 = Sub Divisional Officer */
+const FIXED_LEVEL_ROLES: EscalationUserType[] = ['SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER']
+
 interface LevelDraft {
   /** Stable client-side key for React list rendering */
   key: string
   days: string
-  userType: EscalationUserType | ''
+  userType: EscalationUserType
 }
 
 function buildInitialDraft(levels: EscalationRuleLevel[]): LevelDraft[] {
-  return levels.map((l, i) => ({
-    key: `level-${i}-${l.userType}`,
-    days: String(l.days),
-    userType: l.userType,
-  }))
+  return FIXED_LEVEL_ROLES.map((role, i) => {
+    const existing = levels.find((l) => l.userType === role)
+    return {
+      key: `level-${i}-${role}`,
+      days: existing ? String(existing.days) : '',
+      userType: role,
+    }
+  })
 }
 
 /** Convert "HH:mm" → { hour, minute } */
@@ -59,8 +61,6 @@ function parseTime(value: string): { hour: number; minute: number } {
 function formatTime(hour: number, minute: number): string {
   return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
 }
-
-const ROLE_OPTIONS = ESCALATION_USER_TYPE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))
 
 export function EscalationsFormPage() {
   const { t } = useTranslation(['state-admin', 'common'])
@@ -82,7 +82,8 @@ export function EscalationsFormPage() {
 
   const activeSchedule =
     scheduleDraft ?? (config ? formatTime(config.schedule.hour, config.schedule.minute) : '')
-  const activeLevels: LevelDraft[] = levelsDraft ?? (config ? buildInitialDraft(config.levels) : [])
+  const activeLevels: LevelDraft[] =
+    levelsDraft ?? (config ? buildInitialDraft(config.levels) : buildInitialDraft([]))
 
   const handleEdit = () => {
     if (!config) return
@@ -107,41 +108,11 @@ export function EscalationsFormPage() {
     setErrors({})
   }
 
-  const handleAddLevel = () => {
-    // Set inline errors on unfilled levels instead of toast
-    let hasUnfilled = false
-    const newErrors: Record<string, string> = {}
-    activeLevels.forEach((l, i) => {
-      if (!l.userType) {
-        newErrors[`levels.${i}.userType`] = t('state-admin:validation.selectRole')
-        hasUnfilled = true
-      }
-      const daysNum = Number(l.days)
-      if (!l.days || daysNum < 1) {
-        newErrors[`levels.${i}.days`] = t('state-admin:validation.daysMinimum')
-        hasUnfilled = true
-      } else if (daysNum > MAX_ESCALATION_DAYS) {
-        newErrors[`levels.${i}.days`] = t('state-admin:validation.daysMaximum', {
-          max: MAX_ESCALATION_DAYS,
-        })
-        hasUnfilled = true
-      }
-    })
-    if (hasUnfilled) {
-      setErrors((prev) => ({ ...prev, ...newErrors }))
-      return
-    }
-    setLevelsDraft([...activeLevels, { key: `level-new-${Date.now()}`, days: '', userType: '' }])
-  }
-
-  const handleRemoveLevel = (key: string) => {
-    setLevelsDraft(activeLevels.filter((l) => l.key !== key))
-  }
-
-  const handleLevelChange = (key: string, field: 'days' | 'userType', value: string) => {
-    setLevelsDraft(activeLevels.map((l) => (l.key === key ? { ...l, [field]: value } : l)))
+  const handleDaysChange = (key: string, value: string) => {
+    setLevelsDraft(activeLevels.map((l) => (l.key === key ? { ...l, days: value } : l)))
     const index = activeLevels.findIndex((l) => l.key === key)
-    if (index >= 0) clearError(`levels.${index}.${field}`)
+    if (index >= 0) clearError(`levels.${index}.days`)
+    clearError('levels.cross')
   }
 
   const validateForm = (): boolean => {
@@ -152,9 +123,6 @@ export function EscalationsFormPage() {
     }
 
     activeLevels.forEach((level, i) => {
-      if (!level.userType) {
-        newErrors[`levels.${i}.userType`] = t('state-admin:validation.selectRole')
-      }
       const daysNum = Number(level.days)
       if (!level.days || daysNum < 1) {
         newErrors[`levels.${i}.days`] = t('state-admin:validation.daysMinimum')
@@ -164,6 +132,19 @@ export function EscalationsFormPage() {
         })
       }
     })
+
+    // SDO escalate-after days must be >= SO escalate-after days
+    const soDays = Number(activeLevels[0].days)
+    const sdoDays = Number(activeLevels[1].days)
+    if (
+      soDays >= 1 &&
+      soDays <= MAX_ESCALATION_DAYS &&
+      sdoDays >= 1 &&
+      sdoDays <= MAX_ESCALATION_DAYS &&
+      sdoDays < soDays
+    ) {
+      newErrors['levels.cross'] = t('state-admin:validation.sdoDaysNotLessThanSo')
+    }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -179,7 +160,7 @@ export function EscalationsFormPage() {
         schedule,
         levels: activeLevels.map((l) => ({
           days: Number(l.days),
-          userType: l.userType as EscalationUserType,
+          userType: l.userType,
         })),
       })
       setScheduleDraft(null)
@@ -341,47 +322,24 @@ export function EscalationsFormPage() {
                     </Text>
                     <Stack spacing={3}>
                       {activeLevels.map((level, index) => (
-                        <FormControl
-                          key={level.key}
-                          isInvalid={!!errors[`levels.${index}.userType`]}
-                        >
-                          <Flex gap={3} align="center" direction="row">
-                            <Text
-                              fontSize={{ base: 'xs', md: 'sm' }}
-                              fontWeight="medium"
-                              color="neutral.950"
-                              whiteSpace="nowrap"
-                            >
-                              {t('escalations.level', { number: index + 1 })}
-                            </Text>
-                            <SearchableSelect
-                              options={ROLE_OPTIONS}
-                              value={level.userType}
-                              width={{ base: '100%', lg: '294px', xl: '430px' }}
-                              onChange={(val) => handleLevelChange(level.key, 'userType', val)}
-                              placeholder={t('common:select')}
-                              ariaLabel={t('escalations.aria.selectRole', { number: index + 1 })}
-                            />
-                          </Flex>
-                          <FormErrorMessage ml="68px">
-                            {errors[`levels.${index}.userType`]}
-                          </FormErrorMessage>
-                        </FormControl>
+                        <Flex key={level.key} gap={3} align="center" h="36px">
+                          <Text
+                            fontSize={{ base: 'xs', md: 'sm' }}
+                            fontWeight="medium"
+                            color="neutral.950"
+                            whiteSpace="nowrap"
+                          >
+                            {t('escalations.level', { number: index + 1 })}
+                          </Text>
+                          <Text
+                            fontSize="sm"
+                            color="neutral.950"
+                            w={{ base: '100%', lg: '294px', xl: '430px' }}
+                          >
+                            {ESCALATION_USER_TYPE_LABELS[level.userType]}
+                          </Text>
+                        </Flex>
                       ))}
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={handleAddLevel}
-                        w={{ base: 'auto', sm: '152px' }}
-                        fontSize="14px"
-                        fontWeight="400"
-                        h="32px"
-                        gap={1}
-                        mt={1}
-                      >
-                        <IoAddOutline size={24} aria-hidden="true" />
-                        {t('escalations.addNewLevel')}
-                      </Button>
                     </Stack>
                   </Box>
 
@@ -403,44 +361,36 @@ export function EscalationsFormPage() {
                     <Stack spacing={3}>
                       {activeLevels.map((level, index) => (
                         <FormControl key={level.key} isInvalid={!!errors[`levels.${index}.days`]}>
-                          <Flex gap={2} align="center">
-                            <Input
-                              type="number"
-                              min="1"
-                              step="1"
-                              value={level.days}
-                              onChange={(e) => handleLevelChange(level.key, 'days', e.target.value)}
-                              aria-label={t('escalations.escalateAfterDays')}
-                              h="36px"
-                              w={{ base: '100%', lg: '294px', xl: '430px' }}
-                              fontSize="sm"
-                              borderColor="neutral.300"
-                              borderRadius="6px"
-                              _hover={{ borderColor: 'neutral.400' }}
-                              _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
-                            />
-                            {activeLevels.length > 1 && (
-                              <IconButton
-                                aria-label={t('escalations.aria.deleteLevel', {
-                                  number: index + 1,
-                                })}
-                                icon={<MdDeleteOutline size={24} aria-hidden="true" />}
-                                variant="ghost"
-                                size="sm"
-                                color="neutral.400"
-                                onClick={() => handleRemoveLevel(level.key)}
-                                h="36px"
-                                minW="36px"
-                                _hover={{ bg: 'error.50', color: 'error.500' }}
-                              />
-                            )}
-                          </Flex>
+                          <Input
+                            type="number"
+                            min="1"
+                            step="1"
+                            value={level.days}
+                            onChange={(e) => handleDaysChange(level.key, e.target.value)}
+                            aria-label={t('escalations.aria.escalateAfterDays', {
+                              role: ESCALATION_USER_TYPE_LABELS[level.userType],
+                            })}
+                            h="36px"
+                            w={{ base: '100%', lg: '294px', xl: '430px' }}
+                            fontSize="sm"
+                            borderColor="neutral.300"
+                            borderRadius="6px"
+                            _hover={{ borderColor: 'neutral.400' }}
+                            _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
+                          />
                           <FormErrorMessage>{errors[`levels.${index}.days`]}</FormErrorMessage>
                         </FormControl>
                       ))}
                     </Stack>
                   </Box>
                 </Flex>
+
+                {/* Cross-level validation error */}
+                {errors['levels.cross'] && (
+                  <Text fontSize="sm" color="error.500" role="alert">
+                    {errors['levels.cross']}
+                  </Text>
+                )}
               </Flex>
 
               {/* Action Buttons */}
