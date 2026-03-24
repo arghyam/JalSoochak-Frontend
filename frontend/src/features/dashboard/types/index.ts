@@ -437,7 +437,8 @@ export interface ReadingSubmissionRateResponse {
 }
 
 export interface SubmissionStatusQueryParams {
-  userId?: number
+  lgdId?: number
+  departmentId?: number
   startDate: string
   endDate: string
 }
@@ -448,13 +449,14 @@ export interface SubmissionStatusDailySchemeDistribution {
 }
 
 export interface SubmissionStatusResponse {
-  userId: number
-  startDate: string
-  endDate: string
+  lgdId?: number
+  departmentId?: number
+  startDate?: string
+  endDate?: string
   schemeCount: number
   compliantSubmissionCount: number
   anomalousSubmissionCount: number
-  dailySubmissionSchemeDistribution: SubmissionStatusDailySchemeDistribution[]
+  dailySubmissionSchemeDistribution?: SubmissionStatusDailySchemeDistribution[]
 }
 
 export interface OutageReasonsQueryParams {

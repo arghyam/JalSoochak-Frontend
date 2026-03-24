@@ -436,12 +436,13 @@ export const dashboardApi = {
     params: SubmissionStatusQueryParams
   ): Promise<SubmissionStatusResponse> => {
     const response = await apiClient.get<SubmissionStatusResponse>(
-      '/api/v1/analytics/submission-status/user',
+      '/api/v1/analytics/submission-status',
       {
         params: {
-          user_id: params.userId,
           start_date: params.startDate,
           end_date: params.endDate,
+          lgd_id: params.lgdId,
+          department_id: params.departmentId,
         },
       }
     )

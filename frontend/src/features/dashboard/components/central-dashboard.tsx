@@ -18,7 +18,6 @@ import { KPICard } from './kpi-card'
 import { DashboardBody } from './screens/dashboard-body'
 import { IndiaMapChart } from './charts'
 import { LoadingSpinner } from '@/shared/components/common'
-import { useAuthStore } from '@/app/store'
 import { MdOutlineWaterDrop } from 'react-icons/md'
 import waterTapIcon from '@/assets/media/water-tap_1822589 1.svg'
 import wallClockIcon from '@/assets/media/wall-clock.svg'
@@ -318,7 +317,6 @@ export function CentralDashboard() {
   const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const authUserId = useAuthStore((state) => state.user?.id)
   const { data, isLoading, error } = useDashboardData('central')
   const [storedFilters] = useState(() => getStoredFilters())
   const initialDuration = getInitialStoredDuration(storedFilters)
@@ -566,8 +564,6 @@ export function CentralDashboard() {
   const selectedSchemeId = Number.isFinite(parsedSelectedSchemeId)
     ? parsedSelectedSchemeId
     : undefined
-  const parsedAuthUserId = Number.parseInt(authUserId ?? '', 10)
-  const submissionStatusUserId = Number.isFinite(parsedAuthUserId) ? parsedAuthUserId : undefined
   const shouldFetchSchemePerformanceAnalytics =
     (isStateSelected ||
       isDistrictSelected ||
@@ -591,13 +587,19 @@ export function CentralDashboard() {
           schemeCount: 10,
         }
   const submissionStatusAnalyticsParams =
-    hasCentralLandingFilters && typeof submissionStatusUserId === 'number'
-      ? {
-          userId: submissionStatusUserId,
-          startDate: analyticsDateRange.startDate,
-          endDate: analyticsDateRange.endDate,
-        }
-      : null
+    !hasCentralLandingFilters || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            lgdId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+          }
+        : {
+            departmentId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+          }
   const outageReasonsAnalyticsParams =
     isVillageSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null

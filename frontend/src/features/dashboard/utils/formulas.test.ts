@@ -504,13 +504,11 @@ describe('dashboard formulas', () => {
       { label: 'Anomalous Submissions', value: 5 },
     ]
     const response: SubmissionStatusResponse = {
-      userId: 12,
       startDate: '2026-03-01',
       endDate: '2026-03-31',
       schemeCount: 0,
       compliantSubmissionCount: 0,
       anomalousSubmissionCount: 0,
-      dailySubmissionSchemeDistribution: [],
     }
 
     expect(mapReadingSubmissionStatusFromAnalytics(response, fallbackData)).toEqual([
