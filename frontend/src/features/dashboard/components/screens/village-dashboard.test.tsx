@@ -193,7 +193,7 @@ describe('VillageDashboardScreen', () => {
     expect(metricCalls.length).toBeGreaterThanOrEqual(2)
     const latestMetricCalls = metricCalls.slice(-2)
     expect(latestMetricCalls[0]?.[0].metric).toBe('quantity')
-    expect(latestMetricCalls[0]?.[0].showAreaLine).toBeUndefined()
+    expect(latestMetricCalls[0]?.[0].showAreaLine).toBe(true)
     expect(latestMetricCalls[0]?.[0].seriesName).toBe('Quantity')
     expect(latestMetricCalls[1]?.[0].metric).toBe('regularity')
     expect(latestMetricCalls[1]?.[0].seriesName).toBe('Regularity')
@@ -775,7 +775,7 @@ describe('VillageDashboardScreen', () => {
     })
 
     expect(screen.getByText('Ajay Yadav')).toBeTruthy()
-    expect(screen.getByText('CORRAMORE PWSS (Point-III) 18294 / 3')).toBeTruthy()
+    expect(screen.getByText('Corramore Pwss (Point-Iii) 18294 / 3')).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: '2' }))
 
@@ -838,7 +838,7 @@ describe('VillageDashboardScreen', () => {
       />
     )
 
-    expect(screen.getByText('CORRAMORE PWSS (Point-III) 18294 / 3')).toBeTruthy()
+    expect(screen.getByText('Corramore Pwss (Point-Iii) 18294 / 3')).toBeTruthy()
 
     const complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
       data: Array<{ id: string }>
@@ -847,7 +847,7 @@ describe('VillageDashboardScreen', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '2' }))
 
-    expect(screen.getByText('GELABIL PWSS / 8')).toBeTruthy()
+    expect(screen.getByText('Gelabil Pwss / 8')).toBeTruthy()
     expect(screen.queryByText('Central Pumping Station')).toBeNull()
     expect(screen.getAllByText('N/A').length).toBeGreaterThan(0)
   })

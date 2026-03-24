@@ -11,6 +11,7 @@ import type {
 } from '../types'
 import {
   calculateAverageRegularityPercent,
+  calculateDemandMld,
   calculateReadingSubmissionRatePercent,
   calculateQuantityMld,
   calculateQuantityLpcd,
@@ -40,6 +41,10 @@ describe('dashboard formulas', () => {
 
   it('calculates quantity in LPCD from liters, FHTC count, day range, and P', () => {
     expect(calculateQuantityLpcd(90_000_000, 500, 30, 5)).toBe(1200)
+  })
+
+  it('calculates demand in MLD from FHTC count, persons, and liters per person', () => {
+    expect(calculateDemandMld(500, 5, 50)).toBe(0.13)
   })
 
   it('calculates state KPI totals from child regions when scheme rows are absent', () => {
@@ -132,7 +137,7 @@ describe('dashboard formulas', () => {
       {
         ...fallbackData[0],
         name: 'Region Alpha',
-        coverage: 0,
+        coverage: 0.13,
         quantity: 3,
       },
     ])

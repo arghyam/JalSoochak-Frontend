@@ -15,6 +15,8 @@ import { slugify, toCapitalizedWords } from './format-location-label'
 
 const DEFAULT_DAYS_IN_RANGE = 30
 const MILLION_LITERS = 1_000_000
+export const DEFAULT_PERSONS_PER_HOUSEHOLD = 5
+export const DEFAULT_LITERS_PER_PERSON_PER_DAY = 50
 
 const isFiniteNumber = (value: number) => Number.isFinite(value)
 
@@ -101,7 +103,7 @@ export const calculateQuantityLpcd = (
   totalWaterSuppliedLiters: number,
   servedConnectionCount: number,
   daysInRange: number,
-  averagePersonsPerHousehold = 5
+  averagePersonsPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD
 ): number => {
   if (
     !isFiniteNumber(totalWaterSuppliedLiters) ||
@@ -120,6 +122,30 @@ export const calculateQuantityLpcd = (
       totalWaterSuppliedLiters /
       (servedConnectionCount * averagePersonsPerHousehold * daysInRange)
     ).toFixed(1)
+  )
+}
+
+export const calculateDemandMld = (
+  servedConnectionCount: number,
+  averagePersonsPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD,
+  litersPerPersonPerDay = DEFAULT_LITERS_PER_PERSON_PER_DAY
+): number => {
+  if (
+    !isFiniteNumber(servedConnectionCount) ||
+    !isFiniteNumber(averagePersonsPerHousehold) ||
+    !isFiniteNumber(litersPerPersonPerDay) ||
+    servedConnectionCount <= 0 ||
+    averagePersonsPerHousehold <= 0 ||
+    litersPerPersonPerDay <= 0
+  ) {
+    return 0
+  }
+
+  return Number(
+    (
+      (servedConnectionCount * averagePersonsPerHousehold * litersPerPersonPerDay) /
+      MILLION_LITERS
+    ).toFixed(2)
   )
 }
 
@@ -196,7 +222,7 @@ const sumWaterSupplyField = (
 
 export const getWaterSupplyKpis = (
   response: AverageWaterSupplyPerRegionResponse | undefined,
-  averagePersonsPerHousehold = 5
+  averagePersonsPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD
 ) => {
   if (!response) {
     return { quantityMld: 0, quantityLpcd: 0 }
@@ -219,7 +245,7 @@ export const getWaterSupplyKpis = (
 
 export const getWaterSupplyKpisFromNationalDashboard = (
   response: NationalDashboardResponse | undefined,
-  averagePersonsPerHousehold = 5
+  averagePersonsPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD
 ) => {
   if (!response?.stateWiseQuantityPerformance?.length) {
     return { quantityMld: 0, quantityLpcd: 0 }
@@ -304,7 +330,9 @@ const formatEntityName = (primaryName?: string, fallbackName?: string, defaultNa
 
 export const mapQuantityPerformanceFromAnalytics = (
   response: AverageWaterSupplyPerRegionResponse | undefined,
-  fallbackData: EntityPerformance[]
+  fallbackData: EntityPerformance[],
+  averagePersonsPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD,
+  litersPerPersonPerDay = DEFAULT_LITERS_PER_PERSON_PER_DAY
 ): EntityPerformance[] => {
   if (!response?.childRegions?.length) {
     return []
@@ -322,7 +350,11 @@ export const mapQuantityPerformanceFromAnalytics = (
         fallbackMatch?.id ??
         `quantity-performance-${index}-${slugify(region.title || String(index))}`,
       name: formatEntityName(region.title, fallbackMatch?.name, `Region ${index + 1}`),
-      coverage: 0,
+      coverage: calculateDemandMld(
+        region.totalFhtcCount ?? region.totalHouseholdCount,
+        averagePersonsPerHousehold,
+        litersPerPersonPerDay
+      ),
       regularity: fallbackMatch?.regularity ?? 0,
       continuity: fallbackMatch?.continuity ?? 0,
       quantity: calculateQuantityMld(region.totalWaterSuppliedLiters, daysInRange),
@@ -410,7 +442,9 @@ const mapNationalFallbackMatch = (
 
 export const mapQuantityPerformanceFromNationalDashboard = (
   response: NationalDashboardResponse | undefined,
-  fallbackData: EntityPerformance[]
+  fallbackData: EntityPerformance[],
+  averagePersonsPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD,
+  litersPerPersonPerDay = DEFAULT_LITERS_PER_PERSON_PER_DAY
 ): EntityPerformance[] => {
   if (!response?.stateWiseQuantityPerformance?.length) {
     return []
@@ -424,7 +458,11 @@ export const mapQuantityPerformanceFromNationalDashboard = (
     return {
       id: fallbackMatch?.id ?? `national-quantity-${state.stateCode || index}`,
       name: formatEntityName(state.stateTitle, fallbackMatch?.name, `State ${index + 1}`),
-      coverage: 0,
+      coverage: calculateDemandMld(
+        state.totalFhtcCount ?? state.totalHouseholdCount,
+        averagePersonsPerHousehold,
+        litersPerPersonPerDay
+      ),
       regularity: fallbackMatch?.regularity ?? 0,
       continuity: fallbackMatch?.continuity ?? 0,
       quantity: calculateQuantityMld(state.totalWaterSuppliedLiters, daysInRange),
@@ -626,7 +664,7 @@ export const mapOverallPerformanceFromAnalytics = (
   waterSupplyResponse: AverageWaterSupplyPerRegionResponse | undefined,
   regularityResponse: AverageSchemeRegularityResponse | undefined,
   fallbackData: EntityPerformance[],
-  averagePersonsPerHousehold = 5
+  averagePersonsPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD
 ): EntityPerformance[] => {
   if (!waterSupplyResponse?.childRegions?.length) {
     return fallbackData
@@ -683,7 +721,7 @@ export const mapOverallPerformanceFromAnalytics = (
 export const mapOverallPerformanceFromNationalDashboard = (
   response: NationalDashboardResponse | undefined,
   fallbackData: EntityPerformance[],
-  averagePersonsPerHousehold = 5
+  averagePersonsPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD
 ): EntityPerformance[] => {
   if (!response?.stateWiseQuantityPerformance?.length) {
     return fallbackData
