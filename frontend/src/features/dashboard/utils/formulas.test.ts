@@ -138,52 +138,43 @@ describe('dashboard formulas', () => {
     ])
   })
 
-  it('intentionally returns an empty array for quantity analytics when the response is undefined, even if fallback data exists', () => {
-    const fallbackData: EntityPerformance[] = [
-      {
-        id: 'alpha',
-        name: 'Region Alpha',
-        coverage: 72,
-        regularity: 65,
-        continuity: 0,
-        quantity: 0,
-        compositeScore: 68,
-        status: 'good',
-      },
-    ]
+  const fallbackData: EntityPerformance[] = [
+    {
+      id: 'alpha',
+      name: 'Region Alpha',
+      coverage: 72,
+      regularity: 65,
+      continuity: 0,
+      quantity: 0,
+      compositeScore: 68,
+      status: 'good',
+    },
+  ]
 
-    expect(mapQuantityPerformanceFromAnalytics(undefined, fallbackData)).toEqual([])
-  })
-
-  it('intentionally returns an empty array for quantity analytics when childRegions is empty, even if fallback data exists', () => {
-    const fallbackData: EntityPerformance[] = [
+  it.each([
+    ['response is undefined', undefined],
+    [
+      'response has childRegions: []',
       {
-        id: 'alpha',
-        name: 'Region Alpha',
-        coverage: 72,
-        regularity: 65,
-        continuity: 0,
-        quantity: 0,
-        compositeScore: 68,
-        status: 'good',
-      },
-    ]
-    const response: AverageWaterSupplyPerRegionResponse = {
-      tenantId: 16,
-      stateCode: 'TG',
-      parentLgdLevel: 1,
-      parentDepartmentLevel: 0,
-      startDate: '2026-03-01',
-      endDate: '2026-03-30',
-      daysInRange: 30,
-      schemeCount: 0,
-      childRegionCount: 0,
-      schemes: [],
-      childRegions: [],
+        tenantId: 16,
+        stateCode: 'TG',
+        parentLgdLevel: 1,
+        parentDepartmentLevel: 0,
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        schemeCount: 0,
+        childRegionCount: 0,
+        schemes: [],
+        childRegions: [],
+      } satisfies AverageWaterSupplyPerRegionResponse,
+    ],
+  ])(
+    'intentionally returns an empty array for quantity analytics when %s, even if fallback data exists',
+    (_, response) => {
+      expect(mapQuantityPerformanceFromAnalytics(response, fallbackData)).toEqual([])
     }
-
-    expect(mapQuantityPerformanceFromAnalytics(response, fallbackData)).toEqual([])
-  })
+  )
 
   it('maps regularity analytics response into chart data with fallback metadata', () => {
     const fallbackData: EntityPerformance[] = [

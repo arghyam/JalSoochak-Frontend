@@ -149,6 +149,10 @@ export function SupplyOutageDistributionChart({
     [isEmpty, stackedValues]
   )
   const yAxisInterval = useMemo(() => Math.max(1, Math.ceil(yAxisMax / 25)) * 5, [yAxisMax])
+  const alignedYAxisMax = useMemo(
+    () => Math.ceil(yAxisMax / yAxisInterval) * yAxisInterval,
+    [yAxisInterval, yAxisMax]
+  )
 
   const option = useMemo<echarts.EChartsOption>(() => {
     const seriesCount = chartItems.length
@@ -231,7 +235,7 @@ export function SupplyOutageDistributionChart({
           show: false,
         },
         position: 'right',
-        max: yAxisMax,
+        max: alignedYAxisMax,
         interval: yAxisInterval,
         splitLine: {
           lineStyle: {
@@ -279,8 +283,8 @@ export function SupplyOutageDistributionChart({
     categories,
     chartItems,
     data,
+    alignedYAxisMax,
     yAxisInterval,
-    yAxisMax,
   ])
 
   const axisOption = useMemo<echarts.EChartsOption>(() => {
@@ -328,7 +332,7 @@ export function SupplyOutageDistributionChart({
         },
         position: 'right',
         min: 0,
-        max: yAxisMax,
+        max: alignedYAxisMax,
         interval: yAxisInterval,
         splitLine: {
           show: false,
@@ -346,7 +350,7 @@ export function SupplyOutageDistributionChart({
       ],
       animation: false,
     }
-  }, [bodyText7, yAxisInterval, yAxisMax])
+  }, [alignedYAxisMax, bodyText7, yAxisInterval])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
   const legendItems = chartItems.map((item) => ({
