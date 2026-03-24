@@ -70,12 +70,11 @@ function FormContent({
     phone: false,
   })
   const createTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const updateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
+    const timer = createTimerRef.current
     return () => {
-      if (createTimerRef.current !== null) clearTimeout(createTimerRef.current)
-      if (updateTimerRef.current !== null) clearTimeout(updateTimerRef.current)
+      if (timer !== null) clearTimeout(timer)
     }
   }, [])
 
@@ -191,10 +190,7 @@ function FormContent({
           phone: form.phone.trim(),
         },
       })
-      toast.addToast(t('toast.changesSaved'), 'success')
-      updateTimerRef.current = setTimeout(() => {
-        navigate(routes.view(id))
-      }, 500)
+      navigate(routes.view(id), { state: { successToast: t('toast.changesSaved') } })
     } catch {
       toast.addToast(t('toast.failedToSave'), 'error')
     } finally {

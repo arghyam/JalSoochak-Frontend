@@ -396,6 +396,30 @@ describe('UserAdminFormPage — Edit Mode', () => {
     })
   })
 
+  it('navigates to view page with success toast state after successful update', async () => {
+    const updateMutation = makeUpdateMutation()
+    renderWithProviders(
+      <UserAdminFormPage
+        id="u-1"
+        isEditMode={true}
+        original={mockAdmin}
+        isLoadingOriginal={false}
+        routes={mockRoutes}
+        labels={mockLabels}
+        createMutation={makeCreateMutation()}
+        updateMutation={updateMutation}
+        statusMutation={makeStatusMutation()}
+      />
+    )
+    fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Updated' } })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+    })
+    expect(mockNavigate).toHaveBeenCalledWith('/test/users/u-1', {
+      state: { successToast: 'Changes saved successfully' },
+    })
+  })
+
   it('calls statusMutation.mutateAsync with new status when toggle is clicked', async () => {
     const statusMutation = makeStatusMutation()
     renderWithProviders(
