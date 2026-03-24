@@ -46,7 +46,10 @@ export interface TenantConfigMap {
   TENANT_LOGO?: string // URL string
   METER_CHANGE_REASONS?: { reasons: { id: string; name: string; sequenceOrder: number }[] }
   LOCATION_CHECK_REQUIRED?: { value: 'YES' | 'NO' }
-  DATA_CONSOLIDATION_TIME?: { timeValue: string; description: string | null }
+  DATA_CONSOLIDATION_TIME?: {
+    schedule: { hour: number; minute: number } | null
+    description: string | null
+  }
   PUMP_OPERATOR_REMINDER_NUDGE_TIME?: { nudge: { schedule: { hour: number; minute: number } } }
   AVERAGE_MEMBERS_PER_HOUSEHOLD?: { value: string }
   SUPPORTED_LANGUAGES?: { languages: { language: string; preference: number }[] }
@@ -101,13 +104,16 @@ export function mapApiConfigToConfigurationData(
     ? configs.METER_CHANGE_REASONS.reasons.map((r) => ({ id: r.id, name: r.name }))
     : DEFAULT_METER_CHANGE_REASONS
 
+  const consolidationSchedule = configs.DATA_CONSOLIDATION_TIME?.schedule
   const nudgeSchedule = configs.PUMP_OPERATOR_REMINDER_NUDGE_TIME?.nudge?.schedule
 
   return {
     supportedChannels,
     meterChangeReasons: meterReasons,
     locationCheckRequired: configs.LOCATION_CHECK_REQUIRED?.value === 'YES',
-    dataConsolidationTime: configs.DATA_CONSOLIDATION_TIME?.timeValue ?? '',
+    dataConsolidationTime: consolidationSchedule
+      ? formatHHmm(consolidationSchedule.hour, consolidationSchedule.minute)
+      : '',
     pumpOperatorReminderNudgeTime: nudgeSchedule
       ? formatHHmm(nudgeSchedule.hour, nudgeSchedule.minute)
       : '',
@@ -121,6 +127,7 @@ export function mapConfigurationDataToApiConfig(
 ): TenantConfigMap {
   const channelCodes = payload.supportedChannels.map((name) => CHANNEL_NAME_TO_CODE[name])
 
+  const consolidation = parseHHmm(payload.dataConsolidationTime)
   const { hour, minute } = parseHHmm(payload.pumpOperatorReminderNudgeTime)
 
   return {
@@ -133,7 +140,10 @@ export function mapConfigurationDataToApiConfig(
       })),
     },
     LOCATION_CHECK_REQUIRED: { value: payload.locationCheckRequired ? 'YES' : 'NO' },
-    DATA_CONSOLIDATION_TIME: { timeValue: payload.dataConsolidationTime, description: null },
+    DATA_CONSOLIDATION_TIME: {
+      schedule: { hour: consolidation.hour, minute: consolidation.minute },
+      description: null,
+    },
     PUMP_OPERATOR_REMINDER_NUDGE_TIME: { nudge: { schedule: { hour, minute } } },
     AVERAGE_MEMBERS_PER_HOUSEHOLD: { value: String(payload.averageMembersPerHousehold) },
   }

@@ -27,7 +27,7 @@ describe('mapApiConfigToConfigurationData', () => {
         ],
       },
       LOCATION_CHECK_REQUIRED: { value: 'YES' },
-      DATA_CONSOLIDATION_TIME: { timeValue: '14:00', description: null },
+      DATA_CONSOLIDATION_TIME: { schedule: { hour: 14, minute: 0 }, description: null },
       PUMP_OPERATOR_REMINDER_NUDGE_TIME: { nudge: { schedule: { hour: 9, minute: 30 } } },
       AVERAGE_MEMBERS_PER_HOUSEHOLD: { value: '4.5' },
     }
@@ -87,7 +87,10 @@ describe('mapConfigurationDataToApiConfig', () => {
       reasons: [{ id: 'r1', name: 'Meter Replaced', sequenceOrder: 1 }],
     })
     expect(result.LOCATION_CHECK_REQUIRED).toEqual({ value: 'NO' })
-    expect(result.DATA_CONSOLIDATION_TIME).toEqual({ timeValue: '18:00', description: null })
+    expect(result.DATA_CONSOLIDATION_TIME).toEqual({
+      schedule: { hour: 18, minute: 0 },
+      description: null,
+    })
     expect(result.PUMP_OPERATOR_REMINDER_NUDGE_TIME).toEqual({
       nudge: { schedule: { hour: 8, minute: 0 } },
     })
@@ -104,7 +107,7 @@ describe('mapConfigurationDataToApiConfig', () => {
         ],
       },
       LOCATION_CHECK_REQUIRED: { value: 'YES' },
-      DATA_CONSOLIDATION_TIME: { timeValue: '22:00', description: null },
+      DATA_CONSOLIDATION_TIME: { schedule: { hour: 22, minute: 0 }, description: null },
       PUMP_OPERATOR_REMINDER_NUDGE_TIME: { nudge: { schedule: { hour: 7, minute: 0 } } },
       AVERAGE_MEMBERS_PER_HOUSEHOLD: { value: '5' },
     }
@@ -114,7 +117,10 @@ describe('mapConfigurationDataToApiConfig', () => {
 
     expect(backToApi.TENANT_SUPPORTED_CHANNELS).toEqual({ channels: ['BFM', 'MAN'] })
     expect(backToApi.LOCATION_CHECK_REQUIRED).toEqual({ value: 'YES' })
-    expect(backToApi.DATA_CONSOLIDATION_TIME).toEqual({ timeValue: '22:00', description: null })
+    expect(backToApi.DATA_CONSOLIDATION_TIME).toEqual({
+      schedule: { hour: 22, minute: 0 },
+      description: null,
+    })
   })
 })
 
