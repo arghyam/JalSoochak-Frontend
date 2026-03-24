@@ -84,11 +84,12 @@ export function MetricPerformanceChart({
       return { max: 100, interval: 25 as number | undefined }
     }
 
-    const maxValue = yValues.length > 0 ? Math.max(...yValues) : 0
+    const seriesValues = showAreaLine ? [...yValues, ...demandValues] : yValues
+    const maxValue = seriesValues.length > 0 ? Math.max(...seriesValues) : 0
     const max = maxValue > 100 ? Math.ceil(maxValue / 10) * 10 : 100
 
     return { max, interval: undefined }
-  }, [metric, yValues])
+  }, [demandValues, metric, showAreaLine, yValues])
 
   const option = useMemo<echarts.EChartsOption>(() => {
     const entities = data.map((d) => d.name)
@@ -162,9 +163,7 @@ export function MetricPerformanceChart({
             .map((point) => {
               const rawValue = typeof point.value === 'number' ? point.value : Number(point.value)
               const hasNumericValue = Number.isFinite(rawValue)
-              const shouldUsePercentUnit =
-                point.seriesType === 'line' ||
-                (point.seriesType === 'bar' && metric === 'regularity')
+              const shouldUsePercentUnit = metric === 'regularity'
               const formattedValue = hasNumericValue
                 ? shouldUsePercentUnit
                   ? `${rawValue.toFixed(1)}%`

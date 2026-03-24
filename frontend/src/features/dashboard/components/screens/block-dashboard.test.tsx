@@ -246,6 +246,7 @@ describe('BlockDashboardScreen', () => {
     const regularityMetricCall = metricProps.find((props) => props.metric === 'regularity')
 
     expect(quantityMetricCall?.entityLabel).toBe('Gram Panchayats')
+    expect(quantityMetricCall?.showAreaLine).toBe(true)
     expect(regularityMetricCall?.entityLabel).toBe('Gram Panchayats')
     expect(quantityMetricCall?.data).toEqual(quantityPerformanceData)
     expect(regularityMetricCall?.data).toEqual(regularityPerformanceData)

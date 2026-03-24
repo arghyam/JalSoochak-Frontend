@@ -194,6 +194,7 @@ describe('DistrictDashboardScreen', () => {
     expect(metricCalls).toHaveLength(2)
     expect(metricCalls[0]?.[0].metric).toBe('quantity')
     expect(metricCalls[1]?.[0].metric).toBe('regularity')
+    expect(metricCalls[0]?.[0].showAreaLine).toBe(true)
     expect(metricCalls[0]?.[0].entityLabel).toBe('Blocks')
     expect(metricCalls[1]?.[0].entityLabel).toBe('Blocks')
     expect(mockMonthlyTrendChart).not.toHaveBeenCalled()

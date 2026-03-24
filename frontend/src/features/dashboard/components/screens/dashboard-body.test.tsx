@@ -256,7 +256,7 @@ describe('DashboardBody', () => {
 
     expect(metricChartCalls).toHaveLength(2)
     expect(metricChartCalls[0][0].data).toEqual(mockEntityData)
-    expect(metricChartCalls[0][0].showAreaLine).toBeUndefined()
+    expect(metricChartCalls[0][0].showAreaLine).toBe(true)
     expect(metricChartCalls[1][0].data).toEqual(mockEntityData)
     expect(metricChartCalls[1][0].showAreaLine).toBeUndefined()
     expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
@@ -349,13 +349,14 @@ describe('DashboardBody', () => {
     })
 
     const metricChartCalls = mockMetricPerformanceChart.mock.calls as Array<
-      [{ data: EntityPerformance[]; entityLabel?: string }]
+      [{ data: EntityPerformance[]; entityLabel?: string; showAreaLine?: boolean }]
     >
 
     expect(metricChartCalls).toHaveLength(2)
     expect(metricChartCalls[0][0].data[0]?.name).toBe('District A')
     expect(metricChartCalls[1][0].data[0]?.name).toBe('District A')
     expect(metricChartCalls[0][0].entityLabel).toBe('Districts')
+    expect(metricChartCalls[0][0].showAreaLine).toBe(true)
     expect(metricChartCalls[1][0].entityLabel).toBe('Districts')
   })
 
