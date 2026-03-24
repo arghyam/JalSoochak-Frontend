@@ -112,7 +112,7 @@ const mapLocationOptions = (locations: TenantChildLocation[] | undefined): Locat
       return []
     }
 
-    const locationId = location.id as number
+    const locationId = location.id
     return {
       value: toStableLocationValue(locationId, normalizedTitle),
       label: normalizedTitle,
