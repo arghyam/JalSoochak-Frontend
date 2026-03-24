@@ -29,6 +29,7 @@ export const stateAdminQueryKeys = {
   departmentEditConstraints: () =>
     [...stateAdminQueryKeys.all, 'department-edit-constraints'] as const,
   configStatus: () => [...stateAdminQueryKeys.all, 'config-status'] as const,
+  logo: () => [...stateAdminQueryKeys.all, 'logo'] as const,
   staffCounts: () => [...stateAdminQueryKeys.all, 'staff-counts'] as const,
   schemeCounts: (tenantCode: string) =>
     [...stateAdminQueryKeys.all, 'scheme-counts', tenantCode] as const,

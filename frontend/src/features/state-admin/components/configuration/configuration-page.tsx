@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import {
   Box,
   Text,
@@ -14,6 +14,8 @@ import {
   Radio,
   Input,
   SimpleGrid,
+  FormControl,
+  FormErrorMessage,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
@@ -22,7 +24,9 @@ import { useToast } from '@/shared/hooks/use-toast'
 import { ToastContainer } from '@/shared/components/common'
 import {
   useConfigurationQuery,
+  useLogoQuery,
   useSaveConfigurationMutation,
+  useUpdateLogoMutation,
 } from '../../services/query/use-state-admin-queries'
 import {
   DEFAULT_METER_CHANGE_REASONS,
@@ -31,6 +35,7 @@ import {
   type SupportedChannel,
 } from '../../types/configuration'
 import { MeterChangeReasonsSection } from './meter-change-reasons-section'
+import { validateDescriptiveField, hasDuplicates } from '@/shared/utils/validation'
 
 interface ConfigDraft {
   supportedChannels: SupportedChannel[]
@@ -43,19 +48,21 @@ interface ConfigDraft {
   averageMembersPerHousehold: number
 }
 
-function buildInitialDraft(config?: {
-  supportedChannels: SupportedChannel[]
+function buildInitialDraft(
+  config?: {
+    supportedChannels: SupportedChannel[]
+    meterChangeReasons: MeterChangeReason[]
+    locationCheckRequired: boolean
+    dataConsolidationTime: string
+    pumpOperatorReminderNudgeTime: string
+    averageMembersPerHousehold: number
+  },
   logoUrl?: string
-  meterChangeReasons: MeterChangeReason[]
-  locationCheckRequired: boolean
-  dataConsolidationTime: string
-  pumpOperatorReminderNudgeTime: string
-  averageMembersPerHousehold: number
-}): ConfigDraft {
+): ConfigDraft {
   return {
     supportedChannels: config ? [...config.supportedChannels] : [],
     logoFile: null,
-    logoUrl: config?.logoUrl,
+    logoUrl,
     meterChangeReasons: config
       ? config.meterChangeReasons.map((r) => ({ ...r }))
       : DEFAULT_METER_CHANGE_REASONS.map((r) => ({ ...r })),
@@ -69,10 +76,29 @@ function buildInitialDraft(config?: {
 export function ConfigurationPage() {
   const { t } = useTranslation(['state-admin', 'common'])
   const { data: config, isLoading, isError } = useConfigurationQuery()
+  const {
+    data: logoBlobData,
+    isLoading: isLogoLoading,
+    isError: isLogoError,
+    error: logoError,
+  } = useLogoQuery()
+
+  const logoObjectUrl = useMemo(() => {
+    if (logoBlobData instanceof Blob) return URL.createObjectURL(logoBlobData)
+    return null
+  }, [logoBlobData])
+
+  useEffect(() => {
+    return () => {
+      if (logoObjectUrl) URL.revokeObjectURL(logoObjectUrl)
+    }
+  }, [logoObjectUrl])
   const saveMutation = useSaveConfigurationMutation()
+  const updateLogoMutation = useUpdateLogoMutation()
   const [isEditing, setIsEditing] = useState(false)
   const [draft, setDraft] = useState<ConfigDraft | null>(null)
   const [avgMembersStr, setAvgMembersStr] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const toast = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -83,7 +109,7 @@ export function ConfigurationPage() {
   const effectiveIsEditing = isEditing || Boolean(config && !config.isConfigured)
 
   const handleEdit = () => {
-    const initial = buildInitialDraft(config)
+    const initial = buildInitialDraft(config, logoObjectUrl ?? undefined)
     setDraft(initial)
     setIsEditing(true)
     setAvgMembersStr(
@@ -91,29 +117,81 @@ export function ConfigurationPage() {
     )
   }
 
+  const clearError = (field: string) => {
+    setErrors((prev) => {
+      if (!prev[field]) return prev
+      const next = { ...prev }
+      delete next[field]
+      return next
+    })
+  }
+
   const handleCancel = () => {
     setDraft(null)
     setIsEditing(false)
     setAvgMembersStr('')
+    setErrors({})
+  }
+
+  const validateForm = (current: ConfigDraft): boolean => {
+    const newErrors: Record<string, string> = {}
+
+    // Supported channels
+    if (current.supportedChannels.length === 0) {
+      newErrors.supportedChannels = t('state-admin:validation.selectAtLeastOne')
+    }
+
+    // Meter change reasons
+    const nonEmptyReasonNames: string[] = []
+    current.meterChangeReasons.forEach((reason) => {
+      const error = validateDescriptiveField(reason.name)
+      if (error) {
+        newErrors[`meterReason.${reason.id}`] = t(`state-admin:validation.${error}`)
+      } else {
+        nonEmptyReasonNames.push(reason.name)
+      }
+    })
+    if (hasDuplicates(nonEmptyReasonNames)) {
+      const seen = new Set<string>()
+      current.meterChangeReasons.forEach((reason) => {
+        const normalized = reason.name.trim().toLowerCase()
+        if (!normalized) return
+        if (seen.has(normalized) && !newErrors[`meterReason.${reason.id}`]) {
+          newErrors[`meterReason.${reason.id}`] = t('state-admin:validation.duplicateValue')
+        }
+        seen.add(normalized)
+      })
+    }
+
+    // Time fields
+    if (!current.dataConsolidationTime) {
+      newErrors.dataConsolidationTime = t('state-admin:validation.timeRequired')
+    }
+    if (!current.pumpOperatorReminderNudgeTime) {
+      newErrors.pumpOperatorReminderNudgeTime = t('state-admin:validation.timeRequired')
+    }
+
+    // Average members
+    if (!current.averageMembersPerHousehold || current.averageMembersPerHousehold <= 0) {
+      newErrors.averageMembersPerHousehold = t('state-admin:validation.mustBePositive')
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
   }
 
   const handleSave = async () => {
-    const current = draft ?? buildInitialDraft(config ?? undefined)
+    const current = draft ?? buildInitialDraft(config ?? undefined, logoObjectUrl ?? undefined)
 
-    if (current.supportedChannels.length === 0) {
-      toast.addToast(t('configuration.messages.validation.channelRequired'), 'error')
-      return
-    }
+    if (!validateForm(current)) return
 
     try {
-      let logoUrl = current.logoUrl
       if (current.logoFile) {
-        logoUrl = await fileToBase64(current.logoFile)
+        await updateLogoMutation.mutateAsync(current.logoFile)
       }
 
       await saveMutation.mutateAsync({
         supportedChannels: current.supportedChannels,
-        logoUrl,
         meterChangeReasons: current.meterChangeReasons,
         locationCheckRequired: current.locationCheckRequired,
         dataConsolidationTime: current.dataConsolidationTime,
@@ -124,6 +202,7 @@ export function ConfigurationPage() {
       setDraft(null)
       setIsEditing(false)
       setAvgMembersStr('')
+      setErrors({})
       toast.addToast(t('configuration.messages.saveSuccess'), 'success')
     } catch {
       toast.addToast(t('configuration.messages.saveFailed'), 'error')
@@ -132,9 +211,10 @@ export function ConfigurationPage() {
 
   const handleChannelChange = (values: string[]) => {
     setDraft((prev) => ({
-      ...(prev ?? buildInitialDraft(config)),
+      ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
       supportedChannels: values as SupportedChannel[],
     }))
+    clearError('supportedChannels')
   }
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -142,11 +222,22 @@ export function ConfigurationPage() {
     if (!file) return
     const MAX_LOGO_SIZE = 2 * 1024 * 1024 // 2MB
     if (file.size > MAX_LOGO_SIZE) {
-      toast.addToast(t('configuration.messages.validation.logoTooLarge'), 'error')
+      setErrors((prev) => ({ ...prev, logo: t('configuration.messages.validation.logoTooLarge') }))
+      if (fileInputRef.current) fileInputRef.current.value = ''
       return
     }
+    const ALLOWED_TYPES = ['image/png', 'image/jpeg']
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setErrors((prev) => ({
+        ...prev,
+        logo: t('configuration.messages.validation.logoInvalidType'),
+      }))
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+    clearError('logo')
     setDraft((prev) => ({
-      ...(prev ?? buildInitialDraft(config)),
+      ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
       logoFile: file,
       logoUrl: URL.createObjectURL(file),
     }))
@@ -177,7 +268,7 @@ export function ConfigurationPage() {
     )
   }
 
-  const activeDraft = draft ?? buildInitialDraft(config)
+  const activeDraft = draft ?? buildInitialDraft(config, logoObjectUrl ?? undefined)
 
   const displayAvgStr =
     avgMembersStr !== '' || effectiveIsEditing
@@ -241,7 +332,17 @@ export function ConfigurationPage() {
 
           {/* View Mode */}
           {!effectiveIsEditing && config.isConfigured ? (
-            <ViewMode config={config} t={t} />
+            <ViewMode
+              config={config}
+              logoUrl={logoObjectUrl ?? undefined}
+              isLogoLoading={isLogoLoading}
+              isLogoError={isLogoError}
+              notFound={
+                (logoError as { status?: number } | null)?.status === 404 ||
+                (logoError as { response?: { status?: number } } | null)?.response?.status === 404
+              }
+              t={t}
+            />
           ) : (
             /* Edit Mode */
             <Flex
@@ -256,7 +357,7 @@ export function ConfigurationPage() {
             >
               <VStack spacing={6} align="stretch">
                 {/* Supported Channels — 2-column vertical flow */}
-                <Box>
+                <FormControl isInvalid={!!errors.supportedChannels}>
                   <Text
                     fontSize={{ base: 'xs', md: 'sm' }}
                     fontWeight="medium"
@@ -293,15 +394,18 @@ export function ConfigurationPage() {
                       </VStack>
                     </SimpleGrid>
                   </CheckboxGroup>
-                </Box>
+                  <FormErrorMessage>{errors.supportedChannels}</FormErrorMessage>
+                </FormControl>
 
                 {/* 4. Meter Change Reasons */}
                 <MeterChangeReasonsSection
                   title={t('configuration.sections.meterChangeReasons.title')}
                   reasons={activeDraft.meterChangeReasons}
+                  errors={errors}
+                  onClearError={clearError}
                   onChange={(reasons) =>
                     setDraft((prev) => ({
-                      ...(prev ?? buildInitialDraft(config)),
+                      ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
                       meterChangeReasons: reasons,
                     }))
                   }
@@ -323,7 +427,7 @@ export function ConfigurationPage() {
                       value={activeDraft.locationCheckRequired ? 'yes' : 'no'}
                       onChange={(val) =>
                         setDraft((prev) => ({
-                          ...(prev ?? buildInitialDraft(config)),
+                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
                           locationCheckRequired: val === 'yes',
                         }))
                       }
@@ -344,7 +448,7 @@ export function ConfigurationPage() {
                   </Box>
 
                   {/* Logo */}
-                  <Box>
+                  <FormControl isInvalid={!!errors.logo}>
                     <Text
                       fontSize={{ base: 'xs', md: 'sm' }}
                       fontWeight="medium"
@@ -389,12 +493,13 @@ export function ConfigurationPage() {
                         {t('configuration.sections.logo.hint')}
                       </Text>
                     </HStack>
-                  </Box>
+                    <FormErrorMessage>{errors.logo}</FormErrorMessage>
+                  </FormControl>
                 </SimpleGrid>
 
                 {/* 6. Data Consolidation Time + Pump Operator Reminder Nudge Time */}
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                  <Box>
+                  <FormControl isInvalid={!!errors.dataConsolidationTime}>
                     <Text
                       as="label"
                       htmlFor="data-consolidation-time"
@@ -410,12 +515,13 @@ export function ConfigurationPage() {
                       id="data-consolidation-time"
                       type="time"
                       value={activeDraft.dataConsolidationTime}
-                      onChange={(e) =>
+                      onChange={(e) => {
                         setDraft((prev) => ({
-                          ...(prev ?? buildInitialDraft(config)),
+                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
                           dataConsolidationTime: e.target.value,
                         }))
-                      }
+                        clearError('dataConsolidationTime')
+                      }}
                       h="36px"
                       w={{ base: 'full', xl: '486px' }}
                       fontSize="sm"
@@ -424,8 +530,9 @@ export function ConfigurationPage() {
                       _hover={{ borderColor: 'neutral.400' }}
                       _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
                     />
-                  </Box>
-                  <Box>
+                    <FormErrorMessage>{errors.dataConsolidationTime}</FormErrorMessage>
+                  </FormControl>
+                  <FormControl isInvalid={!!errors.pumpOperatorReminderNudgeTime}>
                     <Text
                       as="label"
                       htmlFor="pump-operator-nudge-time"
@@ -441,12 +548,13 @@ export function ConfigurationPage() {
                       id="pump-operator-nudge-time"
                       type="time"
                       value={activeDraft.pumpOperatorReminderNudgeTime}
-                      onChange={(e) =>
+                      onChange={(e) => {
                         setDraft((prev) => ({
-                          ...(prev ?? buildInitialDraft(config)),
+                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
                           pumpOperatorReminderNudgeTime: e.target.value,
                         }))
-                      }
+                        clearError('pumpOperatorReminderNudgeTime')
+                      }}
                       h="36px"
                       w={{ base: 'full', xl: '486px' }}
                       fontSize="sm"
@@ -455,12 +563,13 @@ export function ConfigurationPage() {
                       _hover={{ borderColor: 'neutral.400' }}
                       _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
                     />
-                  </Box>
+                    <FormErrorMessage>{errors.pumpOperatorReminderNudgeTime}</FormErrorMessage>
+                  </FormControl>
                 </SimpleGrid>
 
                 {/* 7. Average Members Per Household */}
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                  <Box>
+                  <FormControl isInvalid={!!errors.averageMembersPerHousehold}>
                     <Text
                       as="label"
                       htmlFor="avg-members"
@@ -481,9 +590,10 @@ export function ConfigurationPage() {
                       onChange={(e) => {
                         const raw = e.target.value
                         setAvgMembersStr(raw)
+                        clearError('averageMembersPerHousehold')
                         if (raw.trim() === '') {
                           setDraft((prev) => ({
-                            ...(prev ?? buildInitialDraft(config)),
+                            ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
                             averageMembersPerHousehold: 0,
                           }))
                           return
@@ -491,7 +601,7 @@ export function ConfigurationPage() {
                         const parsed = Number(raw)
                         if (!Number.isFinite(parsed) || parsed < 0) return
                         setDraft((prev) => ({
-                          ...(prev ?? buildInitialDraft(config)),
+                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
                           averageMembersPerHousehold: parsed,
                         }))
                       }}
@@ -504,7 +614,8 @@ export function ConfigurationPage() {
                       _hover={{ borderColor: 'neutral.400' }}
                       _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
                     />
-                  </Box>
+                    <FormErrorMessage>{errors.averageMembersPerHousehold}</FormErrorMessage>
+                  </FormControl>
                 </SimpleGrid>
               </VStack>
 
@@ -520,7 +631,7 @@ export function ConfigurationPage() {
                   size="md"
                   width={{ base: 'full', sm: '174px' }}
                   onClick={handleCancel}
-                  isDisabled={saveMutation.isPending}
+                  isDisabled={saveMutation.isPending || updateLogoMutation.isPending}
                 >
                   {t('common:button.cancel')}
                 </Button>
@@ -529,7 +640,7 @@ export function ConfigurationPage() {
                   size="md"
                   width={{ base: 'full', sm: '174px' }}
                   onClick={handleSave}
-                  isLoading={saveMutation.isPending}
+                  isLoading={saveMutation.isPending || updateLogoMutation.isPending}
                 >
                   {config.isConfigured ? t('common:button.saveChanges') : t('common:button.save')}
                 </Button>
@@ -577,9 +688,17 @@ function ViewSection({ title, children }: { title: string; children: React.React
 
 function ViewMode({
   config,
+  logoUrl,
+  isLogoLoading,
+  isLogoError,
+  notFound,
   t,
 }: {
   config: NonNullable<ReturnType<typeof useConfigurationQuery>['data']>
+  logoUrl: string | undefined
+  isLogoLoading: boolean
+  isLogoError: boolean
+  notFound: boolean
   t: ReturnType<typeof useTranslation<['state-admin', 'common']>>['t']
 }) {
   return (
@@ -620,10 +739,16 @@ function ViewMode({
           color="neutral.950"
         />
         <ViewSection title={t('configuration.sections.logo.title')}>
-          {config.logoUrl ? (
+          {isLogoLoading ? (
+            <Spinner size="sm" color="primary.500" aria-label="Loading logo" />
+          ) : isLogoError && !notFound ? (
+            <Text fontSize="sm" color="error.500">
+              {t('common:toast.failedToLoad')}
+            </Text>
+          ) : logoUrl ? (
             <Box
               as="img"
-              src={config.logoUrl}
+              src={logoUrl}
               alt={t('configuration.sections.logo.currentLogo')}
               h="48px"
               objectFit="contain"
@@ -662,15 +787,4 @@ function ViewMode({
       </SimpleGrid>
     </VStack>
   )
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
 }

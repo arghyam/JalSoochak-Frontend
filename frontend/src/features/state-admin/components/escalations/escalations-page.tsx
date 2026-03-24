@@ -11,6 +11,8 @@ import {
   Spinner,
   Stack,
   useBreakpointValue,
+  FormControl,
+  FormErrorMessage,
 } from '@chakra-ui/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { FiEdit } from 'react-icons/fi'
@@ -58,6 +60,16 @@ export function EscalationsPage() {
   ])
 
   const toast = useToast()
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const clearError = (field: string) => {
+    setErrors((prev) => {
+      if (!prev[field]) return prev
+      const next = { ...prev }
+      delete next[field]
+      return next
+    })
+  }
 
   useEffect(() => {
     document.title = `${t('escalations.title')} | JalSoochak`
@@ -130,21 +142,31 @@ export function EscalationsPage() {
         escalateAfterHours: 0,
       },
     ])
+    setErrors({})
+  }
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {}
+
+    if (!alertType) {
+      newErrors.alertType = t('state-admin:validation.selectAlertType')
+    }
+
+    levels.forEach((level, i) => {
+      if (!level.targetRole) {
+        newErrors[`levels.${i}.targetRole`] = t('state-admin:validation.selectRole')
+      }
+      if (level.escalateAfterHours <= 0) {
+        newErrors[`levels.${i}.escalateAfterHours`] = t('state-admin:validation.mustBePositive')
+      }
+    })
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
   }
 
   const handleSave = async () => {
-    if (!alertType) {
-      toast.addToast(t('escalations.messages.selectAlertType'), 'error')
-      return
-    }
-
-    // Validate levels
-    for (const level of levels) {
-      if (!level.targetRole || level.escalateAfterHours <= 0) {
-        toast.addToast(t('escalations.messages.invalidLevels'), 'error')
-        return
-      }
-    }
+    if (!validateForm()) return
 
     try {
       if (viewMode === 'add') {
@@ -159,6 +181,7 @@ export function EscalationsPage() {
       }
       setViewMode('list')
       setEditingId(null)
+      setErrors({})
     } catch (error) {
       console.error('Failed to save escalation:', error)
       toast.addToast(t('escalations.messages.failedToSave'), 'error')
@@ -166,12 +189,21 @@ export function EscalationsPage() {
   }
 
   const handleAddLevel = () => {
-    const hasUnfilledLevel = levels.some(
-      (level) => !level.targetRole || level.escalateAfterHours <= 0
-    )
+    const newErrors: Record<string, string> = {}
+    let hasUnfilled = false
+    levels.forEach((level, i) => {
+      if (!level.targetRole) {
+        newErrors[`levels.${i}.targetRole`] = t('state-admin:validation.selectRole')
+        hasUnfilled = true
+      }
+      if (level.escalateAfterHours <= 0) {
+        newErrors[`levels.${i}.escalateAfterHours`] = t('state-admin:validation.mustBePositive')
+        hasUnfilled = true
+      }
+    })
 
-    if (hasUnfilledLevel) {
-      toast.addToast(t('escalations.messages.fillExisting'), 'error')
+    if (hasUnfilled) {
+      setErrors((prev) => ({ ...prev, ...newErrors }))
       return
     }
 
@@ -195,6 +227,8 @@ export function EscalationsPage() {
 
   const handleLevelChange = (id: string, field: keyof EscalationLevel, value: string | number) => {
     setLevels(levels.map((level) => (level.id === id ? { ...level, [field]: value } : level)))
+    const index = levels.findIndex((l) => l.id === id)
+    if (index >= 0) clearError(`levels.${index}.${field}`)
   }
 
   const getRoleLabel = (value: string) => {
@@ -453,7 +487,7 @@ export function EscalationsPage() {
             </Flex>
 
             {/* Alert Type Selection */}
-            <Box>
+            <FormControl isInvalid={!!errors.alertType}>
               <Text
                 as="label"
                 fontSize={{ base: 'xs', md: 'sm' }}
@@ -470,12 +504,16 @@ export function EscalationsPage() {
               <SearchableSelect
                 options={AVAILABLE_ALERT_TYPES}
                 value={alertType}
-                onChange={setAlertType}
+                onChange={(val) => {
+                  setAlertType(val)
+                  clearError('alertType')
+                }}
                 placeholder={t('common:select')}
                 width={{ base: '100%', lg: '350px', xl: '486px' }}
                 ariaLabel={t('escalations.aria.selectAlertType')}
               />
-            </Box>
+              <FormErrorMessage>{errors.alertType}</FormErrorMessage>
+            </FormControl>
 
             {/* Escalation Levels */}
             <Flex
@@ -501,25 +539,30 @@ export function EscalationsPage() {
                 </Text>
                 <Stack spacing={3}>
                   {levels.map((level, index) => (
-                    <Flex key={level.id} gap={3} align="center" direction="row">
-                      <Text
-                        fontSize={{ base: 'xs', md: 'sm' }}
-                        fontWeight="medium"
-                        color="neutral.950"
-                        whiteSpace="nowrap"
-                        w={{ base: 'auto' }}
-                      >
-                        {t('escalations.level', { number: index + 1 })}
-                      </Text>
-                      <SearchableSelect
-                        options={AVAILABLE_ROLES}
-                        value={level.targetRole}
-                        onChange={(value) => handleLevelChange(level.id, 'targetRole', value)}
-                        placeholder={t('common:select')}
-                        width={{ base: '100%', lg: '294px', xl: '430px' }}
-                        ariaLabel={t('escalations.aria.selectRole', { number: index + 1 })}
-                      />
-                    </Flex>
+                    <FormControl key={level.id} isInvalid={!!errors[`levels.${index}.targetRole`]}>
+                      <Flex gap={3} align="center" direction="row">
+                        <Text
+                          fontSize={{ base: 'xs', md: 'sm' }}
+                          fontWeight="medium"
+                          color="neutral.950"
+                          whiteSpace="nowrap"
+                          w={{ base: 'auto' }}
+                        >
+                          {t('escalations.level', { number: index + 1 })}
+                        </Text>
+                        <SearchableSelect
+                          options={AVAILABLE_ROLES}
+                          value={level.targetRole}
+                          onChange={(value) => handleLevelChange(level.id, 'targetRole', value)}
+                          placeholder={t('common:select')}
+                          width={{ base: '100%', lg: '294px', xl: '430px' }}
+                          ariaLabel={t('escalations.aria.selectRole', { number: index + 1 })}
+                        />
+                      </Flex>
+                      <FormErrorMessage ml="68px">
+                        {errors[`levels.${index}.targetRole`]}
+                      </FormErrorMessage>
+                    </FormControl>
                   ))}
                   <Button
                     variant="secondary"
@@ -555,33 +598,41 @@ export function EscalationsPage() {
                 </Text>
                 <Stack spacing={3}>
                   {levels.map((level, index) => (
-                    <Flex key={level.id} gap={2} align="center">
-                      <SearchableSelect
-                        options={AVAILABLE_HOURS}
-                        value={String(level.escalateAfterHours)}
-                        onChange={(value) =>
-                          handleLevelChange(level.id, 'escalateAfterHours', Number(value))
-                        }
-                        placeholder={t('common:select')}
-                        width={{ base: '100%', lg: '294px', xl: '486px' }}
-                        ariaLabel={t('escalations.aria.selectHours', { number: index + 1 })}
-                      />
-                      {levels.length > 1 && (
-                        <IconButton
-                          aria-label={t('escalations.aria.deleteLevel', {
-                            number: index + 1,
-                          })}
-                          icon={<MdDeleteOutline size={24} aria-hidden="true" />}
-                          variant="ghost"
-                          size="sm"
-                          color="neutral.400"
-                          onClick={() => handleRemoveLevel(level.id)}
-                          h="36px"
-                          minW="36px"
-                          _hover={{ bg: 'error.50', color: 'error.500' }}
+                    <FormControl
+                      key={level.id}
+                      isInvalid={!!errors[`levels.${index}.escalateAfterHours`]}
+                    >
+                      <Flex gap={2} align="center">
+                        <SearchableSelect
+                          options={AVAILABLE_HOURS}
+                          value={String(level.escalateAfterHours)}
+                          onChange={(value) =>
+                            handleLevelChange(level.id, 'escalateAfterHours', Number(value))
+                          }
+                          placeholder={t('common:select')}
+                          width={{ base: '100%', lg: '294px', xl: '486px' }}
+                          ariaLabel={t('escalations.aria.selectHours', { number: index + 1 })}
                         />
-                      )}
-                    </Flex>
+                        {levels.length > 1 && (
+                          <IconButton
+                            aria-label={t('escalations.aria.deleteLevel', {
+                              number: index + 1,
+                            })}
+                            icon={<MdDeleteOutline size={24} aria-hidden="true" />}
+                            variant="ghost"
+                            size="sm"
+                            color="neutral.400"
+                            onClick={() => handleRemoveLevel(level.id)}
+                            h="36px"
+                            minW="36px"
+                            _hover={{ bg: 'error.50', color: 'error.500' }}
+                          />
+                        )}
+                      </Flex>
+                      <FormErrorMessage>
+                        {errors[`levels.${index}.escalateAfterHours`]}
+                      </FormErrorMessage>
+                    </FormControl>
                   ))}
                 </Stack>
               </Box>

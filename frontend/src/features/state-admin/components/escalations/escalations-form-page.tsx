@@ -12,6 +12,8 @@ import {
   IconButton,
   SimpleGrid,
   Stack,
+  FormControl,
+  FormErrorMessage,
 } from '@chakra-ui/react'
 import { EditIcon } from '@chakra-ui/icons'
 import { MdDeleteOutline } from 'react-icons/md'
@@ -67,6 +69,7 @@ export function EscalationsFormPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [scheduleDraft, setScheduleDraft] = useState<string | null>(null)
   const [levelsDraft, setLevelsDraft] = useState<LevelDraft[] | null>(null)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     document.title = `${t('escalations.title')} | JalSoochak`
@@ -86,16 +89,38 @@ export function EscalationsFormPage() {
     setIsEditing(true)
   }
 
+  const clearError = (field: string) => {
+    setErrors((prev) => {
+      if (!prev[field]) return prev
+      const next = { ...prev }
+      delete next[field]
+      return next
+    })
+  }
+
   const handleCancel = () => {
     setScheduleDraft(null)
     setLevelsDraft(null)
     setIsEditing(false)
+    setErrors({})
   }
 
   const handleAddLevel = () => {
-    const hasUnfilled = activeLevels.some((l) => !l.userType || !l.days || Number(l.days) < 1)
+    // Set inline errors on unfilled levels instead of toast
+    let hasUnfilled = false
+    const newErrors: Record<string, string> = {}
+    activeLevels.forEach((l, i) => {
+      if (!l.userType) {
+        newErrors[`levels.${i}.userType`] = t('state-admin:validation.selectRole')
+        hasUnfilled = true
+      }
+      if (!l.days || Number(l.days) < 1) {
+        newErrors[`levels.${i}.days`] = t('state-admin:validation.daysMinimum')
+        hasUnfilled = true
+      }
+    })
     if (hasUnfilled) {
-      toast.addToast(t('escalations.messages.fillExistingRules'), 'error')
+      setErrors((prev) => ({ ...prev, ...newErrors }))
       return
     }
     setLevelsDraft([...activeLevels, { key: `level-new-${Date.now()}`, days: '', userType: '' }])
@@ -107,15 +132,32 @@ export function EscalationsFormPage() {
 
   const handleLevelChange = (key: string, field: 'days' | 'userType', value: string) => {
     setLevelsDraft(activeLevels.map((l) => (l.key === key ? { ...l, [field]: value } : l)))
+    const index = activeLevels.findIndex((l) => l.key === key)
+    if (index >= 0) clearError(`levels.${index}.${field}`)
+  }
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {}
+
+    if (!activeSchedule) {
+      newErrors.scheduleTime = t('state-admin:validation.timeRequired')
+    }
+
+    activeLevels.forEach((level, i) => {
+      if (!level.userType) {
+        newErrors[`levels.${i}.userType`] = t('state-admin:validation.selectRole')
+      }
+      if (!level.days || Number(level.days) < 1) {
+        newErrors[`levels.${i}.days`] = t('state-admin:validation.daysMinimum')
+      }
+    })
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
   }
 
   const handleSave = async () => {
-    for (const level of activeLevels) {
-      if (!level.userType || !level.days || Number(level.days) < 1) {
-        toast.addToast(t('escalations.messages.invalidRulesDays'), 'error')
-        return
-      }
-    }
+    if (!validateForm()) return
 
     const schedule = parseTime(activeSchedule)
 
@@ -130,6 +172,7 @@ export function EscalationsFormPage() {
       setScheduleDraft(null)
       setLevelsDraft(null)
       setIsEditing(false)
+      setErrors({})
       toast.addToast(t('escalations.messages.rulesSaveSuccess'), 'success')
     } catch {
       toast.addToast(t('escalations.messages.rulesSaveFailed'), 'error')
@@ -228,7 +271,7 @@ export function EscalationsFormPage() {
             >
               <Flex direction="column" gap={3}>
                 {/* Schedule Time */}
-                <Box>
+                <FormControl isInvalid={!!errors.scheduleTime}>
                   <Text
                     as="label"
                     htmlFor="escalation-schedule-time"
@@ -244,7 +287,10 @@ export function EscalationsFormPage() {
                     id="escalation-schedule-time"
                     type="time"
                     value={activeSchedule}
-                    onChange={(e) => setScheduleDraft(e.target.value)}
+                    onChange={(e) => {
+                      setScheduleDraft(e.target.value)
+                      clearError('scheduleTime')
+                    }}
                     h="36px"
                     w={{ base: '100%', lg: '350px', xl: '486px' }}
                     fontSize="sm"
@@ -253,7 +299,8 @@ export function EscalationsFormPage() {
                     _hover={{ borderColor: 'neutral.400' }}
                     _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
                   />
-                </Box>
+                  <FormErrorMessage>{errors.scheduleTime}</FormErrorMessage>
+                </FormControl>
 
                 {/* Levels — two-column layout */}
                 <Flex
@@ -279,24 +326,32 @@ export function EscalationsFormPage() {
                     </Text>
                     <Stack spacing={3}>
                       {activeLevels.map((level, index) => (
-                        <Flex key={level.key} gap={3} align="center" direction="row">
-                          <Text
-                            fontSize={{ base: 'xs', md: 'sm' }}
-                            fontWeight="medium"
-                            color="neutral.950"
-                            whiteSpace="nowrap"
-                          >
-                            {t('escalations.level', { number: index + 1 })}
-                          </Text>
-                          <SearchableSelect
-                            options={ROLE_OPTIONS}
-                            value={level.userType}
-                            width={{ base: '100%', lg: '294px', xl: '430px' }}
-                            onChange={(val) => handleLevelChange(level.key, 'userType', val)}
-                            placeholder={t('common:select')}
-                            ariaLabel={t('escalations.aria.selectRole', { number: index + 1 })}
-                          />
-                        </Flex>
+                        <FormControl
+                          key={level.key}
+                          isInvalid={!!errors[`levels.${index}.userType`]}
+                        >
+                          <Flex gap={3} align="center" direction="row">
+                            <Text
+                              fontSize={{ base: 'xs', md: 'sm' }}
+                              fontWeight="medium"
+                              color="neutral.950"
+                              whiteSpace="nowrap"
+                            >
+                              {t('escalations.level', { number: index + 1 })}
+                            </Text>
+                            <SearchableSelect
+                              options={ROLE_OPTIONS}
+                              value={level.userType}
+                              width={{ base: '100%', lg: '294px', xl: '430px' }}
+                              onChange={(val) => handleLevelChange(level.key, 'userType', val)}
+                              placeholder={t('common:select')}
+                              ariaLabel={t('escalations.aria.selectRole', { number: index + 1 })}
+                            />
+                          </Flex>
+                          <FormErrorMessage ml="68px">
+                            {errors[`levels.${index}.userType`]}
+                          </FormErrorMessage>
+                        </FormControl>
                       ))}
                       <Button
                         variant="secondary"
@@ -332,38 +387,41 @@ export function EscalationsFormPage() {
                     </Text>
                     <Stack spacing={3}>
                       {activeLevels.map((level, index) => (
-                        <Flex key={level.key} gap={2} align="center">
-                          <Input
-                            type="number"
-                            min="1"
-                            step="1"
-                            value={level.days}
-                            onChange={(e) => handleLevelChange(level.key, 'days', e.target.value)}
-                            aria-label={t('escalations.escalateAfterDays')}
-                            h="36px"
-                            w={{ base: '100%', lg: '294px', xl: '430px' }}
-                            fontSize="sm"
-                            borderColor="neutral.300"
-                            borderRadius="6px"
-                            _hover={{ borderColor: 'neutral.400' }}
-                            _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
-                          />
-                          {activeLevels.length > 1 && (
-                            <IconButton
-                              aria-label={t('escalations.aria.deleteLevel', {
-                                number: index + 1,
-                              })}
-                              icon={<MdDeleteOutline size={24} aria-hidden="true" />}
-                              variant="ghost"
-                              size="sm"
-                              color="neutral.400"
-                              onClick={() => handleRemoveLevel(level.key)}
+                        <FormControl key={level.key} isInvalid={!!errors[`levels.${index}.days`]}>
+                          <Flex gap={2} align="center">
+                            <Input
+                              type="number"
+                              min="1"
+                              step="1"
+                              value={level.days}
+                              onChange={(e) => handleLevelChange(level.key, 'days', e.target.value)}
+                              aria-label={t('escalations.escalateAfterDays')}
                               h="36px"
-                              minW="36px"
-                              _hover={{ bg: 'error.50', color: 'error.500' }}
+                              w={{ base: '100%', lg: '294px', xl: '430px' }}
+                              fontSize="sm"
+                              borderColor="neutral.300"
+                              borderRadius="6px"
+                              _hover={{ borderColor: 'neutral.400' }}
+                              _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
                             />
-                          )}
-                        </Flex>
+                            {activeLevels.length > 1 && (
+                              <IconButton
+                                aria-label={t('escalations.aria.deleteLevel', {
+                                  number: index + 1,
+                                })}
+                                icon={<MdDeleteOutline size={24} aria-hidden="true" />}
+                                variant="ghost"
+                                size="sm"
+                                color="neutral.400"
+                                onClick={() => handleRemoveLevel(level.key)}
+                                h="36px"
+                                minW="36px"
+                                _hover={{ bg: 'error.50', color: 'error.500' }}
+                              />
+                            )}
+                          </Flex>
+                          <FormErrorMessage>{errors[`levels.${index}.days`]}</FormErrorMessage>
+                        </FormControl>
                       ))}
                     </Stack>
                   </Box>

@@ -432,7 +432,8 @@
       "validation": {
         "channelRequired": "Select at least one supported channel",
         "hierarchyRequired": "All hierarchy level names are required",
-        "logoTooLarge": "Logo file must be 2 MB or smaller"
+        "logoTooLarge": "Logo file must be 2 MB or smaller",
+        "logoInvalidType": "Logo must be a PNG or JPG file"
       }
     }
   },
@@ -537,5 +538,29 @@
       "selectLanguage": "Select language for {{name}} template",
       "enterMessage": "Enter message for {{name}} template"
     }
+  },
+
+  "validation": {
+    "required": "This field is required",
+    "emptyOrWhitespace": "This field cannot be empty or contain only spaces",
+    "containsHtmlTags": "HTML tags are not allowed",
+    "containsSqlInjection": "Invalid characters detected",
+    "alphanumericOnly": "Only letters, numbers, and spaces are allowed",
+    "invalidUrl": "Please enter a valid URL starting with https://",
+    "noSpaces": "Spaces are not allowed",
+    "maxLength": "Must not exceed {{max}} characters",
+    "httpsOnce": "URL must start with https:// exactly once",
+    "duplicateValue": "This value already exists",
+    "mustBePositive": "Value must be greater than 0",
+    "mustBeInRange": "Value must be between {{min}} and {{max}}",
+    "selectAtLeastOne": "Select at least one option",
+    "fillPreviousFirst": "Please fill the previous entry before adding a new one",
+    "duplicateDistrict": "This district has already been added",
+    "duplicateLevelName": "Duplicate level names are not allowed",
+    "minLength": "Must be at least {{min}} characters",
+    "timeRequired": "Please select a time",
+    "daysMinimum": "Days must be at least 1",
+    "selectRole": "Please select a role",
+    "selectAlertType": "Please select an alert type"
   }
 }
