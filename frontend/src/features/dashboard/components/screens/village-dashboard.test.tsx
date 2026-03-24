@@ -193,7 +193,7 @@ describe('VillageDashboardScreen', () => {
     expect(metricCalls.length).toBeGreaterThanOrEqual(2)
     const latestMetricCalls = metricCalls.slice(-2)
     expect(latestMetricCalls[0]?.[0].metric).toBe('quantity')
-    expect(latestMetricCalls[0]?.[0].showAreaLine).toBe(true)
+    expect(latestMetricCalls[0]?.[0].showAreaLine).toBeUndefined()
     expect(latestMetricCalls[0]?.[0].seriesName).toBe('Quantity')
     expect(latestMetricCalls[1]?.[0].metric).toBe('regularity')
     expect(latestMetricCalls[1]?.[0].seriesName).toBe('Regularity')
@@ -446,6 +446,50 @@ describe('VillageDashboardScreen', () => {
         readingValue: '103361.57',
       },
     ])
+  })
+
+  it('normalizes uppercase scheme labels in pump operator details', async () => {
+    mockUseReadingComplianceQuery.mockReturnValue({
+      data: {
+        status: 200,
+        message: 'Pump operators retrieved',
+        data: {
+          content: [
+            {
+              id: 6040,
+              uuid: 'uuid-sanjay',
+              name: 'Sanjay Das',
+              status: 'INACTIVE',
+              schemeId: 1461,
+              schemeName: 'BAMPARA PWSS',
+              reportingRatePercent: 9.09,
+              missingSubmissionCount: 10,
+              inactiveDays: 10,
+              readingAt: '2026-03-17T15:06:10.896445',
+              lastSubmissionAt: '2026-03-17T15:06:10.896445',
+              confirmedReading: 104958.72,
+            },
+          ],
+        },
+      },
+      isFetching: false,
+    })
+
+    renderWithProviders(
+      <VillageDashboardScreen
+        data={data}
+        villagePhotoEvidenceRows={[]}
+        waterSupplyOutagesData={waterSupplyOutagesData}
+        villagePumpOperatorDetails={secondVillagePumpOperatorDetails}
+        villagePumpOperators={[secondVillagePumpOperatorDetails]}
+        tenantCode="as"
+        schemeId={1461}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Bampara Pwss / 1461')).toBeTruthy()
+    })
   })
 
   it('uses by-scheme operator identities to avoid combining history across paginated operators', () => {

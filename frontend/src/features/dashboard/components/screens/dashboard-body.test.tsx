@@ -256,7 +256,7 @@ describe('DashboardBody', () => {
 
     expect(metricChartCalls).toHaveLength(2)
     expect(metricChartCalls[0][0].data).toEqual(mockEntityData)
-    expect(metricChartCalls[0][0].showAreaLine).toBe(true)
+    expect(metricChartCalls[0][0].showAreaLine).toBeUndefined()
     expect(metricChartCalls[1][0].data).toEqual(mockEntityData)
     expect(metricChartCalls[1][0].showAreaLine).toBeUndefined()
     expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
@@ -357,6 +357,35 @@ describe('DashboardBody', () => {
     expect(metricChartCalls[1][0].data[0]?.name).toBe('District A')
     expect(metricChartCalls[0][0].entityLabel).toBe('Districts')
     expect(metricChartCalls[1][0].entityLabel).toBe('Districts')
+  })
+
+  it('renders and switches the supply outage distribution selector on the state view', () => {
+    mockMonthlyTrendChart.mockClear()
+
+    renderDashboardBody({
+      isStateSelected: true,
+      isDistrictSelected: false,
+      isBlockSelected: false,
+      isGramPanchayatSelected: false,
+      selectedVillage: '',
+      data: {
+        ...mockDashboardData,
+        supplyOutageTrend: [{ period: 'FY25', value: 7 }],
+      },
+    })
+
+    const outageSelect = screen.getByRole('button', {
+      name: 'State supply outage distribution view by',
+    })
+
+    expect(outageSelect.textContent).toContain('Geography')
+    expect(screen.getByTestId('supply-outage-distribution-chart')).toBeTruthy()
+
+    fireEvent.click(outageSelect)
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
+
+    expect(mockMonthlyTrendChart).toHaveBeenCalledTimes(1)
+    expect(mockMonthlyTrendChart.mock.calls[0]?.[0].seriesName).toBe('Supply outage')
   })
 
   it('passes dashboard data to district screen as outage single source-of-truth', () => {

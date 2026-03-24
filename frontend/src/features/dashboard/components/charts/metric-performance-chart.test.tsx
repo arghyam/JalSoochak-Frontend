@@ -2,7 +2,7 @@ import { describe, expect, it, jest, beforeAll, afterAll, beforeEach } from '@je
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { EntityPerformance } from '../../types'
-import { MetricPerformanceChart } from './metric-performance-chart'
+import { formatMetricAxisLabel, MetricPerformanceChart } from './metric-performance-chart'
 
 const mockEChartsWrapper = jest.fn((_props: { option: unknown }) => (
   <div data-testid="echarts-wrapper" />
@@ -103,6 +103,13 @@ const chartData: EntityPerformance[] = [
 ]
 
 describe('MetricPerformanceChart', () => {
+  it('wraps long axis labels to two lines and truncates overflow', () => {
+    expect(formatMetricAxisLabel('Dadra and Nagar Haveli and Daman and Diu')).toBe(
+      'Dadra and\nNagar Havel...'
+    )
+    expect(formatMetricAxisLabel('Arunachal Pradesh')).toBe('Arunachal\nPradesh')
+  })
+
   it('renders area+bar legends when area line is enabled', () => {
     renderWithProviders(
       <MetricPerformanceChart
@@ -229,5 +236,40 @@ describe('MetricPerformanceChart', () => {
     expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;')
     expect(html).not.toContain('<img src=x onerror=alert(1)>')
     expect(html).not.toContain('<script>alert(1)</script>')
+  })
+
+  it('shows the full entity name in tooltip when axis labels are formatted', () => {
+    renderWithProviders(
+      <MetricPerformanceChart
+        data={[
+          {
+            ...chartData[0],
+            name: 'Dadra and Nagar Haveli and Daman and Diu',
+            quantity: 12,
+          },
+        ]}
+        metric="quantity"
+      />
+    )
+
+    const call = (
+      mockEChartsWrapper.mock.calls as Array<[{ option?: { tooltip?: { formatter?: unknown } } }]>
+    ).find(([props]) => typeof props.option?.tooltip?.formatter === 'function')
+
+    const formatter = call?.[0].option?.tooltip?.formatter as
+      | ((params: unknown) => string)
+      | undefined
+
+    const html = formatter?.([
+      {
+        axisValueLabel: 'Dadra and\nNagar Haveli...',
+        dataIndex: 0,
+        seriesName: 'Quantity',
+        value: 12,
+      },
+    ])
+
+    expect(html).toContain('Dadra and Nagar Haveli and Daman and Diu')
+    expect(html).not.toContain('Dadra and\nNagar Haveli...')
   })
 })

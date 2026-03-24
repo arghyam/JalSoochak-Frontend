@@ -16,6 +16,7 @@ import {
   calculateQuantityLpcd,
   getWaterSupplyKpis,
   mapOutageReasonsFromNationalDashboard,
+  mapSchemePerformanceToTable,
   mapReadingSubmissionStatusFromAnalytics,
   mapReadingSubmissionRateFromAnalytics,
   mapQuantityPerformanceFromAnalytics,
@@ -117,7 +118,7 @@ describe('dashboard formulas', () => {
         {
           lgdId: 100,
           departmentId: 0,
-          title: 'Region Alpha',
+          title: 'REGION ALPHA',
           totalHouseholdCount: 1000,
           totalFhtcCount: 500,
           totalWaterSuppliedLiters: 90_000_000,
@@ -130,10 +131,50 @@ describe('dashboard formulas', () => {
     expect(mapQuantityPerformanceFromAnalytics(response, fallbackData)).toEqual([
       {
         ...fallbackData[0],
+        name: 'Region Alpha',
+        coverage: 0,
         quantity: 3,
       },
     ])
   })
+
+  const fallbackData: EntityPerformance[] = [
+    {
+      id: 'alpha',
+      name: 'Region Alpha',
+      coverage: 72,
+      regularity: 65,
+      continuity: 0,
+      quantity: 0,
+      compositeScore: 68,
+      status: 'good',
+    },
+  ]
+
+  it.each([
+    ['response is undefined', undefined],
+    [
+      'response has childRegions: []',
+      {
+        tenantId: 16,
+        stateCode: 'TG',
+        parentLgdLevel: 1,
+        parentDepartmentLevel: 0,
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        schemeCount: 0,
+        childRegionCount: 0,
+        schemes: [],
+        childRegions: [],
+      } satisfies AverageWaterSupplyPerRegionResponse,
+    ],
+  ])(
+    'intentionally returns an empty array for quantity analytics when %s, even if fallback data exists',
+    (_, response) => {
+      expect(mapQuantityPerformanceFromAnalytics(response, fallbackData)).toEqual([])
+    }
+  )
 
   it('maps regularity analytics response into chart data with fallback metadata', () => {
     const fallbackData: EntityPerformance[] = [
@@ -165,7 +206,7 @@ describe('dashboard formulas', () => {
         {
           lgdId: 100,
           departmentId: 0,
-          title: 'Region Alpha',
+          title: 'REGION ALPHA',
           schemeCount: 3,
           totalSupplyDays: 45,
           averageRegularity: 0,
@@ -176,6 +217,7 @@ describe('dashboard formulas', () => {
     expect(mapRegularityPerformanceFromAnalytics(response, fallbackData)).toEqual([
       {
         ...fallbackData[0],
+        name: 'Region Alpha',
         regularity: 50,
       },
     ])
@@ -251,6 +293,110 @@ describe('dashboard formulas', () => {
         coverage: 3,
         quantity: 1200,
         regularity: 50,
+      },
+    ])
+  })
+
+  it('normalizes inconsistent API casing in overall performance names', () => {
+    const waterResponse: AverageWaterSupplyPerRegionResponse = {
+      tenantId: 18,
+      stateCode: 'AS',
+      parentLgdLevel: 1,
+      parentDepartmentLevel: 0,
+      startDate: '2026-03-01',
+      endDate: '2026-03-30',
+      daysInRange: 30,
+      schemeCount: 1,
+      childRegionCount: 1,
+      schemes: [],
+      childRegions: [
+        {
+          lgdId: 101,
+          departmentId: 0,
+          title: 'CHARAIDEO',
+          totalHouseholdCount: 100,
+          totalFhtcCount: 100,
+          totalWaterSuppliedLiters: 30_000_000,
+          schemeCount: 1,
+          avgWaterSupplyPerScheme: 0,
+        },
+      ],
+    }
+    const regularityResponse: AverageSchemeRegularityResponse = {
+      lgdId: 101,
+      parentDepartmentId: 0,
+      parentLgdLevel: 1,
+      parentDepartmentLevel: 0,
+      scope: 'child',
+      startDate: '2026-03-01',
+      endDate: '2026-03-30',
+      daysInRange: 30,
+      schemeCount: 1,
+      totalSupplyDays: 15,
+      averageRegularity: 0,
+      childRegionCount: 1,
+      childRegions: [
+        {
+          lgdId: 101,
+          departmentId: 0,
+          title: 'CHARAIDEO',
+          schemeCount: 1,
+          totalSupplyDays: 15,
+          averageRegularity: 0,
+        },
+      ],
+    }
+
+    expect(
+      mapOverallPerformanceFromAnalytics(waterResponse, regularityResponse, [], 5)[0]?.name
+    ).toBe('Charaideo')
+  })
+
+  it('normalizes inconsistent API casing in scheme performance table rows', () => {
+    expect(
+      mapSchemePerformanceToTable(
+        {
+          parentLgdId: 1,
+          parentDepartmentId: 0,
+          parentLgdCName: 'state',
+          parentDepartmentCName: '',
+          parentLgdTitle: 'Assam',
+          parentDepartmentTitle: '',
+          startDate: '2026-03-14',
+          endDate: '2026-03-14',
+          daysInRange: 1,
+          activeSchemeCount: 1,
+          inactiveSchemeCount: 0,
+          topSchemeCount: 1,
+          topSchemes: [
+            {
+              schemeId: 101,
+              schemeName: 'AICHARA PARA PWSS',
+              statusCode: 1,
+              status: 'Active',
+              submissionDays: 30,
+              reportingRate: 82,
+              totalWaterSupplied: 4500,
+              immediateParentLgdId: 11,
+              immediateParentLgdCName: 'village',
+              immediateParentLgdTitle: 'UTTAR PUB PAKA',
+              immediateParentDepartmentId: 12,
+              immediateParentDepartmentCName: 'block',
+              immediateParentDepartmentTitle: 'KALAIGAON',
+            },
+          ],
+        },
+        []
+      )
+    ).toEqual([
+      {
+        id: 'scheme-performance-101',
+        name: 'Aichara Para Pwss',
+        village: 'Uttar Pub Paka',
+        block: 'Kalaigaon',
+        reportingRate: 82,
+        photoCompliance: 0,
+        waterSupplied: 4500,
       },
     ])
   })
@@ -331,6 +477,13 @@ describe('dashboard formulas', () => {
     expect(mapOutageReasonsFromNationalDashboard(response, fallbackData)).toEqual([
       {
         label: 'Outages',
+        reasons: {
+          electrical_failure: 0,
+          pipeline_leak: 0,
+          pump_failure: 0,
+          valve_issue: 0,
+          source_drying: 0,
+        },
         electricityFailure: 0,
         pipelineLeak: 0,
         pumpFailure: 0,

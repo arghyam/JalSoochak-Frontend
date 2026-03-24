@@ -91,6 +91,7 @@ export interface VillagePumpOperatorDetails {
 
 export interface WaterSupplyOutageData {
   label: string
+  reasons?: Record<string, number>
   electricityFailure: number
   pipelineLeak: number
   pumpFailure: number

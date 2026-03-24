@@ -11,7 +11,7 @@ import type {
   SubmissionStatusResponse,
   WaterSupplyOutageData,
 } from '../types'
-import { slugify } from './format-location-label'
+import { slugify, toCapitalizedWords } from './format-location-label'
 
 const DEFAULT_DAYS_IN_RANGE = 30
 const MILLION_LITERS = 1_000_000
@@ -297,12 +297,17 @@ export const calculateAbsoluteChange = (currentValue: number, previousValue: num
 const mapFallbackByName = (fallbackData: EntityPerformance[]) =>
   new Map(fallbackData.map((item) => [slugify(item.name), item] as const))
 
+const formatEntityName = (primaryName?: string, fallbackName?: string, defaultName?: string) => {
+  const resolvedName = primaryName || fallbackName || defaultName || ''
+  return toCapitalizedWords(resolvedName)
+}
+
 export const mapQuantityPerformanceFromAnalytics = (
   response: AverageWaterSupplyPerRegionResponse | undefined,
   fallbackData: EntityPerformance[]
 ): EntityPerformance[] => {
   if (!response?.childRegions?.length) {
-    return fallbackData
+    return []
   }
 
   const childRegions = response.childRegions
@@ -316,8 +321,8 @@ export const mapQuantityPerformanceFromAnalytics = (
       id:
         fallbackMatch?.id ??
         `quantity-performance-${index}-${slugify(region.title || String(index))}`,
-      name: region.title || fallbackMatch?.name || `Region ${index + 1}`,
-      coverage: fallbackMatch?.coverage ?? 0,
+      name: formatEntityName(region.title, fallbackMatch?.name, `Region ${index + 1}`),
+      coverage: 0,
       regularity: fallbackMatch?.regularity ?? 0,
       continuity: fallbackMatch?.continuity ?? 0,
       quantity: calculateQuantityMld(region.totalWaterSuppliedLiters, daysInRange),
@@ -346,7 +351,7 @@ export const mapRegularityPerformanceFromAnalytics = (
       id:
         fallbackMatch?.id ??
         `regularity-performance-${index}-${slugify(region.title || String(index))}`,
-      name: region.title || fallbackMatch?.name || `Region ${index + 1}`,
+      name: formatEntityName(region.title, fallbackMatch?.name, `Region ${index + 1}`),
       coverage: fallbackMatch?.coverage ?? 0,
       regularity: calculateAverageRegularityPercent(
         region.totalSupplyDays,
@@ -379,7 +384,7 @@ export const mapReadingSubmissionRateFromAnalytics = (
       id:
         fallbackMatch?.id ??
         `reading-submission-rate-${index}-${slugify(region.title || String(index))}`,
-      name: region.title || fallbackMatch?.name || `Region ${index + 1}`,
+      name: formatEntityName(region.title, fallbackMatch?.name, `Region ${index + 1}`),
       coverage: fallbackMatch?.coverage ?? 0,
       regularity: calculateReadingSubmissionRatePercent(
         region.totalSubmissionDays,
@@ -408,7 +413,7 @@ export const mapQuantityPerformanceFromNationalDashboard = (
   fallbackData: EntityPerformance[]
 ): EntityPerformance[] => {
   if (!response?.stateWiseQuantityPerformance?.length) {
-    return fallbackData
+    return []
   }
 
   const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
@@ -418,8 +423,8 @@ export const mapQuantityPerformanceFromNationalDashboard = (
 
     return {
       id: fallbackMatch?.id ?? `national-quantity-${state.stateCode || index}`,
-      name: state.stateTitle || fallbackMatch?.name || `State ${index + 1}`,
-      coverage: fallbackMatch?.coverage ?? 0,
+      name: formatEntityName(state.stateTitle, fallbackMatch?.name, `State ${index + 1}`),
+      coverage: 0,
       regularity: fallbackMatch?.regularity ?? 0,
       continuity: fallbackMatch?.continuity ?? 0,
       quantity: calculateQuantityMld(state.totalWaterSuppliedLiters, daysInRange),
@@ -444,7 +449,7 @@ export const mapRegularityPerformanceFromNationalDashboard = (
 
     return {
       id: fallbackMatch?.id ?? `national-regularity-${state.stateCode || index}`,
-      name: state.stateTitle || fallbackMatch?.name || `State ${index + 1}`,
+      name: formatEntityName(state.stateTitle, fallbackMatch?.name, `State ${index + 1}`),
       coverage: fallbackMatch?.coverage ?? 0,
       regularity: calculateAverageRegularityPercent(
         state.totalSupplyDays,
@@ -474,7 +479,7 @@ export const mapReadingSubmissionRateFromNationalDashboard = (
 
     return {
       id: fallbackMatch?.id ?? `national-submission-rate-${state.stateCode || index}`,
-      name: state.stateTitle || fallbackMatch?.name || `State ${index + 1}`,
+      name: formatEntityName(state.stateTitle, fallbackMatch?.name, `State ${index + 1}`),
       coverage: fallbackMatch?.coverage ?? 0,
       regularity: calculateReadingSubmissionRatePercent(
         state.totalSubmissionDays,
@@ -507,6 +512,7 @@ export const mapOutageReasonsFromNationalDashboard = (
   const distribution = response.overallOutageReasonDistribution
   const mappedData: WaterSupplyOutageData = {
     label: 'Outages',
+    reasons: distribution,
     electricityFailure: getOutageReasonCount(distribution, [
       'electrical_failure',
       'electricity_failure',
@@ -593,9 +599,17 @@ export const mapSchemePerformanceToTable = (
 
   return response.topSchemes.map((scheme, index) => ({
     id: `scheme-performance-${scheme.schemeId ?? index}`,
-    name: scheme.schemeName?.trim() || `Scheme ${scheme.schemeId ?? index + 1}`,
-    village: scheme.immediateParentLgdTitle?.trim() || null,
-    block: scheme.immediateParentDepartmentTitle?.trim() || null,
+    name: formatEntityName(
+      scheme.schemeName?.trim(),
+      undefined,
+      `Scheme ${scheme.schemeId ?? index + 1}`
+    ),
+    village: scheme.immediateParentLgdTitle?.trim()
+      ? toCapitalizedWords(scheme.immediateParentLgdTitle.trim())
+      : null,
+    block: scheme.immediateParentDepartmentTitle?.trim()
+      ? toCapitalizedWords(scheme.immediateParentDepartmentTitle.trim())
+      : null,
     reportingRate:
       typeof scheme.reportingRate === 'number' && Number.isFinite(scheme.reportingRate)
         ? scheme.reportingRate
@@ -644,7 +658,7 @@ export const mapOverallPerformanceFromAnalytics = (
       id:
         fallbackMatch?.id ??
         `overall-performance-${index}-${slugify(region.title || String(index))}`,
-      name: region.title || fallbackMatch?.name || `Region ${index + 1}`,
+      name: formatEntityName(region.title, fallbackMatch?.name, `Region ${index + 1}`),
       coverage: calculateQuantityMld(region.totalWaterSuppliedLiters, waterDaysInRange),
       regularity: matchingRegularity
         ? calculateAverageRegularityPercent(
@@ -687,7 +701,7 @@ export const mapOverallPerformanceFromNationalDashboard = (
 
     return {
       id: fallbackMatch?.id ?? `national-overall-${state.stateCode || index}`,
-      name: state.stateTitle || fallbackMatch?.name || `State ${index + 1}`,
+      name: formatEntityName(state.stateTitle, fallbackMatch?.name, `State ${index + 1}`),
       coverage: calculateQuantityMld(state.totalWaterSuppliedLiters, daysInRange),
       regularity: matchingRegularity
         ? calculateAverageRegularityPercent(

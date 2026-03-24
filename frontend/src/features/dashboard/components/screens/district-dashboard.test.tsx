@@ -176,14 +176,15 @@ describe('DistrictDashboardScreen', () => {
     const outageSelect = screen.getByRole('combobox', {
       name: 'District supply outage distribution view by',
     }) as HTMLSelectElement
-    const readingSelect = screen.getByRole('combobox', {
-      name: 'District reading submission rate view by',
-    }) as HTMLSelectElement
 
     expect(quantitySelect.value).toBe('geography')
     expect(regularitySelect.value).toBe('geography')
     expect(outageSelect.value).toBe('geography')
-    expect(readingSelect.value).toBe('geography')
+    expect(
+      screen.queryByRole('combobox', {
+        name: 'District reading submission rate view by',
+      })
+    ).toBeNull()
   })
 
   it('renders geography charts by default and forwards full-height table prop', () => {
@@ -236,28 +237,21 @@ describe('DistrictDashboardScreen', () => {
     ])
   })
 
-  it('switches reading submission chart to time mode with reading submission trend data', () => {
+  it('renders reading submission rate as a fixed geography chart', () => {
     renderDistrictDashboard()
 
-    const readingSelect = screen.getByRole('combobox', {
-      name: 'District reading submission rate view by',
-    })
-    fireEvent.change(readingSelect, { target: { value: 'time' } })
+    expect(
+      screen.queryByRole('combobox', {
+        name: 'District reading submission rate view by',
+      })
+    ).toBeNull()
 
-    const monthlyCalls = mockMonthlyTrendChart.mock.calls as Array<[Record<string, unknown>]>
-    const readingSubmissionCall = monthlyCalls.find(
-      (call) => call[0]?.seriesName === 'Reading submission'
-    )
-    expect(readingSubmissionCall).toBeDefined()
-    expect(readingSubmissionCall?.[0].xAxisLabel).toBe('Month')
-    expect(readingSubmissionCall?.[0].yAxisLabel).toBe('Percentage')
-    expect(readingSubmissionCall?.[0].isPercent).toBe(true)
-    expect(readingSubmissionCall?.[0].data).toEqual([
-      {
-        period: 'Jan',
-        value: 77,
-      },
-    ])
+    const submissionProps = mockReadingSubmissionRateChart.mock.calls[0]?.[0] as {
+      entityLabel: string
+      data: Array<{ name: string }>
+    }
+    expect(submissionProps.entityLabel).toBe('Blocks')
+    expect(submissionProps.data[0]?.name).toBe('Block 1')
   })
 
   it('switches outage distribution chart to time mode with outage trend data', () => {

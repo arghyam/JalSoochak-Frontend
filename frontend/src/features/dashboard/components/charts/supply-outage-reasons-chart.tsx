@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { useTheme } from '@chakra-ui/react'
-import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
@@ -13,14 +12,16 @@ interface SupplyOutageReasonsChartProps {
   pieSize?: number
 }
 
-const outageColors = {
-  electricityFailure: '#D6E9F6',
-  pipelineLeak: '#ADD3ED',
-  pumpFailure: '#84BDE3',
-  valveIssue: '#3291D1',
-  sourceDrying: '#1E577D',
-}
+const outageColors = ['#D6E9F6', '#ADD3ED', '#84BDE3', '#3291D1', '#1E577D', '#6BAED6', '#9ECAE1']
 const chartLegendGapPx = 20
+
+const toTitleCase = (value: string) =>
+  value
+    .replace(/[_-]+/g, ' ')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (character) => character.toUpperCase())
 
 export function SupplyOutageReasonsChart({
   data,
@@ -28,56 +29,55 @@ export function SupplyOutageReasonsChart({
   height = '300px',
   pieSize = 300,
 }: SupplyOutageReasonsChartProps) {
-  const { t } = useTranslation('dashboard')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
-  const legendLabels = useMemo(
-    () => ({
-      electricalFailure: t('outageAndSubmissionCharts.legend.electricalFailure', {
-        defaultValue: 'Electrical failure',
-      }),
-      pipelineBreak: t('outageAndSubmissionCharts.legend.pipelineBreak', {
-        defaultValue: 'Pipeline break',
-      }),
-      pumpFailure: t('outageAndSubmissionCharts.legend.pumpFailure', {
-        defaultValue: 'Pump failure',
-      }),
-      valveIssue: t('outageAndSubmissionCharts.legend.valveIssue', { defaultValue: 'Valve issue' }),
-      sourceDrying: t('outageAndSubmissionCharts.legend.sourceDrying', {
-        defaultValue: 'Source Drying',
-      }),
-    }),
-    [t]
-  )
+  const chartItems = useMemo(() => {
+    const totals = new Map<string, number>()
+    const reasonsPresent = data.some(
+      (entry) => entry.reasons && Object.keys(entry.reasons).length > 0
+    )
 
-  const totals = useMemo(
-    () =>
-      data.reduce(
-        (acc, entry) => ({
-          electricityFailure: acc.electricityFailure + entry.electricityFailure,
-          pipelineLeak: acc.pipelineLeak + entry.pipelineLeak,
-          pumpFailure: acc.pumpFailure + entry.pumpFailure,
-          valveIssue: acc.valveIssue + entry.valveIssue,
-          sourceDrying: acc.sourceDrying + entry.sourceDrying,
-        }),
-        {
-          electricityFailure: 0,
-          pipelineLeak: 0,
-          pumpFailure: 0,
-          valveIssue: 0,
-          sourceDrying: 0,
+    if (reasonsPresent) {
+      data.forEach((entry) => {
+        Object.entries(entry.reasons ?? {}).forEach(([reasonKey, value]) => {
+          const numericValue = Number(value)
+          if (!Number.isFinite(numericValue)) {
+            return
+          }
+
+          totals.set(reasonKey, (totals.get(reasonKey) ?? 0) + numericValue)
+        })
+      })
+    } else {
+      data.forEach((entry) => {
+        totals.set(
+          'electricityFailure',
+          (totals.get('electricityFailure') ?? 0) + entry.electricityFailure
+        )
+        totals.set('pipelineLeak', (totals.get('pipelineLeak') ?? 0) + entry.pipelineLeak)
+        totals.set('pumpFailure', (totals.get('pumpFailure') ?? 0) + entry.pumpFailure)
+        totals.set('valveIssue', (totals.get('valveIssue') ?? 0) + entry.valveIssue)
+        totals.set('sourceDrying', (totals.get('sourceDrying') ?? 0) + entry.sourceDrying)
+      })
+    }
+
+    return Array.from(totals.entries())
+      .filter(([, value]) => Number.isFinite(value) && value >= 0)
+      .map(([reasonKey, value], index) => {
+        const label = toTitleCase(reasonKey)
+        const color = outageColors[index % outageColors.length]
+
+        return {
+          key: reasonKey,
+          label,
+          value,
+          color,
         }
-      ),
-    [data]
-  )
+      })
+  }, [data])
 
   const option: echarts.EChartsOption = useMemo(() => {
-    const totalOutages =
-      totals.electricityFailure +
-      totals.pipelineLeak +
-      totals.pumpFailure +
-      totals.valveIssue +
-      totals.sourceDrying
+    const totalOutages = chartItems.reduce((sum, item) => sum + item.value, 0)
 
     return {
       tooltip: {
@@ -134,50 +134,20 @@ export function SupplyOutageReasonsChart({
             show: false,
           },
           data: [
-            {
-              name: legendLabels.electricalFailure,
-              value: totals.electricityFailure,
-              itemStyle: { color: outageColors.electricityFailure },
-              emphasis: { itemStyle: { color: outageColors.electricityFailure } },
-            },
-            {
-              name: legendLabels.pipelineBreak,
-              value: totals.pipelineLeak,
-              itemStyle: { color: outageColors.pipelineLeak },
-              emphasis: { itemStyle: { color: outageColors.pipelineLeak } },
-            },
-            {
-              name: legendLabels.pumpFailure,
-              value: totals.pumpFailure,
-              itemStyle: { color: outageColors.pumpFailure },
-              emphasis: { itemStyle: { color: outageColors.pumpFailure } },
-            },
-            {
-              name: legendLabels.valveIssue,
-              value: totals.valveIssue,
-              itemStyle: { color: outageColors.valveIssue },
-              emphasis: { itemStyle: { color: outageColors.valveIssue } },
-            },
-            {
-              name: legendLabels.sourceDrying,
-              value: totals.sourceDrying,
-              itemStyle: { color: outageColors.sourceDrying },
-              emphasis: { itemStyle: { color: outageColors.sourceDrying } },
-            },
+            ...chartItems.map((item) => ({
+              name: item.label,
+              value: item.value,
+              itemStyle: { color: item.color },
+              emphasis: { itemStyle: { color: item.color } },
+            })),
           ],
         },
       ],
     }
-  }, [legendLabels, totals])
+  }, [chartItems])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
-  const legendItems = [
-    { label: legendLabels.electricalFailure, color: outageColors.electricityFailure },
-    { label: legendLabels.pipelineBreak, color: outageColors.pipelineLeak },
-    { label: legendLabels.pumpFailure, color: outageColors.pumpFailure },
-    { label: legendLabels.valveIssue, color: outageColors.valveIssue },
-    { label: legendLabels.sourceDrying, color: outageColors.sourceDrying },
-  ]
+  const legendItems = chartItems.map(({ key, label, color }) => ({ key, label, color }))
 
   return (
     <div
@@ -213,7 +183,7 @@ export function SupplyOutageReasonsChart({
         }}
       >
         {legendItems.map((item) => (
-          <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div key={item.key} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <span
               aria-hidden="true"
               style={{

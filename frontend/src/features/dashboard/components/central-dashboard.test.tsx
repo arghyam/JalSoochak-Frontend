@@ -269,6 +269,37 @@ describe('CentralDashboard', () => {
     ])
   })
 
+  it('ignores a future stored selected duration and falls back to the default analytics range', () => {
+    jest.useFakeTimers()
+    jest.setSystemTime(new Date('2025-02-21T09:00:00'))
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedDuration: {
+          startDate: '2026-01-23',
+          endDate: '2026-02-21',
+        },
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useNationalDashboardQuery).toHaveBeenCalledWith({
+      params: {
+        startDate: '2025-01-23',
+        endDate: '2025-02-21',
+      },
+      enabled: true,
+    })
+
+    jest.useRealTimers()
+  })
+
   it('does not enable national dashboard analytics once a location filter is selected', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -667,6 +698,11 @@ describe('CentralDashboard', () => {
         states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
       },
     })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [{ id: 1, title: 'Telangana' }],
+      },
+    })
     mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
     ;(useSchemePerformanceQuery as jest.Mock).mockReturnValue({
       data: {
@@ -739,6 +775,11 @@ describe('CentralDashboard', () => {
         states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
       },
     })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [{ id: 1, title: 'Telangana' }],
+      },
+    })
     mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
     ;(useSchemePerformanceQuery as jest.Mock).mockReturnValue({
       data: {
@@ -797,6 +838,89 @@ describe('CentralDashboard', () => {
         waterSupplied: 4500,
       },
     ])
+  })
+
+  it('does not fall back to legacy pump operator chart data when scheme analytics should be used', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: {
+        ...mockDashboardData,
+        pumpOperators: [{ label: 'Legacy active', value: 12 }],
+      },
+      isLoading: false,
+      error: null,
+    })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [{ id: 1, title: 'Telangana' }],
+      },
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    ;(useSchemePerformanceQuery as jest.Mock).mockReturnValue({ data: undefined })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{ data: DashboardData }>()
+
+    expect(dashboardBodyProps.data.pumpOperators).toEqual([])
+  })
+
+  it('does not fall back to legacy scheme performance rows when scheme analytics should be used', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: {
+        ...mockDashboardData,
+        leadingPumpOperators: [
+          {
+            id: 'legacy-leading',
+            name: 'Legacy Scheme',
+            village: 'Legacy Village',
+            block: 'Legacy Block',
+            reportingRate: 0.5,
+            photoCompliance: 0,
+            waterSupplied: 1000,
+          },
+        ],
+        bottomPumpOperators: [
+          {
+            id: 'legacy-bottom',
+            name: 'Legacy Bottom Scheme',
+            village: 'Legacy Village',
+            block: 'Legacy Block',
+            reportingRate: 0.1,
+            photoCompliance: 0,
+            waterSupplied: 100,
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [{ id: 1, title: 'Telangana' }],
+      },
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    ;(useSchemePerformanceQuery as jest.Mock).mockReturnValue({ data: undefined })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{
+      operatorsPerformanceTable: Array<{ id: string }>
+    }>()
+
+    expect(dashboardBodyProps.operatorsPerformanceTable).toEqual([])
   })
 
   it('passes formula-derived overall performance rows to the table when analytics child data exists', () => {
@@ -1113,7 +1237,7 @@ describe('CentralDashboard', () => {
           {
             lgdId: 101,
             departmentId: 0,
-            title: 'Sangareddy',
+            title: 'SANGAREDDY',
             outageReasonSchemeCount: {
               electrical_failure: 4,
               pipeline_break: 2,
@@ -1122,7 +1246,7 @@ describe('CentralDashboard', () => {
           {
             lgdId: 102,
             departmentId: 0,
-            title: 'Medak',
+            title: 'MEDAK',
             outageReasonSchemeCount: {
               pump_failure: 3,
               source_drying: 1,
@@ -1146,22 +1270,22 @@ describe('CentralDashboard', () => {
     }>()
 
     expect(dashboardBodyProps.waterSupplyOutageDistributionData).toEqual([
-      {
+      expect.objectContaining({
         label: 'Sangareddy',
         electricityFailure: 4,
         pipelineLeak: 2,
         pumpFailure: 0,
         valveIssue: 0,
         sourceDrying: 0,
-      },
-      {
+      }),
+      expect.objectContaining({
         label: 'Medak',
         electricityFailure: 0,
         pipelineLeak: 0,
         pumpFailure: 3,
         valveIssue: 0,
         sourceDrying: 1,
-      },
+      }),
     ])
   })
 

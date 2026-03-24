@@ -90,15 +90,6 @@ const getOwnLookupValue = <T,>(record: Record<string, T>, key: string, fallback:
   return fallback
 }
 
-const getFirstRecordValue = <T,>(record: Record<string, T>, fallback: T): T => {
-  const firstKey = Object.keys(record)[0]
-  if (!firstKey) {
-    return fallback
-  }
-
-  return record[firstKey] as T
-}
-
 const isUnsafeLookupKey = (key: string) =>
   key === '__proto__' || key === 'prototype' || key === 'constructor'
 
@@ -128,11 +119,10 @@ const normalizeMockLookupKey = (value: string): string => {
 const getLookupValueWithFallback = <T,>(
   record: Record<string, T>,
   key: string,
-  emptyFallback: T,
-  defaultFallback: T
+  emptyFallback: T
 ): T => {
   if (!key) {
-    return defaultFallback
+    return emptyFallback
   }
 
   if (isUnsafeLookupKey(key)) {
@@ -180,6 +170,41 @@ const getStoredFilters = (): StoredFilters => {
     }
     return {}
   }
+}
+
+const parseStoredDateValue = (value: unknown) => {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return null
+  }
+
+  const date = new Date(`${value}T00:00:00`)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+const getInitialStoredDuration = (storedFilters: StoredFilters): DateRange | null => {
+  const storedDuration = storedFilters.selectedDuration
+  if (
+    !storedDuration ||
+    typeof storedDuration !== 'object' ||
+    !('startDate' in storedDuration) ||
+    !('endDate' in storedDuration)
+  ) {
+    return null
+  }
+
+  const startDate = parseStoredDateValue(storedDuration.startDate)
+  const endDate = parseStoredDateValue(storedDuration.endDate)
+  if (!startDate || !endDate || startDate > endDate) {
+    return null
+  }
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  if (endDate > today) {
+    return null
+  }
+
+  return storedDuration
 }
 
 const toStateSlug = (stateName: string) =>
@@ -233,6 +258,7 @@ const getOutageReasonCount = (distribution: Record<string, number>, keys: string
 
 const toOutageReasonsData = (distribution: Record<string, number>) => ({
   label: 'Outages',
+  reasons: distribution,
   electricityFailure: getOutageReasonCount(distribution, [
     'electrical_failure',
     'electricity_failure',
@@ -264,7 +290,7 @@ const toOutageDistributionData = (
 ) =>
   childRegions.map((region) => ({
     ...toOutageReasonsData(region.outageReasonSchemeCount),
-    label: region.title,
+    label: toCapitalizedWords(region.title),
   }))
 
 const formulaTooltipTextStyle = {
@@ -295,13 +321,7 @@ export function CentralDashboard() {
   const authUserId = useAuthStore((state) => state.user?.id)
   const { data, isLoading, error } = useDashboardData('central')
   const [storedFilters] = useState(() => getStoredFilters())
-  const initialDuration =
-    storedFilters.selectedDuration &&
-    typeof storedFilters.selectedDuration === 'object' &&
-    'startDate' in storedFilters.selectedDuration &&
-    'endDate' in storedFilters.selectedDuration
-      ? storedFilters.selectedDuration
-      : null
+  const initialDuration = getInitialStoredDuration(storedFilters)
   const selectedState = stateSlug
   const selectedDistrict = selectedState ? (searchParams.get('district') ?? '') : ''
   const selectedBlock = selectedDistrict ? (searchParams.get('block') ?? '') : ''
@@ -382,45 +402,25 @@ export function CentralDashboard() {
   const emptyOptions: SearchableSelectOption[] = []
   const isAdvancedEnabled = Boolean(selectedState && selectedDistrict)
   const emptyEntityPerformance: EntityPerformance[] = []
-  const defaultDistrictTableData = getFirstRecordValue(
-    mockDistrictPerformanceByState,
-    emptyEntityPerformance
-  )
-  const defaultBlockTableData = getFirstRecordValue(
-    mockBlockPerformanceByDistrict,
-    emptyEntityPerformance
-  )
-  const defaultGramPanchayatTableData = getFirstRecordValue(
-    mockGramPanchayatPerformanceByBlock,
-    emptyEntityPerformance
-  )
-  const defaultVillageTableData = getFirstRecordValue(
-    mockVillagePerformanceByGramPanchayat,
-    emptyEntityPerformance
-  )
   const districtTableData = getLookupValueWithFallback(
     mockDistrictPerformanceByState,
     selectedStateMockKey,
-    emptyEntityPerformance,
-    defaultDistrictTableData
+    emptyEntityPerformance
   )
   const blockTableData = getLookupValueWithFallback(
     mockBlockPerformanceByDistrict,
     selectedDistrictMockKey,
-    emptyEntityPerformance,
-    defaultBlockTableData
+    emptyEntityPerformance
   )
   const gramPanchayatTableData = getLookupValueWithFallback(
     mockGramPanchayatPerformanceByBlock,
     selectedBlockMockKey,
-    emptyEntityPerformance,
-    defaultGramPanchayatTableData
+    emptyEntityPerformance
   )
   const villageTableData = getLookupValueWithFallback(
     mockVillagePerformanceByGramPanchayat,
     selectedGramPanchayatMockKey,
-    emptyEntityPerformance,
-    defaultVillageTableData
+    emptyEntityPerformance
   )
   const supplySubmissionRateFallbackData = isGramPanchayatSelected
     ? villageTableData
@@ -727,7 +727,7 @@ export function CentralDashboard() {
   )
   const pumpOperatorsData = mapSchemePerformanceToPumpOperators(
     schemePerformanceData,
-    data?.pumpOperators ?? []
+    shouldFetchSchemePerformanceAnalytics ? [] : (data?.pumpOperators ?? [])
   )
   const operatorsPerformanceAnalyticsTable = mapSchemePerformanceToTable(schemePerformanceData, [])
   const derivedVillageSchemeId = isVillageSelected
@@ -914,11 +914,13 @@ export function CentralDashboard() {
 
   const villagePumpOperatorDetails: VillagePumpOperatorDetails = {
     schemeId: derivedVillageSchemeId,
-    schemeName: derivedVillageScheme?.schemeName,
+    schemeName: derivedVillageScheme?.schemeName
+      ? toCapitalizedWords(derivedVillageScheme.schemeName)
+      : undefined,
     name: 'N/A',
     scheme:
       derivedVillageScheme?.schemeName && derivedVillageSchemeId
-        ? `${derivedVillageScheme.schemeName} / ${derivedVillageSchemeId}`
+        ? `${toCapitalizedWords(derivedVillageScheme.schemeName)} / ${derivedVillageSchemeId}`
         : 'N/A',
     stationLocation: 'N/A',
     lastSubmission: 'N/A',
@@ -1159,10 +1161,9 @@ export function CentralDashboard() {
   )
   const leadingPumpOperators = data.leadingPumpOperators ?? []
   const bottomPumpOperators = data.bottomPumpOperators ?? []
-  const operatorsPerformanceTable =
-    operatorsPerformanceAnalyticsTable.length > 0
-      ? operatorsPerformanceAnalyticsTable
-      : [...leadingPumpOperators, ...bottomPumpOperators]
+  const operatorsPerformanceTable = shouldFetchSchemePerformanceAnalytics
+    ? operatorsPerformanceAnalyticsTable
+    : [...leadingPumpOperators, ...bottomPumpOperators]
   const villagePhotoEvidenceRows = data?.readingCompliance ?? []
 
   return (
