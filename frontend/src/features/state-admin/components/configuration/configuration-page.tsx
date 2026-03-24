@@ -35,7 +35,14 @@ import {
   type SupportedChannel,
 } from '../../types/configuration'
 import { MeterChangeReasonsSection } from './meter-change-reasons-section'
-import { validateDescriptiveField, hasDuplicates } from '@/shared/utils/validation'
+import {
+  validateDescriptiveField,
+  hasDuplicates,
+  exceedsMaxLength,
+} from '@/shared/utils/validation'
+
+const MAX_METER_REASON_LENGTH = 100
+const MAX_AVG_MEMBERS = 20
 
 interface ConfigDraft {
   supportedChannels: SupportedChannel[]
@@ -147,6 +154,10 @@ export function ConfigurationPage() {
       const error = validateDescriptiveField(reason.name)
       if (error) {
         newErrors[`meterReason.${reason.id}`] = t(`state-admin:validation.${error}`)
+      } else if (exceedsMaxLength(reason.name, MAX_METER_REASON_LENGTH)) {
+        newErrors[`meterReason.${reason.id}`] = t('state-admin:validation.maxLength', {
+          max: MAX_METER_REASON_LENGTH,
+        })
       } else {
         nonEmptyReasonNames.push(reason.name)
       }
@@ -174,6 +185,11 @@ export function ConfigurationPage() {
     // Average members
     if (!current.averageMembersPerHousehold || current.averageMembersPerHousehold <= 0) {
       newErrors.averageMembersPerHousehold = t('state-admin:validation.mustBePositive')
+    } else if (current.averageMembersPerHousehold > MAX_AVG_MEMBERS) {
+      newErrors.averageMembersPerHousehold = t('state-admin:validation.mustBeInRange', {
+        min: 1,
+        max: MAX_AVG_MEMBERS,
+      })
     }
 
     setErrors(newErrors)
@@ -514,6 +530,7 @@ export function ConfigurationPage() {
                     <Input
                       id="data-consolidation-time"
                       type="time"
+                      lang="en-GB"
                       value={activeDraft.dataConsolidationTime}
                       onChange={(e) => {
                         setDraft((prev) => ({
@@ -529,6 +546,7 @@ export function ConfigurationPage() {
                       borderRadius="6px"
                       _hover={{ borderColor: 'neutral.400' }}
                       _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
+                      sx={{ '&::-webkit-datetime-edit-ampm-field': { display: 'none' } }}
                     />
                     <FormErrorMessage>{errors.dataConsolidationTime}</FormErrorMessage>
                   </FormControl>
@@ -547,6 +565,7 @@ export function ConfigurationPage() {
                     <Input
                       id="pump-operator-nudge-time"
                       type="time"
+                      lang="en-GB"
                       value={activeDraft.pumpOperatorReminderNudgeTime}
                       onChange={(e) => {
                         setDraft((prev) => ({
@@ -562,6 +581,7 @@ export function ConfigurationPage() {
                       borderRadius="6px"
                       _hover={{ borderColor: 'neutral.400' }}
                       _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
+                      sx={{ '&::-webkit-datetime-edit-ampm-field': { display: 'none' } }}
                     />
                     <FormErrorMessage>{errors.pumpOperatorReminderNudgeTime}</FormErrorMessage>
                   </FormControl>

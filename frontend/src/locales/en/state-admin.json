@@ -560,7 +560,10 @@
     "minLength": "Must be at least {{min}} characters",
     "timeRequired": "Please select a time",
     "daysMinimum": "Days must be at least 1",
+    "daysMaximum": "Days must not exceed {{max}}",
     "selectRole": "Please select a role",
-    "selectAlertType": "Please select an alert type"
+    "selectAlertType": "Please select an alert type",
+    "alphabeticOnly": "Only letters and spaces are allowed",
+    "maxValue": "Value must not exceed {{max}}"
   }
 }

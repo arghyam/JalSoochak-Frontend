@@ -21,6 +21,8 @@ import { IoAddOutline } from 'react-icons/io5'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ToastContainer, SearchableSelect } from '@/shared/components/common'
+
+const MAX_ESCALATION_DAYS = 365
 import {
   useEscalationRulesQuery,
   useSaveEscalationRulesMutation,
@@ -114,8 +116,14 @@ export function EscalationsFormPage() {
         newErrors[`levels.${i}.userType`] = t('state-admin:validation.selectRole')
         hasUnfilled = true
       }
-      if (!l.days || Number(l.days) < 1) {
+      const daysNum = Number(l.days)
+      if (!l.days || daysNum < 1) {
         newErrors[`levels.${i}.days`] = t('state-admin:validation.daysMinimum')
+        hasUnfilled = true
+      } else if (daysNum > MAX_ESCALATION_DAYS) {
+        newErrors[`levels.${i}.days`] = t('state-admin:validation.daysMaximum', {
+          max: MAX_ESCALATION_DAYS,
+        })
         hasUnfilled = true
       }
     })
@@ -147,8 +155,13 @@ export function EscalationsFormPage() {
       if (!level.userType) {
         newErrors[`levels.${i}.userType`] = t('state-admin:validation.selectRole')
       }
-      if (!level.days || Number(level.days) < 1) {
+      const daysNum = Number(level.days)
+      if (!level.days || daysNum < 1) {
         newErrors[`levels.${i}.days`] = t('state-admin:validation.daysMinimum')
+      } else if (daysNum > MAX_ESCALATION_DAYS) {
+        newErrors[`levels.${i}.days`] = t('state-admin:validation.daysMaximum', {
+          max: MAX_ESCALATION_DAYS,
+        })
       }
     })
 
@@ -286,6 +299,7 @@ export function EscalationsFormPage() {
                   <Input
                     id="escalation-schedule-time"
                     type="time"
+                    lang="en-GB"
                     value={activeSchedule}
                     onChange={(e) => {
                       setScheduleDraft(e.target.value)
@@ -298,6 +312,7 @@ export function EscalationsFormPage() {
                     borderRadius="6px"
                     _hover={{ borderColor: 'neutral.400' }}
                     _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
+                    sx={{ '&::-webkit-datetime-edit-ampm-field': { display: 'none' } }}
                   />
                   <FormErrorMessage>{errors.scheduleTime}</FormErrorMessage>
                 </FormControl>

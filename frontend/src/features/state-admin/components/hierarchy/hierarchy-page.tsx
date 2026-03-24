@@ -4,7 +4,13 @@ import { EditIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ToastContainer } from '@/shared/components/common'
-import { validateDescriptiveField, hasDuplicates } from '@/shared/utils/validation'
+import {
+  validateDescriptiveField,
+  hasDuplicates,
+  exceedsMaxLength,
+} from '@/shared/utils/validation'
+
+const MAX_LEVEL_NAME_LENGTH = 50
 import {
   useLgdHierarchyQuery,
   useDepartmentHierarchyQuery,
@@ -90,6 +96,10 @@ export function HierarchyPage() {
       const error = validateDescriptiveField(level.name)
       if (error) {
         newErrors[`${sectionId}.${index}`] = t(`state-admin:validation.${error}`)
+      } else if (exceedsMaxLength(level.name, MAX_LEVEL_NAME_LENGTH)) {
+        newErrors[`${sectionId}.${index}`] = t('state-admin:validation.maxLength', {
+          max: MAX_LEVEL_NAME_LENGTH,
+        })
       }
     })
     const names = levels.map((l) => l.name).filter((n) => n.trim().length > 0)

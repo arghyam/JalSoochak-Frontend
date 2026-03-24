@@ -22,6 +22,8 @@ import {
   useWaterNormsConfigurationQuery,
 } from '../../services/query/use-state-admin-queries'
 
+const MAX_WATER_QUANTITY = 1000
+
 export function WaterNormsPage() {
   const { t } = useTranslation(['state-admin', 'common'])
   const { data: config, isLoading, isError } = useWaterNormsConfigurationQuery()
@@ -79,6 +81,11 @@ export function WaterNormsPage() {
     const quantity = Number(stateQuantity)
     if (!stateQuantity || Number.isNaN(quantity) || quantity <= 0) {
       newErrors.stateQuantity = t('state-admin:validation.mustBePositive')
+    } else if (quantity > MAX_WATER_QUANTITY) {
+      newErrors.stateQuantity = t('state-admin:validation.mustBeInRange', {
+        min: 1,
+        max: MAX_WATER_QUANTITY,
+      })
     }
 
     const oversupply = Number(oversupplyThreshold)
@@ -114,6 +121,11 @@ export function WaterNormsPage() {
       }
       if (override.quantity <= 0) {
         newErrors[`override.${i}.quantity`] = t('state-admin:validation.mustBePositive')
+      } else if (override.quantity > MAX_WATER_QUANTITY) {
+        newErrors[`override.${i}.quantity`] = t('state-admin:validation.mustBeInRange', {
+          min: 1,
+          max: MAX_WATER_QUANTITY,
+        })
       }
     })
 
