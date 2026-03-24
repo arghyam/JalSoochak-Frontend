@@ -11,7 +11,11 @@ import { useLocationChildrenQuery } from '../../services/query/use-location-chil
 import { useLocationHierarchyQuery } from '../../services/query/use-location-hierarchy-query'
 import { locationSearchQueryKeys } from '../../services/query/location-search-query-keys'
 import { computeTrailIndices } from '../../utils/trail-index'
-import { slugify, toCapitalizedWords } from '../../utils/format-location-label'
+import {
+  sanitizeLocationLabel,
+  slugify,
+  toCapitalizedWords,
+} from '../../utils/format-location-label'
 import type { HierarchyType } from '../../services/api/dashboard-api'
 import type { TenantChildLocation } from '../../services/api/dashboard-api'
 
@@ -97,17 +101,24 @@ const mapLocationOptions = (locations: TenantChildLocation[] | undefined): Locat
     return []
   }
 
-  return locations
-    .filter((location) => typeof location.id === 'number' && Boolean(location.title?.trim()))
-    .map((location) => {
-      const locationId = location.id as number
-      const normalizedTitle = toCapitalizedWords(location.title?.trim() ?? '')
-      return {
-        value: toStableLocationValue(locationId, normalizedTitle),
-        label: normalizedTitle,
-        locationId,
-      }
-    })
+  return locations.flatMap((location) => {
+    if (typeof location.id !== 'number') {
+      return []
+    }
+
+    const sanitizedTitle = sanitizeLocationLabel(location.title ?? '')
+    const normalizedTitle = toCapitalizedWords(sanitizedTitle)
+    if (!normalizedTitle) {
+      return []
+    }
+
+    const locationId = location.id as number
+    return {
+      value: toStableLocationValue(locationId, normalizedTitle),
+      label: normalizedTitle,
+      locationId,
+    }
+  })
 }
 
 export function DashboardFilters(props: DashboardFiltersProps) {
