@@ -10,6 +10,7 @@ import {
   InputLeftElement,
   Button,
   IconButton,
+  Tooltip,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { SearchIcon, EditIcon } from '@chakra-ui/icons'
@@ -146,43 +147,49 @@ export function ManageStateAdminsPage() {
       header: t('manageStateAdmins.table.actions'),
       render: (row) => (
         <Flex gap={1}>
-          <IconButton
-            aria-label={`${t('manageStateAdmins.aria.viewAdmin')} ${row.adminName}`}
-            icon={<FiEye aria-hidden="true" size={20} />}
-            variant="ghost"
-            width={5}
-            minW={5}
-            height={5}
-            color="neutral.950"
-            fontWeight="400"
-            onClick={() => handleView(row)}
-            _hover={{ color: 'primary.500', bg: 'transparent' }}
-          />
-          <IconButton
-            aria-label={`${t('manageStateAdmins.aria.editAdmin')} ${row.adminName}`}
-            icon={<EditIcon aria-hidden="true" w={5} h={5} />}
-            variant="ghost"
-            width={5}
-            minW={5}
-            height={5}
-            color="neutral.950"
-            fontWeight="400"
-            onClick={() => handleEdit(row)}
-            _hover={{ color: 'primary.500', bg: 'transparent' }}
-          />
-          {row.signupStatus === 'pending' && (
+          <Tooltip label={t('manageStateAdmins.aria.viewAdmin')} hasArrow placement="top">
             <IconButton
-              aria-label={`${t('manageStateAdmins.aria.resendInvite')} ${row.adminName}`}
-              icon={<MdOutlineEmail aria-hidden="true" size={20} />}
+              aria-label={`${t('manageStateAdmins.aria.viewAdmin')} ${row.adminName}`}
+              icon={<FiEye aria-hidden="true" size={20} />}
               variant="ghost"
               width={5}
               minW={5}
               height={5}
               color="neutral.950"
               fontWeight="400"
-              onClick={() => handleReinvite(row.id)}
+              onClick={() => handleView(row)}
               _hover={{ color: 'primary.500', bg: 'transparent' }}
             />
+          </Tooltip>
+          <Tooltip label={t('manageStateAdmins.aria.editAdmin')} hasArrow placement="top">
+            <IconButton
+              aria-label={`${t('manageStateAdmins.aria.editAdmin')} ${row.adminName}`}
+              icon={<EditIcon aria-hidden="true" w={5} h={5} />}
+              variant="ghost"
+              width={5}
+              minW={5}
+              height={5}
+              color="neutral.950"
+              fontWeight="400"
+              onClick={() => handleEdit(row)}
+              _hover={{ color: 'primary.500', bg: 'transparent' }}
+            />
+          </Tooltip>
+          {row.signupStatus === 'pending' && (
+            <Tooltip label={t('manageStateAdmins.aria.resendInvite')} hasArrow placement="top">
+              <IconButton
+                aria-label={`${t('manageStateAdmins.aria.resendInvite')} ${row.adminName}`}
+                icon={<MdOutlineEmail aria-hidden="true" size={20} />}
+                variant="ghost"
+                width={5}
+                minW={5}
+                height={5}
+                color="neutral.950"
+                fontWeight="400"
+                onClick={() => handleReinvite(row.id)}
+                _hover={{ color: 'primary.500', bg: 'transparent' }}
+              />
+            </Tooltip>
           )}
         </Flex>
       ),
