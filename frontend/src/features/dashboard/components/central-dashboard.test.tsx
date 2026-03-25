@@ -9,6 +9,7 @@ import { useLocationChildrenQuery } from '../services/query/use-location-childre
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
 import { useNationalDashboardQuery } from '../services/query/use-national-dashboard-query'
+import { useOutageReasonsPeriodicQuery } from '../services/query/use-outage-reasons-periodic-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
 import { useReadingComplianceQuery } from '../services/query/use-reading-compliance-query'
 import { useReadingSubmissionRateQuery } from '../services/query/use-reading-submission-rate-query'
@@ -72,6 +73,10 @@ jest.mock('../services/query/use-average-scheme-regularity-query', () => ({
 
 jest.mock('../services/query/use-national-dashboard-query', () => ({
   useNationalDashboardQuery: jest.fn(),
+}))
+
+jest.mock('../services/query/use-outage-reasons-periodic-query', () => ({
+  useOutageReasonsPeriodicQuery: jest.fn(),
 }))
 
 jest.mock('../services/query/use-outage-reasons-query', () => ({
@@ -187,6 +192,7 @@ describe('CentralDashboard', () => {
     ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useNationalDashboardQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useOutageReasonsPeriodicQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useOutageReasonsQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useReadingComplianceQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useReadingSubmissionRateQuery as jest.Mock).mockReturnValue({ data: undefined })
@@ -1298,6 +1304,64 @@ describe('CentralDashboard', () => {
         valveIssue: 0,
         sourceDrying: 1,
       }),
+    ])
+  })
+
+  it('maps outage periodic analytics into the outage time trend', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [{ id: 10, title: 'Telangana' }],
+      },
+    })
+    ;(useOutageReasonsPeriodicQuery as jest.Mock).mockReturnValue({
+      data: {
+        lgdId: 10,
+        departmentId: 0,
+        scale: 'week',
+        startDate: '2026-03-01',
+        endDate: '2026-03-31',
+        periodCount: 2,
+        metrics: [
+          {
+            periodStartDate: '2026-03-01',
+            periodEndDate: '2026-03-07',
+            outageReasonSchemeCount: {
+              no_electricity: 3,
+              draught: 1,
+            },
+          },
+          {
+            periodStartDate: '2026-03-08',
+            periodEndDate: '2026-03-14',
+            outageReasonSchemeCount: {
+              no_electricity: 2,
+            },
+          },
+        ],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{
+      data: DashboardData
+    }>()
+
+    expect(dashboardBodyProps.data.supplyOutageTrend).toEqual([
+      { period: '01 Mar - 07 Mar', value: 4 },
+      { period: '08 Mar - 14 Mar', value: 2 },
     ])
   })
 

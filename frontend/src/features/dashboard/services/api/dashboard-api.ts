@@ -10,6 +10,8 @@ import type {
   DashboardData,
   DashboardLevel,
   OutageReasonsQueryParams,
+  OutageReasonsPeriodicQueryParams,
+  OutageReasonsPeriodicResponse,
   OutageReasonsResponse,
   ReadingComplianceQueryParams,
   ReadingComplianceResponse,
@@ -498,6 +500,24 @@ export const dashboardApi = {
           end_date: params.endDate,
           parent_lgd_id: params.parentLgdId,
           parent_department_id: params.parentDepartmentId,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getOutageReasonsPeriodic: async (
+    params: OutageReasonsPeriodicQueryParams
+  ): Promise<OutageReasonsPeriodicResponse> => {
+    const response = await apiClient.get<OutageReasonsPeriodicResponse>(
+      '/api/v1/analytics/outage-reasons/periodic',
+      {
+        params: {
+          start_date: params.startDate,
+          end_date: params.endDate,
+          scale: params.scale,
+          lgd_id: params.lgdId,
+          department_id: params.departmentId,
         },
       }
     )

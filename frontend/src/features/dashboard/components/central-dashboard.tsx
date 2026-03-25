@@ -10,6 +10,7 @@ import { useLocationSearchQuery } from '../services/query/use-location-search-qu
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
 import { useNationalDashboardQuery } from '../services/query/use-national-dashboard-query'
+import { useOutageReasonsPeriodicQuery } from '../services/query/use-outage-reasons-periodic-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
 import { useReadingSubmissionRateQuery } from '../services/query/use-reading-submission-rate-query'
 import { useSchemeRegularityPeriodicQuery } from '../services/query/use-scheme-regularity-periodic-query'
@@ -53,6 +54,7 @@ import {
   resolveDaysInRange,
 } from '../utils/formulas'
 import {
+  mapOutageReasonsPeriodicToTrendPoints,
   mapSchemeRegularityPeriodicToTrendPoints,
   mapWaterQuantityPeriodicToTrendPoints,
   resolveWaterQuantityPeriodicScale,
@@ -676,6 +678,28 @@ export function CentralDashboard() {
             endDate: analyticsDateRange.endDate,
             parentDepartmentId: analyticsParentId,
           }
+  const outageReasonsPeriodicAnalyticsParams =
+    isVillageSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            lgdId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            scale: resolveWaterQuantityPeriodicScale(
+              analyticsDateRange.startDate,
+              analyticsDateRange.endDate
+            ),
+          }
+        : {
+            departmentId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            scale: resolveWaterQuantityPeriodicScale(
+              analyticsDateRange.startDate,
+              analyticsDateRange.endDate
+            ),
+          }
   const activePreviousPeriodSource = analyticsParams ??
     nationalDashboardParams ?? {
       startDate: analyticsDateRange.startDate,
@@ -739,6 +763,10 @@ export function CentralDashboard() {
       params: regularityPeriodicAnalyticsParams,
       enabled: Boolean(regularityPeriodicAnalyticsParams),
     })
+  const { data: outageReasonsPeriodicData } = useOutageReasonsPeriodicQuery({
+    params: outageReasonsPeriodicAnalyticsParams,
+    enabled: Boolean(outageReasonsPeriodicAnalyticsParams),
+  })
   const { data: previousNationalDashboardData } = useNationalDashboardQuery({
     params: previousNationalDashboardParams,
     enabled: Boolean(previousNationalDashboardParams),
@@ -825,6 +853,8 @@ export function CentralDashboard() {
   const regularityTimeTrendData = mapSchemeRegularityPeriodicToTrendPoints(
     schemeRegularityPeriodicData
   )
+  const outageReasonsTimeTrendData =
+    mapOutageReasonsPeriodicToTrendPoints(outageReasonsPeriodicData)
   const currentWaterSupplyKpis = isCentralLandingView
     ? getWaterSupplyKpisFromNationalDashboard(nationalDashboardData, 5)
     : getWaterSupplyKpis(currentWaterSupplyKpiData, 5)
@@ -1085,14 +1115,20 @@ export function CentralDashboard() {
     dashboardData.waterSupplyOutages
   const waterSupplyOutageDistributionData =
     apiWaterSupplyOutageDistributionData ?? dashboardData.waterSupplyOutages
+  const resolvedSupplyOutageTrend =
+    outageReasonsTimeTrendData.length > 0
+      ? outageReasonsTimeTrendData
+      : dashboardData.supplyOutageTrend
   const resolvedDashboardData =
     readingSubmissionStatusData === dashboardData.readingSubmissionStatus &&
-    pumpOperatorsData === dashboardData.pumpOperators
+    pumpOperatorsData === dashboardData.pumpOperators &&
+    resolvedSupplyOutageTrend === dashboardData.supplyOutageTrend
       ? dashboardData
       : {
           ...dashboardData,
           readingSubmissionStatus: readingSubmissionStatusData,
           pumpOperators: pumpOperatorsData,
+          supplyOutageTrend: resolvedSupplyOutageTrend,
         }
 
   const numberLocale = i18n.resolvedLanguage === 'hi' ? 'hi-IN' : 'en-IN'

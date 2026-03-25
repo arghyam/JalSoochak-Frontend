@@ -521,6 +521,14 @@ export interface OutageReasonsQueryParams {
   parentDepartmentId?: number
 }
 
+export interface OutageReasonsPeriodicQueryParams {
+  startDate: string
+  endDate: string
+  scale: 'day' | 'week' | 'month'
+  lgdId?: number
+  departmentId?: number
+}
+
 export interface OutageReasonSchemeCount {
   [reason: string]: number
 }
@@ -542,6 +550,22 @@ export interface OutageReasonsResponse {
   outageReasonSchemeCount: OutageReasonSchemeCount
   childRegionCount: number
   childRegions: OutageReasonsChildRegion[]
+}
+
+export interface OutageReasonsPeriodicMetric {
+  periodStartDate: string
+  periodEndDate: string
+  outageReasonSchemeCount: OutageReasonSchemeCount
+}
+
+export interface OutageReasonsPeriodicResponse {
+  lgdId: number
+  departmentId: number
+  scale: string
+  startDate: string
+  endDate: string
+  periodCount: number
+  metrics: OutageReasonsPeriodicMetric[]
 }
 
 // For map hover/click interactions

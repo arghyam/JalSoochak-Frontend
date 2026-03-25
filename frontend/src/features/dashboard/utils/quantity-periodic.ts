@@ -1,5 +1,7 @@
 import type { MonthlyTrendPoint } from '../components/charts/monthly-trend-chart'
 import type {
+  OutageReasonsPeriodicMetric,
+  OutageReasonsPeriodicResponse,
   SchemeRegularityPeriodicMetric,
   SchemeRegularityPeriodicResponse,
   WaterQuantityPeriodicMetric,
@@ -117,5 +119,25 @@ export const mapSchemeRegularityPeriodicToTrendPoints = (
     .map((metric) => ({
       period: formatMetricLabel(response.scale, metric),
       value: metric.averageRegularity,
+    }))
+}
+
+const getOutageMetricTotal = (metric: OutageReasonsPeriodicMetric) =>
+  Object.values(metric.outageReasonSchemeCount ?? {}).reduce((total, value) => {
+    return total + (typeof value === 'number' && Number.isFinite(value) ? value : 0)
+  }, 0)
+
+export const mapOutageReasonsPeriodicToTrendPoints = (
+  response: OutageReasonsPeriodicResponse | undefined
+): MonthlyTrendPoint[] => {
+  if (!response?.metrics?.length) {
+    return []
+  }
+
+  return response.metrics
+    .filter((metric) => Boolean(metric.periodStartDate) && Boolean(metric.periodEndDate))
+    .map((metric) => ({
+      period: formatMetricLabel(response.scale, metric),
+      value: getOutageMetricTotal(metric),
     }))
 }
