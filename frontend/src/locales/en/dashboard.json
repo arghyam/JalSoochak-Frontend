@@ -1,5 +1,8 @@
 {
-  "headerTitle": "JalSoochak\nOperational Status of Water Supply Schemes",
+  "header": {
+    "title": "JalSoochak",
+    "subtitle": "Operational Status of Water Supply Schemes"
+  },
   "searchLayout": {
     "placeholder": "Search by state/UT, district, block, gram panchayat, village",
     "downloadReport": "Download Report",

@@ -5,13 +5,14 @@ import logoIcon from '@/assets/media/logo.svg'
 
 export function Header() {
   const { t } = useTranslation(['dashboard', 'common'])
-  const [
-    headerTitle = 'JalSoochak',
-    headerSubtitle = 'Operational Status of Water Supply Schemes',
-  ] = t('headerTitle', {
+  const headerTitle = t('header.title', {
     ns: 'dashboard',
-    defaultValue: 'JalSoochak\nOperational Status of Water Supply Schemes',
-  }).split('\n')
+    defaultValue: 'JalSoochak',
+  })
+  const headerSubtitle = t('header.subtitle', {
+    ns: 'dashboard',
+    defaultValue: 'Operational Status of Water Supply Schemes',
+  })
 
   return (
     <Flex

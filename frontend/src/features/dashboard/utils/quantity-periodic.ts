@@ -12,7 +12,7 @@ import type {
 } from '../types'
 
 const parseIsoDate = (value: string) => {
-  const parsed = new Date(`${value}T00:00:00`)
+  const parsed = new Date(`${value}T00:00:00Z`)
   return Number.isNaN(parsed.getTime()) ? null : parsed
 }
 

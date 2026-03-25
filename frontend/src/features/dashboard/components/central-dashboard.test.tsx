@@ -530,6 +530,112 @@ describe('CentralDashboard', () => {
     )
   })
 
+  it('calls useWaterQuantityPeriodicQuery with the resolved params and passes mapped quantity trend data to dashboard body', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [{ id: 10, title: 'Telangana' }],
+      },
+    })
+
+    const selectedDuration = getPreviousPeriodRange('2026-03-22', '2026-03-31')
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedDuration,
+      })
+    )
+    ;(useWaterQuantityPeriodicQuery as jest.Mock).mockReturnValue({
+      data: {
+        lgdId: 10,
+        startDate: selectedDuration.startDate,
+        endDate: selectedDuration.endDate,
+        scale: 'day',
+        metrics: [
+          {
+            periodStartDate: '2026-03-12',
+            periodEndDate: '2026-03-12',
+            averageWaterQuantity: 87,
+          },
+          {
+            periodStartDate: '2026-03-13',
+            periodEndDate: '2026-03-13',
+            averageWaterQuantity: 91,
+          },
+        ],
+      },
+      isFetching: false,
+      isAwaitingParams: false,
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useWaterQuantityPeriodicQuery).toHaveBeenCalledWith({
+      params: {
+        lgdId: 10,
+        startDate: selectedDuration.startDate,
+        endDate: selectedDuration.endDate,
+        scale: 'day',
+      },
+      enabled: true,
+    })
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{
+      quantityTimeTrendData: Array<{ period: string; value: number }>
+      isQuantityTimeTrendLoading: boolean
+    }>()
+
+    expect(dashboardBodyProps.quantityTimeTrendData).toEqual([
+      { period: '12 Mar', value: 87 },
+      { period: '13 Mar', value: 91 },
+    ])
+    expect(dashboardBodyProps.isQuantityTimeTrendLoading).toBe(false)
+  })
+
+  it('passes isQuantityTimeTrendLoading=true to dashboard body while useWaterQuantityPeriodicQuery is loading', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [{ id: 10, title: 'Telangana' }],
+      },
+    })
+    ;(useWaterQuantityPeriodicQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isFetching: true,
+      isAwaitingParams: false,
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{
+      isQuantityTimeTrendLoading: boolean
+    }>()
+
+    expect(dashboardBodyProps.isQuantityTimeTrendLoading).toBe(true)
+  })
+
   it('uses national dashboard analytics for central landing KPI cards', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
