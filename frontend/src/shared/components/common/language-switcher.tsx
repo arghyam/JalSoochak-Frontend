@@ -20,6 +20,8 @@ interface LanguageSwitcherProps {
 export function LanguageSwitcher({ isMobileHeader = false }: LanguageSwitcherProps) {
   const { currentLanguage, setLanguage, getSupportedLanguages } = useLanguageStore()
   const supportedLanguages = getSupportedLanguages()
+  const iconWidth = isMobileHeader ? '60px' : '28px'
+  const iconHeight = isMobileHeader ? '60px' : '29px'
 
   const handleLanguageChange = (langCode: LanguageCode) => {
     setLanguage(langCode)
@@ -51,8 +53,8 @@ export function LanguageSwitcher({ isMobileHeader = false }: LanguageSwitcherPro
           _active={{ bg: 'transparent' }}
         >
           <Flex w="full" h="full" align="center" justify="center">
-            <Box w="28px" h="29px" aria-hidden="true">
-              <Image src={languageIcon} alt="" w="28px" h="29px" />
+            <Box w={iconWidth} h={iconHeight} aria-hidden="true">
+              <Image src={languageIcon} alt="" w={iconWidth} h={iconHeight} />
             </Box>
           </Flex>
         </MenuButton>
