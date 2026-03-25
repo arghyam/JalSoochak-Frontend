@@ -22,7 +22,7 @@ import { MdOutlineWaterDrop } from 'react-icons/md'
 import waterTapIcon from '@/assets/media/water-tap_1822589 1.svg'
 import wallClockIcon from '@/assets/media/wall-clock.svg'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
-import type { EntityPerformance, VillagePumpOperatorDetails } from '../types'
+import type { DashboardData, EntityPerformance, VillagePumpOperatorDetails } from '../types'
 import { DashboardFilters } from './filters/dashboard-filters'
 import { OverallPerformanceTable } from './tables'
 import { ROUTES } from '@/shared/constants/routes'
@@ -66,6 +66,27 @@ import type { HierarchyType, TenantChildLocation } from '../services/api/dashboa
 
 const storageKey = 'central-dashboard-filters'
 const LOCATION_VALUE_SEPARATOR = ':'
+
+const EMPTY_DASHBOARD_DATA: DashboardData = {
+  level: 'central',
+  kpis: {
+    totalSchemes: 0,
+    totalRuralHouseholds: 0,
+    functionalTapConnections: 0,
+  },
+  mapData: [],
+  demandSupply: [],
+  readingSubmissionStatus: [],
+  readingCompliance: [],
+  pumpOperators: [],
+  waterSupplyOutages: [],
+  topPerformers: [],
+  worstPerformers: [],
+  regularityData: [],
+  continuityData: [],
+  leadingPumpOperators: [],
+  bottomPumpOperators: [],
+}
 
 type StoredFilters = {
   selectedDuration?: DateRange
@@ -396,6 +417,19 @@ export function CentralDashboard() {
   const isGramPanchayatSelected = Boolean(effectiveSelectedGramPanchayat)
   const isVillageSelected = Boolean(effectiveSelectedVillage)
   const isDepartmentStateSelected = Boolean(selectedDepartmentState)
+  const hasCentralLandingFilters =
+    isStateSelected ||
+    isDistrictSelected ||
+    isBlockSelected ||
+    isGramPanchayatSelected ||
+    isVillageSelected ||
+    Boolean(selectedDepartmentState) ||
+    Boolean(selectedDepartmentZone) ||
+    Boolean(selectedDepartmentCircle) ||
+    Boolean(selectedDepartmentDivision) ||
+    Boolean(selectedDepartmentSubdivision) ||
+    Boolean(selectedDepartmentVillage)
+  const dashboardData = data ?? (hasCentralLandingFilters ? EMPTY_DASHBOARD_DATA : undefined)
   const hierarchyType: HierarchyType = filterTabIndex === 0 ? 'LGD' : 'DEPARTMENT'
   const emptyOptions: SearchableSelectOption[] = []
   const isAdvancedEnabled = Boolean(selectedState && selectedDistrict)
@@ -428,7 +462,7 @@ export function CentralDashboard() {
         ? blockTableData
         : isStateSelected
           ? districtTableData
-          : (data?.mapData ?? ([] as EntityPerformance[]))
+          : (dashboardData?.mapData ?? ([] as EntityPerformance[]))
   const supplySubmissionRateLabel = isGramPanchayatSelected
     ? t('performanceCharts.viewBy.villages', { defaultValue: 'Villages' })
     : isBlockSelected
@@ -438,15 +472,6 @@ export function CentralDashboard() {
         : isStateSelected
           ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
           : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
-  const overallPerformanceFallbackData = isGramPanchayatSelected
-    ? villageTableData
-    : isBlockSelected
-      ? gramPanchayatTableData
-      : isDistrictSelected
-        ? blockTableData
-        : isStateSelected
-          ? districtTableData
-          : (data?.mapData ?? emptyEntityPerformance)
   const overallPerformanceEntityLabel = isGramPanchayatSelected
     ? t('overallPerformance.entities.village', { defaultValue: 'Village' })
     : isBlockSelected
@@ -495,24 +520,12 @@ export function CentralDashboard() {
         ? blockTableData
         : isStateSelected
           ? districtTableData
-          : (data?.mapData ?? emptyEntityPerformance)
+          : (dashboardData?.mapData ?? emptyEntityPerformance)
   const defaultAnalyticsRange = getDefaultAnalyticsDateRange()
   const analyticsDateRange = {
     startDate: toIsoDate(selectedDuration?.startDate) ?? defaultAnalyticsRange.startDate,
     endDate: toIsoDate(selectedDuration?.endDate) ?? defaultAnalyticsRange.endDate,
   }
-  const hasCentralLandingFilters =
-    isStateSelected ||
-    isDistrictSelected ||
-    isBlockSelected ||
-    isGramPanchayatSelected ||
-    isVillageSelected ||
-    Boolean(selectedDepartmentState) ||
-    Boolean(selectedDepartmentZone) ||
-    Boolean(selectedDepartmentCircle) ||
-    Boolean(selectedDepartmentDivision) ||
-    Boolean(selectedDepartmentSubdivision) ||
-    Boolean(selectedDepartmentVillage)
   const nationalDashboardParams = hasCentralLandingFilters
     ? null
     : {
@@ -725,11 +738,11 @@ export function CentralDashboard() {
       )
   const readingSubmissionStatusData = mapReadingSubmissionStatusFromAnalytics(
     submissionStatusData,
-    data?.readingSubmissionStatus ?? []
+    dashboardData?.readingSubmissionStatus ?? []
   )
   const pumpOperatorsData = mapSchemePerformanceToPumpOperators(
     schemePerformanceData,
-    shouldFetchSchemePerformanceAnalytics ? [] : (data?.pumpOperators ?? [])
+    shouldFetchSchemePerformanceAnalytics ? [] : (dashboardData?.pumpOperators ?? [])
   )
   const operatorsPerformanceAnalyticsTable = mapSchemePerformanceToTable(schemePerformanceData, [])
   const derivedVillageSchemeId = isVillageSelected
@@ -742,15 +755,11 @@ export function CentralDashboard() {
         )
       : undefined) ?? (isVillageSelected ? schemePerformanceData?.topSchemes?.[0] : undefined)
   const overallPerformanceTableData = isCentralLandingView
-    ? mapOverallPerformanceFromNationalDashboard(
-        nationalDashboardData,
-        overallPerformanceFallbackData,
-        5
-      )
+    ? mapOverallPerformanceFromNationalDashboard(nationalDashboardData, emptyEntityPerformance, 5)
     : mapOverallPerformanceFromAnalytics(
         averageWaterSupplyData,
         averageSchemeRegularityData,
-        overallPerformanceFallbackData,
+        emptyEntityPerformance,
         5
       )
   const currentWaterSupplyKpis = isCentralLandingView
@@ -939,7 +948,7 @@ export function CentralDashboard() {
     )
   }
 
-  if (error) {
+  if (error && !dashboardData) {
     return (
       <Flex h="100vh" align="center" justify="center">
         <Box textAlign="center">
@@ -954,7 +963,7 @@ export function CentralDashboard() {
     )
   }
 
-  if (!data) {
+  if (!dashboardData) {
     return (
       <Flex h="100vh" align="center" justify="center">
         <Box textAlign="center">
@@ -972,17 +981,17 @@ export function CentralDashboard() {
   }
 
   if (
-    !data.kpis ||
-    !data.mapData ||
-    !data.demandSupply ||
-    !data.readingSubmissionStatus ||
-    !data.pumpOperators ||
-    !data.readingCompliance ||
-    !data.waterSupplyOutages ||
-    !data.topPerformers ||
-    !data.worstPerformers ||
-    !data.regularityData ||
-    !data.continuityData
+    !dashboardData.kpis ||
+    !dashboardData.mapData ||
+    !dashboardData.demandSupply ||
+    !dashboardData.readingSubmissionStatus ||
+    !dashboardData.pumpOperators ||
+    !dashboardData.readingCompliance ||
+    !dashboardData.waterSupplyOutages ||
+    !dashboardData.topPerformers ||
+    !dashboardData.worstPerformers ||
+    !dashboardData.regularityData ||
+    !dashboardData.continuityData
   ) {
     return (
       <Flex h="100vh" align="center" justify="center">
@@ -1002,7 +1011,7 @@ export function CentralDashboard() {
     ? [toOutageReasonsData(outageReasonsData.outageReasonSchemeCount)]
     : null
   const nationalWaterSupplyOutageReasonsData = isCentralLandingView
-    ? mapOutageReasonsFromNationalDashboard(nationalDashboardData, data.waterSupplyOutages)
+    ? mapOutageReasonsFromNationalDashboard(nationalDashboardData, dashboardData.waterSupplyOutages)
     : null
   const apiWaterSupplyOutageDistributionData = outageReasonsData?.childRegions?.length
     ? toOutageDistributionData(outageReasonsData.childRegions)
@@ -1010,15 +1019,15 @@ export function CentralDashboard() {
   const waterSupplyOutagesData =
     nationalWaterSupplyOutageReasonsData ??
     apiWaterSupplyOutageReasonsData ??
-    data.waterSupplyOutages
+    dashboardData.waterSupplyOutages
   const waterSupplyOutageDistributionData =
-    apiWaterSupplyOutageDistributionData ?? data.waterSupplyOutages
+    apiWaterSupplyOutageDistributionData ?? dashboardData.waterSupplyOutages
   const resolvedDashboardData =
-    readingSubmissionStatusData === data.readingSubmissionStatus &&
-    pumpOperatorsData === data.pumpOperators
-      ? data
+    readingSubmissionStatusData === dashboardData.readingSubmissionStatus &&
+    pumpOperatorsData === dashboardData.pumpOperators
+      ? dashboardData
       : {
-          ...data,
+          ...dashboardData,
           readingSubmissionStatus: readingSubmissionStatusData,
           pumpOperators: pumpOperatorsData,
         }
@@ -1161,12 +1170,12 @@ export function CentralDashboard() {
     (total, item) => total + item.value,
     0
   )
-  const leadingPumpOperators = data.leadingPumpOperators ?? []
-  const bottomPumpOperators = data.bottomPumpOperators ?? []
+  const leadingPumpOperators = dashboardData.leadingPumpOperators ?? []
+  const bottomPumpOperators = dashboardData.bottomPumpOperators ?? []
   const operatorsPerformanceTable = shouldFetchSchemePerformanceAnalytics
     ? operatorsPerformanceAnalyticsTable
     : [...leadingPumpOperators, ...bottomPumpOperators]
-  const villagePhotoEvidenceRows = data?.readingCompliance ?? []
+  const villagePhotoEvidenceRows = dashboardData.readingCompliance ?? []
 
   return (
     <Box>
@@ -1248,7 +1257,7 @@ export function CentralDashboard() {
             minW={0}
           >
             <IndiaMapChart
-              data={data.mapData}
+              data={dashboardData.mapData}
               onStateClick={handleStateClick}
               onStateHover={handleStateHover}
               height="100%"
