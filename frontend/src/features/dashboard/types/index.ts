@@ -164,6 +164,8 @@ export interface NationalDashboardQuantityPerformanceItem {
   totalHouseholdCount: number
   totalFhtcCount?: number
   totalPlannedFhtc?: number
+  totalAchievedFhtcCount?: number
+  totalPlannedFhtcCount?: number
   totalWaterSuppliedLiters: number
   avgWaterSupplyPerScheme: number
 }

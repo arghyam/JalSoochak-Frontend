@@ -30,6 +30,20 @@ const getChildRegionAchievedFhtcCount = (
   region: AverageWaterSupplyPerRegionResponse['childRegions'][number]
 ) => region.totalAchievedFhtcCount ?? 0
 
+const getNationalAchievedFhtcCount = (
+  state: NationalDashboardResponse['stateWiseQuantityPerformance'][number]
+) => state.totalAchievedFhtcCount ?? state.totalFhtcCount ?? state.totalHouseholdCount ?? 0
+
+const getNationalDemandFhtcCount = (
+  state: NationalDashboardResponse['stateWiseQuantityPerformance'][number]
+) =>
+  state.totalAchievedFhtcCount ??
+  state.totalFhtcCount ??
+  state.totalPlannedFhtcCount ??
+  state.totalPlannedFhtc ??
+  state.totalHouseholdCount ??
+  0
+
 const parseIsoDate = (value?: string) => {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return null
@@ -264,8 +278,7 @@ export const getWaterSupplyKpisFromNationalDashboard = (
     (acc, state) => ({
       totalWaterSuppliedLiters:
         acc.totalWaterSuppliedLiters + (state.totalWaterSuppliedLiters ?? 0),
-      totalServedConnections:
-        acc.totalServedConnections + (state.totalFhtcCount ?? state.totalHouseholdCount ?? 0),
+      totalServedConnections: acc.totalServedConnections + getNationalAchievedFhtcCount(state),
     }),
     { totalWaterSuppliedLiters: 0, totalServedConnections: 0 }
   )
@@ -467,7 +480,7 @@ export const mapQuantityPerformanceFromNationalDashboard = (
       id: fallbackMatch?.id ?? `national-quantity-${state.stateCode || index}`,
       name: formatEntityName(state.stateTitle, fallbackMatch?.name, `State ${index + 1}`),
       coverage: calculateDemandMld(
-        state.totalFhtcCount ?? state.totalHouseholdCount,
+        getNationalDemandFhtcCount(state),
         averagePersonsPerHousehold,
         litersPerPersonPerDay
       ),
@@ -759,7 +772,7 @@ export const mapOverallPerformanceFromNationalDashboard = (
       continuity: fallbackMatch?.continuity ?? 0,
       quantity: calculateQuantityLpcd(
         state.totalWaterSuppliedLiters,
-        state.totalFhtcCount ?? state.totalHouseholdCount,
+        getNationalAchievedFhtcCount(state),
         daysInRange,
         averagePersonsPerHousehold
       ),

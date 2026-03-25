@@ -394,7 +394,7 @@ describe('CentralDashboard', () => {
     renderWithProviders(<CentralDashboard />)
 
     const dashboardBodyProps = getLatestDashboardBodyProps<{
-      quantityPerformanceData: Array<{ name: string; quantity: number }>
+      quantityPerformanceData: Array<{ name: string; coverage: number; quantity: number }>
       regularityPerformanceData: Array<{ name: string; regularity: number }>
       supplySubmissionRateData: Array<{ name: string; regularity: number }>
       waterSupplyOutagesData: Array<{
@@ -414,6 +414,7 @@ describe('CentralDashboard', () => {
     expect(dashboardBodyProps.quantityPerformanceData[0]).toEqual(
       expect.objectContaining({
         name: 'Karnataka',
+        coverage: 0.13,
         quantity: 3,
       })
     )
@@ -467,7 +468,8 @@ describe('CentralDashboard', () => {
               stateTitle: 'Karnataka',
               schemeCount: 2,
               totalHouseholdCount: 1000,
-              totalFhtcCount: 500,
+              totalAchievedFhtcCount: 500,
+              totalPlannedFhtcCount: 550,
               totalWaterSuppliedLiters: 90_000_000,
               avgWaterSupplyPerScheme: 0,
             },
@@ -571,7 +573,7 @@ describe('CentralDashboard', () => {
     expect(kpiProps[0]?.trend).toEqual({ direction: 'down', text: '-16.7% vs last 30 days' })
 
     expect(kpiProps[1]?.title).toBe('Quantity in LPCD')
-    expect(kpiProps[1]?.value).toBe('1000')
+    expect(kpiProps[1]?.value).toBe('1,000')
     expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-200 LPCD vs last month' })
 
     expect(kpiProps[2]?.title).toBe('Regularity')

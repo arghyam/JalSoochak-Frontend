@@ -21,6 +21,7 @@ import {
   mapReadingSubmissionStatusFromAnalytics,
   mapReadingSubmissionRateFromAnalytics,
   mapQuantityPerformanceFromAnalytics,
+  mapQuantityPerformanceFromNationalDashboard,
   mapRegularityPerformanceFromAnalytics,
   mapOverallPerformanceFromAnalytics,
   resolveDaysInRange,
@@ -140,6 +141,50 @@ describe('dashboard formulas', () => {
         coverage: 0.13,
         quantity: 3,
       },
+    ])
+  })
+
+  it('maps national quantity response using achieved FHTC count for demand when available', () => {
+    const fallbackData: EntityPerformance[] = [
+      {
+        id: 'assam',
+        name: 'Assam',
+        coverage: 0,
+        regularity: 0,
+        continuity: 0,
+        quantity: 0,
+        compositeScore: 68,
+        status: 'good',
+      },
+    ]
+    const response: NationalDashboardResponse = {
+      startDate: '2026-02-24',
+      endDate: '2026-03-25',
+      daysInRange: 30,
+      stateWiseQuantityPerformance: [
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          stateTitle: 'Assam',
+          schemeCount: 17412,
+          totalHouseholdCount: 0,
+          totalAchievedFhtcCount: 2_150_302_458,
+          totalPlannedFhtcCount: 4_022_202,
+          totalWaterSuppliedLiters: 15_706_406_504,
+          avgWaterSupplyPerScheme: 902044.9405,
+        },
+      ],
+      stateWiseRegularity: [],
+      stateWiseReadingSubmissionRate: [],
+      overallOutageReasonDistribution: {},
+    }
+
+    expect(mapQuantityPerformanceFromNationalDashboard(response, fallbackData)).toEqual([
+      expect.objectContaining({
+        name: 'Assam',
+        coverage: 537575.61,
+        quantity: 523.55,
+      }),
     ])
   })
 
