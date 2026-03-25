@@ -18,9 +18,12 @@ import { ToastContainer } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ROUTES } from '@/shared/constants/routes'
 import { useAuthStore } from '@/app/store/auth-store'
+import { isAlphabeticWithSpaces, exceedsMaxLength } from '@/shared/utils/validation'
 import { useInviteStateUTAdminMutation } from '../../services/query/use-state-admin-queries'
 
 const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+const isValidPhone = (v: string) => /^\d{10}$/.test(v)
+const MAX_NAME_LENGTH = 25
 
 export function InviteStateUTAdminPage() {
   const { t } = useTranslation(['state-admin', 'common'])
@@ -33,20 +36,60 @@ export function InviteStateUTAdminPage() {
   const [lastName, setLastName] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [email, setEmail] = useState('')
-  const [emailTouched, setEmailTouched] = useState(false)
-  const [phoneTouched, setPhoneTouched] = useState(false)
+  const [touched, setTouched] = useState({
+    firstName: false,
+    lastName: false,
+    phone: false,
+    email: false,
+  })
 
   useEffect(() => {
     document.title = `${t('stateUtAdmins.addTitle')} | JalSoochak`
   }, [t])
 
-  const isPhoneValid = /^\d{10}$/.test(phoneNumber)
-  const phoneError = phoneTouched && phoneNumber !== '' && !isPhoneValid
-  const emailError = emailTouched && email !== '' && !isValidEmail(email)
+  const handleBlur = (field: keyof typeof touched) =>
+    setTouched((prev) => ({ ...prev, [field]: true }))
+
+  const isNameValid = (name: string) =>
+    name.trim() !== '' &&
+    !exceedsMaxLength(name, MAX_NAME_LENGTH) &&
+    isAlphabeticWithSpaces(name.trim())
+
+  const fieldErrors = {
+    firstName: (() => {
+      if (!touched.firstName) return ''
+      if (!firstName.trim()) return t('common:validation.required')
+      if (exceedsMaxLength(firstName, MAX_NAME_LENGTH))
+        return t('common:validation.maxLength', { max: MAX_NAME_LENGTH })
+      if (!isAlphabeticWithSpaces(firstName.trim())) return t('common:validation.alphabeticOnly')
+      return ''
+    })(),
+    lastName: (() => {
+      if (!touched.lastName) return ''
+      if (!lastName.trim()) return t('common:validation.required')
+      if (exceedsMaxLength(lastName, MAX_NAME_LENGTH))
+        return t('common:validation.maxLength', { max: MAX_NAME_LENGTH })
+      if (!isAlphabeticWithSpaces(lastName.trim())) return t('common:validation.alphabeticOnly')
+      return ''
+    })(),
+    phone: (() => {
+      if (!touched.phone) return ''
+      if (!phoneNumber.trim()) return t('common:validation.required')
+      if (!isValidPhone(phoneNumber)) return t('common:validation.invalidPhone')
+      return ''
+    })(),
+    email: (() => {
+      if (!touched.email) return ''
+      if (!email.trim()) return t('common:validation.required')
+      if (!isValidEmail(email)) return t('common:validation.invalidEmail')
+      return ''
+    })(),
+  }
+
   const isFormValid =
-    firstName.trim() !== '' &&
-    lastName.trim() !== '' &&
-    isPhoneValid &&
+    isNameValid(firstName) &&
+    isNameValid(lastName) &&
+    isValidPhone(phoneNumber) &&
     email.trim() !== '' &&
     isValidEmail(email)
 
@@ -134,13 +177,14 @@ export function InviteStateUTAdminPage() {
               spacing={6}
               aria-labelledby="user-details-heading"
             >
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={!!fieldErrors.firstName}>
                 <FormLabel textStyle="h10" mb={1}>
                   {t('stateUtAdmins.form.firstName')}
                 </FormLabel>
                 <Input
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
+                  onBlur={() => handleBlur('firstName')}
                   placeholder={t('common:enter')}
                   h={9}
                   borderColor="neutral.200"
@@ -148,14 +192,18 @@ export function InviteStateUTAdminPage() {
                   _placeholder={{ color: 'neutral.300' }}
                   aria-required="true"
                 />
+                {fieldErrors.firstName && (
+                  <FormErrorMessage>{fieldErrors.firstName}</FormErrorMessage>
+                )}
               </FormControl>
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={!!fieldErrors.lastName}>
                 <FormLabel textStyle="h10" mb={1}>
                   {t('stateUtAdmins.form.lastName')}
                 </FormLabel>
                 <Input
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
+                  onBlur={() => handleBlur('lastName')}
                   placeholder={t('common:enter')}
                   h={9}
                   borderColor="neutral.200"
@@ -163,8 +211,11 @@ export function InviteStateUTAdminPage() {
                   _placeholder={{ color: 'neutral.300' }}
                   aria-required="true"
                 />
+                {fieldErrors.lastName && (
+                  <FormErrorMessage>{fieldErrors.lastName}</FormErrorMessage>
+                )}
               </FormControl>
-              <FormControl isRequired isInvalid={phoneError}>
+              <FormControl isRequired isInvalid={!!fieldErrors.phone}>
                 <FormLabel textStyle="h10" mb={1}>
                   {t('stateUtAdmins.form.phoneNumber')}
                 </FormLabel>
@@ -175,7 +226,7 @@ export function InviteStateUTAdminPage() {
                     const val = e.target.value.replaceAll(/\D/g, '')
                     if (val.length <= 10) setPhoneNumber(val)
                   }}
-                  onBlur={() => setPhoneTouched(true)}
+                  onBlur={() => handleBlur('phone')}
                   placeholder={t('common:enter')}
                   inputMode="numeric"
                   h={9}
@@ -184,9 +235,9 @@ export function InviteStateUTAdminPage() {
                   _placeholder={{ color: 'neutral.300' }}
                   aria-required="true"
                 />
-                <FormErrorMessage>{t('common:validation.invalidPhone')}</FormErrorMessage>
+                {fieldErrors.phone && <FormErrorMessage>{fieldErrors.phone}</FormErrorMessage>}
               </FormControl>
-              <FormControl isRequired isInvalid={emailError}>
+              <FormControl isRequired isInvalid={!!fieldErrors.email}>
                 <FormLabel textStyle="h10" mb={1}>
                   {t('stateUtAdmins.form.emailAddress')}
                 </FormLabel>
@@ -194,7 +245,7 @@ export function InviteStateUTAdminPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  onBlur={() => setEmailTouched(true)}
+                  onBlur={() => handleBlur('email')}
                   placeholder={t('common:enter')}
                   h={9}
                   borderColor="neutral.200"
@@ -202,7 +253,7 @@ export function InviteStateUTAdminPage() {
                   _placeholder={{ color: 'neutral.300' }}
                   aria-required="true"
                 />
-                <FormErrorMessage>{t('common:validation.invalidEmail')}</FormErrorMessage>
+                {fieldErrors.email && <FormErrorMessage>{fieldErrors.email}</FormErrorMessage>}
               </FormControl>
             </SimpleGrid>
           </Box>

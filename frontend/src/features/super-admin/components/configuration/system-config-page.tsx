@@ -256,6 +256,7 @@ export function SystemConfigPage() {
                     onChange={updateDraftField('undersupplyThreshold')}
                     min={0}
                     max={100}
+                    maxDecimals={4}
                   />
                   <ThresholdInput
                     id="water-qty-oversupply"
@@ -264,6 +265,7 @@ export function SystemConfigPage() {
                     onChange={updateDraftField('oversupplyThreshold')}
                     min={0}
                     max={1000}
+                    maxDecimals={4}
                   />
                 </SimpleGrid>
 
@@ -276,6 +278,7 @@ export function SystemConfigPage() {
                     onChange={updateDraftField('bfmImageConfidenceThreshold')}
                     min={0}
                     max={100}
+                    maxDecimals={4}
                   />
                   <ThresholdInput
                     id="location-affinity"
@@ -283,6 +286,7 @@ export function SystemConfigPage() {
                     value={activeDraft.locationAffinityThreshold}
                     onChange={updateDraftField('locationAffinityThreshold')}
                     min={0}
+                    max={1000}
                   />
                 </SimpleGrid>
               </VStack>
@@ -332,6 +336,7 @@ function ThresholdInput({
   onChange,
   min,
   max,
+  maxDecimals,
 }: {
   id: string
   label: string
@@ -339,7 +344,10 @@ function ThresholdInput({
   onChange: (v: string) => void
   min?: number
   max?: number
+  maxDecimals?: number
 }) {
+  const step = maxDecimals != null ? String(Math.pow(10, -maxDecimals)) : 'any'
+
   return (
     <Box>
       <Text
@@ -356,13 +364,21 @@ function ThresholdInput({
       <Input
         id={id}
         type="number"
-        step="any"
+        step={step}
         min={min}
         max={max}
         value={value}
         onChange={(e) => {
           const raw = e.target.value
-          if (raw === '' || (Number(raw) >= (min ?? 0) && Number(raw) <= (max ?? Infinity))) {
+          if (raw === '') {
+            onChange(raw)
+            return
+          }
+          if (maxDecimals != null) {
+            const dotIndex = raw.indexOf('.')
+            if (dotIndex !== -1 && raw.length - dotIndex - 1 > maxDecimals) return
+          }
+          if (Number(raw) >= (min ?? 0) && Number(raw) <= (max ?? Infinity)) {
             onChange(raw)
           }
         }}

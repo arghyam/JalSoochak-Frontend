@@ -10,6 +10,7 @@ import {
   InputLeftElement,
   Button,
   IconButton,
+  Tooltip,
   useBreakpointValue,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
@@ -110,28 +111,32 @@ export function StatesUTsPage() {
       header: t('statesUts.table.actions'),
       render: (row) => (
         <Flex gap={1}>
-          <IconButton
-            aria-label={`${t('statesUts.aria.viewStateUt')} ${row.name}`}
-            icon={<FiEye aria-hidden="true" size={20} />}
-            variant="ghost"
-            width={5}
-            minW={5}
-            height={5}
-            color="neutral.950"
-            onClick={() => handleView(row.stateCode)}
-            _hover={{ color: 'primary.500', bg: 'transparent' }}
-          />
-          <IconButton
-            aria-label={`${t('statesUts.aria.editStateUt')} ${row.name}`}
-            icon={<EditIcon aria-hidden="true" w={5} h={5} />}
-            variant="ghost"
-            width={5}
-            minW={5}
-            height={5}
-            color="neutral.950"
-            onClick={() => handleEdit(row.stateCode)}
-            _hover={{ color: 'primary.500', bg: 'transparent' }}
-          />
+          <Tooltip label={t('statesUts.aria.viewStateUt')} hasArrow placement="top">
+            <IconButton
+              aria-label={`${t('statesUts.aria.viewStateUt')} ${row.name}`}
+              icon={<FiEye aria-hidden="true" size={20} />}
+              variant="ghost"
+              width={5}
+              minW={5}
+              height={5}
+              color="neutral.950"
+              onClick={() => handleView(row.stateCode)}
+              _hover={{ color: 'primary.500', bg: 'transparent' }}
+            />
+          </Tooltip>
+          <Tooltip label={t('statesUts.aria.editStateUt')} hasArrow placement="top">
+            <IconButton
+              aria-label={`${t('statesUts.aria.editStateUt')} ${row.name}`}
+              icon={<EditIcon aria-hidden="true" w={5} h={5} />}
+              variant="ghost"
+              width={5}
+              minW={5}
+              height={5}
+              color="neutral.950"
+              onClick={() => handleEdit(row.stateCode)}
+              _hover={{ color: 'primary.500', bg: 'transparent' }}
+            />
+          </Tooltip>
         </Flex>
       ),
     },

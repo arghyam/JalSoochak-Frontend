@@ -465,7 +465,7 @@
       "activated": "Activated"
     },
     "buttons": {
-      "addAndSendLink": "Add State/UT Admin & Send Link via Email"
+      "addAndSendLink": "Add Admin & Send Link via Email"
     },
     "breadcrumb": {
       "manage": "Manage State/UT Admins",

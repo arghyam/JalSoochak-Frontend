@@ -11,6 +11,7 @@ import {
   Button,
   IconButton,
   Spinner,
+  Tooltip,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { SearchIcon, EditIcon } from '@chakra-ui/icons'
@@ -168,43 +169,49 @@ export function UserAdminListPage({
       header: labels.table.actions,
       render: (row) => (
         <Flex gap={1}>
-          <IconButton
-            aria-label={`${labels.aria.view} ${row.firstName} ${row.lastName}`}
-            icon={<FiEye aria-hidden="true" size={20} />}
-            variant="ghost"
-            width={5}
-            minW={5}
-            height={5}
-            color="neutral.950"
-            fontWeight="400"
-            onClick={() => handleView(row.id)}
-            _hover={{ color: 'primary.500', bg: 'transparent' }}
-          />
-          <IconButton
-            aria-label={`${labels.aria.edit} ${row.firstName} ${row.lastName}`}
-            icon={<EditIcon aria-hidden="true" w={5} h={5} />}
-            variant="ghost"
-            width={5}
-            minW={5}
-            height={5}
-            color="neutral.950"
-            fontWeight="400"
-            onClick={() => handleEdit(row.id)}
-            _hover={{ color: 'primary.500', bg: 'transparent' }}
-          />
-          {row.status === 'pending' && onReinvite && (
+          <Tooltip label={labels.aria.view} hasArrow placement="top">
             <IconButton
-              aria-label={`${labels.aria.resendInvite} ${row.firstName} ${row.lastName}`}
-              icon={<MdOutlineEmail aria-hidden="true" size={20} />}
+              aria-label={`${labels.aria.view} ${row.firstName} ${row.lastName}`}
+              icon={<FiEye aria-hidden="true" size={20} />}
               variant="ghost"
               width={5}
               minW={5}
               height={5}
               color="neutral.950"
               fontWeight="400"
-              onClick={() => onReinvite(row.id)}
+              onClick={() => handleView(row.id)}
               _hover={{ color: 'primary.500', bg: 'transparent' }}
             />
+          </Tooltip>
+          <Tooltip label={labels.aria.edit} hasArrow placement="top">
+            <IconButton
+              aria-label={`${labels.aria.edit} ${row.firstName} ${row.lastName}`}
+              icon={<EditIcon aria-hidden="true" w={5} h={5} />}
+              variant="ghost"
+              width={5}
+              minW={5}
+              height={5}
+              color="neutral.950"
+              fontWeight="400"
+              onClick={() => handleEdit(row.id)}
+              _hover={{ color: 'primary.500', bg: 'transparent' }}
+            />
+          </Tooltip>
+          {row.status === 'pending' && onReinvite && (
+            <Tooltip label={labels.aria.resendInvite} hasArrow placement="top">
+              <IconButton
+                aria-label={`${labels.aria.resendInvite} ${row.firstName} ${row.lastName}`}
+                icon={<MdOutlineEmail aria-hidden="true" size={20} />}
+                variant="ghost"
+                width={5}
+                minW={5}
+                height={5}
+                color="neutral.950"
+                fontWeight="400"
+                onClick={() => onReinvite(row.id)}
+                _hover={{ color: 'primary.500', bg: 'transparent' }}
+              />
+            </Tooltip>
           )}
         </Flex>
       ),
