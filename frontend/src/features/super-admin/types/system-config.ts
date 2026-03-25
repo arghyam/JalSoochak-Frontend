@@ -1,4 +1,24 @@
-export const SYSTEM_SUPPORTED_CHANNELS = ['BFM', 'MAN', 'ELM', 'PDU', 'IOT'] as const
+export const SYSTEM_CHANNEL_CODE_TO_NAME = {
+  BFM: 'Bulk Flow Meter',
+  ELM: 'Electric Meter',
+  PDU: 'Pump Duration',
+  IOT: 'IOT',
+  MAN: 'Manual',
+} as const
+
+export type SystemSupportedChannelCode = keyof typeof SYSTEM_CHANNEL_CODE_TO_NAME
+
+export const SYSTEM_CHANNEL_NAME_TO_CODE = Object.fromEntries(
+  Object.entries(SYSTEM_CHANNEL_CODE_TO_NAME).map(([code, name]) => [name, code])
+) as Record<SystemSupportedChannel, SystemSupportedChannelCode>
+
+export const SYSTEM_SUPPORTED_CHANNELS = [
+  'Bulk Flow Meter',
+  'Electric Meter',
+  'Pump Duration',
+  'IOT',
+  'Manual',
+] as const
 export type SystemSupportedChannel = (typeof SYSTEM_SUPPORTED_CHANNELS)[number]
 
 export interface SystemConfiguration {
@@ -26,7 +46,9 @@ export interface SystemConfigApiResponse {
 export function mapApiResponseToSystemConfig(
   configs: SystemConfigApiResponse
 ): SystemConfiguration {
-  const channels = (configs.SYSTEM_SUPPORTED_CHANNELS?.channels ?? []) as SystemSupportedChannel[]
+  const channels = (configs.SYSTEM_SUPPORTED_CHANNELS?.channels ?? [])
+    .map((code) => SYSTEM_CHANNEL_CODE_TO_NAME[code as SystemSupportedChannelCode])
+    .filter((name): name is SystemSupportedChannel => Boolean(name))
   const threshold = configs.WATER_QUANTITY_SUPPLY_THRESHOLD
   const rawBfm = Number.parseFloat(
     configs.BFM_IMAGE_READING_CONFIDENCE_LEVEL_THRESHOLD?.value ?? ''
@@ -46,7 +68,9 @@ export function mapSystemConfigToApiPayload(config: SaveSystemConfigPayload): {
 } {
   return {
     configs: {
-      SYSTEM_SUPPORTED_CHANNELS: { channels: config.supportedChannels },
+      SYSTEM_SUPPORTED_CHANNELS: {
+        channels: config.supportedChannels.map((name) => SYSTEM_CHANNEL_NAME_TO_CODE[name]),
+      },
       WATER_QUANTITY_SUPPLY_THRESHOLD: {
         undersupplyThresholdPercent: config.undersupplyThreshold,
         oversupplyThresholdPercent: config.oversupplyThreshold,
