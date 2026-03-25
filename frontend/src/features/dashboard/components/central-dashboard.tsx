@@ -517,14 +517,13 @@ export function CentralDashboard() {
   })
   const rootLocationOptions = mapLocationOptions(rootLocationsData?.data)
   const selectedRootOption = findLocationOption(rootLocationOptions, selectedState)
-  const analyticsParentId =
+  const lgdAnalyticsParentId =
     parseLocationId(effectiveSelectedVillage) ??
     parseLocationId(effectiveSelectedGramPanchayat) ??
     parseLocationId(effectiveSelectedBlock) ??
     parseLocationId(effectiveSelectedDistrict) ??
     selectedRootOption?.locationId ??
     0
-  const hasValidAnalyticsParentId = analyticsParentId > 0
   const departmentAnalyticsParentId =
     parseLocationId(selectedDepartmentVillage) ??
     parseLocationId(selectedDepartmentSubdivision) ??
@@ -533,9 +532,12 @@ export function CentralDashboard() {
     parseLocationId(selectedDepartmentZone) ??
     parseLocationId(selectedDepartmentState) ??
     0
+  const analyticsParentId =
+    hierarchyType === 'LGD' ? lgdAnalyticsParentId : departmentAnalyticsParentId
+  const hasValidAnalyticsParentId = analyticsParentId > 0
   const hasValidDepartmentAnalyticsParentId = departmentAnalyticsParentId > 0
   const submissionStatusParentId =
-    hierarchyType === 'LGD' ? analyticsParentId : departmentAnalyticsParentId
+    hierarchyType === 'LGD' ? lgdAnalyticsParentId : departmentAnalyticsParentId
   const hasValidSubmissionStatusParentId =
     hierarchyType === 'LGD' ? hasValidAnalyticsParentId : hasValidDepartmentAnalyticsParentId
   const analyticsFallbackData = isGramPanchayatSelected
