@@ -12,6 +12,7 @@ import { useAverageSchemeRegularityQuery } from '../services/query/use-average-s
 import { useNationalDashboardQuery } from '../services/query/use-national-dashboard-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
 import { useReadingSubmissionRateQuery } from '../services/query/use-reading-submission-rate-query'
+import { useSchemeRegularityPeriodicQuery } from '../services/query/use-scheme-regularity-periodic-query'
 import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
 import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
@@ -52,6 +53,7 @@ import {
   resolveDaysInRange,
 } from '../utils/formulas'
 import {
+  mapSchemeRegularityPeriodicToTrendPoints,
   mapWaterQuantityPeriodicToTrendPoints,
   resolveWaterQuantityPeriodicScale,
 } from '../utils/quantity-periodic'
@@ -552,6 +554,27 @@ export function CentralDashboard() {
             analyticsDateRange.endDate
           ),
         }
+  const regularityPeriodicAnalyticsParams = !hasValidAnalyticsParentId
+    ? null
+    : hierarchyType === 'LGD'
+      ? {
+          lgdId: analyticsParentId,
+          startDate: analyticsDateRange.startDate,
+          endDate: analyticsDateRange.endDate,
+          scale: resolveWaterQuantityPeriodicScale(
+            analyticsDateRange.startDate,
+            analyticsDateRange.endDate
+          ),
+        }
+      : {
+          departmentId: analyticsParentId,
+          startDate: analyticsDateRange.startDate,
+          endDate: analyticsDateRange.endDate,
+          scale: resolveWaterQuantityPeriodicScale(
+            analyticsDateRange.startDate,
+            analyticsDateRange.endDate
+          ),
+        }
   const nationalDashboardParams = hasCentralLandingFilters
     ? null
     : {
@@ -711,6 +734,11 @@ export function CentralDashboard() {
       params: quantityPeriodicAnalyticsParams,
       enabled: Boolean(quantityPeriodicAnalyticsParams),
     })
+  const { data: schemeRegularityPeriodicData, isFetching: isSchemeRegularityPeriodicFetching } =
+    useSchemeRegularityPeriodicQuery({
+      params: regularityPeriodicAnalyticsParams,
+      enabled: Boolean(regularityPeriodicAnalyticsParams),
+    })
   const { data: previousNationalDashboardData } = useNationalDashboardQuery({
     params: previousNationalDashboardParams,
     enabled: Boolean(previousNationalDashboardParams),
@@ -794,6 +822,9 @@ export function CentralDashboard() {
         5
       )
   const quantityTimeTrendData = mapWaterQuantityPeriodicToTrendPoints(waterQuantityPeriodicData)
+  const regularityTimeTrendData = mapSchemeRegularityPeriodicToTrendPoints(
+    schemeRegularityPeriodicData
+  )
   const currentWaterSupplyKpis = isCentralLandingView
     ? getWaterSupplyKpisFromNationalDashboard(nationalDashboardData, 5)
     : getWaterSupplyKpis(currentWaterSupplyKpiData, 5)
@@ -1330,6 +1361,8 @@ export function CentralDashboard() {
         quantityTimeTrendData={quantityTimeTrendData}
         isQuantityTimeTrendLoading={isWaterQuantityPeriodicFetching}
         regularityPerformanceData={regularityPerformanceData}
+        regularityTimeTrendData={regularityTimeTrendData}
+        isRegularityTimeTrendLoading={isSchemeRegularityPeriodicFetching}
         districtTableData={districtTableData}
         blockTableData={blockTableData}
         gramPanchayatTableData={gramPanchayatTableData}

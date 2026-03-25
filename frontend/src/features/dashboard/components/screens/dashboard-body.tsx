@@ -34,6 +34,8 @@ type DashboardBodyProps = {
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
   regularityPerformanceData: EntityPerformance[]
+  regularityTimeTrendData: MonthlyTrendPoint[]
+  isRegularityTimeTrendLoading?: boolean
   districtTableData: EntityPerformance[]
   blockTableData: EntityPerformance[]
   gramPanchayatTableData: EntityPerformance[]
@@ -64,6 +66,8 @@ export function DashboardBody({
   quantityTimeTrendData,
   isQuantityTimeTrendLoading = false,
   regularityPerformanceData,
+  regularityTimeTrendData,
+  isRegularityTimeTrendLoading = false,
   blockTableData,
   gramPanchayatTableData,
   villageTableData,
@@ -94,14 +98,6 @@ export function DashboardBody({
   const isBlockScreen = isBlockSelected && !isGramPanchayatSelected && !selectedVillage
   const isGramPanchayatScreen = isGramPanchayatSelected && !selectedVillage
 
-  const regularityTimeTrendData = useMemo(
-    () =>
-      data.demandSupply.map((item) => ({
-        period: item.period,
-        value: item.demand > 0 ? Math.min(100, Math.round((item.supply / item.demand) * 100)) : 0,
-      })),
-    [data.demandSupply]
-  )
   const outageDistributionTimeTrendData = useMemo(
     () => data.supplyOutageTrend ?? [],
     [data.supplyOutageTrend]
@@ -218,18 +214,28 @@ export function DashboardBody({
                 })}
               />
             ) : (
-              <MonthlyTrendChart
-                data={regularityTimeTrendData}
-                height="400px"
-                isPercent
-                xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-                yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
-                  defaultValue: 'Regularity (%)',
-                })}
-                seriesName={t('performanceCharts.regularity.seriesName', {
-                  defaultValue: 'Regularity',
-                })}
-              />
+              <>
+                {isRegularityTimeTrendLoading ? (
+                  <Flex align="center" justify="center" h="400px">
+                    <LoadingSpinner />
+                  </Flex>
+                ) : regularityTimeTrendData.length > 0 ? (
+                  <MonthlyTrendChart
+                    data={regularityTimeTrendData}
+                    height="400px"
+                    isPercent
+                    xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+                    yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
+                      defaultValue: 'Regularity (%)',
+                    })}
+                    seriesName={t('performanceCharts.regularity.seriesName', {
+                      defaultValue: 'Regularity',
+                    })}
+                  />
+                ) : (
+                  <ChartEmptyState minHeight="400px" />
+                )}
+              </>
             )}
           </Box>
         </Grid>
@@ -244,6 +250,8 @@ export function DashboardBody({
           quantityTimeTrendData={quantityTimeTrendData}
           isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
           regularityPerformanceData={regularityPerformanceData}
+          regularityTimeTrendData={regularityTimeTrendData}
+          isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
           blockTableData={blockTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
@@ -260,6 +268,8 @@ export function DashboardBody({
           quantityTimeTrendData={quantityTimeTrendData}
           isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
           regularityPerformanceData={regularityPerformanceData}
+          regularityTimeTrendData={regularityTimeTrendData}
+          isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
           gramPanchayatTableData={gramPanchayatTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
@@ -276,6 +286,8 @@ export function DashboardBody({
           quantityTimeTrendData={quantityTimeTrendData}
           isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
           regularityPerformanceData={regularityPerformanceData}
+          regularityTimeTrendData={regularityTimeTrendData}
+          isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
           villageTableData={villageTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}

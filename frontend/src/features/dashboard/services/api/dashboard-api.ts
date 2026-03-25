@@ -19,6 +19,8 @@ import type {
   PumpOperatorsBySchemeResponse,
   ReadingSubmissionRateQueryParams,
   ReadingSubmissionRateResponse,
+  SchemeRegularityPeriodicQueryParams,
+  SchemeRegularityPeriodicResponse,
   SchemePerformanceQueryParams,
   SchemePerformanceResponse,
   SubmissionStatusQueryParams,
@@ -354,6 +356,24 @@ export const dashboardApi = {
           scope: params.scope ?? 'child',
           start_date: params.startDate,
           end_date: params.endDate,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getSchemeRegularityPeriodic: async (
+    params: SchemeRegularityPeriodicQueryParams
+  ): Promise<SchemeRegularityPeriodicResponse> => {
+    const response = await apiClient.get<SchemeRegularityPeriodicResponse>(
+      '/api/v1/analytics/scheme-regularity/periodic',
+      {
+        params: {
+          start_date: params.startDate,
+          end_date: params.endDate,
+          scale: params.scale,
+          lgd_id: params.lgdId,
+          department_id: params.departmentId,
         },
       }
     )

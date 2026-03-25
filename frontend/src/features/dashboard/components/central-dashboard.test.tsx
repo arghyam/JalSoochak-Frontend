@@ -12,6 +12,7 @@ import { useNationalDashboardQuery } from '../services/query/use-national-dashbo
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
 import { useReadingComplianceQuery } from '../services/query/use-reading-compliance-query'
 import { useReadingSubmissionRateQuery } from '../services/query/use-reading-submission-rate-query'
+import { useSchemeRegularityPeriodicQuery } from '../services/query/use-scheme-regularity-periodic-query'
 import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
 import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
@@ -83,6 +84,10 @@ jest.mock('../services/query/use-reading-compliance-query', () => ({
 
 jest.mock('../services/query/use-reading-submission-rate-query', () => ({
   useReadingSubmissionRateQuery: jest.fn(),
+}))
+
+jest.mock('../services/query/use-scheme-regularity-periodic-query', () => ({
+  useSchemeRegularityPeriodicQuery: jest.fn(),
 }))
 
 jest.mock('../services/query/use-scheme-performance-query', () => ({
@@ -185,6 +190,10 @@ describe('CentralDashboard', () => {
     ;(useOutageReasonsQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useReadingComplianceQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useReadingSubmissionRateQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useSchemeRegularityPeriodicQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isFetching: false,
+    })
     ;(useSchemePerformanceQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useSubmissionStatusQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useWaterQuantityPeriodicQuery as jest.Mock).mockReturnValue({

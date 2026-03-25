@@ -114,6 +114,7 @@ const operatorsPerformanceTable: PumpOperatorPerformanceData[] = [
 ]
 
 const quantityTimeTrendData = [{ period: '01 Mar', value: 90 }]
+const regularityTimeTrendData = [{ period: '01 Mar', value: 72 }]
 
 const data: DashboardData = {
   level: 'district',
@@ -146,6 +147,7 @@ function renderDistrictDashboard() {
       quantityPerformanceData={blockTableData}
       quantityTimeTrendData={quantityTimeTrendData}
       regularityPerformanceData={blockTableData}
+      regularityTimeTrendData={regularityTimeTrendData}
       blockTableData={blockTableData}
       supplySubmissionRateData={supplySubmissionRateData}
       supplySubmissionRateLabel="Blocks"
@@ -243,6 +245,7 @@ describe('DistrictDashboardScreen', () => {
         quantityPerformanceData={blockTableData}
         quantityTimeTrendData={[]}
         regularityPerformanceData={blockTableData}
+        regularityTimeTrendData={regularityTimeTrendData}
         blockTableData={blockTableData}
         supplySubmissionRateData={supplySubmissionRateData}
         supplySubmissionRateLabel="Blocks"
@@ -253,6 +256,33 @@ describe('DistrictDashboardScreen', () => {
 
     fireEvent.change(
       screen.getByRole('combobox', { name: 'District quantity performance view by' }),
+      {
+        target: { value: 'time' },
+      }
+    )
+
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
+  })
+
+  it('shows no data for regularity time mode when periodic analytics are empty', () => {
+    renderWithProviders(
+      <DistrictDashboardScreen
+        data={data}
+        quantityPerformanceData={blockTableData}
+        quantityTimeTrendData={quantityTimeTrendData}
+        regularityPerformanceData={blockTableData}
+        regularityTimeTrendData={[]}
+        blockTableData={blockTableData}
+        supplySubmissionRateData={supplySubmissionRateData}
+        supplySubmissionRateLabel="Blocks"
+        operatorsPerformanceTable={operatorsPerformanceTable}
+        pumpOperatorsTotal={15}
+      />
+    )
+
+    fireEvent.change(
+      screen.getByRole('combobox', { name: 'District regularity performance view by' }),
       {
         target: { value: 'time' },
       }

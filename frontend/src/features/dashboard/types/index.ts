@@ -178,6 +178,32 @@ export interface WaterQuantityPeriodicResponse {
   metrics: WaterQuantityPeriodicMetric[]
 }
 
+export interface SchemeRegularityPeriodicQueryParams {
+  startDate: string
+  endDate: string
+  scale: 'day' | 'week' | 'month'
+  lgdId?: number
+  departmentId?: number
+}
+
+export interface SchemeRegularityPeriodicMetric {
+  periodStartDate: string
+  periodEndDate: string
+  totalSupplyDays: number
+  averageRegularity: number
+}
+
+export interface SchemeRegularityPeriodicResponse {
+  lgdId: number
+  departmentId: number
+  schemeCount: number
+  scale: string
+  startDate: string
+  endDate: string
+  periodCount: number
+  metrics: SchemeRegularityPeriodicMetric[]
+}
+
 export interface NationalDashboardQueryParams {
   startDate: string
   endDate: string

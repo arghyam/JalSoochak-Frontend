@@ -198,6 +198,7 @@ function renderDashboardBody(overrides: Partial<ComponentProps<typeof DashboardB
       quantityPerformanceData={mockEntityData}
       quantityTimeTrendData={[{ period: '01 Mar', value: 85 }]}
       regularityPerformanceData={mockEntityData}
+      regularityTimeTrendData={[{ period: '01 Mar', value: 94 }]}
       districtTableData={mockEntityData}
       blockTableData={mockEntityData}
       gramPanchayatTableData={mockEntityData}
@@ -288,6 +289,16 @@ describe('DashboardBody', () => {
     renderDashboardBody({ quantityTimeTrendData: [] })
 
     fireEvent.click(screen.getByRole('button', { name: 'Quantity performance view by' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
+
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
+  })
+
+  it('shows no data for regularity time view when periodic analytics are empty', () => {
+    renderDashboardBody({ regularityTimeTrendData: [] })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Regularity performance view by' }))
     fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
 
     expect(screen.getByText('No data available')).toBeTruthy()

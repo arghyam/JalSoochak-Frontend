@@ -144,6 +144,7 @@ const operatorsPerformanceTable: PumpOperatorPerformanceData[] = [
 ]
 
 const quantityTimeTrendData = [{ period: '01 Mar', value: 90 }]
+const regularityTimeTrendData = [{ period: '01 Mar', value: 72 }]
 
 const data: DashboardData = {
   level: 'block',
@@ -184,6 +185,7 @@ function renderBlockDashboard() {
       quantityPerformanceData={quantityPerformanceData}
       quantityTimeTrendData={quantityTimeTrendData}
       regularityPerformanceData={regularityPerformanceData}
+      regularityTimeTrendData={regularityTimeTrendData}
       gramPanchayatTableData={gramPanchayatTableData}
       supplySubmissionRateData={supplySubmissionRateData}
       supplySubmissionRateLabel="Gram Panchayats"
@@ -287,6 +289,33 @@ describe('BlockDashboardScreen', () => {
     expect(quantityCall?.[0].xAxisLabel).toBe('Month')
     expect(quantityCall?.[0].yAxisLabel).toBe('Quantity')
     expect(quantityCall?.[0].data).toEqual(quantityTimeTrendData)
+  })
+
+  it('shows no data for regularity time mode when periodic analytics are empty', () => {
+    renderWithProviders(
+      <BlockDashboardScreen
+        data={data}
+        quantityPerformanceData={quantityPerformanceData}
+        quantityTimeTrendData={quantityTimeTrendData}
+        regularityPerformanceData={regularityPerformanceData}
+        regularityTimeTrendData={[]}
+        gramPanchayatTableData={gramPanchayatTableData}
+        supplySubmissionRateData={supplySubmissionRateData}
+        supplySubmissionRateLabel="Gram Panchayats"
+        operatorsPerformanceTable={operatorsPerformanceTable}
+        pumpOperatorsTotal={15}
+      />
+    )
+
+    fireEvent.change(
+      screen.getByRole('combobox', { name: 'Block regularity performance view by' }),
+      {
+        target: { value: 'time' },
+      }
+    )
+
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
   })
 
   it('switches outage distribution chart to time mode with outage trend data', () => {

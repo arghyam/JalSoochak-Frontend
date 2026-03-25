@@ -28,6 +28,8 @@ type GramPanchayatDashboardScreenProps = {
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
   regularityPerformanceData: EntityPerformance[]
+  regularityTimeTrendData: MonthlyTrendPoint[]
+  isRegularityTimeTrendLoading?: boolean
   villageTableData: EntityPerformance[]
   supplySubmissionRateData: EntityPerformance[]
   supplySubmissionRateLabel: string
@@ -45,6 +47,8 @@ export function GramPanchayatDashboardScreen({
   quantityTimeTrendData,
   isQuantityTimeTrendLoading = false,
   regularityPerformanceData,
+  regularityTimeTrendData,
+  isRegularityTimeTrendLoading = false,
   supplySubmissionRateData,
   supplySubmissionRateLabel,
   pumpOperatorsTotal,
@@ -54,15 +58,6 @@ export function GramPanchayatDashboardScreen({
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
   const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
-  const regularityTimeTrendData = useMemo(
-    () =>
-      data.demandSupply.map((item) => ({
-        period: item.period,
-        value: item.demand > 0 ? Math.min(100, Math.round((item.supply / item.demand) * 100)) : 0,
-      })),
-    [data.demandSupply]
-  )
-
   const outageDistributionTimeTrendData = useMemo(
     () => data.supplyOutageTrend ?? [],
     [data.supplyOutageTrend]
@@ -180,18 +175,28 @@ export function GramPanchayatDashboardScreen({
               })}
             />
           ) : (
-            <MonthlyTrendChart
-              data={regularityTimeTrendData}
-              height="400px"
-              isPercent
-              xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-              yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
-                defaultValue: 'Regularity (%)',
-              })}
-              seriesName={t('performanceCharts.regularity.seriesName', {
-                defaultValue: 'Regularity',
-              })}
-            />
+            <>
+              {isRegularityTimeTrendLoading ? (
+                <Flex align="center" justify="center" h="400px">
+                  <LoadingSpinner />
+                </Flex>
+              ) : regularityTimeTrendData.length > 0 ? (
+                <MonthlyTrendChart
+                  data={regularityTimeTrendData}
+                  height="400px"
+                  isPercent
+                  xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+                  yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
+                    defaultValue: 'Regularity (%)',
+                  })}
+                  seriesName={t('performanceCharts.regularity.seriesName', {
+                    defaultValue: 'Regularity',
+                  })}
+                />
+              ) : (
+                <ChartEmptyState minHeight="400px" />
+              )}
+            </>
           )}
         </Box>
       </Grid>

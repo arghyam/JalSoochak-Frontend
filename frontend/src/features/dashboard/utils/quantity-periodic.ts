@@ -1,5 +1,10 @@
 import type { MonthlyTrendPoint } from '../components/charts/monthly-trend-chart'
-import type { WaterQuantityPeriodicMetric, WaterQuantityPeriodicResponse } from '../types'
+import type {
+  SchemeRegularityPeriodicMetric,
+  SchemeRegularityPeriodicResponse,
+  WaterQuantityPeriodicMetric,
+  WaterQuantityPeriodicResponse,
+} from '../types'
 
 const parseIsoDate = (value: string) => {
   const parsed = new Date(`${value}T00:00:00`)
@@ -17,7 +22,10 @@ const formatSingleDate = (value: string, options: Intl.DateTimeFormatOptions) =>
 
 const formatMetricLabel = (
   scale: string,
-  metric: Pick<WaterQuantityPeriodicMetric, 'periodStartDate' | 'periodEndDate'>
+  metric: Pick<
+    WaterQuantityPeriodicMetric | SchemeRegularityPeriodicMetric,
+    'periodStartDate' | 'periodEndDate'
+  >
 ) => {
   if (scale === 'month') {
     const start = parseIsoDate(metric.periodStartDate)
@@ -88,5 +96,26 @@ export const mapWaterQuantityPeriodicToTrendPoints = (
     .map((metric) => ({
       period: formatMetricLabel(response.scale, metric),
       value: metric.averageWaterQuantity,
+    }))
+}
+
+export const mapSchemeRegularityPeriodicToTrendPoints = (
+  response: SchemeRegularityPeriodicResponse | undefined
+): MonthlyTrendPoint[] => {
+  if (!response?.metrics?.length) {
+    return []
+  }
+
+  return response.metrics
+    .filter(
+      (metric) =>
+        typeof metric.averageRegularity === 'number' &&
+        Number.isFinite(metric.averageRegularity) &&
+        Boolean(metric.periodStartDate) &&
+        Boolean(metric.periodEndDate)
+    )
+    .map((metric) => ({
+      period: formatMetricLabel(response.scale, metric),
+      value: metric.averageRegularity,
     }))
 }
