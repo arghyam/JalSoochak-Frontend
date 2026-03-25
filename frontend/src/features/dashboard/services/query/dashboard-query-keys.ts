@@ -2,6 +2,7 @@ import type {
   AverageSchemeRegularityQueryParams,
   AverageWaterSupplyPerRegionQueryParams,
   DashboardLevel,
+  NationalSchemeRegularityPeriodicQueryParams,
   NationalDashboardQueryParams,
   OutageReasonsPeriodicQueryParams,
   OutageReasonsQueryParams,
@@ -60,6 +61,15 @@ export const dashboardQueryKeys = {
       'scheme-regularity-periodic',
       params?.lgdId,
       params?.departmentId,
+      params?.scale,
+      params?.startDate,
+      params?.endDate,
+    ] as const,
+  nationalSchemeRegularityPeriodic: (params: NationalSchemeRegularityPeriodicQueryParams | null) =>
+    [
+      'dashboard',
+      'analytics',
+      'national-scheme-regularity-periodic',
       params?.scale,
       params?.startDate,
       params?.endDate,

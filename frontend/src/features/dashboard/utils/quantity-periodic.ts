@@ -1,5 +1,7 @@
 import type { MonthlyTrendPoint } from '../components/charts/monthly-trend-chart'
 import type {
+  NationalSchemeRegularityPeriodicMetric,
+  NationalSchemeRegularityPeriodicResponse,
   OutageReasonsPeriodicMetric,
   OutageReasonsPeriodicResponse,
   SchemeRegularityPeriodicMetric,
@@ -111,6 +113,58 @@ export const mapSchemeRegularityPeriodicToTrendPoints = (
   return response.metrics
     .filter(
       (metric) =>
+        typeof metric.averageRegularity === 'number' &&
+        Number.isFinite(metric.averageRegularity) &&
+        Boolean(metric.periodStartDate) &&
+        Boolean(metric.periodEndDate)
+    )
+    .map((metric) => ({
+      period: formatMetricLabel(response.scale, metric),
+      value: metric.averageRegularity,
+    }))
+}
+
+export const mapNationalQuantityTrendPoints = (
+  response: NationalSchemeRegularityPeriodicResponse | undefined
+): MonthlyTrendPoint[] => {
+  if (!response?.metrics?.length) {
+    return []
+  }
+
+  return response.metrics
+    .filter(
+      (
+        metric
+      ): metric is NationalSchemeRegularityPeriodicMetric &
+        Required<
+          Pick<NationalSchemeRegularityPeriodicMetric, 'periodStartDate' | 'periodEndDate'>
+        > =>
+        typeof metric.totalWaterQuantity === 'number' &&
+        Number.isFinite(metric.totalWaterQuantity) &&
+        Boolean(metric.periodStartDate) &&
+        Boolean(metric.periodEndDate)
+    )
+    .map((metric) => ({
+      period: formatMetricLabel(response.scale, metric),
+      value: metric.totalWaterQuantity,
+    }))
+}
+
+export const mapNationalRegularityTrendPoints = (
+  response: NationalSchemeRegularityPeriodicResponse | undefined
+): MonthlyTrendPoint[] => {
+  if (!response?.metrics?.length) {
+    return []
+  }
+
+  return response.metrics
+    .filter(
+      (
+        metric
+      ): metric is NationalSchemeRegularityPeriodicMetric &
+        Required<
+          Pick<NationalSchemeRegularityPeriodicMetric, 'periodStartDate' | 'periodEndDate'>
+        > =>
         typeof metric.averageRegularity === 'number' &&
         Number.isFinite(metric.averageRegularity) &&
         Boolean(metric.periodStartDate) &&

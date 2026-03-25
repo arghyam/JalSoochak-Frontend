@@ -3,6 +3,8 @@ import { isAxiosError } from 'axios'
 import type {
   AverageSchemeRegularityQueryParams,
   AverageSchemeRegularityResponse,
+  NationalSchemeRegularityPeriodicQueryParams,
+  NationalSchemeRegularityPeriodicResponse,
   NationalDashboardQueryParams,
   NationalDashboardResponse,
   AverageWaterSupplyPerRegionQueryParams,
@@ -376,6 +378,22 @@ export const dashboardApi = {
           scale: params.scale,
           lgd_id: params.lgdId,
           department_id: params.departmentId,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getNationalSchemeRegularityPeriodic: async (
+    params: NationalSchemeRegularityPeriodicQueryParams
+  ): Promise<NationalSchemeRegularityPeriodicResponse> => {
+    const response = await apiClient.get<NationalSchemeRegularityPeriodicResponse>(
+      '/api/v1/analytics/scheme-regularity/periodic/national',
+      {
+        params: {
+          start_date: params.startDate,
+          end_date: params.endDate,
+          scale: params.scale,
         },
       }
     )

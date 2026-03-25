@@ -87,4 +87,21 @@ describe('dashboardQueryKeys', () => {
       '2026-03-31',
     ])
   })
+
+  it('includes scale and dates in the national periodic query key', () => {
+    expect(
+      dashboardQueryKeys.nationalSchemeRegularityPeriodic({
+        scale: 'month',
+        startDate: '2026-01-01',
+        endDate: '2026-03-31',
+      })
+    ).toEqual([
+      'dashboard',
+      'analytics',
+      'national-scheme-regularity-periodic',
+      'month',
+      '2026-01-01',
+      '2026-03-31',
+    ])
+  })
 })

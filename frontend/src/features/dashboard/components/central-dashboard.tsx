@@ -10,6 +10,7 @@ import { useLocationSearchQuery } from '../services/query/use-location-search-qu
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
 import { useNationalDashboardQuery } from '../services/query/use-national-dashboard-query'
+import { useNationalSchemeRegularityPeriodicQuery } from '../services/query/use-national-scheme-regularity-periodic-query'
 import { useOutageReasonsPeriodicQuery } from '../services/query/use-outage-reasons-periodic-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
 import { useReadingSubmissionRateQuery } from '../services/query/use-reading-submission-rate-query'
@@ -54,6 +55,8 @@ import {
   resolveDaysInRange,
 } from '../utils/formulas'
 import {
+  mapNationalQuantityTrendPoints,
+  mapNationalRegularityTrendPoints,
   mapOutageReasonsPeriodicToTrendPoints,
   mapSchemeRegularityPeriodicToTrendPoints,
   mapWaterQuantityPeriodicToTrendPoints,
@@ -583,6 +586,16 @@ export function CentralDashboard() {
         startDate: analyticsDateRange.startDate,
         endDate: analyticsDateRange.endDate,
       }
+  const nationalPeriodAnalyticsParams = hasCentralLandingFilters
+    ? null
+    : {
+        startDate: analyticsDateRange.startDate,
+        endDate: analyticsDateRange.endDate,
+        scale: resolveWaterQuantityPeriodicScale(
+          analyticsDateRange.startDate,
+          analyticsDateRange.endDate
+        ),
+      }
   const analyticsParams =
     hierarchyType !== 'LGD' ||
     isVillageSelected ||
@@ -753,6 +766,13 @@ export function CentralDashboard() {
     params: nationalDashboardParams,
     enabled: Boolean(nationalDashboardParams),
   })
+  const {
+    data: nationalSchemeRegularityPeriodicData,
+    isFetching: isNationalSchemeRegularityPeriodicFetching,
+  } = useNationalSchemeRegularityPeriodicQuery({
+    params: nationalPeriodAnalyticsParams,
+    enabled: Boolean(nationalPeriodAnalyticsParams),
+  })
   const { data: waterQuantityPeriodicData, isFetching: isWaterQuantityPeriodicFetching } =
     useWaterQuantityPeriodicQuery({
       params: quantityPeriodicAnalyticsParams,
@@ -849,10 +869,12 @@ export function CentralDashboard() {
         emptyEntityPerformance,
         5
       )
-  const quantityTimeTrendData = mapWaterQuantityPeriodicToTrendPoints(waterQuantityPeriodicData)
-  const regularityTimeTrendData = mapSchemeRegularityPeriodicToTrendPoints(
-    schemeRegularityPeriodicData
-  )
+  const quantityTimeTrendData = isCentralLandingView
+    ? mapNationalQuantityTrendPoints(nationalSchemeRegularityPeriodicData)
+    : mapWaterQuantityPeriodicToTrendPoints(waterQuantityPeriodicData)
+  const regularityTimeTrendData = isCentralLandingView
+    ? mapNationalRegularityTrendPoints(nationalSchemeRegularityPeriodicData)
+    : mapSchemeRegularityPeriodicToTrendPoints(schemeRegularityPeriodicData)
   const outageReasonsTimeTrendData =
     mapOutageReasonsPeriodicToTrendPoints(outageReasonsPeriodicData)
   const currentWaterSupplyKpis = isCentralLandingView
@@ -1395,10 +1417,18 @@ export function CentralDashboard() {
         selectedVillage={effectiveSelectedVillage}
         quantityPerformanceData={quantityPerformanceData}
         quantityTimeTrendData={quantityTimeTrendData}
-        isQuantityTimeTrendLoading={isWaterQuantityPeriodicFetching}
+        isQuantityTimeTrendLoading={
+          isCentralLandingView
+            ? isNationalSchemeRegularityPeriodicFetching
+            : isWaterQuantityPeriodicFetching
+        }
         regularityPerformanceData={regularityPerformanceData}
         regularityTimeTrendData={regularityTimeTrendData}
-        isRegularityTimeTrendLoading={isSchemeRegularityPeriodicFetching}
+        isRegularityTimeTrendLoading={
+          isCentralLandingView
+            ? isNationalSchemeRegularityPeriodicFetching
+            : isSchemeRegularityPeriodicFetching
+        }
         districtTableData={districtTableData}
         blockTableData={blockTableData}
         gramPanchayatTableData={gramPanchayatTableData}

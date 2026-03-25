@@ -186,6 +186,12 @@ export interface SchemeRegularityPeriodicQueryParams {
   departmentId?: number
 }
 
+export interface NationalSchemeRegularityPeriodicQueryParams {
+  startDate: string
+  endDate: string
+  scale: 'day' | 'week' | 'month'
+}
+
 export interface SchemeRegularityPeriodicMetric {
   periodStartDate: string
   periodEndDate: string
@@ -202,6 +208,23 @@ export interface SchemeRegularityPeriodicResponse {
   endDate: string
   periodCount: number
   metrics: SchemeRegularityPeriodicMetric[]
+}
+
+export interface NationalSchemeRegularityPeriodicMetric {
+  periodStartDate: string
+  periodEndDate: string
+  totalSupplyDays: number
+  totalWaterQuantity: number
+  averageRegularity: number
+}
+
+export interface NationalSchemeRegularityPeriodicResponse {
+  schemeCount: number
+  scale: string
+  startDate: string
+  endDate: string
+  periodCount: number
+  metrics: NationalSchemeRegularityPeriodicMetric[]
 }
 
 export interface NationalDashboardQueryParams {

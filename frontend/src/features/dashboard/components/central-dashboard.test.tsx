@@ -9,6 +9,7 @@ import { useLocationChildrenQuery } from '../services/query/use-location-childre
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
 import { useNationalDashboardQuery } from '../services/query/use-national-dashboard-query'
+import { useNationalSchemeRegularityPeriodicQuery } from '../services/query/use-national-scheme-regularity-periodic-query'
 import { useOutageReasonsPeriodicQuery } from '../services/query/use-outage-reasons-periodic-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
 import { useReadingComplianceQuery } from '../services/query/use-reading-compliance-query'
@@ -73,6 +74,10 @@ jest.mock('../services/query/use-average-scheme-regularity-query', () => ({
 
 jest.mock('../services/query/use-national-dashboard-query', () => ({
   useNationalDashboardQuery: jest.fn(),
+}))
+
+jest.mock('../services/query/use-national-scheme-regularity-periodic-query', () => ({
+  useNationalSchemeRegularityPeriodicQuery: jest.fn(),
 }))
 
 jest.mock('../services/query/use-outage-reasons-periodic-query', () => ({
@@ -192,6 +197,10 @@ describe('CentralDashboard', () => {
     ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useNationalDashboardQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useNationalSchemeRegularityPeriodicQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isFetching: false,
+    })
     ;(useOutageReasonsPeriodicQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useOutageReasonsQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useReadingComplianceQuery as jest.Mock).mockReturnValue({ data: undefined })
@@ -235,6 +244,14 @@ describe('CentralDashboard', () => {
       params: {
         startDate: expect.any(String),
         endDate: expect.any(String),
+      },
+      enabled: true,
+    })
+    expect(useNationalSchemeRegularityPeriodicQuery).toHaveBeenCalledWith({
+      params: {
+        startDate: expect.any(String),
+        endDate: expect.any(String),
+        scale: expect.any(String),
       },
       enabled: true,
     })
@@ -319,6 +336,10 @@ describe('CentralDashboard', () => {
     renderWithProviders(<CentralDashboard />)
 
     expect(useNationalDashboardQuery).toHaveBeenCalledWith({
+      params: null,
+      enabled: false,
+    })
+    expect(useNationalSchemeRegularityPeriodicQuery).toHaveBeenCalledWith({
       params: null,
       enabled: false,
     })
@@ -414,12 +435,40 @@ describe('CentralDashboard', () => {
         },
       },
     })
+    ;(useNationalSchemeRegularityPeriodicQuery as jest.Mock).mockReturnValue({
+      data: {
+        schemeCount: 4,
+        scale: 'week',
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        periodCount: 2,
+        metrics: [
+          {
+            periodStartDate: '2026-03-01',
+            periodEndDate: '2026-03-07',
+            totalSupplyDays: 10,
+            totalWaterQuantity: 1500,
+            averageRegularity: 48,
+          },
+          {
+            periodStartDate: '2026-03-08',
+            periodEndDate: '2026-03-14',
+            totalSupplyDays: 11,
+            totalWaterQuantity: 1750,
+            averageRegularity: 52,
+          },
+        ],
+      },
+      isFetching: false,
+    })
 
     renderWithProviders(<CentralDashboard />)
 
     const dashboardBodyProps = getLatestDashboardBodyProps<{
       quantityPerformanceData: Array<{ name: string; coverage: number; quantity: number }>
       regularityPerformanceData: Array<{ name: string; regularity: number }>
+      quantityTimeTrendData: Array<{ period: string; value: number }>
+      regularityTimeTrendData: Array<{ period: string; value: number }>
       supplySubmissionRateData: Array<{ name: string; regularity: number }>
       waterSupplyOutagesData: Array<{
         electricityFailure: number
@@ -448,6 +497,14 @@ describe('CentralDashboard', () => {
         regularity: 50,
       })
     )
+    expect(dashboardBodyProps.quantityTimeTrendData).toEqual([
+      { period: '01 Mar - 07 Mar', value: 1500 },
+      { period: '08 Mar - 14 Mar', value: 1750 },
+    ])
+    expect(dashboardBodyProps.regularityTimeTrendData).toEqual([
+      { period: '01 Mar - 07 Mar', value: 48 },
+      { period: '08 Mar - 14 Mar', value: 52 },
+    ])
     expect(dashboardBodyProps.supplySubmissionRateData[0]).toEqual(
       expect.objectContaining({
         name: 'Karnataka',
