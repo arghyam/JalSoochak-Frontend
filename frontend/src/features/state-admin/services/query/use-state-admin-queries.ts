@@ -310,7 +310,9 @@ export function useUpdateStateUTAdminStatusMutation() {
       await queryClient.invalidateQueries({
         queryKey: [...stateAdminQueryKeys.all, 'state-ut-admins'],
       })
-      queryClient.removeQueries({ queryKey: stateAdminQueryKeys.stateUtAdminById(variables.id) })
+      await queryClient.invalidateQueries({
+        queryKey: stateAdminQueryKeys.stateUtAdminById(variables.id),
+      })
     },
   })
 }
