@@ -23,6 +23,8 @@ import type {
   SchemePerformanceResponse,
   SubmissionStatusQueryParams,
   SubmissionStatusResponse,
+  WaterQuantityPeriodicQueryParams,
+  WaterQuantityPeriodicResponse,
 } from '../../types'
 import { dashboardMockService } from '../mock/dashboard-mock'
 
@@ -316,6 +318,24 @@ export const dashboardApi = {
           scope: params.scope ?? 'child',
           start_date: params.startDate,
           end_date: params.endDate,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getWaterQuantityPeriodic: async (
+    params: WaterQuantityPeriodicQueryParams
+  ): Promise<WaterQuantityPeriodicResponse> => {
+    const response = await apiClient.get<WaterQuantityPeriodicResponse>(
+      '/api/v1/analytics/water-quantity/periodic',
+      {
+        params: {
+          start_date: params.startDate,
+          end_date: params.endDate,
+          scale: params.scale,
+          lgd_id: params.lgdId,
+          department_id: params.departmentId,
         },
       }
     )

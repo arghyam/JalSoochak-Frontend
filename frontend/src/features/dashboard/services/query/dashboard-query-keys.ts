@@ -10,6 +10,7 @@ import type {
   ReadingSubmissionRateQueryParams,
   SchemePerformanceQueryParams,
   SubmissionStatusQueryParams,
+  WaterQuantityPeriodicQueryParams,
 } from '../../types'
 
 const DEFAULT_ANALYTICS_SCOPE = 'child'
@@ -36,6 +37,17 @@ export const dashboardQueryKeys = {
       params?.parentLgdId,
       params?.parentDepartmentId,
       normalizeAnalyticsScope(params),
+      params?.startDate,
+      params?.endDate,
+    ] as const,
+  waterQuantityPeriodic: (params: WaterQuantityPeriodicQueryParams | null) =>
+    [
+      'dashboard',
+      'analytics',
+      'water-quantity-periodic',
+      params?.lgdId,
+      params?.departmentId,
+      params?.scale,
       params?.startDate,
       params?.endDate,
     ] as const,

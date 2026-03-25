@@ -196,6 +196,7 @@ function renderDashboardBody(overrides: Partial<ComponentProps<typeof DashboardB
       isGramPanchayatSelected={false}
       selectedVillage=""
       quantityPerformanceData={mockEntityData}
+      quantityTimeTrendData={[{ period: '01 Mar', value: 85 }]}
       regularityPerformanceData={mockEntityData}
       districtTableData={mockEntityData}
       blockTableData={mockEntityData}
@@ -281,6 +282,16 @@ describe('DashboardBody', () => {
     expect(mockMonthlyTrendChart).toHaveBeenCalledTimes(3)
     expect(mockMonthlyTrendChart.mock.calls[2]?.[0].seriesName).toBe('Regularity')
     expect(mockMonthlyTrendChart.mock.calls[2]?.[0].isPercent).toBe(true)
+  })
+
+  it('shows no data for quantity time view when periodic analytics are empty', () => {
+    renderDashboardBody({ quantityTimeTrendData: [] })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Quantity performance view by' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
+
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
   })
 
   it('renders outage reasons pie card and reading submission card in central default view', () => {

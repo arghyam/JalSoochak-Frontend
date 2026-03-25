@@ -19,7 +19,8 @@ import { BlockDashboardScreen } from './block-dashboard'
 import { DistrictDashboardScreen } from './district-dashboard'
 import { GramPanchayatDashboardScreen } from './gram-panchayat-dashboard'
 import { StateUtDashboardScreen } from './state-ut-dashboard'
-import { ViewBySelect } from '@/shared/components/common'
+import { ChartEmptyState, LoadingSpinner, ViewBySelect } from '@/shared/components/common'
+import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { VillageDashboardScreen } from './village-dashboard'
 
 type DashboardBodyProps = {
@@ -30,6 +31,8 @@ type DashboardBodyProps = {
   isGramPanchayatSelected: boolean
   selectedVillage: string
   quantityPerformanceData: EntityPerformance[]
+  quantityTimeTrendData: MonthlyTrendPoint[]
+  isQuantityTimeTrendLoading?: boolean
   regularityPerformanceData: EntityPerformance[]
   districtTableData: EntityPerformance[]
   blockTableData: EntityPerformance[]
@@ -58,6 +61,8 @@ export function DashboardBody({
   isGramPanchayatSelected,
   selectedVillage,
   quantityPerformanceData,
+  quantityTimeTrendData,
+  isQuantityTimeTrendLoading = false,
   regularityPerformanceData,
   blockTableData,
   gramPanchayatTableData,
@@ -89,14 +94,6 @@ export function DashboardBody({
   const isBlockScreen = isBlockSelected && !isGramPanchayatSelected && !selectedVillage
   const isGramPanchayatScreen = isGramPanchayatSelected && !selectedVillage
 
-  const quantityTimeTrendData = useMemo(
-    () =>
-      data.demandSupply.map((item) => ({
-        period: item.period,
-        value: item.supply,
-      })),
-    [data.demandSupply]
-  )
   const regularityTimeTrendData = useMemo(
     () =>
       data.demandSupply.map((item) => ({
@@ -159,17 +156,27 @@ export function DashboardBody({
                 })}
               />
             ) : (
-              <MonthlyTrendChart
-                data={quantityTimeTrendData}
-                height="400px"
-                xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-                yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
-                  defaultValue: 'Quantity',
-                })}
-                seriesName={t('performanceCharts.quantity.seriesName', {
-                  defaultValue: 'Quantity',
-                })}
-              />
+              <>
+                {isQuantityTimeTrendLoading ? (
+                  <Flex align="center" justify="center" h="400px">
+                    <LoadingSpinner />
+                  </Flex>
+                ) : quantityTimeTrendData.length > 0 ? (
+                  <MonthlyTrendChart
+                    data={quantityTimeTrendData}
+                    height="400px"
+                    xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+                    yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
+                      defaultValue: 'Quantity',
+                    })}
+                    seriesName={t('performanceCharts.quantity.seriesName', {
+                      defaultValue: 'Quantity',
+                    })}
+                  />
+                ) : (
+                  <ChartEmptyState minHeight="400px" />
+                )}
+              </>
             )}
           </Box>
           <Box
@@ -234,6 +241,8 @@ export function DashboardBody({
           waterSupplyOutagesData={waterSupplyOutagesData}
           waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
           quantityPerformanceData={quantityPerformanceData}
+          quantityTimeTrendData={quantityTimeTrendData}
+          isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
           regularityPerformanceData={regularityPerformanceData}
           blockTableData={blockTableData}
           supplySubmissionRateData={supplySubmissionRateData}
@@ -248,6 +257,8 @@ export function DashboardBody({
           waterSupplyOutagesData={waterSupplyOutagesData}
           waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
           quantityPerformanceData={quantityPerformanceData}
+          quantityTimeTrendData={quantityTimeTrendData}
+          isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
           regularityPerformanceData={regularityPerformanceData}
           gramPanchayatTableData={gramPanchayatTableData}
           supplySubmissionRateData={supplySubmissionRateData}
@@ -262,6 +273,8 @@ export function DashboardBody({
           waterSupplyOutagesData={waterSupplyOutagesData}
           waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
           quantityPerformanceData={quantityPerformanceData}
+          quantityTimeTrendData={quantityTimeTrendData}
+          isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
           regularityPerformanceData={regularityPerformanceData}
           villageTableData={villageTableData}
           supplySubmissionRateData={supplySubmissionRateData}

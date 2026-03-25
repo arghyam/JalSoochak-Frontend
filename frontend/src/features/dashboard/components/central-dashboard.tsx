@@ -14,6 +14,7 @@ import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-quer
 import { useReadingSubmissionRateQuery } from '../services/query/use-reading-submission-rate-query'
 import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
+import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
 import { KPICard } from './kpi-card'
 import { DashboardBody } from './screens/dashboard-body'
 import { IndiaMapChart } from './charts'
@@ -50,6 +51,10 @@ import {
   mapRegularityPerformanceFromAnalytics,
   resolveDaysInRange,
 } from '../utils/formulas'
+import {
+  mapWaterQuantityPeriodicToTrendPoints,
+  resolveWaterQuantityPeriodicScale,
+} from '../utils/quantity-periodic'
 import {
   mockFilterStates,
   mockFilterDistricts,
@@ -526,6 +531,27 @@ export function CentralDashboard() {
     startDate: toIsoDate(selectedDuration?.startDate) ?? defaultAnalyticsRange.startDate,
     endDate: toIsoDate(selectedDuration?.endDate) ?? defaultAnalyticsRange.endDate,
   }
+  const quantityPeriodicAnalyticsParams = !hasValidAnalyticsParentId
+    ? null
+    : hierarchyType === 'LGD'
+      ? {
+          lgdId: analyticsParentId,
+          startDate: analyticsDateRange.startDate,
+          endDate: analyticsDateRange.endDate,
+          scale: resolveWaterQuantityPeriodicScale(
+            analyticsDateRange.startDate,
+            analyticsDateRange.endDate
+          ),
+        }
+      : {
+          departmentId: analyticsParentId,
+          startDate: analyticsDateRange.startDate,
+          endDate: analyticsDateRange.endDate,
+          scale: resolveWaterQuantityPeriodicScale(
+            analyticsDateRange.startDate,
+            analyticsDateRange.endDate
+          ),
+        }
   const nationalDashboardParams = hasCentralLandingFilters
     ? null
     : {
@@ -680,6 +706,11 @@ export function CentralDashboard() {
     params: nationalDashboardParams,
     enabled: Boolean(nationalDashboardParams),
   })
+  const { data: waterQuantityPeriodicData, isFetching: isWaterQuantityPeriodicFetching } =
+    useWaterQuantityPeriodicQuery({
+      params: quantityPeriodicAnalyticsParams,
+      enabled: Boolean(quantityPeriodicAnalyticsParams),
+    })
   const { data: previousNationalDashboardData } = useNationalDashboardQuery({
     params: previousNationalDashboardParams,
     enabled: Boolean(previousNationalDashboardParams),
@@ -762,6 +793,7 @@ export function CentralDashboard() {
         emptyEntityPerformance,
         5
       )
+  const quantityTimeTrendData = mapWaterQuantityPeriodicToTrendPoints(waterQuantityPeriodicData)
   const currentWaterSupplyKpis = isCentralLandingView
     ? getWaterSupplyKpisFromNationalDashboard(nationalDashboardData, 5)
     : getWaterSupplyKpis(currentWaterSupplyKpiData, 5)
@@ -1295,6 +1327,8 @@ export function CentralDashboard() {
         isGramPanchayatSelected={isGramPanchayatSelected}
         selectedVillage={effectiveSelectedVillage}
         quantityPerformanceData={quantityPerformanceData}
+        quantityTimeTrendData={quantityTimeTrendData}
+        isQuantityTimeTrendLoading={isWaterQuantityPeriodicFetching}
         regularityPerformanceData={regularityPerformanceData}
         districtTableData={districtTableData}
         blockTableData={blockTableData}

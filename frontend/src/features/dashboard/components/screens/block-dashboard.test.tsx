@@ -143,6 +143,8 @@ const operatorsPerformanceTable: PumpOperatorPerformanceData[] = [
   },
 ]
 
+const quantityTimeTrendData = [{ period: '01 Mar', value: 90 }]
+
 const data: DashboardData = {
   level: 'block',
   kpis: {
@@ -180,6 +182,7 @@ function renderBlockDashboard() {
     <BlockDashboardScreen
       data={data}
       quantityPerformanceData={quantityPerformanceData}
+      quantityTimeTrendData={quantityTimeTrendData}
       regularityPerformanceData={regularityPerformanceData}
       gramPanchayatTableData={gramPanchayatTableData}
       supplySubmissionRateData={supplySubmissionRateData}
@@ -283,12 +286,7 @@ describe('BlockDashboardScreen', () => {
     expect(quantityCall).toBeDefined()
     expect(quantityCall?.[0].xAxisLabel).toBe('Month')
     expect(quantityCall?.[0].yAxisLabel).toBe('Quantity')
-    expect(quantityCall?.[0].data).toEqual([
-      {
-        period: 'Jan',
-        value: 90,
-      },
-    ])
+    expect(quantityCall?.[0].data).toEqual(quantityTimeTrendData)
   })
 
   it('switches outage distribution chart to time mode with outage trend data', () => {

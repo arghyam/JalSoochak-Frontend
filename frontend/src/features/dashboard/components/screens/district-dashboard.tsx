@@ -17,13 +17,16 @@ import {
 } from '../charts'
 import { SchemePerformanceTable } from '../tables'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
-import { ViewBySelect } from '@/shared/components/common'
+import { ChartEmptyState, LoadingSpinner, ViewBySelect } from '@/shared/components/common'
+import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 
 type DistrictDashboardScreenProps = {
   data: DashboardData
   waterSupplyOutagesData?: WaterSupplyOutageData[]
   waterSupplyOutageDistributionData?: WaterSupplyOutageData[]
   quantityPerformanceData: EntityPerformance[]
+  quantityTimeTrendData: MonthlyTrendPoint[]
+  isQuantityTimeTrendLoading?: boolean
   regularityPerformanceData: EntityPerformance[]
   blockTableData: EntityPerformance[]
   supplySubmissionRateData: EntityPerformance[]
@@ -39,6 +42,8 @@ export function DistrictDashboardScreen({
   waterSupplyOutagesData = data.waterSupplyOutages,
   waterSupplyOutageDistributionData = data.waterSupplyOutages,
   quantityPerformanceData,
+  quantityTimeTrendData,
+  isQuantityTimeTrendLoading = false,
   regularityPerformanceData,
   supplySubmissionRateData,
   supplySubmissionRateLabel,
@@ -49,15 +54,6 @@ export function DistrictDashboardScreen({
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
   const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
-  const quantityTimeTrendData = useMemo(
-    () =>
-      data.demandSupply.map((item) => ({
-        period: item.period,
-        value: item.supply,
-      })),
-    [data.demandSupply]
-  )
-
   const regularityTimeTrendData = useMemo(
     () =>
       data.demandSupply.map((item) => ({
@@ -115,13 +111,27 @@ export function DistrictDashboardScreen({
               })}
             />
           ) : (
-            <MonthlyTrendChart
-              data={quantityTimeTrendData}
-              height="400px"
-              xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-              yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
-              seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
-            />
+            <>
+              {isQuantityTimeTrendLoading ? (
+                <Flex align="center" justify="center" h="400px">
+                  <LoadingSpinner />
+                </Flex>
+              ) : quantityTimeTrendData.length > 0 ? (
+                <MonthlyTrendChart
+                  data={quantityTimeTrendData}
+                  height="400px"
+                  xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+                  yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
+                    defaultValue: 'Quantity',
+                  })}
+                  seriesName={t('performanceCharts.quantity.seriesName', {
+                    defaultValue: 'Quantity',
+                  })}
+                />
+              ) : (
+                <ChartEmptyState minHeight="400px" />
+              )}
+            </>
           )}
         </Box>
         <Box

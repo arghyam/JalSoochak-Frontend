@@ -151,6 +151,33 @@ export interface AverageWaterSupplyPerRegionQueryParams {
   endDate: string
 }
 
+export interface WaterQuantityPeriodicQueryParams {
+  startDate: string
+  endDate: string
+  scale: 'day' | 'week' | 'month'
+  lgdId?: number
+  departmentId?: number
+}
+
+export interface WaterQuantityPeriodicMetric {
+  periodStartDate: string
+  periodEndDate: string
+  averageWaterQuantity: number
+  householdCount: number
+  achievedFhtcCount: number
+  plannedFhtcCount: number
+}
+
+export interface WaterQuantityPeriodicResponse {
+  lgdId: number
+  departmentId: number
+  scale: string
+  startDate: string
+  endDate: string
+  periodCount: number
+  metrics: WaterQuantityPeriodicMetric[]
+}
+
 export interface NationalDashboardQueryParams {
   startDate: string
   endDate: string

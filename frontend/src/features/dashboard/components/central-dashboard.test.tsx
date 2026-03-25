@@ -14,6 +14,7 @@ import { useReadingComplianceQuery } from '../services/query/use-reading-complia
 import { useReadingSubmissionRateQuery } from '../services/query/use-reading-submission-rate-query'
 import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
+import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
 import { getPreviousPeriodRange } from '../utils/formulas'
 
 const mockNavigate = jest.fn()
@@ -90,6 +91,10 @@ jest.mock('../services/query/use-scheme-performance-query', () => ({
 
 jest.mock('../services/query/use-submission-status-query', () => ({
   useSubmissionStatusQuery: jest.fn(),
+}))
+
+jest.mock('../services/query/use-water-quantity-periodic-query', () => ({
+  useWaterQuantityPeriodicQuery: jest.fn(),
 }))
 
 jest.mock('./filters/dashboard-filters', () => ({
@@ -182,6 +187,10 @@ describe('CentralDashboard', () => {
     ;(useReadingSubmissionRateQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useSchemePerformanceQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useSubmissionStatusQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useWaterQuantityPeriodicQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isFetching: false,
+    })
   })
 
   it('renders Overall Performance table panel for central view', () => {

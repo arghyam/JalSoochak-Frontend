@@ -113,6 +113,8 @@ const operatorsPerformanceTable: PumpOperatorPerformanceData[] = [
   },
 ]
 
+const quantityTimeTrendData = [{ period: '01 Mar', value: 90 }]
+
 const data: DashboardData = {
   level: 'district',
   kpis: {
@@ -142,6 +144,7 @@ function renderDistrictDashboard() {
     <DistrictDashboardScreen
       data={data}
       quantityPerformanceData={blockTableData}
+      quantityTimeTrendData={quantityTimeTrendData}
       regularityPerformanceData={blockTableData}
       blockTableData={blockTableData}
       supplySubmissionRateData={supplySubmissionRateData}
@@ -230,12 +233,33 @@ describe('DistrictDashboardScreen', () => {
     expect(quantityCall).toBeDefined()
     expect(quantityCall?.[0].xAxisLabel).toBe('Month')
     expect(quantityCall?.[0].yAxisLabel).toBe('Quantity')
-    expect(quantityCall?.[0].data).toEqual([
+    expect(quantityCall?.[0].data).toEqual(quantityTimeTrendData)
+  })
+
+  it('shows no data for quantity time mode when periodic analytics are empty', () => {
+    renderWithProviders(
+      <DistrictDashboardScreen
+        data={data}
+        quantityPerformanceData={blockTableData}
+        quantityTimeTrendData={[]}
+        regularityPerformanceData={blockTableData}
+        blockTableData={blockTableData}
+        supplySubmissionRateData={supplySubmissionRateData}
+        supplySubmissionRateLabel="Blocks"
+        operatorsPerformanceTable={operatorsPerformanceTable}
+        pumpOperatorsTotal={15}
+      />
+    )
+
+    fireEvent.change(
+      screen.getByRole('combobox', { name: 'District quantity performance view by' }),
       {
-        period: 'Jan',
-        value: 90,
-      },
-    ])
+        target: { value: 'time' },
+      }
+    )
+
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
   })
 
   it('renders reading submission rate as a fixed geography chart', () => {
