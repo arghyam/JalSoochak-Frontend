@@ -79,6 +79,7 @@
   },
   "overallPerformance": {
     "title": "समग्र प्रदर्शन",
+    "noData": "डेटा नहीं",
     "columns": {
       "entity": "राज्य/केंद्रशासित प्रदेश",
       "quantityMld": "मात्रा (MLD)",

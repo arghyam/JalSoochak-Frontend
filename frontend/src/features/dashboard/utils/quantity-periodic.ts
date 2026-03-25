@@ -1,5 +1,6 @@
 import type { MonthlyTrendPoint } from '../components/charts/monthly-trend-chart'
 import type {
+  DemandSupplyData,
   NationalSchemeRegularityPeriodicMetric,
   NationalSchemeRegularityPeriodicResponse,
   OutageReasonsPeriodicMetric,
@@ -122,6 +123,23 @@ export const mapSchemeRegularityPeriodicToTrendPoints = (
       period: formatMetricLabel(response.scale, metric),
       value: metric.averageRegularity,
     }))
+}
+
+export const mapDemandSupplyToTrendPoints = (
+  demandSupply: DemandSupplyData[] | undefined,
+  valueSelector: (item: DemandSupplyData) => number
+): MonthlyTrendPoint[] => {
+  if (!demandSupply?.length) {
+    return []
+  }
+
+  return demandSupply
+    .filter((item) => Boolean(item.period))
+    .map((item) => ({
+      period: item.period,
+      value: valueSelector(item),
+    }))
+    .filter((item) => Number.isFinite(item.value))
 }
 
 export const mapNationalQuantityTrendPoints = (

@@ -230,9 +230,16 @@ const isDashboardDataPayload = (value: unknown): value is DashboardData => {
   }
 
   const candidate = value as Partial<DashboardData>
+  const kpis = candidate.kpis as Partial<DashboardData['kpis']> | undefined
+  const hasValidKpis =
+    !!kpis &&
+    typeof kpis === 'object' &&
+    Number.isFinite(kpis.totalSchemes) &&
+    Number.isFinite(kpis.totalRuralHouseholds) &&
+    Number.isFinite(kpis.functionalTapConnections)
 
   return (
-    Array.isArray(candidate.kpis) &&
+    hasValidKpis &&
     Array.isArray(candidate.mapData) &&
     Array.isArray(candidate.demandSupply) &&
     Array.isArray(candidate.readingSubmissionStatus) &&

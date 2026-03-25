@@ -33,6 +33,7 @@ type DashboardBodyProps = {
   quantityPerformanceData: EntityPerformance[]
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
+  isQuantityTimeTrendAwaitingParams?: boolean
   regularityPerformanceData: EntityPerformance[]
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading?: boolean
@@ -65,6 +66,7 @@ export function DashboardBody({
   quantityPerformanceData,
   quantityTimeTrendData,
   isQuantityTimeTrendLoading = false,
+  isQuantityTimeTrendAwaitingParams = false,
   regularityPerformanceData,
   regularityTimeTrendData,
   isRegularityTimeTrendLoading = false,
@@ -169,7 +171,7 @@ export function DashboardBody({
                       defaultValue: 'Quantity',
                     })}
                   />
-                ) : (
+                ) : isQuantityTimeTrendAwaitingParams ? null : (
                   <ChartEmptyState minHeight="400px" />
                 )}
               </>
@@ -249,6 +251,7 @@ export function DashboardBody({
           quantityPerformanceData={quantityPerformanceData}
           quantityTimeTrendData={quantityTimeTrendData}
           isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
+          isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
           regularityPerformanceData={regularityPerformanceData}
           regularityTimeTrendData={regularityTimeTrendData}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
@@ -267,6 +270,7 @@ export function DashboardBody({
           quantityPerformanceData={quantityPerformanceData}
           quantityTimeTrendData={quantityTimeTrendData}
           isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
+          isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
           regularityPerformanceData={regularityPerformanceData}
           regularityTimeTrendData={regularityTimeTrendData}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
@@ -285,6 +289,7 @@ export function DashboardBody({
           quantityPerformanceData={quantityPerformanceData}
           quantityTimeTrendData={quantityTimeTrendData}
           isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
+          isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
           regularityPerformanceData={regularityPerformanceData}
           regularityTimeTrendData={regularityTimeTrendData}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}

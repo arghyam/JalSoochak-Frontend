@@ -216,7 +216,7 @@ export function OverallPerformanceTable({
               ) : (
                 <Tr>
                   <Td colSpan={4} textAlign="center" color="neutral.500">
-                    No data
+                    {t('overallPerformance.noData', { defaultValue: 'No data' })}
                   </Td>
                 </Tr>
               )}

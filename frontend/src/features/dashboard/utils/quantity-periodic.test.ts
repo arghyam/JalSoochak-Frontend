@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals'
 import {
+  mapDemandSupplyToTrendPoints,
   mapOutageReasonsPeriodicToTrendPoints,
   mapSchemeRegularityPeriodicToTrendPoints,
   mapWaterQuantityPeriodicToTrendPoints,
@@ -56,6 +57,36 @@ describe('quantity-periodic utils', () => {
         ],
       })
     ).toEqual([{ period: '01 Mar - 07 Mar', value: 78.5 }])
+  })
+
+  it('maps demand supply rows into fallback trend points', () => {
+    expect(
+      mapDemandSupplyToTrendPoints(
+        [
+          { period: 'Jan', demand: 100, supply: 80 },
+          { period: 'Feb', demand: 120, supply: 96 },
+        ],
+        (item) => item.supply
+      )
+    ).toEqual([
+      { period: 'Jan', value: 80 },
+      { period: 'Feb', value: 96 },
+    ])
+  })
+
+  it('supports computed fallback trend values from demand supply rows', () => {
+    expect(
+      mapDemandSupplyToTrendPoints(
+        [
+          { period: 'Jan', demand: 100, supply: 80 },
+          { period: 'Feb', demand: 0, supply: 0 },
+        ],
+        (item) => (item.demand > 0 ? Math.round((item.supply / item.demand) * 100) : 0)
+      )
+    ).toEqual([
+      { period: 'Jan', value: 80 },
+      { period: 'Feb', value: 0 },
+    ])
   })
 
   it('maps outage periodic metrics by summing all outage reasons per period', () => {

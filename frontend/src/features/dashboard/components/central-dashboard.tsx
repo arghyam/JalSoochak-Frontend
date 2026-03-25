@@ -59,6 +59,7 @@ import {
   mapNationalRegularityTrendPoints,
   mapOutageReasonsPeriodicToTrendPoints,
   mapSchemeRegularityPeriodicToTrendPoints,
+  mapDemandSupplyToTrendPoints,
   mapWaterQuantityPeriodicToTrendPoints,
   resolveWaterQuantityPeriodicScale,
 } from '../utils/quantity-periodic'
@@ -786,11 +787,14 @@ export function CentralDashboard() {
     params: nationalPeriodAnalyticsParams,
     enabled: Boolean(nationalPeriodAnalyticsParams),
   })
-  const { data: waterQuantityPeriodicData, isFetching: isWaterQuantityPeriodicFetching } =
-    useWaterQuantityPeriodicQuery({
-      params: quantityPeriodicAnalyticsParams,
-      enabled: Boolean(quantityPeriodicAnalyticsParams),
-    })
+  const {
+    data: waterQuantityPeriodicData,
+    isFetching: isWaterQuantityPeriodicFetching,
+    isAwaitingParams: isWaterQuantityPeriodicAwaitingParams,
+  } = useWaterQuantityPeriodicQuery({
+    params: quantityPeriodicAnalyticsParams,
+    enabled: Boolean(quantityPeriodicAnalyticsParams),
+  })
   const { data: schemeRegularityPeriodicData, isFetching: isSchemeRegularityPeriodicFetching } =
     useSchemeRegularityPeriodicQuery({
       params: regularityPeriodicAnalyticsParams,
@@ -882,12 +886,23 @@ export function CentralDashboard() {
         emptyEntityPerformance,
         5
       )
+  const periodicQuantityTimeTrendData =
+    mapWaterQuantityPeriodicToTrendPoints(waterQuantityPeriodicData)
+  const periodicRegularityTimeTrendData = mapSchemeRegularityPeriodicToTrendPoints(
+    schemeRegularityPeriodicData
+  )
   const quantityTimeTrendData = isCentralLandingView
     ? mapNationalQuantityTrendPoints(nationalSchemeRegularityPeriodicData)
-    : mapWaterQuantityPeriodicToTrendPoints(waterQuantityPeriodicData)
+    : periodicQuantityTimeTrendData.length > 0
+      ? periodicQuantityTimeTrendData
+      : mapDemandSupplyToTrendPoints(dashboardData?.demandSupply, (item) => item.supply)
   const regularityTimeTrendData = isCentralLandingView
     ? mapNationalRegularityTrendPoints(nationalSchemeRegularityPeriodicData)
-    : mapSchemeRegularityPeriodicToTrendPoints(schemeRegularityPeriodicData)
+    : periodicRegularityTimeTrendData.length > 0
+      ? periodicRegularityTimeTrendData
+      : mapDemandSupplyToTrendPoints(dashboardData?.demandSupply, (item) =>
+          item.demand > 0 ? Math.min(100, Math.round((item.supply / item.demand) * 100)) : 0
+        )
   const outageReasonsTimeTrendData =
     mapOutageReasonsPeriodicToTrendPoints(outageReasonsPeriodicData)
   const currentWaterSupplyKpis = isCentralLandingView
@@ -1434,6 +1449,9 @@ export function CentralDashboard() {
           isCentralLandingView
             ? isNationalSchemeRegularityPeriodicFetching
             : isWaterQuantityPeriodicFetching
+        }
+        isQuantityTimeTrendAwaitingParams={
+          isCentralLandingView ? false : isWaterQuantityPeriodicAwaitingParams
         }
         regularityPerformanceData={regularityPerformanceData}
         regularityTimeTrendData={regularityTimeTrendData}

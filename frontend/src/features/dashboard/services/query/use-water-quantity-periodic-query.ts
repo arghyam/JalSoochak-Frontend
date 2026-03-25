@@ -10,8 +10,9 @@ type UseWaterQuantityPeriodicQueryOptions = {
 
 export function useWaterQuantityPeriodicQuery(options: UseWaterQuantityPeriodicQueryOptions) {
   const { params, enabled = true } = options
+  const isAwaitingParams = enabled && !params
 
-  return useQuery<WaterQuantityPeriodicResponse>({
+  const query = useQuery<WaterQuantityPeriodicResponse>({
     queryKey: dashboardQueryKeys.waterQuantityPeriodic(params),
     queryFn: () => {
       if (!params) {
@@ -23,4 +24,9 @@ export function useWaterQuantityPeriodicQuery(options: UseWaterQuantityPeriodicQ
     enabled: enabled && Boolean(params),
     retry: false,
   })
+
+  return {
+    ...query,
+    isAwaitingParams,
+  }
 }

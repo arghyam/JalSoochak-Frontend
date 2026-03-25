@@ -79,6 +79,7 @@
   },
   "overallPerformance": {
     "title": "Overall Performance",
+    "noData": "No data",
     "columns": {
       "entity": "State/UT",
       "quantityMld": "Quantity (MLD)",

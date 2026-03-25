@@ -27,6 +27,7 @@ type DistrictDashboardScreenProps = {
   quantityPerformanceData: EntityPerformance[]
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
+  isQuantityTimeTrendAwaitingParams?: boolean
   regularityPerformanceData: EntityPerformance[]
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading?: boolean
@@ -46,6 +47,7 @@ export function DistrictDashboardScreen({
   quantityPerformanceData,
   quantityTimeTrendData,
   isQuantityTimeTrendLoading = false,
+  isQuantityTimeTrendAwaitingParams = false,
   regularityPerformanceData,
   regularityTimeTrendData,
   isRegularityTimeTrendLoading = false,
@@ -123,7 +125,7 @@ export function DistrictDashboardScreen({
                     defaultValue: 'Quantity',
                   })}
                 />
-              ) : (
+              ) : isQuantityTimeTrendAwaitingParams ? null : (
                 <ChartEmptyState minHeight="400px" />
               )}
             </>
