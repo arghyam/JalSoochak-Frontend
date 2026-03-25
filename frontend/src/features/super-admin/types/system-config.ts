@@ -7,19 +7,14 @@ export const SYSTEM_CHANNEL_CODE_TO_NAME = {
 } as const
 
 export type SystemSupportedChannelCode = keyof typeof SYSTEM_CHANNEL_CODE_TO_NAME
+export type SystemSupportedChannel =
+  (typeof SYSTEM_CHANNEL_CODE_TO_NAME)[SystemSupportedChannelCode]
+
+export const SYSTEM_SUPPORTED_CHANNELS = Object.values(SYSTEM_CHANNEL_CODE_TO_NAME)
 
 export const SYSTEM_CHANNEL_NAME_TO_CODE = Object.fromEntries(
   Object.entries(SYSTEM_CHANNEL_CODE_TO_NAME).map(([code, name]) => [name, code])
 ) as Record<SystemSupportedChannel, SystemSupportedChannelCode>
-
-export const SYSTEM_SUPPORTED_CHANNELS = [
-  'Bulk Flow Meter',
-  'Electric Meter',
-  'Pump Duration',
-  'IOT',
-  'Manual',
-] as const
-export type SystemSupportedChannel = (typeof SYSTEM_SUPPORTED_CHANNELS)[number]
 
 export interface SystemConfiguration {
   supportedChannels: SystemSupportedChannel[]
