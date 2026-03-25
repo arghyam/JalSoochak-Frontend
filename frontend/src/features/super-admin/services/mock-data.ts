@@ -803,7 +803,7 @@ export const updateMockSuperUserStatus = (
 // ─── System Configuration ─────────────────────────────────────────────────────
 
 let mockSystemConfigData: SystemConfiguration = {
-  supportedChannels: ['BFM', 'MAN', 'ELM', 'PDU', 'IOT'],
+  supportedChannels: ['Bulk Flow Meter', 'Manual', 'Electric Meter', 'Pump Duration', 'IOT'],
   oversupplyThreshold: 100,
   undersupplyThreshold: 100,
   bfmImageConfidenceThreshold: 89,
