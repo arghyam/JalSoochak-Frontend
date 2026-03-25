@@ -38,12 +38,20 @@ export interface SystemConfigApiResponse {
   LOCATION_AFFINITY_THRESHOLD?: { value: string }
 }
 
+function isSystemSupportedChannelCode(code: string): code is SystemSupportedChannelCode {
+  return code in SYSTEM_CHANNEL_CODE_TO_NAME
+}
+
 export function mapApiResponseToSystemConfig(
   configs: SystemConfigApiResponse
 ): SystemConfiguration {
-  const channels = (configs.SYSTEM_SUPPORTED_CHANNELS?.channels ?? [])
-    .map((code) => SYSTEM_CHANNEL_CODE_TO_NAME[code as SystemSupportedChannelCode])
-    .filter((name): name is SystemSupportedChannel => Boolean(name))
+  const channels = (configs.SYSTEM_SUPPORTED_CHANNELS?.channels ?? []).flatMap((code) => {
+    if (!isSystemSupportedChannelCode(code)) {
+      console.warn(`[SystemConfig] Unknown channel code from API: "${code}" — skipped`)
+      return []
+    }
+    return [SYSTEM_CHANNEL_CODE_TO_NAME[code]]
+  })
   const threshold = configs.WATER_QUANTITY_SUPPLY_THRESHOLD
   const rawBfm = Number.parseFloat(
     configs.BFM_IMAGE_READING_CONFIDENCE_LEVEL_THRESHOLD?.value ?? ''
@@ -64,7 +72,14 @@ export function mapSystemConfigToApiPayload(config: SaveSystemConfigPayload): {
   return {
     configs: {
       SYSTEM_SUPPORTED_CHANNELS: {
-        channels: config.supportedChannels.map((name) => SYSTEM_CHANNEL_NAME_TO_CODE[name]),
+        channels: config.supportedChannels.flatMap((name) => {
+          const code = SYSTEM_CHANNEL_NAME_TO_CODE[name]
+          if (!code) {
+            console.warn(`[SystemConfig] Unknown channel name in payload: "${name}" — skipped`)
+            return []
+          }
+          return [code]
+        }),
       },
       WATER_QUANTITY_SUPPLY_THRESHOLD: {
         undersupplyThresholdPercent: config.undersupplyThreshold,
