@@ -761,6 +761,48 @@ describe('CentralDashboard', () => {
     ])
   })
 
+  it('enables departmental submission status analytics from the selected department trail', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 1,
+        selectedDepartmentState: '501:department-state',
+      })
+    )
+    ;(useSubmissionStatusQuery as jest.Mock).mockReturnValue({
+      data: {
+        startDate: '2026-03-14',
+        endDate: '2026-03-14',
+        schemeCount: 9,
+        compliantSubmissionCount: 6,
+        anomalousSubmissionCount: 3,
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useSubmissionStatusQuery).toHaveBeenCalledWith({
+      params: {
+        departmentId: 501,
+        startDate: expect.any(String),
+        endDate: expect.any(String),
+      },
+      enabled: true,
+    })
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{ data: DashboardData }>()
+
+    expect(dashboardBodyProps.data.readingSubmissionStatus).toEqual([
+      { label: 'Compliant Submissions', value: 6 },
+      { label: 'Anomalous Submissions', value: 3 },
+    ])
+  })
+
   it('overrides active schemes chart data from scheme performance analytics when rows are available', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,

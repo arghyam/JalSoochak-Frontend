@@ -524,6 +524,19 @@ export function CentralDashboard() {
     selectedRootOption?.locationId ??
     0
   const hasValidAnalyticsParentId = analyticsParentId > 0
+  const departmentAnalyticsParentId =
+    parseLocationId(selectedDepartmentVillage) ??
+    parseLocationId(selectedDepartmentSubdivision) ??
+    parseLocationId(selectedDepartmentDivision) ??
+    parseLocationId(selectedDepartmentCircle) ??
+    parseLocationId(selectedDepartmentZone) ??
+    parseLocationId(selectedDepartmentState) ??
+    0
+  const hasValidDepartmentAnalyticsParentId = departmentAnalyticsParentId > 0
+  const submissionStatusParentId =
+    hierarchyType === 'LGD' ? analyticsParentId : departmentAnalyticsParentId
+  const hasValidSubmissionStatusParentId =
+    hierarchyType === 'LGD' ? hasValidAnalyticsParentId : hasValidDepartmentAnalyticsParentId
   const analyticsFallbackData = isGramPanchayatSelected
     ? villageTableData
     : isBlockSelected
@@ -664,16 +677,16 @@ export function CentralDashboard() {
           schemeCount: 10,
         }
   const submissionStatusAnalyticsParams =
-    !hasCentralLandingFilters || !hasValidAnalyticsParentId
+    !hasCentralLandingFilters || !hasValidSubmissionStatusParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
-            lgdId: analyticsParentId,
+            lgdId: submissionStatusParentId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
           }
         : {
-            departmentId: analyticsParentId,
+            departmentId: submissionStatusParentId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
           }

@@ -164,6 +164,7 @@ export interface WaterQuantityPeriodicMetric {
   periodEndDate: string
   averageWaterQuantity: number
   householdCount: number
+  totalAchievedFhtcCount?: number
   achievedFhtcCount: number
   plannedFhtcCount: number
 }
@@ -280,6 +281,7 @@ export interface AverageWaterSupplyScheme {
   schemeId: number
   schemeName: string
   householdCount: number
+  totalAchievedFhtcCount?: number
   achievedFhtcCount?: number
   plannedFhtcCount?: number
   totalWaterSuppliedLiters: number

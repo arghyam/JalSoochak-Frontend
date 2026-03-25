@@ -44,6 +44,37 @@ describe('dashboard formulas', () => {
     expect(calculateQuantityLpcd(90_000_000, 500, 30, 5)).toBe(1200)
   })
 
+  it('calculates state KPI totals from scheme rows using totalAchievedFhtcCount when available', () => {
+    const response: AverageWaterSupplyPerRegionResponse = {
+      tenantId: 17,
+      stateCode: 'AS',
+      parentLgdLevel: 1,
+      parentDepartmentLevel: 0,
+      startDate: '2026-03-01',
+      endDate: '2026-03-30',
+      daysInRange: 30,
+      schemeCount: 1,
+      childRegionCount: 0,
+      schemes: [
+        {
+          schemeId: 1,
+          schemeName: 'Scheme A',
+          householdCount: 600,
+          totalAchievedFhtcCount: 500,
+          totalWaterSuppliedLiters: 90_000_000,
+          supplyDays: 30,
+          avgLitersPerHousehold: 0,
+        },
+      ],
+      childRegions: [],
+    }
+
+    expect(getWaterSupplyKpis(response, 5)).toEqual({
+      quantityMld: 3,
+      quantityLpcd: 1200,
+    })
+  })
+
   it('calculates demand in MLD from FHTC count, persons, and liters per person', () => {
     expect(calculateDemandMld(500, 5, 50)).toBe(0.13)
   })
@@ -85,6 +116,48 @@ describe('dashboard formulas', () => {
     expect(getWaterSupplyKpis(response, 5)).toEqual({
       quantityMld: 22.89,
       quantityLpcd: 0,
+    })
+  })
+
+  it('prefers child region totals for KPIs when both schemes and childRegions are present', () => {
+    const response: AverageWaterSupplyPerRegionResponse = {
+      tenantId: 17,
+      stateCode: 'AS',
+      parentLgdLevel: 1,
+      parentDepartmentLevel: 0,
+      startDate: '2026-03-01',
+      endDate: '2026-03-30',
+      daysInRange: 30,
+      schemeCount: 1,
+      childRegionCount: 1,
+      schemes: [
+        {
+          schemeId: 1,
+          schemeName: 'Scheme A',
+          householdCount: 600,
+          totalAchievedFhtcCount: 0,
+          totalWaterSuppliedLiters: 90_000_000,
+          supplyDays: 30,
+          avgLitersPerHousehold: 0,
+        },
+      ],
+      childRegions: [
+        {
+          lgdId: 1,
+          departmentId: 0,
+          title: 'Region A',
+          totalHouseholdCount: 600,
+          totalAchievedFhtcCount: 500,
+          totalWaterSuppliedLiters: 90_000_000,
+          schemeCount: 1,
+          avgWaterSupplyPerScheme: 0,
+        },
+      ],
+    }
+
+    expect(getWaterSupplyKpis(response, 5)).toEqual({
+      quantityMld: 3,
+      quantityLpcd: 1200,
     })
   })
 
