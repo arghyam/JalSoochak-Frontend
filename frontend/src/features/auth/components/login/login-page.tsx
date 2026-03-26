@@ -12,7 +12,6 @@ import {
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Checkbox,
   Link,
   useDisclosure,
   useMediaQuery,
@@ -176,24 +175,7 @@ export function LoginPage() {
                     <FormErrorMessage>{localError || error}</FormErrorMessage>
                   </FormControl>
 
-                  <Flex align="center" justify="space-between">
-                    <Checkbox
-                      fontSize="14px"
-                      sx={{
-                        '.chakra-checkbox__control': {
-                          borderWidth: '1px',
-                          borderStyle: 'solid',
-                          borderColor: 'neutral.400',
-                          borderRadius: '4px',
-                          overflow: 'hidden',
-                        },
-                      }}
-                    >
-                      <Text textStyle="bodyText5" fontWeight="400" color="neutral.950">
-                        Remember me
-                      </Text>
-                    </Checkbox>
-
+                  <Flex justify="flex-end">
                     <Link
                       as="button"
                       type="button"
