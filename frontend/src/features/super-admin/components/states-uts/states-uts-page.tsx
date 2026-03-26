@@ -18,7 +18,11 @@ import { SearchIcon, EditIcon } from '@chakra-ui/icons'
 import { FiEye } from 'react-icons/fi'
 import { IoAddOutline } from 'react-icons/io5'
 import { DataTable, type DataTableColumn, StatusChip } from '@/shared/components/common'
-import type { Tenant } from '../../types/states-uts'
+import type { Tenant, TenantStatus } from '../../types/states-uts'
+
+function tenantStatusChipKey(status: TenantStatus): string {
+  return status.toLowerCase()
+}
 import { ROUTES } from '@/shared/constants/routes'
 import { useStatesUTsPagedQuery } from '../../services/query/use-super-admin-queries'
 
@@ -101,8 +105,8 @@ export function StatesUTsPage() {
       sortable: false,
       render: (row) => (
         <StatusChip
-          status={row.status === 'ACTIVE' ? 'active' : 'inactive'}
-          label={row.status === 'ACTIVE' ? t('common:status.active') : t('common:status.inactive')}
+          status={tenantStatusChipKey(row.status)}
+          label={t(`statesUts.statusSection.statuses.${row.status}`)}
         />
       ),
     },

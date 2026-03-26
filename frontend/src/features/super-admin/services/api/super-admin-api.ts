@@ -14,7 +14,12 @@ import type { IngestionMonitorData } from '../../types/ingestion-monitor'
 import type { SuperAdminOverviewData, SuperAdminStats } from '../../types/overview'
 import type { SystemRulesConfiguration } from '../../types/system-rules'
 import type { SystemConfiguration, SaveSystemConfigPayload } from '../../types/system-config'
-import type { Tenant, TenantApiResponse, TenantsListApiResponse } from '../../types/states-uts'
+import type {
+  Tenant,
+  TenantApiResponse,
+  TenantStatus,
+  TenantsListApiResponse,
+} from '../../types/states-uts'
 import { mapTenantApiToTenant as mapTenant } from '../../types/states-uts'
 import type {
   ApiUser,
@@ -160,11 +165,11 @@ export const superAdminApi = {
     return mapTenant(response.data.data)
   },
 
-  updateTenantStatus: async (id: number, status: 'ACTIVE' | 'INACTIVE'): Promise<void> => {
+  updateTenantStatus: async (id: number, status: TenantStatus): Promise<void> => {
     if (status === 'INACTIVE') {
       await apiClient.put(`/api/v1/tenants/${id}/deactivate`)
     } else {
-      await apiClient.put(`/api/v1/tenants/${id}`, { status: 'ACTIVE' })
+      await apiClient.put(`/api/v1/tenants/${id}`, { status })
     }
   },
 

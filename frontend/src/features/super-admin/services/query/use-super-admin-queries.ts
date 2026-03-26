@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { superAdminApi, type SaveSystemRulesPayload } from '../api/super-admin-api'
 import { mapApiUserToUserAdminData } from '../api/super-admin-api'
 import { superAdminQueryKeys } from './super-admin-query-keys'
+import type { TenantStatus } from '../../types/states-uts'
 import type { SaveSystemConfigPayload } from '../../types/system-config'
 import type { ApiCredentialsData } from '../../types/api-credentials'
 import type { InviteUserRequest, UpdateUserRequest, ApiUser } from '../../types/super-users'
@@ -157,7 +158,7 @@ export function useCreateTenantMutation() {
 export function useUpdateTenantStatusMutation() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, status }: { id: number; status: 'ACTIVE' | 'INACTIVE' }) =>
+    mutationFn: ({ id, status }: { id: number; status: TenantStatus }) =>
       superAdminApi.updateTenantStatus(id, status),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: superAdminQueryKeys.statesUTs() })
