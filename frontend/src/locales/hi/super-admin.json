@@ -79,7 +79,16 @@
     "statusSection": {
       "title": "स्थिति",
       "activated": "सक्रिय",
-      "stateUtStatus": "राज्य/केंद्र शासित प्रदेश की स्थिति"
+      "stateUtStatus": "राज्य/केंद्र शासित प्रदेश की स्थिति",
+      "statuses": {
+        "INACTIVE": "निष्क्रिय",
+        "ONBOARDED": "ऑनबोर्ड किया गया",
+        "CONFIGURED": "कॉन्फ़िगर किया गया",
+        "ACTIVE": "सक्रिय",
+        "SUSPENDED": "निलंबित",
+        "DEGRADED": "निम्नीकृत",
+        "ARCHIVED": "संग्रहीत"
+      }
     },
     "buttons": {
       "addAndSendLink": "राज्य जोड़ें और ईमेल द्वारा लिंक भेजें",
@@ -99,7 +108,8 @@
       "failedToLoadStateOptions": "राज्य/केंद्र शासित प्रदेश विकल्प लोड करने में विफल। कृपया रीफ़्रेश करके पुनः प्रयास करें।",
       "activatedSuccess": "राज्य/केंद्र शासित प्रदेश सफलतापूर्वक सक्रिय किया गया",
       "deactivatedSuccess": "राज्य/केंद्र शासित प्रदेश सफलतापूर्वक निष्क्रिय किया गया",
-      "failedToUpdateStatus": "स्थिति अपडेट करने में विफल"
+      "failedToUpdateStatus": "स्थिति अपडेट करने में विफल",
+      "statusUpdatedSuccess": "स्थिति सफलतापूर्वक अपडेट की गई"
     },
     "aria": {
       "viewStateUt": "राज्य/केंद्र शासित प्रदेश देखें",

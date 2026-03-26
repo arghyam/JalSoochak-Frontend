@@ -78,6 +78,15 @@ describe('ViewStateUTPage', () => {
     expect(screen.getByText(/active/i)).toBeTruthy()
   })
 
+  it('renders SUSPENDED status chip for suspended tenant', () => {
+    mockUseStatesUTsQuery.mockReturnValue({
+      data: [{ ...mockTenant, status: 'SUSPENDED' }],
+      isLoading: false,
+    })
+    renderWithProviders(<ViewStateUTPage />)
+    expect(screen.getByText(/suspended/i)).toBeTruthy()
+  })
+
   it('renders admin firstName and email', () => {
     renderWithProviders(<ViewStateUTPage />)
     expect(screen.getByText('Raj')).toBeTruthy()

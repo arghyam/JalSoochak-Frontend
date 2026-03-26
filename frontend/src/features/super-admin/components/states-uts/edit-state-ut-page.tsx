@@ -14,7 +14,8 @@ import {
   FormErrorMessage,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { Toggle, ToastContainer } from '@/shared/components/common'
+import { ToastContainer, SearchableSelect } from '@/shared/components/common'
+import { TENANT_STATUSES, type TenantStatus } from '../../types/states-uts'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ROUTES } from '@/shared/constants/routes'
 import { isAlphabeticWithSpaces, exceedsMaxLength } from '@/shared/utils/validation'
@@ -147,17 +148,11 @@ export function EditStateUTPage() {
     }))
   }
 
-  const handleStatusToggle = async () => {
+  const handleStatusChange = async (newStatus: TenantStatus) => {
     if (!tenant || updateStatusMutation.isPending) return
-    const newStatus = tenant.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
     try {
       await updateStatusMutation.mutateAsync({ id: tenant.id, status: newStatus })
-      toast.addToast(
-        newStatus === 'ACTIVE'
-          ? t('statesUts.messages.activatedSuccess')
-          : t('statesUts.messages.deactivatedSuccess'),
-        'success'
-      )
+      toast.addToast(t('statesUts.messages.statusUpdatedSuccess'), 'success')
     } catch {
       toast.addToast(t('statesUts.messages.failedToUpdateStatus'), 'error')
     }
@@ -364,17 +359,19 @@ export function EditStateUTPage() {
             <Heading as="h2" size="h3" fontWeight="400" mb={4} id="status-heading">
               {t('statesUts.statusSection.title')}
             </Heading>
-            <Flex align="center" gap={2} h={6} mb={7} aria-labelledby="status-heading">
-              <Text textStyle="h10" id="status-toggle-label">
-                {t('statesUts.statusSection.stateUtStatus')}
-              </Text>
-              <Toggle
-                isChecked={tenant.status === 'ACTIVE'}
-                onChange={() => void handleStatusToggle()}
-                isDisabled={updateStatusMutation.isPending}
-                aria-labelledby="status-toggle-label"
+            <Box mb={7}>
+              <SearchableSelect
+                options={TENANT_STATUSES.map((s) => ({
+                  value: s,
+                  label: t(`statesUts.statusSection.statuses.${s}`),
+                }))}
+                value={tenant.status}
+                onChange={(val) => void handleStatusChange(val as TenantStatus)}
+                disabled={updateStatusMutation.isPending}
+                ariaLabel={t('statesUts.statusSection.stateUtStatus')}
+                width={{ base: '100%', lg: '486px' }}
               />
-            </Flex>
+            </Box>
 
             {/* State Admin Details — editable */}
             <Heading as="h2" size="h3" fontWeight="400" mb={4} id="admin-details-heading">
