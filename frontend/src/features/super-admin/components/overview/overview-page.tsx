@@ -1,26 +1,13 @@
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import {
-  Box,
-  Flex,
-  SimpleGrid,
-  Text,
-  Icon,
-  Stack,
-  Button,
-  Heading,
-  Spinner,
-} from '@chakra-ui/react'
+import { Box, Flex, SimpleGrid, Text, Icon, Stack, Heading, Spinner } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { MdOutlinePlace } from 'react-icons/md'
 import { BsCheck2Circle } from 'react-icons/bs'
-import { IoCloseCircleOutline, IoAddOutline } from 'react-icons/io5'
-import { ROUTES } from '@/shared/constants/routes'
+import { IoCloseCircleOutline } from 'react-icons/io5'
 import { useTenantsSummaryQuery } from '../../services/query/use-super-admin-queries'
 
 export function OverviewPage() {
   const { t } = useTranslation(['super-admin', 'common'])
-  const navigate = useNavigate()
   const { data: summaryData, isLoading, isError } = useTenantsSummaryQuery()
 
   useEffect(() => {
@@ -97,17 +84,6 @@ export function OverviewPage() {
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
           {t('overview.title')}
         </Heading>
-
-        <Button
-          variant="secondary"
-          size={{ base: 'md', lg: 'sm' }}
-          fontWeight="600"
-          onClick={() => navigate(ROUTES.SUPER_ADMIN_STATES_UTS_ADD)}
-          w={{ base: 'full', sm: 'auto' }}
-          gap={1}
-        >
-          {<IoAddOutline size={24} />} {t('overview.addNewStateUt')}
-        </Button>
       </Flex>
 
       <Stack gap={{ base: 4, md: 6 }}>

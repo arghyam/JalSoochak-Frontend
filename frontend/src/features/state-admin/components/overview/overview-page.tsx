@@ -10,7 +10,8 @@ import {
   useSchemeCountsQuery,
   useStaffCountsQuery,
 } from '../../services/query/use-state-admin-queries'
-import { BsDroplet, BsPerson } from 'react-icons/bs'
+import { BsDroplet } from 'react-icons/bs'
+import { TotalStaffIcon, PumpOperatorIcon, TotalAdminsIcon } from './overview-icons'
 import { ConfigSetupWizard } from './config-setup-wizard'
 
 export function OverviewPage() {
@@ -71,21 +72,21 @@ export function OverviewPage() {
     {
       title: t('overview.stats.totalStaff'),
       value: formatStatValue(staffCountsData?.totalStaff ?? 0),
-      icon: BsPerson,
-      iconBg: '#F1EEFF',
-      iconColor: '#584C93',
+      icon: TotalStaffIcon,
+      iconBg: '#EBF4FA',
+      iconColor: '#3291D1',
     },
     {
       title: t('overview.stats.pumpOperators'),
       value: formatStatValue(staffCountsData?.pumpOperators ?? 0),
-      icon: BsPerson,
-      iconBg: '#E1FFEA',
-      iconColor: '#079455',
+      icon: PumpOperatorIcon,
+      iconBg: '#F1EEFF',
+      iconColor: '#584C93',
     },
     {
       title: t('overview.stats.totalAdmins'),
       value: formatStatValue(staffCountsData?.totalAdmins ?? 0),
-      icon: BsPerson,
+      icon: TotalAdminsIcon,
       iconBg: '#FBEAFF',
       iconColor: '#DC72F2',
     },

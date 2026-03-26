@@ -418,7 +418,6 @@ export function DataTable<T extends object>({
           aria-label="Pagination"
           justify="space-between"
           align="center"
-          px={{ base: 2, md: 4 }}
           py={4}
           h={{ base: 'auto', md: '66px' }}
           flexDirection={{ base: 'column', md: 'row' }}
