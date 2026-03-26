@@ -3,6 +3,8 @@ import { isAxiosError } from 'axios'
 import type {
   AverageSchemeRegularityQueryParams,
   AverageSchemeRegularityResponse,
+  NationalSchemeRegularityPeriodicQueryParams,
+  NationalSchemeRegularityPeriodicResponse,
   NationalDashboardQueryParams,
   NationalDashboardResponse,
   AverageWaterSupplyPerRegionQueryParams,
@@ -10,6 +12,8 @@ import type {
   DashboardData,
   DashboardLevel,
   OutageReasonsQueryParams,
+  OutageReasonsPeriodicQueryParams,
+  OutageReasonsPeriodicResponse,
   OutageReasonsResponse,
   ReadingComplianceQueryParams,
   ReadingComplianceResponse,
@@ -19,10 +23,14 @@ import type {
   PumpOperatorsBySchemeResponse,
   ReadingSubmissionRateQueryParams,
   ReadingSubmissionRateResponse,
+  SchemeRegularityPeriodicQueryParams,
+  SchemeRegularityPeriodicResponse,
   SchemePerformanceQueryParams,
   SchemePerformanceResponse,
   SubmissionStatusQueryParams,
   SubmissionStatusResponse,
+  WaterQuantityPeriodicQueryParams,
+  WaterQuantityPeriodicResponse,
 } from '../../types'
 import { dashboardMockService } from '../mock/dashboard-mock'
 
@@ -222,9 +230,16 @@ const isDashboardDataPayload = (value: unknown): value is DashboardData => {
   }
 
   const candidate = value as Partial<DashboardData>
+  const kpis = candidate.kpis as Partial<DashboardData['kpis']> | undefined
+  const hasValidKpis =
+    !!kpis &&
+    typeof kpis === 'object' &&
+    Number.isFinite(kpis.totalSchemes) &&
+    Number.isFinite(kpis.totalRuralHouseholds) &&
+    Number.isFinite(kpis.functionalTapConnections)
 
   return (
-    Array.isArray(candidate.kpis) &&
+    hasValidKpis &&
     Array.isArray(candidate.mapData) &&
     Array.isArray(candidate.demandSupply) &&
     Array.isArray(candidate.readingSubmissionStatus) &&
@@ -322,6 +337,24 @@ export const dashboardApi = {
 
     return response.data
   },
+  getWaterQuantityPeriodic: async (
+    params: WaterQuantityPeriodicQueryParams
+  ): Promise<WaterQuantityPeriodicResponse> => {
+    const response = await apiClient.get<WaterQuantityPeriodicResponse>(
+      '/api/v1/analytics/water-quantity/periodic',
+      {
+        params: {
+          start_date: params.startDate,
+          end_date: params.endDate,
+          scale: params.scale,
+          lgd_id: params.lgdId,
+          department_id: params.departmentId,
+        },
+      }
+    )
+
+    return response.data
+  },
   getAverageSchemeRegularity: async (
     params: AverageSchemeRegularityQueryParams
   ): Promise<AverageSchemeRegularityResponse> => {
@@ -334,6 +367,40 @@ export const dashboardApi = {
           scope: params.scope ?? 'child',
           start_date: params.startDate,
           end_date: params.endDate,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getSchemeRegularityPeriodic: async (
+    params: SchemeRegularityPeriodicQueryParams
+  ): Promise<SchemeRegularityPeriodicResponse> => {
+    const response = await apiClient.get<SchemeRegularityPeriodicResponse>(
+      '/api/v1/analytics/scheme-regularity/periodic',
+      {
+        params: {
+          start_date: params.startDate,
+          end_date: params.endDate,
+          scale: params.scale,
+          lgd_id: params.lgdId,
+          department_id: params.departmentId,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getNationalSchemeRegularityPeriodic: async (
+    params: NationalSchemeRegularityPeriodicQueryParams
+  ): Promise<NationalSchemeRegularityPeriodicResponse> => {
+    const response = await apiClient.get<NationalSchemeRegularityPeriodicResponse>(
+      '/api/v1/analytics/scheme-regularity/periodic/national',
+      {
+        params: {
+          start_date: params.startDate,
+          end_date: params.endDate,
+          scale: params.scale,
         },
       }
     )
@@ -436,12 +503,13 @@ export const dashboardApi = {
     params: SubmissionStatusQueryParams
   ): Promise<SubmissionStatusResponse> => {
     const response = await apiClient.get<SubmissionStatusResponse>(
-      '/api/v1/analytics/submission-status/user',
+      '/api/v1/analytics/submission-status',
       {
         params: {
-          user_id: params.userId,
           start_date: params.startDate,
           end_date: params.endDate,
+          lgd_id: params.lgdId,
+          department_id: params.departmentId,
         },
       }
     )
@@ -457,6 +525,24 @@ export const dashboardApi = {
           end_date: params.endDate,
           parent_lgd_id: params.parentLgdId,
           parent_department_id: params.parentDepartmentId,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getOutageReasonsPeriodic: async (
+    params: OutageReasonsPeriodicQueryParams
+  ): Promise<OutageReasonsPeriodicResponse> => {
+    const response = await apiClient.get<OutageReasonsPeriodicResponse>(
+      '/api/v1/analytics/outage-reasons/periodic',
+      {
+        params: {
+          start_date: params.startDate,
+          end_date: params.endDate,
+          scale: params.scale,
+          lgd_id: params.lgdId,
+          department_id: params.departmentId,
         },
       }
     )

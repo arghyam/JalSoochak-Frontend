@@ -1,5 +1,8 @@
 {
-  "headerTitle": "JalSoochak Dashboard",
+  "header": {
+    "title": "JalSoochak",
+    "subtitle": "Operational Status of Water Supply Schemes"
+  },
   "searchLayout": {
     "placeholder": "Search by state/UT, district, block, gram panchayat, village",
     "downloadReport": "Download Report",
@@ -79,6 +82,7 @@
   },
   "overallPerformance": {
     "title": "Overall Performance",
+    "noData": "No data",
     "columns": {
       "entity": "State/UT",
       "quantityMld": "Quantity (MLD)",

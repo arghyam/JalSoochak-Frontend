@@ -19,7 +19,8 @@ import { BlockDashboardScreen } from './block-dashboard'
 import { DistrictDashboardScreen } from './district-dashboard'
 import { GramPanchayatDashboardScreen } from './gram-panchayat-dashboard'
 import { StateUtDashboardScreen } from './state-ut-dashboard'
-import { ViewBySelect } from '@/shared/components/common'
+import { ChartEmptyState, LoadingSpinner, ViewBySelect } from '@/shared/components/common'
+import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { VillageDashboardScreen } from './village-dashboard'
 
 type DashboardBodyProps = {
@@ -30,7 +31,12 @@ type DashboardBodyProps = {
   isGramPanchayatSelected: boolean
   selectedVillage: string
   quantityPerformanceData: EntityPerformance[]
+  quantityTimeTrendData: MonthlyTrendPoint[]
+  isQuantityTimeTrendLoading?: boolean
+  isQuantityTimeTrendAwaitingParams?: boolean
   regularityPerformanceData: EntityPerformance[]
+  regularityTimeTrendData: MonthlyTrendPoint[]
+  isRegularityTimeTrendLoading?: boolean
   districtTableData: EntityPerformance[]
   blockTableData: EntityPerformance[]
   gramPanchayatTableData: EntityPerformance[]
@@ -58,7 +64,12 @@ export function DashboardBody({
   isGramPanchayatSelected,
   selectedVillage,
   quantityPerformanceData,
+  quantityTimeTrendData,
+  isQuantityTimeTrendLoading = false,
+  isQuantityTimeTrendAwaitingParams = false,
   regularityPerformanceData,
+  regularityTimeTrendData,
+  isRegularityTimeTrendLoading = false,
   blockTableData,
   gramPanchayatTableData,
   villageTableData,
@@ -89,22 +100,6 @@ export function DashboardBody({
   const isBlockScreen = isBlockSelected && !isGramPanchayatSelected && !selectedVillage
   const isGramPanchayatScreen = isGramPanchayatSelected && !selectedVillage
 
-  const quantityTimeTrendData = useMemo(
-    () =>
-      data.demandSupply.map((item) => ({
-        period: item.period,
-        value: item.supply,
-      })),
-    [data.demandSupply]
-  )
-  const regularityTimeTrendData = useMemo(
-    () =>
-      data.demandSupply.map((item) => ({
-        period: item.period,
-        value: item.demand > 0 ? Math.min(100, Math.round((item.supply / item.demand) * 100)) : 0,
-      })),
-    [data.demandSupply]
-  )
   const outageDistributionTimeTrendData = useMemo(
     () => data.supplyOutageTrend ?? [],
     [data.supplyOutageTrend]
@@ -159,17 +154,27 @@ export function DashboardBody({
                 })}
               />
             ) : (
-              <MonthlyTrendChart
-                data={quantityTimeTrendData}
-                height="400px"
-                xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-                yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
-                  defaultValue: 'Quantity',
-                })}
-                seriesName={t('performanceCharts.quantity.seriesName', {
-                  defaultValue: 'Quantity',
-                })}
-              />
+              <>
+                {isQuantityTimeTrendLoading ? (
+                  <Flex align="center" justify="center" h="400px">
+                    <LoadingSpinner />
+                  </Flex>
+                ) : quantityTimeTrendData.length > 0 ? (
+                  <MonthlyTrendChart
+                    data={quantityTimeTrendData}
+                    height="400px"
+                    xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+                    yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
+                      defaultValue: 'Quantity',
+                    })}
+                    seriesName={t('performanceCharts.quantity.seriesName', {
+                      defaultValue: 'Quantity',
+                    })}
+                  />
+                ) : isQuantityTimeTrendAwaitingParams ? null : (
+                  <ChartEmptyState minHeight="400px" />
+                )}
+              </>
             )}
           </Box>
           <Box
@@ -211,18 +216,28 @@ export function DashboardBody({
                 })}
               />
             ) : (
-              <MonthlyTrendChart
-                data={regularityTimeTrendData}
-                height="400px"
-                isPercent
-                xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-                yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
-                  defaultValue: 'Regularity (%)',
-                })}
-                seriesName={t('performanceCharts.regularity.seriesName', {
-                  defaultValue: 'Regularity',
-                })}
-              />
+              <>
+                {isRegularityTimeTrendLoading ? (
+                  <Flex align="center" justify="center" h="400px">
+                    <LoadingSpinner />
+                  </Flex>
+                ) : regularityTimeTrendData.length > 0 ? (
+                  <MonthlyTrendChart
+                    data={regularityTimeTrendData}
+                    height="400px"
+                    isPercent
+                    xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+                    yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
+                      defaultValue: 'Regularity (%)',
+                    })}
+                    seriesName={t('performanceCharts.regularity.seriesName', {
+                      defaultValue: 'Regularity',
+                    })}
+                  />
+                ) : (
+                  <ChartEmptyState minHeight="400px" />
+                )}
+              </>
             )}
           </Box>
         </Grid>
@@ -234,7 +249,12 @@ export function DashboardBody({
           waterSupplyOutagesData={waterSupplyOutagesData}
           waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
           quantityPerformanceData={quantityPerformanceData}
+          quantityTimeTrendData={quantityTimeTrendData}
+          isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
+          isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
           regularityPerformanceData={regularityPerformanceData}
+          regularityTimeTrendData={regularityTimeTrendData}
+          isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
           blockTableData={blockTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
@@ -248,7 +268,12 @@ export function DashboardBody({
           waterSupplyOutagesData={waterSupplyOutagesData}
           waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
           quantityPerformanceData={quantityPerformanceData}
+          quantityTimeTrendData={quantityTimeTrendData}
+          isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
+          isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
           regularityPerformanceData={regularityPerformanceData}
+          regularityTimeTrendData={regularityTimeTrendData}
+          isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
           gramPanchayatTableData={gramPanchayatTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
@@ -262,7 +287,12 @@ export function DashboardBody({
           waterSupplyOutagesData={waterSupplyOutagesData}
           waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
           quantityPerformanceData={quantityPerformanceData}
+          quantityTimeTrendData={quantityTimeTrendData}
+          isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
+          isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
           regularityPerformanceData={regularityPerformanceData}
+          regularityTimeTrendData={regularityTimeTrendData}
+          isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
           villageTableData={villageTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}

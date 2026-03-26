@@ -21,6 +21,7 @@ import {
   mapReadingSubmissionStatusFromAnalytics,
   mapReadingSubmissionRateFromAnalytics,
   mapQuantityPerformanceFromAnalytics,
+  mapQuantityPerformanceFromNationalDashboard,
   mapRegularityPerformanceFromAnalytics,
   mapOverallPerformanceFromAnalytics,
   resolveDaysInRange,
@@ -41,6 +42,37 @@ describe('dashboard formulas', () => {
 
   it('calculates quantity in LPCD from liters, FHTC count, day range, and P', () => {
     expect(calculateQuantityLpcd(90_000_000, 500, 30, 5)).toBe(1200)
+  })
+
+  it('calculates state KPI totals from scheme rows using totalAchievedFhtcCount when available', () => {
+    const response: AverageWaterSupplyPerRegionResponse = {
+      tenantId: 17,
+      stateCode: 'AS',
+      parentLgdLevel: 1,
+      parentDepartmentLevel: 0,
+      startDate: '2026-03-01',
+      endDate: '2026-03-30',
+      daysInRange: 30,
+      schemeCount: 1,
+      childRegionCount: 0,
+      schemes: [
+        {
+          schemeId: 1,
+          schemeName: 'Scheme A',
+          householdCount: 600,
+          totalAchievedFhtcCount: 500,
+          totalWaterSuppliedLiters: 90_000_000,
+          supplyDays: 30,
+          avgLitersPerHousehold: 0,
+        },
+      ],
+      childRegions: [],
+    }
+
+    expect(getWaterSupplyKpis(response, 5)).toEqual({
+      quantityMld: 3,
+      quantityLpcd: 1200,
+    })
   })
 
   it('calculates demand in MLD from FHTC count, persons, and liters per person', () => {
@@ -84,6 +116,48 @@ describe('dashboard formulas', () => {
     expect(getWaterSupplyKpis(response, 5)).toEqual({
       quantityMld: 22.89,
       quantityLpcd: 0,
+    })
+  })
+
+  it('prefers child region totals for KPIs when both schemes and childRegions are present', () => {
+    const response: AverageWaterSupplyPerRegionResponse = {
+      tenantId: 17,
+      stateCode: 'AS',
+      parentLgdLevel: 1,
+      parentDepartmentLevel: 0,
+      startDate: '2026-03-01',
+      endDate: '2026-03-30',
+      daysInRange: 30,
+      schemeCount: 1,
+      childRegionCount: 1,
+      schemes: [
+        {
+          schemeId: 1,
+          schemeName: 'Scheme A',
+          householdCount: 600,
+          totalAchievedFhtcCount: 0,
+          totalWaterSuppliedLiters: 90_000_000,
+          supplyDays: 30,
+          avgLitersPerHousehold: 0,
+        },
+      ],
+      childRegions: [
+        {
+          lgdId: 1,
+          departmentId: 0,
+          title: 'Region A',
+          totalHouseholdCount: 600,
+          totalAchievedFhtcCount: 500,
+          totalWaterSuppliedLiters: 90_000_000,
+          schemeCount: 1,
+          avgWaterSupplyPerScheme: 0,
+        },
+      ],
+    }
+
+    expect(getWaterSupplyKpis(response, 5)).toEqual({
+      quantityMld: 3,
+      quantityLpcd: 1200,
     })
   })
 
@@ -140,6 +214,50 @@ describe('dashboard formulas', () => {
         coverage: 0.13,
         quantity: 3,
       },
+    ])
+  })
+
+  it('maps national quantity response using achieved FHTC count for demand when available', () => {
+    const fallbackData: EntityPerformance[] = [
+      {
+        id: 'assam',
+        name: 'Assam',
+        coverage: 0,
+        regularity: 0,
+        continuity: 0,
+        quantity: 0,
+        compositeScore: 68,
+        status: 'good',
+      },
+    ]
+    const response: NationalDashboardResponse = {
+      startDate: '2026-02-24',
+      endDate: '2026-03-25',
+      daysInRange: 30,
+      stateWiseQuantityPerformance: [
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          stateTitle: 'Assam',
+          schemeCount: 17412,
+          totalHouseholdCount: 0,
+          totalAchievedFhtcCount: 2_150_302_458,
+          totalPlannedFhtcCount: 4_022_202,
+          totalWaterSuppliedLiters: 15_706_406_504,
+          avgWaterSupplyPerScheme: 902044.9405,
+        },
+      ],
+      stateWiseRegularity: [],
+      stateWiseReadingSubmissionRate: [],
+      overallOutageReasonDistribution: {},
+    }
+
+    expect(mapQuantityPerformanceFromNationalDashboard(response, fallbackData)).toEqual([
+      expect.objectContaining({
+        name: 'Assam',
+        coverage: 537575.61,
+        quantity: 523.55,
+      }),
     ])
   })
 
@@ -504,13 +622,11 @@ describe('dashboard formulas', () => {
       { label: 'Anomalous Submissions', value: 5 },
     ]
     const response: SubmissionStatusResponse = {
-      userId: 12,
       startDate: '2026-03-01',
       endDate: '2026-03-31',
       schemeCount: 0,
       compliantSubmissionCount: 0,
       anomalousSubmissionCount: 0,
-      dailySubmissionSchemeDistribution: [],
     }
 
     expect(mapReadingSubmissionStatusFromAnalytics(response, fallbackData)).toEqual([

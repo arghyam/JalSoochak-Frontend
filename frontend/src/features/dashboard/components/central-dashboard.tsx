@@ -10,20 +10,23 @@ import { useLocationSearchQuery } from '../services/query/use-location-search-qu
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
 import { useNationalDashboardQuery } from '../services/query/use-national-dashboard-query'
+import { useNationalSchemeRegularityPeriodicQuery } from '../services/query/use-national-scheme-regularity-periodic-query'
+import { useOutageReasonsPeriodicQuery } from '../services/query/use-outage-reasons-periodic-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
 import { useReadingSubmissionRateQuery } from '../services/query/use-reading-submission-rate-query'
+import { useSchemeRegularityPeriodicQuery } from '../services/query/use-scheme-regularity-periodic-query'
 import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
+import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
 import { KPICard } from './kpi-card'
 import { DashboardBody } from './screens/dashboard-body'
 import { IndiaMapChart } from './charts'
 import { LoadingSpinner } from '@/shared/components/common'
-import { useAuthStore } from '@/app/store'
 import { MdOutlineWaterDrop } from 'react-icons/md'
 import waterTapIcon from '@/assets/media/water-tap_1822589 1.svg'
 import wallClockIcon from '@/assets/media/wall-clock.svg'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
-import type { EntityPerformance, VillagePumpOperatorDetails } from '../types'
+import type { DashboardData, EntityPerformance, VillagePumpOperatorDetails } from '../types'
 import { DashboardFilters } from './filters/dashboard-filters'
 import { OverallPerformanceTable } from './tables'
 import { ROUTES } from '@/shared/constants/routes'
@@ -52,6 +55,15 @@ import {
   resolveDaysInRange,
 } from '../utils/formulas'
 import {
+  mapNationalQuantityTrendPoints,
+  mapNationalRegularityTrendPoints,
+  mapOutageReasonsPeriodicToTrendPoints,
+  mapSchemeRegularityPeriodicToTrendPoints,
+  mapDemandSupplyToTrendPoints,
+  mapWaterQuantityPeriodicToTrendPoints,
+  resolveWaterQuantityPeriodicScale,
+} from '../utils/quantity-periodic'
+import {
   mockFilterStates,
   mockFilterDistricts,
   mockFilterBlocks,
@@ -67,6 +79,27 @@ import type { HierarchyType, TenantChildLocation } from '../services/api/dashboa
 
 const storageKey = 'central-dashboard-filters'
 const LOCATION_VALUE_SEPARATOR = ':'
+
+const EMPTY_DASHBOARD_DATA: DashboardData = {
+  level: 'central',
+  kpis: {
+    totalSchemes: 0,
+    totalRuralHouseholds: 0,
+    functionalTapConnections: 0,
+  },
+  mapData: [],
+  demandSupply: [],
+  readingSubmissionStatus: [],
+  readingCompliance: [],
+  pumpOperators: [],
+  waterSupplyOutages: [],
+  topPerformers: [],
+  worstPerformers: [],
+  regularityData: [],
+  continuityData: [],
+  leadingPumpOperators: [],
+  bottomPumpOperators: [],
+}
 
 type StoredFilters = {
   selectedDuration?: DateRange
@@ -318,7 +351,6 @@ export function CentralDashboard() {
   const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const authUserId = useAuthStore((state) => state.user?.id)
   const { data, isLoading, error } = useDashboardData('central')
   const [storedFilters] = useState(() => getStoredFilters())
   const initialDuration = getInitialStoredDuration(storedFilters)
@@ -398,6 +430,19 @@ export function CentralDashboard() {
   const isGramPanchayatSelected = Boolean(effectiveSelectedGramPanchayat)
   const isVillageSelected = Boolean(effectiveSelectedVillage)
   const isDepartmentStateSelected = Boolean(selectedDepartmentState)
+  const hasCentralLandingFilters =
+    isStateSelected ||
+    isDistrictSelected ||
+    isBlockSelected ||
+    isGramPanchayatSelected ||
+    isVillageSelected ||
+    Boolean(selectedDepartmentState) ||
+    Boolean(selectedDepartmentZone) ||
+    Boolean(selectedDepartmentCircle) ||
+    Boolean(selectedDepartmentDivision) ||
+    Boolean(selectedDepartmentSubdivision) ||
+    Boolean(selectedDepartmentVillage)
+  const dashboardData = data ?? (hasCentralLandingFilters ? EMPTY_DASHBOARD_DATA : undefined)
   const hierarchyType: HierarchyType = filterTabIndex === 0 ? 'LGD' : 'DEPARTMENT'
   const emptyOptions: SearchableSelectOption[] = []
   const isAdvancedEnabled = Boolean(selectedState && selectedDistrict)
@@ -430,7 +475,7 @@ export function CentralDashboard() {
         ? blockTableData
         : isStateSelected
           ? districtTableData
-          : (data?.mapData ?? ([] as EntityPerformance[]))
+          : (dashboardData?.mapData ?? ([] as EntityPerformance[]))
   const supplySubmissionRateLabel = isGramPanchayatSelected
     ? t('performanceCharts.viewBy.villages', { defaultValue: 'Villages' })
     : isBlockSelected
@@ -440,15 +485,6 @@ export function CentralDashboard() {
         : isStateSelected
           ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
           : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
-  const overallPerformanceFallbackData = isGramPanchayatSelected
-    ? villageTableData
-    : isBlockSelected
-      ? gramPanchayatTableData
-      : isDistrictSelected
-        ? blockTableData
-        : isStateSelected
-          ? districtTableData
-          : (data?.mapData ?? emptyEntityPerformance)
   const overallPerformanceEntityLabel = isGramPanchayatSelected
     ? t('overallPerformance.entities.village', { defaultValue: 'Village' })
     : isBlockSelected
@@ -481,14 +517,29 @@ export function CentralDashboard() {
   })
   const rootLocationOptions = mapLocationOptions(rootLocationsData?.data)
   const selectedRootOption = findLocationOption(rootLocationOptions, selectedState)
-  const analyticsParentId =
+  const lgdAnalyticsParentId =
     parseLocationId(effectiveSelectedVillage) ??
     parseLocationId(effectiveSelectedGramPanchayat) ??
     parseLocationId(effectiveSelectedBlock) ??
     parseLocationId(effectiveSelectedDistrict) ??
     selectedRootOption?.locationId ??
     0
+  const departmentAnalyticsParentId =
+    parseLocationId(selectedDepartmentVillage) ??
+    parseLocationId(selectedDepartmentSubdivision) ??
+    parseLocationId(selectedDepartmentDivision) ??
+    parseLocationId(selectedDepartmentCircle) ??
+    parseLocationId(selectedDepartmentZone) ??
+    parseLocationId(selectedDepartmentState) ??
+    0
+  const analyticsParentId =
+    hierarchyType === 'LGD' ? lgdAnalyticsParentId : departmentAnalyticsParentId
   const hasValidAnalyticsParentId = analyticsParentId > 0
+  const hasValidDepartmentAnalyticsParentId = departmentAnalyticsParentId > 0
+  const submissionStatusParentId =
+    hierarchyType === 'LGD' ? lgdAnalyticsParentId : departmentAnalyticsParentId
+  const hasValidSubmissionStatusParentId =
+    hierarchyType === 'LGD' ? hasValidAnalyticsParentId : hasValidDepartmentAnalyticsParentId
   const analyticsFallbackData = isGramPanchayatSelected
     ? villageTableData
     : isBlockSelected
@@ -497,29 +548,69 @@ export function CentralDashboard() {
         ? blockTableData
         : isStateSelected
           ? districtTableData
-          : (data?.mapData ?? emptyEntityPerformance)
+          : (dashboardData?.mapData ?? emptyEntityPerformance)
   const defaultAnalyticsRange = getDefaultAnalyticsDateRange()
   const analyticsDateRange = {
     startDate: toIsoDate(selectedDuration?.startDate) ?? defaultAnalyticsRange.startDate,
     endDate: toIsoDate(selectedDuration?.endDate) ?? defaultAnalyticsRange.endDate,
   }
-  const hasCentralLandingFilters =
-    isStateSelected ||
-    isDistrictSelected ||
-    isBlockSelected ||
-    isGramPanchayatSelected ||
-    isVillageSelected ||
-    Boolean(selectedDepartmentState) ||
-    Boolean(selectedDepartmentZone) ||
-    Boolean(selectedDepartmentCircle) ||
-    Boolean(selectedDepartmentDivision) ||
-    Boolean(selectedDepartmentSubdivision) ||
-    Boolean(selectedDepartmentVillage)
+  const quantityPeriodicAnalyticsParams = !hasValidAnalyticsParentId
+    ? null
+    : hierarchyType === 'LGD'
+      ? {
+          lgdId: analyticsParentId,
+          startDate: analyticsDateRange.startDate,
+          endDate: analyticsDateRange.endDate,
+          scale: resolveWaterQuantityPeriodicScale(
+            analyticsDateRange.startDate,
+            analyticsDateRange.endDate
+          ),
+        }
+      : {
+          departmentId: analyticsParentId,
+          startDate: analyticsDateRange.startDate,
+          endDate: analyticsDateRange.endDate,
+          scale: resolveWaterQuantityPeriodicScale(
+            analyticsDateRange.startDate,
+            analyticsDateRange.endDate
+          ),
+        }
+  const regularityPeriodicAnalyticsParams = !hasValidAnalyticsParentId
+    ? null
+    : hierarchyType === 'LGD'
+      ? {
+          lgdId: analyticsParentId,
+          startDate: analyticsDateRange.startDate,
+          endDate: analyticsDateRange.endDate,
+          scale: resolveWaterQuantityPeriodicScale(
+            analyticsDateRange.startDate,
+            analyticsDateRange.endDate
+          ),
+        }
+      : {
+          departmentId: analyticsParentId,
+          startDate: analyticsDateRange.startDate,
+          endDate: analyticsDateRange.endDate,
+          scale: resolveWaterQuantityPeriodicScale(
+            analyticsDateRange.startDate,
+            analyticsDateRange.endDate
+          ),
+        }
   const nationalDashboardParams = hasCentralLandingFilters
     ? null
     : {
         startDate: analyticsDateRange.startDate,
         endDate: analyticsDateRange.endDate,
+      }
+  const nationalPeriodAnalyticsParams = hasCentralLandingFilters
+    ? null
+    : {
+        startDate: analyticsDateRange.startDate,
+        endDate: analyticsDateRange.endDate,
+        scale: resolveWaterQuantityPeriodicScale(
+          analyticsDateRange.startDate,
+          analyticsDateRange.endDate
+        ),
       }
   const analyticsParams =
     hierarchyType !== 'LGD' ||
@@ -566,8 +657,6 @@ export function CentralDashboard() {
   const selectedSchemeId = Number.isFinite(parsedSelectedSchemeId)
     ? parsedSelectedSchemeId
     : undefined
-  const parsedAuthUserId = Number.parseInt(authUserId ?? '', 10)
-  const submissionStatusUserId = Number.isFinite(parsedAuthUserId) ? parsedAuthUserId : undefined
   const shouldFetchSchemePerformanceAnalytics =
     (isStateSelected ||
       isDistrictSelected ||
@@ -591,13 +680,19 @@ export function CentralDashboard() {
           schemeCount: 10,
         }
   const submissionStatusAnalyticsParams =
-    hasCentralLandingFilters && typeof submissionStatusUserId === 'number'
-      ? {
-          userId: submissionStatusUserId,
-          startDate: analyticsDateRange.startDate,
-          endDate: analyticsDateRange.endDate,
-        }
-      : null
+    !hasCentralLandingFilters || !hasValidSubmissionStatusParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            lgdId: submissionStatusParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+          }
+        : {
+            departmentId: submissionStatusParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+          }
   const outageReasonsAnalyticsParams =
     isVillageSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
@@ -611,6 +706,28 @@ export function CentralDashboard() {
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
             parentDepartmentId: analyticsParentId,
+          }
+  const outageReasonsPeriodicAnalyticsParams =
+    isVillageSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            lgdId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            scale: resolveWaterQuantityPeriodicScale(
+              analyticsDateRange.startDate,
+              analyticsDateRange.endDate
+            ),
+          }
+        : {
+            departmentId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            scale: resolveWaterQuantityPeriodicScale(
+              analyticsDateRange.startDate,
+              analyticsDateRange.endDate
+            ),
           }
   const activePreviousPeriodSource = analyticsParams ??
     nationalDashboardParams ?? {
@@ -664,6 +781,30 @@ export function CentralDashboard() {
   const { data: nationalDashboardData } = useNationalDashboardQuery({
     params: nationalDashboardParams,
     enabled: Boolean(nationalDashboardParams),
+  })
+  const {
+    data: nationalSchemeRegularityPeriodicData,
+    isFetching: isNationalSchemeRegularityPeriodicFetching,
+  } = useNationalSchemeRegularityPeriodicQuery({
+    params: nationalPeriodAnalyticsParams,
+    enabled: Boolean(nationalPeriodAnalyticsParams),
+  })
+  const {
+    data: waterQuantityPeriodicData,
+    isFetching: isWaterQuantityPeriodicFetching,
+    isAwaitingParams: isWaterQuantityPeriodicAwaitingParams,
+  } = useWaterQuantityPeriodicQuery({
+    params: quantityPeriodicAnalyticsParams,
+    enabled: Boolean(quantityPeriodicAnalyticsParams),
+  })
+  const { data: schemeRegularityPeriodicData, isFetching: isSchemeRegularityPeriodicFetching } =
+    useSchemeRegularityPeriodicQuery({
+      params: regularityPeriodicAnalyticsParams,
+      enabled: Boolean(regularityPeriodicAnalyticsParams),
+    })
+  const { data: outageReasonsPeriodicData } = useOutageReasonsPeriodicQuery({
+    params: outageReasonsPeriodicAnalyticsParams,
+    enabled: Boolean(outageReasonsPeriodicAnalyticsParams),
   })
   const { data: previousNationalDashboardData } = useNationalDashboardQuery({
     params: previousNationalDashboardParams,
@@ -723,11 +864,11 @@ export function CentralDashboard() {
       )
   const readingSubmissionStatusData = mapReadingSubmissionStatusFromAnalytics(
     submissionStatusData,
-    data?.readingSubmissionStatus ?? []
+    dashboardData?.readingSubmissionStatus ?? []
   )
   const pumpOperatorsData = mapSchemePerformanceToPumpOperators(
     schemePerformanceData,
-    shouldFetchSchemePerformanceAnalytics ? [] : (data?.pumpOperators ?? [])
+    shouldFetchSchemePerformanceAnalytics ? [] : (dashboardData?.pumpOperators ?? [])
   )
   const operatorsPerformanceAnalyticsTable = mapSchemePerformanceToTable(schemePerformanceData, [])
   const derivedVillageSchemeId = isVillageSelected
@@ -740,17 +881,32 @@ export function CentralDashboard() {
         )
       : undefined) ?? (isVillageSelected ? schemePerformanceData?.topSchemes?.[0] : undefined)
   const overallPerformanceTableData = isCentralLandingView
-    ? mapOverallPerformanceFromNationalDashboard(
-        nationalDashboardData,
-        overallPerformanceFallbackData,
-        5
-      )
+    ? mapOverallPerformanceFromNationalDashboard(nationalDashboardData, emptyEntityPerformance, 5)
     : mapOverallPerformanceFromAnalytics(
         averageWaterSupplyData,
         averageSchemeRegularityData,
-        overallPerformanceFallbackData,
+        emptyEntityPerformance,
         5
       )
+  const periodicQuantityTimeTrendData =
+    mapWaterQuantityPeriodicToTrendPoints(waterQuantityPeriodicData)
+  const periodicRegularityTimeTrendData = mapSchemeRegularityPeriodicToTrendPoints(
+    schemeRegularityPeriodicData
+  )
+  const quantityTimeTrendData = isCentralLandingView
+    ? mapNationalQuantityTrendPoints(nationalSchemeRegularityPeriodicData)
+    : periodicQuantityTimeTrendData.length > 0
+      ? periodicQuantityTimeTrendData
+      : mapDemandSupplyToTrendPoints(dashboardData?.demandSupply, (item) => item.supply)
+  const regularityTimeTrendData = isCentralLandingView
+    ? mapNationalRegularityTrendPoints(nationalSchemeRegularityPeriodicData)
+    : periodicRegularityTimeTrendData.length > 0
+      ? periodicRegularityTimeTrendData
+      : mapDemandSupplyToTrendPoints(dashboardData?.demandSupply, (item) =>
+          item.demand > 0 ? Math.min(100, Math.round((item.supply / item.demand) * 100)) : 0
+        )
+  const outageReasonsTimeTrendData =
+    mapOutageReasonsPeriodicToTrendPoints(outageReasonsPeriodicData)
   const currentWaterSupplyKpis = isCentralLandingView
     ? getWaterSupplyKpisFromNationalDashboard(nationalDashboardData, 5)
     : getWaterSupplyKpis(currentWaterSupplyKpiData, 5)
@@ -937,7 +1093,7 @@ export function CentralDashboard() {
     )
   }
 
-  if (error) {
+  if (error && !dashboardData) {
     return (
       <Flex h="100vh" align="center" justify="center">
         <Box textAlign="center">
@@ -952,7 +1108,7 @@ export function CentralDashboard() {
     )
   }
 
-  if (!data) {
+  if (!dashboardData) {
     return (
       <Flex h="100vh" align="center" justify="center">
         <Box textAlign="center">
@@ -970,17 +1126,17 @@ export function CentralDashboard() {
   }
 
   if (
-    !data.kpis ||
-    !data.mapData ||
-    !data.demandSupply ||
-    !data.readingSubmissionStatus ||
-    !data.pumpOperators ||
-    !data.readingCompliance ||
-    !data.waterSupplyOutages ||
-    !data.topPerformers ||
-    !data.worstPerformers ||
-    !data.regularityData ||
-    !data.continuityData
+    !dashboardData.kpis ||
+    !dashboardData.mapData ||
+    !dashboardData.demandSupply ||
+    !dashboardData.readingSubmissionStatus ||
+    !dashboardData.pumpOperators ||
+    !dashboardData.readingCompliance ||
+    !dashboardData.waterSupplyOutages ||
+    !dashboardData.topPerformers ||
+    !dashboardData.worstPerformers ||
+    !dashboardData.regularityData ||
+    !dashboardData.continuityData
   ) {
     return (
       <Flex h="100vh" align="center" justify="center">
@@ -1000,7 +1156,7 @@ export function CentralDashboard() {
     ? [toOutageReasonsData(outageReasonsData.outageReasonSchemeCount)]
     : null
   const nationalWaterSupplyOutageReasonsData = isCentralLandingView
-    ? mapOutageReasonsFromNationalDashboard(nationalDashboardData, data.waterSupplyOutages)
+    ? mapOutageReasonsFromNationalDashboard(nationalDashboardData, dashboardData.waterSupplyOutages)
     : null
   const apiWaterSupplyOutageDistributionData = outageReasonsData?.childRegions?.length
     ? toOutageDistributionData(outageReasonsData.childRegions)
@@ -1008,17 +1164,23 @@ export function CentralDashboard() {
   const waterSupplyOutagesData =
     nationalWaterSupplyOutageReasonsData ??
     apiWaterSupplyOutageReasonsData ??
-    data.waterSupplyOutages
+    dashboardData.waterSupplyOutages
   const waterSupplyOutageDistributionData =
-    apiWaterSupplyOutageDistributionData ?? data.waterSupplyOutages
+    apiWaterSupplyOutageDistributionData ?? dashboardData.waterSupplyOutages
+  const resolvedSupplyOutageTrend =
+    outageReasonsTimeTrendData.length > 0
+      ? outageReasonsTimeTrendData
+      : dashboardData.supplyOutageTrend
   const resolvedDashboardData =
-    readingSubmissionStatusData === data.readingSubmissionStatus &&
-    pumpOperatorsData === data.pumpOperators
-      ? data
+    readingSubmissionStatusData === dashboardData.readingSubmissionStatus &&
+    pumpOperatorsData === dashboardData.pumpOperators &&
+    resolvedSupplyOutageTrend === dashboardData.supplyOutageTrend
+      ? dashboardData
       : {
-          ...data,
+          ...dashboardData,
           readingSubmissionStatus: readingSubmissionStatusData,
           pumpOperators: pumpOperatorsData,
+          supplyOutageTrend: resolvedSupplyOutageTrend,
         }
 
   const numberLocale = i18n.resolvedLanguage === 'hi' ? 'hi-IN' : 'en-IN'
@@ -1159,12 +1321,12 @@ export function CentralDashboard() {
     (total, item) => total + item.value,
     0
   )
-  const leadingPumpOperators = data.leadingPumpOperators ?? []
-  const bottomPumpOperators = data.bottomPumpOperators ?? []
+  const leadingPumpOperators = dashboardData.leadingPumpOperators ?? []
+  const bottomPumpOperators = dashboardData.bottomPumpOperators ?? []
   const operatorsPerformanceTable = shouldFetchSchemePerformanceAnalytics
     ? operatorsPerformanceAnalyticsTable
     : [...leadingPumpOperators, ...bottomPumpOperators]
-  const villagePhotoEvidenceRows = data?.readingCompliance ?? []
+  const villagePhotoEvidenceRows = dashboardData.readingCompliance ?? []
 
   return (
     <Box>
@@ -1246,7 +1408,7 @@ export function CentralDashboard() {
             minW={0}
           >
             <IndiaMapChart
-              data={data.mapData}
+              data={dashboardData.mapData}
               onStateClick={handleStateClick}
               onStateHover={handleStateHover}
               height="100%"
@@ -1284,7 +1446,22 @@ export function CentralDashboard() {
         isGramPanchayatSelected={isGramPanchayatSelected}
         selectedVillage={effectiveSelectedVillage}
         quantityPerformanceData={quantityPerformanceData}
+        quantityTimeTrendData={quantityTimeTrendData}
+        isQuantityTimeTrendLoading={
+          isCentralLandingView
+            ? isNationalSchemeRegularityPeriodicFetching
+            : isWaterQuantityPeriodicFetching
+        }
+        isQuantityTimeTrendAwaitingParams={
+          isCentralLandingView ? false : isWaterQuantityPeriodicAwaitingParams
+        }
         regularityPerformanceData={regularityPerformanceData}
+        regularityTimeTrendData={regularityTimeTrendData}
+        isRegularityTimeTrendLoading={
+          isCentralLandingView
+            ? isNationalSchemeRegularityPeriodicFetching
+            : isSchemeRegularityPeriodicFetching
+        }
         districtTableData={districtTableData}
         blockTableData={blockTableData}
         gramPanchayatTableData={gramPanchayatTableData}
