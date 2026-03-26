@@ -6,6 +6,8 @@ import { CentralDashboard } from './central-dashboard'
 import { useDashboardData } from '../hooks/use-dashboard-data'
 import { useLocationSearchQuery } from '../services/query/use-location-search-query'
 import { useLocationChildrenQuery } from '../services/query/use-location-children-query'
+import { useDistrictSchemeBlockLookupQuery } from '../services/query/use-district-scheme-block-lookup-query'
+import { useBlockSchemePanchayatLookupQuery } from '../services/query/use-block-scheme-panchayat-lookup-query'
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
 import { useNationalDashboardQuery } from '../services/query/use-national-dashboard-query'
@@ -62,6 +64,14 @@ jest.mock('../services/query/use-location-search-query', () => ({
 
 jest.mock('../services/query/use-location-children-query', () => ({
   useLocationChildrenQuery: jest.fn(),
+}))
+
+jest.mock('../services/query/use-district-scheme-block-lookup-query', () => ({
+  useDistrictSchemeBlockLookupQuery: jest.fn(),
+}))
+
+jest.mock('../services/query/use-block-scheme-panchayat-lookup-query', () => ({
+  useBlockSchemePanchayatLookupQuery: jest.fn(),
 }))
 
 jest.mock('../services/query/use-average-water-supply-per-region-query', () => ({
@@ -193,6 +203,8 @@ describe('CentralDashboard', () => {
     ;(useDashboardData as jest.Mock).mockReset()
     ;(useLocationSearchQuery as jest.Mock).mockReset()
     ;(useLocationChildrenQuery as jest.Mock).mockReset()
+    ;(useDistrictSchemeBlockLookupQuery as jest.Mock).mockReset()
+    ;(useBlockSchemePanchayatLookupQuery as jest.Mock).mockReset()
     ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReset()
     ;(useAverageSchemeRegularityQuery as jest.Mock).mockReset()
     ;(useNationalDashboardQuery as jest.Mock).mockReset()
@@ -209,6 +221,8 @@ describe('CentralDashboard', () => {
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()])
     ;(useLocationSearchQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useDistrictSchemeBlockLookupQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useBlockSchemePanchayatLookupQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useNationalDashboardQuery as jest.Mock).mockReturnValue({ data: undefined })

@@ -695,6 +695,114 @@ describe('dashboard formulas', () => {
     ])
   })
 
+  it('maps scheme performance rows to blocks using a district hierarchy lookup when needed', () => {
+    expect(
+      mapSchemePerformanceToTable(
+        {
+          parentLgdId: 1,
+          parentDepartmentId: 0,
+          parentLgdCName: 'district',
+          parentDepartmentCName: '',
+          parentLgdTitle: 'Barpeta',
+          parentDepartmentTitle: '',
+          startDate: '2026-03-14',
+          endDate: '2026-03-14',
+          daysInRange: 1,
+          activeSchemeCount: 1,
+          inactiveSchemeCount: 0,
+          topSchemeCount: 1,
+          topSchemes: [
+            {
+              schemeId: 201,
+              schemeName: 'Village Linked Scheme',
+              statusCode: 1,
+              status: 'Active',
+              submissionDays: 30,
+              reportingRate: 75,
+              totalWaterSupplied: 3200,
+              immediateParentLgdId: 9001,
+              immediateParentLgdCName: 'village',
+              immediateParentLgdTitle: 'MAIRAMARA',
+              immediateParentDepartmentId: 0,
+              immediateParentDepartmentCName: '',
+              immediateParentDepartmentTitle: '',
+            },
+          ],
+        },
+        [],
+        {
+          blockTitleByParentId: {
+            9001: 'KALAIGAON',
+          },
+        }
+      )
+    ).toEqual([
+      {
+        id: 'scheme-performance-201',
+        name: 'Village Linked Scheme',
+        village: 'Mairamara',
+        block: 'Kalaigaon',
+        reportingRate: 75,
+        photoCompliance: 0,
+        waterSupplied: 3200,
+      },
+    ])
+  })
+
+  it('maps scheme performance rows to panchayats using a block hierarchy lookup when needed', () => {
+    expect(
+      mapSchemePerformanceToTable(
+        {
+          parentLgdId: 1,
+          parentDepartmentId: 0,
+          parentLgdCName: 'block',
+          parentDepartmentCName: '',
+          parentLgdTitle: 'Barpeta',
+          parentDepartmentTitle: '',
+          startDate: '2026-03-14',
+          endDate: '2026-03-14',
+          daysInRange: 1,
+          activeSchemeCount: 1,
+          inactiveSchemeCount: 0,
+          topSchemeCount: 1,
+          topSchemes: [
+            {
+              schemeId: 202,
+              schemeName: 'Village Linked Scheme',
+              statusCode: 1,
+              status: 'Active',
+              submissionDays: 30,
+              reportingRate: 75,
+              totalWaterSupplied: 3200,
+              immediateParentLgdId: 9002,
+              immediateParentLgdCName: 'village',
+              immediateParentLgdTitle: 'MAIRAMARA',
+              immediateParentDepartmentId: 0,
+              immediateParentDepartmentCName: '',
+              immediateParentDepartmentTitle: '',
+            },
+          ],
+        },
+        [],
+        {
+          parentLgdTitleById: {
+            9002: 'UTTAR PAKA',
+          },
+        }
+      )
+    ).toEqual([
+      {
+        id: 'scheme-performance-202',
+        name: 'Village Linked Scheme',
+        village: 'Uttar Paka',
+        block: null,
+        reportingRate: 75,
+        photoCompliance: 0,
+        waterSupplied: 3200,
+      },
+    ])
+  })
+
   it('maps reading submission rate analytics response into chart data with fallback metadata', () => {
     const fallbackData: EntityPerformance[] = [
       {

@@ -50,6 +50,22 @@ describe('SchemePerformanceTable', () => {
     expect(headers[2]).toContain('Block')
   })
 
+  it('omits the village column when configured for district dashboard', () => {
+    renderWithProviders(
+      <SchemePerformanceTable
+        title="Scheme Performance"
+        data={tableData}
+        showVillageColumn={false}
+      />
+    )
+
+    const headers = screen.getAllByRole('columnheader').map((header) => header.textContent ?? '')
+    expect(headers).toHaveLength(4)
+    expect(headers[0]).toContain('Name')
+    expect(headers[1]).toContain('Block')
+    expect(headers).not.toContain('Village')
+  })
+
   it('sorts reporting rate descending then ascending', () => {
     const { container } = renderWithProviders(
       <SchemePerformanceTable title="Scheme Performance" data={tableData} />

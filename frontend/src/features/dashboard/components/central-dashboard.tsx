@@ -6,6 +6,8 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDashboardData } from '../hooks/use-dashboard-data'
 import { useLocationChildrenQuery } from '../services/query/use-location-children-query'
+import { useDistrictSchemeBlockLookupQuery } from '../services/query/use-district-scheme-block-lookup-query'
+import { useBlockSchemePanchayatLookupQuery } from '../services/query/use-block-scheme-panchayat-lookup-query'
 import { useLocationSearchQuery } from '../services/query/use-location-search-query'
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
@@ -581,8 +583,22 @@ export function CentralDashboard() {
     enabled: Boolean(selectedTenant?.tenantId && selectedDistrictId),
   })
   const blockApiOptions = mapLocationOptions(blockLocationsData?.data)
+  const { data: districtSchemeBlockLookup } = useDistrictSchemeBlockLookupQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    districtId: isDistrictSelected && hierarchyType === 'LGD' ? selectedDistrictId : undefined,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(isDistrictSelected && hierarchyType === 'LGD' && selectedDistrictId),
+  })
   const selectedBlockOption = findLocationOption(blockApiOptions, selectedBlock)
   const selectedBlockId = parseLocationId(selectedBlock) ?? selectedBlockOption?.locationId
+  const { data: blockSchemePanchayatLookup } = useBlockSchemePanchayatLookupQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    blockId: isBlockSelected && hierarchyType === 'LGD' ? selectedBlockId : undefined,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(isBlockSelected && hierarchyType === 'LGD' && selectedBlockId),
+  })
   const { data: gramPanchayatLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
@@ -736,6 +752,12 @@ export function CentralDashboard() {
   const selectedSchemeId = Number.isFinite(parsedSelectedSchemeId)
     ? parsedSelectedSchemeId
     : undefined
+  const districtSchemeCount =
+    typeof dashboardData?.kpis.totalSchemes === 'number' &&
+    Number.isFinite(dashboardData.kpis.totalSchemes) &&
+    dashboardData.kpis.totalSchemes > 0
+      ? Math.trunc(dashboardData.kpis.totalSchemes)
+      : 10
   const shouldFetchSchemePerformanceAnalytics =
     (isStateSelected ||
       isDistrictSelected ||
@@ -750,13 +772,13 @@ export function CentralDashboard() {
           parentLgdId: analyticsParentId,
           startDate: analyticsDateRange.startDate,
           endDate: analyticsDateRange.endDate,
-          schemeCount: 10,
+          schemeCount: isDistrictSelected ? districtSchemeCount : 10,
         }
       : {
           parentDepartmentId: analyticsParentId,
           startDate: analyticsDateRange.startDate,
           endDate: analyticsDateRange.endDate,
-          schemeCount: 10,
+          schemeCount: isDistrictSelected ? districtSchemeCount : 10,
         }
   const submissionStatusAnalyticsParams =
     !hasCentralLandingFilters || !hasValidSubmissionStatusParentId
@@ -1001,7 +1023,14 @@ export function CentralDashboard() {
     schemePerformanceData,
     shouldFetchSchemePerformanceAnalytics ? [] : (dashboardData?.pumpOperators ?? [])
   )
-  const operatorsPerformanceAnalyticsTable = mapSchemePerformanceToTable(schemePerformanceData, [])
+  const operatorsPerformanceAnalyticsTable = mapSchemePerformanceToTable(
+    schemePerformanceData,
+    [],
+    {
+      blockTitleByParentId: districtSchemeBlockLookup,
+      parentLgdTitleById: blockSchemePanchayatLookup,
+    }
+  )
   const derivedVillageSchemeId = isVillageSelected
     ? (selectedSchemeId ?? schemePerformanceData?.topSchemes?.[0]?.schemeId)
     : undefined

@@ -738,7 +738,11 @@ export const mapSchemePerformanceToPumpOperators = (
 
 export const mapSchemePerformanceToTable = (
   response: SchemePerformanceResponse | undefined,
-  fallbackData: PumpOperatorPerformanceData[]
+  fallbackData: PumpOperatorPerformanceData[],
+  options?: {
+    blockTitleByParentId?: Record<number, string>
+    parentLgdTitleById?: Record<number, string>
+  }
 ): PumpOperatorPerformanceData[] => {
   if (!response?.topSchemes?.length) {
     return fallbackData
@@ -751,12 +755,24 @@ export const mapSchemePerformanceToTable = (
       undefined,
       `Scheme ${scheme.schemeId ?? index + 1}`
     ),
-    village: scheme.immediateParentLgdTitle?.trim()
-      ? toCapitalizedWords(scheme.immediateParentLgdTitle.trim())
-      : null,
-    block: scheme.immediateParentDepartmentTitle?.trim()
-      ? toCapitalizedWords(scheme.immediateParentDepartmentTitle.trim())
-      : null,
+    village:
+      options?.parentLgdTitleById &&
+      typeof scheme.immediateParentLgdId === 'number' &&
+      Number.isFinite(scheme.immediateParentLgdId) &&
+      options.parentLgdTitleById[scheme.immediateParentLgdId]
+        ? toCapitalizedWords(options.parentLgdTitleById[scheme.immediateParentLgdId])
+        : scheme.immediateParentLgdTitle?.trim()
+          ? toCapitalizedWords(scheme.immediateParentLgdTitle.trim())
+          : null,
+    block:
+      options?.blockTitleByParentId &&
+      typeof scheme.immediateParentLgdId === 'number' &&
+      Number.isFinite(scheme.immediateParentLgdId) &&
+      options.blockTitleByParentId[scheme.immediateParentLgdId]
+        ? toCapitalizedWords(options.blockTitleByParentId[scheme.immediateParentLgdId])
+        : scheme.immediateParentDepartmentTitle?.trim()
+          ? toCapitalizedWords(scheme.immediateParentDepartmentTitle.trim())
+          : null,
     reportingRate:
       typeof scheme.reportingRate === 'number' && Number.isFinite(scheme.reportingRate)
         ? scheme.reportingRate

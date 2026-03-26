@@ -312,6 +312,9 @@ export function GramPanchayatDashboardScreen({
           py="24px"
           h="510px"
           minW={0}
+          display="flex"
+          flexDirection="column"
+          minH={0}
         >
           <SchemePerformanceTable
             title={t('pumpOperators.performanceTable.title', {
@@ -319,6 +322,7 @@ export function GramPanchayatDashboardScreen({
             })}
             data={operatorsPerformanceTable}
             fillHeight
+            showBlockColumn={false}
           />
         </Box>
       </Grid>
