@@ -603,6 +603,48 @@ describe('CentralDashboard', () => {
     expect(dashboardBodyProps.isQuantityTimeTrendLoading).toBe(false)
   })
 
+  it('uses the analytics id from village filter values for village periodic charts', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams(
+        'district=11:211:sangareddy&block=22:322:patancheru&gramPanchayat=33:433:ismailkhanpet&village=44:544:rudraram'
+      ),
+      jest.fn(),
+    ])
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useWaterQuantityPeriodicQuery).toHaveBeenCalledWith({
+      params: {
+        lgdId: 544,
+        startDate: expect.any(String),
+        endDate: expect.any(String),
+        scale: expect.any(String),
+      },
+      enabled: true,
+    })
+    expect(useSchemeRegularityPeriodicQuery).toHaveBeenCalledWith({
+      params: {
+        lgdId: 544,
+        startDate: expect.any(String),
+        endDate: expect.any(String),
+        scale: expect.any(String),
+      },
+      enabled: true,
+    })
+  })
+
   it('passes isQuantityTimeTrendLoading=true to dashboard body while useWaterQuantityPeriodicQuery is loading', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -634,6 +676,45 @@ describe('CentralDashboard', () => {
     }>()
 
     expect(dashboardBodyProps.isQuantityTimeTrendLoading).toBe(true)
+  })
+
+  it('does not fall back to dashboard demandSupply for filtered quantity and regularity charts', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [{ id: 10, lgdCode: 110, title: 'Telangana' }],
+      },
+    })
+    ;(useWaterQuantityPeriodicQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isFetching: false,
+      isAwaitingParams: false,
+    })
+    ;(useSchemeRegularityPeriodicQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isFetching: false,
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{
+      quantityTimeTrendData: Array<{ period: string; value: number }>
+      regularityTimeTrendData: Array<{ period: string; value: number }>
+    }>()
+
+    expect(dashboardBodyProps.quantityTimeTrendData).toEqual([])
+    expect(dashboardBodyProps.regularityTimeTrendData).toEqual([])
   })
 
   it('uses national dashboard analytics for central landing KPI cards', () => {

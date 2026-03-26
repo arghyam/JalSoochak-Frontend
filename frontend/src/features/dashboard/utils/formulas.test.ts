@@ -23,6 +23,7 @@ import {
   mapQuantityPerformanceFromAnalytics,
   mapQuantityPerformanceFromNationalDashboard,
   mapRegularityPerformanceFromAnalytics,
+  mapRegularityPerformanceFromNationalDashboard,
   mapOverallPerformanceFromAnalytics,
   resolveDaysInRange,
 } from './formulas'
@@ -344,6 +345,40 @@ describe('dashboard formulas', () => {
         regularity: 50,
       },
     ])
+  })
+
+  it('returns an empty array for regularity analytics when child regions are unavailable', () => {
+    const fallbackData: EntityPerformance[] = [
+      {
+        id: 'alpha',
+        name: 'Region Alpha',
+        coverage: 72,
+        regularity: 61,
+        continuity: 0,
+        quantity: 4,
+        compositeScore: 68,
+        status: 'good',
+      },
+    ]
+
+    expect(mapRegularityPerformanceFromAnalytics(undefined, fallbackData)).toEqual([])
+  })
+
+  it('returns an empty array for national regularity performance when analytics are unavailable', () => {
+    const fallbackData: EntityPerformance[] = [
+      {
+        id: 'alpha',
+        name: 'Region Alpha',
+        coverage: 72,
+        regularity: 61,
+        continuity: 0,
+        quantity: 4,
+        compositeScore: 68,
+        status: 'good',
+      },
+    ]
+
+    expect(mapRegularityPerformanceFromNationalDashboard(undefined, fallbackData)).toEqual([])
   })
 
   it('maps overall performance rows from quantity and regularity child responses', () => {

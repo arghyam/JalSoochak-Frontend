@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Avatar, Box, Button, Flex, Grid, Icon, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { LuArrowLeft, LuArrowRight } from 'react-icons/lu'
+import { ChartEmptyState, LoadingSpinner } from '@/shared/components/common'
+import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import type {
   DashboardData,
   EntityPerformance,
@@ -24,6 +26,10 @@ type VillageDashboardScreenProps = {
   villagePumpOperators?: VillagePumpOperatorDetails[]
   tenantCode?: string
   schemeId?: number
+  quantityTimeTrendData?: MonthlyTrendPoint[]
+  regularityTimeTrendData?: MonthlyTrendPoint[]
+  isQuantityTimeTrendLoading?: boolean
+  isRegularityTimeTrendLoading?: boolean
 }
 
 const READING_COMPLIANCE_PAGE_SIZE = 50
@@ -703,24 +709,41 @@ export function VillageDashboardScreen({
   villagePumpOperators = [],
   tenantCode,
   schemeId,
+  quantityTimeTrendData = [],
+  regularityTimeTrendData = [],
+  isQuantityTimeTrendLoading = false,
+  isRegularityTimeTrendLoading = false,
 }: VillageDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const effectiveSchemeId = schemeId ?? villagePumpOperatorDetails.schemeId
 
-  const timeSeriesPerformanceData = useMemo<EntityPerformance[]>(
+  const quantityPerformanceData = useMemo<EntityPerformance[]>(
     () =>
-      data.demandSupply.map((item, index) => ({
-        id: `performance-${index}-${item.period}`,
+      quantityTimeTrendData.map((item, index) => ({
+        id: `quantity-performance-${index}-${item.period}`,
         name: item.period,
-        coverage: item.demand,
-        regularity:
-          item.demand > 0 ? Math.min(100, Math.round((item.supply / item.demand) * 100)) : 0,
+        coverage: 0,
+        regularity: 0,
         continuity: 0,
-        quantity: item.supply,
+        quantity: item.value,
         compositeScore: 0,
         status: 'needs-attention',
       })),
-    [data.demandSupply]
+    [quantityTimeTrendData]
+  )
+  const regularityPerformanceData = useMemo<EntityPerformance[]>(
+    () =>
+      regularityTimeTrendData.map((item, index) => ({
+        id: `regularity-performance-${index}-${item.period}`,
+        name: item.period,
+        coverage: 0,
+        regularity: item.value,
+        continuity: 0,
+        quantity: 0,
+        compositeScore: 0,
+        status: 'needs-attention',
+      })),
+    [regularityTimeTrendData]
   )
   const readingComplianceScopeKey = `${tenantCode ?? 'no-tenant'}:${effectiveSchemeId ?? 'no-scheme'}`
 
@@ -741,18 +764,22 @@ export function VillageDashboardScreen({
           <Text textStyle="bodyText3" fontWeight="400" mb={2}>
             {t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
           </Text>
-          <MetricPerformanceChart
-            data={timeSeriesPerformanceData}
-            metric="quantity"
-            height="400px"
-            entityLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
-            yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
-            seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
-            showAreaLine
-            areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
-              defaultValue: 'Demand',
-            })}
-          />
+          {isQuantityTimeTrendLoading ? (
+            <Flex align="center" justify="center" h="400px">
+              <LoadingSpinner />
+            </Flex>
+          ) : quantityPerformanceData.length > 0 ? (
+            <MetricPerformanceChart
+              data={quantityPerformanceData}
+              metric="quantity"
+              height="400px"
+              entityLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+              yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
+              seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
+            />
+          ) : (
+            <ChartEmptyState minHeight="400px" />
+          )}
         </Box>
         <Box
           bg="white"
@@ -768,18 +795,26 @@ export function VillageDashboardScreen({
           <Text textStyle="bodyText3" fontWeight="400" mb={2}>
             {t('performanceCharts.regularity.title', { defaultValue: 'Regularity Performance' })}
           </Text>
-          <MetricPerformanceChart
-            data={timeSeriesPerformanceData}
-            metric="regularity"
-            height="400px"
-            entityLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
-            yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
-              defaultValue: 'Regularity',
-            })}
-            seriesName={t('performanceCharts.regularity.seriesName', {
-              defaultValue: 'Regularity',
-            })}
-          />
+          {isRegularityTimeTrendLoading ? (
+            <Flex align="center" justify="center" h="400px">
+              <LoadingSpinner />
+            </Flex>
+          ) : regularityPerformanceData.length > 0 ? (
+            <MetricPerformanceChart
+              data={regularityPerformanceData}
+              metric="regularity"
+              height="400px"
+              entityLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+              yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
+                defaultValue: 'Regularity',
+              })}
+              seriesName={t('performanceCharts.regularity.seriesName', {
+                defaultValue: 'Regularity',
+              })}
+            />
+          ) : (
+            <ChartEmptyState minHeight="400px" />
+          )}
         </Box>
       </Grid>
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>

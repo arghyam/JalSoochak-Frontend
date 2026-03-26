@@ -62,11 +62,18 @@ type DashboardFiltersProps = {
   onActiveTrailChange?: (trailIndex: number | null) => void
 }
 
-type LocationOption = SearchableSelectOption & { locationId?: number }
+type LocationOption = SearchableSelectOption & {
+  locationId?: number
+  analyticsId?: number
+}
 const LOCATION_VALUE_SEPARATOR = ':'
 
-const toStableLocationValue = (locationId: number, label: string): string =>
-  `${locationId}${LOCATION_VALUE_SEPARATOR}${slugify(label)}`
+const toStableLocationValue = (
+  locationId: number,
+  analyticsId: number | undefined,
+  label: string
+): string =>
+  `${locationId}${LOCATION_VALUE_SEPARATOR}${analyticsId ?? locationId}${LOCATION_VALUE_SEPARATOR}${slugify(label)}`
 
 const parseLocationId = (value: string): number | undefined => {
   if (!value) {
@@ -113,10 +120,15 @@ const mapLocationOptions = (locations: TenantChildLocation[] | undefined): Locat
     }
 
     const locationId = location.id
+    const analyticsId =
+      typeof location.lgdCode === 'number' && Number.isFinite(location.lgdCode)
+        ? location.lgdCode
+        : locationId
     return {
-      value: toStableLocationValue(locationId, normalizedTitle),
+      value: toStableLocationValue(locationId, analyticsId, normalizedTitle),
       label: normalizedTitle,
       locationId,
+      analyticsId,
     }
   })
 }

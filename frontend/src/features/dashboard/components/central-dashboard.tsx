@@ -59,7 +59,6 @@ import {
   mapNationalRegularityTrendPoints,
   mapOutageReasonsPeriodicToTrendPoints,
   mapSchemeRegularityPeriodicToTrendPoints,
-  mapDemandSupplyToTrendPoints,
   mapWaterQuantityPeriodicToTrendPoints,
   resolveWaterQuantityPeriodicScale,
 } from '../utils/quantity-periodic'
@@ -113,7 +112,10 @@ type StoredFilters = {
   filterTabIndex?: number
 }
 
-type LocationOption = SearchableSelectOption & { locationId?: number }
+type LocationOption = SearchableSelectOption & {
+  locationId?: number
+  analyticsId?: number
+}
 
 const getOwnLookupValue = <T,>(record: Record<string, T>, key: string, fallback: T): T => {
   if (Object.prototype.hasOwnProperty.call(record, key)) {
@@ -134,6 +136,22 @@ const parseLocationId = (value: string): number | undefined => {
   const idPrefix = value.split(LOCATION_VALUE_SEPARATOR, 1)[0]
   const parsedId = Number.parseInt(idPrefix, 10)
   return Number.isFinite(parsedId) ? parsedId : undefined
+}
+
+const parseAnalyticsLocationId = (value: string): number | undefined => {
+  if (!value) {
+    return undefined
+  }
+
+  const [, analyticsIdSegment] = value.split(LOCATION_VALUE_SEPARATOR, 3)
+  if (analyticsIdSegment) {
+    const parsedAnalyticsId = Number.parseInt(analyticsIdSegment, 10)
+    if (Number.isFinite(parsedAnalyticsId)) {
+      return parsedAnalyticsId
+    }
+  }
+
+  return parseLocationId(value)
 }
 
 const normalizeMockLookupKey = (value: string): string => {
@@ -274,11 +292,16 @@ const mapLocationOptions = (locations: TenantChildLocation[] | undefined): Locat
     .filter((location) => typeof location.id === 'number' && Boolean(location.title?.trim()))
     .map((location) => {
       const locationId = location.id as number
+      const analyticsId =
+        typeof location.lgdCode === 'number' && Number.isFinite(location.lgdCode)
+          ? location.lgdCode
+          : locationId
       const normalizedTitle = toCapitalizedWords(location.title?.trim() ?? '')
       return {
-        value: `${locationId}${LOCATION_VALUE_SEPARATOR}${slugify(normalizedTitle)}`,
+        value: `${locationId}${LOCATION_VALUE_SEPARATOR}${analyticsId}${LOCATION_VALUE_SEPARATOR}${slugify(normalizedTitle)}`,
         label: normalizedTitle,
         locationId,
+        analyticsId,
       }
     })
 }
@@ -518,11 +541,11 @@ export function CentralDashboard() {
   const rootLocationOptions = mapLocationOptions(rootLocationsData?.data)
   const selectedRootOption = findLocationOption(rootLocationOptions, selectedState)
   const lgdAnalyticsParentId =
-    parseLocationId(effectiveSelectedVillage) ??
-    parseLocationId(effectiveSelectedGramPanchayat) ??
-    parseLocationId(effectiveSelectedBlock) ??
-    parseLocationId(effectiveSelectedDistrict) ??
-    selectedRootOption?.locationId ??
+    parseAnalyticsLocationId(effectiveSelectedVillage) ??
+    parseAnalyticsLocationId(effectiveSelectedGramPanchayat) ??
+    parseAnalyticsLocationId(effectiveSelectedBlock) ??
+    parseAnalyticsLocationId(effectiveSelectedDistrict) ??
+    selectedRootOption?.analyticsId ??
     0
   const departmentAnalyticsParentId =
     parseLocationId(selectedDepartmentVillage) ??
@@ -540,15 +563,6 @@ export function CentralDashboard() {
     hierarchyType === 'LGD' ? lgdAnalyticsParentId : departmentAnalyticsParentId
   const hasValidSubmissionStatusParentId =
     hierarchyType === 'LGD' ? hasValidAnalyticsParentId : hasValidDepartmentAnalyticsParentId
-  const analyticsFallbackData = isGramPanchayatSelected
-    ? villageTableData
-    : isBlockSelected
-      ? gramPanchayatTableData
-      : isDistrictSelected
-        ? blockTableData
-        : isStateSelected
-          ? districtTableData
-          : (dashboardData?.mapData ?? emptyEntityPerformance)
   const defaultAnalyticsRange = getDefaultAnalyticsDateRange()
   const analyticsDateRange = {
     startDate: toIsoDate(selectedDuration?.startDate) ?? defaultAnalyticsRange.startDate,
@@ -848,11 +862,11 @@ export function CentralDashboard() {
   })
   const isCentralLandingView = !hasCentralLandingFilters
   const quantityPerformanceData = isCentralLandingView
-    ? mapQuantityPerformanceFromNationalDashboard(nationalDashboardData, analyticsFallbackData)
-    : mapQuantityPerformanceFromAnalytics(averageWaterSupplyData, analyticsFallbackData)
+    ? mapQuantityPerformanceFromNationalDashboard(nationalDashboardData, emptyEntityPerformance)
+    : mapQuantityPerformanceFromAnalytics(averageWaterSupplyData, emptyEntityPerformance)
   const regularityPerformanceData = isCentralLandingView
-    ? mapRegularityPerformanceFromNationalDashboard(nationalDashboardData, analyticsFallbackData)
-    : mapRegularityPerformanceFromAnalytics(averageSchemeRegularityData, analyticsFallbackData)
+    ? mapRegularityPerformanceFromNationalDashboard(nationalDashboardData, emptyEntityPerformance)
+    : mapRegularityPerformanceFromAnalytics(averageSchemeRegularityData, emptyEntityPerformance)
   const supplySubmissionRateData = isCentralLandingView
     ? mapReadingSubmissionRateFromNationalDashboard(
         nationalDashboardData,
@@ -897,14 +911,12 @@ export function CentralDashboard() {
     ? mapNationalQuantityTrendPoints(nationalSchemeRegularityPeriodicData)
     : periodicQuantityTimeTrendData.length > 0
       ? periodicQuantityTimeTrendData
-      : mapDemandSupplyToTrendPoints(dashboardData?.demandSupply, (item) => item.supply)
+      : []
   const regularityTimeTrendData = isCentralLandingView
     ? mapNationalRegularityTrendPoints(nationalSchemeRegularityPeriodicData)
     : periodicRegularityTimeTrendData.length > 0
       ? periodicRegularityTimeTrendData
-      : mapDemandSupplyToTrendPoints(dashboardData?.demandSupply, (item) =>
-          item.demand > 0 ? Math.min(100, Math.round((item.supply / item.demand) * 100)) : 0
-        )
+      : []
   const outageReasonsTimeTrendData =
     mapOutageReasonsPeriodicToTrendPoints(outageReasonsPeriodicData)
   const currentWaterSupplyKpis = isCentralLandingView

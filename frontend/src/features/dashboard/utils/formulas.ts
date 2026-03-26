@@ -390,7 +390,7 @@ export const mapRegularityPerformanceFromAnalytics = (
   fallbackData: EntityPerformance[]
 ): EntityPerformance[] => {
   if (!response?.childRegions?.length) {
-    return fallbackData
+    return []
   }
 
   const childRegions = response.childRegions
@@ -498,7 +498,7 @@ export const mapRegularityPerformanceFromNationalDashboard = (
   fallbackData: EntityPerformance[]
 ): EntityPerformance[] => {
   if (!response?.stateWiseRegularity?.length) {
-    return fallbackData
+    return []
   }
 
   const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
