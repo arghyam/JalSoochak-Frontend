@@ -56,7 +56,7 @@ const parseIsoDate = (value?: string) => {
 }
 
 const resolveMetricDaysInRange = (startDate?: string, endDate?: string) =>
-  resolveDaysInRange(undefined, startDate, endDate)
+  parseIsoDate(startDate) && parseIsoDate(endDate) ? resolveDaysInRange(0, startDate, endDate) : 0
 
 export const resolveDaysInRange = (
   daysInRange?: number,
@@ -343,7 +343,9 @@ export const getWaterSupplyKpisFromPeriodic = (
     (acc, metric) => {
       const metricDays = resolveMetricDaysInRange(metric.periodStartDate, metric.periodEndDate)
       const waterQuantity = Number(metric.averageWaterQuantity ?? 0)
-      const achievedFhtcCount = Number(metric.achievedFhtcCount ?? 0)
+      const chosenAchievedFhtcCount = Number(
+        metric.totalAchievedFhtcCount ?? metric.achievedFhtcCount ?? 0
+      )
 
       if (!isFiniteNumber(waterQuantity) || metricDays <= 0) {
         return acc
@@ -353,7 +355,9 @@ export const getWaterSupplyKpisFromPeriodic = (
         totalWaterSuppliedLiters: acc.totalWaterSuppliedLiters + waterQuantity * metricDays,
         totalServedConnectionsDays:
           acc.totalServedConnectionsDays +
-          (isFiniteNumber(achievedFhtcCount) && achievedFhtcCount > 0 ? achievedFhtcCount : 0) *
+          (isFiniteNumber(chosenAchievedFhtcCount) && chosenAchievedFhtcCount > 0
+            ? chosenAchievedFhtcCount
+            : 0) *
             metricDays,
         totalDays: acc.totalDays + metricDays,
       }

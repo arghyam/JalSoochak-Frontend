@@ -32,6 +32,7 @@ import { OverallPerformanceTable } from './tables'
 import { ROUTES } from '@/shared/constants/routes'
 import { computeTrailIndices } from '../utils/trail-index'
 import { slugify, toCapitalizedWords } from '../utils/format-location-label'
+import { parseStableLocationValue } from '../utils/stable-location-value'
 import {
   calculateAbsoluteChange,
   calculatePercentChange,
@@ -140,16 +141,32 @@ const parseLocationId = (value: string): number | undefined => {
   return Number.isFinite(parsedId) ? parsedId : undefined
 }
 
-const parseAnalyticsLocationId = (value: string): number | undefined => {
+const lookupAnalyticsIdForLocation = (
+  options: LocationOption[],
+  value: string
+): number | undefined => {
+  const matchedOption = findLocationOption(options, value)
+  return typeof matchedOption?.analyticsId === 'number' ? matchedOption.analyticsId : undefined
+}
+
+const parseAnalyticsLocationId = (
+  value: string,
+  options: LocationOption[] = []
+): number | undefined => {
   if (!value) {
     return undefined
   }
 
-  const [, analyticsIdSegment] = value.split(LOCATION_VALUE_SEPARATOR, 3)
+  const { secondarySegment: analyticsIdSegment } = parseStableLocationValue(value)
   if (analyticsIdSegment) {
     const parsedAnalyticsId = Number.parseInt(analyticsIdSegment, 10)
     if (Number.isFinite(parsedAnalyticsId)) {
       return parsedAnalyticsId
+    }
+
+    const resolvedAnalyticsId = lookupAnalyticsIdForLocation(options, value)
+    if (typeof resolvedAnalyticsId === 'number') {
+      return resolvedAnalyticsId
     }
   }
 
@@ -161,8 +178,8 @@ const normalizeMockLookupKey = (value: string): string => {
     return ''
   }
 
-  const separatorIndex = value.indexOf(LOCATION_VALUE_SEPARATOR)
-  const rawKey = separatorIndex >= 0 ? value.slice(separatorIndex + 1) : value
+  const { lastSegment } = parseStableLocationValue(value)
+  const rawKey = lastSegment ?? value
   if (isUnsafeLookupKey(rawKey)) {
     return rawKey
   }
@@ -542,11 +559,57 @@ export function CentralDashboard() {
   })
   const rootLocationOptions = mapLocationOptions(rootLocationsData?.data)
   const selectedRootOption = findLocationOption(rootLocationOptions, selectedState)
+  const isRootStateLevel = Boolean(selectedState) && Boolean(selectedRootOption)
+  const districtParentId = isRootStateLevel ? selectedRootOption?.locationId : undefined
+  const { data: districtLocationsData } = useLocationChildrenQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: districtParentId,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(selectedTenant?.tenantId && districtParentId),
+  })
+  const districtApiOptions = isRootStateLevel
+    ? mapLocationOptions(districtLocationsData?.data)
+    : rootLocationOptions
+  const selectedDistrictOption = findLocationOption(districtApiOptions, selectedDistrict)
+  const selectedDistrictId = parseLocationId(selectedDistrict) ?? selectedDistrictOption?.locationId
+  const { data: blockLocationsData } = useLocationChildrenQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: selectedDistrictId,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(selectedTenant?.tenantId && selectedDistrictId),
+  })
+  const blockApiOptions = mapLocationOptions(blockLocationsData?.data)
+  const selectedBlockOption = findLocationOption(blockApiOptions, selectedBlock)
+  const selectedBlockId = parseLocationId(selectedBlock) ?? selectedBlockOption?.locationId
+  const { data: gramPanchayatLocationsData } = useLocationChildrenQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: selectedBlockId,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(selectedTenant?.tenantId && selectedBlockId),
+  })
+  const gramPanchayatApiOptions = mapLocationOptions(gramPanchayatLocationsData?.data)
+  const selectedGramPanchayatOption = findLocationOption(
+    gramPanchayatApiOptions,
+    selectedGramPanchayat
+  )
+  const selectedGramPanchayatId =
+    parseLocationId(selectedGramPanchayat) ?? selectedGramPanchayatOption?.locationId
+  const { data: villageLocationsData } = useLocationChildrenQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: selectedGramPanchayatId,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(selectedTenant?.tenantId && selectedGramPanchayatId),
+  })
+  const villageApiOptions = mapLocationOptions(villageLocationsData?.data)
   const lgdAnalyticsParentId =
-    parseAnalyticsLocationId(effectiveSelectedVillage) ??
-    parseAnalyticsLocationId(effectiveSelectedGramPanchayat) ??
-    parseAnalyticsLocationId(effectiveSelectedBlock) ??
-    parseAnalyticsLocationId(effectiveSelectedDistrict) ??
+    parseAnalyticsLocationId(effectiveSelectedVillage, villageApiOptions) ??
+    parseAnalyticsLocationId(effectiveSelectedGramPanchayat, gramPanchayatApiOptions) ??
+    parseAnalyticsLocationId(effectiveSelectedBlock, blockApiOptions) ??
+    parseAnalyticsLocationId(effectiveSelectedDistrict, districtApiOptions) ??
     selectedRootOption?.analyticsId ??
     0
   const departmentAnalyticsParentId =
@@ -993,6 +1056,20 @@ export function CentralDashboard() {
     : isVillageSelected
       ? getRegularityKpiFromPeriodic(previousSchemeRegularityPeriodicData)
       : getRegularityKpi(previousRegularityKpiData)
+  const previousWaterSupplyComparisonRange: {
+    daysInRange?: number
+    startDate?: string
+    endDate?: string
+  } = isVillageSelected
+    ? {
+        startDate: previousWaterQuantityPeriodicData?.startDate,
+        endDate: previousWaterQuantityPeriodicData?.endDate,
+      }
+    : {
+        daysInRange: previousWaterSupplyKpiData?.daysInRange,
+        startDate: previousWaterSupplyAnalyticsParams?.startDate,
+        endDate: previousWaterSupplyAnalyticsParams?.endDate,
+      }
 
   const updateFilterUrl = (filters: {
     state?: string
@@ -1303,9 +1380,9 @@ export function CentralDashboard() {
           minimumFractionDigits: 0,
           maximumFractionDigits: 1,
         })}% vs last ${resolveDaysInRange(
-          previousWaterSupplyKpiData?.daysInRange,
-          previousWaterSupplyAnalyticsParams?.startDate,
-          previousWaterSupplyAnalyticsParams?.endDate
+          previousWaterSupplyComparisonRange.daysInRange,
+          previousWaterSupplyComparisonRange.startDate,
+          previousWaterSupplyComparisonRange.endDate
         )} days`,
       },
       icon: (

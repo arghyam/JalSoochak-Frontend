@@ -256,6 +256,7 @@ describe('VillageDashboardScreen', () => {
     )
 
     expect(mockMetricPerformanceChart).not.toHaveBeenCalled()
+    expect(screen.getAllByText('No data available')).toHaveLength(2)
   })
 
   it('paginates pump operator details with previous/next and page buttons', () => {

@@ -16,6 +16,7 @@ import {
   slugify,
   toCapitalizedWords,
 } from '../../utils/format-location-label'
+import { toStableLocationValue } from '../../utils/stable-location-value'
 import type { HierarchyType } from '../../services/api/dashboard-api'
 import type { TenantChildLocation } from '../../services/api/dashboard-api'
 
@@ -67,13 +68,6 @@ type LocationOption = SearchableSelectOption & {
   analyticsId?: number
 }
 const LOCATION_VALUE_SEPARATOR = ':'
-
-const toStableLocationValue = (
-  locationId: number,
-  analyticsId: number | undefined,
-  label: string
-): string =>
-  `${locationId}${LOCATION_VALUE_SEPARATOR}${analyticsId ?? locationId}${LOCATION_VALUE_SEPARATOR}${slugify(label)}`
 
 const parseLocationId = (value: string): number | undefined => {
   if (!value) {

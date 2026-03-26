@@ -116,6 +116,78 @@ describe('dashboard formulas', () => {
     })
   })
 
+  it('prefers totalAchievedFhtcCount over achievedFhtcCount in periodic water quantity metrics', () => {
+    expect(
+      getWaterSupplyKpisFromPeriodic({
+        lgdId: 19501,
+        departmentId: 0,
+        scale: 'day',
+        startDate: '2026-02-25',
+        endDate: '2026-02-26',
+        periodCount: 2,
+        metrics: [
+          {
+            periodStartDate: '2026-02-25',
+            periodEndDate: '2026-02-25',
+            averageWaterQuantity: 41_243,
+            householdCount: 0,
+            totalAchievedFhtcCount: 501,
+            achievedFhtcCount: 5,
+            plannedFhtcCount: 448,
+          },
+          {
+            periodStartDate: '2026-02-26',
+            periodEndDate: '2026-02-26',
+            averageWaterQuantity: 50_100,
+            householdCount: 0,
+            totalAchievedFhtcCount: 500,
+            achievedFhtcCount: 5,
+            plannedFhtcCount: 448,
+          },
+        ],
+      })
+    ).toEqual({
+      quantityMld: 0.05,
+      quantityLpcd: 18.3,
+    })
+  })
+
+  it('skips periodic water quantity metrics with invalid metric dates', () => {
+    expect(
+      getWaterSupplyKpisFromPeriodic({
+        lgdId: 19501,
+        departmentId: 0,
+        scale: 'day',
+        startDate: '2026-02-25',
+        endDate: '2026-02-26',
+        periodCount: 2,
+        metrics: [
+          {
+            periodStartDate: '',
+            periodEndDate: '',
+            averageWaterQuantity: 999_999,
+            householdCount: 0,
+            totalAchievedFhtcCount: 999,
+            achievedFhtcCount: 999,
+            plannedFhtcCount: 448,
+          },
+          {
+            periodStartDate: '2026-02-26',
+            periodEndDate: '2026-02-26',
+            averageWaterQuantity: 50_100,
+            householdCount: 0,
+            totalAchievedFhtcCount: 500,
+            achievedFhtcCount: 500,
+            plannedFhtcCount: 448,
+          },
+        ],
+      })
+    ).toEqual({
+      quantityMld: 0.05,
+      quantityLpcd: 20,
+    })
+  })
+
   it('calculates village regularity KPI from periodic regularity metrics', () => {
     expect(
       getRegularityKpiFromPeriodic({
