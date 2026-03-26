@@ -28,7 +28,7 @@ export function LanguageSwitcher({ isMobileHeader = false }: LanguageSwitcherPro
   return (
     <Box
       position={isMobileHeader ? 'relative' : 'fixed'}
-      top={isMobileHeader ? 'auto' : 2}
+      top={isMobileHeader ? 'auto' : '44px'}
       right={isMobileHeader ? 'auto' : { base: 4, lg: 12 }}
       zIndex={50}
     >
