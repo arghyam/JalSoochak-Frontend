@@ -717,6 +717,165 @@ describe('CentralDashboard', () => {
     expect(dashboardBodyProps.regularityTimeTrendData).toEqual([])
   })
 
+  it('derives village KPI cards from periodic village analytics', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams(
+        'district=25:25:lakhimpur&block=199:199:boginadi&gramPanchayat=2093:2093:bhimpara&village=19501:19501:no-2-ghagarmukh'
+      ),
+      jest.fn(),
+    ])
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 18, tenantCode: 'AS' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [{ id: 1, lgdCode: 1, title: 'Assam' }],
+      },
+    })
+    ;(useWaterQuantityPeriodicQuery as jest.Mock).mockImplementation((options: unknown) => {
+      const params = (options as { params?: { startDate?: string } } | undefined)?.params
+      return {
+        data:
+          params?.startDate === '2026-01-26'
+            ? {
+                lgdId: 19501,
+                departmentId: 0,
+                scale: 'day',
+                startDate: '2026-01-26',
+                endDate: '2026-02-24',
+                periodCount: 2,
+                metrics: [
+                  {
+                    periodStartDate: '2026-01-26',
+                    periodEndDate: '2026-01-26',
+                    averageWaterQuantity: 30000,
+                    householdCount: 0,
+                    achievedFhtcCount: 500,
+                    plannedFhtcCount: 448,
+                  },
+                  {
+                    periodStartDate: '2026-01-27',
+                    periodEndDate: '2026-01-27',
+                    averageWaterQuantity: 30000,
+                    householdCount: 0,
+                    achievedFhtcCount: 500,
+                    plannedFhtcCount: 448,
+                  },
+                ],
+              }
+            : {
+                lgdId: 19501,
+                departmentId: 0,
+                scale: 'day',
+                startDate: '2026-02-25',
+                endDate: '2026-03-26',
+                periodCount: 2,
+                metrics: [
+                  {
+                    periodStartDate: '2026-02-25',
+                    periodEndDate: '2026-02-25',
+                    averageWaterQuantity: 41243,
+                    householdCount: 0,
+                    achievedFhtcCount: 501,
+                    plannedFhtcCount: 448,
+                  },
+                  {
+                    periodStartDate: '2026-02-26',
+                    periodEndDate: '2026-02-26',
+                    averageWaterQuantity: 50100,
+                    householdCount: 0,
+                    achievedFhtcCount: 500,
+                    plannedFhtcCount: 448,
+                  },
+                ],
+              },
+        isFetching: false,
+        isAwaitingParams: false,
+      }
+    })
+    ;(useSchemeRegularityPeriodicQuery as jest.Mock).mockImplementation((options: unknown) => {
+      const params = (options as { params?: { startDate?: string } } | undefined)?.params
+      return {
+        data:
+          params?.startDate === '2026-01-26'
+            ? {
+                lgdId: 19501,
+                departmentId: 0,
+                schemeCount: 1,
+                scale: 'day',
+                startDate: '2026-01-26',
+                endDate: '2026-02-24',
+                periodCount: 2,
+                metrics: [
+                  {
+                    periodStartDate: '2026-01-26',
+                    periodEndDate: '2026-01-26',
+                    totalSupplyDays: 0,
+                    averageRegularity: 0,
+                  },
+                  {
+                    periodStartDate: '2026-01-27',
+                    periodEndDate: '2026-01-27',
+                    totalSupplyDays: 0,
+                    averageRegularity: 0,
+                  },
+                ],
+              }
+            : {
+                lgdId: 19501,
+                departmentId: 0,
+                schemeCount: 1,
+                scale: 'day',
+                startDate: '2026-02-25',
+                endDate: '2026-03-26',
+                periodCount: 2,
+                metrics: [
+                  {
+                    periodStartDate: '2026-02-25',
+                    periodEndDate: '2026-02-25',
+                    totalSupplyDays: 1,
+                    averageRegularity: 100,
+                  },
+                  {
+                    periodStartDate: '2026-02-26',
+                    periodEndDate: '2026-02-26',
+                    totalSupplyDays: 0,
+                    averageRegularity: 0,
+                  },
+                ],
+              },
+        isFetching: false,
+      }
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const kpiProps = mockKPICard.mock.calls.slice(-3).map(
+      (call) =>
+        call[0] as {
+          title: string
+          value: string
+          trend?: { direction: 'up' | 'down' | 'neutral'; text: string }
+        }
+    )
+
+    expect(kpiProps[0]?.title).toBe('Quantity in MLD')
+    expect(kpiProps[0]?.value).toBe('0.05')
+    expect(kpiProps[1]?.title).toBe('Quantity in LPCD')
+    expect(kpiProps[1]?.value).toBe('18.3')
+    expect(kpiProps[2]?.title).toBe('Regularity')
+    expect(kpiProps[2]?.value).toBe('50.0%')
+  })
+
   it('uses national dashboard analytics for central landing KPI cards', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,

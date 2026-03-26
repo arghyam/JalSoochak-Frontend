@@ -16,6 +16,8 @@ import {
   calculateQuantityMld,
   calculateQuantityLpcd,
   getWaterSupplyKpis,
+  getWaterSupplyKpisFromPeriodic,
+  getRegularityKpiFromPeriodic,
   mapOutageReasonsFromNationalDashboard,
   mapSchemePerformanceToTable,
   mapReadingSubmissionStatusFromAnalytics,
@@ -78,6 +80,68 @@ describe('dashboard formulas', () => {
 
   it('calculates demand in MLD from FHTC count, persons, and liters per person', () => {
     expect(calculateDemandMld(500, 5, 50)).toBe(0.13)
+  })
+
+  it('calculates village KPI totals from periodic water quantity metrics', () => {
+    expect(
+      getWaterSupplyKpisFromPeriodic({
+        lgdId: 19501,
+        departmentId: 0,
+        scale: 'day',
+        startDate: '2026-02-25',
+        endDate: '2026-02-26',
+        periodCount: 2,
+        metrics: [
+          {
+            periodStartDate: '2026-02-25',
+            periodEndDate: '2026-02-25',
+            averageWaterQuantity: 41_243,
+            householdCount: 0,
+            achievedFhtcCount: 501,
+            plannedFhtcCount: 448,
+          },
+          {
+            periodStartDate: '2026-02-26',
+            periodEndDate: '2026-02-26',
+            averageWaterQuantity: 50_100,
+            householdCount: 0,
+            achievedFhtcCount: 500,
+            plannedFhtcCount: 448,
+          },
+        ],
+      })
+    ).toEqual({
+      quantityMld: 0.05,
+      quantityLpcd: 18.3,
+    })
+  })
+
+  it('calculates village regularity KPI from periodic regularity metrics', () => {
+    expect(
+      getRegularityKpiFromPeriodic({
+        lgdId: 19501,
+        departmentId: 0,
+        schemeCount: 1,
+        scale: 'day',
+        startDate: '2026-02-25',
+        endDate: '2026-02-26',
+        periodCount: 2,
+        metrics: [
+          {
+            periodStartDate: '2026-02-25',
+            periodEndDate: '2026-02-25',
+            totalSupplyDays: 1,
+            averageRegularity: 100,
+          },
+          {
+            periodStartDate: '2026-02-26',
+            periodEndDate: '2026-02-26',
+            totalSupplyDays: 0,
+            averageRegularity: 0,
+          },
+        ],
+      })
+    ).toBe(50)
   })
 
   it('calculates state KPI totals from child regions when scheme rows are absent', () => {

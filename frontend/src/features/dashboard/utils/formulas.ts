@@ -8,7 +8,9 @@ import type {
   ReadingSubmissionStatusData,
   ReadingSubmissionRateResponse,
   SchemePerformanceResponse,
+  SchemeRegularityPeriodicResponse,
   SubmissionStatusResponse,
+  WaterQuantityPeriodicResponse,
   WaterSupplyOutageData,
 } from '../types'
 import { slugify, toCapitalizedWords } from './format-location-label'
@@ -52,6 +54,9 @@ const parseIsoDate = (value?: string) => {
   const date = new Date(`${value}T00:00:00`)
   return Number.isNaN(date.getTime()) ? null : date
 }
+
+const resolveMetricDaysInRange = (startDate?: string, endDate?: string) =>
+  resolveDaysInRange(undefined, startDate, endDate)
 
 export const resolveDaysInRange = (
   daysInRange?: number,
@@ -324,6 +329,85 @@ export const getRegularityKpiFromNationalDashboard = (
   )
 
   return calculateAverageRegularityPercent(totals.totalSupplyDays, totals.schemeCount, daysInRange)
+}
+
+export const getWaterSupplyKpisFromPeriodic = (
+  response: WaterQuantityPeriodicResponse | undefined,
+  averagePersonsPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD
+) => {
+  if (!response?.metrics?.length) {
+    return { quantityMld: 0, quantityLpcd: 0 }
+  }
+
+  const totals = response.metrics.reduce(
+    (acc, metric) => {
+      const metricDays = resolveMetricDaysInRange(metric.periodStartDate, metric.periodEndDate)
+      const waterQuantity = Number(metric.averageWaterQuantity ?? 0)
+      const achievedFhtcCount = Number(metric.achievedFhtcCount ?? 0)
+
+      if (!isFiniteNumber(waterQuantity) || metricDays <= 0) {
+        return acc
+      }
+
+      return {
+        totalWaterSuppliedLiters: acc.totalWaterSuppliedLiters + waterQuantity * metricDays,
+        totalServedConnectionsDays:
+          acc.totalServedConnectionsDays +
+          (isFiniteNumber(achievedFhtcCount) && achievedFhtcCount > 0 ? achievedFhtcCount : 0) *
+            metricDays,
+        totalDays: acc.totalDays + metricDays,
+      }
+    },
+    { totalWaterSuppliedLiters: 0, totalServedConnectionsDays: 0, totalDays: 0 }
+  )
+
+  if (totals.totalDays <= 0) {
+    return { quantityMld: 0, quantityLpcd: 0 }
+  }
+
+  return {
+    quantityMld: calculateQuantityMld(totals.totalWaterSuppliedLiters, totals.totalDays),
+    quantityLpcd:
+      totals.totalServedConnectionsDays > 0
+        ? Number(
+            (
+              totals.totalWaterSuppliedLiters /
+              (totals.totalServedConnectionsDays * averagePersonsPerHousehold)
+            ).toFixed(1)
+          )
+        : 0,
+  }
+}
+
+export const getRegularityKpiFromPeriodic = (
+  response: SchemeRegularityPeriodicResponse | undefined
+) => {
+  if (!response?.metrics?.length) {
+    return 0
+  }
+
+  const totals = response.metrics.reduce(
+    (acc, metric) => {
+      const metricDays = resolveMetricDaysInRange(metric.periodStartDate, metric.periodEndDate)
+      const averageRegularity = Number(metric.averageRegularity ?? 0)
+
+      if (!isFiniteNumber(averageRegularity) || metricDays <= 0) {
+        return acc
+      }
+
+      return {
+        weightedRegularity: acc.weightedRegularity + averageRegularity * metricDays,
+        totalDays: acc.totalDays + metricDays,
+      }
+    },
+    { weightedRegularity: 0, totalDays: 0 }
+  )
+
+  if (totals.totalDays <= 0) {
+    return 0
+  }
+
+  return Number((totals.weightedRegularity / totals.totalDays).toFixed(1))
 }
 
 export const calculatePercentChange = (currentValue: number, previousValue: number) => {

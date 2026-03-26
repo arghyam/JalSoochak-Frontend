@@ -37,6 +37,7 @@ import {
   calculatePercentChange,
   getPreviousPeriodRange,
   getRegularityKpi,
+  getRegularityKpiFromPeriodic,
   getRegularityKpiFromNationalDashboard,
   mapOutageReasonsFromNationalDashboard,
   mapOverallPerformanceFromNationalDashboard,
@@ -48,6 +49,7 @@ import {
   mapSchemePerformanceToTable,
   mapSchemePerformanceToPumpOperators,
   getWaterSupplyKpis,
+  getWaterSupplyKpisFromPeriodic,
   getWaterSupplyKpisFromNationalDashboard,
   mapOverallPerformanceFromAnalytics,
   mapQuantityPerformanceFromAnalytics,
@@ -860,6 +862,58 @@ export function CentralDashboard() {
     params: previousRegularityAnalyticsParams,
     enabled: Boolean(previousRegularityAnalyticsParams),
   })
+  const previousQuantityPeriodicAnalyticsParams =
+    !isVillageSelected || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            lgdId: analyticsParentId,
+            startDate: previousAnalyticsRange.startDate,
+            endDate: previousAnalyticsRange.endDate,
+            scale: resolveWaterQuantityPeriodicScale(
+              previousAnalyticsRange.startDate,
+              previousAnalyticsRange.endDate
+            ),
+          }
+        : {
+            departmentId: analyticsParentId,
+            startDate: previousAnalyticsRange.startDate,
+            endDate: previousAnalyticsRange.endDate,
+            scale: resolveWaterQuantityPeriodicScale(
+              previousAnalyticsRange.startDate,
+              previousAnalyticsRange.endDate
+            ),
+          }
+  const previousRegularityPeriodicAnalyticsParams =
+    !isVillageSelected || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            lgdId: analyticsParentId,
+            startDate: previousAnalyticsRange.startDate,
+            endDate: previousAnalyticsRange.endDate,
+            scale: resolveWaterQuantityPeriodicScale(
+              previousAnalyticsRange.startDate,
+              previousAnalyticsRange.endDate
+            ),
+          }
+        : {
+            departmentId: analyticsParentId,
+            startDate: previousAnalyticsRange.startDate,
+            endDate: previousAnalyticsRange.endDate,
+            scale: resolveWaterQuantityPeriodicScale(
+              previousAnalyticsRange.startDate,
+              previousAnalyticsRange.endDate
+            ),
+          }
+  const { data: previousWaterQuantityPeriodicData } = useWaterQuantityPeriodicQuery({
+    params: previousQuantityPeriodicAnalyticsParams,
+    enabled: Boolean(previousQuantityPeriodicAnalyticsParams),
+  })
+  const { data: previousSchemeRegularityPeriodicData } = useSchemeRegularityPeriodicQuery({
+    params: previousRegularityPeriodicAnalyticsParams,
+    enabled: Boolean(previousRegularityPeriodicAnalyticsParams),
+  })
   const isCentralLandingView = !hasCentralLandingFilters
   const quantityPerformanceData = isCentralLandingView
     ? mapQuantityPerformanceFromNationalDashboard(nationalDashboardData, emptyEntityPerformance)
@@ -921,16 +975,24 @@ export function CentralDashboard() {
     mapOutageReasonsPeriodicToTrendPoints(outageReasonsPeriodicData)
   const currentWaterSupplyKpis = isCentralLandingView
     ? getWaterSupplyKpisFromNationalDashboard(nationalDashboardData, 5)
-    : getWaterSupplyKpis(currentWaterSupplyKpiData, 5)
+    : isVillageSelected
+      ? getWaterSupplyKpisFromPeriodic(waterQuantityPeriodicData, 5)
+      : getWaterSupplyKpis(currentWaterSupplyKpiData, 5)
   const previousWaterSupplyKpis = isCentralLandingView
     ? getWaterSupplyKpisFromNationalDashboard(previousNationalDashboardData, 5)
-    : getWaterSupplyKpis(previousWaterSupplyKpiData, 5)
+    : isVillageSelected
+      ? getWaterSupplyKpisFromPeriodic(previousWaterQuantityPeriodicData, 5)
+      : getWaterSupplyKpis(previousWaterSupplyKpiData, 5)
   const currentRegularityKpi = isCentralLandingView
     ? getRegularityKpiFromNationalDashboard(nationalDashboardData)
-    : getRegularityKpi(currentRegularityKpiData)
+    : isVillageSelected
+      ? getRegularityKpiFromPeriodic(schemeRegularityPeriodicData)
+      : getRegularityKpi(currentRegularityKpiData)
   const previousRegularityKpi = isCentralLandingView
     ? getRegularityKpiFromNationalDashboard(previousNationalDashboardData)
-    : getRegularityKpi(previousRegularityKpiData)
+    : isVillageSelected
+      ? getRegularityKpiFromPeriodic(previousSchemeRegularityPeriodicData)
+      : getRegularityKpi(previousRegularityKpiData)
 
   const updateFilterUrl = (filters: {
     state?: string
