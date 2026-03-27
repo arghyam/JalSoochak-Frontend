@@ -90,7 +90,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           # Image to scan (use commit SHA for traceability)
-          image-ref: ${{ steps.ecr-login.outputs.registry }}/frontend:${{ github.sha }}
+          image-ref: ${{ steps.ecr-login.outputs.registry }}/jalsoochak-frontend:${{ github.sha }}
           # Output format for GitHub Security tab integration
           format: 'sarif'
           output: 'trivy-results.sarif'
