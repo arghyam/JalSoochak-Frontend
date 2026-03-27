@@ -318,7 +318,9 @@ export function IntegrationPage() {
               isLoading={saveIntegrationMutation.isPending}
               isDisabled={saveIntegrationMutation.isPending || !hasChanges}
             >
-              {config?.isConfigured ? t('common:button.save') : t('common:button.saveAndNext')}
+              {config?.isConfigured
+                ? t('common:button.saveChanges')
+                : t('common:button.saveAndNext')}
             </Button>
           </HStack>
         </Flex>
