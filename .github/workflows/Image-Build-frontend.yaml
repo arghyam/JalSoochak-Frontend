@@ -74,8 +74,8 @@ jobs:
           ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/frontend:$IMAGE_TAG frontend
-          docker push $ECR_REGISTRY/frontend:$IMAGE_TAG
+          docker build -t $ECR_REGISTRY/jalsoochak-frontend:$IMAGE_TAG frontend
+          docker push $ECR_REGISTRY/jalsoochak-frontend:$IMAGE_TAG
 
       - name: Cache Trivy DB
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
