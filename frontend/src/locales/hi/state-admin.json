@@ -1,27 +1,43 @@
 {
+  "hierarchy": {
+    "pageTitle": "पदानुक्रम",
+    "sectionTitle": "पदानुक्रम कॉन्फ़िगरेशन",
+    "lgdTitle": "LGD पदानुक्रम",
+    "departmentTitle": "विभाग पदानुक्रम",
+    "levelLabel": "स्तर {{level}}",
+    "addLevel": "स्तर जोड़ें",
+    "messages": {
+      "saveSuccess": "पदानुक्रम सफलतापूर्वक सहेजा गया",
+      "saveFailed": "पदानुक्रम सहेजने में विफल",
+      "failedToLoad": "पदानुक्रम लोड करने में विफल। कृपया बाद में पुनः प्रयास करें।",
+      "emptyLevelName": "सभी स्तरों का नाम होना चाहिए"
+    },
+    "aria": {
+      "editConfiguration": "पदानुक्रम कॉन्फ़िगरेशन संपादित करें",
+      "levelInput": "स्तर {{level}} के लिए नाम दर्ज करें",
+      "deleteLevel": "स्तर {{level}} हटाएं"
+    }
+  },
+
   "overview": {
     "title": "{{state}} का अवलोकन",
     "titleFallback": "राज्य का अवलोकन",
     "stats": {
-      "pumpOperatorsSynced": "सिंक किए गए पंप ऑपरेटर",
-      "outOf": "{{total}} में से",
-      "configurationStatus": "कॉन्फ़िगरेशन स्थिति",
-      "allModulesConfigured": "सभी मॉड्यूल कॉन्फ़िगर किए गए",
-      "todayApiIngestion": "आज का API अंतर्ग्रहण",
-      "successfullyIngested": "सफलतापूर्वक अंतर्ग्रहित",
-      "pendingDataSync": "लंबित डेटा सिंक",
-      "requiresAttention": "ध्यान देने की आवश्यकता",
-      "activeIntegrations": "सक्रिय एकीकरण",
-      "integrationNames": "WhatsApp"
+      "totalStaff": "कुल कर्मचारी",
+      "pumpOperators": "कुल पंप ऑपरेटर",
+      "totalAdmins": "कुल व्यवस्थापक",
+      "activeSchemes": "सक्रिय योजनाएँ"
     },
     "charts": {
+      "waterSupplyOutages": "जल आपूर्ति व्यवधान",
       "demandVsSupply": "मांग बनाम आपूर्ति",
       "dailyIngestionMonitor": "दैनिक अंतर्ग्रहण मॉनिटर",
       "successRate": "सफलता दर",
       "Demand": "मांग",
       "Supply": "आपूर्ति",
       "Quantity": "मात्रा (इकाइयाँ)",
-      "Year": "वर्ष"
+      "Year": "वर्ष",
+      "Districts": "जिले"
     },
     "months": {
       "january": "जनवरी",
@@ -42,6 +58,14 @@
       "statsSection": "सांख्यिकी अवलोकन",
       "demandSupplyChart": "मांग बनाम आपूर्ति चार्ट",
       "ingestionChart": "दैनिक अंतर्ग्रहण मॉनिटर चार्ट"
+    },
+    "setupWizard": {
+      "title": "सेटअप प्रगति",
+      "configuration": "कॉन्फ़िगरेशन",
+      "language": "भाषा",
+      "waterNorms": "जल मानदंड",
+      "integration": "एकीकरण",
+      "escalations": "एस्केलेशन"
     }
   },
 
@@ -66,33 +90,32 @@
     "configuration": "भाषा कॉन्फ़िगरेशन",
     "primaryLanguage": "प्राथमिक भाषा",
     "secondaryLanguage": "द्वितीयक भाषा (वैकल्पिक)",
+    "tertiaryLanguage": "तृतीयक भाषा (वैकल्पिक)",
     "aria": {
       "editConfiguration": "भाषा कॉन्फ़िगरेशन संपादित करें",
       "selectPrimaryLanguage": "प्राथमिक भाषा चुनें",
-      "selectSecondaryLanguage": "द्वितीयक भाषा चुनें"
+      "selectSecondaryLanguage": "द्वितीयक भाषा चुनें",
+      "selectTertiaryLanguage": "तृतीयक भाषा चुनें"
     }
   },
 
   "integration": {
     "title": "एकीकरण",
-    "whatsappDetails": "Whatsapp विवरण",
+    "messageBrokerDetails": "मैसेज ब्रोकर विवरण",
     "fields": {
-      "businessAccountName": "Whatsapp व्यवसाय खाता नाम",
-      "businessAccountNamePlaceholder": "उदाहरण: राज्य जल प्राधिकरण",
-      "senderPhoneNumber": "प्रेषक फ़ोन नंबर",
-      "senderPhoneNumberPlaceholder": "+91",
-      "businessAccountId": "Whatsapp व्यवसाय खाता ID",
-      "apiAccessToken": "API एक्सेस टोकन/ API कुंजी"
+      "apiUrl": "API URL",
+      "apiUrlPlaceholder": "https://api.example.com",
+      "apiKey": "API कुंजी",
+      "organizationId": "संगठन ID"
     },
     "messages": {
       "failedToLoad": "कॉन्फ़िगरेशन लोड करने में विफल"
     },
     "aria": {
-      "formLabel": "Whatsapp एकीकरण कॉन्फ़िगरेशन फ़ॉर्म",
-      "enterBusinessAccountName": "Whatsapp व्यवसाय खाता नाम दर्ज करें",
-      "enterPhoneNumber": "प्रेषक फ़ोन नंबर दर्ज करें",
-      "enterAccountId": "Whatsapp व्यवसाय खाता ID दर्ज करें",
-      "enterApiToken": "API एक्सेस टोकन दर्ज करें"
+      "formLabel": "एकीकरण कॉन्फ़िगरेशन फ़ॉर्म",
+      "enterApiUrl": "API URL दर्ज करें",
+      "enterApiKey": "API कुंजी दर्ज करें",
+      "enterOrganizationId": "संगठन ID दर्ज करें"
     }
   },
 
@@ -100,6 +123,17 @@
     "title": "जल मानक",
     "stateUtWaterNorms": "राज्य/केंद्र शासित प्रदेश जल मानक",
     "currentQuantity": "वर्तमान मात्रा (LPCD)",
+    "alertThresholds": {
+      "title": "अलर्ट सीमाएं",
+      "undersupplyThreshold": {
+        "title": "अंडरसप्लाई सीमा (प्रतिशत)",
+        "description": "वास्तविक मानक से नकारात्मक विचलन प्रतिशत में।"
+      },
+      "oversupplyThreshold": {
+        "title": "ओवरसप्लाई सीमा (प्रतिशत)",
+        "description": "वास्तविक मानक से सकारात्मक विचलन प्रतिशत में।"
+      }
+    },
     "districtOverrides": {
       "title": "जिला-स्तरीय ओवरराइड",
       "districtName": "जिले का नाम",
@@ -109,6 +143,7 @@
     "messages": {
       "quantityRequired": "राज्य मात्रा आवश्यक है",
       "invalidQuantity": "कृपया एक वैध मात्रा दर्ज करें",
+      "invalidAlertThresholds": "कृपया वैध अलर्ट सीमा मान दर्ज करें",
       "invalidOverrides": "सभी जिला ओवरराइड में वैध मान होने चाहिए",
       "failedToLoad": "कॉन्फ़िगरेशन लोड करने में विफल। कृपया बाद में पुनः प्रयास करें।",
       "fillExisting": "कृपया पहले मौजूदा जिला ओवरराइड भरें"
@@ -118,7 +153,11 @@
       "deleteDistrict": "{{name}} जिला हटाएं",
       "enterQuantity": "राज्य जल मात्रा LPCD में दर्ज करें",
       "selectDistrict": "जिले का नाम चुनें",
-      "enterDistrictQuantity": "जिला जल मात्रा LPCD में दर्ज करें"
+      "enterDistrictQuantity": "जिला जल मात्रा LPCD में दर्ज करें",
+      "undersupplyThresholdCard": "अंडरसप्लाई सीमा कॉन्फ़िगरेशन",
+      "oversupplyThresholdCard": "ओवरसप्लाई सीमा कॉन्फ़िगरेशन",
+      "enterUndersupplyThreshold": "अंडरसप्लाई सीमा प्रतिशत दर्ज करें (0–100)",
+      "enterOversupplyThreshold": "ओवरसप्लाई सीमा प्रतिशत दर्ज करें (0–1000)"
     }
   },
 
@@ -138,9 +177,14 @@
     "buttons": {
       "addEscalation": "वृद्धि जोड़ें"
     },
+    "scheduleTime": "अनुसूची समय",
+    "escalateAfterDays": "इसके बाद वृद्धि (दिन)",
+    "escalateAfterDaysValue": "{{days}} दिन बाद वृद्धि",
+    "levelRole": "भूमिका",
     "messages": {
       "selectAlertType": "कृपया एक अलर्ट प्रकार चुनें",
       "invalidLevels": "सभी स्तरों में वैध भूमिका और घंटे होने चाहिए",
+      "invalidRulesDays": "सभी स्तरों में भूमिका और कम से कम 1 दिन होना चाहिए",
       "addedSuccess": "वृद्धि सफलतापूर्वक जोड़ी गई",
       "deletedSuccess": "वृद्धि सफलतापूर्वक हटाई गई",
       "notFound": "वृद्धि नहीं मिली",
@@ -148,9 +192,12 @@
       "failedToLoadSingle": "वृद्धि लोड करने में विफल",
       "failedToDelete": "वृद्धि हटाने में विफल",
       "failedToSave": "वृद्धि सहेजने में विफल",
+      "rulesSaveSuccess": "वृद्धि नियम सफलतापूर्वक सहेजे गए",
+      "rulesSaveFailed": "वृद्धि नियम सहेजने में विफल",
       "confirmDeleteTitle": "वृद्धि हटाएं",
       "confirmDelete": "क्या आप वाकई इस वृद्धि को हटाना चाहते हैं?",
-      "fillExisting": "कृपया पहले मौजूदा वृद्धि स्तर भरें"
+      "fillExisting": "कृपया पहले मौजूदा वृद्धि स्तर भरें",
+      "fillExistingRules": "कृपया दूसरा जोड़ने से पहले मौजूदा स्तर भरें"
     },
     "aria": {
       "editEscalation": "{{name}} वृद्धि संपादित करें",
@@ -161,7 +208,8 @@
       "selectRole": "स्तर {{number}} के लिए भूमिका चुनें",
       "selectHours": "स्तर {{number}} के लिए वृद्धि घंटे चुनें",
       "escalationCard": "{{name}} के लिए वृद्धि कॉन्फ़िगरेशन",
-      "formLabel": "वृद्धि नियम कॉन्फ़िगरेशन फ़ॉर्म"
+      "formLabel": "वृद्धि नियम कॉन्फ़िगरेशन फ़ॉर्म",
+      "escalateAfterDays": "{{role}} के लिए एस्केलेशन दिन"
     }
   },
 
@@ -201,6 +249,276 @@
     }
   },
 
+  "staffSync": {
+    "title": "स्टाफ सिंक",
+    "searchPlaceholder": "नाम से खोजें",
+    "uploadData": "डेटा अपलोड करें",
+    "filters": {
+      "label": "फ़िल्टर",
+      "role": "भूमिका",
+      "status": "स्थिति",
+      "clearAll": "सभी फ़िल्टर हटाएं"
+    },
+    "stats": {
+      "totalPumpOperators": "कुल पंप ऑपरेटरों की संख्या",
+      "totalSubDivisionOfficers": "कुल उप-विभाग अधिकारियों की संख्या",
+      "totalSectionOfficers": "कुल सेक्शन अधिकारियों की संख्या"
+    },
+    "roles": {
+      "pumpOperator": "पंप ऑपरेटर",
+      "subDivisionOfficer": "उप-विभाग अधिकारी",
+      "sectionOfficer": "सेक्शन अधिकारी"
+    },
+    "table": {
+      "name": "नाम",
+      "role": "भूमिका",
+      "mobileNumber": "मोबाइल नंबर",
+      "schemes": "योजनाएं",
+      "activityStatus": "गतिविधि स्थिति"
+    },
+    "upload": {
+      "title": "स्टाफ डेटा अपलोड करें",
+      "description": "स्टाफ डेटा युक्त एक Excel फ़ाइल (.xlsx या .xls) अपलोड करें।",
+      "selectFile": "फ़ाइल चुनें",
+      "clickToSelect": "फ़ाइल चुनने के लिए क्लिक करें",
+      "fileTypes": "केवल .xlsx या .xls",
+      "submit": "अपलोड करें",
+      "success": "स्टाफ डेटा सफलतापूर्वक अपलोड किया गया",
+      "error": "स्टाफ डेटा अपलोड करने में विफल। कृपया पुनः प्रयास करें।",
+      "close": "बंद करें",
+      "cancel": "रद्द करें"
+    },
+    "messages": {
+      "noStaffFound": "कोई स्टाफ सदस्य नहीं मिला",
+      "failedToLoad": "स्टाफ डेटा लोड करने में विफल"
+    },
+    "aria": {
+      "statsSection": "स्टाफ सिंक सांख्यिकी",
+      "searchStaff": "नाम से स्टाफ खोजें",
+      "filterSection": "स्टाफ सदस्यों को फ़िल्टर करें",
+      "uploadData": "स्टाफ डेटा अपलोड करें"
+    }
+  },
+
+  "schemeSync": {
+    "title": "योजना सिंक",
+    "searchPlaceholder": "योजना नाम से खोजें",
+    "uploadData": "डेटा अपलोड करें",
+    "filters": {
+      "workStatus": "कार्य स्थिति",
+      "operatingStatus": "संचालन स्थिति",
+      "clearAll": "सभी फ़िल्टर हटाएं"
+    },
+    "stats": {
+      "totalSchemes": "कुल योजनाएं",
+      "activeSchemes": "सक्रिय योजनाएं",
+      "inactiveSchemes": "निष्क्रिय योजनाएं"
+    },
+    "table": {
+      "schemeName": "योजना नाम",
+      "fhtcCount": "FHTC संख्या",
+      "houseHoldCount": "घरेलू संख्या",
+      "workStatus": "कार्य स्थिति",
+      "operatingStatus": "संचालन स्थिति"
+    },
+    "upload": {
+      "title": "योजना डेटा अपलोड करें",
+      "description": "योजना डेटा युक्त एक Excel फ़ाइल (.xlsx या .xls) अपलोड करें।",
+      "clickToSelect": "फ़ाइल चुनने के लिए क्लिक करें",
+      "fileTypes": "केवल .xlsx या .xls",
+      "submit": "अपलोड करें",
+      "success": "योजना डेटा सफलतापूर्वक अपलोड किया गया",
+      "error": "योजना डेटा अपलोड करने में विफल। कृपया पुनः प्रयास करें।",
+      "close": "बंद करें",
+      "cancel": "रद्द करें"
+    },
+    "messages": {
+      "noSchemesFound": "कोई योजना नहीं मिली",
+      "failedToLoad": "योजना डेटा लोड करने में विफल"
+    },
+    "aria": {
+      "statsSection": "योजना सिंक सांख्यिकी",
+      "searchSchemes": "नाम से योजनाएं खोजें",
+      "filterSection": "योजनाओं को फ़िल्टर करें",
+      "uploadData": "योजना डेटा अपलोड करें"
+    }
+  },
+
+  "schemeMappingsSync": {
+    "title": "योजना मैपिंग सिंक",
+    "searchPlaceholder": "योजना नाम से खोजें",
+    "uploadData": "डेटा अपलोड करें",
+    "table": {
+      "schemeName": "योजना नाम",
+      "stateSchemeId": "राज्य योजना आईडी",
+      "villageName": "गांव का नाम",
+      "subDivisionName": "उप-विभाग नाम"
+    },
+    "upload": {
+      "title": "योजना मैपिंग डेटा अपलोड करें",
+      "description": "योजना मैपिंग डेटा युक्त एक Excel फ़ाइल (.xlsx या .xls) अपलोड करें।",
+      "clickToSelect": "फ़ाइल चुनने के लिए क्लिक करें",
+      "fileTypes": "केवल .xlsx या .xls",
+      "submit": "अपलोड करें",
+      "success": "योजना मैपिंग डेटा सफलतापूर्वक अपलोड किया गया",
+      "error": "योजना मैपिंग डेटा अपलोड करने में विफल। कृपया पुनः प्रयास करें।",
+      "close": "बंद करें",
+      "cancel": "रद्द करें"
+    },
+    "messages": {
+      "noMappingsFound": "कोई योजना मैपिंग नहीं मिली",
+      "failedToLoad": "योजना मैपिंग डेटा लोड करने में विफल"
+    },
+    "aria": {
+      "searchMappings": "योजना नाम से मैपिंग खोजें",
+      "filterSection": "योजना मैपिंग फ़िल्टर करें",
+      "uploadData": "योजना मैपिंग डेटा अपलोड करें"
+    }
+  },
+
+  "configuration": {
+    "pageTitle": "कॉन्फ़िगरेशन",
+    "sectionTitle": "राज्य/केंद्र शासित प्रदेश कॉन्फ़िगरेशन",
+    "sections": {
+      "lgdHierarchy": {
+        "title": "LGD पदानुक्रम",
+        "levelLabel": "स्तर {{level}}"
+      },
+      "departmentHierarchy": {
+        "title": "विभाग पदानुक्रम",
+        "levelLabel": "स्तर {{level}}"
+      },
+      "supportedChannels": {
+        "title": "समर्थित चैनल"
+      },
+      "logo": {
+        "title": "लोगो",
+        "uploadButton": "लोगो अपलोड करें",
+        "hint": "केवल PNG या JPG",
+        "currentLogo": "वर्तमान लोगो"
+      },
+      "meterChangeReasons": {
+        "title": "मीटर परिवर्तन के कारण",
+        "placeholder": "कारण दर्ज करें",
+        "addButton": "जोड़ें",
+        "addNewButton": "+ नया कारण जोड़ें",
+        "empty": "अभी तक कोई कारण नहीं जोड़ा गया",
+        "editAriaLabel": "कारण {{name}} संपादित करें",
+        "deleteAriaLabel": "कारण {{name}} हटाएं"
+      },
+      "locationCheckRequired": {
+        "title": "स्थान रिकॉर्ड करें",
+        "yes": "हाँ",
+        "no": "नहीं"
+      },
+      "dataConsolidationTime": {
+        "title": "डेटा समेकन समय"
+      },
+      "pumpOperatorReminderNudgeTime": {
+        "title": "पंप ऑपरेटर रिमाइंडर नज समय"
+      },
+      "averageMembersPerHousehold": {
+        "title": "प्रति परिवार औसत सदस्य"
+      }
+    },
+    "aria": {
+      "form": "कॉन्फ़िगरेशन फ़ॉर्म",
+      "editConfiguration": "कॉन्फ़िगरेशन संपादित करें",
+      "lgdLevel": "LGD पदानुक्रम स्तर {{level}} का नाम",
+      "deptLevel": "विभाग पदानुक्रम स्तर {{level}} का नाम"
+    },
+    "messages": {
+      "saveSuccess": "कॉन्फ़िगरेशन सफलतापूर्वक सहेजा गया",
+      "saveFailed": "कॉन्फ़िगरेशन सहेजने में विफल",
+      "validation": {
+        "channelRequired": "कम से कम एक समर्थित चैनल चुनें",
+        "hierarchyRequired": "सभी पदानुक्रम स्तर के नाम आवश्यक हैं",
+        "logoTooLarge": "लोगो फ़ाइल 2 MB या उससे छोटी होनी चाहिए",
+        "logoInvalidType": "लोगो PNG या JPG फ़ाइल होनी चाहिए"
+      }
+    }
+  },
+
+  "stateUtAdmins": {
+    "title": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक",
+    "addTitle": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक जोड़ें",
+    "editTitle": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक संपादित करें",
+    "viewTitle": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक देखें",
+    "addAdmin": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक जोड़ें",
+    "table": {
+      "name": "नाम",
+      "mobileNumber": "मोबाइल नंबर",
+      "emailAddress": "ईमेल पता",
+      "status": "स्थिति",
+      "actions": "कार्रवाई"
+    },
+    "filters": {
+      "allStatuses": "सभी स्थितियां"
+    },
+    "form": {
+      "userDetails": "उपयोगकर्ता विवरण",
+      "firstName": "पहला नाम",
+      "lastName": "अंतिम नाम",
+      "emailAddress": "ईमेल पता",
+      "phoneNumber": "फ़ोन नंबर",
+      "statusSection": "स्थिति",
+      "activated": "सक्रिय"
+    },
+    "buttons": {
+      "addAndSendLink": "व्यवस्थापक जोड़ें और ईमेल द्वारा लिंक भेजें"
+    },
+    "breadcrumb": {
+      "manage": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक प्रबंधित करें",
+      "addNew": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक जोड़ें",
+      "view": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक देखें",
+      "edit": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक संपादित करें"
+    },
+    "messages": {
+      "noAdminsFound": "कोई व्यवस्थापक नहीं मिला",
+      "notFound": "व्यवस्थापक नहीं मिला",
+      "adminAdded": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक जोड़ा गया और ईमेल द्वारा आमंत्रण भेजा गया",
+      "failedToAdd": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक जोड़ने में विफल",
+      "activatedSuccess": "व्यवस्थापक सफलतापूर्वक सक्रिय किया गया",
+      "deactivatedSuccess": "व्यवस्थापक सफलतापूर्वक निष्क्रिय किया गया",
+      "failedToUpdateStatus": "व्यवस्थापक की स्थिति अपडेट करने में विफल"
+    },
+    "aria": {
+      "search": "व्यवस्थापक खोजें",
+      "view": "व्यवस्थापक देखें",
+      "edit": "व्यवस्थापक संपादित करें",
+      "resendInvite": "व्यवस्थापक को पुनः आमंत्रण भेजें"
+    }
+  },
+
+  "messageTemplates": {
+    "title": "टेम्पलेट",
+    "selectLanguage": "भाषा चुनें",
+    "selectTemplate": "टेम्पलेट चुनें",
+    "language": "भाषा",
+    "template": "टेम्पलेट",
+    "prompt": "प्रॉम्प्ट",
+    "message": "संदेश",
+    "confirmationTemplate": "पुष्टि संदेश",
+    "options": "विकल्प",
+    "reasons": "कारण",
+    "noContent": "इस चयन के लिए कोई सामग्री उपलब्ध नहीं है",
+    "screens": {
+      "ISSUE_REPORT": "समस्या रिपोर्ट",
+      "INTRO_MESSAGE": "परिचय संदेश",
+      "ITEM_SELECTION": "आइटम चयन",
+      "CLOSING_MESSAGE": "समापन संदेश",
+      "CHANNEL_SELECTION": "चैनल चयन",
+      "LANGUAGE_SELECTION": "भाषा चयन"
+    },
+    "messages": {
+      "failedToLoad": "संदेश टेम्पलेट लोड करने में विफल"
+    },
+    "aria": {
+      "selectLanguage": "भाषा चुनें",
+      "selectTemplate": "टेम्पलेट चुनें"
+    }
+  },
+
   "nudges": {
     "title": "नज टेम्पलेट",
     "language": "भाषा",
@@ -221,5 +539,33 @@
       "selectLanguage": "{{name}} टेम्पलेट के लिए भाषा चुनें",
       "enterMessage": "{{name}} टेम्पलेट के लिए संदेश दर्ज करें"
     }
+  },
+
+  "validation": {
+    "required": "यह फ़ील्ड आवश्यक है",
+    "emptyOrWhitespace": "यह फ़ील्ड खाली नहीं हो सकती या केवल रिक्त स्थान नहीं हो सकते",
+    "containsHtmlTags": "HTML टैग की अनुमति नहीं है",
+    "containsSqlInjection": "अमान्य अक्षर पाए गए",
+    "alphanumericOnly": "केवल अक्षर, संख्याएँ और रिक्त स्थान की अनुमति है",
+    "invalidUrl": "कृपया https:// से शुरू होने वाला एक मान्य URL दर्ज करें",
+    "noSpaces": "रिक्त स्थान की अनुमति नहीं है",
+    "maxLength": "{{max}} अक्षरों से अधिक नहीं होना चाहिए",
+    "httpsOnce": "URL को ठीक एक बार https:// से शुरू होना चाहिए",
+    "duplicateValue": "यह मान पहले से मौजूद है",
+    "mustBePositive": "मान 0 से अधिक होना चाहिए",
+    "mustBeInRange": "मान {{min}} और {{max}} के बीच होना चाहिए",
+    "selectAtLeastOne": "कम से कम एक विकल्प चुनें",
+    "fillPreviousFirst": "नया जोड़ने से पहले कृपया पिछली प्रविष्टि भरें",
+    "duplicateDistrict": "यह जिला पहले से जोड़ा जा चुका है",
+    "duplicateLevelName": "डुप्लिकेट स्तर नामों की अनुमति नहीं है",
+    "minLength": "कम से कम {{min}} अक्षर होने चाहिए",
+    "timeRequired": "कृपया एक समय चुनें",
+    "daysMinimum": "दिन कम से कम 1 होने चाहिए",
+    "daysMaximum": "दिन {{max}} से अधिक नहीं होने चाहिए",
+    "selectRole": "कृपया एक भूमिका चुनें",
+    "selectAlertType": "कृपया एक अलर्ट प्रकार चुनें",
+    "alphabeticOnly": "केवल अक्षर और रिक्त स्थान की अनुमति है",
+    "maxValue": "मान {{max}} से अधिक नहीं होना चाहिए",
+    "sdoDaysNotLessThanSo": "उप-मंडल अधिकारी के एस्केलेशन दिन, अनुभाग अधिकारी के एस्केलेशन दिनों से कम नहीं हो सकते"
   }
 }

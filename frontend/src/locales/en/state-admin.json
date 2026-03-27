@@ -1,27 +1,43 @@
 {
+  "hierarchy": {
+    "pageTitle": "Hierarchy",
+    "sectionTitle": "Hierarchy Configuration",
+    "lgdTitle": "LGD Hierarchy",
+    "departmentTitle": "Department Hierarchy",
+    "levelLabel": "Level {{level}}",
+    "addLevel": "Add Level",
+    "messages": {
+      "saveSuccess": "Hierarchy saved successfully",
+      "saveFailed": "Failed to save hierarchy",
+      "failedToLoad": "Failed to load hierarchy. Please try again later.",
+      "emptyLevelName": "All levels must have a name"
+    },
+    "aria": {
+      "editConfiguration": "Edit hierarchy configuration",
+      "levelInput": "Enter name for level {{level}}",
+      "deleteLevel": "Delete level {{level}}"
+    }
+  },
+
   "overview": {
     "title": "Overview of {{state}}",
     "titleFallback": "Overview of State",
     "stats": {
-      "pumpOperatorsSynced": "Pump Operators Synced",
-      "outOf": "Out of {{total}}",
-      "configurationStatus": "Configuration Status",
-      "allModulesConfigured": "All modules configured",
-      "todayApiIngestion": "Today's API Ingestion",
-      "successfullyIngested": "Successfully ingested",
-      "pendingDataSync": "Pending Data Sync",
-      "requiresAttention": "Requires Attention",
-      "activeIntegrations": "Active Integrations",
-      "integrationNames": "WhatsApp"
+      "totalStaff": "Total Staff",
+      "pumpOperators": "Total Pump Operators",
+      "totalAdmins": "Total Admins",
+      "activeSchemes": "Active Schemes"
     },
     "charts": {
+      "waterSupplyOutages": "Water Supply Outages",
       "demandVsSupply": "Demand vs Supply",
       "dailyIngestionMonitor": "Daily Ingestion Monitor",
       "successRate": "Success Rate",
       "Demand": "Demand",
       "Supply": "Supply",
       "Quantity": "Quantity (units)",
-      "Year": "Year"
+      "Year": "Year",
+      "Districts": "Districts"
     },
     "months": {
       "january": "January",
@@ -42,6 +58,14 @@
       "statsSection": "Statistics overview",
       "demandSupplyChart": "Demand versus Supply chart",
       "ingestionChart": "Daily Ingestion Monitor chart"
+    },
+    "setupWizard": {
+      "title": "Setup Progress",
+      "configuration": "Configuration",
+      "language": "Language",
+      "waterNorms": "Water Norms",
+      "integration": "Integration",
+      "escalations": "Escalations"
     }
   },
 
@@ -66,33 +90,32 @@
     "configuration": "Language Configuration",
     "primaryLanguage": "Primary Language",
     "secondaryLanguage": "Secondary Language (optional)",
+    "tertiaryLanguage": "Tertiary Language (optional)",
     "aria": {
       "editConfiguration": "Edit language configuration",
       "selectPrimaryLanguage": "Select primary language",
-      "selectSecondaryLanguage": "Select secondary language"
+      "selectSecondaryLanguage": "Select secondary language",
+      "selectTertiaryLanguage": "Select tertiary language"
     }
   },
 
   "integration": {
     "title": "Integrations",
-    "whatsappDetails": "Whatsapp Details",
+    "messageBrokerDetails": "Message Broker Details",
     "fields": {
-      "businessAccountName": "Whatsapp Business Account Name",
-      "businessAccountNamePlaceholder": "Example: State Water Authority",
-      "senderPhoneNumber": "Sender Phone Number",
-      "senderPhoneNumberPlaceholder": "+91",
-      "businessAccountId": "Whatsapp Business Account ID",
-      "apiAccessToken": "API Access Token/ API Key"
+      "apiUrl": "API URL",
+      "apiUrlPlaceholder": "https://api.example.com",
+      "apiKey": "API Key",
+      "organizationId": "Organization ID"
     },
     "messages": {
       "failedToLoad": "Failed to load configuration"
     },
     "aria": {
-      "formLabel": "WhatsApp integration configuration form",
-      "enterBusinessAccountName": "Enter WhatsApp business account name",
-      "enterPhoneNumber": "Enter sender phone number",
-      "enterAccountId": "Enter WhatsApp business account ID",
-      "enterApiToken": "Enter API access token"
+      "formLabel": "Integration configuration form",
+      "enterApiUrl": "Enter API URL",
+      "enterApiKey": "Enter API Key",
+      "enterOrganizationId": "Enter Organization ID"
     }
   },
 
@@ -100,6 +123,17 @@
     "title": "Water Norms",
     "stateUtWaterNorms": "State/UT Water Norms",
     "currentQuantity": "Current quantity (LPCD)",
+    "alertThresholds": {
+      "title": "Alert Thresholds",
+      "undersupplyThreshold": {
+        "title": "Undersupply Threshold (percentage)",
+        "description": "The negative deviation from the actual norm in percentage."
+      },
+      "oversupplyThreshold": {
+        "title": "Oversupply Threshold (percentage)",
+        "description": "The positive deviation from the actual norm in percentage."
+      }
+    },
     "districtOverrides": {
       "title": "District-Level Overrides",
       "districtName": "District Name",
@@ -109,6 +143,7 @@
     "messages": {
       "quantityRequired": "State quantity is required",
       "invalidQuantity": "Please enter a valid quantity",
+      "invalidAlertThresholds": "Please enter valid alert threshold values",
       "invalidOverrides": "All district overrides must have valid values",
       "failedToLoad": "Failed to load configuration. Please try again later.",
       "fillExisting": "Please fill the existing district override first"
@@ -118,7 +153,11 @@
       "deleteDistrict": "Delete district {{name}}",
       "enterQuantity": "Enter state water quantity in LPCD",
       "selectDistrict": "Select district name",
-      "enterDistrictQuantity": "Enter district water quantity in LPCD"
+      "enterDistrictQuantity": "Enter district water quantity in LPCD",
+      "undersupplyThresholdCard": "Undersupply threshold configuration",
+      "oversupplyThresholdCard": "Oversupply threshold configuration",
+      "enterUndersupplyThreshold": "Enter undersupply threshold percentage (0–100)",
+      "enterOversupplyThreshold": "Enter oversupply threshold percentage (0–1000)"
     }
   },
 
@@ -138,9 +177,14 @@
     "buttons": {
       "addEscalation": "Add Escalation"
     },
+    "scheduleTime": "Schedule Time",
+    "escalateAfterDays": "Escalate after (days)",
+    "escalateAfterDaysValue": "Escalate after {{days}} day(s)",
+    "levelRole": "Role",
     "messages": {
       "selectAlertType": "Please select an alert type",
       "invalidLevels": "All levels must have valid role and hours",
+      "invalidRulesDays": "All levels must have a role and at least 1 day",
       "addedSuccess": "Escalation added successfully",
       "deletedSuccess": "Escalation deleted successfully",
       "notFound": "Escalation not found",
@@ -148,9 +192,12 @@
       "failedToLoadSingle": "Failed to load escalation",
       "failedToDelete": "Failed to delete escalation",
       "failedToSave": "Failed to save escalation",
+      "rulesSaveSuccess": "Escalation rules saved successfully",
+      "rulesSaveFailed": "Failed to save escalation rules",
       "confirmDeleteTitle": "Delete Escalation",
       "confirmDelete": "Are you sure you want to delete this escalation?",
-      "fillExisting": "Please fill the existing escalation level first"
+      "fillExisting": "Please fill the existing escalation level first",
+      "fillExistingRules": "Please fill in the current level before adding another"
     },
     "aria": {
       "editEscalation": "Edit escalation {{name}}",
@@ -161,7 +208,8 @@
       "selectRole": "Select role for level {{number}}",
       "selectHours": "Select escalation hours for level {{number}}",
       "escalationCard": "Escalation configuration for {{name}}",
-      "formLabel": "Escalation rules configuration form"
+      "formLabel": "Escalation rules configuration form",
+      "escalateAfterDays": "Escalate after days for {{role}}"
     }
   },
 
@@ -201,6 +249,276 @@
     }
   },
 
+  "staffSync": {
+    "title": "Staff Sync",
+    "searchPlaceholder": "Search by name",
+    "uploadData": "Upload Data",
+    "filters": {
+      "label": "Filters",
+      "role": "Role",
+      "status": "Status",
+      "clearAll": "clear all filters"
+    },
+    "stats": {
+      "totalPumpOperators": "Total No. of Pump Operators",
+      "totalSubDivisionOfficers": "Total No. of Sub-Division Officers",
+      "totalSectionOfficers": "Total No. of Section Officers"
+    },
+    "roles": {
+      "pumpOperator": "Pump Operator",
+      "subDivisionOfficer": "Sub-Division Officer",
+      "sectionOfficer": "Section Officer"
+    },
+    "table": {
+      "name": "Name",
+      "role": "Role",
+      "mobileNumber": "Mobile Number",
+      "schemes": "Schemes",
+      "activityStatus": "Activity Status"
+    },
+    "upload": {
+      "title": "Upload Staff Data",
+      "description": "Upload an Excel file (.xlsx or .xls) containing staff data.",
+      "selectFile": "Select file",
+      "clickToSelect": "Click to select a file",
+      "fileTypes": ".xlsx or .xls only",
+      "submit": "Upload",
+      "success": "Staff data uploaded successfully",
+      "error": "Failed to upload staff data. Please try again.",
+      "close": "Close",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "noStaffFound": "No staff members found",
+      "failedToLoad": "Failed to load staff data"
+    },
+    "aria": {
+      "statsSection": "Staff sync statistics",
+      "searchStaff": "Search staff by name",
+      "filterSection": "Filter staff members",
+      "uploadData": "Upload staff data"
+    }
+  },
+
+  "schemeSync": {
+    "title": "Scheme Sync",
+    "searchPlaceholder": "Search by scheme name",
+    "uploadData": "Upload Data",
+    "filters": {
+      "workStatus": "Work Status",
+      "operatingStatus": "Operating Status",
+      "clearAll": "clear all filters"
+    },
+    "stats": {
+      "totalSchemes": "Total Schemes",
+      "activeSchemes": "Active Schemes",
+      "inactiveSchemes": "Inactive Schemes"
+    },
+    "table": {
+      "schemeName": "Scheme Name",
+      "fhtcCount": "FHTC Count",
+      "houseHoldCount": "Household Count",
+      "workStatus": "Work Status",
+      "operatingStatus": "Operating Status"
+    },
+    "upload": {
+      "title": "Upload Scheme Data",
+      "description": "Upload an Excel file (.xlsx or .xls) containing scheme data.",
+      "clickToSelect": "Click to select a file",
+      "fileTypes": ".xlsx or .xls only",
+      "submit": "Upload",
+      "success": "Scheme data uploaded successfully",
+      "error": "Failed to upload scheme data. Please try again.",
+      "close": "Close",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "noSchemesFound": "No schemes found",
+      "failedToLoad": "Failed to load scheme data"
+    },
+    "aria": {
+      "statsSection": "Scheme sync statistics",
+      "searchSchemes": "Search schemes by name",
+      "filterSection": "Filter schemes",
+      "uploadData": "Upload scheme data"
+    }
+  },
+
+  "schemeMappingsSync": {
+    "title": "Scheme Mappings Sync",
+    "searchPlaceholder": "Search by scheme name",
+    "uploadData": "Upload Data",
+    "table": {
+      "schemeName": "Scheme Name",
+      "stateSchemeId": "State Scheme ID",
+      "villageName": "Village Name",
+      "subDivisionName": "Sub Division Name"
+    },
+    "upload": {
+      "title": "Upload Scheme Mappings Data",
+      "description": "Upload an Excel file (.xlsx or .xls) containing scheme mappings data.",
+      "clickToSelect": "Click to select a file",
+      "fileTypes": ".xlsx or .xls only",
+      "submit": "Upload",
+      "success": "Scheme mappings data uploaded successfully",
+      "error": "Failed to upload scheme mappings data. Please try again.",
+      "close": "Close",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "noMappingsFound": "No scheme mappings found",
+      "failedToLoad": "Failed to load scheme mappings data"
+    },
+    "aria": {
+      "searchMappings": "Search scheme mappings by scheme name",
+      "filterSection": "Filter scheme mappings",
+      "uploadData": "Upload scheme mappings data"
+    }
+  },
+
+  "configuration": {
+    "pageTitle": "Configuration",
+    "sectionTitle": "State/UT Configuration",
+    "sections": {
+      "lgdHierarchy": {
+        "title": "LGD Hierarchy",
+        "levelLabel": "Level {{level}}"
+      },
+      "departmentHierarchy": {
+        "title": "Department Hierarchy",
+        "levelLabel": "Level {{level}}"
+      },
+      "supportedChannels": {
+        "title": "Supported Channels"
+      },
+      "logo": {
+        "title": "Logo",
+        "uploadButton": "Upload Logo",
+        "hint": "PNG or JPG only",
+        "currentLogo": "Current logo"
+      },
+      "meterChangeReasons": {
+        "title": "Meter Change Reasons",
+        "placeholder": "Enter reason",
+        "addButton": "Add",
+        "addNewButton": "+ Add New Reason",
+        "empty": "No reasons added yet",
+        "editAriaLabel": "Edit reason {{name}}",
+        "deleteAriaLabel": "Delete reason {{name}}"
+      },
+      "locationCheckRequired": {
+        "title": "Record Location",
+        "yes": "Yes",
+        "no": "No"
+      },
+      "dataConsolidationTime": {
+        "title": "Data Consolidation Time"
+      },
+      "pumpOperatorReminderNudgeTime": {
+        "title": "Pump Operator Reminder Nudge Time"
+      },
+      "averageMembersPerHousehold": {
+        "title": "Average Members Per Household"
+      }
+    },
+    "aria": {
+      "form": "Configuration form",
+      "editConfiguration": "Edit configuration",
+      "lgdLevel": "LGD hierarchy level {{level}} name",
+      "deptLevel": "Department hierarchy level {{level}} name"
+    },
+    "messages": {
+      "saveSuccess": "Configuration saved successfully",
+      "saveFailed": "Failed to save configuration",
+      "validation": {
+        "channelRequired": "Select at least one supported channel",
+        "hierarchyRequired": "All hierarchy level names are required",
+        "logoTooLarge": "Logo file must be 2 MB or smaller",
+        "logoInvalidType": "Logo must be a PNG or JPG file"
+      }
+    }
+  },
+
+  "stateUtAdmins": {
+    "title": "State/UT Admins",
+    "addTitle": "Add State/UT Admin",
+    "editTitle": "Edit State/UT Admin",
+    "viewTitle": "View State/UT Admin",
+    "addAdmin": "Add State/UT Admin",
+    "table": {
+      "name": "Name",
+      "mobileNumber": "Mobile Number",
+      "emailAddress": "Email Address",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "filters": {
+      "allStatuses": "All Statuses"
+    },
+    "form": {
+      "userDetails": "User Details",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "emailAddress": "Email address",
+      "phoneNumber": "Phone number",
+      "statusSection": "Status",
+      "activated": "Activated"
+    },
+    "buttons": {
+      "addAndSendLink": "Add Admin & Send Link via Email"
+    },
+    "breadcrumb": {
+      "manage": "Manage State/UT Admins",
+      "addNew": "Add State/UT Admin",
+      "view": "View State/UT Admin",
+      "edit": "Edit State/UT Admin"
+    },
+    "messages": {
+      "noAdminsFound": "No admins found",
+      "notFound": "Admin not found",
+      "adminAdded": "State/UT admin added and invite sent via email",
+      "failedToAdd": "Failed to add State/UT admin",
+      "activatedSuccess": "Admin activated successfully",
+      "deactivatedSuccess": "Admin deactivated successfully",
+      "failedToUpdateStatus": "Failed to update admin status"
+    },
+    "aria": {
+      "search": "Search admins",
+      "view": "View admin",
+      "edit": "Edit admin",
+      "resendInvite": "Resend invite for admin"
+    }
+  },
+
+  "messageTemplates": {
+    "title": "Templates",
+    "selectLanguage": "Select language",
+    "selectTemplate": "Select template",
+    "language": "Language",
+    "template": "Template",
+    "prompt": "Prompt",
+    "message": "Message",
+    "confirmationTemplate": "Confirmation Message",
+    "options": "Options",
+    "reasons": "Reasons",
+    "noContent": "No content available for this selection",
+    "screens": {
+      "ISSUE_REPORT": "Issue Report",
+      "INTRO_MESSAGE": "Intro Message",
+      "ITEM_SELECTION": "Item Selection",
+      "CLOSING_MESSAGE": "Closing Message",
+      "CHANNEL_SELECTION": "Channel Selection",
+      "LANGUAGE_SELECTION": "Language Selection"
+    },
+    "messages": {
+      "failedToLoad": "Failed to load message templates"
+    },
+    "aria": {
+      "selectLanguage": "Select language",
+      "selectTemplate": "Select template"
+    }
+  },
+
   "nudges": {
     "title": "Nudges Template",
     "language": "Language",
@@ -221,5 +539,33 @@
       "selectLanguage": "Select language for {{name}} template",
       "enterMessage": "Enter message for {{name}} template"
     }
+  },
+
+  "validation": {
+    "required": "This field is required",
+    "emptyOrWhitespace": "This field cannot be empty or contain only spaces",
+    "containsHtmlTags": "HTML tags are not allowed",
+    "containsSqlInjection": "Invalid characters detected",
+    "alphanumericOnly": "Only letters, numbers, and spaces are allowed",
+    "invalidUrl": "Please enter a valid URL starting with https://",
+    "noSpaces": "Spaces are not allowed",
+    "maxLength": "Must not exceed {{max}} characters",
+    "httpsOnce": "URL must start with https:// exactly once",
+    "duplicateValue": "This value already exists",
+    "mustBePositive": "Value must be greater than 0",
+    "mustBeInRange": "Value must be between {{min}} and {{max}}",
+    "selectAtLeastOne": "Select at least one option",
+    "fillPreviousFirst": "Please fill the previous entry before adding a new one",
+    "duplicateDistrict": "This district has already been added",
+    "duplicateLevelName": "Duplicate level names are not allowed",
+    "minLength": "Must be at least {{min}} characters",
+    "timeRequired": "Please select a time",
+    "daysMinimum": "Days must be at least 1",
+    "daysMaximum": "Days must not exceed {{max}}",
+    "selectRole": "Please select a role",
+    "selectAlertType": "Please select an alert type",
+    "alphabeticOnly": "Only letters and spaces are allowed",
+    "maxValue": "Value must not exceed {{max}}",
+    "sdoDaysNotLessThanSo": "Sub Divisional Officer escalation days must be greater than or equal to Section Officer escalation days"
   }
 }

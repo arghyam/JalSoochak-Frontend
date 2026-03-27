@@ -1,72 +1,38 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Heading, Text, Flex, SimpleGrid, IconButton } from '@chakra-ui/react'
+import { StatusChip } from '@/shared/components/common'
 import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
-import { Toggle, ToastContainer } from '@/shared/components/common'
-import { useToast } from '@/shared/hooks/use-toast'
-import type { StateUT } from '../../types/states-uts'
 import { ROUTES } from '@/shared/constants/routes'
 import {
-  useStateUTByIdQuery,
-  useUpdateStateUTStatusMutation,
+  useStatesUTsQuery,
+  useStateAdminsByTenantQuery,
 } from '../../services/query/use-super-admin-queries'
+import type { UserAdminData } from '@/shared/components/common'
 
 export function ViewStateUTPage() {
   const { t } = useTranslation(['super-admin', 'common'])
   const navigate = useNavigate()
-  const { id } = useParams<{ id: string }>()
-  const toast = useToast()
-  const stateUTQuery = useStateUTByIdQuery(id)
-  const updateStateUTStatusMutation = useUpdateStateUTStatusMutation()
+  const { tenantCode } = useParams<{ tenantCode: string }>()
 
-  const [statusDraft, setStatusDraft] = useState<'active' | 'inactive' | null>(null)
+  const tenantsQuery = useStatesUTsQuery()
+  const tenant = tenantsQuery.data?.find((t) => t.stateCode === tenantCode) ?? null
+  const adminsQuery = useStateAdminsByTenantQuery(tenantCode)
 
   useEffect(() => {
     document.title = `${t('statesUts.viewTitle')} | JalSoochak`
   }, [t])
 
-  const state: StateUT | null = stateUTQuery.data ?? null
-  const status = statusDraft ?? state?.status
-
-  const handleStatusToggle = async () => {
-    if (!state || updateStateUTStatusMutation.isPending) return
-
-    const newStatus = status === 'active' ? 'inactive' : 'active'
-
-    try {
-      const updated = await updateStateUTStatusMutation.mutateAsync({
-        id: state.id,
-        status: newStatus,
-      })
-      if (updated) {
-        setStatusDraft(newStatus)
-        toast.addToast(
-          newStatus === 'active'
-            ? t('statesUts.messages.activatedSuccess')
-            : t('statesUts.messages.deactivatedSuccess'),
-          'success'
-        )
-      } else {
-        toast.addToast(t('statesUts.messages.notFound'), 'error')
-      }
-    } catch (error) {
-      console.error('Failed to update status:', error)
-      toast.addToast(t('statesUts.messages.failedToUpdateStatus'), 'error')
-    }
-  }
-
   const handleEdit = () => {
-    if (id) {
-      navigate(ROUTES.SUPER_ADMIN_STATES_UTS_EDIT.replace(':id', id))
-    }
+    if (tenantCode) navigate(ROUTES.SUPER_ADMIN_STATES_UTS_EDIT.replace(':tenantCode', tenantCode))
   }
 
-  if (stateUTQuery.isLoading) {
+  if (tenantsQuery.isLoading) {
     return (
       <Box w="full">
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {t('statesUts.title')}
+          {t('statesUts.viewTitle')}
         </Heading>
         <Flex role="status" aria-live="polite" align="center" justify="center" minH="200px">
           <Text color="neutral.600">{t('common:loading')}</Text>
@@ -75,11 +41,11 @@ export function ViewStateUTPage() {
     )
   }
 
-  if (!state) {
+  if (!tenant) {
     return (
       <Box w="full">
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {t('statesUts.title')}
+          {t('statesUts.viewTitle')}
         </Heading>
         <Text color="neutral.600" mt={4}>
           {t('statesUts.messages.notFound')}
@@ -88,12 +54,14 @@ export function ViewStateUTPage() {
     )
   }
 
+  const admins: UserAdminData[] = adminsQuery.data ?? []
+
   return (
     <Box w="full">
-      {/* Page Header with Breadcrumb */}
+      {/* Breadcrumb */}
       <Box mb={5}>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={2}>
-          {t('statesUts.title')}
+          {t('statesUts.viewTitle')}
         </Heading>
         <Flex as="nav" aria-label="Breadcrumb" gap={2} flexWrap="wrap">
           <Text
@@ -105,7 +73,9 @@ export function ViewStateUTPage() {
             _hover={{ textDecoration: 'underline' }}
             onClick={() => navigate(ROUTES.SUPER_ADMIN_STATES_UTS)}
             tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && navigate(ROUTES.SUPER_ADMIN_STATES_UTS)}
+            onKeyDown={(e: React.KeyboardEvent) =>
+              e.key === 'Enter' && navigate(ROUTES.SUPER_ADMIN_STATES_UTS)
+            }
           >
             {t('statesUts.breadcrumb.manage')}
           </Text>
@@ -129,13 +99,13 @@ export function ViewStateUTPage() {
         py={6}
         px={{ base: 3, md: 4 }}
       >
-        {/* State/UT Details Section */}
+        {/* State/UT Details */}
         <Flex justify="space-between" align="flex-start" mb={4}>
           <Heading as="h2" size="h3" fontWeight="400" id="state-details-heading">
             {t('statesUts.details.title')}
           </Heading>
           <IconButton
-            aria-label={`${t('statesUts.aria.editStateUt')} ${state.name}`}
+            aria-label={`${t('statesUts.aria.editStateUt')} ${tenant.name}`}
             icon={<EditIcon boxSize={5} />}
             variant="ghost"
             size="sm"
@@ -155,75 +125,31 @@ export function ViewStateUTPage() {
               {t('statesUts.details.name')}
             </Text>
             <Text textStyle="h10" fontWeight="400">
-              {state.name}
+              {tenant.name}
             </Text>
           </Box>
           <Box>
-            <Text textStyle="h10" mb={1}>
-              {t('statesUts.details.code')}
+            <Text textStyle="h10" fontWeight="500" mb={1}>
+              {t('statesUts.details.stateCode')}
             </Text>
             <Text textStyle="h10" fontWeight="400">
-              {state.code}
-            </Text>
-          </Box>
-        </SimpleGrid>
-
-        {/* State Admin Details Section */}
-        <Heading as="h2" size="h3" fontWeight="400" mb={4} id="admin-details-heading">
-          {t('statesUts.adminDetails.title')}
-        </Heading>
-        <SimpleGrid
-          columns={{ base: 1, lg: 2 }}
-          spacing={6}
-          mb={7}
-          aria-labelledby="admin-details-heading"
-        >
-          <Box>
-            <Text textStyle="h10" mb={1}>
-              {t('statesUts.adminDetails.firstName')}
-            </Text>
-            <Text textStyle="h10" fontWeight="400">
-              {state.admin.firstName}
+              {tenant.stateCode}
             </Text>
           </Box>
           <Box>
-            <Text textStyle="h10" mb={1}>
-              {t('statesUts.adminDetails.lastName')}
+            <Text textStyle="h10" fontWeight="500" mb={1}>
+              {t('statesUts.details.lgdCode')}
             </Text>
             <Text textStyle="h10" fontWeight="400">
-              {state.admin.lastName}
+              {tenant.lgdCode}
             </Text>
           </Box>
           <Box>
-            <Text textStyle="h10" mb={1}>
-              {t('statesUts.adminDetails.email')}
+            <Text textStyle="h10" fontWeight="500" mb={1}>
+              {t('statesUts.details.createdAt')}
             </Text>
             <Text textStyle="h10" fontWeight="400">
-              {state.admin.email}
-            </Text>
-          </Box>
-          <Box>
-            <Text textStyle="h10" mb={1}>
-              {t('statesUts.adminDetails.phone')}
-            </Text>
-            <Text textStyle="h10" fontWeight="400">
-              +91 {state.admin.phone.replace(/(\d{5})(\d{5})/, '$1-$2')}
-            </Text>
-          </Box>
-          <Box>
-            <Text textStyle="h10" mb={1}>
-              {t('statesUts.adminDetails.secondaryEmail')}
-            </Text>
-            <Text textStyle="h10" fontWeight="400">
-              {state.admin.secondaryEmail || t('common:na')}
-            </Text>
-          </Box>
-          <Box>
-            <Text textStyle="h10" mb={1}>
-              {t('statesUts.adminDetails.contactNumber')}
-            </Text>
-            <Text textStyle="h10" fontWeight="400">
-              {state.admin.contactNumber || t('common:na')}
+              {new Date(tenant.createdAt).toLocaleDateString()}
             </Text>
           </Box>
         </SimpleGrid>
@@ -232,21 +158,73 @@ export function ViewStateUTPage() {
         <Heading as="h2" size="h3" fontWeight="400" mb={4} id="status-heading">
           {t('statesUts.statusSection.title')}
         </Heading>
-        <Flex align="center" gap={2} h={6} aria-labelledby="status-heading">
-          <Text textStyle="h10" id="activated-label">
-            {t('statesUts.statusSection.activated')}
-          </Text>
-          <Toggle
-            isChecked={status === 'active'}
-            onChange={handleStatusToggle}
-            isDisabled={updateStateUTStatusMutation.isPending}
-            aria-labelledby="activated-label"
+        <Box mb={7}>
+          <StatusChip
+            status={tenant.status.toLowerCase()}
+            label={t(`statesUts.statusSection.statuses.${tenant.status}`)}
           />
-        </Flex>
-      </Box>
+        </Box>
 
-      {/* Toast Container */}
-      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
+        {/* State Admin Details */}
+        <Heading as="h2" size="h3" fontWeight="400" mb={4} id="admin-details-heading">
+          {t('statesUts.adminDetails.title')}
+        </Heading>
+        {adminsQuery.isLoading && (
+          <Text color="neutral.600" textStyle="h10">
+            {t('common:loading')}
+          </Text>
+        )}
+        {!adminsQuery.isLoading && admins.length === 0 && (
+          <Text color="neutral.400" textStyle="h10">
+            {t('common:na')}
+          </Text>
+        )}
+        {!adminsQuery.isLoading && admins.length > 0 && (
+          <Flex direction="column" gap={6}>
+            {admins.map((admin) => (
+              <SimpleGrid
+                key={admin.id}
+                columns={{ base: 1, lg: 2 }}
+                spacing={4}
+                aria-labelledby="admin-details-heading"
+              >
+                <Box>
+                  <Text textStyle="h10" fontWeight="500" mb={1}>
+                    {t('statesUts.adminDetails.firstName')}
+                  </Text>
+                  <Text textStyle="h10" fontWeight="400">
+                    {admin.firstName || t('common:na')}
+                  </Text>
+                </Box>
+                <Box>
+                  <Text textStyle="h10" fontWeight="500" mb={1}>
+                    {t('statesUts.adminDetails.lastName')}
+                  </Text>
+                  <Text textStyle="h10" fontWeight="400">
+                    {admin.lastName || t('common:na')}
+                  </Text>
+                </Box>
+                <Box>
+                  <Text textStyle="h10" fontWeight="500" mb={1}>
+                    {t('statesUts.adminDetails.email')}
+                  </Text>
+                  <Text textStyle="h10" fontWeight="400">
+                    {admin.email}
+                  </Text>
+                </Box>
+                <Box>
+                  <Text textStyle="h10" fontWeight="500" mb={1}>
+                    {t('statesUts.adminDetails.phone')}
+                  </Text>
+                  <Text textStyle="h10" fontWeight="400">
+                    {admin.phone || t('common:na')}
+                  </Text>
+                </Box>
+              </SimpleGrid>
+            ))}
+          </Flex>
+        )}
+      </Box>
     </Box>
   )
 }

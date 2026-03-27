@@ -1,3 +1,8 @@
+export interface StatItem {
+  value: string | number
+  subtitle: string
+}
+
 export interface StatsCard {
   id: string
   title: string
@@ -5,25 +10,16 @@ export interface StatsCard {
   subtitle?: string
 }
 
-export interface DemandSupplyDataPoint {
-  period: string
-  Demand: number
-  Supply: number
-}
-
-export interface DailyIngestionDataPoint {
-  day: string
-  count: number
-}
-
 export interface OverviewData {
   stats: {
-    pumpOperatorsSynced: number
-    configurationStatus: string
-    todayApiIngestion: string
-    pendingDataSync: number
-    activeIntegrations: number
+    activeSchemes: StatItem
   }
-  demandSupplyData: DemandSupplyDataPoint[]
-  dailyIngestionData: DailyIngestionDataPoint[]
+}
+
+export interface StaffCountsData {
+  totalStaff: number
+  pumpOperators: number
+  sectionOfficers: number
+  subDivisionOfficers: number
+  totalAdmins: number
 }

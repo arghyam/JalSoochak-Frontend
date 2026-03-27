@@ -10,9 +10,10 @@
     "charts": {
       "ingestionSuccessRate": "समय के साथ अंतर्ग्रहण सफलता दर",
       "successfulIngestions": "सफल अंतर्ग्रहण",
-      "failedIngestions": "विफल अंतर्ग्रहण"
-    },
-    "notifications": "सूचनाएं"
+      "failedIngestions": "विफल अंतर्ग्रहण",
+      "waterSupplyOutages": "जल आपूर्ति बाधाएं",
+      "select": "चुनें"
+    }
   },
 
   "systemRules": {
@@ -50,6 +51,8 @@
     },
     "table": {
       "stateUt": "राज्य/केंद्र शासित प्रदेश",
+      "stateCode": "राज्य कोड",
+      "lgdCode": "LGD कोड",
       "status": "स्थिति",
       "lastSyncDate": "अंतिम सिंक तिथि",
       "totalDistricts": "कुल जिले",
@@ -58,7 +61,11 @@
     "details": {
       "title": "राज्य/केंद्र शासित प्रदेश विवरण",
       "name": "राज्य/केंद्र शासित प्रदेश का नाम",
-      "code": "राज्य/केंद्र शासित प्रदेश कोड"
+      "code": "राज्य/केंद्र शासित प्रदेश कोड",
+      "autoFilledOnStateSelection": "राज्य चुनने पर स्वतः भरा जाएगा",
+      "stateCode": "राज्य कोड",
+      "lgdCode": "LGD कोड",
+      "createdAt": "बनाया गया"
     },
     "adminDetails": {
       "title": "राज्य व्यवस्थापक विवरण",
@@ -71,26 +78,71 @@
     },
     "statusSection": {
       "title": "स्थिति",
-      "activated": "सक्रिय"
+      "activated": "सक्रिय",
+      "stateUtStatus": "राज्य/केंद्र शासित प्रदेश की स्थिति",
+      "statuses": {
+        "INACTIVE": "निष्क्रिय",
+        "ONBOARDED": "ऑनबोर्ड किया गया",
+        "CONFIGURED": "कॉन्फ़िगर किया गया",
+        "ACTIVE": "सक्रिय",
+        "SUSPENDED": "निलंबित",
+        "DEGRADED": "निम्नीकृत",
+        "ARCHIVED": "संग्रहीत"
+      }
     },
     "buttons": {
-      "addAndSendLink": "राज्य जोड़ें और ईमेल द्वारा लिंक भेजें"
+      "addAndSendLink": "राज्य जोड़ें और ईमेल द्वारा लिंक भेजें",
+      "backToList": "राज्य/केंद्र शासित प्रदेश की सूची में वापस"
     },
     "messages": {
       "notFound": "राज्य/केंद्र शासित प्रदेश नहीं मिला",
       "noStatesFound": "कोई राज्य/केंद्र शासित प्रदेश नहीं मिला",
       "addedSuccess": "राज्य/केंद्र शासित प्रदेश सफलतापूर्वक जोड़ा गया",
+      "inviteSent": "आमंत्रण सफलतापूर्वक भेजा गया",
+      "tenantCreatedSuccess": "टेनेंट सफलतापूर्वक बनाया गया",
+      "tenantNameLabel": "राज्य/केंद्र शासित प्रदेश",
+      "adminInviteSent": "व्यवस्थापक आमंत्रण भेजा जाएगा।",
       "failedToAdd": "राज्य/केंद्र शासित प्रदेश जोड़ने में विफल",
+      "tenantCreatedAdminFailed": "टेनेंट बन गया लेकिन व्यवस्थापक बनाने में विफल",
       "failedToLoadAssignedStates": "असाइन किए गए राज्य लोड करने में विफल। कृपया पुनः प्रयास करें।",
+      "failedToLoadStateOptions": "राज्य/केंद्र शासित प्रदेश विकल्प लोड करने में विफल। कृपया रीफ़्रेश करके पुनः प्रयास करें।",
       "activatedSuccess": "राज्य/केंद्र शासित प्रदेश सफलतापूर्वक सक्रिय किया गया",
       "deactivatedSuccess": "राज्य/केंद्र शासित प्रदेश सफलतापूर्वक निष्क्रिय किया गया",
-      "failedToUpdateStatus": "स्थिति अपडेट करने में विफल"
+      "failedToUpdateStatus": "स्थिति अपडेट करने में विफल",
+      "statusUpdatedSuccess": "स्थिति सफलतापूर्वक अपडेट की गई"
     },
     "aria": {
       "viewStateUt": "राज्य/केंद्र शासित प्रदेश देखें",
       "editStateUt": "राज्य/केंद्र शासित प्रदेश संपादित करें"
     },
     "searchPlaceholder": "राज्य/केंद्र शासित प्रदेश के नाम से खोजें"
+  },
+
+  "manageStateAdmins": {
+    "title": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक प्रबंधित करें",
+    "searchPlaceholder": "राज्य/केंद्र शासित प्रदेश खोजें",
+    "downloadReport": "रिपोर्ट डाउनलोड करें",
+    "table": {
+      "adminName": "व्यवस्थापक का नाम",
+      "stateUt": "राज्य/केंद्र शासित प्रदेश",
+      "mobileNumber": "मोबाइल नंबर",
+      "emailAddress": "ईमेल पता",
+      "signupStatus": "साइनअप स्थिति",
+      "actions": "कार्रवाई"
+    },
+    "status": {
+      "completed": "पूर्ण",
+      "pending": "लंबित",
+      "inactive": "निष्क्रिय"
+    },
+    "messages": {
+      "noAdminsFound": "कोई व्यवस्थापक नहीं मिला"
+    },
+    "aria": {
+      "viewAdmin": "व्यवस्थापक देखें",
+      "editAdmin": "व्यवस्थापक संपादित करें",
+      "resendInvite": "व्यवस्थापक को पुनः आमंत्रण भेजें"
+    }
   },
 
   "apiCredentials": {
@@ -108,6 +160,92 @@
     },
     "messages": {
       "noCredentialsFound": "आपके फ़िल्टर से मेल खाने वाले कोई प्रमाणपत्र नहीं मिले"
+    }
+  },
+
+  "superUsers": {
+    "title": "सुपर उपयोगकर्ता",
+    "addTitle": "सुपर उपयोगकर्ता जोड़ें",
+    "editTitle": "सुपर उपयोगकर्ता संपादित करें",
+    "viewTitle": "सुपर उपयोगकर्ता देखें",
+    "addUser": "सुपर उपयोगकर्ता जोड़ें",
+    "allStatuses": "सभी स्थितियां",
+    "table": {
+      "name": "नाम",
+      "emailAddress": "ईमेल पता",
+      "phoneNumber": "फ़ोन नंबर",
+      "status": "स्थिति",
+      "actions": "कार्रवाई"
+    },
+    "filters": {
+      "searchPlaceholder": "नाम से खोजें"
+    },
+    "form": {
+      "userDetails": "उपयोगकर्ता विवरण",
+      "firstName": "पहला नाम",
+      "lastName": "अंतिम नाम",
+      "emailAddress": "ईमेल पता",
+      "phoneNumber": "फ़ोन नंबर",
+      "statusSection": "स्थिति",
+      "activated": "सक्रिय"
+    },
+    "buttons": {
+      "addAndSendLink": "सुपर उपयोगकर्ता जोड़ें और ईमेल के माध्यम से लिंक भेजें"
+    },
+    "breadcrumb": {
+      "manage": "सुपर उपयोगकर्ता प्रबंधित करें",
+      "addNew": "नया सुपर उपयोगकर्ता जोड़ें",
+      "view": "सुपर उपयोगकर्ता देखें",
+      "edit": "सुपर उपयोगकर्ता संपादित करें"
+    },
+    "messages": {
+      "noUsersFound": "कोई सुपर उपयोगकर्ता नहीं मिला",
+      "notFound": "सुपर उपयोगकर्ता नहीं मिला",
+      "userAdded": "सुपर उपयोगकर्ता सफलतापूर्वक जोड़ा गया",
+      "failedToAdd": "सुपर उपयोगकर्ता जोड़ने में विफल",
+      "activatedSuccess": "सुपर उपयोगकर्ता सफलतापूर्वक सक्रिय किया गया",
+      "deactivatedSuccess": "सुपर उपयोगकर्ता सफलतापूर्वक निष्क्रिय किया गया",
+      "failedToUpdateStatus": "स्थिति अपडेट करने में विफल"
+    },
+    "aria": {
+      "viewUser": "उपयोगकर्ता देखें",
+      "editUser": "उपयोगकर्ता संपादित करें",
+      "resendInvite": "सुपर उपयोगकर्ता को पुनः आमंत्रण भेजें"
+    }
+  },
+
+  "configuration": {
+    "pageTitle": "कॉन्फ़िगरेशन",
+    "sectionTitle": "सिस्टम कॉन्फ़िगरेशन",
+    "sections": {
+      "supportedChannels": {
+        "title": "समर्थित चैनल"
+      },
+      "undersupplyThreshold": {
+        "title": "अंडरसप्लाई सीमा (%)",
+        "description": "वास्तविक मानक से नकारात्मक विचलन प्रतिशत में।"
+      },
+      "oversupplyThreshold": {
+        "title": "ओवरसप्लाई सीमा (%)",
+        "description": "वास्तविक मानक से सकारात्मक विचलन प्रतिशत में।"
+      },
+      "bfmImageConfidence": {
+        "title": "BFM छवि विश्वास सीमा (%)"
+      },
+      "locationAffinity": {
+        "title": "स्थान आत्मीयता सीमा"
+      }
+    },
+    "messages": {
+      "saveSuccess": "कॉन्फ़िगरेशन सफलतापूर्वक सहेजा गया",
+      "saveFailed": "कॉन्फ़िगरेशन सहेजने में विफल",
+      "validation": {
+        "channelRequired": "कम से कम एक समर्थित चैनल चुना जाना चाहिए"
+      }
+    },
+    "aria": {
+      "editConfiguration": "कॉन्फ़िगरेशन संपादित करें",
+      "form": "सिस्टम कॉन्फ़िगरेशन फ़ॉर्म"
     }
   },
 

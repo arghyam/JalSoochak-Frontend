@@ -6,23 +6,23 @@ import {
   Flex,
   HStack,
   Input,
-  IconButton,
   Heading,
-  Spinner,
   SimpleGrid,
-  Stack,
+  FormControl,
+  FormErrorMessage,
 } from '@chakra-ui/react'
 import { EditIcon } from '@chakra-ui/icons'
-import { MdDeleteOutline } from 'react-icons/md'
 import { useTranslation } from 'react-i18next'
 import type { DistrictOverride } from '../../types/water-norms'
-import { AVAILABLE_DISTRICTS } from '../../types/water-norms'
+import { WaterNormsAlertThresholds } from './water-norms-alert-thresholds'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer, SearchableSelect } from '@/shared/components/common'
+import { ToastContainer, PageLoadingState, PageErrorState } from '@/shared/components/common'
 import {
   useSaveWaterNormsConfigurationMutation,
   useWaterNormsConfigurationQuery,
 } from '../../services/query/use-state-admin-queries'
+
+const MAX_WATER_QUANTITY = 1000
 
 export function WaterNormsPage() {
   const { t } = useTranslation(['state-admin', 'common'])
@@ -30,10 +30,22 @@ export function WaterNormsPage() {
   const saveWaterNormsMutation = useSaveWaterNormsConfigurationMutation()
   const [isEditing, setIsEditing] = useState(false)
   const [stateQuantityDraft, setStateQuantityDraft] = useState<string | null>(null)
+  const [oversupplyThresholdDraft, setOversupplyThresholdDraft] = useState<string | null>(null)
+  const [undersupplyThresholdDraft, setUndersupplyThresholdDraft] = useState<string | null>(null)
   const [districtOverridesDraft, setDistrictOverridesDraft] = useState<DistrictOverride[] | null>(
     null
   )
   const toast = useToast()
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const clearError = (field: string) => {
+    setErrors((prev) => {
+      if (!prev[field]) return prev
+      const next = { ...prev }
+      delete next[field]
+      return next
+    })
+  }
 
   useEffect(() => {
     document.title = `${t('waterNorms.title')} | JalSoochak`
@@ -41,7 +53,13 @@ export function WaterNormsPage() {
 
   const effectiveIsEditing = isEditing || Boolean(config && !config.isConfigured)
   const stateQuantity =
-    stateQuantityDraft ?? (config?.stateQuantity ? String(config.stateQuantity) : '')
+    stateQuantityDraft ?? (config?.stateQuantity != null ? String(config.stateQuantity) : '')
+  const oversupplyThreshold =
+    oversupplyThresholdDraft ??
+    (config?.oversupplyThreshold != null ? String(config.oversupplyThreshold) : '')
+  const undersupplyThreshold =
+    undersupplyThresholdDraft ??
+    (config?.undersupplyThreshold != null ? String(config.undersupplyThreshold) : '')
   const districtOverrides = districtOverridesDraft ?? config?.districtOverrides ?? []
 
   const handleEdit = () => {
@@ -50,87 +68,93 @@ export function WaterNormsPage() {
 
   const handleCancel = () => {
     setStateQuantityDraft(null)
+    setOversupplyThresholdDraft(null)
+    setUndersupplyThresholdDraft(null)
     setDistrictOverridesDraft(null)
     setIsEditing(false)
+    setErrors({})
   }
 
-  const handleSave = async () => {
-    if (!stateQuantity) {
-      toast.addToast(t('waterNorms.messages.quantityRequired'), 'error')
-      return
-    }
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {}
 
     const quantity = Number(stateQuantity)
-    if (isNaN(quantity) || quantity <= 0) {
-      toast.addToast(t('waterNorms.messages.invalidQuantity'), 'error')
-      return
+    if (!stateQuantity || Number.isNaN(quantity) || quantity <= 0) {
+      newErrors.stateQuantity = t('state-admin:validation.mustBePositive')
+    } else if (quantity > MAX_WATER_QUANTITY) {
+      newErrors.stateQuantity = t('state-admin:validation.mustBeInRange', {
+        min: 1,
+        max: MAX_WATER_QUANTITY,
+      })
+    }
+
+    const oversupply = Number(oversupplyThreshold)
+    if (!oversupplyThreshold || Number.isNaN(oversupply) || oversupply < 0 || oversupply > 1000) {
+      newErrors.oversupplyThreshold = t('state-admin:validation.mustBeInRange', {
+        min: 0,
+        max: 1000,
+      })
+    }
+
+    const undersupply = Number(undersupplyThreshold)
+    if (
+      !undersupplyThreshold ||
+      Number.isNaN(undersupply) ||
+      undersupply < 0 ||
+      undersupply > 100
+    ) {
+      newErrors.undersupplyThreshold = t('state-admin:validation.mustBeInRange', {
+        min: 0,
+        max: 100,
+      })
     }
 
     // Validate district overrides
-    for (const override of districtOverrides) {
-      if (!override.districtName || override.quantity <= 0) {
-        toast.addToast(t('waterNorms.messages.invalidOverrides'), 'error')
-        return
+    const seenDistricts = new Set<string>()
+    districtOverrides.forEach((override, i) => {
+      if (!override.districtName) {
+        newErrors[`override.${i}.districtName`] = t('state-admin:validation.required')
+      } else if (seenDistricts.has(override.districtName)) {
+        newErrors[`override.${i}.districtName`] = t('state-admin:validation.duplicateDistrict')
+      } else {
+        seenDistricts.add(override.districtName)
       }
-    }
+      if (override.quantity <= 0) {
+        newErrors[`override.${i}.quantity`] = t('state-admin:validation.mustBePositive')
+      } else if (override.quantity > MAX_WATER_QUANTITY) {
+        newErrors[`override.${i}.quantity`] = t('state-admin:validation.mustBeInRange', {
+          min: 1,
+          max: MAX_WATER_QUANTITY,
+        })
+      }
+    })
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleSave = async () => {
+    if (!validateForm()) return
 
     try {
       await saveWaterNormsMutation.mutateAsync({
-        stateQuantity: quantity,
+        stateQuantity: Number(stateQuantity),
+        oversupplyThreshold: Number(oversupplyThreshold),
+        undersupplyThreshold: Number(undersupplyThreshold),
         districtOverrides,
         isConfigured: true,
       })
       setStateQuantityDraft(null)
+      setOversupplyThresholdDraft(null)
+      setUndersupplyThresholdDraft(null)
       setDistrictOverridesDraft(null)
       setIsEditing(false)
+      setErrors({})
       toast.addToast(t('common:toast.changesSavedShort'), 'success')
     } catch (error) {
       console.error('Failed to save water norms configuration:', error)
       toast.addToast(t('common:toast.failedToSave'), 'error')
     }
-  }
-
-  const handleAddDistrict = () => {
-    // Check if there's any unfilled district override
-    const hasUnfilledOverride = districtOverrides.some(
-      (override) => !override.districtName || override.quantity <= 0
-    )
-
-    if (hasUnfilledOverride) {
-      toast.addToast(t('waterNorms.messages.fillExisting'), 'error')
-      return
-    }
-
-    const newOverride: DistrictOverride = {
-      id: `district-${Date.now()}`,
-      districtName: '',
-      quantity: 0,
-    }
-    setDistrictOverridesDraft([...districtOverrides, newOverride])
-  }
-
-  const handleRemoveDistrict = (id: string) => {
-    setDistrictOverridesDraft(districtOverrides.filter((d) => d.id !== id))
-  }
-
-  const handleDistrictChange = (
-    id: string,
-    field: keyof DistrictOverride,
-    value: string | number
-  ) => {
-    setDistrictOverridesDraft(
-      districtOverrides.map((d) => (d.id === id ? { ...d, [field]: value } : d))
-    )
-  }
-
-  const getDistrictLabel = (value: string) => {
-    const district = AVAILABLE_DISTRICTS.find((d) => d.value === value)
-    return district ? district.label : value
-  }
-
-  const getAvailableDistricts = () => {
-    const usedDistricts = new Set(districtOverrides.map((d) => d.districtName))
-    return AVAILABLE_DISTRICTS.filter((d) => !usedDistricts.has(d.value))
   }
 
   if (isLoading) {
@@ -139,10 +163,7 @@ export function WaterNormsPage() {
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
           {t('waterNorms.title')}
         </Heading>
-        <Flex align="center" role="status" aria-live="polite" aria-busy="true">
-          <Spinner size="md" color="primary.500" mr={3} />
-          <Text color="neutral.600">{t('common:loading')}</Text>
-        </Flex>
+        <PageLoadingState message={t('common:loading')} />
       </Box>
     )
   }
@@ -153,9 +174,7 @@ export function WaterNormsPage() {
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
           {t('waterNorms.title')}
         </Heading>
-        <Text role="alert" color="error.500">
-          {t('waterNorms.messages.failedToLoad')}
-        </Text>
+        <PageErrorState message={t('waterNorms.messages.failedToLoad')} />
       </Box>
     )
   }
@@ -225,46 +244,36 @@ export function WaterNormsPage() {
                 </Text>
               </Box>
 
-              {/* District-Level Overrides */}
-              {districtOverrides.length > 0 && (
-                <Box>
-                  <Heading
-                    as="h3"
-                    size="h3"
-                    fontWeight="400"
-                    fontSize={{ base: 'md', md: 'xl' }}
-                    mb={4}
-                  >
-                    {t('waterNorms.districtOverrides.title')}
-                  </Heading>
-                  <Stack spacing={4}>
-                    {districtOverrides.map((override) => (
-                      <SimpleGrid
-                        key={override.id}
-                        columns={{ base: 1, md: 2 }}
-                        spacing={{ base: 3, md: 6 }}
-                      >
-                        <Box>
-                          <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" mb={1}>
-                            {t('waterNorms.districtOverrides.districtName')}
-                          </Text>
-                          <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
-                            {getDistrictLabel(override.districtName)}
-                          </Text>
-                        </Box>
-                        <Box>
-                          <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" mb={1}>
-                            {t('waterNorms.districtOverrides.quantity')}
-                          </Text>
-                          <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
-                            {override.quantity}
-                          </Text>
-                        </Box>
-                      </SimpleGrid>
-                    ))}
-                  </Stack>
-                </Box>
-              )}
+              {/* Alert Thresholds */}
+              <Box mb={7}>
+                <Heading
+                  as="h3"
+                  size="h3"
+                  fontWeight="400"
+                  fontSize={{ base: 'md', md: 'xl' }}
+                  mb={4}
+                >
+                  {t('waterNorms.alertThresholds.title')}
+                </Heading>
+                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={{ base: 3, md: 6 }}>
+                  <Box>
+                    <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" mb={1}>
+                      {t('waterNorms.alertThresholds.undersupplyThreshold.title')}
+                    </Text>
+                    <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
+                      {config.undersupplyThreshold}%
+                    </Text>
+                  </Box>
+                  <Box>
+                    <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" mb={1}>
+                      {t('waterNorms.alertThresholds.oversupplyThreshold.title')}
+                    </Text>
+                    <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
+                      {config.oversupplyThreshold}%
+                    </Text>
+                  </Box>
+                </SimpleGrid>
+              </Box>
             </Box>
           ) : (
             /* Edit Mode */
@@ -281,7 +290,7 @@ export function WaterNormsPage() {
             >
               <Box>
                 {/* State Quantity Input */}
-                <Box mb={6}>
+                <FormControl isInvalid={!!errors.stateQuantity} mb={6}>
                   <Text
                     as="label"
                     htmlFor="state-quantity"
@@ -300,7 +309,10 @@ export function WaterNormsPage() {
                     id="state-quantity"
                     placeholder={t('common:enter')}
                     value={stateQuantity}
-                    onChange={(e) => setStateQuantityDraft(e.target.value)}
+                    onChange={(e) => {
+                      setStateQuantityDraft(e.target.value)
+                      clearError('stateQuantity')
+                    }}
                     type="number"
                     w={{ base: 'full', lg: '319px', xl: '486px' }}
                     h="36px"
@@ -311,115 +323,23 @@ export function WaterNormsPage() {
                     _hover={{ borderColor: 'neutral.400' }}
                     _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
                   />
-                </Box>
+                  <FormErrorMessage>{errors.stateQuantity}</FormErrorMessage>
+                </FormControl>
 
-                {/* District-Level Overrides */}
-                <Box>
-                  <Heading
-                    as="h3"
-                    size="h3"
-                    fontWeight="400"
-                    fontSize={{ base: 'md', md: 'xl' }}
-                    mb={4}
-                  >
-                    {t('waterNorms.districtOverrides.title')}
-                  </Heading>
-
-                  <Stack spacing={3} mb={districtOverrides.length > 0 ? 3 : 0}>
-                    {districtOverrides.map((override) => (
-                      <Flex
-                        key={override.id}
-                        direction={{ base: 'column', lg: 'row' }}
-                        gap={{ base: 3, lg: 6 }}
-                        align={{ base: 'stretch', lg: 'flex-end' }}
-                      >
-                        <Box w={{ base: 'full', lg: '319px', xl: '486px' }}>
-                          <Text
-                            fontSize={{ base: 'xs', md: 'sm' }}
-                            fontWeight="medium"
-                            color="neutral.950"
-                            mb={1}
-                          >
-                            {t('waterNorms.districtOverrides.districtName')}
-                          </Text>
-                          <SearchableSelect
-                            options={[
-                              ...getAvailableDistricts(),
-                              ...(override.districtName
-                                ? [
-                                    {
-                                      value: override.districtName,
-                                      label: getDistrictLabel(override.districtName),
-                                    },
-                                  ]
-                                : []),
-                            ]}
-                            value={override.districtName}
-                            onChange={(value) =>
-                              handleDistrictChange(override.id, 'districtName', value)
-                            }
-                            placeholder={t('common:select')}
-                            width="100%"
-                            ariaLabel={t('waterNorms.aria.selectDistrict')}
-                          />
-                        </Box>
-                        <Box flex={{ base: 'none', lg: 1 }}>
-                          <Text
-                            fontSize={{ base: 'xs', md: 'sm' }}
-                            fontWeight="medium"
-                            color="neutral.950"
-                            mb={1}
-                          >
-                            {t('waterNorms.districtOverrides.quantity')}
-                          </Text>
-                          <Flex gap={2}>
-                            <Input
-                              placeholder={t('common:enter')}
-                              value={override.quantity || ''}
-                              onChange={(e) =>
-                                handleDistrictChange(
-                                  override.id,
-                                  'quantity',
-                                  Number(e.target.value)
-                                )
-                              }
-                              type="number"
-                              fontSize="sm"
-                              w={{ base: 'full', lg: '319px', xl: '486px' }}
-                              h="36px"
-                              borderColor="neutral.300"
-                              borderRadius="6px"
-                              aria-label={t('waterNorms.aria.enterDistrictQuantity')}
-                              _hover={{ borderColor: 'neutral.400' }}
-                              _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
-                            />
-                            <IconButton
-                              aria-label={t('waterNorms.aria.deleteDistrict', {
-                                name: getDistrictLabel(override.districtName) || '',
-                              })}
-                              icon={<MdDeleteOutline size={24} aria-hidden="true" />}
-                              variant="ghost"
-                              size="sm"
-                              color="neutral.400"
-                              onClick={() => handleRemoveDistrict(override.id)}
-                              h="36px"
-                              _hover={{ bg: 'error.50', color: 'error.500' }}
-                            />
-                          </Flex>
-                        </Box>
-                      </Flex>
-                    ))}
-                  </Stack>
-
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleAddDistrict}
-                    w={{ base: 'full', sm: 'auto' }}
-                  >
-                    {t('waterNorms.districtOverrides.addNew')}
-                  </Button>
-                </Box>
+                {/* Alert Thresholds */}
+                <WaterNormsAlertThresholds
+                  oversupplyThreshold={oversupplyThreshold}
+                  undersupplyThreshold={undersupplyThreshold}
+                  onOversupplyThresholdChange={(v) => {
+                    setOversupplyThresholdDraft(v)
+                    clearError('oversupplyThreshold')
+                  }}
+                  onUndersupplyThresholdChange={(v) => {
+                    setUndersupplyThresholdDraft(v)
+                    clearError('undersupplyThreshold')
+                  }}
+                  errors={errors}
+                />
               </Box>
 
               {/* Action Buttons */}
@@ -444,7 +364,7 @@ export function WaterNormsPage() {
                   width={{ base: 'full', sm: '174px' }}
                   onClick={handleSave}
                   isLoading={saveWaterNormsMutation.isPending}
-                  isDisabled={!stateQuantity}
+                  isDisabled={saveWaterNormsMutation.isPending}
                 >
                   {config?.isConfigured ? t('common:button.saveChanges') : t('common:button.save')}
                 </Button>

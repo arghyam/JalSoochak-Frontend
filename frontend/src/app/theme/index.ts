@@ -275,9 +275,9 @@ const theme = extendTheme({
           borderWidth: '1px',
           borderColor: 'primary.500',
           _hover: {
-            bg: 'primary.50',
+            bg: 'primary.400',
             borderColor: 'primary.600',
-            color: 'primary.600',
+            color: 'white',
             _disabled: {
               bg: 'transparent',
               borderColor: 'neutral.200',

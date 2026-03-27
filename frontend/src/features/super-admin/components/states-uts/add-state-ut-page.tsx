@@ -11,17 +11,18 @@ import {
   HStack,
   FormControl,
   FormLabel,
-  Alert,
-  AlertIcon,
+  FormErrorMessage,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { SearchableSelect, ToastContainer } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
-import { INDIAN_STATES_UTS } from '../../types/states-uts'
 import { ROUTES } from '@/shared/constants/routes'
+import { INDIA_STATES } from '@/shared/constants/states'
+import { isAlphabeticWithSpaces, exceedsMaxLength } from '@/shared/utils/validation'
 import {
-  useAssignedStateNamesQuery,
-  useCreateStateUTMutation,
+  useCreateTenantMutation,
+  useInviteUserMutation,
+  useStatesUTsQuery,
 } from '../../services/query/use-super-admin-queries'
 
 export function AddStateUTPage() {
@@ -33,108 +34,153 @@ export function AddStateUTPage() {
     document.title = `${t('statesUts.addTitle')} | JalSoochak`
   }, [t])
 
-  const {
-    data: assignedStates = [],
-    isLoading: isAssignedStatesLoading,
-    isError: isAssignedStatesError,
-  } = useAssignedStateNamesQuery()
-  const createStateMutation = useCreateStateUTMutation()
+  const createTenantMutation = useCreateTenantMutation()
+  const inviteUserMutation = useInviteUserMutation()
+  const { data: existingTenants, isLoading: isLoadingTenants } = useStatesUTsQuery()
 
-  // Form state
   const [stateName, setStateName] = useState('')
   const [stateCode, setStateCode] = useState('')
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
-  const [secondaryEmail, setSecondaryEmail] = useState('')
-  const [contactNumber, setContactNumber] = useState('')
+  const [lgdCode, setLgdCode] = useState<number | null>(null)
+  const [adminFirstName, setAdminFirstName] = useState('')
+  const [adminLastName, setAdminLastName] = useState('')
+  const [adminPhone, setAdminPhone] = useState('')
+  const [adminEmail, setAdminEmail] = useState('')
+  const [adminTouched, setAdminTouched] = useState({
+    firstName: false,
+    lastName: false,
+    phone: false,
+    email: false,
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Filter available states (exclude already assigned)
-  const availableStates = useMemo(() => {
-    return INDIAN_STATES_UTS.filter((state) => !assignedStates.includes(state.name)).map(
-      (state) => ({
-        value: state.name,
-        label: state.name,
-      })
-    )
-  }, [assignedStates])
+  const takenStateCodes = useMemo<Set<string>>(
+    () => new Set((existingTenants ?? []).map((t) => t.stateCode)),
+    [existingTenants]
+  )
 
-  // Auto-fill state code when state is selected
+  const stateOptions = useMemo(
+    () =>
+      INDIA_STATES.filter((s) => !takenStateCodes.has(s.code)).map((s) => ({
+        value: s.name,
+        label: s.name,
+      })),
+    [takenStateCodes]
+  )
+
   const handleStateChange = (value: string) => {
     setStateName(value)
-    const selectedState = INDIAN_STATES_UTS.find((s) => s.name === value)
-    setStateCode(selectedState?.code ?? '')
+    const selected = INDIA_STATES.find((s) => s.name === value)
+    setStateCode(selected?.code ?? '')
+    setLgdCode(selected?.lgdCode ?? null)
   }
 
-  // Validation
-  const isValidEmail = (emailStr: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(emailStr)
+  const MAX_NAME_LENGTH = 25
+  const MAX_EMAIL_LENGTH = 60
+  const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+  const isValidPhone = (v: string) => /^\d{10}$/.test(v)
+  const isNameValid = (name: string) =>
+    name.trim() !== '' &&
+    !exceedsMaxLength(name, MAX_NAME_LENGTH) &&
+    isAlphabeticWithSpaces(name.trim())
+
+  const isFormValid =
+    stateName !== '' &&
+    stateCode !== '' &&
+    lgdCode !== null &&
+    isNameValid(adminFirstName) &&
+    isNameValid(adminLastName) &&
+    isValidPhone(adminPhone) &&
+    adminEmail.trim() !== '' &&
+    !exceedsMaxLength(adminEmail, MAX_EMAIL_LENGTH) &&
+    isValidEmail(adminEmail)
+
+  const adminFieldErrors = {
+    firstName: (() => {
+      if (!adminTouched.firstName) return ''
+      if (!adminFirstName.trim()) return t('common:validation.required')
+      if (exceedsMaxLength(adminFirstName, MAX_NAME_LENGTH))
+        return t('common:validation.maxLength', { max: MAX_NAME_LENGTH })
+      if (!isAlphabeticWithSpaces(adminFirstName.trim()))
+        return t('common:validation.alphabeticOnly')
+      return ''
+    })(),
+    lastName: (() => {
+      if (!adminTouched.lastName) return ''
+      if (!adminLastName.trim()) return t('common:validation.required')
+      if (exceedsMaxLength(adminLastName, MAX_NAME_LENGTH))
+        return t('common:validation.maxLength', { max: MAX_NAME_LENGTH })
+      if (!isAlphabeticWithSpaces(adminLastName.trim()))
+        return t('common:validation.alphabeticOnly')
+      return ''
+    })(),
+    phone: (() => {
+      if (!adminTouched.phone) return ''
+      if (!adminPhone.trim()) return t('common:validation.required')
+      if (!isValidPhone(adminPhone)) return t('common:validation.invalidPhone')
+      return ''
+    })(),
+    email: (() => {
+      if (!adminTouched.email) return ''
+      if (!adminEmail.trim()) return t('common:validation.required')
+      if (exceedsMaxLength(adminEmail, MAX_EMAIL_LENGTH))
+        return t('common:validation.maxLength', { max: MAX_EMAIL_LENGTH })
+      if (!isValidEmail(adminEmail)) return t('common:validation.invalidEmail')
+      return ''
+    })(),
   }
 
-  const isValidPhone = (phoneStr: string): boolean => {
-    const phoneRegex = /^\d{10}$/
-    return phoneRegex.test(phoneStr)
+  const handleAdminBlur = (field: keyof typeof adminTouched) => {
+    setAdminTouched((prev) => ({ ...prev, [field]: true }))
   }
 
-  const isFormValid = useMemo(() => {
-    const requiredFieldsValid =
-      stateName !== '' &&
-      firstName.trim() !== '' &&
-      lastName.trim() !== '' &&
-      email.trim() !== '' &&
-      phone.trim() !== ''
-
-    const emailValid = isValidEmail(email)
-    const phoneValid = isValidPhone(phone)
-
-    // Optional fields validation (if provided)
-    const secondaryEmailValid = secondaryEmail === '' || isValidEmail(secondaryEmail)
-    const contactNumberValid = contactNumber === '' || isValidPhone(contactNumber)
-
-    return (
-      requiredFieldsValid && emailValid && phoneValid && secondaryEmailValid && contactNumberValid
-    )
-  }, [stateName, firstName, lastName, email, phone, secondaryEmail, contactNumber])
-
-  const handleCancel = () => {
-    navigate(ROUTES.SUPER_ADMIN_STATES_UTS)
-  }
+  const handleCancel = () => navigate(ROUTES.SUPER_ADMIN_STATES_UTS)
 
   const handleSubmit = async () => {
-    if (!isFormValid) {
-      toast.addToast(t('common:toast.fillAllFieldsCorrectly'), 'error')
-      return
-    }
+    setAdminTouched({ firstName: true, lastName: true, phone: true, email: true })
+    if (!isFormValid || lgdCode === null) return
 
+    setIsSubmitting(true)
     try {
-      const newState = await createStateMutation.mutateAsync({
-        name: stateName,
-        code: stateCode,
-        admin: {
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          email: email.trim(),
-          phone: phone.trim(),
-          secondaryEmail: secondaryEmail.trim() || undefined,
-          contactNumber: contactNumber.trim() || undefined,
-        },
+      const tenant = await createTenantMutation.mutateAsync({
+        stateCode,
+        name: stateName.trim(),
+        lgdCode: lgdCode,
       })
-      toast.addToast(t('statesUts.messages.addedSuccess'), 'success')
-      // Navigate to view page after short delay to show toast
-      setTimeout(() => {
-        navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':id', newState.id))
-      }, 500)
+
+      try {
+        await inviteUserMutation.mutateAsync({
+          firstName: adminFirstName.trim(),
+          lastName: adminLastName.trim(),
+          phoneNumber: adminPhone,
+          email: adminEmail.trim(),
+          role: 'STATE_ADMIN',
+          tenantCode: tenant.stateCode,
+        })
+        toast.addToast(t('statesUts.messages.inviteSent'), 'success')
+        setTimeout(() => {
+          navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':tenantCode', tenant.stateCode))
+        }, 1000)
+      } catch (adminError) {
+        console.error('Admin invite failed:', adminError)
+        toast.addToast(t('statesUts.messages.tenantCreatedAdminFailed'), 'error')
+      }
     } catch (error) {
-      console.error('Failed to create state:', error)
+      console.error('Failed to create tenant:', error)
       toast.addToast(t('statesUts.messages.failedToAdd'), 'error')
+    } finally {
+      setIsSubmitting(false)
     }
   }
+
+  const isPending =
+    isSubmitting ||
+    isLoadingTenants ||
+    createTenantMutation.isPending ||
+    inviteUserMutation.isPending
 
   return (
     <Box w="full">
-      {/* Page Header with Breadcrumb */}
+      {/* Breadcrumb */}
       <Box mb={5}>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={2}>
           {t('statesUts.addTitle')}
@@ -149,7 +195,9 @@ export function AddStateUTPage() {
             _hover={{ textDecoration: 'underline' }}
             onClick={() => navigate(ROUTES.SUPER_ADMIN_STATES_UTS)}
             tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && navigate(ROUTES.SUPER_ADMIN_STATES_UTS)}
+            onKeyDown={(e: React.KeyboardEvent) =>
+              e.key === 'Enter' && navigate(ROUTES.SUPER_ADMIN_STATES_UTS)
+            }
           >
             {t('statesUts.breadcrumb.manage')}
           </Text>
@@ -161,14 +209,6 @@ export function AddStateUTPage() {
           </Text>
         </Flex>
       </Box>
-
-      {/* Assigned states fetch error */}
-      {isAssignedStatesError && (
-        <Alert status="error" borderRadius="8px" mb={4}>
-          <AlertIcon />
-          {t('statesUts.messages.failedToLoadAssignedStates')}
-        </Alert>
-      )}
 
       {/* Form Card */}
       <Box
@@ -185,7 +225,7 @@ export function AddStateUTPage() {
         px={{ base: 3, md: 4 }}
         onSubmit={(e: React.FormEvent) => {
           e.preventDefault()
-          handleSubmit()
+          void handleSubmit()
         }}
       >
         <Flex
@@ -195,7 +235,7 @@ export function AddStateUTPage() {
           minH={{ base: 'auto', lg: 'calc(100vh - 232px)' }}
         >
           <Box>
-            {/* State/UT Details Section */}
+            {/* State/UT Details */}
             <Heading as="h2" size="h3" fontWeight="400" mb={4} id="state-details-heading">
               {t('statesUts.details.title')}
             </Heading>
@@ -211,13 +251,12 @@ export function AddStateUTPage() {
                 </FormLabel>
                 <SearchableSelect
                   id="state-name-select"
-                  options={availableStates}
+                  options={stateOptions}
                   value={stateName}
                   onChange={handleStateChange}
                   placeholder={t('common:select')}
                   placeholderColor="neutral.300"
                   width={{ base: '100%', xl: '486px' }}
-                  disabled={isAssignedStatesLoading || isAssignedStatesError}
                 />
               </FormControl>
               <FormControl>
@@ -231,27 +270,31 @@ export function AddStateUTPage() {
                   h={9}
                   maxW={{ base: '100%', lg: '486px' }}
                   borderColor="neutral.200"
+                  color="neutral.500"
                   aria-readonly="true"
+                  placeholder={t('statesUts.details.autoFilledOnStateSelection')}
+                  _placeholder={{ color: 'neutral.300' }}
                 />
               </FormControl>
             </SimpleGrid>
 
-            {/* State Admin Details Section */}
+            {/* State Admin Invite */}
             <Heading as="h2" size="h3" fontWeight="400" mb={4} id="admin-details-heading">
               {t('statesUts.adminDetails.title')}
             </Heading>
             <SimpleGrid
               columns={{ base: 1, lg: 2 }}
-              spacing={3}
+              spacing={6}
               aria-labelledby="admin-details-heading"
             >
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={!!adminFieldErrors.firstName}>
                 <FormLabel textStyle="h10" mb={1}>
                   {t('statesUts.adminDetails.firstName')}
                 </FormLabel>
                 <Input
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  value={adminFirstName}
+                  onChange={(e) => setAdminFirstName(e.target.value)}
+                  onBlur={() => handleAdminBlur('firstName')}
                   placeholder={t('common:enter')}
                   h={9}
                   maxW={{ base: '100%', lg: '486px' }}
@@ -259,97 +302,72 @@ export function AddStateUTPage() {
                   _placeholder={{ color: 'neutral.300' }}
                   aria-required="true"
                 />
+                {adminFieldErrors.firstName && (
+                  <FormErrorMessage>{adminFieldErrors.firstName}</FormErrorMessage>
+                )}
               </FormControl>
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={!!adminFieldErrors.lastName}>
                 <FormLabel textStyle="h10" mb={1}>
                   {t('statesUts.adminDetails.lastName')}
                 </FormLabel>
                 <Input
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  value={adminLastName}
+                  onChange={(e) => setAdminLastName(e.target.value)}
+                  onBlur={() => handleAdminBlur('lastName')}
                   placeholder={t('common:enter')}
                   h={9}
-                  maxW={{ base: '100%', lg: '486px' }}
                   borderColor="neutral.200"
                   _placeholder={{ color: 'neutral.300' }}
-                  aria-required="true"
-                />
-              </FormControl>
-              <FormControl isRequired>
-                <FormLabel textStyle="h10" mb={1}>
-                  {t('statesUts.adminDetails.email')}
-                </FormLabel>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t('common:enter')}
-                  h={9}
                   maxW={{ base: '100%', lg: '486px' }}
-                  borderColor="neutral.200"
-                  _placeholder={{ color: 'neutral.300' }}
                   aria-required="true"
                 />
+                {adminFieldErrors.lastName && (
+                  <FormErrorMessage>{adminFieldErrors.lastName}</FormErrorMessage>
+                )}
               </FormControl>
-              <FormControl isRequired>
+              <FormControl isRequired isInvalid={!!adminFieldErrors.phone}>
                 <FormLabel textStyle="h10" mb={1}>
                   {t('statesUts.adminDetails.phone')}
                 </FormLabel>
                 <Input
                   type="tel"
-                  value={phone}
+                  value={adminPhone}
                   onChange={(e) => {
-                    // Only allow digits
-                    const value = e.target.value.replace(/\D/g, '')
-                    if (value.length <= 10) {
-                      setPhone(value)
-                    }
+                    const val = e.target.value.replaceAll(/\D/g, '')
+                    if (val.length <= 10) setAdminPhone(val)
                   }}
-                  placeholder="+91"
+                  onBlur={() => handleAdminBlur('phone')}
+                  placeholder={t('common:enter')}
+                  inputMode="numeric"
                   h={9}
-                  maxW={{ base: '100%', lg: '486px' }}
                   borderColor="neutral.200"
+                  maxW={{ base: '100%', lg: '486px' }}
                   _placeholder={{ color: 'neutral.300' }}
                   aria-required="true"
-                  inputMode="numeric"
                 />
+                {adminFieldErrors.phone && (
+                  <FormErrorMessage>{adminFieldErrors.phone}</FormErrorMessage>
+                )}
               </FormControl>
-              <FormControl>
+              <FormControl isRequired isInvalid={!!adminFieldErrors.email}>
                 <FormLabel textStyle="h10" mb={1}>
-                  {t('statesUts.adminDetails.secondaryEmail')}
+                  {t('statesUts.adminDetails.email')}
                 </FormLabel>
                 <Input
                   type="email"
-                  value={secondaryEmail}
-                  onChange={(e) => setSecondaryEmail(e.target.value)}
+                  value={adminEmail}
+                  onChange={(e) => setAdminEmail(e.target.value)}
+                  onBlur={() => handleAdminBlur('email')}
                   placeholder={t('common:enter')}
                   h={9}
-                  maxW={{ base: '100%', lg: '486px' }}
                   borderColor="neutral.200"
                   _placeholder={{ color: 'neutral.300' }}
-                />
-              </FormControl>
-              <FormControl>
-                <FormLabel textStyle="h10" mb={1}>
-                  {t('statesUts.adminDetails.contactNumber')}
-                </FormLabel>
-                <Input
-                  type="tel"
-                  value={contactNumber}
-                  onChange={(e) => {
-                    // Only allow digits
-                    const value = e.target.value.replace(/\D/g, '')
-                    if (value.length <= 10) {
-                      setContactNumber(value)
-                    }
-                  }}
-                  placeholder={t('common:enter')}
-                  h={9}
                   maxW={{ base: '100%', lg: '486px' }}
-                  borderColor="neutral.200"
-                  _placeholder={{ color: 'neutral.300' }}
-                  inputMode="numeric"
+                  aria-required="true"
                 />
+                {adminFieldErrors.email && (
+                  <FormErrorMessage>{adminFieldErrors.email}</FormErrorMessage>
+                )}
               </FormControl>
             </SimpleGrid>
           </Box>
@@ -366,7 +384,7 @@ export function AddStateUTPage() {
               size="md"
               width={{ base: 'full', sm: '174px' }}
               onClick={handleCancel}
-              isDisabled={createStateMutation.isPending}
+              isDisabled={isPending}
             >
               {t('common:button.cancel')}
             </Button>
@@ -376,8 +394,8 @@ export function AddStateUTPage() {
               size="md"
               width={{ base: 'full', sm: 'auto' }}
               maxWidth={{ base: '100%', sm: '275px' }}
-              isLoading={createStateMutation.isPending}
-              isDisabled={!isFormValid}
+              isLoading={isPending}
+              isDisabled={!isFormValid || isPending}
             >
               {t('statesUts.buttons.addAndSendLink')}
             </Button>
@@ -385,7 +403,6 @@ export function AddStateUTPage() {
         </Flex>
       </Box>
 
-      {/* Toast Container */}
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </Box>
   )

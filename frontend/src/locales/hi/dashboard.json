@@ -1,0 +1,219 @@
+{
+  "header": {
+    "title": "जलसूचक",
+    "subtitle": "जल आपूर्ति योजनाओं की परिचालन स्थिति"
+  },
+  "searchLayout": {
+    "placeholder": "राज्य/केंद्रशासित प्रदेश, जिला, ब्लॉक, ग्राम पंचायत, गांव द्वारा खोजें",
+    "downloadReport": "रिपोर्ट डाउनलोड करें",
+    "allStatesUTs": "सभी राज्य/केंद्रशासित प्रदेश",
+    "noOptionsFound": "{{label}} नहीं मिला",
+    "tabs": {
+      "administrative": "प्रशासनिक",
+      "departmental": "विभागीय"
+    },
+    "options": {
+      "states": "राज्य"
+    },
+    "aria": {
+      "breadcrumb": "ब्रेडक्रंब: {{item}}",
+      "closeDropdown": "खोज ड्रॉपडाउन बंद करें"
+    }
+  },
+  "filters": {
+    "duration": "अवधि",
+    "clearAll": "सभी फ़िल्टर साफ़ करें",
+    "dateRangePicker": {
+      "quickRanges": "त्वरित रेंज",
+      "startDate": "प्रारंभ तिथि",
+      "endDate": "समाप्ति तिथि",
+      "dateInputPlaceholder": "dd/mm/yyyy",
+      "clear": "साफ़ करें",
+      "apply": "लागू करें",
+      "presets": {
+        "today": "आज",
+        "yesterday": "कल",
+        "thisWeek": "यह सप्ताह",
+        "lastWeek": "पिछला सप्ताह",
+        "thisMonth": "यह महीना",
+        "lastMonth": "पिछला महीना"
+      }
+    },
+    "options": {
+      "states": "राज्य",
+      "districts": "जिले",
+      "blocks": "ब्लॉक",
+      "gramPanchayats": "ग्राम पंचायतें",
+      "villages": "गांव"
+    },
+    "noOptions": {
+      "states": "कोई राज्य नहीं मिला",
+      "districts": "कोई जिला नहीं मिला",
+      "blocks": "कोई ब्लॉक नहीं मिला",
+      "gramPanchayats": "कोई ग्राम पंचायत नहीं मिली",
+      "villages": "कोई गांव नहीं मिला"
+    }
+  },
+  "map": {
+    "metric": {
+      "quantity": "मात्रा",
+      "regularity": "नियमितता"
+    },
+    "legend": {
+      "gte90": ">=90%",
+      "gte70": ">=70%",
+      "gte50": ">=50%",
+      "gte30": ">=30%",
+      "gte0": ">=0%",
+      "noData": "डेटा नहीं"
+    }
+  },
+  "kpi": {
+    "labels": {
+      "quantityInMld": "एमएलडी में मात्रा",
+      "quantityInLpcd": "एलपीसीडी में मात्रा",
+      "regularity": "नियमितता"
+    },
+    "trends": {
+      "percentDownLastDays": "पिछले {{days}} दिनों की तुलना में -{{change}}%",
+      "lpcdUpLastMonth": "पिछले महीने की तुलना में +{{change}} LPCD",
+      "percentDownLastMonth": "पिछले महीने की तुलना में -{{change}}%"
+    }
+  },
+  "overallPerformance": {
+    "title": "समग्र प्रदर्शन",
+    "noData": "डेटा नहीं",
+    "columns": {
+      "entity": "राज्य/केंद्रशासित प्रदेश",
+      "quantityMld": "मात्रा (MLD)",
+      "quantityLpcd": "मात्रा (LPCD)",
+      "regularity": "नियमितता (%)"
+    },
+    "entities": {
+      "stateUt": "राज्य/केंद्रशासित प्रदेश",
+      "district": "जिला",
+      "block": "ब्लॉक",
+      "gramPanchayat": "ग्राम पंचायत",
+      "village": "गांव"
+    }
+  },
+  "performanceCharts": {
+    "quantity": {
+      "title": "मात्रा प्रदर्शन",
+      "ariaViewBy": "मात्रा प्रदर्शन दृश्य प्रकार",
+      "ariaViewByDistrict": "जिला मात्रा प्रदर्शन दृश्य प्रकार",
+      "ariaViewByGramPanchayat": "ग्राम पंचायत मात्रा प्रदर्शन दृश्य प्रकार",
+      "yAxisLabel": "मात्रा",
+      "seriesName": "मात्रा",
+      "areaSeriesName": "मांग"
+    },
+    "regularity": {
+      "title": "नियमितता प्रदर्शन",
+      "ariaViewBy": "नियमितता प्रदर्शन दृश्य प्रकार",
+      "ariaViewByDistrict": "जिला नियमितता प्रदर्शन दृश्य प्रकार",
+      "ariaViewByGramPanchayat": "ग्राम पंचायत नियमितता प्रदर्शन दृश्य प्रकार",
+      "yAxisLabel": "नियमितता",
+      "yAxisLabelPercent": "नियमितता (%)",
+      "seriesName": "नियमितता"
+    },
+    "viewBy": {
+      "select": "चुनें",
+      "geography": "भौगोलिक",
+      "time": "समय",
+      "month": "महीना",
+      "blocks": "ब्लॉक",
+      "districts": "जिले",
+      "statesUTs": "राज्य/केंद्रशासित प्रदेश",
+      "gramPanchayats": "ग्राम पंचायतें",
+      "villages": "गांव"
+    }
+  },
+  "outageAndSubmissionCharts": {
+    "ariaViewByBlock": "ब्लॉक जल आपूर्ति बाधा वितरण दृश्य प्रकार",
+    "ariaViewByGramPanchayat": "ग्राम पंचायत जल आपूर्ति बाधा वितरण दृश्य प्रकार",
+    "titles": {
+      "supplyOutageReasons": "जल आपूर्ति बाधा के कारण",
+      "supplyOutageDistribution": "जल आपूर्ति बाधा वितरण",
+      "readingSubmissionRate": "रीडिंग सबमिशन दर",
+      "readingSubmissionStatus": "रीडिंग सबमिशन स्थिति",
+      "readingCompliance": "रीडिंग अनुपालन",
+      "photoEvidenceCompliance": "फोटो साक्ष्य अनुपालन",
+      "issueTypeBreakdown": "समस्या प्रकार विभाजन"
+    },
+    "axis": {
+      "percentage": "प्रतिशत",
+      "noOfDays": "दिनों की संख्या"
+    },
+    "series": {
+      "submissionRate": "सबमिशन दर",
+      "readingSubmission": "रीडिंग सबमिशन",
+      "supplyOutage": "जल आपूर्ति बाधा"
+    },
+    "legend": {
+      "electricalFailure": "बिजली विफलता",
+      "pipelineBreak": "पाइपलाइन टूटना",
+      "pumpFailure": "पंप विफलता",
+      "valveIssue": "वाल्व समस्या",
+      "sourceDrying": "स्रोत सूखना",
+      "complaintSubmission": "शिकायत सबमिशन",
+      "automatedSubmission": "विसंगतिपूर्ण सबमिशन"
+    },
+    "tables": {
+      "readingCompliance": {
+        "columns": {
+          "name": "नाम",
+          "village": "गांव",
+          "lastSubmission": "अंतिम सबमिशन",
+          "readingValue": "रीडिंग मान"
+        }
+      }
+    }
+  },
+  "pumpOperators": {
+    "title": "योजनाएं",
+    "totalLabel": "कुल",
+    "note": "नोट: सक्रिय पंप ऑपरेटर्स महीने में कम से कम 30 दिन रीडिंग सबमिट करते हैं।",
+    "details": {
+      "title": "पंप ऑपरेटर विवरण",
+      "fields": {
+        "schemeNameSchemeId": "योजना का नाम/ योजना आईडी",
+        "stationLocation": "स्टेशन स्थान",
+        "lastSubmission": "अंतिम सबमिशन",
+        "reportingRate": "रिपोर्टिंग दर",
+        "missingSubmissionCount": "मिसिंग सबमिशन की संख्या",
+        "inactiveDays": "निष्क्रिय दिन"
+      },
+      "pagination": {
+        "previous": "पिछला",
+        "next": "अगला"
+      }
+    },
+    "legend": {
+      "active": "सक्रिय योजनाएं",
+      "inactive": "गैर-सक्रिय योजनाएं"
+    },
+    "performanceTable": {
+      "title": "योजना प्रदर्शन",
+      "columns": {
+        "name": "नाम",
+        "village": "गांव",
+        "block": "ब्लॉक",
+        "reportingRate": "रिपोर्टिंग दर (%)",
+        "waterSupplied": "जल आपूर्ति"
+      }
+    }
+  },
+  "blockDashboard": {
+    "titles": {
+      "allGramPanchayatsPerformance": "सभी ग्राम पंचायतों का प्रदर्शन",
+      "demandVsSupply": "मांग बनाम आपूर्ति",
+      "allGramPanchayats": "सभी ग्राम पंचायतें"
+    }
+  },
+  "states": {
+    "dataUnavailable": {
+      "title": "डैशबोर्ड डेटा उपलब्ध नहीं है",
+      "description": "कोई डैशबोर्ड डेटा प्राप्त नहीं हुआ।"
+    }
+  }
+}

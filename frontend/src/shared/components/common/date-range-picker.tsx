@@ -9,11 +9,13 @@ import {
   PopoverContent,
   PopoverTrigger,
   Text,
+  useMediaQuery,
   VStack,
 } from '@chakra-ui/react'
 import type { ResponsiveValue } from '@chakra-ui/react'
 import type { Property } from 'csstype'
-import { MdOutlineCalendarToday } from 'react-icons/md'
+import { useTranslation } from 'react-i18next'
+import { CalendarIcon } from './calendar-icon'
 
 export type DateRange = {
   startDate: string
@@ -27,13 +29,27 @@ type PresetDefinition = {
   getRange: (baseDate: Date) => { startDate: string; endDate: string }
 }
 
+type PopoverPlacement =
+  | 'top'
+  | 'top-start'
+  | 'top-end'
+  | 'bottom'
+  | 'bottom-start'
+  | 'bottom-end'
+  | 'left'
+  | 'left-start'
+  | 'left-end'
+  | 'right'
+  | 'right-start'
+  | 'right-end'
+
 export interface DateRangePickerProps {
   value: DateRange | null
   onChange: (value: DateRange | null) => void
   placeholder?: string
   disabled?: boolean
   width?: ResponsiveValue<Property.Width>
-  fontSize?: string
+  fontSize?: ResponsiveValue<Property.FontSize>
   textColor?: string
   height?: string
   borderRadius?: string
@@ -41,6 +57,9 @@ export interface DateRangePickerProps {
   textStyle?: string
   isFilter?: boolean
   placeholderColor?: string
+  iconOnly?: boolean
+  iconAriaLabel?: string
+  popoverPlacement?: PopoverPlacement
 }
 
 const formatISODate = (date: Date) => {
@@ -107,9 +126,16 @@ export function DateRangePicker({
   textStyle = 'h10',
   isFilter = false,
   placeholderColor = 'neutral.500',
+  iconOnly = false,
+  iconAriaLabel,
+  popoverPlacement = 'bottom-start',
 }: DateRangePickerProps) {
+  const { t } = useTranslation('dashboard')
+  const [isTinyPicker] = useMediaQuery('(max-width: 599px)')
   const [isOpen, setIsOpen] = useState(false)
   const [draft, setDraft] = useState<DateRange | null>(value)
+  const [tinyPopoverWidth, setTinyPopoverWidth] = useState<number | null>(null)
+  const [tinyPopoverOffset, setTinyPopoverOffset] = useState(0)
   const [draftIso, setDraftIso] = useState<{ startDate: string; endDate: string } | null>(
     value
       ? {
@@ -120,6 +146,7 @@ export function DateRangePicker({
   )
   const startDateInputRef = useRef<HTMLInputElement | null>(null)
   const endDateInputRef = useRef<HTMLInputElement | null>(null)
+  const triggerRef = useRef<HTMLButtonElement | null>(null)
 
   const syncDraftFromValue = (nextValue: DateRange | null) => {
     setDraft(nextValue)
@@ -137,7 +164,7 @@ export function DateRangePicker({
     () => [
       {
         id: 'today',
-        label: 'Today',
+        label: t('filters.dateRangePicker.presets.today', 'Today'),
         getRange: (baseDate) => ({
           startDate: formatISODate(baseDate),
           endDate: formatISODate(baseDate),
@@ -145,7 +172,7 @@ export function DateRangePicker({
       },
       {
         id: 'yesterday',
-        label: 'Yesterday',
+        label: t('filters.dateRangePicker.presets.yesterday', 'Yesterday'),
         getRange: (baseDate) => {
           const yesterday = new Date(baseDate)
           yesterday.setDate(baseDate.getDate() - 1)
@@ -157,7 +184,7 @@ export function DateRangePicker({
       },
       {
         id: 'this-week',
-        label: 'This week',
+        label: t('filters.dateRangePicker.presets.thisWeek', 'This week'),
         getRange: (baseDate) => ({
           startDate: formatISODate(startOfWeek(baseDate)),
           endDate: formatISODate(endOfWeek(baseDate)),
@@ -165,7 +192,7 @@ export function DateRangePicker({
       },
       {
         id: 'last-week',
-        label: 'Last week',
+        label: t('filters.dateRangePicker.presets.lastWeek', 'Last week'),
         getRange: (baseDate) => {
           const lastWeek = new Date(baseDate)
           lastWeek.setDate(baseDate.getDate() - 7)
@@ -177,7 +204,7 @@ export function DateRangePicker({
       },
       {
         id: 'this-month',
-        label: 'This month',
+        label: t('filters.dateRangePicker.presets.thisMonth', 'This month'),
         getRange: (baseDate) => ({
           startDate: formatISODate(startOfMonth(baseDate)),
           endDate: formatISODate(endOfMonth(baseDate)),
@@ -185,7 +212,7 @@ export function DateRangePicker({
       },
       {
         id: 'last-month',
-        label: 'Last month',
+        label: t('filters.dateRangePicker.presets.lastMonth', 'Last month'),
         getRange: (baseDate) => {
           const lastMonth = new Date(baseDate.getFullYear(), baseDate.getMonth() - 1, 1)
           return {
@@ -195,7 +222,7 @@ export function DateRangePicker({
         },
       },
     ],
-    []
+    [t]
   )
 
   const displayLabel = value
@@ -209,9 +236,35 @@ export function DateRangePicker({
     : textColor || (value ? 'neutral.950' : placeholderColor)
 
   const displayBorderColor = isFilter ? (value ? 'primary.500' : borderColor) : borderColor
+  const triggerAriaLabel = iconAriaLabel || placeholder
+  const placement = isTinyPicker ? 'bottom-start' : popoverPlacement
+  const modifiers = isTinyPicker
+    ? [
+        { name: 'offset', options: { offset: [tinyPopoverOffset, 8] } },
+        { name: 'flip', enabled: true },
+        {
+          name: 'preventOverflow',
+          options: { mainAxis: true, altAxis: true, tether: true, padding: 8 },
+        },
+      ]
+    : [
+        { name: 'offset', options: { offset: [-20, 8] } },
+        { name: 'flip', enabled: false },
+        { name: 'preventOverflow', options: { mainAxis: false, altAxis: false, tether: false } },
+      ]
 
   const handleOpen = () => {
     if (!disabled) {
+      if (isTinyPicker && triggerRef.current) {
+        const dashboardContent = document.getElementById('main-content')
+        if (dashboardContent instanceof HTMLElement) {
+          const searchLayoutRect = dashboardContent.getBoundingClientRect()
+          const triggerRect = triggerRef.current.getBoundingClientRect()
+
+          setTinyPopoverWidth(searchLayoutRect.width)
+          setTinyPopoverOffset(searchLayoutRect.left - triggerRect.left)
+        }
+      }
       syncDraftFromValue(value)
       setIsOpen(true)
     }
@@ -281,79 +334,90 @@ export function DateRangePicker({
       isOpen={isOpen}
       onOpen={handleOpen}
       onClose={handleClose}
-      placement="bottom-end"
-      modifiers={[
-        { name: 'offset', options: { offset: [260, 8] } },
-        { name: 'flip', enabled: false },
-        { name: 'preventOverflow', options: { mainAxis: false, altAxis: false, tether: false } },
-      ]}
+      placement={placement}
+      modifiers={modifiers}
     >
       <PopoverTrigger>
         <Flex
           as="button"
+          ref={triggerRef}
           type="button"
+          aria-label={triggerAriaLabel}
           w={width}
+          maxW={width}
           h={height}
-          px="12px"
+          maxH={height}
+          px={iconOnly ? '8px' : '12px'}
           py="6px"
           bg="white"
           borderWidth="1px"
           borderColor={displayBorderColor}
           borderRadius={borderRadius}
           align="center"
-          justify="space-between"
+          justify={iconOnly ? 'center' : 'space-between'}
           cursor={disabled ? 'not-allowed' : 'pointer'}
           opacity={disabled ? 0.6 : 1}
           _hover={!disabled ? { borderColor: 'neutral.400' } : undefined}
           _focus={{ borderColor: 'primary.500', outline: 'none' }}
           _disabled={{ cursor: 'not-allowed', opacity: 0.6, pointerEvents: 'none' }}
         >
-          <Text
-            fontSize={fontSize}
-            color={displayColor}
-            textStyle={textStyle}
-            fontWeight={isFilter ? 'semibold' : '400'}
-            noOfLines={1}
-          >
-            {displayLabel}
-          </Text>
-          <Box as={MdOutlineCalendarToday} boxSize={4} color="neutral.500" />
+          {iconOnly ? null : (
+            <Text
+              fontSize={fontSize}
+              color={displayColor}
+              textStyle={textStyle}
+              fontWeight={isFilter ? 'semibold' : '400'}
+              noOfLines={1}
+            >
+              {displayLabel}
+            </Text>
+          )}
+          <CalendarIcon boxSize="16px" color={displayColor} />
         </Flex>
       </PopoverTrigger>
-      <PopoverContent w={{ base: 'full', md: '420px' }} borderColor="neutral.100" boxShadow="md">
-        <PopoverBody p="16px">
-          <Flex direction={{ base: 'column', md: 'row' }} gap="16px">
-            <VStack align="stretch" spacing="6px" minW={{ md: '160px' }}>
-              <Text textStyle="h10" color="neutral.500">
-                Quick ranges
-              </Text>
-              {presets.map((preset) => {
-                const isSelected = draft?.preset === preset.label
-                return (
-                  <Button
-                    key={preset.id}
-                    variant="ghost"
-                    justifyContent="flex-start"
-                    size="sm"
-                    fontWeight={isSelected ? '600' : '500'}
-                    color={isSelected ? 'primary.500' : 'neutral.600'}
-                    onClick={() => handlePreset(preset)}
-                  >
-                    {preset.label}
-                  </Button>
-                )
-              })}
-            </VStack>
-            <Box flex="1">
-              <Flex gap="12px" wrap="wrap">
-                <Box flex="1" minW="180px">
+      <PopoverContent
+        w={isTinyPicker && tinyPopoverWidth ? `${tinyPopoverWidth}px` : 'full'}
+        minW={isTinyPicker ? 'auto' : '250'}
+        maxW="min(420px, calc(100vw - 32px))"
+        borderColor="neutral.100"
+        boxShadow="md"
+        mt="16px"
+      >
+        <PopoverBody p="16px" w="full" maxW="full">
+          <Flex direction="row" gap="16px" align="flex-start" w="full" maxW="full">
+            {isTinyPicker ? null : (
+              <VStack align="stretch" spacing="6px" minW="160px" flex="0 0 160px">
+                <Text textStyle="h10" color="neutral.500">
+                  {t('filters.dateRangePicker.quickRanges', 'Quick ranges')}
+                </Text>
+                {presets.map((preset) => {
+                  const isSelected = draft?.preset === preset.label
+                  return (
+                    <Button
+                      key={preset.id}
+                      variant="ghost"
+                      justifyContent="flex-start"
+                      size="sm"
+                      fontWeight={isSelected ? '600' : '500'}
+                      color={isSelected ? 'primary.500' : 'neutral.600'}
+                      onClick={() => handlePreset(preset)}
+                    >
+                      {preset.label}
+                    </Button>
+                  )
+                })}
+              </VStack>
+            )}
+            <Box flex="1" minW={0}>
+              <Flex direction="column" gap="12px">
+                <Box w="full" minW={0}>
                   <Text textStyle="h10" color="neutral.500" mb="6px">
-                    Start date
+                    {t('filters.dateRangePicker.startDate', 'Start date')}
                   </Text>
                   <Box position="relative">
                     <Input
                       type="text"
-                      placeholder="dd/mm/yyyy"
+                      placeholder={t('filters.dateRangePicker.dateInputPlaceholder', 'dd/mm/yyyy')}
                       value={draft?.startDate ?? ''}
                       onFocus={() => openPicker(startDateInputRef)}
                       onChange={(event) => {
@@ -427,14 +491,14 @@ export function DateRangePicker({
                     />
                   </Box>
                 </Box>
-                <Box flex="1" minW="180px">
+                <Box w="full" minW={0}>
                   <Text textStyle="h10" color="neutral.500" mb="6px">
-                    End date
+                    {t('filters.dateRangePicker.endDate', 'End date')}
                   </Text>
                   <Box position="relative">
                     <Input
                       type="text"
-                      placeholder="dd/mm/yyyy"
+                      placeholder={t('filters.dateRangePicker.dateInputPlaceholder', 'dd/mm/yyyy')}
                       value={draft?.endDate ?? ''}
                       onFocus={() => openPicker(endDateInputRef)}
                       onChange={(event) => {
@@ -485,7 +549,7 @@ export function DateRangePicker({
               </Flex>
               <Flex justify="flex-end" gap="8px" mt="16px">
                 <Button variant="outline" size="sm" onClick={handleClear}>
-                  Clear
+                  {t('filters.dateRangePicker.clear', 'Clear')}
                 </Button>
                 <Button
                   colorScheme="teal"
@@ -493,7 +557,7 @@ export function DateRangePicker({
                   onClick={handleApply}
                   isDisabled={isApplyDisabled}
                 >
-                  Apply
+                  {t('filters.dateRangePicker.apply', 'Apply')}
                 </Button>
               </Flex>
             </Box>

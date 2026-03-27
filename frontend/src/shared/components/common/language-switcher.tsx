@@ -5,13 +5,13 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
-  Icon,
   Text,
   Flex,
+  Image,
 } from '@chakra-ui/react'
-import { IoGlobeOutline } from 'react-icons/io5'
 import { useLanguageStore } from '@/app/store'
 import type { LanguageCode } from '@/app/i18n'
+import languageIcon from '@/assets/media/Language icon.svg'
 
 interface LanguageSwitcherProps {
   isMobileHeader?: boolean
@@ -20,8 +20,8 @@ interface LanguageSwitcherProps {
 export function LanguageSwitcher({ isMobileHeader = false }: LanguageSwitcherProps) {
   const { currentLanguage, setLanguage, getSupportedLanguages } = useLanguageStore()
   const supportedLanguages = getSupportedLanguages()
-
-  const currentLangDisplay = currentLanguage.toUpperCase()
+  const iconWidth = isMobileHeader ? '60px' : '28px'
+  const iconHeight = isMobileHeader ? '60px' : '29px'
 
   const handleLanguageChange = (langCode: LanguageCode) => {
     setLanguage(langCode)
@@ -30,7 +30,7 @@ export function LanguageSwitcher({ isMobileHeader = false }: LanguageSwitcherPro
   return (
     <Box
       position={isMobileHeader ? 'relative' : 'fixed'}
-      top={isMobileHeader ? 'auto' : 2}
+      top={isMobileHeader ? 'auto' : '44px'}
       right={isMobileHeader ? 'auto' : { base: 4, lg: 12 }}
       zIndex={50}
     >
@@ -40,22 +40,22 @@ export function LanguageSwitcher({ isMobileHeader = false }: LanguageSwitcherPro
           variant="ghost"
           size="sm"
           aria-label="Change language"
-          px={2}
-          py={1}
-          h="36px"
-          bg="white"
-          borderWidth="1px"
-          borderColor="neutral.200"
-          borderRadius="8px"
-          boxShadow="sm"
-          _hover={{ bg: 'neutral.50', borderColor: 'neutral.300' }}
-          _active={{ bg: 'neutral.100' }}
+          px={0}
+          py={0}
+          minW="40px"
+          w="40px"
+          h="40px"
+          bg="transparent"
+          borderWidth="0"
+          borderRadius="0"
+          boxShadow="none"
+          _hover={{ bg: 'transparent' }}
+          _active={{ bg: 'transparent' }}
         >
-          <Flex align="center" gap={1.5}>
-            <Icon as={IoGlobeOutline} boxSize={5} color="neutral.600" />
-            <Text fontSize="13px" fontWeight="500" color="neutral.700">
-              {currentLangDisplay}
-            </Text>
+          <Flex w="full" h="full" align="center" justify="center">
+            <Box w={iconWidth} h={iconHeight} aria-hidden="true">
+              <Image src={languageIcon} alt="" w={iconWidth} h={iconHeight} />
+            </Box>
           </Flex>
         </MenuButton>
         <MenuList minW="140px" py={1} borderRadius="8px" boxShadow="md" borderColor="neutral.200">
@@ -63,9 +63,9 @@ export function LanguageSwitcher({ isMobileHeader = false }: LanguageSwitcherPro
             <MenuItem
               key={lang.code}
               onClick={() => handleLanguageChange(lang.code)}
-              bg={currentLanguage === lang.code ? 'primary.50' : 'transparent'}
+              bg={currentLanguage === lang.code ? 'primary.25' : 'transparent'}
               color={currentLanguage === lang.code ? 'primary.600' : 'neutral.700'}
-              _hover={{ bg: currentLanguage === lang.code ? 'primary.100' : 'neutral.50' }}
+              _hover={{ bg: currentLanguage === lang.code ? 'primary.50' : 'neutral.50' }}
               fontSize="14px"
               py={2}
             >

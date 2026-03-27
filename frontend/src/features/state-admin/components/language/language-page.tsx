@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Box, Text, Button, Flex, HStack, Heading, Spinner, SimpleGrid } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
-import { AVAILABLE_LANGUAGES } from '../../types/language'
+import { APP_LANGUAGES } from '@/shared/constants/languages'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ToastContainer, SearchableSelect } from '@/shared/components/common'
 import {
@@ -18,6 +18,7 @@ export function LanguagePage() {
   const [languageDraft, setLanguageDraft] = useState<{
     primaryLanguage?: string
     secondaryLanguage?: string
+    tertiaryLanguage?: string
   }>({})
   const toast = useToast()
 
@@ -28,6 +29,40 @@ export function LanguagePage() {
   const effectiveIsEditing = isEditing || Boolean(config && !config.isConfigured)
   const primaryLanguage = languageDraft.primaryLanguage ?? config?.primaryLanguage ?? ''
   const secondaryLanguage = languageDraft.secondaryLanguage ?? config?.secondaryLanguage ?? ''
+  const tertiaryLanguage = languageDraft.tertiaryLanguage ?? config?.tertiaryLanguage ?? ''
+
+  const primaryOptions = useMemo(
+    () =>
+      APP_LANGUAGES.filter(
+        (l) =>
+          l.isActive &&
+          l.label.toLowerCase() !== secondaryLanguage &&
+          l.label.toLowerCase() !== tertiaryLanguage
+      ).map((l) => ({ value: l.label.toLowerCase(), label: l.labelLocale })),
+    [secondaryLanguage, tertiaryLanguage]
+  )
+
+  const secondaryOptions = useMemo(
+    () =>
+      APP_LANGUAGES.filter(
+        (l) =>
+          l.isActive &&
+          l.label.toLowerCase() !== primaryLanguage &&
+          l.label.toLowerCase() !== tertiaryLanguage
+      ).map((l) => ({ value: l.label.toLowerCase(), label: l.labelLocale })),
+    [primaryLanguage, tertiaryLanguage]
+  )
+
+  const tertiaryOptions = useMemo(
+    () =>
+      APP_LANGUAGES.filter(
+        (l) =>
+          l.isActive &&
+          l.label.toLowerCase() !== primaryLanguage &&
+          l.label.toLowerCase() !== secondaryLanguage
+      ).map((l) => ({ value: l.label.toLowerCase(), label: l.labelLocale })),
+    [primaryLanguage, secondaryLanguage]
+  )
 
   const handleEdit = () => {
     setIsEditing(true)
@@ -47,6 +82,7 @@ export function LanguagePage() {
       await saveLanguageConfigMutation.mutateAsync({
         primaryLanguage,
         secondaryLanguage: secondaryLanguage || undefined,
+        tertiaryLanguage: tertiaryLanguage || undefined,
         isConfigured: true,
       })
       setIsEditing(false)
@@ -57,16 +93,15 @@ export function LanguagePage() {
     }
   }
 
-  const getPrimaryLanguageLabel = () => {
-    const lang = AVAILABLE_LANGUAGES.find((l) => l.value === primaryLanguage)
-    return lang ? lang.label : primaryLanguage
+  const lookupLanguageLabel = (value: string | undefined | null): string => {
+    if (!value) return ''
+    const lang = APP_LANGUAGES.find((l) => l.label.toLowerCase() === value)
+    return lang ? lang.labelLocale : value
   }
 
-  const getSecondaryLanguageLabel = () => {
-    if (!secondaryLanguage) return ''
-    const lang = AVAILABLE_LANGUAGES.find((l) => l.value === secondaryLanguage)
-    return lang ? lang.label : secondaryLanguage
-  }
+  const getPrimaryLanguageLabel = () => lookupLanguageLabel(primaryLanguage)
+  const getSecondaryLanguageLabel = () => lookupLanguageLabel(secondaryLanguage)
+  const getTertiaryLanguageLabel = () => lookupLanguageLabel(tertiaryLanguage)
 
   if (isLoading) {
     return (
@@ -176,6 +211,19 @@ export function LanguagePage() {
                     {getSecondaryLanguageLabel() || '-'}
                   </Text>
                 </Box>
+                <Box>
+                  <Text
+                    fontSize={{ base: 'xs', md: 'sm' }}
+                    fontWeight="medium"
+                    color="neutral.700"
+                    mb={1}
+                  >
+                    {t('language.tertiaryLanguage')}
+                  </Text>
+                  <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
+                    {getTertiaryLanguageLabel() || '-'}
+                  </Text>
+                </Box>
               </SimpleGrid>
             </Box>
           ) : (
@@ -208,10 +256,15 @@ export function LanguagePage() {
                     </Text>
                   </Text>
                   <SearchableSelect
-                    options={AVAILABLE_LANGUAGES}
+                    options={primaryOptions}
                     value={primaryLanguage}
                     onChange={(value) =>
-                      setLanguageDraft((prev) => ({ ...prev, primaryLanguage: value }))
+                      setLanguageDraft((prev) => ({
+                        ...prev,
+                        primaryLanguage: value,
+                        ...(value === secondaryLanguage && { secondaryLanguage: '' }),
+                        ...(value === tertiaryLanguage && { tertiaryLanguage: '' }),
+                      }))
                     }
                     placeholder={t('common:select')}
                     width="100%"
@@ -231,7 +284,7 @@ export function LanguagePage() {
                     {t('language.secondaryLanguage')}
                   </Text>
                   <SearchableSelect
-                    options={AVAILABLE_LANGUAGES}
+                    options={secondaryOptions}
                     value={secondaryLanguage}
                     onChange={(value) =>
                       setLanguageDraft((prev) => ({ ...prev, secondaryLanguage: value }))
@@ -239,6 +292,29 @@ export function LanguagePage() {
                     placeholder={t('common:select')}
                     width="100%"
                     ariaLabel={t('language.aria.selectSecondaryLanguage')}
+                  />
+                </Box>
+                <Box w={{ base: 'full', xl: '486px' }}>
+                  <Text
+                    as="label"
+                    id="tertiary-language-label"
+                    fontSize={{ base: 'xs', md: 'sm' }}
+                    fontWeight="medium"
+                    color="neutral.950"
+                    mb={1}
+                    display="block"
+                  >
+                    {t('language.tertiaryLanguage')}
+                  </Text>
+                  <SearchableSelect
+                    options={tertiaryOptions}
+                    value={tertiaryLanguage}
+                    onChange={(value) =>
+                      setLanguageDraft((prev) => ({ ...prev, tertiaryLanguage: value }))
+                    }
+                    placeholder={t('common:select')}
+                    width="100%"
+                    ariaLabel={t('language.aria.selectTertiaryLanguage')}
                   />
                 </Box>
               </SimpleGrid>

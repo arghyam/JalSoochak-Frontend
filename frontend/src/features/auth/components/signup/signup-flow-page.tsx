@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Box, Flex, Image } from '@chakra-ui/react'
+import { useLocation } from 'react-router-dom'
+import { Box, Flex, Image, useMediaQuery } from '@chakra-ui/react'
 import jalsoochakLogo from '@/assets/media/jalsoochak-logo.svg'
 import { AuthSideImage } from '@/features/auth/components/signup/auth-side-image'
 import { SignupPage } from '@/features/auth/components/signup/signup-page'
 import { CreatePasswordPage } from '@/features/auth/components/signup/create-password-page'
 import { CredentialsPage } from '@/features/auth/components/signup/credentials-page'
-import { ROUTES } from '@/shared/constants/routes'
+import { ToastContainer } from '@/shared/components/common'
+import { useToast } from '@/shared/hooks/use-toast'
 
 type SignupStep = 'signup' | 'createPassword' | 'credentials'
 
@@ -16,7 +17,12 @@ type SignupFlowPageProps = {
 
 export function SignupFlowPage({ initialStep = 'signup' }: SignupFlowPageProps) {
   const [step, setStep] = useState<SignupStep>(initialStep)
-  const navigate = useNavigate()
+  const [showBannerImage] = useMediaQuery('(min-width: 992px)')
+  const location = useLocation()
+  const state = location.state as { email?: string; userId?: string } | null
+  const email = state?.email ?? ''
+  const userId = state?.userId ?? ''
+  const toast = useToast()
 
   useEffect(() => {
     setStep(initialStep)
@@ -27,27 +33,29 @@ export function SignupFlowPage({ initialStep = 'signup' }: SignupFlowPageProps) 
 
   const renderStep = () => {
     if (step === 'createPassword') {
-      return <CreatePasswordPage onNext={() => navigate(ROUTES.CREDENTIALS)} />
+      return <CreatePasswordPage onShowToast={toast.addToast} />
     }
 
     if (step === 'credentials') {
-      return <CredentialsPage />
+      return <CredentialsPage email={email} userId={userId} onShowToast={toast.addToast} />
     }
 
-    return <SignupPage onSuccess={() => navigate(ROUTES.CREATE_PASSWORD)} />
+    // Do not redirect from signup page to create-password page; invite flow uses /createpassword/:id directly.
+    return <SignupPage onSuccess={() => {}} />
   }
 
   return (
-    <Flex minH="100vh" w="full" direction={{ base: 'column', md: 'row' }}>
+    <Flex minH="100vh" w="full" direction={{ base: 'column', md: 'row' }} bg="white">
       <Flex
-        w={{ base: '100%', md: '50%' }}
+        w={showBannerImage ? '50%' : '100%'}
+        minH="100vh"
         align="stretch"
         justify="flex-start"
         bg="white"
         px={{ base: 10, md: 8 }}
         py={{ base: 10, md: 8 }}
       >
-        <Flex w="full" direction="column">
+        <Flex w="full" minH="full" direction="column">
           {showLogo ? (
             <Box w="full" maxW="420px">
               <Image
@@ -68,7 +76,13 @@ export function SignupFlowPage({ initialStep = 'signup' }: SignupFlowPageProps) 
         </Flex>
       </Flex>
 
-      <AuthSideImage />
+      <AuthSideImage isVisible={showBannerImage} />
+
+      <ToastContainer
+        toasts={toast.toasts}
+        onRemove={toast.removeToast}
+        position="bottom-left-quarter"
+      />
     </Flex>
   )
 }

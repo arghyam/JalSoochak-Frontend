@@ -1,8 +1,9 @@
-import { useMemo } from 'react'
-import { useTheme } from '@chakra-ui/react'
+import { useCallback, useMemo, useState } from 'react'
+import { useMediaQuery, useTheme } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
-import { EChartsWrapper } from './echarts-wrapper'
-import { getBodyText6Style } from './chart-text-style'
+import { EChartsWrapper, Toggle } from '@/shared/components/common'
+import { getBodyText6Style } from '@/shared/components/charts/chart-text-style'
 import type { EntityPerformance } from '../../types'
 
 interface IndiaMapChartProps {
@@ -13,8 +14,6 @@ interface IndiaMapChartProps {
   height?: string | number
 }
 
-// Note: Color mapping is handled by visualMap in ECharts option
-
 export function IndiaMapChart({
   data,
   onStateClick,
@@ -23,14 +22,57 @@ export function IndiaMapChart({
   height = '600px',
 }: IndiaMapChartProps) {
   const theme = useTheme()
+  const [isBelow500] = useMediaQuery('(max-width: 499.98px)')
+  const [isBelowSm] = useMediaQuery('(max-width: 479.98px)')
+  const { t } = useTranslation('dashboard')
+  const [isRegularityView, setIsRegularityView] = useState(true)
+  const metricKey: 'quantity' | 'regularity' = isRegularityView ? 'regularity' : 'quantity'
+  const resolveThemeColor = useCallback(
+    (token: string) => {
+      const [scale, shade] = token.split('.')
+      const palette = (theme as { colors?: Record<string, Record<string, string>> }).colors?.[scale]
+      const value = palette?.[shade]
+      return typeof value === 'string' ? value : token
+    },
+    [theme]
+  )
+  const mapColors = useMemo(
+    () => ({
+      gte90: resolveThemeColor('primary.500'),
+      gte70: resolveThemeColor('success.500'),
+      gte50: resolveThemeColor('secondary.500'),
+      gte30: resolveThemeColor('secondary.700'),
+      gte0: resolveThemeColor('error.500'),
+      noData: resolveThemeColor('neutral.400'),
+      emphasis: resolveThemeColor('primary.600'),
+    }),
+    [resolveThemeColor]
+  )
+  const quantityLabel = t('map.metric.quantity', { defaultValue: 'Quantity' })
+  const regularityLabel = t('map.metric.regularity', { defaultValue: 'Regularity' })
+  const selectedMetricLabel = isRegularityView ? regularityLabel : quantityLabel
+  const getRangeColor = useCallback(
+    (value: number) => {
+      if (value >= 90) return mapColors.gte90
+      if (value >= 70) return mapColors.gte70
+      if (value >= 50) return mapColors.gte50
+      if (value >= 30) return mapColors.gte30
+      if (value >= 0) return mapColors.gte0
+      return mapColors.noData
+    },
+    [mapColors]
+  )
 
   const option = useMemo<echarts.EChartsOption>(() => {
     // Create map data series
     const mapSeries = data.map((state) => ({
       name: state.name,
-      value: state.compositeScore,
+      value: state[metricKey],
       stateId: state.id,
       status: state.status,
+      itemStyle: {
+        areaColor: getRangeColor(state[metricKey]),
+      },
       metrics: {
         coverage: state.coverage,
         regularity: state.regularity,
@@ -65,10 +107,14 @@ export function IndiaMapChart({
           }
           if (p.data) {
             const { name, value, metrics } = p.data
+            const safeName = echarts.format.encodeHTML(name)
+            const safeMetricLabel = echarts.format.encodeHTML(
+              metricKey === 'regularity' ? regularityLabel : quantityLabel
+            )
             return `
               <div style="padding: 8px;">
-                <strong>${name}</strong><br/>
-                Composite Score: ${value.toFixed(2)}<br/>
+                <strong>${safeName}</strong><br/>
+                ${safeMetricLabel}: ${value.toFixed(1)}${metricKey === 'regularity' ? '%' : ''}<br/>
                 Coverage: ${metrics.coverage.toFixed(1)}%<br/>
                 Regularity: ${metrics.regularity.toFixed(1)}%<br/>
                 Continuity: ${metrics.continuity.toFixed(1)}<br/>
@@ -76,7 +122,7 @@ export function IndiaMapChart({
               </div>
             `
           }
-          return (p as { name?: string }).name || ''
+          return echarts.format.encodeHTML((p as { name?: string }).name ?? '')
         },
       },
       series: [
@@ -93,13 +139,13 @@ export function IndiaMapChart({
           },
           data: mapSeries,
           itemStyle: {
-            areaColor: '#3291D1',
+            areaColor: mapColors.gte90,
             borderColor: '#fff',
             borderWidth: 1,
           },
           emphasis: {
             itemStyle: {
-              areaColor: '#2874A7',
+              areaColor: mapColors.emphasis,
               borderWidth: 2,
             },
             label: {
@@ -110,13 +156,24 @@ export function IndiaMapChart({
         },
       ],
     }
-  }, [data])
+  }, [
+    data,
+    getRangeColor,
+    mapColors.emphasis,
+    mapColors.gte90,
+    metricKey,
+    quantityLabel,
+    regularityLabel,
+  ])
 
   const bodyText6 = getBodyText6Style(theme)
   const legendItems = [
-    { label: 'Good', color: '#079455' },
-    { label: 'Critical', color: '#F79009' },
-    { label: 'Needs Attention', color: '#D92D20' },
+    { label: t('map.legend.gte90'), color: mapColors.gte90 },
+    { label: t('map.legend.gte70'), color: mapColors.gte70 },
+    { label: t('map.legend.gte50'), color: mapColors.gte50 },
+    { label: t('map.legend.gte30'), color: mapColors.gte30 },
+    { label: t('map.legend.gte0'), color: mapColors.gte0 },
+    { label: t('map.legend.noData'), color: mapColors.noData },
   ]
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
@@ -163,15 +220,70 @@ export function IndiaMapChart({
       }}
     >
       <div style={{ flex: 1, minHeight: 0 }}>
-        <EChartsWrapper option={option} height="100%" onChartReady={handleChartReady} />
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+          <div
+            style={{
+              position: 'absolute',
+              top: '10px',
+              right: '16px',
+              zIndex: 2,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <span
+              style={{
+                fontSize: isBelowSm ? '12px' : bodyText6.fontSize,
+                lineHeight: isBelowSm ? '16px' : `${bodyText6.lineHeight}px`,
+                fontWeight: bodyText6.fontWeight,
+                color: bodyText6.color,
+              }}
+            >
+              {quantityLabel}
+            </span>
+            <div
+              style={
+                isBelowSm ? { transform: 'scale(0.85)', transformOrigin: 'center' } : undefined
+              }
+            >
+              <Toggle
+                isChecked={isRegularityView}
+                alwaysPrimaryTrack
+                aria-label={t('map.metric.toggleAriaLabel', {
+                  defaultValue: 'Switch map metric. Currently selected: {{metric}}',
+                  metric: selectedMetricLabel,
+                })}
+                onChange={(event) => {
+                  setIsRegularityView(event.target.checked)
+                }}
+              />
+            </div>
+            <span
+              style={{
+                fontSize: isBelowSm ? '12px' : bodyText6.fontSize,
+                lineHeight: isBelowSm ? '16px' : `${bodyText6.lineHeight}px`,
+                fontWeight: bodyText6.fontWeight,
+                color: bodyText6.color,
+              }}
+            >
+              {regularityLabel}
+            </span>
+          </div>
+          <EChartsWrapper option={option} height="100%" onChartReady={handleChartReady} />
+        </div>
       </div>
       <div
         style={{
-          display: 'flex',
+          display: 'grid',
+          gridTemplateColumns: isBelow500 ? 'repeat(3, minmax(0, 1fr))' : 'repeat(6, max-content)',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '16px',
+          justifyItems: isBelow500 ? 'start' : 'center',
+          columnGap: isBelow500 ? '12px' : '16px',
+          rowGap: isBelow500 ? '6px' : '0px',
           paddingTop: '8px',
+          width: '100%',
         }}
       >
         {legendItems.map((item) => (

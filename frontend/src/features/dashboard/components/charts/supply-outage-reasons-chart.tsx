@@ -1,0 +1,212 @@
+import { useMemo } from 'react'
+import { useTheme } from '@chakra-ui/react'
+import * as echarts from 'echarts'
+import { EChartsWrapper } from '@/shared/components/common'
+import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
+import type { WaterSupplyOutageData } from '../../types'
+
+interface SupplyOutageReasonsChartProps {
+  data: WaterSupplyOutageData[]
+  className?: string
+  height?: string | number
+  pieSize?: number
+}
+
+const outageColors = ['#D6E9F6', '#ADD3ED', '#84BDE3', '#3291D1', '#1E577D', '#6BAED6', '#9ECAE1']
+const chartLegendGapPx = 20
+
+const toTitleCase = (value: string) =>
+  value
+    .replace(/[_-]+/g, ' ')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (character) => character.toUpperCase())
+
+export function SupplyOutageReasonsChart({
+  data,
+  className,
+  height = '300px',
+  pieSize = 300,
+}: SupplyOutageReasonsChartProps) {
+  const theme = useTheme()
+  const bodyText7 = getBodyText7Style(theme)
+  const chartItems = useMemo(() => {
+    const totals = new Map<string, number>()
+    const reasonsPresent = data.some(
+      (entry) => entry.reasons && Object.keys(entry.reasons).length > 0
+    )
+
+    if (reasonsPresent) {
+      data.forEach((entry) => {
+        Object.entries(entry.reasons ?? {}).forEach(([reasonKey, value]) => {
+          const numericValue = Number(value)
+          if (!Number.isFinite(numericValue)) {
+            return
+          }
+
+          totals.set(reasonKey, (totals.get(reasonKey) ?? 0) + numericValue)
+        })
+      })
+    } else {
+      data.forEach((entry) => {
+        totals.set(
+          'electricityFailure',
+          (totals.get('electricityFailure') ?? 0) + entry.electricityFailure
+        )
+        totals.set('pipelineLeak', (totals.get('pipelineLeak') ?? 0) + entry.pipelineLeak)
+        totals.set('pumpFailure', (totals.get('pumpFailure') ?? 0) + entry.pumpFailure)
+        totals.set('valveIssue', (totals.get('valveIssue') ?? 0) + entry.valveIssue)
+        totals.set('sourceDrying', (totals.get('sourceDrying') ?? 0) + entry.sourceDrying)
+      })
+    }
+
+    return Array.from(totals.entries())
+      .filter(([, value]) => Number.isFinite(value) && value >= 0)
+      .map(([reasonKey, value], index) => {
+        const label = toTitleCase(reasonKey)
+        const color = outageColors[index % outageColors.length]
+
+        return {
+          key: reasonKey,
+          label,
+          value,
+          color,
+        }
+      })
+  }, [data])
+
+  const option: echarts.EChartsOption = useMemo(() => {
+    const totalOutages = chartItems.reduce((sum, item) => sum + item.value, 0)
+
+    return {
+      tooltip: {
+        show: true,
+        trigger: 'item',
+        confine: true,
+        position: (point, _params, _el, _rect, size) => {
+          const viewWidth = size.viewSize[0]
+          const viewHeight = size.viewSize[1]
+          const contentWidth = size.contentSize[0]
+          const contentHeight = size.contentSize[1]
+          const spacingX = 12
+          const spacingY = 12
+          const hoverX = point[0] ?? viewWidth / 2
+          const hoverY = point[1] ?? viewHeight / 2
+
+          const preferredX = hoverX + spacingX
+          const fallbackX = hoverX - contentWidth - spacingX
+          const preferredY = hoverY - contentHeight / 2
+
+          return [
+            preferredX + contentWidth <= viewWidth ? preferredX : Math.max(spacingX, fallbackX),
+            Math.max(spacingY, Math.min(preferredY, viewHeight - contentHeight - spacingY)),
+          ]
+        },
+        formatter: (params: unknown) => {
+          const point = params as { name?: string; value?: number | string }
+          const rawValue =
+            typeof point.value === 'number' ? point.value : Number(point.value ?? Number.NaN)
+          const hasNumericValue = Number.isFinite(rawValue)
+          const percentage =
+            hasNumericValue && totalOutages > 0
+              ? ` (${((rawValue / totalOutages) * 100).toFixed(1)}%)`
+              : ''
+          const formattedValue = hasNumericValue ? rawValue.toFixed(1) : '-'
+
+          return `<strong>${point.name ?? ''}</strong><br/>${formattedValue}${percentage}`
+        },
+      },
+      series: [
+        {
+          type: 'pie',
+          radius: ['0%', '98%'],
+          center: ['50%', '50%'],
+          avoidLabelOverlap: true,
+          emphasis: {
+            scale: true,
+            scaleSize: 2,
+          },
+          label: {
+            show: false,
+          },
+          labelLine: {
+            show: false,
+          },
+          data: [
+            ...chartItems.map((item) => ({
+              name: item.label,
+              value: item.value,
+              itemStyle: { color: item.color },
+              emphasis: { itemStyle: { color: item.color } },
+            })),
+          ],
+        },
+      ],
+    }
+  }, [chartItems])
+
+  const containerHeight = typeof height === 'number' ? `${height}px` : height
+  const legendItems = chartItems.map(({ key, label, color }) => ({ key, label, color }))
+
+  return (
+    <div
+      className={className}
+      style={{
+        width: '100%',
+        height: containerHeight,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+    >
+      <div
+        style={{
+          width: `${pieSize}px`,
+          height: `${pieSize}px`,
+          maxWidth: '100%',
+          margin: '0 auto',
+        }}
+      >
+        <EChartsWrapper option={option} height="100%" />
+      </div>
+      <div
+        style={{
+          marginTop: `${chartLegendGapPx}px`,
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '16px',
+          paddingTop: 0,
+          flexWrap: 'wrap',
+        }}
+      >
+        {legendItems.map((item) => (
+          <div key={item.key} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span
+              aria-hidden="true"
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '2px',
+                backgroundColor: item.color,
+                display: 'inline-block',
+              }}
+            />
+            <span
+              style={{
+                fontSize: bodyText7.fontSize,
+                lineHeight: `${bodyText7.lineHeight}px`,
+                fontWeight: 400,
+                color: bodyText7.color,
+              }}
+            >
+              {item.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
