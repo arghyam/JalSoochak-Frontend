@@ -95,11 +95,22 @@ export function useStatesUTsQuery() {
   })
 }
 
-/** Paginated query — used by the list page with user-controlled page + size. */
-export function useStatesUTsPagedQuery(page: number, pageSize: number) {
+/** Paginated query — used by the list page with user-controlled page + size + search + status. */
+export function useStatesUTsPagedQuery(
+  page: number,
+  pageSize: number,
+  search: string,
+  status: string
+) {
   return useQuery({
-    queryKey: superAdminQueryKeys.statesUTsPaged(page, pageSize),
-    queryFn: () => superAdminApi.getStatesUTsPage({ page: page - 1, size: pageSize }),
+    queryKey: superAdminQueryKeys.statesUTsPaged(page, pageSize, search, status),
+    queryFn: () =>
+      superAdminApi.getStatesUTsPage({
+        page: page - 1,
+        size: pageSize,
+        search: search || undefined,
+        status: status && status !== 'all' ? status : undefined,
+      }),
   })
 }
 

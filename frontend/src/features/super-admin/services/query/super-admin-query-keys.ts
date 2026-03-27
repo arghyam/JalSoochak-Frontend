@@ -7,8 +7,8 @@ export const superAdminQueryKeys = {
     [...superAdminQueryKeys.all, 'ingestion-monitor', stateFilter, timeFilter] as const,
   apiCredentials: () => [...superAdminQueryKeys.all, 'api-credentials'] as const,
   statesUTs: () => [...superAdminQueryKeys.all, 'states-uts'] as const,
-  statesUTsPaged: (page: number, size: number) =>
-    [...superAdminQueryKeys.all, 'states-uts', page, size] as const,
+  statesUTsPaged: (page: number, size: number, search: string, status: string) =>
+    [...superAdminQueryKeys.all, 'states-uts', page, size, search, status] as const,
   stateAdmins: (page: number, size: number) =>
     [...superAdminQueryKeys.all, 'state-admins', page, size] as const,
   stateAdminsByTenant: (tenantCode: string) =>

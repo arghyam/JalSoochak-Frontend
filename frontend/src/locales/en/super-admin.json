@@ -111,6 +111,9 @@
       "failedToUpdateStatus": "Failed to update status",
       "statusUpdatedSuccess": "Status updated successfully"
     },
+    "filters": {
+      "allStatuses": "All Statuses"
+    },
     "aria": {
       "viewStateUt": "View State/UT",
       "editStateUt": "Edit State/UT"

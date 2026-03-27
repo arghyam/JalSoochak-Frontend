@@ -111,6 +111,9 @@
       "failedToUpdateStatus": "स्थिति अपडेट करने में विफल",
       "statusUpdatedSuccess": "स्थिति सफलतापूर्वक अपडेट की गई"
     },
+    "filters": {
+      "allStatuses": "सभी स्थितियाँ"
+    },
     "aria": {
       "viewStateUt": "राज्य/केंद्र शासित प्रदेश देखें",
       "editStateUt": "राज्य/केंद्र शासित प्रदेश संपादित करें"

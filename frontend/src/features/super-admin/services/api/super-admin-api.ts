@@ -125,9 +125,15 @@ export const superAdminApi = {
   getStatesUTsPage: async (params: {
     page: number
     size: number
+    search?: string
+    status?: string
   }): Promise<{ items: Tenant[]; total: number }> => {
+    const { search, status, ...rest } = params
+    const query: Record<string, unknown> = { ...rest }
+    if (search) query.search = search
+    if (status) query.status = status
     const response = await apiClient.get<ApiResponse<TenantsListApiResponse>>('/api/v1/tenants', {
-      params,
+      params: query,
     })
     const data = response.data.data
     return { items: data.content.map(mapTenant), total: data.totalElements }
