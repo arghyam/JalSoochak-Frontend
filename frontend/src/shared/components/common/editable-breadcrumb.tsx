@@ -1,4 +1,3 @@
-import React from 'react'
 import { Flex, Text, Button } from '@chakra-ui/react'
 
 interface EditableBreadcrumbProps {
