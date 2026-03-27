@@ -28,7 +28,7 @@ import {
 import { HiOutlineTemplate } from 'react-icons/hi'
 import { AiOutlineMessage } from 'react-icons/ai'
 import { BsPerson, BsListUl } from 'react-icons/bs'
-import jalsoochakLogo from '@/assets/media/jalsoochak-logo.svg'
+import jalsoochakLogo from '@/assets/media/logo.svg'
 
 function Users01Icon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -160,6 +160,7 @@ export function Sidebar({ onNavClick }: SidebarProps) {
         {/* Brand Section */}
         <Flex
           h="84px"
+          pb="12px"
           align="center"
           justify="center"
           gap={2}
@@ -170,7 +171,7 @@ export function Sidebar({ onNavClick }: SidebarProps) {
           <Image
             src={jalsoochakLogo}
             alt={t('sidebar.logoAlt', 'JalSoochak logo')}
-            height="84px"
+            height="72px"
             width="168px"
           />
         </Flex>

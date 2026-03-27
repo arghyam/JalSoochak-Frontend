@@ -23,7 +23,7 @@ import { AuthSideImage } from '@/features/auth/components/signup/auth-side-image
 import { ToastContainer } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
 import { useAuthStore } from '@/app/store/auth-store'
-import jalsoochakLogo from '@/assets/media/jalsoochak-logo.svg'
+import jalsoochakLogo from '@/assets/media/logo.svg'
 
 type FetchState = 'loading' | 'ready' | 'error'
 type Step = 'password' | 'profile'

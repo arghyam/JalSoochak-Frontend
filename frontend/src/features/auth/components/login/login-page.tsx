@@ -18,7 +18,7 @@ import {
   VStack,
 } from '@chakra-ui/react'
 import { AuthSideImage } from '@/features/auth/components/signup/auth-side-image'
-import jalsoochakLogo from '@/assets/media/jalsoochak-logo.svg'
+import jalsoochakLogo from '@/assets/media/logo.svg'
 import { useAuthStore } from '@/app/store'
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai'
 import { ForgotPasswordModal } from '@/features/auth/components/login/forgot-password-modal'
@@ -77,7 +77,7 @@ export function LoginPage() {
               src={jalsoochakLogo}
               alt="JalSoochak logo"
               w="117.61px"
-              h="68.55px"
+              h="72px"
               mb={{ base: 10, md: 12 }}
             />
           </Box>
