@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   Box,
   Text,
@@ -16,7 +16,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer } from '@/shared/components/common'
+import { ToastContainer, EditableBreadcrumb } from '@/shared/components/common'
 import {
   useSystemConfigurationQuery,
   useSaveSystemConfigurationMutation,
@@ -111,6 +111,21 @@ export function SystemConfigPage() {
       }))
     }
 
+  const hasChanges = useMemo(() => {
+    if (!config || !draft) return false
+    const compare = (a: string, b: string) => a.localeCompare(b)
+    const channelsChanged =
+      [...draft.supportedChannels].sort(compare).join() !==
+      [...config.supportedChannels].sort(compare).join()
+    return (
+      channelsChanged ||
+      Number(draft.oversupplyThreshold) !== config.oversupplyThreshold ||
+      Number(draft.undersupplyThreshold) !== config.undersupplyThreshold ||
+      Number(draft.bfmImageConfidenceThreshold) !== config.bfmImageConfidenceThreshold ||
+      Number(draft.locationAffinityThreshold) !== config.locationAffinityThreshold
+    )
+  }, [config, draft])
+
   if (isLoading) {
     return (
       <Box w="full">
@@ -142,9 +157,15 @@ export function SystemConfigPage() {
   return (
     <Box w="full">
       <Box mb={5}>
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={isEditing ? 2 : 0}>
           {t('configuration.pageTitle')}
         </Heading>
+        <EditableBreadcrumb
+          isEditing={isEditing}
+          onCancel={handleCancel}
+          viewLabel={t('configuration.breadcrumb.view')}
+          editLabel={t('configuration.breadcrumb.edit')}
+        />
       </Box>
 
       <Box
@@ -313,6 +334,7 @@ export function SystemConfigPage() {
                   size="md"
                   width={{ base: 'full', sm: '174px' }}
                   isLoading={saveMutation.isPending}
+                  isDisabled={!hasChanges || saveMutation.isPending}
                 >
                   {t('common:button.saveChanges')}
                 </Button>

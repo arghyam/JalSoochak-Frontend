@@ -6,6 +6,10 @@
     "departmentTitle": "विभाग पदानुक्रम",
     "levelLabel": "स्तर {{level}}",
     "addLevel": "स्तर जोड़ें",
+    "breadcrumb": {
+      "view": "पदानुक्रम देखें",
+      "edit": "पदानुक्रम संपादित करें"
+    },
     "messages": {
       "saveSuccess": "पदानुक्रम सफलतापूर्वक सहेजा गया",
       "saveFailed": "पदानुक्रम सहेजने में विफल",
@@ -91,6 +95,10 @@
     "primaryLanguage": "प्राथमिक भाषा",
     "secondaryLanguage": "द्वितीयक भाषा (वैकल्पिक)",
     "tertiaryLanguage": "तृतीयक भाषा (वैकल्पिक)",
+    "breadcrumb": {
+      "view": "भाषा देखें",
+      "edit": "भाषा संपादित करें"
+    },
     "aria": {
       "editConfiguration": "भाषा कॉन्फ़िगरेशन संपादित करें",
       "selectPrimaryLanguage": "प्राथमिक भाषा चुनें",
@@ -122,6 +130,10 @@
   "waterNorms": {
     "title": "जल मानक",
     "stateUtWaterNorms": "राज्य/केंद्र शासित प्रदेश जल मानक",
+    "breadcrumb": {
+      "view": "जल मानक देखें",
+      "edit": "जल मानक संपादित करें"
+    },
     "currentQuantity": "वर्तमान मात्रा (LPCD)",
     "alertThresholds": {
       "title": "अलर्ट सीमाएं",
@@ -164,6 +176,10 @@
   "escalations": {
     "title": "वृद्धि",
     "allEscalations": "सभी वृद्धि",
+    "breadcrumb": {
+      "view": "वृद्धि देखें",
+      "edit": "वृद्धि संपादित करें"
+    },
     "escalationRules": "वृद्धि नियम",
     "addNewEscalationType": "नया वृद्धि प्रकार जोड़ें",
     "addNewShort": "नया जोड़ें",
@@ -379,6 +395,10 @@
   "configuration": {
     "pageTitle": "कॉन्फ़िगरेशन",
     "sectionTitle": "राज्य/केंद्र शासित प्रदेश कॉन्फ़िगरेशन",
+    "breadcrumb": {
+      "view": "कॉन्फ़िगरेशन देखें",
+      "edit": "कॉन्फ़िगरेशन संपादित करें"
+    },
     "sections": {
       "lgdHierarchy": {
         "title": "LGD पदानुक्रम",
@@ -492,6 +512,7 @@
 
   "messageTemplates": {
     "title": "टेम्पलेट",
+    "subtitle": "WhatsApp टेम्पलेट्स (केवल पढ़ें)",
     "selectLanguage": "भाषा चुनें",
     "selectTemplate": "टेम्पलेट चुनें",
     "language": "भाषा",

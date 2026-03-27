@@ -13,7 +13,8 @@ import {
 import { SearchIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { FiUpload } from 'react-icons/fi'
-import { MdOutlineListAlt } from 'react-icons/md'
+import { BsDroplet, BsCheck2Circle } from 'react-icons/bs'
+import { IoCloseCircleOutline } from 'react-icons/io5'
 import { DataTable, SearchableSelect, StatCard } from '@/shared/components/common'
 import type { DataTableColumn } from '@/shared/components/common'
 import type { Scheme } from '../../types/scheme-sync'
@@ -270,12 +271,12 @@ export function SchemeSyncPage() {
           variant="secondary"
           size="sm"
           fontWeight="600"
-          gap={1}
           flexShrink={0}
           aria-label={t('schemeSync.aria.uploadData')}
-          leftIcon={<FiUpload aria-hidden="true" />}
+          width="147px"
           onClick={() => setIsUploadOpen(true)}
         >
+          <FiUpload aria-hidden="true" size={16} style={{ marginRight: '4px', flexShrink: 0 }} />
           {t('schemeSync.uploadData')}
         </Button>
       </Flex>
@@ -291,26 +292,23 @@ export function SchemeSyncPage() {
         <StatCard
           title={t('schemeSync.stats.totalSchemes')}
           value={countsLoading ? '—' : (counts?.totalSchemes ?? 0)}
-          icon={MdOutlineListAlt}
+          icon={BsDroplet}
           iconBg="#EBF4FA"
           iconColor="#3291D1"
-          height="172px"
         />
         <StatCard
           title={t('schemeSync.stats.activeSchemes')}
           value={countsLoading ? '—' : (counts?.activeSchemes ?? 0)}
-          icon={MdOutlineListAlt}
+          icon={BsCheck2Circle}
           iconBg="#E6F9F0"
           iconColor="#27AE60"
-          height="172px"
         />
         <StatCard
           title={t('schemeSync.stats.inactiveSchemes')}
           value={countsLoading ? '—' : (counts?.inactiveSchemes ?? 0)}
-          icon={MdOutlineListAlt}
+          icon={IoCloseCircleOutline}
           iconBg="#FEF3F2"
           iconColor="#D94B3E"
-          height="172px"
         />
       </SimpleGrid>
 

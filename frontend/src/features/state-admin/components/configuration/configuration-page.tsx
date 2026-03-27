@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Box,
   Text,
@@ -40,6 +41,7 @@ import {
   hasDuplicates,
   exceedsMaxLength,
 } from '@/shared/utils/validation'
+import { ROUTES } from '@/shared/constants/routes'
 
 const MAX_METER_REASON_LENGTH = 100
 const MAX_AVG_MEMBERS = 20
@@ -82,6 +84,7 @@ function buildInitialDraft(
 
 export function ConfigurationPage() {
   const { t } = useTranslation(['state-admin', 'common'])
+  const navigate = useNavigate()
   const { data: config, isLoading, isError } = useConfigurationQuery()
   const {
     data: logoBlobData,
@@ -114,6 +117,27 @@ export function ConfigurationPage() {
   }, [t])
 
   const effectiveIsEditing = isEditing || Boolean(config && !config.isConfigured)
+
+  const hasChanges = useMemo(() => {
+    if (!config || !draft || !config.isConfigured) return false
+    const compare = (a: string, b: string) => a.localeCompare(b)
+    const channelsChanged =
+      [...draft.supportedChannels].sort(compare).join() !==
+      [...config.supportedChannels].sort(compare).join()
+    const sortById = (a: { id: string }, b: { id: string }) => a.id.localeCompare(b.id)
+    const reasonsChanged =
+      JSON.stringify([...draft.meterChangeReasons].sort(sortById)) !==
+      JSON.stringify([...config.meterChangeReasons].sort(sortById))
+    return (
+      channelsChanged ||
+      draft.logoFile !== null ||
+      draft.locationCheckRequired !== config.locationCheckRequired ||
+      draft.dataConsolidationTime !== config.dataConsolidationTime ||
+      draft.pumpOperatorReminderNudgeTime !== config.pumpOperatorReminderNudgeTime ||
+      draft.averageMembersPerHousehold !== config.averageMembersPerHousehold ||
+      reasonsChanged
+    )
+  }, [config, draft])
 
   const handleEdit = () => {
     const initial = buildInitialDraft(config, logoObjectUrl ?? undefined)
@@ -196,7 +220,7 @@ export function ConfigurationPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSave = async () => {
+  const handleSave = async (andNavigate = false) => {
     const current = draft ?? buildInitialDraft(config ?? undefined, logoObjectUrl ?? undefined)
 
     if (!validateForm(current)) return
@@ -220,6 +244,7 @@ export function ConfigurationPage() {
       setAvgMembersStr('')
       setErrors({})
       toast.addToast(t('configuration.messages.saveSuccess'), 'success')
+      if (andNavigate) navigate(ROUTES.STATE_ADMIN_LANGUAGE)
     } catch {
       toast.addToast(t('configuration.messages.saveFailed'), 'error')
     }
@@ -298,9 +323,34 @@ export function ConfigurationPage() {
   return (
     <Box w="full">
       <Box mb={5}>
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+        <Heading
+          as="h1"
+          size={{ base: 'h2', md: 'h1' }}
+          mb={effectiveIsEditing && config.isConfigured ? 2 : 0}
+        >
           {t('configuration.pageTitle')}
         </Heading>
+        {effectiveIsEditing && config.isConfigured && (
+          <Flex as="nav" aria-label="Breadcrumb" gap={2} flexWrap="wrap">
+            <Button
+              variant="link"
+              fontSize="14px"
+              lineHeight="21px"
+              color="neutral.500"
+              fontWeight="normal"
+              _hover={{ textDecoration: 'underline' }}
+              onClick={handleCancel}
+            >
+              {t('configuration.breadcrumb.view')}
+            </Button>
+            <Text fontSize="14px" lineHeight="21px" color="neutral.500" aria-hidden="true">
+              /
+            </Text>
+            <Text fontSize="14px" lineHeight="21px" color="neutral.800" aria-current="page">
+              {t('configuration.breadcrumb.edit')}
+            </Text>
+          </Flex>
+        )}
       </Box>
 
       <Box
@@ -659,10 +709,17 @@ export function ConfigurationPage() {
                   variant="primary"
                   size="md"
                   width={{ base: 'full', sm: '174px' }}
-                  onClick={handleSave}
+                  onClick={() => handleSave(!config.isConfigured)}
                   isLoading={saveMutation.isPending || updateLogoMutation.isPending}
+                  isDisabled={
+                    (config.isConfigured && !hasChanges) ||
+                    saveMutation.isPending ||
+                    updateLogoMutation.isPending
+                  }
                 >
-                  {config.isConfigured ? t('common:button.saveChanges') : t('common:button.save')}
+                  {config.isConfigured
+                    ? t('common:button.saveChanges')
+                    : t('common:button.saveAndNext')}
                 </Button>
               </HStack>
             </Flex>
