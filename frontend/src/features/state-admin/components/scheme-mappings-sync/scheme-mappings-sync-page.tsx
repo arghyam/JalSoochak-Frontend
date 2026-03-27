@@ -169,12 +169,12 @@ export function SchemeMappingsSyncPage() {
           variant="secondary"
           size="sm"
           fontWeight="600"
-          gap={1}
+          width="147px"
           flexShrink={0}
           aria-label={t('schemeMappingsSync.aria.uploadData')}
-          leftIcon={<FiUpload aria-hidden="true" />}
           onClick={() => setIsUploadOpen(true)}
         >
+          <FiUpload aria-hidden="true" size={16} style={{ marginRight: '4px', flexShrink: 0 }} />
           {t('schemeMappingsSync.uploadData')}
         </Button>
       </Flex>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Box,
   Text,
@@ -17,6 +18,7 @@ import type { DistrictOverride } from '../../types/water-norms'
 import { WaterNormsAlertThresholds } from './water-norms-alert-thresholds'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ToastContainer, PageLoadingState, PageErrorState } from '@/shared/components/common'
+import { ROUTES } from '@/shared/constants/routes'
 import {
   useSaveWaterNormsConfigurationMutation,
   useWaterNormsConfigurationQuery,
@@ -26,6 +28,7 @@ const MAX_WATER_QUANTITY = 1000
 
 export function WaterNormsPage() {
   const { t } = useTranslation(['state-admin', 'common'])
+  const navigate = useNavigate()
   const { data: config, isLoading, isError } = useWaterNormsConfigurationQuery()
   const saveWaterNormsMutation = useSaveWaterNormsConfigurationMutation()
   const [isEditing, setIsEditing] = useState(false)
@@ -133,7 +136,7 @@ export function WaterNormsPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSave = async () => {
+  const handleSave = async (andNavigate = false) => {
     if (!validateForm()) return
 
     try {
@@ -151,6 +154,7 @@ export function WaterNormsPage() {
       setIsEditing(false)
       setErrors({})
       toast.addToast(t('common:toast.changesSavedShort'), 'success')
+      if (andNavigate) navigate(ROUTES.STATE_ADMIN_INTEGRATION)
     } catch (error) {
       console.error('Failed to save water norms configuration:', error)
       toast.addToast(t('common:toast.failedToSave'), 'error')
@@ -362,11 +366,13 @@ export function WaterNormsPage() {
                   variant="primary"
                   size="md"
                   width={{ base: 'full', sm: '174px' }}
-                  onClick={handleSave}
+                  onClick={() => handleSave(!config?.isConfigured)}
                   isLoading={saveWaterNormsMutation.isPending}
                   isDisabled={saveWaterNormsMutation.isPending}
                 >
-                  {config?.isConfigured ? t('common:button.saveChanges') : t('common:button.save')}
+                  {config?.isConfigured
+                    ? t('common:button.saveChanges')
+                    : t('common:button.saveAndNext')}
                 </Button>
               </HStack>
             </Flex>

@@ -10,13 +10,13 @@ import {
   InputLeftElement,
   Button,
   IconButton,
-  Tooltip,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { SearchIcon, EditIcon } from '@chakra-ui/icons'
 import { FiEye } from 'react-icons/fi'
 import { MdOutlineEmail } from 'react-icons/md'
 import {
+  ActionTooltip,
   DataTable,
   type DataTableColumn,
   StatusChip,
@@ -147,7 +147,7 @@ export function ManageStateAdminsPage() {
       header: t('manageStateAdmins.table.actions'),
       render: (row) => (
         <Flex gap={1}>
-          <Tooltip label={t('manageStateAdmins.aria.viewAdmin')} hasArrow placement="top">
+          <ActionTooltip label={t('manageStateAdmins.aria.viewAdmin')}>
             <IconButton
               aria-label={`${t('manageStateAdmins.aria.viewAdmin')} ${row.adminName}`}
               icon={<FiEye aria-hidden="true" size={20} />}
@@ -160,8 +160,8 @@ export function ManageStateAdminsPage() {
               onClick={() => handleView(row)}
               _hover={{ color: 'primary.500', bg: 'transparent' }}
             />
-          </Tooltip>
-          <Tooltip label={t('manageStateAdmins.aria.editAdmin')} hasArrow placement="top">
+          </ActionTooltip>
+          <ActionTooltip label={t('manageStateAdmins.aria.editAdmin')}>
             <IconButton
               aria-label={`${t('manageStateAdmins.aria.editAdmin')} ${row.adminName}`}
               icon={<EditIcon aria-hidden="true" w={5} h={5} />}
@@ -174,9 +174,9 @@ export function ManageStateAdminsPage() {
               onClick={() => handleEdit(row)}
               _hover={{ color: 'primary.500', bg: 'transparent' }}
             />
-          </Tooltip>
+          </ActionTooltip>
           {row.signupStatus === 'pending' && (
-            <Tooltip label={t('manageStateAdmins.aria.resendInvite')} hasArrow placement="top">
+            <ActionTooltip label={t('manageStateAdmins.aria.resendInvite')}>
               <IconButton
                 aria-label={`${t('manageStateAdmins.aria.resendInvite')} ${row.adminName}`}
                 icon={<MdOutlineEmail aria-hidden="true" size={20} />}
@@ -189,7 +189,7 @@ export function ManageStateAdminsPage() {
                 onClick={() => handleReinvite(row.id)}
                 _hover={{ color: 'primary.500', bg: 'transparent' }}
               />
-            </Tooltip>
+            </ActionTooltip>
           )}
         </Flex>
       ),

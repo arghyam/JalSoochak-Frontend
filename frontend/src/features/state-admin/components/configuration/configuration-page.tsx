@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Box,
   Text,
@@ -40,6 +41,7 @@ import {
   hasDuplicates,
   exceedsMaxLength,
 } from '@/shared/utils/validation'
+import { ROUTES } from '@/shared/constants/routes'
 
 const MAX_METER_REASON_LENGTH = 100
 const MAX_AVG_MEMBERS = 20
@@ -82,6 +84,7 @@ function buildInitialDraft(
 
 export function ConfigurationPage() {
   const { t } = useTranslation(['state-admin', 'common'])
+  const navigate = useNavigate()
   const { data: config, isLoading, isError } = useConfigurationQuery()
   const {
     data: logoBlobData,
@@ -196,7 +199,7 @@ export function ConfigurationPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSave = async () => {
+  const handleSave = async (andNavigate = false) => {
     const current = draft ?? buildInitialDraft(config ?? undefined, logoObjectUrl ?? undefined)
 
     if (!validateForm(current)) return
@@ -220,6 +223,7 @@ export function ConfigurationPage() {
       setAvgMembersStr('')
       setErrors({})
       toast.addToast(t('configuration.messages.saveSuccess'), 'success')
+      if (andNavigate) navigate(ROUTES.STATE_ADMIN_LANGUAGE)
     } catch {
       toast.addToast(t('configuration.messages.saveFailed'), 'error')
     }
@@ -659,10 +663,12 @@ export function ConfigurationPage() {
                   variant="primary"
                   size="md"
                   width={{ base: 'full', sm: '174px' }}
-                  onClick={handleSave}
+                  onClick={() => handleSave(!config.isConfigured)}
                   isLoading={saveMutation.isPending || updateLogoMutation.isPending}
                 >
-                  {config.isConfigured ? t('common:button.saveChanges') : t('common:button.save')}
+                  {config.isConfigured
+                    ? t('common:button.saveChanges')
+                    : t('common:button.saveAndNext')}
                 </Button>
               </HStack>
             </Flex>

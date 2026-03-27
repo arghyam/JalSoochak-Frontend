@@ -13,6 +13,7 @@
   "button": {
     "save": "Save",
     "saveChanges": "Save Changes",
+    "saveAndNext": "Save & Next",
     "cancel": "Cancel",
     "edit": "Edit",
     "delete": "Delete",

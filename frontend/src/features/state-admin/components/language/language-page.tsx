@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Box, Text, Button, Flex, HStack, Heading, Spinner, SimpleGrid } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
 import { APP_LANGUAGES } from '@/shared/constants/languages'
+import { ROUTES } from '@/shared/constants/routes'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ToastContainer, SearchableSelect } from '@/shared/components/common'
 import {
@@ -12,6 +14,7 @@ import {
 
 export function LanguagePage() {
   const { t } = useTranslation(['state-admin', 'common'])
+  const navigate = useNavigate()
   const { data: config, isLoading, isError } = useLanguageConfigurationQuery()
   const saveLanguageConfigMutation = useSaveLanguageConfigurationMutation()
   const [isEditing, setIsEditing] = useState(false)
@@ -73,7 +76,7 @@ export function LanguagePage() {
     setIsEditing(false)
   }
 
-  const handleSave = async () => {
+  const handleSave = async (andNavigate = false) => {
     if (!primaryLanguage) {
       return
     }
@@ -87,6 +90,7 @@ export function LanguagePage() {
       })
       setIsEditing(false)
       toast.addToast(t('common:toast.changesSavedShort'), 'success')
+      if (andNavigate) navigate(ROUTES.STATE_ADMIN_WATER_NORMS)
     } catch (error) {
       console.error('Failed to save language configuration:', error)
       toast.addToast(t('common:toast.failedToSave'), 'error')
@@ -339,11 +343,13 @@ export function LanguagePage() {
                   variant="primary"
                   size="md"
                   width={{ base: 'full', sm: '174px' }}
-                  onClick={handleSave}
+                  onClick={() => handleSave(!config?.isConfigured)}
                   isLoading={saveLanguageConfigMutation.isPending}
                   isDisabled={!primaryLanguage}
                 >
-                  {config?.isConfigured ? t('common:button.saveChanges') : t('common:button.save')}
+                  {config?.isConfigured
+                    ? t('common:button.saveChanges')
+                    : t('common:button.saveAndNext')}
                 </Button>
               </HStack>
             </Flex>

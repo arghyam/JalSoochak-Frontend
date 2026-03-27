@@ -10,14 +10,18 @@ import {
   InputLeftElement,
   Button,
   IconButton,
-  Tooltip,
   useBreakpointValue,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { SearchIcon, EditIcon } from '@chakra-ui/icons'
 import { FiEye } from 'react-icons/fi'
 import { IoAddOutline } from 'react-icons/io5'
-import { DataTable, type DataTableColumn, StatusChip } from '@/shared/components/common'
+import {
+  ActionTooltip,
+  DataTable,
+  type DataTableColumn,
+  StatusChip,
+} from '@/shared/components/common'
 import type { Tenant, TenantStatus } from '../../types/states-uts'
 
 function tenantStatusChipKey(status: TenantStatus): string {
@@ -115,7 +119,7 @@ export function StatesUTsPage() {
       header: t('statesUts.table.actions'),
       render: (row) => (
         <Flex gap={1}>
-          <Tooltip label={t('statesUts.aria.viewStateUt')} hasArrow placement="top">
+          <ActionTooltip label={t('statesUts.aria.viewStateUt')}>
             <IconButton
               aria-label={`${t('statesUts.aria.viewStateUt')} ${row.name}`}
               icon={<FiEye aria-hidden="true" size={20} />}
@@ -127,8 +131,8 @@ export function StatesUTsPage() {
               onClick={() => handleView(row.stateCode)}
               _hover={{ color: 'primary.500', bg: 'transparent' }}
             />
-          </Tooltip>
-          <Tooltip label={t('statesUts.aria.editStateUt')} hasArrow placement="top">
+          </ActionTooltip>
+          <ActionTooltip label={t('statesUts.aria.editStateUt')}>
             <IconButton
               aria-label={`${t('statesUts.aria.editStateUt')} ${row.name}`}
               icon={<EditIcon aria-hidden="true" w={5} h={5} />}
@@ -140,7 +144,7 @@ export function StatesUTsPage() {
               onClick={() => handleEdit(row.stateCode)}
               _hover={{ color: 'primary.500', bg: 'transparent' }}
             />
-          </Tooltip>
+          </ActionTooltip>
         </Flex>
       ),
     },

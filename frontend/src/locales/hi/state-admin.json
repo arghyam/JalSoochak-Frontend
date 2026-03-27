@@ -492,6 +492,7 @@
 
   "messageTemplates": {
     "title": "टेम्पलेट",
+    "subtitle": "Whatsapp Templates (Read Only)",
     "selectLanguage": "भाषा चुनें",
     "selectTemplate": "टेम्पलेट चुनें",
     "language": "भाषा",

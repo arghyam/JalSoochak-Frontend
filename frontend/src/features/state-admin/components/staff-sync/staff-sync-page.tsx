@@ -17,7 +17,7 @@ import {
 import { SearchIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { FiUpload } from 'react-icons/fi'
-import { BsPerson } from 'react-icons/bs'
+import { TotalStaffIcon, PumpOperatorIcon, TotalAdminsIcon } from '../overview/overview-icons'
 import { DataTable, SearchableSelect, StatCard, StatusChip } from '@/shared/components/common'
 import type { DataTableColumn } from '@/shared/components/common'
 import type { StaffMember, StaffRole, StaffStatus } from '../../types/staff-sync'
@@ -328,12 +328,12 @@ export function StaffSyncPage() {
           variant="secondary"
           size="sm"
           fontWeight="600"
-          gap={1}
+          width="147px"
           flexShrink={0}
           aria-label={t('staffSync.aria.uploadData')}
-          leftIcon={<FiUpload aria-hidden="true" />}
           onClick={() => setIsUploadOpen(true)}
         >
+          <FiUpload aria-hidden="true" size={16} style={{ marginRight: '4px', flexShrink: 0 }} />
           {t('staffSync.uploadData')}
         </Button>
       </Flex>
@@ -349,26 +349,23 @@ export function StaffSyncPage() {
         <StatCard
           title={t('staffSync.stats.totalPumpOperators')}
           value={countsLoading ? '—' : (counts?.pumpOperators ?? 0)}
-          icon={BsPerson}
+          icon={TotalStaffIcon}
           iconBg="#EBF4FA"
           iconColor="#3291D1"
-          height="172px"
         />
         <StatCard
           title={t('staffSync.stats.totalSubDivisionOfficers')}
           value={countsLoading ? '—' : (counts?.subDivisionOfficers ?? 0)}
-          icon={BsPerson}
+          icon={PumpOperatorIcon}
           iconBg="#F1EEFF"
           iconColor="#584C93"
-          height="172px"
         />
         <StatCard
           title={t('staffSync.stats.totalSectionOfficers')}
           value={countsLoading ? '—' : (counts?.sectionOfficers ?? 0)}
-          icon={BsPerson}
+          icon={TotalAdminsIcon}
           iconBg="#FBEAFF"
           iconColor="#DC72F2"
-          height="172px"
         />
       </SimpleGrid>
 

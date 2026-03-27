@@ -11,13 +11,13 @@ import {
   Button,
   IconButton,
   Spinner,
-  Tooltip,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { SearchIcon, EditIcon } from '@chakra-ui/icons'
 import { FiEye } from 'react-icons/fi'
 import { IoAddOutline } from 'react-icons/io5'
 import { MdOutlineEmail } from 'react-icons/md'
+import { ActionTooltip } from '../action-tooltip'
 import { DataTable, type DataTableColumn } from '../data-table'
 import { StatusChip } from '../atom/status-chip'
 import { SearchableSelect } from '../searchable-select'
@@ -169,7 +169,7 @@ export function UserAdminListPage({
       header: labels.table.actions,
       render: (row) => (
         <Flex gap={1}>
-          <Tooltip label={labels.aria.view} hasArrow placement="top">
+          <ActionTooltip label={labels.aria.view}>
             <IconButton
               aria-label={`${labels.aria.view} ${row.firstName} ${row.lastName}`}
               icon={<FiEye aria-hidden="true" size={20} />}
@@ -182,8 +182,8 @@ export function UserAdminListPage({
               onClick={() => handleView(row.id)}
               _hover={{ color: 'primary.500', bg: 'transparent' }}
             />
-          </Tooltip>
-          <Tooltip label={labels.aria.edit} hasArrow placement="top">
+          </ActionTooltip>
+          <ActionTooltip label={labels.aria.edit}>
             <IconButton
               aria-label={`${labels.aria.edit} ${row.firstName} ${row.lastName}`}
               icon={<EditIcon aria-hidden="true" w={5} h={5} />}
@@ -196,9 +196,9 @@ export function UserAdminListPage({
               onClick={() => handleEdit(row.id)}
               _hover={{ color: 'primary.500', bg: 'transparent' }}
             />
-          </Tooltip>
+          </ActionTooltip>
           {row.status === 'pending' && onReinvite && (
-            <Tooltip label={labels.aria.resendInvite} hasArrow placement="top">
+            <ActionTooltip label={labels.aria.resendInvite}>
               <IconButton
                 aria-label={`${labels.aria.resendInvite} ${row.firstName} ${row.lastName}`}
                 icon={<MdOutlineEmail aria-hidden="true" size={20} />}
@@ -211,7 +211,7 @@ export function UserAdminListPage({
                 onClick={() => onReinvite(row.id)}
                 _hover={{ color: 'primary.500', bg: 'transparent' }}
               />
-            </Tooltip>
+            </ActionTooltip>
           )}
         </Flex>
       ),

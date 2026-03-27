@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Box,
   Text,
@@ -27,6 +28,7 @@ import {
   exceedsMaxLength,
   validateTextField,
 } from '@/shared/utils/validation'
+import { ROUTES } from '@/shared/constants/routes'
 
 const MAX_URL_LENGTH = 200
 const MAX_API_KEY_LENGTH = 256
@@ -70,6 +72,7 @@ function validateOrgId(
 
 export function IntegrationPage() {
   const { t } = useTranslation(['state-admin', 'common'])
+  const navigate = useNavigate()
   const { data: config, isLoading, isError } = useIntegrationConfigurationQuery()
   const saveIntegrationMutation = useSaveIntegrationConfigurationMutation()
 
@@ -118,12 +121,13 @@ export function IntegrationPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSave = async () => {
+  const handleSave = async (andNavigate = false) => {
     if (!validateForm()) return
 
     try {
       await saveIntegrationMutation.mutateAsync({ apiUrl, organizationId, apiKey })
       toast.addToast(t('common:toast.changesSavedShort'), 'success')
+      if (andNavigate) navigate(ROUTES.STATE_ADMIN_ESCALATIONS)
     } catch (error) {
       console.error('Failed to save integration configuration:', error)
       toast.addToast(t('common:toast.failedToSave'), 'error')
@@ -310,11 +314,11 @@ export function IntegrationPage() {
               variant="primary"
               size="md"
               width={{ base: 'full', sm: '174px' }}
-              onClick={handleSave}
+              onClick={() => handleSave(!config?.isConfigured)}
               isLoading={saveIntegrationMutation.isPending}
               isDisabled={saveIntegrationMutation.isPending || !hasChanges}
             >
-              {t('common:button.save')}
+              {config?.isConfigured ? t('common:button.save') : t('common:button.saveAndNext')}
             </Button>
           </HStack>
         </Flex>
