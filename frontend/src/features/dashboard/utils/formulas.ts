@@ -372,7 +372,9 @@ export const getWaterSupplyKpisFromPeriodic = (
   return {
     quantityMld: calculateQuantityMld(totals.totalWaterSuppliedLiters, totals.totalDays),
     quantityLpcd:
-      totals.totalServedConnectionsDays > 0
+      totals.totalServedConnectionsDays > 0 &&
+      Number.isFinite(averagePersonsPerHousehold) &&
+      averagePersonsPerHousehold > 0
         ? Number(
             (
               totals.totalWaterSuppliedLiters /

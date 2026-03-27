@@ -13,6 +13,8 @@ type UseDistrictSchemeBlockLookupQueryOptions = {
   enabled?: boolean
 }
 
+const LOCATION_LOOKUP_CONCURRENCY = 5
+
 const addLocationToLookup = (
   lookup: DistrictSchemeBlockLookup,
   location: TenantChildLocation,
@@ -57,51 +59,70 @@ export function useDistrictSchemeBlockLookupQuery(
       const blocks = blocksResponse.data ?? []
       const lookup: DistrictSchemeBlockLookup = {}
 
-      await Promise.all(
-        blocks.map(async (block) => {
-          const blockId = typeof block.id === 'number' ? block.id : undefined
-          const blockTitle = block.title?.trim() ?? ''
+      for (
+        let blockIndex = 0;
+        blockIndex < blocks.length;
+        blockIndex += LOCATION_LOOKUP_CONCURRENCY
+      ) {
+        const blockChunk = blocks.slice(blockIndex, blockIndex + LOCATION_LOOKUP_CONCURRENCY)
 
-          addLocationToLookup(lookup, block, blockTitle)
+        await Promise.all(
+          blockChunk.map(async (block) => {
+            const blockId = typeof block.id === 'number' ? block.id : undefined
+            const blockTitle = block.title?.trim() ?? ''
 
-          if (blockId === undefined) {
-            return
-          }
+            addLocationToLookup(lookup, block, blockTitle)
 
-          const gramPanchayatsResponse = await dashboardApi.getTenantChildLocations({
-            tenantId,
-            hierarchyType,
-            parentId: blockId,
-            tenantCode,
-          })
+            if (blockId === undefined) {
+              return
+            }
 
-          const gramPanchayats = gramPanchayatsResponse.data ?? []
-
-          await Promise.all(
-            gramPanchayats.map(async (gramPanchayat) => {
-              const gramPanchayatId =
-                typeof gramPanchayat.id === 'number' ? gramPanchayat.id : undefined
-
-              addLocationToLookup(lookup, gramPanchayat, blockTitle)
-
-              if (gramPanchayatId === undefined) {
-                return
-              }
-
-              const villagesResponse = await dashboardApi.getTenantChildLocations({
-                tenantId,
-                hierarchyType,
-                parentId: gramPanchayatId,
-                tenantCode,
-              })
-
-              for (const village of villagesResponse.data ?? []) {
-                addLocationToLookup(lookup, village, blockTitle)
-              }
+            const gramPanchayatsResponse = await dashboardApi.getTenantChildLocations({
+              tenantId,
+              hierarchyType,
+              parentId: blockId,
+              tenantCode,
             })
-          )
-        })
-      )
+
+            const gramPanchayats = gramPanchayatsResponse.data ?? []
+
+            for (
+              let gramPanchayatIndex = 0;
+              gramPanchayatIndex < gramPanchayats.length;
+              gramPanchayatIndex += LOCATION_LOOKUP_CONCURRENCY
+            ) {
+              const gramPanchayatChunk = gramPanchayats.slice(
+                gramPanchayatIndex,
+                gramPanchayatIndex + LOCATION_LOOKUP_CONCURRENCY
+              )
+
+              await Promise.all(
+                gramPanchayatChunk.map(async (gramPanchayat) => {
+                  const gramPanchayatId =
+                    typeof gramPanchayat.id === 'number' ? gramPanchayat.id : undefined
+
+                  addLocationToLookup(lookup, gramPanchayat, blockTitle)
+
+                  if (gramPanchayatId === undefined) {
+                    return
+                  }
+
+                  const villagesResponse = await dashboardApi.getTenantChildLocations({
+                    tenantId,
+                    hierarchyType,
+                    parentId: gramPanchayatId,
+                    tenantCode,
+                  })
+
+                  for (const village of villagesResponse.data ?? []) {
+                    addLocationToLookup(lookup, village, blockTitle)
+                  }
+                })
+              )
+            }
+          })
+        )
+      }
 
       return lookup
     },

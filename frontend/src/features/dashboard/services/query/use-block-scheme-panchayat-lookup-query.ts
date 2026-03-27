@@ -13,6 +13,8 @@ type UseBlockSchemePanchayatLookupQueryOptions = {
   enabled?: boolean
 }
 
+const VILLAGE_LOOKUP_CONCURRENCY = 5
+
 const addLocationToLookup = (
   lookup: BlockSchemePanchayatLookup,
   location: TenantChildLocation,
@@ -53,30 +55,34 @@ export function useBlockSchemePanchayatLookupQuery(
       const gramPanchayats = gramPanchayatsResponse.data ?? []
       const lookup: BlockSchemePanchayatLookup = {}
 
-      await Promise.all(
-        gramPanchayats.map(async (gramPanchayat) => {
-          const gramPanchayatId =
-            typeof gramPanchayat.id === 'number' ? gramPanchayat.id : undefined
-          const gramPanchayatTitle = gramPanchayat.title?.trim() ?? ''
+      for (let index = 0; index < gramPanchayats.length; index += VILLAGE_LOOKUP_CONCURRENCY) {
+        const gramPanchayatChunk = gramPanchayats.slice(index, index + VILLAGE_LOOKUP_CONCURRENCY)
 
-          addLocationToLookup(lookup, gramPanchayat, gramPanchayatTitle)
+        await Promise.all(
+          gramPanchayatChunk.map(async (gramPanchayat) => {
+            const gramPanchayatId =
+              typeof gramPanchayat.id === 'number' ? gramPanchayat.id : undefined
+            const gramPanchayatTitle = gramPanchayat.title?.trim() ?? ''
 
-          if (gramPanchayatId === undefined) {
-            return
-          }
+            addLocationToLookup(lookup, gramPanchayat, gramPanchayatTitle)
 
-          const villagesResponse = await dashboardApi.getTenantChildLocations({
-            tenantId,
-            hierarchyType,
-            parentId: gramPanchayatId,
-            tenantCode,
+            if (gramPanchayatId === undefined) {
+              return
+            }
+
+            const villagesResponse = await dashboardApi.getTenantChildLocations({
+              tenantId,
+              hierarchyType,
+              parentId: gramPanchayatId,
+              tenantCode,
+            })
+
+            for (const village of villagesResponse.data ?? []) {
+              addLocationToLookup(lookup, village, gramPanchayatTitle)
+            }
           })
-
-          for (const village of villagesResponse.data ?? []) {
-            addLocationToLookup(lookup, village, gramPanchayatTitle)
-          }
-        })
-      )
+        )
+      }
 
       return lookup
     },

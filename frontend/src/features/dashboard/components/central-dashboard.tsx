@@ -34,7 +34,7 @@ import { OverallPerformanceTable } from './tables'
 import { ROUTES } from '@/shared/constants/routes'
 import { computeTrailIndices } from '../utils/trail-index'
 import { slugify, toCapitalizedWords } from '../utils/format-location-label'
-import { parseStableLocationValue } from '../utils/stable-location-value'
+import { parseStableLocationValue, toStableLocationValue } from '../utils/stable-location-value'
 import {
   calculateAbsoluteChange,
   calculatePercentChange,
@@ -82,7 +82,6 @@ import {
 import type { HierarchyType, TenantChildLocation } from '../services/api/dashboard-api'
 
 const storageKey = 'central-dashboard-filters'
-const LOCATION_VALUE_SEPARATOR = ':'
 
 const EMPTY_DASHBOARD_DATA: DashboardData = {
   level: 'central',
@@ -138,7 +137,7 @@ const parseLocationId = (value: string): number | undefined => {
     return undefined
   }
 
-  const idPrefix = value.split(LOCATION_VALUE_SEPARATOR, 1)[0]
+  const idPrefix = parseStableLocationValue(value).locationIdSegment ?? value
   const parsedId = Number.parseInt(idPrefix, 10)
   return Number.isFinite(parsedId) ? parsedId : undefined
 }
@@ -319,7 +318,7 @@ const mapLocationOptions = (locations: TenantChildLocation[] | undefined): Locat
           : locationId
       const normalizedTitle = toCapitalizedWords(location.title?.trim() ?? '')
       return {
-        value: `${locationId}${LOCATION_VALUE_SEPARATOR}${analyticsId}${LOCATION_VALUE_SEPARATOR}${slugify(normalizedTitle)}`,
+        value: toStableLocationValue(locationId, analyticsId, slugify(normalizedTitle)),
         label: normalizedTitle,
         locationId,
         analyticsId,
@@ -1091,8 +1090,9 @@ export function CentralDashboard() {
     endDate?: string
   } = isVillageSelected
     ? {
-        startDate: previousWaterQuantityPeriodicData?.startDate,
-        endDate: previousWaterQuantityPeriodicData?.endDate,
+        daysInRange: previousWaterSupplyKpiData?.daysInRange,
+        startDate: previousWaterSupplyAnalyticsParams?.startDate,
+        endDate: previousWaterSupplyAnalyticsParams?.endDate,
       }
     : {
         daysInRange: previousWaterSupplyKpiData?.daysInRange,

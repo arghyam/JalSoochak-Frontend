@@ -112,6 +112,7 @@ const mapLocationOptions = (locations: TenantChildLocation[] | undefined): Locat
     if (!normalizedTitle) {
       return []
     }
+    const slug = slugify(normalizedTitle)
 
     const locationId = location.id
     const analyticsId =
@@ -119,7 +120,7 @@ const mapLocationOptions = (locations: TenantChildLocation[] | undefined): Locat
         ? location.lgdCode
         : locationId
     return {
-      value: toStableLocationValue(locationId, analyticsId, normalizedTitle),
+      value: toStableLocationValue(locationId, analyticsId, slug),
       label: normalizedTitle,
       locationId,
       analyticsId,

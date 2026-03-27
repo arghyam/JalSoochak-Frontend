@@ -66,6 +66,31 @@ describe('SchemePerformanceTable', () => {
     expect(headers).not.toContain('Village')
   })
 
+  it('omits the block column when configured not to show it', () => {
+    renderWithProviders(
+      <SchemePerformanceTable title="Scheme Performance" data={tableData} showBlockColumn={false} />
+    )
+
+    const headers = screen.getAllByRole('columnheader').map((header) => header.textContent ?? '')
+    expect(headers).toHaveLength(4)
+    expect(headers[0]).toContain('Name')
+    expect(headers[1]).toContain('Village')
+    expect(headers).not.toContain('Block')
+  })
+
+  it('uses the custom secondary column label when provided', () => {
+    renderWithProviders(
+      <SchemePerformanceTable
+        title="Scheme Performance"
+        data={tableData}
+        secondaryColumnLabel="My Secondary"
+      />
+    )
+
+    const headers = screen.getAllByRole('columnheader').map((header) => header.textContent ?? '')
+    expect(headers).toContain('My Secondary')
+  })
+
   it('sorts reporting rate descending then ascending', () => {
     const { container } = renderWithProviders(
       <SchemePerformanceTable title="Scheme Performance" data={tableData} />

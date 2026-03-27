@@ -909,7 +909,7 @@ describe('CentralDashboard', () => {
     expect(kpiProps[0]?.title).toBe('Quantity in MLD')
     expect(kpiProps[0]?.value).toBe('0.05')
     expect(kpiProps[0]?.trend).toEqual(
-      expect.objectContaining({ text: expect.stringContaining('vs last 2 days') })
+      expect.objectContaining({ text: expect.stringContaining('vs last 30 days') })
     )
     expect(kpiProps[1]?.title).toBe('Quantity in LPCD')
     expect(kpiProps[1]?.value).toBe('18.3')
