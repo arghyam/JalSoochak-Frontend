@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   Box,
   Text,
@@ -173,6 +173,17 @@ export function EscalationsFormPage() {
     }
   }
 
+  const hasChanges = useMemo(() => {
+    if (!isConfigured || !config) return false
+    const scheduleChanged =
+      activeSchedule !== formatTime(config.schedule.hour, config.schedule.minute)
+    const levelsChanged = activeLevels.some((l) => {
+      const original = config.levels.find((cl) => cl.userType === l.userType)
+      return l.days !== (original ? String(original.days) : '')
+    })
+    return scheduleChanged || levelsChanged
+  }, [isConfigured, config, activeSchedule, activeLevels])
+
   if (isLoading) {
     return (
       <Box w="full">
@@ -201,9 +212,36 @@ export function EscalationsFormPage() {
   return (
     <Box w="full">
       <Box mb={5}>
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+        <Heading
+          as="h1"
+          size={{ base: 'h2', md: 'h1' }}
+          mb={effectiveIsEditing && isConfigured ? 2 : 0}
+        >
           {t('escalations.title')}
         </Heading>
+        {effectiveIsEditing && isConfigured && (
+          <Flex as="nav" aria-label="Breadcrumb" gap={2} flexWrap="wrap">
+            <Text
+              as="a"
+              fontSize="14px"
+              lineHeight="21px"
+              color="neutral.500"
+              cursor="pointer"
+              _hover={{ textDecoration: 'underline' }}
+              onClick={handleCancel}
+              tabIndex={0}
+              onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && handleCancel()}
+            >
+              {t('escalations.breadcrumb.view')}
+            </Text>
+            <Text fontSize="14px" lineHeight="21px" color="neutral.500" aria-hidden="true">
+              /
+            </Text>
+            <Text fontSize="14px" lineHeight="21px" color="#26272B" aria-current="page">
+              {t('escalations.breadcrumb.edit')}
+            </Text>
+          </Flex>
+        )}
       </Box>
 
       <Box
@@ -415,6 +453,7 @@ export function EscalationsFormPage() {
                   width={{ base: 'full', sm: '174px' }}
                   onClick={handleSave}
                   isLoading={saveMutation.isPending}
+                  isDisabled={(isConfigured && !hasChanges) || saveMutation.isPending}
                 >
                   {isConfigured ? t('common:button.saveChanges') : t('common:button.save')}
                 </Button>
@@ -464,8 +503,8 @@ function ViewMode({
         ) : (
           <VStack align="stretch" spacing={2} maxW={{ base: 'full', md: '500px' }}>
             {config.levels.map((level, index) => (
-              <HStack key={index} spacing={4}>
-                <Text fontSize="sm" fontWeight="medium" color="neutral.600" minW="20px">
+              <HStack key={index} spacing={2}>
+                <Text fontSize="sm" fontWeight="medium" color="neutral.600">
                   {index + 1}.
                 </Text>
                 <Text fontSize="sm" color="neutral.950" flex={1}>

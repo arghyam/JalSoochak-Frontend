@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -117,6 +117,25 @@ export function ConfigurationPage() {
   }, [t])
 
   const effectiveIsEditing = isEditing || Boolean(config && !config.isConfigured)
+
+  const hasChanges = useMemo(() => {
+    if (!config || !draft || !config.isConfigured) return false
+    const compare = (a: string, b: string) => a.localeCompare(b)
+    const channelsChanged =
+      [...draft.supportedChannels].sort(compare).join() !==
+      [...config.supportedChannels].sort(compare).join()
+    const reasonsChanged =
+      JSON.stringify(draft.meterChangeReasons) !== JSON.stringify(config.meterChangeReasons)
+    return (
+      channelsChanged ||
+      draft.logoFile !== null ||
+      draft.locationCheckRequired !== config.locationCheckRequired ||
+      draft.dataConsolidationTime !== config.dataConsolidationTime ||
+      draft.pumpOperatorReminderNudgeTime !== config.pumpOperatorReminderNudgeTime ||
+      draft.averageMembersPerHousehold !== config.averageMembersPerHousehold ||
+      reasonsChanged
+    )
+  }, [config, draft])
 
   const handleEdit = () => {
     const initial = buildInitialDraft(config, logoObjectUrl ?? undefined)
@@ -302,9 +321,36 @@ export function ConfigurationPage() {
   return (
     <Box w="full">
       <Box mb={5}>
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+        <Heading
+          as="h1"
+          size={{ base: 'h2', md: 'h1' }}
+          mb={effectiveIsEditing && config.isConfigured ? 2 : 0}
+        >
           {t('configuration.pageTitle')}
         </Heading>
+        {effectiveIsEditing && config.isConfigured && (
+          <Flex as="nav" aria-label="Breadcrumb" gap={2} flexWrap="wrap">
+            <Text
+              as="a"
+              fontSize="14px"
+              lineHeight="21px"
+              color="neutral.500"
+              cursor="pointer"
+              _hover={{ textDecoration: 'underline' }}
+              onClick={handleCancel}
+              tabIndex={0}
+              onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && handleCancel()}
+            >
+              {t('configuration.breadcrumb.view')}
+            </Text>
+            <Text fontSize="14px" lineHeight="21px" color="neutral.500" aria-hidden="true">
+              /
+            </Text>
+            <Text fontSize="14px" lineHeight="21px" color="#26272B" aria-current="page">
+              {t('configuration.breadcrumb.edit')}
+            </Text>
+          </Flex>
+        )}
       </Box>
 
       <Box
@@ -665,6 +711,11 @@ export function ConfigurationPage() {
                   width={{ base: 'full', sm: '174px' }}
                   onClick={() => handleSave(!config.isConfigured)}
                   isLoading={saveMutation.isPending || updateLogoMutation.isPending}
+                  isDisabled={
+                    (config.isConfigured && !hasChanges) ||
+                    saveMutation.isPending ||
+                    updateLogoMutation.isPending
+                  }
                 >
                   {config.isConfigured
                     ? t('common:button.saveChanges')

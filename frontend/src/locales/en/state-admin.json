@@ -6,6 +6,10 @@
     "departmentTitle": "Department Hierarchy",
     "levelLabel": "Level {{level}}",
     "addLevel": "Add Level",
+    "breadcrumb": {
+      "view": "View Hierarchy",
+      "edit": "Edit Hierarchy"
+    },
     "messages": {
       "saveSuccess": "Hierarchy saved successfully",
       "saveFailed": "Failed to save hierarchy",
@@ -91,6 +95,10 @@
     "primaryLanguage": "Primary Language",
     "secondaryLanguage": "Secondary Language (optional)",
     "tertiaryLanguage": "Tertiary Language (optional)",
+    "breadcrumb": {
+      "view": "View Language",
+      "edit": "Edit Language"
+    },
     "aria": {
       "editConfiguration": "Edit language configuration",
       "selectPrimaryLanguage": "Select primary language",
@@ -122,6 +130,10 @@
   "waterNorms": {
     "title": "Water Norms",
     "stateUtWaterNorms": "State/UT Water Norms",
+    "breadcrumb": {
+      "view": "View Water Norms",
+      "edit": "Edit Water Norms"
+    },
     "currentQuantity": "Current quantity (LPCD)",
     "alertThresholds": {
       "title": "Alert Thresholds",
@@ -164,6 +176,10 @@
   "escalations": {
     "title": "Escalations",
     "allEscalations": "All Escalations",
+    "breadcrumb": {
+      "view": "View Escalations",
+      "edit": "Edit Escalations"
+    },
     "escalationRules": "Escalations Rules",
     "addNewEscalationType": "Add New Escalation Type",
     "addNewShort": "Add New",
@@ -379,6 +395,10 @@
   "configuration": {
     "pageTitle": "Configuration",
     "sectionTitle": "State/UT Configuration",
+    "breadcrumb": {
+      "view": "View Configuration",
+      "edit": "Edit Configuration"
+    },
     "sections": {
       "lgdHierarchy": {
         "title": "LGD Hierarchy",

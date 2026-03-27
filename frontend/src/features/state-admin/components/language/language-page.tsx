@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Box, Text, Button, Flex, HStack, Heading, Spinner, SimpleGrid } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
@@ -33,6 +33,11 @@ export function LanguagePage() {
   const primaryLanguage = languageDraft.primaryLanguage ?? config?.primaryLanguage ?? ''
   const secondaryLanguage = languageDraft.secondaryLanguage ?? config?.secondaryLanguage ?? ''
   const tertiaryLanguage = languageDraft.tertiaryLanguage ?? config?.tertiaryLanguage ?? ''
+
+  const hasChanges =
+    primaryLanguage !== (config?.primaryLanguage ?? '') ||
+    secondaryLanguage !== (config?.secondaryLanguage ?? '') ||
+    tertiaryLanguage !== (config?.tertiaryLanguage ?? '')
 
   const primaryOptions = useMemo(
     () =>
@@ -136,9 +141,36 @@ export function LanguagePage() {
     <Box w="full">
       {/* Page Header */}
       <Box mb={5}>
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+        <Heading
+          as="h1"
+          size={{ base: 'h2', md: 'h1' }}
+          mb={effectiveIsEditing && config?.isConfigured ? 2 : 0}
+        >
           {t('language.title')}
         </Heading>
+        {effectiveIsEditing && config?.isConfigured && (
+          <Flex as="nav" aria-label="Breadcrumb" gap={2} flexWrap="wrap">
+            <Text
+              as="a"
+              fontSize="14px"
+              lineHeight="21px"
+              color="neutral.500"
+              cursor="pointer"
+              _hover={{ textDecoration: 'underline' }}
+              onClick={handleCancel}
+              tabIndex={0}
+              onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && handleCancel()}
+            >
+              {t('language.breadcrumb.view')}
+            </Text>
+            <Text fontSize="14px" lineHeight="21px" color="neutral.500" aria-hidden="true">
+              /
+            </Text>
+            <Text fontSize="14px" lineHeight="21px" color="#26272B" aria-current="page">
+              {t('language.breadcrumb.edit')}
+            </Text>
+          </Flex>
+        )}
       </Box>
 
       {/* Language Configuration Card */}
@@ -345,7 +377,11 @@ export function LanguagePage() {
                   width={{ base: 'full', sm: '174px' }}
                   onClick={() => handleSave(!config?.isConfigured)}
                   isLoading={saveLanguageConfigMutation.isPending}
-                  isDisabled={!primaryLanguage}
+                  isDisabled={
+                    !primaryLanguage ||
+                    (!!config?.isConfigured && !hasChanges) ||
+                    saveLanguageConfigMutation.isPending
+                  }
                 >
                   {config?.isConfigured
                     ? t('common:button.saveChanges')

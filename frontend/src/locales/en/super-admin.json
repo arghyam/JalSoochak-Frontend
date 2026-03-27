@@ -217,6 +217,10 @@
   "configuration": {
     "pageTitle": "Configuration",
     "sectionTitle": "System Configuration",
+    "breadcrumb": {
+      "view": "View Configuration",
+      "edit": "Edit Configuration"
+    },
     "sections": {
       "supportedChannels": {
         "title": "Supported Channels"

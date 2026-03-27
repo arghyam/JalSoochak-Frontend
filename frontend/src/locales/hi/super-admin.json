@@ -217,6 +217,10 @@
   "configuration": {
     "pageTitle": "कॉन्फ़िगरेशन",
     "sectionTitle": "सिस्टम कॉन्फ़िगरेशन",
+    "breadcrumb": {
+      "view": "कॉन्फ़िगरेशन देखें",
+      "edit": "कॉन्फ़िगरेशन संपादित करें"
+    },
     "sections": {
       "supportedChannels": {
         "title": "समर्थित चैनल"

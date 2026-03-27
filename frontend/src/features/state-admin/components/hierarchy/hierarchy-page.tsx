@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Box, Text, Button, Flex, HStack, Heading, SimpleGrid, Spinner } from '@chakra-ui/react'
 import { EditIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
@@ -157,6 +157,28 @@ export function HierarchyPage() {
 
   const isSaving = saveLgdMutation.isPending || saveDeptMutation.isPending
 
+  const hasChanges = useMemo(() => {
+    if (!draft) return false
+    const compare = (a: string, b: string) => a.localeCompare(b)
+    const lgdChanged =
+      JSON.stringify([...draft.lgd].sort((a, b) => compare(String(a.level), String(b.level)))) !==
+      JSON.stringify(
+        [...(lgdData?.levels ?? DEFAULT_LGD_HIERARCHY)].sort((a, b) =>
+          compare(String(a.level), String(b.level))
+        )
+      )
+    const deptChanged =
+      JSON.stringify(
+        [...draft.department].sort((a, b) => compare(String(a.level), String(b.level)))
+      ) !==
+      JSON.stringify(
+        [...(deptData?.levels ?? DEFAULT_DEPARTMENT_HIERARCHY)].sort((a, b) =>
+          compare(String(a.level), String(b.level))
+        )
+      )
+    return lgdChanged || deptChanged
+  }, [draft, lgdData, deptData])
+
   if (isLoading) {
     return (
       <Box w="full">
@@ -190,9 +212,32 @@ export function HierarchyPage() {
   return (
     <Box w="full">
       <Box mb={5}>
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={isEditing ? 2 : 0}>
           {t('hierarchy.pageTitle')}
         </Heading>
+        {isEditing && (
+          <Flex as="nav" aria-label="Breadcrumb" gap={2} flexWrap="wrap">
+            <Text
+              as="a"
+              fontSize="14px"
+              lineHeight="21px"
+              color="neutral.500"
+              cursor="pointer"
+              _hover={{ textDecoration: 'underline' }}
+              onClick={handleCancel}
+              tabIndex={0}
+              onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && handleCancel()}
+            >
+              {t('hierarchy.breadcrumb.view')}
+            </Text>
+            <Text fontSize="14px" lineHeight="21px" color="neutral.500" aria-hidden="true">
+              /
+            </Text>
+            <Text fontSize="14px" lineHeight="21px" color="#26272B" aria-current="page">
+              {t('hierarchy.breadcrumb.edit')}
+            </Text>
+          </Flex>
+        )}
       </Box>
 
       <Box
@@ -305,6 +350,7 @@ export function HierarchyPage() {
                   width={{ base: 'full', sm: '174px' }}
                   onClick={handleSave}
                   isLoading={isSaving}
+                  isDisabled={!hasChanges || isSaving}
                 >
                   {t('common:button.saveChanges')}
                 </Button>

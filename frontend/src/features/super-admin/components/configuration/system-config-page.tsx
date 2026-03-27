@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   Box,
   Text,
@@ -111,6 +111,21 @@ export function SystemConfigPage() {
       }))
     }
 
+  const hasChanges = useMemo(() => {
+    if (!config || !draft) return false
+    const compare = (a: string, b: string) => a.localeCompare(b)
+    const channelsChanged =
+      [...draft.supportedChannels].sort(compare).join() !==
+      [...config.supportedChannels].sort(compare).join()
+    return (
+      channelsChanged ||
+      Number(draft.oversupplyThreshold) !== config.oversupplyThreshold ||
+      Number(draft.undersupplyThreshold) !== config.undersupplyThreshold ||
+      Number(draft.bfmImageConfidenceThreshold) !== config.bfmImageConfidenceThreshold ||
+      Number(draft.locationAffinityThreshold) !== config.locationAffinityThreshold
+    )
+  }, [config, draft])
+
   if (isLoading) {
     return (
       <Box w="full">
@@ -142,9 +157,32 @@ export function SystemConfigPage() {
   return (
     <Box w="full">
       <Box mb={5}>
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={isEditing ? 2 : 0}>
           {t('configuration.pageTitle')}
         </Heading>
+        {isEditing && (
+          <Flex as="nav" aria-label="Breadcrumb" gap={2} flexWrap="wrap">
+            <Text
+              as="a"
+              fontSize="14px"
+              lineHeight="21px"
+              color="neutral.500"
+              cursor="pointer"
+              _hover={{ textDecoration: 'underline' }}
+              onClick={handleCancel}
+              tabIndex={0}
+              onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && handleCancel()}
+            >
+              {t('configuration.breadcrumb.view')}
+            </Text>
+            <Text fontSize="14px" lineHeight="21px" color="neutral.500" aria-hidden="true">
+              /
+            </Text>
+            <Text fontSize="14px" lineHeight="21px" color="#26272B" aria-current="page">
+              {t('configuration.breadcrumb.edit')}
+            </Text>
+          </Flex>
+        )}
       </Box>
 
       <Box
@@ -313,6 +351,7 @@ export function SystemConfigPage() {
                   size="md"
                   width={{ base: 'full', sm: '174px' }}
                   isLoading={saveMutation.isPending}
+                  isDisabled={!hasChanges || saveMutation.isPending}
                 >
                   {t('common:button.saveChanges')}
                 </Button>

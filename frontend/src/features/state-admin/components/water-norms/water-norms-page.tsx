@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -64,6 +64,13 @@ export function WaterNormsPage() {
     undersupplyThresholdDraft ??
     (config?.undersupplyThreshold != null ? String(config.undersupplyThreshold) : '')
   const districtOverrides = districtOverridesDraft ?? config?.districtOverrides ?? []
+
+  const hasChanges =
+    config?.isConfigured &&
+    (stateQuantity !== String(config.stateQuantity) ||
+      oversupplyThreshold !== String(config.oversupplyThreshold) ||
+      undersupplyThreshold !== String(config.undersupplyThreshold) ||
+      districtOverridesDraft !== null)
 
   const handleEdit = () => {
     setIsEditing(true)
@@ -187,9 +194,36 @@ export function WaterNormsPage() {
     <Box w="full">
       {/* Page Header */}
       <Box mb={5}>
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+        <Heading
+          as="h1"
+          size={{ base: 'h2', md: 'h1' }}
+          mb={effectiveIsEditing && config?.isConfigured ? 2 : 0}
+        >
           {t('waterNorms.title')}
         </Heading>
+        {effectiveIsEditing && config?.isConfigured && (
+          <Flex as="nav" aria-label="Breadcrumb" gap={2} flexWrap="wrap">
+            <Text
+              as="a"
+              fontSize="14px"
+              lineHeight="21px"
+              color="neutral.500"
+              cursor="pointer"
+              _hover={{ textDecoration: 'underline' }}
+              onClick={handleCancel}
+              tabIndex={0}
+              onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && handleCancel()}
+            >
+              {t('waterNorms.breadcrumb.view')}
+            </Text>
+            <Text fontSize="14px" lineHeight="21px" color="neutral.500" aria-hidden="true">
+              /
+            </Text>
+            <Text fontSize="14px" lineHeight="21px" color="#26272B" aria-current="page">
+              {t('waterNorms.breadcrumb.edit')}
+            </Text>
+          </Flex>
+        )}
       </Box>
 
       {/* Water Norms Configuration Card */}
@@ -368,7 +402,9 @@ export function WaterNormsPage() {
                   width={{ base: 'full', sm: '174px' }}
                   onClick={() => handleSave(!config?.isConfigured)}
                   isLoading={saveWaterNormsMutation.isPending}
-                  isDisabled={saveWaterNormsMutation.isPending}
+                  isDisabled={
+                    (!!config?.isConfigured && !hasChanges) || saveWaterNormsMutation.isPending
+                  }
                 >
                   {config?.isConfigured
                     ? t('common:button.saveChanges')
