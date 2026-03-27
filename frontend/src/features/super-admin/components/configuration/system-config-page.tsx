@@ -16,7 +16,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer } from '@/shared/components/common'
+import { ToastContainer, EditableBreadcrumb } from '@/shared/components/common'
 import {
   useSystemConfigurationQuery,
   useSaveSystemConfigurationMutation,
@@ -160,29 +160,12 @@ export function SystemConfigPage() {
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={isEditing ? 2 : 0}>
           {t('configuration.pageTitle')}
         </Heading>
-        {isEditing && (
-          <Flex as="nav" aria-label="Breadcrumb" gap={2} flexWrap="wrap">
-            <Text
-              as="a"
-              fontSize="14px"
-              lineHeight="21px"
-              color="neutral.500"
-              cursor="pointer"
-              _hover={{ textDecoration: 'underline' }}
-              onClick={handleCancel}
-              tabIndex={0}
-              onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && handleCancel()}
-            >
-              {t('configuration.breadcrumb.view')}
-            </Text>
-            <Text fontSize="14px" lineHeight="21px" color="neutral.500" aria-hidden="true">
-              /
-            </Text>
-            <Text fontSize="14px" lineHeight="21px" color="#26272B" aria-current="page">
-              {t('configuration.breadcrumb.edit')}
-            </Text>
-          </Flex>
-        )}
+        <EditableBreadcrumb
+          isEditing={isEditing}
+          onCancel={handleCancel}
+          viewLabel={t('configuration.breadcrumb.view')}
+          editLabel={t('configuration.breadcrumb.edit')}
+        />
       </Box>
 
       <Box

@@ -159,23 +159,14 @@ export function HierarchyPage() {
 
   const hasChanges = useMemo(() => {
     if (!draft) return false
-    const compare = (a: string, b: string) => a.localeCompare(b)
+    const compareNumeric = (a: { level: number | string }, b: { level: number | string }) =>
+      Number(a.level) - Number(b.level)
     const lgdChanged =
-      JSON.stringify([...draft.lgd].sort((a, b) => compare(String(a.level), String(b.level)))) !==
-      JSON.stringify(
-        [...(lgdData?.levels ?? DEFAULT_LGD_HIERARCHY)].sort((a, b) =>
-          compare(String(a.level), String(b.level))
-        )
-      )
+      JSON.stringify([...draft.lgd].sort(compareNumeric)) !==
+      JSON.stringify([...(lgdData?.levels ?? DEFAULT_LGD_HIERARCHY)].sort(compareNumeric))
     const deptChanged =
-      JSON.stringify(
-        [...draft.department].sort((a, b) => compare(String(a.level), String(b.level)))
-      ) !==
-      JSON.stringify(
-        [...(deptData?.levels ?? DEFAULT_DEPARTMENT_HIERARCHY)].sort((a, b) =>
-          compare(String(a.level), String(b.level))
-        )
-      )
+      JSON.stringify([...draft.department].sort(compareNumeric)) !==
+      JSON.stringify([...(deptData?.levels ?? DEFAULT_DEPARTMENT_HIERARCHY)].sort(compareNumeric))
     return lgdChanged || deptChanged
   }, [draft, lgdData, deptData])
 

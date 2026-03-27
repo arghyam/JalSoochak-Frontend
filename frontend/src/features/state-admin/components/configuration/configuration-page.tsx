@@ -330,23 +330,21 @@ export function ConfigurationPage() {
         </Heading>
         {effectiveIsEditing && config.isConfigured && (
           <Flex as="nav" aria-label="Breadcrumb" gap={2} flexWrap="wrap">
-            <Text
-              as="a"
+            <Button
+              variant="link"
               fontSize="14px"
               lineHeight="21px"
               color="neutral.500"
-              cursor="pointer"
+              fontWeight="normal"
               _hover={{ textDecoration: 'underline' }}
               onClick={handleCancel}
-              tabIndex={0}
-              onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && handleCancel()}
             >
               {t('configuration.breadcrumb.view')}
-            </Text>
+            </Button>
             <Text fontSize="14px" lineHeight="21px" color="neutral.500" aria-hidden="true">
               /
             </Text>
-            <Text fontSize="14px" lineHeight="21px" color="#26272B" aria-current="page">
+            <Text fontSize="14px" lineHeight="21px" color="neutral.800" aria-current="page">
               {t('configuration.breadcrumb.edit')}
             </Text>
           </Flex>

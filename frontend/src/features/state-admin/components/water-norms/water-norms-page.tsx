@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -65,12 +65,16 @@ export function WaterNormsPage() {
     (config?.undersupplyThreshold != null ? String(config.undersupplyThreshold) : '')
   const districtOverrides = districtOverridesDraft ?? config?.districtOverrides ?? []
 
-  const hasChanges =
-    config?.isConfigured &&
-    (stateQuantity !== String(config.stateQuantity) ||
-      oversupplyThreshold !== String(config.oversupplyThreshold) ||
-      undersupplyThreshold !== String(config.undersupplyThreshold) ||
-      districtOverridesDraft !== null)
+  const hasChanges = useMemo(
+    () =>
+      Boolean(config?.isConfigured) &&
+      (stateQuantity !== String(config?.stateQuantity) ||
+        oversupplyThreshold !== String(config?.oversupplyThreshold) ||
+        undersupplyThreshold !== String(config?.undersupplyThreshold) ||
+        (districtOverridesDraft !== null &&
+          JSON.stringify(districtOverridesDraft) !== JSON.stringify(config?.districtOverrides))),
+    [stateQuantity, oversupplyThreshold, undersupplyThreshold, districtOverridesDraft, config]
+  )
 
   const handleEdit = () => {
     setIsEditing(true)

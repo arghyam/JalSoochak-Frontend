@@ -34,10 +34,20 @@ export function LanguagePage() {
   const secondaryLanguage = languageDraft.secondaryLanguage ?? config?.secondaryLanguage ?? ''
   const tertiaryLanguage = languageDraft.tertiaryLanguage ?? config?.tertiaryLanguage ?? ''
 
-  const hasChanges =
-    primaryLanguage !== (config?.primaryLanguage ?? '') ||
-    secondaryLanguage !== (config?.secondaryLanguage ?? '') ||
-    tertiaryLanguage !== (config?.tertiaryLanguage ?? '')
+  const hasChanges = useMemo(
+    () =>
+      primaryLanguage !== (config?.primaryLanguage ?? '') ||
+      secondaryLanguage !== (config?.secondaryLanguage ?? '') ||
+      tertiaryLanguage !== (config?.tertiaryLanguage ?? ''),
+    [
+      primaryLanguage,
+      secondaryLanguage,
+      tertiaryLanguage,
+      config?.primaryLanguage,
+      config?.secondaryLanguage,
+      config?.tertiaryLanguage,
+    ]
+  )
 
   const primaryOptions = useMemo(
     () =>

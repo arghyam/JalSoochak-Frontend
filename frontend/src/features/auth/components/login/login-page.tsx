@@ -171,9 +171,11 @@ export function LoginPage() {
                     </InputGroup>
                   </FormControl>
 
-                  <FormControl isInvalid={!!(error || (localError && !isEmailError))}>
-                    <FormErrorMessage>{localError || error}</FormErrorMessage>
-                  </FormControl>
+                  {(error || (localError && !isEmailError)) && (
+                    <FormControl isInvalid>
+                      <FormErrorMessage>{localError || error}</FormErrorMessage>
+                    </FormControl>
+                  )}
 
                   <Flex justify="flex-end">
                     <Link

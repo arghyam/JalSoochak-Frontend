@@ -3,6 +3,7 @@ import {
   Box,
   Heading,
   Flex,
+  HStack,
   Stack,
   FormControl,
   FormLabel,
@@ -139,14 +140,18 @@ export function ChangePasswordPage() {
         py={6}
         px={{ base: 3, md: 4 }}
       >
-        <Box
+        <Flex
           as="form"
           role="form"
           aria-label={t('changePassword.title')}
           onSubmit={handleSubmit}
-          maxW="md"
+          direction="column"
+          justify="space-between"
+          h="full"
+          minH={{ base: 'auto', lg: 'calc(100vh - 200px)' }}
+          gap={{ base: 6, lg: 0 }}
         >
-          <Stack spacing={5} mb={8}>
+          <Stack spacing={5} maxW="md">
             <FormControl isRequired isInvalid={!!errors.currentPassword}>
               <FormLabel textStyle="h10" mb={1}>
                 {t('changePassword.currentPassword')}
@@ -242,7 +247,12 @@ export function ChangePasswordPage() {
             </FormControl>
           </Stack>
 
-          <Flex justify="flex-end">
+          <HStack
+            spacing={3}
+            justify={{ base: 'stretch', sm: 'flex-end' }}
+            flexDirection={{ base: 'column-reverse', sm: 'row' }}
+            mt={4}
+          >
             <Button
               type="submit"
               variant="primary"
@@ -253,8 +263,8 @@ export function ChangePasswordPage() {
             >
               {t('changePassword.submit')}
             </Button>
-          </Flex>
-        </Box>
+          </HStack>
+        </Flex>
       </Box>
 
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />

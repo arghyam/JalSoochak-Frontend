@@ -222,15 +222,14 @@ export function EscalationsFormPage() {
         {effectiveIsEditing && isConfigured && (
           <Flex as="nav" aria-label="Breadcrumb" gap={2} flexWrap="wrap">
             <Text
-              as="a"
+              as="button"
+              type="button"
               fontSize="14px"
               lineHeight="21px"
               color="neutral.500"
               cursor="pointer"
               _hover={{ textDecoration: 'underline' }}
               onClick={handleCancel}
-              tabIndex={0}
-              onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && handleCancel()}
             >
               {t('escalations.breadcrumb.view')}
             </Text>
