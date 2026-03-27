@@ -311,6 +311,10 @@ export function DashboardBody({
           villagePumpOperators={villagePumpOperators}
           tenantCode={tenantCode}
           schemeId={schemeId}
+          quantityTimeTrendData={quantityTimeTrendData}
+          regularityTimeTrendData={regularityTimeTrendData}
+          isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
+          isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
         />
       ) : null}
 

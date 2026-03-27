@@ -8,7 +8,9 @@ import type {
   ReadingSubmissionStatusData,
   ReadingSubmissionRateResponse,
   SchemePerformanceResponse,
+  SchemeRegularityPeriodicResponse,
   SubmissionStatusResponse,
+  WaterQuantityPeriodicResponse,
   WaterSupplyOutageData,
 } from '../types'
 import { slugify, toCapitalizedWords } from './format-location-label'
@@ -52,6 +54,9 @@ const parseIsoDate = (value?: string) => {
   const date = new Date(`${value}T00:00:00`)
   return Number.isNaN(date.getTime()) ? null : date
 }
+
+const resolveMetricDaysInRange = (startDate?: string, endDate?: string) =>
+  parseIsoDate(startDate) && parseIsoDate(endDate) ? resolveDaysInRange(0, startDate, endDate) : 0
 
 export const resolveDaysInRange = (
   daysInRange?: number,
@@ -326,6 +331,91 @@ export const getRegularityKpiFromNationalDashboard = (
   return calculateAverageRegularityPercent(totals.totalSupplyDays, totals.schemeCount, daysInRange)
 }
 
+export const getWaterSupplyKpisFromPeriodic = (
+  response: WaterQuantityPeriodicResponse | undefined,
+  averagePersonsPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD
+) => {
+  if (!response?.metrics?.length) {
+    return { quantityMld: 0, quantityLpcd: 0 }
+  }
+
+  const totals = response.metrics.reduce(
+    (acc, metric) => {
+      const metricDays = resolveMetricDaysInRange(metric.periodStartDate, metric.periodEndDate)
+      const waterQuantity = Number(metric.averageWaterQuantity ?? 0)
+      const chosenAchievedFhtcCount = Number(
+        metric.totalAchievedFhtcCount ?? metric.achievedFhtcCount ?? 0
+      )
+
+      if (!isFiniteNumber(waterQuantity) || metricDays <= 0) {
+        return acc
+      }
+
+      return {
+        totalWaterSuppliedLiters: acc.totalWaterSuppliedLiters + waterQuantity * metricDays,
+        totalServedConnectionsDays:
+          acc.totalServedConnectionsDays +
+          (isFiniteNumber(chosenAchievedFhtcCount) && chosenAchievedFhtcCount > 0
+            ? chosenAchievedFhtcCount
+            : 0) *
+            metricDays,
+        totalDays: acc.totalDays + metricDays,
+      }
+    },
+    { totalWaterSuppliedLiters: 0, totalServedConnectionsDays: 0, totalDays: 0 }
+  )
+
+  if (totals.totalDays <= 0) {
+    return { quantityMld: 0, quantityLpcd: 0 }
+  }
+
+  return {
+    quantityMld: calculateQuantityMld(totals.totalWaterSuppliedLiters, totals.totalDays),
+    quantityLpcd:
+      totals.totalServedConnectionsDays > 0 &&
+      Number.isFinite(averagePersonsPerHousehold) &&
+      averagePersonsPerHousehold > 0
+        ? Number(
+            (
+              totals.totalWaterSuppliedLiters /
+              (totals.totalServedConnectionsDays * averagePersonsPerHousehold)
+            ).toFixed(1)
+          )
+        : 0,
+  }
+}
+
+export const getRegularityKpiFromPeriodic = (
+  response: SchemeRegularityPeriodicResponse | undefined
+) => {
+  if (!response?.metrics?.length) {
+    return 0
+  }
+
+  const totals = response.metrics.reduce(
+    (acc, metric) => {
+      const metricDays = resolveMetricDaysInRange(metric.periodStartDate, metric.periodEndDate)
+      const averageRegularity = Number(metric.averageRegularity ?? 0)
+
+      if (!isFiniteNumber(averageRegularity) || metricDays <= 0) {
+        return acc
+      }
+
+      return {
+        weightedRegularity: acc.weightedRegularity + averageRegularity * metricDays,
+        totalDays: acc.totalDays + metricDays,
+      }
+    },
+    { weightedRegularity: 0, totalDays: 0 }
+  )
+
+  if (totals.totalDays <= 0) {
+    return 0
+  }
+
+  return Number((totals.weightedRegularity / totals.totalDays).toFixed(1))
+}
+
 export const calculatePercentChange = (currentValue: number, previousValue: number) => {
   if (!isFiniteNumber(currentValue) || !isFiniteNumber(previousValue)) {
     return 0
@@ -390,7 +480,7 @@ export const mapRegularityPerformanceFromAnalytics = (
   fallbackData: EntityPerformance[]
 ): EntityPerformance[] => {
   if (!response?.childRegions?.length) {
-    return fallbackData
+    return []
   }
 
   const childRegions = response.childRegions
@@ -498,7 +588,7 @@ export const mapRegularityPerformanceFromNationalDashboard = (
   fallbackData: EntityPerformance[]
 ): EntityPerformance[] => {
   if (!response?.stateWiseRegularity?.length) {
-    return fallbackData
+    return []
   }
 
   const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
@@ -650,7 +740,11 @@ export const mapSchemePerformanceToPumpOperators = (
 
 export const mapSchemePerformanceToTable = (
   response: SchemePerformanceResponse | undefined,
-  fallbackData: PumpOperatorPerformanceData[]
+  fallbackData: PumpOperatorPerformanceData[],
+  options?: {
+    blockTitleByParentId?: Record<number, string>
+    parentLgdTitleById?: Record<number, string>
+  }
 ): PumpOperatorPerformanceData[] => {
   if (!response?.topSchemes?.length) {
     return fallbackData
@@ -663,12 +757,24 @@ export const mapSchemePerformanceToTable = (
       undefined,
       `Scheme ${scheme.schemeId ?? index + 1}`
     ),
-    village: scheme.immediateParentLgdTitle?.trim()
-      ? toCapitalizedWords(scheme.immediateParentLgdTitle.trim())
-      : null,
-    block: scheme.immediateParentDepartmentTitle?.trim()
-      ? toCapitalizedWords(scheme.immediateParentDepartmentTitle.trim())
-      : null,
+    village:
+      options?.parentLgdTitleById &&
+      typeof scheme.immediateParentLgdId === 'number' &&
+      Number.isFinite(scheme.immediateParentLgdId) &&
+      options.parentLgdTitleById[scheme.immediateParentLgdId]
+        ? toCapitalizedWords(options.parentLgdTitleById[scheme.immediateParentLgdId])
+        : scheme.immediateParentLgdTitle?.trim()
+          ? toCapitalizedWords(scheme.immediateParentLgdTitle.trim())
+          : null,
+    block:
+      options?.blockTitleByParentId &&
+      typeof scheme.immediateParentLgdId === 'number' &&
+      Number.isFinite(scheme.immediateParentLgdId) &&
+      options.blockTitleByParentId[scheme.immediateParentLgdId]
+        ? toCapitalizedWords(options.blockTitleByParentId[scheme.immediateParentLgdId])
+        : scheme.immediateParentDepartmentTitle?.trim()
+          ? toCapitalizedWords(scheme.immediateParentDepartmentTitle.trim())
+          : null,
     reportingRate:
       typeof scheme.reportingRate === 'number' && Number.isFinite(scheme.reportingRate)
         ? scheme.reportingRate

@@ -312,6 +312,9 @@ export function BlockDashboardScreen({
           py="24px"
           h="510px"
           minW={0}
+          display="flex"
+          flexDirection="column"
+          minH={0}
         >
           <SchemePerformanceTable
             title={t('pumpOperators.performanceTable.title', {
@@ -319,6 +322,10 @@ export function BlockDashboardScreen({
             })}
             data={operatorsPerformanceTable}
             fillHeight
+            secondaryColumnLabel={t('performanceCharts.viewBy.gramPanchayats', {
+              defaultValue: 'Gram Panchayats',
+            })}
+            showBlockColumn={false}
           />
         </Box>
       </Grid>

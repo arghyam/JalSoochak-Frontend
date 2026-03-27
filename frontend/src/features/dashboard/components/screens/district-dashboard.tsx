@@ -337,6 +337,7 @@ export function DistrictDashboardScreen({
             })}
             data={operatorsPerformanceTable}
             fillHeight
+            showVillageColumn={false}
           />
         </Box>
       </Grid>

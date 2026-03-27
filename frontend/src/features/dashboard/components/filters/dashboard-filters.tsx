@@ -16,6 +16,7 @@ import {
   slugify,
   toCapitalizedWords,
 } from '../../utils/format-location-label'
+import { toStableLocationValue } from '../../utils/stable-location-value'
 import type { HierarchyType } from '../../services/api/dashboard-api'
 import type { TenantChildLocation } from '../../services/api/dashboard-api'
 
@@ -62,11 +63,11 @@ type DashboardFiltersProps = {
   onActiveTrailChange?: (trailIndex: number | null) => void
 }
 
-type LocationOption = SearchableSelectOption & { locationId?: number }
+type LocationOption = SearchableSelectOption & {
+  locationId?: number
+  analyticsId?: number
+}
 const LOCATION_VALUE_SEPARATOR = ':'
-
-const toStableLocationValue = (locationId: number, label: string): string =>
-  `${locationId}${LOCATION_VALUE_SEPARATOR}${slugify(label)}`
 
 const parseLocationId = (value: string): number | undefined => {
   if (!value) {
@@ -111,12 +112,18 @@ const mapLocationOptions = (locations: TenantChildLocation[] | undefined): Locat
     if (!normalizedTitle) {
       return []
     }
+    const slug = slugify(normalizedTitle)
 
     const locationId = location.id
+    const analyticsId =
+      typeof location.lgdCode === 'number' && Number.isFinite(location.lgdCode)
+        ? location.lgdCode
+        : locationId
     return {
-      value: toStableLocationValue(locationId, normalizedTitle),
+      value: toStableLocationValue(locationId, analyticsId, slug),
       label: normalizedTitle,
       locationId,
+      analyticsId,
     }
   })
 }

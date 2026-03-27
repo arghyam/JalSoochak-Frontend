@@ -133,6 +133,16 @@ const secondVillagePumpOperatorDetails = {
   inactiveDays: 'N/A',
 }
 
+const quantityTimeTrendData = [
+  { period: '12 Mar', value: 87 },
+  { period: '13 Mar', value: 91 },
+]
+
+const regularityTimeTrendData = [
+  { period: '12 Mar', value: 65 },
+  { period: '13 Mar', value: 72 },
+]
+
 function renderVillageDashboard(
   villagePhotoEvidenceRows: DashboardData['readingCompliance'] = [
     {
@@ -168,6 +178,8 @@ function renderVillageDashboard(
       villagePumpOperators={operatorPages}
       tenantCode="as"
       schemeId={3}
+      quantityTimeTrendData={quantityTimeTrendData}
+      regularityTimeTrendData={regularityTimeTrendData}
     />
   )
 }
@@ -193,7 +205,6 @@ describe('VillageDashboardScreen', () => {
     expect(metricCalls.length).toBeGreaterThanOrEqual(2)
     const latestMetricCalls = metricCalls.slice(-2)
     expect(latestMetricCalls[0]?.[0].metric).toBe('quantity')
-    expect(latestMetricCalls[0]?.[0].showAreaLine).toBe(true)
     expect(latestMetricCalls[0]?.[0].seriesName).toBe('Quantity')
     expect(latestMetricCalls[1]?.[0].metric).toBe('regularity')
     expect(latestMetricCalls[1]?.[0].seriesName).toBe('Regularity')
@@ -201,6 +212,51 @@ describe('VillageDashboardScreen', () => {
     expect(screen.getByTestId('supply-outage-reasons-chart')).toBeTruthy()
     expect(screen.getByTestId('reading-submission-status-chart')).toBeTruthy()
     expect(screen.getByTestId('reading-compliance-table')).toBeTruthy()
+  })
+
+  it('prefers analytics trend props over legacy demandSupply data for village charts', () => {
+    renderWithProviders(
+      <VillageDashboardScreen
+        data={data}
+        villagePhotoEvidenceRows={data.readingCompliance}
+        waterSupplyOutagesData={waterSupplyOutagesData}
+        villagePumpOperatorDetails={villagePumpOperatorDetails}
+        villagePumpOperators={villagePumpOperators}
+        tenantCode="as"
+        schemeId={3}
+        quantityTimeTrendData={quantityTimeTrendData}
+        regularityTimeTrendData={regularityTimeTrendData}
+      />
+    )
+
+    const metricCalls = mockMetricPerformanceChart.mock.calls as Array<[Record<string, unknown>]>
+    expect(metricCalls.length).toBeGreaterThanOrEqual(2)
+    const latestMetricCalls = metricCalls.slice(-2)
+    expect(latestMetricCalls[0]?.[0].data).toEqual([
+      expect.objectContaining({ name: '12 Mar', quantity: 87 }),
+      expect.objectContaining({ name: '13 Mar', quantity: 91 }),
+    ])
+    expect(latestMetricCalls[1]?.[0].data).toEqual([
+      expect.objectContaining({ name: '12 Mar', regularity: 65 }),
+      expect.objectContaining({ name: '13 Mar', regularity: 72 }),
+    ])
+  })
+
+  it('shows empty chart states when analytics trend props are absent', () => {
+    renderWithProviders(
+      <VillageDashboardScreen
+        data={data}
+        villagePhotoEvidenceRows={data.readingCompliance}
+        waterSupplyOutagesData={waterSupplyOutagesData}
+        villagePumpOperatorDetails={villagePumpOperatorDetails}
+        villagePumpOperators={villagePumpOperators}
+        tenantCode="as"
+        schemeId={3}
+      />
+    )
+
+    expect(mockMetricPerformanceChart).not.toHaveBeenCalled()
+    expect(screen.getAllByText('No data available')).toHaveLength(2)
   })
 
   it('paginates pump operator details with previous/next and page buttons', () => {
