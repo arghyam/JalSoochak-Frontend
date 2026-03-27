@@ -93,10 +93,19 @@ jobs:
         with:
           sarif_file: 'trivy-results.sarif'
           
-  Deployment:
+
+  Deploy-Dev:
     needs: Docker-Image-Build
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    if: github.ref == 'refs/heads/dev'
     uses: arghyam/JalSoochak-DevOps/.github/workflows/deploy.yaml@dev
+    with:
+      service_name: jalsoochak-frontend
+      image_tag: ${{ github.sha }}
+
+  Deploy-Staging:
+    needs: Docker-Image-Build
+    if: github.ref == 'refs/heads/main'
+    uses: arghyam/JalSoochak-DevOps/.github/workflows/deploy.yaml@staging
     with:
       service_name: jalsoochak-frontend
       image_tag: ${{ github.sha }}
