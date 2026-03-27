@@ -91,6 +91,7 @@ export interface VillagePumpOperatorDetails {
 
 export interface WaterSupplyOutageData {
   label: string
+  reasons?: Record<string, number>
   electricityFailure: number
   pipelineLeak: number
   pumpFailure: number
@@ -150,6 +151,83 @@ export interface AverageWaterSupplyPerRegionQueryParams {
   endDate: string
 }
 
+export interface WaterQuantityPeriodicQueryParams {
+  startDate: string
+  endDate: string
+  scale: 'day' | 'week' | 'month'
+  lgdId?: number
+  departmentId?: number
+}
+
+export interface WaterQuantityPeriodicMetric {
+  periodStartDate: string
+  periodEndDate: string
+  averageWaterQuantity: number
+  householdCount: number
+  totalAchievedFhtcCount?: number
+  achievedFhtcCount: number
+  plannedFhtcCount: number
+}
+
+export interface WaterQuantityPeriodicResponse {
+  lgdId: number
+  departmentId: number
+  scale: string
+  startDate: string
+  endDate: string
+  periodCount: number
+  metrics: WaterQuantityPeriodicMetric[]
+}
+
+export interface SchemeRegularityPeriodicQueryParams {
+  startDate: string
+  endDate: string
+  scale: 'day' | 'week' | 'month'
+  lgdId?: number
+  departmentId?: number
+}
+
+export interface NationalSchemeRegularityPeriodicQueryParams {
+  startDate: string
+  endDate: string
+  scale: 'day' | 'week' | 'month'
+}
+
+export interface SchemeRegularityPeriodicMetric {
+  periodStartDate: string
+  periodEndDate: string
+  totalSupplyDays: number
+  averageRegularity: number
+}
+
+export interface SchemeRegularityPeriodicResponse {
+  lgdId: number
+  departmentId: number
+  schemeCount: number
+  scale: string
+  startDate: string
+  endDate: string
+  periodCount: number
+  metrics: SchemeRegularityPeriodicMetric[]
+}
+
+export interface NationalSchemeRegularityPeriodicMetric {
+  periodStartDate: string
+  periodEndDate: string
+  totalSupplyDays: number
+  totalWaterQuantity: number
+  averageRegularity: number
+}
+
+export interface NationalSchemeRegularityPeriodicResponse {
+  schemeCount: number
+  scale: string
+  startDate: string
+  endDate: string
+  periodCount: number
+  metrics: NationalSchemeRegularityPeriodicMetric[]
+}
+
 export interface NationalDashboardQueryParams {
   startDate: string
   endDate: string
@@ -163,6 +241,8 @@ export interface NationalDashboardQuantityPerformanceItem {
   totalHouseholdCount: number
   totalFhtcCount?: number
   totalPlannedFhtc?: number
+  totalAchievedFhtcCount?: number
+  totalPlannedFhtcCount?: number
   totalWaterSuppliedLiters: number
   avgWaterSupplyPerScheme: number
 }
@@ -201,8 +281,9 @@ export interface AverageWaterSupplyScheme {
   schemeId: number
   schemeName: string
   householdCount: number
-  fhtcCount?: number
-  plannedFhtc?: number
+  totalAchievedFhtcCount?: number
+  achievedFhtcCount?: number
+  plannedFhtcCount?: number
   totalWaterSuppliedLiters: number
   supplyDays: number
   avgLitersPerHousehold: number
@@ -213,8 +294,8 @@ export interface AverageWaterSupplyChildRegion {
   departmentId: number
   title: string
   totalHouseholdCount: number
-  totalFhtcCount?: number
-  totalPlannedFhtc?: number
+  totalAchievedFhtcCount?: number
+  totalPlannedFhtcCount?: number
   totalWaterSuppliedLiters: number
   schemeCount: number
   avgWaterSupplyPerScheme: number
@@ -436,7 +517,8 @@ export interface ReadingSubmissionRateResponse {
 }
 
 export interface SubmissionStatusQueryParams {
-  userId?: number
+  lgdId?: number
+  departmentId?: number
   startDate: string
   endDate: string
 }
@@ -447,13 +529,14 @@ export interface SubmissionStatusDailySchemeDistribution {
 }
 
 export interface SubmissionStatusResponse {
-  userId: number
-  startDate: string
-  endDate: string
+  lgdId?: number
+  departmentId?: number
+  startDate?: string
+  endDate?: string
   schemeCount: number
   compliantSubmissionCount: number
   anomalousSubmissionCount: number
-  dailySubmissionSchemeDistribution: SubmissionStatusDailySchemeDistribution[]
+  dailySubmissionSchemeDistribution?: SubmissionStatusDailySchemeDistribution[]
 }
 
 export interface OutageReasonsQueryParams {
@@ -461,6 +544,14 @@ export interface OutageReasonsQueryParams {
   endDate: string
   parentLgdId?: number
   parentDepartmentId?: number
+}
+
+export interface OutageReasonsPeriodicQueryParams {
+  startDate: string
+  endDate: string
+  scale: 'day' | 'week' | 'month'
+  lgdId?: number
+  departmentId?: number
 }
 
 export interface OutageReasonSchemeCount {
@@ -484,6 +575,22 @@ export interface OutageReasonsResponse {
   outageReasonSchemeCount: OutageReasonSchemeCount
   childRegionCount: number
   childRegions: OutageReasonsChildRegion[]
+}
+
+export interface OutageReasonsPeriodicMetric {
+  periodStartDate: string
+  periodEndDate: string
+  outageReasonSchemeCount: OutageReasonSchemeCount
+}
+
+export interface OutageReasonsPeriodicResponse {
+  lgdId: number
+  departmentId: number
+  scale: string
+  startDate: string
+  endDate: string
+  periodCount: number
+  metrics: OutageReasonsPeriodicMetric[]
 }
 
 // For map hover/click interactions

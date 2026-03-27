@@ -17,14 +17,20 @@ import {
 } from '../charts'
 import { SchemePerformanceTable } from '../tables'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
-import { ViewBySelect } from '@/shared/components/common'
+import { ChartEmptyState, LoadingSpinner, ViewBySelect } from '@/shared/components/common'
+import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 
 type DistrictDashboardScreenProps = {
   data: DashboardData
   waterSupplyOutagesData?: WaterSupplyOutageData[]
   waterSupplyOutageDistributionData?: WaterSupplyOutageData[]
   quantityPerformanceData: EntityPerformance[]
+  quantityTimeTrendData: MonthlyTrendPoint[]
+  isQuantityTimeTrendLoading?: boolean
+  isQuantityTimeTrendAwaitingParams?: boolean
   regularityPerformanceData: EntityPerformance[]
+  regularityTimeTrendData: MonthlyTrendPoint[]
+  isRegularityTimeTrendLoading?: boolean
   blockTableData: EntityPerformance[]
   supplySubmissionRateData: EntityPerformance[]
   supplySubmissionRateLabel: string
@@ -39,7 +45,12 @@ export function DistrictDashboardScreen({
   waterSupplyOutagesData = data.waterSupplyOutages,
   waterSupplyOutageDistributionData = data.waterSupplyOutages,
   quantityPerformanceData,
+  quantityTimeTrendData,
+  isQuantityTimeTrendLoading = false,
+  isQuantityTimeTrendAwaitingParams = false,
   regularityPerformanceData,
+  regularityTimeTrendData,
+  isRegularityTimeTrendLoading = false,
   supplySubmissionRateData,
   supplySubmissionRateLabel,
   operatorsPerformanceTable,
@@ -49,36 +60,10 @@ export function DistrictDashboardScreen({
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
   const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
-  const [readingSubmissionRateViewBy, setReadingSubmissionRateViewBy] =
-    useState<ViewBy>('geography')
-  const quantityTimeTrendData = useMemo(
-    () =>
-      data.demandSupply.map((item) => ({
-        period: item.period,
-        value: item.supply,
-      })),
-    [data.demandSupply]
-  )
-
-  const regularityTimeTrendData = useMemo(
-    () =>
-      data.demandSupply.map((item) => ({
-        period: item.period,
-        value: item.demand > 0 ? Math.min(100, Math.round((item.supply / item.demand) * 100)) : 0,
-      })),
-    [data.demandSupply]
-  )
-
   const outageDistributionTimeTrendData = useMemo(
     () => data.supplyOutageTrend ?? [],
     [data.supplyOutageTrend]
   )
-
-  const readingSubmissionTimeTrendData = useMemo(
-    () => data.readingSubmissionTrend ?? [],
-    [data.readingSubmissionTrend]
-  )
-
   return (
     <>
       {/* Quantity + Regularity */}
@@ -123,13 +108,27 @@ export function DistrictDashboardScreen({
               })}
             />
           ) : (
-            <MonthlyTrendChart
-              data={quantityTimeTrendData}
-              height="400px"
-              xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-              yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
-              seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
-            />
+            <>
+              {isQuantityTimeTrendLoading ? (
+                <Flex align="center" justify="center" h="400px">
+                  <LoadingSpinner />
+                </Flex>
+              ) : quantityTimeTrendData.length > 0 ? (
+                <MonthlyTrendChart
+                  data={quantityTimeTrendData}
+                  height="400px"
+                  xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+                  yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
+                    defaultValue: 'Quantity',
+                  })}
+                  seriesName={t('performanceCharts.quantity.seriesName', {
+                    defaultValue: 'Quantity',
+                  })}
+                />
+              ) : isQuantityTimeTrendAwaitingParams ? null : (
+                <ChartEmptyState minHeight="400px" />
+              )}
+            </>
           )}
         </Box>
         <Box
@@ -173,18 +172,28 @@ export function DistrictDashboardScreen({
               })}
             />
           ) : (
-            <MonthlyTrendChart
-              data={regularityTimeTrendData}
-              height="400px"
-              isPercent
-              xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-              yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
-                defaultValue: 'Regularity (%)',
-              })}
-              seriesName={t('performanceCharts.regularity.seriesName', {
-                defaultValue: 'Regularity',
-              })}
-            />
+            <>
+              {isRegularityTimeTrendLoading ? (
+                <Flex align="center" justify="center" h="400px">
+                  <LoadingSpinner />
+                </Flex>
+              ) : regularityTimeTrendData.length > 0 ? (
+                <MonthlyTrendChart
+                  data={regularityTimeTrendData}
+                  height="400px"
+                  isPercent
+                  xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+                  yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
+                    defaultValue: 'Regularity (%)',
+                  })}
+                  seriesName={t('performanceCharts.regularity.seriesName', {
+                    defaultValue: 'Regularity',
+                  })}
+                />
+              ) : (
+                <ChartEmptyState minHeight="400px" />
+              )}
+            </>
           )}
         </Box>
       </Grid>
@@ -271,42 +280,16 @@ export function DistrictDashboardScreen({
           h="510px"
           minW={0}
         >
-          <Flex align="center" justify="space-between">
-            <Text textStyle="bodyText3" fontWeight="400">
-              {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
-                defaultValue: 'Reading Submission Rate',
-              })}
-            </Text>
-            <ViewBySelect
-              ariaLabel={t('outageAndSubmissionCharts.ariaViewByReadingSubmissionDistrict', {
-                defaultValue: 'District reading submission rate view by',
-              })}
-              value={readingSubmissionRateViewBy}
-              onChange={setReadingSubmissionRateViewBy}
-              color="primary.500"
-              borderColor="primary.500"
-            />
-          </Flex>
-          {readingSubmissionRateViewBy === 'geography' ? (
-            <ReadingSubmissionRateChart
-              data={supplySubmissionRateData}
-              height="383px"
-              entityLabel={supplySubmissionRateLabel}
-            />
-          ) : (
-            <MonthlyTrendChart
-              data={readingSubmissionTimeTrendData}
-              height="383px"
-              isPercent
-              xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-              yAxisLabel={t('outageAndSubmissionCharts.axis.percentage', {
-                defaultValue: 'Percentage',
-              })}
-              seriesName={t('outageAndSubmissionCharts.series.readingSubmission', {
-                defaultValue: 'Reading submission',
-              })}
-            />
-          )}
+          <Text textStyle="bodyText3" fontWeight="400">
+            {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
+              defaultValue: 'Reading Submission Rate',
+            })}
+          </Text>
+          <ReadingSubmissionRateChart
+            data={supplySubmissionRateData}
+            height="383px"
+            entityLabel={supplySubmissionRateLabel}
+          />
         </Box>
       </Grid>
 
@@ -354,6 +337,7 @@ export function DistrictDashboardScreen({
             })}
             data={operatorsPerformanceTable}
             fillHeight
+            showVillageColumn={false}
           />
         </Box>
       </Grid>

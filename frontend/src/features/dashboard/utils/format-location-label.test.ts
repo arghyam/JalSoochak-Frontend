@@ -1,5 +1,24 @@
 import { describe, expect, it } from '@jest/globals'
-import { slugify, toCapitalizedWords } from './format-location-label'
+import { sanitizeLocationLabel, slugify, toCapitalizedWords } from './format-location-label'
+
+describe('sanitizeLocationLabel', () => {
+  it('returns empty string for empty or whitespace-only input', () => {
+    expect(sanitizeLocationLabel('')).toBe('')
+    expect(sanitizeLocationLabel('   ')).toBe('')
+  })
+
+  it('strips control characters from labels', () => {
+    expect(sanitizeLocationLabel('\x00Test\x1F')).toBe('Test')
+  })
+
+  it('drops labels containing HTML-like delimiters', () => {
+    expect(sanitizeLocationLabel('<script>alert(1)</script>')).toBe('')
+  })
+
+  it('normalizes whitespace for valid labels', () => {
+    expect(sanitizeLocationLabel('  Niz   Bahari  ')).toBe('Niz Bahari')
+  })
+})
 
 describe('toCapitalizedWords', () => {
   it('capitalizes ASCII words after supported separators', () => {

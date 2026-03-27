@@ -67,4 +67,41 @@ describe('dashboardQueryKeys', () => {
       })
     )
   })
+
+  it('includes outage periodic scale and entity id in query keys', () => {
+    expect(
+      dashboardQueryKeys.outageReasonsPeriodic({
+        lgdId: 17,
+        scale: 'week',
+        startDate: '2026-03-01',
+        endDate: '2026-03-31',
+      })
+    ).toEqual([
+      'dashboard',
+      'analytics',
+      'outage-reasons-periodic',
+      17,
+      undefined,
+      'week',
+      '2026-03-01',
+      '2026-03-31',
+    ])
+  })
+
+  it('includes scale and dates in the national periodic query key', () => {
+    expect(
+      dashboardQueryKeys.nationalSchemeRegularityPeriodic({
+        scale: 'month',
+        startDate: '2026-01-01',
+        endDate: '2026-03-31',
+      })
+    ).toEqual([
+      'dashboard',
+      'analytics',
+      'national-scheme-regularity-periodic',
+      'month',
+      '2026-01-01',
+      '2026-03-31',
+    ])
+  })
 })

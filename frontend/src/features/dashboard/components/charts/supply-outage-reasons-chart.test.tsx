@@ -18,6 +18,14 @@ beforeEach(() => {
 const chartData: WaterSupplyOutageData[] = [
   {
     label: 'District A',
+    reasons: {
+      electrical_failure: 10,
+      pipeline_break: 20,
+      pump_failure: 30,
+      valve_issue: 40,
+      source_drying: 50,
+      motor_burnout: 15,
+    },
     electricityFailure: 10,
     pipelineLeak: 20,
     pumpFailure: 30,
@@ -55,12 +63,14 @@ describe('SupplyOutageReasonsChart', () => {
 
     const formatter = mainOption?.tooltip?.formatter
     expect(typeof formatter).toBe('function')
-    const tooltipText = formatter?.({ name: 'Pump failure', value: 30 })
-    expect(tooltipText).toContain('Pump failure')
-    expect(tooltipText).toContain('30.0')
+    const tooltipText = formatter?.({ name: 'Motor Burnout', value: 15 })
+    const pieData = pieSeries?.data ?? []
+
+    expect(tooltipText).toContain('Motor Burnout')
+    expect(pieData).toHaveLength(6)
+    expect(tooltipText).toContain('15.0')
     expect(tooltipText).toContain('%')
 
-    const pieData = pieSeries?.data ?? []
     pieData.forEach((slice) => {
       expect(slice.emphasis?.itemStyle?.color).toBe(slice.itemStyle?.color)
     })

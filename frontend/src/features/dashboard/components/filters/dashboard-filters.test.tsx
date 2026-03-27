@@ -133,9 +133,7 @@ describe('DashboardFilters', () => {
       />
     )
 
-    const searchInput = screen.getByPlaceholderText(
-      'Search by state/UT, district, block, gram panchayat, village'
-    )
+    const searchInput = screen.getByRole('textbox')
     fireEvent.focus(searchInput)
 
     expect(screen.getByText('Districts (2)')).toBeTruthy()
@@ -192,9 +190,7 @@ describe('DashboardFilters', () => {
       />
     )
 
-    const searchInput = screen.getByPlaceholderText(
-      'Search by state/UT, district, block, gram panchayat, village'
-    )
+    const searchInput = screen.getByRole('textbox')
     fireEvent.focus(searchInput)
 
     expect(screen.getByText('All States/UTs')).toBeTruthy()
@@ -255,9 +251,7 @@ describe('DashboardFilters', () => {
       />
     )
 
-    const searchInput = screen.getByPlaceholderText(
-      'Search by state/UT, district, block, gram panchayat, village'
-    )
+    const searchInput = screen.getByRole('textbox')
     fireEvent.focus(searchInput)
 
     expect(screen.getByText('Blocks (2)')).toBeTruthy()
@@ -322,14 +316,96 @@ describe('DashboardFilters', () => {
       />
     )
 
-    const searchInput = screen.getByPlaceholderText(
-      'Search by state/UT, district, block, gram panchayat, village'
-    )
+    const searchInput = screen.getByRole('textbox')
     fireEvent.focus(searchInput)
 
     expect(screen.getByText('Gram Panchayats (2)')).toBeTruthy()
     expect(screen.getByText('Isnapur')).toBeTruthy()
     expect(screen.getByText('Rudraram')).toBeTruthy()
+  })
+
+  it('filters malformed API labels from breadcrumb search options', () => {
+    mockUseLocationSearchQuery.mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 10 }],
+      },
+    })
+    mockUseLocationChildrenQuery.mockImplementation((options: unknown) => {
+      const { parentId } = (options as { parentId?: number }) ?? {}
+
+      if (parentId === 0) {
+        return { data: { data: [{ id: 1, title: 'Assam' }] } }
+      }
+      if (parentId === 1) {
+        return { data: { data: [{ id: 2, title: 'Barpeta' }] } }
+      }
+      if (parentId === 2) {
+        return { data: { data: [{ id: 3, title: 'Chenga' }] } }
+      }
+      if (parentId === 3) {
+        return {
+          data: {
+            data: [
+              { id: 4, title: '<script>alert(1)</Script>s (1)' },
+              { id: 5, title: 'Niz Bahari' },
+            ],
+          },
+        }
+      }
+
+      return { data: undefined }
+    })
+
+    renderWithProviders(
+      <DashboardFilters
+        filterTabIndex={0}
+        onTabChange={jest.fn()}
+        onClear={jest.fn()}
+        isAdvancedEnabled={true}
+        isDepartmentStateSelected={false}
+        emptyOptions={emptyOptions}
+        selectedState="assam"
+        selectedDistrict="2:barpeta"
+        selectedBlock="3:chenga"
+        selectedGramPanchayat=""
+        selectedVillage=""
+        selectedScheme=""
+        selectedDuration={null}
+        selectedDepartmentState=""
+        selectedDepartmentZone=""
+        selectedDepartmentCircle=""
+        selectedDepartmentDivision=""
+        selectedDepartmentSubdivision=""
+        selectedDepartmentVillage=""
+        districtOptions={emptyOptions}
+        blockOptions={emptyOptions}
+        gramPanchayatOptions={emptyOptions}
+        villageOptions={emptyOptions}
+        mockFilterStates={emptyOptions}
+        mockFilterSchemes={emptyOptions}
+        onStateChange={jest.fn()}
+        onDistrictChange={jest.fn()}
+        onBlockChange={jest.fn()}
+        onGramPanchayatChange={jest.fn()}
+        setSelectedVillage={jest.fn()}
+        setSelectedScheme={jest.fn()}
+        setSelectedDuration={jest.fn()}
+        onDepartmentStateChange={jest.fn()}
+        setSelectedDepartmentZone={jest.fn()}
+        setSelectedDepartmentCircle={jest.fn()}
+        setSelectedDepartmentDivision={jest.fn()}
+        setSelectedDepartmentSubdivision={jest.fn()}
+        setSelectedDepartmentVillage={jest.fn()}
+      />
+    )
+
+    const searchInput = screen.getByRole('textbox')
+    fireEvent.focus(searchInput)
+
+    expect(screen.getByText('Gram Panchayats (1)')).toBeTruthy()
+    expect(screen.getByText('Niz Bahari')).toBeTruthy()
+    expect(screen.queryByText('<script>alert(1)</Script>s (1)')).toBeNull()
   })
 
   it('shows villages in breadcrumb search panel when gram panchayat is selected', () => {
@@ -393,9 +469,7 @@ describe('DashboardFilters', () => {
       />
     )
 
-    const searchInput = screen.getByPlaceholderText(
-      'Search by state/UT, district, block, gram panchayat, village'
-    )
+    const searchInput = screen.getByRole('textbox')
     fireEvent.focus(searchInput)
 
     expect(screen.getByText('Villages (2)')).toBeTruthy()
@@ -470,9 +544,7 @@ describe('DashboardFilters', () => {
 
     renderWithProviders(<Harness />)
 
-    const searchInput = screen.getByPlaceholderText(
-      'Search by state/UT, district, block, gram panchayat, village'
-    )
+    const searchInput = screen.getByRole('textbox')
     fireEvent.focus(searchInput)
     expect(screen.getByText('Villages (2)')).toBeTruthy()
 
@@ -581,9 +653,7 @@ describe('DashboardFilters', () => {
 
     renderWithProviders(<Harness />)
 
-    const searchInput = screen.getByPlaceholderText(
-      'Search by state/UT, district, block, gram panchayat, village'
-    ) as HTMLInputElement
+    const searchInput = screen.getByRole('textbox') as HTMLInputElement
 
     fireEvent.focus(searchInput)
     expect(screen.getByText('Villages (2)')).toBeTruthy()
@@ -707,9 +777,7 @@ describe('DashboardFilters', () => {
     expect(screen.queryByRole('button', { name: 'Breadcrumb: Isnapur' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Breadcrumb: Kistareddypet' })).toBeNull()
 
-    const searchInput = screen.getByPlaceholderText(
-      'Search by state/UT, district, block, gram panchayat, village'
-    )
+    const searchInput = screen.getByRole('textbox')
     fireEvent.focus(searchInput)
 
     expect(screen.getByText('Blocks (2)')).toBeTruthy()
@@ -765,9 +833,7 @@ describe('DashboardFilters', () => {
       />
     )
 
-    const searchInput = screen.getByPlaceholderText(
-      'Search by state/UT, district, block, gram panchayat, village'
-    )
+    const searchInput = screen.getByRole('textbox')
     fireEvent.focus(searchInput)
     expect(screen.getByTestId('search-dropdown-tabs')).toBeTruthy()
     expect(screen.getByRole('tab', { name: 'Administrative' }).getAttribute('disabled')).not.toBe(

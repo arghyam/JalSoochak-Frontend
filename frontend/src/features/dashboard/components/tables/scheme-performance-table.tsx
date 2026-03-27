@@ -10,6 +10,9 @@ interface SchemePerformanceTableProps {
   maxItems?: number
   maxTableHeight?: string | number
   fillHeight?: boolean
+  showVillageColumn?: boolean
+  secondaryColumnLabel?: string
+  showBlockColumn?: boolean
 }
 
 type SortColumn = 'reportingRate' | 'waterSupplied' | null
@@ -49,6 +52,9 @@ export function SchemePerformanceTable({
   maxItems,
   maxTableHeight = '330px',
   fillHeight = false,
+  showVillageColumn = true,
+  secondaryColumnLabel,
+  showBlockColumn = true,
 }: SchemePerformanceTableProps) {
   const { t } = useTranslation('dashboard')
   const [sortColumn, setSortColumn] = useState<SortColumn>(null)
@@ -107,7 +113,7 @@ export function SchemePerformanceTable({
           },
         }}
       >
-        <Table size="sm" w="max-content" minW="100%">
+        <Table size="sm" w="100%" minW="100%" sx={{ tableLayout: 'fixed' }}>
           <Thead
             sx={{
               position: 'sticky',
@@ -124,13 +130,22 @@ export function SchemePerformanceTable({
             }}
           >
             <Tr>
-              <Th>{t('pumpOperators.performanceTable.columns.name', { defaultValue: 'Name' })}</Th>
-              <Th>
-                {t('pumpOperators.performanceTable.columns.village', { defaultValue: 'Village' })}
+              <Th w="260px" minW="260px" maxW="260px">
+                {t('pumpOperators.performanceTable.columns.name', { defaultValue: 'Name' })}
               </Th>
-              <Th>
-                {t('pumpOperators.performanceTable.columns.block', { defaultValue: 'Block' })}
-              </Th>
+              {showVillageColumn ? (
+                <Th>
+                  {secondaryColumnLabel ??
+                    t('pumpOperators.performanceTable.columns.village', {
+                      defaultValue: 'Village',
+                    })}
+                </Th>
+              ) : null}
+              {showBlockColumn ? (
+                <Th>
+                  {t('pumpOperators.performanceTable.columns.block', { defaultValue: 'Block' })}
+                </Th>
+              ) : null}
               <Th
                 aria-sort={
                   sortColumn === 'reportingRate'
@@ -201,18 +216,27 @@ export function SchemePerformanceTable({
                 textStyle: 'bodyText7',
                 fontWeight: '400',
                 px: 3,
-                py: 0,
-                height: '40px',
-                lineHeight: '40px',
+                py: 3,
                 whiteSpace: 'nowrap',
               },
             }}
           >
             {rows.map((operator) => (
               <Tr key={operator.id} _odd={{ bg: 'primary.25' }}>
-                <Td>{operator.name}</Td>
-                <Td>{formatCellValue(operator.village)}</Td>
-                <Td>{formatCellValue(operator.block)}</Td>
+                <Td
+                  w="260px"
+                  minW="260px"
+                  maxW="260px"
+                  overflow="hidden"
+                  lineHeight="20px"
+                  verticalAlign="top"
+                >
+                  <Box maxW="240px" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                    {operator.name}
+                  </Box>
+                </Td>
+                {showVillageColumn ? <Td>{formatCellValue(operator.village)}</Td> : null}
+                {showBlockColumn ? <Td>{formatCellValue(operator.block)}</Td> : null}
                 <Td>{formatMetricValue(operator.reportingRate)}</Td>
                 <Td>{formatMetricValue(operator.waterSupplied)}</Td>
               </Tr>

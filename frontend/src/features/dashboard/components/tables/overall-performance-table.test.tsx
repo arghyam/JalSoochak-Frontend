@@ -44,6 +44,12 @@ function getStateOrder(container: HTMLElement) {
 }
 
 describe('OverallPerformanceTable', () => {
+  it('renders a no data state when there are no rows', () => {
+    renderWithProviders(<OverallPerformanceTable data={[]} />)
+
+    expect(screen.getByText('No data')).toBeTruthy()
+  })
+
   it('renders only the 4 expected columns', () => {
     renderWithProviders(<OverallPerformanceTable data={tableData} />)
 
