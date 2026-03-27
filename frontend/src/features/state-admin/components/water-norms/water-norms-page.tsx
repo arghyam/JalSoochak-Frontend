@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -17,7 +17,12 @@ import { useTranslation } from 'react-i18next'
 import type { DistrictOverride } from '../../types/water-norms'
 import { WaterNormsAlertThresholds } from './water-norms-alert-thresholds'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer, PageLoadingState, PageErrorState } from '@/shared/components/common'
+import {
+  ToastContainer,
+  PageLoadingState,
+  PageErrorState,
+  EditableBreadcrumb,
+} from '@/shared/components/common'
 import { ROUTES } from '@/shared/constants/routes'
 import {
   useSaveWaterNormsConfigurationMutation,
@@ -205,28 +210,13 @@ export function WaterNormsPage() {
         >
           {t('waterNorms.title')}
         </Heading>
-        {effectiveIsEditing && config?.isConfigured && (
-          <Flex as="nav" aria-label="Breadcrumb" gap={2} flexWrap="wrap">
-            <Text
-              as="a"
-              fontSize="14px"
-              lineHeight="21px"
-              color="neutral.500"
-              cursor="pointer"
-              _hover={{ textDecoration: 'underline' }}
-              onClick={handleCancel}
-              tabIndex={0}
-              onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && handleCancel()}
-            >
-              {t('waterNorms.breadcrumb.view')}
-            </Text>
-            <Text fontSize="14px" lineHeight="21px" color="neutral.500" aria-hidden="true">
-              /
-            </Text>
-            <Text fontSize="14px" lineHeight="21px" color="#26272B" aria-current="page">
-              {t('waterNorms.breadcrumb.edit')}
-            </Text>
-          </Flex>
+        {config?.isConfigured && (
+          <EditableBreadcrumb
+            isEditing={effectiveIsEditing}
+            onCancel={handleCancel}
+            viewLabel={t('waterNorms.breadcrumb.view')}
+            editLabel={t('waterNorms.breadcrumb.edit')}
+          />
         )}
       </Box>
 

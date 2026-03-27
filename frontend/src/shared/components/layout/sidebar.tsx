@@ -183,6 +183,22 @@ export function Sidebar({ onNavClick }: SidebarProps) {
           aria-label={t('sidebar.mainNavigation', 'Main navigation')}
           flex={1}
           overflowY="auto"
+          sx={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#D1D1D6 transparent',
+            '&::-webkit-scrollbar': { width: '4px' },
+            '&::-webkit-scrollbar-button': { display: 'none' },
+            '&::-webkit-scrollbar-track': {
+              background: 'transparent',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              background: '#D1D1D6',
+              borderRadius: '999px',
+            },
+            '&::-webkit-scrollbar-thumb:hover': {
+              background: '#D1D1D6',
+            },
+          }}
         >
           <Stack gap={4} px={7} py={5}>
             {visibleNavItems.map((item) => {

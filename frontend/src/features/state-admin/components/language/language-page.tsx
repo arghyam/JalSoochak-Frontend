@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Box, Text, Button, Flex, HStack, Heading, Spinner, SimpleGrid } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
@@ -6,7 +6,7 @@ import { EditIcon } from '@chakra-ui/icons'
 import { APP_LANGUAGES } from '@/shared/constants/languages'
 import { ROUTES } from '@/shared/constants/routes'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer, SearchableSelect } from '@/shared/components/common'
+import { ToastContainer, SearchableSelect, EditableBreadcrumb } from '@/shared/components/common'
 import {
   useLanguageConfigurationQuery,
   useSaveLanguageConfigurationMutation,
@@ -158,28 +158,13 @@ export function LanguagePage() {
         >
           {t('language.title')}
         </Heading>
-        {effectiveIsEditing && config?.isConfigured && (
-          <Flex as="nav" aria-label="Breadcrumb" gap={2} flexWrap="wrap">
-            <Text
-              as="a"
-              fontSize="14px"
-              lineHeight="21px"
-              color="neutral.500"
-              cursor="pointer"
-              _hover={{ textDecoration: 'underline' }}
-              onClick={handleCancel}
-              tabIndex={0}
-              onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && handleCancel()}
-            >
-              {t('language.breadcrumb.view')}
-            </Text>
-            <Text fontSize="14px" lineHeight="21px" color="neutral.500" aria-hidden="true">
-              /
-            </Text>
-            <Text fontSize="14px" lineHeight="21px" color="#26272B" aria-current="page">
-              {t('language.breadcrumb.edit')}
-            </Text>
-          </Flex>
+        {config?.isConfigured && (
+          <EditableBreadcrumb
+            isEditing={effectiveIsEditing}
+            onCancel={handleCancel}
+            viewLabel={t('language.breadcrumb.view')}
+            editLabel={t('language.breadcrumb.edit')}
+          />
         )}
       </Box>
 

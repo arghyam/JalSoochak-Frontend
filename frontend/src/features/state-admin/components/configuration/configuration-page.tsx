@@ -124,8 +124,10 @@ export function ConfigurationPage() {
     const channelsChanged =
       [...draft.supportedChannels].sort(compare).join() !==
       [...config.supportedChannels].sort(compare).join()
+    const sortById = (a: { id: string }, b: { id: string }) => a.id.localeCompare(b.id)
     const reasonsChanged =
-      JSON.stringify(draft.meterChangeReasons) !== JSON.stringify(config.meterChangeReasons)
+      JSON.stringify([...draft.meterChangeReasons].sort(sortById)) !==
+      JSON.stringify([...config.meterChangeReasons].sort(sortById))
     return (
       channelsChanged ||
       draft.logoFile !== null ||
