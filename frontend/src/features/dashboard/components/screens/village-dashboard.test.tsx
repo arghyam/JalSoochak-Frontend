@@ -4,8 +4,8 @@ import { renderWithProviders } from '@/test/render-with-providers'
 import type { DashboardData, WaterSupplyOutageData } from '../../types'
 import { VillageDashboardScreen } from './village-dashboard'
 
-const mockMetricPerformanceChart = jest.fn((_props: unknown) => (
-  <div data-testid="metric-performance-chart" />
+const mockMonthlyTrendChart = jest.fn((_props: unknown) => (
+  <div data-testid="monthly-trend-chart" />
 ))
 const mockSupplyOutageReasonsChart = jest.fn((_props: unknown) => (
   <div data-testid="supply-outage-reasons-chart" />
@@ -34,7 +34,7 @@ const mockUseReadingComplianceQuery = jest.fn<
 >((_options: unknown) => ({ data: undefined, isFetching: false }))
 
 jest.mock('../charts', () => ({
-  MetricPerformanceChart: (props: unknown) => mockMetricPerformanceChart(props),
+  MonthlyTrendChart: (props: unknown) => mockMonthlyTrendChart(props),
   SupplyOutageReasonsChart: (props: unknown) => mockSupplyOutageReasonsChart(props),
   ReadingSubmissionStatusChart: (props: unknown) => mockReadingSubmissionStatusChart(props),
 }))
@@ -186,7 +186,7 @@ function renderVillageDashboard(
 
 describe('VillageDashboardScreen', () => {
   beforeEach(() => {
-    mockMetricPerformanceChart.mockClear()
+    mockMonthlyTrendChart.mockClear()
     mockSupplyOutageReasonsChart.mockClear()
     mockReadingSubmissionStatusChart.mockClear()
     mockReadingComplianceTable.mockClear()
@@ -198,16 +198,16 @@ describe('VillageDashboardScreen', () => {
     mockUseReadingComplianceQuery.mockReturnValue({ data: undefined, isFetching: false })
   })
 
-  it('renders quantity and regularity using metric performance charts', () => {
+  it('renders quantity and regularity using monthly trend charts', () => {
     renderVillageDashboard()
 
-    const metricCalls = mockMetricPerformanceChart.mock.calls as Array<[Record<string, unknown>]>
-    expect(metricCalls.length).toBeGreaterThanOrEqual(2)
-    const latestMetricCalls = metricCalls.slice(-2)
-    expect(latestMetricCalls[0]?.[0].metric).toBe('quantity')
-    expect(latestMetricCalls[0]?.[0].seriesName).toBe('Quantity')
-    expect(latestMetricCalls[1]?.[0].metric).toBe('regularity')
-    expect(latestMetricCalls[1]?.[0].seriesName).toBe('Regularity')
+    const trendCalls = mockMonthlyTrendChart.mock.calls as Array<[Record<string, unknown>]>
+    expect(trendCalls.length).toBeGreaterThanOrEqual(2)
+    const latestTrendCalls = trendCalls.slice(-2)
+    expect(latestTrendCalls[0]?.[0].seriesName).toBe('Quantity')
+    expect(latestTrendCalls[0]?.[0].isPercent).toBeFalsy()
+    expect(latestTrendCalls[1]?.[0].seriesName).toBe('Regularity')
+    expect(latestTrendCalls[1]?.[0].isPercent).toBe(true)
 
     expect(screen.getByTestId('supply-outage-reasons-chart')).toBeTruthy()
     expect(screen.getByTestId('reading-submission-status-chart')).toBeTruthy()
@@ -229,16 +229,16 @@ describe('VillageDashboardScreen', () => {
       />
     )
 
-    const metricCalls = mockMetricPerformanceChart.mock.calls as Array<[Record<string, unknown>]>
-    expect(metricCalls.length).toBeGreaterThanOrEqual(2)
-    const latestMetricCalls = metricCalls.slice(-2)
-    expect(latestMetricCalls[0]?.[0].data).toEqual([
-      expect.objectContaining({ name: '12 Mar', quantity: 87 }),
-      expect.objectContaining({ name: '13 Mar', quantity: 91 }),
+    const trendCalls = mockMonthlyTrendChart.mock.calls as Array<[Record<string, unknown>]>
+    expect(trendCalls.length).toBeGreaterThanOrEqual(2)
+    const latestTrendCalls = trendCalls.slice(-2)
+    expect(latestTrendCalls[0]?.[0].data).toEqual([
+      expect.objectContaining({ period: '12 Mar', value: 87 }),
+      expect.objectContaining({ period: '13 Mar', value: 91 }),
     ])
-    expect(latestMetricCalls[1]?.[0].data).toEqual([
-      expect.objectContaining({ name: '12 Mar', regularity: 65 }),
-      expect.objectContaining({ name: '13 Mar', regularity: 72 }),
+    expect(latestTrendCalls[1]?.[0].data).toEqual([
+      expect.objectContaining({ period: '12 Mar', value: 65 }),
+      expect.objectContaining({ period: '13 Mar', value: 72 }),
     ])
   })
 
@@ -255,7 +255,7 @@ describe('VillageDashboardScreen', () => {
       />
     )
 
-    expect(mockMetricPerformanceChart).not.toHaveBeenCalled()
+    expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
     expect(screen.getAllByText('No data available')).toHaveLength(2)
   })
 

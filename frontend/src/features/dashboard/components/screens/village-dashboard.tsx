@@ -6,14 +6,13 @@ import { ChartEmptyState, LoadingSpinner } from '@/shared/components/common'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import type {
   DashboardData,
-  EntityPerformance,
   ReadingComplianceData,
   ReadingComplianceItem,
   VillagePumpOperatorDetails,
   WaterSupplyOutageData,
 } from '../../types'
 import { useReadingComplianceQuery } from '../../services/query/use-reading-compliance-query'
-import { SupplyOutageReasonsChart, MetricPerformanceChart } from '../charts'
+import { MonthlyTrendChart, SupplyOutageReasonsChart } from '../charts'
 import { ReadingComplianceTable } from '../tables'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 import { toCapitalizedWords } from '../../utils/format-location-label'
@@ -717,34 +716,6 @@ export function VillageDashboardScreen({
   const { t } = useTranslation('dashboard')
   const effectiveSchemeId = schemeId ?? villagePumpOperatorDetails.schemeId
 
-  const quantityPerformanceData = useMemo<EntityPerformance[]>(
-    () =>
-      quantityTimeTrendData.map((item, index) => ({
-        id: `quantity-performance-${index}-${item.period}`,
-        name: item.period,
-        coverage: 0,
-        regularity: 0,
-        continuity: 0,
-        quantity: item.value,
-        compositeScore: 0,
-        status: 'needs-attention',
-      })),
-    [quantityTimeTrendData]
-  )
-  const regularityPerformanceData = useMemo<EntityPerformance[]>(
-    () =>
-      regularityTimeTrendData.map((item, index) => ({
-        id: `regularity-performance-${index}-${item.period}`,
-        name: item.period,
-        coverage: 0,
-        regularity: item.value,
-        continuity: 0,
-        quantity: 0,
-        compositeScore: 0,
-        status: 'needs-attention',
-      })),
-    [regularityTimeTrendData]
-  )
   const readingComplianceScopeKey = `${tenantCode ?? 'no-tenant'}:${effectiveSchemeId ?? 'no-scheme'}`
 
   return (
@@ -768,12 +739,11 @@ export function VillageDashboardScreen({
             <Flex align="center" justify="center" h="400px">
               <LoadingSpinner />
             </Flex>
-          ) : quantityPerformanceData.length > 0 ? (
-            <MetricPerformanceChart
-              data={quantityPerformanceData}
-              metric="quantity"
+          ) : quantityTimeTrendData.length > 0 ? (
+            <MonthlyTrendChart
+              data={quantityTimeTrendData}
               height="400px"
-              entityLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+              xAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
               yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
               seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
             />
@@ -799,12 +769,12 @@ export function VillageDashboardScreen({
             <Flex align="center" justify="center" h="400px">
               <LoadingSpinner />
             </Flex>
-          ) : regularityPerformanceData.length > 0 ? (
-            <MetricPerformanceChart
-              data={regularityPerformanceData}
-              metric="regularity"
+          ) : regularityTimeTrendData.length > 0 ? (
+            <MonthlyTrendChart
+              data={regularityTimeTrendData}
               height="400px"
-              entityLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+              isPercent
+              xAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
               yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
                 defaultValue: 'Regularity',
               })}
