@@ -68,6 +68,20 @@ describe('SupplyOutageDistributionChart', () => {
     )
   })
 
+  it('adds extra space between x-axis labels and the axis line', () => {
+    renderWithProviders(<SupplyOutageDistributionChart data={chartData} height="300px" />)
+
+    const chartOption = (
+      mockEChartsWrapper.mock.calls as Array<
+        [{ option?: { xAxis?: { axisLabel?: { margin?: number } } } }]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((option) => option?.xAxis?.axisLabel?.margin !== undefined)
+
+    expect(chartOption?.xAxis?.axisLabel?.margin).toBe(14)
+  })
+
   it('shows hover tooltip value and keeps segment color unchanged on emphasis', () => {
     renderWithProviders(<SupplyOutageDistributionChart data={chartData} height="300px" />)
 
@@ -269,9 +283,9 @@ describe('SupplyOutageDistributionChart', () => {
     const chartOption = options.find((entry) => entry?.tooltip?.show === true)
     const leftAxisOption = options.find((entry) => entry?.tooltip?.show === false)
 
-    expect(chartOption?.yAxis?.max).toBe(210)
+    expect(chartOption?.yAxis?.max).toBe(225)
     expect(chartOption?.yAxis?.interval).toBe(45)
-    expect(leftAxisOption?.yAxis?.max).toBe(210)
+    expect(leftAxisOption?.yAxis?.max).toBe(225)
     expect(leftAxisOption?.yAxis?.interval).toBe(45)
   })
 })

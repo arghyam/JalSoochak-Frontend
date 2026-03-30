@@ -110,6 +110,20 @@ describe('MetricPerformanceChart', () => {
     expect(formatMetricAxisLabel('Arunachal Pradesh')).toBe('Arunachal\nPradesh')
   })
 
+  it('adds extra space between x-axis labels and the axis line', () => {
+    renderWithProviders(<MetricPerformanceChart data={chartData} metric="quantity" />)
+
+    const chartOption = (
+      mockEChartsWrapper.mock.calls as Array<
+        [{ option?: { xAxis?: { axisLabel?: { margin?: number } } } }]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((option) => option?.xAxis?.axisLabel?.margin !== undefined)
+
+    expect(chartOption?.xAxis?.axisLabel?.margin).toBe(16)
+  })
+
   it('renders area+bar legends when area line is enabled', () => {
     renderWithProviders(
       <MetricPerformanceChart

@@ -89,6 +89,7 @@ export function SupplyOutageDistributionChart({
   const barWidth = useBreakpointValue({ base: 28, sm: 28, md: 42, lg: 66 }) ?? 66
   const barRadius = useBreakpointValue({ base: 8, sm: 10, md: 12 }) ?? 12
   const barCategoryGap = '24px'
+  const xAxisLabelMargin = 14
   const chartScrollRef = useRef<HTMLDivElement>(null)
   const scrollbarTrackRef = useRef<HTMLDivElement>(null)
   const scrollbarThumbRef = useRef<HTMLDivElement>(null)
@@ -201,7 +202,7 @@ export function SupplyOutageDistributionChart({
           show: true,
           rotate: 45,
           interval: 0,
-          margin: 8,
+          margin: xAxisLabelMargin,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
@@ -284,6 +285,7 @@ export function SupplyOutageDistributionChart({
     chartItems,
     data,
     alignedYAxisMax,
+    xAxisLabelMargin,
     yAxisInterval,
   ])
 
@@ -311,7 +313,7 @@ export function SupplyOutageDistributionChart({
         axisLabel: {
           show: true,
           rotate: 45,
-          margin: 8,
+          margin: xAxisLabelMargin,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
@@ -350,7 +352,7 @@ export function SupplyOutageDistributionChart({
       ],
       animation: false,
     }
-  }, [alignedYAxisMax, bodyText7, yAxisInterval])
+  }, [alignedYAxisMax, bodyText7, xAxisLabelMargin, yAxisInterval])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
   const legendItems = chartItems.map((item) => ({

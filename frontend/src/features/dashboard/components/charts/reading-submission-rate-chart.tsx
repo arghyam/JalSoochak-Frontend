@@ -40,6 +40,7 @@ export function ReadingSubmissionRateChart({
 
   const defaultItemWidth = 90
   const minItemWidth = 70
+  const xAxisLabelMargin = 14
   const effectiveItemWidth =
     containerWidth > 0
       ? Math.max(minItemWidth, Math.floor(containerWidth / Math.max(data.length, 1)))
@@ -146,7 +147,7 @@ export function ReadingSubmissionRateChart({
         axisLabel: {
           rotate: 45,
           interval: 0,
-          margin: 8,
+          margin: xAxisLabelMargin,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
@@ -215,7 +216,7 @@ export function ReadingSubmissionRateChart({
         axisLabel: {
           show: true,
           rotate: 45,
-          margin: 8,
+          margin: xAxisLabelMargin,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
@@ -253,7 +254,7 @@ export function ReadingSubmissionRateChart({
       ],
       animation: false,
     }
-  }, [bodyText7, longestEntityLabel])
+  }, [bodyText7, longestEntityLabel, xAxisLabelMargin])
 
   const baseChartWidth = data.length * itemWidth
   const chartPixelWidth =

@@ -92,6 +92,20 @@ const chartData: EntityPerformance[] = [
 ]
 
 describe('ReadingSubmissionRateChart', () => {
+  it('adds extra space between x-axis labels and the axis line', () => {
+    renderWithProviders(<ReadingSubmissionRateChart data={chartData} />)
+
+    const chartOption = (
+      mockEChartsWrapper.mock.calls as Array<
+        [{ option?: { xAxis?: { axisLabel?: { margin?: number } } } }]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((option) => option?.xAxis?.axisLabel?.margin !== undefined)
+
+    expect(chartOption?.xAxis?.axisLabel?.margin).toBe(14)
+  })
+
   it('enables tooltip and formats hovered value with percentage', () => {
     renderWithProviders(<ReadingSubmissionRateChart data={chartData} />)
 
