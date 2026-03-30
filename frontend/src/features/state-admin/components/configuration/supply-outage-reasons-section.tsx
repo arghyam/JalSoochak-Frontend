@@ -32,11 +32,15 @@ export function SupplyOutageReasonsSection({
   const { t } = useTranslation(['state-admin', 'common'])
 
   const handleChange = (id: string, value: string) => {
+    const reason = reasons.find((r) => r.id === id)
+    if (!reason?.editable) return
     onChange(reasons.map((r) => (r.id === id ? { ...r, name: value } : r)))
     onClearError?.(`supplyOutageReason.${id}`)
   }
 
   const handleDelete = (id: string) => {
+    const reason = reasons.find((r) => r.id === id)
+    if (!reason?.editable) return
     onChange(reasons.filter((r) => r.id !== id))
     onClearError?.(`supplyOutageReason.${id}`)
   }
