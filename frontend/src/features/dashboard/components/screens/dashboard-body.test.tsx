@@ -190,6 +190,7 @@ function renderDashboardBody(overrides: Partial<ComponentProps<typeof DashboardB
   return renderWithProviders(
     <DashboardBody
       data={mockDashboardData}
+      performanceScreenKey="central"
       isStateSelected={false}
       isDistrictSelected={false}
       isBlockSelected={false}
@@ -283,6 +284,194 @@ describe('DashboardBody', () => {
     expect(mockMonthlyTrendChart).toHaveBeenCalledTimes(3)
     expect(mockMonthlyTrendChart.mock.calls[2]?.[0].seriesName).toBe('Regularity')
     expect(mockMonthlyTrendChart.mock.calls[2]?.[0].isPercent).toBe(true)
+  })
+
+  it('resets central quantity and regularity selectors back to geography after returning from a deeper level', () => {
+    const rendered = renderDashboardBody()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Quantity performance view by' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Regularity performance view by' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
+
+    expect(
+      screen.getByRole('button', { name: 'Quantity performance view by' }).textContent
+    ).toContain('Time')
+    expect(
+      screen.getByRole('button', { name: 'Regularity performance view by' }).textContent
+    ).toContain('Time')
+
+    rendered.rerender(
+      <DashboardBody
+        data={mockDashboardData}
+        performanceScreenKey="state:alpha"
+        isStateSelected={true}
+        isDistrictSelected={false}
+        isBlockSelected={false}
+        isGramPanchayatSelected={false}
+        selectedVillage=""
+        quantityPerformanceData={mockEntityData}
+        quantityTimeTrendData={[{ period: '01 Mar', value: 85 }]}
+        regularityPerformanceData={mockEntityData}
+        regularityTimeTrendData={[{ period: '01 Mar', value: 94 }]}
+        districtTableData={mockEntityData}
+        blockTableData={mockEntityData}
+        gramPanchayatTableData={mockEntityData}
+        villageTableData={mockEntityData}
+        supplySubmissionRateData={mockEntityData}
+        supplySubmissionRateLabel="States/UTs"
+        waterSupplyOutagesData={mockDashboardData.waterSupplyOutages}
+        waterSupplyOutageDistributionData={mockDashboardData.waterSupplyOutages}
+        pumpOperatorsTotal={12}
+        operatorsPerformanceTable={mockOperatorsPerformanceTable}
+        villagePhotoEvidenceRows={mockDashboardData.readingCompliance}
+        villagePumpOperatorDetails={{
+          name: 'Ajay Yadav',
+          scheme: 'Rural Water Supply 001',
+          stationLocation: 'Central Pumping Station',
+          lastSubmission: '11-02-24, 1:00pm',
+          reportingRate: '85%',
+          missingSubmissionCount: '3',
+          inactiveDays: '2',
+        }}
+      />
+    )
+
+    rendered.rerender(
+      <DashboardBody
+        data={mockDashboardData}
+        performanceScreenKey="central"
+        isStateSelected={false}
+        isDistrictSelected={false}
+        isBlockSelected={false}
+        isGramPanchayatSelected={false}
+        selectedVillage=""
+        quantityPerformanceData={mockEntityData}
+        quantityTimeTrendData={[{ period: '01 Mar', value: 85 }]}
+        regularityPerformanceData={mockEntityData}
+        regularityTimeTrendData={[{ period: '01 Mar', value: 94 }]}
+        districtTableData={mockEntityData}
+        blockTableData={mockEntityData}
+        gramPanchayatTableData={mockEntityData}
+        villageTableData={mockEntityData}
+        supplySubmissionRateData={mockEntityData}
+        supplySubmissionRateLabel="States/UTs"
+        waterSupplyOutagesData={mockDashboardData.waterSupplyOutages}
+        waterSupplyOutageDistributionData={mockDashboardData.waterSupplyOutages}
+        pumpOperatorsTotal={12}
+        operatorsPerformanceTable={mockOperatorsPerformanceTable}
+        villagePhotoEvidenceRows={mockDashboardData.readingCompliance}
+        villagePumpOperatorDetails={{
+          name: 'Ajay Yadav',
+          scheme: 'Rural Water Supply 001',
+          stationLocation: 'Central Pumping Station',
+          lastSubmission: '11-02-24, 1:00pm',
+          reportingRate: '85%',
+          missingSubmissionCount: '3',
+          inactiveDays: '2',
+        }}
+      />
+    )
+
+    expect(
+      screen.getByRole('button', { name: 'Quantity performance view by' }).textContent
+    ).toContain('Geography')
+    expect(
+      screen.getByRole('button', { name: 'Regularity performance view by' }).textContent
+    ).toContain('Geography')
+  })
+
+  it('resets state quantity and regularity selectors back to geography after returning from a deeper level', () => {
+    const rendered = renderDashboardBody({
+      performanceScreenKey: 'state:alpha',
+      isStateSelected: true,
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Quantity performance view by' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Regularity performance view by' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
+
+    rendered.rerender(
+      <DashboardBody
+        data={mockDashboardData}
+        performanceScreenKey={null}
+        isStateSelected={true}
+        isDistrictSelected={true}
+        isBlockSelected={false}
+        isGramPanchayatSelected={false}
+        selectedVillage=""
+        quantityPerformanceData={mockEntityData}
+        quantityTimeTrendData={[{ period: '01 Mar', value: 85 }]}
+        regularityPerformanceData={mockEntityData}
+        regularityTimeTrendData={[{ period: '01 Mar', value: 94 }]}
+        districtTableData={mockEntityData}
+        blockTableData={mockEntityData}
+        gramPanchayatTableData={mockEntityData}
+        villageTableData={mockEntityData}
+        supplySubmissionRateData={mockEntityData}
+        supplySubmissionRateLabel="States/UTs"
+        waterSupplyOutagesData={mockDashboardData.waterSupplyOutages}
+        waterSupplyOutageDistributionData={mockDashboardData.waterSupplyOutages}
+        pumpOperatorsTotal={12}
+        operatorsPerformanceTable={mockOperatorsPerformanceTable}
+        villagePhotoEvidenceRows={mockDashboardData.readingCompliance}
+        villagePumpOperatorDetails={{
+          name: 'Ajay Yadav',
+          scheme: 'Rural Water Supply 001',
+          stationLocation: 'Central Pumping Station',
+          lastSubmission: '11-02-24, 1:00pm',
+          reportingRate: '85%',
+          missingSubmissionCount: '3',
+          inactiveDays: '2',
+        }}
+      />
+    )
+
+    rendered.rerender(
+      <DashboardBody
+        data={mockDashboardData}
+        performanceScreenKey="state:alpha"
+        isStateSelected={true}
+        isDistrictSelected={false}
+        isBlockSelected={false}
+        isGramPanchayatSelected={false}
+        selectedVillage=""
+        quantityPerformanceData={mockEntityData}
+        quantityTimeTrendData={[{ period: '01 Mar', value: 85 }]}
+        regularityPerformanceData={mockEntityData}
+        regularityTimeTrendData={[{ period: '01 Mar', value: 94 }]}
+        districtTableData={mockEntityData}
+        blockTableData={mockEntityData}
+        gramPanchayatTableData={mockEntityData}
+        villageTableData={mockEntityData}
+        supplySubmissionRateData={mockEntityData}
+        supplySubmissionRateLabel="States/UTs"
+        waterSupplyOutagesData={mockDashboardData.waterSupplyOutages}
+        waterSupplyOutageDistributionData={mockDashboardData.waterSupplyOutages}
+        pumpOperatorsTotal={12}
+        operatorsPerformanceTable={mockOperatorsPerformanceTable}
+        villagePhotoEvidenceRows={mockDashboardData.readingCompliance}
+        villagePumpOperatorDetails={{
+          name: 'Ajay Yadav',
+          scheme: 'Rural Water Supply 001',
+          stationLocation: 'Central Pumping Station',
+          lastSubmission: '11-02-24, 1:00pm',
+          reportingRate: '85%',
+          missingSubmissionCount: '3',
+          inactiveDays: '2',
+        }}
+      />
+    )
+
+    expect(
+      screen.getByRole('button', { name: 'Quantity performance view by' }).textContent
+    ).toContain('Geography')
+    expect(
+      screen.getByRole('button', { name: 'Regularity performance view by' }).textContent
+    ).toContain('Geography')
   })
 
   it('shows no data for quantity time view when periodic analytics are empty', () => {

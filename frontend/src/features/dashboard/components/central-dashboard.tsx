@@ -1620,6 +1620,17 @@ export function CentralDashboard() {
       ) : null}
       <DashboardBody
         data={resolvedDashboardData}
+        performanceScreenKey={
+          isStateSelected && !isDistrictSelected && !isBlockSelected && !isGramPanchayatSelected
+            ? `state:${effectiveSelectedState}`
+            : !isStateSelected &&
+                !isDistrictSelected &&
+                !isBlockSelected &&
+                !isGramPanchayatSelected &&
+                !effectiveSelectedVillage
+              ? 'central'
+              : null
+        }
         isStateSelected={isStateSelected}
         isDistrictSelected={isDistrictSelected}
         isBlockSelected={isBlockSelected}
