@@ -1415,20 +1415,34 @@ export function CentralDashboard() {
         )} days`,
       },
       icon: (
-        <Flex w="48px" h="48px" borderRadius="100px" bg="#E6F7EC" align="center" justify="center">
+        <Flex w="48px" h="48px" borderRadius="100px" bg="#E1FFEA" align="center" justify="center">
           <Image src={waterTapIcon} alt="" w="24px" h="24px" />
         </Flex>
       ),
       tooltipContent: renderFormulaTooltip(
         <>
-          Quantity (MLD) = SUM(W<sub>k</sub>) / N
+          {t('kpi.tooltips.quantityMld.formulaLabel', { defaultValue: 'Quantity (MLD)' })} = SUM(W
+          <sub>k</sub>) / N
         </>,
         [
           <>
-            W<sub>k</sub> = water quantity supplied on day k
+            W<sub>k</sub> ={' '}
+            {t('kpi.tooltips.quantityMld.definitions.waterQuantitySupplied', {
+              defaultValue: 'water quantity supplied on day k',
+            })}
           </>,
-          <>SUM(Wk) = total water supplied across all days</>,
-          <>N = total number of days</>,
+          <>
+            SUM(Wk) ={' '}
+            {t('kpi.tooltips.quantityMld.definitions.totalWaterSupplied', {
+              defaultValue: 'total water supplied across all days',
+            })}
+          </>,
+          <>
+            N ={' '}
+            {t('kpi.tooltips.quantityMld.definitions.totalNumberOfDays', {
+              defaultValue: 'total number of days',
+            })}
+          </>,
         ]
       ),
     },
@@ -1452,17 +1466,34 @@ export function CentralDashboard() {
       ),
       tooltipContent: renderFormulaTooltip(
         <>
-          Quantity (LPCD) = SUM(W<sub>k</sub>) / (SUM(FHTC<sub>i</sub>) x P x N)
+          {t('kpi.tooltips.quantityLpcd.formulaLabel', { defaultValue: 'Quantity (LPCD)' })} = SUM(W
+          <sub>k</sub>) / (SUM(FHTC<sub>i</sub>) x P x N)
         </>,
         [
           <>
-            W<sub>k</sub> = water quantity supplied on day k
+            W<sub>k</sub> ={' '}
+            {t('kpi.tooltips.quantityLpcd.definitions.waterQuantitySupplied', {
+              defaultValue: 'water quantity supplied on day k',
+            })}
           </>,
           <>
-            FHTC<sub>i</sub> = functional household tap connections of scheme i
+            FHTC<sub>i</sub> ={' '}
+            {t('kpi.tooltips.quantityLpcd.definitions.functionalHouseholdTapConnections', {
+              defaultValue: 'functional household tap connections of scheme i',
+            })}
           </>,
-          <>P = average persons per household</>,
-          <>N = number of days</>,
+          <>
+            P ={' '}
+            {t('kpi.tooltips.quantityLpcd.definitions.averagePersonsPerHousehold', {
+              defaultValue: 'average persons per household',
+            })}
+          </>,
+          <>
+            N ={' '}
+            {t('kpi.tooltips.quantityLpcd.definitions.numberOfDays', {
+              defaultValue: 'number of days',
+            })}
+          </>,
         ]
       ),
     },
@@ -1486,13 +1517,22 @@ export function CentralDashboard() {
       ),
       tooltipContent: renderFormulaTooltip(
         <>
-          Regularity of scheme = X<sub>i</sub> / N
+          {t('kpi.tooltips.regularity.formulaLabel', { defaultValue: 'Regularity of scheme' })} = X
+          <sub>i</sub> / N
         </>,
         [
           <>
-            X<sub>i</sub> = number of supply-days of scheme i
+            X<sub>i</sub> ={' '}
+            {t('kpi.tooltips.regularity.definitions.numberOfSupplyDays', {
+              defaultValue: 'number of supply-days of scheme i',
+            })}
           </>,
-          <>N = total number of days in the selected time period</>,
+          <>
+            N ={' '}
+            {t('kpi.tooltips.regularity.definitions.totalNumberOfDaysInSelectedPeriod', {
+              defaultValue: 'total number of days in the selected time period',
+            })}
+          </>,
         ]
       ),
     },
