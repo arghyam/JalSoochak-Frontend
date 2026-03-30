@@ -81,9 +81,9 @@ export function ManageStateAdminsPage() {
 
   const statusOptions = [
     { value: 'all', label: t('common:status.all', 'All Statuses') },
-    { value: 'PENDING', label: t('manageStateAdmins.status.pending') },
-    { value: 'ACTIVE', label: t('manageStateAdmins.status.completed') },
-    { value: 'INACTIVE', label: t('manageStateAdmins.status.inactive') },
+    { value: 'PENDING', label: t('common:status.pending') },
+    { value: 'ACTIVE', label: t('common:status.active') },
+    { value: 'INACTIVE', label: t('common:status.inactive') },
   ]
 
   const handleView = (row: StateAdmin) => {
@@ -140,19 +140,19 @@ export function ManageStateAdminsPage() {
       ),
     },
     {
-      key: 'signupStatus',
-      header: t('manageStateAdmins.table.signupStatus'),
+      key: 'status',
+      header: t('common:statusLabel', 'Status'),
       sortable: false,
       render: (row) => {
         let statusLabel: string
-        if (row.signupStatus === 'completed') {
-          statusLabel = t('manageStateAdmins.status.completed')
-        } else if (row.signupStatus === 'inactive') {
-          statusLabel = t('manageStateAdmins.status.inactive')
+        if (row.status === 'active') {
+          statusLabel = t('common:status.active')
+        } else if (row.status === 'inactive') {
+          statusLabel = t('common:status.inactive')
         } else {
-          statusLabel = t('manageStateAdmins.status.pending')
+          statusLabel = t('common:status.pending')
         }
-        return <StatusChip status={row.signupStatus} label={statusLabel} />
+        return <StatusChip status={row.status} label={statusLabel} />
       },
     },
     {
@@ -188,7 +188,7 @@ export function ManageStateAdminsPage() {
               _hover={{ color: 'primary.500', bg: 'transparent' }}
             />
           </ActionTooltip>
-          {row.signupStatus === 'pending' && (
+          {row.status === 'pending' && (
             <ActionTooltip label={t('manageStateAdmins.aria.resendInvite')}>
               <IconButton
                 aria-label={`${t('manageStateAdmins.aria.resendInvite')} ${row.adminName}`}

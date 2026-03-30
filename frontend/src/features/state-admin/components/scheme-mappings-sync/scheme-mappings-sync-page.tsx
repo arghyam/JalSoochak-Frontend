@@ -51,6 +51,13 @@ export function SchemeMappingsSyncPage() {
 
   const { data, isLoading, isError, refetch } = useSchemeMappingsListQuery(mappingParams)
 
+  const hasActiveFilters = Boolean(searchQuery)
+
+  const handleClearFilters = () => {
+    setSearchQuery('')
+    setPage(1)
+  }
+
   const handleSort = (_columnKey: string, direction: SortDirection) => {
     if (direction === 'asc') {
       setSortDir('asc')
@@ -155,27 +162,42 @@ export function SchemeMappingsSyncPage() {
         borderRadius="12px"
         bg="white"
       >
-        {/* Left: search */}
-        <InputGroup w={{ base: 'full', md: '260px' }} flexShrink={0}>
-          <InputLeftElement pointerEvents="none" h={8}>
-            <SearchIcon color="neutral.300" aria-hidden="true" />
-          </InputLeftElement>
-          <Input
-            placeholder={t('schemeMappingsSync.searchPlaceholder')}
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value)
-              setPage(1)
-            }}
-            aria-label={t('schemeMappingsSync.aria.searchMappings')}
-            bg="white"
-            h={8}
-            borderWidth="1px"
-            borderRadius="4px"
-            borderColor="neutral.300"
-            _placeholder={{ color: 'neutral.300' }}
-          />
-        </InputGroup>
+        {/* Left: search + clear */}
+        <Flex align="center" gap={3} flex={1} flexWrap="wrap">
+          <InputGroup w={{ base: 'full', md: '260px' }} flexShrink={0}>
+            <InputLeftElement pointerEvents="none" h={8}>
+              <SearchIcon color="neutral.300" aria-hidden="true" />
+            </InputLeftElement>
+            <Input
+              placeholder={t('schemeMappingsSync.searchPlaceholder')}
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setPage(1)
+              }}
+              aria-label={t('schemeMappingsSync.aria.searchMappings')}
+              bg="white"
+              h={8}
+              borderWidth="1px"
+              borderRadius="4px"
+              borderColor="neutral.300"
+              _placeholder={{ color: 'neutral.300' }}
+            />
+          </InputGroup>
+
+          {hasActiveFilters && (
+            <Button
+              variant="link"
+              size="sm"
+              color="neutral.500"
+              fontWeight="400"
+              onClick={handleClearFilters}
+              _hover={{ color: 'primary.500' }}
+            >
+              {t('schemeMappingsSync.filters.clearAll')}
+            </Button>
+          )}
+        </Flex>
 
         {/* Right: upload */}
         <Button

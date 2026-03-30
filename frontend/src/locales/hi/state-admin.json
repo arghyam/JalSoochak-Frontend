@@ -364,6 +364,9 @@
     "title": "योजना मैपिंग सिंक",
     "searchPlaceholder": "योजना नाम से खोजें",
     "uploadData": "डेटा अपलोड करें",
+    "filters": {
+      "clearAll": "सभी फ़िल्टर हटाएं"
+    },
     "table": {
       "schemeName": "योजना नाम",
       "stateSchemeId": "राज्य योजना आईडी",

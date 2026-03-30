@@ -87,7 +87,7 @@ export function StaffSyncPage() {
     [t]
   )
 
-  const hasActiveFilters = roleFilter || statusFilter
+  const hasActiveFilters = roleFilter || statusFilter || searchQuery
 
   const handleRoleChange = (value: string) => {
     setRoleFilter(value as StaffRole | '')
@@ -102,6 +102,7 @@ export function StaffSyncPage() {
   const handleClearFilters = () => {
     setRoleFilter('')
     setStatusFilter('')
+    setSearchQuery('')
     setPage(1)
   }
 

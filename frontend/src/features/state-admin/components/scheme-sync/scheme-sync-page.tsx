@@ -80,7 +80,7 @@ export function SchemeSyncPage() {
     [counts]
   )
 
-  const hasActiveFilters = workStatusFilter || operatingStatusFilter
+  const hasActiveFilters = workStatusFilter || operatingStatusFilter || searchQuery
 
   const handleWorkStatusChange = (value: string) => {
     setWorkStatusFilter(value)
@@ -95,6 +95,7 @@ export function SchemeSyncPage() {
   const handleClearFilters = () => {
     setWorkStatusFilter('')
     setOperatingStatusFilter('')
+    setSearchQuery('')
     setPage(1)
   }
 

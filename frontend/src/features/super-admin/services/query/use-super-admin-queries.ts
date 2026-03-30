@@ -63,13 +63,13 @@ export function useStateAdminsQuery(page: number, pageSize: number, name: string
         status: status && status !== 'all' ? status : undefined,
       })
       const items: StateAdmin[] = apiPage.content.map((u: ApiUser) => {
-        let signupStatus: StateAdmin['signupStatus']
+        let status: StateAdmin['status']
         if (u.status === 'ACTIVE') {
-          signupStatus = 'completed'
+          status = 'active'
         } else if (u.status === 'INACTIVE') {
-          signupStatus = 'inactive'
+          status = 'inactive'
         } else {
-          signupStatus = 'pending'
+          status = 'pending'
         }
         return {
           id: String(u.id),
@@ -77,7 +77,7 @@ export function useStateAdminsQuery(page: number, pageSize: number, name: string
           stateUt: u.tenantCode ?? '',
           mobileNumber: u.phoneNumber,
           emailAddress: u.email,
-          signupStatus,
+          status,
         }
       })
       return {
