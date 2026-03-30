@@ -256,8 +256,8 @@ export function SearchLayout({
                   fontWeight="400"
                   variant="ghost"
                   onClick={() => handleTrailSelect(index)}
-                  _hover={{ bg: 'neutral.100' }}
-                  _active={{ bg: 'neutral.100' }}
+                  _hover={{ bg: 'primary.25' }}
+                  _active={{ bg: 'primary.25' }}
                   aria-label={t('searchLayout.aria.breadcrumb', {
                     item,
                     defaultValue: `Breadcrumb: ${item}`,
