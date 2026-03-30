@@ -26,6 +26,7 @@ import {
   useStaffCountsQuery,
 } from '../../services/query/use-state-admin-queries'
 import { useAuthStore } from '@/app/store/auth-store'
+import { useDebounce } from '@/shared/hooks/use-debounce'
 import { UploadStaffModal } from './upload-staff-modal'
 
 const DEFAULT_ROLES: StaffRole[] = ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER']
@@ -48,6 +49,7 @@ export function StaffSyncPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
+  const debouncedSearch = useDebounce(searchQuery, 400)
 
   useEffect(() => {
     document.title = `${t('staffSync.title')} | JalSoochak`
@@ -57,11 +59,12 @@ export function StaffSyncPage() {
     () => ({
       roles: roleFilter ? [roleFilter] : DEFAULT_ROLES,
       ...(statusFilter ? { status: statusFilter } : {}),
+      ...(debouncedSearch ? { name: debouncedSearch } : {}),
       page: page - 1,
       limit: pageSize,
       tenantCode,
     }),
-    [roleFilter, statusFilter, page, pageSize, tenantCode]
+    [roleFilter, statusFilter, debouncedSearch, page, pageSize, tenantCode]
   )
 
   const { data, isLoading, isError, refetch } = useStaffListQuery(staffParams)
@@ -102,18 +105,11 @@ export function StaffSyncPage() {
     setPage(1)
   }
 
-  // Client-side search on current page data
-  const displayedStaff = useMemo(() => {
-    if (!data) return []
-    if (!searchQuery) return data.items
-    return data.items.filter((m) => m.title.toLowerCase().includes(searchQuery.toLowerCase()))
-  }, [data, searchQuery])
-
   const columns: DataTableColumn<StaffMember>[] = [
     {
       key: 'title',
       header: t('staffSync.table.name'),
-      sortable: true,
+      sortable: false,
       width: '20%',
       minWidth: '200px',
       render: (row) => (
@@ -263,7 +259,10 @@ export function StaffSyncPage() {
           <Input
             placeholder={t('staffSync.searchPlaceholder')}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value)
+              setPage(1)
+            }}
             aria-label={t('staffSync.aria.searchStaff')}
             bg="white"
             h={8}
@@ -372,7 +371,7 @@ export function StaffSyncPage() {
       {/* Data Table */}
       <DataTable<StaffMember>
         columns={columns}
-        data={displayedStaff}
+        data={data?.items ?? []}
         getRowKey={(row) => row.id}
         emptyMessage={t('staffSync.messages.noStaffFound')}
         isLoading={isLoading}

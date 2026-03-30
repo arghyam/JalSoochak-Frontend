@@ -23,6 +23,7 @@ export interface StaffMember extends Record<string, unknown> {
 export interface StaffListParams {
   roles: StaffRole[]
   status?: StaffStatus
+  name?: string
   page: number
   limit: number
   tenantCode: string

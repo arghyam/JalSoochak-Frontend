@@ -13,8 +13,8 @@ export const stateAdminQueryKeys = {
     tenantCode: string
   }) => [...stateAdminQueryKeys.all, 'staff-list', params] as const,
   configuration: () => [...stateAdminQueryKeys.all, 'configuration'] as const,
-  stateUtAdmins: (page: number, size: number) =>
-    [...stateAdminQueryKeys.all, 'state-ut-admins', page, size] as const,
+  stateUtAdmins: (page: number, size: number, name: string, status: string) =>
+    [...stateAdminQueryKeys.all, 'state-ut-admins', page, size, name, status] as const,
   stateUtAdminById: (id: string) => [...stateAdminQueryKeys.all, 'state-ut-admins', id] as const,
   escalationRules: () => [...stateAdminQueryKeys.all, 'escalation-rules'] as const,
   lgdHierarchy: () => [...stateAdminQueryKeys.all, 'lgd-hierarchy'] as const,

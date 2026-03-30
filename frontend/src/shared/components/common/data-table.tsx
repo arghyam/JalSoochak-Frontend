@@ -70,9 +70,15 @@ export interface DataTableProps<T> {
    * Useful with tableLayout='fixed' to enforce per-column minimum widths.
    */
   tableMinWidth?: string
+  /**
+   * Server-side sort callback. When provided, client-side sorting is
+   * skipped and this function is called instead with the column key
+   * and the new direction (`'asc'`, `'desc'`, or `null` to clear).
+   */
+  onSort?: (columnKey: string, direction: SortDirection) => void
 }
 
-type SortDirection = 'asc' | 'desc' | null
+export type SortDirection = 'asc' | 'desc' | null
 
 export function DataTable<T extends object>({
   columns,
@@ -83,6 +89,7 @@ export function DataTable<T extends object>({
   pagination,
   tableLayout = 'auto',
   tableMinWidth,
+  onSort,
 }: DataTableProps<T>) {
   const isFixedLayout = tableLayout === 'fixed'
   const { t } = useTranslation('common')
@@ -115,21 +122,34 @@ export function DataTable<T extends object>({
   const handleSort = (columnKey: string, sortable?: boolean) => {
     if (!sortable) return
 
+    let nextDirection: SortDirection
     if (sortColumn === columnKey) {
-      // Cycle through: asc -> desc -> null
       if (sortDirection === 'asc') {
-        setSortDirection('desc')
+        nextDirection = 'desc'
       } else if (sortDirection === 'desc') {
-        setSortColumn(null)
-        setSortDirection(null)
+        nextDirection = null
+      } else {
+        nextDirection = 'asc'
       }
     } else {
+      nextDirection = 'asc'
+    }
+
+    if (nextDirection === null) {
+      setSortColumn(null)
+      setSortDirection(null)
+    } else {
       setSortColumn(columnKey)
-      setSortDirection('asc')
+      setSortDirection(nextDirection)
+    }
+
+    if (onSort) {
+      onSort(columnKey, nextDirection)
     }
   }
 
   const getSortedData = () => {
+    if (onSort) return data
     if (!sortColumn || !sortDirection) return data
 
     return [...data].sort((a, b) => {

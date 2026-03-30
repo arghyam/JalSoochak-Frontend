@@ -16,13 +16,14 @@ import { FiUpload } from 'react-icons/fi'
 import { BsDroplet, BsCheck2Circle } from 'react-icons/bs'
 import { IoCloseCircleOutline } from 'react-icons/io5'
 import { DataTable, SearchableSelect, StatCard } from '@/shared/components/common'
-import type { DataTableColumn } from '@/shared/components/common'
+import type { DataTableColumn, SortDirection } from '@/shared/components/common'
 import type { Scheme } from '../../types/scheme-sync'
 import {
   useSchemeCountsQuery,
   useSchemeListQuery,
 } from '../../services/query/use-state-admin-queries'
 import { useAuthStore } from '@/app/store/auth-store'
+import { useDebounce } from '@/shared/hooks/use-debounce'
 import { UploadSchemesModal } from './upload-schemes-modal'
 
 const PAGE_SIZE = 10
@@ -38,6 +39,8 @@ export function SchemeSyncPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
+  const [sortDir, setSortDir] = useState<string>('')
+  const debouncedSearch = useDebounce(searchQuery, 400)
 
   useEffect(() => {
     document.title = `${t('schemeSync.title')} | JalSoochak`
@@ -50,8 +53,10 @@ export function SchemeSyncPage() {
       limit: pageSize,
       ...(workStatusFilter ? { workStatus: workStatusFilter } : {}),
       ...(operatingStatusFilter ? { operatingStatus: operatingStatusFilter } : {}),
+      ...(debouncedSearch ? { schemeName: debouncedSearch } : {}),
+      ...(sortDir ? { sortDir } : {}),
     }),
-    [tenantCode, page, pageSize, workStatusFilter, operatingStatusFilter]
+    [tenantCode, page, pageSize, workStatusFilter, operatingStatusFilter, debouncedSearch, sortDir]
   )
 
   const { data, isLoading, isError, refetch } = useSchemeListQuery(schemeParams)
@@ -93,11 +98,16 @@ export function SchemeSyncPage() {
     setPage(1)
   }
 
-  const displayedSchemes = useMemo(() => {
-    if (!data) return []
-    if (!searchQuery) return data.items
-    return data.items.filter((s) => s.schemeName.toLowerCase().includes(searchQuery.toLowerCase()))
-  }, [data, searchQuery])
+  const handleSort = (_columnKey: string, direction: SortDirection) => {
+    if (direction === 'asc') {
+      setSortDir('asc')
+    } else if (direction === 'desc') {
+      setSortDir('des')
+    } else {
+      setSortDir('')
+    }
+    setPage(1)
+  }
 
   const columns: DataTableColumn<Scheme>[] = [
     {
@@ -213,7 +223,10 @@ export function SchemeSyncPage() {
           <Input
             placeholder={t('schemeSync.searchPlaceholder')}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value)
+              setPage(1)
+            }}
             aria-label={t('schemeSync.aria.searchSchemes')}
             bg="white"
             h={8}
@@ -315,12 +328,13 @@ export function SchemeSyncPage() {
       {/* Data Table */}
       <DataTable<Scheme>
         columns={columns}
-        data={displayedSchemes}
+        data={data?.items ?? []}
         getRowKey={(row) => row.id}
         emptyMessage={t('schemeSync.messages.noSchemesFound')}
         isLoading={isLoading}
         tableLayout="fixed"
         tableMinWidth="900px"
+        onSort={handleSort}
         pagination={{
           enabled: true,
           page,

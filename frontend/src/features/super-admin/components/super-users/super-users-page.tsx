@@ -13,11 +13,23 @@ import {
   useReinviteSuperUserMutation,
 } from '../../services/query/use-super-admin-queries'
 
+type StatusFilter = 'all' | 'active' | 'inactive' | 'pending'
+
+const STATUS_TO_API: Record<StatusFilter, string> = {
+  all: 'all',
+  active: 'ACTIVE',
+  inactive: 'INACTIVE',
+  pending: 'PENDING',
+}
+
 export function SuperUsersPage() {
   const { t } = useTranslation(['super-admin', 'common'])
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
-  const { data, isLoading, isError, refetch } = useSuperUsersQuery(page, pageSize)
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+
+  const apiStatus = STATUS_TO_API[statusFilter]
+  const { data, isLoading, isError, refetch } = useSuperUsersQuery(page, pageSize, apiStatus)
   const reinviteMutation = useReinviteSuperUserMutation()
   const toast = useToast()
 
@@ -76,6 +88,12 @@ export function SuperUsersPage() {
         onPageChange={setPage}
         onPageSizeChange={(size) => {
           setPageSize(size)
+          setPage(1)
+        }}
+        hideSearch
+        statusFilter={statusFilter}
+        onStatusFilterChange={(val) => {
+          setStatusFilter(val)
           setPage(1)
         }}
       />

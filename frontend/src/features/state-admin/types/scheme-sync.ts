@@ -34,6 +34,8 @@ export interface SchemeListParams {
   limit: number
   workStatus?: string
   operatingStatus?: string
+  schemeName?: string
+  sortDir?: string
 }
 
 export interface SchemeListResponse {
