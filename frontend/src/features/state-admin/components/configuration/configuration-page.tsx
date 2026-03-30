@@ -30,12 +30,18 @@ import {
   useUpdateLogoMutation,
 } from '../../services/query/use-state-admin-queries'
 import {
+  DEFAULT_DATE_FORMAT_CONFIG,
   DEFAULT_METER_CHANGE_REASONS,
+  DEFAULT_SUPPLY_OUTAGE_REASONS,
   SUPPORTED_CHANNELS,
+  type DateFormatConfig,
   type MeterChangeReason,
+  type SupplyOutageReason,
   type SupportedChannel,
 } from '../../types/configuration'
 import { MeterChangeReasonsSection } from './meter-change-reasons-section'
+import { SupplyOutageReasonsSection } from './supply-outage-reasons-section'
+import { DateFormatSection } from './date-format-section'
 import {
   validateDescriptiveField,
   hasDuplicates,
@@ -51,9 +57,13 @@ interface ConfigDraft {
   logoFile: File | null
   logoUrl?: string
   meterChangeReasons: MeterChangeReason[]
+  supplyOutageReasons: SupplyOutageReason[]
   locationCheckRequired: boolean
+  displayDepartmentMaps: boolean
   dataConsolidationTime: string
   pumpOperatorReminderNudgeTime: string
+  dateFormatScreen: DateFormatConfig
+  dateFormatTable: DateFormatConfig
   averageMembersPerHousehold: number
 }
 
@@ -61,9 +71,13 @@ function buildInitialDraft(
   config?: {
     supportedChannels: SupportedChannel[]
     meterChangeReasons: MeterChangeReason[]
+    supplyOutageReasons: SupplyOutageReason[]
     locationCheckRequired: boolean
+    displayDepartmentMaps: boolean
     dataConsolidationTime: string
     pumpOperatorReminderNudgeTime: string
+    dateFormatScreen: DateFormatConfig
+    dateFormatTable: DateFormatConfig
     averageMembersPerHousehold: number
   },
   logoUrl?: string
@@ -75,9 +89,19 @@ function buildInitialDraft(
     meterChangeReasons: config
       ? config.meterChangeReasons.map((r) => ({ ...r }))
       : DEFAULT_METER_CHANGE_REASONS.map((r) => ({ ...r })),
+    supplyOutageReasons: config
+      ? config.supplyOutageReasons.map((r) => ({ ...r }))
+      : DEFAULT_SUPPLY_OUTAGE_REASONS.map((r) => ({ ...r })),
     locationCheckRequired: config?.locationCheckRequired ?? false,
+    displayDepartmentMaps: config?.displayDepartmentMaps ?? false,
     dataConsolidationTime: config?.dataConsolidationTime ?? '',
     pumpOperatorReminderNudgeTime: config?.pumpOperatorReminderNudgeTime ?? '',
+    dateFormatScreen: config?.dateFormatScreen
+      ? { ...config.dateFormatScreen }
+      : { ...DEFAULT_DATE_FORMAT_CONFIG },
+    dateFormatTable: config?.dateFormatTable
+      ? { ...config.dateFormatTable }
+      : { ...DEFAULT_DATE_FORMAT_CONFIG },
     averageMembersPerHousehold: config?.averageMembersPerHousehold ?? 0,
   }
 }
@@ -128,14 +152,21 @@ export function ConfigurationPage() {
     const reasonsChanged =
       JSON.stringify([...draft.meterChangeReasons].sort(sortById)) !==
       JSON.stringify([...config.meterChangeReasons].sort(sortById))
+    const supplyReasonsChanged =
+      JSON.stringify([...draft.supplyOutageReasons].sort(sortById)) !==
+      JSON.stringify([...config.supplyOutageReasons].sort(sortById))
     return (
       channelsChanged ||
       draft.logoFile !== null ||
       draft.locationCheckRequired !== config.locationCheckRequired ||
+      draft.displayDepartmentMaps !== config.displayDepartmentMaps ||
       draft.dataConsolidationTime !== config.dataConsolidationTime ||
       draft.pumpOperatorReminderNudgeTime !== config.pumpOperatorReminderNudgeTime ||
+      JSON.stringify(draft.dateFormatScreen) !== JSON.stringify(config.dateFormatScreen) ||
+      JSON.stringify(draft.dateFormatTable) !== JSON.stringify(config.dateFormatTable) ||
       draft.averageMembersPerHousehold !== config.averageMembersPerHousehold ||
-      reasonsChanged
+      reasonsChanged ||
+      supplyReasonsChanged
     )
   }, [config, draft])
 
@@ -198,6 +229,32 @@ export function ConfigurationPage() {
       })
     }
 
+    // Supply outage reasons
+    const nonEmptyOutageNames: string[] = []
+    current.supplyOutageReasons.forEach((reason) => {
+      const error = validateDescriptiveField(reason.name)
+      if (error) {
+        newErrors[`supplyOutageReason.${reason.id}`] = t(`state-admin:validation.${error}`)
+      } else if (exceedsMaxLength(reason.name, MAX_METER_REASON_LENGTH)) {
+        newErrors[`supplyOutageReason.${reason.id}`] = t('state-admin:validation.maxLength', {
+          max: MAX_METER_REASON_LENGTH,
+        })
+      } else {
+        nonEmptyOutageNames.push(reason.name)
+      }
+    })
+    if (hasDuplicates(nonEmptyOutageNames)) {
+      const seen = new Set<string>()
+      current.supplyOutageReasons.forEach((reason) => {
+        const normalized = reason.name.trim().toLowerCase()
+        if (!normalized) return
+        if (seen.has(normalized) && !newErrors[`supplyOutageReason.${reason.id}`]) {
+          newErrors[`supplyOutageReason.${reason.id}`] = t('state-admin:validation.duplicateValue')
+        }
+        seen.add(normalized)
+      })
+    }
+
     // Time fields
     if (!current.dataConsolidationTime) {
       newErrors.dataConsolidationTime = t('state-admin:validation.timeRequired')
@@ -233,9 +290,13 @@ export function ConfigurationPage() {
       await saveMutation.mutateAsync({
         supportedChannels: current.supportedChannels,
         meterChangeReasons: current.meterChangeReasons,
+        supplyOutageReasons: current.supplyOutageReasons,
         locationCheckRequired: current.locationCheckRequired,
+        displayDepartmentMaps: current.displayDepartmentMaps,
         dataConsolidationTime: current.dataConsolidationTime,
         pumpOperatorReminderNudgeTime: current.pumpOperatorReminderNudgeTime,
+        dateFormatScreen: current.dateFormatScreen,
+        dateFormatTable: current.dateFormatTable,
         averageMembersPerHousehold: current.averageMembersPerHousehold,
         isConfigured: true,
       })
@@ -477,7 +538,21 @@ export function ConfigurationPage() {
                   }
                 />
 
-                {/* 5. Record Location + Logo side by side */}
+                {/* 5. Supply Outage Reasons */}
+                <SupplyOutageReasonsSection
+                  title={t('configuration.sections.supplyOutageReasons.title')}
+                  reasons={activeDraft.supplyOutageReasons}
+                  errors={errors}
+                  onClearError={clearError}
+                  onChange={(reasons) =>
+                    setDraft((prev) => ({
+                      ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                      supplyOutageReasons: reasons,
+                    }))
+                  }
+                />
+
+                {/* 6. Record Location + Display Department Maps side by side */}
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
                   {/* Record Location */}
                   <Box>
@@ -513,57 +588,42 @@ export function ConfigurationPage() {
                     </RadioGroup>
                   </Box>
 
-                  {/* Logo */}
-                  <FormControl isInvalid={!!errors.logo}>
+                  {/* Display Department Maps */}
+                  <Box>
                     <Text
                       fontSize={{ base: 'xs', md: 'sm' }}
                       fontWeight="medium"
                       color="neutral.950"
                       mb={3}
                     >
-                      {t('configuration.sections.logo.title')}
+                      {t('configuration.sections.displayDepartmentMaps.title')}
                     </Text>
-                    <HStack spacing={3} align="center" flexWrap="wrap">
-                      {activeDraft.logoUrl && (
-                        <Box
-                          as="img"
-                          src={activeDraft.logoUrl}
-                          alt={t('configuration.sections.logo.currentLogo')}
-                          h="40px"
-                          w="40px"
-                          objectFit="contain"
-                          borderWidth="0.5px"
-                          borderColor="neutral.100"
-                          borderRadius="md"
-                        />
-                      )}
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/png,image/jpeg"
-                        style={{ display: 'none' }}
-                        onChange={handleLogoChange}
-                        aria-label={t('configuration.sections.logo.uploadButton')}
-                      />
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        fontWeight="600"
-                        gap={1}
-                        leftIcon={<FiUpload aria-hidden="true" />}
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        {t('configuration.sections.logo.uploadButton')}
-                      </Button>
-                      <Text fontSize="xs" color="neutral.500">
-                        {t('configuration.sections.logo.hint')}
-                      </Text>
-                    </HStack>
-                    <FormErrorMessage>{errors.logo}</FormErrorMessage>
-                  </FormControl>
+                    <RadioGroup
+                      value={activeDraft.displayDepartmentMaps ? 'yes' : 'no'}
+                      onChange={(val) =>
+                        setDraft((prev) => ({
+                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                          displayDepartmentMaps: val === 'yes',
+                        }))
+                      }
+                    >
+                      <HStack spacing={6}>
+                        <Radio value="yes">
+                          <Text fontSize="sm" color="neutral.950">
+                            {t('configuration.sections.displayDepartmentMaps.yes')}
+                          </Text>
+                        </Radio>
+                        <Radio value="no">
+                          <Text fontSize="sm" color="neutral.950">
+                            {t('configuration.sections.displayDepartmentMaps.no')}
+                          </Text>
+                        </Radio>
+                      </HStack>
+                    </RadioGroup>
+                  </Box>
                 </SimpleGrid>
 
-                {/* 6. Data Consolidation Time + Pump Operator Reminder Nudge Time */}
+                {/* 7. Data Consolidation Time + Pump Operator Reminder Nudge Time */}
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
                   <FormControl isInvalid={!!errors.dataConsolidationTime}>
                     <Text
@@ -637,7 +697,31 @@ export function ConfigurationPage() {
                   </FormControl>
                 </SimpleGrid>
 
-                {/* 7. Average Members Per Household */}
+                {/* 8. Screen Date Format + Table Date Format */}
+                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+                  <DateFormatSection
+                    title={t('configuration.sections.dateFormatScreen.title')}
+                    value={activeDraft.dateFormatScreen}
+                    onChange={(val) =>
+                      setDraft((prev) => ({
+                        ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                        dateFormatScreen: val,
+                      }))
+                    }
+                  />
+                  <DateFormatSection
+                    title={t('configuration.sections.dateFormatTable.title')}
+                    value={activeDraft.dateFormatTable}
+                    onChange={(val) =>
+                      setDraft((prev) => ({
+                        ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                        dateFormatTable: val,
+                      }))
+                    }
+                  />
+                </SimpleGrid>
+
+                {/* 9. Average Members Per Household */}
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
                   <FormControl isInvalid={!!errors.averageMembersPerHousehold}>
                     <Text
@@ -687,6 +771,55 @@ export function ConfigurationPage() {
                     <FormErrorMessage>{errors.averageMembersPerHousehold}</FormErrorMessage>
                   </FormControl>
                 </SimpleGrid>
+
+                {/* 10. Logo (last) */}
+                <FormControl isInvalid={!!errors.logo}>
+                  <Text
+                    fontSize={{ base: 'xs', md: 'sm' }}
+                    fontWeight="medium"
+                    color="neutral.950"
+                    mb={3}
+                  >
+                    {t('configuration.sections.logo.title')}
+                  </Text>
+                  <HStack spacing={3} align="center" flexWrap="wrap">
+                    {activeDraft.logoUrl && (
+                      <Box
+                        as="img"
+                        src={activeDraft.logoUrl}
+                        alt={t('configuration.sections.logo.currentLogo')}
+                        h="40px"
+                        w="40px"
+                        objectFit="contain"
+                        borderWidth="0.5px"
+                        borderColor="neutral.100"
+                        borderRadius="md"
+                      />
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg"
+                      style={{ display: 'none' }}
+                      onChange={handleLogoChange}
+                      aria-label={t('configuration.sections.logo.uploadButton')}
+                    />
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      fontWeight="600"
+                      gap={1}
+                      leftIcon={<FiUpload aria-hidden="true" />}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      {t('configuration.sections.logo.uploadButton')}
+                    </Button>
+                    <Text fontSize="xs" color="neutral.500">
+                      {t('configuration.sections.logo.hint')}
+                    </Text>
+                  </HStack>
+                  <FormErrorMessage>{errors.logo}</FormErrorMessage>
+                </FormControl>
               </VStack>
 
               {/* Action Buttons */}
@@ -804,7 +937,24 @@ function ViewMode({
         )}
       </ViewSection>
 
-      {/* Record Location + Logo side by side */}
+      {/* Supply Outage Reasons — 2-column grid */}
+      <ViewSection title={t('configuration.sections.supplyOutageReasons.title')}>
+        {config.supplyOutageReasons.length > 0 ? (
+          <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={2}>
+            {config.supplyOutageReasons.map((r) => (
+              <Text key={r.id} fontSize="sm" color="neutral.950">
+                {r.name}
+              </Text>
+            ))}
+          </SimpleGrid>
+        ) : (
+          <Text fontSize="sm" color="neutral.500">
+            -
+          </Text>
+        )}
+      </ViewSection>
+
+      {/* Record Location + Display Department Maps side by side */}
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
         <ViewField
           label={t('configuration.sections.locationCheckRequired.title')}
@@ -815,27 +965,15 @@ function ViewMode({
           }
           color="neutral.950"
         />
-        <ViewSection title={t('configuration.sections.logo.title')}>
-          {isLogoLoading ? (
-            <Spinner size="sm" color="primary.500" aria-label="Loading logo" />
-          ) : isLogoError && !notFound ? (
-            <Text fontSize="sm" color="error.500">
-              {t('common:toast.failedToLoad')}
-            </Text>
-          ) : logoUrl ? (
-            <Box
-              as="img"
-              src={logoUrl}
-              alt={t('configuration.sections.logo.currentLogo')}
-              h="48px"
-              objectFit="contain"
-            />
-          ) : (
-            <Text fontSize="sm" color="neutral.500">
-              -
-            </Text>
-          )}
-        </ViewSection>
+        <ViewField
+          label={t('configuration.sections.displayDepartmentMaps.title')}
+          value={
+            config.displayDepartmentMaps
+              ? t('configuration.sections.displayDepartmentMaps.yes')
+              : t('configuration.sections.displayDepartmentMaps.no')
+          }
+          color="neutral.950"
+        />
       </SimpleGrid>
 
       {/* Data Consolidation Time + Pump Operator Reminder Nudge Time */}
@@ -852,6 +990,42 @@ function ViewMode({
         />
       </SimpleGrid>
 
+      {/* Screen Date Format + Table Date Format */}
+      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+        <ViewSection title={t('configuration.sections.dateFormatScreen.title')}>
+          <VStack align="stretch" spacing={1}>
+            <Text fontSize="sm" color="neutral.950">
+              {t('configuration.sections.dateFormat.dateFormat')}:{' '}
+              {config.dateFormatScreen.dateFormat ?? '-'}
+            </Text>
+            <Text fontSize="sm" color="neutral.950">
+              {t('configuration.sections.dateFormat.timeFormat')}:{' '}
+              {config.dateFormatScreen.timeFormat ?? '-'}
+            </Text>
+            <Text fontSize="sm" color="neutral.950">
+              {t('configuration.sections.dateFormat.timezone')}:{' '}
+              {config.dateFormatScreen.timezone ?? '-'}
+            </Text>
+          </VStack>
+        </ViewSection>
+        <ViewSection title={t('configuration.sections.dateFormatTable.title')}>
+          <VStack align="stretch" spacing={1}>
+            <Text fontSize="sm" color="neutral.950">
+              {t('configuration.sections.dateFormat.dateFormat')}:{' '}
+              {config.dateFormatTable.dateFormat ?? '-'}
+            </Text>
+            <Text fontSize="sm" color="neutral.950">
+              {t('configuration.sections.dateFormat.timeFormat')}:{' '}
+              {config.dateFormatTable.timeFormat ?? '-'}
+            </Text>
+            <Text fontSize="sm" color="neutral.950">
+              {t('configuration.sections.dateFormat.timezone')}:{' '}
+              {config.dateFormatTable.timezone ?? '-'}
+            </Text>
+          </VStack>
+        </ViewSection>
+      </SimpleGrid>
+
       {/* Average Members Per Household */}
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
         <ViewField
@@ -862,6 +1036,29 @@ function ViewMode({
           color="neutral.950"
         />
       </SimpleGrid>
+
+      {/* Logo (last) */}
+      <ViewSection title={t('configuration.sections.logo.title')}>
+        {isLogoLoading ? (
+          <Spinner size="sm" color="primary.500" aria-label="Loading logo" />
+        ) : isLogoError && !notFound ? (
+          <Text fontSize="sm" color="error.500">
+            {t('common:toast.failedToLoad')}
+          </Text>
+        ) : logoUrl ? (
+          <Box
+            as="img"
+            src={logoUrl}
+            alt={t('configuration.sections.logo.currentLogo')}
+            h="48px"
+            objectFit="contain"
+          />
+        ) : (
+          <Text fontSize="sm" color="neutral.500">
+            -
+          </Text>
+        )}
+      </ViewSection>
     </VStack>
   )
 }

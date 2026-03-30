@@ -20,6 +20,11 @@ jest.mock('../../services/query/use-state-admin-queries', () => ({
   }),
 }))
 
+const defaultSupplyOutageReasons = [
+  { id: 'PUMP_FAILURE', name: 'Pump Failure', isDefault: true, editable: true },
+  { id: 'OTHERS', name: 'Others', isDefault: true, editable: false },
+]
+
 const configuredConfig = {
   id: '1',
   supportedChannels: ['IOT', 'Manual'],
@@ -28,9 +33,13 @@ const configuredConfig = {
     { id: 'r1', name: 'Meter Replaced' },
     { id: 'r2', name: 'Meter Not Working' },
   ],
+  supplyOutageReasons: defaultSupplyOutageReasons,
   locationCheckRequired: true,
+  displayDepartmentMaps: false,
   dataConsolidationTime: '08:00',
   pumpOperatorReminderNudgeTime: '09:00',
+  dateFormatScreen: { dateFormat: null, timeFormat: null, timezone: null },
+  dateFormatTable: { dateFormat: null, timeFormat: null, timezone: null },
   averageMembersPerHousehold: 4.5,
   isConfigured: true,
 }
@@ -44,8 +53,13 @@ const unconfiguredConfig = {
     { id: 'r2', name: 'Meter Not Working' },
     { id: 'r3', name: 'Meter Damaged' },
   ],
+  supplyOutageReasons: defaultSupplyOutageReasons,
   locationCheckRequired: false,
+  displayDepartmentMaps: false,
   dataConsolidationTime: '',
+  pumpOperatorReminderNudgeTime: '',
+  dateFormatScreen: { dateFormat: null, timeFormat: null, timezone: null },
+  dateFormatTable: { dateFormat: null, timeFormat: null, timezone: null },
   averageMembersPerHousehold: 0,
   isConfigured: false,
 }

@@ -426,8 +426,20 @@
         "editAriaLabel": "Edit reason {{name}}",
         "deleteAriaLabel": "Delete reason {{name}}"
       },
+      "supplyOutageReasons": {
+        "title": "Supply Outage Reasons",
+        "placeholder": "Enter reason",
+        "addNewButton": "+ Add New Reason",
+        "editAriaLabel": "Edit reason {{name}}",
+        "deleteAriaLabel": "Delete reason {{name}}"
+      },
       "locationCheckRequired": {
         "title": "Record Location",
+        "yes": "Yes",
+        "no": "No"
+      },
+      "displayDepartmentMaps": {
+        "title": "Display Departmental Maps",
         "yes": "Yes",
         "no": "No"
       },
@@ -436,6 +448,20 @@
       },
       "pumpOperatorReminderNudgeTime": {
         "title": "Pump Operator Reminder Nudge Time"
+      },
+      "dateFormatScreen": {
+        "title": "Screen Date Format"
+      },
+      "dateFormatTable": {
+        "title": "Table Date Format"
+      },
+      "dateFormat": {
+        "dateFormat": "Date Format",
+        "timeFormat": "Time Format",
+        "timezone": "Timezone",
+        "datePlaceholder": "Select date format",
+        "timePlaceholder": "Select time format",
+        "timezonePlaceholder": "Select timezone"
       },
       "averageMembersPerHousehold": {
         "title": "Average Members Per Household"
