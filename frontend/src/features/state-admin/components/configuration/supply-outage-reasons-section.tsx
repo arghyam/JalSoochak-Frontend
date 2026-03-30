@@ -66,7 +66,10 @@ export function SupplyOutageReasonsSection({
               <Flex gap={2} align="center">
                 <Input
                   value={reason.name}
-                  onChange={(e) => handleChange(reason.id, e.target.value)}
+                  onChange={(e) =>
+                    reason.editable ? handleChange(reason.id, e.target.value) : undefined
+                  }
+                  isReadOnly={!reason.editable}
                   placeholder={t('configuration.sections.supplyOutageReasons.placeholder')}
                   h="36px"
                   w={{ base: 'full', xl: '486px' }}
