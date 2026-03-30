@@ -316,7 +316,8 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     findLabel(selectedVillage, resolvedVillageOptions),
   ].filter((item): item is string => Boolean(item))
   const hasHierarchySelection = selectionTrail.length > 0
-  const clearButtonHoverStyles = hasHierarchySelection
+  const hasActiveFilters = hasHierarchySelection || Boolean(selectedDuration)
+  const clearButtonHoverStyles = hasActiveFilters
     ? { textDecoration: 'underline', textDecorationColor: 'neutral.300' }
     : { textDecoration: 'none' }
 
@@ -424,7 +425,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
         onTabChange,
       }}
       closedTrailSlot={
-        isBelowLgFilters && hasHierarchySelection ? (
+        isBelowLgFilters && hasActiveFilters ? (
           <Flex w="full" justify="flex-end">
             <Button
               variant="link"
@@ -432,7 +433,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
               whiteSpace="nowrap"
               onClick={onClear}
               minW={0}
-              isDisabled={!hasHierarchySelection}
+              isDisabled={!hasActiveFilters}
               _hover={clearButtonHoverStyles}
             >
               <Text textStyle="h10" fontWeight="600" color="neutral.300" fontSize="14px">
@@ -467,7 +468,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
               whiteSpace="nowrap"
               onClick={onClear}
               minW={0}
-              isDisabled={!hasHierarchySelection}
+              isDisabled={!hasActiveFilters}
               _hover={clearButtonHoverStyles}
             >
               <Text
