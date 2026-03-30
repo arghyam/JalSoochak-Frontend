@@ -42,6 +42,22 @@ export function SchemeSyncPage() {
   const [sortDir, setSortDir] = useState<string>('')
   const debouncedSearch = useDebounce(searchQuery, 400)
 
+  // Reset to page 1 whenever any filter changes.
+  // Comparing during render (not in an effect) avoids a cascading re-render.
+  const [prevFilters, setPrevFilters] = useState({
+    debouncedSearch,
+    workStatusFilter,
+    operatingStatusFilter,
+  })
+  if (
+    prevFilters.debouncedSearch !== debouncedSearch ||
+    prevFilters.workStatusFilter !== workStatusFilter ||
+    prevFilters.operatingStatusFilter !== operatingStatusFilter
+  ) {
+    setPrevFilters({ debouncedSearch, workStatusFilter, operatingStatusFilter })
+    setPage(1)
+  }
+
   useEffect(() => {
     document.title = `${t('schemeSync.title')} | JalSoochak`
   }, [t])
@@ -84,19 +100,16 @@ export function SchemeSyncPage() {
 
   const handleWorkStatusChange = (value: string) => {
     setWorkStatusFilter(value)
-    setPage(1)
   }
 
   const handleOperatingStatusChange = (value: string) => {
     setOperatingStatusFilter(value)
-    setPage(1)
   }
 
   const handleClearFilters = () => {
     setWorkStatusFilter('')
     setOperatingStatusFilter('')
     setSearchQuery('')
-    setPage(1)
   }
 
   const handleSort = (_columnKey: string, direction: SortDirection) => {
@@ -226,7 +239,6 @@ export function SchemeSyncPage() {
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value)
-              setPage(1)
             }}
             aria-label={t('schemeSync.aria.searchSchemes')}
             bg="white"

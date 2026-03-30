@@ -241,13 +241,13 @@ export function ManageStateAdminsPage() {
               <SearchIcon color="neutral.300" aria-hidden="true" />
             </InputLeftElement>
             <Input
-              placeholder={t('common:search')}
+              placeholder={t('manageStateAdmins.searchByAdminName', 'Search by admin name')}
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value)
                 setPage(1)
               }}
-              aria-label={t('manageStateAdmins.searchPlaceholder')}
+              aria-label={t('manageStateAdmins.searchByAdminName', 'Search by admin name')}
               bg="white"
               h={8}
               borderWidth="1px"

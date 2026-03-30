@@ -55,16 +55,20 @@ export function StaffSyncPage() {
     document.title = `${t('staffSync.title')} | JalSoochak`
   }, [t])
 
+  // Short-circuit: if the raw input is already empty, send no name filter immediately
+  // rather than waiting for the debounce to settle on the previous term.
+  const nameParam = searchQuery === '' ? '' : debouncedSearch
+
   const staffParams = useMemo(
     () => ({
       roles: roleFilter ? [roleFilter] : DEFAULT_ROLES,
       ...(statusFilter ? { status: statusFilter } : {}),
-      ...(debouncedSearch ? { name: debouncedSearch } : {}),
+      ...(nameParam ? { name: nameParam } : {}),
       page: page - 1,
       limit: pageSize,
       tenantCode,
     }),
-    [roleFilter, statusFilter, debouncedSearch, page, pageSize, tenantCode]
+    [roleFilter, statusFilter, nameParam, page, pageSize, tenantCode]
   )
 
   const { data, isLoading, isError, refetch } = useStaffListQuery(staffParams)

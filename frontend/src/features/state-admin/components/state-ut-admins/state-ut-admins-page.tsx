@@ -31,6 +31,14 @@ export function StateUTAdminsPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const debouncedSearch = useDebounce(searchQuery, 400)
 
+  // Reset to page 1 whenever the debounced search term changes.
+  // Comparing during render (not in an effect) avoids a cascading re-render.
+  const [prevDebouncedSearch, setPrevDebouncedSearch] = useState(debouncedSearch)
+  if (prevDebouncedSearch !== debouncedSearch) {
+    setPrevDebouncedSearch(debouncedSearch)
+    setPage(1)
+  }
+
   const apiStatus = STATUS_TO_API[statusFilter]
   const { data, isLoading, isError, refetch } = useStateUTAdminsQuery(
     page,
@@ -100,7 +108,6 @@ export function StateUTAdminsPage() {
         searchQuery={searchQuery}
         onSearchChange={(val) => {
           setSearchQuery(val)
-          setPage(1)
         }}
         statusFilter={statusFilter}
         onStatusFilterChange={(val) => {

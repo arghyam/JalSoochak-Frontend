@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -72,17 +71,12 @@ export function UserAdminListPage({
 }: UserAdminListPageProps) {
   const { t } = useTranslation('common')
   const navigate = useNavigate()
-  const [internalSearch, setInternalSearch] = useState('')
-  const [internalStatus, setInternalStatus] = useState<StatusFilter>('all')
 
-  const isServerSearch = typeof onSearchChange === 'function'
-  const isServerStatus = typeof onStatusFilterChange === 'function'
+  const searchQuery = controlledSearch ?? ''
+  const setSearchQuery = onSearchChange ?? (() => {})
 
-  const searchQuery = isServerSearch ? (controlledSearch ?? '') : internalSearch
-  const setSearchQuery = isServerSearch ? onSearchChange! : setInternalSearch
-
-  const statusFilter = isServerStatus ? (controlledStatus ?? 'all') : internalStatus
-  const setStatusFilter = isServerStatus ? onStatusFilterChange! : setInternalStatus
+  const statusFilter = controlledStatus ?? 'all'
+  const setStatusFilter = onStatusFilterChange ?? (() => {})
 
   if (isLoading) {
     return (
@@ -120,25 +114,6 @@ export function UserAdminListPage({
     { value: 'inactive', label: t('status.inactive') },
     { value: 'pending', label: t('status.pending') },
   ]
-
-  const filteredData =
-    isServerSearch && isServerStatus
-      ? data
-      : data.filter((item) => {
-          let matchesSearch = true
-          if (!isServerSearch) {
-            const fullName = `${item.firstName} ${item.lastName}`.toLowerCase()
-            const normalizedPhone = item.phone.replace(/\D/g, '')
-            const normalizedQuery = searchQuery.replace(/\D/g, '')
-            matchesSearch =
-              fullName.includes(searchQuery.toLowerCase()) ||
-              item.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              (normalizedQuery.length > 0 && normalizedPhone.includes(normalizedQuery))
-          }
-          const matchesStatus =
-            isServerStatus || statusFilter === 'all' || item.status === statusFilter
-          return matchesSearch && matchesStatus
-        })
 
   const handleView = (id: string) => {
     navigate(routes.view(id))
@@ -322,7 +297,7 @@ export function UserAdminListPage({
 
       <DataTable<UserAdminData>
         columns={columns}
-        data={filteredData}
+        data={data}
         getRowKey={(row) => row.id}
         emptyMessage={labels.noItemsFound}
         isLoading={false}

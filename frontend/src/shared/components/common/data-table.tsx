@@ -76,6 +76,16 @@ export interface DataTableProps<T> {
    * and the new direction (`'asc'`, `'desc'`, or `null` to clear).
    */
   onSort?: (columnKey: string, direction: SortDirection) => void
+  /**
+   * Controlled active sort column. When provided together with
+   * `sortDirection`, the header display (icon + aria-sort) is driven
+   * by these props instead of internal state.
+   */
+  sortColumn?: string
+  /**
+   * Controlled sort direction. See `sortColumn`.
+   */
+  sortDirection?: SortDirection
 }
 
 export type SortDirection = 'asc' | 'desc' | null
@@ -90,6 +100,8 @@ export function DataTable<T extends object>({
   tableLayout = 'auto',
   tableMinWidth,
   onSort,
+  sortColumn: controlledSortColumn,
+  sortDirection: controlledSortDirection,
 }: DataTableProps<T>) {
   const isFixedLayout = tableLayout === 'fixed'
   const { t } = useTranslation('common')
@@ -348,9 +360,13 @@ export function DataTable<T extends object>({
             <Thead>
               <Tr>
                 {columns.map((column) => {
-                  const isSorted = sortColumn === column.key
+                  const activeSortColumn =
+                    controlledSortColumn !== undefined ? controlledSortColumn : sortColumn
+                  const activeSortDirection =
+                    controlledSortDirection !== undefined ? controlledSortDirection : sortDirection
+                  const isSorted = activeSortColumn === column.key
                   const ariaSortValue = isSorted
-                    ? sortDirection === 'asc'
+                    ? activeSortDirection === 'asc'
                       ? 'ascending'
                       : 'descending'
                     : undefined
@@ -385,7 +401,7 @@ export function DataTable<T extends object>({
                         {column.sortable && (
                           <Box aria-hidden="true">
                             {isSorted ? (
-                              sortDirection === 'asc' ? (
+                              activeSortDirection === 'asc' ? (
                                 <ChevronUpIcon boxSize={4} />
                               ) : (
                                 <ChevronDownIcon boxSize={4} />

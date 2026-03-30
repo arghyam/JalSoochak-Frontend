@@ -34,6 +34,14 @@ export function SchemeMappingsSyncPage() {
   const [sortDir, setSortDir] = useState<string>('')
   const debouncedSearch = useDebounce(searchQuery, 400)
 
+  // Reset to page 1 whenever the debounced search term changes.
+  // Comparing during render (not in an effect) avoids a cascading re-render.
+  const [prevDebouncedSearch, setPrevDebouncedSearch] = useState(debouncedSearch)
+  if (prevDebouncedSearch !== debouncedSearch) {
+    setPrevDebouncedSearch(debouncedSearch)
+    setPage(1)
+  }
+
   useEffect(() => {
     document.title = `${t('schemeMappingsSync.title')} | JalSoochak`
   }, [t])
@@ -55,7 +63,6 @@ export function SchemeMappingsSyncPage() {
 
   const handleClearFilters = () => {
     setSearchQuery('')
-    setPage(1)
   }
 
   const handleSort = (_columnKey: string, direction: SortDirection) => {
@@ -173,7 +180,6 @@ export function SchemeMappingsSyncPage() {
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value)
-                setPage(1)
               }}
               aria-label={t('schemeMappingsSync.aria.searchMappings')}
               bg="white"
