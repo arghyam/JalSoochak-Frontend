@@ -729,7 +729,7 @@ export function VillageDashboardScreen({
           px="16px"
           pt="24px"
           pb="24px"
-          h="523px"
+          h="492px"
           minW={0}
         >
           <Text textStyle="bodyText3" fontWeight="400" mb={2}>
@@ -759,7 +759,7 @@ export function VillageDashboardScreen({
           px="16px"
           pt="24px"
           pb="24px"
-          h="523px"
+          h="492px"
           minW={0}
         >
           <Text textStyle="bodyText3" fontWeight="400" mb={2}>
@@ -797,7 +797,7 @@ export function VillageDashboardScreen({
           pb="24px"
           pl="16px"
           pr="16px"
-          h="523px"
+          h="492px"
           w="full"
           minW={0}
         >
@@ -811,7 +811,7 @@ export function VillageDashboardScreen({
         <ReadingSubmissionStatusCard
           data={data.readingSubmissionStatus}
           chartHeight="406px"
-          cardHeight="523px"
+          cardHeight="492px"
           boxProps={{ w: 'full' }}
         />
       </Grid>
