@@ -3,13 +3,6 @@ export interface StatItem {
   subtitle: string
 }
 
-export interface StatsCard {
-  id: string
-  title: string
-  value: string | number
-  subtitle?: string
-}
-
 export interface OverviewData {
   stats: {
     activeSchemes: StatItem

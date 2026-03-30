@@ -426,8 +426,20 @@
         "editAriaLabel": "कारण {{name}} संपादित करें",
         "deleteAriaLabel": "कारण {{name}} हटाएं"
       },
+      "supplyOutageReasons": {
+        "title": "आपूर्ति बाधा कारण",
+        "placeholder": "कारण दर्ज करें",
+        "addNewButton": "+ नया कारण जोड़ें",
+        "editAriaLabel": "कारण {{name}} संपादित करें",
+        "deleteAriaLabel": "कारण {{name}} हटाएं"
+      },
       "locationCheckRequired": {
         "title": "स्थान रिकॉर्ड करें",
+        "yes": "हाँ",
+        "no": "नहीं"
+      },
+      "displayDepartmentMaps": {
+        "title": "विभागीय मानचित्र प्रदर्शित करें",
         "yes": "हाँ",
         "no": "नहीं"
       },
@@ -436,6 +448,20 @@
       },
       "pumpOperatorReminderNudgeTime": {
         "title": "पंप ऑपरेटर रिमाइंडर नज समय"
+      },
+      "dateFormatScreen": {
+        "title": "स्क्रीन दिनांक प्रारूप"
+      },
+      "dateFormatTable": {
+        "title": "तालिका दिनांक प्रारूप"
+      },
+      "dateFormat": {
+        "dateFormat": "दिनांक प्रारूप",
+        "timeFormat": "समय प्रारूप",
+        "timezone": "समय क्षेत्र",
+        "datePlaceholder": "दिनांक प्रारूप चुनें",
+        "timePlaceholder": "समय प्रारूप चुनें",
+        "timezonePlaceholder": "समय क्षेत्र चुनें"
       },
       "averageMembersPerHousehold": {
         "title": "प्रति परिवार औसत सदस्य"

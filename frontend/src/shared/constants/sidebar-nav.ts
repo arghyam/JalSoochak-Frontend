@@ -36,20 +36,6 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
       },
     ],
   },
-  // {
-  //   type: 'simple',
-  //   path: ROUTES.SUPER_ADMIN_API_CREDENTIALS,
-  //   labelKey: 'sidebar.apiCredentials',
-  //   roles: [AUTH_ROLES.SUPER_ADMIN],
-  //   icon: 'BiKey',
-  // },
-  // {
-  //   type: 'simple',
-  //   path: ROUTES.SUPER_ADMIN_INGESTION_MONITOR,
-  //   labelKey: 'sidebar.ingestionMonitor',
-  //   roles: [AUTH_ROLES.SUPER_ADMIN],
-  //   icon: 'AiOutlineApi',
-  // },
   // State Admin
   {
     type: 'simple',
@@ -144,11 +130,4 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
     roles: [AUTH_ROLES.STATE_ADMIN],
     icon: 'BsPeople',
   },
-  // {
-  //   type: 'simple',
-  //   path: ROUTES.STATE_ADMIN_ACTIVITY,
-  //   labelKey: 'sidebar.activity',
-  //   roles: [AUTH_ROLES.STATE_ADMIN],
-  //   icon: 'BsListUl',
-  // },
 ]
