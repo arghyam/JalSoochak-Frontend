@@ -453,7 +453,11 @@ export function MetricPerformanceChart({
 
   const legendItems = showAreaLine
     ? [
-        { label: areaSeriesName, color: '#6BB7F0' },
+        {
+          label: areaSeriesName,
+          color: theme.colors?.primary?.[25] ?? 'primary.25',
+          borderColor: theme.colors?.primary?.[500] ?? 'primary.500',
+        },
         { label: barSeriesName, color: '#3291D1' },
       ]
     : [{ label: barSeriesName, color: '#3291D1' }]
@@ -547,6 +551,8 @@ export function MetricPerformanceChart({
                 height: '6px',
                 borderRadius: '2px',
                 backgroundColor: item.color,
+                border: item.borderColor ? `1px solid ${item.borderColor}` : 'none',
+                boxSizing: 'border-box',
                 display: 'inline-block',
               }}
             />
