@@ -1,87 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { superAdminApi, type SaveSystemRulesPayload } from '../api/super-admin-api'
-import { mapApiUserToUserAdminData } from '../api/super-admin-api'
+import { superAdminApi, mapApiUserToUserAdminData } from '../api/super-admin-api'
 import { superAdminQueryKeys } from './super-admin-query-keys'
 import type { TenantStatus } from '../../types/states-uts'
 import type { SaveSystemConfigPayload } from '../../types/system-config'
-import type { ApiCredentialsData } from '../../types/api-credentials'
 import type { InviteUserRequest, UpdateUserRequest, ApiUser } from '../../types/super-users'
 import type { StateAdmin } from '../../types/state-admins'
-
-// ── Overview & System Rules ──────────────────────────────────────────────────
-
-export function useSuperAdminOverviewQuery() {
-  return useQuery({
-    queryKey: superAdminQueryKeys.overview(),
-    queryFn: superAdminApi.getOverviewData,
-  })
-}
 
 export function useTenantsSummaryQuery() {
   return useQuery({
     queryKey: superAdminQueryKeys.tenantsSummary(),
     queryFn: superAdminApi.getTenantsSummary,
-  })
-}
-
-export function useSystemRulesConfigurationQuery() {
-  return useQuery({
-    queryKey: superAdminQueryKeys.systemRulesConfiguration(),
-    queryFn: superAdminApi.getSystemRulesConfiguration,
-  })
-}
-
-export function useSaveSystemRulesConfigurationMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (payload: SaveSystemRulesPayload) =>
-      superAdminApi.saveSystemRulesConfiguration(payload),
-    onSuccess: (data) => {
-      queryClient.setQueryData(superAdminQueryKeys.systemRulesConfiguration(), data)
-    },
-  })
-}
-
-// ── Ingestion Monitor & API Credentials ─────────────────────────────────────
-
-export function useIngestionMonitorQuery(stateFilter: string, timeFilter: string) {
-  return useQuery({
-    queryKey: superAdminQueryKeys.ingestionMonitor(stateFilter, timeFilter),
-    queryFn: () => superAdminApi.getIngestionMonitorData({ stateFilter, timeFilter }),
-  })
-}
-
-export function useApiCredentialsQuery() {
-  return useQuery({
-    queryKey: superAdminQueryKeys.apiCredentials(),
-    queryFn: superAdminApi.getApiCredentialsData,
-  })
-}
-
-export function useGenerateApiKeyMutation() {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: (stateId: string) => superAdminApi.generateApiKey(stateId),
-    onSuccess: (newApiKey, stateId) => {
-      queryClient.setQueryData(
-        superAdminQueryKeys.apiCredentials(),
-        (previous: ApiCredentialsData | undefined) => {
-          if (!previous) return previous
-          return {
-            ...previous,
-            credentials: previous.credentials.map((credential) =>
-              credential.id === stateId ? { ...credential, apiKey: newApiKey } : credential
-            ),
-          }
-        }
-      )
-    },
-  })
-}
-
-export function useSendApiKeyMutation() {
-  return useMutation({
-    mutationFn: (stateId: string) => superAdminApi.sendApiKey(stateId),
   })
 }
 
