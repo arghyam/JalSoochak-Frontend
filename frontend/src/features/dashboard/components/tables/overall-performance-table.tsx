@@ -204,14 +204,22 @@ export function OverallPerformanceTable({
                 },
               }}
             >
-              {rows.map((state) => (
-                <Tr key={state.id} _odd={{ bg: 'primary.25' }}>
-                  <Td>{state.name}</Td>
-                  <Td>{state.coverage.toFixed(0)}%</Td>
-                  <Td>{state.quantity}</Td>
-                  <Td>{state.regularity.toFixed(0)}%</Td>
+              {rows.length > 0 ? (
+                rows.map((state) => (
+                  <Tr key={state.id} _odd={{ bg: 'primary.25' }}>
+                    <Td>{state.name}</Td>
+                    <Td>{state.coverage.toFixed(0)}</Td>
+                    <Td>{state.quantity}</Td>
+                    <Td>{state.regularity.toFixed(0)}%</Td>
+                  </Tr>
+                ))
+              ) : (
+                <Tr>
+                  <Td colSpan={4} textAlign="center" color="neutral.500">
+                    {t('overallPerformance.noData', { defaultValue: 'No data' })}
+                  </Td>
                 </Tr>
-              ))}
+              )}
             </Tbody>
           </Table>
         </Box>

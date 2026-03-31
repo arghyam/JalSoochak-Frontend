@@ -1,9 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Box, Text, Button, Flex, HStack, Heading, SimpleGrid, Spinner } from '@chakra-ui/react'
 import { EditIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer } from '@/shared/components/common'
+import { ToastContainer, EditableBreadcrumb } from '@/shared/components/common'
+import {
+  validateDescriptiveField,
+  hasDuplicates,
+  exceedsMaxLength,
+} from '@/shared/utils/validation'
+
+const MAX_LEVEL_NAME_LENGTH = 50
 import {
   useLgdHierarchyQuery,
   useDepartmentHierarchyQuery,
@@ -26,6 +33,7 @@ export function HierarchyPage() {
   const toast = useToast()
   const [isEditing, setIsEditing] = useState(false)
   const [draft, setDraft] = useState<HierarchyDraft | null>(null)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   const { data: lgdData, isLoading: lgdLoading, isError: lgdError } = useLgdHierarchyQuery()
   const {
@@ -64,20 +72,63 @@ export function HierarchyPage() {
     setIsEditing(true)
   }
 
+  const clearError = (field: string) => {
+    setErrors((prev) => {
+      if (!prev[field]) return prev
+      const next = { ...prev }
+      delete next[field]
+      return next
+    })
+  }
+
   const handleCancel = () => {
     setDraft(null)
     setIsEditing(false)
+    setErrors({})
+  }
+
+  const validateHierarchy = (
+    levels: HierarchyLevel[],
+    sectionId: string,
+    newErrors: Record<string, string>
+  ) => {
+    levels.forEach((level, index) => {
+      const error = validateDescriptiveField(level.name)
+      if (error) {
+        newErrors[`${sectionId}.${index}`] = t(`state-admin:validation.${error}`)
+      } else if (exceedsMaxLength(level.name, MAX_LEVEL_NAME_LENGTH)) {
+        newErrors[`${sectionId}.${index}`] = t('state-admin:validation.maxLength', {
+          max: MAX_LEVEL_NAME_LENGTH,
+        })
+      }
+    })
+    const names = levels.map((l) => l.name).filter((n) => n.trim().length > 0)
+    if (hasDuplicates(names)) {
+      // Mark the last duplicate
+      const seen = new Set<string>()
+      levels.forEach((level, index) => {
+        const normalized = level.name.trim().toLowerCase()
+        if (!normalized) return
+        if (seen.has(normalized) && !newErrors[`${sectionId}.${index}`]) {
+          newErrors[`${sectionId}.${index}`] = t('state-admin:validation.duplicateLevelName')
+        }
+        seen.add(normalized)
+      })
+    }
   }
 
   const handleSave = async () => {
     if (!draft) return
 
-    const emptyLgd = draft.lgd.some((l) => !l.name.trim())
-    const emptyDept = draft.department.some((l) => !l.name.trim())
-    if (emptyLgd || emptyDept) {
-      toast.addToast(t('hierarchy.messages.emptyLevelName'), 'error')
+    const newErrors: Record<string, string> = {}
+    validateHierarchy(draft.lgd, 'lgd', newErrors)
+    validateHierarchy(draft.department, 'dept', newErrors)
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
       return
     }
+    setErrors({})
 
     const [lgdResult, deptResult] = await Promise.allSettled([
       saveLgdMutation.mutateAsync(draft.lgd),
@@ -105,6 +156,19 @@ export function HierarchyPage() {
   }
 
   const isSaving = saveLgdMutation.isPending || saveDeptMutation.isPending
+
+  const hasChanges = useMemo(() => {
+    if (!draft) return false
+    const compareNumeric = (a: { level: number | string }, b: { level: number | string }) =>
+      Number(a.level) - Number(b.level)
+    const lgdChanged =
+      JSON.stringify([...draft.lgd].sort(compareNumeric)) !==
+      JSON.stringify([...(lgdData?.levels ?? DEFAULT_LGD_HIERARCHY)].sort(compareNumeric))
+    const deptChanged =
+      JSON.stringify([...draft.department].sort(compareNumeric)) !==
+      JSON.stringify([...(deptData?.levels ?? DEFAULT_DEPARTMENT_HIERARCHY)].sort(compareNumeric))
+    return lgdChanged || deptChanged
+  }, [draft, lgdData, deptData])
 
   if (isLoading) {
     return (
@@ -139,9 +203,15 @@ export function HierarchyPage() {
   return (
     <Box w="full">
       <Box mb={5}>
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={isEditing ? 2 : 0}>
           {t('hierarchy.pageTitle')}
         </Heading>
+        <EditableBreadcrumb
+          isEditing={isEditing}
+          onCancel={handleCancel}
+          viewLabel={t('hierarchy.breadcrumb.view')}
+          editLabel={t('hierarchy.breadcrumb.edit')}
+        />
       </Box>
 
       <Box
@@ -207,6 +277,8 @@ export function HierarchyPage() {
                   title={t('hierarchy.lgdTitle')}
                   levels={activeLgd}
                   structuralChangesAllowed={lgdStructural}
+                  errors={errors}
+                  onClearError={clearError}
                   onChange={(levels) =>
                     setDraft((prev) => ({
                       ...(prev ?? { lgd: activeLgd, department: activeDept }),
@@ -219,6 +291,8 @@ export function HierarchyPage() {
                   title={t('hierarchy.departmentTitle')}
                   levels={activeDept}
                   structuralChangesAllowed={deptStructural}
+                  errors={errors}
+                  onClearError={clearError}
                   onChange={(levels) =>
                     setDraft((prev) => ({
                       ...(prev ?? { lgd: activeLgd, department: activeDept }),
@@ -250,6 +324,7 @@ export function HierarchyPage() {
                   width={{ base: 'full', sm: '174px' }}
                   onClick={handleSave}
                   isLoading={isSaving}
+                  isDisabled={!hasChanges || isSaving}
                 >
                   {t('common:button.saveChanges')}
                 </Button>

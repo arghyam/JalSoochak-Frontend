@@ -13,7 +13,17 @@ jest.mock('../../services/query/use-state-admin-queries', () => ({
     mutateAsync: mockMutateAsync,
     isPending: false,
   }),
+  useLogoQuery: () => ({ data: undefined, isLoading: false, isError: false }),
+  useUpdateLogoMutation: () => ({
+    mutateAsync: jest.fn(),
+    isPending: false,
+  }),
 }))
+
+const defaultSupplyOutageReasons = [
+  { id: 'PUMP_FAILURE', name: 'Pump Failure', isDefault: true, editable: true },
+  { id: 'OTHERS', name: 'Others', isDefault: true, editable: false },
+]
 
 const configuredConfig = {
   id: '1',
@@ -23,8 +33,13 @@ const configuredConfig = {
     { id: 'r1', name: 'Meter Replaced' },
     { id: 'r2', name: 'Meter Not Working' },
   ],
+  supplyOutageReasons: defaultSupplyOutageReasons,
   locationCheckRequired: true,
+  displayDepartmentMaps: false,
   dataConsolidationTime: '08:00',
+  pumpOperatorReminderNudgeTime: '09:00',
+  dateFormatScreen: { dateFormat: null, timeFormat: null, timezone: null },
+  dateFormatTable: { dateFormat: null, timeFormat: null, timezone: null },
   averageMembersPerHousehold: 4.5,
   isConfigured: true,
 }
@@ -38,8 +53,13 @@ const unconfiguredConfig = {
     { id: 'r2', name: 'Meter Not Working' },
     { id: 'r3', name: 'Meter Damaged' },
   ],
+  supplyOutageReasons: defaultSupplyOutageReasons,
   locationCheckRequired: false,
+  displayDepartmentMaps: false,
   dataConsolidationTime: '',
+  pumpOperatorReminderNudgeTime: '',
+  dateFormatScreen: { dateFormat: null, timeFormat: null, timezone: null },
+  dateFormatTable: { dateFormat: null, timeFormat: null, timezone: null },
   averageMembersPerHousehold: 0,
   isConfigured: false,
 }
@@ -218,6 +238,116 @@ describe('ConfigurationPage', () => {
     fireEvent.change(fileInput, { target: { files: [validFile] } })
 
     expect(screen.getByRole('img', { name: /current logo/i })).toBeTruthy()
+  })
+
+  it('shows inline error for no channels selected on save', async () => {
+    mockUseConfigurationQuery.mockReturnValue({
+      data: unconfiguredConfig,
+      isLoading: false,
+      isError: false,
+    })
+    renderWithProviders(<ConfigurationPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/select at least one option/i)).toBeTruthy()
+    })
+    expect(mockMutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('shows inline error for empty meter change reason on save', async () => {
+    mockUseConfigurationQuery.mockReturnValue({
+      data: unconfiguredConfig,
+      isLoading: false,
+      isError: false,
+    })
+    renderWithProviders(<ConfigurationPage />)
+
+    // Add a new empty reason
+    fireEvent.click(screen.getByRole('button', { name: /add new reason/i }))
+
+    // Select a channel so that validation passes for channels
+    fireEvent.click(screen.getByText('IOT'))
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/cannot be empty/i)).toBeTruthy()
+    })
+    expect(mockMutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('shows inline error for special characters in meter change reason', async () => {
+    mockUseConfigurationQuery.mockReturnValue({
+      data: unconfiguredConfig,
+      isLoading: false,
+      isError: false,
+    })
+    renderWithProviders(<ConfigurationPage />)
+
+    const inputs = screen.getAllByPlaceholderText(/enter reason/i)
+    fireEvent.change(inputs[0], { target: { value: 'Reason@#$' } })
+
+    fireEvent.click(screen.getByText('IOT'))
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/Only letters, numbers, and spaces/i)).toBeTruthy()
+    })
+    expect(mockMutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('shows inline error for missing time fields on save', async () => {
+    mockUseConfigurationQuery.mockReturnValue({
+      data: unconfiguredConfig,
+      isLoading: false,
+      isError: false,
+    })
+    renderWithProviders(<ConfigurationPage />)
+
+    // Select a channel
+    fireEvent.click(screen.getByText('IOT'))
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+    await waitFor(() => {
+      expect(screen.getAllByText(/please select a time/i).length).toBeGreaterThanOrEqual(1)
+    })
+    expect(mockMutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('shows inline error for average members <= 0 on save', async () => {
+    mockUseConfigurationQuery.mockReturnValue({
+      data: unconfiguredConfig,
+      isLoading: false,
+      isError: false,
+    })
+    renderWithProviders(<ConfigurationPage />)
+
+    fireEvent.click(screen.getByText('IOT'))
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/must be greater than 0/i)).toBeTruthy()
+    })
+    expect(mockMutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('clears inline error on field change', async () => {
+    mockUseConfigurationQuery.mockReturnValue({
+      data: unconfiguredConfig,
+      isLoading: false,
+      isError: false,
+    })
+    renderWithProviders(<ConfigurationPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/select at least one option/i)).toBeTruthy()
+    })
+
+    fireEvent.click(screen.getByText('IOT'))
+    expect(screen.queryByText(/select at least one option/i)).toBeNull()
   })
 
   it('shows Save button for unconfigured and Save Changes for reconfiguring', () => {

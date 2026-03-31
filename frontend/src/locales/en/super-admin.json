@@ -79,7 +79,16 @@
     "statusSection": {
       "title": "Status",
       "activated": "Activated",
-      "stateUtStatus": "State/UT Status"
+      "stateUtStatus": "State/UT Status",
+      "statuses": {
+        "INACTIVE": "Inactive",
+        "ONBOARDED": "Onboarded",
+        "CONFIGURED": "Configured",
+        "ACTIVE": "Active",
+        "SUSPENDED": "Suspended",
+        "DEGRADED": "Degraded",
+        "ARCHIVED": "Archived"
+      }
     },
     "buttons": {
       "addAndSendLink": "Add State & Send Link via Email",
@@ -99,7 +108,11 @@
       "failedToLoadStateOptions": "Failed to load state/UT options. Please refresh and try again.",
       "activatedSuccess": "State/UT activated successfully",
       "deactivatedSuccess": "State/UT deactivated successfully",
-      "failedToUpdateStatus": "Failed to update status"
+      "failedToUpdateStatus": "Failed to update status",
+      "statusUpdatedSuccess": "Status updated successfully"
+    },
+    "filters": {
+      "allStatuses": "All Statuses"
     },
     "aria": {
       "viewStateUt": "View State/UT",
@@ -207,6 +220,10 @@
   "configuration": {
     "pageTitle": "Configuration",
     "sectionTitle": "System Configuration",
+    "breadcrumb": {
+      "view": "View Configuration",
+      "edit": "Edit Configuration"
+    },
     "sections": {
       "supportedChannels": {
         "title": "Supported Channels"

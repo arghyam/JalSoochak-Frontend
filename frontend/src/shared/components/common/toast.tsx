@@ -42,7 +42,8 @@ export function Toast({ id, message, type, onClose, duration = 3000 }: ToastProp
     <Flex
       align="center"
       gap="8px"
-      w="200px"
+      // w="200px"
+      maxW="500px"
       h="36px"
       bg={styles.bg}
       color={styles.color}

@@ -1,5 +1,8 @@
 {
-  "headerTitle": "जलसूचक डैशबोर्ड",
+  "header": {
+    "title": "जलसूचक",
+    "subtitle": "जल आपूर्ति योजनाओं की परिचालन स्थिति"
+  },
   "searchLayout": {
     "placeholder": "राज्य/केंद्रशासित प्रदेश, जिला, ब्लॉक, ग्राम पंचायत, गांव द्वारा खोजें",
     "downloadReport": "रिपोर्ट डाउनलोड करें",
@@ -79,6 +82,7 @@
   },
   "overallPerformance": {
     "title": "समग्र प्रदर्शन",
+    "noData": "डेटा नहीं",
     "columns": {
       "entity": "राज्य/केंद्रशासित प्रदेश",
       "quantityMld": "मात्रा (MLD)",
@@ -152,7 +156,7 @@
       "valveIssue": "वाल्व समस्या",
       "sourceDrying": "स्रोत सूखना",
       "complaintSubmission": "शिकायत सबमिशन",
-      "automatedSubmission": "स्वचालित सबमिशन"
+      "automatedSubmission": "विसंगतिपूर्ण सबमिशन"
     },
     "tables": {
       "readingCompliance": {
@@ -166,7 +170,7 @@
     }
   },
   "pumpOperators": {
-    "title": "पंप ऑपरेटर्स",
+    "title": "योजनाएं",
     "totalLabel": "कुल",
     "note": "नोट: सक्रिय पंप ऑपरेटर्स महीने में कम से कम 30 दिन रीडिंग सबमिट करते हैं।",
     "details": {
@@ -185,11 +189,11 @@
       }
     },
     "legend": {
-      "active": "सक्रिय पंप ऑपरेटर्स",
-      "inactive": "गैर-सक्रिय पंप ऑपरेटर्स"
+      "active": "सक्रिय योजनाएं",
+      "inactive": "गैर-सक्रिय योजनाएं"
     },
     "performanceTable": {
-      "title": "पंप ऑपरेटर्स प्रदर्शन",
+      "title": "योजना प्रदर्शन",
       "columns": {
         "name": "नाम",
         "village": "गांव",

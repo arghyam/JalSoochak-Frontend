@@ -1,21 +1,13 @@
 import { apiClient } from '@/shared/lib/axios'
 import { isAxiosError } from 'axios'
-import {
-  generateApiKey,
-  getMockApiCredentialsData,
-  getMockIngestionMonitorData,
-  getMockSuperAdminOverviewData,
-  getMockSystemRulesConfiguration,
-  saveMockSystemRulesConfiguration,
-  sendApiKey,
-} from '../mock-data'
-import type { ApiCredentialsData } from '../../types/api-credentials'
-import type { IngestionMonitorData } from '../../types/ingestion-monitor'
-import type { SuperAdminOverviewData, SuperAdminStats } from '../../types/overview'
-import type { SystemRulesConfiguration } from '../../types/system-rules'
+import type { SuperAdminStats } from '../../types/overview'
 import type { SystemConfiguration, SaveSystemConfigPayload } from '../../types/system-config'
-import type { StateAdmin } from '../../types/state-admins'
-import type { Tenant, TenantApiResponse, TenantsListApiResponse } from '../../types/states-uts'
+import type {
+  Tenant,
+  TenantApiResponse,
+  TenantStatus,
+  TenantsListApiResponse,
+} from '../../types/states-uts'
 import { mapTenantApiToTenant as mapTenant } from '../../types/states-uts'
 import type {
   ApiUser,
@@ -31,12 +23,6 @@ import {
 } from '../../types/system-config'
 
 export { mapApiUserToUserAdminData } from '../../types/super-users'
-
-export type SaveSystemRulesPayload = Omit<SystemRulesConfiguration, 'id'>
-export type IngestionMonitorFilters = {
-  stateFilter?: string
-  timeFilter?: string
-}
 
 const SYSTEM_CONFIG_KEYS = [
   'SYSTEM_SUPPORTED_CHANNELS',
@@ -56,25 +42,6 @@ interface ApiResponse<T> {
 // ── superAdminApi ─────────────────────────────────────────────────────────────
 
 export const superAdminApi = {
-  // ── Mock (not yet migrated) ─────────────────────────────────────────────────
-  getOverviewData: (): Promise<SuperAdminOverviewData> => getMockSuperAdminOverviewData(),
-
-  getSystemRulesConfiguration: (): Promise<SystemRulesConfiguration> =>
-    getMockSystemRulesConfiguration(),
-
-  saveSystemRulesConfiguration: (
-    payload: SaveSystemRulesPayload
-  ): Promise<SystemRulesConfiguration> => saveMockSystemRulesConfiguration(payload),
-
-  getIngestionMonitorData: (_filters?: IngestionMonitorFilters): Promise<IngestionMonitorData> =>
-    getMockIngestionMonitorData(),
-
-  getApiCredentialsData: (): Promise<ApiCredentialsData> => getMockApiCredentialsData(),
-
-  generateApiKey: (stateId: string): Promise<string> => generateApiKey(stateId),
-
-  sendApiKey: (stateId: string): Promise<{ success: boolean }> => sendApiKey(stateId),
-
   // ── Real HTTP: System Configuration ────────────────────────────────────────
   getSystemConfiguration: async (): Promise<SystemConfiguration> => {
     const response = await apiClient.get<{ data: { configs: Record<string, unknown> } }>(
@@ -117,6 +84,25 @@ export const superAdminApi = {
   },
 
   // ── Real HTTP: Tenants (States/UTs) ────────────────────────────────────────
+  /** Single-page fetch used by the list page (user-controlled page + size). */
+  getStatesUTsPage: async (params: {
+    page: number
+    size: number
+    search?: string
+    status?: string
+  }): Promise<{ items: Tenant[]; total: number }> => {
+    const { search, status, ...rest } = params
+    const query: Record<string, unknown> = { ...rest }
+    if (search) query.search = search
+    if (status) query.status = status
+    const response = await apiClient.get<ApiResponse<TenantsListApiResponse>>('/api/v1/tenants', {
+      params: query,
+    })
+    const data = response.data.data
+    return { items: data.content.map(mapTenant), total: data.totalElements }
+  },
+
+  /** All-pages fetch used by view/edit pages that need to find a tenant by stateCode in memory. */
   getStatesUTsData: async (): Promise<Tenant[]> => {
     const pageSize = 100
     const firstResponse = await apiClient.get<ApiResponse<TenantsListApiResponse>>(
@@ -148,11 +134,11 @@ export const superAdminApi = {
     return mapTenant(response.data.data)
   },
 
-  updateTenantStatus: async (id: number, status: 'ACTIVE' | 'INACTIVE'): Promise<void> => {
+  updateTenantStatus: async (id: number, status: TenantStatus): Promise<void> => {
     if (status === 'INACTIVE') {
       await apiClient.put(`/api/v1/tenants/${id}/deactivate`)
     } else {
-      await apiClient.put(`/api/v1/tenants/${id}`, { status: 'ACTIVE' })
+      await apiClient.put(`/api/v1/tenants/${id}`, { status })
     }
   },
 
@@ -166,36 +152,37 @@ export const superAdminApi = {
   },
 
   /** Kept for ManageStateAdminsPage which fetches all state admins (no tenantCode). */
-  getStateAdminsData: async (): Promise<StateAdmin[]> => {
+  getStateAdminsData: async (params: {
+    page: number
+    size: number
+    name?: string
+    status?: string
+  }): Promise<ApiUsersListResponse> => {
+    const { name, status, ...rest } = params
+    const query: Record<string, unknown> = { ...rest }
+    if (name) query.name = name
+    if (status) query.status = status
     const response = await apiClient.get<ApiResponse<ApiUsersListResponse>>(
-      '/api/v1/users/state-admins'
+      '/api/v1/users/state-admins',
+      { params: query }
     )
-    return response.data.data.content.map((u: ApiUser) => {
-      let signupStatus: StateAdmin['signupStatus']
-      if (u.status === 'ACTIVE') {
-        signupStatus = 'completed'
-      } else if (u.status === 'INACTIVE') {
-        signupStatus = 'inactive'
-      } else {
-        signupStatus = 'pending'
-      }
-      return {
-        id: String(u.id),
-        adminName: `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim(),
-        stateUt: u.tenantCode ?? '',
-        mobileNumber: u.phoneNumber,
-        emailAddress: u.email,
-        signupStatus,
-      }
-    })
+    return response.data.data
   },
 
   // ── Real HTTP: Users (super users + generic update/status) ─────────────────
-  getSuperUsers: async (): Promise<UserAdminData[]> => {
+  getSuperUsers: async (params: {
+    page: number
+    size: number
+    status?: string
+  }): Promise<ApiUsersListResponse> => {
+    const { status, ...rest } = params
+    const query: Record<string, unknown> = { ...rest }
+    if (status) query.status = status
     const response = await apiClient.get<ApiResponse<ApiUsersListResponse>>(
-      '/api/v1/users/super-users'
+      '/api/v1/users/super-users',
+      { params: query }
     )
-    return response.data.data.content.map(mapApiUserToUserAdminData)
+    return response.data.data
   },
 
   getSuperUserById: async (id: string): Promise<UserAdminData | null> => {

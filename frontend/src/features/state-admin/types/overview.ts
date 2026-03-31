@@ -3,18 +3,16 @@ export interface StatItem {
   subtitle: string
 }
 
-export interface StatsCard {
-  id: string
-  title: string
-  value: string | number
-  subtitle?: string
-}
-
 export interface OverviewData {
   stats: {
-    configurationStatus: StatItem
-    activeStaff: StatItem
     activeSchemes: StatItem
-    activeIntegrations: StatItem
   }
+}
+
+export interface StaffCountsData {
+  totalStaff: number
+  pumpOperators: number
+  sectionOfficers: number
+  subDivisionOfficers: number
+  totalAdmins: number
 }

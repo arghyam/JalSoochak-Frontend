@@ -11,7 +11,12 @@ import { useLocationChildrenQuery } from '../../services/query/use-location-chil
 import { useLocationHierarchyQuery } from '../../services/query/use-location-hierarchy-query'
 import { locationSearchQueryKeys } from '../../services/query/location-search-query-keys'
 import { computeTrailIndices } from '../../utils/trail-index'
-import { slugify, toCapitalizedWords } from '../../utils/format-location-label'
+import {
+  sanitizeLocationLabel,
+  slugify,
+  toCapitalizedWords,
+} from '../../utils/format-location-label'
+import { toStableLocationValue } from '../../utils/stable-location-value'
 import type { HierarchyType } from '../../services/api/dashboard-api'
 import type { TenantChildLocation } from '../../services/api/dashboard-api'
 
@@ -58,11 +63,11 @@ type DashboardFiltersProps = {
   onActiveTrailChange?: (trailIndex: number | null) => void
 }
 
-type LocationOption = SearchableSelectOption & { locationId?: number }
+type LocationOption = SearchableSelectOption & {
+  locationId?: number
+  analyticsId?: number
+}
 const LOCATION_VALUE_SEPARATOR = ':'
-
-const toStableLocationValue = (locationId: number, label: string): string =>
-  `${locationId}${LOCATION_VALUE_SEPARATOR}${slugify(label)}`
 
 const parseLocationId = (value: string): number | undefined => {
   if (!value) {
@@ -97,17 +102,30 @@ const mapLocationOptions = (locations: TenantChildLocation[] | undefined): Locat
     return []
   }
 
-  return locations
-    .filter((location) => typeof location.id === 'number' && Boolean(location.title?.trim()))
-    .map((location) => {
-      const locationId = location.id as number
-      const normalizedTitle = toCapitalizedWords(location.title?.trim() ?? '')
-      return {
-        value: toStableLocationValue(locationId, normalizedTitle),
-        label: normalizedTitle,
-        locationId,
-      }
-    })
+  return locations.flatMap((location) => {
+    if (typeof location.id !== 'number') {
+      return []
+    }
+
+    const sanitizedTitle = sanitizeLocationLabel(location.title ?? '')
+    const normalizedTitle = toCapitalizedWords(sanitizedTitle)
+    if (!normalizedTitle) {
+      return []
+    }
+    const slug = slugify(normalizedTitle)
+
+    const locationId = location.id
+    const analyticsId =
+      typeof location.lgdCode === 'number' && Number.isFinite(location.lgdCode)
+        ? location.lgdCode
+        : locationId
+    return {
+      value: toStableLocationValue(locationId, analyticsId, slug),
+      label: normalizedTitle,
+      locationId,
+      analyticsId,
+    }
+  })
 }
 
 export function DashboardFilters(props: DashboardFiltersProps) {

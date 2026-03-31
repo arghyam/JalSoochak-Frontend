@@ -13,6 +13,7 @@
   "button": {
     "save": "Save",
     "saveChanges": "Save Changes",
+    "saveAndNext": "Save & Next",
     "cancel": "Cancel",
     "edit": "Edit",
     "delete": "Delete",
@@ -64,7 +65,10 @@
     "templates": "Templates",
     "apiIngestion": "API Ingestion",
     "operatorSync": "Operator Sync",
+    "dataSync": "Data Sync",
     "staffSync": "Staff Sync",
+    "schemeSync": "Scheme Sync",
+    "schemeMappingsSync": "Scheme Mappings Sync",
     "configuration": "Configuration",
     "hierarchy": "Hierarchy",
     "activity": "Activity",
@@ -83,7 +87,11 @@
   "validation": {
     "required": "This field is required",
     "invalidEmail": "Please enter a valid email address",
-    "invalidPhone": "Please enter a valid phone number"
+    "invalidPhone": "Please enter a valid 10-digit phone number",
+    "alphabeticOnly": "Only letters and spaces are allowed",
+    "maxLength": "Must not exceed {{max}} characters",
+    "maxValue": "Value must not exceed {{max}}",
+    "passwordComplexity": "Password must be at least 8 characters and include at least one uppercase letter, one lowercase letter, one number, and one special character"
   },
 
   "time": {
@@ -102,6 +110,14 @@
   "searchableSelect": {
     "search": "Search",
     "noResults": "No results found"
+  },
+
+  "upload": {
+    "validationSummary_one": "{{count}} validation error found — fix and re-upload",
+    "validationSummary_other": "{{count}} validation errors found — fix and re-upload",
+    "columnRow": "Row",
+    "columnField": "Field",
+    "columnError": "Error"
   },
 
   "profile": {

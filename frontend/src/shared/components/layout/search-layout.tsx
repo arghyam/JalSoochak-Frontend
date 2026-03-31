@@ -22,6 +22,17 @@ import { CloseIcon, SearchIcon } from '@chakra-ui/icons'
 import { FiChevronDown, FiDownload } from 'react-icons/fi'
 import { useTranslation } from 'react-i18next'
 
+const toCapitalizedWords = (value: string): string => {
+  const normalized = value.trim().toLocaleLowerCase()
+  if (!normalized) {
+    return ''
+  }
+
+  return normalized.replace(/(^|[\s\-/'(])(\p{L})/gu, (_, prefix: string, letter: string) => {
+    return `${prefix}${letter.toUpperCase()}`
+  })
+}
+
 export type SearchStateOption = {
   value: string
   label: string
@@ -85,7 +96,14 @@ export function SearchLayout({
 
   const showBreadcrumbPanel = Boolean(breadcrumbPanelProps)
   const hasExternalSelectionTrail = selectionTrail !== undefined
-  const panelOptions = breadcrumbPanelProps?.options ?? breadcrumbPanelProps?.stateOptions ?? []
+  const panelOptions = useMemo(
+    () =>
+      (breadcrumbPanelProps?.options ?? breadcrumbPanelProps?.stateOptions ?? []).map((option) => ({
+        ...option,
+        label: toCapitalizedWords(option.label),
+      })),
+    [breadcrumbPanelProps?.options, breadcrumbPanelProps?.stateOptions]
+  )
   const breadcrumbTabs = breadcrumbPanelProps?.tabs ?? [
     t('searchLayout.tabs.administrative', 'Administrative'),
     t('searchLayout.tabs.departmental', 'Departmental'),
@@ -114,11 +132,12 @@ export function SearchLayout({
     [breadcrumbPanelProps?.stateOptions, selectedStateValue]
   )
   const effectiveSelectionTrail = useMemo(() => {
+    const normalizedTrail = (selectionTrail ?? []).map((item) => toCapitalizedWords(item))
     if (hasExternalSelectionTrail) {
-      return selectionTrail ?? []
+      return normalizedTrail
     }
 
-    return selectedState ? [selectedState.label] : []
+    return selectedState ? [toCapitalizedWords(selectedState.label)] : []
   }, [hasExternalSelectionTrail, selectionTrail, selectedState])
   const effectiveActiveTrailIndex = useMemo(() => {
     if (effectiveSelectionTrail.length === 0) {

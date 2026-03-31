@@ -22,8 +22,8 @@ import { authApi } from '@/features/auth/services/auth-api'
 import { AuthSideImage } from '@/features/auth/components/signup/auth-side-image'
 import { ToastContainer } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ROUTES } from '@/shared/constants/routes'
-import jalsoochakLogo from '@/assets/media/jalsoochak-logo.svg'
+import { useAuthStore } from '@/app/store/auth-store'
+import jalsoochakLogo from '@/assets/media/logo.svg'
 
 type FetchState = 'loading' | 'ready' | 'error'
 type Step = 'password' | 'profile'
@@ -35,6 +35,8 @@ export function AccountActivationPage() {
   const [showBannerImage] = useMediaQuery('(min-width: 992px)')
 
   const token = searchParams.get('token') ?? ''
+
+  const setFromActivation = useAuthStore((state) => state.setFromActivation)
 
   const [fetchState, setFetchState] = useState<FetchState>('loading')
   const [fetchError, setFetchError] = useState('')
@@ -67,6 +69,9 @@ export function AccountActivationPage() {
       .then((info) => {
         if (!cancelled) {
           setInviteEmail(info.email)
+          setFirstName(info.firstName ?? '')
+          setLastName(info.lastName ?? '')
+          setPhoneNumber(info.phoneNumber ?? '')
           setFetchState('ready')
         }
       })
@@ -107,15 +112,16 @@ export function AccountActivationPage() {
     if (!canActivate || isSubmitting) return
     setIsSubmitting(true)
     try {
-      await authApi.activateAccount({
+      const loginResponse = await authApi.activateAccount({
         inviteToken: token,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         phoneNumber,
         password,
       })
-      toast.addToast('Account activated successfully. Please log in.', 'success')
-      setTimeout(() => navigate(ROUTES.LOGIN), 1500)
+      toast.addToast('Account activated successfully.', 'success')
+      const redirectPath = setFromActivation(loginResponse)
+      setTimeout(() => navigate(redirectPath), 1000)
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Failed to activate account.'
       toast.addToast(message, 'error')
@@ -132,6 +138,7 @@ export function AccountActivationPage() {
     password,
     toast,
     navigate,
+    setFromActivation,
   ])
 
   const renderContent = () => {
@@ -333,10 +340,8 @@ export function AccountActivationPage() {
         </Text>
 
         <FormControl mb="1rem" isRequired>
-          <FormLabel>
-            <Text textStyle="bodyText6" mb="4px">
-              First name
-            </Text>
+          <FormLabel textStyle="bodyText6" mb="4px">
+            First name
           </FormLabel>
           <Input
             value={firstName}
@@ -354,10 +359,8 @@ export function AccountActivationPage() {
         </FormControl>
 
         <FormControl mb="1rem" isRequired>
-          <FormLabel>
-            <Text textStyle="bodyText6" mb="4px">
-              Last name
-            </Text>
+          <FormLabel textStyle="bodyText6" mb="4px">
+            Last name
           </FormLabel>
           <Input
             value={lastName}
@@ -375,10 +378,8 @@ export function AccountActivationPage() {
         </FormControl>
 
         <FormControl mb="1rem" isRequired isInvalid={phoneNumber.length > 0 && !isPhoneValid}>
-          <FormLabel>
-            <Text textStyle="bodyText6" mb="4px">
-              Phone number
-            </Text>
+          <FormLabel textStyle="bodyText6" mb="4px">
+            Phone number
           </FormLabel>
           <Input
             type="tel"

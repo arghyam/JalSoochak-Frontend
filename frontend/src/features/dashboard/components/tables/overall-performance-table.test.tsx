@@ -44,6 +44,12 @@ function getStateOrder(container: HTMLElement) {
 }
 
 describe('OverallPerformanceTable', () => {
+  it('renders a no data state when there are no rows', () => {
+    renderWithProviders(<OverallPerformanceTable data={[]} />)
+
+    expect(screen.getByText('No data')).toBeTruthy()
+  })
+
   it('renders only the 4 expected columns', () => {
     renderWithProviders(<OverallPerformanceTable data={tableData} />)
 
@@ -52,6 +58,14 @@ describe('OverallPerformanceTable', () => {
     expect(screen.getByRole('button', { name: 'Quantity (LPCD)' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Regularity (%)' })).toBeTruthy()
     expect(screen.queryByText('Average (%)')).toBeNull()
+  })
+
+  it('renders quantity (MLD) values without a percent sign', () => {
+    renderWithProviders(<OverallPerformanceTable data={tableData} />)
+
+    expect(screen.getByText('65')).toBeTruthy()
+    expect(screen.queryByText('65%')).toBeNull()
+    expect(screen.getByText('70%')).toBeTruthy()
   })
 
   it('sorts by Quantity (MLD) descending then ascending on repeated clicks', () => {

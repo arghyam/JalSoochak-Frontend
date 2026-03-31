@@ -161,7 +161,7 @@ export function SearchableSelect({
         </Text>
         <ChevronDownIcon
           boxSize={5}
-          color="neutral.500"
+          color={isFilter && selectedOption ? 'primary.500' : 'neutral.500'}
           transform={isOpen ? 'rotate(180deg)' : 'rotate(0deg)'}
           transition="transform 0.2s"
         />

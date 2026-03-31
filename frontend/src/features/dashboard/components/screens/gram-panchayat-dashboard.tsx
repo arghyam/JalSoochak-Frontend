@@ -1,21 +1,36 @@
 import { useMemo, useState } from 'react'
 import { Box, Flex, Grid, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import type { DashboardData, EntityPerformance, PumpOperatorPerformanceData } from '../../types'
+import type {
+  DashboardData,
+  EntityPerformance,
+  PumpOperatorPerformanceData,
+  WaterSupplyOutageData,
+} from '../../types'
 import {
   SupplyOutageReasonsChart,
   MetricPerformanceChart,
   MonthlyTrendChart,
-  PumpOperatorsChart,
+  ActiveSchemesChart,
   ReadingSubmissionRateChart,
   SupplyOutageDistributionChart,
 } from '../charts'
-import { ReadingComplianceTable, PumpOperatorsPerformanceTable } from '../tables'
+import { ReadingComplianceTable, SchemePerformanceTable } from '../tables'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
-import { ViewBySelect } from '@/shared/components/common'
+import { ChartEmptyState, LoadingSpinner, ViewBySelect } from '@/shared/components/common'
+import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 
 type GramPanchayatDashboardScreenProps = {
   data: DashboardData
+  waterSupplyOutagesData?: WaterSupplyOutageData[]
+  waterSupplyOutageDistributionData?: WaterSupplyOutageData[]
+  quantityPerformanceData: EntityPerformance[]
+  quantityTimeTrendData: MonthlyTrendPoint[]
+  isQuantityTimeTrendLoading?: boolean
+  isQuantityTimeTrendAwaitingParams?: boolean
+  regularityPerformanceData: EntityPerformance[]
+  regularityTimeTrendData: MonthlyTrendPoint[]
+  isRegularityTimeTrendLoading?: boolean
   villageTableData: EntityPerformance[]
   supplySubmissionRateData: EntityPerformance[]
   supplySubmissionRateLabel: string
@@ -27,7 +42,15 @@ type ViewBy = 'geography' | 'time'
 
 export function GramPanchayatDashboardScreen({
   data,
-  villageTableData,
+  waterSupplyOutagesData = data.waterSupplyOutages,
+  waterSupplyOutageDistributionData = data.waterSupplyOutages,
+  quantityPerformanceData,
+  quantityTimeTrendData,
+  isQuantityTimeTrendLoading = false,
+  isQuantityTimeTrendAwaitingParams = false,
+  regularityPerformanceData,
+  regularityTimeTrendData,
+  isRegularityTimeTrendLoading = false,
   supplySubmissionRateData,
   supplySubmissionRateLabel,
   pumpOperatorsTotal,
@@ -37,24 +60,6 @@ export function GramPanchayatDashboardScreen({
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
   const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
-  const quantityTimeTrendData = useMemo(
-    () =>
-      data.demandSupply.map((item) => ({
-        period: item.period,
-        value: item.supply,
-      })),
-    [data.demandSupply]
-  )
-
-  const regularityTimeTrendData = useMemo(
-    () =>
-      data.demandSupply.map((item) => ({
-        period: item.period,
-        value: item.demand > 0 ? Math.min(100, Math.round((item.supply / item.demand) * 100)) : 0,
-      })),
-    [data.demandSupply]
-  )
-
   const outageDistributionTimeTrendData = useMemo(
     () => data.supplyOutageTrend ?? [],
     [data.supplyOutageTrend]
@@ -92,7 +97,7 @@ export function GramPanchayatDashboardScreen({
           </Flex>
           {quantityViewBy === 'geography' ? (
             <MetricPerformanceChart
-              data={villageTableData}
+              data={quantityPerformanceData}
               metric="quantity"
               height="400px"
               entityLabel={t('performanceCharts.viewBy.villages', {
@@ -106,13 +111,27 @@ export function GramPanchayatDashboardScreen({
               })}
             />
           ) : (
-            <MonthlyTrendChart
-              data={quantityTimeTrendData}
-              height="400px"
-              xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-              yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
-              seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
-            />
+            <>
+              {isQuantityTimeTrendLoading ? (
+                <Flex align="center" justify="center" h="400px">
+                  <LoadingSpinner />
+                </Flex>
+              ) : quantityTimeTrendData.length > 0 ? (
+                <MonthlyTrendChart
+                  data={quantityTimeTrendData}
+                  height="400px"
+                  xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+                  yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
+                    defaultValue: 'Quantity',
+                  })}
+                  seriesName={t('performanceCharts.quantity.seriesName', {
+                    defaultValue: 'Quantity',
+                  })}
+                />
+              ) : isQuantityTimeTrendAwaitingParams ? null : (
+                <ChartEmptyState minHeight="400px" />
+              )}
+            </>
           )}
         </Box>
         <Box
@@ -144,7 +163,7 @@ export function GramPanchayatDashboardScreen({
           </Flex>
           {regularityViewBy === 'geography' ? (
             <MetricPerformanceChart
-              data={villageTableData}
+              data={regularityPerformanceData}
               metric="regularity"
               height="400px"
               entityLabel={t('performanceCharts.viewBy.villages', {
@@ -158,18 +177,28 @@ export function GramPanchayatDashboardScreen({
               })}
             />
           ) : (
-            <MonthlyTrendChart
-              data={regularityTimeTrendData}
-              height="400px"
-              isPercent
-              xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-              yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
-                defaultValue: 'Regularity (%)',
-              })}
-              seriesName={t('performanceCharts.regularity.seriesName', {
-                defaultValue: 'Regularity',
-              })}
-            />
+            <>
+              {isRegularityTimeTrendLoading ? (
+                <Flex align="center" justify="center" h="400px">
+                  <LoadingSpinner />
+                </Flex>
+              ) : regularityTimeTrendData.length > 0 ? (
+                <MonthlyTrendChart
+                  data={regularityTimeTrendData}
+                  height="400px"
+                  isPercent
+                  xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+                  yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
+                    defaultValue: 'Regularity (%)',
+                  })}
+                  seriesName={t('performanceCharts.regularity.seriesName', {
+                    defaultValue: 'Regularity',
+                  })}
+                />
+              ) : (
+                <ChartEmptyState minHeight="400px" />
+              )}
+            </>
           )}
         </Box>
       </Grid>
@@ -193,7 +222,7 @@ export function GramPanchayatDashboardScreen({
               defaultValue: 'Supply Outage Reasons',
             })}
           </Text>
-          <SupplyOutageReasonsChart data={data.waterSupplyOutages} height="400px" />
+          <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
         </Box>
         <Box
           bg="white"
@@ -224,7 +253,7 @@ export function GramPanchayatDashboardScreen({
           </Flex>
           {outageDistributionViewBy === 'geography' ? (
             <SupplyOutageDistributionChart
-              data={data.waterSupplyOutages}
+              data={waterSupplyOutageDistributionData}
               height="400px"
               xAxisLabel={t('performanceCharts.viewBy.villages', {
                 defaultValue: 'Villages',
@@ -260,18 +289,17 @@ export function GramPanchayatDashboardScreen({
         >
           <Flex align="center" justify="space-between" mb="40px">
             <Text textStyle="bodyText3" fontWeight="400">
-              {t('pumpOperators.title', { defaultValue: 'Pump Operators' })}
+              {t('pumpOperators.title', { defaultValue: 'Active Schemes' })}
             </Text>
             <Text textStyle="bodyText3" fontWeight="400">
               {t('pumpOperators.totalLabel', { defaultValue: 'Total' })}: {pumpOperatorsTotal}
             </Text>
           </Flex>
-          <PumpOperatorsChart
+          <ActiveSchemesChart
             data={data.pumpOperators}
             height="360px"
             note={t('pumpOperators.note', {
-              defaultValue:
-                'Note: Active pump operators submit readings at least 30 days in a month.',
+              defaultValue: 'Note: Active schemes for at least 30 days in a month',
             })}
           />
         </Box>
@@ -284,13 +312,17 @@ export function GramPanchayatDashboardScreen({
           py="24px"
           h="510px"
           minW={0}
+          display="flex"
+          flexDirection="column"
+          minH={0}
         >
-          <PumpOperatorsPerformanceTable
+          <SchemePerformanceTable
             title={t('pumpOperators.performanceTable.title', {
-              defaultValue: 'Pump Operators Performance',
+              defaultValue: 'Scheme Performance',
             })}
             data={operatorsPerformanceTable}
             fillHeight
+            showBlockColumn={false}
           />
         </Box>
       </Grid>

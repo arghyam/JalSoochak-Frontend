@@ -4,14 +4,11 @@ import { MainLayout, DashboardLayout } from '@/shared/components/layout'
 import { CentralDashboard } from '@/features/dashboard/components/central-dashboard'
 import {
   OverviewPage as SuperAdminOverviewPage,
-  SystemRulesPage,
   StatesUTsPage,
   AddStateUTPage,
   ViewStateUTPage,
   EditStateUTPage,
   ManageStateAdminsPage,
-  ApiCredentialsPage,
-  IngestionMonitorPage,
   SuperUsersPage,
   SuperUserFormPage,
   InviteSuperUserPage,
@@ -21,15 +18,15 @@ import {
 import {
   OverviewPage,
   ConfigurationPage,
-  ActivityPage,
   HierarchyPage,
   LanguagePage,
   IntegrationPage,
   WaterNormsPage,
   EscalationsFormPage,
-  NudgesTemplatePage,
   MessageTemplatesPage,
   StaffSyncPage,
+  SchemeSyncPage,
+  SchemeMappingsSyncPage,
   StateUTAdminsPage,
   StateUTAdminFormPage,
   InviteStateUTAdminPage,
@@ -40,8 +37,6 @@ import { AccountActivationPage } from '@/features/auth/components/activate-accou
 import { ProtectedRoute, RedirectIfAuthenticated } from '@/shared/components/routing/ProtectedRoute'
 import { AUTH_ROLES } from '@/shared/constants/auth'
 import { NotFoundPage } from '@/shared/components/common'
-
-import { Box, Heading, Text } from '@chakra-ui/react'
 
 export const router = createBrowserRouter([
   // Public dashboards
@@ -119,10 +114,6 @@ export const router = createBrowserRouter([
         element: <SuperAdminOverviewPage />,
       },
       {
-        path: ROUTES.SUPER_ADMIN_SYSTEM_RULES,
-        element: <SystemRulesPage />,
-      },
-      {
         path: ROUTES.SUPER_ADMIN_CONFIGURATION,
         element: <SystemConfigPage />,
       },
@@ -145,14 +136,6 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.SUPER_ADMIN_MANAGE_ADMINS,
         element: <ManageStateAdminsPage />,
-      },
-      {
-        path: ROUTES.SUPER_ADMIN_API_CREDENTIALS,
-        element: <ApiCredentialsPage />,
-      },
-      {
-        path: ROUTES.SUPER_ADMIN_INGESTION_MONITOR,
-        element: <IngestionMonitorPage />,
       },
       {
         path: ROUTES.SUPER_ADMIN_SUPER_USERS,
@@ -211,31 +194,20 @@ export const router = createBrowserRouter([
         element: <EscalationsFormPage />,
       },
       {
-        path: ROUTES.STATE_ADMIN_NUDGES,
-        element: <NudgesTemplatePage />,
-      },
-      {
         path: ROUTES.STATE_ADMIN_TEMPLATES,
         element: <MessageTemplatesPage />,
-      },
-      {
-        path: ROUTES.STATE_ADMIN_API_INGESTION,
-        element: (
-          <Box p={6}>
-            <Heading fontSize="2xl" fontWeight="bold">
-              API Ingestion
-            </Heading>
-            <Text color="gray.600">Coming soon...</Text>
-          </Box>
-        ),
       },
       {
         path: ROUTES.STATE_ADMIN_STAFF_SYNC,
         element: <StaffSyncPage />,
       },
       {
-        path: ROUTES.STATE_ADMIN_ACTIVITY,
-        element: <ActivityPage />,
+        path: ROUTES.STATE_ADMIN_SCHEME_SYNC,
+        element: <SchemeSyncPage />,
+      },
+      {
+        path: ROUTES.STATE_ADMIN_SCHEME_MAPPINGS_SYNC,
+        element: <SchemeMappingsSyncPage />,
       },
       {
         path: ROUTES.STATE_ADMIN_STATE_UT_ADMINS,

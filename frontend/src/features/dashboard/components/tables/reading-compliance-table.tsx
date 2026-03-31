@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react'
+import type { UIEvent } from 'react'
 import { Box, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import type { ReadingComplianceData } from '../../types'
@@ -8,6 +10,7 @@ interface ReadingComplianceTableProps {
   maxItems?: number
   showVillageColumn?: boolean
   scrollAreaMaxH?: string | number
+  onReachEnd?: () => void
 }
 
 export function ReadingComplianceTable({
@@ -16,8 +19,11 @@ export function ReadingComplianceTable({
   maxItems,
   showVillageColumn = true,
   scrollAreaMaxH = '432px',
+  onReachEnd,
 }: ReadingComplianceTableProps) {
   const { t } = useTranslation('dashboard')
+  const hasReachedEndRef = useRef(false)
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null)
   const resolvedTitle =
     title?.trim() ||
     t('outageAndSubmissionCharts.titles.readingCompliance', {
@@ -28,12 +34,55 @@ export function ReadingComplianceTable({
   const rows = typeof safeMaxItems === 'number' ? data.slice(0, safeMaxItems) : data
   const tableMinWidth = showVillageColumn ? '640px' : '100%'
 
+  useEffect(() => {
+    hasReachedEndRef.current = false
+  }, [rows.length])
+
+  useEffect(() => {
+    if (!onReachEnd || rows.length === 0) {
+      return
+    }
+
+    const container = scrollContainerRef.current
+
+    if (!container) {
+      return
+    }
+
+    const hasOverflow = container.scrollHeight - container.clientHeight > 24
+
+    if (!hasOverflow && !hasReachedEndRef.current) {
+      hasReachedEndRef.current = true
+      onReachEnd()
+    }
+  }, [onReachEnd, rows.length])
+
+  const handleScroll = (event: UIEvent<HTMLDivElement>) => {
+    if (!onReachEnd) {
+      return
+    }
+
+    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight
+
+    if (distanceFromBottom > 48) {
+      hasReachedEndRef.current = false
+      return
+    }
+
+    if (distanceFromBottom <= 24 && !hasReachedEndRef.current) {
+      hasReachedEndRef.current = true
+      onReachEnd()
+    }
+  }
+
   return (
     <Box borderRadius="lg" overflow="hidden" w="full" minW={0}>
       <Box textStyle="bodyText3" fontWeight="400" mb="16px">
         {resolvedTitle}
       </Box>
       <Box
+        ref={scrollContainerRef}
         maxH={scrollAreaMaxH}
         overflowY="auto"
         overflowX="auto"
@@ -43,6 +92,7 @@ export function ReadingComplianceTable({
         pr={2}
         pb={2}
         cursor={{ base: 'grab', md: 'auto' }}
+        onScroll={handleScroll}
         sx={{
           WebkitOverflowScrolling: 'touch',
           '&::-webkit-scrollbar': { width: '4px', height: '4px' },

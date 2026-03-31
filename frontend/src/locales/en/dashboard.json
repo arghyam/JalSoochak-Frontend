@@ -1,5 +1,8 @@
 {
-  "headerTitle": "JalSoochak Dashboard",
+  "header": {
+    "title": "JalSoochak",
+    "subtitle": "Operational Status of Water Supply Schemes"
+  },
   "searchLayout": {
     "placeholder": "Search by state/UT, district, block, gram panchayat, village",
     "downloadReport": "Download Report",
@@ -79,6 +82,7 @@
   },
   "overallPerformance": {
     "title": "Overall Performance",
+    "noData": "No data",
     "columns": {
       "entity": "State/UT",
       "quantityMld": "Quantity (MLD)",
@@ -151,8 +155,8 @@
       "pumpFailure": "Pump failure",
       "valveIssue": "Valve issue",
       "sourceDrying": "Source Drying",
-      "complaintSubmission": "Complaint Submission",
-      "automatedSubmission": "Automated Submission"
+      "complaintSubmission": "Complaint Submissions",
+      "automatedSubmission": "Anomalous Submissions"
     },
     "tables": {
       "readingCompliance": {
@@ -166,9 +170,9 @@
     }
   },
   "pumpOperators": {
-    "title": "Pump Operators",
+    "title": "Schemes",
     "totalLabel": "Total",
-    "note": "Note: Active pump operators submit readings at least 30 days in a month.",
+    "note": "Note: Schemes active for at least 30 days in a month.",
     "details": {
       "title": "Pump Operator Details",
       "fields": {
@@ -185,11 +189,11 @@
       }
     },
     "legend": {
-      "active": "Active pump operators",
-      "inactive": "Non-active pump operators"
+      "active": "Active schemes",
+      "inactive": "Non-active schemes"
     },
     "performanceTable": {
-      "title": "Pump Operators Performance",
+      "title": "Scheme Performance",
       "columns": {
         "name": "Name",
         "village": "Village",

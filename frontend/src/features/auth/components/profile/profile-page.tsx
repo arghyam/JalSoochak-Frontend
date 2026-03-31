@@ -8,6 +8,7 @@ import {
   IconButton,
   FormControl,
   FormLabel,
+  FormErrorMessage,
   Input,
   Button,
   HStack,
@@ -23,6 +24,10 @@ import {
 } from '@/features/auth/services/query/use-auth-queries'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ToastContainer } from '@/shared/components/common'
+import { isAlphabeticWithSpaces, exceedsMaxLength } from '@/shared/utils/validation'
+
+const MAX_NAME_LENGTH = 25
+const isValidPhone = (v: string) => /^\d{10}$/.test(v)
 
 interface ProfileFormState {
   firstName: string
@@ -42,6 +47,11 @@ export function ProfilePage() {
     lastName: '',
     phoneNumber: '',
   })
+  const [touched, setTouched] = useState({
+    firstName: false,
+    lastName: false,
+    phoneNumber: false,
+  })
 
   useEffect(() => {
     document.title = `${t('profile.title')} | JalSoochak`
@@ -55,6 +65,7 @@ export function ProfilePage() {
         phoneNumber: profile.phoneNumber,
       })
     }
+    setTouched({ firstName: false, lastName: false, phoneNumber: false })
     setIsEditing(true)
   }
 
@@ -66,10 +77,47 @@ export function ProfilePage() {
         phoneNumber: profile.phoneNumber,
       })
     }
+    setTouched({ firstName: false, lastName: false, phoneNumber: false })
     setIsEditing(false)
   }
 
-  const isFormValid = form.firstName.trim().length > 0
+  const handleBlur = (field: keyof typeof touched) => {
+    setTouched((prev) => ({ ...prev, [field]: true }))
+  }
+
+  const isNameValid = (name: string) =>
+    name.trim() !== '' &&
+    !exceedsMaxLength(name, MAX_NAME_LENGTH) &&
+    isAlphabeticWithSpaces(name.trim())
+
+  const isFormValid =
+    isNameValid(form.firstName) &&
+    (form.lastName.trim() === '' || isNameValid(form.lastName)) &&
+    isValidPhone(form.phoneNumber)
+
+  const fieldErrors = {
+    firstName: (() => {
+      if (!touched.firstName) return ''
+      if (!form.firstName.trim()) return t('validation.required')
+      if (exceedsMaxLength(form.firstName, MAX_NAME_LENGTH))
+        return t('validation.maxLength', { max: MAX_NAME_LENGTH })
+      if (!isAlphabeticWithSpaces(form.firstName.trim())) return t('validation.alphabeticOnly')
+      return ''
+    })(),
+    lastName: (() => {
+      if (!touched.lastName || form.lastName.trim() === '') return ''
+      if (exceedsMaxLength(form.lastName, MAX_NAME_LENGTH))
+        return t('validation.maxLength', { max: MAX_NAME_LENGTH })
+      if (!isAlphabeticWithSpaces(form.lastName.trim())) return t('validation.alphabeticOnly')
+      return ''
+    })(),
+    phoneNumber: (() => {
+      if (!touched.phoneNumber) return ''
+      if (!form.phoneNumber.trim()) return t('validation.required')
+      if (!isValidPhone(form.phoneNumber)) return t('validation.invalidPhone')
+      return ''
+    })(),
+  }
 
   const hasChanges =
     form.firstName !== (profile?.firstName ?? '') ||
@@ -77,6 +125,7 @@ export function ProfilePage() {
     form.phoneNumber !== (profile?.phoneNumber ?? '')
 
   const handleSave = () => {
+    setTouched({ firstName: true, lastName: true, phoneNumber: true })
     if (!isFormValid || updateMutation.isPending) return
     updateMutation.mutate(
       {
@@ -159,13 +208,14 @@ export function ProfilePage() {
                 spacing={3}
                 aria-labelledby="profile-details-heading"
               >
-                <FormControl isRequired>
+                <FormControl isRequired isInvalid={!!fieldErrors.firstName}>
                   <FormLabel textStyle="h10" mb={1}>
                     {t('profile.firstName')}
                   </FormLabel>
                   <Input
                     value={form.firstName}
                     onChange={(e) => setForm((p) => ({ ...p, firstName: e.target.value }))}
+                    onBlur={() => handleBlur('firstName')}
                     placeholder={t('enter')}
                     h={9}
                     maxW={{ base: '100%', lg: '486px' }}
@@ -173,21 +223,28 @@ export function ProfilePage() {
                     _placeholder={{ color: 'neutral.300' }}
                     aria-required="true"
                   />
+                  {fieldErrors.firstName && (
+                    <FormErrorMessage>{fieldErrors.firstName}</FormErrorMessage>
+                  )}
                 </FormControl>
 
-                <FormControl>
+                <FormControl isInvalid={!!fieldErrors.lastName}>
                   <FormLabel textStyle="h10" mb={1}>
                     {t('profile.lastName')}
                   </FormLabel>
                   <Input
                     value={form.lastName}
                     onChange={(e) => setForm((p) => ({ ...p, lastName: e.target.value }))}
+                    onBlur={() => handleBlur('lastName')}
                     placeholder={t('enter')}
                     h={9}
                     maxW={{ base: '100%', lg: '486px' }}
                     borderColor="neutral.200"
                     _placeholder={{ color: 'neutral.300' }}
                   />
+                  {fieldErrors.lastName && (
+                    <FormErrorMessage>{fieldErrors.lastName}</FormErrorMessage>
+                  )}
                 </FormControl>
 
                 <FormControl>
@@ -208,14 +265,18 @@ export function ProfilePage() {
                   />
                 </FormControl>
 
-                <FormControl>
+                <FormControl isRequired isInvalid={!!fieldErrors.phoneNumber}>
                   <FormLabel textStyle="h10" mb={1}>
                     {t('profile.phone')}
                   </FormLabel>
                   <Input
                     type="tel"
                     value={form.phoneNumber}
-                    onChange={(e) => setForm((p) => ({ ...p, phoneNumber: e.target.value }))}
+                    onChange={(e) => {
+                      const digits = e.target.value.replaceAll(/\D/g, '')
+                      if (digits.length <= 10) setForm((p) => ({ ...p, phoneNumber: digits }))
+                    }}
+                    onBlur={() => handleBlur('phoneNumber')}
                     placeholder={t('enter')}
                     h={9}
                     maxW={{ base: '100%', lg: '486px' }}
@@ -223,6 +284,9 @@ export function ProfilePage() {
                     _placeholder={{ color: 'neutral.300' }}
                     inputMode="numeric"
                   />
+                  {fieldErrors.phoneNumber && (
+                    <FormErrorMessage>{fieldErrors.phoneNumber}</FormErrorMessage>
+                  )}
                 </FormControl>
               </SimpleGrid>
             ) : (

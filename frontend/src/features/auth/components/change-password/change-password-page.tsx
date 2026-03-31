@@ -3,6 +3,7 @@ import {
   Box,
   Heading,
   Flex,
+  HStack,
   Stack,
   FormControl,
   FormLabel,
@@ -18,6 +19,7 @@ import { useTranslation } from 'react-i18next'
 import { useChangeMyPasswordMutation } from '@/features/auth/services/query/use-auth-queries'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ToastContainer } from '@/shared/components/common'
+import { isValidPassword } from '@/shared/utils/validation'
 
 interface ChangePasswordForm {
   currentPassword: string
@@ -59,6 +61,8 @@ export function ChangePasswordPage() {
     let newPasswordError = ''
     if (touched.newPassword && !form.newPassword) {
       newPasswordError = t('validation.required')
+    } else if (touched.newPassword && form.newPassword && !isValidPassword(form.newPassword)) {
+      newPasswordError = t('validation.passwordComplexity')
     } else if (
       touched.newPassword &&
       form.currentPassword &&
@@ -86,6 +90,7 @@ export function ChangePasswordPage() {
   const isFormValid =
     form.currentPassword.length > 0 &&
     form.newPassword.length > 0 &&
+    isValidPassword(form.newPassword) &&
     form.confirmPassword.length > 0 &&
     form.newPassword === form.confirmPassword &&
     form.newPassword !== form.currentPassword
@@ -135,14 +140,18 @@ export function ChangePasswordPage() {
         py={6}
         px={{ base: 3, md: 4 }}
       >
-        <Box
+        <Flex
           as="form"
           role="form"
           aria-label={t('changePassword.title')}
           onSubmit={handleSubmit}
-          maxW="md"
+          direction="column"
+          justify="space-between"
+          h="full"
+          minH={{ base: 'auto', lg: 'calc(100vh - 200px)' }}
+          gap={{ base: 6, lg: 0 }}
         >
-          <Stack spacing={5} mb={8}>
+          <Stack spacing={5} maxW="md">
             <FormControl isRequired isInvalid={!!errors.currentPassword}>
               <FormLabel textStyle="h10" mb={1}>
                 {t('changePassword.currentPassword')}
@@ -238,7 +247,12 @@ export function ChangePasswordPage() {
             </FormControl>
           </Stack>
 
-          <Flex justify="flex-end">
+          <HStack
+            spacing={3}
+            justify={{ base: 'stretch', sm: 'flex-end' }}
+            flexDirection={{ base: 'column-reverse', sm: 'row' }}
+            mt={4}
+          >
             <Button
               type="submit"
               variant="primary"
@@ -249,8 +263,8 @@ export function ChangePasswordPage() {
             >
               {t('changePassword.submit')}
             </Button>
-          </Flex>
-        </Box>
+          </HStack>
+        </Flex>
       </Box>
 
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />

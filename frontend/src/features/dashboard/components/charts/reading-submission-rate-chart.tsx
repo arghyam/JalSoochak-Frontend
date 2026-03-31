@@ -3,6 +3,7 @@ import { Box, useBreakpointValue, useTheme } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
+import { formatAxisLabel } from '@/shared/components/charts/axis-label-format'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
 import type { EntityPerformance } from '../../types'
 
@@ -94,6 +95,7 @@ export function ReadingSubmissionRateChart({
           const points = Array.isArray(params)
             ? (params as Array<{
                 axisValueLabel?: string
+                dataIndex?: number
                 seriesName?: string
                 value?: number | string
               }>)
@@ -103,18 +105,24 @@ export function ReadingSubmissionRateChart({
             return ''
           }
 
-          const entityName = points[0]?.axisValueLabel ?? ''
+          const firstPoint = points[0]
+          const entityName =
+            typeof firstPoint?.dataIndex === 'number'
+              ? (data[firstPoint.dataIndex]?.name ?? '')
+              : (firstPoint?.axisValueLabel ?? '')
+          const safeEntityName = echarts.format.encodeHTML(entityName)
           const rows = points
             .map((point) => {
               const rawValue = typeof point.value === 'number' ? point.value : Number(point.value)
               const hasNumericValue = Number.isFinite(rawValue)
               const formattedValue = hasNumericValue ? `${rawValue.toFixed(1)}%` : '-'
 
-              return `${point.seriesName}: ${formattedValue}`
+              const safeSeriesName = echarts.format.encodeHTML(point.seriesName ?? '')
+              return `${safeSeriesName}: ${formattedValue}`
             })
             .join('<br/>')
 
-          return `<strong>${entityName}</strong><br/>${rows}`
+          return `<strong>${safeEntityName}</strong><br/>${rows}`
         },
       },
       grid: {
@@ -142,6 +150,7 @@ export function ReadingSubmissionRateChart({
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
+          formatter: (value: string) => formatAxisLabel(value),
           color: bodyText7.color,
         },
       },
@@ -210,7 +219,7 @@ export function ReadingSubmissionRateChart({
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
-          formatter: (value: string) => value,
+          formatter: (value: string) => formatAxisLabel(value),
           color: 'transparent',
         },
       },

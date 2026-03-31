@@ -160,10 +160,8 @@ export function ViewStateUTPage() {
         </Heading>
         <Box mb={7}>
           <StatusChip
-            status={tenant.status === 'ACTIVE' ? 'active' : 'inactive'}
-            label={
-              tenant.status === 'ACTIVE' ? t('common:status.active') : t('common:status.inactive')
-            }
+            status={tenant.status.toLowerCase()}
+            label={t(`statesUts.statusSection.statuses.${tenant.status}`)}
           />
         </Box>
 

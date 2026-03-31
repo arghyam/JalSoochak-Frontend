@@ -12,14 +12,13 @@ import {
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Checkbox,
   Link,
   useDisclosure,
   useMediaQuery,
   VStack,
 } from '@chakra-ui/react'
 import { AuthSideImage } from '@/features/auth/components/signup/auth-side-image'
-import jalsoochakLogo from '@/assets/media/jalsoochak-logo.svg'
+import jalsoochakLogo from '@/assets/media/logo.svg'
 import { useAuthStore } from '@/app/store'
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai'
 import { ForgotPasswordModal } from '@/features/auth/components/login/forgot-password-modal'
@@ -62,7 +61,7 @@ export function LoginPage() {
   }
 
   return (
-    <Flex minH="100vh" w="full" direction={showBannerImage ? 'row' : 'column'}>
+    <Flex minH="100vh" w="full" direction={{ base: 'column', md: 'row' }} bg="white">
       <Flex
         w={showBannerImage ? '50%' : '100%'}
         minH="100vh"
@@ -78,7 +77,7 @@ export function LoginPage() {
               src={jalsoochakLogo}
               alt="JalSoochak logo"
               w="117.61px"
-              h="68.55px"
+              h="72px"
               mb={{ base: 10, md: 12 }}
             />
           </Box>
@@ -172,28 +171,13 @@ export function LoginPage() {
                     </InputGroup>
                   </FormControl>
 
-                  <FormControl isInvalid={!!(error || (localError && !isEmailError))}>
-                    <FormErrorMessage>{localError || error}</FormErrorMessage>
-                  </FormControl>
+                  {(error || (localError && !isEmailError)) && (
+                    <FormControl isInvalid>
+                      <FormErrorMessage>{localError || error}</FormErrorMessage>
+                    </FormControl>
+                  )}
 
-                  <Flex align="center" justify="space-between">
-                    <Checkbox
-                      fontSize="14px"
-                      sx={{
-                        '.chakra-checkbox__control': {
-                          borderWidth: '1px',
-                          borderStyle: 'solid',
-                          borderColor: 'neutral.400',
-                          borderRadius: '4px',
-                          overflow: 'hidden',
-                        },
-                      }}
-                    >
-                      <Text textStyle="bodyText5" fontWeight="400" color="neutral.950">
-                        Remember me
-                      </Text>
-                    </Checkbox>
-
+                  <Flex justify="flex-end">
                     <Link
                       as="button"
                       type="button"

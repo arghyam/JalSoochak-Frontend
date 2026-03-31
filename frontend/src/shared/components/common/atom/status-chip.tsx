@@ -12,6 +12,11 @@ const STATUS_COLOR_MAP: Record<string, { bg: string; color: string }> = {
   good: { bg: 'success.50', color: 'success.500' },
   'needs-attention': { bg: 'warning.50', color: 'warning.600' },
   critical: { bg: 'error.50', color: 'error.600' },
+  onboarded: { bg: 'primary.50', color: 'primary.500' },
+  configured: { bg: 'primary.50', color: 'primary.600' },
+  suspended: { bg: 'warning.50', color: 'warning.500' },
+  degraded: { bg: 'warning.50', color: 'warning.600' },
+  archived: { bg: 'neutral.100', color: 'neutral.600' },
 }
 
 const DEFAULT_COLORS = { bg: 'neutral.100', color: 'neutral.600' }

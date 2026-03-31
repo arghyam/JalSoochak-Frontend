@@ -1,4 +1,14 @@
-export type StateUTStatus = 'active' | 'inactive'
+export const TENANT_STATUSES = [
+  'INACTIVE',
+  'ONBOARDED',
+  'CONFIGURED',
+  'ACTIVE',
+  'SUSPENDED',
+  'DEGRADED',
+  'ARCHIVED',
+] as const
+
+export type TenantStatus = (typeof TENANT_STATUSES)[number]
 
 // ── Real API types ────────────────────────────────────────────────────────────
 
@@ -9,7 +19,7 @@ export interface TenantApiResponse {
   stateCode: string
   lgdCode: number
   name: string
-  status: 'ACTIVE' | 'INACTIVE'
+  status: TenantStatus
   createdAt: string
   createdBy: number | null
   onboardedAt: string | null
@@ -33,7 +43,7 @@ export interface Tenant {
   stateCode: string
   lgdCode: number
   name: string
-  status: 'ACTIVE' | 'INACTIVE'
+  status: TenantStatus
   createdAt: string
 }
 
@@ -62,7 +72,7 @@ export interface StateUT {
   id: string
   name: string
   code: string
-  status: StateUTStatus
+  status: string
   lastSyncDate: Date
   totalDistricts: number
   admin: StateAdminDetails

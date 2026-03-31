@@ -5,7 +5,7 @@ import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { MdArrowDownward, MdArrowUpward } from 'react-icons/md'
 
 type KPITrend = {
-  direction: 'up' | 'down'
+  direction: 'up' | 'down' | 'neutral'
   text: string
 }
 
@@ -21,9 +21,10 @@ export function KPICard({ title, value, icon, trend, tooltipContent }: KPICardPr
   const { i18n } = useTranslation()
   const numberLocale = i18n.resolvedLanguage === 'hi' ? 'hi-IN' : 'en-IN'
   const formattedValue = typeof value === 'number' ? value.toLocaleString(numberLocale) : value
-  const isPositive = trend?.direction === 'up'
-  const trendColor = isPositive ? '#079455' : '#D92D20'
-  const TrendIcon = isPositive ? MdArrowUpward : MdArrowDownward
+  const trendColor =
+    trend?.direction === 'up' ? '#079455' : trend?.direction === 'down' ? '#D92D20' : 'neutral.500'
+  const TrendIcon =
+    trend?.direction === 'up' ? MdArrowUpward : trend?.direction === 'down' ? MdArrowDownward : null
 
   return (
     <Box
@@ -90,7 +91,9 @@ export function KPICard({ title, value, icon, trend, tooltipContent }: KPICardPr
           </Text>
           {trend ? (
             <Flex align="center" gap={1}>
-              <Icon as={TrendIcon} boxSize="16px" h="16px" w="12px" color={trendColor} />
+              {TrendIcon ? (
+                <Icon as={TrendIcon} boxSize="16px" h="16px" w="12px" color={trendColor} />
+              ) : null}
               <Text textStyle="bodyText4" fontSize="12px" fontWeight="400" color={trendColor}>
                 {trend.text}
               </Text>

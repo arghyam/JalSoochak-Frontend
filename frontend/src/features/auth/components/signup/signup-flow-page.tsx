@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Box, Flex, Image, useMediaQuery } from '@chakra-ui/react'
-import jalsoochakLogo from '@/assets/media/jalsoochak-logo.svg'
+import jalsoochakLogo from '@/assets/media/logo.svg'
 import { AuthSideImage } from '@/features/auth/components/signup/auth-side-image'
 import { SignupPage } from '@/features/auth/components/signup/signup-page'
 import { CreatePasswordPage } from '@/features/auth/components/signup/create-password-page'
@@ -45,7 +45,7 @@ export function SignupFlowPage({ initialStep = 'signup' }: SignupFlowPageProps) 
   }
 
   return (
-    <Flex minH="100vh" w="full" direction={showBannerImage ? 'row' : 'column'}>
+    <Flex minH="100vh" w="full" direction={{ base: 'column', md: 'row' }} bg="white">
       <Flex
         w={showBannerImage ? '50%' : '100%'}
         minH="100vh"

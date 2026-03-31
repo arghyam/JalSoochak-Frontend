@@ -17,7 +17,7 @@ beforeEach(() => {
 
 const chartData: ReadingSubmissionStatusData[] = [
   { label: 'Complaint Submission', value: 64 },
-  { label: 'Automated Submission', value: 36 },
+  { label: 'Anomalous Submissions', value: 36 },
 ]
 
 describe('ReadingSubmissionStatusChart', () => {

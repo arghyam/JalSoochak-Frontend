@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   Box,
   Text,
@@ -16,7 +16,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer } from '@/shared/components/common'
+import { ToastContainer, EditableBreadcrumb } from '@/shared/components/common'
 import {
   useSystemConfigurationQuery,
   useSaveSystemConfigurationMutation,
@@ -111,6 +111,21 @@ export function SystemConfigPage() {
       }))
     }
 
+  const hasChanges = useMemo(() => {
+    if (!config || !draft) return false
+    const compare = (a: string, b: string) => a.localeCompare(b)
+    const channelsChanged =
+      [...draft.supportedChannels].sort(compare).join() !==
+      [...config.supportedChannels].sort(compare).join()
+    return (
+      channelsChanged ||
+      Number(draft.oversupplyThreshold) !== config.oversupplyThreshold ||
+      Number(draft.undersupplyThreshold) !== config.undersupplyThreshold ||
+      Number(draft.bfmImageConfidenceThreshold) !== config.bfmImageConfidenceThreshold ||
+      Number(draft.locationAffinityThreshold) !== config.locationAffinityThreshold
+    )
+  }, [config, draft])
+
   if (isLoading) {
     return (
       <Box w="full">
@@ -142,9 +157,15 @@ export function SystemConfigPage() {
   return (
     <Box w="full">
       <Box mb={5}>
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={isEditing ? 2 : 0}>
           {t('configuration.pageTitle')}
         </Heading>
+        <EditableBreadcrumb
+          isEditing={isEditing}
+          onCancel={handleCancel}
+          viewLabel={t('configuration.breadcrumb.view')}
+          editLabel={t('configuration.breadcrumb.edit')}
+        />
       </Box>
 
       <Box
@@ -256,6 +277,7 @@ export function SystemConfigPage() {
                     onChange={updateDraftField('undersupplyThreshold')}
                     min={0}
                     max={100}
+                    maxDecimals={4}
                   />
                   <ThresholdInput
                     id="water-qty-oversupply"
@@ -264,6 +286,7 @@ export function SystemConfigPage() {
                     onChange={updateDraftField('oversupplyThreshold')}
                     min={0}
                     max={1000}
+                    maxDecimals={4}
                   />
                 </SimpleGrid>
 
@@ -276,6 +299,7 @@ export function SystemConfigPage() {
                     onChange={updateDraftField('bfmImageConfidenceThreshold')}
                     min={0}
                     max={100}
+                    maxDecimals={4}
                   />
                   <ThresholdInput
                     id="location-affinity"
@@ -283,6 +307,7 @@ export function SystemConfigPage() {
                     value={activeDraft.locationAffinityThreshold}
                     onChange={updateDraftField('locationAffinityThreshold')}
                     min={0}
+                    max={1000}
                   />
                 </SimpleGrid>
               </VStack>
@@ -309,6 +334,7 @@ export function SystemConfigPage() {
                   size="md"
                   width={{ base: 'full', sm: '174px' }}
                   isLoading={saveMutation.isPending}
+                  isDisabled={!hasChanges || saveMutation.isPending}
                 >
                   {t('common:button.saveChanges')}
                 </Button>
@@ -332,6 +358,7 @@ function ThresholdInput({
   onChange,
   min,
   max,
+  maxDecimals,
 }: {
   id: string
   label: string
@@ -339,7 +366,10 @@ function ThresholdInput({
   onChange: (v: string) => void
   min?: number
   max?: number
+  maxDecimals?: number
 }) {
+  const step = maxDecimals != null ? String(Math.pow(10, -maxDecimals)) : 'any'
+
   return (
     <Box>
       <Text
@@ -356,13 +386,21 @@ function ThresholdInput({
       <Input
         id={id}
         type="number"
-        step="any"
+        step={step}
         min={min}
         max={max}
         value={value}
         onChange={(e) => {
           const raw = e.target.value
-          if (raw === '' || (Number(raw) >= (min ?? 0) && Number(raw) <= (max ?? Infinity))) {
+          if (raw === '') {
+            onChange(raw)
+            return
+          }
+          if (maxDecimals != null) {
+            const dotIndex = raw.indexOf('.')
+            if (dotIndex !== -1 && raw.length - dotIndex - 1 > maxDecimals) return
+          }
+          if (Number(raw) >= (min ?? 0) && Number(raw) <= (max ?? Infinity)) {
             onChange(raw)
           }
         }}

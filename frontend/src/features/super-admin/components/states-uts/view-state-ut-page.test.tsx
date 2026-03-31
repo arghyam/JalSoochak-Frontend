@@ -78,6 +78,15 @@ describe('ViewStateUTPage', () => {
     expect(screen.getByText(/active/i)).toBeTruthy()
   })
 
+  it('renders SUSPENDED status chip for suspended tenant', () => {
+    mockUseStatesUTsQuery.mockReturnValue({
+      data: [{ ...mockTenant, status: 'SUSPENDED' }],
+      isLoading: false,
+    })
+    renderWithProviders(<ViewStateUTPage />)
+    expect(screen.getByText(/suspended/i)).toBeTruthy()
+  })
+
   it('renders admin firstName and email', () => {
     renderWithProviders(<ViewStateUTPage />)
     expect(screen.getByText('Raj')).toBeTruthy()
@@ -94,6 +103,6 @@ describe('ViewStateUTPage', () => {
     renderWithProviders(<ViewStateUTPage />)
     const editBtn = screen.getByRole('button', { name: /edit/i })
     fireEvent.click(editBtn)
-    expect(mockNavigate).toHaveBeenCalledWith('/super-admin/states-uts/MH/edit')
+    expect(mockNavigate).toHaveBeenCalledWith('/super-user/states-uts/MH/edit')
   })
 })

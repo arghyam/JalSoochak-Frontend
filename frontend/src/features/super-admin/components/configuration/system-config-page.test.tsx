@@ -5,7 +5,7 @@ import { renderWithProviders } from '@/test/render-with-providers'
 import type { SystemConfiguration } from '../../types/system-config'
 
 const mockConfig: SystemConfiguration = {
-  supportedChannels: ['BFM', 'MAN'],
+  supportedChannels: ['Bulk Flow Meter', 'Manual'],
   oversupplyThreshold: 100,
   undersupplyThreshold: 80,
   bfmImageConfidenceThreshold: 89,
@@ -57,7 +57,7 @@ describe('SystemConfigPage', () => {
   it('renders view mode with config data', () => {
     renderWithProviders(<SystemConfigPage />)
     expect(screen.getByText('Configuration')).toBeTruthy()
-    expect(screen.getByText('BFM, MAN')).toBeTruthy()
+    expect(screen.getByText('Bulk Flow Meter, Manual')).toBeTruthy()
     expect(screen.getByText('100')).toBeTruthy()
     expect(screen.getByText('89')).toBeTruthy()
     expect(screen.getByText('78')).toBeTruthy()
@@ -89,8 +89,8 @@ describe('SystemConfigPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
 
     // Uncheck all selected channels
-    const bfmCheckbox = screen.getByRole('checkbox', { name: /BFM/i })
-    const manCheckbox = screen.getByRole('checkbox', { name: /MAN/i })
+    const bfmCheckbox = screen.getByRole('checkbox', { name: /bulk flow meter/i })
+    const manCheckbox = screen.getByRole('checkbox', { name: /manual/i })
     fireEvent.click(bfmCheckbox)
     fireEvent.click(manCheckbox)
 
@@ -119,6 +119,46 @@ describe('SystemConfigPage', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /edit configuration/i })).toBeTruthy()
     })
+  })
+
+  it('rejects location affinity values above 1000', () => {
+    renderWithProviders(<SystemConfigPage />)
+    fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
+    const input = screen.getByRole('spinbutton', { name: /location affinity threshold/i })
+    fireEvent.change(input, { target: { value: '1500' } })
+    expect((input as HTMLInputElement).value).toBe('78')
+  })
+
+  it('accepts location affinity value at upper limit of 1000', () => {
+    renderWithProviders(<SystemConfigPage />)
+    fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
+    const input = screen.getByRole('spinbutton', { name: /location affinity threshold/i })
+    fireEvent.change(input, { target: { value: '1000' } })
+    expect((input as HTMLInputElement).value).toBe('1000')
+  })
+
+  it('rejects more than 4 decimal places on undersupply threshold', () => {
+    renderWithProviders(<SystemConfigPage />)
+    fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
+    const input = screen.getByRole('spinbutton', { name: /undersupply threshold/i })
+    fireEvent.change(input, { target: { value: '10.12345' } })
+    expect((input as HTMLInputElement).value).toBe('80')
+  })
+
+  it('accepts up to 4 decimal places on undersupply threshold', () => {
+    renderWithProviders(<SystemConfigPage />)
+    fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
+    const input = screen.getByRole('spinbutton', { name: /undersupply threshold/i })
+    fireEvent.change(input, { target: { value: '10.1234' } })
+    expect((input as HTMLInputElement).value).toBe('10.1234')
+  })
+
+  it('rejects more than 4 decimal places on BFM confidence threshold', () => {
+    renderWithProviders(<SystemConfigPage />)
+    fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
+    const input = screen.getByRole('spinbutton', { name: /bfm image confidence threshold/i })
+    fireEvent.change(input, { target: { value: '50.99999' } })
+    expect((input as HTMLInputElement).value).toBe('89')
   })
 
   it('shows error toast when save mutation fails', async () => {

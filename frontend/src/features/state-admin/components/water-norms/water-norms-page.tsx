@@ -1,18 +1,39 @@
-import { useState, useEffect } from 'react'
-import { Box, Text, Button, Flex, HStack, Input, Heading, SimpleGrid } from '@chakra-ui/react'
+import { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+import {
+  Box,
+  Text,
+  Button,
+  Flex,
+  HStack,
+  Input,
+  Heading,
+  SimpleGrid,
+  FormControl,
+  FormErrorMessage,
+} from '@chakra-ui/react'
 import { EditIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import type { DistrictOverride } from '../../types/water-norms'
 import { WaterNormsAlertThresholds } from './water-norms-alert-thresholds'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer, PageLoadingState, PageErrorState } from '@/shared/components/common'
+import {
+  ToastContainer,
+  PageLoadingState,
+  PageErrorState,
+  EditableBreadcrumb,
+} from '@/shared/components/common'
+import { ROUTES } from '@/shared/constants/routes'
 import {
   useSaveWaterNormsConfigurationMutation,
   useWaterNormsConfigurationQuery,
 } from '../../services/query/use-state-admin-queries'
 
+const MAX_WATER_QUANTITY = 1000
+
 export function WaterNormsPage() {
   const { t } = useTranslation(['state-admin', 'common'])
+  const navigate = useNavigate()
   const { data: config, isLoading, isError } = useWaterNormsConfigurationQuery()
   const saveWaterNormsMutation = useSaveWaterNormsConfigurationMutation()
   const [isEditing, setIsEditing] = useState(false)
@@ -23,6 +44,16 @@ export function WaterNormsPage() {
     null
   )
   const toast = useToast()
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const clearError = (field: string) => {
+    setErrors((prev) => {
+      if (!prev[field]) return prev
+      const next = { ...prev }
+      delete next[field]
+      return next
+    })
+  }
 
   useEffect(() => {
     document.title = `${t('waterNorms.title')} | JalSoochak`
@@ -39,6 +70,17 @@ export function WaterNormsPage() {
     (config?.undersupplyThreshold != null ? String(config.undersupplyThreshold) : '')
   const districtOverrides = districtOverridesDraft ?? config?.districtOverrides ?? []
 
+  const hasChanges = useMemo(
+    () =>
+      Boolean(config?.isConfigured) &&
+      (stateQuantity !== String(config?.stateQuantity) ||
+        oversupplyThreshold !== String(config?.oversupplyThreshold) ||
+        undersupplyThreshold !== String(config?.undersupplyThreshold) ||
+        (districtOverridesDraft !== null &&
+          JSON.stringify(districtOverridesDraft) !== JSON.stringify(config?.districtOverrides))),
+    [stateQuantity, oversupplyThreshold, undersupplyThreshold, districtOverridesDraft, config]
+  )
+
   const handleEdit = () => {
     setIsEditing(true)
   }
@@ -49,49 +91,75 @@ export function WaterNormsPage() {
     setUndersupplyThresholdDraft(null)
     setDistrictOverridesDraft(null)
     setIsEditing(false)
+    setErrors({})
   }
 
-  const handleSave = async () => {
-    if (!stateQuantity) {
-      toast.addToast(t('waterNorms.messages.quantityRequired'), 'error')
-      return
-    }
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {}
 
     const quantity = Number(stateQuantity)
-    if (isNaN(quantity) || quantity <= 0) {
-      toast.addToast(t('waterNorms.messages.invalidQuantity'), 'error')
-      return
+    if (!stateQuantity || Number.isNaN(quantity) || quantity <= 0) {
+      newErrors.stateQuantity = t('state-admin:validation.mustBePositive')
+    } else if (quantity > MAX_WATER_QUANTITY) {
+      newErrors.stateQuantity = t('state-admin:validation.mustBeInRange', {
+        min: 1,
+        max: MAX_WATER_QUANTITY,
+      })
     }
 
     const oversupply = Number(oversupplyThreshold)
+    if (!oversupplyThreshold || Number.isNaN(oversupply) || oversupply < 0 || oversupply > 1000) {
+      newErrors.oversupplyThreshold = t('state-admin:validation.mustBeInRange', {
+        min: 0,
+        max: 1000,
+      })
+    }
+
     const undersupply = Number(undersupplyThreshold)
     if (
-      !oversupplyThreshold ||
       !undersupplyThreshold ||
-      isNaN(oversupply) ||
-      isNaN(undersupply) ||
-      oversupply < 0 ||
-      oversupply > 1000 ||
+      Number.isNaN(undersupply) ||
       undersupply < 0 ||
       undersupply > 100
     ) {
-      toast.addToast(t('waterNorms.messages.invalidAlertThresholds'), 'error')
-      return
+      newErrors.undersupplyThreshold = t('state-admin:validation.mustBeInRange', {
+        min: 0,
+        max: 100,
+      })
     }
 
     // Validate district overrides
-    for (const override of districtOverrides) {
-      if (!override.districtName || override.quantity <= 0) {
-        toast.addToast(t('waterNorms.messages.invalidOverrides'), 'error')
-        return
+    const seenDistricts = new Set<string>()
+    districtOverrides.forEach((override, i) => {
+      if (!override.districtName) {
+        newErrors[`override.${i}.districtName`] = t('state-admin:validation.required')
+      } else if (seenDistricts.has(override.districtName)) {
+        newErrors[`override.${i}.districtName`] = t('state-admin:validation.duplicateDistrict')
+      } else {
+        seenDistricts.add(override.districtName)
       }
-    }
+      if (override.quantity <= 0) {
+        newErrors[`override.${i}.quantity`] = t('state-admin:validation.mustBePositive')
+      } else if (override.quantity > MAX_WATER_QUANTITY) {
+        newErrors[`override.${i}.quantity`] = t('state-admin:validation.mustBeInRange', {
+          min: 1,
+          max: MAX_WATER_QUANTITY,
+        })
+      }
+    })
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleSave = async (andNavigate = false) => {
+    if (!validateForm()) return
 
     try {
       await saveWaterNormsMutation.mutateAsync({
-        stateQuantity: quantity,
-        oversupplyThreshold: oversupply,
-        undersupplyThreshold: undersupply,
+        stateQuantity: Number(stateQuantity),
+        oversupplyThreshold: Number(oversupplyThreshold),
+        undersupplyThreshold: Number(undersupplyThreshold),
         districtOverrides,
         isConfigured: true,
       })
@@ -100,7 +168,9 @@ export function WaterNormsPage() {
       setUndersupplyThresholdDraft(null)
       setDistrictOverridesDraft(null)
       setIsEditing(false)
+      setErrors({})
       toast.addToast(t('common:toast.changesSavedShort'), 'success')
+      if (andNavigate) navigate(ROUTES.STATE_ADMIN_INTEGRATION)
     } catch (error) {
       console.error('Failed to save water norms configuration:', error)
       toast.addToast(t('common:toast.failedToSave'), 'error')
@@ -133,9 +203,21 @@ export function WaterNormsPage() {
     <Box w="full">
       {/* Page Header */}
       <Box mb={5}>
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+        <Heading
+          as="h1"
+          size={{ base: 'h2', md: 'h1' }}
+          mb={effectiveIsEditing && config?.isConfigured ? 2 : 0}
+        >
           {t('waterNorms.title')}
         </Heading>
+        {config?.isConfigured && (
+          <EditableBreadcrumb
+            isEditing={effectiveIsEditing}
+            onCancel={handleCancel}
+            viewLabel={t('waterNorms.breadcrumb.view')}
+            editLabel={t('waterNorms.breadcrumb.edit')}
+          />
+        )}
       </Box>
 
       {/* Water Norms Configuration Card */}
@@ -240,7 +322,7 @@ export function WaterNormsPage() {
             >
               <Box>
                 {/* State Quantity Input */}
-                <Box mb={6}>
+                <FormControl isInvalid={!!errors.stateQuantity} mb={6}>
                   <Text
                     as="label"
                     htmlFor="state-quantity"
@@ -259,7 +341,10 @@ export function WaterNormsPage() {
                     id="state-quantity"
                     placeholder={t('common:enter')}
                     value={stateQuantity}
-                    onChange={(e) => setStateQuantityDraft(e.target.value)}
+                    onChange={(e) => {
+                      setStateQuantityDraft(e.target.value)
+                      clearError('stateQuantity')
+                    }}
                     type="number"
                     w={{ base: 'full', lg: '319px', xl: '486px' }}
                     h="36px"
@@ -270,14 +355,22 @@ export function WaterNormsPage() {
                     _hover={{ borderColor: 'neutral.400' }}
                     _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
                   />
-                </Box>
+                  <FormErrorMessage>{errors.stateQuantity}</FormErrorMessage>
+                </FormControl>
 
                 {/* Alert Thresholds */}
                 <WaterNormsAlertThresholds
                   oversupplyThreshold={oversupplyThreshold}
                   undersupplyThreshold={undersupplyThreshold}
-                  onOversupplyThresholdChange={(v) => setOversupplyThresholdDraft(v)}
-                  onUndersupplyThresholdChange={(v) => setUndersupplyThresholdDraft(v)}
+                  onOversupplyThresholdChange={(v) => {
+                    setOversupplyThresholdDraft(v)
+                    clearError('oversupplyThreshold')
+                  }}
+                  onUndersupplyThresholdChange={(v) => {
+                    setUndersupplyThresholdDraft(v)
+                    clearError('undersupplyThreshold')
+                  }}
+                  errors={errors}
                 />
               </Box>
 
@@ -301,11 +394,15 @@ export function WaterNormsPage() {
                   variant="primary"
                   size="md"
                   width={{ base: 'full', sm: '174px' }}
-                  onClick={handleSave}
+                  onClick={() => handleSave(!config?.isConfigured)}
                   isLoading={saveWaterNormsMutation.isPending}
-                  isDisabled={!stateQuantity || !oversupplyThreshold || !undersupplyThreshold}
+                  isDisabled={
+                    (!!config?.isConfigured && !hasChanges) || saveWaterNormsMutation.isPending
+                  }
                 >
-                  {config?.isConfigured ? t('common:button.saveChanges') : t('common:button.save')}
+                  {config?.isConfigured
+                    ? t('common:button.saveChanges')
+                    : t('common:button.saveAndNext')}
                 </Button>
               </HStack>
             </Flex>

@@ -1,6 +1,37 @@
 import { apiClient } from '@/shared/lib/axios'
 import { isAxiosError } from 'axios'
-import type { DashboardData, DashboardLevel } from '../../types'
+import type {
+  AverageSchemeRegularityQueryParams,
+  AverageSchemeRegularityResponse,
+  NationalSchemeRegularityPeriodicQueryParams,
+  NationalSchemeRegularityPeriodicResponse,
+  NationalDashboardQueryParams,
+  NationalDashboardResponse,
+  AverageWaterSupplyPerRegionQueryParams,
+  AverageWaterSupplyPerRegionResponse,
+  DashboardData,
+  DashboardLevel,
+  OutageReasonsQueryParams,
+  OutageReasonsPeriodicQueryParams,
+  OutageReasonsPeriodicResponse,
+  OutageReasonsResponse,
+  ReadingComplianceQueryParams,
+  ReadingComplianceResponse,
+  PumpOperatorDetailsQueryParams,
+  PumpOperatorDetailsResponse,
+  PumpOperatorsBySchemeQueryParams,
+  PumpOperatorsBySchemeResponse,
+  ReadingSubmissionRateQueryParams,
+  ReadingSubmissionRateResponse,
+  SchemeRegularityPeriodicQueryParams,
+  SchemeRegularityPeriodicResponse,
+  SchemePerformanceQueryParams,
+  SchemePerformanceResponse,
+  SubmissionStatusQueryParams,
+  SubmissionStatusResponse,
+  WaterQuantityPeriodicQueryParams,
+  WaterQuantityPeriodicResponse,
+} from '../../types'
 import { dashboardMockService } from '../mock/dashboard-mock'
 
 export interface DashboardQueryParams {
@@ -31,6 +62,22 @@ export type TenantListResponse = {
 
 const TENANTS_PAGE_SIZE = 10
 const TENANTS_MAX_PAGES = 1000
+
+type RawPumpOperatorDetailsResponse = Omit<PumpOperatorDetailsResponse, 'data'> & {
+  data: Omit<PumpOperatorDetailsResponse['data'], 'missedSubmissionDays'> & {
+    missedSubmissionDays: number | string[] | null
+  }
+}
+
+const normalizeMissedSubmissionDays = (
+  value: RawPumpOperatorDetailsResponse['data']['missedSubmissionDays']
+) => {
+  if (Array.isArray(value)) {
+    return value.length
+  }
+
+  return typeof value === 'number' ? value : null
+}
 
 const toTenantListContainer = (value: unknown): TenantListContainer | null => {
   if (!value || typeof value !== 'object') {
@@ -177,6 +224,35 @@ type DashboardDataProvider = {
   getDashboardData: (params: DashboardQueryParams) => Promise<DashboardData>
 }
 
+const isDashboardDataPayload = (value: unknown): value is DashboardData => {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const candidate = value as Partial<DashboardData>
+  const kpis = candidate.kpis as Partial<DashboardData['kpis']> | undefined
+  const hasValidKpis =
+    !!kpis &&
+    typeof kpis === 'object' &&
+    Number.isFinite(kpis.totalSchemes) &&
+    Number.isFinite(kpis.totalRuralHouseholds) &&
+    Number.isFinite(kpis.functionalTapConnections)
+
+  return (
+    hasValidKpis &&
+    Array.isArray(candidate.mapData) &&
+    Array.isArray(candidate.demandSupply) &&
+    Array.isArray(candidate.readingSubmissionStatus) &&
+    Array.isArray(candidate.readingCompliance) &&
+    Array.isArray(candidate.pumpOperators) &&
+    Array.isArray(candidate.waterSupplyOutages) &&
+    Array.isArray(candidate.topPerformers) &&
+    Array.isArray(candidate.worstPerformers) &&
+    Array.isArray(candidate.regularityData) &&
+    Array.isArray(candidate.continuityData)
+  )
+}
+
 const ensureValidParams = ({ level, entityId }: DashboardQueryParams): void => {
   if (level !== 'central' && !entityId) {
     throw new Error(`entityId is required for dashboard level: ${level}`)
@@ -200,13 +276,278 @@ const mockProvider: DashboardDataProvider = {
   },
 }
 
-const DASHBOARD_PROVIDER = import.meta.env.VITE_DASHBOARD_DATA_PROVIDER ?? 'mock'
+const httpWithMockFallbackProvider: DashboardDataProvider = {
+  getDashboardData: async (params) => {
+    try {
+      const response = await httpProvider.getDashboardData(params)
+      if (isDashboardDataPayload(response)) {
+        return response
+      }
+    } catch (error) {
+      console.warn('Dashboard API failed, falling back to mock data.', error)
+    }
 
-const provider: DashboardDataProvider = DASHBOARD_PROVIDER === 'http' ? httpProvider : mockProvider
+    return mockProvider.getDashboardData(params)
+  },
+}
+
+const DASHBOARD_PROVIDER = import.meta.env.VITE_DASHBOARD_DATA_PROVIDER ?? 'http-first'
+
+const provider: DashboardDataProvider =
+  DASHBOARD_PROVIDER === 'mock'
+    ? mockProvider
+    : DASHBOARD_PROVIDER === 'http'
+      ? httpProvider
+      : httpWithMockFallbackProvider
 
 export const dashboardApi = {
-  getDashboardData: (params: DashboardQueryParams): Promise<DashboardData> => {
-    return provider.getDashboardData(params)
+  getDashboardData: (params: DashboardQueryParams): Promise<DashboardData> =>
+    provider.getDashboardData(params),
+  getNationalDashboard: async (
+    params: NationalDashboardQueryParams
+  ): Promise<NationalDashboardResponse> => {
+    const response = await apiClient.get<NationalDashboardResponse>(
+      '/api/v1/analytics/national/dashboard',
+      {
+        params: {
+          start_date: params.startDate,
+          end_date: params.endDate,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getAverageWaterSupplyPerRegion: async (
+    params: AverageWaterSupplyPerRegionQueryParams
+  ): Promise<AverageWaterSupplyPerRegionResponse> => {
+    const response = await apiClient.get<AverageWaterSupplyPerRegionResponse>(
+      '/api/v1/analytics/water-supply/average-per-region',
+      {
+        params: {
+          tenant_id: params.tenantId,
+          parent_lgd_id: params.parentLgdId,
+          parent_department_id: params.parentDepartmentId,
+          scope: params.scope ?? 'child',
+          start_date: params.startDate,
+          end_date: params.endDate,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getWaterQuantityPeriodic: async (
+    params: WaterQuantityPeriodicQueryParams
+  ): Promise<WaterQuantityPeriodicResponse> => {
+    const response = await apiClient.get<WaterQuantityPeriodicResponse>(
+      '/api/v1/analytics/water-quantity/periodic',
+      {
+        params: {
+          start_date: params.startDate,
+          end_date: params.endDate,
+          scale: params.scale,
+          lgd_id: params.lgdId,
+          department_id: params.departmentId,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getAverageSchemeRegularity: async (
+    params: AverageSchemeRegularityQueryParams
+  ): Promise<AverageSchemeRegularityResponse> => {
+    const response = await apiClient.get<AverageSchemeRegularityResponse>(
+      '/api/v1/analytics/scheme-regularity/average',
+      {
+        params: {
+          parent_lgd_id: params.parentLgdId,
+          parent_department_id: params.parentDepartmentId,
+          scope: params.scope ?? 'child',
+          start_date: params.startDate,
+          end_date: params.endDate,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getSchemeRegularityPeriodic: async (
+    params: SchemeRegularityPeriodicQueryParams
+  ): Promise<SchemeRegularityPeriodicResponse> => {
+    const response = await apiClient.get<SchemeRegularityPeriodicResponse>(
+      '/api/v1/analytics/scheme-regularity/periodic',
+      {
+        params: {
+          start_date: params.startDate,
+          end_date: params.endDate,
+          scale: params.scale,
+          lgd_id: params.lgdId,
+          department_id: params.departmentId,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getNationalSchemeRegularityPeriodic: async (
+    params: NationalSchemeRegularityPeriodicQueryParams
+  ): Promise<NationalSchemeRegularityPeriodicResponse> => {
+    const response = await apiClient.get<NationalSchemeRegularityPeriodicResponse>(
+      '/api/v1/analytics/scheme-regularity/periodic/national',
+      {
+        params: {
+          start_date: params.startDate,
+          end_date: params.endDate,
+          scale: params.scale,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getReadingSubmissionRate: async (
+    params: ReadingSubmissionRateQueryParams
+  ): Promise<ReadingSubmissionRateResponse> => {
+    const response = await apiClient.get<ReadingSubmissionRateResponse>(
+      '/api/v1/analytics/reading-submission-rate',
+      {
+        params: {
+          parent_lgd_id: params.parentLgdId,
+          parent_department_id: params.parentDepartmentId,
+          scope: params.scope ?? 'child',
+          start_date: params.startDate,
+          end_date: params.endDate,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getSchemePerformance: async (
+    params: SchemePerformanceQueryParams
+  ): Promise<SchemePerformanceResponse> => {
+    const response = await apiClient.get<SchemePerformanceResponse>(
+      '/api/v1/analytics/schemes/dashboard',
+      {
+        params: {
+          parent_lgd_id: params.parentLgdId,
+          parent_department_id: params.parentDepartmentId,
+          start_date: params.startDate,
+          end_date: params.endDate,
+          scheme_count: params.schemeCount ?? 10,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getPumpOperatorDetails: async (
+    params: PumpOperatorDetailsQueryParams
+  ): Promise<PumpOperatorDetailsResponse> => {
+    const response = await apiClient.get<RawPumpOperatorDetailsResponse>(
+      `/api/v1/pumpoperator/pump-operators/${params.pumpOperatorId}`,
+      {
+        params: {
+          tenantCode: params.tenant_code,
+        },
+      }
+    )
+
+    return {
+      ...response.data,
+      data: {
+        ...response.data.data,
+        missedSubmissionDays: normalizeMissedSubmissionDays(
+          response.data.data.missedSubmissionDays
+        ),
+      },
+    }
+  },
+  getPumpOperatorsByScheme: async (
+    params: PumpOperatorsBySchemeQueryParams
+  ): Promise<PumpOperatorsBySchemeResponse> => {
+    const response = await apiClient.get<PumpOperatorsBySchemeResponse>(
+      '/api/v1/pumpoperator/pump-operators/by-scheme',
+      {
+        params: {
+          tenantCode: params.tenant_code,
+          schemeId: params.scheme_id,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getReadingCompliance: async (
+    params: ReadingComplianceQueryParams
+  ): Promise<ReadingComplianceResponse> => {
+    const response = await apiClient.get<ReadingComplianceResponse>(
+      params.scheme_id != null
+        ? '/api/v1/pumpoperator/pump-operators/by-scheme/reading-compliance'
+        : '/api/v1/pumpoperator/pump-operators/reading-compliance',
+      {
+        params: {
+          tenantCode: params.tenant_code,
+          schemeId: params.scheme_id,
+          page: params.page ?? 0,
+          size: params.size ?? 50,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getSubmissionStatus: async (
+    params: SubmissionStatusQueryParams
+  ): Promise<SubmissionStatusResponse> => {
+    const response = await apiClient.get<SubmissionStatusResponse>(
+      '/api/v1/analytics/submission-status',
+      {
+        params: {
+          start_date: params.startDate,
+          end_date: params.endDate,
+          lgd_id: params.lgdId,
+          department_id: params.departmentId,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getOutageReasons: async (params: OutageReasonsQueryParams): Promise<OutageReasonsResponse> => {
+    const response = await apiClient.get<OutageReasonsResponse>(
+      '/api/v1/analytics/outage-reasons',
+      {
+        params: {
+          start_date: params.startDate,
+          end_date: params.endDate,
+          parent_lgd_id: params.parentLgdId,
+          parent_department_id: params.parentDepartmentId,
+        },
+      }
+    )
+
+    return response.data
+  },
+  getOutageReasonsPeriodic: async (
+    params: OutageReasonsPeriodicQueryParams
+  ): Promise<OutageReasonsPeriodicResponse> => {
+    const response = await apiClient.get<OutageReasonsPeriodicResponse>(
+      '/api/v1/analytics/outage-reasons/periodic',
+      {
+        params: {
+          start_date: params.startDate,
+          end_date: params.endDate,
+          scale: params.scale,
+          lgd_id: params.lgdId,
+          department_id: params.departmentId,
+        },
+      }
+    )
+
+    return response.data
   },
   getTenants: async (): Promise<TenantListResponse> => {
     const tenants: TenantListItem[] = []

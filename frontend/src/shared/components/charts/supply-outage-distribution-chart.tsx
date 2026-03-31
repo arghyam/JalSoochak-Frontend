@@ -3,11 +3,13 @@ import { Box, useBreakpointValue, useTheme } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
+import { formatAxisLabel } from './axis-label-format'
 import { getBodyText7Style } from './chart-text-style'
 
 export interface WaterSupplyOutageData {
   /** Label shown on the X-axis (state, district, block, sub-division, village, etc.) */
   label: string
+  reasons?: Record<string, number>
   electricityFailure: number
   pipelineLeak: number
   pumpFailure: number
@@ -22,12 +24,57 @@ interface SupplyOutageDistributionChartProps {
   xAxisLabel?: string
 }
 
-const outageColors = {
-  electricityFailure: '#D6E9F6',
-  pipelineLeak: '#ADD3ED',
-  pumpFailure: '#84BDE3',
-  valveIssue: '#3291D1',
-  sourceDrying: '#1E577D',
+const outageColors = ['#D6E9F6', '#ADD3ED', '#84BDE3', '#3291D1', '#1E577D', '#6BAED6', '#9ECAE1']
+const legacyOutageReasonKeys = [
+  'electricityFailure',
+  'pipelineLeak',
+  'pumpFailure',
+  'valveIssue',
+  'sourceDrying',
+] as const
+const outageReasonTranslationKeys: Record<string, string> = {
+  electricityFailure: 'outageAndSubmissionCharts.legend.electricalFailure',
+  pipelineLeak: 'outageAndSubmissionCharts.legend.pipelineBreak',
+  pumpFailure: 'outageAndSubmissionCharts.legend.pumpFailure',
+  valveIssue: 'outageAndSubmissionCharts.legend.valveIssue',
+  sourceDrying: 'outageAndSubmissionCharts.legend.sourceDrying',
+}
+
+const toTitleCase = (value: string) =>
+  value
+    .replace(/[_-]+/g, ' ')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (character) => character.toUpperCase())
+
+const getOutageReasonLabel = (
+  reasonKey: string,
+  t: (key: string, options?: { defaultValue?: string }) => string
+) => {
+  const translationKey = outageReasonTranslationKeys[reasonKey]
+  if (translationKey) {
+    return t(translationKey, { defaultValue: toTitleCase(reasonKey) })
+  }
+
+  return toTitleCase(reasonKey)
+}
+
+const getLegacyOutageReasonValue = (entry: WaterSupplyOutageData, reasonKey: string) => {
+  switch (reasonKey) {
+    case 'electricityFailure':
+      return entry.electricityFailure
+    case 'pipelineLeak':
+      return entry.pipelineLeak
+    case 'pumpFailure':
+      return entry.pumpFailure
+    case 'valveIssue':
+      return entry.valveIssue
+    case 'sourceDrying':
+      return entry.sourceDrying
+    default:
+      return 0
+  }
 }
 
 export function SupplyOutageDistributionChart({
@@ -50,37 +97,65 @@ export function SupplyOutageDistributionChart({
   const dragStartLeft = useRef(0)
   const thumbLeftRef = useRef(0)
   const [containerWidth, setContainerWidth] = useState(0)
-  const legendLabels = useMemo(
-    () => ({
-      electricalFailure: t('outageAndSubmissionCharts.legend.electricalFailure', {
-        defaultValue: 'Electrical failure',
-      }),
-      pipelineBreak: t('outageAndSubmissionCharts.legend.pipelineBreak', {
-        defaultValue: 'Pipeline break',
-      }),
-      pumpFailure: t('outageAndSubmissionCharts.legend.pumpFailure', {
-        defaultValue: 'Pump failure',
-      }),
-      valveIssue: t('outageAndSubmissionCharts.legend.valveIssue', {
-        defaultValue: 'Valve issue',
-      }),
-      sourceDrying: t('outageAndSubmissionCharts.legend.sourceDrying', {
-        defaultValue: 'Source Drying',
-      }),
-    }),
-    [t]
-  )
 
   const itemWidth = barWidth + 24
+  const chartItems = useMemo(() => {
+    const reasonKeys = new Set<string>()
+
+    data.forEach((entry) => {
+      if (entry.reasons && Object.keys(entry.reasons).length > 0) {
+        Object.keys(entry.reasons ?? {}).forEach((reasonKey) => reasonKeys.add(reasonKey))
+        return
+      }
+
+      legacyOutageReasonKeys.forEach((reasonKey) => reasonKeys.add(reasonKey))
+    })
+
+    return Array.from(reasonKeys)
+      .sort((left, right) => left.localeCompare(right))
+      .map((reasonKey, index) => ({
+        key: reasonKey,
+        label: getOutageReasonLabel(reasonKey, t),
+        color: outageColors[index % outageColors.length],
+        data: data.length
+          ? data.map((entry) => {
+              if (entry.reasons && Object.keys(entry.reasons).length > 0) {
+                const rawValue = entry.reasons?.[reasonKey]
+                if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
+                  return rawValue
+                }
+              }
+
+              return getLegacyOutageReasonValue(entry, reasonKey)
+            })
+          : [0],
+      }))
+  }, [data, t])
+
+  const isEmpty = data.length === 0
+  const categories = useMemo(
+    () => (isEmpty ? [''] : data.map((entry) => entry.label)),
+    [data, isEmpty]
+  )
+  const stackedValues = useMemo(
+    () =>
+      categories.map((_, categoryIndex) =>
+        chartItems.reduce((sum, item) => sum + (item.data[categoryIndex] ?? 0), 0)
+      ),
+    [categories, chartItems]
+  )
+  const yAxisMax = useMemo(
+    () => (isEmpty ? 100 : Math.max(100, ...stackedValues)),
+    [isEmpty, stackedValues]
+  )
+  const yAxisInterval = useMemo(() => Math.max(1, Math.ceil(yAxisMax / 25)) * 5, [yAxisMax])
+  const alignedYAxisMax = useMemo(
+    () => Math.ceil(yAxisMax / yAxisInterval) * yAxisInterval,
+    [yAxisInterval, yAxisMax]
+  )
 
   const option = useMemo<echarts.EChartsOption>(() => {
-    const isEmpty = data.length === 0
-    const categories = isEmpty ? [''] : data.map((entry) => entry.label)
-    const sourceDryingData = isEmpty ? [0] : data.map((entry) => entry.sourceDrying)
-    const valveIssueData = isEmpty ? [0] : data.map((entry) => entry.valveIssue)
-    const pumpFailureData = isEmpty ? [0] : data.map((entry) => entry.pumpFailure)
-    const pipelineLeakData = isEmpty ? [0] : data.map((entry) => entry.pipelineLeak)
-    const electricityFailureData = isEmpty ? [0] : data.map((entry) => entry.electricityFailure)
+    const seriesCount = chartItems.length
 
     return {
       tooltip: {
@@ -89,13 +164,18 @@ export function SupplyOutageDistributionChart({
         formatter: (params: unknown) => {
           const point = params as {
             name?: string
+            dataIndex?: number
             seriesName?: string
             value?: number | string
           }
           const rawValue =
             typeof point.value === 'number' ? point.value : Number(point.value ?? Number.NaN)
           const formattedValue = Number.isFinite(rawValue) ? rawValue.toFixed(1) : '-'
-          const safeName = echarts.format.encodeHTML(point.name ?? '')
+          const label =
+            typeof point.dataIndex === 'number'
+              ? (data[point.dataIndex]?.label ?? '')
+              : (point.name ?? '')
+          const safeName = echarts.format.encodeHTML(label)
           const safeSeriesName = echarts.format.encodeHTML(point.seriesName ?? '')
 
           return `<strong>${safeName}</strong><br/>${safeSeriesName}: ${formattedValue}`
@@ -125,6 +205,7 @@ export function SupplyOutageDistributionChart({
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
+          formatter: (value: string) => formatAxisLabel(value),
           color: bodyText7.color || '#374151',
           overflow: 'none',
         },
@@ -154,102 +235,57 @@ export function SupplyOutageDistributionChart({
           show: false,
         },
         position: 'right',
-        max: 100,
-        interval: 25,
+        max: alignedYAxisMax,
+        interval: yAxisInterval,
         splitLine: {
           lineStyle: {
             color: '#E4E4E7',
           },
         },
       },
-      series: [
-        {
-          name: legendLabels.sourceDrying,
+      series: chartItems.map((item, index) => {
+        const isTop = index === seriesCount - 1
+        const isBottom = index === 0
+        const borderRadius: [number, number, number, number] =
+          isTop && isBottom
+            ? [barRadius, barRadius, barRadius, barRadius]
+            : isTop
+              ? [barRadius, barRadius, 0, 0]
+              : isBottom
+                ? [0, 0, barRadius, barRadius]
+                : [0, 0, 0, 0]
+
+        return {
+          name: item.label,
           type: 'bar',
           stack: 'outages',
-          data: sourceDryingData,
+          data: item.data,
           barWidth,
           barCategoryGap,
           itemStyle: {
-            color: outageColors.sourceDrying,
-            borderRadius: [0, 0, barRadius, barRadius],
+            color: item.color,
+            borderRadius,
           },
           emphasis: {
             itemStyle: {
-              color: outageColors.sourceDrying,
-              borderRadius: [0, 0, barRadius, barRadius],
+              color: item.color,
+              borderRadius,
             },
           },
-        },
-        {
-          name: legendLabels.valveIssue,
-          type: 'bar',
-          stack: 'outages',
-          data: valveIssueData,
-          barWidth,
-          barCategoryGap,
-          itemStyle: {
-            color: outageColors.valveIssue,
-          },
-          emphasis: {
-            itemStyle: {
-              color: outageColors.valveIssue,
-            },
-          },
-        },
-        {
-          name: legendLabels.pumpFailure,
-          type: 'bar',
-          stack: 'outages',
-          data: pumpFailureData,
-          barWidth,
-          barCategoryGap,
-          itemStyle: {
-            color: outageColors.pumpFailure,
-          },
-          emphasis: {
-            itemStyle: {
-              color: outageColors.pumpFailure,
-            },
-          },
-        },
-        {
-          name: legendLabels.pipelineBreak,
-          type: 'bar',
-          stack: 'outages',
-          data: pipelineLeakData,
-          barWidth,
-          barCategoryGap,
-          itemStyle: {
-            color: outageColors.pipelineLeak,
-          },
-          emphasis: {
-            itemStyle: {
-              color: outageColors.pipelineLeak,
-            },
-          },
-        },
-        {
-          name: legendLabels.electricalFailure,
-          type: 'bar',
-          stack: 'outages',
-          data: electricityFailureData,
-          barWidth,
-          barCategoryGap,
-          itemStyle: {
-            color: outageColors.electricityFailure,
-            borderRadius: [barRadius, barRadius, 0, 0],
-          },
-          emphasis: {
-            itemStyle: {
-              color: outageColors.electricityFailure,
-              borderRadius: [barRadius, barRadius, 0, 0],
-            },
-          },
-        },
-      ],
+        }
+      }),
     }
-  }, [barCategoryGap, barRadius, barWidth, bodyText7, data, legendLabels])
+  }, [
+    barCategoryGap,
+    barRadius,
+    barWidth,
+    bodyText7,
+    categories,
+    chartItems,
+    data,
+    alignedYAxisMax,
+    yAxisInterval,
+  ])
 
   const axisOption = useMemo<echarts.EChartsOption>(() => {
     return {
@@ -276,8 +312,11 @@ export function SupplyOutageDistributionChart({
           show: true,
           rotate: 45,
           margin: 8,
-          formatter: () => '',
-          // color: 'transparent',
+          fontSize: bodyText7.fontSize,
+          lineHeight: bodyText7.lineHeight,
+          fontWeight: 400,
+          formatter: (value: string) => formatAxisLabel(value),
+          color: 'transparent',
         },
       },
       yAxis: {
@@ -293,8 +332,8 @@ export function SupplyOutageDistributionChart({
         },
         position: 'right',
         min: 0,
-        max: 100,
-        interval: 25,
+        max: alignedYAxisMax,
+        interval: yAxisInterval,
         splitLine: {
           show: false,
         },
@@ -311,16 +350,14 @@ export function SupplyOutageDistributionChart({
       ],
       animation: false,
     }
-  }, [bodyText7])
+  }, [alignedYAxisMax, bodyText7, yAxisInterval])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
-  const legendItems = [
-    { label: legendLabels.electricalFailure, color: outageColors.electricityFailure },
-    { label: legendLabels.pipelineBreak, color: outageColors.pipelineLeak },
-    { label: legendLabels.pumpFailure, color: outageColors.pumpFailure },
-    { label: legendLabels.valveIssue, color: outageColors.valveIssue },
-    { label: legendLabels.sourceDrying, color: outageColors.sourceDrying },
-  ]
+  const legendItems = chartItems.map((item) => ({
+    key: item.key,
+    label: item.label,
+    color: item.color,
+  }))
   const categoryCount = Math.max(data.length, 1)
   const baseChartWidth = categoryCount * itemWidth
   const shouldScroll = containerWidth > 0 && baseChartWidth > containerWidth
@@ -474,7 +511,7 @@ export function SupplyOutageDistributionChart({
         }}
       >
         {legendItems.map((item) => (
-          <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div key={item.key} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <span
               aria-hidden="true"
               style={{

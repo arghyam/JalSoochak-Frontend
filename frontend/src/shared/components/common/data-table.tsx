@@ -26,12 +26,29 @@ export interface DataTableColumn<T> {
   header: string
   sortable?: boolean
   render?: (row: T) => React.ReactNode
+  /** Column width (e.g. '20%', '150px'). Required when tableLayout='fixed' is set on DataTable. */
+  width?: string
+  /** Minimum column width (e.g. '200px'). Applied to the Th element. */
+  minWidth?: string
 }
 
 export interface PaginationConfig {
+  /** Whether pagination UI & logic are enabled. */
   enabled: boolean
+  /** Initial or controlled page size. */
   pageSize?: number
+  /** Page size options for the selector. */
   pageSizeOptions?: number[]
+  /**
+   * When provided, the table operates in controlled/server-side mode:
+   * - `page`, `pageSize`, `totalItems`, `onPageChange`, `onPageSizeChange`
+   *   are used and data is assumed to already be paginated.
+   * - Sorting is still client-side on the provided page data.
+   */
+  page?: number
+  totalItems?: number
+  onPageChange?: (page: number) => void
+  onPageSizeChange?: (pageSize: number) => void
 }
 
 export interface DataTableProps<T> {
@@ -41,9 +58,37 @@ export interface DataTableProps<T> {
   emptyMessage?: string
   isLoading?: boolean
   pagination?: PaginationConfig
+  /**
+   * When 'fixed', the table uses CSS table-layout: fixed so column widths
+   * are respected and overflowing cell content is clipped with ellipsis.
+   * Defaults to 'auto'.
+   */
+  tableLayout?: 'auto' | 'fixed'
+  /**
+   * Minimum width for the entire table (e.g. '1000px'). When set, the
+   * overflowX container scrolls horizontally instead of squashing columns.
+   * Useful with tableLayout='fixed' to enforce per-column minimum widths.
+   */
+  tableMinWidth?: string
+  /**
+   * Server-side sort callback. When provided, client-side sorting is
+   * skipped and this function is called instead with the column key
+   * and the new direction (`'asc'`, `'desc'`, or `null` to clear).
+   */
+  onSort?: (columnKey: string, direction: SortDirection) => void
+  /**
+   * Controlled active sort column. When provided together with
+   * `sortDirection`, the header display (icon + aria-sort) is driven
+   * by these props instead of internal state.
+   */
+  sortColumn?: string
+  /**
+   * Controlled sort direction. See `sortColumn`.
+   */
+  sortDirection?: SortDirection
 }
 
-type SortDirection = 'asc' | 'desc' | null
+export type SortDirection = 'asc' | 'desc' | null
 
 export function DataTable<T extends object>({
   columns,
@@ -52,12 +97,33 @@ export function DataTable<T extends object>({
   emptyMessage,
   isLoading = false,
   pagination,
+  tableLayout = 'auto',
+  tableMinWidth,
+  onSort,
+  sortColumn: controlledSortColumn,
+  sortDirection: controlledSortDirection,
 }: DataTableProps<T>) {
+  const isFixedLayout = tableLayout === 'fixed'
   const { t } = useTranslation('common')
   const [sortColumn, setSortColumn] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>(null)
+  const isControlledPagination =
+    Boolean(pagination?.enabled) &&
+    typeof pagination?.page === 'number' &&
+    typeof pagination?.totalItems === 'number' &&
+    typeof pagination?.onPageChange === 'function'
+
+  const isPageSizeControlled =
+    isControlledPagination && typeof pagination?.onPageSizeChange === 'function'
+
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(pagination?.pageSize ?? 10)
+
+  const effectivePage = isControlledPagination ? Math.max(1, pagination?.page ?? 1) : currentPage
+
+  const effectiveItemsPerPage = isControlledPagination
+    ? (pagination?.pageSize ?? itemsPerPage)
+    : itemsPerPage
 
   // Responsive values
   const showPaginationText = useBreakpointValue({ base: false, md: true }) ?? true
@@ -68,21 +134,40 @@ export function DataTable<T extends object>({
   const handleSort = (columnKey: string, sortable?: boolean) => {
     if (!sortable) return
 
-    if (sortColumn === columnKey) {
-      // Cycle through: asc -> desc -> null
-      if (sortDirection === 'asc') {
-        setSortDirection('desc')
-      } else if (sortDirection === 'desc') {
-        setSortColumn(null)
-        setSortDirection(null)
+    // Use controlled props to determine current state so that the computed
+    // next direction is consistent with what the header visuals display.
+    const activeSortColumn = controlledSortColumn !== undefined ? controlledSortColumn : sortColumn
+    const activeSortDirection =
+      controlledSortDirection !== undefined ? controlledSortDirection : sortDirection
+
+    let nextDirection: SortDirection
+    if (activeSortColumn === columnKey) {
+      if (activeSortDirection === 'asc') {
+        nextDirection = 'desc'
+      } else if (activeSortDirection === 'desc') {
+        nextDirection = null
+      } else {
+        nextDirection = 'asc'
       }
     } else {
+      nextDirection = 'asc'
+    }
+
+    if (nextDirection === null) {
+      setSortColumn(null)
+      setSortDirection(null)
+    } else {
       setSortColumn(columnKey)
-      setSortDirection('asc')
+      setSortDirection(nextDirection)
+    }
+
+    if (onSort) {
+      onSort(columnKey, nextDirection)
     }
   }
 
   const getSortedData = () => {
+    if (onSort) return data
     if (!sortColumn || !sortDirection) return data
 
     return [...data].sort((a, b) => {
@@ -115,25 +200,44 @@ export function DataTable<T extends object>({
 
   // Pagination logic
   const totalPages = pagination?.enabled
-    ? Math.max(1, Math.ceil(sortedData.length / itemsPerPage))
+    ? Math.max(
+        1,
+        Math.ceil(
+          (isControlledPagination ? (pagination?.totalItems ?? 0) : sortedData.length) /
+            effectiveItemsPerPage
+        )
+      )
     : 1
 
-  const effectiveCurrentPage = Math.min(Math.max(1, currentPage), totalPages)
+  const effectiveCurrentPage = Math.min(Math.max(1, effectivePage), totalPages)
 
-  const paginatedData = pagination?.enabled
-    ? sortedData.slice(
-        (effectiveCurrentPage - 1) * itemsPerPage,
-        effectiveCurrentPage * itemsPerPage
-      )
-    : sortedData
+  const paginatedData =
+    pagination?.enabled && !isControlledPagination
+      ? sortedData.slice(
+          (effectiveCurrentPage - 1) * effectiveItemsPerPage,
+          effectiveCurrentPage * effectiveItemsPerPage
+        )
+      : sortedData
 
   const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page)
+    if (!pagination?.enabled || page < 1 || page > totalPages) return
+
+    if (isControlledPagination && pagination.onPageChange) {
+      pagination.onPageChange(page)
+      return
     }
+
+    setCurrentPage(page)
   }
 
   const handleItemsPerPageChange = (size: number) => {
+    if (!pagination?.enabled) return
+
+    if (isPageSizeControlled && pagination.onPageSizeChange) {
+      pagination.onPageSizeChange(size)
+      return
+    }
+
     setItemsPerPage(size)
     setCurrentPage(1) // Reset to first page when changing page size
   }
@@ -201,7 +305,7 @@ export function DataTable<T extends object>({
     )
   }
 
-  if (data.length === 0) {
+  if (data.length === 0 && !(isControlledPagination && (pagination?.totalItems ?? 0) > 0)) {
     return (
       <Box
         bg="white"
@@ -252,13 +356,23 @@ export function DataTable<T extends object>({
             },
           }}
         >
-          <Table size="sm" variant="simple" w="max-content" minW="100%">
+          <Table
+            size="sm"
+            variant="simple"
+            w={isFixedLayout ? '100%' : 'max-content'}
+            minW={tableMinWidth ?? '100%'}
+            sx={isFixedLayout ? { tableLayout: 'fixed' } : undefined}
+          >
             <Thead>
               <Tr>
                 {columns.map((column) => {
-                  const isSorted = sortColumn === column.key
+                  const activeSortColumn =
+                    controlledSortColumn !== undefined ? controlledSortColumn : sortColumn
+                  const activeSortDirection =
+                    controlledSortDirection !== undefined ? controlledSortDirection : sortDirection
+                  const isSorted = activeSortColumn === column.key
                   const ariaSortValue = isSorted
-                    ? sortDirection === 'asc'
+                    ? activeSortDirection === 'asc'
                       ? 'ascending'
                       : 'descending'
                     : undefined
@@ -267,6 +381,8 @@ export function DataTable<T extends object>({
                     <Th
                       key={column.key}
                       scope="col"
+                      width={column.width}
+                      minWidth={column.minWidth}
                       cursor={column.sortable ? 'pointer' : 'default'}
                       onClick={() => handleSort(column.key, column.sortable)}
                       onKeyDown={(e) => {
@@ -291,7 +407,7 @@ export function DataTable<T extends object>({
                         {column.sortable && (
                           <Box aria-hidden="true">
                             {isSorted ? (
-                              sortDirection === 'asc' ? (
+                              activeSortDirection === 'asc' ? (
                                 <ChevronUpIcon boxSize={4} />
                               ) : (
                                 <ChevronDownIcon boxSize={4} />
@@ -322,6 +438,8 @@ export function DataTable<T extends object>({
                       py={3}
                       h={12}
                       whiteSpace="nowrap"
+                      overflow={isFixedLayout ? 'hidden' : undefined}
+                      textOverflow={isFixedLayout ? 'ellipsis' : undefined}
                     >
                       {column.render
                         ? column.render(row)
@@ -342,7 +460,6 @@ export function DataTable<T extends object>({
           aria-label="Pagination"
           justify="space-between"
           align="center"
-          px={{ base: 2, md: 4 }}
           py={4}
           h={{ base: 'auto', md: '66px' }}
           flexDirection={{ base: 'column', md: 'row' }}
@@ -371,9 +488,9 @@ export function DataTable<T extends object>({
                 bg="neutral.100"
                 _hover={{ bg: 'white' }}
                 _active={{ bg: 'neutral.100' }}
-                aria-label={`${t('table.itemsPerPage')}: ${itemsPerPage}`}
+                aria-label={`${t('table.itemsPerPage')}: ${effectiveItemsPerPage}`}
               >
-                {itemsPerPage}
+                {effectiveItemsPerPage}
               </MenuButton>
               <MenuList minW="80px">
                 {pageSizeOptions.map((size) => (

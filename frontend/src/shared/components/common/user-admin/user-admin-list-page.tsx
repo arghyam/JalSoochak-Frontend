@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -17,6 +16,7 @@ import { SearchIcon, EditIcon } from '@chakra-ui/icons'
 import { FiEye } from 'react-icons/fi'
 import { IoAddOutline } from 'react-icons/io5'
 import { MdOutlineEmail } from 'react-icons/md'
+import { ActionTooltip } from '../action-tooltip'
 import { DataTable, type DataTableColumn } from '../data-table'
 import { StatusChip } from '../atom/status-chip'
 import { SearchableSelect } from '../searchable-select'
@@ -32,6 +32,22 @@ export interface UserAdminListPageProps {
   readonly routes: UserAdminRoutes
   readonly labels: UserAdminListLabels
   readonly onReinvite?: (id: string) => void
+  /** Optional server-side pagination controls. When omitted, pagination is client-side. */
+  readonly page?: number
+  readonly pageSize?: number
+  readonly totalItems?: number
+  readonly onPageChange?: (page: number) => void
+  readonly onPageSizeChange?: (pageSize: number) => void
+  /** When true, the search input is hidden. */
+  readonly hideSearch?: boolean
+  /** Controlled search value (server-side mode). When provided, client-side search is skipped. */
+  readonly searchQuery?: string
+  /** Controlled search change callback (server-side mode). */
+  readonly onSearchChange?: (value: string) => void
+  /** Controlled status filter value (server-side mode). When provided, client-side status filtering is skipped. */
+  readonly statusFilter?: StatusFilter
+  /** Controlled status filter change callback (server-side mode). */
+  readonly onStatusFilterChange?: (value: StatusFilter) => void
 }
 
 export function UserAdminListPage({
@@ -42,11 +58,30 @@ export function UserAdminListPage({
   routes,
   labels,
   onReinvite,
+  page,
+  pageSize,
+  totalItems,
+  onPageChange,
+  onPageSizeChange,
+  hideSearch,
+  searchQuery: controlledSearch,
+  onSearchChange,
+  statusFilter: controlledStatus,
+  onStatusFilterChange,
 }: UserAdminListPageProps) {
   const { t } = useTranslation('common')
   const navigate = useNavigate()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+
+  // In server-side mode a controlled value without its callback means the
+  // control would appear interactive but silently do nothing — hide it instead.
+  const showSearch = !hideSearch && (controlledSearch === undefined || !!onSearchChange)
+  const showStatusFilter = controlledStatus === undefined || !!onStatusFilterChange
+
+  const searchQuery = controlledSearch ?? ''
+  const setSearchQuery = onSearchChange ?? (() => {})
+
+  const statusFilter = controlledStatus ?? 'all'
+  const setStatusFilter = onStatusFilterChange ?? (() => {})
 
   if (isLoading) {
     return (
@@ -84,18 +119,6 @@ export function UserAdminListPage({
     { value: 'inactive', label: t('status.inactive') },
     { value: 'pending', label: t('status.pending') },
   ]
-
-  const filteredData = data.filter((item) => {
-    const fullName = `${item.firstName} ${item.lastName}`.toLowerCase()
-    const normalizedPhone = item.phone.replace(/\D/g, '')
-    const normalizedQuery = searchQuery.replace(/\D/g, '')
-    const matchesSearch =
-      fullName.includes(searchQuery.toLowerCase()) ||
-      item.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (normalizedQuery.length > 0 && normalizedPhone.includes(normalizedQuery))
-    const matchesStatus = statusFilter === 'all' || item.status === statusFilter
-    return matchesSearch && matchesStatus
-  })
 
   const handleView = (id: string) => {
     navigate(routes.view(id))
@@ -157,43 +180,49 @@ export function UserAdminListPage({
       header: labels.table.actions,
       render: (row) => (
         <Flex gap={1}>
-          <IconButton
-            aria-label={`${labels.aria.view} ${row.firstName} ${row.lastName}`}
-            icon={<FiEye aria-hidden="true" size={20} />}
-            variant="ghost"
-            width={5}
-            minW={5}
-            height={5}
-            color="neutral.950"
-            fontWeight="400"
-            onClick={() => handleView(row.id)}
-            _hover={{ color: 'primary.500', bg: 'transparent' }}
-          />
-          <IconButton
-            aria-label={`${labels.aria.edit} ${row.firstName} ${row.lastName}`}
-            icon={<EditIcon aria-hidden="true" w={5} h={5} />}
-            variant="ghost"
-            width={5}
-            minW={5}
-            height={5}
-            color="neutral.950"
-            fontWeight="400"
-            onClick={() => handleEdit(row.id)}
-            _hover={{ color: 'primary.500', bg: 'transparent' }}
-          />
-          {row.status === 'pending' && onReinvite && (
+          <ActionTooltip label={labels.aria.view}>
             <IconButton
-              aria-label={`${labels.aria.resendInvite} ${row.firstName} ${row.lastName}`}
-              icon={<MdOutlineEmail aria-hidden="true" size={20} />}
+              aria-label={`${labels.aria.view} ${row.firstName} ${row.lastName}`}
+              icon={<FiEye aria-hidden="true" size={20} />}
               variant="ghost"
               width={5}
               minW={5}
               height={5}
               color="neutral.950"
               fontWeight="400"
-              onClick={() => onReinvite(row.id)}
+              onClick={() => handleView(row.id)}
               _hover={{ color: 'primary.500', bg: 'transparent' }}
             />
+          </ActionTooltip>
+          <ActionTooltip label={labels.aria.edit}>
+            <IconButton
+              aria-label={`${labels.aria.edit} ${row.firstName} ${row.lastName}`}
+              icon={<EditIcon aria-hidden="true" w={5} h={5} />}
+              variant="ghost"
+              width={5}
+              minW={5}
+              height={5}
+              color="neutral.950"
+              fontWeight="400"
+              onClick={() => handleEdit(row.id)}
+              _hover={{ color: 'primary.500', bg: 'transparent' }}
+            />
+          </ActionTooltip>
+          {row.status === 'pending' && onReinvite && (
+            <ActionTooltip label={labels.aria.resendInvite}>
+              <IconButton
+                aria-label={`${labels.aria.resendInvite} ${row.firstName} ${row.lastName}`}
+                icon={<MdOutlineEmail aria-hidden="true" size={20} />}
+                variant="ghost"
+                width={5}
+                minW={5}
+                height={5}
+                color="neutral.950"
+                fontWeight="400"
+                onClick={() => onReinvite(row.id)}
+                _hover={{ color: 'primary.500', bg: 'transparent' }}
+              />
+            </ActionTooltip>
           )}
         </Flex>
       ),
@@ -228,32 +257,36 @@ export function UserAdminListPage({
           w={{ base: 'full', md: 'auto' }}
           flexDirection={{ base: 'column', sm: 'row' }}
         >
-          <InputGroup w={{ base: 'full', md: '240px', lg: '404px' }}>
-            <InputLeftElement pointerEvents="none" h={8}>
-              <SearchIcon color="neutral.300" aria-hidden="true" />
-            </InputLeftElement>
-            <Input
-              placeholder={t('search')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label={labels.aria.search}
-              bg="white"
-              h={8}
-              borderWidth="1px"
-              borderRadius="4px"
-              borderColor="neutral.300"
-              _placeholder={{ color: 'neutral.300' }}
+          {showSearch && (
+            <InputGroup w={{ base: 'full', md: '240px', lg: '404px' }}>
+              <InputLeftElement pointerEvents="none" h={8}>
+                <SearchIcon color="neutral.300" aria-hidden="true" />
+              </InputLeftElement>
+              <Input
+                placeholder={t('search')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label={labels.aria.search}
+                bg="white"
+                h={8}
+                borderWidth="1px"
+                borderRadius="4px"
+                borderColor="neutral.300"
+                _placeholder={{ color: 'neutral.300' }}
+              />
+            </InputGroup>
+          )}
+          {showStatusFilter && (
+            <SearchableSelect
+              options={statusOptions}
+              value={statusFilter}
+              height="32px"
+              onChange={(val) => setStatusFilter(val as StatusFilter)}
+              placeholder={t('statusLabel')}
+              width={{ base: '100%', md: '140px' }}
+              isFilter
             />
-          </InputGroup>
-          <SearchableSelect
-            options={statusOptions}
-            value={statusFilter}
-            height="32px"
-            onChange={(val) => setStatusFilter(val as StatusFilter)}
-            placeholder={t('statusLabel')}
-            width={{ base: '100%', md: '140px' }}
-            isFilter
-          />
+          )}
         </Flex>
         <Button
           variant="secondary"
@@ -271,13 +304,17 @@ export function UserAdminListPage({
 
       <DataTable<UserAdminData>
         columns={columns}
-        data={filteredData}
+        data={data}
         getRowKey={(row) => row.id}
         emptyMessage={labels.noItemsFound}
         isLoading={false}
         pagination={{
           enabled: true,
-          pageSize: 10,
+          page: page,
+          pageSize: pageSize ?? 10,
+          totalItems,
+          onPageChange,
+          onPageSizeChange,
           pageSizeOptions: [10, 25, 50],
         }}
       />

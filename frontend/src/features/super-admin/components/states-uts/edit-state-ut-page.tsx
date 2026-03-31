@@ -11,11 +11,14 @@ import {
   HStack,
   FormControl,
   FormLabel,
+  FormErrorMessage,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { Toggle, ToastContainer } from '@/shared/components/common'
+import { ToastContainer, SearchableSelect } from '@/shared/components/common'
+import { TENANT_STATUSES, type TenantStatus } from '../../types/states-uts'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ROUTES } from '@/shared/constants/routes'
+import { isAlphabeticWithSpaces, exceedsMaxLength } from '@/shared/utils/validation'
 import {
   useStatesUTsQuery,
   useStateAdminsByTenantQuery,
@@ -24,11 +27,24 @@ import {
 } from '../../services/query/use-super-admin-queries'
 import type { UserAdminData } from '@/shared/components/common'
 
+const MAX_NAME_LENGTH = 25
+const isValidPhone = (v: string) => /^\d{10}$/.test(v)
+const isNameValid = (name: string) =>
+  name.trim() !== '' &&
+  !exceedsMaxLength(name, MAX_NAME_LENGTH) &&
+  isAlphabeticWithSpaces(name.trim())
+
 /** Per-admin draft: firstName, lastName and phone are editable. */
 interface AdminDraft {
   firstName: string
   lastName: string
   phone: string
+}
+
+interface AdminTouchedFields {
+  firstName: boolean
+  lastName: boolean
+  phone: boolean
 }
 
 function hasAdminChanged(original: UserAdminData, draft: AdminDraft): boolean {
@@ -54,6 +70,7 @@ export function EditStateUTPage() {
   const updateUserMutation = useUpdateUserMutation()
 
   const [adminDrafts, setAdminDrafts] = useState<Record<string, AdminDraft>>({})
+  const [adminTouched, setAdminTouched] = useState<Record<string, AdminTouchedFields>>({})
   const [isSaving, setIsSaving] = useState(false)
   const navigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -77,17 +94,65 @@ export function EditStateUTPage() {
 
   const hasChanges = changedAdmins.length > 0
 
-  const handleStatusToggle = async () => {
+  const isAllChangedAdminsValid = useMemo(
+    () =>
+      changedAdmins.every((admin) => {
+        const draft = adminDrafts[admin.id]
+        if (!draft) return true
+        return (
+          isNameValid(draft.firstName) && isNameValid(draft.lastName) && isValidPhone(draft.phone)
+        )
+      }),
+    [changedAdmins, adminDrafts]
+  )
+
+  const getAdminDraftErrors = (adminId: string, draft: AdminDraft) => {
+    const touched = adminTouched[adminId] ?? { firstName: false, lastName: false, phone: false }
+    return {
+      firstName: (() => {
+        if (!touched.firstName) return ''
+        if (!draft.firstName.trim()) return t('common:validation.required')
+        if (exceedsMaxLength(draft.firstName, MAX_NAME_LENGTH))
+          return t('common:validation.maxLength', { max: MAX_NAME_LENGTH })
+        if (!isAlphabeticWithSpaces(draft.firstName.trim()))
+          return t('common:validation.alphabeticOnly')
+        return ''
+      })(),
+      lastName: (() => {
+        if (!touched.lastName) return ''
+        if (!draft.lastName.trim()) return t('common:validation.required')
+        if (exceedsMaxLength(draft.lastName, MAX_NAME_LENGTH))
+          return t('common:validation.maxLength', { max: MAX_NAME_LENGTH })
+        if (!isAlphabeticWithSpaces(draft.lastName.trim()))
+          return t('common:validation.alphabeticOnly')
+        return ''
+      })(),
+      phone: (() => {
+        if (!touched.phone) return ''
+        if (!draft.phone.trim()) return t('common:validation.required')
+        if (!isValidPhone(draft.phone)) return t('common:validation.invalidPhone')
+        return ''
+      })(),
+    }
+  }
+
+  const markAdminFieldTouched = (adminId: string, field: keyof AdminTouchedFields) => {
+    setAdminTouched((prev) => ({
+      ...prev,
+      [adminId]: {
+        firstName: prev[adminId]?.firstName ?? false,
+        lastName: prev[adminId]?.lastName ?? false,
+        phone: prev[adminId]?.phone ?? false,
+        [field]: true,
+      },
+    }))
+  }
+
+  const handleStatusChange = async (newStatus: TenantStatus) => {
     if (!tenant || updateStatusMutation.isPending) return
-    const newStatus = tenant.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
     try {
       await updateStatusMutation.mutateAsync({ id: tenant.id, status: newStatus })
-      toast.addToast(
-        newStatus === 'ACTIVE'
-          ? t('statesUts.messages.activatedSuccess')
-          : t('statesUts.messages.deactivatedSuccess'),
-        'success'
-      )
+      toast.addToast(t('statesUts.messages.statusUpdatedSuccess'), 'success')
     } catch {
       toast.addToast(t('statesUts.messages.failedToUpdateStatus'), 'error')
     }
@@ -102,7 +167,12 @@ export function EditStateUTPage() {
   }
 
   const handleSave = async () => {
-    if (!hasChanges || isSaving) return
+    const newTouched: Record<string, AdminTouchedFields> = {}
+    changedAdmins.forEach((admin) => {
+      newTouched[admin.id] = { firstName: true, lastName: true, phone: true }
+    })
+    setAdminTouched((prev) => ({ ...prev, ...newTouched }))
+    if (!hasChanges || !isAllChangedAdminsValid || isSaving) return
     setIsSaving(true)
     const failedEmails: string[] = []
 
@@ -289,17 +359,19 @@ export function EditStateUTPage() {
             <Heading as="h2" size="h3" fontWeight="400" mb={4} id="status-heading">
               {t('statesUts.statusSection.title')}
             </Heading>
-            <Flex align="center" gap={2} h={6} mb={7} aria-labelledby="status-heading">
-              <Text textStyle="h10" id="status-toggle-label">
-                {t('statesUts.statusSection.stateUtStatus')}
-              </Text>
-              <Toggle
-                isChecked={tenant.status === 'ACTIVE'}
-                onChange={() => void handleStatusToggle()}
-                isDisabled={updateStatusMutation.isPending}
-                aria-labelledby="status-toggle-label"
+            <Box mb={7}>
+              <SearchableSelect
+                options={TENANT_STATUSES.map((s) => ({
+                  value: s,
+                  label: t(`statesUts.statusSection.statuses.${s}`),
+                }))}
+                value={tenant.status}
+                onChange={(val) => void handleStatusChange(val as TenantStatus)}
+                disabled={updateStatusMutation.isPending}
+                ariaLabel={t('statesUts.statusSection.stateUtStatus')}
+                width={{ base: '100%', lg: '486px' }}
               />
-            </Flex>
+            </Box>
 
             {/* State Admin Details — editable */}
             <Heading as="h2" size="h3" fontWeight="400" mb={4} id="admin-details-heading">
@@ -318,9 +390,12 @@ export function EditStateUTPage() {
             {!adminsQuery.isLoading && admins.length > 0 && (
               <Flex direction="column" gap={6}>
                 {admins.map((admin) => {
-                  const firstName = adminDrafts[admin.id]?.firstName ?? admin.firstName
-                  const lastName = adminDrafts[admin.id]?.lastName ?? admin.lastName
-                  const phone = adminDrafts[admin.id]?.phone ?? admin.phone
+                  const draft: AdminDraft = {
+                    firstName: adminDrafts[admin.id]?.firstName ?? admin.firstName,
+                    lastName: adminDrafts[admin.id]?.lastName ?? admin.lastName,
+                    phone: adminDrafts[admin.id]?.phone ?? admin.phone,
+                  }
+                  const draftErrors = getAdminDraftErrors(admin.id, draft)
                   return (
                     <SimpleGrid
                       key={admin.id}
@@ -328,33 +403,41 @@ export function EditStateUTPage() {
                       spacing={4}
                       aria-labelledby="admin-details-heading"
                     >
-                      <FormControl>
+                      <FormControl isInvalid={!!draftErrors.firstName}>
                         <FormLabel textStyle="h10" mb={1}>
                           {t('statesUts.adminDetails.firstName')}
                         </FormLabel>
                         <Input
-                          value={firstName}
+                          value={draft.firstName}
                           onChange={(e) => setAdminField(admin.id, 'firstName', e.target.value)}
+                          onBlur={() => markAdminFieldTouched(admin.id, 'firstName')}
                           placeholder={t('common:enter')}
                           borderColor="neutral.200"
                           h={9}
                           maxW={{ base: '100%', lg: '486px' }}
                           _placeholder={{ color: 'neutral.300' }}
                         />
+                        {draftErrors.firstName && (
+                          <FormErrorMessage>{draftErrors.firstName}</FormErrorMessage>
+                        )}
                       </FormControl>
-                      <FormControl>
+                      <FormControl isInvalid={!!draftErrors.lastName}>
                         <FormLabel textStyle="h10" mb={1}>
                           {t('statesUts.adminDetails.lastName')}
                         </FormLabel>
                         <Input
-                          value={lastName}
+                          value={draft.lastName}
                           onChange={(e) => setAdminField(admin.id, 'lastName', e.target.value)}
+                          onBlur={() => markAdminFieldTouched(admin.id, 'lastName')}
                           placeholder={t('common:enter')}
                           borderColor="neutral.200"
                           h={9}
                           maxW={{ base: '100%', lg: '486px' }}
                           _placeholder={{ color: 'neutral.300' }}
                         />
+                        {draftErrors.lastName && (
+                          <FormErrorMessage>{draftErrors.lastName}</FormErrorMessage>
+                        )}
                       </FormControl>
                       <FormControl>
                         <FormLabel textStyle="h10" color="neutral.400" mb={1}>
@@ -372,19 +455,20 @@ export function EditStateUTPage() {
                           aria-readonly="true"
                         />
                       </FormControl>
-                      <FormControl>
+                      <FormControl isInvalid={!!draftErrors.phone}>
                         <FormLabel textStyle="h10" mb={1}>
                           {t('statesUts.adminDetails.phone')}
                         </FormLabel>
                         <Input
                           type="tel"
-                          value={phone}
+                          value={draft.phone}
                           onChange={(e) => {
                             const digits = e.target.value.replaceAll(/\D/g, '')
                             if (digits.length <= 10) {
                               setAdminField(admin.id, 'phone', digits)
                             }
                           }}
+                          onBlur={() => markAdminFieldTouched(admin.id, 'phone')}
                           placeholder="+91"
                           borderColor="neutral.200"
                           h={9}
@@ -392,6 +476,9 @@ export function EditStateUTPage() {
                           _placeholder={{ color: 'neutral.300' }}
                           inputMode="numeric"
                         />
+                        {draftErrors.phone && (
+                          <FormErrorMessage>{draftErrors.phone}</FormErrorMessage>
+                        )}
                       </FormControl>
                     </SimpleGrid>
                   )
@@ -422,7 +509,7 @@ export function EditStateUTPage() {
               size="md"
               width={{ base: 'full', sm: '174px' }}
               isLoading={isPending}
-              isDisabled={!hasChanges || isPending}
+              isDisabled={!hasChanges || !isAllChangedAdminsValid || isPending}
             >
               {t('common:button.saveChanges')}
             </Button>

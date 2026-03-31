@@ -8,6 +8,7 @@ import {
   Input,
   Button,
   HStack,
+  SimpleGrid,
   FormControl,
   FormLabel,
   FormErrorMessage,
@@ -17,9 +18,12 @@ import { ToastContainer } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ROUTES } from '@/shared/constants/routes'
 import { useAuthStore } from '@/app/store/auth-store'
+import { isAlphabeticWithSpaces, exceedsMaxLength } from '@/shared/utils/validation'
 import { useInviteStateUTAdminMutation } from '../../services/query/use-state-admin-queries'
 
 const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
+const isValidPhone = (v: string) => /^\d{10}$/.test(v)
+const MAX_NAME_LENGTH = 25
 
 export function InviteStateUTAdminPage() {
   const { t } = useTranslation(['state-admin', 'common'])
@@ -28,20 +32,77 @@ export function InviteStateUTAdminPage() {
   const tenantCode = useAuthStore((state) => state.user?.tenantCode ?? '')
   const inviteMutation = useInviteStateUTAdminMutation()
 
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
   const [email, setEmail] = useState('')
-  const [emailTouched, setEmailTouched] = useState(false)
+  const [touched, setTouched] = useState({
+    firstName: false,
+    lastName: false,
+    phone: false,
+    email: false,
+  })
 
   useEffect(() => {
     document.title = `${t('stateUtAdmins.addTitle')} | JalSoochak`
   }, [t])
 
-  const emailError = emailTouched && email !== '' && !isValidEmail(email)
-  const isFormValid = email.trim() !== '' && isValidEmail(email)
+  const handleBlur = (field: keyof typeof touched) =>
+    setTouched((prev) => ({ ...prev, [field]: true }))
+
+  const isNameValid = (name: string) =>
+    name.trim() !== '' &&
+    !exceedsMaxLength(name, MAX_NAME_LENGTH) &&
+    isAlphabeticWithSpaces(name.trim())
+
+  const fieldErrors = {
+    firstName: (() => {
+      if (!touched.firstName) return ''
+      if (!firstName.trim()) return t('common:validation.required')
+      if (exceedsMaxLength(firstName, MAX_NAME_LENGTH))
+        return t('common:validation.maxLength', { max: MAX_NAME_LENGTH })
+      if (!isAlphabeticWithSpaces(firstName.trim())) return t('common:validation.alphabeticOnly')
+      return ''
+    })(),
+    lastName: (() => {
+      if (!touched.lastName) return ''
+      if (!lastName.trim()) return t('common:validation.required')
+      if (exceedsMaxLength(lastName, MAX_NAME_LENGTH))
+        return t('common:validation.maxLength', { max: MAX_NAME_LENGTH })
+      if (!isAlphabeticWithSpaces(lastName.trim())) return t('common:validation.alphabeticOnly')
+      return ''
+    })(),
+    phone: (() => {
+      if (!touched.phone) return ''
+      if (!phoneNumber.trim()) return t('common:validation.required')
+      if (!isValidPhone(phoneNumber)) return t('common:validation.invalidPhone')
+      return ''
+    })(),
+    email: (() => {
+      if (!touched.email) return ''
+      if (!email.trim()) return t('common:validation.required')
+      if (!isValidEmail(email)) return t('common:validation.invalidEmail')
+      return ''
+    })(),
+  }
+
+  const isFormValid =
+    isNameValid(firstName) &&
+    isNameValid(lastName) &&
+    isValidPhone(phoneNumber) &&
+    email.trim() !== '' &&
+    isValidEmail(email)
 
   const handleSubmit = async () => {
     if (!isFormValid || inviteMutation.isPending) return
     try {
-      await inviteMutation.mutateAsync({ email: email.trim(), tenantCode })
+      await inviteMutation.mutateAsync({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phoneNumber,
+        email: email.trim(),
+        tenantCode,
+      })
       toast.addToast(t('stateUtAdmins.messages.adminAdded'), 'success')
       setTimeout(() => {
         navigate(ROUTES.STATE_ADMIN_STATE_UT_ADMINS)
@@ -111,23 +172,90 @@ export function InviteStateUTAdminPage() {
             <Heading as="h2" size="h3" fontWeight="400" mb={4} id="user-details-heading">
               {t('stateUtAdmins.form.userDetails')}
             </Heading>
-            <FormControl isRequired isInvalid={emailError} maxW={{ base: '100%', lg: '486px' }}>
-              <FormLabel textStyle="h10" mb={1}>
-                {t('stateUtAdmins.form.emailAddress')}
-              </FormLabel>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onBlur={() => setEmailTouched(true)}
-                placeholder={t('common:enter')}
-                h={9}
-                borderColor="neutral.200"
-                _placeholder={{ color: 'neutral.300' }}
-                aria-required="true"
-              />
-              <FormErrorMessage>{t('common:validation.invalidEmail')}</FormErrorMessage>
-            </FormControl>
+            <SimpleGrid
+              columns={{ base: 1, lg: 2 }}
+              spacing={6}
+              aria-labelledby="user-details-heading"
+            >
+              <FormControl isRequired isInvalid={!!fieldErrors.firstName}>
+                <FormLabel textStyle="h10" mb={1}>
+                  {t('stateUtAdmins.form.firstName')}
+                </FormLabel>
+                <Input
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  onBlur={() => handleBlur('firstName')}
+                  placeholder={t('common:enter')}
+                  h={9}
+                  borderColor="neutral.200"
+                  maxW={{ base: '100%', lg: '486px' }}
+                  _placeholder={{ color: 'neutral.300' }}
+                  aria-required="true"
+                />
+                {fieldErrors.firstName && (
+                  <FormErrorMessage>{fieldErrors.firstName}</FormErrorMessage>
+                )}
+              </FormControl>
+              <FormControl isRequired isInvalid={!!fieldErrors.lastName}>
+                <FormLabel textStyle="h10" mb={1}>
+                  {t('stateUtAdmins.form.lastName')}
+                </FormLabel>
+                <Input
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  onBlur={() => handleBlur('lastName')}
+                  placeholder={t('common:enter')}
+                  h={9}
+                  borderColor="neutral.200"
+                  maxW={{ base: '100%', lg: '486px' }}
+                  _placeholder={{ color: 'neutral.300' }}
+                  aria-required="true"
+                />
+                {fieldErrors.lastName && (
+                  <FormErrorMessage>{fieldErrors.lastName}</FormErrorMessage>
+                )}
+              </FormControl>
+              <FormControl isRequired isInvalid={!!fieldErrors.phone}>
+                <FormLabel textStyle="h10" mb={1}>
+                  {t('stateUtAdmins.form.phoneNumber')}
+                </FormLabel>
+                <Input
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => {
+                    const val = e.target.value.replaceAll(/\D/g, '')
+                    if (val.length <= 10) setPhoneNumber(val)
+                  }}
+                  onBlur={() => handleBlur('phone')}
+                  placeholder={t('common:enter')}
+                  inputMode="numeric"
+                  h={9}
+                  borderColor="neutral.200"
+                  maxW={{ base: '100%', lg: '486px' }}
+                  _placeholder={{ color: 'neutral.300' }}
+                  aria-required="true"
+                />
+                {fieldErrors.phone && <FormErrorMessage>{fieldErrors.phone}</FormErrorMessage>}
+              </FormControl>
+              <FormControl isRequired isInvalid={!!fieldErrors.email}>
+                <FormLabel textStyle="h10" mb={1}>
+                  {t('stateUtAdmins.form.emailAddress')}
+                </FormLabel>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => handleBlur('email')}
+                  placeholder={t('common:enter')}
+                  h={9}
+                  borderColor="neutral.200"
+                  maxW={{ base: '100%', lg: '486px' }}
+                  _placeholder={{ color: 'neutral.300' }}
+                  aria-required="true"
+                />
+                {fieldErrors.email && <FormErrorMessage>{fieldErrors.email}</FormErrorMessage>}
+              </FormControl>
+            </SimpleGrid>
           </Box>
 
           {/* Action Buttons */}

@@ -19,30 +19,56 @@ describe('mapApiConfigToConfigurationData', () => {
   it('maps a full config response to ConfigurationData', () => {
     const configs: TenantConfigMap = {
       TENANT_SUPPORTED_CHANNELS: { channels: ['BFM', 'ELM'] },
-      TENANT_LOGO: 'https://example.com/logo.png',
       METER_CHANGE_REASONS: {
         reasons: [
           { id: 'r1', name: 'Meter Replaced', sequenceOrder: 1 },
           { id: 'r2', name: 'Meter Damaged', sequenceOrder: 2 },
         ],
       },
+      SUPPLY_OUTAGE_REASONS: {
+        reasons: [
+          {
+            id: 'PUMP_FAILURE',
+            name: 'Pump Failure',
+            sequenceOrder: 1,
+            isDefault: true,
+            editable: true,
+          },
+        ],
+      },
       LOCATION_CHECK_REQUIRED: { value: 'YES' },
-      DATA_CONSOLIDATION_TIME: { timeValue: '14:00', description: null },
+      DISPLAY_DEPARTMENT_MAPS: { value: 'NO' },
+      DATA_CONSOLIDATION_TIME: { schedule: { hour: 14, minute: 0 }, description: null },
       PUMP_OPERATOR_REMINDER_NUDGE_TIME: { nudge: { schedule: { hour: 9, minute: 30 } } },
+      DATE_FORMAT_SCREEN: {
+        dateFormat: 'DD/MM/YYYY',
+        timeFormat: 'HH:mm',
+        timezone: 'Asia/Kolkata',
+      },
+      DATE_FORMAT_TABLE: { dateFormat: null, timeFormat: null, timezone: null },
       AVERAGE_MEMBERS_PER_HOUSEHOLD: { value: '4.5' },
     }
 
     const result = mapApiConfigToConfigurationData(configs)
 
     expect(result.supportedChannels).toEqual(['Bulk Flow Meter', 'Electric Meter'])
-    expect(result.logoUrl).toBe('https://example.com/logo.png')
     expect(result.meterChangeReasons).toEqual([
       { id: 'r1', name: 'Meter Replaced' },
       { id: 'r2', name: 'Meter Damaged' },
     ])
+    expect(result.supplyOutageReasons).toEqual([
+      { id: 'PUMP_FAILURE', name: 'Pump Failure', isDefault: true, editable: true },
+    ])
     expect(result.locationCheckRequired).toBe(true)
+    expect(result.displayDepartmentMaps).toBe(false)
     expect(result.dataConsolidationTime).toBe('14:00')
     expect(result.pumpOperatorReminderNudgeTime).toBe('09:30')
+    expect(result.dateFormatScreen).toEqual({
+      dateFormat: 'DD/MM/YYYY',
+      timeFormat: 'HH:mm',
+      timezone: 'Asia/Kolkata',
+    })
+    expect(result.dateFormatTable).toEqual({ dateFormat: null, timeFormat: null, timezone: null })
     expect(result.averageMembersPerHousehold).toBe(4.5)
     expect(result.isConfigured).toBe(true)
   })
@@ -72,9 +98,15 @@ describe('mapConfigurationDataToApiConfig', () => {
       supportedChannels: ['Bulk Flow Meter', 'IOT'] as SupportedChannel[],
       logoUrl: 'https://example.com/logo.png',
       meterChangeReasons: [{ id: 'r1', name: 'Meter Replaced' }],
+      supplyOutageReasons: [
+        { id: 'PUMP_FAILURE', name: 'Pump Failure', isDefault: true, editable: true },
+      ],
       locationCheckRequired: false,
+      displayDepartmentMaps: true,
       dataConsolidationTime: '18:00',
       pumpOperatorReminderNudgeTime: '08:00',
+      dateFormatScreen: { dateFormat: 'DD/MM/YYYY', timeFormat: 'HH:mm', timezone: 'Asia/Kolkata' },
+      dateFormatTable: { dateFormat: null, timeFormat: null, timezone: null },
       averageMembersPerHousehold: 3,
       isConfigured: true,
     }
@@ -82,16 +114,40 @@ describe('mapConfigurationDataToApiConfig', () => {
     const result = mapConfigurationDataToApiConfig(payload)
 
     expect(result.TENANT_SUPPORTED_CHANNELS).toEqual({ channels: ['BFM', 'IOT'] })
-    expect(result.TENANT_LOGO).toBe('https://example.com/logo.png')
     expect(result.METER_CHANGE_REASONS).toEqual({
       reasons: [{ id: 'r1', name: 'Meter Replaced', sequenceOrder: 1 }],
     })
     expect(result.LOCATION_CHECK_REQUIRED).toEqual({ value: 'NO' })
-    expect(result.DATA_CONSOLIDATION_TIME).toEqual({ timeValue: '18:00', description: null })
+    expect(result.DATA_CONSOLIDATION_TIME).toEqual({
+      schedule: { hour: 18, minute: 0 },
+      description: null,
+    })
     expect(result.PUMP_OPERATOR_REMINDER_NUDGE_TIME).toEqual({
       nudge: { schedule: { hour: 8, minute: 0 } },
     })
     expect(result.AVERAGE_MEMBERS_PER_HOUSEHOLD).toEqual({ value: '3' })
+    expect(result.SUPPLY_OUTAGE_REASONS).toEqual({
+      reasons: [
+        {
+          id: 'PUMP_FAILURE',
+          name: 'Pump Failure',
+          sequenceOrder: 1,
+          isDefault: true,
+          editable: true,
+        },
+      ],
+    })
+    expect(result.DISPLAY_DEPARTMENT_MAPS).toEqual({ value: 'YES' })
+    expect(result.DATE_FORMAT_SCREEN).toEqual({
+      dateFormat: 'DD/MM/YYYY',
+      timeFormat: 'HH:mm',
+      timezone: 'Asia/Kolkata',
+    })
+    expect(result.DATE_FORMAT_TABLE).toEqual({
+      dateFormat: null,
+      timeFormat: null,
+      timezone: null,
+    })
   })
 
   it('round-trips: API → frontend → API preserves data', () => {
@@ -103,9 +159,27 @@ describe('mapConfigurationDataToApiConfig', () => {
           { id: 'r2', name: 'Reason B', sequenceOrder: 2 },
         ],
       },
+      SUPPLY_OUTAGE_REASONS: {
+        reasons: [
+          {
+            id: 'PUMP_FAILURE',
+            name: 'Pump Failure',
+            sequenceOrder: 1,
+            isDefault: true,
+            editable: true,
+          },
+        ],
+      },
       LOCATION_CHECK_REQUIRED: { value: 'YES' },
-      DATA_CONSOLIDATION_TIME: { timeValue: '22:00', description: null },
+      DISPLAY_DEPARTMENT_MAPS: { value: 'NO' },
+      DATA_CONSOLIDATION_TIME: { schedule: { hour: 22, minute: 0 }, description: null },
       PUMP_OPERATOR_REMINDER_NUDGE_TIME: { nudge: { schedule: { hour: 7, minute: 0 } } },
+      DATE_FORMAT_SCREEN: {
+        dateFormat: 'DD/MM/YYYY',
+        timeFormat: 'HH:mm',
+        timezone: 'Asia/Kolkata',
+      },
+      DATE_FORMAT_TABLE: { dateFormat: null, timeFormat: null, timezone: null },
       AVERAGE_MEMBERS_PER_HOUSEHOLD: { value: '5' },
     }
 
@@ -114,7 +188,27 @@ describe('mapConfigurationDataToApiConfig', () => {
 
     expect(backToApi.TENANT_SUPPORTED_CHANNELS).toEqual({ channels: ['BFM', 'MAN'] })
     expect(backToApi.LOCATION_CHECK_REQUIRED).toEqual({ value: 'YES' })
-    expect(backToApi.DATA_CONSOLIDATION_TIME).toEqual({ timeValue: '22:00', description: null })
+    expect(backToApi.DISPLAY_DEPARTMENT_MAPS).toEqual({ value: 'NO' })
+    expect(backToApi.DATA_CONSOLIDATION_TIME).toEqual({
+      schedule: { hour: 22, minute: 0 },
+      description: null,
+    })
+    expect(backToApi.SUPPLY_OUTAGE_REASONS).toEqual({
+      reasons: [
+        {
+          id: 'PUMP_FAILURE',
+          name: 'Pump Failure',
+          sequenceOrder: 1,
+          isDefault: true,
+          editable: true,
+        },
+      ],
+    })
+    expect(backToApi.DATE_FORMAT_SCREEN).toEqual({
+      dateFormat: 'DD/MM/YYYY',
+      timeFormat: 'HH:mm',
+      timezone: 'Asia/Kolkata',
+    })
   })
 })
 
@@ -287,7 +381,7 @@ describe('mapApiConfigToEscalationRules', () => {
         escalation: {
           schedule: { hour: 9, minute: 0 },
           level1: { threshold: { days: 3 }, officer: { userType: 'SECTION_OFFICER' } },
-          level2: { threshold: { days: 7 }, officer: { userType: 'SUBDIVISION_OFFICER' } },
+          level2: { threshold: { days: 7 }, officer: { userType: 'SUB_DIVISIONAL_OFFICER' } },
         },
       },
     }
@@ -297,7 +391,7 @@ describe('mapApiConfigToEscalationRules', () => {
     expect(result.schedule).toEqual({ hour: 9, minute: 0 })
     expect(result.levels).toHaveLength(2)
     expect(result.levels[0]).toEqual({ days: 3, userType: 'SECTION_OFFICER' })
-    expect(result.levels[1]).toEqual({ days: 7, userType: 'SUBDIVISION_OFFICER' })
+    expect(result.levels[1]).toEqual({ days: 7, userType: 'SUB_DIVISIONAL_OFFICER' })
   })
 
   it('returns empty levels when key is absent', () => {
@@ -311,7 +405,7 @@ describe('mapApiConfigToEscalationRules', () => {
       FIELD_STAFF_ESCALATION_RULES: {
         escalation: {
           schedule: { hour: 8, minute: 30 },
-          level2: { threshold: { days: 7 }, officer: { userType: 'SUBDIVISION_OFFICER' } },
+          level2: { threshold: { days: 7 }, officer: { userType: 'SUB_DIVISIONAL_OFFICER' } },
           level1: { threshold: { days: 3 }, officer: { userType: 'SECTION_OFFICER' } },
         },
       },
@@ -320,7 +414,7 @@ describe('mapApiConfigToEscalationRules', () => {
     const result = mapApiConfigToEscalationRules(configs)
 
     expect(result.levels[0].userType).toBe('SECTION_OFFICER')
-    expect(result.levels[1].userType).toBe('SUBDIVISION_OFFICER')
+    expect(result.levels[1].userType).toBe('SUB_DIVISIONAL_OFFICER')
   })
 })
 
@@ -330,7 +424,7 @@ describe('mapEscalationRulesToApiConfig', () => {
       schedule: { hour: 9, minute: 0 },
       levels: [
         { days: 3, userType: 'SECTION_OFFICER' as const },
-        { days: 7, userType: 'SUBDIVISION_OFFICER' as const },
+        { days: 7, userType: 'SUB_DIVISIONAL_OFFICER' as const },
       ],
     }
 
@@ -346,7 +440,7 @@ describe('mapEscalationRulesToApiConfig', () => {
     })
     expect(result.FIELD_STAFF_ESCALATION_RULES?.escalation?.level2).toEqual({
       threshold: { days: 7 },
-      officer: { userType: 'SUBDIVISION_OFFICER' },
+      officer: { userType: 'SUB_DIVISIONAL_OFFICER' },
     })
   })
 

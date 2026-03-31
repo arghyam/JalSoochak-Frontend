@@ -1,4 +1,5 @@
-import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import {
   Box,
   Heading,
@@ -12,7 +13,8 @@ import {
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
-import { StatusChip } from '../index'
+import { StatusChip, ToastContainer } from '../index'
+import { useToast } from '@/shared/hooks/use-toast'
 import type { UserAdminData, UserAdminRoutes, UserAdminViewLabels } from './types'
 
 export interface UserAdminViewPageProps {
@@ -38,6 +40,18 @@ export function UserAdminViewPage({
 }: UserAdminViewPageProps) {
   const { t } = useTranslation('common')
   const navigate = useNavigate()
+  const location = useLocation()
+  const toast = useToast()
+
+  useEffect(() => {
+    const state = location.state as { successToast?: string } | null
+    if (state?.successToast) {
+      toast.addToast(state.successToast, 'success')
+      // Clear the state so a refresh doesn't re-show the toast
+      navigate(location.pathname, { replace: true, state: null })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (isLoading) {
     return (
@@ -190,6 +204,7 @@ export function UserAdminViewPage({
           label={data.status === 'active' ? t('status.active') : t('status.inactive')}
         />
       </Box>
+      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </Box>
   )
 }

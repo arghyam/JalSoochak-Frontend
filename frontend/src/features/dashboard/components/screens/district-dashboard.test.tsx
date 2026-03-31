@@ -22,10 +22,10 @@ const mockReadingSubmissionStatusChart = jest.fn((_props: unknown) => (
 const mockReadingSubmissionRateChart = jest.fn((_props: unknown) => (
   <div data-testid="reading-submission-rate-chart" />
 ))
-const mockPumpOperatorsChart = jest.fn((_props: unknown) => (
+const mockActiveSchemesChart = jest.fn((_props: unknown) => (
   <div data-testid="pump-operators-chart" />
 ))
-const mockPumpOperatorsPerformanceTable = jest.fn((_props: unknown) => (
+const mockSchemePerformanceTable = jest.fn((_props: unknown) => (
   <div data-testid="pump-operators-performance-table" />
 ))
 
@@ -36,11 +36,11 @@ jest.mock('../charts', () => ({
   SupplyOutageDistributionChart: (props: unknown) => mockSupplyOutageDistributionChart(props),
   ReadingSubmissionStatusChart: (props: unknown) => mockReadingSubmissionStatusChart(props),
   ReadingSubmissionRateChart: (props: unknown) => mockReadingSubmissionRateChart(props),
-  PumpOperatorsChart: (props: unknown) => mockPumpOperatorsChart(props),
+  ActiveSchemesChart: (props: unknown) => mockActiveSchemesChart(props),
 }))
 
 jest.mock('../tables', () => ({
-  PumpOperatorsPerformanceTable: (props: unknown) => mockPumpOperatorsPerformanceTable(props),
+  SchemePerformanceTable: (props: unknown) => mockSchemePerformanceTable(props),
 }))
 
 jest.mock('@/shared/components/common/view-by-select', () => ({
@@ -113,6 +113,9 @@ const operatorsPerformanceTable: PumpOperatorPerformanceData[] = [
   },
 ]
 
+const quantityTimeTrendData = [{ period: '01 Mar', value: 90 }]
+const regularityTimeTrendData = [{ period: '01 Mar', value: 72 }]
+
 const data: DashboardData = {
   level: 'district',
   kpis: {
@@ -141,6 +144,10 @@ function renderDistrictDashboard() {
   return renderWithProviders(
     <DistrictDashboardScreen
       data={data}
+      quantityPerformanceData={blockTableData}
+      quantityTimeTrendData={quantityTimeTrendData}
+      regularityPerformanceData={blockTableData}
+      regularityTimeTrendData={regularityTimeTrendData}
       blockTableData={blockTableData}
       supplySubmissionRateData={supplySubmissionRateData}
       supplySubmissionRateLabel="Blocks"
@@ -158,8 +165,8 @@ describe('DistrictDashboardScreen', () => {
     mockSupplyOutageDistributionChart.mockClear()
     mockReadingSubmissionStatusChart.mockClear()
     mockReadingSubmissionRateChart.mockClear()
-    mockPumpOperatorsChart.mockClear()
-    mockPumpOperatorsPerformanceTable.mockClear()
+    mockActiveSchemesChart.mockClear()
+    mockSchemePerformanceTable.mockClear()
   })
 
   it('renders all district view selectors with Geography selected by default', () => {
@@ -174,14 +181,15 @@ describe('DistrictDashboardScreen', () => {
     const outageSelect = screen.getByRole('combobox', {
       name: 'District supply outage distribution view by',
     }) as HTMLSelectElement
-    const readingSelect = screen.getByRole('combobox', {
-      name: 'District reading submission rate view by',
-    }) as HTMLSelectElement
 
     expect(quantitySelect.value).toBe('geography')
     expect(regularitySelect.value).toBe('geography')
     expect(outageSelect.value).toBe('geography')
-    expect(readingSelect.value).toBe('geography')
+    expect(
+      screen.queryByRole('combobox', {
+        name: 'District reading submission rate view by',
+      })
+    ).toBeNull()
   })
 
   it('renders geography charts by default and forwards full-height table prop', () => {
@@ -191,6 +199,7 @@ describe('DistrictDashboardScreen', () => {
     expect(metricCalls).toHaveLength(2)
     expect(metricCalls[0]?.[0].metric).toBe('quantity')
     expect(metricCalls[1]?.[0].metric).toBe('regularity')
+    expect(metricCalls[0]?.[0].showAreaLine).toBe(true)
     expect(metricCalls[0]?.[0].entityLabel).toBe('Blocks')
     expect(metricCalls[1]?.[0].entityLabel).toBe('Blocks')
     expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
@@ -207,7 +216,7 @@ describe('DistrictDashboardScreen', () => {
     }
     expect(submissionProps.entityLabel).toBe('Blocks')
 
-    const operatorsTableProps = mockPumpOperatorsPerformanceTable.mock.calls[0]?.[0] as {
+    const operatorsTableProps = mockSchemePerformanceTable.mock.calls[0]?.[0] as {
       fillHeight: boolean
     }
     expect(operatorsTableProps.fillHeight).toBe(true)
@@ -226,36 +235,78 @@ describe('DistrictDashboardScreen', () => {
     expect(quantityCall).toBeDefined()
     expect(quantityCall?.[0].xAxisLabel).toBe('Month')
     expect(quantityCall?.[0].yAxisLabel).toBe('Quantity')
-    expect(quantityCall?.[0].data).toEqual([
-      {
-        period: 'Jan',
-        value: 90,
-      },
-    ])
+    expect(quantityCall?.[0].data).toEqual(quantityTimeTrendData)
   })
 
-  it('switches reading submission chart to time mode with reading submission trend data', () => {
+  it('shows no data for quantity time mode when periodic analytics are empty', () => {
+    renderWithProviders(
+      <DistrictDashboardScreen
+        data={data}
+        quantityPerformanceData={blockTableData}
+        quantityTimeTrendData={[]}
+        regularityPerformanceData={blockTableData}
+        regularityTimeTrendData={regularityTimeTrendData}
+        blockTableData={blockTableData}
+        supplySubmissionRateData={supplySubmissionRateData}
+        supplySubmissionRateLabel="Blocks"
+        operatorsPerformanceTable={operatorsPerformanceTable}
+        pumpOperatorsTotal={15}
+      />
+    )
+
+    fireEvent.change(
+      screen.getByRole('combobox', { name: 'District quantity performance view by' }),
+      {
+        target: { value: 'time' },
+      }
+    )
+
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
+  })
+
+  it('shows no data for regularity time mode when periodic analytics are empty', () => {
+    renderWithProviders(
+      <DistrictDashboardScreen
+        data={data}
+        quantityPerformanceData={blockTableData}
+        quantityTimeTrendData={quantityTimeTrendData}
+        regularityPerformanceData={blockTableData}
+        regularityTimeTrendData={[]}
+        blockTableData={blockTableData}
+        supplySubmissionRateData={supplySubmissionRateData}
+        supplySubmissionRateLabel="Blocks"
+        operatorsPerformanceTable={operatorsPerformanceTable}
+        pumpOperatorsTotal={15}
+      />
+    )
+
+    fireEvent.change(
+      screen.getByRole('combobox', { name: 'District regularity performance view by' }),
+      {
+        target: { value: 'time' },
+      }
+    )
+
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
+  })
+
+  it('renders reading submission rate as a fixed geography chart', () => {
     renderDistrictDashboard()
 
-    const readingSelect = screen.getByRole('combobox', {
-      name: 'District reading submission rate view by',
-    })
-    fireEvent.change(readingSelect, { target: { value: 'time' } })
+    expect(
+      screen.queryByRole('combobox', {
+        name: 'District reading submission rate view by',
+      })
+    ).toBeNull()
 
-    const monthlyCalls = mockMonthlyTrendChart.mock.calls as Array<[Record<string, unknown>]>
-    const readingSubmissionCall = monthlyCalls.find(
-      (call) => call[0]?.seriesName === 'Reading submission'
-    )
-    expect(readingSubmissionCall).toBeDefined()
-    expect(readingSubmissionCall?.[0].xAxisLabel).toBe('Month')
-    expect(readingSubmissionCall?.[0].yAxisLabel).toBe('Percentage')
-    expect(readingSubmissionCall?.[0].isPercent).toBe(true)
-    expect(readingSubmissionCall?.[0].data).toEqual([
-      {
-        period: 'Jan',
-        value: 77,
-      },
-    ])
+    const submissionProps = mockReadingSubmissionRateChart.mock.calls[0]?.[0] as {
+      entityLabel: string
+      data: Array<{ name: string }>
+    }
+    expect(submissionProps.entityLabel).toBe('Blocks')
+    expect(submissionProps.data[0]?.name).toBe('Block 1')
   })
 
   it('switches outage distribution chart to time mode with outage trend data', () => {

@@ -67,10 +67,10 @@ describe('InviteSuperUserPage', () => {
     expect((submitBtn as HTMLButtonElement).disabled).toBe(false)
   })
 
-  it('Cancel button navigates to /super-admin/super-users', () => {
+  it('Cancel button navigates to /super-user/super-users', () => {
     renderWithProviders(<InviteSuperUserPage />)
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
-    expect(mockNavigate).toHaveBeenCalledWith('/super-admin/super-users')
+    expect(mockNavigate).toHaveBeenCalledWith('/super-user/super-users')
   })
 
   it('calls mutateAsync with correct payload on submit', async () => {
