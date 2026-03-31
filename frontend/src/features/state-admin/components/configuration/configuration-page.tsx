@@ -32,10 +32,12 @@ import {
 } from '../../services/query/use-state-admin-queries'
 import {
   CHANNEL_CODE_TO_NAME,
+  FALLBACK_SYSTEM_CHANNELS,
   DEFAULT_DATE_FORMAT_CONFIG,
   DEFAULT_METER_CHANGE_REASONS,
   DEFAULT_SUPPLY_OUTAGE_REASONS,
   type DateFormatConfig,
+  type KnownSupportedChannel,
   type MeterChangeReason,
   type SupplyOutageReason,
   type SupportedChannel,
@@ -177,7 +179,7 @@ export function ConfigurationPage() {
   }, [config, draft])
 
   const allDisplayChannels = useMemo(() => {
-    const active = systemChannels ?? []
+    const active: SupportedChannel[] = systemChannels ?? FALLBACK_SYSTEM_CHANNELS
     const removed: string[] = config?.degraded ? (config.removedChannels ?? []) : []
     const removedSet = new Set(removed)
     return [...active.filter((c) => !removedSet.has(c)), ...removed]
@@ -516,86 +518,89 @@ export function ConfigurationPage() {
                         {t('common:loading')}
                       </Text>
                     </Flex>
-                  ) : isSystemChannelsError ? (
-                    <Text fontSize="sm" color="error.500">
-                      {t('common:toast.failedToLoad')}
-                    </Text>
                   ) : (
-                    <CheckboxGroup
-                      value={activeDraft.supportedChannels}
-                      onChange={handleChannelChange}
-                    >
-                      <SimpleGrid columns={2} spacing={3} w={{ base: 'full', md: '400px' }}>
-                        <VStack align="start" spacing={3}>
-                          {allDisplayChannels.slice(0, halfChannels).map((code) => {
-                            const isRemoved =
-                              config?.degraded &&
-                              (config.removedChannels ?? []).includes(code as SupportedChannel)
-                            return (
-                              <HStack key={code} spacing={1} align="center">
-                                <Checkbox value={code} isDisabled={!!isRemoved}>
-                                  <Text
-                                    fontSize="sm"
-                                    color={isRemoved ? 'neutral.400' : 'neutral.950'}
-                                  >
-                                    {CHANNEL_CODE_TO_NAME[code as SupportedChannel] ?? code}
-                                  </Text>
-                                </Checkbox>
-                                {isRemoved && (
-                                  <ActionTooltip
-                                    label={t(
-                                      'configuration.sections.supportedChannels.degradedTooltip'
-                                    )}
-                                  >
-                                    <WarningTwoIcon
-                                      color="error.500"
-                                      boxSize={3}
-                                      aria-label={t(
+                    <>
+                      {isSystemChannelsError && (
+                        <Text fontSize="sm" color="error.500" mb={2}>
+                          {t('common:toast.failedToLoad')}
+                        </Text>
+                      )}
+                      <CheckboxGroup
+                        value={activeDraft.supportedChannels}
+                        onChange={handleChannelChange}
+                      >
+                        <SimpleGrid columns={2} spacing={3} w={{ base: 'full', md: '400px' }}>
+                          <VStack align="start" spacing={3}>
+                            {allDisplayChannels.slice(0, halfChannels).map((code) => {
+                              const isRemoved =
+                                config?.degraded &&
+                                (config.removedChannels ?? []).includes(code as SupportedChannel)
+                              return (
+                                <HStack key={code} spacing={1} align="center">
+                                  <Checkbox value={code} isDisabled={!!isRemoved}>
+                                    <Text
+                                      fontSize="sm"
+                                      color={isRemoved ? 'neutral.400' : 'neutral.950'}
+                                    >
+                                      {CHANNEL_CODE_TO_NAME[code as KnownSupportedChannel] ?? code}
+                                    </Text>
+                                  </Checkbox>
+                                  {isRemoved && (
+                                    <ActionTooltip
+                                      label={t(
                                         'configuration.sections.supportedChannels.degradedTooltip'
                                       )}
-                                    />
-                                  </ActionTooltip>
-                                )}
-                              </HStack>
-                            )
-                          })}
-                        </VStack>
-                        <VStack align="start" spacing={3}>
-                          {allDisplayChannels.slice(halfChannels).map((code) => {
-                            const isRemoved =
-                              config?.degraded &&
-                              (config.removedChannels ?? []).includes(code as SupportedChannel)
-                            return (
-                              <HStack key={code} spacing={1} align="center">
-                                <Checkbox value={code} isDisabled={!!isRemoved}>
-                                  <Text
-                                    fontSize="sm"
-                                    color={isRemoved ? 'neutral.400' : 'neutral.950'}
-                                  >
-                                    {CHANNEL_CODE_TO_NAME[code as SupportedChannel] ?? code}
-                                  </Text>
-                                </Checkbox>
-                                {isRemoved && (
-                                  <ActionTooltip
-                                    label={t(
-                                      'configuration.sections.supportedChannels.degradedTooltip'
-                                    )}
-                                  >
-                                    <WarningTwoIcon
-                                      color="error.500"
-                                      boxSize={3}
-                                      aria-label={t(
+                                    >
+                                      <WarningTwoIcon
+                                        color="error.500"
+                                        boxSize={3}
+                                        aria-label={t(
+                                          'configuration.sections.supportedChannels.degradedTooltip'
+                                        )}
+                                      />
+                                    </ActionTooltip>
+                                  )}
+                                </HStack>
+                              )
+                            })}
+                          </VStack>
+                          <VStack align="start" spacing={3}>
+                            {allDisplayChannels.slice(halfChannels).map((code) => {
+                              const isRemoved =
+                                config?.degraded &&
+                                (config.removedChannels ?? []).includes(code as SupportedChannel)
+                              return (
+                                <HStack key={code} spacing={1} align="center">
+                                  <Checkbox value={code} isDisabled={!!isRemoved}>
+                                    <Text
+                                      fontSize="sm"
+                                      color={isRemoved ? 'neutral.400' : 'neutral.950'}
+                                    >
+                                      {CHANNEL_CODE_TO_NAME[code as KnownSupportedChannel] ?? code}
+                                    </Text>
+                                  </Checkbox>
+                                  {isRemoved && (
+                                    <ActionTooltip
+                                      label={t(
                                         'configuration.sections.supportedChannels.degradedTooltip'
                                       )}
-                                    />
-                                  </ActionTooltip>
-                                )}
-                              </HStack>
-                            )
-                          })}
-                        </VStack>
-                      </SimpleGrid>
-                    </CheckboxGroup>
+                                    >
+                                      <WarningTwoIcon
+                                        color="error.500"
+                                        boxSize={3}
+                                        aria-label={t(
+                                          'configuration.sections.supportedChannels.degradedTooltip'
+                                        )}
+                                      />
+                                    </ActionTooltip>
+                                  )}
+                                </HStack>
+                              )
+                            })}
+                          </VStack>
+                        </SimpleGrid>
+                      </CheckboxGroup>
+                    </>
                   )}
                   <FormErrorMessage>{errors.supportedChannels}</FormErrorMessage>
                 </FormControl>
@@ -993,7 +998,9 @@ function ViewMode({
       <ViewSection title={t('configuration.sections.supportedChannels.title')}>
         <Text fontSize="sm" color="neutral.950">
           {config.supportedChannels.length > 0
-            ? config.supportedChannels.map((c) => CHANNEL_CODE_TO_NAME[c] ?? c).join(', ')
+            ? config.supportedChannels
+                .map((c) => CHANNEL_CODE_TO_NAME[c as KnownSupportedChannel] ?? c)
+                .join(', ')
             : '-'}
         </Text>
       </ViewSection>

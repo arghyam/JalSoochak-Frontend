@@ -16,9 +16,17 @@ export interface DateFormatConfig {
   timezone: string | null
 }
 
-export type SupportedChannel = 'BFM' | 'ELM' | 'PDU' | 'IOT' | 'MAN'
+export type KnownSupportedChannel = 'BFM' | 'ELM' | 'PDU' | 'IOT' | 'MAN'
 
-export const CHANNEL_CODE_TO_NAME: Partial<Record<SupportedChannel, string>> = {
+/**
+ * Open string union: known codes are autocompleted; unknown backend codes are
+ * still representable without unsafe casts.
+ */
+export type SupportedChannel = KnownSupportedChannel | (string & {})
+
+export const FALLBACK_SYSTEM_CHANNELS: KnownSupportedChannel[] = ['BFM', 'ELM', 'PDU', 'IOT', 'MAN']
+
+export const CHANNEL_CODE_TO_NAME: Partial<Record<KnownSupportedChannel, string>> = {
   BFM: 'Bulk Flow Meter',
   ELM: 'Electric Meter',
   PDU: 'Pump Duration',
