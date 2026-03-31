@@ -111,11 +111,14 @@ export function MetricPerformanceChart({
   const formattedYAxisMaxLabel = useMemo(() => formatYAxisTick(yAxisScale.max), [yAxisScale.max])
   const chartGridTop = 24
   const chartGridBottom = 88
+  const yAxisTitleGutter = 24
+  const yAxisTickMargin = -12
   const axisWidth = useMemo(() => {
     const digitWidth = 8
     const basePadding = 8
-    return `${Math.max(56, formattedYAxisMaxLabel.length * digitWidth + basePadding)}px`
-  }, [formattedYAxisMaxLabel])
+    const tickLabelWidth = Math.max(56, formattedYAxisMaxLabel.length * digitWidth + basePadding)
+    return `${tickLabelWidth + yAxisTitleGutter}px`
+  }, [formattedYAxisMaxLabel, yAxisTitleGutter])
 
   const option = useMemo<echarts.EChartsOption>(() => {
     const entities = data.map((d) => d.name)
@@ -306,7 +309,7 @@ export function MetricPerformanceChart({
         position: 'right',
         axisLabel: {
           align: 'right',
-          margin: -2,
+          margin: yAxisTickMargin,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
@@ -332,7 +335,15 @@ export function MetricPerformanceChart({
       ],
       animation: false,
     }
-  }, [bodyText7, chartGridBottom, chartGridTop, longestEntityLabel, xAxisLabelMargin, yAxisScale])
+  }, [
+    bodyText7,
+    chartGridBottom,
+    chartGridTop,
+    longestEntityLabel,
+    xAxisLabelMargin,
+    yAxisScale,
+    yAxisTickMargin,
+  ])
 
   const baseChartWidth = data.length * itemWidth
   const chartPixelWidth =
@@ -516,10 +527,13 @@ export function MetricPerformanceChart({
             color={bodyText7.color}
             whiteSpace="nowrap"
             pointerEvents="none"
-            pl="2px"
+            zIndex={1}
             sx={{
               writingMode: 'vertical-rl',
               textOrientation: 'mixed',
+              backfaceVisibility: 'hidden',
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
             }}
           >
             {yAxisLabel}

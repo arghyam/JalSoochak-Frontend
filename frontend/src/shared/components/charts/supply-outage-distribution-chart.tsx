@@ -427,14 +427,18 @@ export function SupplyOutageDistributionChart({
           <EChartsWrapper option={axisOption} height="100%" />
           <Box
             position="absolute"
-            left="-18px"
+            left="4px"
             top="50%"
-            transform="translateY(-50%) rotate(-90deg)"
-            transformOrigin="center"
+            transform="translateY(-50%) rotate(-180deg)"
             textStyle="bodyText7"
             fontWeight="400"
             color={bodyText7.color}
             whiteSpace="nowrap"
+            pointerEvents="none"
+            sx={{
+              writingMode: 'vertical-rl',
+              textOrientation: 'mixed',
+            }}
           >
             {t('outageAndSubmissionCharts.axis.noOfDays', { defaultValue: 'No. of days' })}
           </Box>

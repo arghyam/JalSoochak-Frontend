@@ -54,26 +54,72 @@ export function MonthlyTrendChart({
 
   const defaultItemWidth = 90
   const minItemWidth = 70
+  const yAxisTitleGutter = 5
+  const chartGridTop = 24
+  const chartGridBottom = 64
+  const xAxisLabelMargin = 12
   const effectiveItemWidth =
     containerWidth > 0
       ? Math.max(minItemWidth, Math.floor(containerWidth / Math.max(data.length, 1)))
       : defaultItemWidth
   const itemWidth = Math.min(defaultItemWidth, effectiveItemWidth)
-  const axisWidth = '56px'
-  const axisLabelOffset = '-25px'
   const longestPeriodLabel = useMemo(() => {
     return data.reduce((longest, item) => {
       return item.period.length > longest.length ? item.period : longest
     }, '')
   }, [data])
 
+  const formatYAxisTick = useCallback(
+    (value: number) => {
+      if (!Number.isFinite(value)) {
+        return ''
+      }
+
+      if (isPercent) {
+        if (Number.isInteger(value)) {
+          return String(value)
+        }
+
+        return value.toFixed(1)
+      }
+
+      if (Math.abs(value) >= 1000) {
+        return new Intl.NumberFormat('en-IN', {
+          maximumFractionDigits: 0,
+        }).format(value)
+      }
+
+      if (Number.isInteger(value)) {
+        return String(value)
+      }
+
+      return value.toFixed(1)
+    },
+    [isPercent]
+  )
+
   const yAxisScale = useMemo(() => {
     const values = data.map((item) => item.value)
+    if (isPercent) {
+      return { max: 100, interval: 25 as number | undefined }
+    }
+
     const maxValue = values.length > 0 ? Math.max(...values) : 0
     const max = maxValue > 100 ? Math.ceil(maxValue / 10) * 10 : 100
 
-    return { max }
-  }, [data])
+    return { max, interval: undefined }
+  }, [data, isPercent])
+
+  const formattedYAxisMaxLabel = useMemo(
+    () => formatYAxisTick(yAxisScale.max),
+    [formatYAxisTick, yAxisScale.max]
+  )
+  const axisWidth = useMemo(() => {
+    const digitWidth = 8
+    const basePadding = 8
+    const tickLabelWidth = Math.max(56, formattedYAxisMaxLabel.length * digitWidth + basePadding)
+    return `${tickLabelWidth + yAxisTitleGutter}px`
+  }, [formattedYAxisMaxLabel, yAxisTitleGutter])
 
   const option = useMemo<EChartsOption>(() => {
     const periods = data.map((item) => item.period)
@@ -125,9 +171,9 @@ export function MonthlyTrendChart({
       grid: {
         left: '0%',
         right: '4%',
-        top: '10%',
-        bottom: '9%',
-        containLabel: true,
+        top: chartGridTop,
+        bottom: chartGridBottom,
+        containLabel: false,
       },
       xAxis: {
         type: 'category',
@@ -143,6 +189,7 @@ export function MonthlyTrendChart({
         },
         axisLabel: {
           rotate: 0,
+          margin: xAxisLabelMargin,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
@@ -169,6 +216,7 @@ export function MonthlyTrendChart({
         },
         min: 0,
         max: yAxisScale.max,
+        interval: yAxisScale.interval,
       },
       series: [
         {
@@ -188,7 +236,17 @@ export function MonthlyTrendChart({
         },
       ],
     }
-  }, [bodyText7, data, isPercent, seriesName, yAxisScale.max])
+  }, [
+    bodyText7,
+    chartGridBottom,
+    chartGridTop,
+    data,
+    isPercent,
+    seriesName,
+    xAxisLabelMargin,
+    yAxisScale.interval,
+    yAxisScale.max,
+  ])
 
   const axisOption = useMemo<EChartsOption>(() => {
     const placeholderLabel = longestPeriodLabel || 'W'
@@ -197,11 +255,11 @@ export function MonthlyTrendChart({
         show: false,
       },
       grid: {
-        left: '20%',
+        left: '0%',
         right: 0,
-        top: '10%',
-        bottom: '9%',
-        containLabel: true,
+        top: chartGridTop,
+        bottom: chartGridBottom,
+        containLabel: false,
       },
       xAxis: {
         type: 'category',
@@ -214,7 +272,7 @@ export function MonthlyTrendChart({
         },
         axisLabel: {
           show: true,
-          margin: 8,
+          margin: xAxisLabelMargin,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
@@ -227,14 +285,16 @@ export function MonthlyTrendChart({
         position: 'right',
         axisLabel: {
           align: 'right',
-          margin: 5,
+          margin: -2,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
           color: bodyText7.color,
+          formatter: (value: number) => formatYAxisTick(value),
         },
         min: 0,
         max: yAxisScale.max,
+        interval: yAxisScale.interval,
         splitLine: {
           show: false,
         },
@@ -251,7 +311,16 @@ export function MonthlyTrendChart({
       ],
       animation: false,
     }
-  }, [bodyText7, longestPeriodLabel, yAxisScale.max])
+  }, [
+    bodyText7,
+    chartGridBottom,
+    chartGridTop,
+    formatYAxisTick,
+    longestPeriodLabel,
+    xAxisLabelMargin,
+    yAxisScale.interval,
+    yAxisScale.max,
+  ])
 
   const baseChartWidth = data.length * itemWidth
   const chartPixelWidth =
@@ -416,14 +485,18 @@ export function MonthlyTrendChart({
           <EChartsWrapper option={axisOption} height="100%" />
           <Box
             position="absolute"
-            left={axisLabelOffset}
+            left="5px"
             top="50%"
-            transform="translateY(-50%) rotate(-90deg)"
-            transformOrigin="center"
+            transform="translateY(-50%) rotate(180deg)"
             textStyle="bodyText7"
             fontWeight="400"
             color={bodyText7.color}
             whiteSpace="nowrap"
+            pointerEvents="none"
+            sx={{
+              writingMode: 'vertical-rl',
+              textOrientation: 'mixed',
+            }}
           >
             {yAxisLabel}
           </Box>

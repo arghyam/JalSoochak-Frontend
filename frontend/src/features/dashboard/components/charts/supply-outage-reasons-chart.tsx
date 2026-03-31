@@ -21,7 +21,6 @@ const toTitleCase = (value: string) =>
     .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
     .replace(/\s+/g, ' ')
     .trim()
-    .toLowerCase()
     .replace(/\b\w/g, (character) => character.toUpperCase())
 
 export function SupplyOutageReasonsChart({
@@ -37,28 +36,28 @@ export function SupplyOutageReasonsChart({
     const reasonsPresent = data.some(
       (entry) => entry.reasons && Object.keys(entry.reasons).length > 0
     )
+    const addValidatedTotal = (reasonKey: string, value: unknown) => {
+      const numericValue = Number(value)
+      if (!Number.isFinite(numericValue)) {
+        return
+      }
+
+      totals.set(reasonKey, (totals.get(reasonKey) ?? 0) + numericValue)
+    }
 
     if (reasonsPresent) {
       data.forEach((entry) => {
         Object.entries(entry.reasons ?? {}).forEach(([reasonKey, value]) => {
-          const numericValue = Number(value)
-          if (!Number.isFinite(numericValue)) {
-            return
-          }
-
-          totals.set(reasonKey, (totals.get(reasonKey) ?? 0) + numericValue)
+          addValidatedTotal(reasonKey, value)
         })
       })
     } else {
       data.forEach((entry) => {
-        totals.set(
-          'electricityFailure',
-          (totals.get('electricityFailure') ?? 0) + entry.electricityFailure
-        )
-        totals.set('pipelineLeak', (totals.get('pipelineLeak') ?? 0) + entry.pipelineLeak)
-        totals.set('pumpFailure', (totals.get('pumpFailure') ?? 0) + entry.pumpFailure)
-        totals.set('valveIssue', (totals.get('valveIssue') ?? 0) + entry.valveIssue)
-        totals.set('sourceDrying', (totals.get('sourceDrying') ?? 0) + entry.sourceDrying)
+        addValidatedTotal('electricityFailure', entry.electricityFailure)
+        addValidatedTotal('pipelineLeak', entry.pipelineLeak)
+        addValidatedTotal('pumpFailure', entry.pumpFailure)
+        addValidatedTotal('valveIssue', entry.valveIssue)
+        addValidatedTotal('sourceDrying', entry.sourceDrying)
       })
     }
 
