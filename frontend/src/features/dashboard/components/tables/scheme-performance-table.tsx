@@ -414,6 +414,7 @@ export function SchemePerformanceTable({
                             overflow="hidden"
                             textOverflow="ellipsis"
                             whiteSpace="nowrap"
+                            title={operator.name}
                           >
                             {operator.name}
                           </Box>

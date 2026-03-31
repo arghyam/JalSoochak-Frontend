@@ -496,8 +496,8 @@ export function MetricPerformanceChart({
     ? [
         {
           label: areaSeriesName,
-          color: theme.colors?.primary?.[25] ?? 'primary.25',
-          borderColor: theme.colors?.primary?.[500] ?? 'primary.500',
+          color: theme.colors?.primary?.[25] ?? '#F5FAFF',
+          borderColor: theme.colors?.primary?.[500] ?? '#3763C8',
         },
         { label: barSeriesName, color: '#3291D1' },
       ]

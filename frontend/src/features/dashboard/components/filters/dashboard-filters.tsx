@@ -303,9 +303,19 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   )
   const findLabel = (value: string, options: SearchableSelectOption[]): string | null => {
     if (!value) return null
+    const selectedId = parseLocationId(value)
     return (
-      options.find((option) => option.value === value || slugify(option.label) === value)?.label ??
-      null
+      options.find((option) => {
+        if (option.value === value || slugify(option.label) === value) {
+          return true
+        }
+
+        if (typeof selectedId === 'number') {
+          return parseLocationId(option.value) === selectedId
+        }
+
+        return false
+      })?.label ?? null
     )
   }
   const selectionTrail = [
