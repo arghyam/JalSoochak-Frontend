@@ -16,9 +16,9 @@ export interface DateFormatConfig {
   timezone: string | null
 }
 
-export type SupportedChannel = string
+export type SupportedChannel = 'BFM' | 'ELM' | 'PDU' | 'IOT' | 'MAN'
 
-export const CHANNEL_CODE_TO_NAME: Record<string, string> = {
+export const CHANNEL_CODE_TO_NAME: Partial<Record<SupportedChannel, string>> = {
   BFM: 'Bulk Flow Meter',
   ELM: 'Electric Meter',
   PDU: 'Pump Duration',
@@ -61,9 +61,9 @@ export const DEFAULT_DATE_FORMAT_CONFIG: DateFormatConfig = {
 
 export interface ConfigurationData {
   id: string
-  supportedChannels: string[]
+  supportedChannels: SupportedChannel[]
   degraded?: boolean
-  removedChannels?: string[]
+  removedChannels?: SupportedChannel[]
   logoUrl?: string
   meterChangeReasons: MeterChangeReason[]
   supplyOutageReasons: SupplyOutageReason[]

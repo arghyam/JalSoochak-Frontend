@@ -13,6 +13,7 @@ import type {
   DateFormatConfig,
   MeterChangeReason,
   SupplyOutageReason,
+  SupportedChannel,
 } from '../../types/configuration'
 import type { MessageTemplatesData, ScreenContent, ScreenName } from '../../types/message-templates'
 import { SCREEN_NAMES } from '../../types/message-templates'
@@ -117,7 +118,7 @@ export function mapApiConfigToConfigurationData(
   configs: TenantConfigMap
 ): Omit<ConfigurationData, 'id'> {
   const channelData = configs.TENANT_SUPPORTED_CHANNELS
-  const channelCodes = channelData?.channels ?? []
+  const channelCodes = (channelData?.channels ?? []) as SupportedChannel[]
 
   const meterReasons: MeterChangeReason[] = configs.METER_CHANGE_REASONS?.reasons?.length
     ? configs.METER_CHANGE_REASONS.reasons.map((r) => ({ id: r.id, name: r.name }))
@@ -154,7 +155,7 @@ export function mapApiConfigToConfigurationData(
   return {
     supportedChannels: channelCodes,
     degraded: channelData?.degraded,
-    removedChannels: channelData?.removedChannels,
+    removedChannels: channelData?.removedChannels as SupportedChannel[] | undefined,
     meterChangeReasons: meterReasons,
     supplyOutageReasons,
     locationCheckRequired: configs.LOCATION_CHECK_REQUIRED?.value === 'YES',

@@ -38,6 +38,7 @@ import {
   type DateFormatConfig,
   type MeterChangeReason,
   type SupplyOutageReason,
+  type SupportedChannel,
 } from '../../types/configuration'
 import { MeterChangeReasonsSection } from './meter-change-reasons-section'
 import { SupplyOutageReasonsSection } from './supply-outage-reasons-section'
@@ -53,7 +54,7 @@ const MAX_METER_REASON_LENGTH = 100
 const MAX_AVG_MEMBERS = 20
 
 interface ConfigDraft {
-  supportedChannels: string[]
+  supportedChannels: SupportedChannel[]
   logoFile: File | null
   logoUrl?: string
   meterChangeReasons: MeterChangeReason[]
@@ -69,7 +70,7 @@ interface ConfigDraft {
 
 function buildInitialDraft(
   config?: {
-    supportedChannels: string[]
+    supportedChannels: SupportedChannel[]
     meterChangeReasons: MeterChangeReason[]
     supplyOutageReasons: SupplyOutageReason[]
     locationCheckRequired: boolean
@@ -177,7 +178,7 @@ export function ConfigurationPage() {
 
   const allDisplayChannels = useMemo(() => {
     const active = systemChannels ?? []
-    const removed = config?.degraded ? (config.removedChannels ?? []) : []
+    const removed: string[] = config?.degraded ? (config.removedChannels ?? []) : []
     const removedSet = new Set(removed)
     return [...active.filter((c) => !removedSet.has(c)), ...removed]
   }, [systemChannels, config])
@@ -326,7 +327,7 @@ export function ConfigurationPage() {
   const handleChannelChange = (values: string[]) => {
     setDraft((prev) => ({
       ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
-      supportedChannels: values,
+      supportedChannels: values as SupportedChannel[],
     }))
     clearError('supportedChannels')
   }
@@ -528,7 +529,8 @@ export function ConfigurationPage() {
                         <VStack align="start" spacing={3}>
                           {allDisplayChannels.slice(0, halfChannels).map((code) => {
                             const isRemoved =
-                              config?.degraded && (config.removedChannels ?? []).includes(code)
+                              config?.degraded &&
+                              (config.removedChannels ?? []).includes(code as SupportedChannel)
                             return (
                               <HStack key={code} spacing={1} align="center">
                                 <Checkbox value={code} isDisabled={!!isRemoved}>
@@ -536,7 +538,7 @@ export function ConfigurationPage() {
                                     fontSize="sm"
                                     color={isRemoved ? 'neutral.400' : 'neutral.950'}
                                   >
-                                    {CHANNEL_CODE_TO_NAME[code] ?? code}
+                                    {CHANNEL_CODE_TO_NAME[code as SupportedChannel] ?? code}
                                   </Text>
                                 </Checkbox>
                                 {isRemoved && (
@@ -561,7 +563,8 @@ export function ConfigurationPage() {
                         <VStack align="start" spacing={3}>
                           {allDisplayChannels.slice(halfChannels).map((code) => {
                             const isRemoved =
-                              config?.degraded && (config.removedChannels ?? []).includes(code)
+                              config?.degraded &&
+                              (config.removedChannels ?? []).includes(code as SupportedChannel)
                             return (
                               <HStack key={code} spacing={1} align="center">
                                 <Checkbox value={code} isDisabled={!!isRemoved}>
@@ -569,7 +572,7 @@ export function ConfigurationPage() {
                                     fontSize="sm"
                                     color={isRemoved ? 'neutral.400' : 'neutral.950'}
                                   >
-                                    {CHANNEL_CODE_TO_NAME[code] ?? code}
+                                    {CHANNEL_CODE_TO_NAME[code as SupportedChannel] ?? code}
                                   </Text>
                                 </Checkbox>
                                 {isRemoved && (
