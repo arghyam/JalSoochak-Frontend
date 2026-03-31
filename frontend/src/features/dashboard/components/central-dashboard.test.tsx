@@ -2583,7 +2583,7 @@ describe('CentralDashboard', () => {
     })
   })
 
-  it('renders a fallback message when dashboard data is unavailable', () => {
+  it('renders the dashboard shell with empty fallback data when dashboard data is unavailable', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: undefined,
       isLoading: false,
@@ -2592,7 +2592,20 @@ describe('CentralDashboard', () => {
 
     renderWithProviders(<CentralDashboard />)
 
-    expect(screen.getByText('Dashboard data unavailable')).toBeTruthy()
-    expect(screen.getByText('No dashboard data was returned.')).toBeTruthy()
+    expect(screen.getByTestId('dashboard-filters')).toBeTruthy()
+    expect(screen.getByTestId('dashboard-body')).toBeTruthy()
+  })
+
+  it('does not block the dashboard shell while the legacy dashboard request is loading', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      error: null,
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(screen.getByTestId('dashboard-filters')).toBeTruthy()
+    expect(screen.getByTestId('dashboard-body')).toBeTruthy()
   })
 })

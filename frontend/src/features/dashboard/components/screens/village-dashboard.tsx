@@ -6,11 +6,14 @@ import { ChartEmptyState, LoadingSpinner } from '@/shared/components/common'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import type {
   DashboardData,
+  PumpOperatorsBySchemeItem,
   ReadingComplianceData,
   ReadingComplianceItem,
   VillagePumpOperatorDetails,
   WaterSupplyOutageData,
 } from '../../types'
+import { usePumpOperatorDetailsQuery } from '../../services/query/use-pump-operator-details-query'
+import { usePumpOperatorsBySchemeQuery } from '../../services/query/use-pump-operators-by-scheme-query'
 import { useReadingComplianceQuery } from '../../services/query/use-reading-compliance-query'
 import { MonthlyTrendChart, SupplyOutageReasonsChart } from '../charts'
 import { ReadingComplianceTable } from '../tables'
@@ -155,6 +158,18 @@ const normalizeSchemeLabel = (value?: string | null) => {
   return trimmedValue ? toCapitalizedWords(trimmedValue) : undefined
 }
 
+const formatStationLocation = (
+  latitude?: number | null,
+  longitude?: number | null,
+  fallback?: string
+) => {
+  if (typeof latitude === 'number' && typeof longitude === 'number') {
+    return `${latitude}, ${longitude}`
+  }
+
+  return fallback || 'N/A'
+}
+
 const mapReadingComplianceItemToVillageDetails = (
   item: ReadingComplianceItem,
   fallback?: VillagePumpOperatorDetails
@@ -197,6 +212,110 @@ const mapReadingComplianceItemToVillageDetails = (
       item.inactiveDays != null
         ? formatCount(item.inactiveDays)
         : matchingFallback?.inactiveDays || 'N/A',
+  }
+}
+
+const mapPumpOperatorSummaryToVillageDetails = (
+  item: PumpOperatorsBySchemeItem['pumpOperators'][number],
+  schemeId: number,
+  schemeName?: string,
+  fallback?: VillagePumpOperatorDetails
+): VillagePumpOperatorDetails => {
+  const normalizedSchemeName = normalizeSchemeLabel(schemeName)
+
+  return {
+    id: item.id,
+    uuid: item.uuid,
+    mappingKey: getOperatorMappingKey({
+      id: item.id,
+      uuid: item.uuid,
+      schemeId,
+      name: item.name,
+    }),
+    name: item.name?.trim() || fallback?.name || 'N/A',
+    email: item.email,
+    phoneNumber: item.phoneNumber,
+    status: item.status,
+    schemeId,
+    schemeName: normalizedSchemeName,
+    scheme:
+      normalizedSchemeName && schemeId
+        ? `${normalizedSchemeName} / ${schemeId}`
+        : fallback?.scheme || 'N/A',
+    stationLocation: fallback?.stationLocation || 'N/A',
+    lastSubmission: fallback?.lastSubmission || 'N/A',
+    reportingRate: fallback?.reportingRate || 'N/A',
+    missingSubmissionCount: fallback?.missingSubmissionCount || 'N/A',
+    inactiveDays: fallback?.inactiveDays || 'N/A',
+  }
+}
+
+const mapPumpOperatorDetailsToVillageDetails = (
+  item: {
+    id: number
+    uuid: string
+    name: string
+    email: string
+    phoneNumber: string
+    status: number
+    schemeId: number
+    schemeName: string
+    schemeLatitude: number | null
+    schemeLongitude: number | null
+    lastSubmissionAt: string | null
+    firstSubmissionDate: string | null
+    totalDaysSinceFirstSubmission: number | null
+    submittedDays: number
+    reportingRatePercent: number | null
+    missedSubmissionDays: number | null
+    inactiveDays?: number | null
+  },
+  fallback?: VillagePumpOperatorDetails
+): VillagePumpOperatorDetails => {
+  const normalizedSchemeName = normalizeSchemeLabel(item.schemeName)
+  const missedSubmissionCount = getMissedSubmissionCount(item.missedSubmissionDays)
+
+  return {
+    id: item.id,
+    uuid: item.uuid,
+    mappingKey: getOperatorMappingKey(item),
+    name: item.name?.trim() || fallback?.name || 'N/A',
+    email: item.email,
+    phoneNumber: item.phoneNumber,
+    status: item.status,
+    schemeId: item.schemeId,
+    schemeName: normalizedSchemeName,
+    scheme:
+      normalizedSchemeName && item.schemeId
+        ? `${normalizedSchemeName} / ${item.schemeId}`
+        : fallback?.scheme || 'N/A',
+    schemeLatitude: item.schemeLatitude,
+    schemeLongitude: item.schemeLongitude,
+    lastSubmissionAt: item.lastSubmissionAt,
+    firstSubmissionDate: item.firstSubmissionDate,
+    totalDaysSinceFirstSubmission: item.totalDaysSinceFirstSubmission,
+    submittedDays: item.submittedDays,
+    reportingRatePercent: item.reportingRatePercent,
+    missedSubmissionDays: missedSubmissionCount,
+    stationLocation: formatStationLocation(
+      item.schemeLatitude,
+      item.schemeLongitude,
+      fallback?.stationLocation
+    ),
+    lastSubmission:
+      item.lastSubmissionAt != null
+        ? formatReadingComplianceTimestamp(item.lastSubmissionAt)
+        : fallback?.lastSubmission || 'N/A',
+    reportingRate:
+      item.reportingRatePercent != null
+        ? formatPercent(item.reportingRatePercent)
+        : fallback?.reportingRate || 'N/A',
+    missingSubmissionCount:
+      missedSubmissionCount != null
+        ? formatCount(missedSubmissionCount)
+        : fallback?.missingSubmissionCount || 'N/A',
+    inactiveDays:
+      item.inactiveDays != null ? formatCount(item.inactiveDays) : fallback?.inactiveDays || 'N/A',
   }
 }
 
@@ -250,16 +369,30 @@ function ReadingComplianceSection({
   >({})
   const readingComplianceParams = useMemo(
     () =>
-      tenantCode && typeof effectiveSchemeId === 'number'
+      tenantCode
         ? {
             tenant_code: tenantCode,
-            scheme_id: effectiveSchemeId,
+            scheme_id: typeof effectiveSchemeId === 'number' ? effectiveSchemeId : undefined,
             page: readingCompliancePage,
             size: READING_COMPLIANCE_PAGE_SIZE,
           }
         : null,
     [effectiveSchemeId, readingCompliancePage, tenantCode]
   )
+  const pumpOperatorsBySchemeParams = useMemo(
+    () =>
+      tenantCode && typeof effectiveSchemeId === 'number'
+        ? {
+            tenant_code: tenantCode,
+            scheme_id: effectiveSchemeId,
+          }
+        : null,
+    [effectiveSchemeId, tenantCode]
+  )
+  const { data: pumpOperatorsBySchemeData } = usePumpOperatorsBySchemeQuery({
+    params: pumpOperatorsBySchemeParams,
+    enabled: Boolean(pumpOperatorsBySchemeParams),
+  })
   const { data: readingComplianceApiData, isFetching: isReadingComplianceFetching } =
     useReadingComplianceQuery({
       params: readingComplianceParams,
@@ -336,6 +469,26 @@ function ReadingComplianceSection({
     () => (villagePumpOperators.length > 0 ? villagePumpOperators : [villagePumpOperatorDetails]),
     [villagePumpOperatorDetails, villagePumpOperators]
   )
+  const pumpOperatorApiPages = useMemo(() => {
+    const schemeGroups = pumpOperatorsBySchemeData?.data ?? []
+    const matchingSchemeGroup =
+      schemeGroups.find((group) => group.schemeId === effectiveSchemeId) ?? schemeGroups[0]
+
+    if (!matchingSchemeGroup) {
+      return []
+    }
+
+    return matchingSchemeGroup.pumpOperators.map((operator) =>
+      mapPumpOperatorSummaryToVillageDetails(
+        operator,
+        matchingSchemeGroup.schemeId,
+        matchingSchemeGroup.schemeName,
+        fallbackPumpOperatorPages.find((fallbackOperator) =>
+          isSameOperator(operator, fallbackOperator)
+        )
+      )
+    )
+  }, [effectiveSchemeId, fallbackPumpOperatorPages, pumpOperatorsBySchemeData?.data])
   const readingComplianceDataByOperator = useMemo(() => {
     const rowsByOperatorKey = new Map<string, ReadingComplianceItem[]>()
     const latestEntryByOperatorKey = new Map<string, ReadingComplianceItem>()
@@ -365,18 +518,65 @@ function ReadingComplianceSection({
     }
   }, [readingComplianceItems])
   const pumpOperatorPages = useMemo(() => {
-    const apiPumpOperators = Array.from(
+    if (pumpOperatorApiPages.length > 0) {
+      return pumpOperatorApiPages
+    }
+
+    const complianceDerivedOperators = Array.from(
       readingComplianceDataByOperator.latestEntryByOperatorKey.values()
     ).map((item) => mapReadingComplianceItemToVillageDetails(item, villagePumpOperatorDetails))
 
-    return apiPumpOperators.length > 0 ? apiPumpOperators : fallbackPumpOperatorPages
-  }, [fallbackPumpOperatorPages, readingComplianceDataByOperator, villagePumpOperatorDetails])
+    return complianceDerivedOperators.length > 0
+      ? complianceDerivedOperators
+      : fallbackPumpOperatorPages
+  }, [
+    fallbackPumpOperatorPages,
+    pumpOperatorApiPages,
+    readingComplianceDataByOperator,
+    villagePumpOperatorDetails,
+  ])
   const totalPumpOperatorPages = Math.max(1, pumpOperatorPages.length)
   const activePumpOperatorPage = Math.min(pumpOperatorPage, totalPumpOperatorPages)
   const activePumpOperator =
     pumpOperatorPages[activePumpOperatorPage - 1] ?? villagePumpOperatorDetails
   const activePumpOperatorKey =
     activePumpOperator.mappingKey ?? getOperatorMappingKey(activePumpOperator)
+  const activePumpOperatorId = activePumpOperator.id
+  const activePumpOperatorDetailsParams = useMemo(
+    () =>
+      tenantCode && typeof activePumpOperatorId === 'number'
+        ? {
+            tenant_code: tenantCode,
+            pumpOperatorId: activePumpOperatorId,
+          }
+        : null,
+    [activePumpOperatorId, tenantCode]
+  )
+  const { data: pumpOperatorDetailsApiData } = usePumpOperatorDetailsQuery({
+    params: activePumpOperatorDetailsParams,
+    enabled: Boolean(activePumpOperatorDetailsParams),
+  })
+  const resolvedActivePumpOperator = useMemo(() => {
+    const detailsPayload = pumpOperatorDetailsApiData?.data
+
+    if (detailsPayload) {
+      return mapPumpOperatorDetailsToVillageDetails(detailsPayload, activePumpOperator)
+    }
+
+    const latestComplianceItem =
+      readingComplianceDataByOperator.latestEntryByOperatorKey.get(activePumpOperatorKey)
+
+    if (latestComplianceItem) {
+      return mapReadingComplianceItemToVillageDetails(latestComplianceItem, activePumpOperator)
+    }
+
+    return activePumpOperator
+  }, [
+    activePumpOperator,
+    activePumpOperatorKey,
+    pumpOperatorDetailsApiData?.data,
+    readingComplianceDataByOperator.latestEntryByOperatorKey,
+  ])
   const selectedOperatorHistoryCount =
     readingComplianceDataByOperator.rowsByOperatorKey.get(activePumpOperatorKey)?.length ?? 0
   const currentPageIncludesActiveOperator = useMemo(
@@ -419,35 +619,35 @@ function ReadingComplianceSection({
       {
         id: `operator-${
           activePumpOperatorKey ??
-          (activePumpOperator.id ?? activePumpOperator.name)
+          (resolvedActivePumpOperator.id ?? resolvedActivePumpOperator.name)
             .toString()
             .toLowerCase()
             .replace(/\s+/g, '-')
         }`,
-        name: activePumpOperator.name,
+        name: resolvedActivePumpOperator.name,
         village: 'N/A',
-        lastSubmission: activePumpOperator.lastSubmission,
+        lastSubmission: resolvedActivePumpOperator.lastSubmission,
         readingValue: 'N/A',
       },
     ]
   }, [
-    activePumpOperator,
     activePumpOperatorKey,
     effectiveSchemeId,
     readingComplianceDataByOperator,
+    resolvedActivePumpOperator,
   ])
   const isPumpOperatorDetailsEmpty = useMemo(
     () =>
       [
-        activePumpOperator.name,
-        activePumpOperator.scheme,
-        activePumpOperator.stationLocation,
-        activePumpOperator.lastSubmission,
-        activePumpOperator.reportingRate,
-        activePumpOperator.missingSubmissionCount,
-        activePumpOperator.inactiveDays,
+        resolvedActivePumpOperator.name,
+        resolvedActivePumpOperator.scheme,
+        resolvedActivePumpOperator.stationLocation,
+        resolvedActivePumpOperator.lastSubmission,
+        resolvedActivePumpOperator.reportingRate,
+        resolvedActivePumpOperator.missingSubmissionCount,
+        resolvedActivePumpOperator.inactiveDays,
       ].every((value) => isMissingDisplayValue(value)),
-    [activePumpOperator]
+    [resolvedActivePumpOperator]
   )
   const hasMeaningfulReadingComplianceRows = useMemo(
     () =>
@@ -542,9 +742,9 @@ function ReadingComplianceSection({
           ) : (
             <Box>
               <Flex align="center" gap={3} mb={6}>
-                <Avatar name={activePumpOperator.name} boxSize="44px" />
+                <Avatar name={resolvedActivePumpOperator.name} boxSize="44px" />
                 <Text textStyle="bodyText4" fontSize="14px" fontWeight="500" color="neutral.950">
-                  {activePumpOperator.name}
+                  {resolvedActivePumpOperator.name}
                 </Text>
               </Flex>
               <Grid
@@ -565,7 +765,7 @@ function ReadingComplianceSection({
                   textAlign={{ base: 'left', sm: 'right' }}
                   wordBreak="break-word"
                 >
-                  {activePumpOperator.scheme}
+                  {resolvedActivePumpOperator.scheme}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
                   {t('pumpOperators.details.fields.stationLocation', {
@@ -579,7 +779,7 @@ function ReadingComplianceSection({
                   textAlign={{ base: 'left', sm: 'right' }}
                   wordBreak="break-word"
                 >
-                  {activePumpOperator.stationLocation}
+                  {resolvedActivePumpOperator.stationLocation}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
                   {t('pumpOperators.details.fields.lastSubmission', {
@@ -592,7 +792,7 @@ function ReadingComplianceSection({
                   color="neutral.950"
                   textAlign={{ base: 'left', sm: 'right' }}
                 >
-                  {activePumpOperator.lastSubmission}
+                  {resolvedActivePumpOperator.lastSubmission}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
                   {t('pumpOperators.details.fields.reportingRate', {
@@ -605,7 +805,7 @@ function ReadingComplianceSection({
                   color="neutral.950"
                   textAlign={{ base: 'left', sm: 'right' }}
                 >
-                  {activePumpOperator.reportingRate}
+                  {resolvedActivePumpOperator.reportingRate}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
                   {t('pumpOperators.details.fields.missingSubmissionCount', {
@@ -618,7 +818,7 @@ function ReadingComplianceSection({
                   color="neutral.950"
                   textAlign={{ base: 'left', sm: 'right' }}
                 >
-                  {activePumpOperator.missingSubmissionCount}
+                  {resolvedActivePumpOperator.missingSubmissionCount}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
                   {t('pumpOperators.details.fields.inactiveDays', {
@@ -631,7 +831,7 @@ function ReadingComplianceSection({
                   color="neutral.950"
                   textAlign={{ base: 'left', sm: 'right' }}
                 >
-                  {activePumpOperator.inactiveDays}
+                  {resolvedActivePumpOperator.inactiveDays}
                 </Text>
               </Grid>
             </Box>

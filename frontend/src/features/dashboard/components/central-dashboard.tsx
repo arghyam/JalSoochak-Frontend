@@ -23,7 +23,6 @@ import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quant
 import { KPICard } from './kpi-card'
 import { DashboardBody } from './screens/dashboard-body'
 import { IndiaMapChart } from './charts'
-import { LoadingSpinner } from '@/shared/components/common'
 import { MdOutlineWaterDrop } from 'react-icons/md'
 import waterTapIcon from '@/assets/media/water-tap_1822589 1.svg'
 import wallClockIcon from '@/assets/media/wall-clock.svg'
@@ -394,7 +393,7 @@ export function CentralDashboard() {
   const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const { data, isLoading, error } = useDashboardData('central')
+  const { data } = useDashboardData('central')
   const [storedFilters] = useState(() => getStoredFilters())
   const initialDuration = getInitialStoredDuration(storedFilters)
   const selectedState = stateSlug
@@ -485,7 +484,7 @@ export function CentralDashboard() {
     Boolean(selectedDepartmentDivision) ||
     Boolean(selectedDepartmentSubdivision) ||
     Boolean(selectedDepartmentVillage)
-  const dashboardData = data ?? (hasCentralLandingFilters ? EMPTY_DASHBOARD_DATA : undefined)
+  const dashboardData = data ?? EMPTY_DASHBOARD_DATA
   const hierarchyType: HierarchyType = filterTabIndex === 0 ? 'LGD' : 'DEPARTMENT'
   const emptyOptions: SearchableSelectOption[] = []
   const isAdvancedEnabled = Boolean(selectedState && selectedDistrict)
@@ -1250,46 +1249,6 @@ export function CentralDashboard() {
     inactiveDays: 'N/A',
   }
 
-  if (isLoading) {
-    return (
-      <Flex h="100vh" align="center" justify="center">
-        <LoadingSpinner />
-      </Flex>
-    )
-  }
-
-  if (error && !dashboardData) {
-    return (
-      <Flex h="100vh" align="center" justify="center">
-        <Box textAlign="center">
-          <Heading fontSize="2xl" fontWeight="bold" color="red.600">
-            Error loading dashboard
-          </Heading>
-          <Text mt={2} color="gray.600">
-            {error instanceof Error ? error.message : 'Unknown error'}
-          </Text>
-        </Box>
-      </Flex>
-    )
-  }
-
-  if (!dashboardData) {
-    return (
-      <Flex h="100vh" align="center" justify="center">
-        <Box textAlign="center">
-          <Heading fontSize="2xl" fontWeight="bold" color="red.600">
-            {t('states.dataUnavailable.title', { defaultValue: 'Dashboard data unavailable' })}
-          </Heading>
-          <Text mt={2} color="gray.600">
-            {t('states.dataUnavailable.description', {
-              defaultValue: 'No dashboard data was returned.',
-            })}
-          </Text>
-        </Box>
-      </Flex>
-    )
-  }
-
   if (
     !dashboardData.kpis ||
     !dashboardData.mapData ||
@@ -1552,7 +1511,6 @@ export function CentralDashboard() {
     ? operatorsPerformanceAnalyticsTable
     : [...leadingPumpOperators, ...bottomPumpOperators]
   const villagePhotoEvidenceRows = dashboardData.readingCompliance ?? []
-
   return (
     <Box>
       <DashboardFilters
