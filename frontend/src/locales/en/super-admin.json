@@ -243,6 +243,13 @@
         "title": "Location Affinity Threshold"
       }
     },
+    "infoText": {
+      "supportedChannels": "Channels through which schemes track the released water flow. State admins can only select from these.",
+      "undersupplyThreshold": "Percentage below the water norm at which a supply shortfall alert is triggered. Range: 0–100.",
+      "oversupplyThreshold": "Percentage above the water norm at which a water excess alert is triggered. Range: 0–1000.",
+      "bfmImageConfidence": "Minimum confidence score for Bulk Flow Meter images to be accepted as valid readings. Range: 0–100.",
+      "locationAffinity": "Maximum acceptable distance between a field operator's GPS location and their assigned infrastructure point."
+    },
     "messages": {
       "saveSuccess": "Configuration saved successfully",
       "saveFailed": "Failed to save configuration",

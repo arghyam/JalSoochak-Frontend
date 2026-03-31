@@ -7,7 +7,8 @@ export function ActionTooltip(props: ActionTooltipProps) {
     <Tooltip
       hasArrow
       placement="top"
-      h="24px"
+      minH="24px"
+      maxH="144px"
       borderRadius="4px"
       py="2px"
       px="8px"
