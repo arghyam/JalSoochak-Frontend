@@ -185,6 +185,33 @@ describe('MetricPerformanceChart', () => {
     expect(yAxisMaxes).toContain(190)
   })
 
+  it('formats quantity y-axis labels without clipping-sensitive decimals', () => {
+    renderWithProviders(
+      <MetricPerformanceChart
+        data={[
+          { ...chartData[0], quantity: 132 },
+          { ...chartData[1], quantity: 189 },
+        ]}
+        metric="quantity"
+      />
+    )
+
+    const axisOption = (
+      mockEChartsWrapper.mock.calls as Array<
+        [{ option?: { yAxis?: { axisLabel?: { formatter?: unknown } } } }]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((option) => typeof option?.yAxis?.axisLabel?.formatter === 'function')
+
+    const formatter = axisOption?.yAxis?.axisLabel?.formatter as
+      | ((value: number) => string)
+      | undefined
+
+    expect(formatter?.(150)).toBe('150')
+    expect(formatter?.(1250)).toBe('1,250')
+  })
+
   it('supports keyboard horizontal scrolling when content overflows', async () => {
     renderWithProviders(
       <MetricPerformanceChart

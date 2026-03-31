@@ -222,7 +222,17 @@ export function DashboardBody({
             </Text>
             <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="336px" />
           </Box>
-          <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="510px" minW={0}>
+          <Box
+            bg="white"
+            borderWidth="1px"
+            borderRadius="lg"
+            px={4}
+            py={6}
+            h="510px"
+            minW={0}
+            display="flex"
+            flexDirection="column"
+          >
             {isStateScreen ? (
               <>
                 <Flex align="center" justify="space-between" mb="16px">
@@ -239,25 +249,27 @@ export function DashboardBody({
                     onChange={setOutageDistributionViewBy}
                   />
                 </Flex>
-                {outageDistributionViewBy === 'geography' ? (
-                  <SupplyOutageDistributionChart
-                    data={waterSupplyOutageDistributionData}
-                    height="400px"
-                    xAxisLabel={geographyEntityLabel}
-                  />
-                ) : (
-                  <MonthlyTrendChart
-                    data={outageDistributionTimeTrendData}
-                    height="400px"
-                    xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-                    yAxisLabel={t('outageAndSubmissionCharts.axis.noOfDays', {
-                      defaultValue: 'No. of days',
-                    })}
-                    seriesName={t('outageAndSubmissionCharts.series.supplyOutage', {
-                      defaultValue: 'Supply outage',
-                    })}
-                  />
-                )}
+                <Box flex="1" minH={0}>
+                  {outageDistributionViewBy === 'geography' ? (
+                    <SupplyOutageDistributionChart
+                      data={waterSupplyOutageDistributionData}
+                      height="100%"
+                      xAxisLabel={geographyEntityLabel}
+                    />
+                  ) : (
+                    <MonthlyTrendChart
+                      data={outageDistributionTimeTrendData}
+                      height="100%"
+                      xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+                      yAxisLabel={t('outageAndSubmissionCharts.axis.noOfDays', {
+                        defaultValue: 'No. of days',
+                      })}
+                      seriesName={t('outageAndSubmissionCharts.series.supplyOutage', {
+                        defaultValue: 'Supply outage',
+                      })}
+                    />
+                  )}
+                </Box>
               </>
             ) : (
               <>
@@ -266,11 +278,13 @@ export function DashboardBody({
                     defaultValue: 'Reading Submission Rate',
                   })}
                 </Text>
-                <ReadingSubmissionRateChart
-                  data={supplySubmissionRateData}
-                  height="383px"
-                  entityLabel={supplySubmissionRateLabel}
-                />
+                <Box flex="1" minH={0}>
+                  <ReadingSubmissionRateChart
+                    data={supplySubmissionRateData}
+                    height="100%"
+                    entityLabel={supplySubmissionRateLabel}
+                  />
+                </Box>
               </>
             )}
           </Box>
@@ -326,6 +340,8 @@ function PerformanceChartsSection({
         h="536px"
         w="full"
         minW={0}
+        display="flex"
+        flexDirection="column"
       >
         <Flex align="center" justify="space-between" mb="16px">
           <Text textStyle="bodyText3" fontWeight="400">
@@ -339,46 +355,48 @@ function PerformanceChartsSection({
             onChange={setQuantityViewBy}
           />
         </Flex>
-        {quantityViewBy === 'geography' ? (
-          <MetricPerformanceChart
-            data={quantityPerformanceData}
-            metric="quantity"
-            height="400px"
-            entityLabel={geographyEntityLabel}
-            yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
-              defaultValue: 'Quantity',
-            })}
-            seriesName={t('performanceCharts.quantity.seriesName', {
-              defaultValue: 'Quantity',
-            })}
-            showAreaLine
-            areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
-              defaultValue: 'Demand',
-            })}
-          />
-        ) : (
-          <>
-            {isQuantityTimeTrendLoading ? (
-              <Flex align="center" justify="center" h="400px">
-                <LoadingSpinner />
-              </Flex>
-            ) : quantityTimeTrendData.length > 0 ? (
-              <MonthlyTrendChart
-                data={quantityTimeTrendData}
-                height="400px"
-                xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-                yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
-                  defaultValue: 'Quantity',
-                })}
-                seriesName={t('performanceCharts.quantity.seriesName', {
-                  defaultValue: 'Quantity',
-                })}
-              />
-            ) : isQuantityTimeTrendAwaitingParams ? null : (
-              <ChartEmptyState minHeight="400px" />
-            )}
-          </>
-        )}
+        <Box flex="1" minH={0}>
+          {quantityViewBy === 'geography' ? (
+            <MetricPerformanceChart
+              data={quantityPerformanceData}
+              metric="quantity"
+              height="100%"
+              entityLabel={geographyEntityLabel}
+              yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
+                defaultValue: 'Quantity',
+              })}
+              seriesName={t('performanceCharts.quantity.seriesName', {
+                defaultValue: 'Quantity',
+              })}
+              showAreaLine
+              areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
+                defaultValue: 'Demand',
+              })}
+            />
+          ) : (
+            <>
+              {isQuantityTimeTrendLoading ? (
+                <Flex align="center" justify="center" h="100%">
+                  <LoadingSpinner />
+                </Flex>
+              ) : quantityTimeTrendData.length > 0 ? (
+                <MonthlyTrendChart
+                  data={quantityTimeTrendData}
+                  height="100%"
+                  xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+                  yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
+                    defaultValue: 'Quantity',
+                  })}
+                  seriesName={t('performanceCharts.quantity.seriesName', {
+                    defaultValue: 'Quantity',
+                  })}
+                />
+              ) : isQuantityTimeTrendAwaitingParams ? null : (
+                <ChartEmptyState minHeight="100%" />
+              )}
+            </>
+          )}
+        </Box>
       </Box>
       <Box
         bg="white"
@@ -390,6 +408,8 @@ function PerformanceChartsSection({
         pb="24px"
         h="536px"
         minW={0}
+        display="flex"
+        flexDirection="column"
       >
         <Flex align="center" justify="space-between" mb="16px">
           <Text textStyle="bodyText3" fontWeight="400">
@@ -405,43 +425,45 @@ function PerformanceChartsSection({
             onChange={setRegularityViewBy}
           />
         </Flex>
-        {regularityViewBy === 'geography' ? (
-          <MetricPerformanceChart
-            data={regularityPerformanceData}
-            metric="regularity"
-            height="400px"
-            entityLabel={geographyEntityLabel}
-            yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
-              defaultValue: 'Regularity',
-            })}
-            seriesName={t('performanceCharts.regularity.seriesName', {
-              defaultValue: 'Regularity',
-            })}
-          />
-        ) : (
-          <>
-            {isRegularityTimeTrendLoading ? (
-              <Flex align="center" justify="center" h="400px">
-                <LoadingSpinner />
-              </Flex>
-            ) : regularityTimeTrendData.length > 0 ? (
-              <MonthlyTrendChart
-                data={regularityTimeTrendData}
-                height="400px"
-                isPercent
-                xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-                yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
-                  defaultValue: 'Regularity (%)',
-                })}
-                seriesName={t('performanceCharts.regularity.seriesName', {
-                  defaultValue: 'Regularity',
-                })}
-              />
-            ) : (
-              <ChartEmptyState minHeight="400px" />
-            )}
-          </>
-        )}
+        <Box flex="1" minH={0}>
+          {regularityViewBy === 'geography' ? (
+            <MetricPerformanceChart
+              data={regularityPerformanceData}
+              metric="regularity"
+              height="100%"
+              entityLabel={geographyEntityLabel}
+              yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
+                defaultValue: 'Regularity',
+              })}
+              seriesName={t('performanceCharts.regularity.seriesName', {
+                defaultValue: 'Regularity',
+              })}
+            />
+          ) : (
+            <>
+              {isRegularityTimeTrendLoading ? (
+                <Flex align="center" justify="center" h="100%">
+                  <LoadingSpinner />
+                </Flex>
+              ) : regularityTimeTrendData.length > 0 ? (
+                <MonthlyTrendChart
+                  data={regularityTimeTrendData}
+                  height="100%"
+                  isPercent
+                  xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+                  yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
+                    defaultValue: 'Regularity (%)',
+                  })}
+                  seriesName={t('performanceCharts.regularity.seriesName', {
+                    defaultValue: 'Regularity',
+                  })}
+                />
+              ) : (
+                <ChartEmptyState minHeight="100%" />
+              )}
+            </>
+          )}
+        </Box>
       </Box>
     </Grid>
   )

@@ -279,17 +279,21 @@ export function DistrictDashboardScreen({
           pb="24px"
           h="510px"
           minW={0}
+          display="flex"
+          flexDirection="column"
         >
           <Text textStyle="bodyText3" fontWeight="400">
             {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
               defaultValue: 'Reading Submission Rate',
             })}
           </Text>
-          <ReadingSubmissionRateChart
-            data={supplySubmissionRateData}
-            height="383px"
-            entityLabel={supplySubmissionRateLabel}
-          />
+          <Box flex="1" minH={0}>
+            <ReadingSubmissionRateChart
+              data={supplySubmissionRateData}
+              height="100%"
+              entityLabel={supplySubmissionRateLabel}
+            />
+          </Box>
         </Box>
       </Grid>
 

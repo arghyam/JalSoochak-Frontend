@@ -31,6 +31,24 @@ interface MetricPerformanceChartProps {
 
 export const formatMetricAxisLabel = formatAxisLabel
 
+const formatYAxisTick = (value: number) => {
+  if (!Number.isFinite(value)) {
+    return ''
+  }
+
+  if (Math.abs(value) >= 1000) {
+    return new Intl.NumberFormat('en-IN', {
+      maximumFractionDigits: 0,
+    }).format(value)
+  }
+
+  if (Number.isInteger(value)) {
+    return String(value)
+  }
+
+  return value.toFixed(1)
+}
+
 export function MetricPerformanceChart({
   data,
   metric,
@@ -60,14 +78,12 @@ export function MetricPerformanceChart({
 
   const defaultItemWidth = 90
   const minItemWidth = 70
-  const xAxisLabelMargin = 14
+  const xAxisLabelMargin = 16
   const effectiveItemWidth =
     containerWidth > 0
       ? Math.max(minItemWidth, Math.floor(containerWidth / Math.max(data.length, 1)))
       : defaultItemWidth
   const itemWidth = Math.min(defaultItemWidth, effectiveItemWidth)
-  const axisWidth = '56px'
-  const axisLabelOffset = '-25px'
   const dynamicBarWidth = Math.min(barWidth, Math.max(12, Math.floor(itemWidth * 0.6)))
   const longestEntityLabel = useMemo(() => {
     return data.reduce((longest, item) => {
@@ -91,6 +107,15 @@ export function MetricPerformanceChart({
 
     return { max, interval: undefined }
   }, [demandValues, metric, showAreaLine, yValues])
+
+  const formattedYAxisMaxLabel = useMemo(() => formatYAxisTick(yAxisScale.max), [yAxisScale.max])
+  const chartGridTop = 24
+  const chartGridBottom = 88
+  const axisWidth = useMemo(() => {
+    const digitWidth = 8
+    const basePadding = 8
+    return `${Math.max(56, formattedYAxisMaxLabel.length * digitWidth + basePadding)}px`
+  }, [formattedYAxisMaxLabel])
 
   const option = useMemo<echarts.EChartsOption>(() => {
     const entities = data.map((d) => d.name)
@@ -185,9 +210,9 @@ export function MetricPerformanceChart({
       grid: {
         left: '0%',
         right: '4%',
-        top: '10%',
-        bottom: '5%',
-        containLabel: true,
+        top: chartGridTop,
+        bottom: chartGridBottom,
+        containLabel: false,
       },
       xAxis: {
         type: 'category',
@@ -237,6 +262,8 @@ export function MetricPerformanceChart({
     dynamicBarWidth,
     metric,
     showAreaLine,
+    chartGridBottom,
+    chartGridTop,
     yAxisScale,
     yValues,
   ])
@@ -248,11 +275,11 @@ export function MetricPerformanceChart({
         show: false,
       },
       grid: {
-        left: '20%',
+        left: '0%',
         right: 0,
-        top: '10%',
-        bottom: '5%',
-        containLabel: true,
+        top: chartGridTop,
+        bottom: chartGridBottom,
+        containLabel: false,
       },
       xAxis: {
         type: 'category',
@@ -279,11 +306,12 @@ export function MetricPerformanceChart({
         position: 'right',
         axisLabel: {
           align: 'right',
-          margin: 5,
+          margin: 4,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
           color: bodyText7.color,
+          formatter: (value: number) => formatYAxisTick(value),
         },
         min: 0,
         max: yAxisScale.max,
@@ -304,7 +332,7 @@ export function MetricPerformanceChart({
       ],
       animation: false,
     }
-  }, [bodyText7, longestEntityLabel, xAxisLabelMargin, yAxisScale])
+  }, [bodyText7, chartGridBottom, chartGridTop, longestEntityLabel, xAxisLabelMargin, yAxisScale])
 
   const baseChartWidth = data.length * itemWidth
   const chartPixelWidth =
@@ -472,6 +500,7 @@ export function MetricPerformanceChart({
         height,
         display: 'flex',
         flexDirection: 'column',
+        justifyContent: 'space-between',
       }}
     >
       <Box flex={1} minH={0} minW={0} overflow="visible" display="flex">
@@ -479,14 +508,19 @@ export function MetricPerformanceChart({
           <EChartsWrapper option={axisOption} height="100%" />
           <Box
             position="absolute"
-            left={axisLabelOffset}
+            left="0"
             top="50%"
-            transform="translateY(-50%) rotate(-90deg)"
-            transformOrigin="center"
+            transform="translateY(-50%) rotate(180deg)"
             textStyle="bodyText7"
             fontWeight="400"
             color={bodyText7.color}
             whiteSpace="nowrap"
+            pointerEvents="none"
+            pl="2px"
+            sx={{
+              writingMode: 'vertical-rl',
+              textOrientation: 'mixed',
+            }}
           >
             {yAxisLabel}
           </Box>
@@ -570,7 +604,7 @@ export function MetricPerformanceChart({
           </div>
         ))}
       </div>
-      <Box mt="6px">
+      <Box mt="6px" mb="0">
         <Box
           ref={scrollbarTrackRef}
           height="4px"

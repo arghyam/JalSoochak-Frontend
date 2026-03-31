@@ -26,17 +26,29 @@ export function StateUtDashboardScreen({
           chartHeight="336px"
           boxProps={{ borderWidth: '1px', borderRadius: 'lg', px: 4, py: 6 }}
         />
-        <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="510px" minW={0}>
+        <Box
+          bg="white"
+          borderWidth="1px"
+          borderRadius="lg"
+          px={4}
+          py={6}
+          h="510px"
+          minW={0}
+          display="flex"
+          flexDirection="column"
+        >
           <Text textStyle="bodyText3" fontWeight="400" mb={2}>
             {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
               defaultValue: 'Reading Submission Rate',
             })}
           </Text>
-          <ReadingSubmissionRateChart
-            data={supplySubmissionRateData}
-            height="383px"
-            entityLabel={supplySubmissionRateLabel}
-          />
+          <Box flex="1" minH={0}>
+            <ReadingSubmissionRateChart
+              data={supplySubmissionRateData}
+              height="100%"
+              entityLabel={supplySubmissionRateLabel}
+            />
+          </Box>
         </Box>
       </Grid>
     </>
