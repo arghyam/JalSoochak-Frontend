@@ -173,7 +173,14 @@ function renderVillageDashboard(
       readingValue: '034982',
     },
   ],
-  operatorPages = villagePumpOperators
+  operatorPages = villagePumpOperators,
+  {
+    isQuantityTimeTrendLoading = false,
+    isRegularityTimeTrendLoading = false,
+  }: {
+    isQuantityTimeTrendLoading?: boolean
+    isRegularityTimeTrendLoading?: boolean
+  } = {}
 ) {
   return renderWithProviders(
     <VillageDashboardScreen
@@ -186,6 +193,8 @@ function renderVillageDashboard(
       schemeId={3}
       quantityTimeTrendData={quantityTimeTrendData}
       regularityTimeTrendData={regularityTimeTrendData}
+      isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
+      isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
     />
   )
 }
@@ -263,6 +272,38 @@ describe('VillageDashboardScreen', () => {
 
     expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
     expect(screen.getAllByText('No data available')).toHaveLength(2)
+  })
+
+  it('shows loading spinners instead of monthly trend charts while both trends are loading', () => {
+    renderVillageDashboard(undefined, undefined, {
+      isQuantityTimeTrendLoading: true,
+      isRegularityTimeTrendLoading: true,
+    })
+
+    expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
+    expect(screen.getAllByText('Loading...')).toHaveLength(2)
+  })
+
+  it('shows quantity loading state while regularity still renders chart data', () => {
+    renderVillageDashboard(undefined, undefined, {
+      isQuantityTimeTrendLoading: true,
+    })
+
+    const trendCalls = mockMonthlyTrendChart.mock.calls as Array<[Record<string, unknown>]>
+    expect(trendCalls).toHaveLength(1)
+    expect(trendCalls[0]?.[0].seriesName).toBe('Regularity')
+    expect(screen.getByText('Loading...')).toBeTruthy()
+  })
+
+  it('shows regularity loading state while quantity still renders chart data', () => {
+    renderVillageDashboard(undefined, undefined, {
+      isRegularityTimeTrendLoading: true,
+    })
+
+    const trendCalls = mockMonthlyTrendChart.mock.calls as Array<[Record<string, unknown>]>
+    expect(trendCalls).toHaveLength(1)
+    expect(trendCalls[0]?.[0].seriesName).toBe('Quantity')
+    expect(screen.getByText('Loading...')).toBeTruthy()
   })
 
   it('paginates pump operator details with previous/next and page buttons', () => {

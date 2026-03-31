@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type PointerEvent, type RefObject } from 'react'
 import { Box, Icon, Table, Tbody, Td, Text, Th, Thead, Tr, useMediaQuery } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { BiSortAlt2 } from 'react-icons/bi'
@@ -45,6 +45,25 @@ const formatCellValue = (value: string | null | undefined) => value?.trim() || '
 
 const formatMetricValue = (value: number | null | undefined, suffix = '') =>
   typeof value === 'number' && Number.isFinite(value) ? `${value}${suffix}` : '-'
+
+function useResizeObserver(ref: RefObject<HTMLDivElement | null>, callback: () => void) {
+  useEffect(() => {
+    const node = ref.current
+    if (!node || typeof ResizeObserver === 'undefined') {
+      return
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      callback()
+    })
+
+    resizeObserver.observe(node)
+
+    return () => {
+      resizeObserver.disconnect()
+    }
+  }, [callback, ref])
+}
 
 export function SchemePerformanceTable({
   data,
@@ -127,39 +146,8 @@ export function SchemePerformanceTable({
     thumbLeftRef.current = nextLeft
   }, [])
 
-  useEffect(() => {
-    const node = scrollContainerRef.current
-    if (!node || typeof ResizeObserver === 'undefined') {
-      return
-    }
-
-    const resizeObserver = new ResizeObserver(() => {
-      updateScrollbarThumb()
-    })
-
-    resizeObserver.observe(node)
-
-    return () => {
-      resizeObserver.disconnect()
-    }
-  }, [updateScrollbarThumb])
-
-  useEffect(() => {
-    const node = scrollbarTrackRef.current
-    if (!node || typeof ResizeObserver === 'undefined') {
-      return
-    }
-
-    const resizeObserver = new ResizeObserver(() => {
-      updateScrollbarThumb()
-    })
-
-    resizeObserver.observe(node)
-
-    return () => {
-      resizeObserver.disconnect()
-    }
-  }, [updateScrollbarThumb])
+  useResizeObserver(scrollContainerRef, updateScrollbarThumb)
+  useResizeObserver(scrollbarTrackRef, updateScrollbarThumb)
 
   useEffect(() => {
     updateScrollbarThumb()

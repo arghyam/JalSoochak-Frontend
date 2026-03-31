@@ -1624,7 +1624,7 @@ export function CentralDashboard() {
                 !isDistrictSelected &&
                 !isBlockSelected &&
                 !isGramPanchayatSelected &&
-                !effectiveSelectedVillage
+                !isVillageSelected
               ? 'central'
               : null
         }
