@@ -224,6 +224,11 @@ const getReadingComplianceItemKey = (
     pageIndex ?? index,
   ].join('-')
 
+const isMissingDisplayValue = (value?: string | null) => {
+  const normalized = value?.trim().toLowerCase()
+  return !normalized || normalized === 'n/a'
+}
+
 type ReadingComplianceSectionProps = {
   villagePumpOperatorDetails: VillagePumpOperatorDetails
   villagePumpOperators: VillagePumpOperatorDetails[]
@@ -431,6 +436,30 @@ function ReadingComplianceSection({
     effectiveSchemeId,
     readingComplianceDataByOperator,
   ])
+  const isPumpOperatorDetailsEmpty = useMemo(
+    () =>
+      [
+        activePumpOperator.name,
+        activePumpOperator.scheme,
+        activePumpOperator.stationLocation,
+        activePumpOperator.lastSubmission,
+        activePumpOperator.reportingRate,
+        activePumpOperator.missingSubmissionCount,
+        activePumpOperator.inactiveDays,
+      ].every((value) => isMissingDisplayValue(value)),
+    [activePumpOperator]
+  )
+  const hasMeaningfulReadingComplianceRows = useMemo(
+    () =>
+      readingComplianceRows.some(
+        (row) =>
+          !isMissingDisplayValue(row.name) ||
+          !isMissingDisplayValue(row.village) ||
+          !isMissingDisplayValue(row.lastSubmission) ||
+          !isMissingDisplayValue(row.readingValue)
+      ),
+    [readingComplianceRows]
+  )
 
   useEffect(() => {
     if (!readingComplianceParams || isReadingComplianceFetching || !hasMoreReadingCompliancePages) {
@@ -508,102 +537,106 @@ function ReadingComplianceSection({
               defaultValue: 'Pump Operator Details',
             })}
           </Text>
-          <Box>
-            <Flex align="center" gap={3} mb={6}>
-              <Avatar name={activePumpOperator.name} boxSize="44px" />
-              <Text textStyle="bodyText4" fontSize="14px" fontWeight="500" color="neutral.950">
-                {activePumpOperator.name}
-              </Text>
-            </Flex>
-            <Grid
-              templateColumns={{ base: '1fr', sm: '1fr auto' }}
-              columnGap="24px"
-              rowGap="12px"
-              alignItems="center"
-            >
-              <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                {t('pumpOperators.details.fields.schemeNameSchemeId', {
-                  defaultValue: 'Scheme name/ Scheme ID',
-                })}
-              </Text>
-              <Text
-                textStyle="bodyText4"
-                fontWeight="400"
-                color="neutral.950"
-                textAlign={{ base: 'left', sm: 'right' }}
-                wordBreak="break-word"
+          {isPumpOperatorDetailsEmpty ? (
+            <ChartEmptyState minHeight="100%" />
+          ) : (
+            <Box>
+              <Flex align="center" gap={3} mb={6}>
+                <Avatar name={activePumpOperator.name} boxSize="44px" />
+                <Text textStyle="bodyText4" fontSize="14px" fontWeight="500" color="neutral.950">
+                  {activePumpOperator.name}
+                </Text>
+              </Flex>
+              <Grid
+                templateColumns={{ base: '1fr', sm: '1fr auto' }}
+                columnGap="24px"
+                rowGap="12px"
+                alignItems="center"
               >
-                {activePumpOperator.scheme}
-              </Text>
-              <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                {t('pumpOperators.details.fields.stationLocation', {
-                  defaultValue: 'Station location',
-                })}
-              </Text>
-              <Text
-                textStyle="bodyText4"
-                fontWeight="400"
-                color="neutral.950"
-                textAlign={{ base: 'left', sm: 'right' }}
-                wordBreak="break-word"
-              >
-                {activePumpOperator.stationLocation}
-              </Text>
-              <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                {t('pumpOperators.details.fields.lastSubmission', {
-                  defaultValue: 'Last submission',
-                })}
-              </Text>
-              <Text
-                textStyle="bodyText4"
-                fontWeight="400"
-                color="neutral.950"
-                textAlign={{ base: 'left', sm: 'right' }}
-              >
-                {activePumpOperator.lastSubmission}
-              </Text>
-              <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                {t('pumpOperators.details.fields.reportingRate', {
-                  defaultValue: 'Reporting rate',
-                })}
-              </Text>
-              <Text
-                textStyle="bodyText4"
-                fontWeight="400"
-                color="neutral.950"
-                textAlign={{ base: 'left', sm: 'right' }}
-              >
-                {activePumpOperator.reportingRate}
-              </Text>
-              <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                {t('pumpOperators.details.fields.missingSubmissionCount', {
-                  defaultValue: 'Missing submission count',
-                })}
-              </Text>
-              <Text
-                textStyle="bodyText4"
-                fontWeight="400"
-                color="neutral.950"
-                textAlign={{ base: 'left', sm: 'right' }}
-              >
-                {activePumpOperator.missingSubmissionCount}
-              </Text>
-              <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                {t('pumpOperators.details.fields.inactiveDays', {
-                  defaultValue: 'Inactive days',
-                })}
-              </Text>
-              <Text
-                textStyle="bodyText4"
-                fontWeight="400"
-                color="neutral.950"
-                textAlign={{ base: 'left', sm: 'right' }}
-              >
-                {activePumpOperator.inactiveDays}
-              </Text>
-            </Grid>
-          </Box>
-          {totalPumpOperatorPages > 1 ? (
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                  {t('pumpOperators.details.fields.schemeNameSchemeId', {
+                    defaultValue: 'Scheme name/ Scheme ID',
+                  })}
+                </Text>
+                <Text
+                  textStyle="bodyText4"
+                  fontWeight="400"
+                  color="neutral.950"
+                  textAlign={{ base: 'left', sm: 'right' }}
+                  wordBreak="break-word"
+                >
+                  {activePumpOperator.scheme}
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                  {t('pumpOperators.details.fields.stationLocation', {
+                    defaultValue: 'Station location',
+                  })}
+                </Text>
+                <Text
+                  textStyle="bodyText4"
+                  fontWeight="400"
+                  color="neutral.950"
+                  textAlign={{ base: 'left', sm: 'right' }}
+                  wordBreak="break-word"
+                >
+                  {activePumpOperator.stationLocation}
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                  {t('pumpOperators.details.fields.lastSubmission', {
+                    defaultValue: 'Last submission',
+                  })}
+                </Text>
+                <Text
+                  textStyle="bodyText4"
+                  fontWeight="400"
+                  color="neutral.950"
+                  textAlign={{ base: 'left', sm: 'right' }}
+                >
+                  {activePumpOperator.lastSubmission}
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                  {t('pumpOperators.details.fields.reportingRate', {
+                    defaultValue: 'Reporting rate',
+                  })}
+                </Text>
+                <Text
+                  textStyle="bodyText4"
+                  fontWeight="400"
+                  color="neutral.950"
+                  textAlign={{ base: 'left', sm: 'right' }}
+                >
+                  {activePumpOperator.reportingRate}
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                  {t('pumpOperators.details.fields.missingSubmissionCount', {
+                    defaultValue: 'Missing submission count',
+                  })}
+                </Text>
+                <Text
+                  textStyle="bodyText4"
+                  fontWeight="400"
+                  color="neutral.950"
+                  textAlign={{ base: 'left', sm: 'right' }}
+                >
+                  {activePumpOperator.missingSubmissionCount}
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                  {t('pumpOperators.details.fields.inactiveDays', {
+                    defaultValue: 'Inactive days',
+                  })}
+                </Text>
+                <Text
+                  textStyle="bodyText4"
+                  fontWeight="400"
+                  color="neutral.950"
+                  textAlign={{ base: 'left', sm: 'right' }}
+                >
+                  {activePumpOperator.inactiveDays}
+                </Text>
+              </Grid>
+            </Box>
+          )}
+          {!isPumpOperatorDetailsEmpty && totalPumpOperatorPages > 1 ? (
             <Flex
               mt={{ base: 4, md: 'auto' }}
               pt={{ base: 4, md: 6 }}
@@ -688,10 +721,12 @@ function ReadingComplianceSection({
       <Box bg="white" borderWidth="1px" borderRadius="lg" px={4} py={6} h="430px" minW={0}>
         <ReadingComplianceTable
           key={activePumpOperatorKey}
-          data={readingComplianceRows}
+          data={hasMeaningfulReadingComplianceRows ? readingComplianceRows : []}
           showVillageColumn={false}
           scrollAreaMaxH="320px"
-          onReachEnd={handleReachReadingComplianceEnd}
+          onReachEnd={
+            hasMeaningfulReadingComplianceRows ? handleReachReadingComplianceEnd : undefined
+          }
           title={t('outageAndSubmissionCharts.titles.readingCompliance', {
             defaultValue: 'Reading Compliance',
           })}

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
+import { screen } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { WaterSupplyOutageData } from '../../types'
 import { SupplyOutageReasonsChart } from './supply-outage-reasons-chart'
@@ -74,5 +75,11 @@ describe('SupplyOutageReasonsChart', () => {
     pieData.forEach((slice) => {
       expect(slice.emphasis?.itemStyle?.color).toBe(slice.itemStyle?.color)
     })
+  })
+
+  it('shows a no data available legend item when the pie data is empty', () => {
+    renderWithProviders(<SupplyOutageReasonsChart data={[]} />)
+
+    expect(screen.getByText('No data available')).toBeTruthy()
   })
 })

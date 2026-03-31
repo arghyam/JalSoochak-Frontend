@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { UIEvent } from 'react'
-import { Box, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react'
+import { Box, Table, Tbody, Td, Text, Th, Thead, Tr } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import type { ReadingComplianceData } from '../../types'
 
@@ -32,6 +32,7 @@ export function ReadingComplianceTable({
   const safeMaxItems =
     typeof maxItems === 'number' && Number.isFinite(maxItems) ? Math.max(0, maxItems) : undefined
   const rows = typeof safeMaxItems === 'number' ? data.slice(0, safeMaxItems) : data
+  const isEmpty = rows.length === 0
   const tableMinWidth = showVillageColumn ? '640px' : '100%'
 
   useEffect(() => {
@@ -150,29 +151,45 @@ export function ReadingComplianceTable({
                 </Th>
               </Tr>
             </Thead>
-            <Tbody
-              sx={{
-                td: {
-                  textStyle: 'bodyText7',
-                  fontWeight: '400',
-                  px: { base: 2, md: 3 },
-                  py: { base: 2, md: 0 },
-                  height: { base: 'auto', md: '40px' },
-                  lineHeight: { base: '20px', md: '40px' },
-                  whiteSpace: 'nowrap',
-                },
-              }}
-            >
-              {rows.map((row) => (
-                <Tr key={row.id} _odd={{ bg: 'primary.25' }}>
-                  <Td>{row.name}</Td>
-                  {showVillageColumn ? <Td>{row.village}</Td> : null}
-                  <Td>{row.lastSubmission}</Td>
-                  <Td>{row.readingValue}</Td>
-                </Tr>
-              ))}
-            </Tbody>
+            {!isEmpty ? (
+              <Tbody
+                sx={{
+                  td: {
+                    textStyle: 'bodyText7',
+                    fontWeight: '400',
+                    px: { base: 2, md: 3 },
+                    py: { base: 2, md: 0 },
+                    height: { base: 'auto', md: '40px' },
+                    lineHeight: { base: '20px', md: '40px' },
+                    whiteSpace: 'nowrap',
+                  },
+                }}
+              >
+                {rows.map((row) => (
+                  <Tr key={row.id} _odd={{ bg: 'primary.25' }}>
+                    <Td>{row.name}</Td>
+                    {showVillageColumn ? <Td>{row.village}</Td> : null}
+                    <Td>{row.lastSubmission}</Td>
+                    <Td>{row.readingValue}</Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            ) : null}
           </Table>
+          {isEmpty ? (
+            <Box
+              minH="200px"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              textAlign="center"
+              color="neutral.500"
+              borderTop="1px solid"
+              borderColor="gray.100"
+            >
+              <Text>{t('common:noDataAvailable', { defaultValue: 'No data available' })}</Text>
+            </Box>
+          ) : null}
         </Box>
       </Box>
     </Box>

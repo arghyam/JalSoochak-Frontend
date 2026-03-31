@@ -64,12 +64,14 @@ jest.mock(
         ariaLabel,
         color,
         borderColor,
+        disabled,
       }: {
         value: 'geography' | 'time'
         onChange: (value: 'geography' | 'time') => void
         ariaLabel: string
         color?: string
         borderColor?: string
+        disabled?: boolean
       }) => {
         const { useState } = jest.requireActual<typeof import('react')>('react')
         const [isOpen, setIsOpen] = useState(false)
@@ -80,7 +82,12 @@ jest.mock(
             <button
               aria-label={ariaLabel}
               type="button"
-              onClick={() => setIsOpen((open: boolean) => !open)}
+              disabled={disabled}
+              onClick={() => {
+                if (!disabled) {
+                  setIsOpen((open: boolean) => !open)
+                }
+              }}
               style={{ color, borderColor, borderStyle: 'solid', borderWidth: '1px' }}
             >
               {label}
@@ -263,6 +270,26 @@ describe('DashboardBody', () => {
     expect(metricChartCalls[1][0].data).toEqual(mockEntityData)
     expect(metricChartCalls[1][0].showAreaLine).toBeUndefined()
     expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
+  })
+
+  it('shows no-data messaging instead of empty geography chart shells', () => {
+    renderDashboardBody({
+      quantityPerformanceData: [],
+      regularityPerformanceData: [],
+      quantityTimeTrendData: [],
+      regularityTimeTrendData: [],
+    })
+
+    expect(screen.getAllByText('No data available')).toHaveLength(2)
+    expect(mockMetricPerformanceChart).not.toHaveBeenCalled()
+    expect(
+      screen.getByRole('button', { name: 'Quantity performance view by' }).getAttribute('disabled')
+    ).not.toBeNull()
+    expect(
+      screen
+        .getByRole('button', { name: 'Regularity performance view by' })
+        .getAttribute('disabled')
+    ).not.toBeNull()
   })
 
   it('switches each card to time chart independently', () => {
@@ -598,6 +625,39 @@ describe('DashboardBody', () => {
 
     expect(mockMonthlyTrendChart).toHaveBeenCalledTimes(1)
     expect(mockMonthlyTrendChart.mock.calls[0]?.[0].seriesName).toBe('Supply outage')
+  })
+
+  it('shows no data and disables the outage distribution selector when state outage data is empty', () => {
+    renderDashboardBody({
+      isStateSelected: true,
+      isDistrictSelected: false,
+      isBlockSelected: false,
+      isGramPanchayatSelected: false,
+      selectedVillage: '',
+      waterSupplyOutageDistributionData: [],
+      data: {
+        ...mockDashboardData,
+        supplyOutageTrend: [],
+      },
+    })
+
+    expect(screen.getByText('Supply Outage Distribution')).toBeTruthy()
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(
+      screen
+        .getByRole('button', { name: 'State supply outage distribution view by' })
+        .getAttribute('disabled')
+    ).not.toBeNull()
+  })
+
+  it('shows no data for the reading submission rate card when api data is empty', () => {
+    renderDashboardBody({
+      supplySubmissionRateData: [],
+    })
+
+    expect(screen.getByText('Reading Submission Rate')).toBeTruthy()
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(screen.queryByTestId('reading-submission-rate-chart')).toBeNull()
   })
 
   it('passes dashboard data to district screen as outage single source-of-truth', () => {

@@ -13,16 +13,22 @@ const mockSupplyOutageReasonsChart = jest.fn((_props: unknown) => (
 const mockReadingSubmissionStatusChart = jest.fn((_props: unknown) => (
   <div data-testid="reading-submission-status-chart" />
 ))
-const mockReadingComplianceTable = jest.fn((props: { onReachEnd?: () => void }) => (
-  <div>
-    <div data-testid="reading-compliance-table" />
-    {props.onReachEnd ? (
-      <button onClick={props.onReachEnd} type="button">
-        Load more compliance
-      </button>
-    ) : null}
-  </div>
-))
+const mockReadingComplianceTable = jest.fn(
+  (props: { onReachEnd?: () => void; data?: Array<unknown> }) => (
+    <div>
+      {props.data?.length ? (
+        <div data-testid="reading-compliance-table" />
+      ) : (
+        <div>No data available</div>
+      )}
+      {props.onReachEnd ? (
+        <button onClick={props.onReachEnd} type="button">
+          Load more compliance
+        </button>
+      ) : null}
+    </div>
+  )
+)
 const mockUsePumpOperatorsBySchemeQuery = jest.fn<(options: unknown) => { data: unknown }>(
   (_options: unknown) => ({ data: undefined })
 )
@@ -41,7 +47,7 @@ jest.mock('../charts', () => ({
 
 jest.mock('../tables', () => ({
   ReadingComplianceTable: (props: unknown) =>
-    mockReadingComplianceTable(props as { onReachEnd?: () => void }),
+    mockReadingComplianceTable(props as { onReachEnd?: () => void; data?: Array<unknown> }),
 }))
 
 jest.mock('../../services/query/use-pump-operators-by-scheme-query', () => ({
@@ -321,6 +327,46 @@ describe('VillageDashboardScreen', () => {
       [villagePumpOperatorDetails]
     )
 
+    expect(screen.queryByRole('button', { name: 'Previous' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Next' })).toBeNull()
+  })
+
+  it('shows no data available when pump operator details and compliance rows are all N/A', () => {
+    renderWithProviders(
+      <VillageDashboardScreen
+        data={data}
+        villagePhotoEvidenceRows={data.readingCompliance}
+        waterSupplyOutagesData={waterSupplyOutagesData}
+        villagePumpOperatorDetails={{
+          name: 'N/A',
+          scheme: 'N/A',
+          stationLocation: 'N/A',
+          lastSubmission: 'N/A',
+          reportingRate: 'N/A',
+          missingSubmissionCount: 'N/A',
+          inactiveDays: 'N/A',
+        }}
+        villagePumpOperators={[
+          {
+            name: 'N/A',
+            scheme: 'N/A',
+            stationLocation: 'N/A',
+            lastSubmission: 'N/A',
+            reportingRate: 'N/A',
+            missingSubmissionCount: 'N/A',
+            inactiveDays: 'N/A',
+          },
+        ]}
+        tenantCode="as"
+        schemeId={3}
+        quantityTimeTrendData={quantityTimeTrendData}
+        regularityTimeTrendData={regularityTimeTrendData}
+      />
+    )
+
+    expect(screen.getAllByText('No data available').length).toBeGreaterThanOrEqual(2)
+    expect(screen.queryByText('Pump Operator Details')).toBeTruthy()
+    expect(screen.queryByTestId('reading-compliance-table')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Previous' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Next' })).toBeNull()
   })

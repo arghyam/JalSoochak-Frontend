@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { DashboardData, EntityPerformance } from '../../types'
 import { ReadingSubmissionRateChart } from '../charts'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
+import { ChartEmptyState } from '@/shared/components/common'
 
 type StateUtDashboardScreenProps = {
   data: DashboardData
@@ -43,11 +44,15 @@ export function StateUtDashboardScreen({
             })}
           </Text>
           <Box flex="1" minH={0}>
-            <ReadingSubmissionRateChart
-              data={supplySubmissionRateData}
-              height="100%"
-              entityLabel={supplySubmissionRateLabel}
-            />
+            {supplySubmissionRateData.length > 0 ? (
+              <ReadingSubmissionRateChart
+                data={supplySubmissionRateData}
+                height="100%"
+                entityLabel={supplySubmissionRateLabel}
+              />
+            ) : (
+              <ChartEmptyState minHeight="100%" />
+            )}
           </Box>
         </Box>
       </Grid>

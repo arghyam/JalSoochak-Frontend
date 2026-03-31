@@ -52,6 +52,12 @@ export function PerformanceChartCard({
   selectColor,
   selectBorderColor,
 }: PerformanceChartCardProps) {
+  const isSelectDisabled =
+    data.length === 0 &&
+    timeTrendData.length === 0 &&
+    !isTimeTrendLoading &&
+    !isTimeTrendAwaitingParams
+
   return (
     <Box
       bg="white"
@@ -76,24 +82,29 @@ export function PerformanceChartCard({
           onChange={onViewByChange}
           color={selectColor}
           borderColor={selectBorderColor}
+          disabled={isSelectDisabled}
         />
       </Flex>
       <Box flex="1" minH={0}>
         {viewBy === 'geography' ? (
-          <MetricPerformanceChart
-            data={data}
-            metric={metric}
-            height="100%"
-            entityLabel={entityLabel}
-            yAxisLabel={yAxisLabel}
-            seriesName={seriesName}
-            {...(showAreaLine
-              ? {
-                  showAreaLine: true,
-                  areaSeriesName,
-                }
-              : {})}
-          />
+          data.length > 0 ? (
+            <MetricPerformanceChart
+              data={data}
+              metric={metric}
+              height="100%"
+              entityLabel={entityLabel}
+              yAxisLabel={yAxisLabel}
+              seriesName={seriesName}
+              {...(showAreaLine
+                ? {
+                    showAreaLine: true,
+                    areaSeriesName,
+                  }
+                : {})}
+            />
+          ) : (
+            <ChartEmptyState minHeight="100%" />
+          )
         ) : isTimeTrendLoading ? (
           <Flex align="center" justify="center" h="100%">
             <LoadingSpinner />

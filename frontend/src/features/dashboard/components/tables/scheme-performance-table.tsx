@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react'
-import { Box, Icon, Table, Tbody, Td, Th, Thead, Tr, useMediaQuery } from '@chakra-ui/react'
+import { Box, Icon, Table, Tbody, Td, Text, Th, Thead, Tr, useMediaQuery } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { BiSortAlt2 } from 'react-icons/bi'
 import type { PumpOperatorPerformanceData } from '../../types'
@@ -79,6 +79,7 @@ export function SchemePerformanceTable({
         })
       : data
   const rows = typeof safeMaxItems === 'number' ? sortedRows.slice(0, safeMaxItems) : sortedRows
+  const isEmpty = rows.length === 0
 
   const handleSort = (column: Exclude<SortColumn, null>) => {
     if (sortColumn !== column) {
@@ -382,44 +383,60 @@ export function SchemePerformanceTable({
                   </Th>
                 </Tr>
               </Thead>
-              <Tbody
-                sx={{
-                  td: {
-                    textStyle: 'bodyText7',
-                    fontWeight: '400',
-                    px: 3,
-                    py: 3,
-                    whiteSpace: 'nowrap',
-                  },
-                }}
-              >
-                {rows.map((operator) => (
-                  <Tr key={operator.id} _odd={{ bg: 'primary.25' }}>
-                    <Td
-                      w="260px"
-                      minW="260px"
-                      maxW="260px"
-                      overflow="hidden"
-                      lineHeight="20px"
-                      verticalAlign="top"
-                    >
-                      <Box
-                        maxW="240px"
+              {!isEmpty ? (
+                <Tbody
+                  sx={{
+                    td: {
+                      textStyle: 'bodyText7',
+                      fontWeight: '400',
+                      px: 3,
+                      py: 3,
+                      whiteSpace: 'nowrap',
+                    },
+                  }}
+                >
+                  {rows.map((operator) => (
+                    <Tr key={operator.id} _odd={{ bg: 'primary.25' }}>
+                      <Td
+                        w="260px"
+                        minW="260px"
+                        maxW="260px"
                         overflow="hidden"
-                        textOverflow="ellipsis"
-                        whiteSpace="nowrap"
+                        lineHeight="20px"
+                        verticalAlign="top"
                       >
-                        {operator.name}
-                      </Box>
-                    </Td>
-                    {showVillageColumn ? <Td>{formatCellValue(operator.village)}</Td> : null}
-                    {showBlockColumn ? <Td>{formatCellValue(operator.block)}</Td> : null}
-                    <Td>{formatMetricValue(operator.reportingRate)}</Td>
-                    <Td>{formatMetricValue(operator.waterSupplied)}</Td>
-                  </Tr>
-                ))}
-              </Tbody>
+                        <Box
+                          maxW="240px"
+                          overflow="hidden"
+                          textOverflow="ellipsis"
+                          whiteSpace="nowrap"
+                        >
+                          {operator.name}
+                        </Box>
+                      </Td>
+                      {showVillageColumn ? <Td>{formatCellValue(operator.village)}</Td> : null}
+                      {showBlockColumn ? <Td>{formatCellValue(operator.block)}</Td> : null}
+                      <Td>{formatMetricValue(operator.reportingRate)}</Td>
+                      <Td>{formatMetricValue(operator.waterSupplied)}</Td>
+                    </Tr>
+                  ))}
+                </Tbody>
+              ) : null}
             </Table>
+            {isEmpty ? (
+              <Box
+                minH={fillHeight ? '240px' : '200px'}
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                textAlign="center"
+                color="neutral.500"
+                borderTop="1px solid"
+                borderColor="gray.100"
+              >
+                <Text>{t('common:noDataAvailable', { defaultValue: 'No data available' })}</Text>
+              </Box>
+            ) : null}
           </Box>
         </Box>
       </Box>

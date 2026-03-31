@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useTheme } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
@@ -29,6 +30,7 @@ export function SupplyOutageReasonsChart({
   height = '300px',
   pieSize = 300,
 }: SupplyOutageReasonsChartProps) {
+  const { t: tCommon } = useTranslation('common')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
   const chartItems = useMemo(() => {
@@ -147,7 +149,16 @@ export function SupplyOutageReasonsChart({
   }, [chartItems])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
-  const legendItems = chartItems.map(({ key, label, color }) => ({ key, label, color }))
+  const legendItems =
+    chartItems.length > 0
+      ? chartItems.map(({ key, label, color }) => ({ key, label, color }))
+      : [
+          {
+            key: 'no-data',
+            label: tCommon('noDataAvailable', { defaultValue: 'No data available' }),
+            color: '#D4D4D8',
+          },
+        ]
 
   return (
     <div

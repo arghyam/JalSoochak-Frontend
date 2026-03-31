@@ -1377,6 +1377,23 @@ export function CentralDashboard() {
     }
     return 'neutral'
   }
+  const buildNeutralAwareTrend = (
+    currentValue: number,
+    changeValue: number,
+    formatter: (value: number) => string
+  ) => {
+    if (currentValue === 0) {
+      return {
+        direction: 'neutral' as const,
+        text: formatter(0),
+      }
+    }
+
+    return {
+      direction: toTrendDirection(changeValue),
+      text: formatter(changeValue),
+    }
+  }
 
   const coreMetrics = [
     {
@@ -1385,17 +1402,19 @@ export function CentralDashboard() {
         minimumFractionDigits: 0,
         maximumFractionDigits: 2,
       }),
-      trend: {
-        direction: toTrendDirection(quantityMldChange),
-        text: `${formatSignedValue(quantityMldChange, {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 1,
-        })}% vs last ${resolveDaysInRange(
-          previousWaterSupplyComparisonRange.daysInRange,
-          previousWaterSupplyComparisonRange.startDate,
-          previousWaterSupplyComparisonRange.endDate
-        )} days`,
-      },
+      trend: buildNeutralAwareTrend(
+        currentWaterSupplyKpis.quantityMld,
+        quantityMldChange,
+        (trendValue) =>
+          `${formatSignedValue(trendValue, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 1,
+          })}% vs last ${resolveDaysInRange(
+            previousWaterSupplyComparisonRange.daysInRange,
+            previousWaterSupplyComparisonRange.startDate,
+            previousWaterSupplyComparisonRange.endDate
+          )} days`
+      ),
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#E1FFEA" align="center" justify="center">
           <Image src={waterTapIcon} alt="" w="24px" h="24px" />
@@ -1434,13 +1453,15 @@ export function CentralDashboard() {
         minimumFractionDigits: 0,
         maximumFractionDigits: 1,
       }),
-      trend: {
-        direction: toTrendDirection(quantityLpcdChange),
-        text: `${formatSignedValue(quantityLpcdChange, {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 1,
-        })} LPCD vs last month`,
-      },
+      trend: buildNeutralAwareTrend(
+        currentWaterSupplyKpis.quantityLpcd,
+        quantityLpcdChange,
+        (trendValue) =>
+          `${formatSignedValue(trendValue, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 1,
+          })} LPCD vs last month`
+      ),
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
           <Icon as={MdOutlineWaterDrop} w="24px" h="24px" color="#2E90FA" />
@@ -1485,13 +1506,15 @@ export function CentralDashboard() {
         minimumFractionDigits: 1,
         maximumFractionDigits: 1,
       })}%`,
-      trend: {
-        direction: toTrendDirection(regularityChange),
-        text: `${formatSignedValue(regularityChange, {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 1,
-        })}% vs last month`,
-      },
+      trend: buildNeutralAwareTrend(
+        currentRegularityKpi,
+        regularityChange,
+        (trendValue) =>
+          `${formatSignedValue(trendValue, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 1,
+          })}% vs last month`
+      ),
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#FFF4CC" align="center" justify="center">
           <Image src={wallClockIcon} alt="" w="24px" h="24px" />

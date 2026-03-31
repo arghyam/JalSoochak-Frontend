@@ -17,7 +17,7 @@ import {
 import { SchemePerformanceTable } from '../tables'
 import { PerformanceChartCard } from './performance-chart-card'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
-import { ViewBySelect } from '@/shared/components/common'
+import { ChartEmptyState, ViewBySelect } from '@/shared/components/common'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 
 type DistrictDashboardScreenProps = {
@@ -64,6 +64,8 @@ export function DistrictDashboardScreen({
     () => data.supplyOutageTrend ?? [],
     [data.supplyOutageTrend]
   )
+  const isOutageDistributionSelectDisabled =
+    waterSupplyOutageDistributionData.length === 0 && outageDistributionTimeTrendData.length === 0
   return (
     <>
       {/* Quantity + Regularity */}
@@ -166,15 +168,20 @@ export function DistrictDashboardScreen({
               onChange={setOutageDistributionViewBy}
               color="primary.500"
               borderColor="primary.500"
+              disabled={isOutageDistributionSelectDisabled}
             />
           </Flex>
           {outageDistributionViewBy === 'geography' ? (
-            <SupplyOutageDistributionChart
-              data={waterSupplyOutageDistributionData}
-              height="400px"
-              xAxisLabel="Blocks"
-            />
-          ) : (
+            waterSupplyOutageDistributionData.length > 0 ? (
+              <SupplyOutageDistributionChart
+                data={waterSupplyOutageDistributionData}
+                height="400px"
+                xAxisLabel="Blocks"
+              />
+            ) : (
+              <ChartEmptyState minHeight="400px" />
+            )
+          ) : outageDistributionTimeTrendData.length > 0 ? (
             <MonthlyTrendChart
               data={outageDistributionTimeTrendData}
               height="400px"
@@ -184,6 +191,8 @@ export function DistrictDashboardScreen({
               })}
               seriesName="Supply outage"
             />
+          ) : (
+            <ChartEmptyState minHeight="400px" />
           )}
         </Box>
       </Grid>
@@ -210,11 +219,15 @@ export function DistrictDashboardScreen({
             })}
           </Text>
           <Box flex="1" minH={0}>
-            <ReadingSubmissionRateChart
-              data={supplySubmissionRateData}
-              height="100%"
-              entityLabel={supplySubmissionRateLabel}
-            />
+            {supplySubmissionRateData.length > 0 ? (
+              <ReadingSubmissionRateChart
+                data={supplySubmissionRateData}
+                height="100%"
+                entityLabel={supplySubmissionRateLabel}
+              />
+            ) : (
+              <ChartEmptyState minHeight="100%" />
+            )}
           </Box>
         </Box>
       </Grid>

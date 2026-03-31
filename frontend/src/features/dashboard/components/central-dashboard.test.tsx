@@ -1766,9 +1766,7 @@ describe('CentralDashboard', () => {
         sourceDrying: 1,
       }),
     ])
-    expect(dashboardBodyProps.waterSupplyOutageDistributionData).toEqual(
-      mockDashboardData.waterSupplyOutages
-    )
+    expect(dashboardBodyProps.waterSupplyOutageDistributionData).toEqual([])
   })
 
   it('maps outage child regions into distribution chart data', () => {
@@ -2379,6 +2377,64 @@ describe('CentralDashboard', () => {
     expect(screen.queryByTestId('overall-performance-table')).toBeNull()
   })
 
+  it('keeps KPI trends neutral when current values are zero even if the previous period had data', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    ;(useNationalDashboardQuery as jest.Mock)
+      .mockReturnValueOnce({
+        data: {
+          startDate: '2026-03-01',
+          endDate: '2026-03-30',
+          daysInRange: 30,
+          stateWiseQuantityPerformance: [],
+          stateWiseRegularity: [],
+          stateWiseReadingSubmissionRate: [],
+          overallOutageReasonDistribution: {},
+        },
+      })
+      .mockReturnValueOnce({
+        data: {
+          startDate: '2026-01-30',
+          endDate: '2026-02-28',
+          daysInRange: 30,
+          stateWiseQuantityPerformance: [
+            {
+              stateCode: 'TG',
+              stateTitle: 'Telangana',
+              totalWaterSuppliedLiters: 150_000_000,
+              totalAchievedFhtcCount: 2000,
+            },
+          ],
+          stateWiseRegularity: [
+            {
+              stateCode: 'TG',
+              stateTitle: 'Telangana',
+              schemeCount: 2,
+              totalSupplyDays: 42,
+            },
+          ],
+          stateWiseReadingSubmissionRate: [],
+          overallOutageReasonDistribution: {},
+        },
+      })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const kpiProps = mockKPICard.mock.calls.slice(0, 3).map(
+      (call) =>
+        call[0] as {
+          trend?: { direction: 'up' | 'down' | 'neutral'; text: string }
+        }
+    )
+
+    expect(kpiProps[0]?.trend).toEqual({ direction: 'neutral', text: '0% vs last 30 days' })
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'neutral', text: '0 LPCD vs last month' })
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs last month' })
+  })
+
   it('uses the selected village LGD id for scheme performance analytics', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -2504,7 +2560,7 @@ describe('CentralDashboard', () => {
     expect(dashboardBodyProps.blockTableData).toEqual([])
     expect(dashboardBodyProps.gramPanchayatTableData).toEqual([])
     expect(dashboardBodyProps.villageTableData).toEqual([])
-    expect(dashboardBodyProps.waterSupplyOutagesData).toEqual(mockDashboardData.waterSupplyOutages)
+    expect(dashboardBodyProps.waterSupplyOutagesData).toEqual([])
   })
 
   it('uses state slug route format when map state is clicked', () => {

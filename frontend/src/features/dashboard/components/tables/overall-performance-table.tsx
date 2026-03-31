@@ -228,7 +228,7 @@ export function OverallPerformanceTable({
               borderTop="1px solid"
               borderColor="gray.100"
             >
-              {t('overallPerformance.noData', { defaultValue: 'No data' })}
+              {t('overallPerformance.noData', { defaultValue: 'No data available' })}
             </Box>
           ) : null}
         </Box>

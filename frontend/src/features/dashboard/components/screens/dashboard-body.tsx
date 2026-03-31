@@ -19,7 +19,7 @@ import { DistrictDashboardScreen } from './district-dashboard'
 import { GramPanchayatDashboardScreen } from './gram-panchayat-dashboard'
 import { PerformanceChartCard } from './performance-chart-card'
 import { StateUtDashboardScreen } from './state-ut-dashboard'
-import { ViewBySelect } from '@/shared/components/common'
+import { ChartEmptyState, ViewBySelect } from '@/shared/components/common'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { VillageDashboardScreen } from './village-dashboard'
 
@@ -104,6 +104,8 @@ export function DashboardBody({
     () => data.supplyOutageTrend ?? [],
     [data.supplyOutageTrend]
   )
+  const isOutageDistributionSelectDisabled =
+    waterSupplyOutageDistributionData.length === 0 && outageDistributionTimeTrendData.length === 0
   const geographyEntityLabel = isStateScreen
     ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
     : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
@@ -247,16 +249,21 @@ export function DashboardBody({
                     })}
                     value={outageDistributionViewBy}
                     onChange={setOutageDistributionViewBy}
+                    disabled={isOutageDistributionSelectDisabled}
                   />
                 </Flex>
                 <Box flex="1" minH={0}>
                   {outageDistributionViewBy === 'geography' ? (
-                    <SupplyOutageDistributionChart
-                      data={waterSupplyOutageDistributionData}
-                      height="100%"
-                      xAxisLabel={geographyEntityLabel}
-                    />
-                  ) : (
+                    waterSupplyOutageDistributionData.length > 0 ? (
+                      <SupplyOutageDistributionChart
+                        data={waterSupplyOutageDistributionData}
+                        height="100%"
+                        xAxisLabel={geographyEntityLabel}
+                      />
+                    ) : (
+                      <ChartEmptyState minHeight="100%" />
+                    )
+                  ) : outageDistributionTimeTrendData.length > 0 ? (
                     <MonthlyTrendChart
                       data={outageDistributionTimeTrendData}
                       height="100%"
@@ -268,6 +275,8 @@ export function DashboardBody({
                         defaultValue: 'Supply outage',
                       })}
                     />
+                  ) : (
+                    <ChartEmptyState minHeight="100%" />
                   )}
                 </Box>
               </>
@@ -279,11 +288,15 @@ export function DashboardBody({
                   })}
                 </Text>
                 <Box flex="1" minH={0}>
-                  <ReadingSubmissionRateChart
-                    data={supplySubmissionRateData}
-                    height="100%"
-                    entityLabel={supplySubmissionRateLabel}
-                  />
+                  {supplySubmissionRateData.length > 0 ? (
+                    <ReadingSubmissionRateChart
+                      data={supplySubmissionRateData}
+                      height="100%"
+                      entityLabel={supplySubmissionRateLabel}
+                    />
+                  ) : (
+                    <ChartEmptyState minHeight="100%" />
+                  )}
                 </Box>
               </>
             )}
