@@ -10,6 +10,7 @@ type ViewBySelectProps = {
   ariaLabel: string
   color?: string
   borderColor?: string
+  disabled?: boolean
 }
 
 export function ViewBySelect({
@@ -18,16 +19,20 @@ export function ViewBySelect({
   ariaLabel,
   color = 'primary.500',
   borderColor = 'primary.500',
+  disabled = false,
 }: ViewBySelectProps) {
   const { t } = useTranslation('dashboard')
   const geographyLabel = t('performanceCharts.viewBy.geography', { defaultValue: 'Geography' })
   const timeLabel = t('performanceCharts.viewBy.time', { defaultValue: 'Time' })
+  const resolvedColor = disabled ? 'neutral.500' : color
+  const resolvedBorderColor = disabled ? 'neutral.300' : borderColor
 
   return (
     <Menu>
       <MenuButton
         as={Button}
         aria-label={ariaLabel}
+        isDisabled={disabled}
         rightIcon={<LuChevronDown size={16} />}
         h="32px"
         minW="128px"
@@ -37,13 +42,20 @@ export function ViewBySelect({
         justifyContent="space-between"
         textAlign="left"
         borderRadius="4px"
-        borderColor={borderColor}
+        borderColor={resolvedBorderColor}
         borderWidth="1px"
         bg="white"
-        color={color}
-        _hover={{ borderColor, bg: 'white' }}
-        _focus={{ borderColor, boxShadow: 'none' }}
+        color={resolvedColor}
+        _hover={{ borderColor: resolvedBorderColor, bg: 'white' }}
+        _focus={{ borderColor: resolvedBorderColor, boxShadow: 'none' }}
         _active={{ bg: 'white' }}
+        _disabled={{
+          opacity: 1,
+          cursor: 'not-allowed',
+          bg: 'white',
+          color: resolvedColor,
+          borderColor: resolvedBorderColor,
+        }}
       >
         {value === 'geography' ? geographyLabel : timeLabel}
       </MenuButton>

@@ -36,6 +36,7 @@ export function OverallPerformanceTable({
         })
       : data
   const rows = typeof safeMaxItems === 'number' ? sortedRows.slice(0, safeMaxItems) : sortedRows
+  const isEmpty = rows.length === 0
 
   const handleSort = (column: Exclude<SortColumn, null>) => {
     if (sortColumn !== column) {
@@ -50,7 +51,7 @@ export function OverallPerformanceTable({
     <Box borderRadius="lg" overflow="visible" minW={0} w="full">
       <Box
         maxH={scrollMaxHeight}
-        overflowY="auto"
+        overflowY={isEmpty ? 'hidden' : 'auto'}
         overflowX="auto"
         w="full"
         maxW="100%"
@@ -188,40 +189,48 @@ export function OverallPerformanceTable({
                 </Th>
               </Tr>
             </Thead>
-            <Tbody
-              sx={{
-                tr: {
-                  cursor: 'pointer',
-                },
-                td: {
-                  textStyle: 'bodyText7',
-                  fontWeight: '400',
-                  px: { base: 2, md: 3 },
-                  py: { base: 2, md: 0 },
-                  height: { base: 'auto', md: '40px' },
-                  lineHeight: { base: '20px', md: '40px' },
-                  whiteSpace: 'nowrap',
-                },
-              }}
-            >
-              {rows.length > 0 ? (
-                rows.map((state) => (
+            {!isEmpty ? (
+              <Tbody
+                sx={{
+                  tr: {
+                    cursor: 'pointer',
+                  },
+                  td: {
+                    textStyle: 'bodyText7',
+                    fontWeight: '400',
+                    px: { base: 2, md: 3 },
+                    py: { base: 2, md: 0 },
+                    height: { base: 'auto', md: '40px' },
+                    lineHeight: { base: '20px', md: '40px' },
+                    whiteSpace: 'nowrap',
+                  },
+                }}
+              >
+                {rows.map((state) => (
                   <Tr key={state.id} _odd={{ bg: 'primary.25' }}>
                     <Td>{state.name}</Td>
                     <Td>{state.coverage.toFixed(0)}</Td>
                     <Td>{state.quantity}</Td>
                     <Td>{state.regularity.toFixed(0)}%</Td>
                   </Tr>
-                ))
-              ) : (
-                <Tr>
-                  <Td colSpan={4} textAlign="center" color="neutral.500">
-                    {t('overallPerformance.noData', { defaultValue: 'No data' })}
-                  </Td>
-                </Tr>
-              )}
-            </Tbody>
+                ))}
+              </Tbody>
+            ) : null}
           </Table>
+          {isEmpty ? (
+            <Box
+              minH={`calc(${scrollMaxHeight} - 57px)`}
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              textAlign="center"
+              color="neutral.500"
+              borderTop="1px solid"
+              borderColor="gray.100"
+            >
+              {t('overallPerformance.noData', { defaultValue: 'No data available' })}
+            </Box>
+          ) : null}
         </Box>
       </Box>
     </Box>

@@ -13,6 +13,10 @@ import type {
   WaterQuantityPeriodicResponse,
   WaterSupplyOutageData,
 } from '../types'
+import {
+  getLocationTitleFromLookup,
+  type LocationTitleLookup,
+} from '../services/query/location-title-lookup'
 import { slugify, toCapitalizedWords } from './format-location-label'
 
 const DEFAULT_DAYS_IN_RANGE = 30
@@ -514,7 +518,7 @@ export const mapReadingSubmissionRateFromAnalytics = (
   fallbackData: EntityPerformance[]
 ): EntityPerformance[] => {
   if (!response?.childRegions?.length) {
-    return fallbackData
+    return []
   }
 
   const fallbackByName = mapFallbackByName(fallbackData)
@@ -618,7 +622,7 @@ export const mapReadingSubmissionRateFromNationalDashboard = (
   fallbackData: EntityPerformance[]
 ): EntityPerformance[] => {
   if (!response?.stateWiseReadingSubmissionRate?.length) {
-    return fallbackData
+    return []
   }
 
   const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
@@ -652,10 +656,10 @@ const getOutageReasonCount = (distribution: Record<string, number>, keys: string
 
 export const mapOutageReasonsFromNationalDashboard = (
   response: NationalDashboardResponse | undefined,
-  fallbackData: WaterSupplyOutageData[]
+  _fallbackData: WaterSupplyOutageData[]
 ): WaterSupplyOutageData[] => {
   if (!response?.overallOutageReasonDistribution) {
-    return fallbackData
+    return []
   }
 
   const distribution = response.overallOutageReasonDistribution
@@ -696,7 +700,7 @@ export const mapOutageReasonsFromNationalDashboard = (
     mappedData.sourceDrying
 
   if (Number.isNaN(totalMappedCount)) {
-    return fallbackData
+    return []
   }
 
   return [mappedData]
@@ -704,18 +708,18 @@ export const mapOutageReasonsFromNationalDashboard = (
 
 export const mapReadingSubmissionStatusFromAnalytics = (
   response: SubmissionStatusResponse | undefined,
-  fallbackData: ReadingSubmissionStatusData[]
+  _fallbackData: ReadingSubmissionStatusData[]
 ): ReadingSubmissionStatusData[] => {
   if (!response) {
-    return fallbackData
+    return []
   }
 
   const compliantCount = response.compliantSubmissionCount ?? 0
   const anomalousCount = response.anomalousSubmissionCount ?? 0
   const totalCount = compliantCount + anomalousCount
 
-  if (Number.isNaN(totalCount)) {
-    return fallbackData
+  if (Number.isNaN(totalCount) || totalCount <= 0) {
+    return []
   }
 
   return [
@@ -732,9 +736,16 @@ export const mapSchemePerformanceToPumpOperators = (
     return fallbackData
   }
 
+  const activeSchemeCount = response.activeSchemeCount ?? 0
+  const inactiveSchemeCount = response.inactiveSchemeCount ?? 0
+
+  if (activeSchemeCount + inactiveSchemeCount <= 0) {
+    return []
+  }
+
   return [
-    { label: 'Active schemes', value: response.activeSchemeCount ?? 0 },
-    { label: 'Non-active schemes', value: response.inactiveSchemeCount ?? 0 },
+    { label: 'Active schemes', value: activeSchemeCount },
+    { label: 'Non-active schemes', value: inactiveSchemeCount },
   ]
 }
 
@@ -742,49 +753,52 @@ export const mapSchemePerformanceToTable = (
   response: SchemePerformanceResponse | undefined,
   fallbackData: PumpOperatorPerformanceData[],
   options?: {
-    blockTitleByParentId?: Record<number, string>
-    parentLgdTitleById?: Record<number, string>
+    blockTitleByParentId?: LocationTitleLookup
+    parentLgdTitleById?: LocationTitleLookup
   }
 ): PumpOperatorPerformanceData[] => {
   if (!response?.topSchemes?.length) {
     return fallbackData
   }
 
-  return response.topSchemes.map((scheme, index) => ({
-    id: `scheme-performance-${scheme.schemeId ?? index}`,
-    name: formatEntityName(
-      scheme.schemeName?.trim(),
-      undefined,
-      `Scheme ${scheme.schemeId ?? index + 1}`
-    ),
-    village:
-      options?.parentLgdTitleById &&
-      typeof scheme.immediateParentLgdId === 'number' &&
-      Number.isFinite(scheme.immediateParentLgdId) &&
-      options.parentLgdTitleById[scheme.immediateParentLgdId]
-        ? toCapitalizedWords(options.parentLgdTitleById[scheme.immediateParentLgdId])
+  return response.topSchemes.map((scheme, index) => {
+    const parentLgdTitle = getLocationTitleFromLookup(
+      options?.parentLgdTitleById,
+      scheme.immediateParentLgdId
+    )
+    const blockTitle = getLocationTitleFromLookup(
+      options?.blockTitleByParentId,
+      scheme.immediateParentLgdId
+    )
+
+    return {
+      id: `scheme-performance-${scheme.schemeId ?? index}`,
+      name: formatEntityName(
+        scheme.schemeName?.trim(),
+        undefined,
+        `Scheme ${scheme.schemeId ?? index + 1}`
+      ),
+      village: parentLgdTitle
+        ? toCapitalizedWords(parentLgdTitle)
         : scheme.immediateParentLgdTitle?.trim()
           ? toCapitalizedWords(scheme.immediateParentLgdTitle.trim())
           : null,
-    block:
-      options?.blockTitleByParentId &&
-      typeof scheme.immediateParentLgdId === 'number' &&
-      Number.isFinite(scheme.immediateParentLgdId) &&
-      options.blockTitleByParentId[scheme.immediateParentLgdId]
-        ? toCapitalizedWords(options.blockTitleByParentId[scheme.immediateParentLgdId])
+      block: blockTitle
+        ? toCapitalizedWords(blockTitle)
         : scheme.immediateParentDepartmentTitle?.trim()
           ? toCapitalizedWords(scheme.immediateParentDepartmentTitle.trim())
           : null,
-    reportingRate:
-      typeof scheme.reportingRate === 'number' && Number.isFinite(scheme.reportingRate)
-        ? scheme.reportingRate
-        : null,
-    photoCompliance: 0,
-    waterSupplied:
-      typeof scheme.totalWaterSupplied === 'number' && Number.isFinite(scheme.totalWaterSupplied)
-        ? scheme.totalWaterSupplied
-        : null,
-  }))
+      reportingRate:
+        typeof scheme.reportingRate === 'number' && Number.isFinite(scheme.reportingRate)
+          ? scheme.reportingRate
+          : null,
+      photoCompliance: 0,
+      waterSupplied:
+        typeof scheme.totalWaterSupplied === 'number' && Number.isFinite(scheme.totalWaterSupplied)
+          ? scheme.totalWaterSupplied
+          : null,
+    }
+  })
 }
 
 export const mapOverallPerformanceFromAnalytics = (

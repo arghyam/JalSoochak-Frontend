@@ -89,6 +89,7 @@ export function SearchLayout({
   const isBelowLgLayout = useBreakpointValue({ base: true, lg: false }) ?? true
   const isBelowMdLayout = useBreakpointValue({ base: true, md: false }) ?? true
   const [isVeryCompactLayout] = useMediaQuery('(max-width: 569px)')
+  const [isBelowXsLayout] = useMediaQuery('(max-width: 480px)')
   const [searchValue, setSearchValue] = useState('')
   const [isBreadcrumbPanelOpen, setIsBreadcrumbPanelOpen] = useState(false)
   const [selectedStateValue, setSelectedStateValue] = useState('')
@@ -256,8 +257,8 @@ export function SearchLayout({
                   fontWeight="400"
                   variant="ghost"
                   onClick={() => handleTrailSelect(index)}
-                  _hover={{ bg: 'neutral.100' }}
-                  _active={{ bg: 'neutral.100' }}
+                  _hover={{ bg: 'primary.25' }}
+                  _active={{ bg: 'primary.25' }}
                   aria-label={t('searchLayout.aria.breadcrumb', {
                     item,
                     defaultValue: `Breadcrumb: ${item}`,
@@ -531,18 +532,20 @@ export function SearchLayout({
               display="grid"
               gridTemplateColumns={{
                 base: 'minmax(0, 1fr)',
-                sm: 'repeat(2, minmax(0, 1fr))',
+                sm: isBelowXsLayout ? 'minmax(0, 1fr)' : 'repeat(2, minmax(0, 1fr))',
                 md: 'repeat(3, minmax(0, 1fr))',
-                lg: 'repeat(5, minmax(0, 1fr))',
+                lg: 'none',
               }}
               gridTemplateRows={{ lg: 'repeat(15, minmax(20px, auto))' }}
               gridAutoFlow={{ lg: 'column' }}
+              gridAutoColumns={{ lg: 'max-content' }}
               columnGap={{ base: '12px', lg: '24px' }}
               rowGap="8px"
               alignItems="start"
               alignContent="start"
-              maxH={{ base: '272px', sm: 'none' }}
-              overflowY={{ base: 'auto', sm: 'visible' }}
+              justifyContent={{ lg: 'start' }}
+              maxH={{ base: '272px', sm: isBelowXsLayout ? '272px' : 'none' }}
+              overflowY={{ base: 'auto', sm: isBelowXsLayout ? 'auto' : 'visible' }}
               pr={{ base: '4px', sm: 0 }}
               pb="16px"
               data-testid="search-options-grid"
@@ -560,7 +563,7 @@ export function SearchLayout({
                   h="auto"
                   fontSize="14px"
                   minW={0}
-                  whiteSpace="normal"
+                  whiteSpace="nowrap"
                   textAlign="left"
                   onClick={() => handleStateSelect(state.value)}
                   _hover={{ bg: 'transparent', color: 'primary.500' }}

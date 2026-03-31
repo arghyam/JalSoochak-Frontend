@@ -31,6 +31,24 @@ interface MetricPerformanceChartProps {
 
 export const formatMetricAxisLabel = formatAxisLabel
 
+const formatYAxisTick = (value: number) => {
+  if (!Number.isFinite(value)) {
+    return ''
+  }
+
+  if (Math.abs(value) >= 1000) {
+    return new Intl.NumberFormat('en-IN', {
+      maximumFractionDigits: 0,
+    }).format(value)
+  }
+
+  if (Number.isInteger(value)) {
+    return String(value)
+  }
+
+  return value.toFixed(1)
+}
+
 export function MetricPerformanceChart({
   data,
   metric,
@@ -60,13 +78,12 @@ export function MetricPerformanceChart({
 
   const defaultItemWidth = 90
   const minItemWidth = 70
+  const xAxisLabelMargin = 16
   const effectiveItemWidth =
     containerWidth > 0
       ? Math.max(minItemWidth, Math.floor(containerWidth / Math.max(data.length, 1)))
       : defaultItemWidth
   const itemWidth = Math.min(defaultItemWidth, effectiveItemWidth)
-  const axisWidth = '56px'
-  const axisLabelOffset = '-25px'
   const dynamicBarWidth = Math.min(barWidth, Math.max(12, Math.floor(itemWidth * 0.6)))
   const longestEntityLabel = useMemo(() => {
     return data.reduce((longest, item) => {
@@ -90,6 +107,19 @@ export function MetricPerformanceChart({
 
     return { max, interval: undefined }
   }, [demandValues, metric, showAreaLine, yValues])
+
+  const formattedYAxisMaxLabel = useMemo(() => formatYAxisTick(yAxisScale.max), [yAxisScale.max])
+  const chartGridTop = 24
+  const chartGridBottom = 88
+  const yAxisTitleGutter = 24
+  const yAxisTickMargin = -12
+  const yAxisTitleInset = 0
+  const axisWidth = useMemo(() => {
+    const digitWidth = 8
+    const basePadding = 8
+    const tickLabelWidth = Math.max(56, formattedYAxisMaxLabel.length * digitWidth + basePadding)
+    return `${tickLabelWidth + yAxisTitleGutter}px`
+  }, [formattedYAxisMaxLabel, yAxisTitleGutter])
 
   const option = useMemo<echarts.EChartsOption>(() => {
     const entities = data.map((d) => d.name)
@@ -184,9 +214,9 @@ export function MetricPerformanceChart({
       grid: {
         left: '0%',
         right: '4%',
-        top: '10%',
-        bottom: '5%',
-        containLabel: true,
+        top: chartGridTop,
+        bottom: chartGridBottom,
+        containLabel: false,
       },
       xAxis: {
         type: 'category',
@@ -202,7 +232,7 @@ export function MetricPerformanceChart({
         axisLabel: {
           rotate: 45,
           interval: 0,
-          margin: 8,
+          margin: xAxisLabelMargin,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
@@ -236,6 +266,8 @@ export function MetricPerformanceChart({
     dynamicBarWidth,
     metric,
     showAreaLine,
+    chartGridBottom,
+    chartGridTop,
     yAxisScale,
     yValues,
   ])
@@ -247,11 +279,11 @@ export function MetricPerformanceChart({
         show: false,
       },
       grid: {
-        left: '20%',
+        left: '0%',
         right: 0,
-        top: '10%',
-        bottom: '5%',
-        containLabel: true,
+        top: chartGridTop,
+        bottom: chartGridBottom,
+        containLabel: false,
       },
       xAxis: {
         type: 'category',
@@ -265,7 +297,7 @@ export function MetricPerformanceChart({
         axisLabel: {
           show: true,
           rotate: 45,
-          margin: 8,
+          margin: xAxisLabelMargin,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
@@ -278,11 +310,12 @@ export function MetricPerformanceChart({
         position: 'right',
         axisLabel: {
           align: 'right',
-          margin: 5,
+          margin: yAxisTickMargin,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
           color: bodyText7.color,
+          formatter: (value: number) => formatYAxisTick(value),
         },
         min: 0,
         max: yAxisScale.max,
@@ -303,7 +336,15 @@ export function MetricPerformanceChart({
       ],
       animation: false,
     }
-  }, [bodyText7, longestEntityLabel, yAxisScale])
+  }, [
+    bodyText7,
+    chartGridBottom,
+    chartGridTop,
+    longestEntityLabel,
+    xAxisLabelMargin,
+    yAxisScale,
+    yAxisTickMargin,
+  ])
 
   const baseChartWidth = data.length * itemWidth
   const chartPixelWidth =
@@ -453,7 +494,11 @@ export function MetricPerformanceChart({
 
   const legendItems = showAreaLine
     ? [
-        { label: areaSeriesName, color: '#6BB7F0' },
+        {
+          label: areaSeriesName,
+          color: theme.colors?.primary?.[25] ?? '#F5FAFF',
+          borderColor: theme.colors?.primary?.[500] ?? '#3763C8',
+        },
         { label: barSeriesName, color: '#3291D1' },
       ]
     : [{ label: barSeriesName, color: '#3291D1' }]
@@ -467,6 +512,7 @@ export function MetricPerformanceChart({
         height,
         display: 'flex',
         flexDirection: 'column',
+        justifyContent: 'space-between',
       }}
     >
       <Box flex={1} minH={0} minW={0} overflow="visible" display="flex">
@@ -474,14 +520,22 @@ export function MetricPerformanceChart({
           <EChartsWrapper option={axisOption} height="100%" />
           <Box
             position="absolute"
-            left={axisLabelOffset}
+            left={`${yAxisTitleInset}px`}
             top="50%"
-            transform="translateY(-50%) rotate(-90deg)"
-            transformOrigin="center"
+            transform="translateY(-50%) rotate(180deg)"
             textStyle="bodyText7"
             fontWeight="400"
             color={bodyText7.color}
             whiteSpace="nowrap"
+            pointerEvents="none"
+            zIndex={1}
+            sx={{
+              writingMode: 'vertical-rl',
+              textOrientation: 'mixed',
+              backfaceVisibility: 'hidden',
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
+            }}
           >
             {yAxisLabel}
           </Box>
@@ -547,6 +601,8 @@ export function MetricPerformanceChart({
                 height: '6px',
                 borderRadius: '2px',
                 backgroundColor: item.color,
+                border: item.borderColor ? `1px solid ${item.borderColor}` : 'none',
+                boxSizing: 'border-box',
                 display: 'inline-block',
               }}
             />
@@ -563,7 +619,7 @@ export function MetricPerformanceChart({
           </div>
         ))}
       </div>
-      <Box mt="6px">
+      <Box mt="6px" mb="0">
         <Box
           ref={scrollbarTrackRef}
           height="4px"

@@ -4,8 +4,10 @@ import type {
   AverageWaterSupplyPerRegionResponse,
   EntityPerformance,
   NationalDashboardResponse,
+  PumpOperatorsData,
   ReadingSubmissionStatusData,
   ReadingSubmissionRateResponse,
+  SchemePerformanceResponse,
   SubmissionStatusResponse,
   WaterSupplyOutageData,
 } from '../types'
@@ -20,8 +22,10 @@ import {
   getRegularityKpiFromPeriodic,
   mapOutageReasonsFromNationalDashboard,
   mapSchemePerformanceToTable,
+  mapSchemePerformanceToPumpOperators,
   mapReadingSubmissionStatusFromAnalytics,
   mapReadingSubmissionRateFromAnalytics,
+  mapReadingSubmissionRateFromNationalDashboard,
   mapQuantityPerformanceFromAnalytics,
   mapQuantityPerformanceFromNationalDashboard,
   mapRegularityPerformanceFromAnalytics,
@@ -732,7 +736,10 @@ describe('dashboard formulas', () => {
         [],
         {
           blockTitleByParentId: {
-            9001: 'KALAIGAON',
+            idLookup: {},
+            lgdLookup: {
+              9001: 'KALAIGAON',
+            },
           },
         }
       )
@@ -786,7 +793,10 @@ describe('dashboard formulas', () => {
         [],
         {
           parentLgdTitleById: {
-            9002: 'UTTAR PAKA',
+            idLookup: {},
+            lgdLookup: {
+              9002: 'UTTAR PAKA',
+            },
           },
         }
       )
@@ -797,6 +807,65 @@ describe('dashboard formulas', () => {
         village: 'Uttar Paka',
         block: null,
         reportingRate: 75,
+        photoCompliance: 0,
+        waterSupplied: 3200,
+      },
+    ])
+  })
+
+  it('keeps id and lgd lookup keys isolated when resolving scheme hierarchy titles', () => {
+    expect(
+      mapSchemePerformanceToTable(
+        {
+          parentLgdId: 1,
+          parentDepartmentId: 0,
+          parentLgdCName: 'block',
+          parentDepartmentCName: '',
+          parentLgdTitle: 'Barpeta',
+          parentDepartmentTitle: '',
+          startDate: '2026-03-14',
+          endDate: '2026-03-14',
+          daysInRange: 1,
+          activeSchemeCount: 1,
+          inactiveSchemeCount: 0,
+          topSchemeCount: 1,
+          topSchemes: [
+            {
+              schemeId: 203,
+              schemeName: 'Collision Check Scheme',
+              statusCode: 1,
+              status: 'Active',
+              submissionDays: 30,
+              reportingRate: 80,
+              totalWaterSupplied: 3200,
+              immediateParentLgdId: 9003,
+              immediateParentLgdCName: 'village',
+              immediateParentLgdTitle: 'FALLBACK VILLAGE',
+              immediateParentDepartmentId: 0,
+              immediateParentDepartmentCName: '',
+              immediateParentDepartmentTitle: '',
+            },
+          ],
+        },
+        [],
+        {
+          parentLgdTitleById: {
+            idLookup: {
+              9003: 'WRONG INTERNAL ID TITLE',
+            },
+            lgdLookup: {
+              9003: 'CORRECT LGD TITLE',
+            },
+          },
+        }
+      )
+    ).toEqual([
+      {
+        id: 'scheme-performance-203',
+        name: 'Collision Check Scheme',
+        village: 'Correct Lgd Title',
+        block: null,
+        reportingRate: 80,
         photoCompliance: 0,
         waterSupplied: 3200,
       },
@@ -895,7 +964,70 @@ describe('dashboard formulas', () => {
     ])
   })
 
-  it('uses a zero-valued submission status response instead of fallback data', () => {
+  it('returns an empty submission-rate dataset when analytics data is unavailable', () => {
+    const fallbackData: EntityPerformance[] = [
+      {
+        id: 'fallback',
+        name: 'Fallback Region',
+        coverage: 10,
+        regularity: 20,
+        continuity: 30,
+        quantity: 40,
+        compositeScore: 50,
+        status: 'good',
+      },
+    ]
+
+    expect(mapReadingSubmissionRateFromAnalytics(undefined, fallbackData)).toEqual([])
+    expect(mapReadingSubmissionRateFromNationalDashboard(undefined, fallbackData)).toEqual([])
+  })
+
+  it('returns an empty outage-reasons dataset when national data is unavailable', () => {
+    const fallbackData: WaterSupplyOutageData[] = [
+      {
+        label: 'Fallback',
+        electricityFailure: 2,
+        pipelineLeak: 1,
+        pumpFailure: 3,
+        valveIssue: 4,
+        sourceDrying: 5,
+      },
+    ]
+
+    expect(mapOutageReasonsFromNationalDashboard(undefined, fallbackData)).toEqual([])
+  })
+
+  it('returns an empty submission-status dataset when analytics data is unavailable', () => {
+    const fallbackData: ReadingSubmissionStatusData[] = [
+      { label: 'Compliant Submissions', value: 7 },
+      { label: 'Anomalous Submissions', value: 5 },
+    ]
+
+    expect(mapReadingSubmissionStatusFromAnalytics(undefined, fallbackData)).toEqual([])
+  })
+
+  it('returns no schemes chart slices when scheme performance counts are both zero', () => {
+    const fallbackData: PumpOperatorsData[] = [{ label: 'Legacy active', value: 7 }]
+    const response: SchemePerformanceResponse = {
+      parentLgdId: 1,
+      parentDepartmentId: 0,
+      parentLgdCName: 'state',
+      parentDepartmentCName: '',
+      parentLgdTitle: 'Assam',
+      parentDepartmentTitle: '',
+      startDate: '2026-03-01',
+      endDate: '2026-03-31',
+      daysInRange: 31,
+      activeSchemeCount: 0,
+      inactiveSchemeCount: 0,
+      topSchemeCount: 0,
+      topSchemes: [],
+    }
+
+    expect(mapSchemePerformanceToPumpOperators(response, fallbackData)).toEqual([])
+  })
+
+  it('returns no reading submission status slices when api counts are both zero', () => {
     const fallbackData: ReadingSubmissionStatusData[] = [
       { label: 'Compliant Submissions', value: 7 },
       { label: 'Anomalous Submissions', value: 5 },
@@ -908,9 +1040,6 @@ describe('dashboard formulas', () => {
       anomalousSubmissionCount: 0,
     }
 
-    expect(mapReadingSubmissionStatusFromAnalytics(response, fallbackData)).toEqual([
-      { label: 'Compliant Submissions', value: 0 },
-      { label: 'Anomalous Submissions', value: 0 },
-    ])
+    expect(mapReadingSubmissionStatusFromAnalytics(response, fallbackData)).toEqual([])
   })
 })
