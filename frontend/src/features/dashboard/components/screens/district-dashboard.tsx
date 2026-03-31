@@ -114,9 +114,6 @@ export function DistrictDashboardScreen({
           })}
           cardHeight="523px"
           timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-          timeYAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
-            defaultValue: 'Regularity (%)',
-          })}
           isTimeTrendPercent
           selectColor="primary.500"
           selectBorderColor="primary.500"

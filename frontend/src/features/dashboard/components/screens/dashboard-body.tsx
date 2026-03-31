@@ -377,9 +377,6 @@ function PerformanceChartsSection({
         })}
         cardHeight="536px"
         timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-        timeYAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
-          defaultValue: 'Regularity (%)',
-        })}
         isTimeTrendPercent
       />
     </Grid>

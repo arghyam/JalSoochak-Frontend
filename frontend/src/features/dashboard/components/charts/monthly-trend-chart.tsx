@@ -54,10 +54,12 @@ export function MonthlyTrendChart({
 
   const defaultItemWidth = 90
   const minItemWidth = 70
-  const yAxisTitleGutter = 5
+  const yAxisTitleGutter = 24
   const chartGridTop = 24
-  const chartGridBottom = 64
-  const xAxisLabelMargin = 12
+  const chartGridBottom = 88
+  const xAxisLabelMargin = 16
+  const yAxisTickMargin = -12
+  const yAxisTitleInset = 6
   const effectiveItemWidth =
     containerWidth > 0
       ? Math.max(minItemWidth, Math.floor(containerWidth / Math.max(data.length, 1)))
@@ -285,7 +287,7 @@ export function MonthlyTrendChart({
         position: 'right',
         axisLabel: {
           align: 'right',
-          margin: -2,
+          margin: yAxisTickMargin,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
@@ -318,6 +320,7 @@ export function MonthlyTrendChart({
     formatYAxisTick,
     longestPeriodLabel,
     xAxisLabelMargin,
+    yAxisTickMargin,
     yAxisScale.interval,
     yAxisScale.max,
   ])
@@ -485,7 +488,7 @@ export function MonthlyTrendChart({
           <EChartsWrapper option={axisOption} height="100%" />
           <Box
             position="absolute"
-            left="5px"
+            left={`${yAxisTitleInset}px`}
             top="50%"
             transform="translateY(-50%) rotate(180deg)"
             textStyle="bodyText7"
@@ -493,9 +496,13 @@ export function MonthlyTrendChart({
             color={bodyText7.color}
             whiteSpace="nowrap"
             pointerEvents="none"
+            zIndex={1}
             sx={{
               writingMode: 'vertical-rl',
               textOrientation: 'mixed',
+              backfaceVisibility: 'hidden',
+              WebkitFontSmoothing: 'antialiased',
+              MozOsxFontSmoothing: 'grayscale',
             }}
           >
             {yAxisLabel}

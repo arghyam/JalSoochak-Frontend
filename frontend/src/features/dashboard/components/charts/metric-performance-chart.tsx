@@ -113,6 +113,7 @@ export function MetricPerformanceChart({
   const chartGridBottom = 88
   const yAxisTitleGutter = 24
   const yAxisTickMargin = -12
+  const yAxisTitleInset = 6
   const axisWidth = useMemo(() => {
     const digitWidth = 8
     const basePadding = 8
@@ -519,7 +520,7 @@ export function MetricPerformanceChart({
           <EChartsWrapper option={axisOption} height="100%" />
           <Box
             position="absolute"
-            left="0"
+            left={`${yAxisTitleInset}px`}
             top="50%"
             transform="translateY(-50%) rotate(180deg)"
             textStyle="bodyText7"
