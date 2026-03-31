@@ -22,6 +22,7 @@ import {
   mapSchemePerformanceToTable,
   mapReadingSubmissionStatusFromAnalytics,
   mapReadingSubmissionRateFromAnalytics,
+  mapReadingSubmissionRateFromNationalDashboard,
   mapQuantityPerformanceFromAnalytics,
   mapQuantityPerformanceFromNationalDashboard,
   mapRegularityPerformanceFromAnalytics,
@@ -893,6 +894,48 @@ describe('dashboard formulas', () => {
         sourceDrying: 0,
       },
     ])
+  })
+
+  it('returns an empty submission-rate dataset when analytics data is unavailable', () => {
+    const fallbackData: EntityPerformance[] = [
+      {
+        id: 'fallback',
+        name: 'Fallback Region',
+        coverage: 10,
+        regularity: 20,
+        continuity: 30,
+        quantity: 40,
+        compositeScore: 50,
+        status: 'good',
+      },
+    ]
+
+    expect(mapReadingSubmissionRateFromAnalytics(undefined, fallbackData)).toEqual([])
+    expect(mapReadingSubmissionRateFromNationalDashboard(undefined, fallbackData)).toEqual([])
+  })
+
+  it('returns an empty outage-reasons dataset when national data is unavailable', () => {
+    const fallbackData: WaterSupplyOutageData[] = [
+      {
+        label: 'Fallback',
+        electricityFailure: 2,
+        pipelineLeak: 1,
+        pumpFailure: 3,
+        valveIssue: 4,
+        sourceDrying: 5,
+      },
+    ]
+
+    expect(mapOutageReasonsFromNationalDashboard(undefined, fallbackData)).toEqual([])
+  })
+
+  it('returns an empty submission-status dataset when analytics data is unavailable', () => {
+    const fallbackData: ReadingSubmissionStatusData[] = [
+      { label: 'Compliant Submissions', value: 7 },
+      { label: 'Anomalous Submissions', value: 5 },
+    ]
+
+    expect(mapReadingSubmissionStatusFromAnalytics(undefined, fallbackData)).toEqual([])
   })
 
   it('uses a zero-valued submission status response instead of fallback data', () => {

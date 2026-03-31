@@ -514,7 +514,7 @@ export const mapReadingSubmissionRateFromAnalytics = (
   fallbackData: EntityPerformance[]
 ): EntityPerformance[] => {
   if (!response?.childRegions?.length) {
-    return fallbackData
+    return []
   }
 
   const fallbackByName = mapFallbackByName(fallbackData)
@@ -618,7 +618,7 @@ export const mapReadingSubmissionRateFromNationalDashboard = (
   fallbackData: EntityPerformance[]
 ): EntityPerformance[] => {
   if (!response?.stateWiseReadingSubmissionRate?.length) {
-    return fallbackData
+    return []
   }
 
   const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
@@ -652,10 +652,10 @@ const getOutageReasonCount = (distribution: Record<string, number>, keys: string
 
 export const mapOutageReasonsFromNationalDashboard = (
   response: NationalDashboardResponse | undefined,
-  fallbackData: WaterSupplyOutageData[]
+  _fallbackData: WaterSupplyOutageData[]
 ): WaterSupplyOutageData[] => {
   if (!response?.overallOutageReasonDistribution) {
-    return fallbackData
+    return []
   }
 
   const distribution = response.overallOutageReasonDistribution
@@ -696,7 +696,7 @@ export const mapOutageReasonsFromNationalDashboard = (
     mappedData.sourceDrying
 
   if (Number.isNaN(totalMappedCount)) {
-    return fallbackData
+    return []
   }
 
   return [mappedData]
@@ -704,10 +704,10 @@ export const mapOutageReasonsFromNationalDashboard = (
 
 export const mapReadingSubmissionStatusFromAnalytics = (
   response: SubmissionStatusResponse | undefined,
-  fallbackData: ReadingSubmissionStatusData[]
+  _fallbackData: ReadingSubmissionStatusData[]
 ): ReadingSubmissionStatusData[] => {
   if (!response) {
-    return fallbackData
+    return []
   }
 
   const compliantCount = response.compliantSubmissionCount ?? 0
@@ -715,7 +715,7 @@ export const mapReadingSubmissionStatusFromAnalytics = (
   const totalCount = compliantCount + anomalousCount
 
   if (Number.isNaN(totalCount)) {
-    return fallbackData
+    return []
   }
 
   return [

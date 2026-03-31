@@ -510,15 +510,6 @@ export function CentralDashboard() {
     selectedGramPanchayatMockKey,
     emptyEntityPerformance
   )
-  const supplySubmissionRateFallbackData = isGramPanchayatSelected
-    ? villageTableData
-    : isBlockSelected
-      ? gramPanchayatTableData
-      : isDistrictSelected
-        ? blockTableData
-        : isStateSelected
-          ? districtTableData
-          : (dashboardData?.mapData ?? ([] as EntityPerformance[]))
   const supplySubmissionRateLabel = isGramPanchayatSelected
     ? t('performanceCharts.viewBy.villages', { defaultValue: 'Villages' })
     : isBlockSelected
@@ -1006,17 +997,11 @@ export function CentralDashboard() {
     ? mapRegularityPerformanceFromNationalDashboard(nationalDashboardData, emptyEntityPerformance)
     : mapRegularityPerformanceFromAnalytics(averageSchemeRegularityData, emptyEntityPerformance)
   const supplySubmissionRateData = isCentralLandingView
-    ? mapReadingSubmissionRateFromNationalDashboard(
-        nationalDashboardData,
-        supplySubmissionRateFallbackData
-      )
-    : mapReadingSubmissionRateFromAnalytics(
-        readingSubmissionRateData,
-        supplySubmissionRateFallbackData
-      )
+    ? mapReadingSubmissionRateFromNationalDashboard(nationalDashboardData, [])
+    : mapReadingSubmissionRateFromAnalytics(readingSubmissionRateData, [])
   const readingSubmissionStatusData = mapReadingSubmissionStatusFromAnalytics(
     submissionStatusData,
-    dashboardData?.readingSubmissionStatus ?? []
+    []
   )
   const pumpOperatorsData = mapSchemePerformanceToPumpOperators(
     schemePerformanceData,
@@ -1336,17 +1321,14 @@ export function CentralDashboard() {
     ? [toOutageReasonsData(outageReasonsData.outageReasonSchemeCount)]
     : null
   const nationalWaterSupplyOutageReasonsData = isCentralLandingView
-    ? mapOutageReasonsFromNationalDashboard(nationalDashboardData, dashboardData.waterSupplyOutages)
+    ? mapOutageReasonsFromNationalDashboard(nationalDashboardData, [])
     : null
   const apiWaterSupplyOutageDistributionData = outageReasonsData?.childRegions?.length
     ? toOutageDistributionData(outageReasonsData.childRegions)
     : null
   const waterSupplyOutagesData =
-    nationalWaterSupplyOutageReasonsData ??
-    apiWaterSupplyOutageReasonsData ??
-    dashboardData.waterSupplyOutages
-  const waterSupplyOutageDistributionData =
-    apiWaterSupplyOutageDistributionData ?? dashboardData.waterSupplyOutages
+    nationalWaterSupplyOutageReasonsData ?? apiWaterSupplyOutageReasonsData ?? []
+  const waterSupplyOutageDistributionData = apiWaterSupplyOutageDistributionData ?? []
   const resolvedSupplyOutageTrend =
     outageReasonsTimeTrendData.length > 0
       ? outageReasonsTimeTrendData
