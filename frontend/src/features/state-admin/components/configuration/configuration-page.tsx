@@ -19,22 +19,25 @@ import {
   FormErrorMessage,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { EditIcon } from '@chakra-ui/icons'
+import { EditIcon, WarningTwoIcon } from '@chakra-ui/icons'
 import { FiUpload } from 'react-icons/fi'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer } from '@/shared/components/common'
+import { ActionTooltip, ToastContainer } from '@/shared/components/common'
 import {
   useConfigurationQuery,
   useLogoQuery,
   useSaveConfigurationMutation,
+  useSystemChannelsQuery,
   useUpdateLogoMutation,
 } from '../../services/query/use-state-admin-queries'
 import {
+  CHANNEL_CODE_TO_NAME,
+  FALLBACK_SYSTEM_CHANNELS,
   DEFAULT_DATE_FORMAT_CONFIG,
   DEFAULT_METER_CHANGE_REASONS,
   DEFAULT_SUPPLY_OUTAGE_REASONS,
-  SUPPORTED_CHANNELS,
   type DateFormatConfig,
+  type KnownSupportedChannel,
   type MeterChangeReason,
   type SupplyOutageReason,
   type SupportedChannel,
@@ -111,6 +114,11 @@ export function ConfigurationPage() {
   const navigate = useNavigate()
   const { data: config, isLoading, isError } = useConfigurationQuery()
   const {
+    data: systemChannels,
+    isLoading: isSystemChannelsLoading,
+    isError: isSystemChannelsError,
+  } = useSystemChannelsQuery()
+  const {
     data: logoBlobData,
     isLoading: isLogoLoading,
     isError: isLogoError,
@@ -169,6 +177,18 @@ export function ConfigurationPage() {
       supplyReasonsChanged
     )
   }, [config, draft])
+
+  const allDisplayChannels = useMemo(() => {
+    const active: SupportedChannel[] =
+      systemChannels && systemChannels.length > 0 ? systemChannels : FALLBACK_SYSTEM_CHANNELS
+    const selected: SupportedChannel[] = config?.supportedChannels ?? []
+    const removed: SupportedChannel[] = config?.degraded ? (config.removedChannels ?? []) : []
+
+    const removedSet = new Set<SupportedChannel>(removed)
+    const merged = Array.from(new Set<SupportedChannel>([...active, ...selected]))
+
+    return [...merged.filter((c) => !removedSet.has(c)), ...Array.from(removedSet)]
+  }, [systemChannels, config])
 
   const handleEdit = () => {
     const initial = buildInitialDraft(config, logoObjectUrl ?? undefined)
@@ -379,7 +399,7 @@ export function ConfigurationPage() {
         ? String(activeDraft.averageMembersPerHousehold)
         : ''
 
-  const halfChannels = Math.ceil(SUPPORTED_CHANNELS.length / 2)
+  const halfChannels = Math.ceil(allDisplayChannels.length / 2)
 
   return (
     <Box w="full">
@@ -496,31 +516,97 @@ export function ConfigurationPage() {
                       *
                     </Text>
                   </Text>
-                  <CheckboxGroup
-                    value={activeDraft.supportedChannels}
-                    onChange={handleChannelChange}
-                  >
-                    <SimpleGrid columns={2} spacing={3} w={{ base: 'full', md: '360px' }}>
-                      <VStack align="start" spacing={3}>
-                        {SUPPORTED_CHANNELS.slice(0, halfChannels).map((channel) => (
-                          <Checkbox key={channel} value={channel}>
-                            <Text fontSize="sm" color="neutral.950">
-                              {channel}
-                            </Text>
-                          </Checkbox>
-                        ))}
-                      </VStack>
-                      <VStack align="start" spacing={3}>
-                        {SUPPORTED_CHANNELS.slice(halfChannels).map((channel) => (
-                          <Checkbox key={channel} value={channel}>
-                            <Text fontSize="sm" color="neutral.950">
-                              {channel}
-                            </Text>
-                          </Checkbox>
-                        ))}
-                      </VStack>
-                    </SimpleGrid>
-                  </CheckboxGroup>
+                  {isSystemChannelsLoading ? (
+                    <Flex align="center" gap={2}>
+                      <Spinner size="sm" color="primary.500" />
+                      <Text fontSize="sm" color="neutral.600">
+                        {t('common:loading')}
+                      </Text>
+                    </Flex>
+                  ) : (
+                    <>
+                      {isSystemChannelsError && (
+                        <Text fontSize="sm" color="error.500" mb={2}>
+                          {t('common:toast.failedToLoad')}
+                        </Text>
+                      )}
+                      <CheckboxGroup
+                        value={activeDraft.supportedChannels}
+                        onChange={handleChannelChange}
+                      >
+                        <SimpleGrid columns={2} spacing={3} w={{ base: 'full', md: '400px' }}>
+                          <VStack align="start" spacing={3}>
+                            {allDisplayChannels.slice(0, halfChannels).map((code) => {
+                              const isRemoved =
+                                config?.degraded &&
+                                (config.removedChannels ?? []).includes(code as SupportedChannel)
+                              return (
+                                <HStack key={code} spacing={1} align="center">
+                                  <Checkbox value={code} isDisabled={!!isRemoved}>
+                                    <Text
+                                      fontSize="sm"
+                                      color={isRemoved ? 'neutral.400' : 'neutral.950'}
+                                    >
+                                      {CHANNEL_CODE_TO_NAME[code as KnownSupportedChannel] ?? code}
+                                    </Text>
+                                  </Checkbox>
+                                  {isRemoved && (
+                                    <ActionTooltip
+                                      label={t(
+                                        'configuration.sections.supportedChannels.degradedTooltip'
+                                      )}
+                                    >
+                                      <WarningTwoIcon
+                                        color="error.500"
+                                        boxSize={3}
+                                        aria-label={t(
+                                          'configuration.sections.supportedChannels.degradedTooltip'
+                                        )}
+                                      />
+                                    </ActionTooltip>
+                                  )}
+                                </HStack>
+                              )
+                            })}
+                          </VStack>
+                          <VStack align="start" spacing={3}>
+                            {allDisplayChannels.slice(halfChannels).map((code) => {
+                              const isRemoved =
+                                config?.degraded &&
+                                (config.removedChannels ?? []).includes(code as SupportedChannel)
+                              return (
+                                <HStack key={code} spacing={1} align="center">
+                                  <Checkbox value={code} isDisabled={!!isRemoved}>
+                                    <Text
+                                      fontSize="sm"
+                                      color={isRemoved ? 'neutral.400' : 'neutral.950'}
+                                    >
+                                      {CHANNEL_CODE_TO_NAME[code as KnownSupportedChannel] ?? code}
+                                    </Text>
+                                  </Checkbox>
+                                  {isRemoved && (
+                                    <ActionTooltip
+                                      label={t(
+                                        'configuration.sections.supportedChannels.degradedTooltip'
+                                      )}
+                                    >
+                                      <WarningTwoIcon
+                                        color="error.500"
+                                        boxSize={3}
+                                        aria-label={t(
+                                          'configuration.sections.supportedChannels.degradedTooltip'
+                                        )}
+                                      />
+                                    </ActionTooltip>
+                                  )}
+                                </HStack>
+                              )
+                            })}
+                          </VStack>
+                        </SimpleGrid>
+                      </CheckboxGroup>
+                    </>
+                  )}
                   <FormErrorMessage>{errors.supportedChannels}</FormErrorMessage>
                 </FormControl>
 
@@ -916,7 +1002,11 @@ function ViewMode({
       {/* Supported Channels */}
       <ViewSection title={t('configuration.sections.supportedChannels.title')}>
         <Text fontSize="sm" color="neutral.950">
-          {config.supportedChannels.length > 0 ? config.supportedChannels.join(', ') : '-'}
+          {config.supportedChannels.length > 0
+            ? config.supportedChannels
+                .map((c) => CHANNEL_CODE_TO_NAME[c as KnownSupportedChannel] ?? c)
+                .join(', ')
+            : '-'}
         </Text>
       </ViewSection>
 

@@ -412,7 +412,8 @@
         "levelLabel": "स्तर {{level}}"
       },
       "supportedChannels": {
-        "title": "समर्थित चैनल"
+        "title": "समर्थित चैनल",
+        "degradedTooltip": "इस चैनल के लिए सिस्टम समर्थन हटा दिया गया है"
       },
       "logo": {
         "title": "लोगो",

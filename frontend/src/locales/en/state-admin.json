@@ -412,7 +412,8 @@
         "levelLabel": "Level {{level}}"
       },
       "supportedChannels": {
-        "title": "Supported Channels"
+        "title": "Supported Channels",
+        "degradedTooltip": "System support removed for this channel"
       },
       "logo": {
         "title": "Logo",

@@ -16,29 +16,23 @@ export interface DateFormatConfig {
   timezone: string | null
 }
 
-export const SUPPORTED_CHANNELS = [
-  'Bulk Flow Meter',
-  'Electric Meter',
-  'Pump Duration',
-  'IOT',
-  'Manual',
-] as const
+export type KnownSupportedChannel = 'BFM' | 'ELM' | 'PDU' | 'IOT' | 'MAN'
 
-export type SupportedChannel = (typeof SUPPORTED_CHANNELS)[number]
+/**
+ * Open string union: known codes are autocompleted; unknown backend codes are
+ * still representable without unsafe casts.
+ */
+export type SupportedChannel = KnownSupportedChannel | (string & {})
 
-export const CHANNEL_CODE_TO_NAME = {
+export const FALLBACK_SYSTEM_CHANNELS: KnownSupportedChannel[] = ['BFM', 'ELM', 'PDU', 'IOT', 'MAN']
+
+export const CHANNEL_CODE_TO_NAME: Partial<Record<KnownSupportedChannel, string>> = {
   BFM: 'Bulk Flow Meter',
   ELM: 'Electric Meter',
   PDU: 'Pump Duration',
   IOT: 'IOT',
   MAN: 'Manual',
-} as const satisfies Record<string, SupportedChannel>
-
-export const CHANNEL_NAME_TO_CODE = Object.fromEntries(
-  Object.entries(CHANNEL_CODE_TO_NAME).map(([code, name]) => [name, code])
-) as Record<SupportedChannel, keyof typeof CHANNEL_CODE_TO_NAME>
-
-export type SupportedChannelCode = keyof typeof CHANNEL_CODE_TO_NAME
+}
 
 export const DEFAULT_METER_CHANGE_REASONS: MeterChangeReason[] = [
   { id: 'r1', name: 'Meter Replaced' },
@@ -76,6 +70,8 @@ export const DEFAULT_DATE_FORMAT_CONFIG: DateFormatConfig = {
 export interface ConfigurationData {
   id: string
   supportedChannels: SupportedChannel[]
+  degraded?: boolean
+  removedChannels?: SupportedChannel[]
   logoUrl?: string
   meterChangeReasons: MeterChangeReason[]
   supplyOutageReasons: SupplyOutageReason[]

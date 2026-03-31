@@ -18,8 +18,6 @@ import type {
 import type { MessageTemplatesData, ScreenContent, ScreenName } from '../../types/message-templates'
 import { SCREEN_NAMES } from '../../types/message-templates'
 import {
-  CHANNEL_CODE_TO_NAME,
-  CHANNEL_NAME_TO_CODE,
   DEFAULT_DATE_FORMAT_CONFIG,
   DEFAULT_METER_CHANGE_REASONS,
   DEFAULT_SUPPLY_OUTAGE_REASONS,
@@ -46,7 +44,7 @@ interface ApiEscalationRules {
 }
 
 export interface TenantConfigMap {
-  TENANT_SUPPORTED_CHANNELS?: { channels: string[] }
+  TENANT_SUPPORTED_CHANNELS?: { channels: string[]; degraded?: boolean; removedChannels?: string[] }
   TENANT_LOGO?: string // URL string
   METER_CHANGE_REASONS?: { reasons: { id: string; name: string; sequenceOrder: number }[] }
   SUPPLY_OUTAGE_REASONS?: {
@@ -119,10 +117,8 @@ function formatHHmm(hour: number, minute: number): string {
 export function mapApiConfigToConfigurationData(
   configs: TenantConfigMap
 ): Omit<ConfigurationData, 'id'> {
-  const channelCodes = configs.TENANT_SUPPORTED_CHANNELS?.channels ?? []
-  const supportedChannels = channelCodes
-    .map((code) => CHANNEL_CODE_TO_NAME[code as keyof typeof CHANNEL_CODE_TO_NAME])
-    .filter((c): c is SupportedChannel => Boolean(c))
+  const channelData = configs.TENANT_SUPPORTED_CHANNELS
+  const channelCodes = (channelData?.channels ?? []) as SupportedChannel[]
 
   const meterReasons: MeterChangeReason[] = configs.METER_CHANGE_REASONS?.reasons?.length
     ? configs.METER_CHANGE_REASONS.reasons.map((r) => ({ id: r.id, name: r.name }))
@@ -157,7 +153,9 @@ export function mapApiConfigToConfigurationData(
     : { ...DEFAULT_DATE_FORMAT_CONFIG }
 
   return {
-    supportedChannels,
+    supportedChannels: channelCodes,
+    degraded: channelData?.degraded,
+    removedChannels: channelData?.removedChannels as SupportedChannel[] | undefined,
     meterChangeReasons: meterReasons,
     supplyOutageReasons,
     locationCheckRequired: configs.LOCATION_CHECK_REQUIRED?.value === 'YES',
@@ -171,14 +169,14 @@ export function mapApiConfigToConfigurationData(
     dateFormatScreen,
     dateFormatTable,
     averageMembersPerHousehold: Number(configs.AVERAGE_MEMBERS_PER_HOUSEHOLD?.value) || 0,
-    isConfigured: true,
+    isConfigured: channelCodes.length > 0,
   }
 }
 
 export function mapConfigurationDataToApiConfig(
   payload: Omit<ConfigurationData, 'id'>
 ): TenantConfigMap {
-  const channelCodes = payload.supportedChannels.map((name) => CHANNEL_NAME_TO_CODE[name])
+  const channelCodes = payload.supportedChannels
 
   const consolidation = parseHHmm(payload.dataConsolidationTime)
   const { hour, minute } = parseHHmm(payload.pumpOperatorReminderNudgeTime)
