@@ -179,10 +179,15 @@ export function ConfigurationPage() {
   }, [config, draft])
 
   const allDisplayChannels = useMemo(() => {
-    const active: SupportedChannel[] = systemChannels ?? FALLBACK_SYSTEM_CHANNELS
-    const removed: string[] = config?.degraded ? (config.removedChannels ?? []) : []
-    const removedSet = new Set(removed)
-    return [...active.filter((c) => !removedSet.has(c)), ...removed]
+    const active: SupportedChannel[] =
+      systemChannels && systemChannels.length > 0 ? systemChannels : FALLBACK_SYSTEM_CHANNELS
+    const selected: SupportedChannel[] = config?.supportedChannels ?? []
+    const removed: SupportedChannel[] = config?.degraded ? (config.removedChannels ?? []) : []
+
+    const removedSet = new Set<SupportedChannel>(removed)
+    const merged = Array.from(new Set<SupportedChannel>([...active, ...selected]))
+
+    return [...merged.filter((c) => !removedSet.has(c)), ...Array.from(removedSet)]
   }, [systemChannels, config])
 
   const handleEdit = () => {
