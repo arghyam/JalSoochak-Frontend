@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -39,6 +38,16 @@ export interface UserAdminListPageProps {
   readonly totalItems?: number
   readonly onPageChange?: (page: number) => void
   readonly onPageSizeChange?: (pageSize: number) => void
+  /** When true, the search input is hidden. */
+  readonly hideSearch?: boolean
+  /** Controlled search value (server-side mode). When provided, client-side search is skipped. */
+  readonly searchQuery?: string
+  /** Controlled search change callback (server-side mode). */
+  readonly onSearchChange?: (value: string) => void
+  /** Controlled status filter value (server-side mode). When provided, client-side status filtering is skipped. */
+  readonly statusFilter?: StatusFilter
+  /** Controlled status filter change callback (server-side mode). */
+  readonly onStatusFilterChange?: (value: StatusFilter) => void
 }
 
 export function UserAdminListPage({
@@ -54,11 +63,25 @@ export function UserAdminListPage({
   totalItems,
   onPageChange,
   onPageSizeChange,
+  hideSearch,
+  searchQuery: controlledSearch,
+  onSearchChange,
+  statusFilter: controlledStatus,
+  onStatusFilterChange,
 }: UserAdminListPageProps) {
   const { t } = useTranslation('common')
   const navigate = useNavigate()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+
+  // In server-side mode a controlled value without its callback means the
+  // control would appear interactive but silently do nothing — hide it instead.
+  const showSearch = !hideSearch && (controlledSearch === undefined || !!onSearchChange)
+  const showStatusFilter = controlledStatus === undefined || !!onStatusFilterChange
+
+  const searchQuery = controlledSearch ?? ''
+  const setSearchQuery = onSearchChange ?? (() => {})
+
+  const statusFilter = controlledStatus ?? 'all'
+  const setStatusFilter = onStatusFilterChange ?? (() => {})
 
   if (isLoading) {
     return (
@@ -96,18 +119,6 @@ export function UserAdminListPage({
     { value: 'inactive', label: t('status.inactive') },
     { value: 'pending', label: t('status.pending') },
   ]
-
-  const filteredData = data.filter((item) => {
-    const fullName = `${item.firstName} ${item.lastName}`.toLowerCase()
-    const normalizedPhone = item.phone.replace(/\D/g, '')
-    const normalizedQuery = searchQuery.replace(/\D/g, '')
-    const matchesSearch =
-      fullName.includes(searchQuery.toLowerCase()) ||
-      item.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (normalizedQuery.length > 0 && normalizedPhone.includes(normalizedQuery))
-    const matchesStatus = statusFilter === 'all' || item.status === statusFilter
-    return matchesSearch && matchesStatus
-  })
 
   const handleView = (id: string) => {
     navigate(routes.view(id))
@@ -246,32 +257,36 @@ export function UserAdminListPage({
           w={{ base: 'full', md: 'auto' }}
           flexDirection={{ base: 'column', sm: 'row' }}
         >
-          <InputGroup w={{ base: 'full', md: '240px', lg: '404px' }}>
-            <InputLeftElement pointerEvents="none" h={8}>
-              <SearchIcon color="neutral.300" aria-hidden="true" />
-            </InputLeftElement>
-            <Input
-              placeholder={t('search')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label={labels.aria.search}
-              bg="white"
-              h={8}
-              borderWidth="1px"
-              borderRadius="4px"
-              borderColor="neutral.300"
-              _placeholder={{ color: 'neutral.300' }}
+          {showSearch && (
+            <InputGroup w={{ base: 'full', md: '240px', lg: '404px' }}>
+              <InputLeftElement pointerEvents="none" h={8}>
+                <SearchIcon color="neutral.300" aria-hidden="true" />
+              </InputLeftElement>
+              <Input
+                placeholder={t('search')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label={labels.aria.search}
+                bg="white"
+                h={8}
+                borderWidth="1px"
+                borderRadius="4px"
+                borderColor="neutral.300"
+                _placeholder={{ color: 'neutral.300' }}
+              />
+            </InputGroup>
+          )}
+          {showStatusFilter && (
+            <SearchableSelect
+              options={statusOptions}
+              value={statusFilter}
+              height="32px"
+              onChange={(val) => setStatusFilter(val as StatusFilter)}
+              placeholder={t('statusLabel')}
+              width={{ base: '100%', md: '140px' }}
+              isFilter
             />
-          </InputGroup>
-          <SearchableSelect
-            options={statusOptions}
-            value={statusFilter}
-            height="32px"
-            onChange={(val) => setStatusFilter(val as StatusFilter)}
-            placeholder={t('statusLabel')}
-            width={{ base: '100%', md: '140px' }}
-            isFilter
-          />
+          )}
         </Flex>
         <Button
           variant="secondary"
@@ -289,7 +304,7 @@ export function UserAdminListPage({
 
       <DataTable<UserAdminData>
         columns={columns}
-        data={filteredData}
+        data={data}
         getRowKey={(row) => row.id}
         emptyMessage={labels.noItemsFound}
         isLoading={false}

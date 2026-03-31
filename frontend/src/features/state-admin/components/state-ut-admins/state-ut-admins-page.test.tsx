@@ -51,7 +51,7 @@ describe('StateUTAdminsPage', () => {
     mockNavigate.mockReset()
     mockReinviteMutate.mockReset()
     mockUseStateUTAdminsQuery.mockReturnValue({
-      data: mockAdmins,
+      data: { items: mockAdmins, total: mockAdmins.length },
       isLoading: false,
       isError: false,
       refetch: jest.fn(),
@@ -108,19 +108,9 @@ describe('StateUTAdminsPage', () => {
     expect(screen.getByText('+91 98452-85564')).toBeTruthy()
   })
 
-  it('filters admins by name search', () => {
+  it('renders the search input for server-side search', () => {
     renderWithProviders(<StateUTAdminsPage />)
-    const searchInput = screen.getAllByRole('textbox')[0]
-    fireEvent.change(searchInput, { target: { value: 'Ravi' } })
-    expect(screen.getByText('Ravi Kumar')).toBeTruthy()
-    expect(screen.queryByText('Sanjeev Kumar')).toBeNull()
-  })
-
-  it('shows empty message when no results match search', () => {
-    renderWithProviders(<StateUTAdminsPage />)
-    const searchInput = screen.getAllByRole('textbox')[0]
-    fireEvent.change(searchInput, { target: { value: 'zzznomatch' } })
-    expect(screen.getByText('No admins found')).toBeTruthy()
+    expect(screen.getAllByRole('textbox')[0]).toBeTruthy()
   })
 
   it('navigates to add page when Add State Admin button is clicked', () => {

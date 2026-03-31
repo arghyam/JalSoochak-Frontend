@@ -126,14 +126,21 @@ export function useSaveConfigurationMutation() {
   })
 }
 
-export function useStateUTAdminsQuery(page: number, pageSize: number) {
+export function useStateUTAdminsQuery(
+  page: number,
+  pageSize: number,
+  name: string,
+  status: string
+) {
   const tenantCode = useAuthStore((state) => state.user?.tenantCode ?? '')
   return useQuery({
-    queryKey: stateAdminQueryKeys.stateUtAdmins(page, pageSize),
+    queryKey: stateAdminQueryKeys.stateUtAdmins(page, pageSize, name, status),
     queryFn: async () => {
       const apiPage = await stateAdminApi.getStateUTAdmins(tenantCode, {
         page: page - 1,
         size: pageSize,
+        name: name || undefined,
+        status: status && status !== 'all' ? status : undefined,
       })
       const items: StateUTAdmin[] = apiPage.content.map((u) => {
         let status: StateUTAdmin['status']

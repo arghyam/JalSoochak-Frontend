@@ -19,10 +19,12 @@ import {
   ActionTooltip,
   DataTable,
   type DataTableColumn,
+  SearchableSelect,
   StatusChip,
   ToastContainer,
 } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
+import { useDebounce } from '@/shared/hooks/use-debounce'
 import type { StateAdmin } from '../../types/state-admins'
 import { ROUTES } from '@/shared/constants/routes'
 import {
@@ -30,15 +32,25 @@ import {
   useReinviteStateAdminMutation,
 } from '../../services/query/use-super-admin-queries'
 
+type AdminStatusFilter = 'all' | 'PENDING' | 'ACTIVE' | 'INACTIVE'
+
 export function ManageStateAdminsPage() {
   const { t } = useTranslation(['super-admin', 'common'])
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
-  const { data, isLoading, isError, refetch } = useStateAdminsQuery(page, pageSize)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<AdminStatusFilter>('all')
+  const debouncedSearch = useDebounce(searchQuery, 400)
+
+  const { data, isLoading, isError, refetch } = useStateAdminsQuery(
+    page,
+    pageSize,
+    debouncedSearch,
+    statusFilter
+  )
   const reinviteMutation = useReinviteStateAdminMutation()
   const toast = useToast()
-  const [searchQuery, setSearchQuery] = useState('')
 
   const handleReinvite = (id: string) => {
     reinviteMutation.mutate(id, {
@@ -67,11 +79,12 @@ export function ManageStateAdminsPage() {
     )
   }
 
-  const filteredAdmins = (data?.items ?? []).filter(
-    (admin) =>
-      admin.adminName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      admin.stateUt.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const statusOptions = [
+    { value: 'all', label: t('common:status.all', 'All Statuses') },
+    { value: 'PENDING', label: t('common:status.pending') },
+    { value: 'ACTIVE', label: t('common:status.active') },
+    { value: 'INACTIVE', label: t('common:status.inactive') },
+  ]
 
   const handleView = (row: StateAdmin) => {
     if (row.stateUt) {
@@ -127,19 +140,19 @@ export function ManageStateAdminsPage() {
       ),
     },
     {
-      key: 'signupStatus',
-      header: t('manageStateAdmins.table.signupStatus'),
+      key: 'status',
+      header: t('common:statusLabel', 'Status'),
       sortable: false,
       render: (row) => {
         let statusLabel: string
-        if (row.signupStatus === 'completed') {
-          statusLabel = t('manageStateAdmins.status.completed')
-        } else if (row.signupStatus === 'inactive') {
-          statusLabel = t('manageStateAdmins.status.inactive')
+        if (row.status === 'active') {
+          statusLabel = t('common:status.active')
+        } else if (row.status === 'inactive') {
+          statusLabel = t('common:status.inactive')
         } else {
-          statusLabel = t('manageStateAdmins.status.pending')
+          statusLabel = t('common:status.pending')
         }
-        return <StatusChip status={row.signupStatus} label={statusLabel} />
+        return <StatusChip status={row.status} label={statusLabel} />
       },
     },
     {
@@ -175,7 +188,7 @@ export function ManageStateAdminsPage() {
               _hover={{ color: 'primary.500', bg: 'transparent' }}
             />
           </ActionTooltip>
-          {row.signupStatus === 'pending' && (
+          {row.status === 'pending' && (
             <ActionTooltip label={t('manageStateAdmins.aria.resendInvite')}>
               <IconButton
                 aria-label={`${t('manageStateAdmins.aria.resendInvite')} ${row.adminName}`}
@@ -218,28 +231,49 @@ export function ManageStateAdminsPage() {
         borderRadius="12px"
         bg="white"
       >
-        <InputGroup w={{ base: 'full', md: '320px' }}>
-          <InputLeftElement pointerEvents="none" h={8}>
-            <SearchIcon color="neutral.300" aria-hidden="true" />
-          </InputLeftElement>
-          <Input
-            placeholder={t('common:search')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            aria-label={t('manageStateAdmins.searchPlaceholder')}
-            bg="white"
-            h={8}
-            borderWidth="1px"
-            borderRadius="4px"
-            borderColor="neutral.300"
-            _placeholder={{ color: 'neutral.300' }}
+        <Flex
+          gap={3}
+          w={{ base: 'full', md: 'auto' }}
+          flexDirection={{ base: 'column', sm: 'row' }}
+        >
+          <InputGroup w={{ base: 'full', md: '240px', lg: '320px' }}>
+            <InputLeftElement pointerEvents="none" h={8}>
+              <SearchIcon color="neutral.300" aria-hidden="true" />
+            </InputLeftElement>
+            <Input
+              placeholder={t('manageStateAdmins.searchByAdminName', 'Search by admin name')}
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setPage(1)
+              }}
+              aria-label={t('manageStateAdmins.searchByAdminName', 'Search by admin name')}
+              bg="white"
+              h={8}
+              borderWidth="1px"
+              borderRadius="4px"
+              borderColor="neutral.300"
+              _placeholder={{ color: 'neutral.300' }}
+            />
+          </InputGroup>
+          <SearchableSelect
+            options={statusOptions}
+            value={statusFilter}
+            height="32px"
+            onChange={(val) => {
+              setStatusFilter(val as AdminStatusFilter)
+              setPage(1)
+            }}
+            placeholder={t('common:status.all', 'All Statuses')}
+            width={{ base: '100%', md: '140px' }}
+            isFilter
           />
-        </InputGroup>
+        </Flex>
       </Flex>
 
       <DataTable<StateAdmin>
         columns={columns}
-        data={filteredAdmins}
+        data={data?.items ?? []}
         getRowKey={(row) => row.id}
         emptyMessage={t('manageStateAdmins.messages.noAdminsFound')}
         isLoading={isLoading}

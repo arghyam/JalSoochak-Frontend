@@ -51,7 +51,7 @@ describe('SuperUsersPage', () => {
     mockNavigate.mockReset()
     mockReinviteMutate.mockReset()
     mockUseSuperUsersQuery.mockReturnValue({
-      data: mockUsers,
+      data: { items: mockUsers, total: mockUsers.length },
       isLoading: false,
       isError: false,
       refetch: jest.fn(),
@@ -108,19 +108,9 @@ describe('SuperUsersPage', () => {
     expect(screen.getByText('+91 98452-85564')).toBeTruthy()
   })
 
-  it('filters users by name search', () => {
+  it('does not render a search input', () => {
     renderWithProviders(<SuperUsersPage />)
-    const searchInput = screen.getAllByRole('textbox')[0]
-    fireEvent.change(searchInput, { target: { value: 'Ravi' } })
-    expect(screen.getByText('Ravi Kumar')).toBeTruthy()
-    expect(screen.queryByText('Sanjeev Kumar')).toBeNull()
-  })
-
-  it('shows empty message when no results match search', () => {
-    renderWithProviders(<SuperUsersPage />)
-    const searchInput = screen.getAllByRole('textbox')[0]
-    fireEvent.change(searchInput, { target: { value: 'zzznomatch' } })
-    expect(screen.getByText('No super users found')).toBeTruthy()
+    expect(screen.queryByRole('textbox')).toBeNull()
   })
 
   it('navigates to add page when Add Super User button is clicked', () => {

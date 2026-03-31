@@ -52,19 +52,24 @@ export function useStateAdminsByTenantQuery(tenantCode?: string) {
 }
 
 /** Fetch all state admins (for ManageStateAdminsPage). */
-export function useStateAdminsQuery(page: number, pageSize: number) {
+export function useStateAdminsQuery(page: number, pageSize: number, name: string, status: string) {
   return useQuery({
-    queryKey: superAdminQueryKeys.stateAdmins(page, pageSize),
+    queryKey: superAdminQueryKeys.stateAdmins(page, pageSize, name, status),
     queryFn: async () => {
-      const apiPage = await superAdminApi.getStateAdminsData({ page: page - 1, size: pageSize })
+      const apiPage = await superAdminApi.getStateAdminsData({
+        page: page - 1,
+        size: pageSize,
+        name: name || undefined,
+        status: status && status !== 'all' ? status : undefined,
+      })
       const items: StateAdmin[] = apiPage.content.map((u: ApiUser) => {
-        let signupStatus: StateAdmin['signupStatus']
+        let status: StateAdmin['status']
         if (u.status === 'ACTIVE') {
-          signupStatus = 'completed'
+          status = 'active'
         } else if (u.status === 'INACTIVE') {
-          signupStatus = 'inactive'
+          status = 'inactive'
         } else {
-          signupStatus = 'pending'
+          status = 'pending'
         }
         return {
           id: String(u.id),
@@ -72,7 +77,7 @@ export function useStateAdminsQuery(page: number, pageSize: number) {
           stateUt: u.tenantCode ?? '',
           mobileNumber: u.phoneNumber,
           emailAddress: u.email,
-          signupStatus,
+          status,
         }
       })
       return {
@@ -186,11 +191,15 @@ export function useReinviteStateAdminMutation() {
 
 // ── Super Users ──────────────────────────────────────────────────────────────
 
-export function useSuperUsersQuery(page: number, pageSize: number) {
+export function useSuperUsersQuery(page: number, pageSize: number, status: string) {
   return useQuery({
-    queryKey: superAdminQueryKeys.superUsers(page, pageSize),
+    queryKey: superAdminQueryKeys.superUsers(page, pageSize, status),
     queryFn: async () => {
-      const apiPage = await superAdminApi.getSuperUsers({ page: page - 1, size: pageSize })
+      const apiPage = await superAdminApi.getSuperUsers({
+        page: page - 1,
+        size: pageSize,
+        status: status && status !== 'all' ? status : undefined,
+      })
       return {
         items: apiPage.content.map(mapApiUserToUserAdminData),
         total: apiPage.totalElements,

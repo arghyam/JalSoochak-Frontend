@@ -364,6 +364,9 @@
     "title": "Scheme Mappings Sync",
     "searchPlaceholder": "Search by scheme name",
     "uploadData": "Upload Data",
+    "filters": {
+      "clearAll": "clear all filters"
+    },
     "table": {
       "schemeName": "Scheme Name",
       "stateSchemeId": "State Scheme ID",

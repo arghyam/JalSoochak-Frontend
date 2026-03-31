@@ -70,9 +70,25 @@ export interface DataTableProps<T> {
    * Useful with tableLayout='fixed' to enforce per-column minimum widths.
    */
   tableMinWidth?: string
+  /**
+   * Server-side sort callback. When provided, client-side sorting is
+   * skipped and this function is called instead with the column key
+   * and the new direction (`'asc'`, `'desc'`, or `null` to clear).
+   */
+  onSort?: (columnKey: string, direction: SortDirection) => void
+  /**
+   * Controlled active sort column. When provided together with
+   * `sortDirection`, the header display (icon + aria-sort) is driven
+   * by these props instead of internal state.
+   */
+  sortColumn?: string
+  /**
+   * Controlled sort direction. See `sortColumn`.
+   */
+  sortDirection?: SortDirection
 }
 
-type SortDirection = 'asc' | 'desc' | null
+export type SortDirection = 'asc' | 'desc' | null
 
 export function DataTable<T extends object>({
   columns,
@@ -83,6 +99,9 @@ export function DataTable<T extends object>({
   pagination,
   tableLayout = 'auto',
   tableMinWidth,
+  onSort,
+  sortColumn: controlledSortColumn,
+  sortDirection: controlledSortDirection,
 }: DataTableProps<T>) {
   const isFixedLayout = tableLayout === 'fixed'
   const { t } = useTranslation('common')
@@ -115,21 +134,40 @@ export function DataTable<T extends object>({
   const handleSort = (columnKey: string, sortable?: boolean) => {
     if (!sortable) return
 
-    if (sortColumn === columnKey) {
-      // Cycle through: asc -> desc -> null
-      if (sortDirection === 'asc') {
-        setSortDirection('desc')
-      } else if (sortDirection === 'desc') {
-        setSortColumn(null)
-        setSortDirection(null)
+    // Use controlled props to determine current state so that the computed
+    // next direction is consistent with what the header visuals display.
+    const activeSortColumn = controlledSortColumn !== undefined ? controlledSortColumn : sortColumn
+    const activeSortDirection =
+      controlledSortDirection !== undefined ? controlledSortDirection : sortDirection
+
+    let nextDirection: SortDirection
+    if (activeSortColumn === columnKey) {
+      if (activeSortDirection === 'asc') {
+        nextDirection = 'desc'
+      } else if (activeSortDirection === 'desc') {
+        nextDirection = null
+      } else {
+        nextDirection = 'asc'
       }
     } else {
+      nextDirection = 'asc'
+    }
+
+    if (nextDirection === null) {
+      setSortColumn(null)
+      setSortDirection(null)
+    } else {
       setSortColumn(columnKey)
-      setSortDirection('asc')
+      setSortDirection(nextDirection)
+    }
+
+    if (onSort) {
+      onSort(columnKey, nextDirection)
     }
   }
 
   const getSortedData = () => {
+    if (onSort) return data
     if (!sortColumn || !sortDirection) return data
 
     return [...data].sort((a, b) => {
@@ -328,9 +366,13 @@ export function DataTable<T extends object>({
             <Thead>
               <Tr>
                 {columns.map((column) => {
-                  const isSorted = sortColumn === column.key
+                  const activeSortColumn =
+                    controlledSortColumn !== undefined ? controlledSortColumn : sortColumn
+                  const activeSortDirection =
+                    controlledSortDirection !== undefined ? controlledSortDirection : sortDirection
+                  const isSorted = activeSortColumn === column.key
                   const ariaSortValue = isSorted
-                    ? sortDirection === 'asc'
+                    ? activeSortDirection === 'asc'
                       ? 'ascending'
                       : 'descending'
                     : undefined
@@ -365,7 +407,7 @@ export function DataTable<T extends object>({
                         {column.sortable && (
                           <Box aria-hidden="true">
                             {isSorted ? (
-                              sortDirection === 'asc' ? (
+                              activeSortDirection === 'asc' ? (
                                 <ChevronUpIcon boxSize={4} />
                               ) : (
                                 <ChevronDownIcon boxSize={4} />

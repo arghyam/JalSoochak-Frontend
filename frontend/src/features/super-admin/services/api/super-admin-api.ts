@@ -155,19 +155,32 @@ export const superAdminApi = {
   getStateAdminsData: async (params: {
     page: number
     size: number
+    name?: string
+    status?: string
   }): Promise<ApiUsersListResponse> => {
+    const { name, status, ...rest } = params
+    const query: Record<string, unknown> = { ...rest }
+    if (name) query.name = name
+    if (status) query.status = status
     const response = await apiClient.get<ApiResponse<ApiUsersListResponse>>(
       '/api/v1/users/state-admins',
-      { params }
+      { params: query }
     )
     return response.data.data
   },
 
   // ── Real HTTP: Users (super users + generic update/status) ─────────────────
-  getSuperUsers: async (params: { page: number; size: number }): Promise<ApiUsersListResponse> => {
+  getSuperUsers: async (params: {
+    page: number
+    size: number
+    status?: string
+  }): Promise<ApiUsersListResponse> => {
+    const { status, ...rest } = params
+    const query: Record<string, unknown> = { ...rest }
+    if (status) query.status = status
     const response = await apiClient.get<ApiResponse<ApiUsersListResponse>>(
       '/api/v1/users/super-users',
-      { params }
+      { params: query }
     )
     return response.data.data
   },

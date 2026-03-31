@@ -281,6 +281,7 @@ export const stateAdminApi = {
         params: {
           role: params.roles.join(','),
           ...(params.status ? { status: params.status } : {}),
+          ...(params.name ? { name: params.name } : {}),
           page: params.page,
           limit: params.limit,
           tenantCode: params.tenantCode,
@@ -326,6 +327,8 @@ export const stateAdminApi = {
         limit: params.limit,
         ...(params.workStatus ? { workStatus: params.workStatus } : {}),
         ...(params.operatingStatus ? { operatingStatus: params.operatingStatus } : {}),
+        ...(params.schemeName ? { schemeName: params.schemeName } : {}),
+        ...(params.sortDir ? { sortDir: params.sortDir } : {}),
       },
     })
     return {
@@ -361,6 +364,8 @@ export const stateAdminApi = {
           tenantCode: params.tenantCode,
           page: params.page,
           limit: params.limit,
+          ...(params.schemeName ? { schemeName: params.schemeName } : {}),
+          ...(params.sortDir ? { sortDir: params.sortDir } : {}),
         },
       }
     )
@@ -385,11 +390,15 @@ export const stateAdminApi = {
   // --- Real HTTP: State/UT Admins ---
   getStateUTAdmins: async (
     tenantCode: string,
-    params: { page: number; size: number }
+    params: { page: number; size: number; name?: string; status?: string }
   ): Promise<ApiUsersListResponse> => {
+    const { name, status, ...rest } = params
+    const query: Record<string, unknown> = { tenantCode, ...rest }
+    if (name) query.name = name
+    if (status) query.status = status
     const response = await apiClient.get<ApiEnvelope<ApiUsersListResponse>>(
       '/api/v1/users/state-admins',
-      { params: { tenantCode, ...params } }
+      { params: query }
     )
     return response.data.data
   },
