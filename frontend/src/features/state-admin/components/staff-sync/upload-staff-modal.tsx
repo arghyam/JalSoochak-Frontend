@@ -2,6 +2,7 @@ import { useState } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { ToastContainer, UploadFileModal } from '@/shared/components/common'
+import pumpOperatorsTemplateUrl from '@/assets/templates/staff-upload-template.xlsx?url'
 import type { ValidationFieldError } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
 import { useUploadPumpOperatorsMutation } from '../../services/query/use-state-admin-queries'
@@ -64,6 +65,7 @@ export function UploadStaffModal({ isOpen, onClose }: UploadStaffModalProps) {
         closeAriaLabel={t('staffSync.upload.close', 'Close')}
         cancelLabel={t('staffSync.upload.cancel', 'Cancel')}
         validationErrors={validationErrors}
+        templateDownloadHref={pumpOperatorsTemplateUrl}
       />
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </>

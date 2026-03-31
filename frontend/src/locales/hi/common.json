@@ -117,7 +117,9 @@
     "validationSummary_other": "{{count}} सत्यापन त्रुटियाँ मिलीं — सुधारें और पुनः अपलोड करें",
     "columnRow": "पंक्ति",
     "columnField": "फ़ील्ड",
-    "columnError": "त्रुटि"
+    "columnError": "त्रुटि",
+    "downloadTemplate": "टेम्पलेट",
+    "downloadTemplateAria": "अपलोड टेम्पलेट डाउनलोड करें"
   },
 
   "profile": {

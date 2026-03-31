@@ -196,7 +196,7 @@ export function LoginPage() {
                     fontSize="16px"
                     fontWeight="600"
                     isLoading={loading}
-                    loadingText="Signing in..."
+                    loadingText="Logging in..."
                     _loading={{ bg: 'primary.500', color: 'white' }}
                   >
                     Log in

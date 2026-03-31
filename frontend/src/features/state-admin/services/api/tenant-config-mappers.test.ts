@@ -9,7 +9,7 @@ import {
   mapWaterNormsToApiConfig,
   type TenantConfigMap,
 } from './tenant-config-mappers'
-import { DEFAULT_METER_CHANGE_REASONS, type SupportedChannel } from '../../types/configuration'
+import { DEFAULT_METER_CHANGE_REASONS } from '../../types/configuration'
 
 // ---------------------------------------------------------------------------
 // Configuration mappers
@@ -51,7 +51,7 @@ describe('mapApiConfigToConfigurationData', () => {
 
     const result = mapApiConfigToConfigurationData(configs)
 
-    expect(result.supportedChannels).toEqual(['Bulk Flow Meter', 'Electric Meter'])
+    expect(result.supportedChannels).toEqual(['BFM', 'ELM'])
     expect(result.meterChangeReasons).toEqual([
       { id: 'r1', name: 'Meter Replaced' },
       { id: 'r2', name: 'Meter Damaged' },
@@ -71,6 +71,8 @@ describe('mapApiConfigToConfigurationData', () => {
     expect(result.dateFormatTable).toEqual({ dateFormat: null, timeFormat: null, timezone: null })
     expect(result.averageMembersPerHousehold).toBe(4.5)
     expect(result.isConfigured).toBe(true)
+    expect(result.degraded).toBeUndefined()
+    expect(result.removedChannels).toBeUndefined()
   })
 
   it('falls back to defaults when keys are absent', () => {
@@ -82,20 +84,42 @@ describe('mapApiConfigToConfigurationData', () => {
     expect(result.dataConsolidationTime).toBe('')
     expect(result.pumpOperatorReminderNudgeTime).toBe('')
     expect(result.averageMembersPerHousehold).toBe(0)
+    expect(result.isConfigured).toBe(false)
   })
 
-  it('filters out unknown channel codes', () => {
+  it('stores unknown channel codes as-is without filtering', () => {
     const result = mapApiConfigToConfigurationData({
       TENANT_SUPPORTED_CHANNELS: { channels: ['BFM', 'UNKNOWN'] },
     })
-    expect(result.supportedChannels).toEqual(['Bulk Flow Meter'])
+    expect(result.supportedChannels).toEqual(['BFM', 'UNKNOWN'])
+    expect(result.isConfigured).toBe(true)
+  })
+
+  it('parses degraded and removedChannels from TENANT_SUPPORTED_CHANNELS', () => {
+    const result = mapApiConfigToConfigurationData({
+      TENANT_SUPPORTED_CHANNELS: {
+        channels: ['BFM', 'ELM'],
+        degraded: true,
+        removedChannels: ['MAN', 'IOT'],
+      },
+    })
+    expect(result.supportedChannels).toEqual(['BFM', 'ELM'])
+    expect(result.degraded).toBe(true)
+    expect(result.removedChannels).toEqual(['MAN', 'IOT'])
+  })
+
+  it('sets isConfigured false when channels array is empty', () => {
+    const result = mapApiConfigToConfigurationData({
+      TENANT_SUPPORTED_CHANNELS: { channels: [] },
+    })
+    expect(result.isConfigured).toBe(false)
   })
 })
 
 describe('mapConfigurationDataToApiConfig', () => {
   it('converts ConfigurationData to API format', () => {
     const payload = {
-      supportedChannels: ['Bulk Flow Meter', 'IOT'] as SupportedChannel[],
+      supportedChannels: ['BFM', 'IOT'],
       logoUrl: 'https://example.com/logo.png',
       meterChangeReasons: [{ id: 'r1', name: 'Meter Replaced' }],
       supplyOutageReasons: [

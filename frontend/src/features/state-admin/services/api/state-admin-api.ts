@@ -208,6 +208,10 @@ const httpProvider = {
       ...mapApiConfigToConfigurationData(response.data.data.configs),
     } as ConfigurationData
   },
+  getSystemChannels: async (): Promise<string[]> => {
+    const response = await apiClient.get<ApiEnvelope<string[]>>('/api/v1/system/channels')
+    return response.data.data
+  },
   getLogo: async () => {
     const tenantId = getTenantId()
     try {
@@ -459,6 +463,7 @@ export const stateAdminApi = {
   getMessageTemplates: () => httpProvider.getMessageTemplates(),
   getConfiguration: () => httpProvider.getConfiguration(),
   saveConfiguration: (payload: SaveConfigurationPayload) => httpProvider.saveConfiguration(payload),
+  getSystemChannels: () => httpProvider.getSystemChannels(),
   getLogo: () => httpProvider.getLogo(),
   updateLogo: (file: File) => httpProvider.updateLogo(file),
   getEscalationRules: () => httpProvider.getEscalationRules(),

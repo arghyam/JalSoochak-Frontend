@@ -368,6 +368,13 @@ export function useConfigStatusQuery() {
   })
 }
 
+export function useSystemChannelsQuery() {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.systemChannels(),
+    queryFn: stateAdminApi.getSystemChannels,
+  })
+}
+
 export function useLogoQuery() {
   return useQuery({
     queryKey: stateAdminQueryKeys.logo(),

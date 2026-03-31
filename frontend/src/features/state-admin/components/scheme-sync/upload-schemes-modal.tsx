@@ -2,6 +2,7 @@ import { useState } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { ToastContainer, UploadFileModal } from '@/shared/components/common'
+import schemeTemplateUrl from '@/assets/templates/scheme-upload-template.xlsx?url'
 import type { ValidationFieldError } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
 import { useUploadSchemesMutation } from '../../services/query/use-state-admin-queries'
@@ -64,6 +65,7 @@ export function UploadSchemesModal({ isOpen, onClose }: UploadSchemesModalProps)
         closeAriaLabel={t('schemeSync.upload.close')}
         cancelLabel={t('schemeSync.upload.cancel')}
         validationErrors={validationErrors}
+        templateDownloadHref={schemeTemplateUrl}
       />
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </>
