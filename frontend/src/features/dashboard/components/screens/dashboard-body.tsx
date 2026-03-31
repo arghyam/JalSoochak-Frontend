@@ -10,7 +10,6 @@ import type {
 } from '../../types'
 import {
   SupplyOutageReasonsChart,
-  MetricPerformanceChart,
   MonthlyTrendChart,
   ReadingSubmissionRateChart,
   SupplyOutageDistributionChart,
@@ -18,8 +17,9 @@ import {
 import { BlockDashboardScreen } from './block-dashboard'
 import { DistrictDashboardScreen } from './district-dashboard'
 import { GramPanchayatDashboardScreen } from './gram-panchayat-dashboard'
+import { PerformanceChartCard } from './performance-chart-card'
 import { StateUtDashboardScreen } from './state-ut-dashboard'
-import { ChartEmptyState, LoadingSpinner, ViewBySelect } from '@/shared/components/common'
+import { ViewBySelect } from '@/shared/components/common'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { VillageDashboardScreen } from './village-dashboard'
 
@@ -329,142 +329,59 @@ function PerformanceChartsSection({
 
   return (
     <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-      <Box
-        bg="white"
-        borderWidth="0.5px"
-        borderRadius="12px"
-        borderColor="#E4E4E7"
-        px="16px"
-        pt="24px"
-        pb="24px"
-        h="536px"
-        w="full"
-        minW={0}
-        display="flex"
-        flexDirection="column"
-      >
-        <Flex align="center" justify="space-between" mb="16px">
-          <Text textStyle="bodyText3" fontWeight="400">
-            {t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
-          </Text>
-          <ViewBySelect
-            ariaLabel={t('performanceCharts.quantity.ariaViewBy', {
-              defaultValue: 'Quantity performance view by',
-            })}
-            value={quantityViewBy}
-            onChange={setQuantityViewBy}
-          />
-        </Flex>
-        <Box flex="1" minH={0}>
-          {quantityViewBy === 'geography' ? (
-            <MetricPerformanceChart
-              data={quantityPerformanceData}
-              metric="quantity"
-              height="100%"
-              entityLabel={geographyEntityLabel}
-              yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
-                defaultValue: 'Quantity',
-              })}
-              seriesName={t('performanceCharts.quantity.seriesName', {
-                defaultValue: 'Quantity',
-              })}
-              showAreaLine
-              areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
-                defaultValue: 'Demand',
-              })}
-            />
-          ) : (
-            <>
-              {isQuantityTimeTrendLoading ? (
-                <Flex align="center" justify="center" h="100%">
-                  <LoadingSpinner />
-                </Flex>
-              ) : quantityTimeTrendData.length > 0 ? (
-                <MonthlyTrendChart
-                  data={quantityTimeTrendData}
-                  height="100%"
-                  xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-                  yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
-                    defaultValue: 'Quantity',
-                  })}
-                  seriesName={t('performanceCharts.quantity.seriesName', {
-                    defaultValue: 'Quantity',
-                  })}
-                />
-              ) : isQuantityTimeTrendAwaitingParams ? null : (
-                <ChartEmptyState minHeight="100%" />
-              )}
-            </>
-          )}
-        </Box>
-      </Box>
-      <Box
-        bg="white"
-        borderWidth="0.5px"
-        borderRadius="12px"
-        borderColor="#E4E4E7"
-        px="16px"
-        pt="24px"
-        pb="24px"
-        h="536px"
-        minW={0}
-        display="flex"
-        flexDirection="column"
-      >
-        <Flex align="center" justify="space-between" mb="16px">
-          <Text textStyle="bodyText3" fontWeight="400">
-            {t('performanceCharts.regularity.title', {
-              defaultValue: 'Regularity Performance',
-            })}
-          </Text>
-          <ViewBySelect
-            ariaLabel={t('performanceCharts.regularity.ariaViewBy', {
-              defaultValue: 'Regularity performance view by',
-            })}
-            value={regularityViewBy}
-            onChange={setRegularityViewBy}
-          />
-        </Flex>
-        <Box flex="1" minH={0}>
-          {regularityViewBy === 'geography' ? (
-            <MetricPerformanceChart
-              data={regularityPerformanceData}
-              metric="regularity"
-              height="100%"
-              entityLabel={geographyEntityLabel}
-              yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
-                defaultValue: 'Regularity',
-              })}
-              seriesName={t('performanceCharts.regularity.seriesName', {
-                defaultValue: 'Regularity',
-              })}
-            />
-          ) : (
-            <>
-              {isRegularityTimeTrendLoading ? (
-                <Flex align="center" justify="center" h="100%">
-                  <LoadingSpinner />
-                </Flex>
-              ) : regularityTimeTrendData.length > 0 ? (
-                <MonthlyTrendChart
-                  data={regularityTimeTrendData}
-                  height="100%"
-                  isPercent
-                  xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-                  yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
-                    defaultValue: 'Regularity (%)',
-                  })}
-                  seriesName={t('performanceCharts.regularity.seriesName', {
-                    defaultValue: 'Regularity',
-                  })}
-                />
-              ) : (
-                <ChartEmptyState minHeight="100%" />
-              )}
-            </>
-          )}
-        </Box>
-      </Box>
+      <PerformanceChartCard
+        title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
+        viewByAriaLabel={t('performanceCharts.quantity.ariaViewBy', {
+          defaultValue: 'Quantity performance view by',
+        })}
+        viewBy={quantityViewBy}
+        onViewByChange={setQuantityViewBy}
+        data={quantityPerformanceData}
+        metric="quantity"
+        timeTrendData={quantityTimeTrendData}
+        isTimeTrendLoading={isQuantityTimeTrendLoading}
+        isTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
+        entityLabel={geographyEntityLabel}
+        yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
+          defaultValue: 'Quantity',
+        })}
+        seriesName={t('performanceCharts.quantity.seriesName', {
+          defaultValue: 'Quantity',
+        })}
+        cardHeight="536px"
+        showAreaLine
+        areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
+          defaultValue: 'Demand',
+        })}
+        timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+      />
+      <PerformanceChartCard
+        title={t('performanceCharts.regularity.title', {
+          defaultValue: 'Regularity Performance',
+        })}
+        viewByAriaLabel={t('performanceCharts.regularity.ariaViewBy', {
+          defaultValue: 'Regularity performance view by',
+        })}
+        viewBy={regularityViewBy}
+        onViewByChange={setRegularityViewBy}
+        data={regularityPerformanceData}
+        metric="regularity"
+        timeTrendData={regularityTimeTrendData}
+        isTimeTrendLoading={isRegularityTimeTrendLoading}
+        entityLabel={geographyEntityLabel}
+        yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
+          defaultValue: 'Regularity',
+        })}
+        seriesName={t('performanceCharts.regularity.seriesName', {
+          defaultValue: 'Regularity',
+        })}
+        cardHeight="536px"
+        timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+        timeYAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
+          defaultValue: 'Regularity (%)',
+        })}
+        isTimeTrendPercent
+      />
     </Grid>
   )
 }
