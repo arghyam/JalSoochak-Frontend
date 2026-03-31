@@ -141,7 +141,7 @@ export function ReadingComplianceTable({
                 ) : null}
                 <Th>
                   {t('outageAndSubmissionCharts.tables.readingCompliance.columns.lastSubmission', {
-                    defaultValue: 'Last Submission',
+                    defaultValue: 'Submission Date & Time',
                   })}
                 </Th>
                 <Th>

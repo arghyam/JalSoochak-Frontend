@@ -189,7 +189,7 @@
         "columns": {
           "name": "Name",
           "village": "Village",
-          "lastSubmission": "Last Submission",
+          "lastSubmission": "Submission Date &Time",
           "readingValue": "Reading Value"
         }
       }

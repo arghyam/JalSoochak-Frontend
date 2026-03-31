@@ -189,7 +189,7 @@
         "columns": {
           "name": "नाम",
           "village": "गांव",
-          "lastSubmission": "अंतिम सबमिशन",
+          "lastSubmission": "सबमिशन दिनांक और समय",
           "readingValue": "रीडिंग मान"
         }
       }
