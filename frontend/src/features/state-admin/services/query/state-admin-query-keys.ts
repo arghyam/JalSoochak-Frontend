@@ -31,16 +31,16 @@ export const stateAdminQueryKeys = {
     tenantCode: string
     page: number
     limit: number
-    workStatus: string
-    operatingStatus: string
-    schemeName: string
-    sortDir: string
+    workStatus?: string
+    operatingStatus?: string
+    schemeName?: string
+    sortDir?: string
   }) => [...stateAdminQueryKeys.all, 'scheme-list', params] as const,
   schemeMappingsList: (params: {
     tenantCode: string
     page: number
     limit: number
-    schemeName: string
-    sortDir: string
+    schemeName?: string
+    sortDir?: string
   }) => [...stateAdminQueryKeys.all, 'scheme-mappings-list', params] as const,
 }
