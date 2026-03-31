@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
+import { screen } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { WaterSupplyOutageData } from '../../types'
 import { SupplyOutageReasonsChart } from './supply-outage-reasons-chart'
@@ -63,10 +64,10 @@ describe('SupplyOutageReasonsChart', () => {
 
     const formatter = mainOption?.tooltip?.formatter
     expect(typeof formatter).toBe('function')
-    const tooltipText = formatter?.({ name: 'Motor Burnout', value: 15 })
+    const tooltipText = formatter?.({ name: 'Motor burnout', value: 15 })
     const pieData = pieSeries?.data ?? []
 
-    expect(tooltipText).toContain('Motor Burnout')
+    expect(tooltipText).toContain('Motor burnout')
     expect(pieData).toHaveLength(6)
     expect(tooltipText).toContain('15.0')
     expect(tooltipText).toContain('%')
@@ -74,5 +75,32 @@ describe('SupplyOutageReasonsChart', () => {
     pieData.forEach((slice) => {
       expect(slice.emphasis?.itemStyle?.color).toBe(slice.itemStyle?.color)
     })
+  })
+
+  it('shows a no data available legend item when the pie data is empty', () => {
+    renderWithProviders(<SupplyOutageReasonsChart data={[]} />)
+
+    expect(screen.getByText('No data available')).toBeTruthy()
+  })
+
+  it('shows no data available when outage reasons are missing instead of using legacy fields', () => {
+    renderWithProviders(
+      <SupplyOutageReasonsChart
+        data={[
+          {
+            label: 'District B',
+            electricityFailure: 10,
+            pipelineLeak: 20,
+            pumpFailure: 30,
+            valveIssue: 40,
+            sourceDrying: 50,
+          },
+        ]}
+      />
+    )
+
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(screen.queryByText('Electrical failure')).toBeNull()
+    expect(screen.queryByText('Pipeline leak')).toBeNull()
   })
 })

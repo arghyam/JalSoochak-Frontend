@@ -4,8 +4,8 @@ import { renderWithProviders } from '@/test/render-with-providers'
 import type { DashboardData, WaterSupplyOutageData } from '../../types'
 import { VillageDashboardScreen } from './village-dashboard'
 
-const mockMetricPerformanceChart = jest.fn((_props: unknown) => (
-  <div data-testid="metric-performance-chart" />
+const mockMonthlyTrendChart = jest.fn((_props: unknown) => (
+  <div data-testid="monthly-trend-chart" />
 ))
 const mockSupplyOutageReasonsChart = jest.fn((_props: unknown) => (
   <div data-testid="supply-outage-reasons-chart" />
@@ -13,16 +13,22 @@ const mockSupplyOutageReasonsChart = jest.fn((_props: unknown) => (
 const mockReadingSubmissionStatusChart = jest.fn((_props: unknown) => (
   <div data-testid="reading-submission-status-chart" />
 ))
-const mockReadingComplianceTable = jest.fn((props: { onReachEnd?: () => void }) => (
-  <div>
-    <div data-testid="reading-compliance-table" />
-    {props.onReachEnd ? (
-      <button onClick={props.onReachEnd} type="button">
-        Load more compliance
-      </button>
-    ) : null}
-  </div>
-))
+const mockReadingComplianceTable = jest.fn(
+  (props: { onReachEnd?: () => void; data?: Array<unknown> }) => (
+    <div>
+      {props.data?.length ? (
+        <div data-testid="reading-compliance-table" />
+      ) : (
+        <div>No data available</div>
+      )}
+      {props.onReachEnd ? (
+        <button onClick={props.onReachEnd} type="button">
+          Load more compliance
+        </button>
+      ) : null}
+    </div>
+  )
+)
 const mockUsePumpOperatorsBySchemeQuery = jest.fn<(options: unknown) => { data: unknown }>(
   (_options: unknown) => ({ data: undefined })
 )
@@ -34,14 +40,14 @@ const mockUseReadingComplianceQuery = jest.fn<
 >((_options: unknown) => ({ data: undefined, isFetching: false }))
 
 jest.mock('../charts', () => ({
-  MetricPerformanceChart: (props: unknown) => mockMetricPerformanceChart(props),
+  MonthlyTrendChart: (props: unknown) => mockMonthlyTrendChart(props),
   SupplyOutageReasonsChart: (props: unknown) => mockSupplyOutageReasonsChart(props),
   ReadingSubmissionStatusChart: (props: unknown) => mockReadingSubmissionStatusChart(props),
 }))
 
 jest.mock('../tables', () => ({
   ReadingComplianceTable: (props: unknown) =>
-    mockReadingComplianceTable(props as { onReachEnd?: () => void }),
+    mockReadingComplianceTable(props as { onReachEnd?: () => void; data?: Array<unknown> }),
 }))
 
 jest.mock('../../services/query/use-pump-operators-by-scheme-query', () => ({
@@ -133,6 +139,16 @@ const secondVillagePumpOperatorDetails = {
   inactiveDays: 'N/A',
 }
 
+const quantityTimeTrendData = [
+  { period: '12 Mar', value: 87 },
+  { period: '13 Mar', value: 91 },
+]
+
+const regularityTimeTrendData = [
+  { period: '12 Mar', value: 65 },
+  { period: '13 Mar', value: 72 },
+]
+
 function renderVillageDashboard(
   villagePhotoEvidenceRows: DashboardData['readingCompliance'] = [
     {
@@ -157,7 +173,14 @@ function renderVillageDashboard(
       readingValue: '034982',
     },
   ],
-  operatorPages = villagePumpOperators
+  operatorPages = villagePumpOperators,
+  {
+    isQuantityTimeTrendLoading = false,
+    isRegularityTimeTrendLoading = false,
+  }: {
+    isQuantityTimeTrendLoading?: boolean
+    isRegularityTimeTrendLoading?: boolean
+  } = {}
 ) {
   return renderWithProviders(
     <VillageDashboardScreen
@@ -168,13 +191,17 @@ function renderVillageDashboard(
       villagePumpOperators={operatorPages}
       tenantCode="as"
       schemeId={3}
+      quantityTimeTrendData={quantityTimeTrendData}
+      regularityTimeTrendData={regularityTimeTrendData}
+      isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
+      isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
     />
   )
 }
 
 describe('VillageDashboardScreen', () => {
   beforeEach(() => {
-    mockMetricPerformanceChart.mockClear()
+    mockMonthlyTrendChart.mockClear()
     mockSupplyOutageReasonsChart.mockClear()
     mockReadingSubmissionStatusChart.mockClear()
     mockReadingComplianceTable.mockClear()
@@ -186,21 +213,97 @@ describe('VillageDashboardScreen', () => {
     mockUseReadingComplianceQuery.mockReturnValue({ data: undefined, isFetching: false })
   })
 
-  it('renders quantity and regularity using metric performance charts', () => {
+  it('renders quantity and regularity using monthly trend charts', () => {
     renderVillageDashboard()
 
-    const metricCalls = mockMetricPerformanceChart.mock.calls as Array<[Record<string, unknown>]>
-    expect(metricCalls.length).toBeGreaterThanOrEqual(2)
-    const latestMetricCalls = metricCalls.slice(-2)
-    expect(latestMetricCalls[0]?.[0].metric).toBe('quantity')
-    expect(latestMetricCalls[0]?.[0].showAreaLine).toBe(true)
-    expect(latestMetricCalls[0]?.[0].seriesName).toBe('Quantity')
-    expect(latestMetricCalls[1]?.[0].metric).toBe('regularity')
-    expect(latestMetricCalls[1]?.[0].seriesName).toBe('Regularity')
+    const trendCalls = mockMonthlyTrendChart.mock.calls as Array<[Record<string, unknown>]>
+    expect(trendCalls.length).toBeGreaterThanOrEqual(2)
+    const latestTrendCalls = trendCalls.slice(-2)
+    expect(latestTrendCalls[0]?.[0].seriesName).toBe('Quantity')
+    expect(latestTrendCalls[0]?.[0].isPercent).toBeFalsy()
+    expect(latestTrendCalls[1]?.[0].seriesName).toBe('Regularity')
+    expect(latestTrendCalls[1]?.[0].isPercent).toBe(true)
 
     expect(screen.getByTestId('supply-outage-reasons-chart')).toBeTruthy()
     expect(screen.getByTestId('reading-submission-status-chart')).toBeTruthy()
     expect(screen.getByTestId('reading-compliance-table')).toBeTruthy()
+  })
+
+  it('prefers analytics trend props over legacy demandSupply data for village charts', () => {
+    renderWithProviders(
+      <VillageDashboardScreen
+        data={data}
+        villagePhotoEvidenceRows={data.readingCompliance}
+        waterSupplyOutagesData={waterSupplyOutagesData}
+        villagePumpOperatorDetails={villagePumpOperatorDetails}
+        villagePumpOperators={villagePumpOperators}
+        tenantCode="as"
+        schemeId={3}
+        quantityTimeTrendData={quantityTimeTrendData}
+        regularityTimeTrendData={regularityTimeTrendData}
+      />
+    )
+
+    const trendCalls = mockMonthlyTrendChart.mock.calls as Array<[Record<string, unknown>]>
+    expect(trendCalls.length).toBeGreaterThanOrEqual(2)
+    const latestTrendCalls = trendCalls.slice(-2)
+    expect(latestTrendCalls[0]?.[0].data).toEqual([
+      expect.objectContaining({ period: '12 Mar', value: 87 }),
+      expect.objectContaining({ period: '13 Mar', value: 91 }),
+    ])
+    expect(latestTrendCalls[1]?.[0].data).toEqual([
+      expect.objectContaining({ period: '12 Mar', value: 65 }),
+      expect.objectContaining({ period: '13 Mar', value: 72 }),
+    ])
+  })
+
+  it('shows empty chart states when analytics trend props are absent', () => {
+    renderWithProviders(
+      <VillageDashboardScreen
+        data={data}
+        villagePhotoEvidenceRows={data.readingCompliance}
+        waterSupplyOutagesData={waterSupplyOutagesData}
+        villagePumpOperatorDetails={villagePumpOperatorDetails}
+        villagePumpOperators={villagePumpOperators}
+        tenantCode="as"
+        schemeId={3}
+      />
+    )
+
+    expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
+    expect(screen.getAllByText('No data available')).toHaveLength(2)
+  })
+
+  it('shows loading spinners instead of monthly trend charts while both trends are loading', () => {
+    renderVillageDashboard(undefined, undefined, {
+      isQuantityTimeTrendLoading: true,
+      isRegularityTimeTrendLoading: true,
+    })
+
+    expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
+    expect(screen.getAllByText('Loading...')).toHaveLength(2)
+  })
+
+  it('shows quantity loading state while regularity still renders chart data', () => {
+    renderVillageDashboard(undefined, undefined, {
+      isQuantityTimeTrendLoading: true,
+    })
+
+    const trendCalls = mockMonthlyTrendChart.mock.calls as Array<[Record<string, unknown>]>
+    expect(trendCalls).toHaveLength(1)
+    expect(trendCalls[0]?.[0].seriesName).toBe('Regularity')
+    expect(screen.getByText('Loading...')).toBeTruthy()
+  })
+
+  it('shows regularity loading state while quantity still renders chart data', () => {
+    renderVillageDashboard(undefined, undefined, {
+      isRegularityTimeTrendLoading: true,
+    })
+
+    const trendCalls = mockMonthlyTrendChart.mock.calls as Array<[Record<string, unknown>]>
+    expect(trendCalls).toHaveLength(1)
+    expect(trendCalls[0]?.[0].seriesName).toBe('Quantity')
+    expect(screen.getByText('Loading...')).toBeTruthy()
   })
 
   it('paginates pump operator details with previous/next and page buttons', () => {
@@ -265,6 +368,46 @@ describe('VillageDashboardScreen', () => {
       [villagePumpOperatorDetails]
     )
 
+    expect(screen.queryByRole('button', { name: 'Previous' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Next' })).toBeNull()
+  })
+
+  it('shows no data available when pump operator details and compliance rows are all N/A', () => {
+    renderWithProviders(
+      <VillageDashboardScreen
+        data={data}
+        villagePhotoEvidenceRows={data.readingCompliance}
+        waterSupplyOutagesData={waterSupplyOutagesData}
+        villagePumpOperatorDetails={{
+          name: 'N/A',
+          scheme: 'N/A',
+          stationLocation: 'N/A',
+          lastSubmission: 'N/A',
+          reportingRate: 'N/A',
+          missingSubmissionCount: 'N/A',
+          inactiveDays: 'N/A',
+        }}
+        villagePumpOperators={[
+          {
+            name: 'N/A',
+            scheme: 'N/A',
+            stationLocation: 'N/A',
+            lastSubmission: 'N/A',
+            reportingRate: 'N/A',
+            missingSubmissionCount: 'N/A',
+            inactiveDays: 'N/A',
+          },
+        ]}
+        tenantCode="as"
+        schemeId={3}
+        quantityTimeTrendData={quantityTimeTrendData}
+        regularityTimeTrendData={regularityTimeTrendData}
+      />
+    )
+
+    expect(screen.getAllByText('No data available').length).toBeGreaterThanOrEqual(2)
+    expect(screen.queryByText('Pump Operator Details')).toBeTruthy()
+    expect(screen.queryByTestId('reading-compliance-table')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Previous' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Next' })).toBeNull()
   })

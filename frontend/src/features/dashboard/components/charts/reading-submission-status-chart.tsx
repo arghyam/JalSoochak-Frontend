@@ -23,6 +23,7 @@ export function ReadingSubmissionStatusChart({
   pieSize = 300,
 }: ReadingSubmissionStatusChartProps) {
   const { t } = useTranslation('dashboard')
+  const { t: tCommon } = useTranslation('common')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
   const localizedLegendLabel = useCallback(
@@ -43,9 +44,14 @@ export function ReadingSubmissionStatusChart({
     },
     [t]
   )
+  const hasRenderableData = useMemo(
+    () => data.some((entry) => Number.isFinite(entry.value) && entry.value > 0),
+    [data]
+  )
+  const chartData = hasRenderableData ? data : []
 
   const option = useMemo<echarts.EChartsOption>(() => {
-    const totalSubmissions = data.reduce((sum, entry) => sum + entry.value, 0)
+    const totalSubmissions = chartData.reduce((sum, entry) => sum + entry.value, 0)
 
     return {
       tooltip: {
@@ -82,7 +88,7 @@ export function ReadingSubmissionStatusChart({
           labelLine: {
             show: false,
           },
-          data: data.map((entry, index) => ({
+          data: chartData.map((entry, index) => ({
             name: localizedLegendLabel(entry.label),
             value: entry.value,
             itemStyle: {
@@ -97,9 +103,23 @@ export function ReadingSubmissionStatusChart({
         },
       ],
     }
-  }, [data, localizedLegendLabel])
+  }, [chartData, localizedLegendLabel])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
+  const legendItems =
+    chartData.length > 0
+      ? chartData.map((entry, index) => ({
+          key: entry.label,
+          label: localizedLegendLabel(entry.label),
+          color: defaultColors[index % defaultColors.length],
+        }))
+      : [
+          {
+            key: 'no-data',
+            label: tCommon('noDataAvailable', { defaultValue: 'No data available' }),
+            color: '#D4D4D8',
+          },
+        ]
 
   return (
     <div
@@ -136,15 +156,15 @@ export function ReadingSubmissionStatusChart({
           rowGap: '6px',
         }}
       >
-        {data.map((entry, index) => (
-          <div key={entry.label} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        {legendItems.map((item) => (
+          <div key={item.key} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <span
               aria-hidden="true"
               style={{
                 width: '8px',
                 height: '8px',
                 borderRadius: '2px',
-                backgroundColor: defaultColors[index % defaultColors.length],
+                backgroundColor: item.color,
                 display: 'inline-block',
               }}
             />
@@ -156,7 +176,7 @@ export function ReadingSubmissionStatusChart({
                 color: bodyText7.color,
               }}
             >
-              {localizedLegendLabel(entry.label)}
+              {item.label}
             </span>
           </div>
         ))}

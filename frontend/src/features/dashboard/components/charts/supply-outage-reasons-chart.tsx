@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useTheme } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
@@ -12,16 +13,28 @@ interface SupplyOutageReasonsChartProps {
   pieSize?: number
 }
 
-const outageColors = ['#D6E9F6', '#ADD3ED', '#84BDE3', '#3291D1', '#1E577D', '#6BAED6', '#9ECAE1']
+const outageColors = [
+  '#EBF4FA',
+  '#D6E9F6',
+  '#C2DEF1',
+  '#ADD3ED',
+  '#84BDE3',
+  '#5BA7DA',
+  '#3291D1',
+  '#2874A7',
+  '#1E577D',
+  '#143A54',
+]
 const chartLegendGapPx = 20
 
-const toTitleCase = (value: string) =>
+const toDisplayLabel = (value: string) =>
   value
     .replace(/[_-]+/g, ' ')
     .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
     .replace(/\s+/g, ' ')
     .trim()
-    .replace(/\b\w/g, (character) => character.toUpperCase())
+    .toLowerCase()
+    .replace(/^\w/, (character) => character.toUpperCase())
 
 export function SupplyOutageReasonsChart({
   data,
@@ -29,42 +42,30 @@ export function SupplyOutageReasonsChart({
   height = '300px',
   pieSize = 300,
 }: SupplyOutageReasonsChartProps) {
+  const { t: tCommon } = useTranslation('common')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
   const chartItems = useMemo(() => {
     const totals = new Map<string, number>()
-    const reasonsPresent = data.some(
-      (entry) => entry.reasons && Object.keys(entry.reasons).length > 0
-    )
+    const addValidatedTotal = (reasonKey: string, value: unknown) => {
+      const numericValue = Number(value)
+      if (!Number.isFinite(numericValue)) {
+        return
+      }
 
-    if (reasonsPresent) {
-      data.forEach((entry) => {
-        Object.entries(entry.reasons ?? {}).forEach(([reasonKey, value]) => {
-          const numericValue = Number(value)
-          if (!Number.isFinite(numericValue)) {
-            return
-          }
-
-          totals.set(reasonKey, (totals.get(reasonKey) ?? 0) + numericValue)
-        })
-      })
-    } else {
-      data.forEach((entry) => {
-        totals.set(
-          'electricityFailure',
-          (totals.get('electricityFailure') ?? 0) + entry.electricityFailure
-        )
-        totals.set('pipelineLeak', (totals.get('pipelineLeak') ?? 0) + entry.pipelineLeak)
-        totals.set('pumpFailure', (totals.get('pumpFailure') ?? 0) + entry.pumpFailure)
-        totals.set('valveIssue', (totals.get('valveIssue') ?? 0) + entry.valveIssue)
-        totals.set('sourceDrying', (totals.get('sourceDrying') ?? 0) + entry.sourceDrying)
-      })
+      totals.set(reasonKey, (totals.get(reasonKey) ?? 0) + numericValue)
     }
+
+    data.forEach((entry) => {
+      Object.entries(entry.reasons ?? {}).forEach(([reasonKey, value]) => {
+        addValidatedTotal(reasonKey, value)
+      })
+    })
 
     return Array.from(totals.entries())
       .filter(([, value]) => Number.isFinite(value) && value >= 0)
       .map(([reasonKey, value], index) => {
-        const label = toTitleCase(reasonKey)
+        const label = toDisplayLabel(reasonKey)
         const color = outageColors[index % outageColors.length]
 
         return {
@@ -147,7 +148,16 @@ export function SupplyOutageReasonsChart({
   }, [chartItems])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
-  const legendItems = chartItems.map(({ key, label, color }) => ({ key, label, color }))
+  const legendItems =
+    chartItems.length > 0
+      ? chartItems.map(({ key, label, color }) => ({ key, label, color }))
+      : [
+          {
+            key: 'no-data',
+            label: tCommon('noDataAvailable', { defaultValue: 'No data available' }),
+            color: '#D4D4D8',
+          },
+        ]
 
   return (
     <div

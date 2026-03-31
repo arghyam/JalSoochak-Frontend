@@ -9,15 +9,15 @@ import type {
 } from '../../types'
 import {
   SupplyOutageReasonsChart,
-  MetricPerformanceChart,
   MonthlyTrendChart,
   ActiveSchemesChart,
   ReadingSubmissionRateChart,
   SupplyOutageDistributionChart,
 } from '../charts'
 import { ReadingComplianceTable, SchemePerformanceTable } from '../tables'
+import { PerformanceChartCard } from './performance-chart-card'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
-import { ChartEmptyState, LoadingSpinner, ViewBySelect } from '@/shared/components/common'
+import { ChartEmptyState, ViewBySelect } from '@/shared/components/common'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 
 type GramPanchayatDashboardScreenProps = {
@@ -64,143 +64,69 @@ export function GramPanchayatDashboardScreen({
     () => data.supplyOutageTrend ?? [],
     [data.supplyOutageTrend]
   )
+  const isOutageDistributionSelectDisabled =
+    outageDistributionViewBy === 'geography'
+      ? waterSupplyOutageDistributionData.length === 0
+      : outageDistributionTimeTrendData.length === 0
 
   return (
     <>
       {/* Quantity + Regularity */}
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-        <Box
-          bg="white"
-          borderWidth="0.5px"
-          borderRadius="12px"
-          borderColor="#E4E4E7"
-          px="16px"
-          pt="24px"
-          pb="24px"
-          h="523px"
-          w="full"
-          minW={0}
-        >
-          <Flex align="center" justify="space-between">
-            <Text textStyle="bodyText3" fontWeight="400">
-              {t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
-            </Text>
-            <ViewBySelect
-              ariaLabel={t('performanceCharts.quantity.ariaViewByGramPanchayat', {
-                defaultValue: 'Gram panchayat quantity performance view by',
-              })}
-              value={quantityViewBy}
-              onChange={setQuantityViewBy}
-              color="primary.500"
-              borderColor="primary.500"
-            />
-          </Flex>
-          {quantityViewBy === 'geography' ? (
-            <MetricPerformanceChart
-              data={quantityPerformanceData}
-              metric="quantity"
-              height="400px"
-              entityLabel={t('performanceCharts.viewBy.villages', {
-                defaultValue: 'Villages',
-              })}
-              yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
-              seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
-              showAreaLine
-              areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
-                defaultValue: 'Demand',
-              })}
-            />
-          ) : (
-            <>
-              {isQuantityTimeTrendLoading ? (
-                <Flex align="center" justify="center" h="400px">
-                  <LoadingSpinner />
-                </Flex>
-              ) : quantityTimeTrendData.length > 0 ? (
-                <MonthlyTrendChart
-                  data={quantityTimeTrendData}
-                  height="400px"
-                  xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-                  yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
-                    defaultValue: 'Quantity',
-                  })}
-                  seriesName={t('performanceCharts.quantity.seriesName', {
-                    defaultValue: 'Quantity',
-                  })}
-                />
-              ) : isQuantityTimeTrendAwaitingParams ? null : (
-                <ChartEmptyState minHeight="400px" />
-              )}
-            </>
-          )}
-        </Box>
-        <Box
-          bg="white"
-          borderWidth="0.5px"
-          borderRadius="12px"
-          borderColor="#E4E4E7"
-          px="16px"
-          pt="24px"
-          pb="24px"
-          h="523px"
-          minW={0}
-        >
-          <Flex align="center" justify="space-between">
-            <Text textStyle="bodyText3" fontWeight="400">
-              {t('performanceCharts.regularity.title', {
-                defaultValue: 'Regularity Performance',
-              })}
-            </Text>
-            <ViewBySelect
-              ariaLabel={t('performanceCharts.regularity.ariaViewByGramPanchayat', {
-                defaultValue: 'Gram panchayat regularity performance view by',
-              })}
-              value={regularityViewBy}
-              onChange={setRegularityViewBy}
-              color="primary.500"
-              borderColor="primary.500"
-            />
-          </Flex>
-          {regularityViewBy === 'geography' ? (
-            <MetricPerformanceChart
-              data={regularityPerformanceData}
-              metric="regularity"
-              height="400px"
-              entityLabel={t('performanceCharts.viewBy.villages', {
-                defaultValue: 'Villages',
-              })}
-              yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
-                defaultValue: 'Regularity',
-              })}
-              seriesName={t('performanceCharts.regularity.seriesName', {
-                defaultValue: 'Regularity',
-              })}
-            />
-          ) : (
-            <>
-              {isRegularityTimeTrendLoading ? (
-                <Flex align="center" justify="center" h="400px">
-                  <LoadingSpinner />
-                </Flex>
-              ) : regularityTimeTrendData.length > 0 ? (
-                <MonthlyTrendChart
-                  data={regularityTimeTrendData}
-                  height="400px"
-                  isPercent
-                  xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-                  yAxisLabel={t('performanceCharts.regularity.yAxisLabelPercent', {
-                    defaultValue: 'Regularity (%)',
-                  })}
-                  seriesName={t('performanceCharts.regularity.seriesName', {
-                    defaultValue: 'Regularity',
-                  })}
-                />
-              ) : (
-                <ChartEmptyState minHeight="400px" />
-              )}
-            </>
-          )}
-        </Box>
+        <PerformanceChartCard
+          title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
+          viewByAriaLabel={t('performanceCharts.quantity.ariaViewByGramPanchayat', {
+            defaultValue: 'Gram panchayat quantity performance view by',
+          })}
+          viewBy={quantityViewBy}
+          onViewByChange={setQuantityViewBy}
+          data={quantityPerformanceData}
+          metric="quantity"
+          timeTrendData={quantityTimeTrendData}
+          isTimeTrendLoading={isQuantityTimeTrendLoading}
+          isTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
+          entityLabel={t('performanceCharts.viewBy.villages', {
+            defaultValue: 'Villages',
+          })}
+          yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
+          seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
+          cardHeight="523px"
+          showAreaLine
+          areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
+            defaultValue: 'Demand',
+          })}
+          timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+          selectColor="primary.500"
+          selectBorderColor="primary.500"
+        />
+        <PerformanceChartCard
+          title={t('performanceCharts.regularity.title', {
+            defaultValue: 'Regularity Performance',
+          })}
+          viewByAriaLabel={t('performanceCharts.regularity.ariaViewByGramPanchayat', {
+            defaultValue: 'Gram panchayat regularity performance view by',
+          })}
+          viewBy={regularityViewBy}
+          onViewByChange={setRegularityViewBy}
+          data={regularityPerformanceData}
+          metric="regularity"
+          timeTrendData={regularityTimeTrendData}
+          isTimeTrendLoading={isRegularityTimeTrendLoading}
+          entityLabel={t('performanceCharts.viewBy.villages', {
+            defaultValue: 'Villages',
+          })}
+          yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
+            defaultValue: 'Regularity',
+          })}
+          seriesName={t('performanceCharts.regularity.seriesName', {
+            defaultValue: 'Regularity',
+          })}
+          cardHeight="523px"
+          timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+          isTimeTrendPercent
+          selectColor="primary.500"
+          selectBorderColor="primary.500"
+        />
       </Grid>
 
       {/* Supply Outage Reasons + Distribution */}
@@ -249,17 +175,22 @@ export function GramPanchayatDashboardScreen({
               onChange={setOutageDistributionViewBy}
               color="primary.500"
               borderColor="primary.500"
+              disabled={isOutageDistributionSelectDisabled}
             />
           </Flex>
           {outageDistributionViewBy === 'geography' ? (
-            <SupplyOutageDistributionChart
-              data={waterSupplyOutageDistributionData}
-              height="400px"
-              xAxisLabel={t('performanceCharts.viewBy.villages', {
-                defaultValue: 'Villages',
-              })}
-            />
-          ) : (
+            waterSupplyOutageDistributionData.length > 0 ? (
+              <SupplyOutageDistributionChart
+                data={waterSupplyOutageDistributionData}
+                height="400px"
+                xAxisLabel={t('performanceCharts.viewBy.villages', {
+                  defaultValue: 'Villages',
+                })}
+              />
+            ) : (
+              <ChartEmptyState minHeight="400px" />
+            )
+          ) : outageDistributionTimeTrendData.length > 0 ? (
             <MonthlyTrendChart
               data={outageDistributionTimeTrendData}
               height="400px"
@@ -271,6 +202,8 @@ export function GramPanchayatDashboardScreen({
                 defaultValue: 'Supply outage',
               })}
             />
+          ) : (
+            <ChartEmptyState minHeight="400px" />
           )}
         </Box>
       </Grid>
@@ -312,6 +245,9 @@ export function GramPanchayatDashboardScreen({
           py="24px"
           h="510px"
           minW={0}
+          display="flex"
+          flexDirection="column"
+          minH={0}
         >
           <SchemePerformanceTable
             title={t('pumpOperators.performanceTable.title', {
@@ -319,6 +255,7 @@ export function GramPanchayatDashboardScreen({
             })}
             data={operatorsPerformanceTable}
             fillHeight
+            showBlockColumn={false}
           />
         </Box>
       </Grid>
@@ -336,17 +273,25 @@ export function GramPanchayatDashboardScreen({
           pb="24px"
           h="510px"
           minW={0}
+          display="flex"
+          flexDirection="column"
         >
           <Text textStyle="bodyText3" fontWeight="400" mb={2}>
             {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
               defaultValue: 'Reading Submission Rate',
             })}
           </Text>
-          <ReadingSubmissionRateChart
-            data={supplySubmissionRateData}
-            height="383px"
-            entityLabel={supplySubmissionRateLabel}
-          />
+          <Box flex="1" minH={0}>
+            {supplySubmissionRateData.length > 0 ? (
+              <ReadingSubmissionRateChart
+                data={supplySubmissionRateData}
+                height="100%"
+                entityLabel={supplySubmissionRateLabel}
+              />
+            ) : (
+              <ChartEmptyState minHeight="100%" />
+            )}
+          </Box>
         </Box>
       </Grid>
 

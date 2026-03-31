@@ -75,8 +75,14 @@ const toDisplayValue = (value: string) => {
   return `${day}/${month}/${year}`
 }
 
-const toDisplayRange = (startDate: string, endDate: string) =>
-  `${toDisplayValue(startDate)} - ${toDisplayValue(endDate)}`
+const toShortDisplayValue = (value: string) => {
+  const [year, month, day] = value.split('-')
+  if (!year || !month || !day) return value
+  return `${day}/${month}/${year.slice(-2)}`
+}
+
+const toCompactDisplayRange = (startDate: string, endDate: string) =>
+  `${toShortDisplayValue(startDate)}-${toShortDisplayValue(endDate)}`
 
 const toIsoValue = (value: string) => {
   const [day, month, year] = value.split('/')
@@ -112,6 +118,11 @@ const startOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(
 
 const endOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0)
 
+const clampIsoDateToMax = (value: string, max: string) => {
+  if (!value) return value
+  return value > max ? max : value
+}
+
 export function DateRangePicker({
   value,
   onChange,
@@ -132,6 +143,7 @@ export function DateRangePicker({
 }: DateRangePickerProps) {
   const { t } = useTranslation('dashboard')
   const [isTinyPicker] = useMediaQuery('(max-width: 599px)')
+  const todayIso = useMemo(() => formatISODate(new Date()), [])
   const [isOpen, setIsOpen] = useState(false)
   const [draft, setDraft] = useState<DateRange | null>(value)
   const [tinyPopoverWidth, setTinyPopoverWidth] = useState<number | null>(null)
@@ -226,7 +238,7 @@ export function DateRangePicker({
   )
 
   const displayLabel = value
-    ? value.preset || toDisplayRange(toIsoValue(value.startDate), toIsoValue(value.endDate))
+    ? value.preset || toCompactDisplayRange(toIsoValue(value.startDate), toIsoValue(value.endDate))
     : placeholder
 
   const displayColor = isFilter
@@ -248,7 +260,7 @@ export function DateRangePicker({
         },
       ]
     : [
-        { name: 'offset', options: { offset: [-20, 8] } },
+        { name: 'offset', options: { offset: [0, 8] } },
         { name: 'flip', enabled: false },
         { name: 'preventOverflow', options: { mainAxis: false, altAxis: false, tether: false } },
       ]
@@ -288,7 +300,7 @@ export function DateRangePicker({
     if (!draft?.startDate || !draft?.endDate) return
     if (!isValidDisplayDate(draft.startDate) || !isValidDisplayDate(draft.endDate)) return
     const start = toIsoValue(draft.startDate)
-    const end = toIsoValue(draft.endDate)
+    const end = clampIsoDateToMax(toIsoValue(draft.endDate), todayIso)
     if (!start || !end) return
     if (start > end) {
       onChange({
@@ -317,6 +329,7 @@ export function DateRangePicker({
     !draft?.endDate ||
     !isValidDisplayDate(draft.startDate) ||
     !isValidDisplayDate(draft.endDate) ||
+    toIsoValue(draft.endDate) > todayIso ||
     toIsoValue(draft.endDate) < toIsoValue(draft.startDate)
 
   const openPicker = (ref: React.RefObject<HTMLInputElement | null>) => {
@@ -347,7 +360,8 @@ export function DateRangePicker({
           maxW={width}
           h={height}
           maxH={height}
-          px={iconOnly ? '8px' : '12px'}
+          pl={iconOnly ? '8px' : value ? '8px' : '12px'}
+          pr={iconOnly ? '8px' : '10px'}
           py="6px"
           bg="white"
           borderWidth="1px"
@@ -363,11 +377,23 @@ export function DateRangePicker({
         >
           {iconOnly ? null : (
             <Text
+              flex="1"
+              minW={0}
+              textAlign="left"
               fontSize={fontSize}
+              lineHeight={value ? '16px' : undefined}
               color={displayColor}
               textStyle={textStyle}
               fontWeight={isFilter ? 'semibold' : '400'}
+              letterSpacing={value ? '-0.02em' : undefined}
               noOfLines={1}
+              sx={
+                value
+                  ? {
+                      fontSize: '11px',
+                    }
+                  : undefined
+              }
             >
               {displayLabel}
             </Text>
@@ -505,12 +531,17 @@ export function DateRangePicker({
                         const nextValue = event.target.value
                         setDraft((current) => ({
                           startDate: current?.startDate ?? '',
-                          endDate: nextValue,
+                          endDate:
+                            isValidDisplayDate(nextValue) && toIsoValue(nextValue) > todayIso
+                              ? toDisplayValue(todayIso)
+                              : nextValue,
                           preset: undefined,
                         }))
                         setDraftIso((current) => ({
                           startDate: current?.startDate ?? '',
-                          endDate: isValidDisplayDate(nextValue) ? toIsoValue(nextValue) : '',
+                          endDate: isValidDisplayDate(nextValue)
+                            ? clampIsoDateToMax(toIsoValue(nextValue), todayIso)
+                            : '',
                         }))
                       }}
                       borderColor="neutral.200"
@@ -521,11 +552,12 @@ export function DateRangePicker({
                       ref={endDateInputRef}
                       type="date"
                       min={draftIso?.startDate || undefined}
+                      max={todayIso}
                       value={draftIso?.endDate ?? ''}
                       tabIndex={-1}
                       aria-hidden="true"
                       onChange={(event) => {
-                        const nextValue = event.target.value
+                        const nextValue = clampIsoDateToMax(event.target.value, todayIso)
                         setDraftIso((current) => ({
                           startDate: current?.startDate ?? '',
                           endDate: nextValue,
