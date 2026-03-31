@@ -33,14 +33,14 @@ const outageReasonTranslationKeys: Record<string, string> = {
   sourceDrying: 'outageAndSubmissionCharts.legend.sourceDrying',
 }
 
-const toTitleCase = (value: string) =>
+const toDisplayLabel = (value: string) =>
   value
     .replace(/[_-]+/g, ' ')
     .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
     .replace(/\s+/g, ' ')
     .trim()
     .toLowerCase()
-    .replace(/\b\w/g, (character) => character.toUpperCase())
+    .replace(/^\w/, (character) => character.toUpperCase())
 
 const getOutageReasonLabel = (
   reasonKey: string,
@@ -48,10 +48,10 @@ const getOutageReasonLabel = (
 ) => {
   const translationKey = outageReasonTranslationKeys[reasonKey]
   if (translationKey) {
-    return t(translationKey, { defaultValue: toTitleCase(reasonKey) })
+    return toDisplayLabel(t(translationKey, { defaultValue: toDisplayLabel(reasonKey) }))
   }
 
-  return toTitleCase(reasonKey)
+  return toDisplayLabel(reasonKey)
 }
 
 export function SupplyOutageDistributionChart({

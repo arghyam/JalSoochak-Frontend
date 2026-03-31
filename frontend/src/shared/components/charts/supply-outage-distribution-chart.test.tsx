@@ -109,11 +109,11 @@ describe('SupplyOutageDistributionChart', () => {
     expect(typeof formatter).toBe('function')
     const tooltipText = formatter?.({
       name: 'Adilabad',
-      seriesName: 'Additional Prop2',
+      seriesName: 'Additional prop2',
       value: 18,
     })
     expect(tooltipText).toContain('Adilabad')
-    expect(tooltipText).toContain('Additional Prop2')
+    expect(tooltipText).toContain('Additional prop2')
     expect(tooltipText).toContain('18.0')
 
     const series = option?.series ?? []
@@ -166,7 +166,7 @@ describe('SupplyOutageDistributionChart', () => {
     const tooltipText = option?.tooltip?.formatter?.({
       name: 'Dadra and\nNagar Havel...',
       dataIndex: 0,
-      seriesName: 'Electricity Failure',
+      seriesName: 'Electrical failure',
       value: 12,
     })
 
@@ -196,7 +196,7 @@ describe('SupplyOutageDistributionChart', () => {
     )
 
     expect(screen.getByText('Electrical failure')).toBeTruthy()
-    expect(screen.getByText('Custom Reason')).toBeTruthy()
+    expect(screen.getByText('Custom reason')).toBeTruthy()
   })
 
   it('uses only api-provided reasons keys for series and legends', () => {
