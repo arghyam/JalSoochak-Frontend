@@ -51,8 +51,8 @@ export function SchemeMappingsSyncPage() {
       tenantCode,
       page: page - 1,
       limit: pageSize,
-      ...(debouncedSearch ? { schemeName: debouncedSearch } : {}),
-      ...(sortDir ? { sortDir } : {}),
+      schemeName: debouncedSearch,
+      sortDir,
     }),
     [tenantCode, page, pageSize, debouncedSearch, sortDir]
   )
@@ -224,7 +224,7 @@ export function SchemeMappingsSyncPage() {
       <DataTable<SchemeMapping>
         columns={columns}
         data={data?.items ?? []}
-        getRowKey={(row) => row.id}
+        getRowKey={(row) => `${row.id}-${row.villageLgdCode}`}
         emptyMessage={t('schemeMappingsSync.messages.noMappingsFound')}
         isLoading={isLoading}
         tableLayout="fixed"

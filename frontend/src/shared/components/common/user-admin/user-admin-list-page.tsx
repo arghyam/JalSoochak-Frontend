@@ -72,6 +72,11 @@ export function UserAdminListPage({
   const { t } = useTranslation('common')
   const navigate = useNavigate()
 
+  // In server-side mode a controlled value without its callback means the
+  // control would appear interactive but silently do nothing — hide it instead.
+  const showSearch = !hideSearch && (controlledSearch === undefined || !!onSearchChange)
+  const showStatusFilter = controlledStatus === undefined || !!onStatusFilterChange
+
   const searchQuery = controlledSearch ?? ''
   const setSearchQuery = onSearchChange ?? (() => {})
 
@@ -252,7 +257,7 @@ export function UserAdminListPage({
           w={{ base: 'full', md: 'auto' }}
           flexDirection={{ base: 'column', sm: 'row' }}
         >
-          {!hideSearch && (
+          {showSearch && (
             <InputGroup w={{ base: 'full', md: '240px', lg: '404px' }}>
               <InputLeftElement pointerEvents="none" h={8}>
                 <SearchIcon color="neutral.300" aria-hidden="true" />
@@ -271,15 +276,17 @@ export function UserAdminListPage({
               />
             </InputGroup>
           )}
-          <SearchableSelect
-            options={statusOptions}
-            value={statusFilter}
-            height="32px"
-            onChange={(val) => setStatusFilter(val as StatusFilter)}
-            placeholder={t('statusLabel')}
-            width={{ base: '100%', md: '140px' }}
-            isFilter
-          />
+          {showStatusFilter && (
+            <SearchableSelect
+              options={statusOptions}
+              value={statusFilter}
+              height="32px"
+              onChange={(val) => setStatusFilter(val as StatusFilter)}
+              placeholder={t('statusLabel')}
+              width={{ base: '100%', md: '140px' }}
+              isFilter
+            />
+          )}
         </Flex>
         <Button
           variant="secondary"

@@ -67,10 +67,10 @@ export function SchemeSyncPage() {
       tenantCode,
       page: page - 1,
       limit: pageSize,
-      ...(workStatusFilter ? { workStatus: workStatusFilter } : {}),
-      ...(operatingStatusFilter ? { operatingStatus: operatingStatusFilter } : {}),
-      ...(debouncedSearch ? { schemeName: debouncedSearch } : {}),
-      ...(sortDir ? { sortDir } : {}),
+      workStatus: workStatusFilter,
+      operatingStatus: operatingStatusFilter,
+      schemeName: debouncedSearch,
+      sortDir,
     }),
     [tenantCode, page, pageSize, workStatusFilter, operatingStatusFilter, debouncedSearch, sortDir]
   )

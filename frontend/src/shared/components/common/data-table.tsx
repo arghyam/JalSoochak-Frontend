@@ -134,11 +134,17 @@ export function DataTable<T extends object>({
   const handleSort = (columnKey: string, sortable?: boolean) => {
     if (!sortable) return
 
+    // Use controlled props to determine current state so that the computed
+    // next direction is consistent with what the header visuals display.
+    const activeSortColumn = controlledSortColumn !== undefined ? controlledSortColumn : sortColumn
+    const activeSortDirection =
+      controlledSortDirection !== undefined ? controlledSortDirection : sortDirection
+
     let nextDirection: SortDirection
-    if (sortColumn === columnKey) {
-      if (sortDirection === 'asc') {
+    if (activeSortColumn === columnKey) {
+      if (activeSortDirection === 'asc') {
         nextDirection = 'desc'
-      } else if (sortDirection === 'desc') {
+      } else if (activeSortDirection === 'desc') {
         nextDirection = null
       } else {
         nextDirection = 'asc'
