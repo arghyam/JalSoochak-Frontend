@@ -395,31 +395,60 @@ export function SchemePerformanceTable({
                     },
                   }}
                 >
-                  {rows.map((operator) => (
-                    <Tr key={operator.id} _odd={{ bg: 'primary.25' }}>
-                      <Td
-                        w="260px"
-                        minW="260px"
-                        maxW="260px"
-                        overflow="hidden"
-                        lineHeight="20px"
-                        verticalAlign="top"
-                      >
-                        <Box
-                          maxW="240px"
+                  {rows.map((operator) => {
+                    const villageValue = formatCellValue(operator.village)
+                    const blockValue = formatCellValue(operator.block)
+
+                    return (
+                      <Tr key={operator.id} _odd={{ bg: 'primary.25' }}>
+                        <Td
+                          w="260px"
+                          minW="260px"
+                          maxW="260px"
                           overflow="hidden"
-                          textOverflow="ellipsis"
-                          whiteSpace="nowrap"
+                          lineHeight="20px"
+                          verticalAlign="top"
                         >
-                          {operator.name}
-                        </Box>
-                      </Td>
-                      {showVillageColumn ? <Td>{formatCellValue(operator.village)}</Td> : null}
-                      {showBlockColumn ? <Td>{formatCellValue(operator.block)}</Td> : null}
-                      <Td>{formatMetricValue(operator.reportingRate)}</Td>
-                      <Td>{formatMetricValue(operator.waterSupplied)}</Td>
-                    </Tr>
-                  ))}
+                          <Box
+                            maxW="240px"
+                            overflow="hidden"
+                            textOverflow="ellipsis"
+                            whiteSpace="nowrap"
+                          >
+                            {operator.name}
+                          </Box>
+                        </Td>
+                        {showVillageColumn ? (
+                          <Td overflow="hidden" lineHeight="20px" verticalAlign="top">
+                            <Box
+                              maxW="100%"
+                              overflow="hidden"
+                              textOverflow="ellipsis"
+                              whiteSpace="nowrap"
+                              title={villageValue}
+                            >
+                              {villageValue}
+                            </Box>
+                          </Td>
+                        ) : null}
+                        {showBlockColumn ? (
+                          <Td overflow="hidden" lineHeight="20px" verticalAlign="top">
+                            <Box
+                              maxW="100%"
+                              overflow="hidden"
+                              textOverflow="ellipsis"
+                              whiteSpace="nowrap"
+                              title={blockValue}
+                            >
+                              {blockValue}
+                            </Box>
+                          </Td>
+                        ) : null}
+                        <Td>{formatMetricValue(operator.reportingRate)}</Td>
+                        <Td>{formatMetricValue(operator.waterSupplied)}</Td>
+                      </Tr>
+                    )
+                  })}
                 </Tbody>
               ) : null}
             </Table>

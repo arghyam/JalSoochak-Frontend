@@ -1,9 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { dashboardApi } from '../api/dashboard-api'
-import type { HierarchyType, TenantChildLocation } from '../api/dashboard-api'
+import type { HierarchyType } from '../api/dashboard-api'
+import {
+  addLocationTitleToLookup,
+  createLocationTitleLookup,
+  type LocationTitleLookup,
+} from './location-title-lookup'
 import { locationSearchQueryKeys } from './location-search-query-keys'
-
-type DistrictSchemeBlockLookup = Record<number, string>
 
 type UseDistrictSchemeBlockLookupQueryOptions = {
   tenantId?: number
@@ -15,30 +18,12 @@ type UseDistrictSchemeBlockLookupQueryOptions = {
 
 const LOCATION_LOOKUP_CONCURRENCY = 5
 
-const addLocationToLookup = (
-  lookup: DistrictSchemeBlockLookup,
-  location: TenantChildLocation,
-  blockTitle: string
-) => {
-  if (!blockTitle) {
-    return
-  }
-
-  if (typeof location.id === 'number' && Number.isFinite(location.id)) {
-    lookup[location.id] = blockTitle
-  }
-
-  if (typeof location.lgdCode === 'number' && Number.isFinite(location.lgdCode)) {
-    lookup[location.lgdCode] = blockTitle
-  }
-}
-
 export function useDistrictSchemeBlockLookupQuery(
   options: UseDistrictSchemeBlockLookupQueryOptions
 ) {
   const { tenantId, hierarchyType, districtId, tenantCode, enabled = true } = options
 
-  return useQuery<DistrictSchemeBlockLookup>({
+  return useQuery<LocationTitleLookup>({
     queryKey: locationSearchQueryKeys.districtSchemeBlockLookup(
       tenantId,
       hierarchyType,
@@ -57,7 +42,7 @@ export function useDistrictSchemeBlockLookupQuery(
       })
 
       const blocks = blocksResponse.data ?? []
-      const lookup: DistrictSchemeBlockLookup = {}
+      const lookup = createLocationTitleLookup()
 
       for (
         let blockIndex = 0;
@@ -71,7 +56,7 @@ export function useDistrictSchemeBlockLookupQuery(
             const blockId = typeof block.id === 'number' ? block.id : undefined
             const blockTitle = block.title?.trim() ?? ''
 
-            addLocationToLookup(lookup, block, blockTitle)
+            addLocationTitleToLookup(lookup, block, blockTitle)
 
             if (blockId === undefined) {
               return
@@ -101,7 +86,7 @@ export function useDistrictSchemeBlockLookupQuery(
                   const gramPanchayatId =
                     typeof gramPanchayat.id === 'number' ? gramPanchayat.id : undefined
 
-                  addLocationToLookup(lookup, gramPanchayat, blockTitle)
+                  addLocationTitleToLookup(lookup, gramPanchayat, blockTitle)
 
                   if (gramPanchayatId === undefined) {
                     return
@@ -115,7 +100,7 @@ export function useDistrictSchemeBlockLookupQuery(
                   })
 
                   for (const village of villagesResponse.data ?? []) {
-                    addLocationToLookup(lookup, village, blockTitle)
+                    addLocationTitleToLookup(lookup, village, blockTitle)
                   }
                 })
               )

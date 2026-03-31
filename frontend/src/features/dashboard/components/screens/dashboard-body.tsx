@@ -269,7 +269,7 @@ export function DashboardBody({
                     <MonthlyTrendChart
                       data={outageDistributionTimeTrendData}
                       height="100%"
-                      xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+                      xAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
                       yAxisLabel={t('outageAndSubmissionCharts.axis.noOfDays', {
                         defaultValue: 'No. of days',
                       })}
@@ -368,7 +368,7 @@ function PerformanceChartsSection({
         areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
           defaultValue: 'Demand',
         })}
-        timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+        timeXAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
       />
       <PerformanceChartCard
         title={t('performanceCharts.regularity.title', {
@@ -391,7 +391,7 @@ function PerformanceChartsSection({
           defaultValue: 'Regularity',
         })}
         cardHeight="536px"
-        timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+        timeXAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
         isTimeTrendPercent
       />
     </Grid>

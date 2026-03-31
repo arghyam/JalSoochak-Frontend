@@ -736,7 +736,10 @@ describe('dashboard formulas', () => {
         [],
         {
           blockTitleByParentId: {
-            9001: 'KALAIGAON',
+            idLookup: {},
+            lgdLookup: {
+              9001: 'KALAIGAON',
+            },
           },
         }
       )
@@ -790,7 +793,10 @@ describe('dashboard formulas', () => {
         [],
         {
           parentLgdTitleById: {
-            9002: 'UTTAR PAKA',
+            idLookup: {},
+            lgdLookup: {
+              9002: 'UTTAR PAKA',
+            },
           },
         }
       )
@@ -801,6 +807,65 @@ describe('dashboard formulas', () => {
         village: 'Uttar Paka',
         block: null,
         reportingRate: 75,
+        photoCompliance: 0,
+        waterSupplied: 3200,
+      },
+    ])
+  })
+
+  it('keeps id and lgd lookup keys isolated when resolving scheme hierarchy titles', () => {
+    expect(
+      mapSchemePerformanceToTable(
+        {
+          parentLgdId: 1,
+          parentDepartmentId: 0,
+          parentLgdCName: 'block',
+          parentDepartmentCName: '',
+          parentLgdTitle: 'Barpeta',
+          parentDepartmentTitle: '',
+          startDate: '2026-03-14',
+          endDate: '2026-03-14',
+          daysInRange: 1,
+          activeSchemeCount: 1,
+          inactiveSchemeCount: 0,
+          topSchemeCount: 1,
+          topSchemes: [
+            {
+              schemeId: 203,
+              schemeName: 'Collision Check Scheme',
+              statusCode: 1,
+              status: 'Active',
+              submissionDays: 30,
+              reportingRate: 80,
+              totalWaterSupplied: 3200,
+              immediateParentLgdId: 9003,
+              immediateParentLgdCName: 'village',
+              immediateParentLgdTitle: 'FALLBACK VILLAGE',
+              immediateParentDepartmentId: 0,
+              immediateParentDepartmentCName: '',
+              immediateParentDepartmentTitle: '',
+            },
+          ],
+        },
+        [],
+        {
+          parentLgdTitleById: {
+            idLookup: {
+              9003: 'WRONG INTERNAL ID TITLE',
+            },
+            lgdLookup: {
+              9003: 'CORRECT LGD TITLE',
+            },
+          },
+        }
+      )
+    ).toEqual([
+      {
+        id: 'scheme-performance-203',
+        name: 'Collision Check Scheme',
+        village: 'Correct Lgd Title',
+        block: null,
+        reportingRate: 80,
         photoCompliance: 0,
         waterSupplied: 3200,
       },

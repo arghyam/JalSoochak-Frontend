@@ -1072,17 +1072,11 @@ export function CentralDashboard() {
     daysInRange?: number
     startDate?: string
     endDate?: string
-  } = isVillageSelected
-    ? {
-        daysInRange: previousWaterSupplyKpiData?.daysInRange,
-        startDate: previousWaterSupplyAnalyticsParams?.startDate,
-        endDate: previousWaterSupplyAnalyticsParams?.endDate,
-      }
-    : {
-        daysInRange: previousWaterSupplyKpiData?.daysInRange,
-        startDate: previousWaterSupplyAnalyticsParams?.startDate,
-        endDate: previousWaterSupplyAnalyticsParams?.endDate,
-      }
+  } = {
+    daysInRange: previousWaterSupplyKpiData?.daysInRange,
+    startDate: previousWaterSupplyAnalyticsParams?.startDate,
+    endDate: previousWaterSupplyAnalyticsParams?.endDate,
+  }
 
   const updateFilterUrl = (filters: {
     state?: string

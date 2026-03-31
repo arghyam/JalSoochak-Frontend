@@ -13,6 +13,10 @@ import type {
   WaterQuantityPeriodicResponse,
   WaterSupplyOutageData,
 } from '../types'
+import {
+  getLocationTitleFromLookup,
+  type LocationTitleLookup,
+} from '../services/query/location-title-lookup'
 import { slugify, toCapitalizedWords } from './format-location-label'
 
 const DEFAULT_DAYS_IN_RANGE = 30
@@ -749,49 +753,52 @@ export const mapSchemePerformanceToTable = (
   response: SchemePerformanceResponse | undefined,
   fallbackData: PumpOperatorPerformanceData[],
   options?: {
-    blockTitleByParentId?: Record<number, string>
-    parentLgdTitleById?: Record<number, string>
+    blockTitleByParentId?: LocationTitleLookup
+    parentLgdTitleById?: LocationTitleLookup
   }
 ): PumpOperatorPerformanceData[] => {
   if (!response?.topSchemes?.length) {
     return fallbackData
   }
 
-  return response.topSchemes.map((scheme, index) => ({
-    id: `scheme-performance-${scheme.schemeId ?? index}`,
-    name: formatEntityName(
-      scheme.schemeName?.trim(),
-      undefined,
-      `Scheme ${scheme.schemeId ?? index + 1}`
-    ),
-    village:
-      options?.parentLgdTitleById &&
-      typeof scheme.immediateParentLgdId === 'number' &&
-      Number.isFinite(scheme.immediateParentLgdId) &&
-      options.parentLgdTitleById[scheme.immediateParentLgdId]
-        ? toCapitalizedWords(options.parentLgdTitleById[scheme.immediateParentLgdId])
+  return response.topSchemes.map((scheme, index) => {
+    const parentLgdTitle = getLocationTitleFromLookup(
+      options?.parentLgdTitleById,
+      scheme.immediateParentLgdId
+    )
+    const blockTitle = getLocationTitleFromLookup(
+      options?.blockTitleByParentId,
+      scheme.immediateParentLgdId
+    )
+
+    return {
+      id: `scheme-performance-${scheme.schemeId ?? index}`,
+      name: formatEntityName(
+        scheme.schemeName?.trim(),
+        undefined,
+        `Scheme ${scheme.schemeId ?? index + 1}`
+      ),
+      village: parentLgdTitle
+        ? toCapitalizedWords(parentLgdTitle)
         : scheme.immediateParentLgdTitle?.trim()
           ? toCapitalizedWords(scheme.immediateParentLgdTitle.trim())
           : null,
-    block:
-      options?.blockTitleByParentId &&
-      typeof scheme.immediateParentLgdId === 'number' &&
-      Number.isFinite(scheme.immediateParentLgdId) &&
-      options.blockTitleByParentId[scheme.immediateParentLgdId]
-        ? toCapitalizedWords(options.blockTitleByParentId[scheme.immediateParentLgdId])
+      block: blockTitle
+        ? toCapitalizedWords(blockTitle)
         : scheme.immediateParentDepartmentTitle?.trim()
           ? toCapitalizedWords(scheme.immediateParentDepartmentTitle.trim())
           : null,
-    reportingRate:
-      typeof scheme.reportingRate === 'number' && Number.isFinite(scheme.reportingRate)
-        ? scheme.reportingRate
-        : null,
-    photoCompliance: 0,
-    waterSupplied:
-      typeof scheme.totalWaterSupplied === 'number' && Number.isFinite(scheme.totalWaterSupplied)
-        ? scheme.totalWaterSupplied
-        : null,
-  }))
+      reportingRate:
+        typeof scheme.reportingRate === 'number' && Number.isFinite(scheme.reportingRate)
+          ? scheme.reportingRate
+          : null,
+      photoCompliance: 0,
+      waterSupplied:
+        typeof scheme.totalWaterSupplied === 'number' && Number.isFinite(scheme.totalWaterSupplied)
+          ? scheme.totalWaterSupplied
+          : null,
+    }
+  })
 }
 
 export const mapOverallPerformanceFromAnalytics = (

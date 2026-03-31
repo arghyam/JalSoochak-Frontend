@@ -35,7 +35,7 @@ export function MonthlyTrendChart({
   height = '400px',
   maxItems = 5,
   isPercent = false,
-  xAxisLabel = 'Month',
+  xAxisLabel = 'Time',
   yAxisLabel = 'Value',
   seriesName = 'Trend',
 }: MonthlyTrendChartProps) {
