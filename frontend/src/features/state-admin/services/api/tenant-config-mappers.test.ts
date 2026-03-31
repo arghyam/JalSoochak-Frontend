@@ -9,7 +9,7 @@ import {
   mapWaterNormsToApiConfig,
   type TenantConfigMap,
 } from './tenant-config-mappers'
-import { DEFAULT_METER_CHANGE_REASONS } from '../../types/configuration'
+import { DEFAULT_METER_CHANGE_REASONS, type SupportedChannel } from '../../types/configuration'
 
 // ---------------------------------------------------------------------------
 // Configuration mappers
@@ -119,7 +119,7 @@ describe('mapApiConfigToConfigurationData', () => {
 describe('mapConfigurationDataToApiConfig', () => {
   it('converts ConfigurationData to API format', () => {
     const payload = {
-      supportedChannels: ['BFM', 'IOT'],
+      supportedChannels: ['BFM', 'IOT'] as SupportedChannel[],
       logoUrl: 'https://example.com/logo.png',
       meterChangeReasons: [{ id: 'r1', name: 'Meter Replaced' }],
       supplyOutageReasons: [
