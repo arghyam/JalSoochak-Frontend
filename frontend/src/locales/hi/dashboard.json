@@ -74,32 +74,6 @@
       "quantityInLpcd": "एलपीसीडी में मात्रा",
       "regularity": "नियमितता"
     },
-    "tooltips": {
-      "quantityMld": {
-        "formulaLabel": "मात्रा (MLD)",
-        "definitions": {
-          "waterQuantitySupplied": "दिन k पर आपूर्ति की गई जल मात्रा",
-          "totalWaterSupplied": "सभी दिनों में आपूर्ति किए गए जल की कुल मात्रा",
-          "totalNumberOfDays": "दिनों की कुल संख्या"
-        }
-      },
-      "quantityLpcd": {
-        "formulaLabel": "मात्रा (LPCD)",
-        "definitions": {
-          "waterQuantitySupplied": "दिन k पर आपूर्ति की गई जल मात्रा",
-          "functionalHouseholdTapConnections": "योजना i के कार्यात्मक घरेलू नल कनेक्शन",
-          "averagePersonsPerHousehold": "प्रति परिवार औसत व्यक्तियों की संख्या",
-          "numberOfDays": "दिनों की संख्या"
-        }
-      },
-      "regularity": {
-        "formulaLabel": "योजना की नियमितता",
-        "definitions": {
-          "numberOfSupplyDays": "योजना i के जल आपूर्ति वाले दिनों की संख्या",
-          "totalNumberOfDaysInSelectedPeriod": "चयनित समयावधि में दिनों की कुल संख्या"
-        }
-      }
-    },
     "trends": {
       "percentDownLastDays": "पिछले {{days}} दिनों की तुलना में -{{change}}%",
       "lpcdUpLastMonth": "पिछले महीने की तुलना में +{{change}} LPCD",
@@ -189,7 +163,7 @@
         "columns": {
           "name": "नाम",
           "village": "गांव",
-          "lastSubmission": "सबमिशन दिनांक और समय",
+          "lastSubmission": "अंतिम सबमिशन",
           "readingValue": "रीडिंग मान"
         }
       }

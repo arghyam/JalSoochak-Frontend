@@ -84,55 +84,6 @@ describe('DashboardFilters', () => {
     expect(screen.getByText('Quick ranges')).toBeTruthy()
   })
 
-  it('enables clear all filters when only duration is selected', () => {
-    renderWithProviders(
-      <DashboardFilters
-        filterTabIndex={0}
-        onTabChange={jest.fn()}
-        onClear={jest.fn()}
-        isAdvancedEnabled={true}
-        isDepartmentStateSelected={false}
-        emptyOptions={emptyOptions}
-        selectedState=""
-        selectedDistrict=""
-        selectedBlock=""
-        selectedGramPanchayat=""
-        selectedVillage=""
-        selectedScheme=""
-        selectedDuration={{ startDate: '11/03/2026', endDate: '12/03/2026' }}
-        selectedDepartmentState=""
-        selectedDepartmentZone=""
-        selectedDepartmentCircle=""
-        selectedDepartmentDivision=""
-        selectedDepartmentSubdivision=""
-        selectedDepartmentVillage=""
-        districtOptions={emptyOptions}
-        blockOptions={emptyOptions}
-        gramPanchayatOptions={emptyOptions}
-        villageOptions={emptyOptions}
-        mockFilterStates={emptyOptions}
-        mockFilterSchemes={emptyOptions}
-        onStateChange={jest.fn()}
-        onDistrictChange={jest.fn()}
-        onBlockChange={jest.fn()}
-        onGramPanchayatChange={jest.fn()}
-        setSelectedVillage={jest.fn()}
-        setSelectedScheme={jest.fn()}
-        setSelectedDuration={jest.fn()}
-        onDepartmentStateChange={jest.fn()}
-        setSelectedDepartmentZone={jest.fn()}
-        setSelectedDepartmentCircle={jest.fn()}
-        setSelectedDepartmentDivision={jest.fn()}
-        setSelectedDepartmentSubdivision={jest.fn()}
-        setSelectedDepartmentVillage={jest.fn()}
-      />
-    )
-
-    expect(screen.getByRole('button', { name: 'Clear all filters' }).getAttribute('disabled')).toBe(
-      null
-    )
-  })
-
   it('shows districts in breadcrumb search panel when state is already selected', () => {
     const districtOptions: SearchableSelectOption[] = [
       { value: 'sangareddy', label: 'Sangareddy' },

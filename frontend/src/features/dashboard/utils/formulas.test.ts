@@ -4,10 +4,8 @@ import type {
   AverageWaterSupplyPerRegionResponse,
   EntityPerformance,
   NationalDashboardResponse,
-  PumpOperatorsData,
   ReadingSubmissionStatusData,
   ReadingSubmissionRateResponse,
-  SchemePerformanceResponse,
   SubmissionStatusResponse,
   WaterSupplyOutageData,
 } from '../types'
@@ -18,18 +16,13 @@ import {
   calculateQuantityMld,
   calculateQuantityLpcd,
   getWaterSupplyKpis,
-  getWaterSupplyKpisFromPeriodic,
-  getRegularityKpiFromPeriodic,
   mapOutageReasonsFromNationalDashboard,
   mapSchemePerformanceToTable,
-  mapSchemePerformanceToPumpOperators,
   mapReadingSubmissionStatusFromAnalytics,
   mapReadingSubmissionRateFromAnalytics,
-  mapReadingSubmissionRateFromNationalDashboard,
   mapQuantityPerformanceFromAnalytics,
   mapQuantityPerformanceFromNationalDashboard,
   mapRegularityPerformanceFromAnalytics,
-  mapRegularityPerformanceFromNationalDashboard,
   mapOverallPerformanceFromAnalytics,
   resolveDaysInRange,
 } from './formulas'
@@ -84,140 +77,6 @@ describe('dashboard formulas', () => {
 
   it('calculates demand in MLD from FHTC count, persons, and liters per person', () => {
     expect(calculateDemandMld(500, 5, 50)).toBe(0.13)
-  })
-
-  it('calculates village KPI totals from periodic water quantity metrics', () => {
-    expect(
-      getWaterSupplyKpisFromPeriodic({
-        lgdId: 19501,
-        departmentId: 0,
-        scale: 'day',
-        startDate: '2026-02-25',
-        endDate: '2026-02-26',
-        periodCount: 2,
-        metrics: [
-          {
-            periodStartDate: '2026-02-25',
-            periodEndDate: '2026-02-25',
-            averageWaterQuantity: 41_243,
-            householdCount: 0,
-            achievedFhtcCount: 501,
-            plannedFhtcCount: 448,
-          },
-          {
-            periodStartDate: '2026-02-26',
-            periodEndDate: '2026-02-26',
-            averageWaterQuantity: 50_100,
-            householdCount: 0,
-            achievedFhtcCount: 500,
-            plannedFhtcCount: 448,
-          },
-        ],
-      })
-    ).toEqual({
-      quantityMld: 0.05,
-      quantityLpcd: 18.3,
-    })
-  })
-
-  it('prefers totalAchievedFhtcCount over achievedFhtcCount in periodic water quantity metrics', () => {
-    expect(
-      getWaterSupplyKpisFromPeriodic({
-        lgdId: 19501,
-        departmentId: 0,
-        scale: 'day',
-        startDate: '2026-02-25',
-        endDate: '2026-02-26',
-        periodCount: 2,
-        metrics: [
-          {
-            periodStartDate: '2026-02-25',
-            periodEndDate: '2026-02-25',
-            averageWaterQuantity: 41_243,
-            householdCount: 0,
-            totalAchievedFhtcCount: 501,
-            achievedFhtcCount: 5,
-            plannedFhtcCount: 448,
-          },
-          {
-            periodStartDate: '2026-02-26',
-            periodEndDate: '2026-02-26',
-            averageWaterQuantity: 50_100,
-            householdCount: 0,
-            totalAchievedFhtcCount: 500,
-            achievedFhtcCount: 5,
-            plannedFhtcCount: 448,
-          },
-        ],
-      })
-    ).toEqual({
-      quantityMld: 0.05,
-      quantityLpcd: 18.3,
-    })
-  })
-
-  it('skips periodic water quantity metrics with invalid metric dates', () => {
-    expect(
-      getWaterSupplyKpisFromPeriodic({
-        lgdId: 19501,
-        departmentId: 0,
-        scale: 'day',
-        startDate: '2026-02-25',
-        endDate: '2026-02-26',
-        periodCount: 2,
-        metrics: [
-          {
-            periodStartDate: '',
-            periodEndDate: '',
-            averageWaterQuantity: 999_999,
-            householdCount: 0,
-            totalAchievedFhtcCount: 999,
-            achievedFhtcCount: 999,
-            plannedFhtcCount: 448,
-          },
-          {
-            periodStartDate: '2026-02-26',
-            periodEndDate: '2026-02-26',
-            averageWaterQuantity: 50_100,
-            householdCount: 0,
-            totalAchievedFhtcCount: 500,
-            achievedFhtcCount: 500,
-            plannedFhtcCount: 448,
-          },
-        ],
-      })
-    ).toEqual({
-      quantityMld: 0.05,
-      quantityLpcd: 20,
-    })
-  })
-
-  it('calculates village regularity KPI from periodic regularity metrics', () => {
-    expect(
-      getRegularityKpiFromPeriodic({
-        lgdId: 19501,
-        departmentId: 0,
-        schemeCount: 1,
-        scale: 'day',
-        startDate: '2026-02-25',
-        endDate: '2026-02-26',
-        periodCount: 2,
-        metrics: [
-          {
-            periodStartDate: '2026-02-25',
-            periodEndDate: '2026-02-25',
-            totalSupplyDays: 1,
-            averageRegularity: 100,
-          },
-          {
-            periodStartDate: '2026-02-26',
-            periodEndDate: '2026-02-26',
-            totalSupplyDays: 0,
-            averageRegularity: 0,
-          },
-        ],
-      })
-    ).toBe(50)
   })
 
   it('calculates state KPI totals from child regions when scheme rows are absent', () => {
@@ -487,40 +346,6 @@ describe('dashboard formulas', () => {
     ])
   })
 
-  it('returns an empty array for regularity analytics when child regions are unavailable', () => {
-    const fallbackData: EntityPerformance[] = [
-      {
-        id: 'alpha',
-        name: 'Region Alpha',
-        coverage: 72,
-        regularity: 61,
-        continuity: 0,
-        quantity: 4,
-        compositeScore: 68,
-        status: 'good',
-      },
-    ]
-
-    expect(mapRegularityPerformanceFromAnalytics(undefined, fallbackData)).toEqual([])
-  })
-
-  it('returns an empty array for national regularity performance when analytics are unavailable', () => {
-    const fallbackData: EntityPerformance[] = [
-      {
-        id: 'alpha',
-        name: 'Region Alpha',
-        coverage: 72,
-        regularity: 61,
-        continuity: 0,
-        quantity: 4,
-        compositeScore: 68,
-        status: 'good',
-      },
-    ]
-
-    expect(mapRegularityPerformanceFromNationalDashboard(undefined, fallbackData)).toEqual([])
-  })
-
   it('maps overall performance rows from quantity and regularity child responses', () => {
     const fallbackData: EntityPerformance[] = [
       {
@@ -699,179 +524,6 @@ describe('dashboard formulas', () => {
     ])
   })
 
-  it('maps scheme performance rows to blocks using a district hierarchy lookup when needed', () => {
-    expect(
-      mapSchemePerformanceToTable(
-        {
-          parentLgdId: 1,
-          parentDepartmentId: 0,
-          parentLgdCName: 'district',
-          parentDepartmentCName: '',
-          parentLgdTitle: 'Barpeta',
-          parentDepartmentTitle: '',
-          startDate: '2026-03-14',
-          endDate: '2026-03-14',
-          daysInRange: 1,
-          activeSchemeCount: 1,
-          inactiveSchemeCount: 0,
-          topSchemeCount: 1,
-          topSchemes: [
-            {
-              schemeId: 201,
-              schemeName: 'Village Linked Scheme',
-              statusCode: 1,
-              status: 'Active',
-              submissionDays: 30,
-              reportingRate: 75,
-              totalWaterSupplied: 3200,
-              immediateParentLgdId: 9001,
-              immediateParentLgdCName: 'village',
-              immediateParentLgdTitle: 'MAIRAMARA',
-              immediateParentDepartmentId: 0,
-              immediateParentDepartmentCName: '',
-              immediateParentDepartmentTitle: '',
-            },
-          ],
-        },
-        [],
-        {
-          blockTitleByParentId: {
-            idLookup: {},
-            lgdLookup: {
-              9001: 'KALAIGAON',
-            },
-          },
-        }
-      )
-    ).toEqual([
-      {
-        id: 'scheme-performance-201',
-        name: 'Village Linked Scheme',
-        village: 'Mairamara',
-        block: 'Kalaigaon',
-        reportingRate: 75,
-        photoCompliance: 0,
-        waterSupplied: 3200,
-      },
-    ])
-  })
-
-  it('maps scheme performance rows to panchayats using a block hierarchy lookup when needed', () => {
-    expect(
-      mapSchemePerformanceToTable(
-        {
-          parentLgdId: 1,
-          parentDepartmentId: 0,
-          parentLgdCName: 'block',
-          parentDepartmentCName: '',
-          parentLgdTitle: 'Barpeta',
-          parentDepartmentTitle: '',
-          startDate: '2026-03-14',
-          endDate: '2026-03-14',
-          daysInRange: 1,
-          activeSchemeCount: 1,
-          inactiveSchemeCount: 0,
-          topSchemeCount: 1,
-          topSchemes: [
-            {
-              schemeId: 202,
-              schemeName: 'Village Linked Scheme',
-              statusCode: 1,
-              status: 'Active',
-              submissionDays: 30,
-              reportingRate: 75,
-              totalWaterSupplied: 3200,
-              immediateParentLgdId: 9002,
-              immediateParentLgdCName: 'village',
-              immediateParentLgdTitle: 'MAIRAMARA',
-              immediateParentDepartmentId: 0,
-              immediateParentDepartmentCName: '',
-              immediateParentDepartmentTitle: '',
-            },
-          ],
-        },
-        [],
-        {
-          parentLgdTitleById: {
-            idLookup: {},
-            lgdLookup: {
-              9002: 'UTTAR PAKA',
-            },
-          },
-        }
-      )
-    ).toEqual([
-      {
-        id: 'scheme-performance-202',
-        name: 'Village Linked Scheme',
-        village: 'Uttar Paka',
-        block: null,
-        reportingRate: 75,
-        photoCompliance: 0,
-        waterSupplied: 3200,
-      },
-    ])
-  })
-
-  it('keeps id and lgd lookup keys isolated when resolving scheme hierarchy titles', () => {
-    expect(
-      mapSchemePerformanceToTable(
-        {
-          parentLgdId: 1,
-          parentDepartmentId: 0,
-          parentLgdCName: 'block',
-          parentDepartmentCName: '',
-          parentLgdTitle: 'Barpeta',
-          parentDepartmentTitle: '',
-          startDate: '2026-03-14',
-          endDate: '2026-03-14',
-          daysInRange: 1,
-          activeSchemeCount: 1,
-          inactiveSchemeCount: 0,
-          topSchemeCount: 1,
-          topSchemes: [
-            {
-              schemeId: 203,
-              schemeName: 'Collision Check Scheme',
-              statusCode: 1,
-              status: 'Active',
-              submissionDays: 30,
-              reportingRate: 80,
-              totalWaterSupplied: 3200,
-              immediateParentLgdId: 9003,
-              immediateParentLgdCName: 'village',
-              immediateParentLgdTitle: 'FALLBACK VILLAGE',
-              immediateParentDepartmentId: 0,
-              immediateParentDepartmentCName: '',
-              immediateParentDepartmentTitle: '',
-            },
-          ],
-        },
-        [],
-        {
-          parentLgdTitleById: {
-            idLookup: {
-              9003: 'WRONG INTERNAL ID TITLE',
-            },
-            lgdLookup: {
-              9003: 'CORRECT LGD TITLE',
-            },
-          },
-        }
-      )
-    ).toEqual([
-      {
-        id: 'scheme-performance-203',
-        name: 'Collision Check Scheme',
-        village: 'Correct Lgd Title',
-        block: null,
-        reportingRate: 80,
-        photoCompliance: 0,
-        waterSupplied: 3200,
-      },
-    ])
-  })
-
   it('maps reading submission rate analytics response into chart data with fallback metadata', () => {
     const fallbackData: EntityPerformance[] = [
       {
@@ -964,70 +616,7 @@ describe('dashboard formulas', () => {
     ])
   })
 
-  it('returns an empty submission-rate dataset when analytics data is unavailable', () => {
-    const fallbackData: EntityPerformance[] = [
-      {
-        id: 'fallback',
-        name: 'Fallback Region',
-        coverage: 10,
-        regularity: 20,
-        continuity: 30,
-        quantity: 40,
-        compositeScore: 50,
-        status: 'good',
-      },
-    ]
-
-    expect(mapReadingSubmissionRateFromAnalytics(undefined, fallbackData)).toEqual([])
-    expect(mapReadingSubmissionRateFromNationalDashboard(undefined, fallbackData)).toEqual([])
-  })
-
-  it('returns an empty outage-reasons dataset when national data is unavailable', () => {
-    const fallbackData: WaterSupplyOutageData[] = [
-      {
-        label: 'Fallback',
-        electricityFailure: 2,
-        pipelineLeak: 1,
-        pumpFailure: 3,
-        valveIssue: 4,
-        sourceDrying: 5,
-      },
-    ]
-
-    expect(mapOutageReasonsFromNationalDashboard(undefined, fallbackData)).toEqual([])
-  })
-
-  it('returns an empty submission-status dataset when analytics data is unavailable', () => {
-    const fallbackData: ReadingSubmissionStatusData[] = [
-      { label: 'Compliant Submissions', value: 7 },
-      { label: 'Anomalous Submissions', value: 5 },
-    ]
-
-    expect(mapReadingSubmissionStatusFromAnalytics(undefined, fallbackData)).toEqual([])
-  })
-
-  it('returns no schemes chart slices when scheme performance counts are both zero', () => {
-    const fallbackData: PumpOperatorsData[] = [{ label: 'Legacy active', value: 7 }]
-    const response: SchemePerformanceResponse = {
-      parentLgdId: 1,
-      parentDepartmentId: 0,
-      parentLgdCName: 'state',
-      parentDepartmentCName: '',
-      parentLgdTitle: 'Assam',
-      parentDepartmentTitle: '',
-      startDate: '2026-03-01',
-      endDate: '2026-03-31',
-      daysInRange: 31,
-      activeSchemeCount: 0,
-      inactiveSchemeCount: 0,
-      topSchemeCount: 0,
-      topSchemes: [],
-    }
-
-    expect(mapSchemePerformanceToPumpOperators(response, fallbackData)).toEqual([])
-  })
-
-  it('returns no reading submission status slices when api counts are both zero', () => {
+  it('uses a zero-valued submission status response instead of fallback data', () => {
     const fallbackData: ReadingSubmissionStatusData[] = [
       { label: 'Compliant Submissions', value: 7 },
       { label: 'Anomalous Submissions', value: 5 },
@@ -1040,6 +629,9 @@ describe('dashboard formulas', () => {
       anomalousSubmissionCount: 0,
     }
 
-    expect(mapReadingSubmissionStatusFromAnalytics(response, fallbackData)).toEqual([])
+    expect(mapReadingSubmissionStatusFromAnalytics(response, fallbackData)).toEqual([
+      { label: 'Compliant Submissions', value: 0 },
+      { label: 'Anomalous Submissions', value: 0 },
+    ])
   })
 })

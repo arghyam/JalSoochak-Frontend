@@ -25,6 +25,13 @@ interface SupplyOutageDistributionChartProps {
 }
 
 const outageColors = ['#D6E9F6', '#ADD3ED', '#84BDE3', '#3291D1', '#1E577D', '#6BAED6', '#9ECAE1']
+const legacyOutageReasonKeys = [
+  'electricityFailure',
+  'pipelineLeak',
+  'pumpFailure',
+  'valveIssue',
+  'sourceDrying',
+] as const
 const outageReasonTranslationKeys: Record<string, string> = {
   electricityFailure: 'outageAndSubmissionCharts.legend.electricalFailure',
   pipelineLeak: 'outageAndSubmissionCharts.legend.pipelineBreak',
@@ -33,14 +40,13 @@ const outageReasonTranslationKeys: Record<string, string> = {
   sourceDrying: 'outageAndSubmissionCharts.legend.sourceDrying',
 }
 
-const toDisplayLabel = (value: string) =>
+const toTitleCase = (value: string) =>
   value
     .replace(/[_-]+/g, ' ')
     .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
     .replace(/\s+/g, ' ')
     .trim()
-    .toLowerCase()
-    .replace(/^\w/, (character) => character.toUpperCase())
+    .replace(/\b\w/g, (character) => character.toUpperCase())
 
 const getOutageReasonLabel = (
   reasonKey: string,
@@ -48,10 +54,27 @@ const getOutageReasonLabel = (
 ) => {
   const translationKey = outageReasonTranslationKeys[reasonKey]
   if (translationKey) {
-    return toDisplayLabel(t(translationKey, { defaultValue: toDisplayLabel(reasonKey) }))
+    return t(translationKey, { defaultValue: toTitleCase(reasonKey) })
   }
 
-  return toDisplayLabel(reasonKey)
+  return toTitleCase(reasonKey)
+}
+
+const getLegacyOutageReasonValue = (entry: WaterSupplyOutageData, reasonKey: string) => {
+  switch (reasonKey) {
+    case 'electricityFailure':
+      return entry.electricityFailure
+    case 'pipelineLeak':
+      return entry.pipelineLeak
+    case 'pumpFailure':
+      return entry.pumpFailure
+    case 'valveIssue':
+      return entry.valveIssue
+    case 'sourceDrying':
+      return entry.sourceDrying
+    default:
+      return 0
+  }
 }
 
 export function SupplyOutageDistributionChart({
@@ -66,7 +89,6 @@ export function SupplyOutageDistributionChart({
   const barWidth = useBreakpointValue({ base: 28, sm: 28, md: 42, lg: 66 }) ?? 66
   const barRadius = useBreakpointValue({ base: 8, sm: 10, md: 12 }) ?? 12
   const barCategoryGap = '24px'
-  const xAxisLabelMargin = 14
   const chartScrollRef = useRef<HTMLDivElement>(null)
   const scrollbarTrackRef = useRef<HTMLDivElement>(null)
   const scrollbarThumbRef = useRef<HTMLDivElement>(null)
@@ -81,7 +103,12 @@ export function SupplyOutageDistributionChart({
     const reasonKeys = new Set<string>()
 
     data.forEach((entry) => {
-      Object.keys(entry.reasons ?? {}).forEach((reasonKey) => reasonKeys.add(reasonKey))
+      if (entry.reasons && Object.keys(entry.reasons).length > 0) {
+        Object.keys(entry.reasons ?? {}).forEach((reasonKey) => reasonKeys.add(reasonKey))
+        return
+      }
+
+      legacyOutageReasonKeys.forEach((reasonKey) => reasonKeys.add(reasonKey))
     })
 
     return Array.from(reasonKeys)
@@ -92,11 +119,14 @@ export function SupplyOutageDistributionChart({
         color: outageColors[index % outageColors.length],
         data: data.length
           ? data.map((entry) => {
-              const rawValue = entry.reasons?.[reasonKey]
-              if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
-                return rawValue
+              if (entry.reasons && Object.keys(entry.reasons).length > 0) {
+                const rawValue = entry.reasons?.[reasonKey]
+                if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
+                  return rawValue
+                }
               }
-              return 0
+
+              return getLegacyOutageReasonValue(entry, reasonKey)
             })
           : [0],
       }))
@@ -123,8 +153,6 @@ export function SupplyOutageDistributionChart({
     () => Math.ceil(yAxisMax / yAxisInterval) * yAxisInterval,
     [yAxisInterval, yAxisMax]
   )
-  const chartGridTop = 24
-  const chartGridBottom = 112
 
   const option = useMemo<echarts.EChartsOption>(() => {
     const seriesCount = chartItems.length
@@ -156,9 +184,9 @@ export function SupplyOutageDistributionChart({
       grid: {
         left: 0,
         right: '4%',
-        top: chartGridTop,
-        bottom: chartGridBottom,
-        containLabel: false,
+        top: 10,
+        bottom: 10,
+        containLabel: true,
       },
       xAxis: {
         type: 'category',
@@ -173,7 +201,7 @@ export function SupplyOutageDistributionChart({
           show: true,
           rotate: 45,
           interval: 0,
-          margin: xAxisLabelMargin,
+          margin: 8,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
@@ -254,11 +282,8 @@ export function SupplyOutageDistributionChart({
     bodyText7,
     categories,
     chartItems,
-    chartGridBottom,
-    chartGridTop,
     data,
     alignedYAxisMax,
-    xAxisLabelMargin,
     yAxisInterval,
   ])
 
@@ -270,9 +295,9 @@ export function SupplyOutageDistributionChart({
       grid: {
         left: 0,
         right: 0,
-        top: chartGridTop,
-        bottom: chartGridBottom,
-        containLabel: false,
+        top: 10,
+        bottom: 10,
+        containLabel: true,
       },
       xAxis: {
         type: 'category',
@@ -286,7 +311,7 @@ export function SupplyOutageDistributionChart({
         axisLabel: {
           show: true,
           rotate: 45,
-          margin: xAxisLabelMargin,
+          margin: 8,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
@@ -325,7 +350,7 @@ export function SupplyOutageDistributionChart({
       ],
       animation: false,
     }
-  }, [alignedYAxisMax, bodyText7, chartGridBottom, chartGridTop, xAxisLabelMargin, yAxisInterval])
+  }, [alignedYAxisMax, bodyText7, yAxisInterval])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
   const legendItems = chartItems.map((item) => ({
@@ -427,18 +452,14 @@ export function SupplyOutageDistributionChart({
           <EChartsWrapper option={axisOption} height="100%" />
           <Box
             position="absolute"
-            left="0px"
+            left="-18px"
             top="50%"
-            transform="translateY(-50%) rotate(-180deg)"
+            transform="translateY(-50%) rotate(-90deg)"
+            transformOrigin="center"
             textStyle="bodyText7"
             fontWeight="400"
             color={bodyText7.color}
             whiteSpace="nowrap"
-            pointerEvents="none"
-            sx={{
-              writingMode: 'vertical-rl',
-              textOrientation: 'mixed',
-            }}
           >
             {t('outageAndSubmissionCharts.axis.noOfDays', { defaultValue: 'No. of days' })}
           </Box>

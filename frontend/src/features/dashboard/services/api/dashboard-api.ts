@@ -32,6 +32,7 @@ import type {
   WaterQuantityPeriodicQueryParams,
   WaterQuantityPeriodicResponse,
 } from '../../types'
+import { dashboardMockService } from '../mock/dashboard-mock'
 
 export interface DashboardQueryParams {
   level: DashboardLevel
@@ -219,6 +220,10 @@ const shouldRethrowHierarchyResolutionError = (error: unknown): boolean => {
   return !hasInvalidHierarchyIndicator(error)
 }
 
+type DashboardDataProvider = {
+  getDashboardData: (params: DashboardQueryParams) => Promise<DashboardData>
+}
+
 const isDashboardDataPayload = (value: unknown): value is DashboardData => {
   if (!value || typeof value !== 'object') {
     return false
@@ -254,25 +259,50 @@ const ensureValidParams = ({ level, entityId }: DashboardQueryParams): void => {
   }
 }
 
-const httpProvider: {
-  getDashboardData: (params: DashboardQueryParams) => Promise<DashboardData>
-} = {
-  getDashboardData: async ({ level, entityId }: DashboardQueryParams) => {
+const httpProvider: DashboardDataProvider = {
+  getDashboardData: async ({ level, entityId }) => {
     ensureValidParams({ level, entityId })
     const endpoint =
       level === 'central' ? '/api/dashboard/central' : `/api/dashboard/${level}/${entityId}`
     const response = await apiClient.get<DashboardData>(endpoint)
-    if (!isDashboardDataPayload(response.data)) {
-      throw new Error('Dashboard API returned an invalid payload')
-    }
-
     return response.data
   },
 }
 
+const mockProvider: DashboardDataProvider = {
+  getDashboardData: ({ level, entityId }) => {
+    ensureValidParams({ level, entityId })
+    return dashboardMockService.getDashboardData(level, entityId)
+  },
+}
+
+const httpWithMockFallbackProvider: DashboardDataProvider = {
+  getDashboardData: async (params) => {
+    try {
+      const response = await httpProvider.getDashboardData(params)
+      if (isDashboardDataPayload(response)) {
+        return response
+      }
+    } catch (error) {
+      console.warn('Dashboard API failed, falling back to mock data.', error)
+    }
+
+    return mockProvider.getDashboardData(params)
+  },
+}
+
+const DASHBOARD_PROVIDER = import.meta.env.VITE_DASHBOARD_DATA_PROVIDER ?? 'http-first'
+
+const provider: DashboardDataProvider =
+  DASHBOARD_PROVIDER === 'mock'
+    ? mockProvider
+    : DASHBOARD_PROVIDER === 'http'
+      ? httpProvider
+      : httpWithMockFallbackProvider
+
 export const dashboardApi = {
   getDashboardData: (params: DashboardQueryParams): Promise<DashboardData> =>
-    httpProvider.getDashboardData(params),
+    provider.getDashboardData(params),
   getNationalDashboard: async (
     params: NationalDashboardQueryParams
   ): Promise<NationalDashboardResponse> => {
