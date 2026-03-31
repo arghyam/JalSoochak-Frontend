@@ -35,7 +35,7 @@ export function MonthlyTrendChart({
   height = '400px',
   maxItems = 5,
   isPercent = false,
-  xAxisLabel = 'Time',
+  xAxisLabel = 'Month',
   yAxisLabel = 'Value',
   seriesName = 'Trend',
 }: MonthlyTrendChartProps) {
@@ -54,74 +54,26 @@ export function MonthlyTrendChart({
 
   const defaultItemWidth = 90
   const minItemWidth = 70
-  const yAxisTitleGutter = 24
-  const chartGridTop = 24
-  const chartGridBottom = 88
-  const xAxisLabelMargin = 16
-  const yAxisTickMargin = -12
-  const yAxisTitleInset = 0
   const effectiveItemWidth =
     containerWidth > 0
       ? Math.max(minItemWidth, Math.floor(containerWidth / Math.max(data.length, 1)))
       : defaultItemWidth
   const itemWidth = Math.min(defaultItemWidth, effectiveItemWidth)
+  const axisWidth = '56px'
+  const axisLabelOffset = '-25px'
   const longestPeriodLabel = useMemo(() => {
     return data.reduce((longest, item) => {
       return item.period.length > longest.length ? item.period : longest
     }, '')
   }, [data])
 
-  const formatYAxisTick = useCallback(
-    (value: number) => {
-      if (!Number.isFinite(value)) {
-        return ''
-      }
-
-      if (isPercent) {
-        if (Number.isInteger(value)) {
-          return String(value)
-        }
-
-        return value.toFixed(1)
-      }
-
-      if (Math.abs(value) >= 1000) {
-        return new Intl.NumberFormat('en-IN', {
-          maximumFractionDigits: 0,
-        }).format(value)
-      }
-
-      if (Number.isInteger(value)) {
-        return String(value)
-      }
-
-      return value.toFixed(1)
-    },
-    [isPercent]
-  )
-
   const yAxisScale = useMemo(() => {
     const values = data.map((item) => item.value)
-    if (isPercent) {
-      return { max: 100, interval: 25 as number | undefined }
-    }
-
     const maxValue = values.length > 0 ? Math.max(...values) : 0
     const max = maxValue > 100 ? Math.ceil(maxValue / 10) * 10 : 100
 
-    return { max, interval: undefined }
-  }, [data, isPercent])
-
-  const formattedYAxisMaxLabel = useMemo(
-    () => formatYAxisTick(yAxisScale.max),
-    [formatYAxisTick, yAxisScale.max]
-  )
-  const axisWidth = useMemo(() => {
-    const digitWidth = 8
-    const basePadding = 8
-    const tickLabelWidth = Math.max(56, formattedYAxisMaxLabel.length * digitWidth + basePadding)
-    return `${tickLabelWidth + yAxisTitleGutter}px`
-  }, [formattedYAxisMaxLabel, yAxisTitleGutter])
+    return { max }
+  }, [data])
 
   const option = useMemo<EChartsOption>(() => {
     const periods = data.map((item) => item.period)
@@ -173,9 +125,9 @@ export function MonthlyTrendChart({
       grid: {
         left: '0%',
         right: '4%',
-        top: chartGridTop,
-        bottom: chartGridBottom,
-        containLabel: false,
+        top: '10%',
+        bottom: '9%',
+        containLabel: true,
       },
       xAxis: {
         type: 'category',
@@ -190,9 +142,7 @@ export function MonthlyTrendChart({
           show: false,
         },
         axisLabel: {
-          rotate: 45,
-          interval: 0,
-          margin: xAxisLabelMargin,
+          rotate: 0,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
@@ -219,7 +169,6 @@ export function MonthlyTrendChart({
         },
         min: 0,
         max: yAxisScale.max,
-        interval: yAxisScale.interval,
       },
       series: [
         {
@@ -239,17 +188,7 @@ export function MonthlyTrendChart({
         },
       ],
     }
-  }, [
-    bodyText7,
-    chartGridBottom,
-    chartGridTop,
-    data,
-    isPercent,
-    seriesName,
-    xAxisLabelMargin,
-    yAxisScale.interval,
-    yAxisScale.max,
-  ])
+  }, [bodyText7, data, isPercent, seriesName, yAxisScale.max])
 
   const axisOption = useMemo<EChartsOption>(() => {
     const placeholderLabel = longestPeriodLabel || 'W'
@@ -258,11 +197,11 @@ export function MonthlyTrendChart({
         show: false,
       },
       grid: {
-        left: '0%',
+        left: '20%',
         right: 0,
-        top: chartGridTop,
-        bottom: chartGridBottom,
-        containLabel: false,
+        top: '10%',
+        bottom: '9%',
+        containLabel: true,
       },
       xAxis: {
         type: 'category',
@@ -275,9 +214,7 @@ export function MonthlyTrendChart({
         },
         axisLabel: {
           show: true,
-          rotate: 45,
-          interval: 0,
-          margin: xAxisLabelMargin,
+          margin: 8,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
@@ -290,16 +227,14 @@ export function MonthlyTrendChart({
         position: 'right',
         axisLabel: {
           align: 'right',
-          margin: yAxisTickMargin,
+          margin: 5,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
           color: bodyText7.color,
-          formatter: (value: number) => formatYAxisTick(value),
         },
         min: 0,
         max: yAxisScale.max,
-        interval: yAxisScale.interval,
         splitLine: {
           show: false,
         },
@@ -316,17 +251,7 @@ export function MonthlyTrendChart({
       ],
       animation: false,
     }
-  }, [
-    bodyText7,
-    chartGridBottom,
-    chartGridTop,
-    formatYAxisTick,
-    longestPeriodLabel,
-    xAxisLabelMargin,
-    yAxisTickMargin,
-    yAxisScale.interval,
-    yAxisScale.max,
-  ])
+  }, [bodyText7, longestPeriodLabel, yAxisScale.max])
 
   const baseChartWidth = data.length * itemWidth
   const chartPixelWidth =
@@ -491,22 +416,14 @@ export function MonthlyTrendChart({
           <EChartsWrapper option={axisOption} height="100%" />
           <Box
             position="absolute"
-            left={`${yAxisTitleInset}px`}
+            left={axisLabelOffset}
             top="50%"
-            transform="translateY(-50%) rotate(180deg)"
+            transform="translateY(-50%) rotate(-90deg)"
+            transformOrigin="center"
             textStyle="bodyText7"
             fontWeight="400"
             color={bodyText7.color}
             whiteSpace="nowrap"
-            pointerEvents="none"
-            zIndex={1}
-            sx={{
-              writingMode: 'vertical-rl',
-              textOrientation: 'mixed',
-              backfaceVisibility: 'hidden',
-              WebkitFontSmoothing: 'antialiased',
-              MozOsxFontSmoothing: 'grayscale',
-            }}
           >
             {yAxisLabel}
           </Box>

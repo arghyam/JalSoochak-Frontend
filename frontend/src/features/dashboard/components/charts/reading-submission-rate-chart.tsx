@@ -15,24 +15,6 @@ interface ReadingSubmissionRateChartProps {
   entityLabel?: string
 }
 
-const formatYAxisTick = (value: number) => {
-  if (!Number.isFinite(value)) {
-    return ''
-  }
-
-  if (Math.abs(value) >= 1000) {
-    return new Intl.NumberFormat('en-IN', {
-      maximumFractionDigits: 0,
-    }).format(value)
-  }
-
-  if (Number.isInteger(value)) {
-    return String(value)
-  }
-
-  return value.toFixed(1)
-}
-
 export function ReadingSubmissionRateChart({
   data,
   className,
@@ -58,24 +40,14 @@ export function ReadingSubmissionRateChart({
 
   const defaultItemWidth = 90
   const minItemWidth = 70
-  const xAxisLabelMargin = 14
-  const chartGridTop = 24
-  const chartGridBottom = 88
-  const yAxisTitleGutter = 24
-  const yAxisTickMargin = -12
   const effectiveItemWidth =
     containerWidth > 0
       ? Math.max(minItemWidth, Math.floor(containerWidth / Math.max(data.length, 1)))
       : defaultItemWidth
   const itemWidth = Math.min(defaultItemWidth, effectiveItemWidth)
+  const axisWidth = '56px'
+  const axisLabelOffset = '-25px'
   const dynamicBarWidth = Math.min(barWidth, Math.max(12, Math.floor(itemWidth * 0.6)))
-  const formattedYAxisMaxLabel = useMemo(() => formatYAxisTick(100), [])
-  const axisWidth = useMemo(() => {
-    const digitWidth = 8
-    const basePadding = 8
-    const tickLabelWidth = Math.max(56, formattedYAxisMaxLabel.length * digitWidth + basePadding)
-    return `${tickLabelWidth + yAxisTitleGutter}px`
-  }, [formattedYAxisMaxLabel, yAxisTitleGutter])
   const longestEntityLabel = useMemo(() => {
     return data.reduce((longest, item) => {
       return item.name.length > longest.length ? item.name : longest
@@ -156,9 +128,9 @@ export function ReadingSubmissionRateChart({
       grid: {
         left: '0%',
         right: '4%',
-        top: chartGridTop,
-        bottom: chartGridBottom,
-        containLabel: false,
+        top: '10%',
+        bottom: '5%',
+        containLabel: true,
       },
       xAxis: {
         type: 'category',
@@ -174,7 +146,7 @@ export function ReadingSubmissionRateChart({
         axisLabel: {
           rotate: 45,
           interval: 0,
-          margin: xAxisLabelMargin,
+          margin: 8,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
@@ -216,7 +188,7 @@ export function ReadingSubmissionRateChart({
         },
       ],
     }
-  }, [barRadius, bodyText7, chartGridBottom, chartGridTop, data, dynamicBarWidth, t])
+  }, [barRadius, bodyText7, data, dynamicBarWidth, t])
 
   const axisOption = useMemo<echarts.EChartsOption>(() => {
     const placeholderLabel = longestEntityLabel || 'W'
@@ -225,11 +197,11 @@ export function ReadingSubmissionRateChart({
         show: false,
       },
       grid: {
-        left: '0%',
+        left: '20%',
         right: 0,
-        top: chartGridTop,
-        bottom: chartGridBottom,
-        containLabel: false,
+        top: '10%',
+        bottom: '5%',
+        containLabel: true,
       },
       xAxis: {
         type: 'category',
@@ -243,7 +215,7 @@ export function ReadingSubmissionRateChart({
         axisLabel: {
           show: true,
           rotate: 45,
-          margin: xAxisLabelMargin,
+          margin: 8,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
@@ -256,12 +228,11 @@ export function ReadingSubmissionRateChart({
         position: 'right',
         axisLabel: {
           align: 'right',
-          margin: yAxisTickMargin,
+          margin: 5,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
           color: bodyText7.color,
-          formatter: (value: number) => formatYAxisTick(value),
         },
         min: 0,
         max: 100,
@@ -282,14 +253,7 @@ export function ReadingSubmissionRateChart({
       ],
       animation: false,
     }
-  }, [
-    bodyText7,
-    chartGridBottom,
-    chartGridTop,
-    longestEntityLabel,
-    xAxisLabelMargin,
-    yAxisTickMargin,
-  ])
+  }, [bodyText7, longestEntityLabel])
 
   const baseChartWidth = data.length * itemWidth
   const chartPixelWidth =
@@ -408,22 +372,14 @@ export function ReadingSubmissionRateChart({
           <EChartsWrapper option={axisOption} height="100%" />
           <Box
             position="absolute"
-            left="0px"
+            left={axisLabelOffset}
             top="50%"
-            transform="translateY(-50%) rotate(180deg)"
+            transform="translateY(-50%) rotate(-90deg)"
+            transformOrigin="center"
             textStyle="bodyText7"
             fontWeight="400"
             color={bodyText7.color}
             whiteSpace="nowrap"
-            pointerEvents="none"
-            zIndex={1}
-            sx={{
-              writingMode: 'vertical-rl',
-              textOrientation: 'mixed',
-              backfaceVisibility: 'hidden',
-              WebkitFontSmoothing: 'antialiased',
-              MozOsxFontSmoothing: 'grayscale',
-            }}
           >
             {t('outageAndSubmissionCharts.axis.percentage', { defaultValue: 'Percentage' })}
           </Box>

@@ -50,20 +50,20 @@ export function Header() {
             <Text
               color="primary.500"
               fontFamily="Geist, sans-serif"
-              fontSize={{ base: '16px', md: '24px' }}
+              fontSize={{ base: '18px', md: '24px' }}
               fontStyle="normal"
               fontWeight="600"
-              lineHeight={{ base: '24px', md: '36px' }}
+              lineHeight={{ base: '28px', md: '36px' }}
             >
               {headerTitle}
             </Text>
             <Text
               color="primary.500"
               fontFamily="Geist, sans-serif"
-              fontSize={{ base: '14px', md: '20px' }}
+              fontSize={{ base: '16px', md: '20px' }}
               fontStyle="normal"
               fontWeight="500"
-              lineHeight={{ base: '20px', md: '36px' }}
+              lineHeight={{ base: '24px', md: '36px' }}
             >
               {headerSubtitle}
             </Text>

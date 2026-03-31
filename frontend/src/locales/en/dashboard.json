@@ -74,32 +74,6 @@
       "quantityInLpcd": "Quantity in LPCD",
       "regularity": "Regularity"
     },
-    "tooltips": {
-      "quantityMld": {
-        "formulaLabel": "Quantity (MLD)",
-        "definitions": {
-          "waterQuantitySupplied": "water quantity supplied on day k",
-          "totalWaterSupplied": "total water supplied across all days",
-          "totalNumberOfDays": "total number of days"
-        }
-      },
-      "quantityLpcd": {
-        "formulaLabel": "Quantity (LPCD)",
-        "definitions": {
-          "waterQuantitySupplied": "water quantity supplied on day k",
-          "functionalHouseholdTapConnections": "functional household tap connections of scheme i",
-          "averagePersonsPerHousehold": "average persons per household",
-          "numberOfDays": "number of days"
-        }
-      },
-      "regularity": {
-        "formulaLabel": "Regularity of scheme",
-        "definitions": {
-          "numberOfSupplyDays": "number of supply-days of scheme i",
-          "totalNumberOfDaysInSelectedPeriod": "total number of days in the selected time period"
-        }
-      }
-    },
     "trends": {
       "percentDownLastDays": "-{{change}}% vs last {{days}} days",
       "lpcdUpLastMonth": "+{{change}} LPCD vs last month",
@@ -108,7 +82,7 @@
   },
   "overallPerformance": {
     "title": "Overall Performance",
-    "noData": "No data available",
+    "noData": "No data",
     "columns": {
       "entity": "State/UT",
       "quantityMld": "Quantity (MLD)",
@@ -189,7 +163,7 @@
         "columns": {
           "name": "Name",
           "village": "Village",
-          "lastSubmission": "Submission Date &Time",
+          "lastSubmission": "Last Submission",
           "readingValue": "Reading Value"
         }
       }

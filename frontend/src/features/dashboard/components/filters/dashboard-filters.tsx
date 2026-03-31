@@ -16,7 +16,6 @@ import {
   slugify,
   toCapitalizedWords,
 } from '../../utils/format-location-label'
-import { toStableLocationValue } from '../../utils/stable-location-value'
 import type { HierarchyType } from '../../services/api/dashboard-api'
 import type { TenantChildLocation } from '../../services/api/dashboard-api'
 
@@ -63,11 +62,11 @@ type DashboardFiltersProps = {
   onActiveTrailChange?: (trailIndex: number | null) => void
 }
 
-type LocationOption = SearchableSelectOption & {
-  locationId?: number
-  analyticsId?: number
-}
+type LocationOption = SearchableSelectOption & { locationId?: number }
 const LOCATION_VALUE_SEPARATOR = ':'
+
+const toStableLocationValue = (locationId: number, label: string): string =>
+  `${locationId}${LOCATION_VALUE_SEPARATOR}${slugify(label)}`
 
 const parseLocationId = (value: string): number | undefined => {
   if (!value) {
@@ -112,18 +111,12 @@ const mapLocationOptions = (locations: TenantChildLocation[] | undefined): Locat
     if (!normalizedTitle) {
       return []
     }
-    const slug = slugify(normalizedTitle)
 
     const locationId = location.id
-    const analyticsId =
-      typeof location.lgdCode === 'number' && Number.isFinite(location.lgdCode)
-        ? location.lgdCode
-        : locationId
     return {
-      value: toStableLocationValue(locationId, analyticsId, slug),
+      value: toStableLocationValue(locationId, normalizedTitle),
       label: normalizedTitle,
       locationId,
-      analyticsId,
     }
   })
 }
@@ -303,19 +296,9 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   )
   const findLabel = (value: string, options: SearchableSelectOption[]): string | null => {
     if (!value) return null
-    const selectedId = parseLocationId(value)
     return (
-      options.find((option) => {
-        if (option.value === value || slugify(option.label) === value) {
-          return true
-        }
-
-        if (typeof selectedId === 'number') {
-          return parseLocationId(option.value) === selectedId
-        }
-
-        return false
-      })?.label ?? null
+      options.find((option) => option.value === value || slugify(option.label) === value)?.label ??
+      null
     )
   }
   const selectionTrail = [
@@ -326,8 +309,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     findLabel(selectedVillage, resolvedVillageOptions),
   ].filter((item): item is string => Boolean(item))
   const hasHierarchySelection = selectionTrail.length > 0
-  const hasActiveFilters = hasHierarchySelection || Boolean(selectedDuration)
-  const clearButtonHoverStyles = hasActiveFilters
+  const clearButtonHoverStyles = hasHierarchySelection
     ? { textDecoration: 'underline', textDecorationColor: 'neutral.300' }
     : { textDecoration: 'none' }
 
@@ -435,7 +417,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
         onTabChange,
       }}
       closedTrailSlot={
-        isBelowLgFilters && hasActiveFilters ? (
+        isBelowLgFilters && hasHierarchySelection ? (
           <Flex w="full" justify="flex-end">
             <Button
               variant="link"
@@ -443,7 +425,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
               whiteSpace="nowrap"
               onClick={onClear}
               minW={0}
-              isDisabled={!hasActiveFilters}
+              isDisabled={!hasHierarchySelection}
               _hover={clearButtonHoverStyles}
             >
               <Text textStyle="h10" fontWeight="600" color="neutral.300" fontSize="14px">
@@ -478,7 +460,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
               whiteSpace="nowrap"
               onClick={onClear}
               minW={0}
-              isDisabled={!hasActiveFilters}
+              isDisabled={!hasHierarchySelection}
               _hover={clearButtonHoverStyles}
             >
               <Text
