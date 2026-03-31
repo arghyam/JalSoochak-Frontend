@@ -190,7 +190,8 @@ export function MonthlyTrendChart({
           show: false,
         },
         axisLabel: {
-          rotate: 0,
+          rotate: 45,
+          interval: 0,
           margin: xAxisLabelMargin,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
@@ -274,6 +275,8 @@ export function MonthlyTrendChart({
         },
         axisLabel: {
           show: true,
+          rotate: 45,
+          interval: 0,
           margin: xAxisLabelMargin,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,

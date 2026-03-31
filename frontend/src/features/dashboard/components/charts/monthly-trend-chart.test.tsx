@@ -75,7 +75,13 @@ describe('MonthlyTrendChart', () => {
 
     const chartOption = (
       mockEChartsWrapper.mock.calls as Array<
-        [{ option?: { xAxis?: { axisLabel?: { margin?: number } } } }]
+        [
+          {
+            option?: {
+              xAxis?: { axisLabel?: { margin?: number; rotate?: number; interval?: number } }
+            }
+          },
+        ]
       >
     )
       .map(([props]) => props.option)
@@ -90,6 +96,8 @@ describe('MonthlyTrendChart', () => {
       .find((option) => option?.yAxis?.axisLabel?.margin !== undefined)
 
     expect(chartOption?.xAxis?.axisLabel?.margin).toBe(16)
+    expect(chartOption?.xAxis?.axisLabel?.rotate).toBe(45)
+    expect(chartOption?.xAxis?.axisLabel?.interval).toBe(0)
     expect(axisOption?.yAxis?.axisLabel?.margin).toBe(-12)
   })
 })
