@@ -427,7 +427,7 @@ export function SupplyOutageDistributionChart({
           <EChartsWrapper option={axisOption} height="100%" />
           <Box
             position="absolute"
-            left="4px"
+            left="0px"
             top="50%"
             transform="translateY(-50%) rotate(-180deg)"
             textStyle="bodyText7"

@@ -44,9 +44,14 @@ export function ReadingSubmissionStatusChart({
     },
     [t]
   )
+  const hasRenderableData = useMemo(
+    () => data.some((entry) => Number.isFinite(entry.value) && entry.value > 0),
+    [data]
+  )
+  const chartData = hasRenderableData ? data : []
 
   const option = useMemo<echarts.EChartsOption>(() => {
-    const totalSubmissions = data.reduce((sum, entry) => sum + entry.value, 0)
+    const totalSubmissions = chartData.reduce((sum, entry) => sum + entry.value, 0)
 
     return {
       tooltip: {
@@ -83,7 +88,7 @@ export function ReadingSubmissionStatusChart({
           labelLine: {
             show: false,
           },
-          data: data.map((entry, index) => ({
+          data: chartData.map((entry, index) => ({
             name: localizedLegendLabel(entry.label),
             value: entry.value,
             itemStyle: {
@@ -98,12 +103,12 @@ export function ReadingSubmissionStatusChart({
         },
       ],
     }
-  }, [data, localizedLegendLabel])
+  }, [chartData, localizedLegendLabel])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
   const legendItems =
-    data.length > 0
-      ? data.map((entry, index) => ({
+    chartData.length > 0
+      ? chartData.map((entry, index) => ({
           key: entry.label,
           label: localizedLegendLabel(entry.label),
           color: defaultColors[index % defaultColors.length],

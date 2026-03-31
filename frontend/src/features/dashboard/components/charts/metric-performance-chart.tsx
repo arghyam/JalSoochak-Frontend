@@ -113,7 +113,7 @@ export function MetricPerformanceChart({
   const chartGridBottom = 88
   const yAxisTitleGutter = 24
   const yAxisTickMargin = -12
-  const yAxisTitleInset = 6
+  const yAxisTitleInset = 0
   const axisWidth = useMemo(() => {
     const digitWidth = 8
     const basePadding = 8

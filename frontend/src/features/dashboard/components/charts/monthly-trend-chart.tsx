@@ -59,7 +59,7 @@ export function MonthlyTrendChart({
   const chartGridBottom = 88
   const xAxisLabelMargin = 16
   const yAxisTickMargin = -12
-  const yAxisTitleInset = 6
+  const yAxisTitleInset = 0
   const effectiveItemWidth =
     containerWidth > 0
       ? Math.max(minItemWidth, Math.floor(containerWidth / Math.max(data.length, 1)))

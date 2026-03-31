@@ -105,7 +105,9 @@ export function DashboardBody({
     [data.supplyOutageTrend]
   )
   const isOutageDistributionSelectDisabled =
-    waterSupplyOutageDistributionData.length === 0 && outageDistributionTimeTrendData.length === 0
+    outageDistributionViewBy === 'geography'
+      ? waterSupplyOutageDistributionData.length === 0
+      : outageDistributionTimeTrendData.length === 0
   const geographyEntityLabel = isStateScreen
     ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
     : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })

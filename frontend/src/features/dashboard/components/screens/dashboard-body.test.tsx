@@ -292,6 +292,24 @@ describe('DashboardBody', () => {
     ).not.toBeNull()
   })
 
+  it('disables metric selectors on geography when geography data is empty even if time data exists', () => {
+    renderDashboardBody({
+      quantityPerformanceData: [],
+      regularityPerformanceData: [],
+      quantityTimeTrendData: [{ period: 'Jan', value: 10 }],
+      regularityTimeTrendData: [{ period: 'Jan', value: 20 }],
+    })
+
+    expect(
+      screen.getByRole('button', { name: 'Quantity performance view by' }).getAttribute('disabled')
+    ).not.toBeNull()
+    expect(
+      screen
+        .getByRole('button', { name: 'Regularity performance view by' })
+        .getAttribute('disabled')
+    ).not.toBeNull()
+  })
+
   it('switches each card to time chart independently', () => {
     renderDashboardBody()
 
@@ -642,6 +660,28 @@ describe('DashboardBody', () => {
     })
 
     expect(screen.getByText('Supply Outage Distribution')).toBeTruthy()
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(
+      screen
+        .getByRole('button', { name: 'State supply outage distribution view by' })
+        .getAttribute('disabled')
+    ).not.toBeNull()
+  })
+
+  it('disables the outage distribution selector on geography when geography data is empty even if trend data exists', () => {
+    renderDashboardBody({
+      isStateSelected: true,
+      isDistrictSelected: false,
+      isBlockSelected: false,
+      isGramPanchayatSelected: false,
+      selectedVillage: '',
+      waterSupplyOutageDistributionData: [],
+      data: {
+        ...mockDashboardData,
+        supplyOutageTrend: [{ period: 'Jan', value: 12 }],
+      },
+    })
+
     expect(screen.getByText('No data available')).toBeTruthy()
     expect(
       screen

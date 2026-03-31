@@ -4,8 +4,10 @@ import type {
   AverageWaterSupplyPerRegionResponse,
   EntityPerformance,
   NationalDashboardResponse,
+  PumpOperatorsData,
   ReadingSubmissionStatusData,
   ReadingSubmissionRateResponse,
+  SchemePerformanceResponse,
   SubmissionStatusResponse,
   WaterSupplyOutageData,
 } from '../types'
@@ -20,6 +22,7 @@ import {
   getRegularityKpiFromPeriodic,
   mapOutageReasonsFromNationalDashboard,
   mapSchemePerformanceToTable,
+  mapSchemePerformanceToPumpOperators,
   mapReadingSubmissionStatusFromAnalytics,
   mapReadingSubmissionRateFromAnalytics,
   mapReadingSubmissionRateFromNationalDashboard,
@@ -938,7 +941,28 @@ describe('dashboard formulas', () => {
     expect(mapReadingSubmissionStatusFromAnalytics(undefined, fallbackData)).toEqual([])
   })
 
-  it('uses a zero-valued submission status response instead of fallback data', () => {
+  it('returns no schemes chart slices when scheme performance counts are both zero', () => {
+    const fallbackData: PumpOperatorsData[] = [{ label: 'Legacy active', value: 7 }]
+    const response: SchemePerformanceResponse = {
+      parentLgdId: 1,
+      parentDepartmentId: 0,
+      parentLgdCName: 'state',
+      parentDepartmentCName: '',
+      parentLgdTitle: 'Assam',
+      parentDepartmentTitle: '',
+      startDate: '2026-03-01',
+      endDate: '2026-03-31',
+      daysInRange: 31,
+      activeSchemeCount: 0,
+      inactiveSchemeCount: 0,
+      topSchemeCount: 0,
+      topSchemes: [],
+    }
+
+    expect(mapSchemePerformanceToPumpOperators(response, fallbackData)).toEqual([])
+  })
+
+  it('returns no reading submission status slices when api counts are both zero', () => {
     const fallbackData: ReadingSubmissionStatusData[] = [
       { label: 'Compliant Submissions', value: 7 },
       { label: 'Anomalous Submissions', value: 5 },
@@ -951,9 +975,6 @@ describe('dashboard formulas', () => {
       anomalousSubmissionCount: 0,
     }
 
-    expect(mapReadingSubmissionStatusFromAnalytics(response, fallbackData)).toEqual([
-      { label: 'Compliant Submissions', value: 0 },
-      { label: 'Anomalous Submissions', value: 0 },
-    ])
+    expect(mapReadingSubmissionStatusFromAnalytics(response, fallbackData)).toEqual([])
   })
 })

@@ -106,6 +106,20 @@ describe('ReadingSubmissionRateChart', () => {
     expect(chartOption?.xAxis?.axisLabel?.margin).toBe(14)
   })
 
+  it('matches metric chart y-axis tick spacing', () => {
+    renderWithProviders(<ReadingSubmissionRateChart data={chartData} />)
+
+    const axisOption = (
+      mockEChartsWrapper.mock.calls as Array<
+        [{ option?: { tooltip?: { show?: boolean }; yAxis?: { axisLabel?: { margin?: number } } } }]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((option) => option?.tooltip?.show === false)
+
+    expect(axisOption?.yAxis?.axisLabel?.margin).toBe(-12)
+  })
+
   it('enables tooltip and formats hovered value with percentage', () => {
     renderWithProviders(<ReadingSubmissionRateChart data={chartData} />)
 

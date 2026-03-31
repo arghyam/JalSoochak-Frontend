@@ -714,7 +714,7 @@ export const mapReadingSubmissionStatusFromAnalytics = (
   const anomalousCount = response.anomalousSubmissionCount ?? 0
   const totalCount = compliantCount + anomalousCount
 
-  if (Number.isNaN(totalCount)) {
+  if (Number.isNaN(totalCount) || totalCount <= 0) {
     return []
   }
 
@@ -732,9 +732,16 @@ export const mapSchemePerformanceToPumpOperators = (
     return fallbackData
   }
 
+  const activeSchemeCount = response.activeSchemeCount ?? 0
+  const inactiveSchemeCount = response.inactiveSchemeCount ?? 0
+
+  if (activeSchemeCount + inactiveSchemeCount <= 0) {
+    return []
+  }
+
   return [
-    { label: 'Active schemes', value: response.activeSchemeCount ?? 0 },
-    { label: 'Non-active schemes', value: response.inactiveSchemeCount ?? 0 },
+    { label: 'Active schemes', value: activeSchemeCount },
+    { label: 'Non-active schemes', value: inactiveSchemeCount },
   ]
 }
 

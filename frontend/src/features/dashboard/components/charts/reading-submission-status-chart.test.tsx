@@ -65,4 +65,18 @@ describe('ReadingSubmissionStatusChart', () => {
 
     expect(screen.getByText('No data available')).toBeTruthy()
   })
+
+  it('shows a no data available legend item when all pie values are zero', () => {
+    renderWithProviders(
+      <ReadingSubmissionStatusChart
+        data={[
+          { label: 'Complaint Submission', value: 0 },
+          { label: 'Anomalous Submissions', value: 0 },
+        ]}
+        height="336px"
+      />
+    )
+
+    expect(screen.getByText('No data available')).toBeTruthy()
+  })
 })

@@ -65,7 +65,9 @@ export function DistrictDashboardScreen({
     [data.supplyOutageTrend]
   )
   const isOutageDistributionSelectDisabled =
-    waterSupplyOutageDistributionData.length === 0 && outageDistributionTimeTrendData.length === 0
+    outageDistributionViewBy === 'geography'
+      ? waterSupplyOutageDistributionData.length === 0
+      : outageDistributionTimeTrendData.length === 0
   return (
     <>
       {/* Quantity + Regularity */}

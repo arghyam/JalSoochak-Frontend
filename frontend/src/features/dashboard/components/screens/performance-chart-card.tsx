@@ -52,11 +52,12 @@ export function PerformanceChartCard({
   selectColor,
   selectBorderColor,
 }: PerformanceChartCardProps) {
+  const hasGeographyData = data.length > 0
+  const hasTimeData = timeTrendData.length > 0
   const isSelectDisabled =
-    data.length === 0 &&
-    timeTrendData.length === 0 &&
-    !isTimeTrendLoading &&
-    !isTimeTrendAwaitingParams
+    viewBy === 'geography'
+      ? !hasGeographyData
+      : !hasTimeData && !isTimeTrendLoading && !isTimeTrendAwaitingParams
 
   return (
     <Box
