@@ -21,6 +21,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { EditIcon, WarningTwoIcon } from '@chakra-ui/icons'
 import { FiUpload } from 'react-icons/fi'
+import { IoInformation } from 'react-icons/io5'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ActionTooltip, ToastContainer } from '@/shared/components/common'
 import {
@@ -505,17 +506,19 @@ export function ConfigurationPage() {
               <VStack spacing={6} align="stretch">
                 {/* Supported Channels — 2-column vertical flow */}
                 <FormControl isInvalid={!!errors.supportedChannels}>
-                  <Text
-                    fontSize={{ base: 'xs', md: 'sm' }}
-                    fontWeight="medium"
-                    color="neutral.950"
-                    mb={3}
-                  >
-                    {t('configuration.sections.supportedChannels.title')}
-                    <Text as="span" color="error.500" ml={1}>
-                      *
+                  <Flex align="center" gap={1} mb={3}>
+                    <Text
+                      fontSize={{ base: 'xs', md: 'sm' }}
+                      fontWeight="medium"
+                      color="neutral.950"
+                    >
+                      {t('configuration.sections.supportedChannels.title')}
+                      <Text as="span" color="error.500" ml={1}>
+                        *
+                      </Text>
                     </Text>
-                  </Text>
+                    <FieldInfoIcon tooltip={t('configuration.infoText.supportedChannels')} />
+                  </Flex>
                   {isSystemChannelsLoading ? (
                     <Flex align="center" gap={2}>
                       <Spinner size="sm" color="primary.500" />
@@ -613,6 +616,7 @@ export function ConfigurationPage() {
                 {/* 4. Meter Change Reasons */}
                 <MeterChangeReasonsSection
                   title={t('configuration.sections.meterChangeReasons.title')}
+                  infoTooltip={t('configuration.infoText.meterChangeReasons')}
                   reasons={activeDraft.meterChangeReasons}
                   errors={errors}
                   onClearError={clearError}
@@ -627,6 +631,7 @@ export function ConfigurationPage() {
                 {/* 5. Supply Outage Reasons */}
                 <SupplyOutageReasonsSection
                   title={t('configuration.sections.supplyOutageReasons.title')}
+                  infoTooltip={t('configuration.infoText.supplyOutageReasons')}
                   reasons={activeDraft.supplyOutageReasons}
                   errors={errors}
                   onClearError={clearError}
@@ -642,14 +647,16 @@ export function ConfigurationPage() {
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
                   {/* Record Location */}
                   <Box>
-                    <Text
-                      fontSize={{ base: 'xs', md: 'sm' }}
-                      fontWeight="medium"
-                      color="neutral.950"
-                      mb={3}
-                    >
-                      {t('configuration.sections.locationCheckRequired.title')}
-                    </Text>
+                    <Flex align="center" gap={1} mb={3}>
+                      <Text
+                        fontSize={{ base: 'xs', md: 'sm' }}
+                        fontWeight="medium"
+                        color="neutral.950"
+                      >
+                        {t('configuration.sections.locationCheckRequired.title')}
+                      </Text>
+                      <FieldInfoIcon tooltip={t('configuration.infoText.locationCheckRequired')} />
+                    </Flex>
                     <RadioGroup
                       value={activeDraft.locationCheckRequired ? 'yes' : 'no'}
                       onChange={(val) =>
@@ -676,14 +683,16 @@ export function ConfigurationPage() {
 
                   {/* Display Department Maps */}
                   <Box>
-                    <Text
-                      fontSize={{ base: 'xs', md: 'sm' }}
-                      fontWeight="medium"
-                      color="neutral.950"
-                      mb={3}
-                    >
-                      {t('configuration.sections.displayDepartmentMaps.title')}
-                    </Text>
+                    <Flex align="center" gap={1} mb={3}>
+                      <Text
+                        fontSize={{ base: 'xs', md: 'sm' }}
+                        fontWeight="medium"
+                        color="neutral.950"
+                      >
+                        {t('configuration.sections.displayDepartmentMaps.title')}
+                      </Text>
+                      <FieldInfoIcon tooltip={t('configuration.infoText.displayDepartmentMaps')} />
+                    </Flex>
                     <RadioGroup
                       value={activeDraft.displayDepartmentMaps ? 'yes' : 'no'}
                       onChange={(val) =>
@@ -712,17 +721,19 @@ export function ConfigurationPage() {
                 {/* 7. Data Consolidation Time + Pump Operator Reminder Nudge Time */}
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
                   <FormControl isInvalid={!!errors.dataConsolidationTime}>
-                    <Text
-                      as="label"
-                      htmlFor="data-consolidation-time"
-                      fontSize={{ base: 'xs', md: 'sm' }}
-                      fontWeight="medium"
-                      color="neutral.950"
-                      mb={1}
-                      display="block"
-                    >
-                      {t('configuration.sections.dataConsolidationTime.title')}
-                    </Text>
+                    <Flex align="center" gap={1} mb={1}>
+                      <Text
+                        as="label"
+                        htmlFor="data-consolidation-time"
+                        fontSize={{ base: 'xs', md: 'sm' }}
+                        fontWeight="medium"
+                        color="neutral.950"
+                        display="block"
+                      >
+                        {t('configuration.sections.dataConsolidationTime.title')}
+                      </Text>
+                      <FieldInfoIcon tooltip={t('configuration.infoText.dataConsolidationTime')} />
+                    </Flex>
                     <Input
                       id="data-consolidation-time"
                       type="time"
@@ -747,17 +758,21 @@ export function ConfigurationPage() {
                     <FormErrorMessage>{errors.dataConsolidationTime}</FormErrorMessage>
                   </FormControl>
                   <FormControl isInvalid={!!errors.pumpOperatorReminderNudgeTime}>
-                    <Text
-                      as="label"
-                      htmlFor="pump-operator-nudge-time"
-                      fontSize={{ base: 'xs', md: 'sm' }}
-                      fontWeight="medium"
-                      color="neutral.950"
-                      mb={1}
-                      display="block"
-                    >
-                      {t('configuration.sections.pumpOperatorReminderNudgeTime.title')}
-                    </Text>
+                    <Flex align="center" gap={1} mb={1}>
+                      <Text
+                        as="label"
+                        htmlFor="pump-operator-nudge-time"
+                        fontSize={{ base: 'xs', md: 'sm' }}
+                        fontWeight="medium"
+                        color="neutral.950"
+                        display="block"
+                      >
+                        {t('configuration.sections.pumpOperatorReminderNudgeTime.title')}
+                      </Text>
+                      <FieldInfoIcon
+                        tooltip={t('configuration.infoText.pumpOperatorReminderNudgeTime')}
+                      />
+                    </Flex>
                     <Input
                       id="pump-operator-nudge-time"
                       type="time"
@@ -787,6 +802,7 @@ export function ConfigurationPage() {
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
                   <DateFormatSection
                     title={t('configuration.sections.dateFormatScreen.title')}
+                    infoTooltip={t('configuration.infoText.dateFormatScreen')}
                     value={activeDraft.dateFormatScreen}
                     onChange={(val) =>
                       setDraft((prev) => ({
@@ -797,6 +813,7 @@ export function ConfigurationPage() {
                   />
                   <DateFormatSection
                     title={t('configuration.sections.dateFormatTable.title')}
+                    infoTooltip={t('configuration.infoText.dateFormatTable')}
                     value={activeDraft.dateFormatTable}
                     onChange={(val) =>
                       setDraft((prev) => ({
@@ -810,17 +827,21 @@ export function ConfigurationPage() {
                 {/* 9. Average Members Per Household */}
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
                   <FormControl isInvalid={!!errors.averageMembersPerHousehold}>
-                    <Text
-                      as="label"
-                      htmlFor="avg-members"
-                      fontSize={{ base: 'xs', md: 'sm' }}
-                      fontWeight="medium"
-                      color="neutral.950"
-                      mb={1}
-                      display="block"
-                    >
-                      {t('configuration.sections.averageMembersPerHousehold.title')}
-                    </Text>
+                    <Flex align="center" gap={1} mb={1}>
+                      <Text
+                        as="label"
+                        htmlFor="avg-members"
+                        fontSize={{ base: 'xs', md: 'sm' }}
+                        fontWeight="medium"
+                        color="neutral.950"
+                        display="block"
+                      >
+                        {t('configuration.sections.averageMembersPerHousehold.title')}
+                      </Text>
+                      <FieldInfoIcon
+                        tooltip={t('configuration.infoText.averageMembersPerHousehold')}
+                      />
+                    </Flex>
                     <Input
                       id="avg-members"
                       type="number"
@@ -860,14 +881,16 @@ export function ConfigurationPage() {
 
                 {/* 10. Logo (last) */}
                 <FormControl isInvalid={!!errors.logo}>
-                  <Text
-                    fontSize={{ base: 'xs', md: 'sm' }}
-                    fontWeight="medium"
-                    color="neutral.950"
-                    mb={3}
-                  >
-                    {t('configuration.sections.logo.title')}
-                  </Text>
+                  <Flex align="center" gap={1} mb={3}>
+                    <Text
+                      fontSize={{ base: 'xs', md: 'sm' }}
+                      fontWeight="medium"
+                      color="neutral.950"
+                    >
+                      {t('configuration.sections.logo.title')}
+                    </Text>
+                    <FieldInfoIcon tooltip={t('configuration.infoText.logo')} />
+                  </Flex>
                   <HStack spacing={3} align="center" flexWrap="wrap">
                     {activeDraft.logoUrl && (
                       <Box
@@ -952,6 +975,22 @@ export function ConfigurationPage() {
 }
 
 // ─── View Mode ────────────────────────────────────────────────────────────────
+
+function FieldInfoIcon({ tooltip }: { tooltip: string }) {
+  return (
+    <ActionTooltip label={tooltip}>
+      <Flex
+        as="span"
+        align="center"
+        color="neutral.400"
+        cursor="default"
+        _hover={{ color: 'primary.500' }}
+      >
+        <IoInformation size={16} aria-label={tooltip} />
+      </Flex>
+    </ActionTooltip>
+  )
+}
 
 function ViewField({ label, value, color }: { label: string; value: string; color?: string }) {
   return (

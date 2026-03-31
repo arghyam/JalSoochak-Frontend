@@ -10,12 +10,15 @@ import {
   FormErrorMessage,
 } from '@chakra-ui/react'
 import { MdDeleteOutline } from 'react-icons/md'
+import { IoInformation } from 'react-icons/io5'
 import { useTranslation } from 'react-i18next'
 import type { SupplyOutageReason } from '../../types/configuration'
 import { isEmptyOrWhitespace } from '@/shared/utils/validation'
+import { ActionTooltip } from '@/shared/components/common'
 
 interface SupplyOutageReasonsSectionProps {
   title: string
+  infoTooltip?: string
   reasons: SupplyOutageReason[]
   onChange: (reasons: SupplyOutageReason[]) => void
   errors?: Record<string, string>
@@ -24,6 +27,7 @@ interface SupplyOutageReasonsSectionProps {
 
 export function SupplyOutageReasonsSection({
   title,
+  infoTooltip,
   reasons,
   onChange,
   errors,
@@ -58,9 +62,24 @@ export function SupplyOutageReasonsSection({
 
   return (
     <Box>
-      <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" color="neutral.950" mb={3}>
-        {title}
-      </Text>
+      <Flex align="center" gap={1} mb={3}>
+        <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" color="neutral.950">
+          {title}
+        </Text>
+        {infoTooltip && (
+          <ActionTooltip label={infoTooltip}>
+            <Flex
+              as="span"
+              align="center"
+              color="neutral.400"
+              cursor="default"
+              _hover={{ color: 'primary.500' }}
+            >
+              <IoInformation size={16} aria-label={infoTooltip} />
+            </Flex>
+          </ActionTooltip>
+        )}
+      </Flex>
 
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={3} mb={reasons.length > 0 ? 3 : 0}>
         {reasons.map((reason) => {

@@ -471,6 +471,19 @@
         "title": "Average Members Per Household"
       }
     },
+    "infoText": {
+      "supportedChannels": "Channels through which schemes track the released water flow.",
+      "meterChangeReasons": "Reasons field operators can select when logging a meter replacement event.",
+      "supplyOutageReasons": "Reasons field operators can select when reporting a water supply disruption.",
+      "locationCheckRequired": "When enabled, field operators must share their GPS location when submitting readings.",
+      "displayDepartmentMaps": "When enabled, departmental map views are shown on the dashboard.",
+      "dataConsolidationTime": "Daily time at which field data is compiled and consolidated for reporting.",
+      "pumpOperatorReminderNudgeTime": "Daily time at which automated reminders are sent to pump operators who have not yet submitted readings.",
+      "dateFormatScreen": "Date, time, and timezone format used across all on-screen displays such as dashboards.",
+      "dateFormatTable": "Date, time, and timezone format used in data tables and exported reports.",
+      "averageMembersPerHousehold": "Used to estimate per-capita water consumption from household-level supply data. Accepted range: 1–20.",
+      "logo": "Organization's logo displayed in the app. PNG or JPG, max 2 MB."
+    },
     "aria": {
       "form": "Configuration form",
       "editConfiguration": "Edit configuration",

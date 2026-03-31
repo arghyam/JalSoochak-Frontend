@@ -1,7 +1,8 @@
-import { Box, Text, VStack } from '@chakra-ui/react'
+import { Box, Text, VStack, Flex } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { useMemo } from 'react'
-import { SearchableSelect } from '@/shared/components/common'
+import { IoInformation } from 'react-icons/io5'
+import { SearchableSelect, ActionTooltip } from '@/shared/components/common'
 import type { DateFormatConfig } from '../../types/configuration'
 
 const DATE_FORMAT_OPTIONS = [
@@ -19,11 +20,12 @@ const TIME_FORMAT_OPTIONS = [
 
 interface DateFormatSectionProps {
   title: string
+  infoTooltip?: string
   value: DateFormatConfig
   onChange: (value: DateFormatConfig) => void
 }
 
-export function DateFormatSection({ title, value, onChange }: DateFormatSectionProps) {
+export function DateFormatSection({ title, infoTooltip, value, onChange }: DateFormatSectionProps) {
   const { t } = useTranslation('state-admin')
 
   const timezoneOptions = useMemo(
@@ -37,9 +39,24 @@ export function DateFormatSection({ title, value, onChange }: DateFormatSectionP
 
   return (
     <Box>
-      <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" color="neutral.950" mb={3}>
-        {title}
-      </Text>
+      <Flex align="center" gap={1} mb={3}>
+        <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" color="neutral.950">
+          {title}
+        </Text>
+        {infoTooltip && (
+          <ActionTooltip label={infoTooltip}>
+            <Flex
+              as="span"
+              align="center"
+              color="neutral.400"
+              cursor="default"
+              _hover={{ color: 'primary.500' }}
+            >
+              <IoInformation size={16} aria-label={infoTooltip} />
+            </Flex>
+          </ActionTooltip>
+        )}
+      </Flex>
       <VStack spacing={3} align="stretch">
         <Box>
           <Text fontSize="xs" color="neutral.600" mb={1}>
