@@ -306,7 +306,7 @@ export function MetricPerformanceChart({
         position: 'right',
         axisLabel: {
           align: 'right',
-          margin: 4,
+          margin: -2,
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,

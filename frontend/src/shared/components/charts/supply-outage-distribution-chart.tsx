@@ -25,13 +25,6 @@ interface SupplyOutageDistributionChartProps {
 }
 
 const outageColors = ['#D6E9F6', '#ADD3ED', '#84BDE3', '#3291D1', '#1E577D', '#6BAED6', '#9ECAE1']
-const legacyOutageReasonKeys = [
-  'electricityFailure',
-  'pipelineLeak',
-  'pumpFailure',
-  'valveIssue',
-  'sourceDrying',
-] as const
 const outageReasonTranslationKeys: Record<string, string> = {
   electricityFailure: 'outageAndSubmissionCharts.legend.electricalFailure',
   pipelineLeak: 'outageAndSubmissionCharts.legend.pipelineBreak',
@@ -46,6 +39,7 @@ const toTitleCase = (value: string) =>
     .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
     .replace(/\s+/g, ' ')
     .trim()
+    .toLowerCase()
     .replace(/\b\w/g, (character) => character.toUpperCase())
 
 const getOutageReasonLabel = (
@@ -58,23 +52,6 @@ const getOutageReasonLabel = (
   }
 
   return toTitleCase(reasonKey)
-}
-
-const getLegacyOutageReasonValue = (entry: WaterSupplyOutageData, reasonKey: string) => {
-  switch (reasonKey) {
-    case 'electricityFailure':
-      return entry.electricityFailure
-    case 'pipelineLeak':
-      return entry.pipelineLeak
-    case 'pumpFailure':
-      return entry.pumpFailure
-    case 'valveIssue':
-      return entry.valveIssue
-    case 'sourceDrying':
-      return entry.sourceDrying
-    default:
-      return 0
-  }
 }
 
 export function SupplyOutageDistributionChart({
@@ -104,12 +81,7 @@ export function SupplyOutageDistributionChart({
     const reasonKeys = new Set<string>()
 
     data.forEach((entry) => {
-      if (entry.reasons && Object.keys(entry.reasons).length > 0) {
-        Object.keys(entry.reasons ?? {}).forEach((reasonKey) => reasonKeys.add(reasonKey))
-        return
-      }
-
-      legacyOutageReasonKeys.forEach((reasonKey) => reasonKeys.add(reasonKey))
+      Object.keys(entry.reasons ?? {}).forEach((reasonKey) => reasonKeys.add(reasonKey))
     })
 
     return Array.from(reasonKeys)
@@ -120,14 +92,11 @@ export function SupplyOutageDistributionChart({
         color: outageColors[index % outageColors.length],
         data: data.length
           ? data.map((entry) => {
-              if (entry.reasons && Object.keys(entry.reasons).length > 0) {
-                const rawValue = entry.reasons?.[reasonKey]
-                if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
-                  return rawValue
-                }
+              const rawValue = entry.reasons?.[reasonKey]
+              if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
+                return rawValue
               }
-
-              return getLegacyOutageReasonValue(entry, reasonKey)
+              return 0
             })
           : [0],
       }))
@@ -154,6 +123,8 @@ export function SupplyOutageDistributionChart({
     () => Math.ceil(yAxisMax / yAxisInterval) * yAxisInterval,
     [yAxisInterval, yAxisMax]
   )
+  const chartGridTop = 24
+  const chartGridBottom = 112
 
   const option = useMemo<echarts.EChartsOption>(() => {
     const seriesCount = chartItems.length
@@ -185,9 +156,9 @@ export function SupplyOutageDistributionChart({
       grid: {
         left: 0,
         right: '4%',
-        top: 10,
-        bottom: 10,
-        containLabel: true,
+        top: chartGridTop,
+        bottom: chartGridBottom,
+        containLabel: false,
       },
       xAxis: {
         type: 'category',
@@ -283,6 +254,8 @@ export function SupplyOutageDistributionChart({
     bodyText7,
     categories,
     chartItems,
+    chartGridBottom,
+    chartGridTop,
     data,
     alignedYAxisMax,
     xAxisLabelMargin,
@@ -297,9 +270,9 @@ export function SupplyOutageDistributionChart({
       grid: {
         left: 0,
         right: 0,
-        top: 10,
-        bottom: 10,
-        containLabel: true,
+        top: chartGridTop,
+        bottom: chartGridBottom,
+        containLabel: false,
       },
       xAxis: {
         type: 'category',
@@ -352,7 +325,7 @@ export function SupplyOutageDistributionChart({
       ],
       animation: false,
     }
-  }, [alignedYAxisMax, bodyText7, xAxisLabelMargin, yAxisInterval])
+  }, [alignedYAxisMax, bodyText7, chartGridBottom, chartGridTop, xAxisLabelMargin, yAxisInterval])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
   const legendItems = chartItems.map((item) => ({

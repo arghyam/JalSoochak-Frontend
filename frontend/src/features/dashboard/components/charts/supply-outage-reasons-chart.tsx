@@ -21,6 +21,7 @@ const toTitleCase = (value: string) =>
     .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
     .replace(/\s+/g, ' ')
     .trim()
+    .toLowerCase()
     .replace(/\b\w/g, (character) => character.toUpperCase())
 
 export function SupplyOutageReasonsChart({

@@ -199,7 +199,7 @@ describe('SupplyOutageDistributionChart', () => {
     expect(screen.getByText('Custom Reason')).toBeTruthy()
   })
 
-  it('uses legacy outage counts for rows without reasons when payload shapes are mixed', () => {
+  it('uses only api-provided reasons keys for series and legends', () => {
     renderWithProviders(
       <SupplyOutageDistributionChart
         data={[
@@ -215,7 +215,7 @@ describe('SupplyOutageDistributionChart', () => {
             sourceDrying: 0,
           },
           {
-            label: 'Legacy row',
+            label: 'Row without reasons',
             electricityFailure: 0,
             pipelineLeak: 0,
             pumpFailure: 7,
@@ -226,6 +226,8 @@ describe('SupplyOutageDistributionChart', () => {
         height="300px"
       />
     )
+
+    expect(screen.queryByText('Valve issue')).toBeNull()
 
     const option = (
       mockEChartsWrapper.mock.calls as Array<
@@ -244,10 +246,9 @@ describe('SupplyOutageDistributionChart', () => {
 
     const series = option?.series ?? []
     const pumpFailureSeries = series.find((entry) => entry.name === 'Pump failure')
-    const valveIssueSeries = series.find((entry) => entry.name === 'Valve issue')
 
-    expect(pumpFailureSeries?.data).toEqual([3, 7])
-    expect(valveIssueSeries?.data).toEqual([0, 2])
+    expect(series).toHaveLength(1)
+    expect(pumpFailureSeries?.data).toEqual([3, 0])
   })
 
   it('keeps the left axis scale aligned with the plotted bar chart scale', () => {
@@ -256,6 +257,13 @@ describe('SupplyOutageDistributionChart', () => {
         data={[
           {
             label: 'High total',
+            reasons: {
+              electricityFailure: 60,
+              pipelineLeak: 55,
+              pumpFailure: 40,
+              valveIssue: 35,
+              sourceDrying: 20,
+            },
             electricityFailure: 60,
             pipelineLeak: 55,
             pumpFailure: 40,
