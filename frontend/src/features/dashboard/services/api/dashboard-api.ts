@@ -767,7 +767,7 @@ export const dashboardApi = {
   getTenantChildLocations: async (params: {
     tenantId: number
     hierarchyType: HierarchyType
-    parentId: number
+    parentId?: number
     tenantCode?: string
   }): Promise<TenantChildLocationsResponse> => {
     const { tenantId, hierarchyType, parentId } = params
@@ -776,7 +776,10 @@ export const dashboardApi = {
     let lastError: unknown = null
 
     for (const candidate of hierarchyTypeCandidates) {
-      const endpoint = `/api/v1/tenants/${tenantId}/locations/${candidate}/children/${parentId}`
+      const endpoint =
+        typeof parentId === 'number'
+          ? `/api/v1/tenants/${tenantId}/locations/${candidate}?parentId=${parentId}`
+          : `/api/v1/tenants/${tenantId}/locations/${candidate}`
       try {
         const response = await apiClient.get<TenantChildLocationsResponse>(endpoint)
         hierarchyTypeResolutionCache.set(cacheKey, candidate)

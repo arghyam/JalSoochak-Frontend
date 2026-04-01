@@ -1963,7 +1963,7 @@ describe('CentralDashboard', () => {
     ;(useLocationChildrenQuery as jest.Mock).mockImplementation((args: unknown) => {
       const { parentId } = (args ?? {}) as { parentId?: number }
 
-      if (parentId === 0) {
+      if (parentId === undefined) {
         return {
           data: {
             data: [{ id: 18, title: 'Assam', lgdCode: 18 }],
@@ -2587,7 +2587,7 @@ describe('CentralDashboard', () => {
     ;(useLocationChildrenQuery as jest.Mock).mockImplementation((args: unknown) => {
       const { parentId } = (args ?? {}) as { parentId?: number }
 
-      if (parentId === 0) {
+      if (parentId === undefined) {
         return {
           data: {
             data: [{ id: 1, title: 'Telangana' }],

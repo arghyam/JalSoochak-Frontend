@@ -548,7 +548,6 @@ export function CentralDashboard() {
   const { data: rootLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
-    parentId: 0,
     tenantCode: selectedTenant?.tenantCode,
     enabled: Boolean(selectedTenant?.tenantId),
   })
