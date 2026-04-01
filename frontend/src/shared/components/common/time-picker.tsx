@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Box, Flex, Text, Button, HStack, useOutsideClick } from '@chakra-ui/react'
 import type { ResponsiveValue } from '@chakra-ui/react'
 import { TimeIcon } from '@chakra-ui/icons'
@@ -137,6 +137,8 @@ export function TimePicker({
   const [focusedColumn, setFocusedColumn] = useState(0)
   const [focusedIndex, setFocusedIndex] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
 
   useOutsideClick({
     ref: containerRef,
@@ -161,10 +163,17 @@ export function TimePicker({
     setIsOpen(false)
   }
 
+  // Focus dropdown when opened, restore trigger focus on close
   useEffect(() => {
-    if (!isOpen) return
+    if (isOpen) {
+      dropdownRef.current?.focus()
+    } else {
+      triggerRef.current?.focus()
+    }
+  }, [isOpen])
 
-    const handleKeyDown = (e: KeyboardEvent) => {
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
       switch (e.key) {
         case 'Escape': {
           e.preventDefault()
@@ -229,11 +238,9 @@ export function TimePicker({
           break
         }
       }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, focusedColumn, focusedIndex, pending, onChange])
+    },
+    [focusedColumn, focusedIndex, pending, onChange]
+  )
 
   const displayTime = value
     ? (() => {
@@ -245,6 +252,7 @@ export function TimePicker({
   return (
     <Box position="relative" ref={containerRef} w={w}>
       <Flex
+        ref={triggerRef}
         as="button"
         type="button"
         id={id}
@@ -279,6 +287,9 @@ export function TimePicker({
 
       {isOpen && (
         <Box
+          ref={dropdownRef}
+          tabIndex={-1}
+          onKeyDown={handleKeyDown}
           position="absolute"
           top="calc(100% + 4px)"
           left={0}
@@ -290,6 +301,7 @@ export function TimePicker({
           boxShadow="0px 4px 6px -2px rgba(10, 13, 18, 0.03), 0px 12px 16px -4px rgba(10, 13, 18, 0.08)"
           w="240px"
           p="12px"
+          outline="none"
           role="dialog"
           aria-label="Time picker"
         >
@@ -310,7 +322,11 @@ export function TimePicker({
               <TimePickerColumn
                 items={HOURS}
                 selected={pending.hour}
-                onSelect={(h) => setPending((p) => ({ ...p, hour: h }))}
+                onSelect={(h) => {
+                  setPending((p) => ({ ...p, hour: h }))
+                  setFocusedColumn(0)
+                  setFocusedIndex(HOURS.indexOf(h))
+                }}
                 aria-label="Hour"
               />
             </Box>
@@ -319,7 +335,11 @@ export function TimePicker({
               <TimePickerColumn
                 items={MINUTES}
                 selected={pending.minute}
-                onSelect={(m) => setPending((p) => ({ ...p, minute: m }))}
+                onSelect={(m) => {
+                  setPending((p) => ({ ...p, minute: m }))
+                  setFocusedColumn(1)
+                  setFocusedIndex(MINUTES.indexOf(m))
+                }}
                 aria-label="Minute"
               />
             </Box>
@@ -328,7 +348,11 @@ export function TimePicker({
               <TimePickerColumn
                 items={AMPM_OPTIONS}
                 selected={pending.ampm}
-                onSelect={(a) => setPending((p) => ({ ...p, ampm: a as AmPm }))}
+                onSelect={(a) => {
+                  setPending((p) => ({ ...p, ampm: a as AmPm }))
+                  setFocusedColumn(2)
+                  setFocusedIndex(AMPM_OPTIONS.indexOf(a))
+                }}
                 aria-label="AM or PM"
               />
             </Box>
