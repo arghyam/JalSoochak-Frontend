@@ -17,7 +17,7 @@ import {
 import { EditIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer } from '@/shared/components/common'
+import { TimePicker, ToastContainer } from '@/shared/components/common'
 
 const MAX_ESCALATION_DAYS = 365
 import {
@@ -314,23 +314,15 @@ export function EscalationsFormPage() {
                   >
                     {t('escalations.scheduleTime')}
                   </Text>
-                  <Input
+                  <TimePicker
                     id="escalation-schedule-time"
-                    type="time"
-                    lang="en-GB"
                     value={activeSchedule}
-                    onChange={(e) => {
-                      setScheduleDraft(e.target.value)
+                    onChange={(val) => {
+                      setScheduleDraft(val)
                       clearError('scheduleTime')
                     }}
-                    h="36px"
+                    isInvalid={!!errors.scheduleTime}
                     w={{ base: '100%', lg: '350px', xl: '486px' }}
-                    fontSize="sm"
-                    borderColor="neutral.300"
-                    borderRadius="6px"
-                    _hover={{ borderColor: 'neutral.400' }}
-                    _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
-                    sx={{ '&::-webkit-datetime-edit-ampm-field': { display: 'none' } }}
                   />
                   <FormErrorMessage>{errors.scheduleTime}</FormErrorMessage>
                 </FormControl>
