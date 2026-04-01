@@ -74,7 +74,8 @@
       "email": "Email address",
       "phone": "Phone number",
       "secondaryEmail": "Secondary email address (optional)",
-      "contactNumber": "Contact number (optional)"
+      "contactNumber": "Contact number (optional)",
+      "noAdminDescription": "No state admin has been assigned to this state/UT. Invite one below."
     },
     "statusSection": {
       "title": "Status",
@@ -92,8 +93,12 @@
     },
     "buttons": {
       "addAndSendLink": "Add State & Send Link via Email",
-      "backToList": "Back to States/UTs"
+      "backToList": "Back to States/UTs",
+      "createStateUt": "Create State/UT",
+      "sendInvite": "Send Invite via Email",
+      "skipForNow": "Skip for Now"
     },
+    "step": "Step {{current}} of {{total}}",
     "messages": {
       "notFound": "State/UT not found",
       "noStatesFound": "No states/UTs found",
