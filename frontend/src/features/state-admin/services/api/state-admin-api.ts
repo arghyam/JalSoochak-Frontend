@@ -424,9 +424,9 @@ export const stateAdminApi = {
   },
   updateStateUTAdminStatus: async (id: string, status: 'active' | 'inactive'): Promise<void> => {
     if (status === 'inactive') {
-      await apiClient.put(`/api/v1/users/${id}/deactivate`)
+      await apiClient.post(`/api/v1/users/${id}/deactivate`)
     } else {
-      await apiClient.put(`/api/v1/users/${id}/activate`)
+      await apiClient.post(`/api/v1/users/${id}/activate`)
     }
   },
   inviteStateUTAdmin: async (payload: {
@@ -436,7 +436,7 @@ export const stateAdminApi = {
     email: string
     tenantCode: string
   }): Promise<void> => {
-    await apiClient.post('/api/v1/users/invite', {
+    await apiClient.post('/api/v1/users/invitations', {
       firstName: payload.firstName,
       lastName: payload.lastName,
       phoneNumber: payload.phoneNumber,
@@ -447,7 +447,7 @@ export const stateAdminApi = {
   },
 
   reinviteStateUTAdmin: async (id: string): Promise<void> => {
-    await apiClient.post(`/api/v1/users/${id}/reinvite`)
+    await apiClient.post(`/api/v1/users/${id}/invitations`)
   },
 
   // --- Real HTTP ---

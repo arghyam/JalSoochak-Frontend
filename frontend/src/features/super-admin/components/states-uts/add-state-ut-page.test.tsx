@@ -74,7 +74,7 @@ describe('AddStateUTPage', () => {
     it('Cancel button navigates to list', () => {
       renderWithProviders(<AddStateUTPage />)
       fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
-      expect(mockNavigate).toHaveBeenCalledWith('/super-user/states-uts')
+      expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SUPER_ADMIN_STATES_UTS)
     })
 
     it('calls createTenant mutation and transitions to step 2 on success', async () => {
@@ -164,15 +164,12 @@ describe('AddStateUTPage', () => {
     it('calls inviteUser mutation with correct payload and navigates on success', async () => {
       mockInviteUserMutateAsync.mockResolvedValue(undefined)
 
-      const allInputs = document.querySelectorAll('input')
-      const textInputs = Array.from(allInputs).filter((i) => i.type === 'text')
-      const phoneInput = Array.from(allInputs).find((i) => i.type === 'tel')
-      const emailInput = Array.from(allInputs).find((i) => i.type === 'email')
+      const [firstNameInput, lastNameInput, phoneInput, emailInput] = screen.getAllByRole('textbox')
 
-      if (textInputs[0]) fireEvent.change(textInputs[0], { target: { value: 'Raj' } })
-      if (textInputs[1]) fireEvent.change(textInputs[1], { target: { value: 'Sharma' } })
-      if (phoneInput) fireEvent.change(phoneInput, { target: { value: '9876543210' } })
-      if (emailInput) fireEvent.change(emailInput, { target: { value: 'raj@example.com' } })
+      fireEvent.change(firstNameInput, { target: { value: 'Raj' } })
+      fireEvent.change(lastNameInput, { target: { value: 'Sharma' } })
+      fireEvent.change(phoneInput, { target: { value: '9876543210' } })
+      fireEvent.change(emailInput, { target: { value: 'raj@example.com' } })
 
       fireEvent.click(screen.getByRole('button', { name: /send invite via email/i }))
 

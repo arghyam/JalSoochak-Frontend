@@ -136,7 +136,7 @@ export const superAdminApi = {
 
   updateTenantStatus: async (id: number, status: TenantStatus): Promise<void> => {
     if (status === 'INACTIVE') {
-      await apiClient.put(`/api/v1/tenants/${id}/deactivate`)
+      await apiClient.post(`/api/v1/tenants/${id}/deactivate`)
     } else {
       await apiClient.put(`/api/v1/tenants/${id}`, { status })
     }
@@ -196,7 +196,7 @@ export const superAdminApi = {
   },
 
   inviteUser: async (payload: InviteUserRequest): Promise<void> => {
-    await apiClient.post('/api/v1/users/invite', payload)
+    await apiClient.post('/api/v1/users/invitations', payload)
   },
 
   updateUser: async (id: string, payload: UpdateUserRequest): Promise<void> => {
@@ -205,13 +205,13 @@ export const superAdminApi = {
 
   updateUserStatus: async (id: string, status: 'active' | 'inactive'): Promise<void> => {
     if (status === 'inactive') {
-      await apiClient.put(`/api/v1/users/${id}/deactivate`)
+      await apiClient.post(`/api/v1/users/${id}/deactivate`)
     } else {
-      await apiClient.put(`/api/v1/users/${id}/activate`)
+      await apiClient.post(`/api/v1/users/${id}/activate`)
     }
   },
 
   reinviteUser: async (id: string): Promise<void> => {
-    await apiClient.post(`/api/v1/users/${id}/reinvite`)
+    await apiClient.post(`/api/v1/users/${id}/invitations`)
   },
 }

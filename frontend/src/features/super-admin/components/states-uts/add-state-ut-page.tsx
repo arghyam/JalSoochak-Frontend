@@ -48,10 +48,10 @@ export function AddStateUTPage() {
   const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    const timer = redirectTimerRef.current
     return () => {
-      if (timer !== null) {
-        clearTimeout(timer)
+      if (redirectTimerRef.current !== null) {
+        clearTimeout(redirectTimerRef.current)
+        redirectTimerRef.current = null
       }
     }
   }, [])
