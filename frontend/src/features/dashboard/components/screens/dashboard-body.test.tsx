@@ -710,6 +710,14 @@ describe('DashboardBody', () => {
           valveIssue: 1,
           sourceDrying: 1,
         },
+        {
+          label: 'District 2',
+          electricityFailure: 2,
+          pipelineLeak: 2,
+          pumpFailure: 2,
+          valveIssue: 2,
+          sourceDrying: 2,
+        },
       ],
       waterSupplyOutageDistributionData: mockDashboardData.waterSupplyOutages,
       data: {

@@ -289,13 +289,17 @@ const isDashboardDataPayload = (value: unknown): value is DashboardData => {
     Number.isFinite(kpis.totalSchemes) &&
     Number.isFinite(kpis.totalRuralHouseholds) &&
     Number.isFinite(kpis.functionalTapConnections)
+  const hasValidReadingCompliance =
+    Array.isArray(candidate.readingCompliance) ||
+    ((candidate.level === 'block' || candidate.level === 'gram-panchayat') &&
+      candidate.readingCompliance == null)
 
   return (
     hasValidKpis &&
     Array.isArray(candidate.mapData) &&
     Array.isArray(candidate.demandSupply) &&
     Array.isArray(candidate.readingSubmissionStatus) &&
-    Array.isArray(candidate.readingCompliance) &&
+    hasValidReadingCompliance &&
     Array.isArray(candidate.pumpOperators) &&
     Array.isArray(candidate.waterSupplyOutages) &&
     Array.isArray(candidate.topPerformers) &&

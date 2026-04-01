@@ -76,6 +76,60 @@ describe('dashboardApi.getNationalDashboard', () => {
     })
   })
 
+  it('handles direct NationalDashboardResponse', async () => {
+    mockGet.mockImplementation(async () => ({
+      data: {
+        startDate: '2026-03-03',
+        endDate: '2026-04-01',
+        daysInRange: 30,
+        stateWiseQuantityPerformance: [
+          {
+            tenantId: 17,
+            stateCode: 'AS',
+            stateTitle: 'Assam',
+            schemeCount: 17412,
+            totalHouseholdCount: 0,
+            totalAchievedFhtcCount: 2150302458,
+            totalPlannedFhtcCount: 4022202,
+            totalWaterSuppliedLiters: 9571163978,
+            avgWaterSupplyPerScheme: 549687.8003,
+          },
+        ],
+        stateWiseRegularity: [],
+        stateWiseReadingSubmissionRate: [],
+        overallOutageReasonDistribution: {},
+      },
+    }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+    const response = await dashboardApi.getNationalDashboard({
+      startDate: '2026-03-03',
+      endDate: '2026-04-01',
+    })
+
+    expect(response).toEqual({
+      startDate: '2026-03-03',
+      endDate: '2026-04-01',
+      daysInRange: 30,
+      stateWiseQuantityPerformance: [
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          stateTitle: 'Assam',
+          schemeCount: 17412,
+          totalHouseholdCount: 0,
+          totalAchievedFhtcCount: 2150302458,
+          totalPlannedFhtcCount: 4022202,
+          totalWaterSuppliedLiters: 9571163978,
+          avgWaterSupplyPerScheme: 549687.8003,
+        },
+      ],
+      stateWiseRegularity: [],
+      stateWiseReadingSubmissionRate: [],
+      overallOutageReasonDistribution: {},
+    })
+  })
+
   it('throws when the wrapped national dashboard response is missing data', async () => {
     mockGet.mockImplementation(async () => ({
       data: {
@@ -182,6 +236,37 @@ describe('dashboardApi.getDashboardData', () => {
     })
 
     expect(response.readingCompliance).toEqual(apiReadingCompliance)
+  })
+
+  it('uses mock reading compliance for gram-panchayat dashboards when the backend omits it', async () => {
+    mockGet.mockImplementation(async () => ({
+      data: {
+        level: 'gram-panchayat',
+        entityId: 'gp-1',
+        kpis: {
+          totalSchemes: 1,
+          totalRuralHouseholds: 2,
+          functionalTapConnections: 3,
+        },
+        mapData: [],
+        demandSupply: [],
+        readingSubmissionStatus: [],
+        pumpOperators: [],
+        waterSupplyOutages: [],
+        topPerformers: [],
+        worstPerformers: [],
+        regularityData: [],
+        continuityData: [],
+      },
+    }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+    const response = await dashboardApi.getDashboardData({
+      level: 'gram-panchayat',
+      entityId: 'gp-1',
+    })
+
+    expect(response.readingCompliance).toEqual(mockReadingCompliance)
   })
 })
 

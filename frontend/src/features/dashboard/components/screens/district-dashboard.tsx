@@ -19,7 +19,7 @@ import { PerformanceChartCard } from './performance-chart-card'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 import { ChartEmptyState, ViewBySelect } from '@/shared/components/common'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
-import { hasRenderableSupplyOutageReasons } from '../../utils/supply-outage'
+import { useOutageDistributionState } from './use-outage-distribution-state'
 
 type DistrictDashboardScreenProps = {
   data: DashboardData
@@ -65,15 +65,17 @@ export function DistrictDashboardScreen({
     () => data.supplyOutageTrend ?? [],
     [data.supplyOutageTrend]
   )
-  const hasOutageReasonsData = useMemo(
-    () => hasRenderableSupplyOutageReasons(waterSupplyOutagesData),
-    [waterSupplyOutagesData]
-  )
-  const isOutageDistributionSelectDisabled =
-    !hasOutageReasonsData ||
-    (outageDistributionViewBy === 'geography'
-      ? waterSupplyOutageDistributionData.length === 0
-      : outageDistributionTimeTrendData.length === 0)
+  const {
+    hasOutageReasonsData,
+    hasGeographyData,
+    hasTimeTrendData,
+    isOutageDistributionSelectDisabled,
+  } = useOutageDistributionState({
+    waterSupplyOutagesData,
+    outageDistributionViewBy,
+    waterSupplyOutageDistributionData,
+    outageDistributionTimeTrendData,
+  })
   return (
     <>
       {/* Quantity + Regularity */}
@@ -182,7 +184,7 @@ export function DistrictDashboardScreen({
           {!hasOutageReasonsData ? (
             <ChartEmptyState minHeight="400px" />
           ) : outageDistributionViewBy === 'geography' ? (
-            waterSupplyOutageDistributionData.length > 0 ? (
+            hasGeographyData ? (
               <SupplyOutageDistributionChart
                 data={waterSupplyOutageDistributionData}
                 height="400px"
@@ -191,7 +193,7 @@ export function DistrictDashboardScreen({
             ) : (
               <ChartEmptyState minHeight="400px" />
             )
-          ) : outageDistributionTimeTrendData.length > 0 ? (
+          ) : hasTimeTrendData ? (
             <MonthlyTrendChart
               data={outageDistributionTimeTrendData}
               height="400px"

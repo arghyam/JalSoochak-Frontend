@@ -122,7 +122,10 @@ export function ActiveSchemesChart({
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
   const chartSize = 300
-  const hasRenderableData = data.some((entry) => Number.isFinite(entry.value) && entry.value > 0)
+  const hasRenderableData = useMemo(
+    () => data.some((entry) => Number.isFinite(entry.value) && entry.value > 0),
+    [data]
+  )
   const legendItems = hasRenderableData
     ? data.map((entry, index) => ({
         key: `${entry.label}-${index}`,
@@ -224,7 +227,7 @@ export function ActiveSchemesChart({
           </div>
         ) : null}
       </div>
-      {note && hasRenderableData ? (
+      {note ? (
         <div
           style={{
             fontSize: bodyText7.fontSize,

@@ -22,8 +22,7 @@ export function registerIndiaMap(geoJsonData: unknown) {
  * Check if registered
  */
 export function isIndiaMapRegistered(): boolean {
-  const map = echarts.getMap('india')
-  return Boolean(map && map.geoJson)
+  return echarts.getMap('india') != null
 }
 
 export async function ensureIndiaMapRegistered() {

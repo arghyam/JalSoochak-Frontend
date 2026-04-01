@@ -22,7 +22,7 @@ import { StateUtDashboardScreen } from './state-ut-dashboard'
 import { ChartEmptyState, ViewBySelect } from '@/shared/components/common'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { VillageDashboardScreen } from './village-dashboard'
-import { hasRenderableSupplyOutageReasons } from '../../utils/supply-outage'
+import { useOutageDistributionState } from './use-outage-distribution-state'
 
 type DashboardBodyProps = {
   data: DashboardData
@@ -105,15 +105,17 @@ export function DashboardBody({
     () => data.supplyOutageTrend ?? [],
     [data.supplyOutageTrend]
   )
-  const hasOutageReasonsData = useMemo(
-    () => hasRenderableSupplyOutageReasons(waterSupplyOutagesData),
-    [waterSupplyOutagesData]
-  )
-  const isOutageDistributionSelectDisabled =
-    !hasOutageReasonsData ||
-    (outageDistributionViewBy === 'geography'
-      ? waterSupplyOutageDistributionData.length === 0
-      : outageDistributionTimeTrendData.length === 0)
+  const {
+    hasOutageReasonsData,
+    hasGeographyData,
+    hasTimeTrendData,
+    isOutageDistributionSelectDisabled,
+  } = useOutageDistributionState({
+    waterSupplyOutagesData,
+    outageDistributionViewBy,
+    waterSupplyOutageDistributionData,
+    outageDistributionTimeTrendData,
+  })
   const geographyEntityLabel = isStateScreen
     ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
     : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
@@ -264,7 +266,7 @@ export function DashboardBody({
                   {!hasOutageReasonsData ? (
                     <ChartEmptyState minHeight="100%" />
                   ) : outageDistributionViewBy === 'geography' ? (
-                    waterSupplyOutageDistributionData.length > 0 ? (
+                    hasGeographyData ? (
                       <SupplyOutageDistributionChart
                         data={waterSupplyOutageDistributionData}
                         height="100%"
@@ -273,7 +275,7 @@ export function DashboardBody({
                     ) : (
                       <ChartEmptyState minHeight="100%" />
                     )
-                  ) : outageDistributionTimeTrendData.length > 0 ? (
+                  ) : hasTimeTrendData ? (
                     <MonthlyTrendChart
                       data={outageDistributionTimeTrendData}
                       height="100%"
