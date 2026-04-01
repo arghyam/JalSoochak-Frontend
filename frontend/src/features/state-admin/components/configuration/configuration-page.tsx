@@ -23,7 +23,7 @@ import { EditIcon, WarningTwoIcon } from '@chakra-ui/icons'
 import { FiUpload } from 'react-icons/fi'
 import { IoInformation } from 'react-icons/io5'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ActionTooltip, ToastContainer } from '@/shared/components/common'
+import { ActionTooltip, TimePicker, ToastContainer } from '@/shared/components/common'
 import {
   useConfigurationQuery,
   useLogoQuery,
@@ -734,26 +734,18 @@ export function ConfigurationPage() {
                       </Text>
                       <FieldInfoIcon tooltip={t('configuration.infoText.dataConsolidationTime')} />
                     </Flex>
-                    <Input
+                    <TimePicker
                       id="data-consolidation-time"
-                      type="time"
-                      lang="en-GB"
                       value={activeDraft.dataConsolidationTime}
-                      onChange={(e) => {
+                      onChange={(val) => {
                         setDraft((prev) => ({
                           ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
-                          dataConsolidationTime: e.target.value,
+                          dataConsolidationTime: val,
                         }))
                         clearError('dataConsolidationTime')
                       }}
-                      h="36px"
+                      isInvalid={!!errors.dataConsolidationTime}
                       w={{ base: 'full', xl: '486px' }}
-                      fontSize="sm"
-                      borderColor="neutral.300"
-                      borderRadius="6px"
-                      _hover={{ borderColor: 'neutral.400' }}
-                      _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
-                      sx={{ '&::-webkit-datetime-edit-ampm-field': { display: 'none' } }}
                     />
                     <FormErrorMessage>{errors.dataConsolidationTime}</FormErrorMessage>
                   </FormControl>
@@ -773,26 +765,18 @@ export function ConfigurationPage() {
                         tooltip={t('configuration.infoText.pumpOperatorReminderNudgeTime')}
                       />
                     </Flex>
-                    <Input
+                    <TimePicker
                       id="pump-operator-nudge-time"
-                      type="time"
-                      lang="en-GB"
                       value={activeDraft.pumpOperatorReminderNudgeTime}
-                      onChange={(e) => {
+                      onChange={(val) => {
                         setDraft((prev) => ({
                           ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
-                          pumpOperatorReminderNudgeTime: e.target.value,
+                          pumpOperatorReminderNudgeTime: val,
                         }))
                         clearError('pumpOperatorReminderNudgeTime')
                       }}
-                      h="36px"
+                      isInvalid={!!errors.pumpOperatorReminderNudgeTime}
                       w={{ base: 'full', xl: '486px' }}
-                      fontSize="sm"
-                      borderColor="neutral.300"
-                      borderRadius="6px"
-                      _hover={{ borderColor: 'neutral.400' }}
-                      _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
-                      sx={{ '&::-webkit-datetime-edit-ampm-field': { display: 'none' } }}
                     />
                     <FormErrorMessage>{errors.pumpOperatorReminderNudgeTime}</FormErrorMessage>
                   </FormControl>
