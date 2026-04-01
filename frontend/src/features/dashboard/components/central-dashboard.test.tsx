@@ -374,6 +374,31 @@ describe('CentralDashboard', () => {
     })
   })
 
+  it('ignores stale filters from the inactive tab when deciding the national landing view', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 0,
+        selectedDepartmentState: '501:department-state',
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useNationalDashboardQuery).toHaveBeenCalledWith({
+      params: {
+        startDate: expect.any(String),
+        endDate: expect.any(String),
+      },
+      enabled: true,
+    })
+  })
+
   it('does not enable submission status analytics on the public central landing view', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -1913,6 +1938,86 @@ describe('CentralDashboard', () => {
     ])
   })
 
+  it('enables outage reasons analytics for a selected village using the village LGD id', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: {
+        ...mockDashboardData,
+        level: 'village',
+      },
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams(
+        'district=44:404:chirang&block=55:505:sidli-chirang&gramPanchayat=66:606:santipur&village=77:707:kherkheria-grant'
+      ),
+      jest.fn(),
+    ])
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 18, tenantCode: 'AS' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockImplementation((args: unknown) => {
+      const { parentId } = (args ?? {}) as { parentId?: number }
+
+      if (parentId === undefined) {
+        return {
+          data: {
+            data: [{ id: 18, title: 'Assam', lgdCode: 18 }],
+          },
+        }
+      }
+
+      if (parentId === 18) {
+        return {
+          data: {
+            data: [{ id: 44, title: 'Chirang', lgdCode: 404 }],
+          },
+        }
+      }
+
+      if (parentId === 44) {
+        return {
+          data: {
+            data: [{ id: 55, title: 'Sidli-Chirang', lgdCode: 505 }],
+          },
+        }
+      }
+
+      if (parentId === 55) {
+        return {
+          data: {
+            data: [{ id: 66, title: 'Santipur', lgdCode: 606 }],
+          },
+        }
+      }
+
+      if (parentId === 66) {
+        return {
+          data: {
+            data: [{ id: 77, title: 'Kherkheria Grant', lgdCode: 707 }],
+          },
+        }
+      }
+
+      return { data: undefined }
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useOutageReasonsQuery).toHaveBeenCalledWith({
+      params: {
+        startDate: expect.any(String),
+        endDate: expect.any(String),
+        parentLgdId: 707,
+      },
+      enabled: true,
+    })
+  })
+
   it('passes computed KPI values and comparison trends to KPI cards', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -2482,7 +2587,7 @@ describe('CentralDashboard', () => {
     ;(useLocationChildrenQuery as jest.Mock).mockImplementation((args: unknown) => {
       const { parentId } = (args ?? {}) as { parentId?: number }
 
-      if (parentId === 0) {
+      if (parentId === undefined) {
         return {
           data: {
             data: [{ id: 1, title: 'Telangana' }],

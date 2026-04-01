@@ -1,5 +1,6 @@
 import { apiClient } from '@/shared/lib/axios'
 import { isAxiosError } from 'axios'
+import { mockReadingCompliance } from '../mock/dashboard-mock'
 import type {
   AverageSchemeRegularityQueryParams,
   AverageSchemeRegularityResponse,
@@ -68,6 +69,21 @@ type RawPumpOperatorDetailsResponse = Omit<PumpOperatorDetailsResponse, 'data'> 
   }
 }
 
+type RawNationalDashboardPayload = {
+  success?: boolean
+  data?: NationalDashboardResponse
+}
+
+type RawAverageWaterSupplyPerRegionPayload = {
+  success?: boolean
+  data?: AverageWaterSupplyPerRegionResponse
+}
+
+type WrappedAnalyticsResponse<T> = {
+  success?: boolean
+  data?: T
+}
+
 const normalizeMissedSubmissionDays = (
   value: RawPumpOperatorDetailsResponse['data']['missedSubmissionDays']
 ) => {
@@ -76,6 +92,31 @@ const normalizeMissedSubmissionDays = (
   }
 
   return typeof value === 'number' ? value : null
+}
+
+const normalizeNationalDashboardResponse = (
+  response: NationalDashboardResponse | RawNationalDashboardPayload
+): NationalDashboardResponse => {
+  if (!response || typeof response !== 'object') {
+    throw new Error('Invalid national dashboard response: expected an object payload')
+  }
+
+  if ('stateWiseQuantityPerformance' in response) {
+    return response
+  }
+
+  const payload = response.data
+  if (!payload || typeof payload !== 'object') {
+    throw new Error('Invalid national dashboard response: missing data payload')
+  }
+
+  if (!('stateWiseQuantityPerformance' in payload)) {
+    throw new Error(
+      'Invalid national dashboard response: data payload is missing stateWiseQuantityPerformance'
+    )
+  }
+
+  return payload
 }
 
 const toTenantListContainer = (value: unknown): TenantListContainer | null => {
@@ -89,6 +130,22 @@ const toTenantListContainer = (value: unknown): TenantListContainer | null => {
     totalElements:
       typeof candidate.totalElements === 'number' ? candidate.totalElements : undefined,
   }
+}
+
+const unwrapAnalyticsResponse = <T>(
+  response: T | WrappedAnalyticsResponse<T>,
+  context: string
+): T | undefined => {
+  if (response && typeof response === 'object' && 'data' in response) {
+    const data = (response as WrappedAnalyticsResponse<T>).data
+    if (data == null) {
+      throw new Error(`Invalid ${context} response: wrapped payload is missing data`)
+    }
+
+    return data
+  }
+
+  return response as T
 }
 
 const resolveTenantListContainer = (value: TenantListResponse | undefined): TenantListContainer => {
@@ -232,13 +289,17 @@ const isDashboardDataPayload = (value: unknown): value is DashboardData => {
     Number.isFinite(kpis.totalSchemes) &&
     Number.isFinite(kpis.totalRuralHouseholds) &&
     Number.isFinite(kpis.functionalTapConnections)
+  const hasValidReadingCompliance =
+    Array.isArray(candidate.readingCompliance) ||
+    ((candidate.level === 'block' || candidate.level === 'gram-panchayat') &&
+      candidate.readingCompliance == null)
 
   return (
     hasValidKpis &&
     Array.isArray(candidate.mapData) &&
     Array.isArray(candidate.demandSupply) &&
     Array.isArray(candidate.readingSubmissionStatus) &&
-    Array.isArray(candidate.readingCompliance) &&
+    hasValidReadingCompliance &&
     Array.isArray(candidate.pumpOperators) &&
     Array.isArray(candidate.waterSupplyOutages) &&
     Array.isArray(candidate.topPerformers) &&
@@ -249,24 +310,37 @@ const isDashboardDataPayload = (value: unknown): value is DashboardData => {
 }
 
 const ensureValidParams = ({ level, entityId }: DashboardQueryParams): void => {
-  if (level !== 'central' && !entityId) {
+  if (!entityId) {
     throw new Error(`entityId is required for dashboard level: ${level}`)
   }
 }
+
+const shouldUseMockReadingCompliance = (level: DashboardLevel) =>
+  level === 'block' || level === 'gram-panchayat'
 
 const httpProvider: {
   getDashboardData: (params: DashboardQueryParams) => Promise<DashboardData>
 } = {
   getDashboardData: async ({ level, entityId }: DashboardQueryParams) => {
     ensureValidParams({ level, entityId })
-    const endpoint =
-      level === 'central' ? '/api/dashboard/central' : `/api/dashboard/${level}/${entityId}`
+    const endpoint = `/api/dashboard/${level}/${entityId}`
     const response = await apiClient.get<DashboardData>(endpoint)
     if (!isDashboardDataPayload(response.data)) {
       throw new Error('Dashboard API returned an invalid payload')
     }
 
-    return response.data
+    if (!shouldUseMockReadingCompliance(level)) {
+      return response.data
+    }
+
+    if (response.data.readingCompliance != null) {
+      return response.data
+    }
+
+    return {
+      ...response.data,
+      readingCompliance: mockReadingCompliance,
+    }
   },
 }
 
@@ -276,7 +350,7 @@ export const dashboardApi = {
   getNationalDashboard: async (
     params: NationalDashboardQueryParams
   ): Promise<NationalDashboardResponse> => {
-    const response = await apiClient.get<NationalDashboardResponse>(
+    const response = await apiClient.get<NationalDashboardResponse | RawNationalDashboardPayload>(
       '/api/v1/analytics/national/dashboard',
       {
         params: {
@@ -286,80 +360,131 @@ export const dashboardApi = {
       }
     )
 
-    return response.data
+    return normalizeNationalDashboardResponse(response.data)
   },
   getAverageWaterSupplyPerRegion: async (
     params: AverageWaterSupplyPerRegionQueryParams
   ): Promise<AverageWaterSupplyPerRegionResponse> => {
-    const response = await apiClient.get<AverageWaterSupplyPerRegionResponse>(
-      '/api/v1/analytics/water-supply/average-per-region',
-      {
-        params: {
-          tenant_id: params.tenantId,
-          parent_lgd_id: params.parentLgdId,
-          parent_department_id: params.parentDepartmentId,
-          scope: params.scope ?? 'child',
-          start_date: params.startDate,
-          end_date: params.endDate,
-        },
+    const response = await apiClient.get<
+      AverageWaterSupplyPerRegionResponse | RawAverageWaterSupplyPerRegionPayload
+    >('/api/v1/analytics/water-supply/average-per-region', {
+      params: {
+        tenant_id: params.tenantId,
+        parent_lgd_id: params.parentLgdId,
+        parent_department_id: params.parentDepartmentId,
+        scope: params.scope ?? 'child',
+        start_date: params.startDate,
+        end_date: params.endDate,
+      },
+    })
+
+    if ('childRegions' in response.data) {
+      return response.data
+    }
+
+    return (
+      response.data.data ?? {
+        tenantId: params.tenantId,
+        stateCode: '',
+        parentLgdLevel: 0,
+        parentDepartmentLevel: 0,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        daysInRange: 0,
+        schemeCount: 0,
+        childRegionCount: 0,
+        schemes: [],
+        childRegions: [],
       }
     )
-
-    return response.data
   },
   getWaterQuantityPeriodic: async (
     params: WaterQuantityPeriodicQueryParams
   ): Promise<WaterQuantityPeriodicResponse> => {
-    const response = await apiClient.get<WaterQuantityPeriodicResponse>(
-      '/api/v1/analytics/water-quantity/periodic',
-      {
-        params: {
-          start_date: params.startDate,
-          end_date: params.endDate,
-          scale: params.scale,
-          lgd_id: params.lgdId,
-          department_id: params.departmentId,
-        },
+    const response = await apiClient.get<
+      WaterQuantityPeriodicResponse | WrappedAnalyticsResponse<WaterQuantityPeriodicResponse>
+    >('/api/v1/analytics/water-quantity/periodic', {
+      params: {
+        start_date: params.startDate,
+        end_date: params.endDate,
+        scale: params.scale,
+        lgd_id: params.lgdId,
+        department_id: params.departmentId,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data, 'water quantity periodic analytics') ?? {
+        lgdId: params.lgdId ?? 0,
+        departmentId: params.departmentId ?? 0,
+        scale: params.scale,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        periodCount: 0,
+        metrics: [],
       }
     )
-
-    return response.data
   },
   getAverageSchemeRegularity: async (
     params: AverageSchemeRegularityQueryParams
   ): Promise<AverageSchemeRegularityResponse> => {
-    const response = await apiClient.get<AverageSchemeRegularityResponse>(
-      '/api/v1/analytics/scheme-regularity/average',
-      {
-        params: {
-          parent_lgd_id: params.parentLgdId,
-          parent_department_id: params.parentDepartmentId,
-          scope: params.scope ?? 'child',
-          start_date: params.startDate,
-          end_date: params.endDate,
-        },
+    const response = await apiClient.get<
+      AverageSchemeRegularityResponse | WrappedAnalyticsResponse<AverageSchemeRegularityResponse>
+    >('/api/v1/analytics/scheme-regularity/average', {
+      params: {
+        parent_lgd_id: params.parentLgdId,
+        parent_department_id: params.parentDepartmentId,
+        scope: params.scope ?? 'child',
+        start_date: params.startDate,
+        end_date: params.endDate,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data, 'average scheme regularity analytics') ?? {
+        lgdId: 0,
+        parentDepartmentId: 0,
+        parentLgdLevel: 0,
+        parentDepartmentLevel: 0,
+        scope: params.scope ?? 'child',
+        startDate: params.startDate,
+        endDate: params.endDate,
+        daysInRange: 0,
+        schemeCount: 0,
+        totalSupplyDays: 0,
+        averageRegularity: 0,
+        childRegionCount: 0,
+        childRegions: [],
       }
     )
-
-    return response.data
   },
   getSchemeRegularityPeriodic: async (
     params: SchemeRegularityPeriodicQueryParams
   ): Promise<SchemeRegularityPeriodicResponse> => {
-    const response = await apiClient.get<SchemeRegularityPeriodicResponse>(
-      '/api/v1/analytics/scheme-regularity/periodic',
-      {
-        params: {
-          start_date: params.startDate,
-          end_date: params.endDate,
-          scale: params.scale,
-          lgd_id: params.lgdId,
-          department_id: params.departmentId,
-        },
+    const response = await apiClient.get<
+      SchemeRegularityPeriodicResponse | WrappedAnalyticsResponse<SchemeRegularityPeriodicResponse>
+    >('/api/v1/analytics/scheme-regularity/periodic', {
+      params: {
+        start_date: params.startDate,
+        end_date: params.endDate,
+        scale: params.scale,
+        lgd_id: params.lgdId,
+        department_id: params.departmentId,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data, 'scheme regularity periodic analytics') ?? {
+        lgdId: params.lgdId ?? 0,
+        departmentId: params.departmentId ?? 0,
+        schemeCount: 0,
+        scale: params.scale,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        periodCount: 0,
+        metrics: [],
       }
     )
-
-    return response.data
   },
   getNationalSchemeRegularityPeriodic: async (
     params: NationalSchemeRegularityPeriodicQueryParams
@@ -380,38 +505,68 @@ export const dashboardApi = {
   getReadingSubmissionRate: async (
     params: ReadingSubmissionRateQueryParams
   ): Promise<ReadingSubmissionRateResponse> => {
-    const response = await apiClient.get<ReadingSubmissionRateResponse>(
-      '/api/v1/analytics/reading-submission-rate',
-      {
-        params: {
-          parent_lgd_id: params.parentLgdId,
-          parent_department_id: params.parentDepartmentId,
-          scope: params.scope ?? 'child',
-          start_date: params.startDate,
-          end_date: params.endDate,
-        },
+    const response = await apiClient.get<
+      ReadingSubmissionRateResponse | WrappedAnalyticsResponse<ReadingSubmissionRateResponse>
+    >('/api/v1/analytics/reading-submission-rate', {
+      params: {
+        parent_lgd_id: params.parentLgdId,
+        parent_department_id: params.parentDepartmentId,
+        scope: params.scope ?? 'child',
+        start_date: params.startDate,
+        end_date: params.endDate,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data, 'reading submission rate analytics') ?? {
+        parentLgdId: 0,
+        parentDepartmentId: 0,
+        parentLgdLevel: 0,
+        parentDepartmentLevel: 0,
+        scope: params.scope ?? 'child',
+        startDate: params.startDate,
+        endDate: params.endDate,
+        daysInRange: 0,
+        schemeCount: 0,
+        totalSubmissionDays: 0,
+        readingSubmissionRate: 0,
+        childRegionCount: 0,
+        childRegions: [],
       }
     )
-
-    return response.data
   },
   getSchemePerformance: async (
     params: SchemePerformanceQueryParams
   ): Promise<SchemePerformanceResponse> => {
-    const response = await apiClient.get<SchemePerformanceResponse>(
-      '/api/v1/analytics/schemes/dashboard',
-      {
-        params: {
-          parent_lgd_id: params.parentLgdId,
-          parent_department_id: params.parentDepartmentId,
-          start_date: params.startDate,
-          end_date: params.endDate,
-          scheme_count: params.schemeCount ?? 10,
-        },
+    const response = await apiClient.get<
+      SchemePerformanceResponse | WrappedAnalyticsResponse<SchemePerformanceResponse>
+    >('/api/v1/analytics/schemes/dashboard', {
+      params: {
+        parent_lgd_id: params.parentLgdId,
+        parent_department_id: params.parentDepartmentId,
+        start_date: params.startDate,
+        end_date: params.endDate,
+        scheme_count: params.schemeCount ?? 10,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data, 'scheme performance analytics') ?? {
+        parentLgdId: params.parentLgdId ?? 0,
+        parentDepartmentId: params.parentDepartmentId ?? 0,
+        parentLgdCName: '',
+        parentDepartmentCName: '',
+        parentLgdTitle: '',
+        parentDepartmentTitle: '',
+        startDate: params.startDate,
+        endDate: params.endDate,
+        daysInRange: 0,
+        activeSchemeCount: 0,
+        inactiveSchemeCount: 0,
+        topSchemeCount: 0,
+        topSchemes: [],
       }
     )
-
-    return response.data
   },
   getPumpOperatorDetails: async (
     params: PumpOperatorDetailsQueryParams
@@ -472,52 +627,79 @@ export const dashboardApi = {
   getSubmissionStatus: async (
     params: SubmissionStatusQueryParams
   ): Promise<SubmissionStatusResponse> => {
-    const response = await apiClient.get<SubmissionStatusResponse>(
-      '/api/v1/analytics/submission-status',
-      {
-        params: {
-          start_date: params.startDate,
-          end_date: params.endDate,
-          lgd_id: params.lgdId,
-          department_id: params.departmentId,
-        },
+    const response = await apiClient.get<
+      SubmissionStatusResponse | WrappedAnalyticsResponse<SubmissionStatusResponse>
+    >('/api/v1/analytics/submission-status', {
+      params: {
+        start_date: params.startDate,
+        end_date: params.endDate,
+        lgd_id: params.lgdId,
+        department_id: params.departmentId,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data, 'submission status analytics') ?? {
+        startDate: params.startDate,
+        endDate: params.endDate,
+        schemeCount: 0,
+        compliantSubmissionCount: 0,
+        anomalousSubmissionCount: 0,
       }
     )
-
-    return response.data
   },
   getOutageReasons: async (params: OutageReasonsQueryParams): Promise<OutageReasonsResponse> => {
-    const response = await apiClient.get<OutageReasonsResponse>(
-      '/api/v1/analytics/outage-reasons',
-      {
-        params: {
-          start_date: params.startDate,
-          end_date: params.endDate,
-          parent_lgd_id: params.parentLgdId,
-          parent_department_id: params.parentDepartmentId,
-        },
+    const response = await apiClient.get<
+      OutageReasonsResponse | WrappedAnalyticsResponse<OutageReasonsResponse>
+    >('/api/v1/analytics/outage-reasons', {
+      params: {
+        start_date: params.startDate,
+        end_date: params.endDate,
+        parent_lgd_id: params.parentLgdId,
+        parent_department_id: params.parentDepartmentId,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data, 'outage reasons analytics') ?? {
+        lgdId: params.parentLgdId ?? 0,
+        departmentId: params.parentDepartmentId ?? 0,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        parentLgdLevel: 0,
+        parentDepartmentLevel: 0,
+        outageReasonSchemeCount: {},
+        childRegionCount: 0,
+        childRegions: [],
       }
     )
-
-    return response.data
   },
   getOutageReasonsPeriodic: async (
     params: OutageReasonsPeriodicQueryParams
   ): Promise<OutageReasonsPeriodicResponse> => {
-    const response = await apiClient.get<OutageReasonsPeriodicResponse>(
-      '/api/v1/analytics/outage-reasons/periodic',
-      {
-        params: {
-          start_date: params.startDate,
-          end_date: params.endDate,
-          scale: params.scale,
-          lgd_id: params.lgdId,
-          department_id: params.departmentId,
-        },
+    const response = await apiClient.get<
+      OutageReasonsPeriodicResponse | WrappedAnalyticsResponse<OutageReasonsPeriodicResponse>
+    >('/api/v1/analytics/outage-reasons/periodic', {
+      params: {
+        start_date: params.startDate,
+        end_date: params.endDate,
+        scale: params.scale,
+        lgd_id: params.lgdId,
+        department_id: params.departmentId,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data, 'outage reasons periodic analytics') ?? {
+        lgdId: params.lgdId ?? 0,
+        departmentId: params.departmentId ?? 0,
+        scale: params.scale,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        periodCount: 0,
+        metrics: [],
       }
     )
-
-    return response.data
   },
   getTenants: async (): Promise<TenantListResponse> => {
     const tenants: TenantListItem[] = []
@@ -606,7 +788,7 @@ export const dashboardApi = {
   getTenantChildLocations: async (params: {
     tenantId: number
     hierarchyType: HierarchyType
-    parentId: number
+    parentId?: number
     tenantCode?: string
   }): Promise<TenantChildLocationsResponse> => {
     const { tenantId, hierarchyType, parentId } = params
@@ -615,7 +797,10 @@ export const dashboardApi = {
     let lastError: unknown = null
 
     for (const candidate of hierarchyTypeCandidates) {
-      const endpoint = `/api/v1/tenants/${tenantId}/locations/${candidate}/children/${parentId}`
+      const endpoint =
+        typeof parentId === 'number'
+          ? `/api/v1/tenants/${tenantId}/locations/${candidate}?parentId=${parentId}`
+          : `/api/v1/tenants/${tenantId}/locations/${candidate}`
       try {
         const response = await apiClient.get<TenantChildLocationsResponse>(endpoint)
         hierarchyTypeResolutionCache.set(cacheKey, candidate)

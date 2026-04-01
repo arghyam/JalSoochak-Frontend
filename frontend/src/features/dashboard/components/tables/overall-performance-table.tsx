@@ -70,126 +70,126 @@ export function OverallPerformanceTable({
         }}
       >
         <Box w="full" minW={{ base: 'max-content', md: '100%' }}>
-          <Table
-            size="sm"
-            w="full"
-            minW={{ base: 'max-content', md: '100%' }}
-            sx={{ tableLayout: 'auto' }}
-          >
-            <Thead
-              sx={{
-                position: 'sticky',
-                top: 0,
-                zIndex: 1,
-                bg: 'white',
-                th: {
-                  textStyle: 'bodyText7',
-                  textTransform: 'none',
-                  fontWeight: '500',
-                  px: { base: 2, md: 3 },
-                  py: { base: 3, md: 5 },
-                  whiteSpace: 'nowrap',
-                },
-              }}
+          {!isEmpty ? (
+            <Table
+              size="sm"
+              w="full"
+              minW={{ base: 'max-content', md: '100%' }}
+              sx={{ tableLayout: 'auto' }}
             >
-              <Tr>
-                <Th>{resolvedEntityLabel}</Th>
-                <Th
-                  aria-sort={
-                    sortColumn === 'coverage'
-                      ? sortDirection === 'asc'
-                        ? 'ascending'
-                        : 'descending'
-                      : undefined
-                  }
-                >
-                  <Box
-                    as="button"
-                    type="button"
-                    onClick={() => handleSort('coverage')}
-                    display="inline-flex"
-                    alignItems="center"
-                    gap={1}
-                    cursor="pointer"
-                    textAlign="left"
-                    width="100%"
-                    bg="none"
-                    border="none"
-                    p={0}
+              <Thead
+                sx={{
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 1,
+                  bg: 'white',
+                  th: {
+                    textStyle: 'bodyText7',
+                    textTransform: 'none',
+                    fontWeight: '500',
+                    px: { base: 2, md: 3 },
+                    py: { base: 3, md: 5 },
+                    whiteSpace: 'nowrap',
+                  },
+                }}
+              >
+                <Tr>
+                  <Th>{resolvedEntityLabel}</Th>
+                  <Th
+                    aria-sort={
+                      sortColumn === 'coverage'
+                        ? sortDirection === 'asc'
+                          ? 'ascending'
+                          : 'descending'
+                        : undefined
+                    }
                   >
-                    <Box as="span">
-                      {t('overallPerformance.columns.quantityMld', {
-                        defaultValue: 'Quantity (MLD)',
-                      })}
+                    <Box
+                      as="button"
+                      type="button"
+                      onClick={() => handleSort('coverage')}
+                      display="inline-flex"
+                      alignItems="center"
+                      gap={1}
+                      cursor="pointer"
+                      textAlign="left"
+                      width="100%"
+                      bg="none"
+                      border="none"
+                      p={0}
+                    >
+                      <Box as="span">
+                        {t('overallPerformance.columns.quantityMld', {
+                          defaultValue: 'Quantity (MLD)',
+                        })}
+                      </Box>
+                      <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
                     </Box>
-                    <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
-                  </Box>
-                </Th>
-                <Th
-                  aria-sort={
-                    sortColumn === 'quantity'
-                      ? sortDirection === 'asc'
-                        ? 'ascending'
-                        : 'descending'
-                      : undefined
-                  }
-                >
-                  <Box
-                    as="button"
-                    type="button"
-                    onClick={() => handleSort('quantity')}
-                    display="inline-flex"
-                    alignItems="center"
-                    gap={1}
-                    cursor="pointer"
-                    textAlign="left"
-                    width="100%"
-                    bg="none"
-                    border="none"
-                    p={0}
+                  </Th>
+                  <Th
+                    aria-sort={
+                      sortColumn === 'quantity'
+                        ? sortDirection === 'asc'
+                          ? 'ascending'
+                          : 'descending'
+                        : undefined
+                    }
                   >
-                    <Box as="span">
-                      {t('overallPerformance.columns.quantityLpcd', {
-                        defaultValue: 'Quantity (LPCD)',
-                      })}
+                    <Box
+                      as="button"
+                      type="button"
+                      onClick={() => handleSort('quantity')}
+                      display="inline-flex"
+                      alignItems="center"
+                      gap={1}
+                      cursor="pointer"
+                      textAlign="left"
+                      width="100%"
+                      bg="none"
+                      border="none"
+                      p={0}
+                    >
+                      <Box as="span">
+                        {t('overallPerformance.columns.quantityLpcd', {
+                          defaultValue: 'Quantity (LPCD)',
+                        })}
+                      </Box>
+                      <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
                     </Box>
-                    <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
-                  </Box>
-                </Th>
-                <Th
-                  aria-sort={
-                    sortColumn === 'regularity'
-                      ? sortDirection === 'asc'
-                        ? 'ascending'
-                        : 'descending'
-                      : undefined
-                  }
-                >
-                  <Box
-                    as="button"
-                    type="button"
-                    onClick={() => handleSort('regularity')}
-                    display="inline-flex"
-                    alignItems="center"
-                    gap={1}
-                    cursor="pointer"
-                    textAlign="left"
-                    width="100%"
-                    bg="none"
-                    border="none"
-                    p={0}
+                  </Th>
+                  <Th
+                    aria-sort={
+                      sortColumn === 'regularity'
+                        ? sortDirection === 'asc'
+                          ? 'ascending'
+                          : 'descending'
+                        : undefined
+                    }
                   >
-                    <Box as="span">
-                      {t('overallPerformance.columns.regularity', {
-                        defaultValue: 'Regularity (%)',
-                      })}
+                    <Box
+                      as="button"
+                      type="button"
+                      onClick={() => handleSort('regularity')}
+                      display="inline-flex"
+                      alignItems="center"
+                      gap={1}
+                      cursor="pointer"
+                      textAlign="left"
+                      width="100%"
+                      bg="none"
+                      border="none"
+                      p={0}
+                    >
+                      <Box as="span">
+                        {t('overallPerformance.columns.regularity', {
+                          defaultValue: 'Regularity (%)',
+                        })}
+                      </Box>
+                      <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
                     </Box>
-                    <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
-                  </Box>
-                </Th>
-              </Tr>
-            </Thead>
-            {!isEmpty ? (
+                  </Th>
+                </Tr>
+              </Thead>
               <Tbody
                 sx={{
                   tr: {
@@ -215,22 +215,19 @@ export function OverallPerformanceTable({
                   </Tr>
                 ))}
               </Tbody>
-            ) : null}
-          </Table>
-          {isEmpty ? (
+            </Table>
+          ) : (
             <Box
-              minH={`calc(${scrollMaxHeight} - 57px)`}
+              minH={scrollMaxHeight}
               display="flex"
               alignItems="center"
               justifyContent="center"
               textAlign="center"
-              color="neutral.500"
-              borderTop="1px solid"
-              borderColor="gray.100"
+              color="neutral.600"
             >
               {t('overallPerformance.noData', { defaultValue: 'No data available' })}
             </Box>
-          ) : null}
+          )}
         </Box>
       </Box>
     </Box>

@@ -1443,6 +1443,24 @@ describe('VillageDashboardScreen', () => {
     expect(complianceProps.data.at(-1)?.lastSubmission).toBe('17-03-26, 3:04pm')
   })
 
+  it('passes fillHeight to reading compliance so the empty state stays centered', () => {
+    renderWithProviders(
+      <VillageDashboardScreen
+        data={data}
+        waterSupplyOutagesData={waterSupplyOutagesData}
+        villagePumpOperatorDetails={villagePumpOperatorDetails}
+        villagePumpOperators={villagePumpOperators}
+        villagePhotoEvidenceRows={[]}
+      />
+    )
+
+    const complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
+      fillHeight?: boolean
+    }
+
+    expect(complianceProps.fillHeight).toBe(true)
+  })
+
   it('uses pagination metadata instead of only content length to continue loading pages', () => {
     mockUseReadingComplianceQuery.mockImplementation((options) => {
       const params = (options as { params?: { page?: number } | null }).params

@@ -1718,7 +1718,7 @@ const mockWaterSupplyOutages = [
   },
 ]
 
-const mockReadingCompliance: ReadingComplianceData[] = [
+export const mockReadingCompliance: ReadingComplianceData[] = [
   {
     id: 'pec-1',
     name: 'Ajay Yadav',

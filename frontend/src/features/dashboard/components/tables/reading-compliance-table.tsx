@@ -11,6 +11,7 @@ interface ReadingComplianceTableProps {
   showVillageColumn?: boolean
   scrollAreaMaxH?: string | number
   onReachEnd?: () => void
+  fillHeight?: boolean
 }
 
 export function ReadingComplianceTable({
@@ -20,6 +21,7 @@ export function ReadingComplianceTable({
   showVillageColumn = true,
   scrollAreaMaxH = '432px',
   onReachEnd,
+  fillHeight = false,
 }: ReadingComplianceTableProps) {
   const { t } = useTranslation('dashboard')
   const hasReachedEndRef = useRef(false)
@@ -78,80 +80,107 @@ export function ReadingComplianceTable({
   }
 
   return (
-    <Box borderRadius="lg" overflow="hidden" w="full" minW={0}>
+    <Box
+      borderRadius="lg"
+      overflow="hidden"
+      w="full"
+      minW={0}
+      h={fillHeight ? '100%' : 'auto'}
+      display="flex"
+      flexDirection="column"
+    >
       <Box textStyle="bodyText3" fontWeight="400" mb="16px">
         {resolvedTitle}
       </Box>
-      <Box
-        ref={scrollContainerRef}
-        maxH={scrollAreaMaxH}
-        overflowY="auto"
-        overflowX="auto"
-        w="full"
-        maxW="100%"
-        minW={0}
-        pr={2}
-        pb={2}
-        cursor={{ base: 'grab', md: 'auto' }}
-        onScroll={handleScroll}
-        sx={{
-          WebkitOverflowScrolling: 'touch',
-          '&::-webkit-scrollbar': { width: '4px', height: '4px' },
-          '&::-webkit-scrollbar-track': { bg: 'neutral.100', borderRadius: '999px' },
-          '&::-webkit-scrollbar-thumb': {
-            bg: 'neutral.300',
-            borderRadius: '999px',
-            minHeight: '165px',
-          },
-          '&:active': {
-            cursor: 'grabbing',
-          },
-        }}
-      >
-        <Box w="full" minW={tableMinWidth}>
-          <Table size="sm" w="full" minW={tableMinWidth} sx={{ tableLayout: 'auto' }}>
-            <Thead
-              sx={{
-                position: 'sticky',
-                top: 0,
-                zIndex: 1,
-                bg: 'white',
-                th: {
-                  textStyle: 'bodyText7',
-                  textTransform: 'none',
-                  fontWeight: '500',
-                  px: { base: 2, md: 3 },
-                  py: { base: 3, md: 4 },
-                  whiteSpace: 'nowrap',
-                },
-              }}
-            >
-              <Tr>
-                <Th>
-                  {t('outageAndSubmissionCharts.tables.readingCompliance.columns.name', {
-                    defaultValue: 'Name',
-                  })}
-                </Th>
-                {showVillageColumn ? (
+      {isEmpty ? (
+        <Box
+          h={fillHeight ? undefined : '200px'}
+          minH={fillHeight ? 0 : '200px'}
+          flex={fillHeight ? 1 : undefined}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          textAlign="center"
+          color="neutral.600"
+        >
+          <Text>{t('common:noDataAvailable', { defaultValue: 'No data available' })}</Text>
+        </Box>
+      ) : (
+        <Box
+          ref={scrollContainerRef}
+          maxH={fillHeight ? undefined : scrollAreaMaxH}
+          h={fillHeight ? undefined : undefined}
+          flex={fillHeight ? 1 : undefined}
+          minH={fillHeight ? 0 : undefined}
+          overflowY="auto"
+          overflowX="auto"
+          w="full"
+          maxW="100%"
+          minW={0}
+          pr={2}
+          pb={2}
+          cursor={{ base: 'grab', md: 'auto' }}
+          onScroll={handleScroll}
+          sx={{
+            WebkitOverflowScrolling: 'touch',
+            '&::-webkit-scrollbar': { width: '4px', height: '4px' },
+            '&::-webkit-scrollbar-track': { bg: 'neutral.100', borderRadius: '999px' },
+            '&::-webkit-scrollbar-thumb': {
+              bg: 'neutral.300',
+              borderRadius: '999px',
+              minHeight: '165px',
+            },
+            '&:active': {
+              cursor: 'grabbing',
+            },
+          }}
+        >
+          <Box w="full" minW={tableMinWidth}>
+            <Table size="sm" w="full" minW={tableMinWidth} sx={{ tableLayout: 'auto' }}>
+              <Thead
+                sx={{
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 1,
+                  bg: 'white',
+                  th: {
+                    textStyle: 'bodyText7',
+                    textTransform: 'none',
+                    fontWeight: '500',
+                    px: { base: 2, md: 3 },
+                    py: { base: 3, md: 4 },
+                    whiteSpace: 'nowrap',
+                  },
+                }}
+              >
+                <Tr>
                   <Th>
-                    {t('outageAndSubmissionCharts.tables.readingCompliance.columns.village', {
-                      defaultValue: 'Village',
+                    {t('outageAndSubmissionCharts.tables.readingCompliance.columns.name', {
+                      defaultValue: 'Name',
                     })}
                   </Th>
-                ) : null}
-                <Th>
-                  {t('outageAndSubmissionCharts.tables.readingCompliance.columns.lastSubmission', {
-                    defaultValue: 'Submission Date & Time',
-                  })}
-                </Th>
-                <Th>
-                  {t('outageAndSubmissionCharts.tables.readingCompliance.columns.readingValue', {
-                    defaultValue: 'Reading Value',
-                  })}
-                </Th>
-              </Tr>
-            </Thead>
-            {!isEmpty ? (
+                  {showVillageColumn ? (
+                    <Th>
+                      {t('outageAndSubmissionCharts.tables.readingCompliance.columns.village', {
+                        defaultValue: 'Village',
+                      })}
+                    </Th>
+                  ) : null}
+                  <Th>
+                    {t(
+                      'outageAndSubmissionCharts.tables.readingCompliance.columns.lastSubmission',
+                      {
+                        defaultValue: 'Submission Date & Time',
+                      }
+                    )}
+                  </Th>
+                  <Th>
+                    {t('outageAndSubmissionCharts.tables.readingCompliance.columns.readingValue', {
+                      defaultValue: 'Reading Value',
+                    })}
+                  </Th>
+                </Tr>
+              </Thead>
               <Tbody
                 sx={{
                   td: {
@@ -174,24 +203,10 @@ export function ReadingComplianceTable({
                   </Tr>
                 ))}
               </Tbody>
-            ) : null}
-          </Table>
-          {isEmpty ? (
-            <Box
-              minH="200px"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              textAlign="center"
-              color="neutral.500"
-              borderTop="1px solid"
-              borderColor="gray.100"
-            >
-              <Text>{t('common:noDataAvailable', { defaultValue: 'No data available' })}</Text>
-            </Box>
-          ) : null}
+            </Table>
+          </Box>
         </Box>
-      </Box>
+      )}
     </Box>
   )
 }

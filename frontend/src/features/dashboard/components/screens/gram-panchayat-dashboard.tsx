@@ -19,6 +19,7 @@ import { PerformanceChartCard } from './performance-chart-card'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 import { ChartEmptyState, ViewBySelect } from '@/shared/components/common'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
+import { useOutageDistributionState } from './use-outage-distribution-state'
 
 type GramPanchayatDashboardScreenProps = {
   data: DashboardData
@@ -64,10 +65,17 @@ export function GramPanchayatDashboardScreen({
     () => data.supplyOutageTrend ?? [],
     [data.supplyOutageTrend]
   )
-  const isOutageDistributionSelectDisabled =
-    outageDistributionViewBy === 'geography'
-      ? waterSupplyOutageDistributionData.length === 0
-      : outageDistributionTimeTrendData.length === 0
+  const {
+    hasOutageReasonsData,
+    hasGeographyData,
+    hasTimeTrendData,
+    isOutageDistributionSelectDisabled,
+  } = useOutageDistributionState({
+    waterSupplyOutagesData,
+    outageDistributionViewBy,
+    waterSupplyOutageDistributionData,
+    outageDistributionTimeTrendData,
+  })
 
   return (
     <>
@@ -178,8 +186,10 @@ export function GramPanchayatDashboardScreen({
               disabled={isOutageDistributionSelectDisabled}
             />
           </Flex>
-          {outageDistributionViewBy === 'geography' ? (
-            waterSupplyOutageDistributionData.length > 0 ? (
+          {!hasOutageReasonsData ? (
+            <ChartEmptyState minHeight="400px" />
+          ) : outageDistributionViewBy === 'geography' ? (
+            hasGeographyData ? (
               <SupplyOutageDistributionChart
                 data={waterSupplyOutageDistributionData}
                 height="400px"
@@ -190,7 +200,7 @@ export function GramPanchayatDashboardScreen({
             ) : (
               <ChartEmptyState minHeight="400px" />
             )
-          ) : outageDistributionTimeTrendData.length > 0 ? (
+          ) : hasTimeTrendData ? (
             <MonthlyTrendChart
               data={outageDistributionTimeTrendData}
               height="400px"
@@ -304,6 +314,7 @@ export function GramPanchayatDashboardScreen({
           borderColor="#E4E4E7"
           px={4}
           py={6}
+          h="526px"
           minW={0}
         >
           <ReadingComplianceTable
@@ -311,6 +322,7 @@ export function GramPanchayatDashboardScreen({
             title={t('outageAndSubmissionCharts.titles.readingCompliance', {
               defaultValue: 'Reading Compliance',
             })}
+            fillHeight
           />
         </Box>
         <Box

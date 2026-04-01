@@ -16,9 +16,38 @@ beforeEach(() => {
 })
 
 describe('ActiveSchemesChart', () => {
-  it('shows a no data available legend item when the pie data is empty', () => {
+  it('shows only no data text when the pie data is empty', () => {
     renderWithProviders(<ActiveSchemesChart data={[]} />)
 
     expect(screen.getByText('No data available')).toBeTruthy()
+    expect(mockEChartsWrapper).not.toHaveBeenCalled()
+  })
+
+  it('shows only no data text when the pie data contains only zero values', () => {
+    renderWithProviders(<ActiveSchemesChart data={[{ label: 'Any', value: 0 }]} />)
+
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(mockEChartsWrapper).not.toHaveBeenCalled()
+  })
+
+  it('hides the note when the pie data is empty', () => {
+    renderWithProviders(
+      <ActiveSchemesChart data={[]} note="Note: Schemes active for at least 30 days in a month." />
+    )
+
+    expect(screen.queryByText('Note: Schemes active for at least 30 days in a month.')).toBeNull()
+  })
+
+  it('hides the note when the pie data contains only zero values', () => {
+    renderWithProviders(
+      <ActiveSchemesChart
+        data={[{ label: 'Any', value: 0 }]}
+        note="Note: Schemes active for at least 30 days in a month."
+      />
+    )
+
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(mockEChartsWrapper).not.toHaveBeenCalled()
+    expect(screen.queryByText('Note: Schemes active for at least 30 days in a month.')).toBeNull()
   })
 })

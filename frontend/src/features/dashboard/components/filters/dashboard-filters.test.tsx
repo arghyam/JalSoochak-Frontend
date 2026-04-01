@@ -383,7 +383,7 @@ describe('DashboardFilters', () => {
     mockUseLocationChildrenQuery.mockImplementation((options: unknown) => {
       const { parentId } = (options as { parentId?: number }) ?? {}
 
-      if (parentId === 0) {
+      if (parentId === undefined) {
         return { data: { data: [{ id: 1, title: 'Assam' }] } }
       }
       if (parentId === 1) {

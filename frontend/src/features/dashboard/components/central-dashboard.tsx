@@ -77,6 +77,7 @@ import {
   mockBlockPerformanceByDistrict,
   mockGramPanchayatPerformanceByBlock,
   mockVillagePerformanceByGramPanchayat,
+  mockReadingCompliance,
 } from '../services/mock/dashboard-mock'
 import type { HierarchyType, TenantChildLocation } from '../services/api/dashboard-api'
 
@@ -466,24 +467,28 @@ export function CentralDashboard() {
     : hasStateMockData
       ? normalizedSelectedGramPanchayat
       : ''
-  const isStateSelected = Boolean(effectiveSelectedState)
-  const isDistrictSelected = Boolean(effectiveSelectedDistrict)
-  const isBlockSelected = Boolean(effectiveSelectedBlock)
-  const isGramPanchayatSelected = Boolean(effectiveSelectedGramPanchayat)
-  const isVillageSelected = Boolean(effectiveSelectedVillage)
+  const isLgdTabActive = filterTabIndex === 0
+  const isStateSelected = isLgdTabActive && Boolean(effectiveSelectedState)
+  const isDistrictSelected = isLgdTabActive && Boolean(effectiveSelectedDistrict)
+  const isBlockSelected = isLgdTabActive && Boolean(effectiveSelectedBlock)
+  const isGramPanchayatSelected = isLgdTabActive && Boolean(effectiveSelectedGramPanchayat)
+  const isVillageSelected = isLgdTabActive && Boolean(effectiveSelectedVillage)
   const isDepartmentStateSelected = Boolean(selectedDepartmentState)
-  const hasCentralLandingFilters =
+  const hasLgdLandingFilters =
     isStateSelected ||
     isDistrictSelected ||
     isBlockSelected ||
     isGramPanchayatSelected ||
-    isVillageSelected ||
+    isVillageSelected
+  const hasDepartmentLandingFilters =
     Boolean(selectedDepartmentState) ||
     Boolean(selectedDepartmentZone) ||
     Boolean(selectedDepartmentCircle) ||
     Boolean(selectedDepartmentDivision) ||
     Boolean(selectedDepartmentSubdivision) ||
     Boolean(selectedDepartmentVillage)
+  const hasCentralLandingFilters =
+    filterTabIndex === 0 ? hasLgdLandingFilters : hasDepartmentLandingFilters
   const dashboardData = data ?? EMPTY_DASHBOARD_DATA
   const hierarchyType: HierarchyType = filterTabIndex === 0 ? 'LGD' : 'DEPARTMENT'
   const emptyOptions: SearchableSelectOption[] = []
@@ -544,7 +549,6 @@ export function CentralDashboard() {
   const { data: rootLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
-    parentId: 0,
     tenantCode: selectedTenant?.tenantCode,
     enabled: Boolean(selectedTenant?.tenantId),
   })
@@ -784,7 +788,7 @@ export function CentralDashboard() {
             endDate: analyticsDateRange.endDate,
           }
   const outageReasonsAnalyticsParams =
-    isVillageSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+    !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
@@ -1286,14 +1290,21 @@ export function CentralDashboard() {
     outageReasonsTimeTrendData.length > 0
       ? outageReasonsTimeTrendData
       : dashboardData.supplyOutageTrend
+  const resolvedReadingCompliance =
+    (isBlockSelected && !isGramPanchayatSelected && !isVillageSelected) ||
+    (isGramPanchayatSelected && !isVillageSelected)
+      ? mockReadingCompliance
+      : dashboardData.readingCompliance
   const resolvedDashboardData =
     readingSubmissionStatusData === dashboardData.readingSubmissionStatus &&
     pumpOperatorsData === dashboardData.pumpOperators &&
-    resolvedSupplyOutageTrend === dashboardData.supplyOutageTrend
+    resolvedSupplyOutageTrend === dashboardData.supplyOutageTrend &&
+    resolvedReadingCompliance === dashboardData.readingCompliance
       ? dashboardData
       : {
           ...dashboardData,
           readingSubmissionStatus: readingSubmissionStatusData,
+          readingCompliance: resolvedReadingCompliance,
           pumpOperators: pumpOperatorsData,
           supplyOutageTrend: resolvedSupplyOutageTrend,
         }
