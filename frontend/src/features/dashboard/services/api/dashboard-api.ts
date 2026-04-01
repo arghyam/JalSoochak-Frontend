@@ -73,6 +73,16 @@ type RawNationalDashboardPayload = {
   data?: NationalDashboardResponse
 }
 
+type RawAverageWaterSupplyPerRegionPayload = {
+  success?: boolean
+  data?: AverageWaterSupplyPerRegionResponse
+}
+
+type WrappedAnalyticsResponse<T> = {
+  success?: boolean
+  data?: T
+}
+
 const normalizeMissedSubmissionDays = (
   value: RawPumpOperatorDetailsResponse['data']['missedSubmissionDays']
 ) => {
@@ -114,6 +124,14 @@ const toTenantListContainer = (value: unknown): TenantListContainer | null => {
     totalElements:
       typeof candidate.totalElements === 'number' ? candidate.totalElements : undefined,
   }
+}
+
+const unwrapAnalyticsResponse = <T>(response: T | WrappedAnalyticsResponse<T>): T | undefined => {
+  if (response && typeof response === 'object' && 'data' in response) {
+    return (response as WrappedAnalyticsResponse<T>).data
+  }
+
+  return response as T
 }
 
 const resolveTenantListContainer = (value: TenantListResponse | undefined): TenantListContainer => {
@@ -316,75 +334,126 @@ export const dashboardApi = {
   getAverageWaterSupplyPerRegion: async (
     params: AverageWaterSupplyPerRegionQueryParams
   ): Promise<AverageWaterSupplyPerRegionResponse> => {
-    const response = await apiClient.get<AverageWaterSupplyPerRegionResponse>(
-      '/api/v1/analytics/water-supply/average-per-region',
-      {
-        params: {
-          tenant_id: params.tenantId,
-          parent_lgd_id: params.parentLgdId,
-          parent_department_id: params.parentDepartmentId,
-          scope: params.scope ?? 'child',
-          start_date: params.startDate,
-          end_date: params.endDate,
-        },
+    const response = await apiClient.get<
+      AverageWaterSupplyPerRegionResponse | RawAverageWaterSupplyPerRegionPayload
+    >('/api/v1/analytics/water-supply/average-per-region', {
+      params: {
+        tenant_id: params.tenantId,
+        parent_lgd_id: params.parentLgdId,
+        parent_department_id: params.parentDepartmentId,
+        scope: params.scope ?? 'child',
+        start_date: params.startDate,
+        end_date: params.endDate,
+      },
+    })
+
+    if ('childRegions' in response.data) {
+      return response.data
+    }
+
+    return (
+      response.data.data ?? {
+        tenantId: params.tenantId,
+        stateCode: '',
+        parentLgdLevel: 0,
+        parentDepartmentLevel: 0,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        daysInRange: 0,
+        schemeCount: 0,
+        childRegionCount: 0,
+        schemes: [],
+        childRegions: [],
       }
     )
-
-    return response.data
   },
   getWaterQuantityPeriodic: async (
     params: WaterQuantityPeriodicQueryParams
   ): Promise<WaterQuantityPeriodicResponse> => {
-    const response = await apiClient.get<WaterQuantityPeriodicResponse>(
-      '/api/v1/analytics/water-quantity/periodic',
-      {
-        params: {
-          start_date: params.startDate,
-          end_date: params.endDate,
-          scale: params.scale,
-          lgd_id: params.lgdId,
-          department_id: params.departmentId,
-        },
+    const response = await apiClient.get<
+      WaterQuantityPeriodicResponse | WrappedAnalyticsResponse<WaterQuantityPeriodicResponse>
+    >('/api/v1/analytics/water-quantity/periodic', {
+      params: {
+        start_date: params.startDate,
+        end_date: params.endDate,
+        scale: params.scale,
+        lgd_id: params.lgdId,
+        department_id: params.departmentId,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data) ?? {
+        lgdId: params.lgdId ?? 0,
+        departmentId: params.departmentId ?? 0,
+        scale: params.scale,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        periodCount: 0,
+        metrics: [],
       }
     )
-
-    return response.data
   },
   getAverageSchemeRegularity: async (
     params: AverageSchemeRegularityQueryParams
   ): Promise<AverageSchemeRegularityResponse> => {
-    const response = await apiClient.get<AverageSchemeRegularityResponse>(
-      '/api/v1/analytics/scheme-regularity/average',
-      {
-        params: {
-          parent_lgd_id: params.parentLgdId,
-          parent_department_id: params.parentDepartmentId,
-          scope: params.scope ?? 'child',
-          start_date: params.startDate,
-          end_date: params.endDate,
-        },
+    const response = await apiClient.get<
+      AverageSchemeRegularityResponse | WrappedAnalyticsResponse<AverageSchemeRegularityResponse>
+    >('/api/v1/analytics/scheme-regularity/average', {
+      params: {
+        parent_lgd_id: params.parentLgdId,
+        parent_department_id: params.parentDepartmentId,
+        scope: params.scope ?? 'child',
+        start_date: params.startDate,
+        end_date: params.endDate,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data) ?? {
+        lgdId: 0,
+        parentDepartmentId: 0,
+        parentLgdLevel: 0,
+        parentDepartmentLevel: 0,
+        scope: params.scope ?? 'child',
+        startDate: params.startDate,
+        endDate: params.endDate,
+        daysInRange: 0,
+        schemeCount: 0,
+        totalSupplyDays: 0,
+        averageRegularity: 0,
+        childRegionCount: 0,
+        childRegions: [],
       }
     )
-
-    return response.data
   },
   getSchemeRegularityPeriodic: async (
     params: SchemeRegularityPeriodicQueryParams
   ): Promise<SchemeRegularityPeriodicResponse> => {
-    const response = await apiClient.get<SchemeRegularityPeriodicResponse>(
-      '/api/v1/analytics/scheme-regularity/periodic',
-      {
-        params: {
-          start_date: params.startDate,
-          end_date: params.endDate,
-          scale: params.scale,
-          lgd_id: params.lgdId,
-          department_id: params.departmentId,
-        },
+    const response = await apiClient.get<
+      SchemeRegularityPeriodicResponse | WrappedAnalyticsResponse<SchemeRegularityPeriodicResponse>
+    >('/api/v1/analytics/scheme-regularity/periodic', {
+      params: {
+        start_date: params.startDate,
+        end_date: params.endDate,
+        scale: params.scale,
+        lgd_id: params.lgdId,
+        department_id: params.departmentId,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data) ?? {
+        lgdId: params.lgdId ?? 0,
+        departmentId: params.departmentId ?? 0,
+        schemeCount: 0,
+        scale: params.scale,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        periodCount: 0,
+        metrics: [],
       }
     )
-
-    return response.data
   },
   getNationalSchemeRegularityPeriodic: async (
     params: NationalSchemeRegularityPeriodicQueryParams
@@ -405,38 +474,68 @@ export const dashboardApi = {
   getReadingSubmissionRate: async (
     params: ReadingSubmissionRateQueryParams
   ): Promise<ReadingSubmissionRateResponse> => {
-    const response = await apiClient.get<ReadingSubmissionRateResponse>(
-      '/api/v1/analytics/reading-submission-rate',
-      {
-        params: {
-          parent_lgd_id: params.parentLgdId,
-          parent_department_id: params.parentDepartmentId,
-          scope: params.scope ?? 'child',
-          start_date: params.startDate,
-          end_date: params.endDate,
-        },
+    const response = await apiClient.get<
+      ReadingSubmissionRateResponse | WrappedAnalyticsResponse<ReadingSubmissionRateResponse>
+    >('/api/v1/analytics/reading-submission-rate', {
+      params: {
+        parent_lgd_id: params.parentLgdId,
+        parent_department_id: params.parentDepartmentId,
+        scope: params.scope ?? 'child',
+        start_date: params.startDate,
+        end_date: params.endDate,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data) ?? {
+        parentLgdId: 0,
+        parentDepartmentId: 0,
+        parentLgdLevel: 0,
+        parentDepartmentLevel: 0,
+        scope: params.scope ?? 'child',
+        startDate: params.startDate,
+        endDate: params.endDate,
+        daysInRange: 0,
+        schemeCount: 0,
+        totalSubmissionDays: 0,
+        readingSubmissionRate: 0,
+        childRegionCount: 0,
+        childRegions: [],
       }
     )
-
-    return response.data
   },
   getSchemePerformance: async (
     params: SchemePerformanceQueryParams
   ): Promise<SchemePerformanceResponse> => {
-    const response = await apiClient.get<SchemePerformanceResponse>(
-      '/api/v1/analytics/schemes/dashboard',
-      {
-        params: {
-          parent_lgd_id: params.parentLgdId,
-          parent_department_id: params.parentDepartmentId,
-          start_date: params.startDate,
-          end_date: params.endDate,
-          scheme_count: params.schemeCount ?? 10,
-        },
+    const response = await apiClient.get<
+      SchemePerformanceResponse | WrappedAnalyticsResponse<SchemePerformanceResponse>
+    >('/api/v1/analytics/schemes/dashboard', {
+      params: {
+        parent_lgd_id: params.parentLgdId,
+        parent_department_id: params.parentDepartmentId,
+        start_date: params.startDate,
+        end_date: params.endDate,
+        scheme_count: params.schemeCount ?? 10,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data) ?? {
+        parentLgdId: params.parentLgdId ?? 0,
+        parentDepartmentId: params.parentDepartmentId ?? 0,
+        parentLgdCName: '',
+        parentDepartmentCName: '',
+        parentLgdTitle: '',
+        parentDepartmentTitle: '',
+        startDate: params.startDate,
+        endDate: params.endDate,
+        daysInRange: 0,
+        activeSchemeCount: 0,
+        inactiveSchemeCount: 0,
+        topSchemeCount: 0,
+        topSchemes: [],
       }
     )
-
-    return response.data
   },
   getPumpOperatorDetails: async (
     params: PumpOperatorDetailsQueryParams
@@ -497,52 +596,79 @@ export const dashboardApi = {
   getSubmissionStatus: async (
     params: SubmissionStatusQueryParams
   ): Promise<SubmissionStatusResponse> => {
-    const response = await apiClient.get<SubmissionStatusResponse>(
-      '/api/v1/analytics/submission-status',
-      {
-        params: {
-          start_date: params.startDate,
-          end_date: params.endDate,
-          lgd_id: params.lgdId,
-          department_id: params.departmentId,
-        },
+    const response = await apiClient.get<
+      SubmissionStatusResponse | WrappedAnalyticsResponse<SubmissionStatusResponse>
+    >('/api/v1/analytics/submission-status', {
+      params: {
+        start_date: params.startDate,
+        end_date: params.endDate,
+        lgd_id: params.lgdId,
+        department_id: params.departmentId,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data) ?? {
+        startDate: params.startDate,
+        endDate: params.endDate,
+        schemeCount: 0,
+        compliantSubmissionCount: 0,
+        anomalousSubmissionCount: 0,
       }
     )
-
-    return response.data
   },
   getOutageReasons: async (params: OutageReasonsQueryParams): Promise<OutageReasonsResponse> => {
-    const response = await apiClient.get<OutageReasonsResponse>(
-      '/api/v1/analytics/outage-reasons',
-      {
-        params: {
-          start_date: params.startDate,
-          end_date: params.endDate,
-          parent_lgd_id: params.parentLgdId,
-          parent_department_id: params.parentDepartmentId,
-        },
+    const response = await apiClient.get<
+      OutageReasonsResponse | WrappedAnalyticsResponse<OutageReasonsResponse>
+    >('/api/v1/analytics/outage-reasons', {
+      params: {
+        start_date: params.startDate,
+        end_date: params.endDate,
+        parent_lgd_id: params.parentLgdId,
+        parent_department_id: params.parentDepartmentId,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data) ?? {
+        lgdId: params.parentLgdId ?? 0,
+        departmentId: params.parentDepartmentId ?? 0,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        parentLgdLevel: 0,
+        parentDepartmentLevel: 0,
+        outageReasonSchemeCount: {},
+        childRegionCount: 0,
+        childRegions: [],
       }
     )
-
-    return response.data
   },
   getOutageReasonsPeriodic: async (
     params: OutageReasonsPeriodicQueryParams
   ): Promise<OutageReasonsPeriodicResponse> => {
-    const response = await apiClient.get<OutageReasonsPeriodicResponse>(
-      '/api/v1/analytics/outage-reasons/periodic',
-      {
-        params: {
-          start_date: params.startDate,
-          end_date: params.endDate,
-          scale: params.scale,
-          lgd_id: params.lgdId,
-          department_id: params.departmentId,
-        },
+    const response = await apiClient.get<
+      OutageReasonsPeriodicResponse | WrappedAnalyticsResponse<OutageReasonsPeriodicResponse>
+    >('/api/v1/analytics/outage-reasons/periodic', {
+      params: {
+        start_date: params.startDate,
+        end_date: params.endDate,
+        scale: params.scale,
+        lgd_id: params.lgdId,
+        department_id: params.departmentId,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data) ?? {
+        lgdId: params.lgdId ?? 0,
+        departmentId: params.departmentId ?? 0,
+        scale: params.scale,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        periodCount: 0,
+        metrics: [],
       }
     )
-
-    return response.data
   },
   getTenants: async (): Promise<TenantListResponse> => {
     const tenants: TenantListItem[] = []
