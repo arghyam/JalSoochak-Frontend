@@ -33,8 +33,12 @@ export function to12Hour(value: string): Time12 {
   if (!value) return { hour: '12', minute: '00', ampm: 'AM' }
   const parts = value.split(':')
   const h = parseInt(parts[0] ?? '0', 10)
-  const m = (parts[1] ?? '00').padStart(2, '0')
-  if (isNaN(h)) return { hour: '12', minute: m, ampm: 'AM' }
+  const minuteNum = parseInt(parts[1] ?? '00', 10)
+  const m =
+    Number.isFinite(minuteNum) && minuteNum >= 0 && minuteNum <= 59
+      ? String(minuteNum).padStart(2, '0')
+      : '00'
+  if (!Number.isFinite(h) || h < 0 || h > 23) return { hour: '12', minute: m, ampm: 'AM' }
   if (h === 0) return { hour: '12', minute: m, ampm: 'AM' }
   if (h < 12) return { hour: String(h).padStart(2, '0'), minute: m, ampm: 'AM' }
   if (h === 12) return { hour: '12', minute: m, ampm: 'PM' }
@@ -43,13 +47,17 @@ export function to12Hour(value: string): Time12 {
 
 export function to24Hour({ hour, minute, ampm }: Time12): string {
   const h12 = parseInt(hour, 10)
+  const m = parseInt(minute, 10)
+  if (!Number.isFinite(h12) || h12 < 1 || h12 > 12 || !Number.isFinite(m) || m < 0 || m > 59) {
+    return '00:00'
+  }
   let h24: number
   if (ampm === 'AM') {
     h24 = h12 === 12 ? 0 : h12
   } else {
     h24 = h12 === 12 ? 12 : h12 + 12
   }
-  return `${String(h24).padStart(2, '0')}:${minute}`
+  return `${String(h24).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 }
 
 interface TimePickerColumnProps {
