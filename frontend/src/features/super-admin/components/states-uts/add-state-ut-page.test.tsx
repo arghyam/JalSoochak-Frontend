@@ -2,6 +2,7 @@ import { screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, expect, it, jest, beforeEach } from '@jest/globals'
 import { AddStateUTPage } from './add-state-ut-page'
 import { renderWithProviders } from '@/test/render-with-providers'
+import { ROUTES } from '@/shared/constants/routes'
 import type { Tenant } from '../../types/states-uts'
 import type { InviteUserRequest } from '../../types/super-users'
 
@@ -147,7 +148,9 @@ describe('AddStateUTPage', () => {
 
     it('Skip for Now navigates to view page without calling invite', () => {
       fireEvent.click(screen.getByRole('button', { name: /skip for now/i }))
-      expect(mockNavigate).toHaveBeenCalledWith('/super-user/states-uts/MH/view')
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':tenantCode', 'MH')
+      )
       expect(mockInviteUserMutateAsync).not.toHaveBeenCalled()
     })
 

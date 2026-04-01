@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -44,6 +44,17 @@ export function AddStateUTPage() {
   // Step state
   const [step, setStep] = useState<AddStep>('tenant')
   const [createdTenant, setCreatedTenant] = useState<Tenant | null>(null)
+  const [isInviteLocked, setIsInviteLocked] = useState(false)
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    const timer = redirectTimerRef.current
+    return () => {
+      if (timer !== null) {
+        clearTimeout(timer)
+      }
+    }
+  }, [])
 
   // Step 1 — tenant fields
   const [stateName, setStateName] = useState('')
@@ -170,11 +181,12 @@ export function AddStateUTPage() {
         tenantCode: createdTenant.stateCode,
       })
       toast.addToast(t('statesUts.messages.inviteSent'), 'success')
-      setTimeout(() => {
+      setIsInviteLocked(true)
+      redirectTimerRef.current = setTimeout(() => {
         navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':tenantCode', createdTenant.stateCode))
       }, 1000)
     } catch {
-      toast.addToast(t('statesUts.messages.failedToAdd'), 'error')
+      toast.addToast(t('statesUts.messages.tenantCreatedAdminFailed'), 'error')
     }
   }
 
@@ -185,7 +197,7 @@ export function AddStateUTPage() {
   }
 
   const isStep1Pending = isLoadingTenants || createTenantMutation.isPending
-  const isStep2Pending = inviteUserMutation.isPending
+  const isStep2Pending = inviteUserMutation.isPending || isInviteLocked
 
   return (
     <Box w="full">

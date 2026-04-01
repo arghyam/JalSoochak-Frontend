@@ -98,7 +98,7 @@
       "sendInvite": "ईमेल द्वारा आमंत्रण भेजें",
       "skipForNow": "अभी के लिए छोड़ें"
     },
-    "step": "चरण {{current}} of {{total}}",
+    "step": "चरण {{current}} में से {{total}}",
     "messages": {
       "notFound": "राज्य/केंद्र शासित प्रदेश नहीं मिला",
       "noStatesFound": "कोई राज्य/केंद्र शासित प्रदेश नहीं मिला",

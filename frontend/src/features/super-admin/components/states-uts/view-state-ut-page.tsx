@@ -281,109 +281,111 @@ export function ViewStateUTPage() {
             {t('common:loading')}
           </Text>
         )}
-        {!adminsQuery.isLoading && admins.length === 0 && (
-          <>
-            <Text color="neutral.500" textStyle="h10" mb={4}>
-              {t('statesUts.adminDetails.noAdminDescription')}
-            </Text>
-            <SimpleGrid
-              columns={{ base: 1, lg: 2 }}
-              spacing={6}
-              mb={4}
-              aria-labelledby="admin-details-heading"
-            >
-              <FormControl isRequired isInvalid={!!fieldErrors.firstName}>
-                <FormLabel textStyle="h10" mb={1}>
-                  {t('statesUts.adminDetails.firstName')}
-                </FormLabel>
-                <Input
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  onBlur={() => handleBlur('firstName')}
-                  placeholder={t('common:enter')}
-                  h={9}
-                  maxW={{ base: '100%', lg: '486px' }}
-                  borderColor="neutral.200"
-                  _placeholder={{ color: 'neutral.300' }}
-                  aria-required="true"
-                />
-                {fieldErrors.firstName && (
-                  <FormErrorMessage>{fieldErrors.firstName}</FormErrorMessage>
-                )}
-              </FormControl>
-              <FormControl isRequired isInvalid={!!fieldErrors.lastName}>
-                <FormLabel textStyle="h10" mb={1}>
-                  {t('statesUts.adminDetails.lastName')}
-                </FormLabel>
-                <Input
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  onBlur={() => handleBlur('lastName')}
-                  placeholder={t('common:enter')}
-                  h={9}
-                  borderColor="neutral.200"
-                  _placeholder={{ color: 'neutral.300' }}
-                  maxW={{ base: '100%', lg: '486px' }}
-                  aria-required="true"
-                />
-                {fieldErrors.lastName && (
-                  <FormErrorMessage>{fieldErrors.lastName}</FormErrorMessage>
-                )}
-              </FormControl>
-              <FormControl isRequired isInvalid={!!fieldErrors.phone}>
-                <FormLabel textStyle="h10" mb={1}>
-                  {t('statesUts.adminDetails.phone')}
-                </FormLabel>
-                <Input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => {
-                    const val = e.target.value.replaceAll(/\D/g, '')
-                    if (val.length <= 10) setPhone(val)
-                  }}
-                  onBlur={() => handleBlur('phone')}
-                  placeholder={t('common:enter')}
-                  inputMode="numeric"
-                  h={9}
-                  borderColor="neutral.200"
-                  maxW={{ base: '100%', lg: '486px' }}
-                  _placeholder={{ color: 'neutral.300' }}
-                  aria-required="true"
-                />
-                {fieldErrors.phone && <FormErrorMessage>{fieldErrors.phone}</FormErrorMessage>}
-              </FormControl>
-              <FormControl isRequired isInvalid={!!fieldErrors.email}>
-                <FormLabel textStyle="h10" mb={1}>
-                  {t('statesUts.adminDetails.email')}
-                </FormLabel>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onBlur={() => handleBlur('email')}
-                  placeholder={t('common:enter')}
-                  h={9}
-                  borderColor="neutral.200"
-                  _placeholder={{ color: 'neutral.300' }}
-                  maxW={{ base: '100%', lg: '486px' }}
-                  aria-required="true"
-                />
-                {fieldErrors.email && <FormErrorMessage>{fieldErrors.email}</FormErrorMessage>}
-              </FormControl>
-            </SimpleGrid>
-            <HStack justify="flex-end">
-              <Button
-                variant="primary"
-                size="md"
-                isLoading={inviteUserMutation.isPending}
-                isDisabled={inviteUserMutation.isPending}
-                onClick={() => void handleInviteSubmit()}
+        {!adminsQuery.isLoading &&
+          !adminsQuery.isError &&
+          (adminsQuery.data?.length ?? admins.length) === 0 && (
+            <>
+              <Text color="neutral.500" textStyle="h10" mb={4}>
+                {t('statesUts.adminDetails.noAdminDescription')}
+              </Text>
+              <SimpleGrid
+                columns={{ base: 1, lg: 2 }}
+                spacing={6}
+                mb={4}
+                aria-labelledby="admin-details-heading"
               >
-                {t('statesUts.buttons.sendInvite')}
-              </Button>
-            </HStack>
-          </>
-        )}
+                <FormControl isRequired isInvalid={!!fieldErrors.firstName}>
+                  <FormLabel textStyle="h10" mb={1}>
+                    {t('statesUts.adminDetails.firstName')}
+                  </FormLabel>
+                  <Input
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    onBlur={() => handleBlur('firstName')}
+                    placeholder={t('common:enter')}
+                    h={9}
+                    maxW={{ base: '100%', lg: '486px' }}
+                    borderColor="neutral.200"
+                    _placeholder={{ color: 'neutral.300' }}
+                    aria-required="true"
+                  />
+                  {fieldErrors.firstName && (
+                    <FormErrorMessage>{fieldErrors.firstName}</FormErrorMessage>
+                  )}
+                </FormControl>
+                <FormControl isRequired isInvalid={!!fieldErrors.lastName}>
+                  <FormLabel textStyle="h10" mb={1}>
+                    {t('statesUts.adminDetails.lastName')}
+                  </FormLabel>
+                  <Input
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    onBlur={() => handleBlur('lastName')}
+                    placeholder={t('common:enter')}
+                    h={9}
+                    borderColor="neutral.200"
+                    _placeholder={{ color: 'neutral.300' }}
+                    maxW={{ base: '100%', lg: '486px' }}
+                    aria-required="true"
+                  />
+                  {fieldErrors.lastName && (
+                    <FormErrorMessage>{fieldErrors.lastName}</FormErrorMessage>
+                  )}
+                </FormControl>
+                <FormControl isRequired isInvalid={!!fieldErrors.phone}>
+                  <FormLabel textStyle="h10" mb={1}>
+                    {t('statesUts.adminDetails.phone')}
+                  </FormLabel>
+                  <Input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => {
+                      const val = e.target.value.replaceAll(/\D/g, '')
+                      if (val.length <= 10) setPhone(val)
+                    }}
+                    onBlur={() => handleBlur('phone')}
+                    placeholder={t('common:enter')}
+                    inputMode="numeric"
+                    h={9}
+                    borderColor="neutral.200"
+                    maxW={{ base: '100%', lg: '486px' }}
+                    _placeholder={{ color: 'neutral.300' }}
+                    aria-required="true"
+                  />
+                  {fieldErrors.phone && <FormErrorMessage>{fieldErrors.phone}</FormErrorMessage>}
+                </FormControl>
+                <FormControl isRequired isInvalid={!!fieldErrors.email}>
+                  <FormLabel textStyle="h10" mb={1}>
+                    {t('statesUts.adminDetails.email')}
+                  </FormLabel>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onBlur={() => handleBlur('email')}
+                    placeholder={t('common:enter')}
+                    h={9}
+                    borderColor="neutral.200"
+                    _placeholder={{ color: 'neutral.300' }}
+                    maxW={{ base: '100%', lg: '486px' }}
+                    aria-required="true"
+                  />
+                  {fieldErrors.email && <FormErrorMessage>{fieldErrors.email}</FormErrorMessage>}
+                </FormControl>
+              </SimpleGrid>
+              <HStack justify="flex-end">
+                <Button
+                  variant="primary"
+                  size="md"
+                  isLoading={inviteUserMutation.isPending}
+                  isDisabled={inviteUserMutation.isPending}
+                  onClick={() => void handleInviteSubmit()}
+                >
+                  {t('statesUts.buttons.sendInvite')}
+                </Button>
+              </HStack>
+            </>
+          )}
         {!adminsQuery.isLoading && admins.length > 0 && (
           <Flex direction="column" gap={6}>
             {admins.map((admin) => (
