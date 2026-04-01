@@ -293,7 +293,7 @@ const isDashboardDataPayload = (value: unknown): value is DashboardData => {
 }
 
 const ensureValidParams = ({ level, entityId }: DashboardQueryParams): void => {
-  if (level !== 'central' && !entityId) {
+  if (!entityId) {
     throw new Error(`entityId is required for dashboard level: ${level}`)
   }
 }
@@ -306,8 +306,7 @@ const httpProvider: {
 } = {
   getDashboardData: async ({ level, entityId }: DashboardQueryParams) => {
     ensureValidParams({ level, entityId })
-    const endpoint =
-      level === 'central' ? '/api/dashboard/central' : `/api/dashboard/${level}/${entityId}`
+    const endpoint = `/api/dashboard/${level}/${entityId}`
     const response = await apiClient.get<DashboardData>(endpoint)
     if (!isDashboardDataPayload(response.data)) {
       throw new Error('Dashboard API returned an invalid payload')
