@@ -168,6 +168,9 @@ const mockDashboardData: DashboardData = {
   waterSupplyOutages: [
     {
       label: 'District 1',
+      reasons: {
+        electricityFailure: 1,
+      },
       electricityFailure: 1,
       pipelineLeak: 1,
       pumpFailure: 1,
@@ -683,6 +686,41 @@ describe('DashboardBody', () => {
     })
 
     expect(screen.getByText('No data available')).toBeTruthy()
+    expect(
+      screen
+        .getByRole('button', { name: 'State supply outage distribution view by' })
+        .getAttribute('disabled')
+    ).not.toBeNull()
+  })
+
+  it('shows no data for outage distribution when outage reasons have no renderable values', () => {
+    renderDashboardBody({
+      isStateSelected: true,
+      isDistrictSelected: false,
+      isBlockSelected: false,
+      isGramPanchayatSelected: false,
+      selectedVillage: '',
+      waterSupplyOutagesData: [
+        {
+          label: 'District 1',
+          reasons: {},
+          electricityFailure: 1,
+          pipelineLeak: 1,
+          pumpFailure: 1,
+          valveIssue: 1,
+          sourceDrying: 1,
+        },
+      ],
+      waterSupplyOutageDistributionData: mockDashboardData.waterSupplyOutages,
+      data: {
+        ...mockDashboardData,
+        supplyOutageTrend: [{ period: 'FY25', value: 7 }],
+      },
+    })
+
+    expect(screen.getByText('Supply Outage Distribution')).toBeTruthy()
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(screen.queryByTestId('supply-outage-distribution-chart')).toBeNull()
     expect(
       screen
         .getByRole('button', { name: 'State supply outage distribution view by' })

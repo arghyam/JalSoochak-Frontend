@@ -77,6 +77,7 @@ import {
   mockBlockPerformanceByDistrict,
   mockGramPanchayatPerformanceByBlock,
   mockVillagePerformanceByGramPanchayat,
+  mockReadingCompliance,
 } from '../services/mock/dashboard-mock'
 import type { HierarchyType, TenantChildLocation } from '../services/api/dashboard-api'
 
@@ -1289,14 +1290,21 @@ export function CentralDashboard() {
     outageReasonsTimeTrendData.length > 0
       ? outageReasonsTimeTrendData
       : dashboardData.supplyOutageTrend
+  const resolvedReadingCompliance =
+    (isBlockSelected && !isGramPanchayatSelected && !isVillageSelected) ||
+    (isGramPanchayatSelected && !isVillageSelected)
+      ? mockReadingCompliance
+      : dashboardData.readingCompliance
   const resolvedDashboardData =
     readingSubmissionStatusData === dashboardData.readingSubmissionStatus &&
     pumpOperatorsData === dashboardData.pumpOperators &&
-    resolvedSupplyOutageTrend === dashboardData.supplyOutageTrend
+    resolvedSupplyOutageTrend === dashboardData.supplyOutageTrend &&
+    resolvedReadingCompliance === dashboardData.readingCompliance
       ? dashboardData
       : {
           ...dashboardData,
           readingSubmissionStatus: readingSubmissionStatusData,
+          readingCompliance: resolvedReadingCompliance,
           pumpOperators: pumpOperatorsData,
           supplyOutageTrend: resolvedSupplyOutageTrend,
         }

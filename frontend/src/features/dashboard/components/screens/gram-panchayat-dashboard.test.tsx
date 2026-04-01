@@ -52,14 +52,17 @@ jest.mock('@/shared/components/common/view-by-select', () => ({
     value,
     onChange,
     ariaLabel,
+    disabled,
   }: {
     value: 'geography' | 'time'
     onChange: (value: 'geography' | 'time') => void
     ariaLabel: string
+    disabled?: boolean
   }) => (
     <select
       aria-label={ariaLabel}
       value={value}
+      disabled={disabled}
       onChange={(event) => onChange(event.target.value as 'geography' | 'time')}
     >
       <option value="geography">Geography</option>
@@ -123,6 +126,10 @@ const supplySubmissionRateData: EntityPerformance[] = [
 const waterSupplyOutagesData = [
   {
     label: 'Village 1',
+    reasons: {
+      electricityFailure: 10,
+      pipelineLeak: 12,
+    },
     electricityFailure: 10,
     pipelineLeak: 12,
     pumpFailure: 8,
@@ -337,5 +344,45 @@ describe('GramPanchayatDashboardScreen', () => {
         value: 12,
       },
     ])
+  })
+
+  it('shows no data for outage distribution when outage reasons have no renderable values', () => {
+    renderWithProviders(
+      <GramPanchayatDashboardScreen
+        data={{
+          ...data,
+          supplyOutageTrend: [{ period: 'Jan', value: 12 }],
+        }}
+        waterSupplyOutagesData={[
+          {
+            label: 'Village 1',
+            reasons: {},
+            electricityFailure: 10,
+            pipelineLeak: 12,
+            pumpFailure: 8,
+            valveIssue: 6,
+            sourceDrying: 4,
+          },
+        ]}
+        waterSupplyOutageDistributionData={waterSupplyOutagesData}
+        quantityPerformanceData={villageQuantityData}
+        quantityTimeTrendData={quantityTimeTrendData}
+        regularityPerformanceData={villageRegularityData}
+        regularityTimeTrendData={regularityTimeTrendData}
+        villageTableData={villageTableData}
+        supplySubmissionRateData={supplySubmissionRateData}
+        supplySubmissionRateLabel="Villages"
+        operatorsPerformanceTable={operatorsPerformanceTable}
+        pumpOperatorsTotal={15}
+      />
+    )
+
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(screen.queryByTestId('supply-outage-distribution-chart')).toBeNull()
+    expect(
+      screen
+        .getByRole('combobox', { name: 'Gram panchayat supply outage distribution view by' })
+        .getAttribute('disabled')
+    ).not.toBeNull()
   })
 })

@@ -19,6 +19,7 @@ import { PerformanceChartCard } from './performance-chart-card'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 import { ChartEmptyState, ViewBySelect } from '@/shared/components/common'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
+import { hasRenderableSupplyOutageReasons } from '../../utils/supply-outage'
 
 type DistrictDashboardScreenProps = {
   data: DashboardData
@@ -64,10 +65,15 @@ export function DistrictDashboardScreen({
     () => data.supplyOutageTrend ?? [],
     [data.supplyOutageTrend]
   )
+  const hasOutageReasonsData = useMemo(
+    () => hasRenderableSupplyOutageReasons(waterSupplyOutagesData),
+    [waterSupplyOutagesData]
+  )
   const isOutageDistributionSelectDisabled =
-    outageDistributionViewBy === 'geography'
+    !hasOutageReasonsData ||
+    (outageDistributionViewBy === 'geography'
       ? waterSupplyOutageDistributionData.length === 0
-      : outageDistributionTimeTrendData.length === 0
+      : outageDistributionTimeTrendData.length === 0)
   return (
     <>
       {/* Quantity + Regularity */}
@@ -173,7 +179,9 @@ export function DistrictDashboardScreen({
               disabled={isOutageDistributionSelectDisabled}
             />
           </Flex>
-          {outageDistributionViewBy === 'geography' ? (
+          {!hasOutageReasonsData ? (
+            <ChartEmptyState minHeight="400px" />
+          ) : outageDistributionViewBy === 'geography' ? (
             waterSupplyOutageDistributionData.length > 0 ? (
               <SupplyOutageDistributionChart
                 data={waterSupplyOutageDistributionData}

@@ -19,6 +19,7 @@ import { PerformanceChartCard } from './performance-chart-card'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 import { ChartEmptyState, ViewBySelect } from '@/shared/components/common'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
+import { hasRenderableSupplyOutageReasons } from '../../utils/supply-outage'
 
 type GramPanchayatDashboardScreenProps = {
   data: DashboardData
@@ -64,10 +65,15 @@ export function GramPanchayatDashboardScreen({
     () => data.supplyOutageTrend ?? [],
     [data.supplyOutageTrend]
   )
+  const hasOutageReasonsData = useMemo(
+    () => hasRenderableSupplyOutageReasons(waterSupplyOutagesData),
+    [waterSupplyOutagesData]
+  )
   const isOutageDistributionSelectDisabled =
-    outageDistributionViewBy === 'geography'
+    !hasOutageReasonsData ||
+    (outageDistributionViewBy === 'geography'
       ? waterSupplyOutageDistributionData.length === 0
-      : outageDistributionTimeTrendData.length === 0
+      : outageDistributionTimeTrendData.length === 0)
 
   return (
     <>
@@ -178,7 +184,9 @@ export function GramPanchayatDashboardScreen({
               disabled={isOutageDistributionSelectDisabled}
             />
           </Flex>
-          {outageDistributionViewBy === 'geography' ? (
+          {!hasOutageReasonsData ? (
+            <ChartEmptyState minHeight="400px" />
+          ) : outageDistributionViewBy === 'geography' ? (
             waterSupplyOutageDistributionData.length > 0 ? (
               <SupplyOutageDistributionChart
                 data={waterSupplyOutageDistributionData}

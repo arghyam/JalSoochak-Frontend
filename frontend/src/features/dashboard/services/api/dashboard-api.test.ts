@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
+import { mockReadingCompliance } from '../mock/dashboard-mock'
 
 const mockGet: jest.Mock = jest.fn()
 
@@ -73,6 +74,87 @@ describe('dashboardApi.getNationalDashboard', () => {
       stateWiseReadingSubmissionRate: [],
       overallOutageReasonDistribution: {},
     })
+  })
+})
+
+describe('dashboardApi.getDashboardData', () => {
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+  })
+
+  it('uses mock reading compliance for block dashboards', async () => {
+    mockGet.mockImplementation(async () => ({
+      data: {
+        level: 'block',
+        entityId: 'block-1',
+        kpis: {
+          totalSchemes: 1,
+          totalRuralHouseholds: 2,
+          functionalTapConnections: 3,
+        },
+        mapData: [],
+        demandSupply: [],
+        readingSubmissionStatus: [],
+        readingCompliance: [],
+        pumpOperators: [],
+        waterSupplyOutages: [],
+        topPerformers: [],
+        worstPerformers: [],
+        regularityData: [],
+        continuityData: [],
+      },
+    }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+    const response = await dashboardApi.getDashboardData({
+      level: 'block',
+      entityId: 'block-1',
+    })
+
+    expect(response.readingCompliance).toEqual(mockReadingCompliance)
+  })
+
+  it('keeps api reading compliance for village dashboards', async () => {
+    const apiReadingCompliance = [
+      {
+        id: 'po-1',
+        name: 'Operator 1',
+        village: 'Village 1',
+        lastSubmission: '2026-01-01',
+        readingValue: '123',
+      },
+    ]
+
+    mockGet.mockImplementation(async () => ({
+      data: {
+        level: 'village',
+        entityId: 'village-1',
+        kpis: {
+          totalSchemes: 1,
+          totalRuralHouseholds: 2,
+          functionalTapConnections: 3,
+        },
+        mapData: [],
+        demandSupply: [],
+        readingSubmissionStatus: [],
+        readingCompliance: apiReadingCompliance,
+        pumpOperators: [],
+        waterSupplyOutages: [],
+        topPerformers: [],
+        worstPerformers: [],
+        regularityData: [],
+        continuityData: [],
+      },
+    }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+    const response = await dashboardApi.getDashboardData({
+      level: 'village',
+      entityId: 'village-1',
+    })
+
+    expect(response.readingCompliance).toEqual(apiReadingCompliance)
   })
 })
 

@@ -6,6 +6,7 @@ import { EChartsWrapper } from '@/shared/components/common'
 import { ChartEmptyState } from '@/shared/components/common/chart-empty-state'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
 import type { WaterSupplyOutageData } from '../../types'
+import { hasRenderableSupplyOutageReasons } from '../../utils/supply-outage'
 
 interface SupplyOutageReasonsChartProps {
   data: WaterSupplyOutageData[]
@@ -78,10 +79,7 @@ export function SupplyOutageReasonsChart({
         }
       })
   }, [data])
-  const hasRenderableData = useMemo(
-    () => chartItems.some((item) => Number.isFinite(item.value) && item.value > 0),
-    [chartItems]
-  )
+  const hasRenderableData = useMemo(() => hasRenderableSupplyOutageReasons(data), [data])
 
   const option: echarts.EChartsOption = useMemo(() => {
     const totalOutages = chartItems.reduce((sum, item) => sum + item.value, 0)

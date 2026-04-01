@@ -22,6 +22,7 @@ import { StateUtDashboardScreen } from './state-ut-dashboard'
 import { ChartEmptyState, ViewBySelect } from '@/shared/components/common'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { VillageDashboardScreen } from './village-dashboard'
+import { hasRenderableSupplyOutageReasons } from '../../utils/supply-outage'
 
 type DashboardBodyProps = {
   data: DashboardData
@@ -104,10 +105,15 @@ export function DashboardBody({
     () => data.supplyOutageTrend ?? [],
     [data.supplyOutageTrend]
   )
+  const hasOutageReasonsData = useMemo(
+    () => hasRenderableSupplyOutageReasons(waterSupplyOutagesData),
+    [waterSupplyOutagesData]
+  )
   const isOutageDistributionSelectDisabled =
-    outageDistributionViewBy === 'geography'
+    !hasOutageReasonsData ||
+    (outageDistributionViewBy === 'geography'
       ? waterSupplyOutageDistributionData.length === 0
-      : outageDistributionTimeTrendData.length === 0
+      : outageDistributionTimeTrendData.length === 0)
   const geographyEntityLabel = isStateScreen
     ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
     : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
@@ -255,7 +261,9 @@ export function DashboardBody({
                   />
                 </Flex>
                 <Box flex="1" minH={0}>
-                  {outageDistributionViewBy === 'geography' ? (
+                  {!hasOutageReasonsData ? (
+                    <ChartEmptyState minHeight="100%" />
+                  ) : outageDistributionViewBy === 'geography' ? (
                     waterSupplyOutageDistributionData.length > 0 ? (
                       <SupplyOutageDistributionChart
                         data={waterSupplyOutageDistributionData}
