@@ -154,6 +154,22 @@ export function SupplyOutageReasonsChart({
   const containerHeight = typeof height === 'number' ? `${height}px` : height
   const legendItems = chartItems.map(({ key, label, color }) => ({ key, label, color }))
 
+  if (!hasRenderableData) {
+    return (
+      <div
+        className={className}
+        style={{
+          width: '100%',
+          height: containerHeight,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        <ChartEmptyState minHeight="100%" message={noDataLabel} />
+      </div>
+    )
+  }
+
   return (
     <div
       className={className}

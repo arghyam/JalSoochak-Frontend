@@ -131,6 +131,23 @@ export function ActiveSchemesChart({
       }))
     : []
 
+  if (!hasRenderableData) {
+    return (
+      <div
+        className={className}
+        style={{
+          width: '100%',
+          minWidth: 0,
+          height: containerHeight,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        <ChartEmptyState minHeight="100%" message={noDataLabel} />
+      </div>
+    )
+  }
+
   return (
     <div
       className={className}
@@ -166,11 +183,7 @@ export function ActiveSchemesChart({
             justifyContent: 'center',
           }}
         >
-          {hasRenderableData ? (
-            <EChartsWrapper option={option} height="100%" />
-          ) : (
-            <ChartEmptyState minHeight="100%" message={noDataLabel} />
-          )}
+          <EChartsWrapper option={option} height="100%" />
         </div>
         {legendItems.length > 0 ? (
           <div

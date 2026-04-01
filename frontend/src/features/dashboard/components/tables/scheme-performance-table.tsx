@@ -242,7 +242,7 @@ export function SchemePerformanceTable({
           alignItems="center"
           justifyContent="center"
           textAlign="center"
-          color="neutral.500"
+          color="neutral.600"
         >
           <Text>{t('common:noDataAvailable', { defaultValue: 'No data available' })}</Text>
         </Box>

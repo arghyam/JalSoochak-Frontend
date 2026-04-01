@@ -114,6 +114,23 @@ export function ReadingSubmissionStatusChart({
     color: defaultColors[index % defaultColors.length],
   }))
 
+  if (!hasRenderableData) {
+    return (
+      <div
+        className={className}
+        style={{
+          width: '100%',
+          minWidth: 0,
+          height: containerHeight,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        <ChartEmptyState minHeight="100%" message={noDataLabel} />
+      </div>
+    )
+  }
+
   return (
     <div
       className={className}
@@ -134,11 +151,7 @@ export function ReadingSubmissionStatusChart({
           margin: '0 auto',
         }}
       >
-        {hasRenderableData ? (
-          <EChartsWrapper option={option} height="100%" />
-        ) : (
-          <ChartEmptyState minHeight="100%" message={noDataLabel} />
-        )}
+        <EChartsWrapper option={option} height="100%" />
       </div>
       {legendItems.length > 0 ? (
         <div

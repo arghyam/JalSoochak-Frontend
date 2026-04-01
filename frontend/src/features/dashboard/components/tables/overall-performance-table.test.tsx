@@ -48,6 +48,7 @@ describe('OverallPerformanceTable', () => {
     renderWithProviders(<OverallPerformanceTable data={[]} />)
 
     expect(screen.getByText('No data available')).toBeTruthy()
+    expect(screen.queryAllByRole('columnheader')).toHaveLength(0)
   })
 
   it('renders only the 4 expected columns', () => {
