@@ -374,6 +374,31 @@ describe('CentralDashboard', () => {
     })
   })
 
+  it('ignores stale filters from the inactive tab when deciding the national landing view', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 0,
+        selectedDepartmentState: '501:department-state',
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useNationalDashboardQuery).toHaveBeenCalledWith({
+      params: {
+        startDate: expect.any(String),
+        endDate: expect.any(String),
+      },
+      enabled: true,
+    })
+  })
+
   it('does not enable submission status analytics on the public central landing view', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,

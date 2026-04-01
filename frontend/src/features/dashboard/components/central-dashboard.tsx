@@ -472,18 +472,21 @@ export function CentralDashboard() {
   const isGramPanchayatSelected = Boolean(effectiveSelectedGramPanchayat)
   const isVillageSelected = Boolean(effectiveSelectedVillage)
   const isDepartmentStateSelected = Boolean(selectedDepartmentState)
-  const hasCentralLandingFilters =
+  const hasLgdLandingFilters =
     isStateSelected ||
     isDistrictSelected ||
     isBlockSelected ||
     isGramPanchayatSelected ||
-    isVillageSelected ||
+    isVillageSelected
+  const hasDepartmentLandingFilters =
     Boolean(selectedDepartmentState) ||
     Boolean(selectedDepartmentZone) ||
     Boolean(selectedDepartmentCircle) ||
     Boolean(selectedDepartmentDivision) ||
     Boolean(selectedDepartmentSubdivision) ||
     Boolean(selectedDepartmentVillage)
+  const hasCentralLandingFilters =
+    filterTabIndex === 0 ? hasLgdLandingFilters : hasDepartmentLandingFilters
   const dashboardData = data ?? EMPTY_DASHBOARD_DATA
   const hierarchyType: HierarchyType = filterTabIndex === 0 ? 'LGD' : 'DEPARTMENT'
   const emptyOptions: SearchableSelectOption[] = []

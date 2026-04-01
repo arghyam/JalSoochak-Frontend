@@ -68,6 +68,11 @@ type RawPumpOperatorDetailsResponse = Omit<PumpOperatorDetailsResponse, 'data'> 
   }
 }
 
+type RawNationalDashboardPayload = {
+  success?: boolean
+  data?: NationalDashboardResponse
+}
+
 const normalizeMissedSubmissionDays = (
   value: RawPumpOperatorDetailsResponse['data']['missedSubmissionDays']
 ) => {
@@ -76,6 +81,26 @@ const normalizeMissedSubmissionDays = (
   }
 
   return typeof value === 'number' ? value : null
+}
+
+const normalizeNationalDashboardResponse = (
+  response: NationalDashboardResponse | RawNationalDashboardPayload
+): NationalDashboardResponse => {
+  if ('stateWiseQuantityPerformance' in response) {
+    return response
+  }
+
+  return (
+    response.data ?? {
+      startDate: '',
+      endDate: '',
+      daysInRange: 0,
+      stateWiseQuantityPerformance: [],
+      stateWiseRegularity: [],
+      stateWiseReadingSubmissionRate: [],
+      overallOutageReasonDistribution: {},
+    }
+  )
 }
 
 const toTenantListContainer = (value: unknown): TenantListContainer | null => {
@@ -276,7 +301,7 @@ export const dashboardApi = {
   getNationalDashboard: async (
     params: NationalDashboardQueryParams
   ): Promise<NationalDashboardResponse> => {
-    const response = await apiClient.get<NationalDashboardResponse>(
+    const response = await apiClient.get<NationalDashboardResponse | RawNationalDashboardPayload>(
       '/api/v1/analytics/national/dashboard',
       {
         params: {
@@ -286,7 +311,7 @@ export const dashboardApi = {
       }
     )
 
-    return response.data
+    return normalizeNationalDashboardResponse(response.data)
   },
   getAverageWaterSupplyPerRegion: async (
     params: AverageWaterSupplyPerRegionQueryParams
