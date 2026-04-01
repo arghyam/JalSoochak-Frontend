@@ -784,7 +784,7 @@ export function CentralDashboard() {
             endDate: analyticsDateRange.endDate,
           }
   const outageReasonsAnalyticsParams =
-    isVillageSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+    !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
