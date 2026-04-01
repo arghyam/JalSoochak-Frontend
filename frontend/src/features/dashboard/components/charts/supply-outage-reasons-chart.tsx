@@ -3,6 +3,7 @@ import { useTheme } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
+import { ChartEmptyState } from '@/shared/components/common/chart-empty-state'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
 import type { WaterSupplyOutageData } from '../../types'
 
@@ -45,6 +46,7 @@ export function SupplyOutageReasonsChart({
   const { t: tCommon } = useTranslation('common')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
+  const noDataLabel = tCommon('noDataAvailable', { defaultValue: 'No data available' })
   const chartItems = useMemo(() => {
     const totals = new Map<string, number>()
     const addValidatedTotal = (reasonKey: string, value: unknown) => {
@@ -76,6 +78,10 @@ export function SupplyOutageReasonsChart({
         }
       })
   }, [data])
+  const hasRenderableData = useMemo(
+    () => chartItems.some((item) => Number.isFinite(item.value) && item.value > 0),
+    [chartItems]
+  )
 
   const option: echarts.EChartsOption = useMemo(() => {
     const totalOutages = chartItems.reduce((sum, item) => sum + item.value, 0)
@@ -134,30 +140,19 @@ export function SupplyOutageReasonsChart({
           labelLine: {
             show: false,
           },
-          data: [
-            ...chartItems.map((item) => ({
-              name: item.label,
-              value: item.value,
-              itemStyle: { color: item.color },
-              emphasis: { itemStyle: { color: item.color } },
-            })),
-          ],
+          data: chartItems.map((item) => ({
+            name: item.label,
+            value: item.value,
+            itemStyle: { color: item.color },
+            emphasis: { itemStyle: { color: item.color } },
+          })),
         },
       ],
     }
   }, [chartItems])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
-  const legendItems =
-    chartItems.length > 0
-      ? chartItems.map(({ key, label, color }) => ({ key, label, color }))
-      : [
-          {
-            key: 'no-data',
-            label: tCommon('noDataAvailable', { defaultValue: 'No data available' }),
-            color: '#D4D4D8',
-          },
-        ]
+  const legendItems = chartItems.map(({ key, label, color }) => ({ key, label, color }))
 
   return (
     <div
@@ -178,45 +173,51 @@ export function SupplyOutageReasonsChart({
           margin: '0 auto',
         }}
       >
-        <EChartsWrapper option={option} height="100%" />
+        {hasRenderableData ? (
+          <EChartsWrapper option={option} height="100%" />
+        ) : (
+          <ChartEmptyState minHeight="100%" message={noDataLabel} />
+        )}
       </div>
-      <div
-        style={{
-          marginTop: `${chartLegendGapPx}px`,
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '16px',
-          paddingTop: 0,
-          flexWrap: 'wrap',
-        }}
-      >
-        {legendItems.map((item) => (
-          <div key={item.key} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span
-              aria-hidden="true"
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '2px',
-                backgroundColor: item.color,
-                display: 'inline-block',
-              }}
-            />
-            <span
-              style={{
-                fontSize: bodyText7.fontSize,
-                lineHeight: `${bodyText7.lineHeight}px`,
-                fontWeight: 400,
-                color: bodyText7.color,
-              }}
-            >
-              {item.label}
-            </span>
-          </div>
-        ))}
-      </div>
+      {legendItems.length > 0 ? (
+        <div
+          style={{
+            marginTop: `${chartLegendGapPx}px`,
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '16px',
+            paddingTop: 0,
+            flexWrap: 'wrap',
+          }}
+        >
+          {legendItems.map((item) => (
+            <div key={item.key} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span
+                aria-hidden="true"
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '2px',
+                  backgroundColor: item.color,
+                  display: 'inline-block',
+                }}
+              />
+              <span
+                style={{
+                  fontSize: bodyText7.fontSize,
+                  lineHeight: `${bodyText7.lineHeight}px`,
+                  fontWeight: 400,
+                  color: bodyText7.color,
+                }}
+              >
+                {item.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
     </div>
   )
 }

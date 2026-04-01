@@ -304,6 +304,7 @@ export function GramPanchayatDashboardScreen({
           borderColor="#E4E4E7"
           px={4}
           py={6}
+          h="526px"
           minW={0}
         >
           <ReadingComplianceTable
@@ -311,6 +312,7 @@ export function GramPanchayatDashboardScreen({
             title={t('outageAndSubmissionCharts.titles.readingCompliance', {
               defaultValue: 'Reading Compliance',
             })}
+            fillHeight
           />
         </Box>
         <Box

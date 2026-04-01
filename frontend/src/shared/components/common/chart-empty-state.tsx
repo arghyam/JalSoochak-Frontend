@@ -8,13 +8,17 @@ type ChartEmptyStateProps = {
 
 export function ChartEmptyState({ minHeight = '400px', message }: ChartEmptyStateProps) {
   const { t } = useTranslation('common')
+  const resolvedMinHeight = typeof minHeight === 'number' ? `${minHeight}px` : minHeight
 
   return (
     <Box
-      minH={typeof minHeight === 'number' ? `${minHeight}px` : minHeight}
+      w="full"
+      h="full"
+      minH={resolvedMinHeight}
       display="flex"
       alignItems="center"
       justifyContent="center"
+      textAlign="center"
     >
       <Text color="neutral.600">{message ?? t('noDataAvailable')}</Text>
     </Box>

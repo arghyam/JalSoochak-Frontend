@@ -45,6 +45,7 @@ describe('SchemePerformanceTable', () => {
     renderWithProviders(<SchemePerformanceTable title="Scheme Performance" data={[]} />)
 
     expect(screen.getByText('No data available')).toBeTruthy()
+    expect(screen.queryAllByRole('columnheader')).toHaveLength(0)
   })
 
   it('renders headers in Name, Village, Block order', () => {

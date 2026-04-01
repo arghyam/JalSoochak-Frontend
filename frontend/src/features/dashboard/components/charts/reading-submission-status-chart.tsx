@@ -3,6 +3,7 @@ import { useTheme } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
+import { ChartEmptyState } from '@/shared/components/common/chart-empty-state'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
 import type { ReadingSubmissionStatusData } from '../../types'
 
@@ -26,6 +27,7 @@ export function ReadingSubmissionStatusChart({
   const { t: tCommon } = useTranslation('common')
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
+  const noDataLabel = tCommon('noDataAvailable', { defaultValue: 'No data available' })
   const localizedLegendLabel = useCallback(
     (label: string) => {
       const normalized = label.trim().toLowerCase()
@@ -106,20 +108,11 @@ export function ReadingSubmissionStatusChart({
   }, [chartData, localizedLegendLabel])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
-  const legendItems =
-    chartData.length > 0
-      ? chartData.map((entry, index) => ({
-          key: entry.label,
-          label: localizedLegendLabel(entry.label),
-          color: defaultColors[index % defaultColors.length],
-        }))
-      : [
-          {
-            key: 'no-data',
-            label: tCommon('noDataAvailable', { defaultValue: 'No data available' }),
-            color: '#D4D4D8',
-          },
-        ]
+  const legendItems = chartData.map((entry, index) => ({
+    key: entry.label,
+    label: localizedLegendLabel(entry.label),
+    color: defaultColors[index % defaultColors.length],
+  }))
 
   return (
     <div
@@ -141,46 +134,52 @@ export function ReadingSubmissionStatusChart({
           margin: '0 auto',
         }}
       >
-        <EChartsWrapper option={option} height="100%" />
+        {hasRenderableData ? (
+          <EChartsWrapper option={option} height="100%" />
+        ) : (
+          <ChartEmptyState minHeight="100%" message={noDataLabel} />
+        )}
       </div>
-      <div
-        style={{
-          marginTop: `${chartLegendGapPx}px`,
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '16px',
-          paddingTop: '0px',
-          flexWrap: 'wrap',
-          rowGap: '6px',
-        }}
-      >
-        {legendItems.map((item) => (
-          <div key={item.key} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span
-              aria-hidden="true"
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '2px',
-                backgroundColor: item.color,
-                display: 'inline-block',
-              }}
-            />
-            <span
-              style={{
-                fontSize: bodyText7.fontSize,
-                lineHeight: `${bodyText7.lineHeight}px`,
-                fontWeight: 400,
-                color: bodyText7.color,
-              }}
-            >
-              {item.label}
-            </span>
-          </div>
-        ))}
-      </div>
+      {legendItems.length > 0 ? (
+        <div
+          style={{
+            marginTop: `${chartLegendGapPx}px`,
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '16px',
+            paddingTop: '0px',
+            flexWrap: 'wrap',
+            rowGap: '6px',
+          }}
+        >
+          {legendItems.map((item) => (
+            <div key={item.key} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span
+                aria-hidden="true"
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '2px',
+                  backgroundColor: item.color,
+                  display: 'inline-block',
+                }}
+              />
+              <span
+                style={{
+                  fontSize: bodyText7.fontSize,
+                  lineHeight: `${bodyText7.lineHeight}px`,
+                  fontWeight: 400,
+                  color: bodyText7.color,
+                }}
+              >
+                {item.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
     </div>
   )
 }

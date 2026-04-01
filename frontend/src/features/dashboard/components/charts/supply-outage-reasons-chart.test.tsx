@@ -77,10 +77,11 @@ describe('SupplyOutageReasonsChart', () => {
     })
   })
 
-  it('shows a no data available legend item when the pie data is empty', () => {
+  it('shows only no data text when the pie data is empty', () => {
     renderWithProviders(<SupplyOutageReasonsChart data={[]} />)
 
     expect(screen.getByText('No data available')).toBeTruthy()
+    expect(mockEChartsWrapper).not.toHaveBeenCalled()
   })
 
   it('shows no data available when outage reasons are missing instead of using legacy fields', () => {
@@ -100,6 +101,7 @@ describe('SupplyOutageReasonsChart', () => {
     )
 
     expect(screen.getByText('No data available')).toBeTruthy()
+    expect(mockEChartsWrapper).not.toHaveBeenCalled()
     expect(screen.queryByText('Electrical failure')).toBeNull()
     expect(screen.queryByText('Pipeline leak')).toBeNull()
   })

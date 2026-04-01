@@ -233,145 +233,160 @@ export function SchemePerformanceTable({
       <Box textStyle="bodyText3" fontWeight="400" mb="16px">
         {title}
       </Box>
-      <Box
-        maxH={fillHeight ? undefined : maxTableHeight}
-        flex={fillHeight ? 1 : undefined}
-        minH={fillHeight ? 0 : undefined}
-        overflowY="auto"
-        overflowX="hidden"
-        w="full"
-        maxW="100%"
-        minW={0}
-        pr={2}
-        pb={2}
-        sx={{
-          WebkitOverflowScrolling: 'touch',
-          '&::-webkit-scrollbar': { width: '4px', height: '0px' },
-          '&::-webkit-scrollbar-track': { bg: 'neutral.100', borderRadius: '999px' },
-          '&::-webkit-scrollbar-thumb': {
-            bg: 'neutral.300',
-            borderRadius: '999px',
-            minHeight: '165px',
-          },
-        }}
-      >
+      {isEmpty ? (
         <Box
-          ref={scrollContainerRef}
-          overflowX={enableHorizontalScroller ? 'auto' : 'hidden'}
-          overflowY="visible"
+          flex={fillHeight ? 1 : undefined}
+          minH={fillHeight ? 0 : '200px'}
+          h={fillHeight ? '100%' : '200px'}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          textAlign="center"
+          color="neutral.500"
+        >
+          <Text>{t('common:noDataAvailable', { defaultValue: 'No data available' })}</Text>
+        </Box>
+      ) : (
+        <Box
+          maxH={fillHeight ? undefined : maxTableHeight}
+          flex={fillHeight ? 1 : undefined}
+          minH={fillHeight ? 0 : undefined}
+          overflowY="auto"
+          overflowX="hidden"
           w="full"
+          maxW="100%"
           minW={0}
-          onScroll={updateScrollbarThumb}
+          pr={2}
+          pb={2}
           sx={{
             WebkitOverflowScrolling: 'touch',
-            scrollbarWidth: 'none',
-            '&::-webkit-scrollbar': {
-              height: '0px',
+            '&::-webkit-scrollbar': { width: '4px', height: '0px' },
+            '&::-webkit-scrollbar-track': { bg: 'neutral.100', borderRadius: '999px' },
+            '&::-webkit-scrollbar-thumb': {
+              bg: 'neutral.300',
+              borderRadius: '999px',
+              minHeight: '165px',
             },
           }}
         >
-          <Box w="full" minW={responsiveTableMinWidth}>
-            <Table size="sm" w="full" minW={responsiveTableMinWidth} sx={{ tableLayout: 'auto' }}>
-              <Thead
-                sx={{
-                  position: 'sticky',
-                  top: 0,
-                  zIndex: 1,
-                  bg: 'white',
-                  th: {
-                    textStyle: 'bodyText7',
-                    textTransform: 'none',
-                    fontWeight: '500',
-                    px: 3,
-                    py: 4,
-                    whiteSpace: 'nowrap',
-                  },
-                }}
-              >
-                <Tr>
-                  <Th w="260px" minW="260px" maxW="260px">
-                    {t('pumpOperators.performanceTable.columns.name', { defaultValue: 'Name' })}
-                  </Th>
-                  {showVillageColumn ? (
-                    <Th minW={enableHorizontalScroller ? '140px' : 'auto'}>
-                      {secondaryColumnLabel ??
-                        t('pumpOperators.performanceTable.columns.village', {
-                          defaultValue: 'Village',
-                        })}
+          <Box
+            ref={scrollContainerRef}
+            overflowX={enableHorizontalScroller ? 'auto' : 'hidden'}
+            overflowY="visible"
+            w="full"
+            minW={0}
+            onScroll={updateScrollbarThumb}
+            sx={{
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+              '&::-webkit-scrollbar': {
+                height: '0px',
+              },
+            }}
+          >
+            <Box w="full" minW={responsiveTableMinWidth}>
+              <Table size="sm" w="full" minW={responsiveTableMinWidth} sx={{ tableLayout: 'auto' }}>
+                <Thead
+                  sx={{
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 1,
+                    bg: 'white',
+                    th: {
+                      textStyle: 'bodyText7',
+                      textTransform: 'none',
+                      fontWeight: '500',
+                      px: 3,
+                      py: 4,
+                      whiteSpace: 'nowrap',
+                    },
+                  }}
+                >
+                  <Tr>
+                    <Th w="260px" minW="260px" maxW="260px">
+                      {t('pumpOperators.performanceTable.columns.name', { defaultValue: 'Name' })}
                     </Th>
-                  ) : null}
-                  {showBlockColumn ? (
-                    <Th minW={enableHorizontalScroller ? '140px' : 'auto'}>
-                      {t('pumpOperators.performanceTable.columns.block', { defaultValue: 'Block' })}
+                    {showVillageColumn ? (
+                      <Th minW={enableHorizontalScroller ? '140px' : 'auto'}>
+                        {secondaryColumnLabel ??
+                          t('pumpOperators.performanceTable.columns.village', {
+                            defaultValue: 'Village',
+                          })}
+                      </Th>
+                    ) : null}
+                    {showBlockColumn ? (
+                      <Th minW={enableHorizontalScroller ? '140px' : 'auto'}>
+                        {t('pumpOperators.performanceTable.columns.block', {
+                          defaultValue: 'Block',
+                        })}
+                      </Th>
+                    ) : null}
+                    <Th
+                      minW={enableHorizontalScroller ? '170px' : 'auto'}
+                      aria-sort={
+                        sortColumn === 'reportingRate'
+                          ? sortDirection === 'asc'
+                            ? 'ascending'
+                            : 'descending'
+                          : undefined
+                      }
+                    >
+                      <Box
+                        as="button"
+                        type="button"
+                        onClick={() => handleSort('reportingRate')}
+                        display="inline-flex"
+                        alignItems="center"
+                        gap={1}
+                        cursor="pointer"
+                        textAlign="left"
+                        width="100%"
+                        bg="none"
+                        border="none"
+                        p={0}
+                      >
+                        <Box as="span">
+                          {t('pumpOperators.performanceTable.columns.reportingRate', {
+                            defaultValue: 'Reporting Rate (%)',
+                          })}
+                        </Box>
+                        <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
+                      </Box>
                     </Th>
-                  ) : null}
-                  <Th
-                    minW={enableHorizontalScroller ? '170px' : 'auto'}
-                    aria-sort={
-                      sortColumn === 'reportingRate'
-                        ? sortDirection === 'asc'
-                          ? 'ascending'
-                          : 'descending'
-                        : undefined
-                    }
-                  >
-                    <Box
-                      as="button"
-                      type="button"
-                      onClick={() => handleSort('reportingRate')}
-                      display="inline-flex"
-                      alignItems="center"
-                      gap={1}
-                      cursor="pointer"
-                      textAlign="left"
-                      width="100%"
-                      bg="none"
-                      border="none"
-                      p={0}
+                    <Th
+                      minW={enableHorizontalScroller ? '150px' : 'auto'}
+                      aria-sort={
+                        sortColumn === 'waterSupplied'
+                          ? sortDirection === 'asc'
+                            ? 'ascending'
+                            : 'descending'
+                          : undefined
+                      }
                     >
-                      <Box as="span">
-                        {t('pumpOperators.performanceTable.columns.reportingRate', {
-                          defaultValue: 'Reporting Rate (%)',
-                        })}
+                      <Box
+                        as="button"
+                        type="button"
+                        onClick={() => handleSort('waterSupplied')}
+                        display="inline-flex"
+                        alignItems="center"
+                        gap={1}
+                        cursor="pointer"
+                        textAlign="left"
+                        width="100%"
+                        bg="none"
+                        border="none"
+                        p={0}
+                      >
+                        <Box as="span">
+                          {t('pumpOperators.performanceTable.columns.waterSupplied', {
+                            defaultValue: 'Water Supplied',
+                          })}
+                        </Box>
+                        <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
                       </Box>
-                      <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
-                    </Box>
-                  </Th>
-                  <Th
-                    minW={enableHorizontalScroller ? '150px' : 'auto'}
-                    aria-sort={
-                      sortColumn === 'waterSupplied'
-                        ? sortDirection === 'asc'
-                          ? 'ascending'
-                          : 'descending'
-                        : undefined
-                    }
-                  >
-                    <Box
-                      as="button"
-                      type="button"
-                      onClick={() => handleSort('waterSupplied')}
-                      display="inline-flex"
-                      alignItems="center"
-                      gap={1}
-                      cursor="pointer"
-                      textAlign="left"
-                      width="100%"
-                      bg="none"
-                      border="none"
-                      p={0}
-                    >
-                      <Box as="span">
-                        {t('pumpOperators.performanceTable.columns.waterSupplied', {
-                          defaultValue: 'Water Supplied',
-                        })}
-                      </Box>
-                      <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
-                    </Box>
-                  </Th>
-                </Tr>
-              </Thead>
-              {!isEmpty ? (
+                    </Th>
+                  </Tr>
+                </Thead>
                 <Tbody
                   sx={{
                     td: {
@@ -439,25 +454,11 @@ export function SchemePerformanceTable({
                     )
                   })}
                 </Tbody>
-              ) : null}
-            </Table>
-            {isEmpty ? (
-              <Box
-                minH={fillHeight ? '240px' : '200px'}
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                textAlign="center"
-                color="neutral.500"
-                borderTop="1px solid"
-                borderColor="gray.100"
-              >
-                <Text>{t('common:noDataAvailable', { defaultValue: 'No data available' })}</Text>
-              </Box>
-            ) : null}
+              </Table>
+            </Box>
           </Box>
         </Box>
-      </Box>
+      )}
       <Box
         mt="6px"
         display={enableHorizontalScroller ? 'block' : 'none'}

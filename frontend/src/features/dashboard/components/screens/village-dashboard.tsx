@@ -738,7 +738,9 @@ function ReadingComplianceSection({
             })}
           </Text>
           {isPumpOperatorDetailsEmpty ? (
-            <ChartEmptyState minHeight="100%" />
+            <Box flex={1} minH={0} display="flex">
+              <ChartEmptyState minHeight="100%" />
+            </Box>
           ) : (
             <Box>
               <Flex align="center" gap={3} mb={6}>
@@ -924,6 +926,7 @@ function ReadingComplianceSection({
           data={hasMeaningfulReadingComplianceRows ? readingComplianceRows : []}
           showVillageColumn={false}
           scrollAreaMaxH="320px"
+          fillHeight
           onReachEnd={
             hasMeaningfulReadingComplianceRows ? handleReachReadingComplianceEnd : undefined
           }

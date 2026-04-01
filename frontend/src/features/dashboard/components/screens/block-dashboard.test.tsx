@@ -271,8 +271,10 @@ describe('BlockDashboardScreen', () => {
 
     const complianceProps = mockReadingComplianceTable.mock.calls[0]?.[0] as {
       title: string
+      fillHeight?: boolean
     }
     expect(complianceProps.title).toBe('Reading Compliance')
+    expect(complianceProps.fillHeight).toBe(true)
   })
 
   it('switches quantity chart to time mode', () => {

@@ -60,13 +60,14 @@ describe('ReadingSubmissionStatusChart', () => {
     })
   })
 
-  it('shows a no data available legend item when the pie data is empty', () => {
+  it('shows only no data text when the pie data is empty', () => {
     renderWithProviders(<ReadingSubmissionStatusChart data={[]} height="336px" />)
 
     expect(screen.getByText('No data available')).toBeTruthy()
+    expect(mockEChartsWrapper).not.toHaveBeenCalled()
   })
 
-  it('shows a no data available legend item when all pie values are zero', () => {
+  it('shows only no data text when all pie values are zero', () => {
     renderWithProviders(
       <ReadingSubmissionStatusChart
         data={[
@@ -78,5 +79,6 @@ describe('ReadingSubmissionStatusChart', () => {
     )
 
     expect(screen.getByText('No data available')).toBeTruthy()
+    expect(mockEChartsWrapper).not.toHaveBeenCalled()
   })
 })
