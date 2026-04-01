@@ -26,6 +26,8 @@ const HOURS: readonly string[] = Array.from({ length: 12 }, (_, i) =>
 const MINUTES: readonly string[] = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))
 const AMPM_OPTIONS: readonly string[] = ['AM', 'PM']
 const ITEM_HEIGHT = 40
+const COLUMNS = [HOURS, MINUTES, AMPM_OPTIONS] as const
+const COLUMN_KEYS = ['hour', 'minute', 'ampm'] as const
 
 export function to12Hour(value: string): Time12 {
   if (!value) return { hour: '12', minute: '00', ampm: 'AM' }
@@ -124,6 +126,8 @@ export function TimePicker({
 }: TimePickerProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [pending, setPending] = useState<Time12>(() => to12Hour(value))
+  const [focusedColumn, setFocusedColumn] = useState(0)
+  const [focusedIndex, setFocusedIndex] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useOutsideClick({
@@ -133,7 +137,10 @@ export function TimePicker({
 
   const handleOpen = () => {
     if (isDisabled) return
-    setPending(to12Hour(value))
+    const t = to12Hour(value)
+    setPending(t)
+    setFocusedColumn(0)
+    setFocusedIndex(HOURS.indexOf(t.hour))
     setIsOpen(true)
   }
 
@@ -145,6 +152,80 @@ export function TimePicker({
   const handleCancel = () => {
     setIsOpen(false)
   }
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case 'Escape': {
+          e.preventDefault()
+          setIsOpen(false)
+          break
+        }
+        case 'ArrowDown': {
+          e.preventDefault()
+          const items = COLUMNS[focusedColumn]
+          const newIndex = (focusedIndex + 1) % items.length
+          const val = items[newIndex]
+          if (val === undefined) break
+          setFocusedIndex(newIndex)
+          if (focusedColumn === 0) setPending((p) => ({ ...p, hour: val }))
+          else if (focusedColumn === 1) setPending((p) => ({ ...p, minute: val }))
+          else setPending((p) => ({ ...p, ampm: val as AmPm }))
+          break
+        }
+        case 'ArrowUp': {
+          e.preventDefault()
+          const items = COLUMNS[focusedColumn]
+          const newIndex = (focusedIndex - 1 + items.length) % items.length
+          const val = items[newIndex]
+          if (val === undefined) break
+          setFocusedIndex(newIndex)
+          if (focusedColumn === 0) setPending((p) => ({ ...p, hour: val }))
+          else if (focusedColumn === 1) setPending((p) => ({ ...p, minute: val }))
+          else setPending((p) => ({ ...p, ampm: val as AmPm }))
+          break
+        }
+        case 'ArrowRight': {
+          e.preventDefault()
+          const nextCol = Math.min(focusedColumn + 1, 2)
+          if (nextCol !== focusedColumn) {
+            const colKey = COLUMN_KEYS[nextCol]
+            const colItems = COLUMNS[nextCol]
+            if (colKey !== undefined && colItems !== undefined) {
+              setFocusedColumn(nextCol)
+              setFocusedIndex(colItems.indexOf(pending[colKey]))
+            }
+          }
+          break
+        }
+        case 'ArrowLeft': {
+          e.preventDefault()
+          const prevCol = Math.max(focusedColumn - 1, 0)
+          if (prevCol !== focusedColumn) {
+            const colKey = COLUMN_KEYS[prevCol]
+            const colItems = COLUMNS[prevCol]
+            if (colKey !== undefined && colItems !== undefined) {
+              setFocusedColumn(prevCol)
+              setFocusedIndex(colItems.indexOf(pending[colKey]))
+            }
+          }
+          break
+        }
+        case 'Enter':
+        case ' ': {
+          e.preventDefault()
+          onChange(to24Hour(pending))
+          setIsOpen(false)
+          break
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, focusedColumn, focusedIndex, pending, onChange])
 
   const displayTime = value
     ? (() => {
@@ -164,6 +245,8 @@ export function TimePicker({
         aria-haspopup="dialog"
         aria-label="Select time"
         disabled={isDisabled}
+        aria-disabled={isDisabled}
+        tabIndex={isDisabled ? -1 : 0}
         w="full"
         h="36px"
         px="12px"
@@ -201,7 +284,6 @@ export function TimePicker({
           p="12px"
           role="dialog"
           aria-label="Time picker"
-          aria-modal="true"
         >
           <Text
             fontSize="xs"
