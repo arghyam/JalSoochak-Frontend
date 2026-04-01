@@ -207,7 +207,7 @@ export function IndiaMapChart({
     return () => {
       isMounted = false
     }
-  }, [isMapReady])
+  }, [isMapReady, mapLoadError])
 
   const handleChartReady = (chart: echarts.ECharts) => {
     // Register click event

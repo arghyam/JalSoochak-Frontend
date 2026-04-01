@@ -66,7 +66,7 @@ export function SupplyOutageReasonsChart({
     })
 
     return Array.from(totals.entries())
-      .filter(([, value]) => Number.isFinite(value) && value >= 0)
+      .filter(([, value]) => Number.isFinite(value) && value > 0)
       .map(([reasonKey, value], index) => {
         const label = toDisplayLabel(reasonKey)
         const color = outageColors[index % outageColors.length]
@@ -187,11 +187,7 @@ export function SupplyOutageReasonsChart({
           margin: '0 auto',
         }}
       >
-        {hasRenderableData ? (
-          <EChartsWrapper option={option} height="100%" />
-        ) : (
-          <ChartEmptyState minHeight="100%" message={noDataLabel} />
-        )}
+        <EChartsWrapper option={option} height="100%" />
       </div>
       {legendItems.length > 0 ? (
         <div

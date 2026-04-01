@@ -97,21 +97,26 @@ const normalizeMissedSubmissionDays = (
 const normalizeNationalDashboardResponse = (
   response: NationalDashboardResponse | RawNationalDashboardPayload
 ): NationalDashboardResponse => {
+  if (!response || typeof response !== 'object') {
+    throw new Error('Invalid national dashboard response: expected an object payload')
+  }
+
   if ('stateWiseQuantityPerformance' in response) {
     return response
   }
 
-  return (
-    response.data ?? {
-      startDate: '',
-      endDate: '',
-      daysInRange: 0,
-      stateWiseQuantityPerformance: [],
-      stateWiseRegularity: [],
-      stateWiseReadingSubmissionRate: [],
-      overallOutageReasonDistribution: {},
-    }
-  )
+  const payload = response.data
+  if (!payload || typeof payload !== 'object') {
+    throw new Error('Invalid national dashboard response: missing data payload')
+  }
+
+  if (!('stateWiseQuantityPerformance' in payload)) {
+    throw new Error(
+      'Invalid national dashboard response: data payload is missing stateWiseQuantityPerformance'
+    )
+  }
+
+  return payload
 }
 
 const toTenantListContainer = (value: unknown): TenantListContainer | null => {
@@ -127,9 +132,17 @@ const toTenantListContainer = (value: unknown): TenantListContainer | null => {
   }
 }
 
-const unwrapAnalyticsResponse = <T>(response: T | WrappedAnalyticsResponse<T>): T | undefined => {
+const unwrapAnalyticsResponse = <T>(
+  response: T | WrappedAnalyticsResponse<T>,
+  context: string
+): T | undefined => {
   if (response && typeof response === 'object' && 'data' in response) {
-    return (response as WrappedAnalyticsResponse<T>).data
+    const data = (response as WrappedAnalyticsResponse<T>).data
+    if (data == null) {
+      throw new Error(`Invalid ${context} response: wrapped payload is missing data`)
+    }
+
+    return data
   }
 
   return response as T
@@ -316,6 +329,10 @@ const httpProvider: {
       return response.data
     }
 
+    if (response.data.readingCompliance != null) {
+      return response.data
+    }
+
     return {
       ...response.data,
       readingCompliance: mockReadingCompliance,
@@ -393,7 +410,7 @@ export const dashboardApi = {
     })
 
     return (
-      unwrapAnalyticsResponse(response.data) ?? {
+      unwrapAnalyticsResponse(response.data, 'water quantity periodic analytics') ?? {
         lgdId: params.lgdId ?? 0,
         departmentId: params.departmentId ?? 0,
         scale: params.scale,
@@ -420,7 +437,7 @@ export const dashboardApi = {
     })
 
     return (
-      unwrapAnalyticsResponse(response.data) ?? {
+      unwrapAnalyticsResponse(response.data, 'average scheme regularity analytics') ?? {
         lgdId: 0,
         parentDepartmentId: 0,
         parentLgdLevel: 0,
@@ -453,7 +470,7 @@ export const dashboardApi = {
     })
 
     return (
-      unwrapAnalyticsResponse(response.data) ?? {
+      unwrapAnalyticsResponse(response.data, 'scheme regularity periodic analytics') ?? {
         lgdId: params.lgdId ?? 0,
         departmentId: params.departmentId ?? 0,
         schemeCount: 0,
@@ -497,7 +514,7 @@ export const dashboardApi = {
     })
 
     return (
-      unwrapAnalyticsResponse(response.data) ?? {
+      unwrapAnalyticsResponse(response.data, 'reading submission rate analytics') ?? {
         parentLgdId: 0,
         parentDepartmentId: 0,
         parentLgdLevel: 0,
@@ -530,7 +547,7 @@ export const dashboardApi = {
     })
 
     return (
-      unwrapAnalyticsResponse(response.data) ?? {
+      unwrapAnalyticsResponse(response.data, 'scheme performance analytics') ?? {
         parentLgdId: params.parentLgdId ?? 0,
         parentDepartmentId: params.parentDepartmentId ?? 0,
         parentLgdCName: '',
@@ -618,7 +635,7 @@ export const dashboardApi = {
     })
 
     return (
-      unwrapAnalyticsResponse(response.data) ?? {
+      unwrapAnalyticsResponse(response.data, 'submission status analytics') ?? {
         startDate: params.startDate,
         endDate: params.endDate,
         schemeCount: 0,
@@ -640,7 +657,7 @@ export const dashboardApi = {
     })
 
     return (
-      unwrapAnalyticsResponse(response.data) ?? {
+      unwrapAnalyticsResponse(response.data, 'outage reasons analytics') ?? {
         lgdId: params.parentLgdId ?? 0,
         departmentId: params.parentDepartmentId ?? 0,
         startDate: params.startDate,
@@ -669,7 +686,7 @@ export const dashboardApi = {
     })
 
     return (
-      unwrapAnalyticsResponse(response.data) ?? {
+      unwrapAnalyticsResponse(response.data, 'outage reasons periodic analytics') ?? {
         lgdId: params.lgdId ?? 0,
         departmentId: params.departmentId ?? 0,
         scale: params.scale,

@@ -105,4 +105,67 @@ describe('SupplyOutageReasonsChart', () => {
     expect(screen.queryByText('Electrical failure')).toBeNull()
     expect(screen.queryByText('Pipeline leak')).toBeNull()
   })
+
+  it('drops zero-total reasons from the pie and legend', () => {
+    renderWithProviders(
+      <SupplyOutageReasonsChart
+        data={[
+          {
+            label: 'District A',
+            reasons: {
+              electrical_failure: 10,
+              pipeline_break: 0,
+            },
+            electricityFailure: 0,
+            pipelineLeak: 0,
+            pumpFailure: 0,
+            valveIssue: 0,
+            sourceDrying: 0,
+          },
+          {
+            label: 'District B',
+            reasons: {
+              electrical_failure: 5,
+              pipeline_break: 0,
+            },
+            electricityFailure: 0,
+            pipelineLeak: 0,
+            pumpFailure: 0,
+            valveIssue: 0,
+            sourceDrying: 0,
+          },
+        ]}
+      />
+    )
+
+    const mainOption = (
+      mockEChartsWrapper.mock.calls as Array<
+        [
+          {
+            option?: {
+              series?: Array<{
+                data?: Array<{
+                  name?: string
+                  value?: number
+                }>
+              }>
+            }
+          },
+        ]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((option) => Array.isArray(option?.series) && option.series.length > 0)
+
+    const pieData = mainOption?.series?.[0]?.data ?? []
+
+    expect(pieData).toEqual([
+      expect.objectContaining({
+        name: 'Electrical failure',
+        value: 15,
+      }),
+    ])
+    expect(screen.getByText('Electrical failure')).toBeTruthy()
+    expect(screen.queryByText('Pipeline break')).toBeNull()
+  })
 })

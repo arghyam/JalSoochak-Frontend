@@ -467,11 +467,12 @@ export function CentralDashboard() {
     : hasStateMockData
       ? normalizedSelectedGramPanchayat
       : ''
-  const isStateSelected = Boolean(effectiveSelectedState)
-  const isDistrictSelected = Boolean(effectiveSelectedDistrict)
-  const isBlockSelected = Boolean(effectiveSelectedBlock)
-  const isGramPanchayatSelected = Boolean(effectiveSelectedGramPanchayat)
-  const isVillageSelected = Boolean(effectiveSelectedVillage)
+  const isLgdTabActive = filterTabIndex === 0
+  const isStateSelected = isLgdTabActive && Boolean(effectiveSelectedState)
+  const isDistrictSelected = isLgdTabActive && Boolean(effectiveSelectedDistrict)
+  const isBlockSelected = isLgdTabActive && Boolean(effectiveSelectedBlock)
+  const isGramPanchayatSelected = isLgdTabActive && Boolean(effectiveSelectedGramPanchayat)
+  const isVillageSelected = isLgdTabActive && Boolean(effectiveSelectedVillage)
   const isDepartmentStateSelected = Boolean(selectedDepartmentState)
   const hasLgdLandingFilters =
     isStateSelected ||

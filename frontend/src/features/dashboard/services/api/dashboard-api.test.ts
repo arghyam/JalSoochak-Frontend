@@ -75,6 +75,23 @@ describe('dashboardApi.getNationalDashboard', () => {
       overallOutageReasonDistribution: {},
     })
   })
+
+  it('throws when the wrapped national dashboard response is missing data', async () => {
+    mockGet.mockImplementation(async () => ({
+      data: {
+        success: true,
+      },
+    }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+
+    await expect(
+      dashboardApi.getNationalDashboard({
+        startDate: '2026-03-03',
+        endDate: '2026-04-01',
+      })
+    ).rejects.toThrow('Invalid national dashboard response: missing data payload')
+  })
 })
 
 describe('dashboardApi.getDashboardData', () => {
@@ -83,7 +100,17 @@ describe('dashboardApi.getDashboardData', () => {
     jest.clearAllMocks()
   })
 
-  it('uses mock reading compliance for block dashboards', async () => {
+  it('keeps api reading compliance for block dashboards when the backend provides it', async () => {
+    const apiReadingCompliance: typeof mockReadingCompliance = [
+      {
+        id: 'po-2',
+        name: 'Operator 2',
+        village: 'Village 2',
+        lastSubmission: '2026-01-02',
+        readingValue: '456',
+      },
+    ]
+
     mockGet.mockImplementation(async () => ({
       data: {
         level: 'block',
@@ -96,7 +123,7 @@ describe('dashboardApi.getDashboardData', () => {
         mapData: [],
         demandSupply: [],
         readingSubmissionStatus: [],
-        readingCompliance: [],
+        readingCompliance: apiReadingCompliance,
         pumpOperators: [],
         waterSupplyOutages: [],
         topPerformers: [],
@@ -112,7 +139,7 @@ describe('dashboardApi.getDashboardData', () => {
       entityId: 'block-1',
     })
 
-    expect(response.readingCompliance).toEqual(mockReadingCompliance)
+    expect(response.readingCompliance).toEqual(apiReadingCompliance)
   })
 
   it('keeps api reading compliance for village dashboards', async () => {
@@ -282,5 +309,27 @@ describe('state dashboard analytics wrappers', () => {
       childRegionCount: 1,
       childRegions: [],
     })
+  })
+
+  it('throws when a wrapped analytics payload is missing data', async () => {
+    mockGet.mockImplementation(async () => ({
+      data: {
+        success: true,
+        data: undefined,
+      },
+    }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+
+    await expect(
+      dashboardApi.getAverageSchemeRegularity({
+        parentLgdId: 17,
+        scope: 'child',
+        startDate: '2026-03-03',
+        endDate: '2026-04-01',
+      })
+    ).rejects.toThrow(
+      'Invalid average scheme regularity analytics response: wrapped payload is missing data'
+    )
   })
 })
