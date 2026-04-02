@@ -78,32 +78,8 @@ export function DistrictDashboardScreen({
   })
   return (
     <>
-      {/* Quantity + Regularity */}
-      <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-        <PerformanceChartCard
-          title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
-          viewByAriaLabel={t('performanceCharts.quantity.ariaViewByDistrict', {
-            defaultValue: 'District quantity performance view by',
-          })}
-          viewBy={quantityViewBy}
-          onViewByChange={setQuantityViewBy}
-          data={quantityPerformanceData}
-          metric="quantity"
-          timeTrendData={quantityTimeTrendData}
-          isTimeTrendLoading={isQuantityTimeTrendLoading}
-          isTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
-          entityLabel={t('performanceCharts.viewBy.blocks', { defaultValue: 'Blocks' })}
-          yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
-          seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
-          cardHeight="523px"
-          showAreaLine
-          areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
-            defaultValue: 'Demand',
-          })}
-          timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-          selectColor="primary.500"
-          selectBorderColor="primary.500"
-        />
+      {/* Regularity + Quantity */}
+      <Grid templateColumns="1fr" gap={6} mb={6}>
         <PerformanceChartCard
           title={t('performanceCharts.regularity.title', {
             defaultValue: 'Regularity Performance',
@@ -127,6 +103,30 @@ export function DistrictDashboardScreen({
           cardHeight="523px"
           timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
           isTimeTrendPercent
+          selectColor="primary.500"
+          selectBorderColor="primary.500"
+        />
+        <PerformanceChartCard
+          title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
+          viewByAriaLabel={t('performanceCharts.quantity.ariaViewByDistrict', {
+            defaultValue: 'District quantity performance view by',
+          })}
+          viewBy={quantityViewBy}
+          onViewByChange={setQuantityViewBy}
+          data={quantityPerformanceData}
+          metric="quantity"
+          timeTrendData={quantityTimeTrendData}
+          isTimeTrendLoading={isQuantityTimeTrendLoading}
+          isTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
+          entityLabel={t('performanceCharts.viewBy.blocks', { defaultValue: 'Blocks' })}
+          yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
+          seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
+          cardHeight="523px"
+          showAreaLine
+          areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
+            defaultValue: 'Demand',
+          })}
+          timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
           selectColor="primary.500"
           selectBorderColor="primary.500"
         />

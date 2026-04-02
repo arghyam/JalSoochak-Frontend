@@ -1907,7 +1907,7 @@ export const dashboardMockService = {
       mapData: [],
       demandSupply: mockDemandSupply,
       readingSubmissionStatus: mockImageSubmissionStatus,
-      readingCompliance: mockReadingCompliance,
+      readingCompliance: level === 'village' ? mockReadingCompliance : [],
       pumpOperators: mockPumpOperators,
       waterSupplyOutages: mockWaterSupplyOutages,
       topPerformers: [],

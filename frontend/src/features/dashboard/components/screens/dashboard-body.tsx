@@ -353,7 +353,31 @@ function PerformanceChartsSection({
   const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
 
   return (
-    <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
+    <Grid templateColumns="1fr" gap={6} mb={6}>
+      <PerformanceChartCard
+        title={t('performanceCharts.regularity.title', {
+          defaultValue: 'Regularity Performance',
+        })}
+        viewByAriaLabel={t('performanceCharts.regularity.ariaViewBy', {
+          defaultValue: 'Regularity performance view by',
+        })}
+        viewBy={regularityViewBy}
+        onViewByChange={setRegularityViewBy}
+        data={regularityPerformanceData}
+        metric="regularity"
+        timeTrendData={regularityTimeTrendData}
+        isTimeTrendLoading={isRegularityTimeTrendLoading}
+        entityLabel={geographyEntityLabel}
+        yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
+          defaultValue: 'Regularity',
+        })}
+        seriesName={t('performanceCharts.regularity.seriesName', {
+          defaultValue: 'Regularity',
+        })}
+        cardHeight="536px"
+        timeXAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+        isTimeTrendPercent
+      />
       <PerformanceChartCard
         title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
         viewByAriaLabel={t('performanceCharts.quantity.ariaViewBy', {
@@ -379,30 +403,6 @@ function PerformanceChartsSection({
           defaultValue: 'Demand',
         })}
         timeXAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
-      />
-      <PerformanceChartCard
-        title={t('performanceCharts.regularity.title', {
-          defaultValue: 'Regularity Performance',
-        })}
-        viewByAriaLabel={t('performanceCharts.regularity.ariaViewBy', {
-          defaultValue: 'Regularity performance view by',
-        })}
-        viewBy={regularityViewBy}
-        onViewByChange={setRegularityViewBy}
-        data={regularityPerformanceData}
-        metric="regularity"
-        timeTrendData={regularityTimeTrendData}
-        isTimeTrendLoading={isRegularityTimeTrendLoading}
-        entityLabel={geographyEntityLabel}
-        yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
-          defaultValue: 'Regularity',
-        })}
-        seriesName={t('performanceCharts.regularity.seriesName', {
-          defaultValue: 'Regularity',
-        })}
-        cardHeight="536px"
-        timeXAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
-        isTimeTrendPercent
       />
     </Grid>
   )

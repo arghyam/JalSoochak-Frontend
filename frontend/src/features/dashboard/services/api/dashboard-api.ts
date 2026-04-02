@@ -1,6 +1,5 @@
 import { apiClient } from '@/shared/lib/axios'
 import { isAxiosError } from 'axios'
-import { mockReadingCompliance } from '../mock/dashboard-mock'
 import type {
   AverageSchemeRegularityQueryParams,
   AverageSchemeRegularityResponse,
@@ -315,9 +314,6 @@ const ensureValidParams = ({ level, entityId }: DashboardQueryParams): void => {
   }
 }
 
-const shouldUseMockReadingCompliance = (level: DashboardLevel) =>
-  level === 'block' || level === 'gram-panchayat'
-
 const httpProvider: {
   getDashboardData: (params: DashboardQueryParams) => Promise<DashboardData>
 } = {
@@ -329,18 +325,7 @@ const httpProvider: {
       throw new Error('Dashboard API returned an invalid payload')
     }
 
-    if (!shouldUseMockReadingCompliance(level)) {
-      return response.data
-    }
-
-    if (response.data.readingCompliance != null) {
-      return response.data
-    }
-
-    return {
-      ...response.data,
-      readingCompliance: mockReadingCompliance,
-    }
+    return response.data
   },
 }
 

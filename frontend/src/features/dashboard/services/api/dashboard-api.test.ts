@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
-import { mockReadingCompliance } from '../mock/dashboard-mock'
 
 const mockGet: jest.Mock = jest.fn()
 
@@ -155,7 +154,7 @@ describe('dashboardApi.getDashboardData', () => {
   })
 
   it('keeps api reading compliance for block dashboards when the backend provides it', async () => {
-    const apiReadingCompliance: typeof mockReadingCompliance = [
+    const apiReadingCompliance = [
       {
         id: 'po-2',
         name: 'Operator 2',
@@ -238,7 +237,7 @@ describe('dashboardApi.getDashboardData', () => {
     expect(response.readingCompliance).toEqual(apiReadingCompliance)
   })
 
-  it('uses mock reading compliance for gram-panchayat dashboards when the backend omits it', async () => {
+  it('does not inject mock reading compliance for gram-panchayat dashboards when the backend omits it', async () => {
     mockGet.mockImplementation(async () => ({
       data: {
         level: 'gram-panchayat',
@@ -266,7 +265,7 @@ describe('dashboardApi.getDashboardData', () => {
       entityId: 'gp-1',
     })
 
-    expect(response.readingCompliance).toEqual(mockReadingCompliance)
+    expect(response.readingCompliance).toBeUndefined()
   })
 })
 
