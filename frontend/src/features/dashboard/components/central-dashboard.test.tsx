@@ -1112,6 +1112,39 @@ describe('CentralDashboard', () => {
     expect(dashboardFilterProps.selectedVillage).toBe('rudraram')
   })
 
+  it('hydrates departmental filters and active tab from query params', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams(
+        'departmentZone=601:department-zone&departmentCircle=701:department-circle&departmentDivision=801:department-division&departmentSubdivision=901:department-subdivision'
+      ),
+      jest.fn(),
+    ])
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardFilterProps = getLatestDashboardFilterProps<{
+      filterTabIndex: number
+      selectedDepartmentState: string
+      selectedDepartmentZone: string
+      selectedDepartmentCircle: string
+      selectedDepartmentDivision: string
+      selectedDepartmentSubdivision: string
+    }>()
+
+    expect(dashboardFilterProps.filterTabIndex).toBe(1)
+    expect(dashboardFilterProps.selectedDepartmentState).toBe('assam')
+    expect(dashboardFilterProps.selectedDepartmentZone).toBe('601:department-zone')
+    expect(dashboardFilterProps.selectedDepartmentCircle).toBe('701:department-circle')
+    expect(dashboardFilterProps.selectedDepartmentDivision).toBe('801:department-division')
+    expect(dashboardFilterProps.selectedDepartmentSubdivision).toBe('901:department-subdivision')
+  })
+
   it('uses district data in Overall Performance table when a state is selected', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -3103,7 +3136,32 @@ describe('CentralDashboard', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith({
       pathname: '/telangana',
-      search: '?district=sangareddy',
+      search: '?district=sangareddy&tab=administrative',
+    })
+  })
+
+  it('updates URL with departmental query params when departmental selections change', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()])
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardFilterProps = getLatestDashboardFilterProps<{
+      onTabChange: (value: number) => void
+      onDepartmentZoneChange: (value: string) => void
+    }>()
+    dashboardFilterProps.onTabChange(1)
+    dashboardFilterProps.onDepartmentZoneChange('601:department-zone')
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1)
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, {
+      pathname: '/assam',
+      search: '?departmentZone=601%3Adepartment-zone',
     })
   })
 

@@ -104,6 +104,20 @@ type StoredFilters = {
   filterTabIndex?: number
 }
 
+type FilterUrlUpdate = {
+  state?: string
+  district?: string
+  block?: string
+  gramPanchayat?: string
+  village?: string
+  departmentZone?: string
+  departmentCircle?: string
+  departmentDivision?: string
+  departmentSubdivision?: string
+  departmentVillage?: string
+  tab?: 'administrative'
+}
+
 type LocationOption = SearchableSelectOption & {
   locationId?: number
   analyticsId?: number
@@ -350,29 +364,64 @@ export function CentralDashboard() {
   const selectedBlock = selectedDistrict ? (searchParams.get('block') ?? '') : ''
   const selectedGramPanchayat = selectedBlock ? (searchParams.get('gramPanchayat') ?? '') : ''
   const selectedVillage = selectedGramPanchayat ? (searchParams.get('village') ?? '') : ''
+  const selectedDepartmentZoneFromUrl = searchParams.get('departmentZone') ?? ''
+  const selectedDepartmentCircleFromUrl = searchParams.get('departmentCircle') ?? ''
+  const selectedDepartmentDivisionFromUrl = searchParams.get('departmentDivision') ?? ''
+  const selectedDepartmentSubdivisionFromUrl = searchParams.get('departmentSubdivision') ?? ''
+  const selectedDepartmentVillageFromUrl = searchParams.get('departmentVillage') ?? ''
+  const hasDepartmentParamsInUrl = Boolean(
+    selectedDepartmentZoneFromUrl ||
+    selectedDepartmentCircleFromUrl ||
+    selectedDepartmentDivisionFromUrl ||
+    selectedDepartmentSubdivisionFromUrl ||
+    selectedDepartmentVillageFromUrl
+  )
   const [selectedDuration, setSelectedDuration] = useState<DateRange | null>(initialDuration)
   const [selectedScheme, setSelectedScheme] = useState(storedFilters.selectedScheme ?? '')
-  const [selectedDepartmentState, setSelectedDepartmentState] = useState(
+  const [storedSelectedDepartmentState, setSelectedDepartmentState] = useState(
     storedFilters.selectedDepartmentState ?? ''
   )
-  const [selectedDepartmentZone, setSelectedDepartmentZone] = useState(
-    storedFilters.selectedDepartmentZone ?? ''
+  const [storedSelectedDepartmentZone, setSelectedDepartmentZone] = useState(
+    selectedDepartmentZoneFromUrl || storedFilters.selectedDepartmentZone || ''
   )
-  const [selectedDepartmentCircle, setSelectedDepartmentCircle] = useState(
-    storedFilters.selectedDepartmentCircle ?? ''
+  const [storedSelectedDepartmentCircle, setSelectedDepartmentCircle] = useState(
+    selectedDepartmentCircleFromUrl || storedFilters.selectedDepartmentCircle || ''
   )
-  const [selectedDepartmentDivision, setSelectedDepartmentDivision] = useState(
-    storedFilters.selectedDepartmentDivision ?? ''
+  const [storedSelectedDepartmentDivision, setSelectedDepartmentDivision] = useState(
+    selectedDepartmentDivisionFromUrl || storedFilters.selectedDepartmentDivision || ''
   )
-  const [selectedDepartmentSubdivision, setSelectedDepartmentSubdivision] = useState(
-    storedFilters.selectedDepartmentSubdivision ?? ''
+  const [storedSelectedDepartmentSubdivision, setSelectedDepartmentSubdivision] = useState(
+    selectedDepartmentSubdivisionFromUrl || storedFilters.selectedDepartmentSubdivision || ''
   )
-  const [selectedDepartmentVillage, setSelectedDepartmentVillage] = useState(
-    storedFilters.selectedDepartmentVillage ?? ''
+  const [storedSelectedDepartmentVillage, setSelectedDepartmentVillage] = useState(
+    selectedDepartmentVillageFromUrl || storedFilters.selectedDepartmentVillage || ''
   )
-  const [filterTabIndex, setFilterTabIndex] = useState(
-    typeof storedFilters.filterTabIndex === 'number' ? storedFilters.filterTabIndex : 0
+  const [storedFilterTabIndex, setFilterTabIndex] = useState(
+    hasDepartmentParamsInUrl
+      ? 1
+      : typeof storedFilters.filterTabIndex === 'number'
+        ? storedFilters.filterTabIndex
+        : 0
   )
+  const selectedDepartmentState = hasDepartmentParamsInUrl
+    ? selectedState
+    : storedSelectedDepartmentState
+  const selectedDepartmentZone = hasDepartmentParamsInUrl
+    ? selectedDepartmentZoneFromUrl
+    : storedSelectedDepartmentZone
+  const selectedDepartmentCircle = hasDepartmentParamsInUrl
+    ? selectedDepartmentCircleFromUrl
+    : storedSelectedDepartmentCircle
+  const selectedDepartmentDivision = hasDepartmentParamsInUrl
+    ? selectedDepartmentDivisionFromUrl
+    : storedSelectedDepartmentDivision
+  const selectedDepartmentSubdivision = hasDepartmentParamsInUrl
+    ? selectedDepartmentSubdivisionFromUrl
+    : storedSelectedDepartmentSubdivision
+  const selectedDepartmentVillage = hasDepartmentParamsInUrl
+    ? selectedDepartmentVillageFromUrl
+    : storedSelectedDepartmentVillage
+  const filterTabIndex = hasDepartmentParamsInUrl ? 1 : storedFilterTabIndex
   const [activeTrailIndex, setActiveTrailIndex] = useState<number | null>(null)
   const selectionTrailValues = [
     selectedState,
@@ -1109,28 +1158,33 @@ export function CentralDashboard() {
     endDate: previousWaterSupplyAnalyticsParams?.endDate,
   }
 
-  const updateFilterUrl = (filters: {
-    state?: string
-    district?: string
-    block?: string
-    gramPanchayat?: string
-    village?: string
-  }) => {
+  const updateFilterUrl = (filters: FilterUrlUpdate) => {
     const nextState = filters.state ?? ''
     const nextPath = nextState ? `/${encodeURIComponent(nextState)}` : ROUTES.DASHBOARD
-    const nextSearchParams = new URLSearchParams()
+    const nextSearchParams = new URLSearchParams(searchParams)
 
-    if (filters.district) {
-      nextSearchParams.set('district', filters.district)
+    const setParam = (key: string, value?: string) => {
+      if (value) {
+        nextSearchParams.set(key, value)
+        return
+      }
+      nextSearchParams.delete(key)
     }
-    if (filters.block) {
-      nextSearchParams.set('block', filters.block)
-    }
-    if (filters.gramPanchayat) {
-      nextSearchParams.set('gramPanchayat', filters.gramPanchayat)
-    }
-    if (filters.village) {
-      nextSearchParams.set('village', filters.village)
+
+    setParam('district', filters.district)
+    setParam('block', filters.block)
+    setParam('gramPanchayat', filters.gramPanchayat)
+    setParam('village', filters.village)
+    setParam('departmentZone', filters.departmentZone)
+    setParam('departmentCircle', filters.departmentCircle)
+    setParam('departmentDivision', filters.departmentDivision)
+    setParam('departmentSubdivision', filters.departmentSubdivision)
+    setParam('departmentVillage', filters.departmentVillage)
+
+    if (filters.tab === 'administrative') {
+      nextSearchParams.set('tab', 'administrative')
+    } else {
+      nextSearchParams.delete('tab')
     }
 
     const nextSearch = nextSearchParams.toString()
@@ -1142,14 +1196,13 @@ export function CentralDashboard() {
 
   const handleStateChange = (value: string) => {
     setActiveTrailIndex(null)
-    setFilterTabIndex(0)
     setSelectedScheme('')
-    updateFilterUrl({ state: value })
+    updateFilterUrl({ state: value, tab: 'administrative' })
   }
   const handleDistrictChange = (value: string) => {
     setActiveTrailIndex(null)
     setSelectedScheme('')
-    updateFilterUrl({ state: selectedState, district: value })
+    updateFilterUrl({ state: selectedState, district: value, tab: 'administrative' })
   }
   const handleBlockChange = (value: string) => {
     setActiveTrailIndex(null)
@@ -1158,6 +1211,7 @@ export function CentralDashboard() {
       state: selectedState,
       district: selectedDistrict,
       block: value,
+      tab: 'administrative',
     })
   }
   const handleGramPanchayatChange = (value: string) => {
@@ -1168,6 +1222,7 @@ export function CentralDashboard() {
       district: selectedDistrict,
       block: selectedBlock,
       gramPanchayat: value,
+      tab: 'administrative',
     })
   }
   const handleVillageChange: Dispatch<SetStateAction<string>> = (value) => {
@@ -1180,7 +1235,30 @@ export function CentralDashboard() {
       block: selectedBlock,
       gramPanchayat: selectedGramPanchayat,
       village: nextVillage,
+      tab: 'administrative',
     })
+  }
+  const handleFilterTabChange = (nextTabIndex: number) => {
+    if (nextTabIndex === filterTabIndex) {
+      return
+    }
+
+    setFilterTabIndex(nextTabIndex)
+    if (nextTabIndex === 0) {
+      updateFilterUrl({
+        state: selectedState,
+        district: selectedDistrict,
+        block: selectedBlock,
+        gramPanchayat: selectedGramPanchayat,
+        village: selectedVillage,
+        departmentZone: '',
+        departmentCircle: '',
+        departmentDivision: '',
+        departmentSubdivision: '',
+        departmentVillage: '',
+        tab: 'administrative',
+      })
+    }
   }
   const handleDepartmentStateChange = (value: string) => {
     setSelectedDepartmentState(value)
@@ -1189,6 +1267,15 @@ export function CentralDashboard() {
     setSelectedDepartmentDivision('')
     setSelectedDepartmentSubdivision('')
     setSelectedDepartmentVillage('')
+    setSelectedScheme('')
+    updateFilterUrl({
+      state: value || selectedState,
+      departmentZone: '',
+      departmentCircle: '',
+      departmentDivision: '',
+      departmentSubdivision: '',
+      departmentVillage: '',
+    })
   }
   const handleDepartmentZoneChange = (value: string) => {
     setSelectedDepartmentZone(value)
@@ -1196,29 +1283,85 @@ export function CentralDashboard() {
     setSelectedDepartmentDivision('')
     setSelectedDepartmentSubdivision('')
     setSelectedDepartmentVillage('')
+    setSelectedScheme('')
+    updateFilterUrl({
+      state: selectedState,
+      departmentZone: value,
+      departmentCircle: '',
+      departmentDivision: '',
+      departmentSubdivision: '',
+      departmentVillage: '',
+    })
   }
   const handleDepartmentCircleChange = (value: string) => {
     setSelectedDepartmentCircle(value)
     setSelectedDepartmentDivision('')
     setSelectedDepartmentSubdivision('')
     setSelectedDepartmentVillage('')
+    setSelectedScheme('')
+    updateFilterUrl({
+      state: selectedState,
+      departmentZone: selectedDepartmentZone,
+      departmentCircle: value,
+      departmentDivision: '',
+      departmentSubdivision: '',
+      departmentVillage: '',
+    })
   }
   const handleDepartmentDivisionChange = (value: string) => {
     setSelectedDepartmentDivision(value)
     setSelectedDepartmentSubdivision('')
     setSelectedDepartmentVillage('')
+    setSelectedScheme('')
+    updateFilterUrl({
+      state: selectedState,
+      departmentZone: selectedDepartmentZone,
+      departmentCircle: selectedDepartmentCircle,
+      departmentDivision: value,
+      departmentSubdivision: '',
+      departmentVillage: '',
+    })
   }
   const handleDepartmentSubdivisionChange = (value: string) => {
     setSelectedDepartmentSubdivision(value)
     setSelectedDepartmentVillage('')
+    setSelectedScheme('')
+    updateFilterUrl({
+      state: selectedState,
+      departmentZone: selectedDepartmentZone,
+      departmentCircle: selectedDepartmentCircle,
+      departmentDivision: selectedDepartmentDivision,
+      departmentSubdivision: value,
+      departmentVillage: '',
+    })
   }
   const handleDepartmentVillageChange = (value: string) => {
     setSelectedDepartmentVillage(value)
+    setSelectedScheme('')
+    updateFilterUrl({
+      state: selectedState,
+      departmentZone: selectedDepartmentZone,
+      departmentCircle: selectedDepartmentCircle,
+      departmentDivision: selectedDepartmentDivision,
+      departmentSubdivision: selectedDepartmentSubdivision,
+      departmentVillage: value,
+    })
   }
   const handleClearFilters = () => {
     setActiveTrailIndex(null)
     setFilterTabIndex(0)
-    updateFilterUrl({ state: '' })
+    updateFilterUrl({
+      state: '',
+      district: '',
+      block: '',
+      gramPanchayat: '',
+      village: '',
+      departmentZone: '',
+      departmentCircle: '',
+      departmentDivision: '',
+      departmentSubdivision: '',
+      departmentVillage: '',
+    })
     setSelectedDuration(null)
     setSelectedScheme('')
     setSelectedDepartmentState('')
@@ -1568,7 +1711,7 @@ export function CentralDashboard() {
     <Box>
       <DashboardFilters
         filterTabIndex={filterTabIndex}
-        onTabChange={setFilterTabIndex}
+        onTabChange={handleFilterTabChange}
         onClear={handleClearFilters}
         isAdvancedEnabled={isAdvancedEnabled}
         isDepartmentStateSelected={isDepartmentStateSelected}
