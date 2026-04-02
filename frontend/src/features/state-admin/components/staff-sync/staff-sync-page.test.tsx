@@ -1,4 +1,4 @@
-import { screen, fireEvent } from '@testing-library/react'
+import { screen, fireEvent, act } from '@testing-library/react'
 import { describe, expect, it, jest, beforeEach } from '@jest/globals'
 import { StaffSyncPage } from './staff-sync-page'
 import { renderWithProviders } from '@/test/render-with-providers'
@@ -224,22 +224,62 @@ describe('StaffSyncPage', () => {
     expect(screen.queryByText(/clear all/i)).toBeNull()
   })
 
-  // ── Search (client-side on current page) ────────────────────────────────────
+  // ── Search (debounced; list comes from API by name filter) ───────────────────
 
-  it('filters displayed rows by name search', () => {
-    renderWithProviders(<StaffSyncPage />)
-    const searchInput = screen.getByRole('textbox')
-    fireEvent.change(searchInput, { target: { value: 'Shyam' } })
-    expect(screen.getByText('Shyam Singh')).toBeTruthy()
-    expect(screen.queryByText('Ram Kumar')).toBeNull()
-    expect(screen.queryByText('District Officer')).toBeNull()
+  it('filters displayed rows by name search', async () => {
+    jest.useFakeTimers()
+    try {
+      renderWithProviders(<StaffSyncPage />)
+      const searchInput = screen.getByRole('textbox')
+      fireEvent.change(searchInput, { target: { value: 'Shyam' } })
+      mockUseStaffListQuery.mockReturnValue({
+        data: { totalElements: 1, items: [mockListData.items[0]] },
+        isLoading: false,
+        isError: false,
+        refetch: jest.fn(),
+      })
+      await act(async () => {
+        jest.advanceTimersByTime(500)
+      })
+      expect(screen.getByText('Shyam Singh')).toBeTruthy()
+      expect(screen.queryByText('Ram Kumar')).toBeNull()
+      expect(screen.queryByText('District Officer')).toBeNull()
+    } finally {
+      jest.useRealTimers()
+      mockUseStaffListQuery.mockReturnValue({
+        data: mockListData,
+        isLoading: false,
+        isError: false,
+        refetch: jest.fn(),
+      })
+    }
   })
 
-  it('shows empty message when search has no results', () => {
-    renderWithProviders(<StaffSyncPage />)
-    const searchInput = screen.getByRole('textbox')
-    fireEvent.change(searchInput, { target: { value: 'zzznomatch' } })
-    expect(screen.getByText(/no staff/i)).toBeTruthy()
+  it('shows empty message when search has no results', async () => {
+    jest.useFakeTimers()
+    try {
+      renderWithProviders(<StaffSyncPage />)
+      const searchInput = screen.getByRole('textbox')
+      fireEvent.change(searchInput, { target: { value: 'zzznomatch' } })
+      mockUseStaffListQuery.mockReturnValue({
+        data: { totalElements: 0, items: [] },
+        isLoading: false,
+        isError: false,
+        refetch: jest.fn(),
+      })
+      await act(async () => {
+        jest.advanceTimersByTime(500)
+      })
+      expect(screen.getByText(/no staff members found/i)).toBeTruthy()
+    } finally {
+      jest.useRealTimers()
+      mockUseStaffListQuery.mockReturnValue({
+        data: mockListData,
+        isLoading: false,
+        isError: false,
+        refetch: jest.fn(),
+      })
+    }
   })
 
   // ── Upload modal ─────────────────────────────────────────────────────────────

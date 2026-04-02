@@ -161,9 +161,7 @@ describe('SearchLayout', () => {
       />
     )
 
-    const searchInput = screen.getByPlaceholderText(
-      'Search by state/UT, district, block, gram panchayat, village'
-    )
+    const searchInput = screen.getByRole('textbox')
 
     fireEvent.focus(searchInput)
 

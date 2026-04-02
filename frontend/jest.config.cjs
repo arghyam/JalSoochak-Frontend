@@ -5,6 +5,7 @@ module.exports = {
   testMatch: ['**/*.test.ts', '**/*.test.tsx'],
   moduleNameMapper: {
     '\\.(svg|png|jpe?g|gif|webp)$': '<rootDir>/src/test/file-mock.ts',
+    '\\.xlsx\\?url$': '<rootDir>/src/test/file-mock.ts',
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@/app/(.*)$': '<rootDir>/src/app/$1',
     '^@/features/(.*)$': '<rootDir>/src/features/$1',

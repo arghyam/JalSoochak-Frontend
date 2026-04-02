@@ -31,39 +31,45 @@ describe('DateFormatSection', () => {
     renderWithProviders(
       <DateFormatSection title="Screen Date Format" value={fullConfig} onChange={jest.fn()} />
     )
-    const dateSelect = screen.getByRole('combobox', { name: /date format/i })
-    expect((dateSelect as HTMLSelectElement).value).toBe('DD/MM/YYYY')
-    const timeSelect = screen.getByRole('combobox', { name: /time format/i })
-    expect((timeSelect as HTMLSelectElement).value).toBe('HH:mm')
+    const dateSelect = screen.getByRole('combobox', { name: /^date format$/i })
+    expect(dateSelect.textContent).toContain('DD/MM/YYYY')
+    const timeSelect = screen.getByRole('combobox', { name: /^time format$/i })
+    expect(timeSelect.textContent).toContain('24-hour')
   })
 
-  it('calls onChange with updated dateFormat when date select changes', () => {
+  it('calls onChange with updated dateFormat when date select changes', async () => {
     const onChange = jest.fn()
     renderWithProviders(
       <DateFormatSection title="Screen Date Format" value={emptyConfig} onChange={onChange} />
     )
-    const dateSelect = screen.getByRole('combobox', { name: /date format/i })
-    fireEvent.change(dateSelect, { target: { value: 'MM/DD/YYYY' } })
+    const dateSelect = screen.getByRole('combobox', { name: /^date format$/i })
+    fireEvent.click(dateSelect)
+    const option = await screen.findByRole('option', { name: 'MM/DD/YYYY' })
+    fireEvent.click(option)
     expect(onChange).toHaveBeenCalledWith({ ...emptyConfig, dateFormat: 'MM/DD/YYYY' })
   })
 
-  it('calls onChange with updated timeFormat when time select changes', () => {
+  it('calls onChange with updated timeFormat when time select changes', async () => {
     const onChange = jest.fn()
     renderWithProviders(
       <DateFormatSection title="Screen Date Format" value={emptyConfig} onChange={onChange} />
     )
-    const timeSelect = screen.getByRole('combobox', { name: /time format/i })
-    fireEvent.change(timeSelect, { target: { value: 'hh:mm a' } })
+    const timeSelect = screen.getByRole('combobox', { name: /^time format$/i })
+    fireEvent.click(timeSelect)
+    const option = await screen.findByRole('option', { name: /12-hour/i })
+    fireEvent.click(option)
     expect(onChange).toHaveBeenCalledWith({ ...emptyConfig, timeFormat: 'hh:mm a' })
   })
 
-  it('calls onChange with null dateFormat when selection is cleared', () => {
+  it('calls onChange when date format is changed from an existing value', async () => {
     const onChange = jest.fn()
     renderWithProviders(
       <DateFormatSection title="Screen Date Format" value={fullConfig} onChange={onChange} />
     )
-    const dateSelect = screen.getByRole('combobox', { name: /date format/i })
-    fireEvent.change(dateSelect, { target: { value: '' } })
-    expect(onChange).toHaveBeenCalledWith({ ...fullConfig, dateFormat: null })
+    const dateSelect = screen.getByRole('combobox', { name: /^date format$/i })
+    fireEvent.click(dateSelect)
+    const option = await screen.findByRole('option', { name: 'MM/DD/YYYY' })
+    fireEvent.click(option)
+    expect(onChange).toHaveBeenCalledWith({ ...fullConfig, dateFormat: 'MM/DD/YYYY' })
   })
 })

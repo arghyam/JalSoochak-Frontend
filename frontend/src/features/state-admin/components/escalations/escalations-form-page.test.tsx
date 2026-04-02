@@ -2,6 +2,32 @@ import { screen, fireEvent, waitFor } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
 import { EscalationsFormPage } from './escalations-form-page'
 
+jest.mock('@/shared/components/common', () => {
+  const actual = jest.requireActual<typeof import('@/shared/components/common')>(
+    '@/shared/components/common'
+  )
+  return {
+    ...actual,
+    TimePicker: ({
+      value,
+      onChange,
+      id,
+    }: {
+      value: string
+      onChange: (v: string) => void
+      id?: string
+    }) => (
+      <input
+        id={id}
+        type="text"
+        aria-label="Schedule time"
+        value={value}
+        onChange={(e) => onChange((e.target as HTMLInputElement).value)}
+      />
+    ),
+  }
+})
+
 jest.mock('../../services/query/use-state-admin-queries', () => ({
   useEscalationRulesQuery: jest.fn(),
   useSaveEscalationRulesMutation: jest.fn(),
@@ -156,13 +182,16 @@ describe('EscalationsFormPage', () => {
     renderWithProviders(<EscalationsFormPage />)
     fireEvent.click(screen.getByLabelText(/edit mode/i))
 
+    const soDays = screen.getByLabelText(/escalate after days for section officer/i)
+    fireEvent.change(soDays, { target: { value: '4' } })
+
     fireEvent.click(screen.getByText(/save changes/i))
 
     await waitFor(() => {
       expect(mockMutateAsync).toHaveBeenCalledWith({
         schedule: { hour: 9, minute: 0 },
         levels: [
-          { days: 3, userType: 'SECTION_OFFICER' },
+          { days: 4, userType: 'SECTION_OFFICER' },
           { days: 7, userType: 'SUB_DIVISIONAL_OFFICER' },
         ],
       })
@@ -193,16 +222,13 @@ describe('EscalationsFormPage', () => {
     useEscalationRulesQuery.mockReturnValue({
       isLoading: false,
       isError: false,
-      data: {
-        schedule: { hour: 9, minute: 0 },
-        levels: [
-          { days: 0, userType: 'SECTION_OFFICER' as const },
-          { days: 7, userType: 'SUB_DIVISIONAL_OFFICER' as const },
-        ],
-      },
+      data: configuredData,
     })
     renderWithProviders(<EscalationsFormPage />)
     fireEvent.click(screen.getByLabelText(/edit mode/i))
+
+    const soDays = screen.getByLabelText(/escalate after days for section officer/i)
+    fireEvent.change(soDays, { target: { value: '0' } })
 
     fireEvent.click(screen.getByText(/save changes/i))
 
@@ -226,6 +252,9 @@ describe('EscalationsFormPage', () => {
     })
     renderWithProviders(<EscalationsFormPage />)
     fireEvent.click(screen.getByLabelText(/edit mode/i))
+
+    const soDays = screen.getByLabelText(/escalate after days for section officer/i)
+    fireEvent.change(soDays, { target: { value: '8' } })
 
     fireEvent.click(screen.getByText(/save changes/i))
 
@@ -253,10 +282,19 @@ describe('EscalationsFormPage', () => {
     renderWithProviders(<EscalationsFormPage />)
     fireEvent.click(screen.getByLabelText(/edit mode/i))
 
+    const timeInput = screen.getByLabelText(/schedule time/i)
+    fireEvent.change(timeInput, { target: { value: '10:00' } })
+
     fireEvent.click(screen.getByText(/save changes/i))
 
     await waitFor(() => {
-      expect(mockMutateAsync).toHaveBeenCalled()
+      expect(mockMutateAsync).toHaveBeenCalledWith({
+        schedule: { hour: 10, minute: 0 },
+        levels: [
+          { days: 5, userType: 'SECTION_OFFICER' },
+          { days: 5, userType: 'SUB_DIVISIONAL_OFFICER' },
+        ],
+      })
     })
     expect(
       screen.queryByText(/sub divisional officer escalation days must be greater than or equal/i)
@@ -272,6 +310,9 @@ describe('EscalationsFormPage', () => {
     })
     renderWithProviders(<EscalationsFormPage />)
     fireEvent.click(screen.getByLabelText(/edit mode/i))
+
+    const timeInput = screen.getByLabelText(/schedule time/i)
+    fireEvent.change(timeInput, { target: { value: '11:00' } })
 
     fireEvent.click(screen.getByText(/save changes/i))
 

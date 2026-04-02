@@ -269,9 +269,9 @@ describe('SupplyOutageDistributionChart', () => {
     const chartOption = options.find((entry) => entry?.tooltip?.show === true)
     const leftAxisOption = options.find((entry) => entry?.tooltip?.show === false)
 
-    expect(chartOption?.yAxis?.max).toBe(210)
+    expect(chartOption?.yAxis?.max).toBe(225)
     expect(chartOption?.yAxis?.interval).toBe(45)
-    expect(leftAxisOption?.yAxis?.max).toBe(210)
+    expect(leftAxisOption?.yAxis?.max).toBe(225)
     expect(leftAxisOption?.yAxis?.interval).toBe(45)
   })
 })

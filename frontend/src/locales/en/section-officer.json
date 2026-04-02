@@ -1,0 +1,60 @@
+{
+  "login": {
+    "heading": "Welcome",
+    "phoneStep": {
+      "subtitle": "Please enter your phone number to proceed.",
+      "phoneLabel": "Phone Number",
+      "phonePlaceholder": "Enter 10-digit number",
+      "stateLabel": "State / UT",
+      "statePlaceholder": "Select State / UT",
+      "stateLoading": "Loading...",
+      "sendOtp": "Send OTP",
+      "sendingOtp": "Sending OTP...",
+      "phoneError": "Enter a valid 10-digit mobile number.",
+      "phoneDigitsOnlyError": "Phone number must contain only digits.",
+      "stateError": "Please select a State/UT.",
+      "sendOtpFailed": "Failed to send OTP. Please try again."
+    },
+    "otpStep": {
+      "subtitle": "Enter the {{otpLength}}-digit code we sent on {{maskedPhone}}.",
+      "otpLabel": "Enter OTP",
+      "didNotReceive": "Didn't receive the code?",
+      "resendIn": "Resend in {{seconds}}s",
+      "resend": "Resend",
+      "sending": "Sending...",
+      "login": "Log in",
+      "loggingIn": "Logging in...",
+      "back": "← Back",
+      "incompleteOtp": "Please enter the complete {{otpLength}}-digit OTP.",
+      "invalidOtp": "Invalid OTP. Please try again.",
+      "resendFailed": "Failed to resend OTP. Please try again."
+    }
+  },
+  "pages": {
+    "overview": {
+      "heading": "Overview",
+      "comingSoon": "Coming Soon",
+      "subtitle": "The Overview page is under construction."
+    },
+    "schemes": {
+      "heading": "Schemes",
+      "comingSoon": "Coming Soon",
+      "subtitle": "The Schemes page is under construction."
+    },
+    "pumpOperators": {
+      "heading": "Pump Operators",
+      "comingSoon": "Coming Soon",
+      "subtitle": "The Pump Operators page is under construction."
+    },
+    "anomalies": {
+      "heading": "Anomalies",
+      "comingSoon": "Coming Soon",
+      "subtitle": "The Anomalies page is under construction."
+    },
+    "escalations": {
+      "heading": "Escalations",
+      "comingSoon": "Coming Soon",
+      "subtitle": "The Escalations page is under construction."
+    }
+  }
+}

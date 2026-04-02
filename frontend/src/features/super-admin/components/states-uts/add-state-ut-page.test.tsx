@@ -40,6 +40,13 @@ jest.mock('../../services/query/use-super-admin-queries', () => ({
   }),
 }))
 
+async function selectMaharashtraState() {
+  const combos = screen.getAllByRole('combobox')
+  fireEvent.click(combos[0]!)
+  const option = await screen.findByRole('option', { name: 'Maharashtra' })
+  fireEvent.click(option)
+}
+
 describe('AddStateUTPage', () => {
   beforeEach(() => {
     mockNavigate.mockReset()
@@ -81,10 +88,7 @@ describe('AddStateUTPage', () => {
       mockCreateTenantMutateAsync.mockResolvedValue(mockTenant)
       renderWithProviders(<AddStateUTPage />)
 
-      const select = screen.getByRole('combobox')
-      fireEvent.mouseDown(select)
-      const option = await screen.findByText('Maharashtra')
-      fireEvent.click(option)
+      await selectMaharashtraState()
 
       fireEvent.click(screen.getByRole('button', { name: /create state\/ut/i }))
 
@@ -105,10 +109,7 @@ describe('AddStateUTPage', () => {
       mockCreateTenantMutateAsync.mockRejectedValue(new Error('API error'))
       renderWithProviders(<AddStateUTPage />)
 
-      const select = screen.getByRole('combobox')
-      fireEvent.mouseDown(select)
-      const option = await screen.findByText('Maharashtra')
-      fireEvent.click(option)
+      await selectMaharashtraState()
 
       fireEvent.click(screen.getByRole('button', { name: /create state\/ut/i }))
 
@@ -123,10 +124,7 @@ describe('AddStateUTPage', () => {
       mockCreateTenantMutateAsync.mockResolvedValue(mockTenant)
       renderWithProviders(<AddStateUTPage />)
 
-      const select = screen.getByRole('combobox')
-      fireEvent.mouseDown(select)
-      const option = await screen.findByText('Maharashtra')
-      fireEvent.click(option)
+      await selectMaharashtraState()
 
       fireEvent.click(screen.getByRole('button', { name: /create state\/ut/i }))
       await screen.findByText(/step 2 of 2/i)

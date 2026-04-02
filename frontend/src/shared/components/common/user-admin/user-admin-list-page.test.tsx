@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { screen, fireEvent } from '@testing-library/react'
 import { describe, expect, it, jest, beforeEach } from '@jest/globals'
 import { UserAdminListPage } from './user-admin-list-page'
@@ -179,34 +180,54 @@ describe('UserAdminListPage', () => {
   })
 
   it('filters items by search query', () => {
-    renderWithProviders(
-      <UserAdminListPage
-        data={mockData}
-        isLoading={false}
-        isError={false}
-        onRefetch={jest.fn()}
-        routes={mockRoutes}
-        labels={mockLabels}
-      />
-    )
-    const searchInput = screen.getAllByRole('textbox')[0]
+    const Harness = () => {
+      const [q, setQ] = useState('')
+      const filtered = mockData.filter((row) => {
+        const hay = `${row.firstName} ${row.lastName} ${row.email} ${row.phone}`.toLowerCase()
+        return hay.includes(q.trim().toLowerCase())
+      })
+      return (
+        <UserAdminListPage
+          data={filtered}
+          isLoading={false}
+          isError={false}
+          onRefetch={jest.fn()}
+          routes={mockRoutes}
+          labels={mockLabels}
+          searchQuery={q}
+          onSearchChange={setQ}
+        />
+      )
+    }
+    renderWithProviders(<Harness />)
+    const searchInput = screen.getByRole('textbox', { name: /search users/i })
     fireEvent.change(searchInput, { target: { value: 'Ravi' } })
     expect(screen.getByText('Ravi Kumar')).toBeTruthy()
     expect(screen.queryByText('Sanjeev Kumar')).toBeNull()
   })
 
   it('shows empty message when no results match', () => {
-    renderWithProviders(
-      <UserAdminListPage
-        data={mockData}
-        isLoading={false}
-        isError={false}
-        onRefetch={jest.fn()}
-        routes={mockRoutes}
-        labels={mockLabels}
-      />
-    )
-    const searchInput = screen.getAllByRole('textbox')[0]
+    const Harness = () => {
+      const [q, setQ] = useState('')
+      const filtered = mockData.filter((row) => {
+        const hay = `${row.firstName} ${row.lastName} ${row.email} ${row.phone}`.toLowerCase()
+        return hay.includes(q.trim().toLowerCase())
+      })
+      return (
+        <UserAdminListPage
+          data={filtered}
+          isLoading={false}
+          isError={false}
+          onRefetch={jest.fn()}
+          routes={mockRoutes}
+          labels={mockLabels}
+          searchQuery={q}
+          onSearchChange={setQ}
+        />
+      )
+    }
+    renderWithProviders(<Harness />)
+    const searchInput = screen.getByRole('textbox', { name: /search users/i })
     fireEvent.change(searchInput, { target: { value: 'zzznomatch' } })
     expect(screen.getByText('No users found')).toBeTruthy()
   })

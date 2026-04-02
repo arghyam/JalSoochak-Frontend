@@ -161,6 +161,9 @@ describe('HierarchyPage', () => {
     renderWithProviders(<HierarchyPage />)
     fireEvent.click(screen.getByLabelText(/edit hierarchy/i))
 
+    const inputs = screen.getAllByRole('textbox')
+    fireEvent.change(inputs[0]!, { target: { value: 'States' } })
+
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
 
     await waitFor(() => {

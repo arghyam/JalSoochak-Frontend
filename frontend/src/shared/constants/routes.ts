@@ -34,6 +34,14 @@ export const ROUTES = {
   // Shared authenticated routes
   PROFILE: '/profile',
   CHANGE_PASSWORD: '/change-password',
+  // Staff (Section Officer / Sub-Divisional Officer) routes
+  STAFF_LOGIN: '/staff/login',
+  STAFF: '/staff',
+  STAFF_OVERVIEW: '/staff',
+  STAFF_SCHEMES: '/staff/schemes',
+  STAFF_PUMP_OPERATORS: '/staff/pump-operators',
+  STAFF_ANOMALIES: '/staff/anomalies',
+  STAFF_ESCALATIONS: '/staff/escalations',
   // Auth routes
   LOGIN: '/login',
   LOGOUT: '/logout',
