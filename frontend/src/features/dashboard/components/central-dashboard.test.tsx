@@ -1689,6 +1689,68 @@ describe('CentralDashboard', () => {
     ])
   })
 
+  it('treats departmental subdivision as a leaf selection for the detail dashboard flow', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+      },
+    })
+    ;(useSchemePerformanceQuery as jest.Mock).mockReturnValue({
+      data: {
+        parentLgdId: 0,
+        parentDepartmentId: 901,
+        parentLgdCName: '',
+        parentDepartmentCName: '',
+        parentLgdTitle: '',
+        parentDepartmentTitle: 'Silchar I',
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        activeSchemeCount: 1,
+        inactiveSchemeCount: 0,
+        topSchemeCount: 1,
+        topSchemes: [
+          {
+            schemeId: 1234,
+            schemeName: 'Subdivision Scheme',
+            immediateParentDepartmentTitle: 'Silchar I',
+            immediateParentLgdTitle: 'Silchar I',
+            reportingRate: 100,
+            totalWaterSupplied: 42,
+          },
+        ],
+      },
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 1,
+        selectedDepartmentState: '501:department-state',
+        selectedDepartmentZone: '601:department-zone',
+        selectedDepartmentCircle: '701:department-circle',
+        selectedDepartmentDivision: '801:department-division',
+        selectedDepartmentSubdivision: '901:department-subdivision',
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{
+      selectedVillage: string
+      schemeId?: number
+    }>()
+
+    expect(dashboardBodyProps.selectedVillage).toBe('901:department-subdivision')
+    expect(dashboardBodyProps.schemeId).toBe(1234)
+  })
+
   it('overrides active schemes chart data from scheme performance analytics when rows are available', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,

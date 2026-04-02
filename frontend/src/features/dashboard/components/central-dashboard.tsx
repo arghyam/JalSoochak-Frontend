@@ -417,6 +417,9 @@ export function CentralDashboard() {
   const isHierarchyLeafSelected = isLgdTabActive
     ? isVillageSelected
     : isDepartmentSubdivisionSelected || isDepartmentVillageSelected
+  const activeLeafSelection = isLgdTabActive
+    ? effectiveSelectedVillage
+    : selectedDepartmentVillage || selectedDepartmentSubdivision
   const hasLgdLandingFilters =
     isStateSelected ||
     isDistrictSelected ||
@@ -1022,7 +1025,7 @@ export function CentralDashboard() {
       parentLgdTitleById: blockSchemePanchayatLookup,
     }
   )
-  const derivedVillageSchemeId = isVillageSelected
+  const derivedVillageSchemeId = isHierarchyLeafSelected
     ? (selectedSchemeId ?? schemePerformanceData?.topSchemes?.[0]?.schemeId)
     : undefined
   const derivedVillageScheme =
@@ -1030,7 +1033,7 @@ export function CentralDashboard() {
       ? schemePerformanceData?.topSchemes?.find(
           (scheme) => scheme.schemeId === derivedVillageSchemeId
         )
-      : undefined) ?? (isVillageSelected ? schemePerformanceData?.topSchemes?.[0] : undefined)
+      : undefined) ?? (isHierarchyLeafSelected ? schemePerformanceData?.topSchemes?.[0] : undefined)
   const rawOverallPerformanceTableData = isCentralLandingView
     ? mapOverallPerformanceFromNationalDashboard(nationalDashboardData, emptyEntityPerformance, 5)
     : mapOverallPerformanceFromAnalytics(
@@ -1623,7 +1626,7 @@ export function CentralDashboard() {
       </Grid>
 
       {/* Map and Overall Performance */}
-      {!isVillageSelected ? (
+      {!activeLeafSelection ? (
         <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
           <Box
             bg="white"
@@ -1678,7 +1681,7 @@ export function CentralDashboard() {
                 !isDistrictSelected &&
                 !isBlockSelected &&
                 !isGramPanchayatSelected &&
-                !isVillageSelected
+                !activeLeafSelection
               ? 'central'
               : null
         }
@@ -1686,7 +1689,7 @@ export function CentralDashboard() {
         isDistrictSelected={isDistrictSelected}
         isBlockSelected={isBlockSelected}
         isGramPanchayatSelected={isGramPanchayatSelected}
-        selectedVillage={effectiveSelectedVillage}
+        selectedVillage={activeLeafSelection}
         quantityPerformanceData={quantityPerformanceData}
         quantityTimeTrendData={quantityTimeTrendData}
         isQuantityTimeTrendLoading={
