@@ -84,11 +84,18 @@ export const staffAuthApi = {
     const firstPage = firstResponse.data.data
     const allContent = [...firstPage.content]
 
-    for (let page = 1; page < firstPage.totalPages; page++) {
-      const response = await apiClient.get<ApiResponse<TenantsListApiResponse>>('/api/v1/tenants', {
-        params: { page, size: pageSize },
-      })
-      allContent.push(...response.data.data.content)
+    if (firstPage.totalPages > 1) {
+      const remainingPages = Array.from({ length: firstPage.totalPages - 1 }, (_, i) => i + 1)
+      const responses = await Promise.all(
+        remainingPages.map((page) =>
+          apiClient.get<ApiResponse<TenantsListApiResponse>>('/api/v1/tenants', {
+            params: { page, size: pageSize },
+          })
+        )
+      )
+      for (const response of responses) {
+        allContent.push(...response.data.data.content)
+      }
     }
 
     return allContent.map((t) => ({

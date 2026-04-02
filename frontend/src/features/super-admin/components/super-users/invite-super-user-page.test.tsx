@@ -88,20 +88,15 @@ describe('InviteSuperUserPage', () => {
     mockUseInviteUserMutation.mockReturnValue({ mutateAsync: mockMutateAsync, isPending: false })
 
     renderWithProviders(<InviteSuperUserPage />)
-    fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Test' } })
-    fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'User' } })
-    fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '9123456789' } })
-    fireEvent.change(screen.getByLabelText(/email address/i), {
-      target: { value: 'test@example.com' },
-    })
+    fillValidInviteForm()
     fireEvent.click(screen.getByRole('button', { name: /add super user & send link via email/i }))
 
     await waitFor(() => {
       expect(mockMutateAsync).toHaveBeenCalledWith({
-        firstName: 'Test',
-        lastName: 'User',
-        phoneNumber: '9123456789',
-        email: 'test@example.com',
+        firstName: 'Raj',
+        lastName: 'Sharma',
+        phoneNumber: '9876543210',
+        email: 'valid@example.com',
         role: 'SUPER_USER',
       })
     })

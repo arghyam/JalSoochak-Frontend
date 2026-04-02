@@ -129,7 +129,7 @@ describe('WaterNormsPage', () => {
     // Enter edit mode
     fireEvent.click(screen.getByLabelText(/edit/i))
 
-    const oversupplyInput = screen.getByDisplayValue('20')
+    const oversupplyInput = screen.getByLabelText(/enter oversupply threshold/i)
     fireEvent.change(oversupplyInput, { target: { value: '21' } })
 
     await waitFor(() => {

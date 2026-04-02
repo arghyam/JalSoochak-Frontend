@@ -1,4 +1,12 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  type KeyboardEvent,
+  type ClipboardEvent,
+  type MutableRefObject,
+} from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -101,6 +109,7 @@ export function StaffLoginPage() {
   }, [])
 
   const handleSendOtp = async () => {
+    if (requestOtpMutation.isPending) return
     setPhoneError(null)
     setTenantError(null)
 
@@ -122,9 +131,13 @@ export function StaffLoginPage() {
         phoneNumber: fullPhoneNumber,
         tenantCode,
       })
-      const length = result.otpLength ?? OTP_FALLBACK_LENGTH
-      setOtpLength(length)
-      resetOtpInputs(length)
+      const rawLength = result.otpLength ?? OTP_FALLBACK_LENGTH
+      const validatedLength =
+        Number.isFinite(rawLength) && Math.floor(rawLength) >= 1
+          ? Math.floor(rawLength)
+          : OTP_FALLBACK_LENGTH
+      setOtpLength(validatedLength)
+      resetOtpInputs(validatedLength)
       setOtpError(null)
       startCooldown()
       setStep('otp')
@@ -135,12 +148,17 @@ export function StaffLoginPage() {
 
   const handleResendOtp = async () => {
     if (resendCooldown > 0) return
+    if (requestOtpMutation.isPending) return
     try {
       const result = await requestOtpMutation.mutateAsync({
         phoneNumber: fullPhoneNumber,
         tenantCode,
       })
-      const length = result.otpLength ?? OTP_FALLBACK_LENGTH
+      const rawLength = result.otpLength ?? OTP_FALLBACK_LENGTH
+      const length =
+        Number.isFinite(rawLength) && Math.floor(rawLength) >= 1
+          ? Math.floor(rawLength)
+          : OTP_FALLBACK_LENGTH
       if (length !== otpLength) {
         setOtpLength(length)
         resetOtpInputs(length)
@@ -165,13 +183,13 @@ export function StaffLoginPage() {
     }
   }
 
-  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleOtpKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace' && !otpValues[index] && index > 0) {
       otpInputRefs.current[index - 1]?.focus()
     }
   }
 
-  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+  const handleOtpPaste = (e: ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault()
     const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, otpLength)
     if (!pasted) return
@@ -219,7 +237,7 @@ export function StaffLoginPage() {
         align="stretch"
         justify="flex-start"
         bg="white"
-        px={{ base: 10, md: 8 }}
+        px={{ base: 4, md: 8 }}
         py={{ base: 10, md: 8 }}
       >
         <Flex w="full" minH="full" direction="column">
@@ -234,7 +252,7 @@ export function StaffLoginPage() {
           </Box>
 
           <Flex flex="1" align="center" justify="center">
-            <Box w="360px">
+            <Box w="full" maxW="360px">
               {step === 'phone' ? (
                 <PhoneStep
                   t={t}
@@ -305,7 +323,7 @@ function PhoneStep({
   isLoading,
   onSubmit,
 }: PhoneStepProps) {
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Enter') onSubmit()
   }
 
@@ -347,7 +365,10 @@ function PhoneStep({
               type="tel"
               placeholder={t('login.phoneStep.phonePlaceholder')}
               value={phoneDigits}
-              onChange={(e) => onPhoneChange(e.target.value.replace(/\D/g, '').slice(0, 10))}
+              onChange={(e) => {
+                const cleaned = e.target.value.replace(/\D/g, '')
+                onPhoneChange(cleaned.length > 10 ? cleaned.slice(-10) : cleaned)
+              }}
               onKeyDown={handleKeyDown}
               h="36px"
               px="12px"
@@ -416,7 +437,7 @@ interface OtpStepProps {
   maskedPhone: string
   otpLength: number
   otpValues: string[]
-  otpInputRefs: React.MutableRefObject<(HTMLInputElement | null)[]>
+  otpInputRefs: MutableRefObject<(HTMLInputElement | null)[]>
   otpError: string | null
   resendCooldown: number
   isResending: boolean

@@ -1,8 +1,6 @@
 import { ROUTES } from '@/shared/constants/routes'
-import { AUTH_ROLES } from '@/shared/constants/auth'
+import { AUTH_ROLES, STAFF_ROLES } from '@/shared/constants/auth'
 import type { SidebarNavItem } from './sidebar-types'
-
-const STAFF_ROLES = [AUTH_ROLES.SECTION_OFFICER, AUTH_ROLES.SUB_DIVISIONAL_OFFICER]
 
 export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
   // Super Admin

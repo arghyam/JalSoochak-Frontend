@@ -19,7 +19,7 @@ jest.mock('@/shared/components/common', () => {
     }) => (
       <input
         id={id}
-        type="text"
+        type="time"
         aria-label="Schedule time"
         value={value}
         onChange={(e) => onChange((e.target as HTMLInputElement).value)}

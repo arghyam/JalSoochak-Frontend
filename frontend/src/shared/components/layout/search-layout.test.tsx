@@ -161,9 +161,7 @@ describe('SearchLayout', () => {
       />
     )
 
-    const searchInput = screen.getByRole('textbox')
-
-    fireEvent.focus(searchInput)
+    fireEvent.focus(getSearchInput())
 
     expect(screen.getByRole('button', { name: 'Ganesh Pur (Jaipong)' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'GANESH PUR (JAIPONG)' })).toBeNull()

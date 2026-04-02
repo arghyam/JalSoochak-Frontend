@@ -1,6 +1,6 @@
 import { screen, fireEvent, act } from '@testing-library/react'
 import { describe, expect, it, jest, beforeEach } from '@jest/globals'
-import { StaffSyncPage } from './staff-sync-page'
+import { StaffSyncPage, DEBOUNCE_DELAY_MS } from './staff-sync-page'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { StaffListResponse } from '../../types/staff-sync'
 import type { StaffCountsData } from '../../types/overview'
@@ -239,19 +239,13 @@ describe('StaffSyncPage', () => {
         refetch: jest.fn(),
       })
       await act(async () => {
-        jest.advanceTimersByTime(500)
+        jest.advanceTimersByTime(DEBOUNCE_DELAY_MS)
       })
       expect(screen.getByText('Shyam Singh')).toBeTruthy()
       expect(screen.queryByText('Ram Kumar')).toBeNull()
       expect(screen.queryByText('District Officer')).toBeNull()
     } finally {
       jest.useRealTimers()
-      mockUseStaffListQuery.mockReturnValue({
-        data: mockListData,
-        isLoading: false,
-        isError: false,
-        refetch: jest.fn(),
-      })
     }
   })
 
@@ -268,17 +262,11 @@ describe('StaffSyncPage', () => {
         refetch: jest.fn(),
       })
       await act(async () => {
-        jest.advanceTimersByTime(500)
+        jest.advanceTimersByTime(DEBOUNCE_DELAY_MS)
       })
       expect(screen.getByText(/no staff members found/i)).toBeTruthy()
     } finally {
       jest.useRealTimers()
-      mockUseStaffListQuery.mockReturnValue({
-        data: mockListData,
-        isLoading: false,
-        isError: false,
-        refetch: jest.fn(),
-      })
     }
   })
 

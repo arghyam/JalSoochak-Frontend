@@ -32,6 +32,7 @@ import { UploadStaffModal } from './upload-staff-modal'
 const DEFAULT_ROLES: StaffRole[] = ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER']
 const PAGE_SIZE = 10
 const PAGE_SIZE_OPTIONS = [10, 25, 50]
+export const DEBOUNCE_DELAY_MS = 400
 
 const ROLE_DISPLAY: Record<StaffRole, string> = {
   PUMP_OPERATOR: 'Pump Operator',
@@ -49,7 +50,7 @@ export function StaffSyncPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
-  const debouncedSearch = useDebounce(searchQuery, 400)
+  const debouncedSearch = useDebounce(searchQuery, DEBOUNCE_DELAY_MS)
 
   useEffect(() => {
     document.title = `${t('staffSync.title')} | JalSoochak`

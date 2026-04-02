@@ -33,19 +33,18 @@ jest.mock('../../services/query/use-super-admin-queries', () => ({
   useUpdateUserStatusMutation: () => mockUseUpdateUserStatusMutation(),
 }))
 
+const makeMutationMock = () => ({
+  mutateAsync: jest.fn<() => Promise<SuperUser>>().mockResolvedValue(mockUser),
+  isPending: false,
+})
+
 describe('SuperUserFormPage — Add Mode', () => {
   beforeEach(() => {
     mockNavigate.mockReset()
     mockUseParams.mockReturnValue({ id: undefined })
     mockUseSuperUserByIdQuery.mockReturnValue({ data: undefined, isLoading: false })
-    mockUseUpdateUserMutation.mockReturnValue({
-      mutateAsync: jest.fn<() => Promise<SuperUser>>().mockResolvedValue(mockUser),
-      isPending: false,
-    })
-    mockUseUpdateUserStatusMutation.mockReturnValue({
-      mutateAsync: jest.fn<() => Promise<SuperUser>>().mockResolvedValue(mockUser),
-      isPending: false,
-    })
+    mockUseUpdateUserMutation.mockReturnValue(makeMutationMock())
+    mockUseUpdateUserStatusMutation.mockReturnValue(makeMutationMock())
   })
 
   it('renders add title', () => {
@@ -106,14 +105,8 @@ describe('SuperUserFormPage — Edit Mode', () => {
     mockNavigate.mockReset()
     mockUseParams.mockReturnValue({ id: 'user-1' })
     mockUseSuperUserByIdQuery.mockReturnValue({ data: mockUser, isLoading: false })
-    mockUseUpdateUserMutation.mockReturnValue({
-      mutateAsync: jest.fn<() => Promise<SuperUser>>().mockResolvedValue(mockUser),
-      isPending: false,
-    })
-    mockUseUpdateUserStatusMutation.mockReturnValue({
-      mutateAsync: jest.fn<() => Promise<SuperUser>>().mockResolvedValue(mockUser),
-      isPending: false,
-    })
+    mockUseUpdateUserMutation.mockReturnValue(makeMutationMock())
+    mockUseUpdateUserStatusMutation.mockReturnValue(makeMutationMock())
   })
 
   it('renders edit title', () => {
