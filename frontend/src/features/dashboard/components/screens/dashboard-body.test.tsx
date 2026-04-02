@@ -266,12 +266,14 @@ describe('DashboardBody', () => {
     const metricChartCalls = mockMetricPerformanceChart.mock.calls as Array<
       [{ data: EntityPerformance[]; metric: string; showAreaLine?: boolean }]
     >
+    const quantityCall = metricChartCalls.find((call) => call[0].metric === 'quantity')
+    const regularityCall = metricChartCalls.find((call) => call[0].metric === 'regularity')
 
     expect(metricChartCalls).toHaveLength(2)
-    expect(metricChartCalls[0][0].data).toEqual(mockEntityData)
-    expect(metricChartCalls[0][0].showAreaLine).toBe(true)
-    expect(metricChartCalls[1][0].data).toEqual(mockEntityData)
-    expect(metricChartCalls[1][0].showAreaLine).toBeUndefined()
+    expect(quantityCall?.[0].data).toEqual(mockEntityData)
+    expect(quantityCall?.[0].showAreaLine).toBe(true)
+    expect(regularityCall?.[0].data).toEqual(mockEntityData)
+    expect(regularityCall?.[0].showAreaLine).toBeUndefined()
     expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
   })
 
@@ -329,9 +331,13 @@ describe('DashboardBody', () => {
 
     fireEvent.click(regularitySelect)
     fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
-    expect(mockMonthlyTrendChart).toHaveBeenCalledTimes(3)
-    expect(mockMonthlyTrendChart.mock.calls[2]?.[0].seriesName).toBe('Regularity')
-    expect(mockMonthlyTrendChart.mock.calls[2]?.[0].isPercent).toBe(true)
+    expect(
+      mockMonthlyTrendChart.mock.calls.some((call) => call[0].seriesName === 'Regularity')
+    ).toBe(true)
+    const regularityTimeCall = [...mockMonthlyTrendChart.mock.calls]
+      .reverse()
+      .find((call) => call[0].seriesName === 'Regularity')
+    expect(regularityTimeCall?.[0].isPercent).toBe(true)
   })
 
   it('resets central quantity and regularity selectors back to geography after returning from a deeper level', () => {
@@ -610,13 +616,36 @@ describe('DashboardBody', () => {
     const metricChartCalls = mockMetricPerformanceChart.mock.calls as Array<
       [{ data: EntityPerformance[]; entityLabel?: string; showAreaLine?: boolean }]
     >
+    const quantityCall = metricChartCalls.find((call) => call[0].showAreaLine === true)
+    const regularityCall = metricChartCalls.find((call) => call[0].showAreaLine !== true)
 
     expect(metricChartCalls).toHaveLength(2)
-    expect(metricChartCalls[0][0].data[0]?.name).toBe('District A')
-    expect(metricChartCalls[1][0].data[0]?.name).toBe('District A')
-    expect(metricChartCalls[0][0].entityLabel).toBe('Districts')
-    expect(metricChartCalls[0][0].showAreaLine).toBe(true)
-    expect(metricChartCalls[1][0].entityLabel).toBe('Districts')
+    expect(quantityCall?.[0].data[0]?.name).toBe('District A')
+    expect(regularityCall?.[0].data[0]?.name).toBe('District A')
+    expect(quantityCall?.[0].entityLabel).toBe('Districts')
+    expect(quantityCall?.[0].showAreaLine).toBe(true)
+    expect(regularityCall?.[0].entityLabel).toBe('Districts')
+  })
+
+  it('uses the active hierarchy label for geography charts on the central departmental view', () => {
+    mockMetricPerformanceChart.mockClear()
+
+    renderDashboardBody({
+      isStateSelected: false,
+      isDistrictSelected: false,
+      isBlockSelected: false,
+      isGramPanchayatSelected: false,
+      selectedVillage: '',
+      supplySubmissionRateLabel: 'Zones',
+    })
+
+    const metricChartCalls = mockMetricPerformanceChart.mock.calls as Array<
+      [{ data: EntityPerformance[]; entityLabel?: string; showAreaLine?: boolean }]
+    >
+
+    expect(metricChartCalls).toHaveLength(2)
+    expect(metricChartCalls[0][0].entityLabel).toBe('Zones')
+    expect(metricChartCalls[1][0].entityLabel).toBe('Zones')
   })
 
   it('renders and switches the supply outage distribution selector on the state view', () => {

@@ -118,7 +118,7 @@ export function DashboardBody({
   })
   const geographyEntityLabel = isStateScreen
     ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
-    : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
+    : supplySubmissionRateLabel
   return (
     <>
       {/* Quantity + Regularity Charts */}
