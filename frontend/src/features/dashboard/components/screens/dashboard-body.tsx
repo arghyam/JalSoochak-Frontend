@@ -249,7 +249,11 @@ export function DashboardBody({
       ) : null}
 
       {/* Supply outage reasons + distribution/submission */}
-      {!selectedVillage && !isDistrictScreen && !isBlockSelected && !isGramPanchayatScreen ? (
+      {!selectedVillage &&
+      !isDistrictScreen &&
+      !isBlockSelected &&
+      !isGramPanchayatScreen &&
+      !isDepartmentCircleSelected ? (
         <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
           <Box
             bg="white"

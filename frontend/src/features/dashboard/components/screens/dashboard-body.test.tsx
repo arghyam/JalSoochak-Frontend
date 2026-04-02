@@ -581,6 +581,8 @@ describe('DashboardBody', () => {
     })
 
     expect(screen.getByTestId('block-dashboard-screen')).toBeTruthy()
+    expect(screen.queryByText('Supply Outage Reasons')).toBeNull()
+    expect(screen.queryByText('Reading Submission Rate')).toBeNull()
 
     const blockScreenProps = mockBlockDashboardScreen.mock.calls.at(-1)?.[0] as {
       showSupplyOutageReasons?: boolean
