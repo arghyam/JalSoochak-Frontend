@@ -756,8 +756,8 @@ function ReadingComplianceSection({
                 alignItems="center"
               >
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.schemeNameSchemeId', {
-                    defaultValue: 'Scheme name/ Scheme ID',
+                  {t('pumpOperators.details.fields.schemeId', {
+                    defaultValue: 'Scheme ID',
                   })}
                 </Text>
                 <Text
@@ -767,11 +767,13 @@ function ReadingComplianceSection({
                   textAlign={{ base: 'left', sm: 'right' }}
                   wordBreak="break-word"
                 >
-                  {resolvedActivePumpOperator.scheme}
+                  {typeof resolvedActivePumpOperator.schemeId === 'number'
+                    ? String(resolvedActivePumpOperator.schemeId)
+                    : 'N/A'}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.stationLocation', {
-                    defaultValue: 'Station location',
+                  {t('pumpOperators.details.fields.schemeName', {
+                    defaultValue: 'Scheme name',
                   })}
                 </Text>
                 <Text
@@ -781,7 +783,9 @@ function ReadingComplianceSection({
                   textAlign={{ base: 'left', sm: 'right' }}
                   wordBreak="break-word"
                 >
-                  {resolvedActivePumpOperator.stationLocation}
+                  {resolvedActivePumpOperator.schemeName ||
+                    resolvedActivePumpOperator.scheme ||
+                    'N/A'}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
                   {t('pumpOperators.details.fields.lastSubmission', {

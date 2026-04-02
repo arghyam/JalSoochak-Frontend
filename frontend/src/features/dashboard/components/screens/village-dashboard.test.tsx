@@ -100,6 +100,7 @@ const villagePumpOperatorDetails = {
   id: 4,
   schemeId: 3,
   name: 'Ajay Yadav',
+  schemeName: 'Rural Water Supply 001',
   scheme: 'Rural Water Supply 001',
   stationLocation: 'Central Pumping Station',
   lastSubmission: '11-02-24, 1:00pm',
@@ -131,6 +132,7 @@ const secondVillagePumpOperatorDetails = {
   uuid: 'uuid-7',
   schemeId: 9,
   name: 'Sanjay Roy',
+  schemeName: 'Haluwating Bazar PWSS',
   scheme: 'Haluwating Bazar PWSS / 7714',
   stationLocation: '26.7783233, 94.5703217',
   lastSubmission: '17-03-26, 3:06pm',
@@ -218,11 +220,11 @@ describe('VillageDashboardScreen', () => {
 
     const trendCalls = mockMonthlyTrendChart.mock.calls as Array<[Record<string, unknown>]>
     expect(trendCalls.length).toBeGreaterThanOrEqual(2)
-    const latestTrendCalls = trendCalls.slice(-2)
-    expect(latestTrendCalls[0]?.[0].seriesName).toBe('Quantity')
-    expect(latestTrendCalls[0]?.[0].isPercent).toBeFalsy()
-    expect(latestTrendCalls[1]?.[0].seriesName).toBe('Regularity')
-    expect(latestTrendCalls[1]?.[0].isPercent).toBe(true)
+    const trendProps = trendCalls.map(([props]) => props)
+    const quantityTrend = trendProps.find((props) => props.seriesName === 'Quantity')
+    const regularityTrend = trendProps.find((props) => props.seriesName === 'Regularity')
+    expect(quantityTrend?.isPercent).toBeFalsy()
+    expect(regularityTrend?.isPercent).toBe(true)
 
     expect(screen.getByTestId('supply-outage-reasons-chart')).toBeTruthy()
     expect(screen.getByTestId('reading-submission-status-chart')).toBeTruthy()
@@ -246,12 +248,14 @@ describe('VillageDashboardScreen', () => {
 
     const trendCalls = mockMonthlyTrendChart.mock.calls as Array<[Record<string, unknown>]>
     expect(trendCalls.length).toBeGreaterThanOrEqual(2)
-    const latestTrendCalls = trendCalls.slice(-2)
-    expect(latestTrendCalls[0]?.[0].data).toEqual([
+    const trendProps = trendCalls.map(([props]) => props)
+    const quantityTrend = trendProps.find((props) => props.seriesName === 'Quantity')
+    const regularityTrend = trendProps.find((props) => props.seriesName === 'Regularity')
+    expect(quantityTrend?.data).toEqual([
       expect.objectContaining({ period: '12 Mar', value: 87 }),
       expect.objectContaining({ period: '13 Mar', value: 91 }),
     ])
-    expect(latestTrendCalls[1]?.[0].data).toEqual([
+    expect(regularityTrend?.data).toEqual([
       expect.objectContaining({ period: '12 Mar', value: 65 }),
       expect.objectContaining({ period: '13 Mar', value: 72 }),
     ])
@@ -410,6 +414,17 @@ describe('VillageDashboardScreen', () => {
     expect(screen.queryByTestId('reading-compliance-table')).toBeNull()
     expect(screen.queryByRole('button', { name: 'Previous' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Next' })).toBeNull()
+  })
+
+  it('renders separate scheme id and scheme name rows without station location', () => {
+    renderVillageDashboard()
+
+    expect(screen.getByText('Scheme ID')).toBeTruthy()
+    expect(screen.getAllByText('3').length).toBeGreaterThan(0)
+    expect(screen.getByText('Scheme name')).toBeTruthy()
+    expect(screen.getByText('Rural Water Supply 001')).toBeTruthy()
+    expect(screen.queryByText('Station location')).toBeNull()
+    expect(screen.queryByText('Central Pumping Station')).toBeNull()
   })
 
   it('renders all scheme submission rows from the reading compliance api', () => {
@@ -631,7 +646,8 @@ describe('VillageDashboardScreen', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getByText('Bampara Pwss / 1461')).toBeTruthy()
+      expect(screen.getAllByText('1461').length).toBeGreaterThan(0)
+      expect(screen.getByText('Bampara Pwss')).toBeTruthy()
     })
   })
 
@@ -918,12 +934,15 @@ describe('VillageDashboardScreen', () => {
     })
 
     expect(screen.getByText('Ajay Yadav')).toBeTruthy()
-    expect(screen.getByText('Corramore Pwss (Point-Iii) 18294 / 3')).toBeTruthy()
+    expect(screen.getByText('Scheme ID')).toBeTruthy()
+    expect(screen.getAllByText('3').length).toBeGreaterThan(0)
+    expect(screen.getByText('Corramore Pwss (Point-Iii) 18294')).toBeTruthy()
 
     fireEvent.click(screen.getByRole('button', { name: '2' }))
 
     expect(screen.getByText('Anil Gogi')).toBeTruthy()
-    expect(screen.getAllByText('N/A').length).toBeGreaterThan(0)
+    expect(screen.getByText('Corramore Pwss (Point-Iii) 18294')).toBeTruthy()
+    expect(screen.getAllByText('3').length).toBeGreaterThan(0)
   })
 
   it('keeps scheme-specific pagination when the same operator is mapped to multiple schemes', () => {
@@ -981,7 +1000,8 @@ describe('VillageDashboardScreen', () => {
       />
     )
 
-    expect(screen.getByText('Corramore Pwss (Point-Iii) 18294 / 3')).toBeTruthy()
+    expect(screen.getAllByText('3').length).toBeGreaterThan(0)
+    expect(screen.getByText('Corramore Pwss (Point-Iii) 18294')).toBeTruthy()
 
     const complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
       data: Array<{ id: string }>
@@ -990,9 +1010,9 @@ describe('VillageDashboardScreen', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '2' }))
 
-    expect(screen.getByText('Gelabil Pwss / 8')).toBeTruthy()
+    expect(screen.getAllByText('8').length).toBeGreaterThan(0)
+    expect(screen.getByText('Gelabil Pwss')).toBeTruthy()
     expect(screen.queryByText('Central Pumping Station')).toBeNull()
-    expect(screen.getAllByText('N/A').length).toBeGreaterThan(0)
   })
 
   it('shows missing submission count from the reading compliance api when missed submission dates are returned', () => {
