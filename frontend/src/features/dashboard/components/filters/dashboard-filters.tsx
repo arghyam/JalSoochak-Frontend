@@ -488,11 +488,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
 
   return (
     <SearchLayout
-      actionLabel={
-        isXsFilters
-          ? t('searchLayout.download', 'Download')
-          : t('searchLayout.downloadReport', 'Download Report')
-      }
+      rightSlot={<></>}
       selectionTrail={selectionTrail}
       activeTrailIndex={effectiveTrailIndex}
       breadcrumbPanelProps={{
