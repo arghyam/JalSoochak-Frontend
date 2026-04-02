@@ -395,6 +395,7 @@ export function EscalationsFormPage() {
                             min="1"
                             step="1"
                             value={level.days}
+                            onWheel={(e) => e.currentTarget.blur()}
                             onChange={(e) => handleDaysChange(level.key, e.target.value)}
                             aria-label={t('escalations.aria.escalateAfterDays', {
                               role: ESCALATION_USER_TYPE_LABELS[level.userType],

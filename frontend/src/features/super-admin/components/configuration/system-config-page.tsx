@@ -419,6 +419,7 @@ function ThresholdInput({
         min={min}
         max={max}
         value={value}
+        onWheel={(e) => e.currentTarget.blur()}
         onChange={(e) => {
           const raw = e.target.value
           if (raw === '') {
