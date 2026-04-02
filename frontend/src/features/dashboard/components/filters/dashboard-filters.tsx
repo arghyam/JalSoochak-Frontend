@@ -55,11 +55,16 @@ type DashboardFiltersProps = {
   setSelectedScheme: Dispatch<SetStateAction<string>>
   setSelectedDuration: Dispatch<SetStateAction<DateRange | null>>
   onDepartmentStateChange: (value: string) => void
-  setSelectedDepartmentZone: Dispatch<SetStateAction<string>>
-  setSelectedDepartmentCircle: Dispatch<SetStateAction<string>>
-  setSelectedDepartmentDivision: Dispatch<SetStateAction<string>>
-  setSelectedDepartmentSubdivision: Dispatch<SetStateAction<string>>
-  setSelectedDepartmentVillage: Dispatch<SetStateAction<string>>
+  onDepartmentZoneChange?: (value: string) => void
+  onDepartmentCircleChange?: (value: string) => void
+  onDepartmentDivisionChange?: (value: string) => void
+  onDepartmentSubdivisionChange?: (value: string) => void
+  onDepartmentVillageChange?: (value: string) => void
+  setSelectedDepartmentZone?: Dispatch<SetStateAction<string>>
+  setSelectedDepartmentCircle?: Dispatch<SetStateAction<string>>
+  setSelectedDepartmentDivision?: Dispatch<SetStateAction<string>>
+  setSelectedDepartmentSubdivision?: Dispatch<SetStateAction<string>>
+  setSelectedDepartmentVillage?: Dispatch<SetStateAction<string>>
   onActiveTrailChange?: (trailIndex: number | null) => void
 }
 
@@ -155,6 +160,20 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     setSelectedVillage,
     onActiveTrailChange,
     setSelectedDuration,
+    selectedDepartmentState,
+    selectedDepartmentZone,
+    selectedDepartmentCircle,
+    selectedDepartmentDivision,
+    selectedDepartmentSubdivision,
+    onDepartmentStateChange,
+    onDepartmentZoneChange,
+    onDepartmentCircleChange,
+    onDepartmentDivisionChange,
+    onDepartmentSubdivisionChange,
+    setSelectedDepartmentZone,
+    setSelectedDepartmentCircle,
+    setSelectedDepartmentDivision,
+    setSelectedDepartmentSubdivision,
   } = props
 
   const queryClient = useQueryClient()
@@ -164,8 +183,19 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   })
   const breadcrumbStateOptions = locationSearchData?.states ?? []
   const totalStatesCount = locationSearchData?.totalStatesCount ?? 0
-  const selectedTenant = breadcrumbStateOptions.find((option) => option.value === selectedState)
   const hierarchyType: HierarchyType = filterTabIndex === 0 ? 'LGD' : 'DEPARTMENT'
+  const isDepartmentTab = hierarchyType === 'DEPARTMENT'
+  const activeSelectedState =
+    isDepartmentTab && selectedDepartmentState ? selectedDepartmentState : selectedState
+  const selectedTenant = breadcrumbStateOptions.find(
+    (option) => option.value === activeSelectedState
+  )
+  const activeSelectedDistrict = isDepartmentTab ? selectedDepartmentZone : selectedDistrict
+  const activeSelectedBlock = isDepartmentTab ? selectedDepartmentCircle : selectedBlock
+  const activeSelectedGramPanchayat = isDepartmentTab
+    ? selectedDepartmentDivision
+    : selectedGramPanchayat
+  const activeSelectedVillage = isDepartmentTab ? selectedDepartmentSubdivision : selectedVillage
   const { data: rootLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
@@ -176,8 +206,8 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     () => mapLocationOptions(rootLocationsData?.data),
     [rootLocationsData?.data]
   )
-  const selectedRootOption = findLocationOption(rootLevelOptions, selectedState)
-  const isRootStateLevel = Boolean(selectedState) && Boolean(selectedRootOption)
+  const selectedRootOption = findLocationOption(rootLevelOptions, activeSelectedState)
+  const isRootStateLevel = Boolean(activeSelectedState) && Boolean(selectedRootOption)
   const districtParentId = isRootStateLevel ? selectedRootOption?.locationId : undefined
   const { data: districtLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
@@ -194,8 +224,9 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     // Some tenants return districts directly at parentId=0 instead of returning state first.
     return rootLevelOptions
   }, [districtLocationsData?.data, isRootStateLevel, rootLevelOptions])
-  const selectedDistrictOption = findLocationOption(districtApiOptions, selectedDistrict)
-  const selectedDistrictId = parseLocationId(selectedDistrict) ?? selectedDistrictOption?.locationId
+  const selectedDistrictOption = findLocationOption(districtApiOptions, activeSelectedDistrict)
+  const selectedDistrictId =
+    parseLocationId(activeSelectedDistrict) ?? selectedDistrictOption?.locationId
   const { data: blockLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
@@ -207,8 +238,8 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     () => mapLocationOptions(blockLocationsData?.data),
     [blockLocationsData?.data]
   )
-  const selectedBlockOption = findLocationOption(blockApiOptions, selectedBlock)
-  const selectedBlockId = parseLocationId(selectedBlock) ?? selectedBlockOption?.locationId
+  const selectedBlockOption = findLocationOption(blockApiOptions, activeSelectedBlock)
+  const selectedBlockId = parseLocationId(activeSelectedBlock) ?? selectedBlockOption?.locationId
   const { data: gramPanchayatLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
@@ -222,10 +253,10 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   )
   const selectedGramPanchayatOption = findLocationOption(
     gramPanchayatApiOptions,
-    selectedGramPanchayat
+    activeSelectedGramPanchayat
   )
   const selectedGramPanchayatId =
-    parseLocationId(selectedGramPanchayat) ?? selectedGramPanchayatOption?.locationId
+    parseLocationId(activeSelectedGramPanchayat) ?? selectedGramPanchayatOption?.locationId
   const { data: villageLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
@@ -318,11 +349,11 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     )
   }
   const selectionTrail = [
-    findLabel(selectedState, breadcrumbStateOptions),
-    findLabel(selectedDistrict, resolvedDistrictOptions),
-    findLabel(selectedBlock, resolvedBlockOptions),
-    findLabel(selectedGramPanchayat, resolvedGramPanchayatOptions),
-    findLabel(selectedVillage, resolvedVillageOptions),
+    findLabel(activeSelectedState, breadcrumbStateOptions),
+    findLabel(activeSelectedDistrict, resolvedDistrictOptions),
+    findLabel(activeSelectedBlock, resolvedBlockOptions),
+    findLabel(activeSelectedGramPanchayat, resolvedGramPanchayatOptions),
+    findLabel(activeSelectedVillage, resolvedVillageOptions),
   ].filter((item): item is string => Boolean(item))
   const hasHierarchySelection = selectionTrail.length > 0
   const hasActiveFilters = hasHierarchySelection || Boolean(selectedDuration)
@@ -331,17 +362,35 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     : { textDecoration: 'none' }
 
   const trailSelectionValues = [
-    selectedState,
-    selectedDistrict,
-    selectedBlock,
-    selectedGramPanchayat,
-    selectedVillage,
+    activeSelectedState,
+    activeSelectedDistrict,
+    activeSelectedBlock,
+    activeSelectedGramPanchayat,
+    activeSelectedVillage,
   ] as const
-  const { effectiveTrailIndex } = computeTrailIndices(trailSelectionValues, activeTrailIndex)
-  const hasSelectedState = effectiveTrailIndex >= 0 && Boolean(selectedState)
-  const hasSelectedDistrict = effectiveTrailIndex >= 1 && Boolean(selectedDistrict)
-  const hasSelectedBlock = effectiveTrailIndex >= 2 && Boolean(selectedBlock)
-  const hasSelectedGramPanchayat = effectiveTrailIndex >= 3 && Boolean(selectedGramPanchayat)
+  const effectiveActiveTrailIndex = isDepartmentTab ? null : activeTrailIndex
+  const { effectiveTrailIndex } = computeTrailIndices(
+    trailSelectionValues,
+    effectiveActiveTrailIndex
+  )
+  const hasSelectedState = effectiveTrailIndex >= 0 && Boolean(activeSelectedState)
+  const hasSelectedDistrict = effectiveTrailIndex >= 1 && Boolean(activeSelectedDistrict)
+  const hasSelectedBlock = effectiveTrailIndex >= 2 && Boolean(activeSelectedBlock)
+  const hasSelectedGramPanchayat = effectiveTrailIndex >= 3 && Boolean(activeSelectedGramPanchayat)
+  const rootSelectionHandler = isDepartmentTab ? onDepartmentStateChange : onStateChange
+  const districtSelectionHandler = isDepartmentTab
+    ? (onDepartmentZoneChange ?? ((value: string) => setSelectedDepartmentZone?.(value)))
+    : onDistrictChange
+  const blockSelectionHandler = isDepartmentTab
+    ? (onDepartmentCircleChange ?? ((value: string) => setSelectedDepartmentCircle?.(value)))
+    : onBlockChange
+  const gramPanchayatSelectionHandler = isDepartmentTab
+    ? (onDepartmentDivisionChange ?? ((value: string) => setSelectedDepartmentDivision?.(value)))
+    : onGramPanchayatChange
+  const villageSelectionHandler = isDepartmentTab
+    ? (onDepartmentSubdivisionChange ??
+      ((value: string) => setSelectedDepartmentSubdivision?.(value)))
+    : setSelectedVillage
   const breadcrumbPanelConfig = hasSelectedGramPanchayat
     ? {
         options: resolvedVillageOptions,
@@ -350,7 +399,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
         noOptionsText: t('filters.noOptions.villages', {
           defaultValue: `No ${villageLabel.toLowerCase()} found`,
         }),
-        onSelect: setSelectedVillage,
+        onSelect: villageSelectionHandler,
       }
     : hasSelectedBlock
       ? {
@@ -360,7 +409,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
           noOptionsText: t('filters.noOptions.gramPanchayats', {
             defaultValue: `No ${gramPanchayatLabel.toLowerCase()} found`,
           }),
-          onSelect: onGramPanchayatChange,
+          onSelect: gramPanchayatSelectionHandler,
         }
       : hasSelectedDistrict
         ? {
@@ -370,7 +419,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
             noOptionsText: t('filters.noOptions.blocks', {
               defaultValue: `No ${blockLabel.toLowerCase()} found`,
             }),
-            onSelect: onBlockChange,
+            onSelect: blockSelectionHandler,
           }
         : hasSelectedState
           ? {
@@ -380,7 +429,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
               noOptionsText: t('filters.noOptions.districts', {
                 defaultValue: `No ${districtLabel.toLowerCase()} found`,
               }),
-              onSelect: onDistrictChange,
+              onSelect: districtSelectionHandler,
             }
           : {
               options: breadcrumbStateOptions,
@@ -389,10 +438,39 @@ export function DashboardFilters(props: DashboardFiltersProps) {
               noOptionsText: t('filters.noOptions.states', {
                 defaultValue: `No ${stateLabel.toLowerCase()} found`,
               }),
-              onSelect: onStateChange,
+              onSelect: rootSelectionHandler,
             }
 
   const handleTrailSelect = (trailIndex: number) => {
+    if (isDepartmentTab) {
+      if (trailIndex < 0) {
+        onDepartmentStateChange('')
+        return
+      }
+
+      if (trailIndex === 0) {
+        districtSelectionHandler('')
+        return
+      }
+
+      if (trailIndex === 1) {
+        blockSelectionHandler('')
+        return
+      }
+
+      if (trailIndex === 2) {
+        gramPanchayatSelectionHandler('')
+        return
+      }
+
+      if (trailIndex === 3) {
+        villageSelectionHandler('')
+        return
+      }
+
+      return
+    }
+
     if (trailIndex < 0) {
       onActiveTrailChange?.(-1)
       return

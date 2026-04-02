@@ -587,10 +587,14 @@ describe('dashboard formulas', () => {
       mapOverallPerformanceFromAnalytics(waterResponse, regularityResponse, fallbackData, 5)
     ).toEqual([
       {
-        ...fallbackData[0],
+        id: 'overall-performance-0-region-alpha',
+        name: 'Region Alpha',
         coverage: 3,
         quantity: 1200,
         regularity: 50,
+        continuity: 0,
+        compositeScore: 0,
+        status: 'needs-attention',
       },
     ])
   })

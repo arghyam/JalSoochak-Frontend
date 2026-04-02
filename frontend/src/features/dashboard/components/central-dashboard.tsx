@@ -473,7 +473,27 @@ export function CentralDashboard() {
   const isBlockSelected = isLgdTabActive && Boolean(effectiveSelectedBlock)
   const isGramPanchayatSelected = isLgdTabActive && Boolean(effectiveSelectedGramPanchayat)
   const isVillageSelected = isLgdTabActive && Boolean(effectiveSelectedVillage)
+  const isDepartmentTabActive = !isLgdTabActive
   const isDepartmentStateSelected = Boolean(selectedDepartmentState)
+  const isDepartmentZoneSelected = isDepartmentTabActive && Boolean(selectedDepartmentZone)
+  const isDepartmentCircleSelected = isDepartmentTabActive && Boolean(selectedDepartmentCircle)
+  const isDepartmentDivisionSelected = isDepartmentTabActive && Boolean(selectedDepartmentDivision)
+  const isDepartmentSubdivisionSelected =
+    isDepartmentTabActive && Boolean(selectedDepartmentSubdivision)
+  const isDepartmentVillageSelected = isDepartmentTabActive && Boolean(selectedDepartmentVillage)
+  const isHierarchyStateSelected = isLgdTabActive ? isStateSelected : isDepartmentStateSelected
+  const isHierarchySecondLevelSelected = isLgdTabActive
+    ? isDistrictSelected
+    : isDepartmentZoneSelected
+  const isHierarchyThirdLevelSelected = isLgdTabActive
+    ? isBlockSelected
+    : isDepartmentCircleSelected
+  const isHierarchyFourthLevelSelected = isLgdTabActive
+    ? isGramPanchayatSelected
+    : isDepartmentDivisionSelected
+  const isHierarchyLeafSelected = isLgdTabActive
+    ? isVillageSelected
+    : isDepartmentSubdivisionSelected || isDepartmentVillageSelected
   const hasLgdLandingFilters =
     isStateSelected ||
     isDistrictSelected ||
@@ -514,22 +534,22 @@ export function CentralDashboard() {
     selectedGramPanchayatMockKey,
     emptyEntityPerformance
   )
-  const supplySubmissionRateLabel = isGramPanchayatSelected
+  const supplySubmissionRateLabel = isHierarchyFourthLevelSelected
     ? t('performanceCharts.viewBy.villages', { defaultValue: 'Villages' })
-    : isBlockSelected
+    : isHierarchyThirdLevelSelected
       ? t('performanceCharts.viewBy.gramPanchayats', { defaultValue: 'Gram Panchayats' })
-      : isDistrictSelected
+      : isHierarchySecondLevelSelected
         ? t('performanceCharts.viewBy.blocks', { defaultValue: 'Blocks' })
-        : isStateSelected
+        : isHierarchyStateSelected
           ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
           : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
-  const overallPerformanceEntityLabel = isGramPanchayatSelected
+  const overallPerformanceEntityLabel = isHierarchyFourthLevelSelected
     ? t('overallPerformance.entities.village', { defaultValue: 'Village' })
-    : isBlockSelected
+    : isHierarchyThirdLevelSelected
       ? t('overallPerformance.entities.gramPanchayat', { defaultValue: 'Gram Panchayat' })
-      : isDistrictSelected
+      : isHierarchySecondLevelSelected
         ? t('overallPerformance.entities.block', { defaultValue: 'Block' })
-        : isStateSelected
+        : isHierarchyStateSelected
           ? t('overallPerformance.entities.district', { defaultValue: 'District' })
           : t('overallPerformance.entities.stateUt', { defaultValue: 'State/UT' })
   const districtOptions = normalizedSelectedState
@@ -701,28 +721,40 @@ export function CentralDashboard() {
         ),
       }
   const analyticsParams =
-    hierarchyType !== 'LGD' ||
-    isVillageSelected ||
-    !selectedTenant?.tenantId ||
-    !hasValidAnalyticsParentId
+    isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
-      : {
-          tenantId: selectedTenant.tenantId,
-          parentLgdId: analyticsParentId,
-          scope: 'child' as const,
-          startDate: analyticsDateRange.startDate,
-          endDate: analyticsDateRange.endDate,
-        }
+      : hierarchyType === 'LGD'
+        ? {
+            tenantId: selectedTenant.tenantId,
+            parentLgdId: analyticsParentId,
+            scope: 'child' as const,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+          }
+        : {
+            tenantId: selectedTenant.tenantId,
+            parentDepartmentId: analyticsParentId,
+            scope: 'child' as const,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+          }
   const regularityAnalyticsParams =
-    hierarchyType !== 'LGD' || isVillageSelected || !hasValidAnalyticsParentId
+    isHierarchyLeafSelected || !hasValidAnalyticsParentId
       ? null
-      : {
-          parentLgdId: analyticsParentId,
-          scope: 'child' as const,
-          startDate: analyticsDateRange.startDate,
-          endDate: analyticsDateRange.endDate,
-        }
-  const readingSubmissionRateAnalyticsParams = isVillageSelected
+      : hierarchyType === 'LGD'
+        ? {
+            parentLgdId: analyticsParentId,
+            scope: 'child' as const,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+          }
+        : {
+            parentDepartmentId: analyticsParentId,
+            scope: 'child' as const,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+          }
+  const readingSubmissionRateAnalyticsParams = isHierarchyLeafSelected
     ? null
     : hierarchyType === 'LGD'
       ? hasValidAnalyticsParentId
@@ -752,11 +784,11 @@ export function CentralDashboard() {
       ? Math.trunc(dashboardData.kpis.totalSchemes)
       : 10
   const shouldFetchSchemePerformanceAnalytics =
-    (isStateSelected ||
-      isDistrictSelected ||
-      isBlockSelected ||
-      isGramPanchayatSelected ||
-      isVillageSelected) &&
+    (isHierarchyStateSelected ||
+      isHierarchySecondLevelSelected ||
+      isHierarchyThirdLevelSelected ||
+      isHierarchyFourthLevelSelected ||
+      isHierarchyLeafSelected) &&
     analyticsParentId > 0
   const schemePerformanceAnalyticsParams = !shouldFetchSchemePerformanceAnalytics
     ? null
@@ -765,13 +797,13 @@ export function CentralDashboard() {
           parentLgdId: analyticsParentId,
           startDate: analyticsDateRange.startDate,
           endDate: analyticsDateRange.endDate,
-          schemeCount: isDistrictSelected ? districtSchemeCount : 10,
+          schemeCount: isHierarchySecondLevelSelected ? districtSchemeCount : 10,
         }
       : {
           parentDepartmentId: analyticsParentId,
           startDate: analyticsDateRange.startDate,
           endDate: analyticsDateRange.endDate,
-          schemeCount: isDistrictSelected ? districtSchemeCount : 10,
+          schemeCount: isHierarchySecondLevelSelected ? districtSchemeCount : 10,
         }
   const submissionStatusAnalyticsParams =
     !hasCentralLandingFilters || !hasValidSubmissionStatusParentId
@@ -802,7 +834,7 @@ export function CentralDashboard() {
             parentDepartmentId: analyticsParentId,
           }
   const outageReasonsPeriodicAnalyticsParams =
-    isVillageSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+    isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
@@ -941,7 +973,7 @@ export function CentralDashboard() {
     enabled: Boolean(previousRegularityAnalyticsParams),
   })
   const previousQuantityPeriodicAnalyticsParams =
-    !isVillageSelected || !hasValidAnalyticsParentId
+    !isHierarchyLeafSelected || !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
@@ -963,7 +995,7 @@ export function CentralDashboard() {
             ),
           }
   const previousRegularityPeriodicAnalyticsParams =
-    !isVillageSelected || !hasValidAnalyticsParentId
+    !isHierarchyLeafSelected || !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
@@ -1054,22 +1086,22 @@ export function CentralDashboard() {
     mapOutageReasonsPeriodicToTrendPoints(outageReasonsPeriodicData)
   const currentWaterSupplyKpis = isCentralLandingView
     ? getWaterSupplyKpisFromNationalDashboard(nationalDashboardData, 5)
-    : isVillageSelected
+    : isHierarchyLeafSelected
       ? getWaterSupplyKpisFromPeriodic(waterQuantityPeriodicData, 5)
       : getWaterSupplyKpis(currentWaterSupplyKpiData, 5)
   const previousWaterSupplyKpis = isCentralLandingView
     ? getWaterSupplyKpisFromNationalDashboard(previousNationalDashboardData, 5)
-    : isVillageSelected
+    : isHierarchyLeafSelected
       ? getWaterSupplyKpisFromPeriodic(previousWaterQuantityPeriodicData, 5)
       : getWaterSupplyKpis(previousWaterSupplyKpiData, 5)
   const currentRegularityKpi = isCentralLandingView
     ? getRegularityKpiFromNationalDashboard(nationalDashboardData)
-    : isVillageSelected
+    : isHierarchyLeafSelected
       ? getRegularityKpiFromPeriodic(schemeRegularityPeriodicData)
       : getRegularityKpi(currentRegularityKpiData)
   const previousRegularityKpi = isCentralLandingView
     ? getRegularityKpiFromNationalDashboard(previousNationalDashboardData)
-    : isVillageSelected
+    : isHierarchyLeafSelected
       ? getRegularityKpiFromPeriodic(previousSchemeRegularityPeriodicData)
       : getRegularityKpi(previousRegularityKpiData)
   const previousWaterSupplyComparisonRange: {
@@ -1162,6 +1194,31 @@ export function CentralDashboard() {
     setSelectedDepartmentDivision('')
     setSelectedDepartmentSubdivision('')
     setSelectedDepartmentVillage('')
+  }
+  const handleDepartmentZoneChange = (value: string) => {
+    setSelectedDepartmentZone(value)
+    setSelectedDepartmentCircle('')
+    setSelectedDepartmentDivision('')
+    setSelectedDepartmentSubdivision('')
+    setSelectedDepartmentVillage('')
+  }
+  const handleDepartmentCircleChange = (value: string) => {
+    setSelectedDepartmentCircle(value)
+    setSelectedDepartmentDivision('')
+    setSelectedDepartmentSubdivision('')
+    setSelectedDepartmentVillage('')
+  }
+  const handleDepartmentDivisionChange = (value: string) => {
+    setSelectedDepartmentDivision(value)
+    setSelectedDepartmentSubdivision('')
+    setSelectedDepartmentVillage('')
+  }
+  const handleDepartmentSubdivisionChange = (value: string) => {
+    setSelectedDepartmentSubdivision(value)
+    setSelectedDepartmentVillage('')
+  }
+  const handleDepartmentVillageChange = (value: string) => {
+    setSelectedDepartmentVillage(value)
   }
   const handleClearFilters = () => {
     setActiveTrailIndex(null)
@@ -1553,11 +1610,11 @@ export function CentralDashboard() {
         setSelectedScheme={setSelectedScheme}
         setSelectedDuration={setSelectedDuration}
         onDepartmentStateChange={handleDepartmentStateChange}
-        setSelectedDepartmentZone={setSelectedDepartmentZone}
-        setSelectedDepartmentCircle={setSelectedDepartmentCircle}
-        setSelectedDepartmentDivision={setSelectedDepartmentDivision}
-        setSelectedDepartmentSubdivision={setSelectedDepartmentSubdivision}
-        setSelectedDepartmentVillage={setSelectedDepartmentVillage}
+        onDepartmentZoneChange={handleDepartmentZoneChange}
+        onDepartmentCircleChange={handleDepartmentCircleChange}
+        onDepartmentDivisionChange={handleDepartmentDivisionChange}
+        onDepartmentSubdivisionChange={handleDepartmentSubdivisionChange}
+        onDepartmentVillageChange={handleDepartmentVillageChange}
         onActiveTrailChange={setActiveTrailIndex}
       />
 

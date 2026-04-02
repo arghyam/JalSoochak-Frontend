@@ -269,6 +269,105 @@ describe('dashboardApi.getDashboardData', () => {
   })
 })
 
+describe('dashboardApi analytics normalization', () => {
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+  })
+
+  it('normalizes departmental average water supply child region aliases', async () => {
+    mockGet.mockImplementation(async () => ({
+      data: {
+        success: true,
+        data: {
+          tenantId: 17,
+          stateCode: 'AS',
+          parentLgdLevel: 0,
+          parentDepartmentLevel: 2,
+          startDate: '2026-03-01',
+          endDate: '2026-03-30',
+          daysInRange: 30,
+          schemeCount: 1,
+          childRegionCount: 1,
+          schemes: [],
+          childRegions: [
+            {
+              childLgdId: 110,
+              childLgdTitle: 'Guwahati Circle',
+              schemeCount: 2,
+              totalAchievedFhtcCount: 150,
+              totalWaterSuppliedLiters: 55_200_000,
+              avgWaterSupplyPerScheme: 55.2,
+            },
+          ],
+        },
+      },
+    }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+    const response = await dashboardApi.getAverageWaterSupplyPerRegion({
+      tenantId: 17,
+      parentDepartmentId: 601,
+      scope: 'child',
+      startDate: '2026-03-01',
+      endDate: '2026-03-30',
+    })
+
+    expect(response.childRegions[0]).toEqual(
+      expect.objectContaining({
+        lgdId: 110,
+        title: 'Guwahati Circle',
+      })
+    )
+  })
+
+  it('normalizes departmental average regularity child region aliases', async () => {
+    mockGet.mockImplementation(async () => ({
+      data: {
+        success: true,
+        data: {
+          lgdId: 0,
+          parentDepartmentId: 601,
+          parentLgdLevel: 0,
+          parentDepartmentLevel: 2,
+          scope: 'child',
+          startDate: '2026-03-01',
+          endDate: '2026-03-30',
+          daysInRange: 30,
+          schemeCount: 2,
+          totalSupplyDays: 10,
+          averageRegularity: 0,
+          childRegionCount: 1,
+          childRegions: [
+            {
+              childLgdId: 110,
+              childLgdTitle: 'Guwahati Circle',
+              schemeCount: 2,
+              totalSupplyDays: 10,
+              averageRegularity: 16.8,
+            },
+          ],
+        },
+      },
+    }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+    const response = await dashboardApi.getAverageSchemeRegularity({
+      parentDepartmentId: 601,
+      scope: 'child',
+      startDate: '2026-03-01',
+      endDate: '2026-03-30',
+    })
+
+    expect(response.childRegions[0]).toEqual(
+      expect.objectContaining({
+        lgdId: 110,
+        title: 'Guwahati Circle',
+      })
+    )
+  })
+})
+
 describe('dashboardApi.getAverageWaterSupplyPerRegion', () => {
   beforeEach(() => {
     jest.resetModules()

@@ -83,6 +83,16 @@ type WrappedAnalyticsResponse<T> = {
   data?: T
 }
 
+type AnalyticsChildRegionAlias = {
+  lgdId?: number
+  departmentId?: number
+  title?: string
+  childLgdId?: number
+  childDepartmentId?: number
+  childLgdTitle?: string
+  childDepartmentTitle?: string
+}
+
 const normalizeMissedSubmissionDays = (
   value: RawPumpOperatorDetailsResponse['data']['missedSubmissionDays']
 ) => {
@@ -146,6 +156,35 @@ const unwrapAnalyticsResponse = <T>(
 
   return response as T
 }
+
+const normalizeAnalyticsChildRegion = <T extends AnalyticsChildRegionAlias>(region: T): T => ({
+  ...region,
+  lgdId: region.lgdId !== undefined ? region.lgdId : (region.childLgdId ?? 0),
+  departmentId:
+    region.departmentId !== undefined ? region.departmentId : (region.childDepartmentId ?? 0),
+  title:
+    region.title !== undefined
+      ? region.title
+      : (region.childDepartmentTitle ?? region.childLgdTitle ?? ''),
+})
+
+const normalizeAverageWaterSupplyResponse = (
+  response: AverageWaterSupplyPerRegionResponse
+): AverageWaterSupplyPerRegionResponse => ({
+  ...response,
+  childRegions: Array.isArray(response.childRegions)
+    ? response.childRegions.map((region) => normalizeAnalyticsChildRegion(region))
+    : [],
+})
+
+const normalizeAverageSchemeRegularityResponse = (
+  response: AverageSchemeRegularityResponse
+): AverageSchemeRegularityResponse => ({
+  ...response,
+  childRegions: Array.isArray(response.childRegions)
+    ? response.childRegions.map((region) => normalizeAnalyticsChildRegion(region))
+    : [],
+})
 
 const resolveTenantListContainer = (value: TenantListResponse | undefined): TenantListContainer => {
   if (!value) {
@@ -364,10 +403,10 @@ export const dashboardApi = {
     })
 
     if ('childRegions' in response.data) {
-      return response.data
+      return normalizeAverageWaterSupplyResponse(response.data)
     }
 
-    return (
+    return normalizeAverageWaterSupplyResponse(
       response.data.data ?? {
         tenantId: params.tenantId,
         stateCode: '',
@@ -425,7 +464,7 @@ export const dashboardApi = {
       },
     })
 
-    return (
+    return normalizeAverageSchemeRegularityResponse(
       unwrapAnalyticsResponse(response.data, 'average scheme regularity analytics') ?? {
         lgdId: 0,
         parentDepartmentId: 0,

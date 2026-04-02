@@ -1277,6 +1277,51 @@ describe('CentralDashboard', () => {
     ])
   })
 
+  it('uses parentDepartmentId for departmental zone analytics in KPI and overall performance queries', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+      },
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 1,
+        selectedDepartmentState: '501:department-state',
+        selectedDepartmentZone: '601:department-zone',
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useAverageWaterSupplyPerRegionQuery).toHaveBeenCalledWith({
+      params: {
+        tenantId: 17,
+        parentDepartmentId: 601,
+        scope: 'child',
+        startDate: expect.any(String),
+        endDate: expect.any(String),
+      },
+      enabled: true,
+    })
+    expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 601,
+        scope: 'child',
+        startDate: expect.any(String),
+        endDate: expect.any(String),
+      },
+      enabled: true,
+    })
+  })
+
   it('overrides active schemes chart data from scheme performance analytics when rows are available', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
