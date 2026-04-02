@@ -112,9 +112,6 @@ describe('InviteSuperUserPage', () => {
 
     renderWithProviders(<InviteSuperUserPage />)
     fillValidInviteForm()
-    fireEvent.change(screen.getByLabelText(/email address/i), {
-      target: { value: 'test@example.com' },
-    })
     fireEvent.click(screen.getByRole('button', { name: /add super user & send link via email/i }))
 
     await waitFor(() => {

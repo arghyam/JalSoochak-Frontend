@@ -42,7 +42,6 @@ jest.mock('../../services/query/use-super-admin-queries', () => ({
 
 async function selectMaharashtraState() {
   const stateCombo = screen.getByRole('combobox', { name: /state\/ut name/i })
-  expect(stateCombo).toBeTruthy()
   fireEvent.click(stateCombo)
   const option = await screen.findByRole('option', { name: 'Maharashtra' })
   fireEvent.click(option)

@@ -70,7 +70,11 @@ export function StaffLoginPage() {
   const [resendCooldown, setResendCooldown] = useState(0)
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const { data: tenants = [], isLoading: tenantsLoading } = usePublicTenantsQuery()
+  const {
+    data: tenants = [],
+    isLoading: tenantsLoading,
+    isError: tenantsError,
+  } = usePublicTenantsQuery()
   const requestOtpMutation = useRequestOtpMutation()
   const verifyOtpMutation = useVerifyOtpMutation()
 
@@ -110,6 +114,7 @@ export function StaffLoginPage() {
 
   const handleSendOtp = async () => {
     if (requestOtpMutation.isPending) return
+    if (tenantsError) return
     setPhoneError(null)
     setTenantError(null)
 
@@ -264,6 +269,7 @@ export function StaffLoginPage() {
                   tenantError={tenantError}
                   tenantOptions={tenantOptions}
                   tenantsLoading={tenantsLoading}
+                  tenantsError={tenantsError}
                   isLoading={requestOtpMutation.isPending}
                   onSubmit={handleSendOtp}
                 />
@@ -306,6 +312,7 @@ interface PhoneStepProps {
   tenantError: string | null
   tenantOptions: { value: string; label: string }[]
   tenantsLoading: boolean
+  tenantsError: boolean
   isLoading: boolean
   onSubmit: () => void
 }
@@ -320,6 +327,7 @@ function PhoneStep({
   tenantError,
   tenantOptions,
   tenantsLoading,
+  tenantsError,
   isLoading,
   onSubmit,
 }: PhoneStepProps) {
@@ -370,6 +378,7 @@ function PhoneStep({
                 onPhoneChange(cleaned.length > 10 ? cleaned.slice(-10) : cleaned)
               }}
               onKeyDown={handleKeyDown}
+              isDisabled={isLoading}
               h="36px"
               px="12px"
               py="8px"
@@ -405,14 +414,17 @@ function PhoneStep({
                 ? t('login.phoneStep.stateLoading')
                 : t('login.phoneStep.statePlaceholder')
             }
-            disabled={tenantsLoading}
+            disabled={tenantsLoading || isLoading || tenantsError}
             width="100%"
             height="36px"
             borderRadius="4px"
             ariaLabel={t('login.phoneStep.stateLabel')}
             data-testid="tenant-select"
           />
-          {tenantError && <FormErrorMessage>{tenantError}</FormErrorMessage>}
+          {tenantsError && (
+            <FormErrorMessage>{t('login.phoneStep.stateLoadFailed')}</FormErrorMessage>
+          )}
+          {!tenantsError && tenantError && <FormErrorMessage>{tenantError}</FormErrorMessage>}
         </FormControl>
 
         <Button
@@ -420,6 +432,7 @@ function PhoneStep({
           fontSize="16px"
           fontWeight="600"
           isLoading={isLoading}
+          isDisabled={tenantsError}
           loadingText={t('login.phoneStep.sendingOtp')}
           _loading={{ bg: 'primary.500', color: 'white' }}
           onClick={onSubmit}
