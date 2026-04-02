@@ -1647,7 +1647,7 @@ describe('CentralDashboard', () => {
     )
   })
 
-  it('uses mock lookup data when query params include stable id-prefixed values', () => {
+  it('keeps dashboard performance table props empty when query params include stable id-prefixed values', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
@@ -1669,13 +1669,9 @@ describe('CentralDashboard', () => {
       blockTableData: Array<{ name: string }>
     }>()
 
-    expect(dashboardBodyProps.blockTableData.some((row) => row.name === 'Nabha')).toBe(true)
-    expect(dashboardBodyProps.gramPanchayatTableData.some((row) => row.name === 'Isnapur')).toBe(
-      true
-    )
-    expect(dashboardBodyProps.villageTableData.some((row) => row.name === 'Kistareddypet')).toBe(
-      true
-    )
+    expect(dashboardBodyProps.blockTableData).toEqual([])
+    expect(dashboardBodyProps.gramPanchayatTableData).toEqual([])
+    expect(dashboardBodyProps.villageTableData).toEqual([])
   })
 
   it('passes formula-derived quantity and regularity performance data to dashboard body', () => {

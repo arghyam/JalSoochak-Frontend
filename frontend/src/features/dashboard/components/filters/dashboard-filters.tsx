@@ -45,8 +45,8 @@ type DashboardFiltersProps = {
   blockOptions: SearchableSelectOption[]
   gramPanchayatOptions: SearchableSelectOption[]
   villageOptions: SearchableSelectOption[]
-  mockFilterStates: SearchableSelectOption[]
-  mockFilterSchemes: SearchableSelectOption[]
+  mockFilterStates?: SearchableSelectOption[]
+  mockFilterSchemes?: SearchableSelectOption[]
   onStateChange: (value: string) => void
   onDistrictChange: (value: string) => void
   onBlockChange: (value: string) => void

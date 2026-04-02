@@ -66,19 +66,6 @@ import {
   mapWaterQuantityPeriodicToTrendPoints,
   resolveWaterQuantityPeriodicScale,
 } from '../utils/quantity-periodic'
-import {
-  mockFilterStates,
-  mockFilterDistricts,
-  mockFilterBlocks,
-  mockFilterGramPanchayats,
-  mockFilterVillages,
-  mockFilterSchemes,
-  mockDistrictPerformanceByState,
-  mockBlockPerformanceByDistrict,
-  mockGramPanchayatPerformanceByBlock,
-  mockVillagePerformanceByGramPanchayat,
-  mockReadingCompliance,
-} from '../services/mock/dashboard-mock'
 import type { HierarchyType, TenantChildLocation } from '../services/api/dashboard-api'
 
 const storageKey = 'central-dashboard-filters'
@@ -121,17 +108,6 @@ type LocationOption = SearchableSelectOption & {
   analyticsId?: number
 }
 
-const getOwnLookupValue = <T,>(record: Record<string, T>, key: string, fallback: T): T => {
-  if (Object.prototype.hasOwnProperty.call(record, key)) {
-    return record[key] as T
-  }
-
-  return fallback
-}
-
-const isUnsafeLookupKey = (key: string) =>
-  key === '__proto__' || key === 'prototype' || key === 'constructor'
-
 const parseLocationId = (value: string): number | undefined => {
   if (!value) {
     return undefined
@@ -172,35 +148,6 @@ const parseAnalyticsLocationId = (
   }
 
   return parseLocationId(value)
-}
-
-const normalizeMockLookupKey = (value: string): string => {
-  if (!value) {
-    return ''
-  }
-
-  const { lastSegment } = parseStableLocationValue(value)
-  const rawKey = lastSegment ?? value
-  if (isUnsafeLookupKey(rawKey)) {
-    return rawKey
-  }
-  return slugify(rawKey)
-}
-
-const getLookupValueWithFallback = <T,>(
-  record: Record<string, T>,
-  key: string,
-  emptyFallback: T
-): T => {
-  if (!key) {
-    return emptyFallback
-  }
-
-  if (isUnsafeLookupKey(key)) {
-    return emptyFallback
-  }
-
-  return getOwnLookupValue(record, key, emptyFallback)
 }
 
 const toIsoDate = (date?: string | Date | null): string | undefined => {
@@ -439,34 +386,6 @@ export function CentralDashboard() {
   const effectiveSelectedBlock = effectiveTrailIndex >= 2 ? selectedBlock : ''
   const effectiveSelectedGramPanchayat = effectiveTrailIndex >= 3 ? selectedGramPanchayat : ''
   const effectiveSelectedVillage = effectiveTrailIndex >= 4 ? selectedVillage : ''
-  const normalizedSelectedState = normalizeMockLookupKey(effectiveSelectedState)
-  const normalizedSelectedDistrict = normalizeMockLookupKey(effectiveSelectedDistrict)
-  const normalizedSelectedBlock = normalizeMockLookupKey(effectiveSelectedBlock)
-  const normalizedSelectedGramPanchayat = normalizeMockLookupKey(effectiveSelectedGramPanchayat)
-  const hasStateMockData = Object.prototype.hasOwnProperty.call(
-    mockDistrictPerformanceByState,
-    normalizedSelectedState
-  )
-  const selectedStateMockKey = isUnsafeLookupKey(normalizedSelectedState)
-    ? normalizedSelectedState
-    : hasStateMockData
-      ? normalizedSelectedState
-      : ''
-  const selectedDistrictMockKey = isUnsafeLookupKey(normalizedSelectedDistrict)
-    ? normalizedSelectedDistrict
-    : hasStateMockData
-      ? normalizedSelectedDistrict
-      : ''
-  const selectedBlockMockKey = isUnsafeLookupKey(normalizedSelectedBlock)
-    ? normalizedSelectedBlock
-    : hasStateMockData
-      ? normalizedSelectedBlock
-      : ''
-  const selectedGramPanchayatMockKey = isUnsafeLookupKey(normalizedSelectedGramPanchayat)
-    ? normalizedSelectedGramPanchayat
-    : hasStateMockData
-      ? normalizedSelectedGramPanchayat
-      : ''
   const isLgdTabActive = filterTabIndex === 0
   const isStateSelected = isLgdTabActive && Boolean(effectiveSelectedState)
   const isDistrictSelected = isLgdTabActive && Boolean(effectiveSelectedDistrict)
@@ -514,26 +433,10 @@ export function CentralDashboard() {
   const emptyOptions: SearchableSelectOption[] = []
   const isAdvancedEnabled = Boolean(selectedState && selectedDistrict)
   const emptyEntityPerformance: EntityPerformance[] = []
-  const districtTableData = getLookupValueWithFallback(
-    mockDistrictPerformanceByState,
-    selectedStateMockKey,
-    emptyEntityPerformance
-  )
-  const blockTableData = getLookupValueWithFallback(
-    mockBlockPerformanceByDistrict,
-    selectedDistrictMockKey,
-    emptyEntityPerformance
-  )
-  const gramPanchayatTableData = getLookupValueWithFallback(
-    mockGramPanchayatPerformanceByBlock,
-    selectedBlockMockKey,
-    emptyEntityPerformance
-  )
-  const villageTableData = getLookupValueWithFallback(
-    mockVillagePerformanceByGramPanchayat,
-    selectedGramPanchayatMockKey,
-    emptyEntityPerformance
-  )
+  const districtTableData = emptyEntityPerformance
+  const blockTableData = emptyEntityPerformance
+  const gramPanchayatTableData = emptyEntityPerformance
+  const villageTableData = emptyEntityPerformance
   const supplySubmissionRateLabel = isHierarchyFourthLevelSelected
     ? t('performanceCharts.viewBy.villages', { defaultValue: 'Villages' })
     : isHierarchyThirdLevelSelected
@@ -552,18 +455,10 @@ export function CentralDashboard() {
         : isHierarchyStateSelected
           ? t('overallPerformance.entities.district', { defaultValue: 'District' })
           : t('overallPerformance.entities.stateUt', { defaultValue: 'State/UT' })
-  const districtOptions = normalizedSelectedState
-    ? getOwnLookupValue(mockFilterDistricts, normalizedSelectedState, emptyOptions)
-    : emptyOptions
-  const blockOptions = normalizedSelectedDistrict
-    ? getOwnLookupValue(mockFilterBlocks, normalizedSelectedDistrict, emptyOptions)
-    : emptyOptions
-  const gramPanchayatOptions = normalizedSelectedBlock
-    ? getOwnLookupValue(mockFilterGramPanchayats, normalizedSelectedBlock, emptyOptions)
-    : emptyOptions
-  const villageOptions = normalizedSelectedGramPanchayat
-    ? getOwnLookupValue(mockFilterVillages, normalizedSelectedGramPanchayat, emptyOptions)
-    : emptyOptions
+  const districtOptions = emptyOptions
+  const blockOptions = emptyOptions
+  const gramPanchayatOptions = emptyOptions
+  const villageOptions = emptyOptions
   const { data: locationSearchData } = useLocationSearchQuery()
   const selectedTenant = locationSearchData?.states.find((option) => option.value === selectedState)
   const { data: rootLocationsData } = useLocationChildrenQuery({
@@ -1277,7 +1172,7 @@ export function CentralDashboard() {
     setActiveTrailIndex(null)
     setFilterTabIndex(0)
     setSelectedScheme('')
-    const stateOption = mockFilterStates.find(
+    const stateOption = locationSearchData?.states.find(
       (option) => option.label.toLowerCase() === stateName.toLowerCase()
     )
     updateFilterUrl({ state: stateOption?.value ?? toStateSlug(stateName) })
@@ -1347,11 +1242,7 @@ export function CentralDashboard() {
     outageReasonsTimeTrendData.length > 0
       ? outageReasonsTimeTrendData
       : dashboardData.supplyOutageTrend
-  const resolvedReadingCompliance =
-    (isBlockSelected && !isGramPanchayatSelected && !isVillageSelected) ||
-    (isGramPanchayatSelected && !isVillageSelected)
-      ? mockReadingCompliance
-      : dashboardData.readingCompliance
+  const resolvedReadingCompliance = dashboardData.readingCompliance
   const resolvedDashboardData =
     readingSubmissionStatusData === dashboardData.readingSubmissionStatus &&
     pumpOperatorsData === dashboardData.pumpOperators &&
@@ -1600,8 +1491,6 @@ export function CentralDashboard() {
         blockOptions={blockOptions}
         gramPanchayatOptions={gramPanchayatOptions}
         villageOptions={villageOptions}
-        mockFilterStates={mockFilterStates}
-        mockFilterSchemes={mockFilterSchemes}
         onStateChange={handleStateChange}
         onDistrictChange={handleDistrictChange}
         onBlockChange={handleBlockChange}
