@@ -832,6 +832,7 @@ export function ConfigurationPage() {
                       step="any"
                       min="0"
                       value={displayAvgStr}
+                      onWheel={(e) => e.currentTarget.blur()}
                       onChange={(e) => {
                         const raw = e.target.value
                         setAvgMembersStr(raw)

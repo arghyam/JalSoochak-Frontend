@@ -345,6 +345,7 @@ export function WaterNormsPage() {
                       setStateQuantityDraft(e.target.value)
                       clearError('stateQuantity')
                     }}
+                    onWheel={(e) => e.currentTarget.blur()}
                     type="number"
                     w={{ base: 'full', lg: '319px', xl: '486px' }}
                     h="36px"
