@@ -37,6 +37,7 @@ type DistrictDashboardScreenProps = {
   supplySubmissionRateLabel: string
   operatorsPerformanceTable: PumpOperatorPerformanceData[]
   pumpOperatorsTotal: number
+  childEntityLabel?: string
 }
 
 type ViewBy = 'geography' | 'time'
@@ -56,6 +57,7 @@ export function DistrictDashboardScreen({
   supplySubmissionRateLabel,
   operatorsPerformanceTable,
   pumpOperatorsTotal,
+  childEntityLabel = supplySubmissionRateLabel,
 }: DistrictDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
@@ -93,7 +95,7 @@ export function DistrictDashboardScreen({
           metric="regularity"
           timeTrendData={regularityTimeTrendData}
           isTimeTrendLoading={isRegularityTimeTrendLoading}
-          entityLabel={t('performanceCharts.viewBy.blocks', { defaultValue: 'Blocks' })}
+          entityLabel={childEntityLabel}
           yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
             defaultValue: 'Regularity',
           })}
@@ -118,7 +120,7 @@ export function DistrictDashboardScreen({
           timeTrendData={quantityTimeTrendData}
           isTimeTrendLoading={isQuantityTimeTrendLoading}
           isTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
-          entityLabel={t('performanceCharts.viewBy.blocks', { defaultValue: 'Blocks' })}
+          entityLabel={childEntityLabel}
           yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
           seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
           cardHeight="523px"
@@ -188,7 +190,7 @@ export function DistrictDashboardScreen({
               <SupplyOutageDistributionChart
                 data={waterSupplyOutageDistributionData}
                 height="400px"
-                xAxisLabel="Blocks"
+                xAxisLabel={childEntityLabel}
               />
             ) : (
               <ChartEmptyState minHeight="400px" />

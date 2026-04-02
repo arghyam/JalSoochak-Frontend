@@ -234,6 +234,54 @@ describe('BlockDashboardScreen', () => {
     expect(screen.getByTestId('reading-submission-rate-chart')).toBeTruthy()
   })
 
+  it('can hide only the reading submission rate card while keeping outage charts side by side', () => {
+    renderWithProviders(
+      <BlockDashboardScreen
+        data={data}
+        quantityPerformanceData={quantityPerformanceData}
+        quantityTimeTrendData={quantityTimeTrendData}
+        regularityPerformanceData={regularityPerformanceData}
+        regularityTimeTrendData={regularityTimeTrendData}
+        gramPanchayatTableData={gramPanchayatTableData}
+        supplySubmissionRateData={supplySubmissionRateData}
+        supplySubmissionRateLabel="Gram Panchayats"
+        operatorsPerformanceTable={operatorsPerformanceTable}
+        pumpOperatorsTotal={15}
+        showReadingSubmissionRate={false}
+      />
+    )
+
+    expect(screen.getByText('Supply Outage Reasons')).toBeTruthy()
+    expect(screen.getByTestId('supply-outage-reasons-chart')).toBeTruthy()
+    expect(screen.getByText('Supply Outage Distribution')).toBeTruthy()
+    expect(screen.getByText('Reading Submission Status')).toBeTruthy()
+    expect(screen.queryByText('Reading Submission Rate')).toBeNull()
+    expect(screen.queryByTestId('reading-submission-rate-chart')).toBeNull()
+  })
+
+  it('can hide the entire reading submission section', () => {
+    renderWithProviders(
+      <BlockDashboardScreen
+        data={data}
+        quantityPerformanceData={quantityPerformanceData}
+        quantityTimeTrendData={quantityTimeTrendData}
+        regularityPerformanceData={regularityPerformanceData}
+        regularityTimeTrendData={regularityTimeTrendData}
+        gramPanchayatTableData={gramPanchayatTableData}
+        supplySubmissionRateData={supplySubmissionRateData}
+        supplySubmissionRateLabel="Gram Panchayats"
+        operatorsPerformanceTable={operatorsPerformanceTable}
+        pumpOperatorsTotal={15}
+        showReadingSubmissionSection={false}
+      />
+    )
+
+    expect(screen.queryByText('Reading Submission Status')).toBeNull()
+    expect(screen.queryByText('Reading Submission Rate')).toBeNull()
+    expect(screen.queryByTestId('reading-submission-status-chart')).toBeNull()
+    expect(screen.queryByTestId('reading-submission-rate-chart')).toBeNull()
+  })
+
   it('renders geography charts by default with gram panchayat labels', () => {
     renderBlockDashboard()
 

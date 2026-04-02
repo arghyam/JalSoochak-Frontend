@@ -164,6 +164,24 @@ function renderDistrictDashboard() {
   )
 }
 
+function renderDistrictDashboardWithChildLabel(childEntityLabel: string) {
+  return renderWithProviders(
+    <DistrictDashboardScreen
+      data={data}
+      quantityPerformanceData={blockTableData}
+      quantityTimeTrendData={quantityTimeTrendData}
+      regularityPerformanceData={blockTableData}
+      regularityTimeTrendData={regularityTimeTrendData}
+      blockTableData={blockTableData}
+      supplySubmissionRateData={supplySubmissionRateData}
+      supplySubmissionRateLabel={childEntityLabel}
+      childEntityLabel={childEntityLabel}
+      operatorsPerformanceTable={operatorsPerformanceTable}
+      pumpOperatorsTotal={15}
+    />
+  )
+}
+
 describe('DistrictDashboardScreen', () => {
   beforeEach(() => {
     mockMetricPerformanceChart.mockClear()
@@ -203,12 +221,12 @@ describe('DistrictDashboardScreen', () => {
     renderDistrictDashboard()
 
     const metricCalls = mockMetricPerformanceChart.mock.calls as Array<[Record<string, unknown>]>
+    const quantityCall = metricCalls.find((call) => call[0]?.metric === 'quantity')
+    const regularityCall = metricCalls.find((call) => call[0]?.metric === 'regularity')
     expect(metricCalls).toHaveLength(2)
-    expect(metricCalls[0]?.[0].metric).toBe('quantity')
-    expect(metricCalls[1]?.[0].metric).toBe('regularity')
-    expect(metricCalls[0]?.[0].showAreaLine).toBe(true)
-    expect(metricCalls[0]?.[0].entityLabel).toBe('Blocks')
-    expect(metricCalls[1]?.[0].entityLabel).toBe('Blocks')
+    expect(quantityCall?.[0].showAreaLine).toBe(true)
+    expect(quantityCall?.[0].entityLabel).toBe('Blocks')
+    expect(regularityCall?.[0].entityLabel).toBe('Blocks')
     expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
 
     const outagesProps = mockSupplyOutageDistributionChart.mock.calls[0]?.[0] as {
@@ -314,6 +332,26 @@ describe('DistrictDashboardScreen', () => {
     }
     expect(submissionProps.entityLabel).toBe('Blocks')
     expect(submissionProps.data[0]?.name).toBe('Block 1')
+  })
+
+  it('uses the provided child entity label for departmental zone screens', () => {
+    renderDistrictDashboardWithChildLabel('Circles')
+
+    const metricCalls = mockMetricPerformanceChart.mock.calls as Array<[Record<string, unknown>]>
+    const quantityCall = metricCalls.find((call) => call[0]?.metric === 'quantity')
+    const regularityCall = metricCalls.find((call) => call[0]?.metric === 'regularity')
+    expect(quantityCall?.[0].entityLabel).toBe('Circles')
+    expect(regularityCall?.[0].entityLabel).toBe('Circles')
+
+    const outagesProps = mockSupplyOutageDistributionChart.mock.calls[0]?.[0] as {
+      xAxisLabel: string
+    }
+    expect(outagesProps.xAxisLabel).toBe('Circles')
+
+    const submissionProps = mockReadingSubmissionRateChart.mock.calls[0]?.[0] as {
+      entityLabel: string
+    }
+    expect(submissionProps.entityLabel).toBe('Circles')
   })
 
   it('switches outage distribution chart to time mode with outage trend data', () => {

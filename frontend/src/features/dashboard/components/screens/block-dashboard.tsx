@@ -37,6 +37,10 @@ type BlockDashboardScreenProps = {
   supplySubmissionRateLabel: string
   pumpOperatorsTotal: number
   operatorsPerformanceTable: PumpOperatorPerformanceData[]
+  childEntityLabel?: string
+  showSupplyOutageReasons?: boolean
+  showReadingSubmissionRate?: boolean
+  showReadingSubmissionSection?: boolean
 }
 
 type ViewBy = 'geography' | 'time'
@@ -56,6 +60,10 @@ export function BlockDashboardScreen({
   supplySubmissionRateLabel,
   pumpOperatorsTotal,
   operatorsPerformanceTable,
+  childEntityLabel = supplySubmissionRateLabel,
+  showSupplyOutageReasons = true,
+  showReadingSubmissionRate = true,
+  showReadingSubmissionSection = true,
 }: BlockDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
@@ -94,9 +102,7 @@ export function BlockDashboardScreen({
           metric="regularity"
           timeTrendData={regularityTimeTrendData}
           isTimeTrendLoading={isRegularityTimeTrendLoading}
-          entityLabel={t('performanceCharts.viewBy.gramPanchayats', {
-            defaultValue: 'Gram Panchayats',
-          })}
+          entityLabel={childEntityLabel}
           yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
             defaultValue: 'Regularity',
           })}
@@ -121,9 +127,7 @@ export function BlockDashboardScreen({
           timeTrendData={quantityTimeTrendData}
           isTimeTrendLoading={isQuantityTimeTrendLoading}
           isTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
-          entityLabel={t('performanceCharts.viewBy.gramPanchayats', {
-            defaultValue: 'Gram Panchayats',
-          })}
+          entityLabel={childEntityLabel}
           yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
           seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
           cardHeight="523px"
@@ -138,26 +142,35 @@ export function BlockDashboardScreen({
       </Grid>
 
       {/* Supply Outage Reasons + Distribution */}
-      <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-        <Box
-          bg="white"
-          borderWidth="0.5px"
-          borderRadius="12px"
-          borderColor="#E4E4E7"
-          pt="24px"
-          pb="24px"
-          pl="16px"
-          pr="16px"
-          h="510px"
-          minW={0}
-        >
-          <Text textStyle="bodyText3" fontWeight="400" mb="40px">
-            {t('outageAndSubmissionCharts.titles.supplyOutageReasons', {
-              defaultValue: 'Supply Outage Reasons',
-            })}
-          </Text>
-          <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
-        </Box>
+      <Grid
+        templateColumns={{
+          base: '1fr',
+          lg: showSupplyOutageReasons ? 'repeat(2, minmax(0, 1fr))' : '1fr',
+        }}
+        gap={6}
+        mb={6}
+      >
+        {showSupplyOutageReasons ? (
+          <Box
+            bg="white"
+            borderWidth="0.5px"
+            borderRadius="12px"
+            borderColor="#E4E4E7"
+            pt="24px"
+            pb="24px"
+            pl="16px"
+            pr="16px"
+            h="510px"
+            minW={0}
+          >
+            <Text textStyle="bodyText3" fontWeight="400" mb="40px">
+              {t('outageAndSubmissionCharts.titles.supplyOutageReasons', {
+                defaultValue: 'Supply Outage Reasons',
+              })}
+            </Text>
+            <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
+          </Box>
+        ) : null}
         <Box
           bg="white"
           borderWidth="0.5px"
@@ -193,9 +206,7 @@ export function BlockDashboardScreen({
               <SupplyOutageDistributionChart
                 data={waterSupplyOutageDistributionData}
                 height="400px"
-                xAxisLabel={t('performanceCharts.viewBy.gramPanchayats', {
-                  defaultValue: 'Gram Panchayats',
-                })}
+                xAxisLabel={childEntityLabel}
               />
             ) : (
               <ChartEmptyState minHeight="400px" />
@@ -274,39 +285,50 @@ export function BlockDashboardScreen({
       </Grid>
 
       {/* Reading Submission Status + Reading Submission Rate */}
-      <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-        <ReadingSubmissionStatusCard data={data.readingSubmissionStatus} chartHeight="336px" />
-        <Box
-          bg="white"
-          borderWidth="0.5px"
-          borderRadius="12px"
-          borderColor="#E4E4E7"
-          px="16px"
-          pt="24px"
-          pb="24px"
-          h="510px"
-          minW={0}
-          display="flex"
-          flexDirection="column"
+      {showReadingSubmissionSection ? (
+        <Grid
+          templateColumns={{
+            base: '1fr',
+            lg: showReadingSubmissionRate ? 'repeat(2, minmax(0, 1fr))' : '1fr',
+          }}
+          gap={6}
+          mb={6}
         >
-          <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-            {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
-              defaultValue: 'Reading Submission Rate',
-            })}
-          </Text>
-          <Box flex="1" minH={0}>
-            {supplySubmissionRateData.length > 0 ? (
-              <ReadingSubmissionRateChart
-                data={supplySubmissionRateData}
-                height="100%"
-                entityLabel={supplySubmissionRateLabel}
-              />
-            ) : (
-              <ChartEmptyState minHeight="100%" />
-            )}
-          </Box>
-        </Box>
-      </Grid>
+          <ReadingSubmissionStatusCard data={data.readingSubmissionStatus} chartHeight="336px" />
+          {showReadingSubmissionRate ? (
+            <Box
+              bg="white"
+              borderWidth="0.5px"
+              borderRadius="12px"
+              borderColor="#E4E4E7"
+              px="16px"
+              pt="24px"
+              pb="24px"
+              h="510px"
+              minW={0}
+              display="flex"
+              flexDirection="column"
+            >
+              <Text textStyle="bodyText3" fontWeight="400" mb={2}>
+                {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
+                  defaultValue: 'Reading Submission Rate',
+                })}
+              </Text>
+              <Box flex="1" minH={0}>
+                {supplySubmissionRateData.length > 0 ? (
+                  <ReadingSubmissionRateChart
+                    data={supplySubmissionRateData}
+                    height="100%"
+                    entityLabel={supplySubmissionRateLabel}
+                  />
+                ) : (
+                  <ChartEmptyState minHeight="100%" />
+                )}
+              </Box>
+            </Box>
+          ) : null}
+        </Grid>
+      ) : null}
     </>
   )
 }

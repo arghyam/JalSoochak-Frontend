@@ -1686,9 +1686,13 @@ export function CentralDashboard() {
               : null
         }
         isStateSelected={isStateSelected}
+        isDepartmentStateSelected={isDepartmentStateSelected}
         isDistrictSelected={isDistrictSelected}
         isBlockSelected={isBlockSelected}
         isGramPanchayatSelected={isGramPanchayatSelected}
+        isDepartmentZoneSelected={isDepartmentZoneSelected}
+        isDepartmentCircleSelected={isDepartmentCircleSelected}
+        isDepartmentDivisionSelected={isDepartmentDivisionSelected}
         selectedVillage={activeLeafSelection}
         quantityPerformanceData={quantityPerformanceData}
         quantityTimeTrendData={quantityTimeTrendData}

@@ -37,6 +37,7 @@ type GramPanchayatDashboardScreenProps = {
   supplySubmissionRateLabel: string
   pumpOperatorsTotal: number
   operatorsPerformanceTable: PumpOperatorPerformanceData[]
+  childEntityLabel?: string
 }
 
 type ViewBy = 'geography' | 'time'
@@ -56,6 +57,7 @@ export function GramPanchayatDashboardScreen({
   supplySubmissionRateLabel,
   pumpOperatorsTotal,
   operatorsPerformanceTable,
+  childEntityLabel = supplySubmissionRateLabel,
 }: GramPanchayatDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
@@ -94,9 +96,7 @@ export function GramPanchayatDashboardScreen({
           metric="regularity"
           timeTrendData={regularityTimeTrendData}
           isTimeTrendLoading={isRegularityTimeTrendLoading}
-          entityLabel={t('performanceCharts.viewBy.villages', {
-            defaultValue: 'Villages',
-          })}
+          entityLabel={childEntityLabel}
           yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
             defaultValue: 'Regularity',
           })}
@@ -121,9 +121,7 @@ export function GramPanchayatDashboardScreen({
           timeTrendData={quantityTimeTrendData}
           isTimeTrendLoading={isQuantityTimeTrendLoading}
           isTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
-          entityLabel={t('performanceCharts.viewBy.villages', {
-            defaultValue: 'Villages',
-          })}
+          entityLabel={childEntityLabel}
           yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
           seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
           cardHeight="523px"
@@ -193,9 +191,7 @@ export function GramPanchayatDashboardScreen({
               <SupplyOutageDistributionChart
                 data={waterSupplyOutageDistributionData}
                 height="400px"
-                xAxisLabel={t('performanceCharts.viewBy.villages', {
-                  defaultValue: 'Villages',
-                })}
+                xAxisLabel={childEntityLabel}
               />
             ) : (
               <ChartEmptyState minHeight="400px" />

@@ -28,9 +28,13 @@ type DashboardBodyProps = {
   data: DashboardData
   performanceScreenKey?: string | null
   isStateSelected: boolean
+  isDepartmentStateSelected?: boolean
   isDistrictSelected: boolean
   isBlockSelected: boolean
   isGramPanchayatSelected: boolean
+  isDepartmentZoneSelected?: boolean
+  isDepartmentCircleSelected?: boolean
+  isDepartmentDivisionSelected?: boolean
   selectedVillage: string
   quantityPerformanceData: EntityPerformance[]
   quantityTimeTrendData: MonthlyTrendPoint[]
@@ -62,9 +66,13 @@ export function DashboardBody({
   data,
   performanceScreenKey = null,
   isStateSelected,
+  isDepartmentStateSelected = false,
   isDistrictSelected,
   isBlockSelected,
   isGramPanchayatSelected,
+  isDepartmentZoneSelected = false,
+  isDepartmentCircleSelected = false,
+  isDepartmentDivisionSelected = false,
   selectedVillage,
   quantityPerformanceData,
   quantityTimeTrendData,
@@ -90,16 +98,39 @@ export function DashboardBody({
 }: DashboardBodyProps) {
   const { t } = useTranslation('dashboard')
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
-  const isStateScreen =
+  const isAdministrativeStateScreen =
     isStateSelected &&
     !isDistrictSelected &&
     !isBlockSelected &&
     !isGramPanchayatSelected &&
+    !isDepartmentZoneSelected &&
+    !isDepartmentCircleSelected &&
+    !isDepartmentDivisionSelected &&
     !selectedVillage
+  const isDepartmentStateScreen =
+    isDepartmentStateSelected &&
+    !isDistrictSelected &&
+    !isBlockSelected &&
+    !isGramPanchayatSelected &&
+    !isDepartmentZoneSelected &&
+    !isDepartmentCircleSelected &&
+    !isDepartmentDivisionSelected &&
+    !selectedVillage
+  const isStateScreen = isAdministrativeStateScreen || isDepartmentStateScreen
   const isDistrictScreen =
-    isDistrictSelected && !isBlockSelected && !isGramPanchayatSelected && !selectedVillage
-  const isBlockScreen = isBlockSelected && !isGramPanchayatSelected && !selectedVillage
-  const isGramPanchayatScreen = isGramPanchayatSelected && !selectedVillage
+    (isDistrictSelected || isDepartmentZoneSelected) &&
+    !isBlockSelected &&
+    !isGramPanchayatSelected &&
+    !isDepartmentCircleSelected &&
+    !isDepartmentDivisionSelected &&
+    !selectedVillage
+  const isBlockScreen =
+    (isBlockSelected || isDepartmentCircleSelected) &&
+    !isGramPanchayatSelected &&
+    !isDepartmentDivisionSelected &&
+    !selectedVillage
+  const isGramPanchayatScreen =
+    (isGramPanchayatSelected || isDepartmentDivisionSelected) && !selectedVillage
 
   const outageDistributionTimeTrendData = useMemo(
     () => data.supplyOutageTrend ?? [],
@@ -116,7 +147,7 @@ export function DashboardBody({
     waterSupplyOutageDistributionData,
     outageDistributionTimeTrendData,
   })
-  const geographyEntityLabel = isStateScreen
+  const geographyEntityLabel = isAdministrativeStateScreen
     ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
     : supplySubmissionRateLabel
   return (
@@ -151,6 +182,7 @@ export function DashboardBody({
           blockTableData={blockTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
+          childEntityLabel={supplySubmissionRateLabel}
           operatorsPerformanceTable={operatorsPerformanceTable}
           pumpOperatorsTotal={pumpOperatorsTotal}
         />
@@ -170,8 +202,12 @@ export function DashboardBody({
           gramPanchayatTableData={gramPanchayatTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
+          childEntityLabel={supplySubmissionRateLabel}
           pumpOperatorsTotal={pumpOperatorsTotal}
           operatorsPerformanceTable={operatorsPerformanceTable}
+          showSupplyOutageReasons
+          showReadingSubmissionRate
+          showReadingSubmissionSection
         />
       ) : null}
       {isGramPanchayatScreen ? (
@@ -189,6 +225,7 @@ export function DashboardBody({
           villageTableData={villageTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
+          childEntityLabel={supplySubmissionRateLabel}
           pumpOperatorsTotal={pumpOperatorsTotal}
           operatorsPerformanceTable={operatorsPerformanceTable}
         />
