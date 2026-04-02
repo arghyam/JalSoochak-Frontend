@@ -17,8 +17,8 @@ export function useLocationChildrenQuery(options: UseLocationChildrenQueryOption
   return useQuery<TenantChildLocationsResponse>({
     queryKey: locationSearchQueryKeys.children(tenantId, hierarchyType, parentId),
     queryFn: () => {
-      if (tenantId === undefined || parentId === undefined) {
-        throw new Error('tenantId and parentId are required for location children query')
+      if (tenantId === undefined) {
+        throw new Error('tenantId is required for location children query')
       }
       return dashboardApi.getTenantChildLocations({
         tenantId,
@@ -27,6 +27,6 @@ export function useLocationChildrenQuery(options: UseLocationChildrenQueryOption
         tenantCode,
       })
     },
-    enabled: enabled && tenantId !== undefined && parentId !== undefined,
+    enabled: enabled && tenantId !== undefined,
   })
 }

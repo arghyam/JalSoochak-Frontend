@@ -17,7 +17,7 @@ import {
 import { SearchIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { FiUpload } from 'react-icons/fi'
-import { BsPerson } from 'react-icons/bs'
+import { TotalStaffIcon, PumpOperatorIcon, TotalAdminsIcon } from '../overview/overview-icons'
 import { DataTable, SearchableSelect, StatCard, StatusChip } from '@/shared/components/common'
 import type { DataTableColumn } from '@/shared/components/common'
 import type { StaffMember, StaffRole, StaffStatus } from '../../types/staff-sync'
@@ -26,6 +26,7 @@ import {
   useStaffCountsQuery,
 } from '../../services/query/use-state-admin-queries'
 import { useAuthStore } from '@/app/store/auth-store'
+import { useDebounce } from '@/shared/hooks/use-debounce'
 import { UploadStaffModal } from './upload-staff-modal'
 
 const DEFAULT_ROLES: StaffRole[] = ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER']
@@ -48,20 +49,26 @@ export function StaffSyncPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
+  const debouncedSearch = useDebounce(searchQuery, 400)
 
   useEffect(() => {
     document.title = `${t('staffSync.title')} | JalSoochak`
   }, [t])
 
+  // Short-circuit: if the raw input is already empty, send no name filter immediately
+  // rather than waiting for the debounce to settle on the previous term.
+  const nameParam = searchQuery === '' ? '' : debouncedSearch
+
   const staffParams = useMemo(
     () => ({
       roles: roleFilter ? [roleFilter] : DEFAULT_ROLES,
       ...(statusFilter ? { status: statusFilter } : {}),
+      ...(nameParam ? { name: nameParam } : {}),
       page: page - 1,
       limit: pageSize,
       tenantCode,
     }),
-    [roleFilter, statusFilter, page, pageSize, tenantCode]
+    [roleFilter, statusFilter, nameParam, page, pageSize, tenantCode]
   )
 
   const { data, isLoading, isError, refetch } = useStaffListQuery(staffParams)
@@ -84,7 +91,7 @@ export function StaffSyncPage() {
     [t]
   )
 
-  const hasActiveFilters = roleFilter || statusFilter
+  const hasActiveFilters = roleFilter || statusFilter || searchQuery
 
   const handleRoleChange = (value: string) => {
     setRoleFilter(value as StaffRole | '')
@@ -99,21 +106,15 @@ export function StaffSyncPage() {
   const handleClearFilters = () => {
     setRoleFilter('')
     setStatusFilter('')
+    setSearchQuery('')
     setPage(1)
   }
-
-  // Client-side search on current page data
-  const displayedStaff = useMemo(() => {
-    if (!data) return []
-    if (!searchQuery) return data.items
-    return data.items.filter((m) => m.title.toLowerCase().includes(searchQuery.toLowerCase()))
-  }, [data, searchQuery])
 
   const columns: DataTableColumn<StaffMember>[] = [
     {
       key: 'title',
       header: t('staffSync.table.name'),
-      sortable: true,
+      sortable: false,
       width: '20%',
       minWidth: '200px',
       render: (row) => (
@@ -263,7 +264,10 @@ export function StaffSyncPage() {
           <Input
             placeholder={t('staffSync.searchPlaceholder')}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value)
+              setPage(1)
+            }}
             aria-label={t('staffSync.aria.searchStaff')}
             bg="white"
             h={8}
@@ -328,12 +332,12 @@ export function StaffSyncPage() {
           variant="secondary"
           size="sm"
           fontWeight="600"
-          gap={1}
+          width="147px"
           flexShrink={0}
           aria-label={t('staffSync.aria.uploadData')}
-          leftIcon={<FiUpload aria-hidden="true" />}
           onClick={() => setIsUploadOpen(true)}
         >
+          <FiUpload aria-hidden="true" size={16} style={{ marginRight: '4px', flexShrink: 0 }} />
           {t('staffSync.uploadData')}
         </Button>
       </Flex>
@@ -349,33 +353,30 @@ export function StaffSyncPage() {
         <StatCard
           title={t('staffSync.stats.totalPumpOperators')}
           value={countsLoading ? '—' : (counts?.pumpOperators ?? 0)}
-          icon={BsPerson}
+          icon={TotalStaffIcon}
           iconBg="#EBF4FA"
           iconColor="#3291D1"
-          height="172px"
         />
         <StatCard
           title={t('staffSync.stats.totalSubDivisionOfficers')}
           value={countsLoading ? '—' : (counts?.subDivisionOfficers ?? 0)}
-          icon={BsPerson}
+          icon={PumpOperatorIcon}
           iconBg="#F1EEFF"
           iconColor="#584C93"
-          height="172px"
         />
         <StatCard
           title={t('staffSync.stats.totalSectionOfficers')}
           value={countsLoading ? '—' : (counts?.sectionOfficers ?? 0)}
-          icon={BsPerson}
+          icon={TotalAdminsIcon}
           iconBg="#FBEAFF"
           iconColor="#DC72F2"
-          height="172px"
         />
       </SimpleGrid>
 
       {/* Data Table */}
       <DataTable<StaffMember>
         columns={columns}
-        data={displayedStaff}
+        data={data?.items ?? []}
         getRowKey={(row) => row.id}
         emptyMessage={t('staffSync.messages.noStaffFound')}
         isLoading={isLoading}

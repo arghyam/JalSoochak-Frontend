@@ -6,6 +6,10 @@
     "departmentTitle": "Department Hierarchy",
     "levelLabel": "Level {{level}}",
     "addLevel": "Add Level",
+    "breadcrumb": {
+      "view": "View Hierarchy",
+      "edit": "Edit Hierarchy"
+    },
     "messages": {
       "saveSuccess": "Hierarchy saved successfully",
       "saveFailed": "Failed to save hierarchy",
@@ -91,6 +95,10 @@
     "primaryLanguage": "Primary Language",
     "secondaryLanguage": "Secondary Language (optional)",
     "tertiaryLanguage": "Tertiary Language (optional)",
+    "breadcrumb": {
+      "view": "View Language",
+      "edit": "Edit Language"
+    },
     "aria": {
       "editConfiguration": "Edit language configuration",
       "selectPrimaryLanguage": "Select primary language",
@@ -122,6 +130,10 @@
   "waterNorms": {
     "title": "Water Norms",
     "stateUtWaterNorms": "State/UT Water Norms",
+    "breadcrumb": {
+      "view": "View Water Norms",
+      "edit": "Edit Water Norms"
+    },
     "currentQuantity": "Current quantity (LPCD)",
     "alertThresholds": {
       "title": "Alert Thresholds",
@@ -164,6 +176,10 @@
   "escalations": {
     "title": "Escalations",
     "allEscalations": "All Escalations",
+    "breadcrumb": {
+      "view": "View Escalations",
+      "edit": "Edit Escalations"
+    },
     "escalationRules": "Escalations Rules",
     "addNewEscalationType": "Add New Escalation Type",
     "addNewShort": "Add New",
@@ -348,6 +364,9 @@
     "title": "Scheme Mappings Sync",
     "searchPlaceholder": "Search by scheme name",
     "uploadData": "Upload Data",
+    "filters": {
+      "clearAll": "clear all filters"
+    },
     "table": {
       "schemeName": "Scheme Name",
       "stateSchemeId": "State Scheme ID",
@@ -379,6 +398,10 @@
   "configuration": {
     "pageTitle": "Configuration",
     "sectionTitle": "State/UT Configuration",
+    "breadcrumb": {
+      "view": "View Configuration",
+      "edit": "Edit Configuration"
+    },
     "sections": {
       "lgdHierarchy": {
         "title": "LGD Hierarchy",
@@ -389,7 +412,8 @@
         "levelLabel": "Level {{level}}"
       },
       "supportedChannels": {
-        "title": "Supported Channels"
+        "title": "Supported Channels",
+        "degradedTooltip": "System support removed for this channel"
       },
       "logo": {
         "title": "Logo",
@@ -406,8 +430,20 @@
         "editAriaLabel": "Edit reason {{name}}",
         "deleteAriaLabel": "Delete reason {{name}}"
       },
+      "supplyOutageReasons": {
+        "title": "Supply Outage Reasons",
+        "placeholder": "Enter reason",
+        "addNewButton": "+ Add New Reason",
+        "editAriaLabel": "Edit reason {{name}}",
+        "deleteAriaLabel": "Delete reason {{name}}"
+      },
       "locationCheckRequired": {
         "title": "Record Location",
+        "yes": "Yes",
+        "no": "No"
+      },
+      "displayDepartmentMaps": {
+        "title": "Display Departmental Maps",
         "yes": "Yes",
         "no": "No"
       },
@@ -417,9 +453,36 @@
       "pumpOperatorReminderNudgeTime": {
         "title": "Pump Operator Reminder Nudge Time"
       },
+      "dateFormatScreen": {
+        "title": "Screen Date Format"
+      },
+      "dateFormatTable": {
+        "title": "Table Date Format"
+      },
+      "dateFormat": {
+        "dateFormat": "Date Format",
+        "timeFormat": "Time Format",
+        "timezone": "Timezone",
+        "datePlaceholder": "Select date format",
+        "timePlaceholder": "Select time format",
+        "timezonePlaceholder": "Select timezone"
+      },
       "averageMembersPerHousehold": {
         "title": "Average Members Per Household"
       }
+    },
+    "infoText": {
+      "supportedChannels": "Channels through which schemes track the released water flow.",
+      "meterChangeReasons": "Reasons field operators can select when logging a meter replacement event.",
+      "supplyOutageReasons": "Reasons field operators can select when reporting a water supply disruption.",
+      "locationCheckRequired": "When enabled, field operators must share their GPS location when submitting readings.",
+      "displayDepartmentMaps": "When enabled, departmental map views are shown on the dashboard.",
+      "dataConsolidationTime": "Daily time at which field data is compiled and consolidated for reporting.",
+      "pumpOperatorReminderNudgeTime": "Daily time at which automated reminders are sent to pump operators who have not yet submitted readings.",
+      "dateFormatScreen": "Date, time, and timezone format used across all on-screen displays such as dashboards.",
+      "dateFormatTable": "Date, time, and timezone format used in data tables and exported reports.",
+      "averageMembersPerHousehold": "Used to estimate per-capita water consumption from household-level supply data. Accepted range: 1–20.",
+      "logo": "Organization's logo displayed in the app. PNG or JPG, max 2 MB."
     },
     "aria": {
       "form": "Configuration form",
@@ -492,6 +555,7 @@
 
   "messageTemplates": {
     "title": "Templates",
+    "subtitle": "Whatsapp Templates (Read Only)",
     "selectLanguage": "Select language",
     "selectTemplate": "Select template",
     "language": "Language",

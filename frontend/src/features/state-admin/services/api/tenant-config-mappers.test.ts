@@ -19,32 +19,60 @@ describe('mapApiConfigToConfigurationData', () => {
   it('maps a full config response to ConfigurationData', () => {
     const configs: TenantConfigMap = {
       TENANT_SUPPORTED_CHANNELS: { channels: ['BFM', 'ELM'] },
-      TENANT_LOGO: 'https://example.com/logo.png',
       METER_CHANGE_REASONS: {
         reasons: [
           { id: 'r1', name: 'Meter Replaced', sequenceOrder: 1 },
           { id: 'r2', name: 'Meter Damaged', sequenceOrder: 2 },
         ],
       },
+      SUPPLY_OUTAGE_REASONS: {
+        reasons: [
+          {
+            id: 'PUMP_FAILURE',
+            name: 'Pump Failure',
+            sequenceOrder: 1,
+            isDefault: true,
+            editable: true,
+          },
+        ],
+      },
       LOCATION_CHECK_REQUIRED: { value: 'YES' },
+      DISPLAY_DEPARTMENT_MAPS: { value: 'NO' },
       DATA_CONSOLIDATION_TIME: { schedule: { hour: 14, minute: 0 }, description: null },
       PUMP_OPERATOR_REMINDER_NUDGE_TIME: { nudge: { schedule: { hour: 9, minute: 30 } } },
+      DATE_FORMAT_SCREEN: {
+        dateFormat: 'DD/MM/YYYY',
+        timeFormat: 'HH:mm',
+        timezone: 'Asia/Kolkata',
+      },
+      DATE_FORMAT_TABLE: { dateFormat: null, timeFormat: null, timezone: null },
       AVERAGE_MEMBERS_PER_HOUSEHOLD: { value: '4.5' },
     }
 
     const result = mapApiConfigToConfigurationData(configs)
 
-    expect(result.supportedChannels).toEqual(['Bulk Flow Meter', 'Electric Meter'])
-    expect(result.logoUrl).toBe('https://example.com/logo.png')
+    expect(result.supportedChannels).toEqual(['BFM', 'ELM'])
     expect(result.meterChangeReasons).toEqual([
       { id: 'r1', name: 'Meter Replaced' },
       { id: 'r2', name: 'Meter Damaged' },
     ])
+    expect(result.supplyOutageReasons).toEqual([
+      { id: 'PUMP_FAILURE', name: 'Pump Failure', isDefault: true, editable: true },
+    ])
     expect(result.locationCheckRequired).toBe(true)
+    expect(result.displayDepartmentMaps).toBe(false)
     expect(result.dataConsolidationTime).toBe('14:00')
     expect(result.pumpOperatorReminderNudgeTime).toBe('09:30')
+    expect(result.dateFormatScreen).toEqual({
+      dateFormat: 'DD/MM/YYYY',
+      timeFormat: 'HH:mm',
+      timezone: 'Asia/Kolkata',
+    })
+    expect(result.dateFormatTable).toEqual({ dateFormat: null, timeFormat: null, timezone: null })
     expect(result.averageMembersPerHousehold).toBe(4.5)
     expect(result.isConfigured).toBe(true)
+    expect(result.degraded).toBeUndefined()
+    expect(result.removedChannels).toBeUndefined()
   })
 
   it('falls back to defaults when keys are absent', () => {
@@ -56,25 +84,53 @@ describe('mapApiConfigToConfigurationData', () => {
     expect(result.dataConsolidationTime).toBe('')
     expect(result.pumpOperatorReminderNudgeTime).toBe('')
     expect(result.averageMembersPerHousehold).toBe(0)
+    expect(result.isConfigured).toBe(false)
   })
 
-  it('filters out unknown channel codes', () => {
+  it('stores unknown channel codes as-is without filtering', () => {
     const result = mapApiConfigToConfigurationData({
       TENANT_SUPPORTED_CHANNELS: { channels: ['BFM', 'UNKNOWN'] },
     })
-    expect(result.supportedChannels).toEqual(['Bulk Flow Meter'])
+    expect(result.supportedChannels).toEqual(['BFM', 'UNKNOWN'])
+    expect(result.isConfigured).toBe(true)
+  })
+
+  it('parses degraded and removedChannels from TENANT_SUPPORTED_CHANNELS', () => {
+    const result = mapApiConfigToConfigurationData({
+      TENANT_SUPPORTED_CHANNELS: {
+        channels: ['BFM', 'ELM'],
+        degraded: true,
+        removedChannels: ['MAN', 'IOT'],
+      },
+    })
+    expect(result.supportedChannels).toEqual(['BFM', 'ELM'])
+    expect(result.degraded).toBe(true)
+    expect(result.removedChannels).toEqual(['MAN', 'IOT'])
+  })
+
+  it('sets isConfigured false when channels array is empty', () => {
+    const result = mapApiConfigToConfigurationData({
+      TENANT_SUPPORTED_CHANNELS: { channels: [] },
+    })
+    expect(result.isConfigured).toBe(false)
   })
 })
 
 describe('mapConfigurationDataToApiConfig', () => {
   it('converts ConfigurationData to API format', () => {
     const payload = {
-      supportedChannels: ['Bulk Flow Meter', 'IOT'] as SupportedChannel[],
+      supportedChannels: ['BFM', 'IOT'] as SupportedChannel[],
       logoUrl: 'https://example.com/logo.png',
       meterChangeReasons: [{ id: 'r1', name: 'Meter Replaced' }],
+      supplyOutageReasons: [
+        { id: 'PUMP_FAILURE', name: 'Pump Failure', isDefault: true, editable: true },
+      ],
       locationCheckRequired: false,
+      displayDepartmentMaps: true,
       dataConsolidationTime: '18:00',
       pumpOperatorReminderNudgeTime: '08:00',
+      dateFormatScreen: { dateFormat: 'DD/MM/YYYY', timeFormat: 'HH:mm', timezone: 'Asia/Kolkata' },
+      dateFormatTable: { dateFormat: null, timeFormat: null, timezone: null },
       averageMembersPerHousehold: 3,
       isConfigured: true,
     }
@@ -82,7 +138,6 @@ describe('mapConfigurationDataToApiConfig', () => {
     const result = mapConfigurationDataToApiConfig(payload)
 
     expect(result.TENANT_SUPPORTED_CHANNELS).toEqual({ channels: ['BFM', 'IOT'] })
-    expect(result.TENANT_LOGO).toBe('https://example.com/logo.png')
     expect(result.METER_CHANGE_REASONS).toEqual({
       reasons: [{ id: 'r1', name: 'Meter Replaced', sequenceOrder: 1 }],
     })
@@ -95,6 +150,28 @@ describe('mapConfigurationDataToApiConfig', () => {
       nudge: { schedule: { hour: 8, minute: 0 } },
     })
     expect(result.AVERAGE_MEMBERS_PER_HOUSEHOLD).toEqual({ value: '3' })
+    expect(result.SUPPLY_OUTAGE_REASONS).toEqual({
+      reasons: [
+        {
+          id: 'PUMP_FAILURE',
+          name: 'Pump Failure',
+          sequenceOrder: 1,
+          isDefault: true,
+          editable: true,
+        },
+      ],
+    })
+    expect(result.DISPLAY_DEPARTMENT_MAPS).toEqual({ value: 'YES' })
+    expect(result.DATE_FORMAT_SCREEN).toEqual({
+      dateFormat: 'DD/MM/YYYY',
+      timeFormat: 'HH:mm',
+      timezone: 'Asia/Kolkata',
+    })
+    expect(result.DATE_FORMAT_TABLE).toEqual({
+      dateFormat: null,
+      timeFormat: null,
+      timezone: null,
+    })
   })
 
   it('round-trips: API → frontend → API preserves data', () => {
@@ -106,9 +183,27 @@ describe('mapConfigurationDataToApiConfig', () => {
           { id: 'r2', name: 'Reason B', sequenceOrder: 2 },
         ],
       },
+      SUPPLY_OUTAGE_REASONS: {
+        reasons: [
+          {
+            id: 'PUMP_FAILURE',
+            name: 'Pump Failure',
+            sequenceOrder: 1,
+            isDefault: true,
+            editable: true,
+          },
+        ],
+      },
       LOCATION_CHECK_REQUIRED: { value: 'YES' },
+      DISPLAY_DEPARTMENT_MAPS: { value: 'NO' },
       DATA_CONSOLIDATION_TIME: { schedule: { hour: 22, minute: 0 }, description: null },
       PUMP_OPERATOR_REMINDER_NUDGE_TIME: { nudge: { schedule: { hour: 7, minute: 0 } } },
+      DATE_FORMAT_SCREEN: {
+        dateFormat: 'DD/MM/YYYY',
+        timeFormat: 'HH:mm',
+        timezone: 'Asia/Kolkata',
+      },
+      DATE_FORMAT_TABLE: { dateFormat: null, timeFormat: null, timezone: null },
       AVERAGE_MEMBERS_PER_HOUSEHOLD: { value: '5' },
     }
 
@@ -117,9 +212,26 @@ describe('mapConfigurationDataToApiConfig', () => {
 
     expect(backToApi.TENANT_SUPPORTED_CHANNELS).toEqual({ channels: ['BFM', 'MAN'] })
     expect(backToApi.LOCATION_CHECK_REQUIRED).toEqual({ value: 'YES' })
+    expect(backToApi.DISPLAY_DEPARTMENT_MAPS).toEqual({ value: 'NO' })
     expect(backToApi.DATA_CONSOLIDATION_TIME).toEqual({
       schedule: { hour: 22, minute: 0 },
       description: null,
+    })
+    expect(backToApi.SUPPLY_OUTAGE_REASONS).toEqual({
+      reasons: [
+        {
+          id: 'PUMP_FAILURE',
+          name: 'Pump Failure',
+          sequenceOrder: 1,
+          isDefault: true,
+          editable: true,
+        },
+      ],
+    })
+    expect(backToApi.DATE_FORMAT_SCREEN).toEqual({
+      dateFormat: 'DD/MM/YYYY',
+      timeFormat: 'HH:mm',
+      timezone: 'Asia/Kolkata',
     })
   })
 })

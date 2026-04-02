@@ -1,18 +1,6 @@
 import { apiClient } from '@/shared/lib/axios'
 import { isAxiosError } from 'axios'
-import {
-  generateApiKey,
-  getMockApiCredentialsData,
-  getMockIngestionMonitorData,
-  getMockSuperAdminOverviewData,
-  getMockSystemRulesConfiguration,
-  saveMockSystemRulesConfiguration,
-  sendApiKey,
-} from '../mock-data'
-import type { ApiCredentialsData } from '../../types/api-credentials'
-import type { IngestionMonitorData } from '../../types/ingestion-monitor'
-import type { SuperAdminOverviewData, SuperAdminStats } from '../../types/overview'
-import type { SystemRulesConfiguration } from '../../types/system-rules'
+import type { SuperAdminStats } from '../../types/overview'
 import type { SystemConfiguration, SaveSystemConfigPayload } from '../../types/system-config'
 import type {
   Tenant,
@@ -36,12 +24,6 @@ import {
 
 export { mapApiUserToUserAdminData } from '../../types/super-users'
 
-export type SaveSystemRulesPayload = Omit<SystemRulesConfiguration, 'id'>
-export type IngestionMonitorFilters = {
-  stateFilter?: string
-  timeFilter?: string
-}
-
 const SYSTEM_CONFIG_KEYS = [
   'SYSTEM_SUPPORTED_CHANNELS',
   'WATER_QUANTITY_SUPPLY_THRESHOLD',
@@ -60,25 +42,6 @@ interface ApiResponse<T> {
 // ── superAdminApi ─────────────────────────────────────────────────────────────
 
 export const superAdminApi = {
-  // ── Mock (not yet migrated) ─────────────────────────────────────────────────
-  getOverviewData: (): Promise<SuperAdminOverviewData> => getMockSuperAdminOverviewData(),
-
-  getSystemRulesConfiguration: (): Promise<SystemRulesConfiguration> =>
-    getMockSystemRulesConfiguration(),
-
-  saveSystemRulesConfiguration: (
-    payload: SaveSystemRulesPayload
-  ): Promise<SystemRulesConfiguration> => saveMockSystemRulesConfiguration(payload),
-
-  getIngestionMonitorData: (_filters?: IngestionMonitorFilters): Promise<IngestionMonitorData> =>
-    getMockIngestionMonitorData(),
-
-  getApiCredentialsData: (): Promise<ApiCredentialsData> => getMockApiCredentialsData(),
-
-  generateApiKey: (stateId: string): Promise<string> => generateApiKey(stateId),
-
-  sendApiKey: (stateId: string): Promise<{ success: boolean }> => sendApiKey(stateId),
-
   // ── Real HTTP: System Configuration ────────────────────────────────────────
   getSystemConfiguration: async (): Promise<SystemConfiguration> => {
     const response = await apiClient.get<{ data: { configs: Record<string, unknown> } }>(
@@ -125,9 +88,15 @@ export const superAdminApi = {
   getStatesUTsPage: async (params: {
     page: number
     size: number
+    search?: string
+    status?: string
   }): Promise<{ items: Tenant[]; total: number }> => {
+    const { search, status, ...rest } = params
+    const query: Record<string, unknown> = { ...rest }
+    if (search) query.search = search
+    if (status) query.status = status
     const response = await apiClient.get<ApiResponse<TenantsListApiResponse>>('/api/v1/tenants', {
-      params,
+      params: query,
     })
     const data = response.data.data
     return { items: data.content.map(mapTenant), total: data.totalElements }
@@ -167,7 +136,7 @@ export const superAdminApi = {
 
   updateTenantStatus: async (id: number, status: TenantStatus): Promise<void> => {
     if (status === 'INACTIVE') {
-      await apiClient.put(`/api/v1/tenants/${id}/deactivate`)
+      await apiClient.post(`/api/v1/tenants/${id}/deactivate`)
     } else {
       await apiClient.put(`/api/v1/tenants/${id}`, { status })
     }
@@ -186,19 +155,32 @@ export const superAdminApi = {
   getStateAdminsData: async (params: {
     page: number
     size: number
+    name?: string
+    status?: string
   }): Promise<ApiUsersListResponse> => {
+    const { name, status, ...rest } = params
+    const query: Record<string, unknown> = { ...rest }
+    if (name) query.name = name
+    if (status) query.status = status
     const response = await apiClient.get<ApiResponse<ApiUsersListResponse>>(
       '/api/v1/users/state-admins',
-      { params }
+      { params: query }
     )
     return response.data.data
   },
 
   // ── Real HTTP: Users (super users + generic update/status) ─────────────────
-  getSuperUsers: async (params: { page: number; size: number }): Promise<ApiUsersListResponse> => {
+  getSuperUsers: async (params: {
+    page: number
+    size: number
+    status?: string
+  }): Promise<ApiUsersListResponse> => {
+    const { status, ...rest } = params
+    const query: Record<string, unknown> = { ...rest }
+    if (status) query.status = status
     const response = await apiClient.get<ApiResponse<ApiUsersListResponse>>(
       '/api/v1/users/super-users',
-      { params }
+      { params: query }
     )
     return response.data.data
   },
@@ -214,7 +196,7 @@ export const superAdminApi = {
   },
 
   inviteUser: async (payload: InviteUserRequest): Promise<void> => {
-    await apiClient.post('/api/v1/users/invite', payload)
+    await apiClient.post('/api/v1/users/invitations', payload)
   },
 
   updateUser: async (id: string, payload: UpdateUserRequest): Promise<void> => {
@@ -223,13 +205,13 @@ export const superAdminApi = {
 
   updateUserStatus: async (id: string, status: 'active' | 'inactive'): Promise<void> => {
     if (status === 'inactive') {
-      await apiClient.put(`/api/v1/users/${id}/deactivate`)
+      await apiClient.post(`/api/v1/users/${id}/deactivate`)
     } else {
-      await apiClient.put(`/api/v1/users/${id}/activate`)
+      await apiClient.post(`/api/v1/users/${id}/activate`)
     }
   },
 
   reinviteUser: async (id: string): Promise<void> => {
-    await apiClient.post(`/api/v1/users/${id}/reinvite`)
+    await apiClient.post(`/api/v1/users/${id}/invitations`)
   },
 }

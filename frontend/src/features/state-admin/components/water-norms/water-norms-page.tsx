@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Box,
   Text,
@@ -16,7 +17,13 @@ import { useTranslation } from 'react-i18next'
 import type { DistrictOverride } from '../../types/water-norms'
 import { WaterNormsAlertThresholds } from './water-norms-alert-thresholds'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer, PageLoadingState, PageErrorState } from '@/shared/components/common'
+import {
+  ToastContainer,
+  PageLoadingState,
+  PageErrorState,
+  EditableBreadcrumb,
+} from '@/shared/components/common'
+import { ROUTES } from '@/shared/constants/routes'
 import {
   useSaveWaterNormsConfigurationMutation,
   useWaterNormsConfigurationQuery,
@@ -26,6 +33,7 @@ const MAX_WATER_QUANTITY = 1000
 
 export function WaterNormsPage() {
   const { t } = useTranslation(['state-admin', 'common'])
+  const navigate = useNavigate()
   const { data: config, isLoading, isError } = useWaterNormsConfigurationQuery()
   const saveWaterNormsMutation = useSaveWaterNormsConfigurationMutation()
   const [isEditing, setIsEditing] = useState(false)
@@ -61,6 +69,17 @@ export function WaterNormsPage() {
     undersupplyThresholdDraft ??
     (config?.undersupplyThreshold != null ? String(config.undersupplyThreshold) : '')
   const districtOverrides = districtOverridesDraft ?? config?.districtOverrides ?? []
+
+  const hasChanges = useMemo(
+    () =>
+      Boolean(config?.isConfigured) &&
+      (stateQuantity !== String(config?.stateQuantity) ||
+        oversupplyThreshold !== String(config?.oversupplyThreshold) ||
+        undersupplyThreshold !== String(config?.undersupplyThreshold) ||
+        (districtOverridesDraft !== null &&
+          JSON.stringify(districtOverridesDraft) !== JSON.stringify(config?.districtOverrides))),
+    [stateQuantity, oversupplyThreshold, undersupplyThreshold, districtOverridesDraft, config]
+  )
 
   const handleEdit = () => {
     setIsEditing(true)
@@ -133,7 +152,7 @@ export function WaterNormsPage() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSave = async () => {
+  const handleSave = async (andNavigate = false) => {
     if (!validateForm()) return
 
     try {
@@ -151,6 +170,7 @@ export function WaterNormsPage() {
       setIsEditing(false)
       setErrors({})
       toast.addToast(t('common:toast.changesSavedShort'), 'success')
+      if (andNavigate) navigate(ROUTES.STATE_ADMIN_INTEGRATION)
     } catch (error) {
       console.error('Failed to save water norms configuration:', error)
       toast.addToast(t('common:toast.failedToSave'), 'error')
@@ -183,9 +203,21 @@ export function WaterNormsPage() {
     <Box w="full">
       {/* Page Header */}
       <Box mb={5}>
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+        <Heading
+          as="h1"
+          size={{ base: 'h2', md: 'h1' }}
+          mb={effectiveIsEditing && config?.isConfigured ? 2 : 0}
+        >
           {t('waterNorms.title')}
         </Heading>
+        {config?.isConfigured && (
+          <EditableBreadcrumb
+            isEditing={effectiveIsEditing}
+            onCancel={handleCancel}
+            viewLabel={t('waterNorms.breadcrumb.view')}
+            editLabel={t('waterNorms.breadcrumb.edit')}
+          />
+        )}
       </Box>
 
       {/* Water Norms Configuration Card */}
@@ -313,6 +345,7 @@ export function WaterNormsPage() {
                       setStateQuantityDraft(e.target.value)
                       clearError('stateQuantity')
                     }}
+                    onWheel={(e) => e.currentTarget.blur()}
                     type="number"
                     w={{ base: 'full', lg: '319px', xl: '486px' }}
                     h="36px"
@@ -362,11 +395,15 @@ export function WaterNormsPage() {
                   variant="primary"
                   size="md"
                   width={{ base: 'full', sm: '174px' }}
-                  onClick={handleSave}
+                  onClick={() => handleSave(!config?.isConfigured)}
                   isLoading={saveWaterNormsMutation.isPending}
-                  isDisabled={saveWaterNormsMutation.isPending}
+                  isDisabled={
+                    (!!config?.isConfigured && !hasChanges) || saveWaterNormsMutation.isPending
+                  }
                 >
-                  {config?.isConfigured ? t('common:button.saveChanges') : t('common:button.save')}
+                  {config?.isConfigured
+                    ? t('common:button.saveChanges')
+                    : t('common:button.saveAndNext')}
                 </Button>
               </HStack>
             </Flex>

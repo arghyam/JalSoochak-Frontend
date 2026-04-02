@@ -382,7 +382,7 @@ export function EditStateUTPage() {
                 {t('common:loading')}
               </Text>
             )}
-            {!adminsQuery.isLoading && admins.length === 0 && (
+            {!adminsQuery.isLoading && !adminsQuery.isError && admins.length === 0 && (
               <Text color="neutral.400" textStyle="h10" mb={4}>
                 {t('common:na')}
               </Text>

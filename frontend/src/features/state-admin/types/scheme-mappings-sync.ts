@@ -12,6 +12,8 @@ export interface SchemeMappingListParams {
   tenantCode: string
   page: number
   limit: number
+  schemeName?: string
+  sortDir?: string
 }
 
 export interface SchemeMappingListResponse {

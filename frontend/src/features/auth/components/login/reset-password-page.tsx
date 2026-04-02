@@ -15,7 +15,7 @@ import {
 } from '@chakra-ui/react'
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import jalsoochakLogo from '@/assets/media/jalsoochak-logo.svg'
+import jalsoochakLogo from '@/assets/media/logo.svg'
 import { AuthSideImage } from '@/features/auth/components/signup/auth-side-image'
 import { useResetPasswordMutation } from '@/features/auth/services/query/use-auth-queries'
 import { ROUTES } from '@/shared/constants/routes'
@@ -73,7 +73,14 @@ export function ResetPasswordPage() {
           py={{ base: 10, md: 8 }}
         >
           <Box w="360px" textAlign="center">
-            <Image src={jalsoochakLogo} alt="JalSoochak logo" h="50px" mb={8} mx="auto" />
+            <Image
+              src={jalsoochakLogo}
+              alt="JalSoochak logo"
+              h="72px"
+              w="117.61px"
+              mb={8}
+              mx="auto"
+            />
             <Text textStyle="h5" mb={3} color="error.500">
               Invalid Reset Link
             </Text>
@@ -103,7 +110,13 @@ export function ResetPasswordPage() {
       >
         <Flex w="full" minH="full" direction="column">
           <Box w="full" maxW="420px">
-            <Image src={jalsoochakLogo} alt="JalSoochak logo" h="50px" mb={{ base: 10, md: 12 }} />
+            <Image
+              src={jalsoochakLogo}
+              alt="JalSoochak logo"
+              h="72px"
+              w="117.61px"
+              mb={{ base: 10, md: 12 }}
+            />
           </Box>
 
           <Flex flex="1" align="center" justify="center">

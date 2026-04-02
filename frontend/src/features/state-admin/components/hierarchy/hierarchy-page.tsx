@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Box, Text, Button, Flex, HStack, Heading, SimpleGrid, Spinner } from '@chakra-ui/react'
 import { EditIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer } from '@/shared/components/common'
+import { ToastContainer, EditableBreadcrumb } from '@/shared/components/common'
 import {
   validateDescriptiveField,
   hasDuplicates,
@@ -157,6 +157,19 @@ export function HierarchyPage() {
 
   const isSaving = saveLgdMutation.isPending || saveDeptMutation.isPending
 
+  const hasChanges = useMemo(() => {
+    if (!draft) return false
+    const compareNumeric = (a: { level: number | string }, b: { level: number | string }) =>
+      Number(a.level) - Number(b.level)
+    const lgdChanged =
+      JSON.stringify([...draft.lgd].sort(compareNumeric)) !==
+      JSON.stringify([...(lgdData?.levels ?? DEFAULT_LGD_HIERARCHY)].sort(compareNumeric))
+    const deptChanged =
+      JSON.stringify([...draft.department].sort(compareNumeric)) !==
+      JSON.stringify([...(deptData?.levels ?? DEFAULT_DEPARTMENT_HIERARCHY)].sort(compareNumeric))
+    return lgdChanged || deptChanged
+  }, [draft, lgdData, deptData])
+
   if (isLoading) {
     return (
       <Box w="full">
@@ -190,9 +203,15 @@ export function HierarchyPage() {
   return (
     <Box w="full">
       <Box mb={5}>
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={isEditing ? 2 : 0}>
           {t('hierarchy.pageTitle')}
         </Heading>
+        <EditableBreadcrumb
+          isEditing={isEditing}
+          onCancel={handleCancel}
+          viewLabel={t('hierarchy.breadcrumb.view')}
+          editLabel={t('hierarchy.breadcrumb.edit')}
+        />
       </Box>
 
       <Box
@@ -305,6 +324,7 @@ export function HierarchyPage() {
                   width={{ base: 'full', sm: '174px' }}
                   onClick={handleSave}
                   isLoading={isSaving}
+                  isDisabled={!hasChanges || isSaving}
                 >
                   {t('common:button.saveChanges')}
                 </Button>

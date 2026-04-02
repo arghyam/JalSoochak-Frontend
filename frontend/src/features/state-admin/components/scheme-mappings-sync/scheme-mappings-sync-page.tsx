@@ -13,10 +13,11 @@ import { SearchIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { FiUpload } from 'react-icons/fi'
 import { DataTable } from '@/shared/components/common'
-import type { DataTableColumn } from '@/shared/components/common'
+import type { DataTableColumn, SortDirection } from '@/shared/components/common'
 import type { SchemeMapping } from '../../types/scheme-mappings-sync'
 import { useSchemeMappingsListQuery } from '../../services/query/use-state-admin-queries'
 import { useAuthStore } from '@/app/store/auth-store'
+import { useDebounce } from '@/shared/hooks/use-debounce'
 import { UploadSchemeMappingsModal } from './upload-scheme-mappings-modal'
 
 const PAGE_SIZE = 10
@@ -30,6 +31,16 @@ export function SchemeMappingsSyncPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
+  const [sortDir, setSortDir] = useState<string>('')
+  const debouncedSearch = useDebounce(searchQuery, 400)
+
+  // Reset to page 1 whenever the debounced search term changes.
+  // Comparing during render (not in an effect) avoids a cascading re-render.
+  const [prevDebouncedSearch, setPrevDebouncedSearch] = useState(debouncedSearch)
+  if (prevDebouncedSearch !== debouncedSearch) {
+    setPrevDebouncedSearch(debouncedSearch)
+    setPage(1)
+  }
 
   useEffect(() => {
     document.title = `${t('schemeMappingsSync.title')} | JalSoochak`
@@ -40,17 +51,30 @@ export function SchemeMappingsSyncPage() {
       tenantCode,
       page: page - 1,
       limit: pageSize,
+      schemeName: debouncedSearch,
+      sortDir,
     }),
-    [tenantCode, page, pageSize]
+    [tenantCode, page, pageSize, debouncedSearch, sortDir]
   )
 
   const { data, isLoading, isError, refetch } = useSchemeMappingsListQuery(mappingParams)
 
-  const displayedMappings = useMemo(() => {
-    if (!data) return []
-    if (!searchQuery) return data.items
-    return data.items.filter((m) => m.schemeName.toLowerCase().includes(searchQuery.toLowerCase()))
-  }, [data, searchQuery])
+  const hasActiveFilters = Boolean(searchQuery)
+
+  const handleClearFilters = () => {
+    setSearchQuery('')
+  }
+
+  const handleSort = (_columnKey: string, direction: SortDirection) => {
+    if (direction === 'asc') {
+      setSortDir('asc')
+    } else if (direction === 'desc') {
+      setSortDir('des')
+    } else {
+      setSortDir('')
+    }
+    setPage(1)
+  }
 
   const columns: DataTableColumn<SchemeMapping>[] = [
     {
@@ -145,36 +169,53 @@ export function SchemeMappingsSyncPage() {
         borderRadius="12px"
         bg="white"
       >
-        {/* Left: search */}
-        <InputGroup w={{ base: 'full', md: '260px' }} flexShrink={0}>
-          <InputLeftElement pointerEvents="none" h={8}>
-            <SearchIcon color="neutral.300" aria-hidden="true" />
-          </InputLeftElement>
-          <Input
-            placeholder={t('schemeMappingsSync.searchPlaceholder')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            aria-label={t('schemeMappingsSync.aria.searchMappings')}
-            bg="white"
-            h={8}
-            borderWidth="1px"
-            borderRadius="4px"
-            borderColor="neutral.300"
-            _placeholder={{ color: 'neutral.300' }}
-          />
-        </InputGroup>
+        {/* Left: search + clear */}
+        <Flex align="center" gap={3} flex={1} flexWrap="wrap">
+          <InputGroup w={{ base: 'full', md: '260px' }} flexShrink={0}>
+            <InputLeftElement pointerEvents="none" h={8}>
+              <SearchIcon color="neutral.300" aria-hidden="true" />
+            </InputLeftElement>
+            <Input
+              placeholder={t('schemeMappingsSync.searchPlaceholder')}
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+              }}
+              aria-label={t('schemeMappingsSync.aria.searchMappings')}
+              bg="white"
+              h={8}
+              borderWidth="1px"
+              borderRadius="4px"
+              borderColor="neutral.300"
+              _placeholder={{ color: 'neutral.300' }}
+            />
+          </InputGroup>
+
+          {hasActiveFilters && (
+            <Button
+              variant="link"
+              size="sm"
+              color="neutral.500"
+              fontWeight="400"
+              onClick={handleClearFilters}
+              _hover={{ color: 'primary.500' }}
+            >
+              {t('schemeMappingsSync.filters.clearAll')}
+            </Button>
+          )}
+        </Flex>
 
         {/* Right: upload */}
         <Button
           variant="secondary"
           size="sm"
           fontWeight="600"
-          gap={1}
+          width="147px"
           flexShrink={0}
           aria-label={t('schemeMappingsSync.aria.uploadData')}
-          leftIcon={<FiUpload aria-hidden="true" />}
           onClick={() => setIsUploadOpen(true)}
         >
+          <FiUpload aria-hidden="true" size={16} style={{ marginRight: '4px', flexShrink: 0 }} />
           {t('schemeMappingsSync.uploadData')}
         </Button>
       </Flex>
@@ -182,12 +223,13 @@ export function SchemeMappingsSyncPage() {
       {/* Data Table */}
       <DataTable<SchemeMapping>
         columns={columns}
-        data={displayedMappings}
-        getRowKey={(row) => row.id}
+        data={data?.items ?? []}
+        getRowKey={(row) => `${row.id}-${row.villageLgdCode}`}
         emptyMessage={t('schemeMappingsSync.messages.noMappingsFound')}
         isLoading={isLoading}
         tableLayout="fixed"
         tableMinWidth="800px"
+        onSort={handleSort}
         pagination={{
           enabled: true,
           page,

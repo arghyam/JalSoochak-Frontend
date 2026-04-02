@@ -6,6 +6,8 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDashboardData } from '../hooks/use-dashboard-data'
 import { useLocationChildrenQuery } from '../services/query/use-location-children-query'
+import { useDistrictSchemeBlockLookupQuery } from '../services/query/use-district-scheme-block-lookup-query'
+import { useBlockSchemePanchayatLookupQuery } from '../services/query/use-block-scheme-panchayat-lookup-query'
 import { useLocationSearchQuery } from '../services/query/use-location-search-query'
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
@@ -21,7 +23,6 @@ import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quant
 import { KPICard } from './kpi-card'
 import { DashboardBody } from './screens/dashboard-body'
 import { IndiaMapChart } from './charts'
-import { LoadingSpinner } from '@/shared/components/common'
 import { MdOutlineWaterDrop } from 'react-icons/md'
 import waterTapIcon from '@/assets/media/water-tap_1822589 1.svg'
 import wallClockIcon from '@/assets/media/wall-clock.svg'
@@ -32,11 +33,13 @@ import { OverallPerformanceTable } from './tables'
 import { ROUTES } from '@/shared/constants/routes'
 import { computeTrailIndices } from '../utils/trail-index'
 import { slugify, toCapitalizedWords } from '../utils/format-location-label'
+import { parseStableLocationValue, toStableLocationValue } from '../utils/stable-location-value'
 import {
   calculateAbsoluteChange,
   calculatePercentChange,
   getPreviousPeriodRange,
   getRegularityKpi,
+  getRegularityKpiFromPeriodic,
   getRegularityKpiFromNationalDashboard,
   mapOutageReasonsFromNationalDashboard,
   mapOverallPerformanceFromNationalDashboard,
@@ -48,6 +51,7 @@ import {
   mapSchemePerformanceToTable,
   mapSchemePerformanceToPumpOperators,
   getWaterSupplyKpis,
+  getWaterSupplyKpisFromPeriodic,
   getWaterSupplyKpisFromNationalDashboard,
   mapOverallPerformanceFromAnalytics,
   mapQuantityPerformanceFromAnalytics,
@@ -59,7 +63,6 @@ import {
   mapNationalRegularityTrendPoints,
   mapOutageReasonsPeriodicToTrendPoints,
   mapSchemeRegularityPeriodicToTrendPoints,
-  mapDemandSupplyToTrendPoints,
   mapWaterQuantityPeriodicToTrendPoints,
   resolveWaterQuantityPeriodicScale,
 } from '../utils/quantity-periodic'
@@ -74,11 +77,11 @@ import {
   mockBlockPerformanceByDistrict,
   mockGramPanchayatPerformanceByBlock,
   mockVillagePerformanceByGramPanchayat,
+  mockReadingCompliance,
 } from '../services/mock/dashboard-mock'
 import type { HierarchyType, TenantChildLocation } from '../services/api/dashboard-api'
 
 const storageKey = 'central-dashboard-filters'
-const LOCATION_VALUE_SEPARATOR = ':'
 
 const EMPTY_DASHBOARD_DATA: DashboardData = {
   level: 'central',
@@ -113,7 +116,10 @@ type StoredFilters = {
   filterTabIndex?: number
 }
 
-type LocationOption = SearchableSelectOption & { locationId?: number }
+type LocationOption = SearchableSelectOption & {
+  locationId?: number
+  analyticsId?: number
+}
 
 const getOwnLookupValue = <T,>(record: Record<string, T>, key: string, fallback: T): T => {
   if (Object.prototype.hasOwnProperty.call(record, key)) {
@@ -131,9 +137,41 @@ const parseLocationId = (value: string): number | undefined => {
     return undefined
   }
 
-  const idPrefix = value.split(LOCATION_VALUE_SEPARATOR, 1)[0]
+  const idPrefix = parseStableLocationValue(value).locationIdSegment ?? value
   const parsedId = Number.parseInt(idPrefix, 10)
   return Number.isFinite(parsedId) ? parsedId : undefined
+}
+
+const lookupAnalyticsIdForLocation = (
+  options: LocationOption[],
+  value: string
+): number | undefined => {
+  const matchedOption = findLocationOption(options, value)
+  return typeof matchedOption?.analyticsId === 'number' ? matchedOption.analyticsId : undefined
+}
+
+const parseAnalyticsLocationId = (
+  value: string,
+  options: LocationOption[] = []
+): number | undefined => {
+  if (!value) {
+    return undefined
+  }
+
+  const { secondarySegment: analyticsIdSegment } = parseStableLocationValue(value)
+  if (analyticsIdSegment) {
+    const parsedAnalyticsId = Number.parseInt(analyticsIdSegment, 10)
+    if (Number.isFinite(parsedAnalyticsId)) {
+      return parsedAnalyticsId
+    }
+
+    const resolvedAnalyticsId = lookupAnalyticsIdForLocation(options, value)
+    if (typeof resolvedAnalyticsId === 'number') {
+      return resolvedAnalyticsId
+    }
+  }
+
+  return parseLocationId(value)
 }
 
 const normalizeMockLookupKey = (value: string): string => {
@@ -141,8 +179,8 @@ const normalizeMockLookupKey = (value: string): string => {
     return ''
   }
 
-  const separatorIndex = value.indexOf(LOCATION_VALUE_SEPARATOR)
-  const rawKey = separatorIndex >= 0 ? value.slice(separatorIndex + 1) : value
+  const { lastSegment } = parseStableLocationValue(value)
+  const rawKey = lastSegment ?? value
   if (isUnsafeLookupKey(rawKey)) {
     return rawKey
   }
@@ -274,11 +312,16 @@ const mapLocationOptions = (locations: TenantChildLocation[] | undefined): Locat
     .filter((location) => typeof location.id === 'number' && Boolean(location.title?.trim()))
     .map((location) => {
       const locationId = location.id as number
+      const analyticsId =
+        typeof location.lgdCode === 'number' && Number.isFinite(location.lgdCode)
+          ? location.lgdCode
+          : locationId
       const normalizedTitle = toCapitalizedWords(location.title?.trim() ?? '')
       return {
-        value: `${locationId}${LOCATION_VALUE_SEPARATOR}${slugify(normalizedTitle)}`,
+        value: toStableLocationValue(locationId, analyticsId, slugify(normalizedTitle)),
         label: normalizedTitle,
         locationId,
+        analyticsId,
       }
     })
 }
@@ -351,7 +394,7 @@ export function CentralDashboard() {
   const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const { data, isLoading, error } = useDashboardData('central')
+  const { data } = useDashboardData('central')
   const [storedFilters] = useState(() => getStoredFilters())
   const initialDuration = getInitialStoredDuration(storedFilters)
   const selectedState = stateSlug
@@ -424,25 +467,29 @@ export function CentralDashboard() {
     : hasStateMockData
       ? normalizedSelectedGramPanchayat
       : ''
-  const isStateSelected = Boolean(effectiveSelectedState)
-  const isDistrictSelected = Boolean(effectiveSelectedDistrict)
-  const isBlockSelected = Boolean(effectiveSelectedBlock)
-  const isGramPanchayatSelected = Boolean(effectiveSelectedGramPanchayat)
-  const isVillageSelected = Boolean(effectiveSelectedVillage)
+  const isLgdTabActive = filterTabIndex === 0
+  const isStateSelected = isLgdTabActive && Boolean(effectiveSelectedState)
+  const isDistrictSelected = isLgdTabActive && Boolean(effectiveSelectedDistrict)
+  const isBlockSelected = isLgdTabActive && Boolean(effectiveSelectedBlock)
+  const isGramPanchayatSelected = isLgdTabActive && Boolean(effectiveSelectedGramPanchayat)
+  const isVillageSelected = isLgdTabActive && Boolean(effectiveSelectedVillage)
   const isDepartmentStateSelected = Boolean(selectedDepartmentState)
-  const hasCentralLandingFilters =
+  const hasLgdLandingFilters =
     isStateSelected ||
     isDistrictSelected ||
     isBlockSelected ||
     isGramPanchayatSelected ||
-    isVillageSelected ||
+    isVillageSelected
+  const hasDepartmentLandingFilters =
     Boolean(selectedDepartmentState) ||
     Boolean(selectedDepartmentZone) ||
     Boolean(selectedDepartmentCircle) ||
     Boolean(selectedDepartmentDivision) ||
     Boolean(selectedDepartmentSubdivision) ||
     Boolean(selectedDepartmentVillage)
-  const dashboardData = data ?? (hasCentralLandingFilters ? EMPTY_DASHBOARD_DATA : undefined)
+  const hasCentralLandingFilters =
+    filterTabIndex === 0 ? hasLgdLandingFilters : hasDepartmentLandingFilters
+  const dashboardData = data ?? EMPTY_DASHBOARD_DATA
   const hierarchyType: HierarchyType = filterTabIndex === 0 ? 'LGD' : 'DEPARTMENT'
   const emptyOptions: SearchableSelectOption[] = []
   const isAdvancedEnabled = Boolean(selectedState && selectedDistrict)
@@ -467,15 +514,6 @@ export function CentralDashboard() {
     selectedGramPanchayatMockKey,
     emptyEntityPerformance
   )
-  const supplySubmissionRateFallbackData = isGramPanchayatSelected
-    ? villageTableData
-    : isBlockSelected
-      ? gramPanchayatTableData
-      : isDistrictSelected
-        ? blockTableData
-        : isStateSelected
-          ? districtTableData
-          : (dashboardData?.mapData ?? ([] as EntityPerformance[]))
   const supplySubmissionRateLabel = isGramPanchayatSelected
     ? t('performanceCharts.viewBy.villages', { defaultValue: 'Villages' })
     : isBlockSelected
@@ -511,18 +549,77 @@ export function CentralDashboard() {
   const { data: rootLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
-    parentId: 0,
     tenantCode: selectedTenant?.tenantCode,
     enabled: Boolean(selectedTenant?.tenantId),
   })
   const rootLocationOptions = mapLocationOptions(rootLocationsData?.data)
   const selectedRootOption = findLocationOption(rootLocationOptions, selectedState)
+  const isRootStateLevel = Boolean(selectedState) && Boolean(selectedRootOption)
+  const districtParentId = isRootStateLevel ? selectedRootOption?.locationId : undefined
+  const { data: districtLocationsData } = useLocationChildrenQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: districtParentId,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(selectedTenant?.tenantId && districtParentId),
+  })
+  const districtApiOptions = isRootStateLevel
+    ? mapLocationOptions(districtLocationsData?.data)
+    : rootLocationOptions
+  const selectedDistrictOption = findLocationOption(districtApiOptions, selectedDistrict)
+  const selectedDistrictId = parseLocationId(selectedDistrict) ?? selectedDistrictOption?.locationId
+  const { data: blockLocationsData } = useLocationChildrenQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: selectedDistrictId,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(selectedTenant?.tenantId && selectedDistrictId),
+  })
+  const blockApiOptions = mapLocationOptions(blockLocationsData?.data)
+  const { data: districtSchemeBlockLookup } = useDistrictSchemeBlockLookupQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    districtId: isDistrictSelected && hierarchyType === 'LGD' ? selectedDistrictId : undefined,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(isDistrictSelected && hierarchyType === 'LGD' && selectedDistrictId),
+  })
+  const selectedBlockOption = findLocationOption(blockApiOptions, selectedBlock)
+  const selectedBlockId = parseLocationId(selectedBlock) ?? selectedBlockOption?.locationId
+  const { data: blockSchemePanchayatLookup } = useBlockSchemePanchayatLookupQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    blockId: isBlockSelected && hierarchyType === 'LGD' ? selectedBlockId : undefined,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(isBlockSelected && hierarchyType === 'LGD' && selectedBlockId),
+  })
+  const { data: gramPanchayatLocationsData } = useLocationChildrenQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: selectedBlockId,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(selectedTenant?.tenantId && selectedBlockId),
+  })
+  const gramPanchayatApiOptions = mapLocationOptions(gramPanchayatLocationsData?.data)
+  const selectedGramPanchayatOption = findLocationOption(
+    gramPanchayatApiOptions,
+    selectedGramPanchayat
+  )
+  const selectedGramPanchayatId =
+    parseLocationId(selectedGramPanchayat) ?? selectedGramPanchayatOption?.locationId
+  const { data: villageLocationsData } = useLocationChildrenQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: selectedGramPanchayatId,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(selectedTenant?.tenantId && selectedGramPanchayatId),
+  })
+  const villageApiOptions = mapLocationOptions(villageLocationsData?.data)
   const lgdAnalyticsParentId =
-    parseLocationId(effectiveSelectedVillage) ??
-    parseLocationId(effectiveSelectedGramPanchayat) ??
-    parseLocationId(effectiveSelectedBlock) ??
-    parseLocationId(effectiveSelectedDistrict) ??
-    selectedRootOption?.locationId ??
+    parseAnalyticsLocationId(effectiveSelectedVillage, villageApiOptions) ??
+    parseAnalyticsLocationId(effectiveSelectedGramPanchayat, gramPanchayatApiOptions) ??
+    parseAnalyticsLocationId(effectiveSelectedBlock, blockApiOptions) ??
+    parseAnalyticsLocationId(effectiveSelectedDistrict, districtApiOptions) ??
+    selectedRootOption?.analyticsId ??
     0
   const departmentAnalyticsParentId =
     parseLocationId(selectedDepartmentVillage) ??
@@ -540,15 +637,6 @@ export function CentralDashboard() {
     hierarchyType === 'LGD' ? lgdAnalyticsParentId : departmentAnalyticsParentId
   const hasValidSubmissionStatusParentId =
     hierarchyType === 'LGD' ? hasValidAnalyticsParentId : hasValidDepartmentAnalyticsParentId
-  const analyticsFallbackData = isGramPanchayatSelected
-    ? villageTableData
-    : isBlockSelected
-      ? gramPanchayatTableData
-      : isDistrictSelected
-        ? blockTableData
-        : isStateSelected
-          ? districtTableData
-          : (dashboardData?.mapData ?? emptyEntityPerformance)
   const defaultAnalyticsRange = getDefaultAnalyticsDateRange()
   const analyticsDateRange = {
     startDate: toIsoDate(selectedDuration?.startDate) ?? defaultAnalyticsRange.startDate,
@@ -657,6 +745,12 @@ export function CentralDashboard() {
   const selectedSchemeId = Number.isFinite(parsedSelectedSchemeId)
     ? parsedSelectedSchemeId
     : undefined
+  const districtSchemeCount =
+    typeof dashboardData?.kpis.totalSchemes === 'number' &&
+    Number.isFinite(dashboardData.kpis.totalSchemes) &&
+    dashboardData.kpis.totalSchemes > 0
+      ? Math.trunc(dashboardData.kpis.totalSchemes)
+      : 10
   const shouldFetchSchemePerformanceAnalytics =
     (isStateSelected ||
       isDistrictSelected ||
@@ -671,13 +765,13 @@ export function CentralDashboard() {
           parentLgdId: analyticsParentId,
           startDate: analyticsDateRange.startDate,
           endDate: analyticsDateRange.endDate,
-          schemeCount: 10,
+          schemeCount: isDistrictSelected ? districtSchemeCount : 10,
         }
       : {
           parentDepartmentId: analyticsParentId,
           startDate: analyticsDateRange.startDate,
           endDate: analyticsDateRange.endDate,
-          schemeCount: 10,
+          schemeCount: isDistrictSelected ? districtSchemeCount : 10,
         }
   const submissionStatusAnalyticsParams =
     !hasCentralLandingFilters || !hasValidSubmissionStatusParentId
@@ -694,7 +788,7 @@ export function CentralDashboard() {
             endDate: analyticsDateRange.endDate,
           }
   const outageReasonsAnalyticsParams =
-    isVillageSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+    !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
@@ -846,31 +940,84 @@ export function CentralDashboard() {
     params: previousRegularityAnalyticsParams,
     enabled: Boolean(previousRegularityAnalyticsParams),
   })
+  const previousQuantityPeriodicAnalyticsParams =
+    !isVillageSelected || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            lgdId: analyticsParentId,
+            startDate: previousAnalyticsRange.startDate,
+            endDate: previousAnalyticsRange.endDate,
+            scale: resolveWaterQuantityPeriodicScale(
+              previousAnalyticsRange.startDate,
+              previousAnalyticsRange.endDate
+            ),
+          }
+        : {
+            departmentId: analyticsParentId,
+            startDate: previousAnalyticsRange.startDate,
+            endDate: previousAnalyticsRange.endDate,
+            scale: resolveWaterQuantityPeriodicScale(
+              previousAnalyticsRange.startDate,
+              previousAnalyticsRange.endDate
+            ),
+          }
+  const previousRegularityPeriodicAnalyticsParams =
+    !isVillageSelected || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            lgdId: analyticsParentId,
+            startDate: previousAnalyticsRange.startDate,
+            endDate: previousAnalyticsRange.endDate,
+            scale: resolveWaterQuantityPeriodicScale(
+              previousAnalyticsRange.startDate,
+              previousAnalyticsRange.endDate
+            ),
+          }
+        : {
+            departmentId: analyticsParentId,
+            startDate: previousAnalyticsRange.startDate,
+            endDate: previousAnalyticsRange.endDate,
+            scale: resolveWaterQuantityPeriodicScale(
+              previousAnalyticsRange.startDate,
+              previousAnalyticsRange.endDate
+            ),
+          }
+  const { data: previousWaterQuantityPeriodicData } = useWaterQuantityPeriodicQuery({
+    params: previousQuantityPeriodicAnalyticsParams,
+    enabled: Boolean(previousQuantityPeriodicAnalyticsParams),
+  })
+  const { data: previousSchemeRegularityPeriodicData } = useSchemeRegularityPeriodicQuery({
+    params: previousRegularityPeriodicAnalyticsParams,
+    enabled: Boolean(previousRegularityPeriodicAnalyticsParams),
+  })
   const isCentralLandingView = !hasCentralLandingFilters
   const quantityPerformanceData = isCentralLandingView
-    ? mapQuantityPerformanceFromNationalDashboard(nationalDashboardData, analyticsFallbackData)
-    : mapQuantityPerformanceFromAnalytics(averageWaterSupplyData, analyticsFallbackData)
+    ? mapQuantityPerformanceFromNationalDashboard(nationalDashboardData, emptyEntityPerformance)
+    : mapQuantityPerformanceFromAnalytics(averageWaterSupplyData, emptyEntityPerformance)
   const regularityPerformanceData = isCentralLandingView
-    ? mapRegularityPerformanceFromNationalDashboard(nationalDashboardData, analyticsFallbackData)
-    : mapRegularityPerformanceFromAnalytics(averageSchemeRegularityData, analyticsFallbackData)
+    ? mapRegularityPerformanceFromNationalDashboard(nationalDashboardData, emptyEntityPerformance)
+    : mapRegularityPerformanceFromAnalytics(averageSchemeRegularityData, emptyEntityPerformance)
   const supplySubmissionRateData = isCentralLandingView
-    ? mapReadingSubmissionRateFromNationalDashboard(
-        nationalDashboardData,
-        supplySubmissionRateFallbackData
-      )
-    : mapReadingSubmissionRateFromAnalytics(
-        readingSubmissionRateData,
-        supplySubmissionRateFallbackData
-      )
+    ? mapReadingSubmissionRateFromNationalDashboard(nationalDashboardData, [])
+    : mapReadingSubmissionRateFromAnalytics(readingSubmissionRateData, [])
   const readingSubmissionStatusData = mapReadingSubmissionStatusFromAnalytics(
     submissionStatusData,
-    dashboardData?.readingSubmissionStatus ?? []
+    []
   )
   const pumpOperatorsData = mapSchemePerformanceToPumpOperators(
     schemePerformanceData,
     shouldFetchSchemePerformanceAnalytics ? [] : (dashboardData?.pumpOperators ?? [])
   )
-  const operatorsPerformanceAnalyticsTable = mapSchemePerformanceToTable(schemePerformanceData, [])
+  const operatorsPerformanceAnalyticsTable = mapSchemePerformanceToTable(
+    schemePerformanceData,
+    [],
+    {
+      blockTitleByParentId: districtSchemeBlockLookup,
+      parentLgdTitleById: blockSchemePanchayatLookup,
+    }
+  )
   const derivedVillageSchemeId = isVillageSelected
     ? (selectedSchemeId ?? schemePerformanceData?.topSchemes?.[0]?.schemeId)
     : undefined
@@ -897,28 +1044,43 @@ export function CentralDashboard() {
     ? mapNationalQuantityTrendPoints(nationalSchemeRegularityPeriodicData)
     : periodicQuantityTimeTrendData.length > 0
       ? periodicQuantityTimeTrendData
-      : mapDemandSupplyToTrendPoints(dashboardData?.demandSupply, (item) => item.supply)
+      : []
   const regularityTimeTrendData = isCentralLandingView
     ? mapNationalRegularityTrendPoints(nationalSchemeRegularityPeriodicData)
     : periodicRegularityTimeTrendData.length > 0
       ? periodicRegularityTimeTrendData
-      : mapDemandSupplyToTrendPoints(dashboardData?.demandSupply, (item) =>
-          item.demand > 0 ? Math.min(100, Math.round((item.supply / item.demand) * 100)) : 0
-        )
+      : []
   const outageReasonsTimeTrendData =
     mapOutageReasonsPeriodicToTrendPoints(outageReasonsPeriodicData)
   const currentWaterSupplyKpis = isCentralLandingView
     ? getWaterSupplyKpisFromNationalDashboard(nationalDashboardData, 5)
-    : getWaterSupplyKpis(currentWaterSupplyKpiData, 5)
+    : isVillageSelected
+      ? getWaterSupplyKpisFromPeriodic(waterQuantityPeriodicData, 5)
+      : getWaterSupplyKpis(currentWaterSupplyKpiData, 5)
   const previousWaterSupplyKpis = isCentralLandingView
     ? getWaterSupplyKpisFromNationalDashboard(previousNationalDashboardData, 5)
-    : getWaterSupplyKpis(previousWaterSupplyKpiData, 5)
+    : isVillageSelected
+      ? getWaterSupplyKpisFromPeriodic(previousWaterQuantityPeriodicData, 5)
+      : getWaterSupplyKpis(previousWaterSupplyKpiData, 5)
   const currentRegularityKpi = isCentralLandingView
     ? getRegularityKpiFromNationalDashboard(nationalDashboardData)
-    : getRegularityKpi(currentRegularityKpiData)
+    : isVillageSelected
+      ? getRegularityKpiFromPeriodic(schemeRegularityPeriodicData)
+      : getRegularityKpi(currentRegularityKpiData)
   const previousRegularityKpi = isCentralLandingView
     ? getRegularityKpiFromNationalDashboard(previousNationalDashboardData)
-    : getRegularityKpi(previousRegularityKpiData)
+    : isVillageSelected
+      ? getRegularityKpiFromPeriodic(previousSchemeRegularityPeriodicData)
+      : getRegularityKpi(previousRegularityKpiData)
+  const previousWaterSupplyComparisonRange: {
+    daysInRange?: number
+    startDate?: string
+    endDate?: string
+  } = {
+    daysInRange: previousWaterSupplyKpiData?.daysInRange,
+    startDate: previousWaterSupplyAnalyticsParams?.startDate,
+    endDate: previousWaterSupplyAnalyticsParams?.endDate,
+  }
 
   const updateFilterUrl = (filters: {
     state?: string
@@ -1085,46 +1247,6 @@ export function CentralDashboard() {
     inactiveDays: 'N/A',
   }
 
-  if (isLoading) {
-    return (
-      <Flex h="100vh" align="center" justify="center">
-        <LoadingSpinner />
-      </Flex>
-    )
-  }
-
-  if (error && !dashboardData) {
-    return (
-      <Flex h="100vh" align="center" justify="center">
-        <Box textAlign="center">
-          <Heading fontSize="2xl" fontWeight="bold" color="red.600">
-            Error loading dashboard
-          </Heading>
-          <Text mt={2} color="gray.600">
-            {error instanceof Error ? error.message : 'Unknown error'}
-          </Text>
-        </Box>
-      </Flex>
-    )
-  }
-
-  if (!dashboardData) {
-    return (
-      <Flex h="100vh" align="center" justify="center">
-        <Box textAlign="center">
-          <Heading fontSize="2xl" fontWeight="bold" color="red.600">
-            {t('states.dataUnavailable.title', { defaultValue: 'Dashboard data unavailable' })}
-          </Heading>
-          <Text mt={2} color="gray.600">
-            {t('states.dataUnavailable.description', {
-              defaultValue: 'No dashboard data was returned.',
-            })}
-          </Text>
-        </Box>
-      </Flex>
-    )
-  }
-
   if (
     !dashboardData.kpis ||
     !dashboardData.mapData ||
@@ -1156,29 +1278,33 @@ export function CentralDashboard() {
     ? [toOutageReasonsData(outageReasonsData.outageReasonSchemeCount)]
     : null
   const nationalWaterSupplyOutageReasonsData = isCentralLandingView
-    ? mapOutageReasonsFromNationalDashboard(nationalDashboardData, dashboardData.waterSupplyOutages)
+    ? mapOutageReasonsFromNationalDashboard(nationalDashboardData, [])
     : null
   const apiWaterSupplyOutageDistributionData = outageReasonsData?.childRegions?.length
     ? toOutageDistributionData(outageReasonsData.childRegions)
     : null
   const waterSupplyOutagesData =
-    nationalWaterSupplyOutageReasonsData ??
-    apiWaterSupplyOutageReasonsData ??
-    dashboardData.waterSupplyOutages
-  const waterSupplyOutageDistributionData =
-    apiWaterSupplyOutageDistributionData ?? dashboardData.waterSupplyOutages
+    nationalWaterSupplyOutageReasonsData ?? apiWaterSupplyOutageReasonsData ?? []
+  const waterSupplyOutageDistributionData = apiWaterSupplyOutageDistributionData ?? []
   const resolvedSupplyOutageTrend =
     outageReasonsTimeTrendData.length > 0
       ? outageReasonsTimeTrendData
       : dashboardData.supplyOutageTrend
+  const resolvedReadingCompliance =
+    (isBlockSelected && !isGramPanchayatSelected && !isVillageSelected) ||
+    (isGramPanchayatSelected && !isVillageSelected)
+      ? mockReadingCompliance
+      : dashboardData.readingCompliance
   const resolvedDashboardData =
     readingSubmissionStatusData === dashboardData.readingSubmissionStatus &&
     pumpOperatorsData === dashboardData.pumpOperators &&
-    resolvedSupplyOutageTrend === dashboardData.supplyOutageTrend
+    resolvedSupplyOutageTrend === dashboardData.supplyOutageTrend &&
+    resolvedReadingCompliance === dashboardData.readingCompliance
       ? dashboardData
       : {
           ...dashboardData,
           readingSubmissionStatus: readingSubmissionStatusData,
+          readingCompliance: resolvedReadingCompliance,
           pumpOperators: pumpOperatorsData,
           supplyOutageTrend: resolvedSupplyOutageTrend,
         }
@@ -1215,6 +1341,23 @@ export function CentralDashboard() {
     }
     return 'neutral'
   }
+  const buildNeutralAwareTrend = (
+    currentValue: number,
+    changeValue: number,
+    formatter: (value: number) => string
+  ) => {
+    if (currentValue === 0) {
+      return {
+        direction: 'neutral' as const,
+        text: formatter(0),
+      }
+    }
+
+    return {
+      direction: toTrendDirection(changeValue),
+      text: formatter(changeValue),
+    }
+  }
 
   const coreMetrics = [
     {
@@ -1223,32 +1366,48 @@ export function CentralDashboard() {
         minimumFractionDigits: 0,
         maximumFractionDigits: 2,
       }),
-      trend: {
-        direction: toTrendDirection(quantityMldChange),
-        text: `${formatSignedValue(quantityMldChange, {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 1,
-        })}% vs last ${resolveDaysInRange(
-          previousWaterSupplyKpiData?.daysInRange,
-          previousWaterSupplyAnalyticsParams?.startDate,
-          previousWaterSupplyAnalyticsParams?.endDate
-        )} days`,
-      },
+      trend: buildNeutralAwareTrend(
+        currentWaterSupplyKpis.quantityMld,
+        quantityMldChange,
+        (trendValue) =>
+          `${formatSignedValue(trendValue, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 1,
+          })}% vs last ${resolveDaysInRange(
+            previousWaterSupplyComparisonRange.daysInRange,
+            previousWaterSupplyComparisonRange.startDate,
+            previousWaterSupplyComparisonRange.endDate
+          )} days`
+      ),
       icon: (
-        <Flex w="48px" h="48px" borderRadius="100px" bg="#E6F7EC" align="center" justify="center">
+        <Flex w="48px" h="48px" borderRadius="100px" bg="#E1FFEA" align="center" justify="center">
           <Image src={waterTapIcon} alt="" w="24px" h="24px" />
         </Flex>
       ),
       tooltipContent: renderFormulaTooltip(
         <>
-          Quantity (MLD) = SUM(W<sub>k</sub>) / N
+          {t('kpi.tooltips.quantityMld.formulaLabel', { defaultValue: 'Quantity (MLD)' })} = SUM(W
+          <sub>k</sub>) / N
         </>,
         [
           <>
-            W<sub>k</sub> = water quantity supplied on day k
+            W<sub>k</sub> ={' '}
+            {t('kpi.tooltips.quantityMld.definitions.waterQuantitySupplied', {
+              defaultValue: 'water quantity supplied on day k',
+            })}
           </>,
-          <>SUM(Wk) = total water supplied across all days</>,
-          <>N = total number of days</>,
+          <>
+            SUM(Wk) ={' '}
+            {t('kpi.tooltips.quantityMld.definitions.totalWaterSupplied', {
+              defaultValue: 'total water supplied across all days',
+            })}
+          </>,
+          <>
+            N ={' '}
+            {t('kpi.tooltips.quantityMld.definitions.totalNumberOfDays', {
+              defaultValue: 'total number of days',
+            })}
+          </>,
         ]
       ),
     },
@@ -1258,13 +1417,15 @@ export function CentralDashboard() {
         minimumFractionDigits: 0,
         maximumFractionDigits: 1,
       }),
-      trend: {
-        direction: toTrendDirection(quantityLpcdChange),
-        text: `${formatSignedValue(quantityLpcdChange, {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 1,
-        })} LPCD vs last month`,
-      },
+      trend: buildNeutralAwareTrend(
+        currentWaterSupplyKpis.quantityLpcd,
+        quantityLpcdChange,
+        (trendValue) =>
+          `${formatSignedValue(trendValue, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 1,
+          })} LPCD vs last month`
+      ),
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
           <Icon as={MdOutlineWaterDrop} w="24px" h="24px" color="#2E90FA" />
@@ -1272,17 +1433,34 @@ export function CentralDashboard() {
       ),
       tooltipContent: renderFormulaTooltip(
         <>
-          Quantity (LPCD) = SUM(W<sub>k</sub>) / (SUM(FHTC<sub>i</sub>) x P x N)
+          {t('kpi.tooltips.quantityLpcd.formulaLabel', { defaultValue: 'Quantity (LPCD)' })} = SUM(W
+          <sub>k</sub>) / (SUM(FHTC<sub>i</sub>) x P x N)
         </>,
         [
           <>
-            W<sub>k</sub> = water quantity supplied on day k
+            W<sub>k</sub> ={' '}
+            {t('kpi.tooltips.quantityLpcd.definitions.waterQuantitySupplied', {
+              defaultValue: 'water quantity supplied on day k',
+            })}
           </>,
           <>
-            FHTC<sub>i</sub> = functional household tap connections of scheme i
+            FHTC<sub>i</sub> ={' '}
+            {t('kpi.tooltips.quantityLpcd.definitions.functionalHouseholdTapConnections', {
+              defaultValue: 'functional household tap connections of scheme i',
+            })}
           </>,
-          <>P = average persons per household</>,
-          <>N = number of days</>,
+          <>
+            P ={' '}
+            {t('kpi.tooltips.quantityLpcd.definitions.averagePersonsPerHousehold', {
+              defaultValue: 'average persons per household',
+            })}
+          </>,
+          <>
+            N ={' '}
+            {t('kpi.tooltips.quantityLpcd.definitions.numberOfDays', {
+              defaultValue: 'number of days',
+            })}
+          </>,
         ]
       ),
     },
@@ -1292,13 +1470,15 @@ export function CentralDashboard() {
         minimumFractionDigits: 1,
         maximumFractionDigits: 1,
       })}%`,
-      trend: {
-        direction: toTrendDirection(regularityChange),
-        text: `${formatSignedValue(regularityChange, {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 1,
-        })}% vs last month`,
-      },
+      trend: buildNeutralAwareTrend(
+        currentRegularityKpi,
+        regularityChange,
+        (trendValue) =>
+          `${formatSignedValue(trendValue, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 1,
+          })}% vs last month`
+      ),
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#FFF4CC" align="center" justify="center">
           <Image src={wallClockIcon} alt="" w="24px" h="24px" />
@@ -1306,13 +1486,22 @@ export function CentralDashboard() {
       ),
       tooltipContent: renderFormulaTooltip(
         <>
-          Regularity of scheme = X<sub>i</sub> / N
+          {t('kpi.tooltips.regularity.formulaLabel', { defaultValue: 'Regularity of scheme' })} = X
+          <sub>i</sub> / N
         </>,
         [
           <>
-            X<sub>i</sub> = number of supply-days of scheme i
+            X<sub>i</sub> ={' '}
+            {t('kpi.tooltips.regularity.definitions.numberOfSupplyDays', {
+              defaultValue: 'number of supply-days of scheme i',
+            })}
           </>,
-          <>N = total number of days in the selected time period</>,
+          <>
+            N ={' '}
+            {t('kpi.tooltips.regularity.definitions.totalNumberOfDaysInSelectedPeriod', {
+              defaultValue: 'total number of days in the selected time period',
+            })}
+          </>,
         ]
       ),
     },
@@ -1327,7 +1516,6 @@ export function CentralDashboard() {
     ? operatorsPerformanceAnalyticsTable
     : [...leadingPumpOperators, ...bottomPumpOperators]
   const villagePhotoEvidenceRows = dashboardData.readingCompliance ?? []
-
   return (
     <Box>
       <DashboardFilters
@@ -1440,6 +1628,17 @@ export function CentralDashboard() {
       ) : null}
       <DashboardBody
         data={resolvedDashboardData}
+        performanceScreenKey={
+          isStateSelected && !isDistrictSelected && !isBlockSelected && !isGramPanchayatSelected
+            ? `state:${effectiveSelectedState}`
+            : !isStateSelected &&
+                !isDistrictSelected &&
+                !isBlockSelected &&
+                !isGramPanchayatSelected &&
+                !isVillageSelected
+              ? 'central'
+              : null
+        }
         isStateSelected={isStateSelected}
         isDistrictSelected={isDistrictSelected}
         isBlockSelected={isBlockSelected}

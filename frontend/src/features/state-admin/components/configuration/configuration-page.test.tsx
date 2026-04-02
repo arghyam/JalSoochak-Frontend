@@ -3,9 +3,15 @@ import { describe, expect, it, jest, beforeEach } from '@jest/globals'
 import { ConfigurationPage } from './configuration-page'
 import { renderWithProviders } from '@/test/render-with-providers'
 
+const mockNavigate = jest.fn()
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockMutateAsync = jest.fn<(...args: any[]) => any>()
 const mockUseConfigurationQuery = jest.fn()
+const mockUseSystemChannelsQuery = jest.fn()
+
+jest.mock('react-router-dom', () => ({
+  useNavigate: () => mockNavigate,
+}))
 
 jest.mock('../../services/query/use-state-admin-queries', () => ({
   useConfigurationQuery: () => mockUseConfigurationQuery(),
@@ -18,19 +24,29 @@ jest.mock('../../services/query/use-state-admin-queries', () => ({
     mutateAsync: jest.fn(),
     isPending: false,
   }),
+  useSystemChannelsQuery: () => mockUseSystemChannelsQuery(),
 }))
+
+const defaultSupplyOutageReasons = [
+  { id: 'PUMP_FAILURE', name: 'Pump Failure', isDefault: true, editable: true },
+  { id: 'OTHERS', name: 'Others', isDefault: true, editable: false },
+]
 
 const configuredConfig = {
   id: '1',
-  supportedChannels: ['IOT', 'Manual'],
+  supportedChannels: ['IOT', 'MAN'],
   logoUrl: undefined,
   meterChangeReasons: [
     { id: 'r1', name: 'Meter Replaced' },
     { id: 'r2', name: 'Meter Not Working' },
   ],
+  supplyOutageReasons: defaultSupplyOutageReasons,
   locationCheckRequired: true,
+  displayDepartmentMaps: false,
   dataConsolidationTime: '08:00',
   pumpOperatorReminderNudgeTime: '09:00',
+  dateFormatScreen: { dateFormat: null, timeFormat: null, timezone: null },
+  dateFormatTable: { dateFormat: null, timeFormat: null, timezone: null },
   averageMembersPerHousehold: 4.5,
   isConfigured: true,
 }
@@ -44,8 +60,13 @@ const unconfiguredConfig = {
     { id: 'r2', name: 'Meter Not Working' },
     { id: 'r3', name: 'Meter Damaged' },
   ],
+  supplyOutageReasons: defaultSupplyOutageReasons,
   locationCheckRequired: false,
+  displayDepartmentMaps: false,
   dataConsolidationTime: '',
+  pumpOperatorReminderNudgeTime: '',
+  dateFormatScreen: { dateFormat: null, timeFormat: null, timezone: null },
+  dateFormatTable: { dateFormat: null, timeFormat: null, timezone: null },
   averageMembersPerHousehold: 0,
   isConfigured: false,
 }
@@ -55,6 +76,11 @@ describe('ConfigurationPage', () => {
     jest.clearAllMocks()
     mockUseConfigurationQuery.mockReturnValue({
       data: configuredConfig,
+      isLoading: false,
+      isError: false,
+    })
+    mockUseSystemChannelsQuery.mockReturnValue({
+      data: ['BFM', 'ELM', 'PDU', 'IOT', 'MAN'],
       isLoading: false,
       isError: false,
     })
@@ -137,7 +163,7 @@ describe('ConfigurationPage', () => {
     })
     renderWithProviders(<ConfigurationPage />)
 
-    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /save & next/i }))
 
     await waitFor(() => {
       expect(mockMutateAsync).not.toHaveBeenCalled()
@@ -149,12 +175,16 @@ describe('ConfigurationPage', () => {
     renderWithProviders(<ConfigurationPage />)
 
     fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
+
+    // Make a change so hasChanges becomes true (add BFM to existing selection)
+    fireEvent.click(screen.getByRole('checkbox', { name: /bulk flow meter/i }))
+
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
 
     await waitFor(() => {
       expect(mockMutateAsync).toHaveBeenCalledWith(
         expect.objectContaining({
-          supportedChannels: configuredConfig.supportedChannels,
+          supportedChannels: expect.arrayContaining(configuredConfig.supportedChannels),
           isConfigured: true,
         })
       )
@@ -169,12 +199,12 @@ describe('ConfigurationPage', () => {
     })
     renderWithProviders(<ConfigurationPage />)
 
-    // Click "+ Add New Reason" to create an empty input row
-    fireEvent.click(screen.getByRole('button', { name: /add new reason/i }))
+    // Click the first "+ Add New Reason" button (Meter Change Reasons section)
+    fireEvent.click(screen.getAllByRole('button', { name: /add new reason/i })[0])
 
-    // Type in the newly added (last) empty input
+    // Find the newly added empty input (the one with no value yet)
     const inputs = screen.getAllByPlaceholderText(/enter reason/i)
-    const newInput = inputs.at(-1)!
+    const newInput = inputs.find((el) => (el as HTMLInputElement).value === '')!
     fireEvent.change(newInput, { target: { value: 'New Reason' } })
 
     expect(screen.getByDisplayValue('New Reason')).toBeTruthy()
@@ -234,7 +264,7 @@ describe('ConfigurationPage', () => {
     })
     renderWithProviders(<ConfigurationPage />)
 
-    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /save & next/i }))
 
     await waitFor(() => {
       expect(screen.getByText(/select at least one option/i)).toBeTruthy()
@@ -250,12 +280,12 @@ describe('ConfigurationPage', () => {
     })
     renderWithProviders(<ConfigurationPage />)
 
-    // Add a new empty reason
-    fireEvent.click(screen.getByRole('button', { name: /add new reason/i }))
+    // Add a new empty reason (first button = Meter Change Reasons section)
+    fireEvent.click(screen.getAllByRole('button', { name: /add new reason/i })[0])
 
     // Select a channel so that validation passes for channels
     fireEvent.click(screen.getByText('IOT'))
-    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /save & next/i }))
 
     await waitFor(() => {
       expect(screen.getByText(/cannot be empty/i)).toBeTruthy()
@@ -275,7 +305,7 @@ describe('ConfigurationPage', () => {
     fireEvent.change(inputs[0], { target: { value: 'Reason@#$' } })
 
     fireEvent.click(screen.getByText('IOT'))
-    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /save & next/i }))
 
     await waitFor(() => {
       expect(screen.getByText(/Only letters, numbers, and spaces/i)).toBeTruthy()
@@ -293,7 +323,7 @@ describe('ConfigurationPage', () => {
 
     // Select a channel
     fireEvent.click(screen.getByText('IOT'))
-    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /save & next/i }))
 
     await waitFor(() => {
       expect(screen.getAllByText(/please select a time/i).length).toBeGreaterThanOrEqual(1)
@@ -310,7 +340,7 @@ describe('ConfigurationPage', () => {
     renderWithProviders(<ConfigurationPage />)
 
     fireEvent.click(screen.getByText('IOT'))
-    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /save & next/i }))
 
     await waitFor(() => {
       expect(screen.getByText(/must be greater than 0/i)).toBeTruthy()
@@ -326,7 +356,7 @@ describe('ConfigurationPage', () => {
     })
     renderWithProviders(<ConfigurationPage />)
 
-    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+    fireEvent.click(screen.getByRole('button', { name: /save & next/i }))
 
     await waitFor(() => {
       expect(screen.getByText(/select at least one option/i)).toBeTruthy()
@@ -336,15 +366,43 @@ describe('ConfigurationPage', () => {
     expect(screen.queryByText(/select at least one option/i)).toBeNull()
   })
 
-  it('shows Save button for unconfigured and Save Changes for reconfiguring', () => {
-    // Unconfigured → "Save"
+  it('renders degraded removed channels as disabled checkboxes with warning icon', () => {
+    mockUseConfigurationQuery.mockReturnValue({
+      data: {
+        ...unconfiguredConfig,
+        supportedChannels: ['BFM'],
+        degraded: true,
+        removedChannels: ['MAN'],
+        isConfigured: true,
+      },
+      isLoading: false,
+      isError: false,
+    })
+
+    // System channels API does not list 'MAN' — it was removed from system support
+    mockUseSystemChannelsQuery.mockReturnValue({
+      data: ['BFM', 'ELM', 'PDU', 'IOT'],
+      isLoading: false,
+      isError: false,
+    })
+
+    renderWithProviders(<ConfigurationPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
+
+    const manualCheckbox = screen.getByRole('checkbox', { name: /manual/i })
+    expect((manualCheckbox as HTMLInputElement).disabled).toBe(true)
+  })
+
+  it('shows Save & Next button for unconfigured and Save Changes for reconfiguring', () => {
+    // Unconfigured → "Save & Next"
     mockUseConfigurationQuery.mockReturnValue({
       data: unconfiguredConfig,
       isLoading: false,
       isError: false,
     })
     const { unmount } = renderWithProviders(<ConfigurationPage />)
-    expect(screen.getByRole('button', { name: /^save$/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /save & next/i })).toBeTruthy()
     unmount()
 
     // Configured → click Edit → "Save Changes"

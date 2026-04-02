@@ -6,6 +6,10 @@
     "departmentTitle": "विभाग पदानुक्रम",
     "levelLabel": "स्तर {{level}}",
     "addLevel": "स्तर जोड़ें",
+    "breadcrumb": {
+      "view": "पदानुक्रम देखें",
+      "edit": "पदानुक्रम संपादित करें"
+    },
     "messages": {
       "saveSuccess": "पदानुक्रम सफलतापूर्वक सहेजा गया",
       "saveFailed": "पदानुक्रम सहेजने में विफल",
@@ -91,6 +95,10 @@
     "primaryLanguage": "प्राथमिक भाषा",
     "secondaryLanguage": "द्वितीयक भाषा (वैकल्पिक)",
     "tertiaryLanguage": "तृतीयक भाषा (वैकल्पिक)",
+    "breadcrumb": {
+      "view": "भाषा देखें",
+      "edit": "भाषा संपादित करें"
+    },
     "aria": {
       "editConfiguration": "भाषा कॉन्फ़िगरेशन संपादित करें",
       "selectPrimaryLanguage": "प्राथमिक भाषा चुनें",
@@ -122,6 +130,10 @@
   "waterNorms": {
     "title": "जल मानक",
     "stateUtWaterNorms": "राज्य/केंद्र शासित प्रदेश जल मानक",
+    "breadcrumb": {
+      "view": "जल मानक देखें",
+      "edit": "जल मानक संपादित करें"
+    },
     "currentQuantity": "वर्तमान मात्रा (LPCD)",
     "alertThresholds": {
       "title": "अलर्ट सीमाएं",
@@ -164,6 +176,10 @@
   "escalations": {
     "title": "वृद्धि",
     "allEscalations": "सभी वृद्धि",
+    "breadcrumb": {
+      "view": "वृद्धि देखें",
+      "edit": "वृद्धि संपादित करें"
+    },
     "escalationRules": "वृद्धि नियम",
     "addNewEscalationType": "नया वृद्धि प्रकार जोड़ें",
     "addNewShort": "नया जोड़ें",
@@ -348,6 +364,9 @@
     "title": "योजना मैपिंग सिंक",
     "searchPlaceholder": "योजना नाम से खोजें",
     "uploadData": "डेटा अपलोड करें",
+    "filters": {
+      "clearAll": "सभी फ़िल्टर हटाएं"
+    },
     "table": {
       "schemeName": "योजना नाम",
       "stateSchemeId": "राज्य योजना आईडी",
@@ -379,6 +398,10 @@
   "configuration": {
     "pageTitle": "कॉन्फ़िगरेशन",
     "sectionTitle": "राज्य/केंद्र शासित प्रदेश कॉन्फ़िगरेशन",
+    "breadcrumb": {
+      "view": "कॉन्फ़िगरेशन देखें",
+      "edit": "कॉन्फ़िगरेशन संपादित करें"
+    },
     "sections": {
       "lgdHierarchy": {
         "title": "LGD पदानुक्रम",
@@ -389,7 +412,8 @@
         "levelLabel": "स्तर {{level}}"
       },
       "supportedChannels": {
-        "title": "समर्थित चैनल"
+        "title": "समर्थित चैनल",
+        "degradedTooltip": "इस चैनल के लिए सिस्टम समर्थन हटा दिया गया है"
       },
       "logo": {
         "title": "लोगो",
@@ -406,8 +430,20 @@
         "editAriaLabel": "कारण {{name}} संपादित करें",
         "deleteAriaLabel": "कारण {{name}} हटाएं"
       },
+      "supplyOutageReasons": {
+        "title": "आपूर्ति बाधा कारण",
+        "placeholder": "कारण दर्ज करें",
+        "addNewButton": "+ नया कारण जोड़ें",
+        "editAriaLabel": "कारण {{name}} संपादित करें",
+        "deleteAriaLabel": "कारण {{name}} हटाएं"
+      },
       "locationCheckRequired": {
         "title": "स्थान रिकॉर्ड करें",
+        "yes": "हाँ",
+        "no": "नहीं"
+      },
+      "displayDepartmentMaps": {
+        "title": "विभागीय मानचित्र प्रदर्शित करें",
         "yes": "हाँ",
         "no": "नहीं"
       },
@@ -417,9 +453,36 @@
       "pumpOperatorReminderNudgeTime": {
         "title": "पंप ऑपरेटर रिमाइंडर नज समय"
       },
+      "dateFormatScreen": {
+        "title": "स्क्रीन दिनांक प्रारूप"
+      },
+      "dateFormatTable": {
+        "title": "तालिका दिनांक प्रारूप"
+      },
+      "dateFormat": {
+        "dateFormat": "दिनांक प्रारूप",
+        "timeFormat": "समय प्रारूप",
+        "timezone": "समय क्षेत्र",
+        "datePlaceholder": "दिनांक प्रारूप चुनें",
+        "timePlaceholder": "समय प्रारूप चुनें",
+        "timezonePlaceholder": "समय क्षेत्र चुनें"
+      },
       "averageMembersPerHousehold": {
         "title": "प्रति परिवार औसत सदस्य"
       }
+    },
+    "infoText": {
+      "supportedChannels": "वे चैनल जिनके माध्यम से योजनाएं छोड़े गए जल प्रवाह को ट्रैक करती हैं।",
+      "meterChangeReasons": "वे कारण जो क्षेत्र ऑपरेटर मीटर प्रतिस्थापन घटना लॉग करते समय चुन सकते हैं।",
+      "supplyOutageReasons": "वे कारण जो क्षेत्र ऑपरेटर जल आपूर्ति बाधा रिपोर्ट करते समय चुन सकते हैं।",
+      "locationCheckRequired": "सक्षम होने पर, रीडिंग सबमिट करते समय क्षेत्र ऑपरेटरों को अपना GPS स्थान साझा करना अनिवार्य होगा।",
+      "displayDepartmentMaps": "सक्षम होने पर, डैशबोर्ड पर विभागीय मानचित्र दृश्य दिखाए जाएंगे।",
+      "dataConsolidationTime": "दैनिक समय जिस पर रिपोर्टिंग के लिए क्षेत्र डेटा संकलित और समेकित किया जाता है।",
+      "pumpOperatorReminderNudgeTime": "दैनिक समय जिस पर उन पंप ऑपरेटरों को स्वचालित अनुस्मारक भेजे जाते हैं जिन्होंने अभी तक रीडिंग सबमिट नहीं की है।",
+      "dateFormatScreen": "सभी ऑन-स्क्रीन डिस्प्ले जैसे डैशबोर्ड में उपयोग किया जाने वाला दिनांक, समय और टाइमज़ोन प्रारूप।",
+      "dateFormatTable": "डेटा तालिकाओं और निर्यातित रिपोर्ट में उपयोग किया जाने वाला दिनांक, समय और टाइमज़ोन प्रारूप।",
+      "averageMembersPerHousehold": "घरेलू स्तर की आपूर्ति डेटा से प्रति व्यक्ति जल खपत का अनुमान लगाने के लिए उपयोग किया जाता है। स्वीकृत सीमा: 1–20।",
+      "logo": "ऐप में प्रदर्शित संगठन का लोगो। PNG या JPG, अधिकतम 2 MB।"
     },
     "aria": {
       "form": "कॉन्फ़िगरेशन फ़ॉर्म",
@@ -492,6 +555,7 @@
 
   "messageTemplates": {
     "title": "टेम्पलेट",
+    "subtitle": "WhatsApp टेम्पलेट्स (केवल पढ़ें)",
     "selectLanguage": "भाषा चुनें",
     "selectTemplate": "टेम्पलेट चुनें",
     "language": "भाषा",

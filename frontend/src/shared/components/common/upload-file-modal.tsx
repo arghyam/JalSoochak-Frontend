@@ -10,7 +10,7 @@ import {
   ModalOverlay,
   Text,
 } from '@chakra-ui/react'
-import { FiUpload, FiX, FiAlertCircle } from 'react-icons/fi'
+import { FiUpload, FiX, FiAlertCircle, FiDownload } from 'react-icons/fi'
 
 export interface ValidationFieldError {
   row: number
@@ -41,6 +41,8 @@ export interface UploadFileModalProps {
   cancelLabel?: string
   /** Validation field errors returned by the server on a 400 response */
   validationErrors?: ValidationFieldError[]
+  /** When provided, renders a "Template" download button at the leftmost side of the footer */
+  templateDownloadHref?: string
 }
 
 export function UploadFileModal({
@@ -56,6 +58,7 @@ export function UploadFileModal({
   closeAriaLabel = 'Close',
   cancelLabel = 'Cancel',
   validationErrors,
+  templateDownloadHref,
 }: UploadFileModalProps) {
   const { t } = useTranslation('common')
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -271,7 +274,22 @@ export function UploadFileModal({
             </Box>
           )}
 
-          <Flex gap={3} mt={6} justify="flex-end">
+          <Flex gap={3} mt={6} align="center">
+            {templateDownloadHref && (
+              <Button
+                as="a"
+                href={templateDownloadHref}
+                download
+                variant="secondary"
+                size="sm"
+                fontWeight="600"
+                mr="auto"
+                leftIcon={<FiDownload size={14} aria-hidden="true" />}
+                aria-label={t('upload.downloadTemplateAria')}
+              >
+                {t('upload.downloadTemplate')}
+              </Button>
+            )}
             <Button variant="secondary" size="sm" onClick={handleClose} isDisabled={isPending}>
               {cancelLabel}
             </Button>

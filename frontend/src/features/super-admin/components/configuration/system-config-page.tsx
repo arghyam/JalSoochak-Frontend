@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   Box,
   Text,
@@ -15,8 +15,9 @@ import {
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
+import { IoInformation } from 'react-icons/io5'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer } from '@/shared/components/common'
+import { ToastContainer, EditableBreadcrumb, ActionTooltip } from '@/shared/components/common'
 import {
   useSystemConfigurationQuery,
   useSaveSystemConfigurationMutation,
@@ -111,6 +112,21 @@ export function SystemConfigPage() {
       }))
     }
 
+  const hasChanges = useMemo(() => {
+    if (!config || !draft) return false
+    const compare = (a: string, b: string) => a.localeCompare(b)
+    const channelsChanged =
+      [...draft.supportedChannels].sort(compare).join() !==
+      [...config.supportedChannels].sort(compare).join()
+    return (
+      channelsChanged ||
+      Number(draft.oversupplyThreshold) !== config.oversupplyThreshold ||
+      Number(draft.undersupplyThreshold) !== config.undersupplyThreshold ||
+      Number(draft.bfmImageConfidenceThreshold) !== config.bfmImageConfidenceThreshold ||
+      Number(draft.locationAffinityThreshold) !== config.locationAffinityThreshold
+    )
+  }, [config, draft])
+
   if (isLoading) {
     return (
       <Box w="full">
@@ -142,9 +158,15 @@ export function SystemConfigPage() {
   return (
     <Box w="full">
       <Box mb={5}>
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={isEditing ? 2 : 0}>
           {t('configuration.pageTitle')}
         </Heading>
+        <EditableBreadcrumb
+          isEditing={isEditing}
+          onCancel={handleCancel}
+          viewLabel={t('configuration.breadcrumb.view')}
+          editLabel={t('configuration.breadcrumb.edit')}
+        />
       </Box>
 
       <Box
@@ -209,17 +231,19 @@ export function SystemConfigPage() {
               <VStack spacing={6} align="stretch">
                 {/* 1. Supported Channels */}
                 <Box>
-                  <Text
-                    fontSize={{ base: 'xs', md: 'sm' }}
-                    fontWeight="medium"
-                    color="neutral.950"
-                    mb={3}
-                  >
-                    {t('configuration.sections.supportedChannels.title')}
-                    <Text as="span" color="error.500" ml={1}>
-                      *
+                  <Flex align="center" gap={1} mb={3}>
+                    <Text
+                      fontSize={{ base: 'xs', md: 'sm' }}
+                      fontWeight="medium"
+                      color="neutral.950"
+                    >
+                      {t('configuration.sections.supportedChannels.title')}
+                      <Text as="span" color="error.500" ml={1}>
+                        *
+                      </Text>
                     </Text>
-                  </Text>
+                    <FieldInfoIcon tooltip={t('configuration.infoText.supportedChannels')} />
+                  </Flex>
                   <CheckboxGroup
                     value={activeDraft.supportedChannels}
                     onChange={handleChannelChange}
@@ -252,6 +276,7 @@ export function SystemConfigPage() {
                   <ThresholdInput
                     id="water-qty-undersupply"
                     label={t('configuration.sections.undersupplyThreshold.title')}
+                    infoTooltip={t('configuration.infoText.undersupplyThreshold')}
                     value={activeDraft.undersupplyThreshold}
                     onChange={updateDraftField('undersupplyThreshold')}
                     min={0}
@@ -261,6 +286,7 @@ export function SystemConfigPage() {
                   <ThresholdInput
                     id="water-qty-oversupply"
                     label={t('configuration.sections.oversupplyThreshold.title')}
+                    infoTooltip={t('configuration.infoText.oversupplyThreshold')}
                     value={activeDraft.oversupplyThreshold}
                     onChange={updateDraftField('oversupplyThreshold')}
                     min={0}
@@ -274,6 +300,7 @@ export function SystemConfigPage() {
                   <ThresholdInput
                     id="bfm-confidence"
                     label={t('configuration.sections.bfmImageConfidence.title')}
+                    infoTooltip={t('configuration.infoText.bfmImageConfidence')}
                     value={activeDraft.bfmImageConfidenceThreshold}
                     onChange={updateDraftField('bfmImageConfidenceThreshold')}
                     min={0}
@@ -283,6 +310,7 @@ export function SystemConfigPage() {
                   <ThresholdInput
                     id="location-affinity"
                     label={t('configuration.sections.locationAffinity.title')}
+                    infoTooltip={t('configuration.infoText.locationAffinity')}
                     value={activeDraft.locationAffinityThreshold}
                     onChange={updateDraftField('locationAffinityThreshold')}
                     min={0}
@@ -313,6 +341,7 @@ export function SystemConfigPage() {
                   size="md"
                   width={{ base: 'full', sm: '174px' }}
                   isLoading={saveMutation.isPending}
+                  isDisabled={!hasChanges || saveMutation.isPending}
                 >
                   {t('common:button.saveChanges')}
                 </Button>
@@ -327,11 +356,30 @@ export function SystemConfigPage() {
   )
 }
 
+// ─── Shared helpers ───────────────────────────────────────────────────────────
+
+function FieldInfoIcon({ tooltip }: { tooltip: string }) {
+  return (
+    <ActionTooltip label={tooltip}>
+      <Flex
+        as="span"
+        align="center"
+        color="neutral.400"
+        cursor="default"
+        _hover={{ color: 'primary.500' }}
+      >
+        <IoInformation size={16} aria-label={tooltip} />
+      </Flex>
+    </ActionTooltip>
+  )
+}
+
 // ─── Shared input ─────────────────────────────────────────────────────────────
 
 function ThresholdInput({
   id,
   label,
+  infoTooltip,
   value,
   onChange,
   min,
@@ -340,6 +388,7 @@ function ThresholdInput({
 }: {
   id: string
   label: string
+  infoTooltip?: string
   value: string
   onChange: (v: string) => void
   min?: number
@@ -350,17 +399,19 @@ function ThresholdInput({
 
   return (
     <Box>
-      <Text
-        as="label"
-        htmlFor={id}
-        fontSize={{ base: 'xs', md: 'sm' }}
-        fontWeight="medium"
-        color="neutral.950"
-        mb={1}
-        display="block"
-      >
-        {label}
-      </Text>
+      <Flex align="center" gap={1} mb={1}>
+        <Text
+          as="label"
+          htmlFor={id}
+          fontSize={{ base: 'xs', md: 'sm' }}
+          fontWeight="medium"
+          color="neutral.950"
+          display="block"
+        >
+          {label}
+        </Text>
+        {infoTooltip && <FieldInfoIcon tooltip={infoTooltip} />}
+      </Flex>
       <Input
         id={id}
         type="number"
@@ -368,6 +419,7 @@ function ThresholdInput({
         min={min}
         max={max}
         value={value}
+        onWheel={(e) => e.currentTarget.blur()}
         onChange={(e) => {
           const raw = e.target.value
           if (raw === '') {

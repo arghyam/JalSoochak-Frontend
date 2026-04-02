@@ -110,6 +110,20 @@ describe('MetricPerformanceChart', () => {
     expect(formatMetricAxisLabel('Arunachal Pradesh')).toBe('Arunachal\nPradesh')
   })
 
+  it('adds extra space between x-axis labels and the axis line', () => {
+    renderWithProviders(<MetricPerformanceChart data={chartData} metric="quantity" />)
+
+    const chartOption = (
+      mockEChartsWrapper.mock.calls as Array<
+        [{ option?: { xAxis?: { axisLabel?: { margin?: number } } } }]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((option) => option?.xAxis?.axisLabel?.margin !== undefined)
+
+    expect(chartOption?.xAxis?.axisLabel?.margin).toBe(16)
+  })
+
   it('renders area+bar legends when area line is enabled', () => {
     renderWithProviders(
       <MetricPerformanceChart
@@ -169,6 +183,33 @@ describe('MetricPerformanceChart', () => {
       .filter((max): max is number => typeof max === 'number')
 
     expect(yAxisMaxes).toContain(190)
+  })
+
+  it('formats quantity y-axis labels without clipping-sensitive decimals', () => {
+    renderWithProviders(
+      <MetricPerformanceChart
+        data={[
+          { ...chartData[0], quantity: 132 },
+          { ...chartData[1], quantity: 189 },
+        ]}
+        metric="quantity"
+      />
+    )
+
+    const axisOption = (
+      mockEChartsWrapper.mock.calls as Array<
+        [{ option?: { yAxis?: { axisLabel?: { formatter?: unknown } } } }]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((option) => typeof option?.yAxis?.axisLabel?.formatter === 'function')
+
+    const formatter = axisOption?.yAxis?.axisLabel?.formatter as
+      | ((value: number) => string)
+      | undefined
+
+    expect(formatter?.(150)).toBe('150')
+    expect(formatter?.(1250)).toBe('1,250')
   })
 
   it('supports keyboard horizontal scrolling when content overflows', async () => {

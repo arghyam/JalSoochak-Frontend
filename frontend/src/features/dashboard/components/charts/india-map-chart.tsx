@@ -1,10 +1,11 @@
-import { useCallback, useMemo, useState } from 'react'
-import { useMediaQuery, useTheme } from '@chakra-ui/react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Center, Spinner, Text, useMediaQuery, useTheme, VStack } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper, Toggle } from '@/shared/components/common'
 import { getBodyText6Style } from '@/shared/components/charts/chart-text-style'
 import type { EntityPerformance } from '../../types'
+import { ensureIndiaMapRegistered } from '../../utils/map-registry'
 
 interface IndiaMapChartProps {
   data: EntityPerformance[]
@@ -26,6 +27,8 @@ export function IndiaMapChart({
   const [isBelowSm] = useMediaQuery('(max-width: 479.98px)')
   const { t } = useTranslation('dashboard')
   const [isRegularityView, setIsRegularityView] = useState(true)
+  const [isMapReady, setIsMapReady] = useState(() => echarts.getMap('india') != null)
+  const [mapLoadError, setMapLoadError] = useState(false)
   const metricKey: 'quantity' | 'regularity' = isRegularityView ? 'regularity' : 'quantity'
   const resolveThemeColor = useCallback(
     (token: string) => {
@@ -178,6 +181,34 @@ export function IndiaMapChart({
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
 
+  useEffect(() => {
+    if (isMapReady) {
+      return
+    }
+
+    let isMounted = true
+
+    void ensureIndiaMapRegistered()
+      .then(() => {
+        if (!isMounted) {
+          return
+        }
+
+        setIsMapReady(true)
+        setMapLoadError(false)
+      })
+      .catch((error: unknown) => {
+        console.error('Failed to register India map:', error)
+        if (isMounted) {
+          setMapLoadError(true)
+        }
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [isMapReady, mapLoadError])
+
   const handleChartReady = (chart: echarts.ECharts) => {
     // Register click event
     chart.on('click', (params: unknown) => {
@@ -270,7 +301,30 @@ export function IndiaMapChart({
               {regularityLabel}
             </span>
           </div>
-          <EChartsWrapper option={option} height="100%" onChartReady={handleChartReady} />
+          {isMapReady ? (
+            <EChartsWrapper option={option} height="100%" onChartReady={handleChartReady} />
+          ) : (
+            <Center h="100%">
+              <VStack spacing={3}>
+                {mapLoadError ? (
+                  <Text color="neutral.600">
+                    {t('map.loadError', {
+                      defaultValue: 'Unable to load the map right now.',
+                    })}
+                  </Text>
+                ) : (
+                  <>
+                    <Spinner size="md" color="primary.500" />
+                    <Text color="neutral.600">
+                      {t('map.loading', {
+                        defaultValue: 'Loading map...',
+                      })}
+                    </Text>
+                  </>
+                )}
+              </VStack>
+            </Center>
+          )}
         </div>
       </div>
       <div

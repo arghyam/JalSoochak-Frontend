@@ -10,29 +10,55 @@ import {
   InputLeftElement,
   Button,
   IconButton,
-  Tooltip,
   useBreakpointValue,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { SearchIcon, EditIcon } from '@chakra-ui/icons'
 import { FiEye } from 'react-icons/fi'
 import { IoAddOutline } from 'react-icons/io5'
-import { DataTable, type DataTableColumn, StatusChip } from '@/shared/components/common'
+import {
+  ActionTooltip,
+  DataTable,
+  type DataTableColumn,
+  SearchableSelect,
+  StatusChip,
+} from '@/shared/components/common'
 import type { Tenant, TenantStatus } from '../../types/states-uts'
+import { useDebounce } from '@/shared/hooks/use-debounce'
+import { ROUTES } from '@/shared/constants/routes'
+import { useStatesUTsPagedQuery } from '../../services/query/use-super-admin-queries'
 
 function tenantStatusChipKey(status: TenantStatus): string {
   return status.toLowerCase()
 }
-import { ROUTES } from '@/shared/constants/routes'
-import { useStatesUTsPagedQuery } from '../../services/query/use-super-admin-queries'
+
+const TENANT_FILTER_STATUSES = [
+  'ONBOARDED',
+  'CONFIGURED',
+  'ACTIVE',
+  'INACTIVE',
+  'DEGRADED',
+  'SUSPENDED',
+  'ARCHIVED',
+] as const
+
+type TenantFilterStatus = (typeof TENANT_FILTER_STATUSES)[number] | 'all'
 
 export function StatesUTsPage() {
   const { t } = useTranslation(['super-admin', 'common'])
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
-  const { data, isLoading, isError, refetch } = useStatesUTsPagedQuery(page, pageSize)
   const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<TenantFilterStatus>('all')
+  const debouncedSearch = useDebounce(searchQuery, 400)
+
+  const { data, isLoading, isError, refetch } = useStatesUTsPagedQuery(
+    page,
+    pageSize,
+    debouncedSearch,
+    statusFilter
+  )
 
   const showAddButtonText = useBreakpointValue({ base: false, sm: true }) ?? true
 
@@ -56,10 +82,6 @@ export function StatesUTsPage() {
     )
   }
 
-  const filtered = (data?.items ?? []).filter((t) =>
-    t.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
   const handleView = (stateCode: string) => {
     navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':tenantCode', stateCode))
   }
@@ -67,6 +89,14 @@ export function StatesUTsPage() {
   const handleEdit = (stateCode: string) => {
     navigate(ROUTES.SUPER_ADMIN_STATES_UTS_EDIT.replace(':tenantCode', stateCode))
   }
+
+  const statusOptions = [
+    { value: 'all', label: t('statesUts.filters.allStatuses') },
+    ...TENANT_FILTER_STATUSES.map((s) => ({
+      value: s,
+      label: t(`statesUts.statusSection.statuses.${s}`),
+    })),
+  ]
 
   const columns: DataTableColumn<Tenant>[] = [
     {
@@ -115,7 +145,7 @@ export function StatesUTsPage() {
       header: t('statesUts.table.actions'),
       render: (row) => (
         <Flex gap={1}>
-          <Tooltip label={t('statesUts.aria.viewStateUt')} hasArrow placement="top">
+          <ActionTooltip label={t('statesUts.aria.viewStateUt')}>
             <IconButton
               aria-label={`${t('statesUts.aria.viewStateUt')} ${row.name}`}
               icon={<FiEye aria-hidden="true" size={20} />}
@@ -127,8 +157,8 @@ export function StatesUTsPage() {
               onClick={() => handleView(row.stateCode)}
               _hover={{ color: 'primary.500', bg: 'transparent' }}
             />
-          </Tooltip>
-          <Tooltip label={t('statesUts.aria.editStateUt')} hasArrow placement="top">
+          </ActionTooltip>
+          <ActionTooltip label={t('statesUts.aria.editStateUt')}>
             <IconButton
               aria-label={`${t('statesUts.aria.editStateUt')} ${row.name}`}
               icon={<EditIcon aria-hidden="true" w={5} h={5} />}
@@ -140,7 +170,7 @@ export function StatesUTsPage() {
               onClick={() => handleEdit(row.stateCode)}
               _hover={{ color: 'primary.500', bg: 'transparent' }}
             />
-          </Tooltip>
+          </ActionTooltip>
         </Flex>
       ),
     },
@@ -168,23 +198,44 @@ export function StatesUTsPage() {
         borderRadius="12px"
         bg="white"
       >
-        <InputGroup w={{ base: 'full', md: '320px' }}>
-          <InputLeftElement pointerEvents="none" h={8}>
-            <SearchIcon color="neutral.300" aria-hidden="true" />
-          </InputLeftElement>
-          <Input
-            placeholder={t('common:search')}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            aria-label={t('statesUts.searchPlaceholder')}
-            bg="white"
-            h={8}
-            borderWidth="1px"
-            borderRadius="4px"
-            borderColor="neutral.300"
-            _placeholder={{ color: 'neutral.300' }}
+        <Flex
+          gap={3}
+          w={{ base: 'full', md: 'auto' }}
+          flexDirection={{ base: 'column', sm: 'row' }}
+        >
+          <InputGroup w={{ base: 'full', md: '240px', lg: '320px' }}>
+            <InputLeftElement pointerEvents="none" h={8}>
+              <SearchIcon color="neutral.300" aria-hidden="true" />
+            </InputLeftElement>
+            <Input
+              placeholder={t('statesUts.searchPlaceholder')}
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setPage(1)
+              }}
+              aria-label={t('statesUts.searchPlaceholder')}
+              bg="white"
+              h={8}
+              borderWidth="1px"
+              borderRadius="4px"
+              borderColor="neutral.300"
+              _placeholder={{ color: 'neutral.300' }}
+            />
+          </InputGroup>
+          <SearchableSelect
+            options={statusOptions}
+            value={statusFilter}
+            height="32px"
+            onChange={(val) => {
+              setStatusFilter(val as TenantFilterStatus)
+              setPage(1)
+            }}
+            placeholder={t('statesUts.filters.allStatuses')}
+            width={{ base: '100%', md: '140px' }}
+            isFilter
           />
-        </InputGroup>
+        </Flex>
         <Button
           variant="secondary"
           size="sm"
@@ -201,7 +252,7 @@ export function StatesUTsPage() {
 
       <DataTable<Tenant>
         columns={columns}
-        data={filtered}
+        data={data?.items ?? []}
         getRowKey={(row) => String(row.id)}
         emptyMessage={t('statesUts.messages.noStatesFound')}
         isLoading={isLoading}

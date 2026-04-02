@@ -13,6 +13,7 @@
   "button": {
     "save": "Save",
     "saveChanges": "Save Changes",
+    "saveAndNext": "Save & Next",
     "cancel": "Cancel",
     "edit": "Edit",
     "delete": "Delete",
@@ -116,7 +117,9 @@
     "validationSummary_other": "{{count}} validation errors found — fix and re-upload",
     "columnRow": "Row",
     "columnField": "Field",
-    "columnError": "Error"
+    "columnError": "Error",
+    "downloadTemplate": "Template",
+    "downloadTemplateAria": "Download upload template"
   },
 
   "profile": {

@@ -338,7 +338,7 @@ export const authApi = {
     }
   },
 
-  /** GET /api/v1/auth/invite/info?token=... — fetch invite metadata from token. */
+  /** GET /api/v1/auth/invites?token=... — fetch invite metadata from token. */
   getInviteInfo: async (
     token: string
   ): Promise<{
@@ -359,7 +359,7 @@ export const authApi = {
           lastName: string
           phoneNumber: string
         }>
-      >('/api/v1/auth/invite/info', { params: { token } })
+      >('/api/v1/auth/invites', { params: { token } })
       return response.data.data
     } catch (err: unknown) {
       let message = 'Invalid or expired invite link.'
@@ -422,7 +422,7 @@ export const authApi = {
     }
   },
 
-  /** POST /api/v1/auth/activate-account — set password + profile for invited user. Returns session. */
+  /** POST /api/v1/auth/invites/activate — set password + profile for invited user. Returns session. */
   activateAccount: async (payload: {
     inviteToken: string
     firstName: string
@@ -432,7 +432,7 @@ export const authApi = {
   }): Promise<LoginResponse> => {
     try {
       const response = await apiClient.post<ApiResponse<TokenResponse>>(
-        '/api/v1/auth/activate-account',
+        '/api/v1/auth/invites/activate',
         payload
       )
       const tokenData = response.data.data

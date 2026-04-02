@@ -41,6 +41,13 @@ function getNameOrder(container: HTMLElement) {
 }
 
 describe('SchemePerformanceTable', () => {
+  it('renders a no data available state when there are no rows', () => {
+    renderWithProviders(<SchemePerformanceTable title="Scheme Performance" data={[]} />)
+
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(screen.queryAllByRole('columnheader')).toHaveLength(0)
+  })
+
   it('renders headers in Name, Village, Block order', () => {
     renderWithProviders(<SchemePerformanceTable title="Scheme Performance" data={tableData} />)
 
@@ -48,6 +55,47 @@ describe('SchemePerformanceTable', () => {
     expect(headers[0]).toContain('Name')
     expect(headers[1]).toContain('Village')
     expect(headers[2]).toContain('Block')
+  })
+
+  it('omits the village column when configured for district dashboard', () => {
+    renderWithProviders(
+      <SchemePerformanceTable
+        title="Scheme Performance"
+        data={tableData}
+        showVillageColumn={false}
+      />
+    )
+
+    const headers = screen.getAllByRole('columnheader').map((header) => header.textContent ?? '')
+    expect(headers).toHaveLength(4)
+    expect(headers[0]).toContain('Name')
+    expect(headers[1]).toContain('Block')
+    expect(headers).not.toContain('Village')
+  })
+
+  it('omits the block column when configured not to show it', () => {
+    renderWithProviders(
+      <SchemePerformanceTable title="Scheme Performance" data={tableData} showBlockColumn={false} />
+    )
+
+    const headers = screen.getAllByRole('columnheader').map((header) => header.textContent ?? '')
+    expect(headers).toHaveLength(4)
+    expect(headers[0]).toContain('Name')
+    expect(headers[1]).toContain('Village')
+    expect(headers).not.toContain('Block')
+  })
+
+  it('uses the custom secondary column label when provided', () => {
+    renderWithProviders(
+      <SchemePerformanceTable
+        title="Scheme Performance"
+        data={tableData}
+        secondaryColumnLabel="My Secondary"
+      />
+    )
+
+    const headers = screen.getAllByRole('columnheader').map((header) => header.textContent ?? '')
+    expect(headers).toContain('My Secondary')
   })
 
   it('sorts reporting rate descending then ascending', () => {

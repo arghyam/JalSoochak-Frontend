@@ -13,15 +13,17 @@ import {
 import { SearchIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { FiUpload } from 'react-icons/fi'
-import { MdOutlineListAlt } from 'react-icons/md'
+import { BsDroplet, BsCheck2Circle } from 'react-icons/bs'
+import { IoCloseCircleOutline } from 'react-icons/io5'
 import { DataTable, SearchableSelect, StatCard } from '@/shared/components/common'
-import type { DataTableColumn } from '@/shared/components/common'
+import type { DataTableColumn, SortDirection } from '@/shared/components/common'
 import type { Scheme } from '../../types/scheme-sync'
 import {
   useSchemeCountsQuery,
   useSchemeListQuery,
 } from '../../services/query/use-state-admin-queries'
 import { useAuthStore } from '@/app/store/auth-store'
+import { useDebounce } from '@/shared/hooks/use-debounce'
 import { UploadSchemesModal } from './upload-schemes-modal'
 
 const PAGE_SIZE = 10
@@ -37,6 +39,24 @@ export function SchemeSyncPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
+  const [sortDir, setSortDir] = useState<string>('')
+  const debouncedSearch = useDebounce(searchQuery, 400)
+
+  // Reset to page 1 whenever any filter changes.
+  // Comparing during render (not in an effect) avoids a cascading re-render.
+  const [prevFilters, setPrevFilters] = useState({
+    debouncedSearch,
+    workStatusFilter,
+    operatingStatusFilter,
+  })
+  if (
+    prevFilters.debouncedSearch !== debouncedSearch ||
+    prevFilters.workStatusFilter !== workStatusFilter ||
+    prevFilters.operatingStatusFilter !== operatingStatusFilter
+  ) {
+    setPrevFilters({ debouncedSearch, workStatusFilter, operatingStatusFilter })
+    setPage(1)
+  }
 
   useEffect(() => {
     document.title = `${t('schemeSync.title')} | JalSoochak`
@@ -47,10 +67,12 @@ export function SchemeSyncPage() {
       tenantCode,
       page: page - 1,
       limit: pageSize,
-      ...(workStatusFilter ? { workStatus: workStatusFilter } : {}),
-      ...(operatingStatusFilter ? { operatingStatus: operatingStatusFilter } : {}),
+      workStatus: workStatusFilter,
+      operatingStatus: operatingStatusFilter,
+      schemeName: debouncedSearch,
+      sortDir,
     }),
-    [tenantCode, page, pageSize, workStatusFilter, operatingStatusFilter]
+    [tenantCode, page, pageSize, workStatusFilter, operatingStatusFilter, debouncedSearch, sortDir]
   )
 
   const { data, isLoading, isError, refetch } = useSchemeListQuery(schemeParams)
@@ -74,29 +96,32 @@ export function SchemeSyncPage() {
     [counts]
   )
 
-  const hasActiveFilters = workStatusFilter || operatingStatusFilter
+  const hasActiveFilters = workStatusFilter || operatingStatusFilter || searchQuery
 
   const handleWorkStatusChange = (value: string) => {
     setWorkStatusFilter(value)
-    setPage(1)
   }
 
   const handleOperatingStatusChange = (value: string) => {
     setOperatingStatusFilter(value)
-    setPage(1)
   }
 
   const handleClearFilters = () => {
     setWorkStatusFilter('')
     setOperatingStatusFilter('')
-    setPage(1)
+    setSearchQuery('')
   }
 
-  const displayedSchemes = useMemo(() => {
-    if (!data) return []
-    if (!searchQuery) return data.items
-    return data.items.filter((s) => s.schemeName.toLowerCase().includes(searchQuery.toLowerCase()))
-  }, [data, searchQuery])
+  const handleSort = (_columnKey: string, direction: SortDirection) => {
+    if (direction === 'asc') {
+      setSortDir('asc')
+    } else if (direction === 'desc') {
+      setSortDir('des')
+    } else {
+      setSortDir('')
+    }
+    setPage(1)
+  }
 
   const columns: DataTableColumn<Scheme>[] = [
     {
@@ -212,7 +237,9 @@ export function SchemeSyncPage() {
           <Input
             placeholder={t('schemeSync.searchPlaceholder')}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value)
+            }}
             aria-label={t('schemeSync.aria.searchSchemes')}
             bg="white"
             h={8}
@@ -270,12 +297,12 @@ export function SchemeSyncPage() {
           variant="secondary"
           size="sm"
           fontWeight="600"
-          gap={1}
           flexShrink={0}
           aria-label={t('schemeSync.aria.uploadData')}
-          leftIcon={<FiUpload aria-hidden="true" />}
+          width="147px"
           onClick={() => setIsUploadOpen(true)}
         >
+          <FiUpload aria-hidden="true" size={16} style={{ marginRight: '4px', flexShrink: 0 }} />
           {t('schemeSync.uploadData')}
         </Button>
       </Flex>
@@ -291,38 +318,36 @@ export function SchemeSyncPage() {
         <StatCard
           title={t('schemeSync.stats.totalSchemes')}
           value={countsLoading ? '—' : (counts?.totalSchemes ?? 0)}
-          icon={MdOutlineListAlt}
+          icon={BsDroplet}
           iconBg="#EBF4FA"
           iconColor="#3291D1"
-          height="172px"
         />
         <StatCard
           title={t('schemeSync.stats.activeSchemes')}
           value={countsLoading ? '—' : (counts?.activeSchemes ?? 0)}
-          icon={MdOutlineListAlt}
+          icon={BsCheck2Circle}
           iconBg="#E6F9F0"
           iconColor="#27AE60"
-          height="172px"
         />
         <StatCard
           title={t('schemeSync.stats.inactiveSchemes')}
           value={countsLoading ? '—' : (counts?.inactiveSchemes ?? 0)}
-          icon={MdOutlineListAlt}
+          icon={IoCloseCircleOutline}
           iconBg="#FEF3F2"
           iconColor="#D94B3E"
-          height="172px"
         />
       </SimpleGrid>
 
       {/* Data Table */}
       <DataTable<Scheme>
         columns={columns}
-        data={displayedSchemes}
+        data={data?.items ?? []}
         getRowKey={(row) => row.id}
         emptyMessage={t('schemeSync.messages.noSchemesFound')}
         isLoading={isLoading}
         tableLayout="fixed"
         tableMinWidth="900px"
+        onSort={handleSort}
         pagination={{
           enabled: true,
           page,
