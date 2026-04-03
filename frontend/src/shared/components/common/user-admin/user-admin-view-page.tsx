@@ -1,4 +1,5 @@
-import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import {
   Box,
   Heading,
@@ -12,7 +13,9 @@ import {
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
-import { StatusChip } from '../index'
+import { StatusChip, ToastContainer } from '../index'
+import { PageHeader } from '../page-header'
+import { useToast } from '@/shared/hooks/use-toast'
 import type { UserAdminData, UserAdminRoutes, UserAdminViewLabels } from './types'
 
 export interface UserAdminViewPageProps {
@@ -38,13 +41,27 @@ export function UserAdminViewPage({
 }: UserAdminViewPageProps) {
   const { t } = useTranslation('common')
   const navigate = useNavigate()
+  const location = useLocation()
+  const toast = useToast()
+
+  useEffect(() => {
+    const state = location.state as { successToast?: string } | null
+    if (state?.successToast) {
+      toast.addToast(state.successToast, 'success')
+      // Clear the state so a refresh doesn't re-show the toast
+      navigate(location.pathname, { replace: true, state: null })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (isLoading) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {labels.pageTitle}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {labels.pageTitle}
+          </Heading>
+        </PageHeader>
         <Flex role="status" aria-live="polite" align="center" minH="200px" gap={3}>
           <Spinner size="md" color="primary.500" />
           <Text color="neutral.600">{t('loading')}</Text>
@@ -57,9 +74,11 @@ export function UserAdminViewPage({
     const errorMessage = error instanceof Error ? error.message : t('toast.failedToLoad')
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {labels.pageTitle}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {labels.pageTitle}
+          </Heading>
+        </PageHeader>
         <Flex direction="column" align="flex-start" mt={4} gap={3}>
           <Text color="red.500">{errorMessage}</Text>
           <Button size="sm" variant="outline" onClick={onRefetch}>
@@ -73,9 +92,11 @@ export function UserAdminViewPage({
   if (data === null) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {labels.pageTitle}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {labels.pageTitle}
+          </Heading>
+        </PageHeader>
         <Text color="neutral.600" mt={4}>
           {labels.messages.notFound}
         </Text>
@@ -89,8 +110,7 @@ export function UserAdminViewPage({
 
   return (
     <Box w="full">
-      {/* Page Header with Breadcrumb */}
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={2}>
           {labels.pageTitle}
         </Heading>
@@ -111,7 +131,7 @@ export function UserAdminViewPage({
             {labels.breadcrumb.view}
           </Text>
         </Flex>
-      </Box>
+      </PageHeader>
 
       {/* Details Card */}
       <Box
@@ -190,6 +210,7 @@ export function UserAdminViewPage({
           label={data.status === 'active' ? t('status.active') : t('status.inactive')}
         />
       </Box>
+      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </Box>
   )
 }

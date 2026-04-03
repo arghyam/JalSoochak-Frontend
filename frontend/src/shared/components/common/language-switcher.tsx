@@ -29,12 +29,7 @@ export function LanguageSwitcher({ isMobileHeader = false }: LanguageSwitcherPro
   }
 
   return (
-    <Box
-      position={isMobileHeader ? 'relative' : 'fixed'}
-      top={isMobileHeader ? 'auto' : 2}
-      right={isMobileHeader ? 'auto' : { base: 4, lg: 12 }}
-      zIndex={50}
-    >
+    <Box position="relative" zIndex={isMobileHeader ? 50 : undefined}>
       <Menu placement="bottom-end">
         <MenuButton
           as={Button}

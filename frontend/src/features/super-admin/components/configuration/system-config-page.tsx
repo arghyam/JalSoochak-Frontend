@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   Box,
   Text,
@@ -15,8 +15,14 @@ import {
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
+import { IoInformation } from 'react-icons/io5'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer } from '@/shared/components/common'
+import {
+  ToastContainer,
+  EditableBreadcrumb,
+  ActionTooltip,
+  PageHeader,
+} from '@/shared/components/common'
 import {
   useSystemConfigurationQuery,
   useSaveSystemConfigurationMutation,
@@ -111,12 +117,29 @@ export function SystemConfigPage() {
       }))
     }
 
+  const hasChanges = useMemo(() => {
+    if (!config || !draft) return false
+    const compare = (a: string, b: string) => a.localeCompare(b)
+    const channelsChanged =
+      [...draft.supportedChannels].sort(compare).join() !==
+      [...config.supportedChannels].sort(compare).join()
+    return (
+      channelsChanged ||
+      Number(draft.oversupplyThreshold) !== config.oversupplyThreshold ||
+      Number(draft.undersupplyThreshold) !== config.undersupplyThreshold ||
+      Number(draft.bfmImageConfidenceThreshold) !== config.bfmImageConfidenceThreshold ||
+      Number(draft.locationAffinityThreshold) !== config.locationAffinityThreshold
+    )
+  }, [config, draft])
+
   if (isLoading) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
-          {t('configuration.pageTitle')}
-        </Heading>
+        <PageHeader mb={6}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('configuration.pageTitle')}
+          </Heading>
+        </PageHeader>
         <Flex align="center" role="status" aria-live="polite" aria-busy="true">
           <Spinner size="md" color="primary.500" mr={3} />
           <Text color="neutral.600">{t('common:loading')}</Text>
@@ -128,9 +151,11 @@ export function SystemConfigPage() {
   if (isError || !config) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
-          {t('configuration.pageTitle')}
-        </Heading>
+        <PageHeader mb={6}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('configuration.pageTitle')}
+          </Heading>
+        </PageHeader>
         <Text color="error.500">{t('common:toast.failedToLoad')}</Text>
       </Box>
     )
@@ -141,11 +166,17 @@ export function SystemConfigPage() {
 
   return (
     <Box w="full">
-      <Box mb={5}>
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+      <PageHeader>
+        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={isEditing ? 2 : 0}>
           {t('configuration.pageTitle')}
         </Heading>
-      </Box>
+        <EditableBreadcrumb
+          isEditing={isEditing}
+          onCancel={handleCancel}
+          viewLabel={t('configuration.breadcrumb.view')}
+          editLabel={t('configuration.breadcrumb.edit')}
+        />
+      </PageHeader>
 
       <Box
         as="section"
@@ -209,17 +240,19 @@ export function SystemConfigPage() {
               <VStack spacing={6} align="stretch">
                 {/* 1. Supported Channels */}
                 <Box>
-                  <Text
-                    fontSize={{ base: 'xs', md: 'sm' }}
-                    fontWeight="medium"
-                    color="neutral.950"
-                    mb={3}
-                  >
-                    {t('configuration.sections.supportedChannels.title')}
-                    <Text as="span" color="error.500" ml={1}>
-                      *
+                  <Flex align="center" gap={1} mb={3}>
+                    <Text
+                      fontSize={{ base: 'xs', md: 'sm' }}
+                      fontWeight="medium"
+                      color="neutral.950"
+                    >
+                      {t('configuration.sections.supportedChannels.title')}
+                      <Text as="span" color="error.500" ml={1}>
+                        *
+                      </Text>
                     </Text>
-                  </Text>
+                    <FieldInfoIcon tooltip={t('configuration.infoText.supportedChannels')} />
+                  </Flex>
                   <CheckboxGroup
                     value={activeDraft.supportedChannels}
                     onChange={handleChannelChange}
@@ -252,18 +285,22 @@ export function SystemConfigPage() {
                   <ThresholdInput
                     id="water-qty-undersupply"
                     label={t('configuration.sections.undersupplyThreshold.title')}
+                    infoTooltip={t('configuration.infoText.undersupplyThreshold')}
                     value={activeDraft.undersupplyThreshold}
                     onChange={updateDraftField('undersupplyThreshold')}
                     min={0}
                     max={100}
+                    maxDecimals={4}
                   />
                   <ThresholdInput
                     id="water-qty-oversupply"
                     label={t('configuration.sections.oversupplyThreshold.title')}
+                    infoTooltip={t('configuration.infoText.oversupplyThreshold')}
                     value={activeDraft.oversupplyThreshold}
                     onChange={updateDraftField('oversupplyThreshold')}
                     min={0}
                     max={1000}
+                    maxDecimals={4}
                   />
                 </SimpleGrid>
 
@@ -272,17 +309,21 @@ export function SystemConfigPage() {
                   <ThresholdInput
                     id="bfm-confidence"
                     label={t('configuration.sections.bfmImageConfidence.title')}
+                    infoTooltip={t('configuration.infoText.bfmImageConfidence')}
                     value={activeDraft.bfmImageConfidenceThreshold}
                     onChange={updateDraftField('bfmImageConfidenceThreshold')}
                     min={0}
                     max={100}
+                    maxDecimals={4}
                   />
                   <ThresholdInput
                     id="location-affinity"
                     label={t('configuration.sections.locationAffinity.title')}
+                    infoTooltip={t('configuration.infoText.locationAffinity')}
                     value={activeDraft.locationAffinityThreshold}
                     onChange={updateDraftField('locationAffinityThreshold')}
                     min={0}
+                    max={1000}
                   />
                 </SimpleGrid>
               </VStack>
@@ -309,6 +350,7 @@ export function SystemConfigPage() {
                   size="md"
                   width={{ base: 'full', sm: '174px' }}
                   isLoading={saveMutation.isPending}
+                  isDisabled={!hasChanges || saveMutation.isPending}
                 >
                   {t('common:button.saveChanges')}
                 </Button>
@@ -323,46 +365,81 @@ export function SystemConfigPage() {
   )
 }
 
+// ─── Shared helpers ───────────────────────────────────────────────────────────
+
+function FieldInfoIcon({ tooltip }: { tooltip: string }) {
+  return (
+    <ActionTooltip label={tooltip}>
+      <Flex
+        as="span"
+        align="center"
+        color="neutral.400"
+        cursor="default"
+        _hover={{ color: 'primary.500' }}
+      >
+        <IoInformation size={16} aria-label={tooltip} />
+      </Flex>
+    </ActionTooltip>
+  )
+}
+
 // ─── Shared input ─────────────────────────────────────────────────────────────
 
 function ThresholdInput({
   id,
   label,
+  infoTooltip,
   value,
   onChange,
   min,
   max,
+  maxDecimals,
 }: {
   id: string
   label: string
+  infoTooltip?: string
   value: string
   onChange: (v: string) => void
   min?: number
   max?: number
+  maxDecimals?: number
 }) {
+  const step = maxDecimals != null ? String(Math.pow(10, -maxDecimals)) : 'any'
+
   return (
     <Box>
-      <Text
-        as="label"
-        htmlFor={id}
-        fontSize={{ base: 'xs', md: 'sm' }}
-        fontWeight="medium"
-        color="neutral.950"
-        mb={1}
-        display="block"
-      >
-        {label}
-      </Text>
+      <Flex align="center" gap={1} mb={1}>
+        <Text
+          as="label"
+          htmlFor={id}
+          fontSize={{ base: 'xs', md: 'sm' }}
+          fontWeight="medium"
+          color="neutral.950"
+          display="block"
+        >
+          {label}
+        </Text>
+        {infoTooltip && <FieldInfoIcon tooltip={infoTooltip} />}
+      </Flex>
       <Input
         id={id}
         type="number"
-        step="any"
+        step={step}
         min={min}
         max={max}
         value={value}
+        onWheel={(e) => e.currentTarget.blur()}
         onChange={(e) => {
           const raw = e.target.value
-          if (raw === '' || (Number(raw) >= (min ?? 0) && Number(raw) <= (max ?? Infinity))) {
+          if (raw === '') {
+            onChange(raw)
+            return
+          }
+          if (maxDecimals != null) {
+            const dotIndex = raw.indexOf('.')
+            if (dotIndex !== -1 && raw.length - dotIndex - 1 > maxDecimals) return
+          }
+          if (Number(raw) >= (min ?? 0) && Number(raw) <= (max ?? Infinity)) {
             onChange(raw)
           }
         }}

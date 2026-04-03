@@ -69,7 +69,7 @@ describe('StateUTAdminFormPage — Add Mode', () => {
   it('submit button is disabled when form is empty', () => {
     renderWithProviders(<StateUTAdminFormPage />)
     const submitBtn = screen.getByRole('button', {
-      name: /add state\/ut admin & send link via email/i,
+      name: /add admin & send link via email/i,
     })
     expect(submitBtn).toBeTruthy()
     expect((submitBtn as HTMLButtonElement).disabled).toBe(true)
@@ -84,7 +84,7 @@ describe('StateUTAdminFormPage — Add Mode', () => {
     })
     fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '8564254517' } })
     const submitBtn = screen.getByRole('button', {
-      name: /add state\/ut admin & send link via email/i,
+      name: /add admin & send link via email/i,
     })
     expect((submitBtn as HTMLButtonElement).disabled).toBe(false)
   })

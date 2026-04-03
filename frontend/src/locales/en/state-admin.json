@@ -6,6 +6,10 @@
     "departmentTitle": "Department Hierarchy",
     "levelLabel": "Level {{level}}",
     "addLevel": "Add Level",
+    "breadcrumb": {
+      "view": "View Hierarchy",
+      "edit": "Edit Hierarchy"
+    },
     "messages": {
       "saveSuccess": "Hierarchy saved successfully",
       "saveFailed": "Failed to save hierarchy",
@@ -91,6 +95,10 @@
     "primaryLanguage": "Primary Language",
     "secondaryLanguage": "Secondary Language (optional)",
     "tertiaryLanguage": "Tertiary Language (optional)",
+    "breadcrumb": {
+      "view": "View Language",
+      "edit": "Edit Language"
+    },
     "aria": {
       "editConfiguration": "Edit language configuration",
       "selectPrimaryLanguage": "Select primary language",
@@ -122,6 +130,10 @@
   "waterNorms": {
     "title": "Water Norms",
     "stateUtWaterNorms": "State/UT Water Norms",
+    "breadcrumb": {
+      "view": "View Water Norms",
+      "edit": "Edit Water Norms"
+    },
     "currentQuantity": "Current quantity (LPCD)",
     "alertThresholds": {
       "title": "Alert Thresholds",
@@ -164,6 +176,10 @@
   "escalations": {
     "title": "Escalations",
     "allEscalations": "All Escalations",
+    "breadcrumb": {
+      "view": "View Escalations",
+      "edit": "Edit Escalations"
+    },
     "escalationRules": "Escalations Rules",
     "addNewEscalationType": "Add New Escalation Type",
     "addNewShort": "Add New",
@@ -208,7 +224,8 @@
       "selectRole": "Select role for level {{number}}",
       "selectHours": "Select escalation hours for level {{number}}",
       "escalationCard": "Escalation configuration for {{name}}",
-      "formLabel": "Escalation rules configuration form"
+      "formLabel": "Escalation rules configuration form",
+      "escalateAfterDays": "Escalate after days for {{role}}"
     }
   },
 
@@ -252,11 +269,8 @@
     "title": "Staff Sync",
     "searchPlaceholder": "Search by name",
     "uploadData": "Upload Data",
-    "downloadData": "Download Data",
     "filters": {
       "label": "Filters",
-      "gramPanchayat": "Gram Panchayat",
-      "village": "Village",
       "role": "Role",
       "status": "Status",
       "clearAll": "clear all filters"
@@ -272,30 +286,122 @@
       "sectionOfficer": "Section Officer"
     },
     "table": {
-      "allGpVillage": "All GP & Village",
       "name": "Name",
       "role": "Role",
       "mobileNumber": "Mobile Number",
-      "lastSubmission": "Last Submission",
+      "schemes": "Schemes",
       "activityStatus": "Activity Status"
+    },
+    "upload": {
+      "title": "Upload Staff Data",
+      "description": "Upload an Excel file (.xlsx or .xls) containing staff data.",
+      "selectFile": "Select file",
+      "clickToSelect": "Click to select a file",
+      "fileTypes": ".xlsx or .xls only",
+      "submit": "Upload",
+      "success": "Staff data uploaded successfully",
+      "error": "Failed to upload staff data. Please try again.",
+      "close": "Close",
+      "cancel": "Cancel"
     },
     "messages": {
       "noStaffFound": "No staff members found",
-      "failedToLoad": "Failed to load staff data",
-      "naSubmission": "N/A"
+      "failedToLoad": "Failed to load staff data"
     },
     "aria": {
       "statsSection": "Staff sync statistics",
       "searchStaff": "Search staff by name",
       "filterSection": "Filter staff members",
-      "uploadData": "Upload staff data",
-      "downloadData": "Download staff data"
+      "uploadData": "Upload staff data"
+    }
+  },
+
+  "schemeSync": {
+    "title": "Scheme Sync",
+    "searchPlaceholder": "Search by scheme name",
+    "uploadData": "Upload Data",
+    "filters": {
+      "workStatus": "Work Status",
+      "operatingStatus": "Operating Status",
+      "clearAll": "clear all filters"
+    },
+    "stats": {
+      "totalSchemes": "Total Schemes",
+      "activeSchemes": "Active Schemes",
+      "inactiveSchemes": "Inactive Schemes"
+    },
+    "table": {
+      "schemeName": "Scheme Name",
+      "fhtcCount": "FHTC Count",
+      "houseHoldCount": "Household Count",
+      "workStatus": "Work Status",
+      "operatingStatus": "Operating Status"
+    },
+    "upload": {
+      "title": "Upload Scheme Data",
+      "description": "Upload an Excel file (.xlsx or .xls) containing scheme data.",
+      "clickToSelect": "Click to select a file",
+      "fileTypes": ".xlsx or .xls only",
+      "submit": "Upload",
+      "success": "Scheme data uploaded successfully",
+      "error": "Failed to upload scheme data. Please try again.",
+      "close": "Close",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "noSchemesFound": "No schemes found",
+      "failedToLoad": "Failed to load scheme data"
+    },
+    "aria": {
+      "statsSection": "Scheme sync statistics",
+      "searchSchemes": "Search schemes by name",
+      "filterSection": "Filter schemes",
+      "uploadData": "Upload scheme data"
+    }
+  },
+
+  "schemeMappingsSync": {
+    "title": "Scheme Mappings Sync",
+    "searchPlaceholder": "Search by scheme name",
+    "uploadData": "Upload Data",
+    "filters": {
+      "clearAll": "clear all filters"
+    },
+    "table": {
+      "schemeName": "Scheme Name",
+      "stateSchemeId": "State Scheme ID",
+      "villageName": "Village Name",
+      "subDivisionName": "Sub Division Name"
+    },
+    "upload": {
+      "title": "Upload Scheme Mappings Data",
+      "description": "Upload an Excel file (.xlsx or .xls) containing scheme mappings data.",
+      "clickToSelect": "Click to select a file",
+      "fileTypes": ".xlsx or .xls only",
+      "submit": "Upload",
+      "success": "Scheme mappings data uploaded successfully",
+      "error": "Failed to upload scheme mappings data. Please try again.",
+      "close": "Close",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "noMappingsFound": "No scheme mappings found",
+      "failedToLoad": "Failed to load scheme mappings data"
+    },
+    "aria": {
+      "searchMappings": "Search scheme mappings by scheme name",
+      "filterSection": "Filter scheme mappings",
+      "uploadData": "Upload scheme mappings data"
     }
   },
 
   "configuration": {
     "pageTitle": "Configuration",
     "sectionTitle": "State/UT Configuration",
+    "breadcrumb": {
+      "view": "View Configuration",
+      "edit": "Edit Configuration"
+    },
     "sections": {
       "lgdHierarchy": {
         "title": "LGD Hierarchy",
@@ -306,7 +412,8 @@
         "levelLabel": "Level {{level}}"
       },
       "supportedChannels": {
-        "title": "Supported Channels"
+        "title": "Supported Channels",
+        "degradedTooltip": "System support removed for this channel"
       },
       "logo": {
         "title": "Logo",
@@ -323,8 +430,20 @@
         "editAriaLabel": "Edit reason {{name}}",
         "deleteAriaLabel": "Delete reason {{name}}"
       },
+      "supplyOutageReasons": {
+        "title": "Supply Outage Reasons",
+        "placeholder": "Enter reason",
+        "addNewButton": "+ Add New Reason",
+        "editAriaLabel": "Edit reason {{name}}",
+        "deleteAriaLabel": "Delete reason {{name}}"
+      },
       "locationCheckRequired": {
         "title": "Record Location",
+        "yes": "Yes",
+        "no": "No"
+      },
+      "displayDepartmentMaps": {
+        "title": "Display Departmental Maps",
         "yes": "Yes",
         "no": "No"
       },
@@ -334,9 +453,36 @@
       "pumpOperatorReminderNudgeTime": {
         "title": "Pump Operator Reminder Nudge Time"
       },
+      "dateFormatScreen": {
+        "title": "Screen Date Format"
+      },
+      "dateFormatTable": {
+        "title": "Table Date Format"
+      },
+      "dateFormat": {
+        "dateFormat": "Date Format",
+        "timeFormat": "Time Format",
+        "timezone": "Timezone",
+        "datePlaceholder": "Select date format",
+        "timePlaceholder": "Select time format",
+        "timezonePlaceholder": "Select timezone"
+      },
       "averageMembersPerHousehold": {
         "title": "Average Members Per Household"
       }
+    },
+    "infoText": {
+      "supportedChannels": "Channels through which schemes track the released water flow.",
+      "meterChangeReasons": "Reasons field operators can select when logging a meter replacement event.",
+      "supplyOutageReasons": "Reasons field operators can select when reporting a water supply disruption.",
+      "locationCheckRequired": "When enabled, field operators must share their GPS location when submitting readings.",
+      "displayDepartmentMaps": "When enabled, departmental map views are shown on the dashboard.",
+      "dataConsolidationTime": "Daily time at which field data is compiled and consolidated for reporting.",
+      "pumpOperatorReminderNudgeTime": "Daily time at which automated reminders are sent to pump operators who have not yet submitted readings.",
+      "dateFormatScreen": "Date, time, and timezone format used across all on-screen displays such as dashboards.",
+      "dateFormatTable": "Date, time, and timezone format used in data tables and exported reports.",
+      "averageMembersPerHousehold": "Used to estimate per-capita water consumption from household-level supply data. Accepted range: 1–20.",
+      "logo": "Organization's logo displayed in the app. PNG or JPG, max 2 MB."
     },
     "aria": {
       "form": "Configuration form",
@@ -350,7 +496,8 @@
       "validation": {
         "channelRequired": "Select at least one supported channel",
         "hierarchyRequired": "All hierarchy level names are required",
-        "logoTooLarge": "Logo file must be 2 MB or smaller"
+        "logoTooLarge": "Logo file must be 2 MB or smaller",
+        "logoInvalidType": "Logo must be a PNG or JPG file"
       }
     }
   },
@@ -381,7 +528,7 @@
       "activated": "Activated"
     },
     "buttons": {
-      "addAndSendLink": "Add State/UT Admin & Send Link via Email"
+      "addAndSendLink": "Add Admin & Send Link via Email"
     },
     "breadcrumb": {
       "manage": "Manage State/UT Admins",
@@ -408,6 +555,7 @@
 
   "messageTemplates": {
     "title": "Templates",
+    "subtitle": "Whatsapp Templates (Read Only)",
     "selectLanguage": "Select language",
     "selectTemplate": "Select template",
     "language": "Language",
@@ -455,5 +603,33 @@
       "selectLanguage": "Select language for {{name}} template",
       "enterMessage": "Enter message for {{name}} template"
     }
+  },
+
+  "validation": {
+    "required": "This field is required",
+    "emptyOrWhitespace": "This field cannot be empty or contain only spaces",
+    "containsHtmlTags": "HTML tags are not allowed",
+    "containsSqlInjection": "Invalid characters detected",
+    "alphanumericOnly": "Only letters, numbers, and spaces are allowed",
+    "invalidUrl": "Please enter a valid URL starting with https://",
+    "noSpaces": "Spaces are not allowed",
+    "maxLength": "Must not exceed {{max}} characters",
+    "httpsOnce": "URL must start with https:// exactly once",
+    "duplicateValue": "This value already exists",
+    "mustBePositive": "Value must be greater than 0",
+    "mustBeInRange": "Value must be between {{min}} and {{max}}",
+    "selectAtLeastOne": "Select at least one option",
+    "fillPreviousFirst": "Please fill the previous entry before adding a new one",
+    "duplicateDistrict": "This district has already been added",
+    "duplicateLevelName": "Duplicate level names are not allowed",
+    "minLength": "Must be at least {{min}} characters",
+    "timeRequired": "Please select a time",
+    "daysMinimum": "Days must be at least 1",
+    "daysMaximum": "Days must not exceed {{max}}",
+    "selectRole": "Please select a role",
+    "selectAlertType": "Please select an alert type",
+    "alphabeticOnly": "Only letters and spaces are allowed",
+    "maxValue": "Value must not exceed {{max}}",
+    "sdoDaysNotLessThanSo": "Sub Divisional Officer escalation days must be greater than or equal to Section Officer escalation days"
   }
 }

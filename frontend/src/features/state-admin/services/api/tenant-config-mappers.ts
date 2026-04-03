@@ -10,15 +10,17 @@
 import type { IntegrationConfiguration } from '../../types/integration'
 import type {
   ConfigurationData,
+  DateFormatConfig,
   MeterChangeReason,
+  SupplyOutageReason,
   SupportedChannel,
 } from '../../types/configuration'
 import type { MessageTemplatesData, ScreenContent, ScreenName } from '../../types/message-templates'
 import { SCREEN_NAMES } from '../../types/message-templates'
 import {
-  CHANNEL_CODE_TO_NAME,
-  CHANNEL_NAME_TO_CODE,
+  DEFAULT_DATE_FORMAT_CONFIG,
   DEFAULT_METER_CHANGE_REASONS,
+  DEFAULT_SUPPLY_OUTAGE_REASONS,
 } from '../../types/configuration'
 import type { EscalationRuleLevel, EscalationRulesConfig } from '../../types/escalation-rules'
 import type { LanguageConfiguration } from '../../types/language'
@@ -42,12 +44,35 @@ interface ApiEscalationRules {
 }
 
 export interface TenantConfigMap {
-  TENANT_SUPPORTED_CHANNELS?: { channels: string[] }
+  TENANT_SUPPORTED_CHANNELS?: { channels: string[]; degraded?: boolean; removedChannels?: string[] }
   TENANT_LOGO?: string // URL string
   METER_CHANGE_REASONS?: { reasons: { id: string; name: string; sequenceOrder: number }[] }
+  SUPPLY_OUTAGE_REASONS?: {
+    reasons: {
+      id: string
+      name: string
+      sequenceOrder: number
+      isDefault: boolean
+      editable: boolean
+    }[]
+  }
   LOCATION_CHECK_REQUIRED?: { value: 'YES' | 'NO' }
-  DATA_CONSOLIDATION_TIME?: { timeValue: string; description: string | null }
+  DISPLAY_DEPARTMENT_MAPS?: { value: 'YES' | 'NO' }
+  DATA_CONSOLIDATION_TIME?: {
+    schedule: { hour: number; minute: number } | null
+    description: string | null
+  }
   PUMP_OPERATOR_REMINDER_NUDGE_TIME?: { nudge: { schedule: { hour: number; minute: number } } }
+  DATE_FORMAT_SCREEN?: {
+    dateFormat: string | null
+    timeFormat: string | null
+    timezone: string | null
+  }
+  DATE_FORMAT_TABLE?: {
+    dateFormat: string | null
+    timeFormat: string | null
+    timezone: string | null
+  }
   AVERAGE_MEMBERS_PER_HOUSEHOLD?: { value: string }
   SUPPORTED_LANGUAGES?: { languages: { language: string; preference: number }[] }
   WATER_NORM?: { value: string }
@@ -92,41 +117,72 @@ function formatHHmm(hour: number, minute: number): string {
 export function mapApiConfigToConfigurationData(
   configs: TenantConfigMap
 ): Omit<ConfigurationData, 'id'> {
-  const channelCodes = configs.TENANT_SUPPORTED_CHANNELS?.channels ?? []
-  const supportedChannels = channelCodes
-    .map((code) => CHANNEL_CODE_TO_NAME[code as keyof typeof CHANNEL_CODE_TO_NAME])
-    .filter((c): c is SupportedChannel => Boolean(c))
+  const channelData = configs.TENANT_SUPPORTED_CHANNELS
+  const channelCodes = (channelData?.channels ?? []) as SupportedChannel[]
 
   const meterReasons: MeterChangeReason[] = configs.METER_CHANGE_REASONS?.reasons?.length
     ? configs.METER_CHANGE_REASONS.reasons.map((r) => ({ id: r.id, name: r.name }))
     : DEFAULT_METER_CHANGE_REASONS
 
+  const supplyOutageReasons: SupplyOutageReason[] = configs.SUPPLY_OUTAGE_REASONS?.reasons?.length
+    ? configs.SUPPLY_OUTAGE_REASONS.reasons.map((r) => ({
+        id: r.id,
+        name: r.name,
+        isDefault: r.isDefault,
+        editable: r.editable,
+      }))
+    : DEFAULT_SUPPLY_OUTAGE_REASONS
+
+  const consolidationSchedule = configs.DATA_CONSOLIDATION_TIME?.schedule
   const nudgeSchedule = configs.PUMP_OPERATOR_REMINDER_NUDGE_TIME?.nudge?.schedule
 
+  const dateFormatScreen: DateFormatConfig = configs.DATE_FORMAT_SCREEN
+    ? {
+        dateFormat: configs.DATE_FORMAT_SCREEN.dateFormat,
+        timeFormat: configs.DATE_FORMAT_SCREEN.timeFormat,
+        timezone: configs.DATE_FORMAT_SCREEN.timezone,
+      }
+    : { ...DEFAULT_DATE_FORMAT_CONFIG }
+
+  const dateFormatTable: DateFormatConfig = configs.DATE_FORMAT_TABLE
+    ? {
+        dateFormat: configs.DATE_FORMAT_TABLE.dateFormat,
+        timeFormat: configs.DATE_FORMAT_TABLE.timeFormat,
+        timezone: configs.DATE_FORMAT_TABLE.timezone,
+      }
+    : { ...DEFAULT_DATE_FORMAT_CONFIG }
+
   return {
-    supportedChannels,
-    logoUrl: configs.TENANT_LOGO,
+    supportedChannels: channelCodes,
+    degraded: channelData?.degraded,
+    removedChannels: channelData?.removedChannels as SupportedChannel[] | undefined,
     meterChangeReasons: meterReasons,
+    supplyOutageReasons,
     locationCheckRequired: configs.LOCATION_CHECK_REQUIRED?.value === 'YES',
-    dataConsolidationTime: configs.DATA_CONSOLIDATION_TIME?.timeValue ?? '',
+    displayDepartmentMaps: configs.DISPLAY_DEPARTMENT_MAPS?.value === 'YES',
+    dataConsolidationTime: consolidationSchedule
+      ? formatHHmm(consolidationSchedule.hour, consolidationSchedule.minute)
+      : '',
     pumpOperatorReminderNudgeTime: nudgeSchedule
       ? formatHHmm(nudgeSchedule.hour, nudgeSchedule.minute)
       : '',
+    dateFormatScreen,
+    dateFormatTable,
     averageMembersPerHousehold: Number(configs.AVERAGE_MEMBERS_PER_HOUSEHOLD?.value) || 0,
-    isConfigured: true,
+    isConfigured: channelCodes.length > 0,
   }
 }
 
 export function mapConfigurationDataToApiConfig(
   payload: Omit<ConfigurationData, 'id'>
 ): TenantConfigMap {
-  const channelCodes = payload.supportedChannels.map((name) => CHANNEL_NAME_TO_CODE[name])
+  const channelCodes = payload.supportedChannels
 
+  const consolidation = parseHHmm(payload.dataConsolidationTime)
   const { hour, minute } = parseHHmm(payload.pumpOperatorReminderNudgeTime)
 
   return {
     TENANT_SUPPORTED_CHANNELS: { channels: channelCodes },
-    TENANT_LOGO: payload.logoUrl,
     METER_CHANGE_REASONS: {
       reasons: payload.meterChangeReasons.map((r, i) => ({
         id: r.id,
@@ -134,9 +190,32 @@ export function mapConfigurationDataToApiConfig(
         sequenceOrder: i + 1,
       })),
     },
+    SUPPLY_OUTAGE_REASONS: {
+      reasons: payload.supplyOutageReasons.map((r, i) => ({
+        id: r.id,
+        name: r.name,
+        sequenceOrder: i + 1,
+        isDefault: r.isDefault,
+        editable: r.editable,
+      })),
+    },
     LOCATION_CHECK_REQUIRED: { value: payload.locationCheckRequired ? 'YES' : 'NO' },
-    DATA_CONSOLIDATION_TIME: { timeValue: payload.dataConsolidationTime, description: null },
+    DISPLAY_DEPARTMENT_MAPS: { value: payload.displayDepartmentMaps ? 'YES' : 'NO' },
+    DATA_CONSOLIDATION_TIME: {
+      schedule: { hour: consolidation.hour, minute: consolidation.minute },
+      description: null,
+    },
     PUMP_OPERATOR_REMINDER_NUDGE_TIME: { nudge: { schedule: { hour, minute } } },
+    DATE_FORMAT_SCREEN: {
+      dateFormat: payload.dateFormatScreen.dateFormat,
+      timeFormat: payload.dateFormatScreen.timeFormat,
+      timezone: payload.dateFormatScreen.timezone,
+    },
+    DATE_FORMAT_TABLE: {
+      dateFormat: payload.dateFormatTable.dateFormat,
+      timeFormat: payload.dateFormatTable.timeFormat,
+      timezone: payload.dateFormatTable.timezone,
+    },
     AVERAGE_MEMBERS_PER_HOUSEHOLD: { value: String(payload.averageMembersPerHousehold) },
   }
 }

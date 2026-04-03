@@ -51,6 +51,7 @@ const getLatestIndiaMapChartProps = <T extends object>() => {
 }
 
 jest.mock('react-router-dom', () => ({
+  ...jest.requireActual<typeof import('react-router-dom')>('react-router-dom'),
   useNavigate: () => mockNavigate,
   useParams: () => mockUseParams(),
   useSearchParams: () => mockUseSearchParams(),

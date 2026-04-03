@@ -1,199 +1,280 @@
-import { screen, fireEvent, within } from '@testing-library/react'
-import { describe, expect, it, jest } from '@jest/globals'
-import { StaffSyncPage } from './staff-sync-page'
+import { screen, fireEvent, act } from '@testing-library/react'
+import { describe, expect, it, jest, beforeEach } from '@jest/globals'
+import { StaffSyncPage, DEBOUNCE_DELAY_MS } from './staff-sync-page'
 import { renderWithProviders } from '@/test/render-with-providers'
-import type { StaffSyncData } from '../../types/staff-sync'
+import type { StaffListResponse } from '../../types/staff-sync'
+import type { StaffCountsData } from '../../types/overview'
 
-const mockData: StaffSyncData = {
-  stats: {
-    totalPumpOperators: 112,
-    totalSubDivisionOfficers: 75,
-    totalSectionOfficers: 80,
-  },
-  gramPanchayats: [
+// ── Mocks ────────────────────────────────────────────────────────────────────
+
+jest.mock('@/app/store/auth-store', () => ({
+  useAuthStore: (selector: (s: { user: { tenantCode: string } }) => unknown) =>
+    selector({ user: { tenantCode: 'AS' } }),
+}))
+
+const mockUseStaffListQuery = jest.fn()
+const mockUseStaffCountsQuery = jest.fn()
+const mockUseUploadMutation = jest.fn()
+
+jest.mock('../../services/query/use-state-admin-queries', () => ({
+  useStaffListQuery: () => mockUseStaffListQuery(),
+  useStaffCountsQuery: () => mockUseStaffCountsQuery(),
+  useUploadPumpOperatorsMutation: () => mockUseUploadMutation(),
+}))
+
+// ── Fixtures ──────────────────────────────────────────────────────────────────
+
+const mockListData: StaffListResponse = {
+  totalElements: 3,
+  items: [
     {
-      value: 'Achampet',
-      label: 'Achampet',
-      villages: [
-        { value: 'Achampet Village', label: 'Achampet Village' },
-        { value: 'Lingapur', label: 'Lingapur' },
+      id: 27935,
+      uuid: 'uuid-1',
+      title: 'Shyam Singh',
+      email: 'shyam@test.com',
+      phoneNumber: '9888888888',
+      status: 'ACTIVE',
+      role: 'PUMP_OPERATOR',
+      schemes: [
+        {
+          schemeId: 1,
+          schemeName: 'Scheme A',
+          workStatus: 'Ongoing',
+          operatingStatus: 'Operative',
+        },
       ],
     },
     {
-      value: 'Bhongir',
-      label: 'Bhongir',
-      villages: [
-        { value: 'Bhongir Main', label: 'Bhongir Main' },
-        { value: 'Aleru', label: 'Aleru' },
+      id: 27934,
+      uuid: 'uuid-2',
+      title: 'Ram Kumar',
+      email: 'ram@test.com',
+      phoneNumber: '9999999999',
+      status: 'INACTIVE',
+      role: 'SECTION_OFFICER',
+      schemes: [
+        {
+          schemeId: 2,
+          schemeName: 'Scheme B',
+          workStatus: 'Ongoing',
+          operatingStatus: 'Operative',
+        },
+        {
+          schemeId: 3,
+          schemeName: 'Scheme C',
+          workStatus: 'Completed',
+          operatingStatus: 'Non-Operative',
+        },
       ],
     },
-  ],
-  staff: [
     {
-      id: 'staff-1',
-      gramPanchayat: 'Achampet',
-      village: 'Achampet Village',
-      name: 'Ravi Kumar',
-      role: 'pump-operator',
-      mobileNumber: '+91 98452-85564',
-      lastSubmission: '2025-09-08T15:00:00',
-      activityStatus: 'active',
-    },
-    {
-      id: 'staff-2',
-      gramPanchayat: 'Achampet',
-      village: 'Lingapur',
-      name: 'Sanjay Reddy',
-      role: 'section-officer',
-      mobileNumber: '+91 78945-32101',
-      lastSubmission: null,
-      activityStatus: 'active',
-    },
-    {
-      id: 'staff-3',
-      gramPanchayat: 'Bhongir',
-      village: 'Bhongir Main',
-      name: 'Vijay Yadav',
-      role: 'sub-division-officer',
-      mobileNumber: '+91 98765-43210',
-      lastSubmission: null,
-      activityStatus: 'inactive',
+      id: 27929,
+      uuid: 'uuid-3',
+      title: 'District Officer',
+      email: 'do@test.com',
+      phoneNumber: '910000027929',
+      status: 'ACTIVE',
+      role: 'SUB_DIVISIONAL_OFFICER',
+      schemes: [],
     },
   ],
 }
 
-const mockUseStaffSyncQuery = jest.fn()
+const mockCounts: StaffCountsData = {
+  totalStaff: 300,
+  pumpOperators: 150,
+  sectionOfficers: 80,
+  subDivisionOfficers: 70,
+  totalAdmins: 4,
+}
 
-jest.mock('../../services/query/use-state-admin-queries', () => ({
-  useStaffSyncQuery: () => mockUseStaffSyncQuery(),
-}))
+// ── Setup ─────────────────────────────────────────────────────────────────────
 
 describe('StaffSyncPage', () => {
   beforeEach(() => {
-    mockUseStaffSyncQuery.mockReturnValue({
-      data: mockData,
+    mockUseStaffListQuery.mockReturnValue({
+      data: mockListData,
       isLoading: false,
       isError: false,
       refetch: jest.fn(),
     })
+    mockUseStaffCountsQuery.mockReturnValue({
+      data: mockCounts,
+      isLoading: false,
+    })
+    mockUseUploadMutation.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: false,
+    })
   })
+
+  // ── Basic render ────────────────────────────────────────────────────────────
 
   it('renders the page title', () => {
     renderWithProviders(<StaffSyncPage />)
-    expect(screen.getByRole('heading', { name: /staff sync/i })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 1 })).toBeTruthy()
   })
 
-  it('renders loading state', () => {
-    mockUseStaffSyncQuery.mockReturnValue({
+  it('renders loading state for the table', () => {
+    mockUseStaffListQuery.mockReturnValue({
       data: undefined,
       isLoading: true,
       isError: false,
       refetch: jest.fn(),
     })
     renderWithProviders(<StaffSyncPage />)
-    expect(screen.getByRole('heading', { name: /staff sync/i })).toBeTruthy()
+    expect(screen.getByRole('heading', { level: 1 })).toBeTruthy()
   })
 
   it('renders error state with retry button', () => {
-    mockUseStaffSyncQuery.mockReturnValue({
+    mockUseStaffListQuery.mockReturnValue({
       data: undefined,
       isLoading: false,
       isError: true,
       refetch: jest.fn(),
     })
     renderWithProviders(<StaffSyncPage />)
-    expect(screen.getByRole('heading', { name: /staff sync/i })).toBeTruthy()
     expect(screen.getByRole('alert')).toBeTruthy()
     expect(screen.getByRole('button', { name: /retry/i })).toBeTruthy()
   })
 
-  it('renders stat cards with correct values', () => {
+  // ── Stat cards ──────────────────────────────────────────────────────────────
+
+  it('renders stat cards from counts query', () => {
     renderWithProviders(<StaffSyncPage />)
-    expect(screen.getByText('112')).toBeTruthy()
-    expect(screen.getByText('75')).toBeTruthy()
+    expect(screen.getByText('150')).toBeTruthy()
+    expect(screen.getByText('70')).toBeTruthy()
     expect(screen.getByText('80')).toBeTruthy()
   })
 
-  it('renders all staff members in the table', () => {
+  it('shows placeholder when counts are loading', () => {
+    mockUseStaffCountsQuery.mockReturnValue({ data: undefined, isLoading: true })
     renderWithProviders(<StaffSyncPage />)
-    expect(screen.getByText('Ravi Kumar')).toBeTruthy()
-    expect(screen.getByText('Sanjay Reddy')).toBeTruthy()
-    expect(screen.getByText('Vijay Yadav')).toBeTruthy()
+    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(3)
   })
 
-  it('formats null lastSubmission as N/A', () => {
+  // ── Table columns ───────────────────────────────────────────────────────────
+
+  it('renders all staff members by title', () => {
     renderWithProviders(<StaffSyncPage />)
-    const naCells = screen.getAllByText('N/A')
-    expect(naCells.length).toBeGreaterThanOrEqual(2)
+    expect(screen.getByText('Shyam Singh')).toBeTruthy()
+    expect(screen.getByText('Ram Kumar')).toBeTruthy()
+    expect(screen.getByText('District Officer')).toBeTruthy()
   })
 
-  it('filters staff by name search', () => {
-    renderWithProviders(<StaffSyncPage />)
-
-    const searchInput = screen.getByRole('textbox')
-    fireEvent.change(searchInput, { target: { value: 'Ravi' } })
-
-    expect(screen.getByText('Ravi Kumar')).toBeTruthy()
-    expect(screen.queryByText('Sanjay Reddy')).toBeNull()
-    expect(screen.queryByText('Vijay Yadav')).toBeNull()
-  })
-
-  it('shows Upload Data and Download Data buttons', () => {
-    renderWithProviders(<StaffSyncPage />)
-    expect(screen.getByText('Upload Data')).toBeTruthy()
-    expect(screen.getByText('Download Data')).toBeTruthy()
-  })
-
-  it('shows filter dropdowns', () => {
-    renderWithProviders(<StaffSyncPage />)
-    expect(screen.getByRole('combobox', { name: 'Gram Panchayat' })).toBeTruthy()
-    expect(screen.getByRole('combobox', { name: 'Village' })).toBeTruthy()
-    expect(screen.getByRole('combobox', { name: 'Role' })).toBeTruthy()
-    expect(screen.getByRole('combobox', { name: 'Status' })).toBeTruthy()
-  })
-
-  it('does not show clear all filters when no filters are active', () => {
-    renderWithProviders(<StaffSyncPage />)
-    expect(screen.queryByText('clear all filters')).toBeNull()
-  })
-
-  it('shows table column headers', () => {
-    renderWithProviders(<StaffSyncPage />)
-    expect(screen.getByText('All GP & Village')).toBeTruthy()
-    expect(screen.getByText('Name')).toBeTruthy()
-    expect(screen.getByText('Mobile Number')).toBeTruthy()
-    expect(screen.getByText('Last Submission')).toBeTruthy()
-    expect(screen.getByText('Activity Status')).toBeTruthy()
-  })
-
-  it('shows empty message when search has no results', () => {
-    renderWithProviders(<StaffSyncPage />)
-
-    const searchInput = screen.getByRole('textbox')
-    fireEvent.change(searchInput, { target: { value: 'zzznomatch' } })
-
-    expect(screen.getByText('No staff members found')).toBeTruthy()
-  })
-
-  it('renders role labels correctly', () => {
+  it('renders role labels in human-readable form', () => {
     renderWithProviders(<StaffSyncPage />)
     expect(screen.getByText('Pump Operator')).toBeTruthy()
     expect(screen.getByText('Section Officer')).toBeTruthy()
-    expect(screen.getByText('Sub-Division Officer')).toBeTruthy()
+    expect(screen.getByText('Sub Divisional Officer')).toBeTruthy()
   })
 
-  it('filters staff by role', () => {
+  it('renders phone numbers', () => {
     renderWithProviders(<StaffSyncPage />)
+    expect(screen.getByText('9888888888')).toBeTruthy()
+    expect(screen.getByText('9999999999')).toBeTruthy()
+  })
 
-    const filterSection = screen.getByRole('region', { name: /filter staff members/i })
-    const roleButton = within(filterSection).getByText('Role')
-    fireEvent.click(roleButton)
+  it('renders first scheme name for single-scheme staff', () => {
+    renderWithProviders(<StaffSyncPage />)
+    expect(screen.getByText('Scheme A')).toBeTruthy()
+  })
 
-    const pumpOperatorOption = screen.getByRole('option', { name: 'Pump Operator' })
-    fireEvent.click(pumpOperatorOption)
+  it('shows +N for staff with multiple schemes', () => {
+    renderWithProviders(<StaffSyncPage />)
+    expect(screen.getByText('+1')).toBeTruthy()
+  })
 
-    expect(screen.getByText('Ravi Kumar')).toBeTruthy()
-    expect(screen.queryByText('Sanjay Reddy')).toBeNull()
-    expect(screen.queryByText('Vijay Yadav')).toBeNull()
+  it('renders dash for staff with no schemes', () => {
+    renderWithProviders(<StaffSyncPage />)
+    expect(screen.getByText('—')).toBeTruthy()
+  })
+
+  // ── Toolbar ─────────────────────────────────────────────────────────────────
+
+  it('renders search input', () => {
+    renderWithProviders(<StaffSyncPage />)
+    expect(screen.getByRole('textbox')).toBeTruthy()
+  })
+
+  it('renders Upload Data button', () => {
+    renderWithProviders(<StaffSyncPage />)
+    expect(screen.getByText('Upload Data')).toBeTruthy()
+  })
+
+  it('does not render Download Data button', () => {
+    renderWithProviders(<StaffSyncPage />)
+    expect(screen.queryByText('Download Data')).toBeNull()
+  })
+
+  it('renders role and status filter dropdowns', () => {
+    renderWithProviders(<StaffSyncPage />)
+    expect(screen.getByRole('combobox', { name: /role/i })).toBeTruthy()
+    expect(screen.getByRole('combobox', { name: /status/i })).toBeTruthy()
+  })
+
+  it('does not render GP or Village filters', () => {
+    renderWithProviders(<StaffSyncPage />)
+    expect(screen.queryByRole('combobox', { name: /gram panchayat/i })).toBeNull()
+    expect(screen.queryByRole('combobox', { name: /village/i })).toBeNull()
+  })
+
+  it('does not show clear all button when no filters are active', () => {
+    renderWithProviders(<StaffSyncPage />)
+    expect(screen.queryByText(/clear all/i)).toBeNull()
+  })
+
+  // ── Search (debounced; list comes from API by name filter) ───────────────────
+
+  it('filters displayed rows by name search', async () => {
+    jest.useFakeTimers()
+    try {
+      renderWithProviders(<StaffSyncPage />)
+      const searchInput = screen.getByRole('textbox')
+      fireEvent.change(searchInput, { target: { value: 'Shyam' } })
+      mockUseStaffListQuery.mockReturnValue({
+        data: { totalElements: 1, items: [mockListData.items[0]] },
+        isLoading: false,
+        isError: false,
+        refetch: jest.fn(),
+      })
+      await act(async () => {
+        jest.advanceTimersByTime(DEBOUNCE_DELAY_MS)
+      })
+      expect(screen.getByText('Shyam Singh')).toBeTruthy()
+      expect(screen.queryByText('Ram Kumar')).toBeNull()
+      expect(screen.queryByText('District Officer')).toBeNull()
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('shows empty message when search has no results', async () => {
+    jest.useFakeTimers()
+    try {
+      renderWithProviders(<StaffSyncPage />)
+      const searchInput = screen.getByRole('textbox')
+      fireEvent.change(searchInput, { target: { value: 'zzznomatch' } })
+      mockUseStaffListQuery.mockReturnValue({
+        data: { totalElements: 0, items: [] },
+        isLoading: false,
+        isError: false,
+        refetch: jest.fn(),
+      })
+      await act(async () => {
+        jest.advanceTimersByTime(DEBOUNCE_DELAY_MS)
+      })
+      expect(screen.getByText(/no staff members found/i)).toBeTruthy()
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  // ── Upload modal ─────────────────────────────────────────────────────────────
+
+  it('opens upload modal when Upload Data is clicked', () => {
+    renderWithProviders(<StaffSyncPage />)
+    fireEvent.click(screen.getByText('Upload Data'))
+    expect(screen.getByRole('dialog')).toBeTruthy()
   })
 })

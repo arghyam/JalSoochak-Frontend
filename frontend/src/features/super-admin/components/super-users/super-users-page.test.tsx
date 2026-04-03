@@ -51,7 +51,7 @@ describe('SuperUsersPage', () => {
     mockNavigate.mockReset()
     mockReinviteMutate.mockReset()
     mockUseSuperUsersQuery.mockReturnValue({
-      data: mockUsers,
+      data: { items: mockUsers, total: mockUsers.length },
       isLoading: false,
       isError: false,
       refetch: jest.fn(),
@@ -108,39 +108,29 @@ describe('SuperUsersPage', () => {
     expect(screen.getByText('+91 98452-85564')).toBeTruthy()
   })
 
-  it('filters users by name search', () => {
+  it('does not render a search input', () => {
     renderWithProviders(<SuperUsersPage />)
-    const searchInput = screen.getAllByRole('textbox')[0]
-    fireEvent.change(searchInput, { target: { value: 'Ravi' } })
-    expect(screen.getByText('Ravi Kumar')).toBeTruthy()
-    expect(screen.queryByText('Sanjeev Kumar')).toBeNull()
-  })
-
-  it('shows empty message when no results match search', () => {
-    renderWithProviders(<SuperUsersPage />)
-    const searchInput = screen.getAllByRole('textbox')[0]
-    fireEvent.change(searchInput, { target: { value: 'zzznomatch' } })
-    expect(screen.getByText('No super users found')).toBeTruthy()
+    expect(screen.queryByRole('textbox')).toBeNull()
   })
 
   it('navigates to add page when Add Super User button is clicked', () => {
     renderWithProviders(<SuperUsersPage />)
     fireEvent.click(screen.getByRole('button', { name: /add super user/i }))
-    expect(mockNavigate).toHaveBeenCalledWith('/super-admin/super-users/add')
+    expect(mockNavigate).toHaveBeenCalledWith('/super-user/super-users/add')
   })
 
   it('navigates to view page when view icon is clicked', () => {
     renderWithProviders(<SuperUsersPage />)
     const viewButtons = screen.getAllByRole('button', { name: /view super user/i })
     fireEvent.click(viewButtons[0])
-    expect(mockNavigate).toHaveBeenCalledWith('/super-admin/super-users/user-1')
+    expect(mockNavigate).toHaveBeenCalledWith('/super-user/super-users/user-1')
   })
 
   it('navigates to edit page when edit icon is clicked', () => {
     renderWithProviders(<SuperUsersPage />)
     const editButtons = screen.getAllByRole('button', { name: /edit super user/i })
     fireEvent.click(editButtons[0])
-    expect(mockNavigate).toHaveBeenCalledWith('/super-admin/super-users/user-1/edit')
+    expect(mockNavigate).toHaveBeenCalledWith('/super-user/super-users/user-1/edit')
   })
 
   it('renders resend invite button for pending users', () => {

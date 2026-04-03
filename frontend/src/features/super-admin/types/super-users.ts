@@ -58,8 +58,11 @@ export function mapApiUserToUserAdminData(u: ApiUser): UserAdminData {
   }
 }
 
-/** Invite user request body for POST /api/v1/users/invite */
+/** Invite user request body for POST /api/v1/users/invitations */
 export interface InviteUserRequest {
+  firstName: string
+  lastName: string
+  phoneNumber: string
   email: string
   role: 'SUPER_USER' | 'STATE_ADMIN'
   tenantCode?: string

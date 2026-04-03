@@ -5,23 +5,29 @@ import { useTranslation } from 'react-i18next'
 import i18n from '@/app/i18n'
 import { useAuthStore } from '@/app/store'
 import { INDIA_STATES } from '@/shared/constants/states'
-import { StatCard } from '@/shared/components/common'
+import { StatCard, PageHeader } from '@/shared/components/common'
 import {
+  useSchemeCountsQuery,
   useStaffCountsQuery,
-  useStateAdminOverviewQuery,
 } from '../../services/query/use-state-admin-queries'
-import { BsDroplet, BsPerson } from 'react-icons/bs'
+import { BsDroplet } from 'react-icons/bs'
+import { TotalStaffIcon, PumpOperatorIcon, TotalAdminsIcon } from './overview-icons'
 import { ConfigSetupWizard } from './config-setup-wizard'
 
 export function OverviewPage() {
   const { t } = useTranslation(['state-admin', 'common'])
   const user = useAuthStore((state) => state.user)
-  const { data, isLoading, isError } = useStateAdminOverviewQuery()
+  const tenantCode = user?.tenantCode ?? ''
   const {
     data: staffCountsData,
     isLoading: isStaffCountsLoading,
     isError: isStaffCountsError,
   } = useStaffCountsQuery()
+  const {
+    data: schemeCountsData,
+    isLoading: isSchemeCountsLoading,
+    isError: isSchemeCountsError,
+  } = useSchemeCountsQuery(tenantCode)
 
   const stateName =
     INDIA_STATES.find((s) => s.code === user?.tenantCode?.toUpperCase())?.name ??
@@ -35,7 +41,7 @@ export function OverviewPage() {
     document.title = `${pageTitle} | JalSoochak`
   }, [t, stateName])
 
-  if (isLoading || isStaffCountsLoading) {
+  if (isStaffCountsLoading || isSchemeCountsLoading) {
     return (
       <Flex
         h="64"
@@ -51,16 +57,12 @@ export function OverviewPage() {
     )
   }
 
-  if (isError || isStaffCountsError) {
+  if (isStaffCountsError || isSchemeCountsError) {
     return (
       <Flex h="64" align="center" justify="center">
         <Text color="error.500">{t('common:toast.failedToLoad')}</Text>
       </Flex>
     )
-  }
-
-  if (!data) {
-    return null
   }
 
   const formatStatValue = (value: string | number): string =>
@@ -70,27 +72,27 @@ export function OverviewPage() {
     {
       title: t('overview.stats.totalStaff'),
       value: formatStatValue(staffCountsData?.totalStaff ?? 0),
-      icon: BsPerson,
-      iconBg: '#F1EEFF',
-      iconColor: '#584C93',
+      icon: TotalStaffIcon,
+      iconBg: '#EBF4FA',
+      iconColor: '#3291D1',
     },
     {
       title: t('overview.stats.pumpOperators'),
       value: formatStatValue(staffCountsData?.pumpOperators ?? 0),
-      icon: BsPerson,
-      iconBg: '#E1FFEA',
-      iconColor: '#079455',
+      icon: PumpOperatorIcon,
+      iconBg: '#F1EEFF',
+      iconColor: '#584C93',
     },
     {
       title: t('overview.stats.totalAdmins'),
       value: formatStatValue(staffCountsData?.totalAdmins ?? 0),
-      icon: BsPerson,
+      icon: TotalAdminsIcon,
       iconBg: '#FBEAFF',
       iconColor: '#DC72F2',
     },
     {
       title: t('overview.stats.activeSchemes'),
-      value: formatStatValue(data.stats.activeSchemes.value),
+      value: formatStatValue(schemeCountsData?.activeSchemes ?? 0),
       icon: BsDroplet,
       iconBg: '#EBF4FA',
       iconColor: '#3291D1',
@@ -99,12 +101,11 @@ export function OverviewPage() {
 
   return (
     <Box w="full">
-      {/* Page Header */}
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
           {stateName ? t('overview.title', { state: stateName }) : t('overview.titleFallback')}
         </Heading>
-      </Box>
+      </PageHeader>
 
       <Stack gap={{ base: 4, md: 6 }}>
         {/* Stats Cards */}

@@ -115,13 +115,16 @@ describe('EditStateUTPage', () => {
   it('Cancel navigates to view page', () => {
     renderWithProviders(<EditStateUTPage />)
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
-    expect(mockNavigate).toHaveBeenCalledWith('/super-admin/states-uts/MH')
+    expect(mockNavigate).toHaveBeenCalledWith('/super-user/states-uts/MH')
   })
 
   it('Save calls updateUserMutation for changed admin', async () => {
     const mockMutateAsync = jest
       .fn<
-        (args: { id: string; payload: { lastName: string; phoneNumber: string } }) => Promise<void>
+        (args: {
+          id: string
+          payload: { firstName: string; lastName: string; phoneNumber: string }
+        }) => Promise<void>
       >()
       .mockResolvedValue(undefined)
     mockUseUpdateUserMutation.mockReturnValue({ mutateAsync: mockMutateAsync, isPending: false })
@@ -133,8 +136,42 @@ describe('EditStateUTPage', () => {
     await waitFor(() => {
       expect(mockMutateAsync).toHaveBeenCalledWith({
         id: 'admin-1',
-        payload: { lastName: 'Patil', phoneNumber: '9876543210' },
+        payload: { firstName: 'Raj', lastName: 'Patil', phoneNumber: '9876543210' },
       })
+    })
+  })
+
+  it('renders status combobox showing current tenant status label', () => {
+    renderWithProviders(<EditStateUTPage />)
+    expect(screen.getByRole('combobox')).toBeTruthy()
+    expect(screen.getByText('Active')).toBeTruthy()
+  })
+
+  it('status combobox is disabled while mutation is pending', () => {
+    mockUseUpdateTenantStatusMutation.mockReturnValue({
+      mutateAsync: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
+      isPending: true,
+    })
+    renderWithProviders(<EditStateUTPage />)
+    const combobox = screen.getByRole('combobox') as HTMLButtonElement
+    expect(combobox.disabled).toBe(true)
+  })
+
+  it('selecting a status option calls updateStatusMutation with new status', async () => {
+    const mockStatusMutateAsync = jest
+      .fn<(args: { id: number; status: string }) => Promise<void>>()
+      .mockResolvedValue(undefined)
+    mockUseUpdateTenantStatusMutation.mockReturnValue({
+      mutateAsync: mockStatusMutateAsync,
+      isPending: false,
+    })
+
+    renderWithProviders(<EditStateUTPage />)
+    fireEvent.click(screen.getByRole('combobox'))
+    fireEvent.click(screen.getByRole('option', { name: 'Suspended' }))
+
+    await waitFor(() => {
+      expect(mockStatusMutateAsync).toHaveBeenCalledWith({ id: 1, status: 'SUSPENDED' })
     })
   })
 })

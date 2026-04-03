@@ -15,6 +15,24 @@ jest.mock('../../services/query/use-state-admin-queries', () => ({
   }),
 }))
 
+async function clickSaveChangesWhenReady() {
+  await waitFor(() => {
+    const btn = screen.getByRole('button', { name: /save changes/i })
+    const isDisabled = btn.hasAttribute('disabled') || btn.getAttribute('aria-disabled') === 'true'
+    expect(isDisabled).toBe(false)
+  })
+  fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+}
+
+async function clickSaveAndNextWhenReady() {
+  await waitFor(() => {
+    const btn = screen.getByRole('button', { name: /save.*next/i })
+    const isDisabled = btn.hasAttribute('disabled') || btn.getAttribute('aria-disabled') === 'true'
+    expect(isDisabled).toBe(false)
+  })
+  fireEvent.click(screen.getByRole('button', { name: /save.*next/i }))
+}
+
 const configuredConfig = {
   id: 'tenant-1',
   apiUrl: 'https://api.example.com',
@@ -81,7 +99,7 @@ describe('IntegrationPage', () => {
 
   it('save button is disabled when there are no changes', () => {
     renderWithProviders(<IntegrationPage />)
-    const saveBtn = screen.getByRole('button', { name: /^save$/i })
+    const saveBtn = screen.getByRole('button', { name: /save changes/i })
     expect(
       saveBtn.getAttribute('disabled') !== null || saveBtn.getAttribute('aria-disabled') === 'true'
     ).toBe(true)
@@ -94,7 +112,7 @@ describe('IntegrationPage', () => {
       isError: false,
     })
     renderWithProviders(<IntegrationPage />)
-    const saveBtn = screen.getByRole('button', { name: /^save$/i })
+    const saveBtn = screen.getByRole('button', { name: /save.*next/i })
     expect(
       saveBtn.getAttribute('disabled') !== null || saveBtn.getAttribute('aria-disabled') === 'true'
     ).toBe(true)
@@ -104,7 +122,7 @@ describe('IntegrationPage', () => {
     renderWithProviders(<IntegrationPage />)
     const apiUrlInput = screen.getByDisplayValue('https://api.example.com')
     fireEvent.change(apiUrlInput, { target: { value: 'https://new-api.example.com' } })
-    const saveBtn = screen.getByRole('button', { name: /^save$/i })
+    const saveBtn = screen.getByRole('button', { name: /save changes/i })
     expect(
       saveBtn.getAttribute('disabled') === null && saveBtn.getAttribute('aria-disabled') !== 'true'
     ).toBe(true)
@@ -127,7 +145,7 @@ describe('IntegrationPage', () => {
     const apiUrlInput = screen.getByDisplayValue('https://api.example.com')
     fireEvent.change(apiUrlInput, { target: { value: 'https://new.example.com' } })
 
-    fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+    await clickSaveChangesWhenReady()
 
     await waitFor(() => {
       expect(mockMutateAsync).toHaveBeenCalledWith({
@@ -136,5 +154,108 @@ describe('IntegrationPage', () => {
         organizationId: 'org-123',
       })
     })
+  })
+
+  it('shows inline error for spaces in API URL on save', async () => {
+    renderWithProviders(<IntegrationPage />)
+    const apiUrlInput = screen.getByDisplayValue('https://api.example.com')
+    fireEvent.change(apiUrlInput, { target: { value: 'https://api.example.com/path with spaces' } })
+
+    await clickSaveChangesWhenReady()
+
+    await waitFor(() => {
+      expect(screen.getByText(/spaces are not allowed/i)).toBeTruthy()
+    })
+    expect(mockMutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('shows inline error for invalid URL format on save', async () => {
+    renderWithProviders(<IntegrationPage />)
+    const apiUrlInput = screen.getByDisplayValue('https://api.example.com')
+    fireEvent.change(apiUrlInput, { target: { value: 'not-a-url' } })
+
+    await clickSaveChangesWhenReady()
+
+    await waitFor(() => {
+      expect(screen.getByText(/URL must start with https:\/\/ exactly once/i)).toBeTruthy()
+    })
+    expect(mockMutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('shows inline error for HTML tags in organization ID', async () => {
+    renderWithProviders(<IntegrationPage />)
+    const orgInput = screen.getByDisplayValue('org-123')
+    fireEvent.change(orgInput, { target: { value: '<script>alert(1)</script>' } })
+
+    await clickSaveChangesWhenReady()
+
+    await waitFor(() => {
+      expect(screen.getByText(/HTML tags are not allowed/i)).toBeTruthy()
+    })
+    expect(mockMutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('shows inline error for SQL injection in organization ID', async () => {
+    renderWithProviders(<IntegrationPage />)
+    const orgInput = screen.getByDisplayValue('org-123')
+    fireEvent.change(orgInput, { target: { value: "'; DROP TABLE users;--" } })
+
+    await clickSaveChangesWhenReady()
+
+    await waitFor(() => {
+      expect(screen.getByText(/invalid characters detected/i)).toBeTruthy()
+    })
+    expect(mockMutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('shows required error for empty API key when unconfigured', async () => {
+    mockUseIntegrationConfigurationQuery.mockReturnValue({
+      data: emptyConfig,
+      isLoading: false,
+      isError: false,
+    })
+    renderWithProviders(<IntegrationPage />)
+
+    const apiUrlInput = screen.getByLabelText(/enter api url/i)
+    fireEvent.change(apiUrlInput, { target: { value: 'https://api.example.com' } })
+    const orgInput = screen.getByLabelText(/enter organization id/i)
+    fireEvent.change(orgInput, { target: { value: 'org123' } })
+
+    await clickSaveAndNextWhenReady()
+
+    await waitFor(() => {
+      expect(screen.getByText(/this field is required/i)).toBeTruthy()
+    })
+    expect(mockMutateAsync).not.toHaveBeenCalled()
+  })
+
+  it('clears inline error when user modifies the field', async () => {
+    renderWithProviders(<IntegrationPage />)
+    const apiUrlInput = screen.getByDisplayValue('https://api.example.com')
+    fireEvent.change(apiUrlInput, { target: { value: 'not-a-url' } })
+
+    await clickSaveChangesWhenReady()
+
+    await waitFor(() => {
+      expect(screen.getByText(/URL must start with https:\/\/ exactly once/i)).toBeTruthy()
+    })
+
+    fireEvent.change(apiUrlInput, { target: { value: 'https://fixed.example.com' } })
+    expect(screen.queryByText(/URL must start with https:\/\/ exactly once/i)).toBeNull()
+  })
+
+  it('cancel clears validation errors', async () => {
+    renderWithProviders(<IntegrationPage />)
+    const apiUrlInput = screen.getByDisplayValue('https://api.example.com')
+    fireEvent.change(apiUrlInput, { target: { value: 'bad-url' } })
+
+    await clickSaveChangesWhenReady()
+
+    await waitFor(() => {
+      expect(screen.getByText(/URL must start with https:\/\/ exactly once/i)).toBeTruthy()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
+    expect(screen.queryByText(/URL must start with https:\/\/ exactly once/i)).toBeNull()
   })
 })

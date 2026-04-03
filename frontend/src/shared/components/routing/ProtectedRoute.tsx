@@ -2,7 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { Flex } from '@chakra-ui/react'
 import { useAuthStore } from '@/app/store'
-import { AUTH_ROLES, type AuthRole } from '@/shared/constants/auth'
+import { AUTH_ROLES, STAFF_ROLES, type AuthRole } from '@/shared/constants/auth'
 import { ROUTES } from '@/shared/constants/routes'
 import { ForbiddenPage, SessionExpiredPage, LoadingSpinner } from '@/shared/components/common'
 
@@ -72,6 +72,10 @@ export function RedirectIfAuthenticated({ children }: { children: ReactNode }) {
 
   if (user.role === AUTH_ROLES.STATE_ADMIN) {
     return <Navigate to={ROUTES.STATE_ADMIN} replace />
+  }
+
+  if (STAFF_ROLES.includes(user.role as (typeof STAFF_ROLES)[number])) {
+    return <Navigate to={ROUTES.STAFF} replace />
   }
 
   return <Navigate to={ROUTES.DASHBOARD} replace />

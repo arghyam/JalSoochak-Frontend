@@ -74,17 +74,31 @@
       "email": "Email address",
       "phone": "Phone number",
       "secondaryEmail": "Secondary email address (optional)",
-      "contactNumber": "Contact number (optional)"
+      "contactNumber": "Contact number (optional)",
+      "noAdminDescription": "No state admin has been assigned to this state/UT. Invite one below."
     },
     "statusSection": {
       "title": "Status",
       "activated": "Activated",
-      "stateUtStatus": "State/UT Status"
+      "stateUtStatus": "State/UT Status",
+      "statuses": {
+        "INACTIVE": "Inactive",
+        "ONBOARDED": "Onboarded",
+        "CONFIGURED": "Configured",
+        "ACTIVE": "Active",
+        "SUSPENDED": "Suspended",
+        "DEGRADED": "Degraded",
+        "ARCHIVED": "Archived"
+      }
     },
     "buttons": {
       "addAndSendLink": "Add State & Send Link via Email",
-      "backToList": "Back to States/UTs"
+      "backToList": "Back to States/UTs",
+      "createStateUt": "Create State/UT",
+      "sendInvite": "Send Invite via Email",
+      "skipForNow": "Skip for Now"
     },
+    "step": "Step {{current}} of {{total}}",
     "messages": {
       "notFound": "State/UT not found",
       "noStatesFound": "No states/UTs found",
@@ -99,7 +113,11 @@
       "failedToLoadStateOptions": "Failed to load state/UT options. Please refresh and try again.",
       "activatedSuccess": "State/UT activated successfully",
       "deactivatedSuccess": "State/UT deactivated successfully",
-      "failedToUpdateStatus": "Failed to update status"
+      "failedToUpdateStatus": "Failed to update status",
+      "statusUpdatedSuccess": "Status updated successfully"
+    },
+    "filters": {
+      "allStatuses": "All Statuses"
     },
     "aria": {
       "viewStateUt": "View State/UT",
@@ -207,6 +225,10 @@
   "configuration": {
     "pageTitle": "Configuration",
     "sectionTitle": "System Configuration",
+    "breadcrumb": {
+      "view": "View Configuration",
+      "edit": "Edit Configuration"
+    },
     "sections": {
       "supportedChannels": {
         "title": "Supported Channels"
@@ -225,6 +247,13 @@
       "locationAffinity": {
         "title": "Location Affinity Threshold"
       }
+    },
+    "infoText": {
+      "supportedChannels": "Channels through which schemes track the released water flow. State admins can only select from these.",
+      "undersupplyThreshold": "Percentage below the water norm at which a supply shortfall alert is triggered. Range: 0–100.",
+      "oversupplyThreshold": "Percentage above the water norm at which a water excess alert is triggered. Range: 0–1000.",
+      "bfmImageConfidence": "Minimum confidence score for Bulk Flow Meter images to be accepted as valid readings. Range: 0–100.",
+      "locationAffinity": "Maximum acceptable distance between a field operator's GPS location and their assigned infrastructure point."
     },
     "messages": {
       "saveSuccess": "Configuration saved successfully",

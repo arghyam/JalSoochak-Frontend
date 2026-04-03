@@ -19,13 +19,40 @@ import { PiTreeStructure } from 'react-icons/pi'
 import { AiOutlineEye, AiOutlineSetting, AiOutlineWarning, AiOutlineApi } from 'react-icons/ai'
 import { BiKey } from 'react-icons/bi'
 import { FiLogOut } from 'react-icons/fi'
-import { IoLanguageOutline, IoSettingsOutline, IoWaterOutline } from 'react-icons/io5'
+import {
+  IoLanguageOutline,
+  IoSettingsOutline,
+  IoSyncOutline,
+  IoWaterOutline,
+} from 'react-icons/io5'
 import { HiOutlineTemplate } from 'react-icons/hi'
 import { AiOutlineMessage } from 'react-icons/ai'
-import { BsPerson, BsListUl, BsPeople } from 'react-icons/bs'
-import jalsoochakLogo from '@/assets/media/jalsoochak-logo.svg'
+import { BsPerson, BsListUl } from 'react-icons/bs'
+import jalsoochakLogo from '@/assets/media/logo.svg'
+
+function Users01Icon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      width="19"
+      height="19"
+      viewBox="0 0 19 19"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <path
+        d="M17.4173 16.625V15.0417C17.4173 13.5661 16.4081 12.3263 15.0423 11.9748M12.2715 2.60518C13.432 3.07495 14.2507 4.2127 14.2507 5.54167C14.2507 6.87063 13.432 8.00838 12.2715 8.47815M13.459 16.625C13.459 15.1495 13.459 14.4118 13.2179 13.8298C12.8965 13.0539 12.2801 12.4374 11.5041 12.116C10.9222 11.875 10.1845 11.875 8.70898 11.875H6.33398C4.8585 11.875 4.12076 11.875 3.53882 12.116C2.7629 12.4374 2.14643 13.0539 1.82503 13.8298C1.58398 14.4118 1.58398 15.1495 1.58398 16.625M10.6882 5.54167C10.6882 7.29057 9.27039 8.70833 7.52148 8.70833C5.77258 8.70833 4.35482 7.29057 4.35482 5.54167C4.35482 3.79276 5.77258 2.375 7.52148 2.375C9.27039 2.375 10.6882 3.79276 10.6882 5.54167Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
 import { useAuthStore } from '@/app/store'
 import { ROUTES } from '@/shared/constants/routes'
+import { STAFF_ROLES } from '@/shared/constants/auth'
 import { SIDEBAR_NAV_ITEMS } from '@/shared/constants/sidebar-nav'
 import type {
   SidebarNavItem,
@@ -48,11 +75,12 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   BiKey,
   IoLanguageOutline,
   IoSettingsOutline,
+  IoSyncOutline,
   IoWaterOutline,
   HiOutlineTemplate,
   AiOutlineMessage,
   BsPerson,
-  BsPeople,
+  BsPeople: Users01Icon,
   BsListUl,
 }
 
@@ -88,8 +116,16 @@ export function Sidebar({ onNavClick }: SidebarProps) {
   const [expandedKey, setExpandedKey] = useState<string | null>(null)
   const [collapsedKeys, setCollapsedKeys] = useState<Set<string>>(() => new Set())
 
+  const isStaffRole = userRole
+    ? STAFF_ROLES.includes(userRole as (typeof STAFF_ROLES)[number])
+    : false
+
   const isChildPathActive = (path: string) => {
-    if (path === ROUTES.SUPER_ADMIN_OVERVIEW || path === ROUTES.STATE_ADMIN_OVERVIEW)
+    if (
+      path === ROUTES.SUPER_ADMIN_OVERVIEW ||
+      path === ROUTES.STATE_ADMIN_OVERVIEW ||
+      path === ROUTES.STAFF_OVERVIEW
+    )
       return location.pathname === path
     return location.pathname === path || location.pathname.startsWith(path + '/')
   }
@@ -108,7 +144,7 @@ export function Sidebar({ onNavClick }: SidebarProps) {
     } catch {
       // ignore
     }
-    navigate(ROUTES.LOGIN, { replace: true })
+    navigate(isStaffRole ? ROUTES.STAFF_LOGIN : ROUTES.LOGIN, { replace: true })
   }
 
   return (
@@ -133,6 +169,7 @@ export function Sidebar({ onNavClick }: SidebarProps) {
         {/* Brand Section */}
         <Flex
           h="84px"
+          pb="12px"
           align="center"
           justify="center"
           gap={2}
@@ -143,7 +180,7 @@ export function Sidebar({ onNavClick }: SidebarProps) {
           <Image
             src={jalsoochakLogo}
             alt={t('sidebar.logoAlt', 'JalSoochak logo')}
-            height="84px"
+            height="72px"
             width="168px"
           />
         </Flex>
@@ -155,6 +192,22 @@ export function Sidebar({ onNavClick }: SidebarProps) {
           aria-label={t('sidebar.mainNavigation', 'Main navigation')}
           flex={1}
           overflowY="auto"
+          sx={{
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#D1D1D6 transparent',
+            '&::-webkit-scrollbar': { width: '4px' },
+            '&::-webkit-scrollbar-button': { display: 'none' },
+            '&::-webkit-scrollbar-track': {
+              background: 'transparent',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              background: '#D1D1D6',
+              borderRadius: '999px',
+            },
+            '&::-webkit-scrollbar-thumb:hover': {
+              background: '#D1D1D6',
+            },
+          }}
         >
           <Stack gap={4} px={7} py={5}>
             {visibleNavItems.map((item) => {
@@ -282,11 +335,11 @@ export function Sidebar({ onNavClick }: SidebarProps) {
                                 fontSize="sm"
                                 fontWeight="medium"
                                 transition="all 0.2s"
-                                bg={isActive ? 'primary.25' : 'transparent'}
-                                color={isActive ? 'primary.700' : 'neutral.950'}
+                                bg="transparent"
+                                color={isActive ? 'primary.500' : 'neutral.950'}
                                 minH="40px"
                                 _hover={{
-                                  bg: isActive ? 'primary.25' : 'neutral.100',
+                                  bg: 'neutral.100',
                                 }}
                               >
                                 <Text isTruncated>{t(child.labelKey)}</Text>
@@ -339,42 +392,46 @@ export function Sidebar({ onNavClick }: SidebarProps) {
             </Flex>
           </MenuButton>
           <MenuList px={7} py={2}>
-            <MenuItem
-              w="100%"
-              px={3}
-              py={2}
-              gap={2}
-              borderRadius="lg"
-              minH="44px"
-              onClick={() => {
-                navigate(ROUTES.PROFILE)
-                onNavClick?.()
-              }}
-              _hover={{ bg: 'neutral.100' }}
-            >
-              <Icon as={BsPerson} boxSize={5} flexShrink={0} aria-hidden="true" />
-              <Text fontSize="sm" fontWeight="medium">
-                {t('sidebar.profile')}
-              </Text>
-            </MenuItem>
-            <MenuItem
-              w="100%"
-              px={3}
-              py={2}
-              gap={2}
-              borderRadius="lg"
-              minH="44px"
-              onClick={() => {
-                navigate(ROUTES.CHANGE_PASSWORD)
-                onNavClick?.()
-              }}
-              _hover={{ bg: 'neutral.100' }}
-            >
-              <Icon as={BiKey} boxSize={5} flexShrink={0} aria-hidden="true" />
-              <Text fontSize="sm" fontWeight="medium">
-                {t('sidebar.changePassword')}
-              </Text>
-            </MenuItem>
+            {!isStaffRole && (
+              <MenuItem
+                w="100%"
+                px={3}
+                py={2}
+                gap={2}
+                borderRadius="lg"
+                minH="44px"
+                onClick={() => {
+                  navigate(ROUTES.PROFILE)
+                  onNavClick?.()
+                }}
+                _hover={{ bg: 'neutral.100' }}
+              >
+                <Icon as={BsPerson} boxSize={5} flexShrink={0} aria-hidden="true" />
+                <Text fontSize="sm" fontWeight="medium">
+                  {t('sidebar.profile')}
+                </Text>
+              </MenuItem>
+            )}
+            {!isStaffRole && (
+              <MenuItem
+                w="100%"
+                px={3}
+                py={2}
+                gap={2}
+                borderRadius="lg"
+                minH="44px"
+                onClick={() => {
+                  navigate(ROUTES.CHANGE_PASSWORD)
+                  onNavClick?.()
+                }}
+                _hover={{ bg: 'neutral.100' }}
+              >
+                <Icon as={BiKey} boxSize={5} flexShrink={0} aria-hidden="true" />
+                <Text fontSize="sm" fontWeight="medium">
+                  {t('sidebar.changePassword')}
+                </Text>
+              </MenuItem>
+            )}
             <MenuItem
               w="100%"
               px={3}

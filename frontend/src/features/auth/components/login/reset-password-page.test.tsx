@@ -12,6 +12,7 @@ const NEW_CRED = 'New-test-pw1'
 const DIFF_CRED = 'Diff-test-pw2'
 
 jest.mock('react-router-dom', () => ({
+  ...jest.requireActual<typeof import('react-router-dom')>('react-router-dom'),
   useSearchParams: jest.fn(),
   useNavigate: jest.fn(),
 }))

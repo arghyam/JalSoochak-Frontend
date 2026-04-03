@@ -9,9 +9,10 @@ import {
   ListItem,
   Textarea,
   Stack,
+  SimpleGrid,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { SearchableSelect } from '@/shared/components/common'
+import { SearchableSelect, PageHeader } from '@/shared/components/common'
 import { getLocaleByLabel } from '@/shared/constants/languages'
 import { useMessageTemplatesQuery } from '../../services/query/use-state-admin-queries'
 import type { LanguageCode, ScreenName } from '../../types/message-templates'
@@ -84,9 +85,11 @@ export function MessageTemplatesPage() {
   if (isLoading) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
-          {t('messageTemplates.title')}
-        </Heading>
+        <PageHeader mb={6}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('messageTemplates.title')}
+          </Heading>
+        </PageHeader>
         <Flex align="center" role="status" aria-live="polite" aria-busy="true">
           <Spinner size="md" color="primary.500" mr={3} />
           <Text color="neutral.600">{t('common:loading')}</Text>
@@ -98,9 +101,11 @@ export function MessageTemplatesPage() {
   if (isError) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
-          {t('messageTemplates.title')}
-        </Heading>
+        <PageHeader mb={6}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('messageTemplates.title')}
+          </Heading>
+        </PageHeader>
         <Text color="error.500">{t('messageTemplates.messages.failedToLoad')}</Text>
       </Box>
     )
@@ -108,11 +113,11 @@ export function MessageTemplatesPage() {
 
   return (
     <Box w="full">
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
           {t('messageTemplates.title')}
         </Heading>
-      </Box>
+      </PageHeader>
 
       <Box
         as="section"
@@ -126,14 +131,20 @@ export function MessageTemplatesPage() {
         py={{ base: 4, md: 6 }}
         px={4}
       >
+        {/* Card Subheading */}
+        <Heading as="h2" size="h3" fontWeight="400" fontSize={{ base: 'md', md: 'xl' }} mb={4}>
+          {t('messageTemplates.subtitle')}
+        </Heading>
+
         {/* Filters Row */}
-        <Flex gap={4} direction={{ base: 'column', md: 'row' }} mb={6} wrap="wrap">
+        <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6} mb={6}>
           {/* Language Select */}
-          <Box w={{ base: 'full', md: '240px' }}>
+          <Box w={{ base: 'full', xl: '486px' }}>
             <Text
               as="label"
-              textStyle="h10"
               fontSize={{ base: 'xs', md: 'sm' }}
+              fontWeight="medium"
+              color="neutral.950"
               mb={1}
               display="block"
             >
@@ -147,20 +158,18 @@ export function MessageTemplatesPage() {
               value={selectedLanguage}
               onChange={handleLanguageChange}
               placeholder={t('messageTemplates.selectLanguage')}
-              width="full"
-              textStyle="h10"
-              borderColor="neutral.300"
-              borderRadius="4px"
+              width="100%"
               ariaLabel={t('messageTemplates.aria.selectLanguage')}
             />
           </Box>
 
           {/* Template Select */}
-          <Box w={{ base: 'full', md: '240px' }}>
+          <Box w={{ base: 'full', xl: '486px' }}>
             <Text
               as="label"
-              textStyle="h10"
               fontSize={{ base: 'xs', md: 'sm' }}
+              fontWeight="medium"
+              color="neutral.950"
               mb={1}
               display="block"
             >
@@ -174,15 +183,12 @@ export function MessageTemplatesPage() {
               value={selectedScreen}
               onChange={(value) => setSelectedScreen(value as ScreenName)}
               placeholder={t('messageTemplates.selectTemplate')}
-              width="full"
-              textStyle="h10"
-              borderColor="neutral.300"
-              borderRadius="4px"
+              width="100%"
               disabled={!selectedLanguage}
               ariaLabel={t('messageTemplates.aria.selectTemplate')}
             />
           </Box>
-        </Flex>
+        </SimpleGrid>
 
         {/* Content Panel */}
         {selectedLanguage && selectedScreen && (
@@ -192,7 +198,7 @@ export function MessageTemplatesPage() {
                 {t('messageTemplates.noContent')}
               </Text>
             ) : (
-              <Stack spacing={5} maxW={{ base: 'full', xl: '600px' }}>
+              <Stack spacing={5} maxW={{ base: 'full', xl: '486px' }}>
                 {/* Prompt */}
                 {localeCode && getLocalizedText(screenContent?.prompt, localeCode) !== null && (
                   <TemplateField

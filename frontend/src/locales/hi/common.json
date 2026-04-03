@@ -13,6 +13,7 @@
   "button": {
     "save": "सहेजें",
     "saveChanges": "परिवर्तन सहेजें",
+    "saveAndNext": "सहेजें और अगला",
     "cancel": "रद्द करें",
     "edit": "संपादित करें",
     "delete": "हटाएं",
@@ -41,6 +42,7 @@
     "passwordCreated": "पासवर्ड बनाया गया है।",
     "passwordCreateFailed": "पासवर्ड बनाने में विफल।",
     "profileUpdated": "प्रोफ़ाइल सफलतापूर्वक अपडेट की गई।",
+    "profileLoadFailed": "प्रोफ़ाइल लोड करने में विफल।",
     "profileUpdateFailed": "प्रोफ़ाइल अपडेट करने में विफल।",
     "sessionExpired": "सत्र समाप्त हो गया। कृपया पुनः आमंत्रण लिंक का उपयोग करें।",
     "reinviteSent": "आमंत्रण पुनः भेजा गया",
@@ -64,12 +66,18 @@
     "templates": "टेम्पलेट",
     "apiIngestion": "API अंतर्ग्रहण",
     "operatorSync": "ऑपरेटर सिंक",
+    "dataSync": "डेटा सिंक",
     "staffSync": "स्टाफ सिंक",
+    "schemeSync": "योजना सिंक",
+    "schemeMappingsSync": "योजना मैपिंग सिंक",
     "configuration": "कॉन्फ़िगरेशन",
     "hierarchy": "पदानुक्रम",
     "activity": "गतिविधि",
     "stateUtAdmins": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक",
     "superUsers": "सुपर उपयोगकर्ता",
+    "schemes": "योजनाएं",
+    "pumpOperators": "पंप ऑपरेटर",
+    "anomalies": "विसंगतियां",
     "profile": "प्रोफ़ाइल",
     "changePassword": "पासवर्ड बदलें",
     "logout": "लॉगआउट",
@@ -83,7 +91,11 @@
   "validation": {
     "required": "यह फ़ील्ड आवश्यक है",
     "invalidEmail": "कृपया एक वैध ईमेल पता दर्ज करें",
-    "invalidPhone": "कृपया एक वैध फ़ोन नंबर दर्ज करें"
+    "invalidPhone": "कृपया एक वैध 10-अंकीय फ़ोन नंबर दर्ज करें",
+    "alphabeticOnly": "केवल अक्षर और रिक्त स्थान की अनुमति है",
+    "maxLength": "{{max}} वर्णों से अधिक नहीं होना चाहिए",
+    "maxValue": "मान {{max}} से अधिक नहीं होना चाहिए",
+    "passwordComplexity": "पासवर्ड कम से कम 8 वर्णों का होना चाहिए और इसमें कम से कम एक बड़ा अक्षर, एक छोटा अक्षर, एक संख्या और एक विशेष वर्ण शामिल होना चाहिए"
   },
 
   "time": {
@@ -102,6 +114,16 @@
   "searchableSelect": {
     "search": "खोजें",
     "noResults": "कोई परिणाम नहीं मिला"
+  },
+
+  "upload": {
+    "validationSummary_one": "{{count}} सत्यापन त्रुटि मिली — सुधारें और पुनः अपलोड करें",
+    "validationSummary_other": "{{count}} सत्यापन त्रुटियाँ मिलीं — सुधारें और पुनः अपलोड करें",
+    "columnRow": "पंक्ति",
+    "columnField": "फ़ील्ड",
+    "columnError": "त्रुटि",
+    "downloadTemplate": "टेम्पलेट",
+    "downloadTemplateAria": "अपलोड टेम्पलेट डाउनलोड करें"
   },
 
   "profile": {

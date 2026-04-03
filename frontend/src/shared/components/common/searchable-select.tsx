@@ -12,6 +12,7 @@ import {
 import type { ResponsiveValue } from '@chakra-ui/react'
 import type { Property } from 'csstype'
 import { SearchIcon, ChevronDownIcon } from '@chakra-ui/icons'
+import { useTranslation } from 'react-i18next'
 
 export interface SearchableSelectOption {
   value: string
@@ -59,6 +60,7 @@ export function SearchableSelect({
   ariaLabel,
   placeholderColor = 'neutral.500',
 }: SearchableSelectProps) {
+  const { t } = useTranslation('common')
   const [isOpen, setIsOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const containerRef = useRef<HTMLDivElement>(null)
@@ -161,7 +163,7 @@ export function SearchableSelect({
         </Text>
         <ChevronDownIcon
           boxSize={5}
-          color="neutral.500"
+          color={isFilter && selectedOption ? 'primary.500' : 'neutral.500'}
           transform={isOpen ? 'rotate(180deg)' : 'rotate(0deg)'}
           transition="transform 0.2s"
         />
@@ -180,7 +182,6 @@ export function SearchableSelect({
           borderRadius="8px"
           boxShadow="0px 4px 6px -2px rgba(10, 13, 18, 0.03)"
           w="full"
-          maxH="240px"
           overflow="hidden"
         >
           {/* Search Input */}
@@ -190,7 +191,7 @@ export function SearchableSelect({
                 <SearchIcon color="neutral.400" boxSize={4} />
               </InputLeftElement>
               <Input
-                placeholder="Search"
+                placeholder={t('searchableSelect.search')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 borderColor={borderColor}
@@ -249,7 +250,7 @@ export function SearchableSelect({
             ) : (
               <Box px="12px" py="10px" role="status">
                 <Text fontSize="sm" color="neutral.500">
-                  No results found
+                  {t('searchableSelect.noResults')}
                 </Text>
               </Box>
             )}

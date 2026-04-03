@@ -26,6 +26,10 @@ export interface DataTableColumn<T> {
   header: string
   sortable?: boolean
   render?: (row: T) => React.ReactNode
+  /** Column width (e.g. '20%', '150px'). Required when tableLayout='fixed' is set on DataTable. */
+  width?: string
+  /** Minimum column width (e.g. '200px'). Applied to the Th element. */
+  minWidth?: string
 }
 
 export interface PaginationConfig {
@@ -54,9 +58,37 @@ export interface DataTableProps<T> {
   emptyMessage?: string
   isLoading?: boolean
   pagination?: PaginationConfig
+  /**
+   * When 'fixed', the table uses CSS table-layout: fixed so column widths
+   * are respected and overflowing cell content is clipped with ellipsis.
+   * Defaults to 'auto'.
+   */
+  tableLayout?: 'auto' | 'fixed'
+  /**
+   * Minimum width for the entire table (e.g. '1000px'). When set, the
+   * overflowX container scrolls horizontally instead of squashing columns.
+   * Useful with tableLayout='fixed' to enforce per-column minimum widths.
+   */
+  tableMinWidth?: string
+  /**
+   * Server-side sort callback. When provided, client-side sorting is
+   * skipped and this function is called instead with the column key
+   * and the new direction (`'asc'`, `'desc'`, or `null` to clear).
+   */
+  onSort?: (columnKey: string, direction: SortDirection) => void
+  /**
+   * Controlled active sort column. When provided together with
+   * `sortDirection`, the header display (icon + aria-sort) is driven
+   * by these props instead of internal state.
+   */
+  sortColumn?: string
+  /**
+   * Controlled sort direction. See `sortColumn`.
+   */
+  sortDirection?: SortDirection
 }
 
-type SortDirection = 'asc' | 'desc' | null
+export type SortDirection = 'asc' | 'desc' | null
 
 export function DataTable<T extends object>({
   columns,
@@ -65,7 +97,13 @@ export function DataTable<T extends object>({
   emptyMessage,
   isLoading = false,
   pagination,
+  tableLayout = 'auto',
+  tableMinWidth,
+  onSort,
+  sortColumn: controlledSortColumn,
+  sortDirection: controlledSortDirection,
 }: DataTableProps<T>) {
+  const isFixedLayout = tableLayout === 'fixed'
   const { t } = useTranslation('common')
   const [sortColumn, setSortColumn] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<SortDirection>(null)
@@ -96,21 +134,40 @@ export function DataTable<T extends object>({
   const handleSort = (columnKey: string, sortable?: boolean) => {
     if (!sortable) return
 
-    if (sortColumn === columnKey) {
-      // Cycle through: asc -> desc -> null
-      if (sortDirection === 'asc') {
-        setSortDirection('desc')
-      } else if (sortDirection === 'desc') {
-        setSortColumn(null)
-        setSortDirection(null)
+    // Use controlled props to determine current state so that the computed
+    // next direction is consistent with what the header visuals display.
+    const activeSortColumn = controlledSortColumn !== undefined ? controlledSortColumn : sortColumn
+    const activeSortDirection =
+      controlledSortDirection !== undefined ? controlledSortDirection : sortDirection
+
+    let nextDirection: SortDirection
+    if (activeSortColumn === columnKey) {
+      if (activeSortDirection === 'asc') {
+        nextDirection = 'desc'
+      } else if (activeSortDirection === 'desc') {
+        nextDirection = null
+      } else {
+        nextDirection = 'asc'
       }
     } else {
+      nextDirection = 'asc'
+    }
+
+    if (nextDirection === null) {
+      setSortColumn(null)
+      setSortDirection(null)
+    } else {
       setSortColumn(columnKey)
-      setSortDirection('asc')
+      setSortDirection(nextDirection)
+    }
+
+    if (onSort) {
+      onSort(columnKey, nextDirection)
     }
   }
 
   const getSortedData = () => {
+    if (onSort) return data
     if (!sortColumn || !sortDirection) return data
 
     return [...data].sort((a, b) => {
@@ -299,13 +356,23 @@ export function DataTable<T extends object>({
             },
           }}
         >
-          <Table size="sm" variant="simple" w="max-content" minW="100%">
+          <Table
+            size="sm"
+            variant="simple"
+            w={isFixedLayout ? '100%' : 'max-content'}
+            minW={tableMinWidth ?? '100%'}
+            sx={isFixedLayout ? { tableLayout: 'fixed' } : undefined}
+          >
             <Thead>
               <Tr>
                 {columns.map((column) => {
-                  const isSorted = sortColumn === column.key
+                  const activeSortColumn =
+                    controlledSortColumn !== undefined ? controlledSortColumn : sortColumn
+                  const activeSortDirection =
+                    controlledSortDirection !== undefined ? controlledSortDirection : sortDirection
+                  const isSorted = activeSortColumn === column.key
                   const ariaSortValue = isSorted
-                    ? sortDirection === 'asc'
+                    ? activeSortDirection === 'asc'
                       ? 'ascending'
                       : 'descending'
                     : undefined
@@ -314,6 +381,8 @@ export function DataTable<T extends object>({
                     <Th
                       key={column.key}
                       scope="col"
+                      width={column.width}
+                      minWidth={column.minWidth}
                       cursor={column.sortable ? 'pointer' : 'default'}
                       onClick={() => handleSort(column.key, column.sortable)}
                       onKeyDown={(e) => {
@@ -338,7 +407,7 @@ export function DataTable<T extends object>({
                         {column.sortable && (
                           <Box aria-hidden="true">
                             {isSorted ? (
-                              sortDirection === 'asc' ? (
+                              activeSortDirection === 'asc' ? (
                                 <ChevronUpIcon boxSize={4} />
                               ) : (
                                 <ChevronDownIcon boxSize={4} />
@@ -369,6 +438,8 @@ export function DataTable<T extends object>({
                       py={3}
                       h={12}
                       whiteSpace="nowrap"
+                      overflow={isFixedLayout ? 'hidden' : undefined}
+                      textOverflow={isFixedLayout ? 'ellipsis' : undefined}
                     >
                       {column.render
                         ? column.render(row)
@@ -389,7 +460,6 @@ export function DataTable<T extends object>({
           aria-label="Pagination"
           justify="space-between"
           align="center"
-          px={{ base: 2, md: 4 }}
           py={4}
           h={{ base: 'auto', md: '66px' }}
           flexDirection={{ base: 'column', md: 'row' }}
@@ -466,7 +536,7 @@ export function DataTable<T extends object>({
                     size="sm"
                     variant={effectiveCurrentPage === page ? 'solid' : 'ghost'}
                     onClick={() => handlePageChange(page)}
-                    w="32px"
+                    minW="32px"
                     h="32px"
                     px={3}
                     py={2}

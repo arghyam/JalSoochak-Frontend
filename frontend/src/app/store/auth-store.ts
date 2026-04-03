@@ -1,7 +1,8 @@
 import { create } from 'zustand'
-import type { AuthUser, LoginRequest } from '@/features/auth/services/auth-api'
+import type { AuthUser, LoginRequest, LoginResponse } from '@/features/auth/services/auth-api'
 import { authApi } from '@/features/auth/services/auth-api'
-import { AUTH_ROLES } from '@/shared/constants/auth'
+import { AUTH_ROLES, STAFF_ROLES } from '@/shared/constants/auth'
+import { ROUTES } from '@/shared/constants/routes'
 
 export interface AuthState {
   accessToken: string | null
@@ -14,6 +15,7 @@ export interface AuthState {
   logout: () => Promise<void>
   bootstrap: () => Promise<void>
   updateUser: (user: AuthUser) => void
+  setFromActivation: (response: LoginResponse) => string
   sessionExpired: boolean
   setSessionExpired: () => void
   refreshAccessToken: () => Promise<string>
@@ -42,9 +44,11 @@ export const useAuthStore = create<AuthState>()((set) => ({
       })
 
       if (user.role === AUTH_ROLES.SUPER_ADMIN) {
-        return '/super-admin'
+        return '/super-user'
       } else if (user.role === AUTH_ROLES.STATE_ADMIN) {
         return '/state-admin'
+      } else if (STAFF_ROLES.includes(user.role as (typeof STAFF_ROLES)[number])) {
+        return ROUTES.STAFF
       } else {
         return '/'
       }
@@ -68,6 +72,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
       // Ignore logout errors
     }
 
+    document.title = 'JalSoochak'
     set({
       accessToken: null,
       user: null,
@@ -99,6 +104,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
   },
 
   setSessionExpired: () => {
+    document.title = 'JalSoochak'
     set({
       accessToken: null,
       user: null,
@@ -110,6 +116,14 @@ export const useAuthStore = create<AuthState>()((set) => ({
 
   updateUser: (user: AuthUser) => {
     set({ user })
+  },
+
+  setFromActivation: ({ user, accessToken }: LoginResponse) => {
+    set({ accessToken, user, isAuthenticated: true, error: null, sessionExpired: false })
+    if (user.role === AUTH_ROLES.SUPER_ADMIN) return '/super-user'
+    if (user.role === AUTH_ROLES.STATE_ADMIN) return '/state-admin'
+    if (STAFF_ROLES.includes(user.role as (typeof STAFF_ROLES)[number])) return ROUTES.STAFF
+    return '/'
   },
 
   refreshAccessToken: async () => {

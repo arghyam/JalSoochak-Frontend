@@ -1,5 +1,5 @@
 import { ROUTES } from '@/shared/constants/routes'
-import { AUTH_ROLES } from '@/shared/constants/auth'
+import { AUTH_ROLES, STAFF_ROLES } from '@/shared/constants/auth'
 import type { SidebarNavItem } from './sidebar-types'
 
 export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
@@ -36,20 +36,6 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
       },
     ],
   },
-  // {
-  //   type: 'simple',
-  //   path: ROUTES.SUPER_ADMIN_API_CREDENTIALS,
-  //   labelKey: 'sidebar.apiCredentials',
-  //   roles: [AUTH_ROLES.SUPER_ADMIN],
-  //   icon: 'BiKey',
-  // },
-  // {
-  //   type: 'simple',
-  //   path: ROUTES.SUPER_ADMIN_INGESTION_MONITOR,
-  //   labelKey: 'sidebar.ingestionMonitor',
-  //   roles: [AUTH_ROLES.SUPER_ADMIN],
-  //   icon: 'AiOutlineApi',
-  // },
   // State Admin
   {
     type: 'simple',
@@ -115,11 +101,27 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
     icon: 'HiOutlineTemplate',
   },
   {
-    type: 'simple',
-    path: ROUTES.STATE_ADMIN_STAFF_SYNC,
-    labelKey: 'sidebar.staffSync',
+    type: 'expandable',
+    labelKey: 'sidebar.dataSync',
     roles: [AUTH_ROLES.STATE_ADMIN],
-    icon: 'BsPerson',
+    icon: 'IoSyncOutline',
+    children: [
+      {
+        path: ROUTES.STATE_ADMIN_STAFF_SYNC,
+        labelKey: 'sidebar.staffSync',
+        roles: [AUTH_ROLES.STATE_ADMIN],
+      },
+      {
+        path: ROUTES.STATE_ADMIN_SCHEME_SYNC,
+        labelKey: 'sidebar.schemeSync',
+        roles: [AUTH_ROLES.STATE_ADMIN],
+      },
+      {
+        path: ROUTES.STATE_ADMIN_SCHEME_MAPPINGS_SYNC,
+        labelKey: 'sidebar.schemeMappingsSync',
+        roles: [AUTH_ROLES.STATE_ADMIN],
+      },
+    ],
   },
   {
     type: 'simple',
@@ -128,11 +130,40 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
     roles: [AUTH_ROLES.STATE_ADMIN],
     icon: 'BsPeople',
   },
-  // {
-  //   type: 'simple',
-  //   path: ROUTES.STATE_ADMIN_ACTIVITY,
-  //   labelKey: 'sidebar.activity',
-  //   roles: [AUTH_ROLES.STATE_ADMIN],
-  //   icon: 'BsListUl',
-  // },
+  // Section Officer / Sub-Divisional Officer
+  {
+    type: 'simple',
+    path: ROUTES.STAFF_OVERVIEW,
+    labelKey: 'sidebar.overview',
+    roles: STAFF_ROLES,
+    icon: 'AiOutlineEye',
+  },
+  {
+    type: 'simple',
+    path: ROUTES.STAFF_SCHEMES,
+    labelKey: 'sidebar.schemes',
+    roles: STAFF_ROLES,
+    icon: 'PiTreeStructure',
+  },
+  {
+    type: 'simple',
+    path: ROUTES.STAFF_PUMP_OPERATORS,
+    labelKey: 'sidebar.pumpOperators',
+    roles: STAFF_ROLES,
+    icon: 'BsPeople',
+  },
+  {
+    type: 'simple',
+    path: ROUTES.STAFF_ANOMALIES,
+    labelKey: 'sidebar.anomalies',
+    roles: STAFF_ROLES,
+    icon: 'AiOutlineWarning',
+  },
+  {
+    type: 'simple',
+    path: ROUTES.STAFF_ESCALATIONS,
+    labelKey: 'sidebar.escalations',
+    roles: STAFF_ROLES,
+    icon: 'MdOutlineMoving',
+  },
 ]

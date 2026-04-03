@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Box,
   Text,
@@ -14,65 +15,133 @@ import {
   Radio,
   Input,
   SimpleGrid,
+  FormControl,
+  FormErrorMessage,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { EditIcon } from '@chakra-ui/icons'
+import { EditIcon, WarningTwoIcon } from '@chakra-ui/icons'
 import { FiUpload } from 'react-icons/fi'
+import { IoInformation } from 'react-icons/io5'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer } from '@/shared/components/common'
+import { ActionTooltip, TimePicker, ToastContainer, PageHeader } from '@/shared/components/common'
 import {
   useConfigurationQuery,
+  useLogoQuery,
   useSaveConfigurationMutation,
+  useSystemChannelsQuery,
+  useUpdateLogoMutation,
 } from '../../services/query/use-state-admin-queries'
 import {
+  CHANNEL_CODE_TO_NAME,
+  FALLBACK_SYSTEM_CHANNELS,
+  DEFAULT_DATE_FORMAT_CONFIG,
   DEFAULT_METER_CHANGE_REASONS,
-  SUPPORTED_CHANNELS,
+  DEFAULT_SUPPLY_OUTAGE_REASONS,
+  type DateFormatConfig,
+  type KnownSupportedChannel,
   type MeterChangeReason,
+  type SupplyOutageReason,
   type SupportedChannel,
 } from '../../types/configuration'
 import { MeterChangeReasonsSection } from './meter-change-reasons-section'
+import { SupplyOutageReasonsSection } from './supply-outage-reasons-section'
+import { DateFormatSection } from './date-format-section'
+import {
+  validateDescriptiveField,
+  hasDuplicates,
+  exceedsMaxLength,
+} from '@/shared/utils/validation'
+import { ROUTES } from '@/shared/constants/routes'
+
+const MAX_METER_REASON_LENGTH = 100
+const MAX_AVG_MEMBERS = 20
 
 interface ConfigDraft {
   supportedChannels: SupportedChannel[]
   logoFile: File | null
   logoUrl?: string
   meterChangeReasons: MeterChangeReason[]
+  supplyOutageReasons: SupplyOutageReason[]
   locationCheckRequired: boolean
+  displayDepartmentMaps: boolean
   dataConsolidationTime: string
   pumpOperatorReminderNudgeTime: string
+  dateFormatScreen: DateFormatConfig
+  dateFormatTable: DateFormatConfig
   averageMembersPerHousehold: number
 }
 
-function buildInitialDraft(config?: {
-  supportedChannels: SupportedChannel[]
+function buildInitialDraft(
+  config?: {
+    supportedChannels: SupportedChannel[]
+    meterChangeReasons: MeterChangeReason[]
+    supplyOutageReasons: SupplyOutageReason[]
+    locationCheckRequired: boolean
+    displayDepartmentMaps: boolean
+    dataConsolidationTime: string
+    pumpOperatorReminderNudgeTime: string
+    dateFormatScreen: DateFormatConfig
+    dateFormatTable: DateFormatConfig
+    averageMembersPerHousehold: number
+  },
   logoUrl?: string
-  meterChangeReasons: MeterChangeReason[]
-  locationCheckRequired: boolean
-  dataConsolidationTime: string
-  pumpOperatorReminderNudgeTime: string
-  averageMembersPerHousehold: number
-}): ConfigDraft {
+): ConfigDraft {
   return {
     supportedChannels: config ? [...config.supportedChannels] : [],
     logoFile: null,
-    logoUrl: config?.logoUrl,
+    logoUrl,
     meterChangeReasons: config
       ? config.meterChangeReasons.map((r) => ({ ...r }))
       : DEFAULT_METER_CHANGE_REASONS.map((r) => ({ ...r })),
+    supplyOutageReasons: config
+      ? config.supplyOutageReasons.map((r) => ({ ...r }))
+      : DEFAULT_SUPPLY_OUTAGE_REASONS.map((r) => ({ ...r })),
     locationCheckRequired: config?.locationCheckRequired ?? false,
+    displayDepartmentMaps: config?.displayDepartmentMaps ?? false,
     dataConsolidationTime: config?.dataConsolidationTime ?? '',
     pumpOperatorReminderNudgeTime: config?.pumpOperatorReminderNudgeTime ?? '',
+    dateFormatScreen: config?.dateFormatScreen
+      ? { ...config.dateFormatScreen }
+      : { ...DEFAULT_DATE_FORMAT_CONFIG },
+    dateFormatTable: config?.dateFormatTable
+      ? { ...config.dateFormatTable }
+      : { ...DEFAULT_DATE_FORMAT_CONFIG },
     averageMembersPerHousehold: config?.averageMembersPerHousehold ?? 0,
   }
 }
 
 export function ConfigurationPage() {
   const { t } = useTranslation(['state-admin', 'common'])
+  const navigate = useNavigate()
   const { data: config, isLoading, isError } = useConfigurationQuery()
+  const {
+    data: systemChannels,
+    isLoading: isSystemChannelsLoading,
+    isError: isSystemChannelsError,
+  } = useSystemChannelsQuery()
+  const {
+    data: logoBlobData,
+    isLoading: isLogoLoading,
+    isError: isLogoError,
+    error: logoError,
+  } = useLogoQuery()
+
+  const logoObjectUrl = useMemo(() => {
+    if (logoBlobData instanceof Blob) return URL.createObjectURL(logoBlobData)
+    return null
+  }, [logoBlobData])
+
+  useEffect(() => {
+    return () => {
+      if (logoObjectUrl) URL.revokeObjectURL(logoObjectUrl)
+    }
+  }, [logoObjectUrl])
   const saveMutation = useSaveConfigurationMutation()
+  const updateLogoMutation = useUpdateLogoMutation()
   const [isEditing, setIsEditing] = useState(false)
   const [draft, setDraft] = useState<ConfigDraft | null>(null)
   const [avgMembersStr, setAvgMembersStr] = useState('')
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const toast = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -82,8 +151,48 @@ export function ConfigurationPage() {
 
   const effectiveIsEditing = isEditing || Boolean(config && !config.isConfigured)
 
+  const hasChanges = useMemo(() => {
+    if (!config || !draft || !config.isConfigured) return false
+    const compare = (a: string, b: string) => a.localeCompare(b)
+    const channelsChanged =
+      [...draft.supportedChannels].sort(compare).join() !==
+      [...config.supportedChannels].sort(compare).join()
+    const sortById = (a: { id: string }, b: { id: string }) => a.id.localeCompare(b.id)
+    const reasonsChanged =
+      JSON.stringify([...draft.meterChangeReasons].sort(sortById)) !==
+      JSON.stringify([...config.meterChangeReasons].sort(sortById))
+    const supplyReasonsChanged =
+      JSON.stringify([...draft.supplyOutageReasons].sort(sortById)) !==
+      JSON.stringify([...config.supplyOutageReasons].sort(sortById))
+    return (
+      channelsChanged ||
+      draft.logoFile !== null ||
+      draft.locationCheckRequired !== config.locationCheckRequired ||
+      draft.displayDepartmentMaps !== config.displayDepartmentMaps ||
+      draft.dataConsolidationTime !== config.dataConsolidationTime ||
+      draft.pumpOperatorReminderNudgeTime !== config.pumpOperatorReminderNudgeTime ||
+      JSON.stringify(draft.dateFormatScreen) !== JSON.stringify(config.dateFormatScreen) ||
+      JSON.stringify(draft.dateFormatTable) !== JSON.stringify(config.dateFormatTable) ||
+      draft.averageMembersPerHousehold !== config.averageMembersPerHousehold ||
+      reasonsChanged ||
+      supplyReasonsChanged
+    )
+  }, [config, draft])
+
+  const allDisplayChannels = useMemo(() => {
+    const active: SupportedChannel[] =
+      systemChannels && systemChannels.length > 0 ? systemChannels : FALLBACK_SYSTEM_CHANNELS
+    const selected: SupportedChannel[] = config?.supportedChannels ?? []
+    const removed: SupportedChannel[] = config?.degraded ? (config.removedChannels ?? []) : []
+
+    const removedSet = new Set<SupportedChannel>(removed)
+    const merged = Array.from(new Set<SupportedChannel>([...active, ...selected]))
+
+    return [...merged.filter((c) => !removedSet.has(c)), ...Array.from(removedSet)]
+  }, [systemChannels, config])
+
   const handleEdit = () => {
-    const initial = buildInitialDraft(config)
+    const initial = buildInitialDraft(config, logoObjectUrl ?? undefined)
     setDraft(initial)
     setIsEditing(true)
     setAvgMembersStr(
@@ -91,40 +200,133 @@ export function ConfigurationPage() {
     )
   }
 
+  const clearError = (field: string) => {
+    setErrors((prev) => {
+      if (!prev[field]) return prev
+      const next = { ...prev }
+      delete next[field]
+      return next
+    })
+  }
+
   const handleCancel = () => {
     setDraft(null)
     setIsEditing(false)
     setAvgMembersStr('')
+    setErrors({})
   }
 
-  const handleSave = async () => {
-    const current = draft ?? buildInitialDraft(config ?? undefined)
+  const validateForm = (current: ConfigDraft): boolean => {
+    const newErrors: Record<string, string> = {}
 
+    // Supported channels
     if (current.supportedChannels.length === 0) {
-      toast.addToast(t('configuration.messages.validation.channelRequired'), 'error')
-      return
+      newErrors.supportedChannels = t('state-admin:validation.selectAtLeastOne')
     }
 
+    // Meter change reasons
+    const nonEmptyReasonNames: string[] = []
+    current.meterChangeReasons.forEach((reason) => {
+      const error = validateDescriptiveField(reason.name)
+      if (error) {
+        newErrors[`meterReason.${reason.id}`] = t(`state-admin:validation.${error}`)
+      } else if (exceedsMaxLength(reason.name, MAX_METER_REASON_LENGTH)) {
+        newErrors[`meterReason.${reason.id}`] = t('state-admin:validation.maxLength', {
+          max: MAX_METER_REASON_LENGTH,
+        })
+      } else {
+        nonEmptyReasonNames.push(reason.name)
+      }
+    })
+    if (hasDuplicates(nonEmptyReasonNames)) {
+      const seen = new Set<string>()
+      current.meterChangeReasons.forEach((reason) => {
+        const normalized = reason.name.trim().toLowerCase()
+        if (!normalized) return
+        if (seen.has(normalized) && !newErrors[`meterReason.${reason.id}`]) {
+          newErrors[`meterReason.${reason.id}`] = t('state-admin:validation.duplicateValue')
+        }
+        seen.add(normalized)
+      })
+    }
+
+    // Supply outage reasons
+    const nonEmptyOutageNames: string[] = []
+    current.supplyOutageReasons.forEach((reason) => {
+      const error = validateDescriptiveField(reason.name)
+      if (error) {
+        newErrors[`supplyOutageReason.${reason.id}`] = t(`state-admin:validation.${error}`)
+      } else if (exceedsMaxLength(reason.name, MAX_METER_REASON_LENGTH)) {
+        newErrors[`supplyOutageReason.${reason.id}`] = t('state-admin:validation.maxLength', {
+          max: MAX_METER_REASON_LENGTH,
+        })
+      } else {
+        nonEmptyOutageNames.push(reason.name)
+      }
+    })
+    if (hasDuplicates(nonEmptyOutageNames)) {
+      const seen = new Set<string>()
+      current.supplyOutageReasons.forEach((reason) => {
+        const normalized = reason.name.trim().toLowerCase()
+        if (!normalized) return
+        if (seen.has(normalized) && !newErrors[`supplyOutageReason.${reason.id}`]) {
+          newErrors[`supplyOutageReason.${reason.id}`] = t('state-admin:validation.duplicateValue')
+        }
+        seen.add(normalized)
+      })
+    }
+
+    // Time fields
+    if (!current.dataConsolidationTime) {
+      newErrors.dataConsolidationTime = t('state-admin:validation.timeRequired')
+    }
+    if (!current.pumpOperatorReminderNudgeTime) {
+      newErrors.pumpOperatorReminderNudgeTime = t('state-admin:validation.timeRequired')
+    }
+
+    // Average members
+    if (!current.averageMembersPerHousehold || current.averageMembersPerHousehold <= 0) {
+      newErrors.averageMembersPerHousehold = t('state-admin:validation.mustBePositive')
+    } else if (current.averageMembersPerHousehold > MAX_AVG_MEMBERS) {
+      newErrors.averageMembersPerHousehold = t('state-admin:validation.mustBeInRange', {
+        min: 1,
+        max: MAX_AVG_MEMBERS,
+      })
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleSave = async (andNavigate = false) => {
+    const current = draft ?? buildInitialDraft(config ?? undefined, logoObjectUrl ?? undefined)
+
+    if (!validateForm(current)) return
+
     try {
-      let logoUrl = current.logoUrl
       if (current.logoFile) {
-        logoUrl = await fileToBase64(current.logoFile)
+        await updateLogoMutation.mutateAsync(current.logoFile)
       }
 
       await saveMutation.mutateAsync({
         supportedChannels: current.supportedChannels,
-        logoUrl,
         meterChangeReasons: current.meterChangeReasons,
+        supplyOutageReasons: current.supplyOutageReasons,
         locationCheckRequired: current.locationCheckRequired,
+        displayDepartmentMaps: current.displayDepartmentMaps,
         dataConsolidationTime: current.dataConsolidationTime,
         pumpOperatorReminderNudgeTime: current.pumpOperatorReminderNudgeTime,
+        dateFormatScreen: current.dateFormatScreen,
+        dateFormatTable: current.dateFormatTable,
         averageMembersPerHousehold: current.averageMembersPerHousehold,
         isConfigured: true,
       })
       setDraft(null)
       setIsEditing(false)
       setAvgMembersStr('')
+      setErrors({})
       toast.addToast(t('configuration.messages.saveSuccess'), 'success')
+      if (andNavigate) navigate(ROUTES.STATE_ADMIN_LANGUAGE)
     } catch {
       toast.addToast(t('configuration.messages.saveFailed'), 'error')
     }
@@ -132,9 +334,10 @@ export function ConfigurationPage() {
 
   const handleChannelChange = (values: string[]) => {
     setDraft((prev) => ({
-      ...(prev ?? buildInitialDraft(config)),
+      ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
       supportedChannels: values as SupportedChannel[],
     }))
+    clearError('supportedChannels')
   }
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -142,11 +345,22 @@ export function ConfigurationPage() {
     if (!file) return
     const MAX_LOGO_SIZE = 2 * 1024 * 1024 // 2MB
     if (file.size > MAX_LOGO_SIZE) {
-      toast.addToast(t('configuration.messages.validation.logoTooLarge'), 'error')
+      setErrors((prev) => ({ ...prev, logo: t('configuration.messages.validation.logoTooLarge') }))
+      if (fileInputRef.current) fileInputRef.current.value = ''
       return
     }
+    const ALLOWED_TYPES = ['image/png', 'image/jpeg']
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setErrors((prev) => ({
+        ...prev,
+        logo: t('configuration.messages.validation.logoInvalidType'),
+      }))
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+    clearError('logo')
     setDraft((prev) => ({
-      ...(prev ?? buildInitialDraft(config)),
+      ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
       logoFile: file,
       logoUrl: URL.createObjectURL(file),
     }))
@@ -155,9 +369,11 @@ export function ConfigurationPage() {
   if (isLoading) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
-          {t('configuration.pageTitle')}
-        </Heading>
+        <PageHeader mb={6}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('configuration.pageTitle')}
+          </Heading>
+        </PageHeader>
         <Flex align="center" role="status" aria-live="polite" aria-busy="true">
           <Spinner size="md" color="primary.500" mr={3} />
           <Text color="neutral.600">{t('common:loading')}</Text>
@@ -169,15 +385,17 @@ export function ConfigurationPage() {
   if (isError || !config) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
-          {t('configuration.pageTitle')}
-        </Heading>
+        <PageHeader mb={6}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('configuration.pageTitle')}
+          </Heading>
+        </PageHeader>
         <Text color="error.500">{t('common:toast.failedToLoad')}</Text>
       </Box>
     )
   }
 
-  const activeDraft = draft ?? buildInitialDraft(config)
+  const activeDraft = draft ?? buildInitialDraft(config, logoObjectUrl ?? undefined)
 
   const displayAvgStr =
     avgMembersStr !== '' || effectiveIsEditing
@@ -186,15 +404,40 @@ export function ConfigurationPage() {
         ? String(activeDraft.averageMembersPerHousehold)
         : ''
 
-  const halfChannels = Math.ceil(SUPPORTED_CHANNELS.length / 2)
+  const halfChannels = Math.ceil(allDisplayChannels.length / 2)
 
   return (
     <Box w="full">
-      <Box mb={5}>
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+      <PageHeader>
+        <Heading
+          as="h1"
+          size={{ base: 'h2', md: 'h1' }}
+          mb={effectiveIsEditing && config.isConfigured ? 2 : 0}
+        >
           {t('configuration.pageTitle')}
         </Heading>
-      </Box>
+        {effectiveIsEditing && config.isConfigured && (
+          <Flex as="nav" aria-label="Breadcrumb" gap={2} flexWrap="wrap">
+            <Button
+              variant="link"
+              fontSize="14px"
+              lineHeight="21px"
+              color="neutral.500"
+              fontWeight="normal"
+              _hover={{ textDecoration: 'underline' }}
+              onClick={handleCancel}
+            >
+              {t('configuration.breadcrumb.view')}
+            </Button>
+            <Text fontSize="14px" lineHeight="21px" color="neutral.500" aria-hidden="true">
+              /
+            </Text>
+            <Text fontSize="14px" lineHeight="21px" color="neutral.800" aria-current="page">
+              {t('configuration.breadcrumb.edit')}
+            </Text>
+          </Flex>
+        )}
+      </PageHeader>
 
       <Box
         as="section"
@@ -241,7 +484,17 @@ export function ConfigurationPage() {
 
           {/* View Mode */}
           {!effectiveIsEditing && config.isConfigured ? (
-            <ViewMode config={config} t={t} />
+            <ViewMode
+              config={config}
+              logoUrl={logoObjectUrl ?? undefined}
+              isLogoLoading={isLogoLoading}
+              isLogoError={isLogoError}
+              notFound={
+                (logoError as { status?: number } | null)?.status === 404 ||
+                (logoError as { response?: { status?: number } } | null)?.response?.status === 404
+              }
+              t={t}
+            />
           ) : (
             /* Edit Mode */
             <Flex
@@ -256,74 +509,163 @@ export function ConfigurationPage() {
             >
               <VStack spacing={6} align="stretch">
                 {/* Supported Channels — 2-column vertical flow */}
-                <Box>
-                  <Text
-                    fontSize={{ base: 'xs', md: 'sm' }}
-                    fontWeight="medium"
-                    color="neutral.950"
-                    mb={3}
-                  >
-                    {t('configuration.sections.supportedChannels.title')}
-                    <Text as="span" color="error.500" ml={1}>
-                      *
+                <FormControl isInvalid={!!errors.supportedChannels}>
+                  <Flex align="center" gap={1} mb={3}>
+                    <Text
+                      fontSize={{ base: 'xs', md: 'sm' }}
+                      fontWeight="medium"
+                      color="neutral.950"
+                    >
+                      {t('configuration.sections.supportedChannels.title')}
+                      <Text as="span" color="error.500" ml={1}>
+                        *
+                      </Text>
                     </Text>
-                  </Text>
-                  <CheckboxGroup
-                    value={activeDraft.supportedChannels}
-                    onChange={handleChannelChange}
-                  >
-                    <SimpleGrid columns={2} spacing={3} w={{ base: 'full', md: '360px' }}>
-                      <VStack align="start" spacing={3}>
-                        {SUPPORTED_CHANNELS.slice(0, halfChannels).map((channel) => (
-                          <Checkbox key={channel} value={channel}>
-                            <Text fontSize="sm" color="neutral.950">
-                              {channel}
-                            </Text>
-                          </Checkbox>
-                        ))}
-                      </VStack>
-                      <VStack align="start" spacing={3}>
-                        {SUPPORTED_CHANNELS.slice(halfChannels).map((channel) => (
-                          <Checkbox key={channel} value={channel}>
-                            <Text fontSize="sm" color="neutral.950">
-                              {channel}
-                            </Text>
-                          </Checkbox>
-                        ))}
-                      </VStack>
-                    </SimpleGrid>
-                  </CheckboxGroup>
-                </Box>
+                    <FieldInfoIcon tooltip={t('configuration.infoText.supportedChannels')} />
+                  </Flex>
+                  {isSystemChannelsLoading ? (
+                    <Flex align="center" gap={2}>
+                      <Spinner size="sm" color="primary.500" />
+                      <Text fontSize="sm" color="neutral.600">
+                        {t('common:loading')}
+                      </Text>
+                    </Flex>
+                  ) : (
+                    <>
+                      {isSystemChannelsError && (
+                        <Text fontSize="sm" color="error.500" mb={2}>
+                          {t('common:toast.failedToLoad')}
+                        </Text>
+                      )}
+                      <CheckboxGroup
+                        value={activeDraft.supportedChannels}
+                        onChange={handleChannelChange}
+                      >
+                        <SimpleGrid columns={2} spacing={3} w={{ base: 'full', md: '400px' }}>
+                          <VStack align="start" spacing={3}>
+                            {allDisplayChannels.slice(0, halfChannels).map((code) => {
+                              const isRemoved =
+                                config?.degraded &&
+                                (config.removedChannels ?? []).includes(code as SupportedChannel)
+                              return (
+                                <HStack key={code} spacing={1} align="center">
+                                  <Checkbox value={code} isDisabled={!!isRemoved}>
+                                    <Text
+                                      fontSize="sm"
+                                      color={isRemoved ? 'neutral.400' : 'neutral.950'}
+                                    >
+                                      {CHANNEL_CODE_TO_NAME[code as KnownSupportedChannel] ?? code}
+                                    </Text>
+                                  </Checkbox>
+                                  {isRemoved && (
+                                    <ActionTooltip
+                                      label={t(
+                                        'configuration.sections.supportedChannels.degradedTooltip'
+                                      )}
+                                    >
+                                      <WarningTwoIcon
+                                        color="error.500"
+                                        boxSize={3}
+                                        aria-label={t(
+                                          'configuration.sections.supportedChannels.degradedTooltip'
+                                        )}
+                                      />
+                                    </ActionTooltip>
+                                  )}
+                                </HStack>
+                              )
+                            })}
+                          </VStack>
+                          <VStack align="start" spacing={3}>
+                            {allDisplayChannels.slice(halfChannels).map((code) => {
+                              const isRemoved =
+                                config?.degraded &&
+                                (config.removedChannels ?? []).includes(code as SupportedChannel)
+                              return (
+                                <HStack key={code} spacing={1} align="center">
+                                  <Checkbox value={code} isDisabled={!!isRemoved}>
+                                    <Text
+                                      fontSize="sm"
+                                      color={isRemoved ? 'neutral.400' : 'neutral.950'}
+                                    >
+                                      {CHANNEL_CODE_TO_NAME[code as KnownSupportedChannel] ?? code}
+                                    </Text>
+                                  </Checkbox>
+                                  {isRemoved && (
+                                    <ActionTooltip
+                                      label={t(
+                                        'configuration.sections.supportedChannels.degradedTooltip'
+                                      )}
+                                    >
+                                      <WarningTwoIcon
+                                        color="error.500"
+                                        boxSize={3}
+                                        aria-label={t(
+                                          'configuration.sections.supportedChannels.degradedTooltip'
+                                        )}
+                                      />
+                                    </ActionTooltip>
+                                  )}
+                                </HStack>
+                              )
+                            })}
+                          </VStack>
+                        </SimpleGrid>
+                      </CheckboxGroup>
+                    </>
+                  )}
+                  <FormErrorMessage>{errors.supportedChannels}</FormErrorMessage>
+                </FormControl>
 
                 {/* 4. Meter Change Reasons */}
                 <MeterChangeReasonsSection
                   title={t('configuration.sections.meterChangeReasons.title')}
+                  infoTooltip={t('configuration.infoText.meterChangeReasons')}
                   reasons={activeDraft.meterChangeReasons}
+                  errors={errors}
+                  onClearError={clearError}
                   onChange={(reasons) =>
                     setDraft((prev) => ({
-                      ...(prev ?? buildInitialDraft(config)),
+                      ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
                       meterChangeReasons: reasons,
                     }))
                   }
                 />
 
-                {/* 5. Record Location + Logo side by side */}
+                {/* 5. Supply Outage Reasons */}
+                <SupplyOutageReasonsSection
+                  title={t('configuration.sections.supplyOutageReasons.title')}
+                  infoTooltip={t('configuration.infoText.supplyOutageReasons')}
+                  reasons={activeDraft.supplyOutageReasons}
+                  errors={errors}
+                  onClearError={clearError}
+                  onChange={(reasons) =>
+                    setDraft((prev) => ({
+                      ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                      supplyOutageReasons: reasons,
+                    }))
+                  }
+                />
+
+                {/* 6. Record Location + Display Department Maps side by side */}
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
                   {/* Record Location */}
                   <Box>
-                    <Text
-                      fontSize={{ base: 'xs', md: 'sm' }}
-                      fontWeight="medium"
-                      color="neutral.950"
-                      mb={3}
-                    >
-                      {t('configuration.sections.locationCheckRequired.title')}
-                    </Text>
+                    <Flex align="center" gap={1} mb={3}>
+                      <Text
+                        fontSize={{ base: 'xs', md: 'sm' }}
+                        fontWeight="medium"
+                        color="neutral.950"
+                      >
+                        {t('configuration.sections.locationCheckRequired.title')}
+                      </Text>
+                      <FieldInfoIcon tooltip={t('configuration.infoText.locationCheckRequired')} />
+                    </Flex>
                     <RadioGroup
                       value={activeDraft.locationCheckRequired ? 'yes' : 'no'}
                       onChange={(val) =>
                         setDraft((prev) => ({
-                          ...(prev ?? buildInitialDraft(config)),
+                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
                           locationCheckRequired: val === 'yes',
                         }))
                       }
@@ -343,147 +685,165 @@ export function ConfigurationPage() {
                     </RadioGroup>
                   </Box>
 
-                  {/* Logo */}
+                  {/* Display Department Maps */}
                   <Box>
-                    <Text
-                      fontSize={{ base: 'xs', md: 'sm' }}
-                      fontWeight="medium"
-                      color="neutral.950"
-                      mb={3}
-                    >
-                      {t('configuration.sections.logo.title')}
-                    </Text>
-                    <HStack spacing={3} align="center" flexWrap="wrap">
-                      {activeDraft.logoUrl && (
-                        <Box
-                          as="img"
-                          src={activeDraft.logoUrl}
-                          alt={t('configuration.sections.logo.currentLogo')}
-                          h="40px"
-                          w="40px"
-                          objectFit="contain"
-                          borderWidth="0.5px"
-                          borderColor="neutral.100"
-                          borderRadius="md"
-                        />
-                      )}
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/png,image/jpeg"
-                        style={{ display: 'none' }}
-                        onChange={handleLogoChange}
-                        aria-label={t('configuration.sections.logo.uploadButton')}
-                      />
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        fontWeight="600"
-                        gap={1}
-                        leftIcon={<FiUpload aria-hidden="true" />}
-                        onClick={() => fileInputRef.current?.click()}
+                    <Flex align="center" gap={1} mb={3}>
+                      <Text
+                        fontSize={{ base: 'xs', md: 'sm' }}
+                        fontWeight="medium"
+                        color="neutral.950"
                       >
-                        {t('configuration.sections.logo.uploadButton')}
-                      </Button>
-                      <Text fontSize="xs" color="neutral.500">
-                        {t('configuration.sections.logo.hint')}
+                        {t('configuration.sections.displayDepartmentMaps.title')}
                       </Text>
-                    </HStack>
+                      <FieldInfoIcon tooltip={t('configuration.infoText.displayDepartmentMaps')} />
+                    </Flex>
+                    <RadioGroup
+                      value={activeDraft.displayDepartmentMaps ? 'yes' : 'no'}
+                      onChange={(val) =>
+                        setDraft((prev) => ({
+                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                          displayDepartmentMaps: val === 'yes',
+                        }))
+                      }
+                    >
+                      <HStack spacing={6}>
+                        <Radio value="yes">
+                          <Text fontSize="sm" color="neutral.950">
+                            {t('configuration.sections.displayDepartmentMaps.yes')}
+                          </Text>
+                        </Radio>
+                        <Radio value="no">
+                          <Text fontSize="sm" color="neutral.950">
+                            {t('configuration.sections.displayDepartmentMaps.no')}
+                          </Text>
+                        </Radio>
+                      </HStack>
+                    </RadioGroup>
                   </Box>
                 </SimpleGrid>
 
-                {/* 6. Data Consolidation Time + Pump Operator Reminder Nudge Time */}
+                {/* 7. Data Consolidation Time + Pump Operator Reminder Nudge Time */}
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                  <Box>
-                    <Text
-                      as="label"
-                      htmlFor="data-consolidation-time"
-                      fontSize={{ base: 'xs', md: 'sm' }}
-                      fontWeight="medium"
-                      color="neutral.950"
-                      mb={1}
-                      display="block"
-                    >
-                      {t('configuration.sections.dataConsolidationTime.title')}
-                    </Text>
-                    <Input
+                  <FormControl isInvalid={!!errors.dataConsolidationTime}>
+                    <Flex align="center" gap={1} mb={1}>
+                      <Text
+                        as="label"
+                        htmlFor="data-consolidation-time"
+                        fontSize={{ base: 'xs', md: 'sm' }}
+                        fontWeight="medium"
+                        color="neutral.950"
+                        display="block"
+                      >
+                        {t('configuration.sections.dataConsolidationTime.title')}
+                      </Text>
+                      <FieldInfoIcon tooltip={t('configuration.infoText.dataConsolidationTime')} />
+                    </Flex>
+                    <TimePicker
                       id="data-consolidation-time"
-                      type="time"
                       value={activeDraft.dataConsolidationTime}
-                      onChange={(e) =>
+                      onChange={(val) => {
                         setDraft((prev) => ({
-                          ...(prev ?? buildInitialDraft(config)),
-                          dataConsolidationTime: e.target.value,
+                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                          dataConsolidationTime: val,
                         }))
-                      }
-                      h="36px"
+                        clearError('dataConsolidationTime')
+                      }}
+                      isInvalid={!!errors.dataConsolidationTime}
                       w={{ base: 'full', xl: '486px' }}
-                      fontSize="sm"
-                      borderColor="neutral.300"
-                      borderRadius="6px"
-                      _hover={{ borderColor: 'neutral.400' }}
-                      _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
                     />
-                  </Box>
-                  <Box>
-                    <Text
-                      as="label"
-                      htmlFor="pump-operator-nudge-time"
-                      fontSize={{ base: 'xs', md: 'sm' }}
-                      fontWeight="medium"
-                      color="neutral.950"
-                      mb={1}
-                      display="block"
-                    >
-                      {t('configuration.sections.pumpOperatorReminderNudgeTime.title')}
-                    </Text>
-                    <Input
+                    <FormErrorMessage>{errors.dataConsolidationTime}</FormErrorMessage>
+                  </FormControl>
+                  <FormControl isInvalid={!!errors.pumpOperatorReminderNudgeTime}>
+                    <Flex align="center" gap={1} mb={1}>
+                      <Text
+                        as="label"
+                        htmlFor="pump-operator-nudge-time"
+                        fontSize={{ base: 'xs', md: 'sm' }}
+                        fontWeight="medium"
+                        color="neutral.950"
+                        display="block"
+                      >
+                        {t('configuration.sections.pumpOperatorReminderNudgeTime.title')}
+                      </Text>
+                      <FieldInfoIcon
+                        tooltip={t('configuration.infoText.pumpOperatorReminderNudgeTime')}
+                      />
+                    </Flex>
+                    <TimePicker
                       id="pump-operator-nudge-time"
-                      type="time"
                       value={activeDraft.pumpOperatorReminderNudgeTime}
-                      onChange={(e) =>
+                      onChange={(val) => {
                         setDraft((prev) => ({
-                          ...(prev ?? buildInitialDraft(config)),
-                          pumpOperatorReminderNudgeTime: e.target.value,
+                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                          pumpOperatorReminderNudgeTime: val,
                         }))
-                      }
-                      h="36px"
+                        clearError('pumpOperatorReminderNudgeTime')
+                      }}
+                      isInvalid={!!errors.pumpOperatorReminderNudgeTime}
                       w={{ base: 'full', xl: '486px' }}
-                      fontSize="sm"
-                      borderColor="neutral.300"
-                      borderRadius="6px"
-                      _hover={{ borderColor: 'neutral.400' }}
-                      _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
                     />
-                  </Box>
+                    <FormErrorMessage>{errors.pumpOperatorReminderNudgeTime}</FormErrorMessage>
+                  </FormControl>
                 </SimpleGrid>
 
-                {/* 7. Average Members Per Household */}
+                {/* 8. Screen Date Format + Table Date Format */}
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                  <Box>
-                    <Text
-                      as="label"
-                      htmlFor="avg-members"
-                      fontSize={{ base: 'xs', md: 'sm' }}
-                      fontWeight="medium"
-                      color="neutral.950"
-                      mb={1}
-                      display="block"
-                    >
-                      {t('configuration.sections.averageMembersPerHousehold.title')}
-                    </Text>
+                  <DateFormatSection
+                    title={t('configuration.sections.dateFormatScreen.title')}
+                    infoTooltip={t('configuration.infoText.dateFormatScreen')}
+                    value={activeDraft.dateFormatScreen}
+                    onChange={(val) =>
+                      setDraft((prev) => ({
+                        ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                        dateFormatScreen: val,
+                      }))
+                    }
+                  />
+                  <DateFormatSection
+                    title={t('configuration.sections.dateFormatTable.title')}
+                    infoTooltip={t('configuration.infoText.dateFormatTable')}
+                    value={activeDraft.dateFormatTable}
+                    onChange={(val) =>
+                      setDraft((prev) => ({
+                        ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                        dateFormatTable: val,
+                      }))
+                    }
+                  />
+                </SimpleGrid>
+
+                {/* 9. Average Members Per Household */}
+                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+                  <FormControl isInvalid={!!errors.averageMembersPerHousehold}>
+                    <Flex align="center" gap={1} mb={1}>
+                      <Text
+                        as="label"
+                        htmlFor="avg-members"
+                        fontSize={{ base: 'xs', md: 'sm' }}
+                        fontWeight="medium"
+                        color="neutral.950"
+                        display="block"
+                      >
+                        {t('configuration.sections.averageMembersPerHousehold.title')}
+                      </Text>
+                      <FieldInfoIcon
+                        tooltip={t('configuration.infoText.averageMembersPerHousehold')}
+                      />
+                    </Flex>
                     <Input
                       id="avg-members"
                       type="number"
                       step="any"
                       min="0"
                       value={displayAvgStr}
+                      onWheel={(e) => e.currentTarget.blur()}
                       onChange={(e) => {
                         const raw = e.target.value
                         setAvgMembersStr(raw)
+                        clearError('averageMembersPerHousehold')
                         if (raw.trim() === '') {
                           setDraft((prev) => ({
-                            ...(prev ?? buildInitialDraft(config)),
+                            ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
                             averageMembersPerHousehold: 0,
                           }))
                           return
@@ -491,7 +851,7 @@ export function ConfigurationPage() {
                         const parsed = Number(raw)
                         if (!Number.isFinite(parsed) || parsed < 0) return
                         setDraft((prev) => ({
-                          ...(prev ?? buildInitialDraft(config)),
+                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
                           averageMembersPerHousehold: parsed,
                         }))
                       }}
@@ -504,8 +864,60 @@ export function ConfigurationPage() {
                       _hover={{ borderColor: 'neutral.400' }}
                       _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
                     />
-                  </Box>
+                    <FormErrorMessage>{errors.averageMembersPerHousehold}</FormErrorMessage>
+                  </FormControl>
                 </SimpleGrid>
+
+                {/* 10. Logo (last) */}
+                <FormControl isInvalid={!!errors.logo}>
+                  <Flex align="center" gap={1} mb={3}>
+                    <Text
+                      fontSize={{ base: 'xs', md: 'sm' }}
+                      fontWeight="medium"
+                      color="neutral.950"
+                    >
+                      {t('configuration.sections.logo.title')}
+                    </Text>
+                    <FieldInfoIcon tooltip={t('configuration.infoText.logo')} />
+                  </Flex>
+                  <HStack spacing={3} align="center" flexWrap="wrap">
+                    {activeDraft.logoUrl && (
+                      <Box
+                        as="img"
+                        src={activeDraft.logoUrl}
+                        alt={t('configuration.sections.logo.currentLogo')}
+                        h="40px"
+                        w="40px"
+                        objectFit="contain"
+                        borderWidth="0.5px"
+                        borderColor="neutral.100"
+                        borderRadius="md"
+                      />
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/png,image/jpeg"
+                      style={{ display: 'none' }}
+                      onChange={handleLogoChange}
+                      aria-label={t('configuration.sections.logo.uploadButton')}
+                    />
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      fontWeight="600"
+                      gap={1}
+                      leftIcon={<FiUpload aria-hidden="true" />}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      {t('configuration.sections.logo.uploadButton')}
+                    </Button>
+                    <Text fontSize="xs" color="neutral.500">
+                      {t('configuration.sections.logo.hint')}
+                    </Text>
+                  </HStack>
+                  <FormErrorMessage>{errors.logo}</FormErrorMessage>
+                </FormControl>
               </VStack>
 
               {/* Action Buttons */}
@@ -520,7 +932,7 @@ export function ConfigurationPage() {
                   size="md"
                   width={{ base: 'full', sm: '174px' }}
                   onClick={handleCancel}
-                  isDisabled={saveMutation.isPending}
+                  isDisabled={saveMutation.isPending || updateLogoMutation.isPending}
                 >
                   {t('common:button.cancel')}
                 </Button>
@@ -528,10 +940,17 @@ export function ConfigurationPage() {
                   variant="primary"
                   size="md"
                   width={{ base: 'full', sm: '174px' }}
-                  onClick={handleSave}
-                  isLoading={saveMutation.isPending}
+                  onClick={() => handleSave(!config.isConfigured)}
+                  isLoading={saveMutation.isPending || updateLogoMutation.isPending}
+                  isDisabled={
+                    (config.isConfigured && !hasChanges) ||
+                    saveMutation.isPending ||
+                    updateLogoMutation.isPending
+                  }
                 >
-                  {config.isConfigured ? t('common:button.saveChanges') : t('common:button.save')}
+                  {config.isConfigured
+                    ? t('common:button.saveChanges')
+                    : t('common:button.saveAndNext')}
                 </Button>
               </HStack>
             </Flex>
@@ -545,6 +964,22 @@ export function ConfigurationPage() {
 }
 
 // ─── View Mode ────────────────────────────────────────────────────────────────
+
+function FieldInfoIcon({ tooltip }: { tooltip: string }) {
+  return (
+    <ActionTooltip label={tooltip}>
+      <Flex
+        as="span"
+        align="center"
+        color="neutral.400"
+        cursor="default"
+        _hover={{ color: 'primary.500' }}
+      >
+        <IoInformation size={16} aria-label={tooltip} />
+      </Flex>
+    </ActionTooltip>
+  )
+}
 
 function ViewField({ label, value, color }: { label: string; value: string; color?: string }) {
   return (
@@ -577,9 +1012,17 @@ function ViewSection({ title, children }: { title: string; children: React.React
 
 function ViewMode({
   config,
+  logoUrl,
+  isLogoLoading,
+  isLogoError,
+  notFound,
   t,
 }: {
   config: NonNullable<ReturnType<typeof useConfigurationQuery>['data']>
+  logoUrl: string | undefined
+  isLogoLoading: boolean
+  isLogoError: boolean
+  notFound: boolean
   t: ReturnType<typeof useTranslation<['state-admin', 'common']>>['t']
 }) {
   return (
@@ -587,7 +1030,11 @@ function ViewMode({
       {/* Supported Channels */}
       <ViewSection title={t('configuration.sections.supportedChannels.title')}>
         <Text fontSize="sm" color="neutral.950">
-          {config.supportedChannels.length > 0 ? config.supportedChannels.join(', ') : '-'}
+          {config.supportedChannels.length > 0
+            ? config.supportedChannels
+                .map((c) => CHANNEL_CODE_TO_NAME[c as KnownSupportedChannel] ?? c)
+                .join(', ')
+            : '-'}
         </Text>
       </ViewSection>
 
@@ -608,7 +1055,24 @@ function ViewMode({
         )}
       </ViewSection>
 
-      {/* Record Location + Logo side by side */}
+      {/* Supply Outage Reasons — 2-column grid */}
+      <ViewSection title={t('configuration.sections.supplyOutageReasons.title')}>
+        {config.supplyOutageReasons.length > 0 ? (
+          <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={2}>
+            {config.supplyOutageReasons.map((r) => (
+              <Text key={r.id} fontSize="sm" color="neutral.950">
+                {r.name}
+              </Text>
+            ))}
+          </SimpleGrid>
+        ) : (
+          <Text fontSize="sm" color="neutral.500">
+            -
+          </Text>
+        )}
+      </ViewSection>
+
+      {/* Record Location + Display Department Maps side by side */}
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
         <ViewField
           label={t('configuration.sections.locationCheckRequired.title')}
@@ -619,21 +1083,15 @@ function ViewMode({
           }
           color="neutral.950"
         />
-        <ViewSection title={t('configuration.sections.logo.title')}>
-          {config.logoUrl ? (
-            <Box
-              as="img"
-              src={config.logoUrl}
-              alt={t('configuration.sections.logo.currentLogo')}
-              h="48px"
-              objectFit="contain"
-            />
-          ) : (
-            <Text fontSize="sm" color="neutral.500">
-              -
-            </Text>
-          )}
-        </ViewSection>
+        <ViewField
+          label={t('configuration.sections.displayDepartmentMaps.title')}
+          value={
+            config.displayDepartmentMaps
+              ? t('configuration.sections.displayDepartmentMaps.yes')
+              : t('configuration.sections.displayDepartmentMaps.no')
+          }
+          color="neutral.950"
+        />
       </SimpleGrid>
 
       {/* Data Consolidation Time + Pump Operator Reminder Nudge Time */}
@@ -650,6 +1108,42 @@ function ViewMode({
         />
       </SimpleGrid>
 
+      {/* Screen Date Format + Table Date Format */}
+      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+        <ViewSection title={t('configuration.sections.dateFormatScreen.title')}>
+          <VStack align="stretch" spacing={1}>
+            <Text fontSize="sm" color="neutral.950">
+              {t('configuration.sections.dateFormat.dateFormat')}:{' '}
+              {config.dateFormatScreen.dateFormat ?? '-'}
+            </Text>
+            <Text fontSize="sm" color="neutral.950">
+              {t('configuration.sections.dateFormat.timeFormat')}:{' '}
+              {config.dateFormatScreen.timeFormat ?? '-'}
+            </Text>
+            <Text fontSize="sm" color="neutral.950">
+              {t('configuration.sections.dateFormat.timezone')}:{' '}
+              {config.dateFormatScreen.timezone ?? '-'}
+            </Text>
+          </VStack>
+        </ViewSection>
+        <ViewSection title={t('configuration.sections.dateFormatTable.title')}>
+          <VStack align="stretch" spacing={1}>
+            <Text fontSize="sm" color="neutral.950">
+              {t('configuration.sections.dateFormat.dateFormat')}:{' '}
+              {config.dateFormatTable.dateFormat ?? '-'}
+            </Text>
+            <Text fontSize="sm" color="neutral.950">
+              {t('configuration.sections.dateFormat.timeFormat')}:{' '}
+              {config.dateFormatTable.timeFormat ?? '-'}
+            </Text>
+            <Text fontSize="sm" color="neutral.950">
+              {t('configuration.sections.dateFormat.timezone')}:{' '}
+              {config.dateFormatTable.timezone ?? '-'}
+            </Text>
+          </VStack>
+        </ViewSection>
+      </SimpleGrid>
+
       {/* Average Members Per Household */}
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
         <ViewField
@@ -660,17 +1154,29 @@ function ViewMode({
           color="neutral.950"
         />
       </SimpleGrid>
+
+      {/* Logo (last) */}
+      <ViewSection title={t('configuration.sections.logo.title')}>
+        {isLogoLoading ? (
+          <Spinner size="sm" color="primary.500" aria-label="Loading logo" />
+        ) : isLogoError && !notFound ? (
+          <Text fontSize="sm" color="error.500">
+            {t('common:toast.failedToLoad')}
+          </Text>
+        ) : logoUrl ? (
+          <Box
+            as="img"
+            src={logoUrl}
+            alt={t('configuration.sections.logo.currentLogo')}
+            h="48px"
+            objectFit="contain"
+          />
+        ) : (
+          <Text fontSize="sm" color="neutral.500">
+            -
+          </Text>
+        )}
+      </ViewSection>
     </VStack>
   )
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
 }

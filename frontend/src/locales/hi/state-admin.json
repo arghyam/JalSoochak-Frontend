@@ -6,6 +6,10 @@
     "departmentTitle": "विभाग पदानुक्रम",
     "levelLabel": "स्तर {{level}}",
     "addLevel": "स्तर जोड़ें",
+    "breadcrumb": {
+      "view": "पदानुक्रम देखें",
+      "edit": "पदानुक्रम संपादित करें"
+    },
     "messages": {
       "saveSuccess": "पदानुक्रम सफलतापूर्वक सहेजा गया",
       "saveFailed": "पदानुक्रम सहेजने में विफल",
@@ -91,6 +95,10 @@
     "primaryLanguage": "प्राथमिक भाषा",
     "secondaryLanguage": "द्वितीयक भाषा (वैकल्पिक)",
     "tertiaryLanguage": "तृतीयक भाषा (वैकल्पिक)",
+    "breadcrumb": {
+      "view": "भाषा देखें",
+      "edit": "भाषा संपादित करें"
+    },
     "aria": {
       "editConfiguration": "भाषा कॉन्फ़िगरेशन संपादित करें",
       "selectPrimaryLanguage": "प्राथमिक भाषा चुनें",
@@ -122,6 +130,10 @@
   "waterNorms": {
     "title": "जल मानक",
     "stateUtWaterNorms": "राज्य/केंद्र शासित प्रदेश जल मानक",
+    "breadcrumb": {
+      "view": "जल मानक देखें",
+      "edit": "जल मानक संपादित करें"
+    },
     "currentQuantity": "वर्तमान मात्रा (LPCD)",
     "alertThresholds": {
       "title": "अलर्ट सीमाएं",
@@ -164,6 +176,10 @@
   "escalations": {
     "title": "वृद्धि",
     "allEscalations": "सभी वृद्धि",
+    "breadcrumb": {
+      "view": "वृद्धि देखें",
+      "edit": "वृद्धि संपादित करें"
+    },
     "escalationRules": "वृद्धि नियम",
     "addNewEscalationType": "नया वृद्धि प्रकार जोड़ें",
     "addNewShort": "नया जोड़ें",
@@ -208,7 +224,8 @@
       "selectRole": "स्तर {{number}} के लिए भूमिका चुनें",
       "selectHours": "स्तर {{number}} के लिए वृद्धि घंटे चुनें",
       "escalationCard": "{{name}} के लिए वृद्धि कॉन्फ़िगरेशन",
-      "formLabel": "वृद्धि नियम कॉन्फ़िगरेशन फ़ॉर्म"
+      "formLabel": "वृद्धि नियम कॉन्फ़िगरेशन फ़ॉर्म",
+      "escalateAfterDays": "{{role}} के लिए एस्केलेशन दिन"
     }
   },
 
@@ -252,11 +269,8 @@
     "title": "स्टाफ सिंक",
     "searchPlaceholder": "नाम से खोजें",
     "uploadData": "डेटा अपलोड करें",
-    "downloadData": "डेटा डाउनलोड करें",
     "filters": {
       "label": "फ़िल्टर",
-      "gramPanchayat": "ग्राम पंचायत",
-      "village": "गाँव",
       "role": "भूमिका",
       "status": "स्थिति",
       "clearAll": "सभी फ़िल्टर हटाएं"
@@ -272,30 +286,122 @@
       "sectionOfficer": "सेक्शन अधिकारी"
     },
     "table": {
-      "allGpVillage": "सभी GP और गाँव",
       "name": "नाम",
       "role": "भूमिका",
       "mobileNumber": "मोबाइल नंबर",
-      "lastSubmission": "अंतिम सबमिशन",
+      "schemes": "योजनाएं",
       "activityStatus": "गतिविधि स्थिति"
+    },
+    "upload": {
+      "title": "स्टाफ डेटा अपलोड करें",
+      "description": "स्टाफ डेटा युक्त एक Excel फ़ाइल (.xlsx या .xls) अपलोड करें।",
+      "selectFile": "फ़ाइल चुनें",
+      "clickToSelect": "फ़ाइल चुनने के लिए क्लिक करें",
+      "fileTypes": "केवल .xlsx या .xls",
+      "submit": "अपलोड करें",
+      "success": "स्टाफ डेटा सफलतापूर्वक अपलोड किया गया",
+      "error": "स्टाफ डेटा अपलोड करने में विफल। कृपया पुनः प्रयास करें।",
+      "close": "बंद करें",
+      "cancel": "रद्द करें"
     },
     "messages": {
       "noStaffFound": "कोई स्टाफ सदस्य नहीं मिला",
-      "failedToLoad": "स्टाफ डेटा लोड करने में विफल",
-      "naSubmission": "N/A"
+      "failedToLoad": "स्टाफ डेटा लोड करने में विफल"
     },
     "aria": {
       "statsSection": "स्टाफ सिंक सांख्यिकी",
       "searchStaff": "नाम से स्टाफ खोजें",
       "filterSection": "स्टाफ सदस्यों को फ़िल्टर करें",
-      "uploadData": "स्टाफ डेटा अपलोड करें",
-      "downloadData": "स्टाफ डेटा डाउनलोड करें"
+      "uploadData": "स्टाफ डेटा अपलोड करें"
+    }
+  },
+
+  "schemeSync": {
+    "title": "योजना सिंक",
+    "searchPlaceholder": "योजना नाम से खोजें",
+    "uploadData": "डेटा अपलोड करें",
+    "filters": {
+      "workStatus": "कार्य स्थिति",
+      "operatingStatus": "संचालन स्थिति",
+      "clearAll": "सभी फ़िल्टर हटाएं"
+    },
+    "stats": {
+      "totalSchemes": "कुल योजनाएं",
+      "activeSchemes": "सक्रिय योजनाएं",
+      "inactiveSchemes": "निष्क्रिय योजनाएं"
+    },
+    "table": {
+      "schemeName": "योजना नाम",
+      "fhtcCount": "FHTC संख्या",
+      "houseHoldCount": "घरेलू संख्या",
+      "workStatus": "कार्य स्थिति",
+      "operatingStatus": "संचालन स्थिति"
+    },
+    "upload": {
+      "title": "योजना डेटा अपलोड करें",
+      "description": "योजना डेटा युक्त एक Excel फ़ाइल (.xlsx या .xls) अपलोड करें।",
+      "clickToSelect": "फ़ाइल चुनने के लिए क्लिक करें",
+      "fileTypes": "केवल .xlsx या .xls",
+      "submit": "अपलोड करें",
+      "success": "योजना डेटा सफलतापूर्वक अपलोड किया गया",
+      "error": "योजना डेटा अपलोड करने में विफल। कृपया पुनः प्रयास करें।",
+      "close": "बंद करें",
+      "cancel": "रद्द करें"
+    },
+    "messages": {
+      "noSchemesFound": "कोई योजना नहीं मिली",
+      "failedToLoad": "योजना डेटा लोड करने में विफल"
+    },
+    "aria": {
+      "statsSection": "योजना सिंक सांख्यिकी",
+      "searchSchemes": "नाम से योजनाएं खोजें",
+      "filterSection": "योजनाओं को फ़िल्टर करें",
+      "uploadData": "योजना डेटा अपलोड करें"
+    }
+  },
+
+  "schemeMappingsSync": {
+    "title": "योजना मैपिंग सिंक",
+    "searchPlaceholder": "योजना नाम से खोजें",
+    "uploadData": "डेटा अपलोड करें",
+    "filters": {
+      "clearAll": "सभी फ़िल्टर हटाएं"
+    },
+    "table": {
+      "schemeName": "योजना नाम",
+      "stateSchemeId": "राज्य योजना आईडी",
+      "villageName": "गांव का नाम",
+      "subDivisionName": "उप-विभाग नाम"
+    },
+    "upload": {
+      "title": "योजना मैपिंग डेटा अपलोड करें",
+      "description": "योजना मैपिंग डेटा युक्त एक Excel फ़ाइल (.xlsx या .xls) अपलोड करें।",
+      "clickToSelect": "फ़ाइल चुनने के लिए क्लिक करें",
+      "fileTypes": "केवल .xlsx या .xls",
+      "submit": "अपलोड करें",
+      "success": "योजना मैपिंग डेटा सफलतापूर्वक अपलोड किया गया",
+      "error": "योजना मैपिंग डेटा अपलोड करने में विफल। कृपया पुनः प्रयास करें।",
+      "close": "बंद करें",
+      "cancel": "रद्द करें"
+    },
+    "messages": {
+      "noMappingsFound": "कोई योजना मैपिंग नहीं मिली",
+      "failedToLoad": "योजना मैपिंग डेटा लोड करने में विफल"
+    },
+    "aria": {
+      "searchMappings": "योजना नाम से मैपिंग खोजें",
+      "filterSection": "योजना मैपिंग फ़िल्टर करें",
+      "uploadData": "योजना मैपिंग डेटा अपलोड करें"
     }
   },
 
   "configuration": {
     "pageTitle": "कॉन्फ़िगरेशन",
     "sectionTitle": "राज्य/केंद्र शासित प्रदेश कॉन्फ़िगरेशन",
+    "breadcrumb": {
+      "view": "कॉन्फ़िगरेशन देखें",
+      "edit": "कॉन्फ़िगरेशन संपादित करें"
+    },
     "sections": {
       "lgdHierarchy": {
         "title": "LGD पदानुक्रम",
@@ -306,7 +412,8 @@
         "levelLabel": "स्तर {{level}}"
       },
       "supportedChannels": {
-        "title": "समर्थित चैनल"
+        "title": "समर्थित चैनल",
+        "degradedTooltip": "इस चैनल के लिए सिस्टम समर्थन हटा दिया गया है"
       },
       "logo": {
         "title": "लोगो",
@@ -323,8 +430,20 @@
         "editAriaLabel": "कारण {{name}} संपादित करें",
         "deleteAriaLabel": "कारण {{name}} हटाएं"
       },
+      "supplyOutageReasons": {
+        "title": "आपूर्ति बाधा कारण",
+        "placeholder": "कारण दर्ज करें",
+        "addNewButton": "+ नया कारण जोड़ें",
+        "editAriaLabel": "कारण {{name}} संपादित करें",
+        "deleteAriaLabel": "कारण {{name}} हटाएं"
+      },
       "locationCheckRequired": {
         "title": "स्थान रिकॉर्ड करें",
+        "yes": "हाँ",
+        "no": "नहीं"
+      },
+      "displayDepartmentMaps": {
+        "title": "विभागीय मानचित्र प्रदर्शित करें",
         "yes": "हाँ",
         "no": "नहीं"
       },
@@ -334,9 +453,36 @@
       "pumpOperatorReminderNudgeTime": {
         "title": "पंप ऑपरेटर रिमाइंडर नज समय"
       },
+      "dateFormatScreen": {
+        "title": "स्क्रीन दिनांक प्रारूप"
+      },
+      "dateFormatTable": {
+        "title": "तालिका दिनांक प्रारूप"
+      },
+      "dateFormat": {
+        "dateFormat": "दिनांक प्रारूप",
+        "timeFormat": "समय प्रारूप",
+        "timezone": "समय क्षेत्र",
+        "datePlaceholder": "दिनांक प्रारूप चुनें",
+        "timePlaceholder": "समय प्रारूप चुनें",
+        "timezonePlaceholder": "समय क्षेत्र चुनें"
+      },
       "averageMembersPerHousehold": {
         "title": "प्रति परिवार औसत सदस्य"
       }
+    },
+    "infoText": {
+      "supportedChannels": "वे चैनल जिनके माध्यम से योजनाएं छोड़े गए जल प्रवाह को ट्रैक करती हैं।",
+      "meterChangeReasons": "वे कारण जो क्षेत्र ऑपरेटर मीटर प्रतिस्थापन घटना लॉग करते समय चुन सकते हैं।",
+      "supplyOutageReasons": "वे कारण जो क्षेत्र ऑपरेटर जल आपूर्ति बाधा रिपोर्ट करते समय चुन सकते हैं।",
+      "locationCheckRequired": "सक्षम होने पर, रीडिंग सबमिट करते समय क्षेत्र ऑपरेटरों को अपना GPS स्थान साझा करना अनिवार्य होगा।",
+      "displayDepartmentMaps": "सक्षम होने पर, डैशबोर्ड पर विभागीय मानचित्र दृश्य दिखाए जाएंगे।",
+      "dataConsolidationTime": "दैनिक समय जिस पर रिपोर्टिंग के लिए क्षेत्र डेटा संकलित और समेकित किया जाता है।",
+      "pumpOperatorReminderNudgeTime": "दैनिक समय जिस पर उन पंप ऑपरेटरों को स्वचालित अनुस्मारक भेजे जाते हैं जिन्होंने अभी तक रीडिंग सबमिट नहीं की है।",
+      "dateFormatScreen": "सभी ऑन-स्क्रीन डिस्प्ले जैसे डैशबोर्ड में उपयोग किया जाने वाला दिनांक, समय और टाइमज़ोन प्रारूप।",
+      "dateFormatTable": "डेटा तालिकाओं और निर्यातित रिपोर्ट में उपयोग किया जाने वाला दिनांक, समय और टाइमज़ोन प्रारूप।",
+      "averageMembersPerHousehold": "घरेलू स्तर की आपूर्ति डेटा से प्रति व्यक्ति जल खपत का अनुमान लगाने के लिए उपयोग किया जाता है। स्वीकृत सीमा: 1–20।",
+      "logo": "ऐप में प्रदर्शित संगठन का लोगो। PNG या JPG, अधिकतम 2 MB।"
     },
     "aria": {
       "form": "कॉन्फ़िगरेशन फ़ॉर्म",
@@ -350,7 +496,8 @@
       "validation": {
         "channelRequired": "कम से कम एक समर्थित चैनल चुनें",
         "hierarchyRequired": "सभी पदानुक्रम स्तर के नाम आवश्यक हैं",
-        "logoTooLarge": "लोगो फ़ाइल 2 MB या उससे छोटी होनी चाहिए"
+        "logoTooLarge": "लोगो फ़ाइल 2 MB या उससे छोटी होनी चाहिए",
+        "logoInvalidType": "लोगो PNG या JPG फ़ाइल होनी चाहिए"
       }
     }
   },
@@ -381,7 +528,7 @@
       "activated": "सक्रिय"
     },
     "buttons": {
-      "addAndSendLink": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक जोड़ें और ईमेल द्वारा लिंक भेजें"
+      "addAndSendLink": "व्यवस्थापक जोड़ें और ईमेल द्वारा लिंक भेजें"
     },
     "breadcrumb": {
       "manage": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक प्रबंधित करें",
@@ -408,6 +555,7 @@
 
   "messageTemplates": {
     "title": "टेम्पलेट",
+    "subtitle": "WhatsApp टेम्पलेट्स (केवल पढ़ें)",
     "selectLanguage": "भाषा चुनें",
     "selectTemplate": "टेम्पलेट चुनें",
     "language": "भाषा",
@@ -455,5 +603,33 @@
       "selectLanguage": "{{name}} टेम्पलेट के लिए भाषा चुनें",
       "enterMessage": "{{name}} टेम्पलेट के लिए संदेश दर्ज करें"
     }
+  },
+
+  "validation": {
+    "required": "यह फ़ील्ड आवश्यक है",
+    "emptyOrWhitespace": "यह फ़ील्ड खाली नहीं हो सकती या केवल रिक्त स्थान नहीं हो सकते",
+    "containsHtmlTags": "HTML टैग की अनुमति नहीं है",
+    "containsSqlInjection": "अमान्य अक्षर पाए गए",
+    "alphanumericOnly": "केवल अक्षर, संख्याएँ और रिक्त स्थान की अनुमति है",
+    "invalidUrl": "कृपया https:// से शुरू होने वाला एक मान्य URL दर्ज करें",
+    "noSpaces": "रिक्त स्थान की अनुमति नहीं है",
+    "maxLength": "{{max}} अक्षरों से अधिक नहीं होना चाहिए",
+    "httpsOnce": "URL को ठीक एक बार https:// से शुरू होना चाहिए",
+    "duplicateValue": "यह मान पहले से मौजूद है",
+    "mustBePositive": "मान 0 से अधिक होना चाहिए",
+    "mustBeInRange": "मान {{min}} और {{max}} के बीच होना चाहिए",
+    "selectAtLeastOne": "कम से कम एक विकल्प चुनें",
+    "fillPreviousFirst": "नया जोड़ने से पहले कृपया पिछली प्रविष्टि भरें",
+    "duplicateDistrict": "यह जिला पहले से जोड़ा जा चुका है",
+    "duplicateLevelName": "डुप्लिकेट स्तर नामों की अनुमति नहीं है",
+    "minLength": "कम से कम {{min}} अक्षर होने चाहिए",
+    "timeRequired": "कृपया एक समय चुनें",
+    "daysMinimum": "दिन कम से कम 1 होने चाहिए",
+    "daysMaximum": "दिन {{max}} से अधिक नहीं होने चाहिए",
+    "selectRole": "कृपया एक भूमिका चुनें",
+    "selectAlertType": "कृपया एक अलर्ट प्रकार चुनें",
+    "alphabeticOnly": "केवल अक्षर और रिक्त स्थान की अनुमति है",
+    "maxValue": "मान {{max}} से अधिक नहीं होना चाहिए",
+    "sdoDaysNotLessThanSo": "उप-मंडल अधिकारी के एस्केलेशन दिन, अनुभाग अधिकारी के एस्केलेशन दिनों से कम नहीं हो सकते"
   }
 }

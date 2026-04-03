@@ -1,4 +1,4 @@
-import { screen, fireEvent } from '@testing-library/react'
+import { screen, fireEvent, act } from '@testing-library/react'
 import { describe, expect, it, jest, beforeEach } from '@jest/globals'
 import { UserAdminViewPage } from './user-admin-view-page'
 import { renderWithProviders } from '@/test/render-with-providers'
@@ -14,10 +14,12 @@ const mockAdmin: UserAdminData = {
 }
 
 const mockNavigate = jest.fn()
+const mockLocationState: { successToast?: string } = {}
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual<typeof import('react-router-dom')>('react-router-dom'),
   useNavigate: () => mockNavigate,
+  useLocation: () => ({ pathname: '/test/users/u-1', state: mockLocationState }),
 }))
 
 const mockRoutes: UserAdminRoutes = {
@@ -54,6 +56,7 @@ const mockLabels: UserAdminViewLabels = {
 describe('UserAdminViewPage', () => {
   beforeEach(() => {
     mockNavigate.mockReset()
+    delete mockLocationState.successToast
   })
 
   it('renders page title', () => {
@@ -232,5 +235,23 @@ describe('UserAdminViewPage', () => {
     const editButton = screen.getByRole('button', { name: /edit vijay kumar/i })
     fireEvent.click(editButton)
     expect(mockNavigate).toHaveBeenCalledWith('/test/users/u-1/edit')
+  })
+
+  it('shows success toast when location state contains successToast', async () => {
+    mockLocationState.successToast = 'Changes saved successfully'
+    await act(async () => {
+      renderWithProviders(
+        <UserAdminViewPage
+          id="u-1"
+          data={mockAdmin}
+          isLoading={false}
+          isError={false}
+          onRefetch={jest.fn()}
+          routes={mockRoutes}
+          labels={mockLabels}
+        />
+      )
+    })
+    expect(screen.getByText('Changes saved successfully')).toBeTruthy()
   })
 })
