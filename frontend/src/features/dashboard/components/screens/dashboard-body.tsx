@@ -28,9 +28,13 @@ type DashboardBodyProps = {
   data: DashboardData
   performanceScreenKey?: string | null
   isStateSelected: boolean
+  isDepartmentStateSelected?: boolean
   isDistrictSelected: boolean
   isBlockSelected: boolean
   isGramPanchayatSelected: boolean
+  isDepartmentZoneSelected?: boolean
+  isDepartmentCircleSelected?: boolean
+  isDepartmentDivisionSelected?: boolean
   selectedVillage: string
   quantityPerformanceData: EntityPerformance[]
   quantityTimeTrendData: MonthlyTrendPoint[]
@@ -62,9 +66,13 @@ export function DashboardBody({
   data,
   performanceScreenKey = null,
   isStateSelected,
+  isDepartmentStateSelected = false,
   isDistrictSelected,
   isBlockSelected,
   isGramPanchayatSelected,
+  isDepartmentZoneSelected = false,
+  isDepartmentCircleSelected = false,
+  isDepartmentDivisionSelected = false,
   selectedVillage,
   quantityPerformanceData,
   quantityTimeTrendData,
@@ -90,16 +98,39 @@ export function DashboardBody({
 }: DashboardBodyProps) {
   const { t } = useTranslation('dashboard')
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
-  const isStateScreen =
+  const isAdministrativeStateScreen =
     isStateSelected &&
     !isDistrictSelected &&
     !isBlockSelected &&
     !isGramPanchayatSelected &&
+    !isDepartmentZoneSelected &&
+    !isDepartmentCircleSelected &&
+    !isDepartmentDivisionSelected &&
     !selectedVillage
+  const isDepartmentStateScreen =
+    isDepartmentStateSelected &&
+    !isDistrictSelected &&
+    !isBlockSelected &&
+    !isGramPanchayatSelected &&
+    !isDepartmentZoneSelected &&
+    !isDepartmentCircleSelected &&
+    !isDepartmentDivisionSelected &&
+    !selectedVillage
+  const isStateScreen = isAdministrativeStateScreen || isDepartmentStateScreen
   const isDistrictScreen =
-    isDistrictSelected && !isBlockSelected && !isGramPanchayatSelected && !selectedVillage
-  const isBlockScreen = isBlockSelected && !isGramPanchayatSelected && !selectedVillage
-  const isGramPanchayatScreen = isGramPanchayatSelected && !selectedVillage
+    (isDistrictSelected || isDepartmentZoneSelected) &&
+    !isBlockSelected &&
+    !isGramPanchayatSelected &&
+    !isDepartmentCircleSelected &&
+    !isDepartmentDivisionSelected &&
+    !selectedVillage
+  const isBlockScreen =
+    (isBlockSelected || isDepartmentCircleSelected) &&
+    !isGramPanchayatSelected &&
+    !isDepartmentDivisionSelected &&
+    !selectedVillage
+  const isGramPanchayatScreen =
+    (isGramPanchayatSelected || isDepartmentDivisionSelected) && !selectedVillage
 
   const outageDistributionTimeTrendData = useMemo(
     () => data.supplyOutageTrend ?? [],
@@ -116,9 +147,9 @@ export function DashboardBody({
     waterSupplyOutageDistributionData,
     outageDistributionTimeTrendData,
   })
-  const geographyEntityLabel = isStateScreen
+  const geographyEntityLabel = isAdministrativeStateScreen
     ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
-    : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
+    : supplySubmissionRateLabel
   return (
     <>
       {/* Quantity + Regularity Charts */}
@@ -151,6 +182,7 @@ export function DashboardBody({
           blockTableData={blockTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
+          childEntityLabel={supplySubmissionRateLabel}
           operatorsPerformanceTable={operatorsPerformanceTable}
           pumpOperatorsTotal={pumpOperatorsTotal}
         />
@@ -170,8 +202,12 @@ export function DashboardBody({
           gramPanchayatTableData={gramPanchayatTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
+          childEntityLabel={supplySubmissionRateLabel}
           pumpOperatorsTotal={pumpOperatorsTotal}
           operatorsPerformanceTable={operatorsPerformanceTable}
+          showSupplyOutageReasons
+          showReadingSubmissionRate
+          showReadingSubmissionSection
         />
       ) : null}
       {isGramPanchayatScreen ? (
@@ -189,6 +225,7 @@ export function DashboardBody({
           villageTableData={villageTableData}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
+          childEntityLabel={supplySubmissionRateLabel}
           pumpOperatorsTotal={pumpOperatorsTotal}
           operatorsPerformanceTable={operatorsPerformanceTable}
         />
@@ -212,7 +249,11 @@ export function DashboardBody({
       ) : null}
 
       {/* Supply outage reasons + distribution/submission */}
-      {!selectedVillage && !isDistrictScreen && !isBlockSelected && !isGramPanchayatScreen ? (
+      {!selectedVillage &&
+      !isDistrictScreen &&
+      !isBlockSelected &&
+      !isGramPanchayatScreen &&
+      !isDepartmentCircleSelected ? (
         <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
           <Box
             bg="white"
@@ -353,7 +394,31 @@ function PerformanceChartsSection({
   const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
 
   return (
-    <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
+    <Grid templateColumns="1fr" gap={6} mb={6}>
+      <PerformanceChartCard
+        title={t('performanceCharts.regularity.title', {
+          defaultValue: 'Regularity Performance',
+        })}
+        viewByAriaLabel={t('performanceCharts.regularity.ariaViewBy', {
+          defaultValue: 'Regularity performance view by',
+        })}
+        viewBy={regularityViewBy}
+        onViewByChange={setRegularityViewBy}
+        data={regularityPerformanceData}
+        metric="regularity"
+        timeTrendData={regularityTimeTrendData}
+        isTimeTrendLoading={isRegularityTimeTrendLoading}
+        entityLabel={geographyEntityLabel}
+        yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
+          defaultValue: 'Regularity',
+        })}
+        seriesName={t('performanceCharts.regularity.seriesName', {
+          defaultValue: 'Regularity',
+        })}
+        cardHeight="536px"
+        timeXAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+        isTimeTrendPercent
+      />
       <PerformanceChartCard
         title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
         viewByAriaLabel={t('performanceCharts.quantity.ariaViewBy', {
@@ -379,30 +444,6 @@ function PerformanceChartsSection({
           defaultValue: 'Demand',
         })}
         timeXAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
-      />
-      <PerformanceChartCard
-        title={t('performanceCharts.regularity.title', {
-          defaultValue: 'Regularity Performance',
-        })}
-        viewByAriaLabel={t('performanceCharts.regularity.ariaViewBy', {
-          defaultValue: 'Regularity performance view by',
-        })}
-        viewBy={regularityViewBy}
-        onViewByChange={setRegularityViewBy}
-        data={regularityPerformanceData}
-        metric="regularity"
-        timeTrendData={regularityTimeTrendData}
-        isTimeTrendLoading={isRegularityTimeTrendLoading}
-        entityLabel={geographyEntityLabel}
-        yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
-          defaultValue: 'Regularity',
-        })}
-        seriesName={t('performanceCharts.regularity.seriesName', {
-          defaultValue: 'Regularity',
-        })}
-        cardHeight="536px"
-        timeXAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
-        isTimeTrendPercent
       />
     </Grid>
   )

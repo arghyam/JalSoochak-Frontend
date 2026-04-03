@@ -59,6 +59,9 @@
       "quantity": "Quantity",
       "regularity": "Regularity"
     },
+    "noMapAvailable": "Map currently unavailable",
+    "loading": "Loading map...",
+    "loadError": "Unable to load the map right now.",
     "legend": {
       "gte90": ">=90%",
       "gte70": ">=70%",

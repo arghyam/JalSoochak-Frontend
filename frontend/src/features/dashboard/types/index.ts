@@ -27,6 +27,19 @@ export interface EntityPerformance {
   quantity: number
   compositeScore: number
   status: EntityStatus
+  boundaryGeoJson?: GeoJsonGeometry | null
+}
+
+export type GeoJsonPosition = number[]
+
+export interface GeoJsonGeometry {
+  type: string
+  coordinates?:
+    | GeoJsonPosition[]
+    | GeoJsonPosition[][]
+    | GeoJsonPosition[][][]
+    | GeoJsonPosition[][][][]
+  geometries?: GeoJsonGeometry[]
 }
 
 export interface DemandSupplyData {
@@ -346,6 +359,39 @@ export interface AverageSchemeRegularityResponse {
   averageRegularity: number
   childRegionCount: number
   childRegions: AverageSchemeRegularityChildRegion[]
+}
+
+export interface TenantBoundaryQueryParams {
+  tenantId: number
+  parentLgdId?: number
+  parentDepartmentId?: number
+  startDate: string
+  endDate: string
+}
+
+export interface TenantBoundaryChildRegion {
+  childLgdId?: number
+  childLgdCName?: string
+  childLgdTitle?: string
+  childDepartmentId?: number
+  childDepartmentTitle?: string
+  childBoundaryGeoJson?: string | null
+  averageSchemeRegularity?: number
+  readingSubmissionRate?: number
+  averagePerformanceScore?: number
+  boundaryGeoJson?: GeoJsonGeometry | null
+}
+
+export interface TenantBoundaryResponse {
+  tenantId: number
+  stateCode: string
+  childBoundaryCount: number
+  boundaryGeoJson?: string | null
+  averageSchemeRegularity?: number
+  readingSubmissionRate?: number
+  averagePerformanceScore?: number
+  childRegions: TenantBoundaryChildRegion[]
+  parsedBoundaryGeoJson?: GeoJsonGeometry | null
 }
 
 export interface ReadingSubmissionRateQueryParams {

@@ -20,9 +20,11 @@ import {
   getWaterSupplyKpis,
   getWaterSupplyKpisFromPeriodic,
   getRegularityKpiFromPeriodic,
+  hasWaterSupplyData,
   mapOutageReasonsFromNationalDashboard,
   mapSchemePerformanceToTable,
   mapSchemePerformanceToPumpOperators,
+  mapTenantBoundariesToPerformance,
   mapReadingSubmissionStatusFromAnalytics,
   mapReadingSubmissionRateFromAnalytics,
   mapReadingSubmissionRateFromNationalDashboard,
@@ -302,6 +304,49 @@ describe('dashboard formulas', () => {
     })
   })
 
+  it('treats child-region water quantity totals as usable KPI data', () => {
+    const response: AverageWaterSupplyPerRegionResponse = {
+      tenantId: 17,
+      stateCode: 'AS',
+      parentLgdLevel: 0,
+      parentDepartmentLevel: 2,
+      startDate: '2026-03-01',
+      endDate: '2026-03-30',
+      daysInRange: 30,
+      schemeCount: 0,
+      childRegionCount: 2,
+      schemes: [],
+      childRegions: [
+        {
+          lgdId: 1,
+          departmentId: 11,
+          title: 'Division A',
+          totalHouseholdCount: 0,
+          totalAchievedFhtcCount: 8000,
+          totalWaterSuppliedLiters: 120_000_000,
+          schemeCount: 1,
+          avgWaterSupplyPerScheme: 0,
+        },
+        {
+          lgdId: 2,
+          departmentId: 12,
+          title: 'Division B',
+          totalHouseholdCount: 0,
+          totalAchievedFhtcCount: 12000,
+          totalWaterSuppliedLiters: 210_000_000,
+          schemeCount: 1,
+          avgWaterSupplyPerScheme: 0,
+        },
+      ],
+    }
+
+    expect(hasWaterSupplyData(response)).toBe(true)
+    expect(getWaterSupplyKpis(response, 5)).toEqual({
+      quantityMld: 11,
+      quantityLpcd: 110,
+    })
+  })
+
   it('calculates average regularity percent from supply days, schemes, and day range', () => {
     expect(calculateAverageRegularityPercent(45, 3, 30)).toBe(50)
   })
@@ -355,6 +400,172 @@ describe('dashboard formulas', () => {
         coverage: 0.13,
         quantity: 3,
       },
+    ])
+  })
+
+  it('does not use reading submission rate as a quantity fallback for tenant boundary maps', () => {
+    expect(
+      mapTenantBoundariesToPerformance(
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          childBoundaryCount: 1,
+          childRegions: [
+            {
+              childDepartmentId: 10,
+              childDepartmentTitle: 'Region Alpha',
+              readingSubmissionRate: 0.72,
+              averageSchemeRegularity: 0.15,
+              averagePerformanceScore: 0.48,
+              boundaryGeoJson: null,
+            },
+          ],
+        },
+        []
+      )
+    ).toEqual([
+      expect.objectContaining({
+        name: 'Region Alpha',
+        regularity: 15,
+        quantity: 0,
+        compositeScore: 48,
+      }),
+    ])
+  })
+
+  it('matches tenant boundary regions to overall performance rows by department id before index', () => {
+    expect(
+      mapTenantBoundariesToPerformance(
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          childBoundaryCount: 2,
+          childRegions: [
+            {
+              childDepartmentId: 601,
+              childDepartmentTitle: 'Region 1',
+              averageSchemeRegularity: 0.14,
+              averagePerformanceScore: 0.48,
+              boundaryGeoJson: null,
+            },
+            {
+              childDepartmentId: 602,
+              childDepartmentTitle: 'Region 2',
+              averageSchemeRegularity: 0.12,
+              averagePerformanceScore: 0.44,
+              boundaryGeoJson: null,
+            },
+          ],
+        },
+        [
+          {
+            id: '602',
+            name: 'Karbi Anglong Autonomous Council',
+            coverage: 5,
+            regularity: 12,
+            continuity: 0,
+            quantity: 16.6,
+            compositeScore: 0,
+            status: 'needs-attention',
+          },
+          {
+            id: '601',
+            name: 'Dhac(Haflong) Zone',
+            coverage: 3,
+            regularity: 14,
+            continuity: 0,
+            quantity: 36.6,
+            compositeScore: 0,
+            status: 'needs-attention',
+          },
+        ],
+        [
+          { locationId: 601, label: 'Dhac(Haflong) Zone' },
+          { locationId: 602, label: 'Karbi Anglong Autonomous Council' },
+        ]
+      )
+    ).toEqual([
+      expect.objectContaining({
+        id: '601',
+        name: 'Dhac(Haflong) Zone',
+        coverage: 3,
+        regularity: 14,
+        quantity: 36.6,
+      }),
+      expect.objectContaining({
+        id: '602',
+        name: 'Karbi Anglong Autonomous Council',
+        coverage: 5,
+        regularity: 12,
+        quantity: 16.6,
+      }),
+    ])
+  })
+
+  it('matches tenant boundary regions by location option id before falling back to index', () => {
+    expect(
+      mapTenantBoundariesToPerformance(
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          childBoundaryCount: 2,
+          childRegions: [
+            {
+              childDepartmentTitle: 'Region 1',
+              averageSchemeRegularity: 0.14,
+              averagePerformanceScore: 0.48,
+              boundaryGeoJson: null,
+            },
+            {
+              childDepartmentTitle: 'Region 2',
+              averageSchemeRegularity: 0.12,
+              averagePerformanceScore: 0.44,
+              boundaryGeoJson: null,
+            },
+          ],
+        },
+        [
+          {
+            id: '602',
+            name: 'Karbi Anglong Autonomous Council',
+            coverage: 5,
+            regularity: 12,
+            continuity: 0,
+            quantity: 16.6,
+            compositeScore: 0,
+            status: 'needs-attention',
+          },
+          {
+            id: '601',
+            name: 'Dhac(Haflong) Zone',
+            coverage: 3,
+            regularity: 14,
+            continuity: 0,
+            quantity: 36.6,
+            compositeScore: 0,
+            status: 'needs-attention',
+          },
+        ],
+        [
+          { locationId: 601, label: 'Dhac(Haflong) Zone' },
+          { locationId: 602, label: 'Karbi Anglong Autonomous Council' },
+        ]
+      )
+    ).toEqual([
+      expect.objectContaining({
+        id: '601',
+        name: 'Dhac(Haflong) Zone',
+        coverage: 3,
+        regularity: 14,
+        quantity: 36.6,
+      }),
+      expect.objectContaining({
+        id: '602',
+        name: 'Karbi Anglong Autonomous Council',
+        coverage: 5,
+        regularity: 12,
+        quantity: 16.6,
+      }),
     ])
   })
 
@@ -587,10 +798,14 @@ describe('dashboard formulas', () => {
       mapOverallPerformanceFromAnalytics(waterResponse, regularityResponse, fallbackData, 5)
     ).toEqual([
       {
-        ...fallbackData[0],
+        id: '100',
+        name: 'Region Alpha',
         coverage: 3,
         quantity: 1200,
         regularity: 50,
+        continuity: 0,
+        compositeScore: 0,
+        status: 'needs-attention',
       },
     ])
   })
