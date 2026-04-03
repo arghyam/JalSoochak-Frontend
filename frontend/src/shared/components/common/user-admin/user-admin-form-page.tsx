@@ -18,6 +18,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
 import { Toggle, ToastContainer } from '../index'
+import { PageHeader } from '../page-header'
 import { useToast } from '@/shared/hooks/use-toast'
 import { isAlphabeticWithSpaces, exceedsMaxLength } from '@/shared/utils/validation'
 import type {
@@ -241,8 +242,7 @@ function FormContent({
 
   return (
     <Box w="full">
-      {/* Page Header */}
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={2}>
           {title}
         </Heading>
@@ -267,7 +267,7 @@ function FormContent({
             {breadcrumbLeaf}
           </Text>
         </Flex>
-      </Box>
+      </PageHeader>
 
       {/* Form Card */}
       <Box
@@ -488,9 +488,11 @@ export function UserAdminFormPage({
   if (isEditMode && isLoadingOriginal) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {labels.editTitle}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {labels.editTitle}
+          </Heading>
+        </PageHeader>
         <Flex role="status" aria-live="polite" align="center" minH="200px" gap={3}>
           <Spinner size="md" color="primary.500" />
           <Text color="neutral.600">{t('loading')}</Text>
@@ -502,9 +504,11 @@ export function UserAdminFormPage({
   if (isEditMode && !original) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {labels.editTitle}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {labels.editTitle}
+          </Heading>
+        </PageHeader>
         <Text color="neutral.600" mt={4}>
           {labels.messages.notFound}
         </Text>

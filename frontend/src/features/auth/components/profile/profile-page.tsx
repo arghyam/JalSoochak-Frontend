@@ -23,7 +23,7 @@ import {
   useUpdateMyProfileMutation,
 } from '@/features/auth/services/query/use-auth-queries'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer } from '@/shared/components/common'
+import { ToastContainer, PageHeader } from '@/shared/components/common'
 import { isAlphabeticWithSpaces, exceedsMaxLength } from '@/shared/utils/validation'
 
 const MAX_NAME_LENGTH = 25
@@ -148,9 +148,11 @@ export function ProfilePage() {
 
   return (
     <Box w="full">
-      <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-        {t('profile.title')}
-      </Heading>
+      <PageHeader>
+        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+          {t('profile.title')}
+        </Heading>
+      </PageHeader>
 
       <Box
         bg="white"

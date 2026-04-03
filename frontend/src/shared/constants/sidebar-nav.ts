@@ -1,5 +1,5 @@
 import { ROUTES } from '@/shared/constants/routes'
-import { AUTH_ROLES } from '@/shared/constants/auth'
+import { AUTH_ROLES, STAFF_ROLES } from '@/shared/constants/auth'
 import type { SidebarNavItem } from './sidebar-types'
 
 export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
@@ -129,5 +129,41 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
     labelKey: 'sidebar.stateUtAdmins',
     roles: [AUTH_ROLES.STATE_ADMIN],
     icon: 'BsPeople',
+  },
+  // Section Officer / Sub-Divisional Officer
+  {
+    type: 'simple',
+    path: ROUTES.STAFF_OVERVIEW,
+    labelKey: 'sidebar.overview',
+    roles: STAFF_ROLES,
+    icon: 'AiOutlineEye',
+  },
+  {
+    type: 'simple',
+    path: ROUTES.STAFF_SCHEMES,
+    labelKey: 'sidebar.schemes',
+    roles: STAFF_ROLES,
+    icon: 'PiTreeStructure',
+  },
+  {
+    type: 'simple',
+    path: ROUTES.STAFF_PUMP_OPERATORS,
+    labelKey: 'sidebar.pumpOperators',
+    roles: STAFF_ROLES,
+    icon: 'BsPeople',
+  },
+  {
+    type: 'simple',
+    path: ROUTES.STAFF_ANOMALIES,
+    labelKey: 'sidebar.anomalies',
+    roles: STAFF_ROLES,
+    icon: 'AiOutlineWarning',
+  },
+  {
+    type: 'simple',
+    path: ROUTES.STAFF_ESCALATIONS,
+    labelKey: 'sidebar.escalations',
+    roles: STAFF_ROLES,
+    icon: 'MdOutlineMoving',
   },
 ]

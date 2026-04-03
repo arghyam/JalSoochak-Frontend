@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next'
 import { FiUpload } from 'react-icons/fi'
 import { BsDroplet, BsCheck2Circle } from 'react-icons/bs'
 import { IoCloseCircleOutline } from 'react-icons/io5'
-import { DataTable, SearchableSelect, StatCard } from '@/shared/components/common'
+import { DataTable, SearchableSelect, StatCard, PageHeader } from '@/shared/components/common'
 import type { DataTableColumn, SortDirection } from '@/shared/components/common'
 import type { Scheme } from '../../types/scheme-sync'
 import {
@@ -189,9 +189,11 @@ export function SchemeSyncPage() {
   if (isError) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {t('schemeSync.title')}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('schemeSync.title')}
+          </Heading>
+        </PageHeader>
         <Flex h="64" align="center" justify="center" direction="column" gap={4} role="alert">
           <Text color="error.500">{t('schemeSync.messages.failedToLoad')}</Text>
           <Button variant="secondary" size="sm" onClick={() => void refetch()}>
@@ -204,12 +206,11 @@ export function SchemeSyncPage() {
 
   return (
     <Box w="full" maxW="100%" minW={0}>
-      {/* Page Header */}
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
           {t('schemeSync.title')}
         </Heading>
-      </Box>
+      </PageHeader>
 
       {/* Toolbar: search + filters + upload */}
       <Flex

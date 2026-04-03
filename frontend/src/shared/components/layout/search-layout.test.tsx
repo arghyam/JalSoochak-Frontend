@@ -161,11 +161,7 @@ describe('SearchLayout', () => {
       />
     )
 
-    const searchInput = screen.getByPlaceholderText(
-      'Search by state/UT, district, block, gram panchayat, village'
-    )
-
-    fireEvent.focus(searchInput)
+    fireEvent.focus(getSearchInput())
 
     expect(screen.getByRole('button', { name: 'Ganesh Pur (Jaipong)' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'GANESH PUR (JAIPONG)' })).toBeNull()

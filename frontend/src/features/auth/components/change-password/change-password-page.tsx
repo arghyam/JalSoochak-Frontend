@@ -18,7 +18,7 @@ import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { useChangeMyPasswordMutation } from '@/features/auth/services/query/use-auth-queries'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer } from '@/shared/components/common'
+import { ToastContainer, PageHeader } from '@/shared/components/common'
 import { isValidPassword } from '@/shared/utils/validation'
 
 interface ChangePasswordForm {
@@ -126,9 +126,11 @@ export function ChangePasswordPage() {
 
   return (
     <Box w="full">
-      <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-        {t('changePassword.title')}
-      </Heading>
+      <PageHeader>
+        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+          {t('changePassword.title')}
+        </Heading>
+      </PageHeader>
 
       <Box
         bg="white"

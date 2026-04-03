@@ -14,7 +14,7 @@ import {
   FormErrorMessage,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { ToastContainer } from '@/shared/components/common'
+import { ToastContainer, PageHeader } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ROUTES } from '@/shared/constants/routes'
 import { useAuthStore } from '@/app/store/auth-store'
@@ -114,8 +114,7 @@ export function InviteStateUTAdminPage() {
 
   return (
     <Box w="full">
-      {/* Breadcrumb */}
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={2}>
           {t('stateUtAdmins.addTitle')}
         </Heading>
@@ -142,7 +141,7 @@ export function InviteStateUTAdminPage() {
             {t('stateUtAdmins.breadcrumb.addNew')}
           </Text>
         </Flex>
-      </Box>
+      </PageHeader>
 
       {/* Form Card */}
       <Box

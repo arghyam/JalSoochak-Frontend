@@ -18,7 +18,13 @@ import { SearchIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { FiUpload } from 'react-icons/fi'
 import { TotalStaffIcon, PumpOperatorIcon, TotalAdminsIcon } from '../overview/overview-icons'
-import { DataTable, SearchableSelect, StatCard, StatusChip } from '@/shared/components/common'
+import {
+  DataTable,
+  SearchableSelect,
+  StatCard,
+  StatusChip,
+  PageHeader,
+} from '@/shared/components/common'
 import type { DataTableColumn } from '@/shared/components/common'
 import type { StaffMember, StaffRole, StaffStatus } from '../../types/staff-sync'
 import {
@@ -32,6 +38,7 @@ import { UploadStaffModal } from './upload-staff-modal'
 const DEFAULT_ROLES: StaffRole[] = ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER']
 const PAGE_SIZE = 10
 const PAGE_SIZE_OPTIONS = [10, 25, 50]
+export const DEBOUNCE_DELAY_MS = 400
 
 const ROLE_DISPLAY: Record<StaffRole, string> = {
   PUMP_OPERATOR: 'Pump Operator',
@@ -49,7 +56,7 @@ export function StaffSyncPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
-  const debouncedSearch = useDebounce(searchQuery, 400)
+  const debouncedSearch = useDebounce(searchQuery, DEBOUNCE_DELAY_MS)
 
   useEffect(() => {
     document.title = `${t('staffSync.title')} | JalSoochak`
@@ -216,9 +223,11 @@ export function StaffSyncPage() {
   if (isError) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {t('staffSync.title')}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('staffSync.title')}
+          </Heading>
+        </PageHeader>
         <Flex h="64" align="center" justify="center" direction="column" gap={4} role="alert">
           <Text color="error.500">{t('staffSync.messages.failedToLoad')}</Text>
           <Button variant="secondary" size="sm" onClick={() => void refetch()}>
@@ -231,12 +240,11 @@ export function StaffSyncPage() {
 
   return (
     <Box w="full" maxW="100%" minW={0}>
-      {/* Page Header */}
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
           {t('staffSync.title')}
         </Heading>
-      </Box>
+      </PageHeader>
 
       {/* Toolbar: search + filters + upload */}
       <Flex

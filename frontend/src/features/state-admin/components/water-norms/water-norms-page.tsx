@@ -22,6 +22,7 @@ import {
   PageLoadingState,
   PageErrorState,
   EditableBreadcrumb,
+  PageHeader,
 } from '@/shared/components/common'
 import { ROUTES } from '@/shared/constants/routes'
 import {
@@ -180,9 +181,11 @@ export function WaterNormsPage() {
   if (isLoading) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
-          {t('waterNorms.title')}
-        </Heading>
+        <PageHeader mb={6}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('waterNorms.title')}
+          </Heading>
+        </PageHeader>
         <PageLoadingState message={t('common:loading')} />
       </Box>
     )
@@ -191,9 +194,11 @@ export function WaterNormsPage() {
   if (isError || !config) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
-          {t('waterNorms.title')}
-        </Heading>
+        <PageHeader mb={6}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('waterNorms.title')}
+          </Heading>
+        </PageHeader>
         <PageErrorState message={t('waterNorms.messages.failedToLoad')} />
       </Box>
     )
@@ -201,8 +206,7 @@ export function WaterNormsPage() {
 
   return (
     <Box w="full">
-      {/* Page Header */}
-      <Box mb={5}>
+      <PageHeader>
         <Heading
           as="h1"
           size={{ base: 'h2', md: 'h1' }}
@@ -218,7 +222,7 @@ export function WaterNormsPage() {
             editLabel={t('waterNorms.breadcrumb.edit')}
           />
         )}
-      </Box>
+      </PageHeader>
 
       {/* Water Norms Configuration Card */}
       <Box

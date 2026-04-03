@@ -3,7 +3,7 @@ import { Box, Text, Button, Flex, HStack, Heading, SimpleGrid, Spinner } from '@
 import { EditIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer, EditableBreadcrumb } from '@/shared/components/common'
+import { ToastContainer, EditableBreadcrumb, PageHeader } from '@/shared/components/common'
 import {
   validateDescriptiveField,
   hasDuplicates,
@@ -173,9 +173,11 @@ export function HierarchyPage() {
   if (isLoading) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
-          {t('hierarchy.pageTitle')}
-        </Heading>
+        <PageHeader mb={6}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('hierarchy.pageTitle')}
+          </Heading>
+        </PageHeader>
         <Flex align="center" role="status" aria-live="polite" aria-busy="true">
           <Spinner size="md" color="primary.500" mr={3} />
           <Text color="neutral.600">{t('common:loading')}</Text>
@@ -187,9 +189,11 @@ export function HierarchyPage() {
   if (isError) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
-          {t('hierarchy.pageTitle')}
-        </Heading>
+        <PageHeader mb={6}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('hierarchy.pageTitle')}
+          </Heading>
+        </PageHeader>
         <Text color="error.500">{t('hierarchy.messages.failedToLoad')}</Text>
       </Box>
     )
@@ -202,7 +206,7 @@ export function HierarchyPage() {
 
   return (
     <Box w="full">
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={isEditing ? 2 : 0}>
           {t('hierarchy.pageTitle')}
         </Heading>
@@ -212,7 +216,7 @@ export function HierarchyPage() {
           viewLabel={t('hierarchy.breadcrumb.view')}
           editLabel={t('hierarchy.breadcrumb.edit')}
         />
-      </Box>
+      </PageHeader>
 
       <Box
         as="section"

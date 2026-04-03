@@ -21,6 +21,7 @@ import { DataTable, type DataTableColumn } from '../data-table'
 import { StatusChip } from '../atom/status-chip'
 import { SearchableSelect } from '../searchable-select'
 import type { UserAdminData, UserAdminRoutes, UserAdminListLabels } from './types'
+import { PageHeader } from '../page-header'
 
 type StatusFilter = 'all' | 'active' | 'inactive' | 'pending'
 
@@ -86,9 +87,11 @@ export function UserAdminListPage({
   if (isLoading) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {labels.pageTitle}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {labels.pageTitle}
+          </Heading>
+        </PageHeader>
         <Flex role="status" aria-live="polite" align="center" minH="200px" gap={3}>
           <Spinner size="md" color="primary.500" />
           <Text color="neutral.600">{t('loading')}</Text>
@@ -100,9 +103,11 @@ export function UserAdminListPage({
   if (isError) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {labels.pageTitle}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {labels.pageTitle}
+          </Heading>
+        </PageHeader>
         <Flex h="64" align="center" justify="center" direction="column" gap={4} role="alert">
           <Text color="error.500">{t('toast.failedToLoad')}</Text>
           <Button variant="secondary" size="sm" onClick={onRefetch}>
@@ -231,11 +236,11 @@ export function UserAdminListPage({
 
   return (
     <Box w="full" maxW="100%" minW={0}>
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
           {labels.pageTitle}
         </Heading>
-      </Box>
+      </PageHeader>
 
       {/* Toolbar */}
       <Flex

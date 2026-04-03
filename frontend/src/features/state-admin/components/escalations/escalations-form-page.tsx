@@ -17,7 +17,7 @@ import {
 import { EditIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/shared/hooks/use-toast'
-import { TimePicker, ToastContainer } from '@/shared/components/common'
+import { TimePicker, ToastContainer, PageHeader } from '@/shared/components/common'
 
 const MAX_ESCALATION_DAYS = 365
 import {
@@ -187,9 +187,11 @@ export function EscalationsFormPage() {
   if (isLoading) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
-          {t('escalations.title')}
-        </Heading>
+        <PageHeader mb={6}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('escalations.title')}
+          </Heading>
+        </PageHeader>
         <Flex align="center" role="status" aria-live="polite" aria-busy="true">
           <Spinner size="md" color="primary.500" mr={3} />
           <Text color="neutral.600">{t('common:loading')}</Text>
@@ -201,9 +203,11 @@ export function EscalationsFormPage() {
   if (isError || !config) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
-          {t('escalations.title')}
-        </Heading>
+        <PageHeader mb={6}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('escalations.title')}
+          </Heading>
+        </PageHeader>
         <Text color="error.500">{t('escalations.messages.failedToLoad')}</Text>
       </Box>
     )
@@ -211,7 +215,7 @@ export function EscalationsFormPage() {
 
   return (
     <Box w="full">
-      <Box mb={5}>
+      <PageHeader>
         <Heading
           as="h1"
           size={{ base: 'h2', md: 'h1' }}
@@ -241,7 +245,7 @@ export function EscalationsFormPage() {
             </Text>
           </Flex>
         )}
-      </Box>
+      </PageHeader>
 
       <Box
         as="section"

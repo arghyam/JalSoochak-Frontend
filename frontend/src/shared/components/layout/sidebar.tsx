@@ -52,6 +52,7 @@ function Users01Icon(props: React.SVGProps<SVGSVGElement>) {
 }
 import { useAuthStore } from '@/app/store'
 import { ROUTES } from '@/shared/constants/routes'
+import { STAFF_ROLES } from '@/shared/constants/auth'
 import { SIDEBAR_NAV_ITEMS } from '@/shared/constants/sidebar-nav'
 import type {
   SidebarNavItem,
@@ -115,8 +116,16 @@ export function Sidebar({ onNavClick }: SidebarProps) {
   const [expandedKey, setExpandedKey] = useState<string | null>(null)
   const [collapsedKeys, setCollapsedKeys] = useState<Set<string>>(() => new Set())
 
+  const isStaffRole = userRole
+    ? STAFF_ROLES.includes(userRole as (typeof STAFF_ROLES)[number])
+    : false
+
   const isChildPathActive = (path: string) => {
-    if (path === ROUTES.SUPER_ADMIN_OVERVIEW || path === ROUTES.STATE_ADMIN_OVERVIEW)
+    if (
+      path === ROUTES.SUPER_ADMIN_OVERVIEW ||
+      path === ROUTES.STATE_ADMIN_OVERVIEW ||
+      path === ROUTES.STAFF_OVERVIEW
+    )
       return location.pathname === path
     return location.pathname === path || location.pathname.startsWith(path + '/')
   }
@@ -135,7 +144,7 @@ export function Sidebar({ onNavClick }: SidebarProps) {
     } catch {
       // ignore
     }
-    navigate(ROUTES.LOGIN, { replace: true })
+    navigate(isStaffRole ? ROUTES.STAFF_LOGIN : ROUTES.LOGIN, { replace: true })
   }
 
   return (
@@ -383,42 +392,46 @@ export function Sidebar({ onNavClick }: SidebarProps) {
             </Flex>
           </MenuButton>
           <MenuList px={7} py={2}>
-            <MenuItem
-              w="100%"
-              px={3}
-              py={2}
-              gap={2}
-              borderRadius="lg"
-              minH="44px"
-              onClick={() => {
-                navigate(ROUTES.PROFILE)
-                onNavClick?.()
-              }}
-              _hover={{ bg: 'neutral.100' }}
-            >
-              <Icon as={BsPerson} boxSize={5} flexShrink={0} aria-hidden="true" />
-              <Text fontSize="sm" fontWeight="medium">
-                {t('sidebar.profile')}
-              </Text>
-            </MenuItem>
-            <MenuItem
-              w="100%"
-              px={3}
-              py={2}
-              gap={2}
-              borderRadius="lg"
-              minH="44px"
-              onClick={() => {
-                navigate(ROUTES.CHANGE_PASSWORD)
-                onNavClick?.()
-              }}
-              _hover={{ bg: 'neutral.100' }}
-            >
-              <Icon as={BiKey} boxSize={5} flexShrink={0} aria-hidden="true" />
-              <Text fontSize="sm" fontWeight="medium">
-                {t('sidebar.changePassword')}
-              </Text>
-            </MenuItem>
+            {!isStaffRole && (
+              <MenuItem
+                w="100%"
+                px={3}
+                py={2}
+                gap={2}
+                borderRadius="lg"
+                minH="44px"
+                onClick={() => {
+                  navigate(ROUTES.PROFILE)
+                  onNavClick?.()
+                }}
+                _hover={{ bg: 'neutral.100' }}
+              >
+                <Icon as={BsPerson} boxSize={5} flexShrink={0} aria-hidden="true" />
+                <Text fontSize="sm" fontWeight="medium">
+                  {t('sidebar.profile')}
+                </Text>
+              </MenuItem>
+            )}
+            {!isStaffRole && (
+              <MenuItem
+                w="100%"
+                px={3}
+                py={2}
+                gap={2}
+                borderRadius="lg"
+                minH="44px"
+                onClick={() => {
+                  navigate(ROUTES.CHANGE_PASSWORD)
+                  onNavClick?.()
+                }}
+                _hover={{ bg: 'neutral.100' }}
+              >
+                <Icon as={BiKey} boxSize={5} flexShrink={0} aria-hidden="true" />
+                <Text fontSize="sm" fontWeight="medium">
+                  {t('sidebar.changePassword')}
+                </Text>
+              </MenuItem>
+            )}
             <MenuItem
               w="100%"
               px={3}

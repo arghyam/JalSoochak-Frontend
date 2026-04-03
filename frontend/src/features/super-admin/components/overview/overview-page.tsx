@@ -6,7 +6,7 @@ import { MdOutlinePlace } from 'react-icons/md'
 import { BsCheck2Circle } from 'react-icons/bs'
 import { IoCloseCircleOutline } from 'react-icons/io5'
 import { useTenantsSummaryQuery } from '../../services/query/use-super-admin-queries'
-import { StatCard } from '@/shared/components/common'
+import { StatCard, PageHeader } from '@/shared/components/common'
 
 export function OverviewPage() {
   const { t } = useTranslation(['super-admin', 'common'])
@@ -74,19 +74,11 @@ export function OverviewPage() {
 
   return (
     <Box w="full">
-      {/* Page Header with Add Button */}
-      <Flex
-        direction={{ base: 'column', sm: 'row' }}
-        justify="space-between"
-        align={{ base: 'flex-start', sm: 'center' }}
-        gap={{ base: 3, sm: 0 }}
-        mb={5}
-        minH={12}
-      >
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
           {t('overview.title')}
         </Heading>
-      </Flex>
+      </PageHeader>
 
       <Stack gap={{ base: 4, md: 6 }}>
         {/* Stats Cards */}

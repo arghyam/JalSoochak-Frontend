@@ -1,4 +1,4 @@
-import { screen, fireEvent } from '@testing-library/react'
+import { screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, expect, it, jest, beforeEach } from '@jest/globals'
 import { LanguagePage } from './language-page'
 import { renderWithProviders } from '@/test/render-with-providers'
@@ -67,9 +67,9 @@ describe('LanguagePage', () => {
     expect(screen.getByText('Primary Language')).toBeTruthy()
     expect(screen.getByText('Secondary Language (optional)')).toBeTruthy()
     expect(screen.getByText('Tertiary Language (optional)')).toBeTruthy()
-    expect(screen.getByText('Hindi')).toBeTruthy()
+    expect(screen.getByText('हिंदी')).toBeTruthy()
     expect(screen.getByText('English')).toBeTruthy()
-    expect(screen.getByText('Telugu')).toBeTruthy()
+    expect(screen.getByText('తెలుగు')).toBeTruthy()
   })
 
   it('shows "-" for unset optional languages in view mode', () => {
@@ -116,7 +116,7 @@ describe('LanguagePage', () => {
     })
     renderWithProviders(<LanguagePage />)
 
-    const saveBtn = screen.getByRole('button', { name: /^save$/i })
+    const saveBtn = screen.getByRole('button', { name: /save.*next/i })
     expect(saveBtn).toBeTruthy()
     // Button has isDisabled — Chakra renders aria-disabled
     expect(
@@ -142,22 +142,22 @@ describe('LanguagePage', () => {
     // Open primary dropdown — should not offer english (secondary) or telugu (tertiary)
     fireEvent.click(screen.getByRole('combobox', { name: /select primary language/i }))
     expect(screen.queryByRole('option', { name: 'English' })).toBeNull()
-    expect(screen.queryByRole('option', { name: 'Telugu' })).toBeNull()
-    expect(screen.getByRole('option', { name: 'Hindi' })).toBeTruthy()
+    expect(screen.queryByRole('option', { name: 'తెలుగు' })).toBeNull()
+    expect(screen.getByRole('option', { name: 'हिंदी' })).toBeTruthy()
 
     // Close primary, open secondary — should not offer hindi (primary) or telugu (tertiary)
     fireEvent.click(screen.getByRole('combobox', { name: /select primary language/i }))
     fireEvent.click(screen.getByRole('combobox', { name: /select secondary language/i }))
-    expect(screen.queryByRole('option', { name: 'Hindi' })).toBeNull()
-    expect(screen.queryByRole('option', { name: 'Telugu' })).toBeNull()
+    expect(screen.queryByRole('option', { name: 'हिंदी' })).toBeNull()
+    expect(screen.queryByRole('option', { name: 'తెలుగు' })).toBeNull()
     expect(screen.getByRole('option', { name: 'English' })).toBeTruthy()
 
     // Close secondary, open tertiary — should not offer hindi (primary) or english (secondary)
     fireEvent.click(screen.getByRole('combobox', { name: /select secondary language/i }))
     fireEvent.click(screen.getByRole('combobox', { name: /select tertiary language/i }))
-    expect(screen.queryByRole('option', { name: 'Hindi' })).toBeNull()
+    expect(screen.queryByRole('option', { name: 'हिंदी' })).toBeNull()
     expect(screen.queryByRole('option', { name: 'English' })).toBeNull()
-    expect(screen.getByRole('option', { name: 'Telugu' })).toBeTruthy()
+    expect(screen.getByRole('option', { name: 'తెలుగు' })).toBeTruthy()
   })
 
   it('calls mutateAsync with tertiaryLanguage on save', async () => {
@@ -166,17 +166,22 @@ describe('LanguagePage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /edit language configuration/i }))
 
-    const saveBtn = screen.getByRole('button', { name: /save changes/i })
-    fireEvent.click(saveBtn)
+    fireEvent.click(screen.getByRole('combobox', { name: /select secondary language/i }))
+    fireEvent.click(screen.getByRole('option', { name: 'বাংলা' }))
+
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
 
     await screen.findByRole('button', { name: /edit language configuration/i })
 
-    expect(mockMutateAsync).toHaveBeenCalledWith(
-      expect.objectContaining({
-        primaryLanguage: 'hindi',
-        tertiaryLanguage: 'telugu',
-        isConfigured: true,
-      })
-    )
+    await waitFor(() => {
+      expect(mockMutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          primaryLanguage: 'hindi',
+          secondaryLanguage: 'bengali',
+          tertiaryLanguage: 'telugu',
+          isConfigured: true,
+        })
+      )
+    })
   })
 })
