@@ -1,4 +1,5 @@
 import { Box, Heading, Text, VStack } from '@chakra-ui/react'
+import { PageHeader } from '@/shared/components/common'
 
 interface ComingSoonShellProps {
   heading: string
@@ -9,9 +10,11 @@ interface ComingSoonShellProps {
 export function ComingSoonShell({ heading, comingSoonText, subtitle }: ComingSoonShellProps) {
   return (
     <Box>
-      <Heading size="md" mb={6} color="neutral.950">
-        {heading}
-      </Heading>
+      <PageHeader mb={6}>
+        <Heading size="md" color="neutral.950">
+          {heading}
+        </Heading>
+      </PageHeader>
       <VStack
         align="center"
         justify="center"

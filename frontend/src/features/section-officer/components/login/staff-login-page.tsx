@@ -208,6 +208,7 @@ export function StaffLoginPage() {
   }
 
   const handleVerifyOtp = async () => {
+    if (verifyOtpMutation.isPending) return
     setOtpError(null)
     const otp = otpValues.join('')
     if (otp.length < otpLength) {

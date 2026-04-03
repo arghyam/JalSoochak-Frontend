@@ -12,7 +12,7 @@ import {
   SimpleGrid,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { SearchableSelect } from '@/shared/components/common'
+import { SearchableSelect, PageHeader } from '@/shared/components/common'
 import { getLocaleByLabel } from '@/shared/constants/languages'
 import { useMessageTemplatesQuery } from '../../services/query/use-state-admin-queries'
 import type { LanguageCode, ScreenName } from '../../types/message-templates'
@@ -85,9 +85,11 @@ export function MessageTemplatesPage() {
   if (isLoading) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
-          {t('messageTemplates.title')}
-        </Heading>
+        <PageHeader mb={6}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('messageTemplates.title')}
+          </Heading>
+        </PageHeader>
         <Flex align="center" role="status" aria-live="polite" aria-busy="true">
           <Spinner size="md" color="primary.500" mr={3} />
           <Text color="neutral.600">{t('common:loading')}</Text>
@@ -99,9 +101,11 @@ export function MessageTemplatesPage() {
   if (isError) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
-          {t('messageTemplates.title')}
-        </Heading>
+        <PageHeader mb={6}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('messageTemplates.title')}
+          </Heading>
+        </PageHeader>
         <Text color="error.500">{t('messageTemplates.messages.failedToLoad')}</Text>
       </Box>
     )
@@ -109,11 +113,11 @@ export function MessageTemplatesPage() {
 
   return (
     <Box w="full">
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
           {t('messageTemplates.title')}
         </Heading>
-      </Box>
+      </PageHeader>
 
       <Box
         as="section"

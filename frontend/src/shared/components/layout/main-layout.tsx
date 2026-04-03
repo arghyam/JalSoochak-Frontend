@@ -112,11 +112,6 @@ export function MainLayout({ children }: MainLayoutProps) {
           </Flex>
         </Hide>
 
-        {/* Desktop Language Switcher */}
-        <Show above="lg">
-          <LanguageSwitcher />
-        </Show>
-
         {/* Main Content */}
         <Box
           as="main"

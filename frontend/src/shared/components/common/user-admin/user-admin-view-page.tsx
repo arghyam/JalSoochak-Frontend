@@ -14,6 +14,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
 import { StatusChip, ToastContainer } from '../index'
+import { PageHeader } from '../page-header'
 import { useToast } from '@/shared/hooks/use-toast'
 import type { UserAdminData, UserAdminRoutes, UserAdminViewLabels } from './types'
 
@@ -56,9 +57,11 @@ export function UserAdminViewPage({
   if (isLoading) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {labels.pageTitle}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {labels.pageTitle}
+          </Heading>
+        </PageHeader>
         <Flex role="status" aria-live="polite" align="center" minH="200px" gap={3}>
           <Spinner size="md" color="primary.500" />
           <Text color="neutral.600">{t('loading')}</Text>
@@ -71,9 +74,11 @@ export function UserAdminViewPage({
     const errorMessage = error instanceof Error ? error.message : t('toast.failedToLoad')
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {labels.pageTitle}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {labels.pageTitle}
+          </Heading>
+        </PageHeader>
         <Flex direction="column" align="flex-start" mt={4} gap={3}>
           <Text color="red.500">{errorMessage}</Text>
           <Button size="sm" variant="outline" onClick={onRefetch}>
@@ -87,9 +92,11 @@ export function UserAdminViewPage({
   if (data === null) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {labels.pageTitle}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {labels.pageTitle}
+          </Heading>
+        </PageHeader>
         <Text color="neutral.600" mt={4}>
           {labels.messages.notFound}
         </Text>
@@ -103,8 +110,7 @@ export function UserAdminViewPage({
 
   return (
     <Box w="full">
-      {/* Page Header with Breadcrumb */}
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={2}>
           {labels.pageTitle}
         </Heading>
@@ -125,7 +131,7 @@ export function UserAdminViewPage({
             {labels.breadcrumb.view}
           </Text>
         </Flex>
-      </Box>
+      </PageHeader>
 
       {/* Details Card */}
       <Box

@@ -14,7 +14,7 @@ import {
   FormLabel,
   FormErrorMessage,
 } from '@chakra-ui/react'
-import { StatusChip, ToastContainer } from '@/shared/components/common'
+import { StatusChip, ToastContainer, PageHeader } from '@/shared/components/common'
 import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
 import { ROUTES } from '@/shared/constants/routes'
@@ -138,9 +138,11 @@ export function ViewStateUTPage() {
   if (tenantsQuery.isLoading) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {t('statesUts.viewTitle')}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('statesUts.viewTitle')}
+          </Heading>
+        </PageHeader>
         <Flex role="status" aria-live="polite" align="center" justify="center" minH="200px">
           <Text color="neutral.600">{t('common:loading')}</Text>
         </Flex>
@@ -151,9 +153,11 @@ export function ViewStateUTPage() {
   if (!tenant) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {t('statesUts.viewTitle')}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('statesUts.viewTitle')}
+          </Heading>
+        </PageHeader>
         <Text color="neutral.600" mt={4}>
           {t('statesUts.messages.notFound')}
         </Text>
@@ -165,8 +169,7 @@ export function ViewStateUTPage() {
 
   return (
     <Box w="full">
-      {/* Breadcrumb */}
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={2}>
           {t('statesUts.viewTitle')}
         </Heading>
@@ -193,7 +196,7 @@ export function ViewStateUTPage() {
             {t('statesUts.breadcrumb.view')}
           </Text>
         </Flex>
-      </Box>
+      </PageHeader>
 
       {/* Details Card */}
       <Box

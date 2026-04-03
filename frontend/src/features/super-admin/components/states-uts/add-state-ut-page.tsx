@@ -14,7 +14,7 @@ import {
   FormErrorMessage,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { SearchableSelect, ToastContainer } from '@/shared/components/common'
+import { SearchableSelect, ToastContainer, PageHeader } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ROUTES } from '@/shared/constants/routes'
 import { INDIA_STATES } from '@/shared/constants/states'
@@ -201,8 +201,7 @@ export function AddStateUTPage() {
 
   return (
     <Box w="full">
-      {/* Breadcrumb */}
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={2}>
           {t('statesUts.addTitle')}
         </Heading>
@@ -229,7 +228,7 @@ export function AddStateUTPage() {
             {t('statesUts.breadcrumb.addNew')}
           </Text>
         </Flex>
-      </Box>
+      </PageHeader>
 
       {/* Form Card */}
       <Box

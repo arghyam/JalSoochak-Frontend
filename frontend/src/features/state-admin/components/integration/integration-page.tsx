@@ -16,7 +16,7 @@ import {
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer } from '@/shared/components/common'
+import { ToastContainer, PageHeader } from '@/shared/components/common'
 import {
   useIntegrationConfigurationQuery,
   useSaveIntegrationConfigurationMutation,
@@ -143,9 +143,11 @@ export function IntegrationPage() {
   if (isLoading) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
-          {t('integration.title')}
-        </Heading>
+        <PageHeader mb={6}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('integration.title')}
+          </Heading>
+        </PageHeader>
         <Flex align="center" role="status" aria-live="polite" aria-busy="true">
           <Spinner size="md" color="primary.500" mr={3} />
           <Text color="neutral.600">{t('common:loading')}</Text>
@@ -157,9 +159,11 @@ export function IntegrationPage() {
   if (isError || !config) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
-          {t('integration.title')}
-        </Heading>
+        <PageHeader mb={6}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('integration.title')}
+          </Heading>
+        </PageHeader>
         <Text color="error.500">{t('integration.messages.failedToLoad')}</Text>
       </Box>
     )
@@ -167,12 +171,11 @@ export function IntegrationPage() {
 
   return (
     <Box w="full">
-      {/* Page Header */}
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
           {t('integration.title')}
         </Heading>
-      </Box>
+      </PageHeader>
 
       {/* Integration Configuration Card */}
       <Box

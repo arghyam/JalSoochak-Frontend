@@ -22,6 +22,7 @@ import {
   type DataTableColumn,
   SearchableSelect,
   StatusChip,
+  PageHeader,
 } from '@/shared/components/common'
 import type { Tenant, TenantStatus } from '../../types/states-uts'
 import { useDebounce } from '@/shared/hooks/use-debounce'
@@ -69,9 +70,11 @@ export function StatesUTsPage() {
   if (isError) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {t('statesUts.title')}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('statesUts.title')}
+          </Heading>
+        </PageHeader>
         <Flex h="64" align="center" justify="center" direction="column" gap={4} role="alert">
           <Text color="error.500">{t('common:toast.failedToLoad')}</Text>
           <Button variant="secondary" size="sm" onClick={() => void refetch()}>
@@ -178,11 +181,11 @@ export function StatesUTsPage() {
 
   return (
     <Box w="full" maxW="100%" minW={0}>
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
           {t('statesUts.title')}
         </Heading>
-      </Box>
+      </PageHeader>
 
       <Flex
         justify="space-between"

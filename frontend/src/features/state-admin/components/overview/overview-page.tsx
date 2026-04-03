@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import i18n from '@/app/i18n'
 import { useAuthStore } from '@/app/store'
 import { INDIA_STATES } from '@/shared/constants/states'
-import { StatCard } from '@/shared/components/common'
+import { StatCard, PageHeader } from '@/shared/components/common'
 import {
   useSchemeCountsQuery,
   useStaffCountsQuery,
@@ -101,12 +101,11 @@ export function OverviewPage() {
 
   return (
     <Box w="full">
-      {/* Page Header */}
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
           {stateName ? t('overview.title', { state: stateName }) : t('overview.titleFallback')}
         </Heading>
-      </Box>
+      </PageHeader>
 
       <Stack gap={{ base: 4, md: 6 }}>
         {/* Stats Cards */}
