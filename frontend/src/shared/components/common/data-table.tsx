@@ -536,7 +536,7 @@ export function DataTable<T extends object>({
                     size="sm"
                     variant={effectiveCurrentPage === page ? 'solid' : 'ghost'}
                     onClick={() => handlePageChange(page)}
-                    w="32px"
+                    minW="32px"
                     h="32px"
                     px={3}
                     py={2}

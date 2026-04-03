@@ -245,25 +245,21 @@ export function UserAdminListPage({
       {/* Toolbar */}
       <Flex
         justify="space-between"
-        align="center"
+        align="flex-start"
         mb={6}
-        h={{ base: 'auto', md: 16 }}
         py={4}
         px={{ base: 3, md: 6 }}
         gap={{ base: 3, md: 4 }}
-        flexDirection={{ base: 'column', md: 'row' }}
+        flexDirection={{ base: 'column', sm: 'row' }}
         borderWidth="0.5px"
         borderColor="neutral.200"
         borderRadius="12px"
         bg="white"
       >
-        <Flex
-          gap={3}
-          w={{ base: 'full', md: 'auto' }}
-          flexDirection={{ base: 'column', sm: 'row' }}
-        >
+        {/* Left: search + filters (wraps internally at medium widths) */}
+        <Flex gap={3} flex={1} w="full" flexWrap="wrap" align="center">
           {showSearch && (
-            <InputGroup w={{ base: 'full', md: '240px', lg: '404px' }}>
+            <InputGroup w={{ base: 'full', sm: '240px', lg: '280px' }} flexShrink={0}>
               <InputLeftElement pointerEvents="none" h={8}>
                 <SearchIcon color="neutral.300" aria-hidden="true" />
               </InputLeftElement>
@@ -288,7 +284,7 @@ export function UserAdminListPage({
               height="32px"
               onChange={(val) => setStatusFilter(val as StatusFilter)}
               placeholder={t('statusLabel')}
-              width={{ base: '100%', md: '140px' }}
+              width={{ base: '100%', sm: '140px' }}
               isFilter
             />
           )}
@@ -299,7 +295,8 @@ export function UserAdminListPage({
           fontWeight="600"
           onClick={() => navigate(routes.add)}
           gap={1}
-          w={{ base: 'full', md: 'auto' }}
+          w={{ base: 'full', sm: 'auto' }}
+          flexShrink={0}
           aria-label={labels.addButton}
         >
           <IoAddOutline size={24} aria-hidden="true" />
