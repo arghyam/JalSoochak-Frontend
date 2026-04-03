@@ -92,6 +92,7 @@ describe('InviteSuperUserPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /add super user & send link via email/i }))
 
     await waitFor(() => {
+      expect(mockMutateAsync).toHaveBeenCalledTimes(1)
       expect(mockMutateAsync).toHaveBeenCalledWith({
         firstName: 'Raj',
         lastName: 'Sharma',

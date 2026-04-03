@@ -395,7 +395,7 @@ function PhoneStep({
           {phoneError && <FormErrorMessage>{phoneError}</FormErrorMessage>}
         </FormControl>
 
-        <FormControl isInvalid={!!tenantError}>
+        <FormControl isInvalid={!!tenantError || !!tenantsError}>
           <FormLabel>
             <Text textStyle="bodyText6" mb="4px">
               {t('login.phoneStep.stateLabel')}
