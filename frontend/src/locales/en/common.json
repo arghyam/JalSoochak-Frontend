@@ -42,6 +42,7 @@
     "passwordCreated": "Password has been created.",
     "passwordCreateFailed": "Failed to create password.",
     "profileUpdated": "Profile updated successfully.",
+    "profileLoadFailed": "Failed to load profile.",
     "profileUpdateFailed": "Failed to update profile.",
     "sessionExpired": "Session expired. Please use the invite link again.",
     "reinviteSent": "Invite resent successfully",
