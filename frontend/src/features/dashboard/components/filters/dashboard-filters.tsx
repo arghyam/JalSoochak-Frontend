@@ -16,7 +16,7 @@ import {
   slugify,
   toCapitalizedWords,
 } from '../../utils/format-location-label'
-import { toStableLocationValue } from '../../utils/stable-location-value'
+import { parseStableLocationValue, toStableLocationValue } from '../../utils/stable-location-value'
 import type { HierarchyType } from '../../services/api/dashboard-api'
 import type { TenantChildLocation } from '../../services/api/dashboard-api'
 
@@ -164,16 +164,17 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     selectedDepartmentZone,
     selectedDepartmentCircle,
     selectedDepartmentDivision,
-    selectedDepartmentSubdivision,
+    selectedDepartmentVillage,
     onDepartmentStateChange,
     onDepartmentZoneChange,
     onDepartmentCircleChange,
     onDepartmentDivisionChange,
-    onDepartmentSubdivisionChange,
+    onDepartmentVillageChange,
     setSelectedDepartmentZone,
     setSelectedDepartmentCircle,
     setSelectedDepartmentDivision,
     setSelectedDepartmentSubdivision,
+    setSelectedDepartmentVillage,
   } = props
 
   const queryClient = useQueryClient()
@@ -187,15 +188,19 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   const isDepartmentTab = hierarchyType === 'DEPARTMENT'
   const activeSelectedState =
     isDepartmentTab && selectedDepartmentState ? selectedDepartmentState : selectedState
+  const activeSelectedTenantValue =
+    isDepartmentTab && selectedDepartmentState
+      ? (parseStableLocationValue(selectedDepartmentState).lastSegment ?? selectedDepartmentState)
+      : selectedState
   const selectedTenant = breadcrumbStateOptions.find(
-    (option) => option.value === activeSelectedState
+    (option) => option.value === activeSelectedTenantValue
   )
   const activeSelectedDistrict = isDepartmentTab ? selectedDepartmentZone : selectedDistrict
   const activeSelectedBlock = isDepartmentTab ? selectedDepartmentCircle : selectedBlock
   const activeSelectedGramPanchayat = isDepartmentTab
     ? selectedDepartmentDivision
     : selectedGramPanchayat
-  const activeSelectedVillage = isDepartmentTab ? selectedDepartmentSubdivision : selectedVillage
+  const activeSelectedVillage = isDepartmentTab ? selectedDepartmentVillage : selectedVillage
   const { data: rootLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
@@ -368,28 +373,44 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     activeSelectedGramPanchayat,
     activeSelectedVillage,
   ] as const
-  const effectiveActiveTrailIndex = isDepartmentTab ? null : activeTrailIndex
-  const { effectiveTrailIndex } = computeTrailIndices(
-    trailSelectionValues,
-    effectiveActiveTrailIndex
-  )
+  const { effectiveTrailIndex } = computeTrailIndices(trailSelectionValues, activeTrailIndex)
   const hasSelectedState = effectiveTrailIndex >= 0 && Boolean(activeSelectedState)
   const hasSelectedDistrict = effectiveTrailIndex >= 1 && Boolean(activeSelectedDistrict)
   const hasSelectedBlock = effectiveTrailIndex >= 2 && Boolean(activeSelectedBlock)
   const hasSelectedGramPanchayat = effectiveTrailIndex >= 3 && Boolean(activeSelectedGramPanchayat)
   const rootSelectionHandler = isDepartmentTab ? onDepartmentStateChange : onStateChange
   const districtSelectionHandler = isDepartmentTab
-    ? (onDepartmentZoneChange ?? ((value: string) => setSelectedDepartmentZone?.(value)))
+    ? (onDepartmentZoneChange ??
+      ((value: string) => {
+        setSelectedDepartmentZone?.(value)
+        setSelectedDepartmentCircle?.('')
+        setSelectedDepartmentDivision?.('')
+        setSelectedDepartmentSubdivision?.('')
+        setSelectedDepartmentVillage?.('')
+      }))
     : onDistrictChange
   const blockSelectionHandler = isDepartmentTab
-    ? (onDepartmentCircleChange ?? ((value: string) => setSelectedDepartmentCircle?.(value)))
+    ? (onDepartmentCircleChange ??
+      ((value: string) => {
+        setSelectedDepartmentCircle?.(value)
+        setSelectedDepartmentDivision?.('')
+        setSelectedDepartmentSubdivision?.('')
+        setSelectedDepartmentVillage?.('')
+      }))
     : onBlockChange
   const gramPanchayatSelectionHandler = isDepartmentTab
-    ? (onDepartmentDivisionChange ?? ((value: string) => setSelectedDepartmentDivision?.(value)))
+    ? (onDepartmentDivisionChange ??
+      ((value: string) => {
+        setSelectedDepartmentDivision?.(value)
+        setSelectedDepartmentSubdivision?.('')
+        setSelectedDepartmentVillage?.('')
+      }))
     : onGramPanchayatChange
   const villageSelectionHandler = isDepartmentTab
-    ? (onDepartmentSubdivisionChange ??
-      ((value: string) => setSelectedDepartmentSubdivision?.(value)))
+    ? (onDepartmentVillageChange ??
+      ((value: string) => {
+        setSelectedDepartmentVillage?.(value)
+      }))
     : setSelectedVillage
   const breadcrumbPanelConfig = hasSelectedGramPanchayat
     ? {
@@ -488,7 +509,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
 
   return (
     <SearchLayout
-      rightSlot={<></>}
+      hideActionButton={true}
       selectionTrail={selectionTrail}
       activeTrailIndex={effectiveTrailIndex}
       breadcrumbPanelProps={{

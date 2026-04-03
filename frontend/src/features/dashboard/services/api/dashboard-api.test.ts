@@ -237,7 +237,7 @@ describe('dashboardApi.getDashboardData', () => {
     expect(response.readingCompliance).toEqual(apiReadingCompliance)
   })
 
-  it('does not inject mock reading compliance for gram-panchayat dashboards when the backend omits it', async () => {
+  it('normalizes missing reading compliance to an empty array for gram-panchayat dashboards', async () => {
     mockGet.mockImplementation(async () => ({
       data: {
         level: 'gram-panchayat',
@@ -265,7 +265,7 @@ describe('dashboardApi.getDashboardData', () => {
       entityId: 'gp-1',
     })
 
-    expect(response.readingCompliance).toBeUndefined()
+    expect(response.readingCompliance).toEqual([])
   })
 })
 

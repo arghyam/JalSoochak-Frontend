@@ -65,6 +65,7 @@ interface SearchLayoutProps {
   actionProps?: ButtonProps
   filterSlot?: ReactNode
   rightSlot?: ReactNode
+  hideActionButton?: boolean
   closedTrailSlot?: ReactNode
   breadcrumbPanelProps?: BreadcrumbPanelProps
   selectionTrail?: string[]
@@ -79,6 +80,7 @@ export function SearchLayout({
   actionProps,
   filterSlot,
   rightSlot,
+  hideActionButton = false,
   closedTrailSlot,
   breadcrumbPanelProps,
   selectionTrail,
@@ -342,6 +344,8 @@ export function SearchLayout({
     </Button>
   )
 
+  const resolvedRightSlot = hideActionButton ? null : (rightSlot ?? actionButton)
+
   return (
     <Box
       as="section"
@@ -367,7 +371,7 @@ export function SearchLayout({
               <Box minW={0} flex="1 1 auto">
                 {filterSlot}
               </Box>
-              {rightSlot ?? actionButton}
+              {resolvedRightSlot}
             </Flex>
           </>
         ) : (
@@ -377,21 +381,23 @@ export function SearchLayout({
             </InputGroup>
             <Flex align="center" gap={{ base: 2, lg: '12px' }} flex="0 0 auto" minW={0}>
               {filterSlot}
-              {rightSlot ??
-                (isBelowLgLayout ? (
-                  <IconButton
-                    aria-label={resolvedActionLabel}
-                    onClick={onActionClick}
-                    h="32px"
-                    minW="32px"
-                    w="32px"
-                    icon={<FiDownload size="16" />}
-                    variant="primary"
-                    {...actionProps}
-                  />
-                ) : (
-                  actionButton
-                ))}
+              {hideActionButton
+                ? null
+                : (rightSlot ??
+                  (isBelowLgLayout ? (
+                    <IconButton
+                      aria-label={resolvedActionLabel}
+                      onClick={onActionClick}
+                      h="32px"
+                      minW="32px"
+                      w="32px"
+                      icon={<FiDownload size="16" />}
+                      variant="primary"
+                      {...actionProps}
+                    />
+                  ) : (
+                    actionButton
+                  )))}
             </Flex>
           </Flex>
         )}

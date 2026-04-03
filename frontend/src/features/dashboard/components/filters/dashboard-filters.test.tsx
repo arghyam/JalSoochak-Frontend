@@ -687,6 +687,270 @@ describe('DashboardFilters', () => {
     expect(screen.queryByText('<script>alert(1)</Script>s (1)')).toBeNull()
   })
 
+  it('resolves the tenant from the slug when department state is hydrated as a stable value', () => {
+    mockUseLocationSearchQuery.mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+      },
+    })
+
+    renderWithProviders(
+      <DashboardFilters
+        filterTabIndex={1}
+        onTabChange={jest.fn()}
+        onClear={jest.fn()}
+        isAdvancedEnabled={true}
+        isDepartmentStateSelected={true}
+        emptyOptions={emptyOptions}
+        selectedState="assam"
+        selectedDistrict=""
+        selectedBlock=""
+        selectedGramPanchayat=""
+        selectedVillage=""
+        selectedScheme=""
+        selectedDuration={null}
+        selectedDepartmentState="101:18:assam"
+        selectedDepartmentZone=""
+        selectedDepartmentCircle=""
+        selectedDepartmentDivision=""
+        selectedDepartmentSubdivision=""
+        selectedDepartmentVillage=""
+        districtOptions={emptyOptions}
+        blockOptions={emptyOptions}
+        gramPanchayatOptions={emptyOptions}
+        villageOptions={emptyOptions}
+        mockFilterStates={emptyOptions}
+        mockFilterSchemes={emptyOptions}
+        onStateChange={jest.fn()}
+        onDistrictChange={jest.fn()}
+        onBlockChange={jest.fn()}
+        onGramPanchayatChange={jest.fn()}
+        setSelectedVillage={jest.fn()}
+        setSelectedScheme={jest.fn()}
+        setSelectedDuration={jest.fn()}
+        onDepartmentStateChange={jest.fn()}
+        setSelectedDepartmentZone={jest.fn()}
+        setSelectedDepartmentCircle={jest.fn()}
+        setSelectedDepartmentDivision={jest.fn()}
+        setSelectedDepartmentSubdivision={jest.fn()}
+        setSelectedDepartmentVillage={jest.fn()}
+      />
+    )
+
+    expect(mockUseLocationChildrenQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tenantId: 17,
+        tenantCode: 'AS',
+        hierarchyType: 'DEPARTMENT',
+        enabled: true,
+      })
+    )
+  })
+
+  it('clears lower department selections when fallback setter handlers are used', () => {
+    mockUseLocationSearchQuery.mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+      },
+    })
+    mockUseLocationChildrenQuery.mockImplementation((args?: unknown) => {
+      const options = args as { parentId?: number } | undefined
+      if (options?.parentId === 101) {
+        return {
+          data: {
+            data: [{ id: 201, title: 'North Zone' }],
+          },
+        }
+      }
+
+      if (options?.parentId === undefined) {
+        return {
+          data: {
+            data: [{ id: 101, title: 'Assam', lgdCode: 18 }],
+          },
+        }
+      }
+
+      return { data: undefined }
+    })
+
+    const setSelectedDepartmentZone = jest.fn()
+    const setSelectedDepartmentCircle = jest.fn()
+    const setSelectedDepartmentDivision = jest.fn()
+    const setSelectedDepartmentSubdivision = jest.fn()
+    const setSelectedDepartmentVillage = jest.fn()
+
+    renderWithProviders(
+      <DashboardFilters
+        filterTabIndex={1}
+        onTabChange={jest.fn()}
+        onClear={jest.fn()}
+        isAdvancedEnabled={true}
+        isDepartmentStateSelected={true}
+        emptyOptions={emptyOptions}
+        selectedState="assam"
+        selectedDistrict=""
+        selectedBlock=""
+        selectedGramPanchayat=""
+        selectedVillage=""
+        selectedScheme=""
+        selectedDuration={null}
+        selectedDepartmentState="101:18:assam"
+        selectedDepartmentZone=""
+        selectedDepartmentCircle=""
+        selectedDepartmentDivision=""
+        selectedDepartmentSubdivision=""
+        selectedDepartmentVillage=""
+        districtOptions={emptyOptions}
+        blockOptions={emptyOptions}
+        gramPanchayatOptions={emptyOptions}
+        villageOptions={emptyOptions}
+        mockFilterStates={emptyOptions}
+        mockFilterSchemes={emptyOptions}
+        onStateChange={jest.fn()}
+        onDistrictChange={jest.fn()}
+        onBlockChange={jest.fn()}
+        onGramPanchayatChange={jest.fn()}
+        setSelectedVillage={jest.fn()}
+        setSelectedScheme={jest.fn()}
+        setSelectedDuration={jest.fn()}
+        onDepartmentStateChange={jest.fn()}
+        setSelectedDepartmentZone={setSelectedDepartmentZone}
+        setSelectedDepartmentCircle={setSelectedDepartmentCircle}
+        setSelectedDepartmentDivision={setSelectedDepartmentDivision}
+        setSelectedDepartmentSubdivision={setSelectedDepartmentSubdivision}
+        setSelectedDepartmentVillage={setSelectedDepartmentVillage}
+      />
+    )
+
+    fireEvent.focus(screen.getByRole('textbox'))
+    fireEvent.click(screen.getByText('North Zone'))
+
+    expect(setSelectedDepartmentZone).toHaveBeenCalledWith('201:201:north-zone')
+    expect(setSelectedDepartmentCircle).toHaveBeenCalledWith('')
+    expect(setSelectedDepartmentDivision).toHaveBeenCalledWith('')
+    expect(setSelectedDepartmentSubdivision).toHaveBeenCalledWith('')
+    expect(setSelectedDepartmentVillage).toHaveBeenCalledWith('')
+  })
+
+  it('respects manual active trail control in department mode', () => {
+    mockUseLocationSearchQuery.mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+      },
+    })
+    mockUseLocationHierarchyQuery.mockReturnValue({
+      data: {
+        data: {
+          levels: [
+            { level: 1, levelName: [{ title: 'State' }] },
+            { level: 2, levelName: [{ title: 'Zone' }] },
+            { level: 3, levelName: [{ title: 'Circle' }] },
+            { level: 4, levelName: [{ title: 'Division' }] },
+            { level: 5, levelName: [{ title: 'Village' }] },
+          ],
+        },
+      },
+    })
+    mockUseLocationChildrenQuery.mockImplementation((args?: unknown) => {
+      const options = args as { parentId?: number } | undefined
+      if (options?.parentId === undefined) {
+        return {
+          data: {
+            data: [{ id: 101, title: 'Assam', lgdCode: 18 }],
+          },
+        }
+      }
+      if (options?.parentId === 101) {
+        return {
+          data: {
+            data: [{ id: 201, title: 'North Zone' }],
+          },
+        }
+      }
+      if (options?.parentId === 201) {
+        return {
+          data: {
+            data: [{ id: 301, title: 'Guwahati Circle' }],
+          },
+        }
+      }
+      if (options?.parentId === 301) {
+        return {
+          data: {
+            data: [{ id: 401, title: 'Division 1' }],
+          },
+        }
+      }
+      if (options?.parentId === 401) {
+        return {
+          data: {
+            data: [{ id: 501, title: 'Village 1' }],
+          },
+        }
+      }
+
+      return { data: undefined }
+    })
+
+    renderWithProviders(
+      <DashboardFilters
+        filterTabIndex={1}
+        onTabChange={jest.fn()}
+        onClear={jest.fn()}
+        isAdvancedEnabled={true}
+        isDepartmentStateSelected={true}
+        emptyOptions={emptyOptions}
+        selectedState="assam"
+        selectedDistrict=""
+        selectedBlock=""
+        selectedGramPanchayat=""
+        selectedVillage=""
+        selectedScheme=""
+        selectedDuration={null}
+        selectedDepartmentState="101:18:assam"
+        selectedDepartmentZone="201:201:north-zone"
+        selectedDepartmentCircle="301:301:guwahati-circle"
+        selectedDepartmentDivision="401:401:division-1"
+        selectedDepartmentSubdivision=""
+        selectedDepartmentVillage="501:501:village-1"
+        activeTrailIndex={1}
+        districtOptions={emptyOptions}
+        blockOptions={emptyOptions}
+        gramPanchayatOptions={emptyOptions}
+        villageOptions={emptyOptions}
+        mockFilterStates={emptyOptions}
+        mockFilterSchemes={emptyOptions}
+        onStateChange={jest.fn()}
+        onDistrictChange={jest.fn()}
+        onBlockChange={jest.fn()}
+        onGramPanchayatChange={jest.fn()}
+        setSelectedVillage={jest.fn()}
+        setSelectedScheme={jest.fn()}
+        setSelectedDuration={jest.fn()}
+        onDepartmentStateChange={jest.fn()}
+        onDepartmentZoneChange={jest.fn()}
+        onDepartmentCircleChange={jest.fn()}
+        onDepartmentDivisionChange={jest.fn()}
+        onDepartmentVillageChange={jest.fn()}
+        setSelectedDepartmentZone={jest.fn()}
+        setSelectedDepartmentCircle={jest.fn()}
+        setSelectedDepartmentDivision={jest.fn()}
+        setSelectedDepartmentSubdivision={jest.fn()}
+        setSelectedDepartmentVillage={jest.fn()}
+      />
+    )
+
+    fireEvent.focus(screen.getByRole('textbox'))
+
+    expect(screen.getByText('Circles (1)')).toBeTruthy()
+    expect(screen.getAllByText('Guwahati Circle').length).toBeGreaterThan(0)
+    expect(screen.queryByText('Villages (1)')).toBeNull()
+  })
+
   it('shows villages in breadcrumb search panel when gram panchayat is selected', () => {
     const districtOptions: SearchableSelectOption[] = [
       { value: 'sangareddy', label: 'Sangareddy' },

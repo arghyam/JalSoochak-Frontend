@@ -417,6 +417,11 @@ const ensureValidParams = ({ level, entityId }: DashboardQueryParams): void => {
   }
 }
 
+const normalizeDashboardData = (data: DashboardData): DashboardData => ({
+  ...data,
+  readingCompliance: data.readingCompliance ?? [],
+})
+
 const httpProvider: {
   getDashboardData: (params: DashboardQueryParams) => Promise<DashboardData>
 } = {
@@ -428,7 +433,7 @@ const httpProvider: {
       throw new Error('Dashboard API returned an invalid payload')
     }
 
-    return response.data
+    return normalizeDashboardData(response.data)
   },
 }
 

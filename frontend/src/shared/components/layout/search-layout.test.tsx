@@ -17,6 +17,18 @@ describe('SearchLayout', () => {
     expect(downloadButton).toBeTruthy()
   })
 
+  it('hides the default action button when hideActionButton is true', () => {
+    renderWithProviders(<SearchLayout hideActionButton={true} />)
+
+    expect(screen.queryByRole('button', { name: 'Download Report' })).toBeNull()
+  })
+
+  it('renders a custom right slot when provided', () => {
+    renderWithProviders(<SearchLayout rightSlot={<button type="button">Custom Action</button>} />)
+
+    expect(screen.getByRole('button', { name: 'Custom Action' })).toBeTruthy()
+  })
+
   it('shows default and selected breadcrumb header states', () => {
     renderWithProviders(
       <SearchLayout
@@ -161,9 +173,7 @@ describe('SearchLayout', () => {
       />
     )
 
-    const searchInput = screen.getByPlaceholderText(
-      'Search by state/UT, district, block, gram panchayat, village'
-    )
+    const searchInput = screen.getByRole('textbox')
 
     fireEvent.focus(searchInput)
 
