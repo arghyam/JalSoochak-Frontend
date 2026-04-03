@@ -158,11 +158,11 @@ const parseAnalyticsLocationId = (
     if (Number.isFinite(parsedAnalyticsId)) {
       return parsedAnalyticsId
     }
+  }
 
-    const resolvedAnalyticsId = lookupAnalyticsIdForLocation(options, value)
-    if (typeof resolvedAnalyticsId === 'number') {
-      return resolvedAnalyticsId
-    }
+  const resolvedAnalyticsId = lookupAnalyticsIdForLocation(options, value)
+  if (typeof resolvedAnalyticsId === 'number') {
+    return resolvedAnalyticsId
   }
 
   return parseLocationId(value)
@@ -1841,7 +1841,7 @@ export function CentralDashboard() {
                   ? 'india'
                   : `tenant-boundary-${hierarchyType.toLowerCase()}-${analyticsParentId}`
               }
-              fallbackToIndiaMap={hierarchyType === 'LGD'}
+              fallbackToIndiaMap={isCentralLandingView}
               onStateClick={isCentralLandingView ? handleStateClick : undefined}
               onStateHover={handleStateHover}
               height="100%"

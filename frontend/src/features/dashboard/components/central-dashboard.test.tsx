@@ -3155,6 +3155,64 @@ describe('CentralDashboard', () => {
     })
   })
 
+  it('resolves LGD analytics ids from loaded options when administrative URL params use slugs', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    mockUseSearchParams.mockReturnValue([new URLSearchParams('district=sangareddy'), jest.fn()])
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        states: [
+          {
+            value: 'telangana',
+            label: 'Telangana',
+            tenantId: 16,
+            tenantCode: 'TG',
+          },
+        ],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock)
+      .mockReturnValueOnce({
+        data: {
+          data: [
+            {
+              id: 101,
+              title: 'Telangana',
+              lgdCode: 10,
+            },
+          ],
+        },
+      })
+      .mockReturnValueOnce({
+        data: {
+          data: [
+            {
+              id: 202,
+              title: 'Sangareddy',
+              lgdCode: 404,
+            },
+          ],
+        },
+      })
+      .mockReturnValue({ data: undefined })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useTenantBoundariesQuery).toHaveBeenCalledWith({
+      params: {
+        tenantId: 16,
+        parentLgdId: 404,
+        startDate: expect.any(String),
+        endDate: expect.any(String),
+      },
+      enabled: true,
+    })
+  })
+
   it('updates URL with departmental query params when departmental selections change', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -3356,7 +3414,105 @@ describe('CentralDashboard', () => {
       expect.objectContaining({
         name: 'Child Region Title',
         regularity: 78,
-        quantity: 86,
+        boundaryGeoJson: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
+        },
+      }),
+    ])
+  })
+
+  it('does not fall back to the India map for filtered LGD selections', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        states: [
+          {
+            value: 'assam',
+            label: 'Assam',
+            tenantId: 17,
+            tenantCode: 'AS',
+          },
+        ],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [
+          {
+            id: 101,
+            title: 'Assam',
+            lgdCode: 18,
+          },
+        ],
+      },
+    })
+    ;(useTenantBoundariesQuery as jest.Mock).mockReturnValue({
+      data: {
+        tenantId: 17,
+        stateCode: 'AS',
+        childBoundaryCount: 1,
+        childRegions: [
+          {
+            childLgdId: 201,
+            childLgdTitle: 'Kamrup',
+            averageSchemeRegularity: 0.78,
+            boundaryGeoJson: {
+              type: 'Polygon',
+              coordinates: [
+                [
+                  [0, 0],
+                  [1, 0],
+                  [1, 1],
+                  [0, 1],
+                  [0, 0],
+                ],
+              ],
+            },
+          },
+        ],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useTenantBoundariesQuery).toHaveBeenLastCalledWith({
+      params: {
+        tenantId: 17,
+        parentLgdId: 18,
+        startDate: expect.any(String),
+        endDate: expect.any(String),
+      },
+      enabled: true,
+    })
+
+    const mapProps = getLatestIndiaMapChartProps<{
+      data: Array<{ name: string; boundaryGeoJson?: unknown; regularity: number }>
+      mapName: string
+      fallbackToIndiaMap: boolean
+      onStateClick?: unknown
+    }>()
+
+    expect(mapProps.mapName).toBe('tenant-boundary-lgd-18')
+    expect(mapProps.fallbackToIndiaMap).toBe(false)
+    expect(mapProps.onStateClick).toBeUndefined()
+    expect(mapProps.data).toEqual([
+      expect.objectContaining({
+        name: 'Kamrup',
+        regularity: 78,
         boundaryGeoJson: {
           type: 'Polygon',
           coordinates: [
