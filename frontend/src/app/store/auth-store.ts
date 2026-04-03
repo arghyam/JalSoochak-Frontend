@@ -72,6 +72,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
       // Ignore logout errors
     }
 
+    document.title = 'JalSoochak'
     set({
       accessToken: null,
       user: null,
@@ -103,6 +104,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
   },
 
   setSessionExpired: () => {
+    document.title = 'JalSoochak'
     set({
       accessToken: null,
       user: null,
