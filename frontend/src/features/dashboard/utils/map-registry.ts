@@ -8,6 +8,19 @@ import * as echarts from 'echarts'
 
 let indiaMapRegistrationPromise: Promise<void> | null = null
 
+export interface EChartsMapFeatureCollection {
+  type: 'FeatureCollection'
+  features: Array<{
+    type: 'Feature'
+    id?: string | number
+    properties: {
+      name: string
+      [key: string]: unknown
+    }
+    geometry: unknown
+  }>
+}
+
 /**
  * Register map GeoJSON with ECharts
  * Call this function once when the app loads (e.g., in main.tsx or App.tsx)
@@ -42,4 +55,43 @@ export async function ensureIndiaMapRegistered() {
   }
 
   await indiaMapRegistrationPromise
+}
+
+export function registerDynamicMap(mapName: string, geoJsonData: EChartsMapFeatureCollection) {
+  echarts.registerMap(mapName, geoJsonData as Parameters<typeof echarts.registerMap>[1])
+}
+
+export function buildFeatureCollectionFromRegions(
+  regions: Array<{
+    id: string
+    name: string
+    boundaryGeoJson?: unknown
+  }>
+): EChartsMapFeatureCollection | null {
+  const features = regions.flatMap((region) => {
+    if (!region.boundaryGeoJson || typeof region.boundaryGeoJson !== 'object') {
+      return []
+    }
+
+    return [
+      {
+        type: 'Feature' as const,
+        id: region.id,
+        properties: {
+          name: region.name,
+          regionId: region.id,
+        },
+        geometry: region.boundaryGeoJson,
+      },
+    ]
+  })
+
+  if (!features.length) {
+    return null
+  }
+
+  return {
+    type: 'FeatureCollection',
+    features,
+  }
 }

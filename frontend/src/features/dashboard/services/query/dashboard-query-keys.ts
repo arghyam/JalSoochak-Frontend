@@ -14,6 +14,7 @@ import type {
   SchemePerformanceQueryParams,
   SubmissionStatusQueryParams,
   WaterQuantityPeriodicQueryParams,
+  TenantBoundaryQueryParams,
 } from '../../types'
 
 const DEFAULT_ANALYTICS_SCOPE = 'child'
@@ -82,6 +83,17 @@ export const dashboardQueryKeys = {
       params?.parentLgdId,
       params?.parentDepartmentId,
       normalizeAnalyticsScope(params),
+      params?.startDate,
+      params?.endDate,
+    ] as const,
+  tenantBoundaries: (params: TenantBoundaryQueryParams | null) =>
+    [
+      'dashboard',
+      'analytics',
+      'tenant-boundaries',
+      params?.tenantId,
+      params?.parentLgdId,
+      params?.parentDepartmentId,
       params?.startDate,
       params?.endDate,
     ] as const,

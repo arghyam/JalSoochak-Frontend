@@ -5,7 +5,11 @@ import * as echarts from 'echarts'
 import { EChartsWrapper, Toggle } from '@/shared/components/common'
 import { getBodyText6Style } from '@/shared/components/charts/chart-text-style'
 import type { EntityPerformance } from '../../types'
-import { ensureIndiaMapRegistered } from '../../utils/map-registry'
+import {
+  buildFeatureCollectionFromRegions,
+  ensureIndiaMapRegistered,
+  registerDynamicMap,
+} from '../../utils/map-registry'
 
 interface IndiaMapChartProps {
   data: EntityPerformance[]
@@ -13,6 +17,8 @@ interface IndiaMapChartProps {
   onStateHover?: (stateId: string, stateName: string, metrics: EntityPerformance) => void
   className?: string
   height?: string | number
+  mapName?: string
+  fallbackToIndiaMap?: boolean
 }
 
 export function IndiaMapChart({
@@ -21,15 +27,22 @@ export function IndiaMapChart({
   onStateHover,
   className,
   height = '600px',
+  mapName = 'india',
+  fallbackToIndiaMap = true,
 }: IndiaMapChartProps) {
   const theme = useTheme()
   const [isBelow500] = useMediaQuery('(max-width: 499.98px)')
   const [isBelowSm] = useMediaQuery('(max-width: 479.98px)')
   const { t } = useTranslation('dashboard')
   const [isRegularityView, setIsRegularityView] = useState(true)
-  const [isMapReady, setIsMapReady] = useState(() => echarts.getMap('india') != null)
+  const [isMapReady, setIsMapReady] = useState(() => echarts.getMap(mapName) != null)
   const [mapLoadError, setMapLoadError] = useState(false)
   const metricKey: 'quantity' | 'regularity' = isRegularityView ? 'regularity' : 'quantity'
+  const dynamicGeoJson = useMemo(() => buildFeatureCollectionFromRegions(data), [data])
+  const shouldShowNoMapAvailable = !dynamicGeoJson && !fallbackToIndiaMap
+  const effectiveMapName = dynamicGeoJson ? mapName : fallbackToIndiaMap ? 'india' : null
+  const isRegisteredMapAvailable =
+    effectiveMapName != null && echarts.getMap(effectiveMapName) != null
   const resolveThemeColor = useCallback(
     (token: string) => {
       const [scale, shade] = token.split('.')
@@ -132,10 +145,8 @@ export function IndiaMapChart({
         {
           name: 'State Performance',
           type: 'map',
-          map: 'india', // Requires India GeoJSON to be registered via registerIndiaMap()
+          map: effectiveMapName ?? mapName,
           roam: true,
-          // Note: If map is not registered, ECharts will show an error
-          // Register the map using: registerIndiaMap(geoJsonData) from utils/map-registry
           label: {
             show: true,
             fontSize: 10,
@@ -165,6 +176,8 @@ export function IndiaMapChart({
     mapColors.emphasis,
     mapColors.gte90,
     metricKey,
+    effectiveMapName,
+    mapName,
     quantityLabel,
     regularityLabel,
   ])
@@ -182,32 +195,57 @@ export function IndiaMapChart({
   const containerHeight = typeof height === 'number' ? `${height}px` : height
 
   useEffect(() => {
-    if (isMapReady) {
-      return
-    }
-
     let isMounted = true
 
-    void ensureIndiaMapRegistered()
-      .then(() => {
-        if (!isMounted) {
-          return
+    const registerMap = async () => {
+      if (shouldShowNoMapAvailable || effectiveMapName == null) {
+        if (isMounted) {
+          setIsMapReady(false)
+          setMapLoadError(false)
         }
+        return
+      }
 
-        setIsMapReady(true)
+      const hasRegisteredMap = echarts.getMap(effectiveMapName) != null
+
+      if (isMounted) {
+        setIsMapReady(hasRegisteredMap)
         setMapLoadError(false)
-      })
-      .catch((error: unknown) => {
+      }
+
+      if (hasRegisteredMap) {
+        return
+      }
+
+      if (dynamicGeoJson) {
+        registerDynamicMap(mapName, dynamicGeoJson)
+        if (isMounted) {
+          setIsMapReady(true)
+          setMapLoadError(false)
+        }
+        return
+      }
+
+      try {
+        await ensureIndiaMapRegistered()
+        if (isMounted) {
+          setIsMapReady(true)
+          setMapLoadError(false)
+        }
+      } catch (error: unknown) {
         console.error('Failed to register India map:', error)
         if (isMounted) {
           setMapLoadError(true)
         }
-      })
+      }
+    }
+
+    void registerMap()
 
     return () => {
       isMounted = false
     }
-  }, [isMapReady, mapLoadError])
+  }, [dynamicGeoJson, effectiveMapName, mapName, shouldShowNoMapAvailable])
 
   const handleChartReady = (chart: echarts.ECharts) => {
     // Register click event
@@ -301,12 +339,18 @@ export function IndiaMapChart({
               {regularityLabel}
             </span>
           </div>
-          {isMapReady ? (
+          {isMapReady && isRegisteredMapAvailable ? (
             <EChartsWrapper option={option} height="100%" onChartReady={handleChartReady} />
           ) : (
             <Center h="100%">
               <VStack spacing={3}>
-                {mapLoadError ? (
+                {shouldShowNoMapAvailable ? (
+                  <Text color="neutral.600">
+                    {t('map.noMapAvailable', {
+                      defaultValue: 'Map currently unavailable',
+                    })}
+                  </Text>
+                ) : mapLoadError ? (
                   <Text color="neutral.600">
                     {t('map.loadError', {
                       defaultValue: 'Unable to load the map right now.',

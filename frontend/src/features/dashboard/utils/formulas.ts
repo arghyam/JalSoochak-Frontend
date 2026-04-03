@@ -10,6 +10,8 @@ import type {
   SchemePerformanceResponse,
   SchemeRegularityPeriodicResponse,
   SubmissionStatusResponse,
+  TenantBoundaryResponse,
+  GeoJsonGeometry,
   WaterQuantityPeriodicResponse,
   WaterSupplyOutageData,
 } from '../types'
@@ -441,6 +443,59 @@ const mapFallbackByName = (fallbackData: EntityPerformance[]) =>
 const formatEntityName = (primaryName?: string, fallbackName?: string, defaultName?: string) => {
   const resolvedName = primaryName || fallbackName || defaultName || ''
   return toCapitalizedWords(resolvedName)
+}
+
+const getTenantBoundaryRegionId = (
+  region: TenantBoundaryResponse['childRegions'][number],
+  index: number
+) => {
+  if (typeof region.childDepartmentId === 'number' && Number.isFinite(region.childDepartmentId)) {
+    return String(region.childDepartmentId)
+  }
+
+  if (typeof region.childLgdId === 'number' && Number.isFinite(region.childLgdId)) {
+    return String(region.childLgdId)
+  }
+
+  return `tenant-boundary-${index}`
+}
+
+export const mapTenantBoundariesToPerformance = (
+  response: TenantBoundaryResponse | undefined,
+  fallbackData: EntityPerformance[]
+): EntityPerformance[] => {
+  if (!response?.childRegions?.length) {
+    return []
+  }
+
+  const fallbackByName = mapFallbackByName(fallbackData)
+
+  return response.childRegions.map((region, index) => {
+    const regionTitle =
+      region.childLgdTitle ?? region.childDepartmentTitle ?? region.childLgdCName ?? ''
+    const fallbackMatch = fallbackByName.get(slugify(regionTitle)) ?? fallbackData[index]
+
+    return {
+      id: fallbackMatch?.id ?? getTenantBoundaryRegionId(region, index),
+      name: formatEntityName(regionTitle, fallbackMatch?.name, `Region ${index + 1}`),
+      coverage: fallbackMatch?.coverage ?? 0,
+      regularity:
+        typeof region.averageSchemeRegularity === 'number'
+          ? Number((region.averageSchemeRegularity * 100).toFixed(1))
+          : (fallbackMatch?.regularity ?? 0),
+      continuity: fallbackMatch?.continuity ?? 0,
+      quantity:
+        typeof region.readingSubmissionRate === 'number'
+          ? Number((region.readingSubmissionRate * 100).toFixed(1))
+          : (fallbackMatch?.quantity ?? 0),
+      compositeScore:
+        typeof region.averagePerformanceScore === 'number'
+          ? Number((region.averagePerformanceScore * 100).toFixed(1))
+          : (fallbackMatch?.compositeScore ?? 0),
+      status: fallbackMatch?.status ?? 'needs-attention',
+      boundaryGeoJson: (region.boundaryGeoJson as GeoJsonGeometry | null | undefined) ?? null,
+    }
+  })
 }
 
 export const mapQuantityPerformanceFromAnalytics = (

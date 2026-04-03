@@ -21,6 +21,7 @@ import { useSchemeRegularityPeriodicQuery } from '../services/query/use-scheme-r
 import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
 import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
+import { useTenantBoundariesQuery } from '../services/query/use-tenant-boundaries-query'
 import { getPreviousPeriodRange } from '../utils/formulas'
 
 const mockNavigate = jest.fn()
@@ -127,6 +128,10 @@ jest.mock('../services/query/use-water-quantity-periodic-query', () => ({
   useWaterQuantityPeriodicQuery: jest.fn(),
 }))
 
+jest.mock('../services/query/use-tenant-boundaries-query', () => ({
+  useTenantBoundariesQuery: jest.fn(),
+}))
+
 jest.mock('./filters/dashboard-filters', () => ({
   DashboardFilters: (props: unknown) => mockDashboardFilters(props),
 }))
@@ -223,6 +228,7 @@ describe('CentralDashboard', () => {
     ;(useSchemePerformanceQuery as jest.Mock).mockReset()
     ;(useSubmissionStatusQuery as jest.Mock).mockReset()
     ;(useWaterQuantityPeriodicQuery as jest.Mock).mockReset()
+    ;(useTenantBoundariesQuery as jest.Mock).mockReset()
     mockUseParams.mockReturnValue({})
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()])
     ;(useLocationSearchQuery as jest.Mock).mockReturnValue({ data: undefined })
@@ -251,6 +257,7 @@ describe('CentralDashboard', () => {
       data: undefined,
       isFetching: false,
     })
+    ;(useTenantBoundariesQuery as jest.Mock).mockReturnValue({ data: undefined })
   })
 
   it('renders Overall Performance table panel for central view', () => {
@@ -3240,5 +3247,121 @@ describe('CentralDashboard', () => {
 
     expect(screen.getByTestId('dashboard-filters')).toBeTruthy()
     expect(screen.getByTestId('dashboard-body')).toBeTruthy()
+  })
+
+  it('uses tenant boundary analytics for departmental map rendering', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'madhya-pradesh' })
+    mockUseSearchParams.mockReturnValue([new URLSearchParams('departmentZone=201'), jest.fn()])
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        states: [
+          {
+            value: 'madhya-pradesh',
+            label: 'Madhya Pradesh',
+            tenantId: 10,
+            tenantCode: 'mp',
+          },
+        ],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock)
+      .mockReturnValueOnce({
+        data: {
+          data: [
+            {
+              id: 101,
+              title: 'Madhya Pradesh',
+              lgdCode: 10,
+            },
+          ],
+        },
+      })
+      .mockReturnValueOnce({
+        data: {
+          data: [
+            {
+              id: 201,
+              title: 'Bhopal Zone',
+              lgdCode: 601,
+            },
+          ],
+        },
+      })
+      .mockReturnValue({ data: undefined })
+    ;(useTenantBoundariesQuery as jest.Mock).mockReturnValue({
+      data: {
+        tenantId: 10,
+        stateCode: 'MP',
+        childBoundaryCount: 1,
+        childRegions: [
+          {
+            childDepartmentId: 110,
+            childDepartmentTitle: 'Child Region Title',
+            averageSchemeRegularity: 0.78,
+            readingSubmissionRate: 0.86,
+            averagePerformanceScore: 0.64,
+            boundaryGeoJson: {
+              type: 'Polygon',
+              coordinates: [
+                [
+                  [0, 0],
+                  [1, 0],
+                  [1, 1],
+                  [0, 1],
+                  [0, 0],
+                ],
+              ],
+            },
+          },
+        ],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useTenantBoundariesQuery).toHaveBeenLastCalledWith({
+      params: {
+        tenantId: 10,
+        parentDepartmentId: 201,
+        startDate: expect.any(String),
+        endDate: expect.any(String),
+      },
+      enabled: true,
+    })
+
+    const mapProps = getLatestIndiaMapChartProps<{
+      data: Array<{ name: string; boundaryGeoJson?: unknown; regularity: number; quantity: number }>
+      mapName: string
+      fallbackToIndiaMap: boolean
+      onStateClick?: unknown
+    }>()
+
+    expect(mapProps.mapName).toBe('tenant-boundary-department-201')
+    expect(mapProps.fallbackToIndiaMap).toBe(false)
+    expect(mapProps.onStateClick).toBeUndefined()
+    expect(mapProps.data).toEqual([
+      expect.objectContaining({
+        name: 'Child Region Title',
+        regularity: 78,
+        quantity: 86,
+        boundaryGeoJson: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+              [0, 1],
+              [0, 0],
+            ],
+          ],
+        },
+      }),
+    ])
   })
 })

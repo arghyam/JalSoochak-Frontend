@@ -21,6 +21,7 @@ import { useSchemeRegularityPeriodicQuery } from '../services/query/use-scheme-r
 import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
 import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
+import { useTenantBoundariesQuery } from '../services/query/use-tenant-boundaries-query'
 import { KPICard } from './kpi-card'
 import { DashboardBody } from './screens/dashboard-body'
 import { IndiaMapChart } from './charts'
@@ -44,6 +45,7 @@ import {
   getRegularityKpiFromNationalDashboard,
   mapOutageReasonsFromNationalDashboard,
   mapOverallPerformanceFromNationalDashboard,
+  mapTenantBoundariesToPerformance,
   mapQuantityPerformanceFromNationalDashboard,
   mapReadingSubmissionRateFromNationalDashboard,
   mapReadingSubmissionRateFromAnalytics,
@@ -762,6 +764,25 @@ export function CentralDashboard() {
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
           }
+  const tenantBoundaryAnalyticsParams =
+    !hasCentralLandingFilters ||
+    isHierarchyLeafSelected ||
+    !selectedTenant?.tenantId ||
+    !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            tenantId: selectedTenant.tenantId,
+            parentLgdId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+          }
+        : {
+            tenantId: selectedTenant.tenantId,
+            parentDepartmentId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+          }
   const regularityAnalyticsParams =
     isHierarchyLeafSelected || !hasValidAnalyticsParentId
       ? null
@@ -928,6 +949,10 @@ export function CentralDashboard() {
     params: analyticsParams,
     enabled: Boolean(analyticsParams),
   })
+  const { data: tenantBoundaryData } = useTenantBoundariesQuery({
+    params: tenantBoundaryAnalyticsParams,
+    enabled: Boolean(tenantBoundaryAnalyticsParams),
+  })
   const { data: nationalDashboardData } = useNationalDashboardQuery({
     params: nationalDashboardParams,
     enabled: Boolean(nationalDashboardParams),
@@ -1049,6 +1074,9 @@ export function CentralDashboard() {
     enabled: Boolean(previousRegularityPeriodicAnalyticsParams),
   })
   const isCentralLandingView = !hasCentralLandingFilters
+  const mapChartData = isCentralLandingView
+    ? dashboardData.mapData
+    : mapTenantBoundariesToPerformance(tenantBoundaryData, dashboardData.mapData)
   const quantityPerformanceData = isCentralLandingView
     ? mapQuantityPerformanceFromNationalDashboard(nationalDashboardData, emptyEntityPerformance)
     : mapQuantityPerformanceFromAnalytics(averageWaterSupplyData, emptyEntityPerformance)
@@ -1785,8 +1813,14 @@ export function CentralDashboard() {
             minW={0}
           >
             <IndiaMapChart
-              data={dashboardData.mapData}
-              onStateClick={handleStateClick}
+              data={mapChartData}
+              mapName={
+                isCentralLandingView
+                  ? 'india'
+                  : `tenant-boundary-${hierarchyType.toLowerCase()}-${analyticsParentId}`
+              }
+              fallbackToIndiaMap={hierarchyType === 'LGD'}
+              onStateClick={isCentralLandingView ? handleStateClick : undefined}
               onStateHover={handleStateHover}
               height="100%"
             />

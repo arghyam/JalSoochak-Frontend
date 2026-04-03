@@ -104,4 +104,24 @@ describe('dashboardQueryKeys', () => {
       '2026-03-31',
     ])
   })
+
+  it('includes tenant and parent ids in the tenant boundary query key', () => {
+    expect(
+      dashboardQueryKeys.tenantBoundaries({
+        tenantId: 10,
+        parentDepartmentId: 601,
+        startDate: '2026-03-01',
+        endDate: '2026-03-31',
+      })
+    ).toEqual([
+      'dashboard',
+      'analytics',
+      'tenant-boundaries',
+      10,
+      undefined,
+      601,
+      '2026-03-01',
+      '2026-03-31',
+    ])
+  })
 })

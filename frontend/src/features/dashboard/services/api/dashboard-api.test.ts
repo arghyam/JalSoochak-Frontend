@@ -366,6 +366,73 @@ describe('dashboardApi analytics normalization', () => {
       })
     )
   })
+
+  it('normalizes tenant boundary geojson payloads for departmental regions', async () => {
+    mockGet.mockImplementation(async () => ({
+      data: {
+        success: true,
+        data: {
+          tenantId: 10,
+          stateCode: 'MP',
+          childBoundaryCount: 1,
+          boundaryGeoJson: '{"type":"Polygon","coordinates":[[[0,0],[1,0],[1,1],[0,1],[0,0]]]}',
+          averageSchemeRegularity: 0.75,
+          readingSubmissionRate: 0.84,
+          averagePerformanceScore: 0.62,
+          childRegions: [
+            {
+              childDepartmentId: 110,
+              childDepartmentTitle: 'Child Region Title',
+              childBoundaryGeoJson:
+                '{"type":"Polygon","coordinates":[[[0,0],[0.5,0],[0.5,0.5],[0,0.5],[0,0]]]}',
+              averageSchemeRegularity: 0.78,
+              readingSubmissionRate: 0.86,
+              averagePerformanceScore: 0.64,
+            },
+          ],
+        },
+      },
+    }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+    const response = await dashboardApi.getTenantBoundaries({
+      tenantId: 10,
+      parentDepartmentId: 601,
+      startDate: '2026-03-01',
+      endDate: '2026-03-30',
+    })
+
+    expect(response.parsedBoundaryGeoJson).toEqual({
+      type: 'Polygon',
+      coordinates: [
+        [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+          [0, 1],
+          [0, 0],
+        ],
+      ],
+    })
+    expect(response.childRegions[0]).toEqual(
+      expect.objectContaining({
+        childLgdId: 110,
+        childLgdTitle: 'Child Region Title',
+        boundaryGeoJson: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [0, 0],
+              [0.5, 0],
+              [0.5, 0.5],
+              [0, 0.5],
+              [0, 0],
+            ],
+          ],
+        },
+      })
+    )
+  })
 })
 
 describe('dashboardApi.getAverageWaterSupplyPerRegion', () => {
