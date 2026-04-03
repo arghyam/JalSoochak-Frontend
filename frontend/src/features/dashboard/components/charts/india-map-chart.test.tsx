@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
-import { screen } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { EntityPerformance } from '../../types'
 import { IndiaMapChart } from './india-map-chart'
@@ -66,5 +66,73 @@ describe('IndiaMapChart', () => {
     expect(screen.queryByText('Loading map...')).toBeNull()
     expect(mockEChartsWrapper).not.toHaveBeenCalled()
     expect(mockRegisterMap).not.toHaveBeenCalled()
+  })
+
+  it('renders departmental maps immediately when boundary geojson is available', () => {
+    renderWithProviders(
+      <IndiaMapChart
+        data={[
+          {
+            id: 'region-1',
+            name: 'Lower Assam Zone',
+            coverage: 65,
+            regularity: 72,
+            continuity: 0,
+            quantity: 54,
+            compositeScore: 64,
+            status: 'needs-attention',
+            boundaryGeoJson: {
+              type: 'Polygon',
+              coordinates: [
+                [
+                  [0, 0],
+                  [1, 0],
+                  [1, 1],
+                  [0, 1],
+                  [0, 0],
+                ],
+              ],
+            },
+          },
+        ]}
+        mapName="tenant-boundary-department-201"
+        fallbackToIndiaMap={false}
+      />
+    )
+
+    expect(screen.queryByText('Loading map...')).toBeNull()
+    expect(mockEChartsWrapper).toHaveBeenCalled()
+    expect(mockRegisterMap).toHaveBeenCalled()
+    const latestOption = mockEChartsWrapper.mock.calls.at(-1)?.[0]?.option as {
+      series?: Array<{ label?: { show?: boolean }; emphasis?: { label?: { show?: boolean } } }>
+    }
+    expect(latestOption.series?.[0]?.label?.show).toBe(true)
+    expect(latestOption.series?.[0]?.emphasis?.label?.show).toBe(true)
+    expect(mockRegisterMap).toHaveBeenCalledWith(
+      'tenant-boundary-department-201',
+      expect.objectContaining({
+        features: [
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              name: 'Lower Assam Zone',
+              cp: [0.5, 0.5],
+            }),
+          }),
+        ],
+      })
+    )
+  })
+
+  it('shows MLD legend labels when switched to quantity view', () => {
+    renderWithProviders(<IndiaMapChart data={chartData} />)
+
+    const toggle = screen.getByRole('checkbox')
+    fireEvent.click(toggle)
+
+    expect(screen.getByText('>=90 MLD')).toBeTruthy()
+    expect(screen.getByText('>=70 MLD')).toBeTruthy()
+    expect(screen.getByText('>=50 MLD')).toBeTruthy()
+    expect(screen.getByText('>=30 MLD')).toBeTruthy()
+    expect(screen.getByText('>=0 MLD')).toBeTruthy()
   })
 })

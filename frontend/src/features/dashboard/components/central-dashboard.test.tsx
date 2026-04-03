@@ -2781,8 +2781,16 @@ describe('CentralDashboard', () => {
           call?.params?.parentLgdId === 10 &&
           call?.params?.scope === 'child'
       ).length
-    ).toBeGreaterThanOrEqual(3)
-    expect(waterSupplyQueryCalls.some((call) => call?.params?.scope === 'current')).toBe(false)
+    ).toBeGreaterThanOrEqual(1)
+    expect(
+      waterSupplyQueryCalls.filter(
+        (call) =>
+          call?.enabled === true &&
+          call?.params?.tenantId === 16 &&
+          call?.params?.parentLgdId === 10 &&
+          call?.params?.scope === 'current'
+      ).length
+    ).toBeGreaterThanOrEqual(2)
   })
 
   it('passes neutral KPI trends when comparison values do not change', () => {
@@ -3361,6 +3369,223 @@ describe('CentralDashboard', () => {
             ],
           ],
         },
+      }),
+    ])
+  })
+
+  it('uses loaded departmental labels when tenant boundary regions are unnamed', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: {
+        ...mockDashboardData,
+        mapData: [
+          {
+            id: 'region-1',
+            name: 'Region 1',
+            coverage: 65,
+            regularity: 72,
+            continuity: 0,
+            quantity: 54,
+            compositeScore: 64,
+            status: 'needs-attention',
+          },
+          {
+            id: 'region-2',
+            name: 'Region 2',
+            coverage: 60,
+            regularity: 70,
+            continuity: 0,
+            quantity: 50,
+            compositeScore: 60,
+            status: 'needs-attention',
+          },
+        ],
+      },
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        states: [
+          {
+            value: 'assam',
+            label: 'Assam',
+            tenantId: 17,
+            tenantCode: 'AS',
+          },
+        ],
+      },
+    })
+    ;(useLocationHierarchyQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: {
+          levels: [
+            { level: 1, levelName: [{ title: 'State' }] },
+            { level: 2, levelName: [{ title: 'Zone' }] },
+            { level: 3, levelName: [{ title: 'Circle' }] },
+            { level: 4, levelName: [{ title: 'Division' }] },
+            { level: 5, levelName: [{ title: 'Sub Division' }] },
+          ],
+        },
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockImplementation((args: unknown) => {
+      const { parentId } = (args ?? {}) as { parentId?: number }
+
+      if (parentId === undefined) {
+        return {
+          data: {
+            data: [{ id: 501, title: 'Assam' }],
+          },
+        }
+      }
+
+      if (parentId === 501) {
+        return {
+          data: {
+            data: [
+              { id: 601, title: 'North Assam Zone' },
+              { id: 602, title: 'Lower Assam Zone' },
+            ],
+          },
+        }
+      }
+
+      return { data: undefined }
+    })
+    ;(useTenantBoundariesQuery as jest.Mock).mockReturnValue({
+      data: {
+        tenantId: 17,
+        stateCode: 'AS',
+        childBoundaryCount: 2,
+        childRegions: [
+          {
+            childDepartmentId: 601,
+            averageSchemeRegularity: 0.78,
+            readingSubmissionRate: 0.86,
+            averagePerformanceScore: 0.64,
+            boundaryGeoJson: {
+              type: 'Polygon',
+              coordinates: [
+                [
+                  [0, 0],
+                  [1, 0],
+                  [1, 1],
+                  [0, 1],
+                  [0, 0],
+                ],
+              ],
+            },
+          },
+          {
+            childDepartmentId: 602,
+            averageSchemeRegularity: 0.8,
+            readingSubmissionRate: 0.88,
+            averagePerformanceScore: 0.66,
+            boundaryGeoJson: {
+              type: 'Polygon',
+              coordinates: [
+                [
+                  [2, 2],
+                  [3, 2],
+                  [3, 3],
+                  [2, 3],
+                  [2, 2],
+                ],
+              ],
+            },
+          },
+        ],
+      },
+    })
+    ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({
+      data: {
+        tenantId: 17,
+        stateCode: 'AS',
+        parentLgdLevel: 0,
+        parentDepartmentLevel: 1,
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        schemeCount: 2,
+        childRegionCount: 2,
+        schemes: [],
+        childRegions: [
+          {
+            departmentId: 601,
+            title: 'North Assam Zone',
+            totalAchievedFhtcCount: 100,
+            totalWaterSuppliedLiters: 0,
+            schemeCount: 1,
+            avgWaterSupplyPerScheme: 0,
+          },
+          {
+            departmentId: 602,
+            title: 'Lower Assam Zone',
+            totalAchievedFhtcCount: 100,
+            totalWaterSuppliedLiters: 318_000,
+            schemeCount: 1,
+            avgWaterSupplyPerScheme: 0,
+          },
+        ],
+      },
+    })
+    ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({
+      data: {
+        lgdId: 0,
+        parentDepartmentId: 501,
+        parentLgdLevel: 0,
+        parentDepartmentLevel: 1,
+        scope: 'child',
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        schemeCount: 2,
+        totalSupplyDays: 0,
+        averageRegularity: 0,
+        childRegionCount: 2,
+        childRegions: [
+          {
+            departmentId: 601,
+            title: 'North Assam Zone',
+            schemeCount: 1,
+            totalSupplyDays: 4.5,
+            averageRegularity: 0,
+          },
+          {
+            departmentId: 602,
+            title: 'Lower Assam Zone',
+            schemeCount: 1,
+            totalSupplyDays: 4.5,
+            averageRegularity: 0,
+          },
+        ],
+      },
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 1,
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    const mapProps = getLatestIndiaMapChartProps<{
+      data: Array<{ name: string }>
+    }>()
+
+    expect(mapProps.data.map((item) => item.name)).toEqual(['North Assam Zone', 'Lower Assam Zone'])
+    expect(mapProps.data).toEqual([
+      expect.objectContaining({
+        name: 'North Assam Zone',
+        quantity: 0,
+        regularity: 15,
+      }),
+      expect.objectContaining({
+        name: 'Lower Assam Zone',
+        quantity: 21.2,
+        regularity: 15,
       }),
     ])
   })

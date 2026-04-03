@@ -253,6 +253,9 @@ const sumWaterSupplyField = (
   }, 0)
 }
 
+export const hasWaterSupplyData = (response: AverageWaterSupplyPerRegionResponse | undefined) =>
+  sumWaterSupplyField(response, 'totalWaterSuppliedLiters') > 0
+
 export const getWaterSupplyKpis = (
   response: AverageWaterSupplyPerRegionResponse | undefined,
   averagePersonsPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD
@@ -440,10 +443,39 @@ export const calculateAbsoluteChange = (currentValue: number, previousValue: num
 const mapFallbackByName = (fallbackData: EntityPerformance[]) =>
   new Map(fallbackData.map((item) => [slugify(item.name), item] as const))
 
+const GENERIC_REGION_NAME_PATTERN = /^Region\s+\d+$/i
+
 const formatEntityName = (primaryName?: string, fallbackName?: string, defaultName?: string) => {
   const resolvedName = primaryName || fallbackName || defaultName || ''
   return toCapitalizedWords(resolvedName)
 }
+
+const isGenericRegionName = (value?: string | null) => {
+  const trimmedValue = value?.trim()
+  return !trimmedValue || GENERIC_REGION_NAME_PATTERN.test(trimmedValue)
+}
+
+type LocationLabelOption = {
+  locationId?: number
+  label: string
+}
+
+const mapFallbackById = (fallbackData: EntityPerformance[]) =>
+  new Map(fallbackData.map((item) => [item.id, item] as const))
+
+const mapLocationOptionsById = (locationOptions: LocationLabelOption[]) =>
+  new Map(
+    locationOptions.flatMap((option) =>
+      typeof option.locationId === 'number' ? [[option.locationId, option] as const] : []
+    )
+  )
+
+const mapLocationOptionsByName = (locationOptions: LocationLabelOption[]) =>
+  new Map(
+    locationOptions
+      .filter((option) => !isGenericRegionName(option.label))
+      .map((option) => [slugify(option.label), option] as const)
+  )
 
 const getTenantBoundaryRegionId = (
   region: TenantBoundaryResponse['childRegions'][number],
@@ -462,36 +494,68 @@ const getTenantBoundaryRegionId = (
 
 export const mapTenantBoundariesToPerformance = (
   response: TenantBoundaryResponse | undefined,
-  fallbackData: EntityPerformance[]
+  fallbackData: EntityPerformance[],
+  locationOptions: LocationLabelOption[] = []
 ): EntityPerformance[] => {
   if (!response?.childRegions?.length) {
     return []
   }
 
+  const fallbackById = mapFallbackById(fallbackData)
   const fallbackByName = mapFallbackByName(fallbackData)
+  const locationOptionsById = mapLocationOptionsById(locationOptions)
+  const locationOptionsByName = mapLocationOptionsByName(locationOptions)
 
   return response.childRegions.map((region, index) => {
     const regionTitle =
       region.childLgdTitle ?? region.childDepartmentTitle ?? region.childLgdCName ?? ''
-    const fallbackMatch = fallbackByName.get(slugify(regionTitle)) ?? fallbackData[index]
+    const regionLocationId =
+      typeof region.childDepartmentId === 'number'
+        ? region.childDepartmentId
+        : typeof region.childLgdId === 'number'
+          ? region.childLgdId
+          : undefined
+    const matchedLocationOption =
+      (typeof regionLocationId === 'number'
+        ? locationOptionsById.get(regionLocationId)
+        : undefined) ??
+      (!isGenericRegionName(regionTitle)
+        ? locationOptionsByName.get(slugify(regionTitle))
+        : undefined) ??
+      locationOptions[index]
+    const locationId = regionLocationId ?? matchedLocationOption?.locationId
+    const locationLabel = matchedLocationOption?.label
+    const fallbackMatch =
+      (typeof locationId === 'number' ? fallbackById.get(String(locationId)) : undefined) ??
+      (!isGenericRegionName(regionTitle) ? fallbackByName.get(slugify(regionTitle)) : undefined) ??
+      (!isGenericRegionName(locationLabel)
+        ? fallbackByName.get(slugify(locationLabel ?? ''))
+        : undefined) ??
+      fallbackData[index]
+    const preferredRegionName = !isGenericRegionName(regionTitle)
+      ? regionTitle
+      : !isGenericRegionName(locationLabel)
+        ? locationLabel
+        : !isGenericRegionName(fallbackMatch?.name)
+          ? fallbackMatch?.name
+          : undefined
 
     return {
       id: fallbackMatch?.id ?? getTenantBoundaryRegionId(region, index),
-      name: formatEntityName(regionTitle, fallbackMatch?.name, `Region ${index + 1}`),
+      name: formatEntityName(preferredRegionName, undefined, `Region ${index + 1}`),
       coverage: fallbackMatch?.coverage ?? 0,
       regularity:
-        typeof region.averageSchemeRegularity === 'number'
+        fallbackMatch?.regularity ??
+        (typeof region.averageSchemeRegularity === 'number'
           ? Number((region.averageSchemeRegularity * 100).toFixed(1))
-          : (fallbackMatch?.regularity ?? 0),
+          : 0),
       continuity: fallbackMatch?.continuity ?? 0,
-      quantity:
-        typeof region.readingSubmissionRate === 'number'
-          ? Number((region.readingSubmissionRate * 100).toFixed(1))
-          : (fallbackMatch?.quantity ?? 0),
+      quantity: fallbackMatch?.quantity ?? 0,
       compositeScore:
-        typeof region.averagePerformanceScore === 'number'
+        fallbackMatch?.compositeScore ??
+        (typeof region.averagePerformanceScore === 'number'
           ? Number((region.averagePerformanceScore * 100).toFixed(1))
-          : (fallbackMatch?.compositeScore ?? 0),
+          : 0),
       status: fallbackMatch?.status ?? 'needs-attention',
       boundaryGeoJson: (region.boundaryGeoJson as GeoJsonGeometry | null | undefined) ?? null,
     }
@@ -885,9 +949,15 @@ export const mapOverallPerformanceFromAnalytics = (
 
   return waterChildRegions.map((region, index) => {
     const matchingRegularity = regularityByName.get(slugify(region.title))
+    const regionId =
+      typeof region.departmentId === 'number' && region.departmentId > 0
+        ? String(region.departmentId)
+        : typeof region.lgdId === 'number' && region.lgdId > 0
+          ? String(region.lgdId)
+          : `overall-performance-${index}-${slugify(region.title || String(index))}`
 
     return {
-      id: `overall-performance-${index}-${slugify(region.title || String(index))}`,
+      id: regionId,
       name: formatEntityName(region.title, undefined, `Region ${index + 1}`),
       coverage: calculateQuantityMld(region.totalWaterSuppliedLiters, waterDaysInRange),
       regularity: matchingRegularity
