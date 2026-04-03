@@ -177,7 +177,7 @@ export function LoginPage() {
                     </FormControl>
                   )}
 
-                  <Flex justify="flex-end">
+                  <Flex justify="flex-start" mt="-4px" mb="4px">
                     <Link
                       as="button"
                       type="button"

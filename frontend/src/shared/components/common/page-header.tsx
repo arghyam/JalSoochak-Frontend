@@ -9,13 +9,16 @@ interface PageHeaderProps {
 
 export function PageHeader({ children, mb = 5 }: PageHeaderProps) {
   return (
-    <Flex justify="space-between" align="flex-start" mb={mb}>
-      <Box flex={1} minW={0}>
+    <Flex justify="space-between" align="flex-start" mb={mb} w="full" maxW="100%" overflow="hidden">
+      <Box flex="1 1 0%" minW={0}>
         {children}
       </Box>
-      <Show above="lg">
-        <LanguageSwitcher />
-      </Show>
+
+      <Box flexShrink={0} maxW="100%">
+        <Show above="lg">
+          <LanguageSwitcher />
+        </Show>
+      </Box>
     </Flex>
   )
 }
