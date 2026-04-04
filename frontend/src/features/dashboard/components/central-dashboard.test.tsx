@@ -1123,7 +1123,7 @@ describe('CentralDashboard', () => {
     )
     ;(useWaterQuantityPeriodicQuery as jest.Mock).mockReturnValue({
       data: {
-        lgdId: 10,
+        lgdId: 36,
         startDate: selectedDuration.startDate,
         endDate: selectedDuration.endDate,
         scale: 'day',
@@ -1148,7 +1148,7 @@ describe('CentralDashboard', () => {
 
     expect(useWaterQuantityPeriodicQuery).toHaveBeenCalledWith({
       params: {
-        lgdId: 10,
+        lgdId: 36,
         startDate: selectedDuration.startDate,
         endDate: selectedDuration.endDate,
         scale: 'day',
@@ -4011,7 +4011,7 @@ describe('CentralDashboard', () => {
         (call) =>
           call?.enabled === true &&
           call?.params?.tenantId === 16 &&
-          call?.params?.parentLgdId === 10 &&
+          call?.params?.parentLgdId === 36 &&
           call?.params?.scope === 'child'
       ).length
     ).toBeGreaterThanOrEqual(1)
@@ -4020,10 +4020,10 @@ describe('CentralDashboard', () => {
         (call) =>
           call?.enabled === true &&
           call?.params?.tenantId === 16 &&
-          call?.params?.parentLgdId === 10 &&
+          call?.params?.parentLgdId === 36 &&
           call?.params?.scope === 'current'
       ).length
-    ).toBeGreaterThanOrEqual(2)
+    ).toBe(0)
   })
 
   it('passes neutral KPI trends when comparison values do not change', () => {
@@ -4760,6 +4760,50 @@ describe('CentralDashboard', () => {
         },
       }),
     ])
+  })
+
+  it('falls back to the tenant state LGD code when the root location response omits lgdCode', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        states: [
+          {
+            value: 'assam',
+            label: 'Assam',
+            tenantId: 17,
+            tenantCode: 'AS',
+          },
+        ],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [
+          {
+            id: 1,
+            title: 'Assam',
+          },
+        ],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useAverageWaterSupplyPerRegionQuery).toHaveBeenCalledWith({
+      params: {
+        tenantId: 17,
+        parentLgdId: 18,
+        scope: 'child',
+        startDate: expect.any(String),
+        endDate: expect.any(String),
+      },
+      enabled: true,
+    })
   })
 
   it('uses loaded departmental labels when tenant boundary regions are unnamed', () => {

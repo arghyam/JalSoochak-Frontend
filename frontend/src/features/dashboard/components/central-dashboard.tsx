@@ -82,6 +82,7 @@ import {
   normalizeDateFormat,
   parseDisplayDateToIsoWithFallback,
 } from '@/shared/utils/date-format'
+import { INDIA_STATES } from '@/shared/constants/states'
 
 const storageKey = 'central-dashboard-filters'
 
@@ -209,6 +210,20 @@ const getDefaultAnalyticsDateRange = () => {
     startDate: toIsoDate(startDate) ?? '',
     endDate: toIsoDate(endDate) ?? '',
   }
+}
+
+const getStateLgdCode = (stateName?: string, stateCode?: string): number | undefined => {
+  const normalizedStateName = stateName?.trim().toLowerCase()
+  const normalizedStateCode = stateCode?.trim().toUpperCase()
+  const matchedState = INDIA_STATES.find((state) => {
+    if (normalizedStateCode && state.code === normalizedStateCode) {
+      return true
+    }
+
+    return normalizedStateName ? slugify(state.name) === slugify(normalizedStateName) : false
+  })
+
+  return matchedState?.lgdCode
 }
 
 const getStoredFilters = (): StoredFilters => {
@@ -656,6 +671,13 @@ export function CentralDashboard() {
   })
   const rootLocationOptions = mapLocationOptions(rootLocationsData?.data)
   const selectedRootOption = findLocationOption(rootLocationOptions, activeHierarchySelectedState)
+  const selectedStateLgdCode = getStateLgdCode(selectedTenant?.label, selectedTenant?.tenantCode)
+  const selectedRootAnalyticsId =
+    selectedRootOption === undefined
+      ? undefined
+      : selectedRootOption.analyticsId !== selectedRootOption.locationId
+        ? selectedRootOption.analyticsId
+        : (selectedStateLgdCode ?? selectedRootOption.analyticsId)
   const isRootStateLevel = Boolean(activeHierarchySelectedState) && Boolean(selectedRootOption)
   const districtParentId =
     isRootStateLevel && isDepartmentTabActive
@@ -731,7 +753,7 @@ export function CentralDashboard() {
     parseAnalyticsLocationId(effectiveSelectedGramPanchayat, gramPanchayatApiOptions) ??
     parseAnalyticsLocationId(effectiveSelectedBlock, blockApiOptions) ??
     parseAnalyticsLocationId(effectiveSelectedDistrict, districtApiOptions) ??
-    selectedRootOption?.analyticsId ??
+    selectedRootAnalyticsId ??
     0
   const departmentAnalyticsParentId =
     parseLocationId(selectedDepartmentVillage) ??
@@ -1006,7 +1028,7 @@ export function CentralDashboard() {
           endDate: previousAnalyticsRange.endDate,
         }
   const currentWaterSupplyAnalyticsParams =
-    analyticsParams === null
+    analyticsParams === null || isHierarchyStateSelected
       ? null
       : {
           ...analyticsParams,
