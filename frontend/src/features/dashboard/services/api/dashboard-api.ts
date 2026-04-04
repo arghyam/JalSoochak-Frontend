@@ -515,7 +515,7 @@ export const dashboardApi = {
     const response = await apiClient.get<ApiEnvelope<{ configs?: TenantPublicConfigMap }>>(
       `/api/v1/tenants/${tenantId}/config/public`
     )
-    const configs = response.data.data.configs
+    const configs = response?.data?.data?.configs ?? {}
 
     return {
       averageMembersPerHousehold: Number(configs?.AVERAGE_MEMBERS_PER_HOUSEHOLD?.value) || 0,

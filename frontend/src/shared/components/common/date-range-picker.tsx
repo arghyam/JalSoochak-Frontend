@@ -303,14 +303,14 @@ export function DateRangePicker({
     if (!start || !end) return
     if (start > end) {
       onChange({
-        startDate: formatIsoDateForDisplay(end, resolvedDateFormat),
-        endDate: formatIsoDateForDisplay(start, resolvedDateFormat),
+        startDate: end,
+        endDate: start,
         preset: draft?.preset,
       })
     } else {
       onChange({
-        startDate: formatIsoDateForDisplay(start, resolvedDateFormat),
-        endDate: formatIsoDateForDisplay(end, resolvedDateFormat),
+        startDate: start,
+        endDate: end,
         preset: draft?.preset,
       })
     }
