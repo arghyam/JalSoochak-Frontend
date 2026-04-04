@@ -2224,6 +2224,207 @@ describe('CentralDashboard', () => {
     })
   })
 
+  it('normalizes picker-style duration values before requesting departmental zone analytics', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+      },
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 1,
+        selectedDepartmentState: '501:department-state',
+        selectedDepartmentZone: '601:department-zone',
+        selectedDuration: {
+          startDate: '25/03/2026',
+          endDate: '26/03/2026',
+        },
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useAverageWaterSupplyPerRegionQuery).toHaveBeenCalledWith({
+      params: {
+        tenantId: 17,
+        parentDepartmentId: 601,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 601,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 601,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useOutageReasonsQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 601,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+  })
+
+  it('normalizes picker-style duration values before requesting departmental circle analytics', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+      },
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 1,
+        selectedDepartmentState: '501:department-state',
+        selectedDepartmentZone: '601:department-zone',
+        selectedDepartmentCircle: '701:department-circle',
+        selectedDuration: {
+          startDate: '25/03/2026',
+          endDate: '26/03/2026',
+        },
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useAverageWaterSupplyPerRegionQuery).toHaveBeenCalledWith({
+      params: {
+        tenantId: 17,
+        parentDepartmentId: 701,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 701,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 701,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useOutageReasonsQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 701,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+  })
+
+  it('normalizes picker-style duration values before requesting departmental division analytics', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+      },
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 1,
+        selectedDepartmentState: '501:department-state',
+        selectedDepartmentZone: '601:department-zone',
+        selectedDepartmentCircle: '701:department-circle',
+        selectedDepartmentDivision: '801:department-division',
+        selectedDuration: {
+          startDate: '25/03/2026',
+          endDate: '26/03/2026',
+        },
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useAverageWaterSupplyPerRegionQuery).toHaveBeenCalledWith({
+      params: {
+        tenantId: 17,
+        parentDepartmentId: 801,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 801,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 801,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useOutageReasonsQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 801,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+  })
+
   it('uses departmental hierarchy labels for the overall performance first column', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -2403,6 +2604,91 @@ describe('CentralDashboard', () => {
       'Lower Assam Zone',
     ])
     expect(dashboardBodyProps.supplySubmissionRateLabel).toBe('Zones')
+  })
+
+  it('normalizes picker-style duration values before requesting departmental root analytics', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockImplementation((args: unknown) => {
+      const { parentId } = (args ?? {}) as { parentId?: number }
+
+      if (parentId === undefined) {
+        return {
+          data: {
+            data: [{ id: 501, title: 'Assam' }],
+          },
+        }
+      }
+
+      if (parentId === 501) {
+        return {
+          data: {
+            data: [{ id: 601, title: 'North Assam Zone' }],
+          },
+        }
+      }
+
+      return { data: undefined }
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 1,
+        selectedDuration: {
+          startDate: '25/03/2026',
+          endDate: '26/03/2026',
+        },
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useAverageWaterSupplyPerRegionQuery).toHaveBeenCalledWith({
+      params: {
+        tenantId: 17,
+        parentDepartmentId: 501,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 501,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 501,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useOutageReasonsQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 501,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
   })
 
   it('filters stray departmental rows from overall performance using the loaded child options', () => {
@@ -2644,6 +2930,66 @@ describe('CentralDashboard', () => {
 
     expect(dashboardBodyProps.selectedVillage).toBe('901:department-subdivision')
     expect(dashboardBodyProps.schemeId).toBe(1234)
+  })
+
+  it('normalizes picker-style duration values before requesting departmental subdivision analytics', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+      },
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 1,
+        selectedDepartmentState: '501:department-state',
+        selectedDepartmentZone: '601:department-zone',
+        selectedDepartmentCircle: '701:department-circle',
+        selectedDepartmentDivision: '801:department-division',
+        selectedDepartmentSubdivision: '901:department-subdivision',
+        selectedDuration: {
+          startDate: '25/03/2026',
+          endDate: '26/03/2026',
+        },
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useWaterQuantityPeriodicQuery).toHaveBeenCalledWith({
+      params: {
+        departmentId: 901,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+        scale: 'day',
+      },
+      enabled: true,
+    })
+    expect(useSchemeRegularityPeriodicQuery).toHaveBeenCalledWith({
+      params: {
+        departmentId: 901,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+        scale: 'day',
+      },
+      enabled: true,
+    })
+    expect(useSchemePerformanceQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 901,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+        schemeCount: 100,
+      },
+      enabled: true,
+    })
   })
 
   it('overrides active schemes chart data from scheme performance analytics when rows are available', () => {
