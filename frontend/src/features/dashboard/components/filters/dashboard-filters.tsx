@@ -34,6 +34,7 @@ type DashboardFiltersProps = {
   selectedVillage: string
   selectedScheme: string
   selectedDuration: DateRange | null
+  durationDateFormat?: string
   selectedDepartmentState: string
   selectedDepartmentZone: string
   selectedDepartmentCircle: string
@@ -149,6 +150,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     selectedVillage,
     activeTrailIndex,
     selectedDuration,
+    durationDateFormat,
     districtOptions,
     blockOptions,
     gramPanchayatOptions,
@@ -552,6 +554,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
           <DateRangePicker
             value={selectedDuration}
             onChange={setSelectedDuration}
+            dateFormat={durationDateFormat}
             placeholder={t('filters.duration', 'Duration')}
             width={isBelowLgFilters ? '32px' : '160px'}
             height="32px"

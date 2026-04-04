@@ -20,6 +20,7 @@ import { useReadingSubmissionRateQuery } from '../services/query/use-reading-sub
 import { useSchemeRegularityPeriodicQuery } from '../services/query/use-scheme-regularity-periodic-query'
 import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
+import { useTenantPublicConfigQuery } from '../services/query/use-tenant-public-config-query'
 import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
 import { useTenantBoundariesQuery } from '../services/query/use-tenant-boundaries-query'
 import { KPICard } from './kpi-card'
@@ -76,6 +77,11 @@ import {
   resolveWaterQuantityPeriodicScale,
 } from '../utils/quantity-periodic'
 import type { HierarchyType, TenantChildLocation } from '../services/api/dashboard-api'
+import {
+  DEFAULT_SCREEN_DATE_FORMAT,
+  normalizeDateFormat,
+  parseDisplayDateToIsoWithFallback,
+} from '@/shared/utils/date-format'
 
 const storageKey = 'central-dashboard-filters'
 
@@ -173,7 +179,7 @@ const parseAnalyticsLocationId = (
   return parseLocationId(value)
 }
 
-const toIsoDate = (date?: string | Date | null): string | undefined => {
+const toIsoDate = (date?: string | Date | null, dateFormat?: string): string | undefined => {
   if (typeof date === 'string') {
     const trimmedDate = date.trim()
     if (!trimmedDate) {
@@ -184,13 +190,7 @@ const toIsoDate = (date?: string | Date | null): string | undefined => {
       return trimmedDate
     }
 
-    const displayDateMatch = trimmedDate.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
-    if (displayDateMatch) {
-      const [, day, month, year] = displayDateMatch
-      return `${year}-${month}-${day}`
-    }
-
-    return undefined
+    return parseDisplayDateToIsoWithFallback(trimmedDate, dateFormat) || undefined
   }
 
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
@@ -228,8 +228,8 @@ const getStoredFilters = (): StoredFilters => {
   }
 }
 
-const parseStoredDateValue = (value: unknown) => {
-  const isoDate = toIsoDate(typeof value === 'string' ? value : undefined)
+const parseStoredDateValue = (value: unknown, dateFormat?: string) => {
+  const isoDate = toIsoDate(typeof value === 'string' ? value : undefined, dateFormat)
   if (!isoDate) {
     return null
   }
@@ -238,7 +238,10 @@ const parseStoredDateValue = (value: unknown) => {
   return Number.isNaN(date.getTime()) ? null : date
 }
 
-const getInitialStoredDuration = (storedFilters: StoredFilters): DateRange | null => {
+const getInitialStoredDuration = (
+  storedFilters: StoredFilters,
+  dateFormat?: string
+): DateRange | null => {
   const storedDuration = storedFilters.selectedDuration
   if (
     !storedDuration ||
@@ -249,8 +252,8 @@ const getInitialStoredDuration = (storedFilters: StoredFilters): DateRange | nul
     return null
   }
 
-  const startDate = parseStoredDateValue(storedDuration.startDate)
-  const endDate = parseStoredDateValue(storedDuration.endDate)
+  const startDate = parseStoredDateValue(storedDuration.startDate, dateFormat)
+  const endDate = parseStoredDateValue(storedDuration.endDate, dateFormat)
   if (!startDate || !endDate || startDate > endDate) {
     return null
   }
@@ -404,7 +407,6 @@ export function CentralDashboard() {
   const navigate = useNavigate()
   const { data } = useDashboardData('central')
   const [storedFilters] = useState(() => getStoredFilters())
-  const initialDuration = getInitialStoredDuration(storedFilters)
   const selectedState = stateSlug
   const selectedDistrict = selectedState ? (searchParams.get('district') ?? '') : ''
   const selectedBlock = selectedDistrict ? (searchParams.get('block') ?? '') : ''
@@ -422,7 +424,9 @@ export function CentralDashboard() {
     selectedDepartmentSubdivisionFromUrl ||
     selectedDepartmentVillageFromUrl
   )
-  const [selectedDuration, setSelectedDuration] = useState<DateRange | null>(initialDuration)
+  const [selectedDuration, setSelectedDuration] = useState<DateRange | null>(() =>
+    getInitialStoredDuration(storedFilters)
+  )
   const [selectedScheme, setSelectedScheme] = useState(storedFilters.selectedScheme ?? '')
   const [storedSelectedDepartmentState, setSelectedDepartmentState] = useState(
     storedFilters.selectedDepartmentState ?? ''
@@ -558,6 +562,20 @@ export function CentralDashboard() {
       .filter((tenantId): tenantId is number => typeof tenantId === 'number')
   )
   const selectedTenant = locationSearchData?.states.find((option) => option.value === selectedState)
+  const { data: tenantPublicConfig } = useTenantPublicConfigQuery({
+    tenantId: selectedTenant?.tenantId,
+    enabled: Boolean(selectedTenant?.tenantId),
+  })
+  const averagePersonsPerHousehold =
+    tenantPublicConfig?.averageMembersPerHousehold &&
+    tenantPublicConfig.averageMembersPerHousehold > 0
+      ? tenantPublicConfig.averageMembersPerHousehold
+      : 5
+  const durationDateFormat = normalizeDateFormat(
+    tenantPublicConfig?.dateFormatScreen.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
+  )
+  const effectiveSelectedDuration =
+    selectedDuration ?? getInitialStoredDuration(storedFilters, durationDateFormat)
   const { data: locationHierarchyData } = useLocationHierarchyQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
@@ -745,8 +763,12 @@ export function CentralDashboard() {
     hierarchyType === 'LGD' ? hasValidAnalyticsParentId : hasValidDepartmentAnalyticsParentId
   const defaultAnalyticsRange = getDefaultAnalyticsDateRange()
   const analyticsDateRange = {
-    startDate: toIsoDate(selectedDuration?.startDate) ?? defaultAnalyticsRange.startDate,
-    endDate: toIsoDate(selectedDuration?.endDate) ?? defaultAnalyticsRange.endDate,
+    startDate:
+      toIsoDate(effectiveSelectedDuration?.startDate, durationDateFormat) ??
+      defaultAnalyticsRange.startDate,
+    endDate:
+      toIsoDate(effectiveSelectedDuration?.endDate, durationDateFormat) ??
+      defaultAnalyticsRange.endDate,
   }
   const quantityPeriodicAnalyticsParams = !hasValidAnalyticsParentId
     ? null
@@ -1147,13 +1169,13 @@ export function CentralDashboard() {
     ? mapOverallPerformanceFromNationalDashboard(
         filteredNationalDashboardData,
         emptyEntityPerformance,
-        5
+        averagePersonsPerHousehold
       )
     : mapOverallPerformanceFromAnalytics(
         averageWaterSupplyData,
         averageSchemeRegularityData,
         emptyEntityPerformance,
-        5
+        averagePersonsPerHousehold
       )
   const expectedOverallPerformanceOptions = isDepartmentTabActive
     ? isDepartmentDivisionSelected
@@ -1269,20 +1291,29 @@ export function CentralDashboard() {
   const outageReasonsTimeTrendData =
     mapOutageReasonsPeriodicToTrendPoints(outageReasonsPeriodicData)
   const currentWaterSupplyKpis = isCentralLandingView
-    ? getWaterSupplyKpisFromNationalDashboard(filteredNationalDashboardData, 5)
+    ? getWaterSupplyKpisFromNationalDashboard(
+        filteredNationalDashboardData,
+        averagePersonsPerHousehold
+      )
     : isHierarchyLeafSelected
-      ? getWaterSupplyKpisFromPeriodic(waterQuantityPeriodicData, 5)
+      ? getWaterSupplyKpisFromPeriodic(waterQuantityPeriodicData, averagePersonsPerHousehold)
       : getWaterSupplyKpis(
           hasWaterSupplyData(currentWaterSupplyKpiData)
             ? currentWaterSupplyKpiData
             : averageWaterSupplyData,
-          5
+          averagePersonsPerHousehold
         )
   const previousWaterSupplyKpis = isCentralLandingView
-    ? getWaterSupplyKpisFromNationalDashboard(filteredPreviousNationalDashboardData, 5)
+    ? getWaterSupplyKpisFromNationalDashboard(
+        filteredPreviousNationalDashboardData,
+        averagePersonsPerHousehold
+      )
     : isHierarchyLeafSelected
-      ? getWaterSupplyKpisFromPeriodic(previousWaterQuantityPeriodicData, 5)
-      : getWaterSupplyKpis(previousWaterSupplyKpiData, 5)
+      ? getWaterSupplyKpisFromPeriodic(
+          previousWaterQuantityPeriodicData,
+          averagePersonsPerHousehold
+        )
+      : getWaterSupplyKpis(previousWaterSupplyKpiData, averagePersonsPerHousehold)
   const currentRegularityKpi = isCentralLandingView
     ? getRegularityKpiFromNationalDashboard(filteredNationalDashboardData)
     : isHierarchyLeafSelected
@@ -1524,7 +1555,7 @@ export function CentralDashboard() {
       selectedBlock,
       selectedGramPanchayat,
       selectedVillage,
-      selectedDuration,
+      selectedDuration: effectiveSelectedDuration,
       selectedScheme,
       selectedDepartmentState,
       selectedDepartmentZone,
@@ -1540,10 +1571,10 @@ export function CentralDashboard() {
       // Ignore storage errors (quota/private mode)
     }
   }, [
+    effectiveSelectedDuration,
     filterTabIndex,
     selectedBlock,
     selectedDistrict,
-    selectedDuration,
     selectedDepartmentCircle,
     selectedDepartmentDivision,
     selectedDepartmentState,
@@ -1789,7 +1820,8 @@ export function CentralDashboard() {
             P ={' '}
             {t('kpi.tooltips.quantityLpcd.definitions.averagePersonsPerHousehold', {
               defaultValue: 'average persons per household',
-            })}
+            })}{' '}
+            ({averagePersonsPerHousehold})
           </>,
           <>
             N ={' '}
@@ -1867,7 +1899,8 @@ export function CentralDashboard() {
         selectedGramPanchayat={selectedGramPanchayat}
         selectedVillage={selectedVillage}
         selectedScheme={selectedScheme}
-        selectedDuration={selectedDuration}
+        selectedDuration={effectiveSelectedDuration}
+        durationDateFormat={durationDateFormat}
         selectedDepartmentState={selectedDepartmentState}
         selectedDepartmentZone={selectedDepartmentZone}
         selectedDepartmentCircle={selectedDepartmentCircle}

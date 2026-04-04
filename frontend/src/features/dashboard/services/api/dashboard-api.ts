@@ -62,6 +62,17 @@ export type TenantListResponse = {
   totalElements?: number
 }
 
+export type TenantPublicDateFormatConfig = {
+  dateFormat: string | null
+  timeFormat: string | null
+  timezone: string | null
+}
+
+export type TenantPublicConfig = {
+  averageMembersPerHousehold: number
+  dateFormatScreen: TenantPublicDateFormatConfig
+}
+
 const TENANTS_PAGE_SIZE = 10
 const TENANTS_MAX_PAGES = 1000
 
@@ -84,6 +95,15 @@ type RawAverageWaterSupplyPerRegionPayload = {
 type WrappedAnalyticsResponse<T> = {
   success?: boolean
   data?: T
+}
+
+type ApiEnvelope<T> = {
+  data: T
+}
+
+type TenantPublicConfigMap = {
+  DATE_FORMAT_SCREEN?: TenantPublicDateFormatConfig
+  AVERAGE_MEMBERS_PER_HOUSEHOLD?: { value?: string | null }
 }
 
 type TenantBoundaryChildRegionAlias = {
@@ -490,6 +510,21 @@ export const dashboardApi = {
         childRegions: [],
       }
     )
+  },
+  getTenantPublicConfig: async (tenantId: number): Promise<TenantPublicConfig> => {
+    const response = await apiClient.get<ApiEnvelope<{ configs?: TenantPublicConfigMap }>>(
+      `/api/v1/tenants/${tenantId}/config/public`
+    )
+    const configs = response.data.data.configs
+
+    return {
+      averageMembersPerHousehold: Number(configs?.AVERAGE_MEMBERS_PER_HOUSEHOLD?.value) || 0,
+      dateFormatScreen: configs?.DATE_FORMAT_SCREEN ?? {
+        dateFormat: null,
+        timeFormat: null,
+        timezone: null,
+      },
+    }
   },
   getWaterQuantityPeriodic: async (
     params: WaterQuantityPeriodicQueryParams

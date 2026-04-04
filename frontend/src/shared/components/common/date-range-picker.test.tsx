@@ -60,4 +60,18 @@ describe('DateRangePicker', () => {
     expect((endDateInput as HTMLInputElement).value).toBe('01/03/2026')
     expect((screen.getByText('Apply').closest('button') as HTMLButtonElement).disabled).toBe(false)
   })
+
+  it('uses the provided date format for manual input', () => {
+    renderWithProviders(
+      <DateRangePicker value={null} onChange={jest.fn()} dateFormat="MM-DD-YYYY" />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Duration' }))
+
+    const [startDateInput, endDateInput] = screen.getAllByPlaceholderText('mm-dd-yyyy')
+    fireEvent.change(startDateInput, { target: { value: '02-28-2026' } })
+    fireEvent.change(endDateInput, { target: { value: '03-02-2026' } })
+
+    expect((endDateInput as HTMLInputElement).value).toBe('03-01-2026')
+  })
 })

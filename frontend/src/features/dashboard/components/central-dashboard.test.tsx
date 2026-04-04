@@ -20,6 +20,7 @@ import { useReadingSubmissionRateQuery } from '../services/query/use-reading-sub
 import { useSchemeRegularityPeriodicQuery } from '../services/query/use-scheme-regularity-periodic-query'
 import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
+import { useTenantPublicConfigQuery } from '../services/query/use-tenant-public-config-query'
 import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
 import { useTenantBoundariesQuery } from '../services/query/use-tenant-boundaries-query'
 import { getPreviousPeriodRange } from '../utils/formulas'
@@ -125,6 +126,10 @@ jest.mock('../services/query/use-submission-status-query', () => ({
   useSubmissionStatusQuery: jest.fn(),
 }))
 
+jest.mock('../services/query/use-tenant-public-config-query', () => ({
+  useTenantPublicConfigQuery: jest.fn(),
+}))
+
 jest.mock('../services/query/use-water-quantity-periodic-query', () => ({
   useWaterQuantityPeriodicQuery: jest.fn(),
 }))
@@ -228,6 +233,7 @@ describe('CentralDashboard', () => {
     ;(useSchemeRegularityPeriodicQuery as jest.Mock).mockReset()
     ;(useSchemePerformanceQuery as jest.Mock).mockReset()
     ;(useSubmissionStatusQuery as jest.Mock).mockReset()
+    ;(useTenantPublicConfigQuery as jest.Mock).mockReset()
     ;(useWaterQuantityPeriodicQuery as jest.Mock).mockReset()
     ;(useTenantBoundariesQuery as jest.Mock).mockReset()
     mockUseParams.mockReturnValue({})
@@ -254,6 +260,7 @@ describe('CentralDashboard', () => {
     })
     ;(useSchemePerformanceQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useSubmissionStatusQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useTenantPublicConfigQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useWaterQuantityPeriodicQuery as jest.Mock).mockReturnValue({
       data: undefined,
       isFetching: false,
@@ -299,6 +306,40 @@ describe('CentralDashboard', () => {
       },
       enabled: true,
     })
+  })
+
+  it('uses the selected tenant public config for duration format', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+      },
+    })
+    ;(useTenantPublicConfigQuery as jest.Mock).mockReturnValue({
+      data: {
+        averageMembersPerHousehold: 13,
+        dateFormatScreen: {
+          dateFormat: 'MM-DD-YYYY',
+          timeFormat: 'HH:mm',
+          timezone: 'Asia/Calcutta',
+        },
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useTenantPublicConfigQuery).toHaveBeenCalledWith({
+      tenantId: 17,
+      enabled: true,
+    })
+    expect(
+      getLatestDashboardFilterProps<{ durationDateFormat?: string }>().durationDateFormat
+    ).toBe('MM-DD-YYYY')
   })
 
   it('computes previous national dashboard analytics from the active selected duration', () => {

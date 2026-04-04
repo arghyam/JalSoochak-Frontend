@@ -16,6 +16,14 @@ import type { ResponsiveValue } from '@chakra-ui/react'
 import type { Property } from 'csstype'
 import { useTranslation } from 'react-i18next'
 import { CalendarIcon } from './calendar-icon'
+import {
+  DEFAULT_SCREEN_DATE_FORMAT,
+  formatIsoDateForDisplay,
+  getDateInputPlaceholder,
+  isValidDisplayDate,
+  normalizeDateFormat,
+  parseDisplayDateToIso,
+} from '@/shared/utils/date-format'
 
 export type DateRange = {
   startDate: string
@@ -46,6 +54,7 @@ type PopoverPlacement =
 export interface DateRangePickerProps {
   value: DateRange | null
   onChange: (value: DateRange | null) => void
+  dateFormat?: string
   placeholder?: string
   disabled?: boolean
   width?: ResponsiveValue<Property.Width>
@@ -69,35 +78,8 @@ const formatISODate = (date: Date) => {
   return `${year}-${month}-${day}`
 }
 
-const toDisplayValue = (value: string) => {
-  const [year, month, day] = value.split('-')
-  if (!year || !month || !day) return value
-  return `${day}/${month}/${year}`
-}
-
-const toShortDisplayValue = (value: string) => {
-  const [year, month, day] = value.split('-')
-  if (!year || !month || !day) return value
-  return `${day}/${month}/${year.slice(-2)}`
-}
-
-const toCompactDisplayRange = (startDate: string, endDate: string) =>
-  `${toShortDisplayValue(startDate)}-${toShortDisplayValue(endDate)}`
-
-const toIsoValue = (value: string) => {
-  const [day, month, year] = value.split('/')
-  if (!year || !month || !day) return ''
-  return `${year}-${month}-${day}`
-}
-
-const isValidDisplayDate = (value: string) => {
-  if (!/^\d{2}\/\d{2}\/\d{4}$/.test(value)) return false
-  const [day, month, year] = value.split('/').map((part) => Number(part))
-  if (!day || !month || !year) return false
-  if (month < 1 || month > 12) return false
-  const maxDay = new Date(year, month, 0).getDate()
-  return day >= 1 && day <= maxDay
-}
+const toCompactDisplayRange = (startDate: string, endDate: string, format: string) =>
+  `${formatIsoDateForDisplay(startDate, format, { shortYear: true })}-${formatIsoDateForDisplay(endDate, format, { shortYear: true })}`
 
 const startOfWeek = (date: Date) => {
   const day = date.getDay()
@@ -126,6 +108,7 @@ const clampIsoDateToMax = (value: string, max: string) => {
 export function DateRangePicker({
   value,
   onChange,
+  dateFormat = DEFAULT_SCREEN_DATE_FORMAT,
   placeholder = 'Duration',
   disabled = false,
   width = '162px',
@@ -142,6 +125,8 @@ export function DateRangePicker({
   popoverPlacement = 'bottom-start',
 }: DateRangePickerProps) {
   const { t } = useTranslation('dashboard')
+  const resolvedDateFormat = normalizeDateFormat(dateFormat)
+  const dateInputPlaceholder = getDateInputPlaceholder(resolvedDateFormat)
   const [isTinyPicker] = useMediaQuery('(max-width: 599px)')
   const todayIso = useMemo(() => formatISODate(new Date()), [])
   const [isOpen, setIsOpen] = useState(false)
@@ -151,8 +136,8 @@ export function DateRangePicker({
   const [draftIso, setDraftIso] = useState<{ startDate: string; endDate: string } | null>(
     value
       ? {
-          startDate: toIsoValue(value.startDate),
-          endDate: toIsoValue(value.endDate),
+          startDate: parseDisplayDateToIso(value.startDate, resolvedDateFormat),
+          endDate: parseDisplayDateToIso(value.endDate, resolvedDateFormat),
         }
       : null
   )
@@ -165,8 +150,8 @@ export function DateRangePicker({
     setDraftIso(
       nextValue
         ? {
-            startDate: toIsoValue(nextValue.startDate),
-            endDate: toIsoValue(nextValue.endDate),
+            startDate: parseDisplayDateToIso(nextValue.startDate, resolvedDateFormat),
+            endDate: parseDisplayDateToIso(nextValue.endDate, resolvedDateFormat),
           }
         : null
     )
@@ -238,7 +223,12 @@ export function DateRangePicker({
   )
 
   const displayLabel = value
-    ? value.preset || toCompactDisplayRange(toIsoValue(value.startDate), toIsoValue(value.endDate))
+    ? value.preset ||
+      toCompactDisplayRange(
+        parseDisplayDateToIso(value.startDate, resolvedDateFormat),
+        parseDisplayDateToIso(value.endDate, resolvedDateFormat),
+        resolvedDateFormat
+      )
     : placeholder
 
   const displayColor = isFilter
@@ -290,8 +280,8 @@ export function DateRangePicker({
     const range = preset.getRange(new Date())
     const clampedEndDate = clampIsoDateToMax(range.endDate, todayIso)
     setDraft({
-      startDate: toDisplayValue(range.startDate),
-      endDate: toDisplayValue(clampedEndDate),
+      startDate: formatIsoDateForDisplay(range.startDate, resolvedDateFormat),
+      endDate: formatIsoDateForDisplay(clampedEndDate, resolvedDateFormat),
       preset: preset.label,
     })
     setDraftIso({ startDate: range.startDate, endDate: clampedEndDate })
@@ -299,20 +289,28 @@ export function DateRangePicker({
 
   const handleApply = () => {
     if (!draft?.startDate || !draft?.endDate) return
-    if (!isValidDisplayDate(draft.startDate) || !isValidDisplayDate(draft.endDate)) return
-    const start = toIsoValue(draft.startDate)
-    const end = clampIsoDateToMax(toIsoValue(draft.endDate), todayIso)
+    if (
+      !isValidDisplayDate(draft.startDate, resolvedDateFormat) ||
+      !isValidDisplayDate(draft.endDate, resolvedDateFormat)
+    ) {
+      return
+    }
+    const start = parseDisplayDateToIso(draft.startDate, resolvedDateFormat)
+    const end = clampIsoDateToMax(
+      parseDisplayDateToIso(draft.endDate, resolvedDateFormat),
+      todayIso
+    )
     if (!start || !end) return
     if (start > end) {
       onChange({
-        startDate: toDisplayValue(end),
-        endDate: toDisplayValue(start),
+        startDate: formatIsoDateForDisplay(end, resolvedDateFormat),
+        endDate: formatIsoDateForDisplay(start, resolvedDateFormat),
         preset: draft?.preset,
       })
     } else {
       onChange({
-        startDate: toDisplayValue(start),
-        endDate: toDisplayValue(end),
+        startDate: formatIsoDateForDisplay(start, resolvedDateFormat),
+        endDate: formatIsoDateForDisplay(end, resolvedDateFormat),
         preset: draft?.preset,
       })
     }
@@ -328,10 +326,11 @@ export function DateRangePicker({
   const isApplyDisabled =
     !draft?.startDate ||
     !draft?.endDate ||
-    !isValidDisplayDate(draft.startDate) ||
-    !isValidDisplayDate(draft.endDate) ||
-    toIsoValue(draft.endDate) > todayIso ||
-    toIsoValue(draft.endDate) < toIsoValue(draft.startDate)
+    !isValidDisplayDate(draft.startDate, resolvedDateFormat) ||
+    !isValidDisplayDate(draft.endDate, resolvedDateFormat) ||
+    parseDisplayDateToIso(draft.endDate, resolvedDateFormat) > todayIso ||
+    parseDisplayDateToIso(draft.endDate, resolvedDateFormat) <
+      parseDisplayDateToIso(draft.startDate, resolvedDateFormat)
 
   const openPicker = (ref: React.RefObject<HTMLInputElement | null>) => {
     if (!ref.current) return
@@ -444,7 +443,7 @@ export function DateRangePicker({
                   <Box position="relative">
                     <Input
                       type="text"
-                      placeholder={t('filters.dateRangePicker.dateInputPlaceholder', 'dd/mm/yyyy')}
+                      placeholder={dateInputPlaceholder}
                       value={draft?.startDate ?? ''}
                       onFocus={() => openPicker(startDateInputRef)}
                       onChange={(event) => {
@@ -452,9 +451,10 @@ export function DateRangePicker({
                         setDraft((current) => {
                           const currentEnd = current?.endDate ?? ''
                           const shouldAdjustEnd =
-                            isValidDisplayDate(nextValue) &&
-                            isValidDisplayDate(currentEnd) &&
-                            toIsoValue(currentEnd) < toIsoValue(nextValue)
+                            isValidDisplayDate(nextValue, resolvedDateFormat) &&
+                            isValidDisplayDate(currentEnd, resolvedDateFormat) &&
+                            parseDisplayDateToIso(currentEnd, resolvedDateFormat) <
+                              parseDisplayDateToIso(nextValue, resolvedDateFormat)
                           return {
                             startDate: nextValue,
                             endDate: shouldAdjustEnd ? nextValue : currentEnd,
@@ -463,10 +463,10 @@ export function DateRangePicker({
                         })
                         setDraftIso((current) => {
                           const currentEnd = current?.endDate ?? ''
-                          if (!isValidDisplayDate(nextValue)) {
+                          if (!isValidDisplayDate(nextValue, resolvedDateFormat)) {
                             return { startDate: '', endDate: currentEnd }
                           }
-                          const nextStart = toIsoValue(nextValue)
+                          const nextStart = parseDisplayDateToIso(nextValue, resolvedDateFormat)
                           const shouldAdjustEnd = currentEnd && currentEnd < nextStart
                           return {
                             startDate: nextStart,
@@ -498,11 +498,12 @@ export function DateRangePicker({
                         setDraft((current) => {
                           const currentEnd = current?.endDate ?? ''
                           const nextEnd =
-                            currentEnd && toIsoValue(currentEnd) < nextValue
-                              ? toDisplayValue(nextValue)
+                            currentEnd &&
+                            parseDisplayDateToIso(currentEnd, resolvedDateFormat) < nextValue
+                              ? formatIsoDateForDisplay(nextValue, resolvedDateFormat)
                               : currentEnd
                           return {
-                            startDate: toDisplayValue(nextValue),
+                            startDate: formatIsoDateForDisplay(nextValue, resolvedDateFormat),
                             endDate: nextEnd,
                             preset: undefined,
                           }
@@ -525,7 +526,7 @@ export function DateRangePicker({
                   <Box position="relative">
                     <Input
                       type="text"
-                      placeholder={t('filters.dateRangePicker.dateInputPlaceholder', 'dd/mm/yyyy')}
+                      placeholder={dateInputPlaceholder}
                       value={draft?.endDate ?? ''}
                       onFocus={() => openPicker(endDateInputRef)}
                       onChange={(event) => {
@@ -533,15 +534,19 @@ export function DateRangePicker({
                         setDraft((current) => ({
                           startDate: current?.startDate ?? '',
                           endDate:
-                            isValidDisplayDate(nextValue) && toIsoValue(nextValue) > todayIso
-                              ? toDisplayValue(todayIso)
+                            isValidDisplayDate(nextValue, resolvedDateFormat) &&
+                            parseDisplayDateToIso(nextValue, resolvedDateFormat) > todayIso
+                              ? formatIsoDateForDisplay(todayIso, resolvedDateFormat)
                               : nextValue,
                           preset: undefined,
                         }))
                         setDraftIso((current) => ({
                           startDate: current?.startDate ?? '',
-                          endDate: isValidDisplayDate(nextValue)
-                            ? clampIsoDateToMax(toIsoValue(nextValue), todayIso)
+                          endDate: isValidDisplayDate(nextValue, resolvedDateFormat)
+                            ? clampIsoDateToMax(
+                                parseDisplayDateToIso(nextValue, resolvedDateFormat),
+                                todayIso
+                              )
                             : '',
                         }))
                       }}
@@ -565,7 +570,7 @@ export function DateRangePicker({
                         }))
                         setDraft((current) => ({
                           startDate: current?.startDate ?? '',
-                          endDate: toDisplayValue(nextValue),
+                          endDate: formatIsoDateForDisplay(nextValue, resolvedDateFormat),
                           preset: undefined,
                         }))
                       }}
