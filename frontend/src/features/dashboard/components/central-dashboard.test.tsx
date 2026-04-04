@@ -414,7 +414,7 @@ describe('CentralDashboard', () => {
     expect(useAverageWaterSupplyPerRegionQuery).toHaveBeenCalledWith({
       params: {
         tenantId: 16,
-        parentLgdId: 110,
+        parentLgdId: 10,
         scope: 'child',
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -423,7 +423,7 @@ describe('CentralDashboard', () => {
     })
     expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
       params: {
-        parentLgdId: 110,
+        parentLgdId: 10,
         scope: 'child',
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -432,7 +432,7 @@ describe('CentralDashboard', () => {
     })
     expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
       params: {
-        parentLgdId: 110,
+        parentLgdId: 10,
         scope: 'child',
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -441,7 +441,7 @@ describe('CentralDashboard', () => {
     })
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
-        parentLgdId: 110,
+        parentLgdId: 10,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
       },
@@ -484,7 +484,7 @@ describe('CentralDashboard', () => {
     expect(useAverageWaterSupplyPerRegionQuery).toHaveBeenCalledWith({
       params: {
         tenantId: 18,
-        parentLgdId: 101,
+        parentLgdId: 1,
         scope: 'child',
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -493,7 +493,7 @@ describe('CentralDashboard', () => {
     })
     expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
       params: {
-        parentLgdId: 101,
+        parentLgdId: 1,
         scope: 'child',
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -502,7 +502,7 @@ describe('CentralDashboard', () => {
     })
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
-        parentLgdId: 101,
+        parentLgdId: 1,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
       },
@@ -894,6 +894,55 @@ describe('CentralDashboard', () => {
     })
   })
 
+  it('falls back to the state LGD code when root locations already contain districts', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 18, tenantCode: 'AS' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockImplementation((args?: unknown) => {
+      const parentId = (args as { parentId?: number } | undefined)?.parentId
+
+      if (typeof parentId === 'number') {
+        return { data: undefined }
+      }
+
+      return {
+        data: {
+          data: [
+            { id: 181, title: 'Bajali' },
+            { id: 182, title: 'Baksa' },
+          ],
+        },
+      }
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
+      params: expect.objectContaining({
+        parentLgdId: 18,
+        scope: 'child',
+      }),
+      enabled: true,
+    })
+    expect(useAverageWaterSupplyPerRegionQuery).toHaveBeenCalledWith({
+      params: expect.objectContaining({
+        tenantId: 18,
+        parentLgdId: 18,
+        scope: 'child',
+      }),
+      enabled: true,
+    })
+  })
+
   it('maps national dashboard analytics into central charts and overall performance table', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -1148,7 +1197,7 @@ describe('CentralDashboard', () => {
 
     expect(useWaterQuantityPeriodicQuery).toHaveBeenCalledWith({
       params: {
-        lgdId: 36,
+        lgdId: 10,
         startDate: selectedDuration.startDate,
         endDate: selectedDuration.endDate,
         scale: 'day',
@@ -2129,6 +2178,121 @@ describe('CentralDashboard', () => {
     }
 
     expect(tableProps.data.map((row) => row.name)).toEqual(['Bajali', 'Baksa'])
+  })
+
+  it('keeps Overall Performance rows when child ids match even if analytics titles differ', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 18, tenantCode: 'AS' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockImplementation((args?: unknown) => {
+      const parentId = (args as { parentId?: number } | undefined)?.parentId
+
+      if (parentId === 18) {
+        return {
+          data: {
+            data: [
+              { id: 181, title: 'Bajali' },
+              { id: 182, title: 'Baksa' },
+            ],
+          },
+        }
+      }
+
+      if (typeof parentId === 'number') {
+        return { data: undefined }
+      }
+
+      return {
+        data: {
+          data: [{ id: 18, title: 'Assam' }],
+        },
+      }
+    })
+    ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({
+      data: {
+        tenantId: 18,
+        stateCode: 'AS',
+        parentLgdLevel: 1,
+        parentDepartmentLevel: 0,
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        schemeCount: 2,
+        childRegionCount: 2,
+        schemes: [],
+        childRegions: [
+          {
+            lgdId: 181,
+            departmentId: 0,
+            title: 'Bajali District',
+            totalWaterSuppliedLiters: 90_000_000,
+            totalAchievedFhtcCount: 1000,
+            schemeCount: 2,
+            avgWaterSupplyPerScheme: 0,
+          },
+          {
+            lgdId: 182,
+            departmentId: 0,
+            title: 'District Baksa',
+            totalWaterSuppliedLiters: 80_000_000,
+            totalAchievedFhtcCount: 900,
+            schemeCount: 2,
+            avgWaterSupplyPerScheme: 0,
+          },
+        ],
+      },
+    })
+    ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({
+      data: {
+        lgdId: 18,
+        parentDepartmentId: 0,
+        parentLgdLevel: 1,
+        parentDepartmentLevel: 0,
+        scope: 'child',
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        schemeCount: 2,
+        totalSupplyDays: 30,
+        averageRegularity: 0,
+        childRegionCount: 2,
+        childRegions: [
+          {
+            lgdId: 181,
+            departmentId: 0,
+            title: 'Bajali District',
+            schemeCount: 2,
+            totalSupplyDays: 30,
+            averageRegularity: 0,
+          },
+          {
+            lgdId: 182,
+            departmentId: 0,
+            title: 'District Baksa',
+            schemeCount: 2,
+            totalSupplyDays: 30,
+            averageRegularity: 0,
+          },
+        ],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const tableProps = mockOverallPerformanceTable.mock.calls.at(-1)?.[0] as {
+      data: Array<{ name: string }>
+    }
+
+    expect(tableProps.data.map((row) => row.name)).toEqual(['Bajali District', 'District Baksa'])
   })
 
   it('overrides reading submission status from analytics when a filtered view is open', () => {
@@ -4011,7 +4175,7 @@ describe('CentralDashboard', () => {
         (call) =>
           call?.enabled === true &&
           call?.params?.tenantId === 16 &&
-          call?.params?.parentLgdId === 36 &&
+          call?.params?.parentLgdId === 10 &&
           call?.params?.scope === 'child'
       ).length
     ).toBeGreaterThanOrEqual(1)
@@ -4020,7 +4184,7 @@ describe('CentralDashboard', () => {
         (call) =>
           call?.enabled === true &&
           call?.params?.tenantId === 16 &&
-          call?.params?.parentLgdId === 36 &&
+          call?.params?.parentLgdId === 10 &&
           call?.params?.scope === 'current'
       ).length
     ).toBe(0)
@@ -4725,7 +4889,7 @@ describe('CentralDashboard', () => {
     expect(useTenantBoundariesQuery).toHaveBeenLastCalledWith({
       params: {
         tenantId: 17,
-        parentLgdId: 18,
+        parentLgdId: 101,
         startDate: expect.any(String),
         endDate: expect.any(String),
       },
@@ -4739,7 +4903,7 @@ describe('CentralDashboard', () => {
       onStateClick?: unknown
     }>()
 
-    expect(mapProps.mapName).toBe('tenant-boundary-lgd-18')
+    expect(mapProps.mapName).toBe('tenant-boundary-lgd-101')
     expect(mapProps.fallbackToIndiaMap).toBe(false)
     expect(mapProps.onStateClick).toBeUndefined()
     expect(mapProps.data).toEqual([
@@ -4762,7 +4926,7 @@ describe('CentralDashboard', () => {
     ])
   })
 
-  it('falls back to the tenant state LGD code when the root location response omits lgdCode', () => {
+  it('uses the resolved root location id when the root location response omits lgdCode', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
@@ -4797,7 +4961,7 @@ describe('CentralDashboard', () => {
     expect(useAverageWaterSupplyPerRegionQuery).toHaveBeenCalledWith({
       params: {
         tenantId: 17,
-        parentLgdId: 18,
+        parentLgdId: 1,
         scope: 'child',
         startDate: expect.any(String),
         endDate: expect.any(String),

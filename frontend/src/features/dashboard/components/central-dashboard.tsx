@@ -674,10 +674,10 @@ export function CentralDashboard() {
   const selectedStateLgdCode = getStateLgdCode(selectedTenant?.label, selectedTenant?.tenantCode)
   const selectedRootAnalyticsId =
     selectedRootOption === undefined
-      ? undefined
-      : selectedRootOption.analyticsId !== selectedRootOption.locationId
-        ? selectedRootOption.analyticsId
-        : (selectedStateLgdCode ?? selectedRootOption.analyticsId)
+      ? activeHierarchySelectedState && rootLocationOptions.length > 0
+        ? selectedStateLgdCode
+        : undefined
+      : (selectedRootOption.locationId ?? selectedStateLgdCode ?? selectedRootOption.analyticsId)
   const isRootStateLevel = Boolean(activeHierarchySelectedState) && Boolean(selectedRootOption)
   const districtParentId =
     isRootStateLevel && isDepartmentTabActive
@@ -1218,6 +1218,26 @@ export function CentralDashboard() {
           : isHierarchyStateSelected
             ? districtApiOptions
             : emptyOptions
+  const tenantBoundaryOverallPerformanceIds = new Set(
+    (tenantBoundaryData?.childRegions ?? []).flatMap((region) => {
+      const childIds = [region.childLgdId, region.childDepartmentId]
+      return childIds.flatMap((id) =>
+        typeof id === 'number' && id > 0 ? [String(id)] : ([] as string[])
+      )
+    })
+  )
+  const expectedOverallPerformanceIds = new Set(
+    [
+      ...expectedOverallPerformanceOptions.flatMap((option) => {
+        const locationOption = option as LocationOption
+        const optionIds = [locationOption.locationId, locationOption.analyticsId]
+        return optionIds.flatMap((id) =>
+          typeof id === 'number' && id > 0 ? [String(id)] : ([] as string[])
+        )
+      }),
+      ...tenantBoundaryOverallPerformanceIds,
+    ].filter(Boolean)
+  )
   const tenantBoundaryOverallPerformanceNames = new Set(
     (tenantBoundaryData?.childRegions ?? [])
       .map((region) => region.childLgdTitle ?? region.childDepartmentTitle ?? '')
@@ -1241,10 +1261,14 @@ export function CentralDashboard() {
       isHierarchyThirdLevelSelected ||
       isHierarchyFourthLevelSelected
   const overallPerformanceTableData =
-    expectedOverallPerformanceNames.size > 0
-      ? rawOverallPerformanceTableData.filter((row) =>
-          expectedOverallPerformanceNames.has(slugify(row.name))
-        )
+    expectedOverallPerformanceIds.size > 0 || expectedOverallPerformanceNames.size > 0
+      ? rawOverallPerformanceTableData.filter((row) => {
+          const normalizedRowId = row.id?.trim()
+          return (
+            (normalizedRowId ? expectedOverallPerformanceIds.has(normalizedRowId) : false) ||
+            expectedOverallPerformanceNames.has(slugify(row.name))
+          )
+        })
       : shouldRequireOverallPerformanceChildOptions
         ? emptyEntityPerformance
         : rawOverallPerformanceTableData
