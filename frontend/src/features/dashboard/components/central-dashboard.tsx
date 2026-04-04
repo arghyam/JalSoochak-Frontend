@@ -175,7 +175,22 @@ const parseAnalyticsLocationId = (
 
 const toIsoDate = (date?: string | Date | null): string | undefined => {
   if (typeof date === 'string') {
-    return date || undefined
+    const trimmedDate = date.trim()
+    if (!trimmedDate) {
+      return undefined
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmedDate)) {
+      return trimmedDate
+    }
+
+    const displayDateMatch = trimmedDate.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+    if (displayDateMatch) {
+      const [, day, month, year] = displayDateMatch
+      return `${year}-${month}-${day}`
+    }
+
+    return undefined
   }
 
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
@@ -214,11 +229,12 @@ const getStoredFilters = (): StoredFilters => {
 }
 
 const parseStoredDateValue = (value: unknown) => {
-  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+  const isoDate = toIsoDate(typeof value === 'string' ? value : undefined)
+  if (!isoDate) {
     return null
   }
 
-  const date = new Date(`${value}T00:00:00`)
+  const date = new Date(`${isoDate}T00:00:00`)
   return Number.isNaN(date.getTime()) ? null : date
 }
 

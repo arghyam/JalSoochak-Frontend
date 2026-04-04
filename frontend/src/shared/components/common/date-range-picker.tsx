@@ -288,12 +288,13 @@ export function DateRangePicker({
 
   const handlePreset = (preset: PresetDefinition) => {
     const range = preset.getRange(new Date())
+    const clampedEndDate = clampIsoDateToMax(range.endDate, todayIso)
     setDraft({
       startDate: toDisplayValue(range.startDate),
-      endDate: toDisplayValue(range.endDate),
+      endDate: toDisplayValue(clampedEndDate),
       preset: preset.label,
     })
-    setDraftIso({ startDate: range.startDate, endDate: range.endDate })
+    setDraftIso({ startDate: range.startDate, endDate: clampedEndDate })
   }
 
   const handleApply = () => {

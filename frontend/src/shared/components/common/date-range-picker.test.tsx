@@ -34,4 +34,30 @@ describe('DateRangePicker', () => {
 
     expect(endDateNativeInput?.getAttribute('max')).toBe('2026-03-01')
   })
+
+  it('keeps this week preset applyable by clamping the end date to today', () => {
+    renderWithProviders(<DateRangePicker value={null} onChange={jest.fn()} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Duration' }))
+    fireEvent.click(screen.getByText('This week'))
+
+    const [startDateInput, endDateInput] = screen.getAllByPlaceholderText('dd/mm/yyyy')
+
+    expect((startDateInput as HTMLInputElement).value).toBe('23/02/2026')
+    expect((endDateInput as HTMLInputElement).value).toBe('01/03/2026')
+    expect((screen.getByText('Apply').closest('button') as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  it('keeps this month preset applyable by clamping the end date to today', () => {
+    renderWithProviders(<DateRangePicker value={null} onChange={jest.fn()} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Duration' }))
+    fireEvent.click(screen.getByText('This month'))
+
+    const [startDateInput, endDateInput] = screen.getAllByPlaceholderText('dd/mm/yyyy')
+
+    expect((startDateInput as HTMLInputElement).value).toBe('01/03/2026')
+    expect((endDateInput as HTMLInputElement).value).toBe('01/03/2026')
+    expect((screen.getByText('Apply').closest('button') as HTMLButtonElement).disabled).toBe(false)
+  })
 })
