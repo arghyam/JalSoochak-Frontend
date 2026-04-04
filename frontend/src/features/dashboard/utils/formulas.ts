@@ -781,6 +781,10 @@ export const mapOutageReasonsFromNationalDashboard = (
     return []
   }
 
+  if (Object.keys(response.overallOutageReasonDistribution).length === 0) {
+    return []
+  }
+
   const distribution = response.overallOutageReasonDistribution
   const mappedData: WaterSupplyOutageData = {
     label: 'Outages',

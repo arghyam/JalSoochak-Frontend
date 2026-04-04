@@ -399,17 +399,30 @@ const filterNationalDashboardByTenantIds = (
     return response
   }
 
+  const stateWiseQuantityPerformance = response.stateWiseQuantityPerformance.filter((state) =>
+    activeTenantIds.has(state.tenantId)
+  )
+  const stateWiseRegularity = response.stateWiseRegularity.filter((state) =>
+    activeTenantIds.has(state.tenantId)
+  )
+  const stateWiseReadingSubmissionRate = response.stateWiseReadingSubmissionRate.filter((state) =>
+    activeTenantIds.has(state.tenantId)
+  )
+  const hasFilteredInactiveTenants =
+    stateWiseQuantityPerformance.length !== response.stateWiseQuantityPerformance.length ||
+    stateWiseRegularity.length !== response.stateWiseRegularity.length ||
+    stateWiseReadingSubmissionRate.length !== response.stateWiseReadingSubmissionRate.length
+
   return {
     ...response,
-    stateWiseQuantityPerformance: response.stateWiseQuantityPerformance.filter((state) =>
-      activeTenantIds.has(state.tenantId)
-    ),
-    stateWiseRegularity: response.stateWiseRegularity.filter((state) =>
-      activeTenantIds.has(state.tenantId)
-    ),
-    stateWiseReadingSubmissionRate: response.stateWiseReadingSubmissionRate.filter((state) =>
-      activeTenantIds.has(state.tenantId)
-    ),
+    stateWiseQuantityPerformance,
+    stateWiseRegularity,
+    stateWiseReadingSubmissionRate,
+    // The national payload does not include tenant-scoped outage breakdowns, so once
+    // tenant filtering excludes any rows the aggregate can no longer be trusted.
+    overallOutageReasonDistribution: hasFilteredInactiveTenants
+      ? {}
+      : response.overallOutageReasonDistribution,
   }
 }
 
@@ -571,11 +584,13 @@ export function CentralDashboard() {
   const gramPanchayatTableData = emptyEntityPerformance
   const villageTableData = emptyEntityPerformance
   const { data: locationSearchData } = useLocationSearchQuery()
-  const activeTenantIds = new Set(
-    (locationSearchData?.states ?? [])
-      .map((option) => option.tenantId)
-      .filter((tenantId): tenantId is number => typeof tenantId === 'number')
-  )
+  const locationSearchStates = locationSearchData?.states ?? []
+  const hasCompleteTenantIds =
+    locationSearchStates.length > 0 &&
+    locationSearchStates.every((option) => typeof option.tenantId === 'number')
+  const activeTenantIds = hasCompleteTenantIds
+    ? new Set(locationSearchStates.map((option) => option.tenantId as number))
+    : new Set<number>()
   const selectedTenant = locationSearchData?.states.find((option) => option.value === selectedState)
   const { data: tenantPublicConfig } = useTenantPublicConfigQuery({
     tenantId: selectedTenant?.tenantId,

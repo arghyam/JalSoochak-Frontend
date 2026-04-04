@@ -1103,15 +1103,7 @@ describe('CentralDashboard', () => {
         regularity: 50,
       })
     )
-    expect(dashboardBodyProps.waterSupplyOutagesData).toEqual([
-      expect.objectContaining({
-        electricityFailure: 7,
-        pipelineLeak: 5,
-        pumpFailure: 3,
-        valveIssue: 2,
-        sourceDrying: 1,
-      }),
-    ])
+    expect(dashboardBodyProps.waterSupplyOutagesData).toEqual([])
     expect(overallPerformanceProps.data[0]).toEqual(
       expect.objectContaining({
         name: 'Karnataka',
@@ -1130,6 +1122,123 @@ describe('CentralDashboard', () => {
       dashboardBodyProps.supplySubmissionRateData.some((row) => row.name === 'Inactive State')
     ).toBe(false)
     expect(overallPerformanceProps.data.some((row) => row.name === 'Inactive State')).toBe(false)
+  })
+
+  it('does not filter national dashboard rows when location search states omit tenant ids', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 2,
+        states: [
+          { value: 'karnataka', label: 'Karnataka', tenantId: 1, tenantCode: 'KA' },
+          { value: 'maharashtra', label: 'Maharashtra', tenantCode: 'MH' },
+        ],
+      },
+    })
+    ;(useNationalDashboardQuery as jest.Mock).mockReturnValue({
+      data: {
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        stateWiseQuantityPerformance: [
+          {
+            tenantId: 1,
+            stateCode: 'KA',
+            stateTitle: 'Karnataka',
+            schemeCount: 2,
+            totalHouseholdCount: 1000,
+            totalFhtcCount: 500,
+            totalWaterSuppliedLiters: 90_000_000,
+            avgWaterSupplyPerScheme: 0,
+          },
+          {
+            tenantId: 2,
+            stateCode: 'MH',
+            stateTitle: 'Maharashtra',
+            schemeCount: 2,
+            totalHouseholdCount: 1000,
+            totalFhtcCount: 500,
+            totalWaterSuppliedLiters: 60_000_000,
+            avgWaterSupplyPerScheme: 0,
+          },
+        ],
+        stateWiseRegularity: [
+          {
+            tenantId: 1,
+            stateCode: 'KA',
+            stateTitle: 'Karnataka',
+            schemeCount: 3,
+            totalSupplyDays: 45,
+            averageRegularity: 0.5,
+          },
+          {
+            tenantId: 2,
+            stateCode: 'MH',
+            stateTitle: 'Maharashtra',
+            schemeCount: 3,
+            totalSupplyDays: 54,
+            averageRegularity: 0.6,
+          },
+        ],
+        stateWiseReadingSubmissionRate: [
+          {
+            tenantId: 1,
+            stateCode: 'KA',
+            stateTitle: 'Karnataka',
+            schemeCount: 4,
+            totalSubmissionDays: 60,
+            readingSubmissionRate: 0.5,
+          },
+          {
+            tenantId: 2,
+            stateCode: 'MH',
+            stateTitle: 'Maharashtra',
+            schemeCount: 4,
+            totalSubmissionDays: 72,
+            readingSubmissionRate: 0.6,
+          },
+        ],
+        overallOutageReasonDistribution: {},
+      },
+    })
+    ;(useNationalSchemeRegularityPeriodicQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isFetching: false,
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{
+      quantityPerformanceData: Array<{ name: string }>
+      regularityPerformanceData: Array<{ name: string }>
+      supplySubmissionRateData: Array<{ name: string }>
+    }>()
+    const overallPerformanceProps = (mockOverallPerformanceTable.mock.calls as unknown[][]).slice(
+      -1
+    )[0]?.[0] as {
+      data: Array<{ name: string }>
+    }
+
+    expect(dashboardBodyProps.quantityPerformanceData.map((row) => row.name)).toEqual([
+      'Karnataka',
+      'Maharashtra',
+    ])
+    expect(dashboardBodyProps.regularityPerformanceData.map((row) => row.name)).toEqual([
+      'Karnataka',
+      'Maharashtra',
+    ])
+    expect(dashboardBodyProps.supplySubmissionRateData.map((row) => row.name)).toEqual([
+      'Karnataka',
+      'Maharashtra',
+    ])
+    expect(overallPerformanceProps.data.map((row) => row.name)).toEqual([
+      'Karnataka',
+      'Maharashtra',
+    ])
   })
 
   it('calls useWaterQuantityPeriodicQuery with the resolved params and passes mapped quantity trend data to dashboard body', () => {
