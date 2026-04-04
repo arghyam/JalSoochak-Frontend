@@ -436,6 +436,7 @@ describe('DashboardFilters', () => {
           selectedDepartmentDivision={selectedDepartmentDivision}
           selectedDepartmentSubdivision={selectedDepartmentSubdivision}
           selectedDepartmentVillage=""
+          activeTrailIndex={0}
           districtOptions={emptyOptions}
           blockOptions={emptyOptions}
           gramPanchayatOptions={emptyOptions}
@@ -475,6 +476,121 @@ describe('DashboardFilters', () => {
 
     expect(screen.getByText(/Zones/)).toBeTruthy()
     expect(screen.queryByText(/Circles/)).toBeNull()
+  })
+
+  it('uses departmental subdivision selection for the leaf level', () => {
+    mockUseLocationSearchQuery.mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam' }],
+      },
+    })
+    mockUseLocationHierarchyQuery.mockReturnValue({
+      data: {
+        data: {
+          hierarchyType: 'department',
+          levels: [
+            { level: 1, levelName: [{ title: 'State' }] },
+            { level: 2, levelName: [{ title: 'Zone' }] },
+            { level: 3, levelName: [{ title: 'Circle' }] },
+            { level: 4, levelName: [{ title: 'Division' }] },
+            { level: 5, levelName: [{ title: 'Sub Division' }] },
+          ],
+        },
+      },
+    })
+    mockUseLocationChildrenQuery.mockImplementation((args?: unknown) => {
+      const options = args as { parentId?: number } | undefined
+      if (options?.parentId === 201) {
+        return {
+          data: {
+            data: [{ id: 301, title: 'Guwahati Circle' }],
+          },
+        }
+      }
+
+      if (options?.parentId === 301) {
+        return {
+          data: {
+            data: [{ id: 401, title: 'Nagaon Division' }],
+          },
+        }
+      }
+
+      if (options?.parentId === 401) {
+        return {
+          data: {
+            data: [{ id: 501, title: 'Hojai Sub Division' }],
+          },
+        }
+      }
+
+      if (options?.parentId === undefined) {
+        return {
+          data: {
+            data: [{ id: 201, title: 'North Zone' }],
+          },
+        }
+      }
+
+      return { data: undefined }
+    })
+
+    const handleDepartmentSubdivisionChange = jest.fn()
+
+    renderWithProviders(
+      <DashboardFilters
+        filterTabIndex={1}
+        onTabChange={jest.fn()}
+        onClear={jest.fn()}
+        isAdvancedEnabled={true}
+        isDepartmentStateSelected={true}
+        emptyOptions={emptyOptions}
+        selectedState="assam"
+        selectedDistrict=""
+        selectedBlock=""
+        selectedGramPanchayat=""
+        selectedVillage=""
+        selectedScheme=""
+        selectedDuration={null}
+        selectedDepartmentState="assam"
+        selectedDepartmentZone="201:201:north-zone"
+        selectedDepartmentCircle="301:301:guwahati-circle"
+        selectedDepartmentDivision="401:401:nagaon-division"
+        selectedDepartmentSubdivision=""
+        selectedDepartmentVillage=""
+        districtOptions={emptyOptions}
+        blockOptions={emptyOptions}
+        gramPanchayatOptions={emptyOptions}
+        villageOptions={emptyOptions}
+        mockFilterStates={[{ value: 'assam', label: 'Assam' }]}
+        mockFilterSchemes={emptyOptions}
+        onStateChange={jest.fn()}
+        onDistrictChange={jest.fn()}
+        onBlockChange={jest.fn()}
+        onGramPanchayatChange={jest.fn()}
+        setSelectedVillage={jest.fn()}
+        setSelectedScheme={jest.fn()}
+        setSelectedDuration={jest.fn()}
+        onDepartmentStateChange={jest.fn()}
+        onDepartmentZoneChange={jest.fn()}
+        onDepartmentCircleChange={jest.fn()}
+        onDepartmentDivisionChange={jest.fn()}
+        onDepartmentSubdivisionChange={handleDepartmentSubdivisionChange}
+        setSelectedDepartmentZone={jest.fn()}
+        setSelectedDepartmentCircle={jest.fn()}
+        setSelectedDepartmentDivision={jest.fn()}
+        setSelectedDepartmentSubdivision={jest.fn()}
+        setSelectedDepartmentVillage={jest.fn()}
+      />
+    )
+
+    fireEvent.focus(screen.getByRole('textbox'))
+
+    expect(screen.getByText(/Sub-divisions/)).toBeTruthy()
+    fireEvent.click(screen.getByText('Hojai Sub Division'))
+
+    expect(handleDepartmentSubdivisionChange).toHaveBeenCalledWith('501:501:hojai-sub-division')
   })
 
   it('shows blocks in breadcrumb search panel when district is selected', () => {
@@ -835,7 +951,7 @@ describe('DashboardFilters', () => {
     expect(setSelectedDepartmentVillage).toHaveBeenCalledWith('')
   })
 
-  it('respects manual active trail control in department mode', () => {
+  it('ignores manual active trail control in department mode and uses the deepest selection', () => {
     mockUseLocationSearchQuery.mockReturnValue({
       data: {
         totalStatesCount: 1,
@@ -946,9 +1062,9 @@ describe('DashboardFilters', () => {
 
     fireEvent.focus(screen.getByRole('textbox'))
 
-    expect(screen.getByText('Circles (1)')).toBeTruthy()
-    expect(screen.getAllByText('Guwahati Circle').length).toBeGreaterThan(0)
-    expect(screen.queryByText('Villages (1)')).toBeNull()
+    expect(screen.getByText('Villages (1)')).toBeTruthy()
+    expect(screen.getAllByText('Village 1').length).toBeGreaterThan(0)
+    expect(screen.queryByText('Circles (1)')).toBeNull()
   })
 
   it('shows villages in breadcrumb search panel when gram panchayat is selected', () => {
