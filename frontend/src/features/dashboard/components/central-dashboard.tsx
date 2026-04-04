@@ -29,7 +29,12 @@ import { MdOutlineWaterDrop } from 'react-icons/md'
 import waterTapIcon from '@/assets/media/water-tap_1822589 1.svg'
 import wallClockIcon from '@/assets/media/wall-clock.svg'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
-import type { DashboardData, EntityPerformance, VillagePumpOperatorDetails } from '../types'
+import type {
+  DashboardData,
+  EntityPerformance,
+  NationalDashboardResponse,
+  VillagePumpOperatorDetails,
+} from '../types'
 import { DashboardFilters } from './filters/dashboard-filters'
 import { OverallPerformanceTable } from './tables'
 import { ROUTES } from '@/shared/constants/routes'
@@ -352,6 +357,28 @@ const renderFormulaTooltip = (formula: ReactNode, definitions: ReactNode[]) => (
   </Box>
 )
 
+const filterNationalDashboardByTenantIds = (
+  response: NationalDashboardResponse | undefined,
+  activeTenantIds: Set<number>
+): NationalDashboardResponse | undefined => {
+  if (!response || activeTenantIds.size === 0) {
+    return response
+  }
+
+  return {
+    ...response,
+    stateWiseQuantityPerformance: response.stateWiseQuantityPerformance.filter((state) =>
+      activeTenantIds.has(state.tenantId)
+    ),
+    stateWiseRegularity: response.stateWiseRegularity.filter((state) =>
+      activeTenantIds.has(state.tenantId)
+    ),
+    stateWiseReadingSubmissionRate: response.stateWiseReadingSubmissionRate.filter((state) =>
+      activeTenantIds.has(state.tenantId)
+    ),
+  }
+}
+
 export function CentralDashboard() {
   const { t, i18n } = useTranslation('dashboard')
   const overallPerformanceScrollHeight =
@@ -509,6 +536,11 @@ export function CentralDashboard() {
   const gramPanchayatTableData = emptyEntityPerformance
   const villageTableData = emptyEntityPerformance
   const { data: locationSearchData } = useLocationSearchQuery()
+  const activeTenantIds = new Set(
+    (locationSearchData?.states ?? [])
+      .map((option) => option.tenantId)
+      .filter((tenantId): tenantId is number => typeof tenantId === 'number')
+  )
   const selectedTenant = locationSearchData?.states.find((option) => option.value === selectedState)
   const { data: locationHierarchyData } = useLocationHierarchyQuery({
     tenantId: selectedTenant?.tenantId,
@@ -998,6 +1030,14 @@ export function CentralDashboard() {
     params: previousNationalDashboardParams,
     enabled: Boolean(previousNationalDashboardParams),
   })
+  const filteredNationalDashboardData = filterNationalDashboardByTenantIds(
+    nationalDashboardData,
+    activeTenantIds
+  )
+  const filteredPreviousNationalDashboardData = filterNationalDashboardByTenantIds(
+    previousNationalDashboardData,
+    activeTenantIds
+  )
   const { data: currentWaterSupplyKpiData } = useAverageWaterSupplyPerRegionQuery({
     params: currentWaterSupplyAnalyticsParams,
     enabled: Boolean(currentWaterSupplyAnalyticsParams),
@@ -1088,7 +1128,11 @@ export function CentralDashboard() {
   })
   const isCentralLandingView = !hasCentralLandingFilters
   const rawOverallPerformanceTableData = isCentralLandingView
-    ? mapOverallPerformanceFromNationalDashboard(nationalDashboardData, emptyEntityPerformance, 5)
+    ? mapOverallPerformanceFromNationalDashboard(
+        filteredNationalDashboardData,
+        emptyEntityPerformance,
+        5
+      )
     : mapOverallPerformanceFromAnalytics(
         averageWaterSupplyData,
         averageSchemeRegularityData,
@@ -1105,16 +1149,45 @@ export function CentralDashboard() {
           : isDepartmentStateSelected
             ? districtApiOptions
             : emptyOptions
-    : emptyOptions
-  const expectedOverallPerformanceNames = new Set(
-    expectedOverallPerformanceOptions.map((option) => slugify(option.label))
+    : isHierarchyFourthLevelSelected
+      ? villageApiOptions
+      : isHierarchyThirdLevelSelected
+        ? gramPanchayatApiOptions
+        : isHierarchySecondLevelSelected
+          ? blockApiOptions
+          : isHierarchyStateSelected
+            ? districtApiOptions
+            : emptyOptions
+  const tenantBoundaryOverallPerformanceNames = new Set(
+    (tenantBoundaryData?.childRegions ?? [])
+      .map((region) => region.childLgdTitle ?? region.childDepartmentTitle ?? '')
+      .map((title) => title.trim())
+      .filter(Boolean)
+      .map((title) => slugify(title))
   )
+  const expectedOverallPerformanceNames = new Set(
+    [
+      ...expectedOverallPerformanceOptions.map((option) => slugify(option.label)),
+      ...tenantBoundaryOverallPerformanceNames,
+    ].filter(Boolean)
+  )
+  const shouldRequireOverallPerformanceChildOptions = isDepartmentTabActive
+    ? isDepartmentStateSelected ||
+      isDepartmentZoneSelected ||
+      isDepartmentCircleSelected ||
+      isDepartmentDivisionSelected
+    : isHierarchyStateSelected ||
+      isHierarchySecondLevelSelected ||
+      isHierarchyThirdLevelSelected ||
+      isHierarchyFourthLevelSelected
   const overallPerformanceTableData =
     expectedOverallPerformanceNames.size > 0
       ? rawOverallPerformanceTableData.filter((row) =>
           expectedOverallPerformanceNames.has(slugify(row.name))
         )
-      : rawOverallPerformanceTableData
+      : shouldRequireOverallPerformanceChildOptions
+        ? emptyEntityPerformance
+        : rawOverallPerformanceTableData
   const mapChartData = isCentralLandingView
     ? dashboardData.mapData
     : mapTenantBoundariesToPerformance(
@@ -1123,13 +1196,19 @@ export function CentralDashboard() {
         tenantBoundaryLocationOptions
       )
   const quantityPerformanceData = isCentralLandingView
-    ? mapQuantityPerformanceFromNationalDashboard(nationalDashboardData, emptyEntityPerformance)
+    ? mapQuantityPerformanceFromNationalDashboard(
+        filteredNationalDashboardData,
+        emptyEntityPerformance
+      )
     : mapQuantityPerformanceFromAnalytics(averageWaterSupplyData, emptyEntityPerformance)
   const regularityPerformanceData = isCentralLandingView
-    ? mapRegularityPerformanceFromNationalDashboard(nationalDashboardData, emptyEntityPerformance)
+    ? mapRegularityPerformanceFromNationalDashboard(
+        filteredNationalDashboardData,
+        emptyEntityPerformance
+      )
     : mapRegularityPerformanceFromAnalytics(averageSchemeRegularityData, emptyEntityPerformance)
   const supplySubmissionRateData = isCentralLandingView
-    ? mapReadingSubmissionRateFromNationalDashboard(nationalDashboardData, [])
+    ? mapReadingSubmissionRateFromNationalDashboard(filteredNationalDashboardData, [])
     : mapReadingSubmissionRateFromAnalytics(readingSubmissionRateData, [])
   const readingSubmissionStatusData = mapReadingSubmissionStatusFromAnalytics(
     submissionStatusData,
@@ -1174,7 +1253,7 @@ export function CentralDashboard() {
   const outageReasonsTimeTrendData =
     mapOutageReasonsPeriodicToTrendPoints(outageReasonsPeriodicData)
   const currentWaterSupplyKpis = isCentralLandingView
-    ? getWaterSupplyKpisFromNationalDashboard(nationalDashboardData, 5)
+    ? getWaterSupplyKpisFromNationalDashboard(filteredNationalDashboardData, 5)
     : isHierarchyLeafSelected
       ? getWaterSupplyKpisFromPeriodic(waterQuantityPeriodicData, 5)
       : getWaterSupplyKpis(
@@ -1184,17 +1263,17 @@ export function CentralDashboard() {
           5
         )
   const previousWaterSupplyKpis = isCentralLandingView
-    ? getWaterSupplyKpisFromNationalDashboard(previousNationalDashboardData, 5)
+    ? getWaterSupplyKpisFromNationalDashboard(filteredPreviousNationalDashboardData, 5)
     : isHierarchyLeafSelected
       ? getWaterSupplyKpisFromPeriodic(previousWaterQuantityPeriodicData, 5)
       : getWaterSupplyKpis(previousWaterSupplyKpiData, 5)
   const currentRegularityKpi = isCentralLandingView
-    ? getRegularityKpiFromNationalDashboard(nationalDashboardData)
+    ? getRegularityKpiFromNationalDashboard(filteredNationalDashboardData)
     : isHierarchyLeafSelected
       ? getRegularityKpiFromPeriodic(schemeRegularityPeriodicData)
       : getRegularityKpi(currentRegularityKpiData)
   const previousRegularityKpi = isCentralLandingView
-    ? getRegularityKpiFromNationalDashboard(previousNationalDashboardData)
+    ? getRegularityKpiFromNationalDashboard(filteredPreviousNationalDashboardData)
     : isHierarchyLeafSelected
       ? getRegularityKpiFromPeriodic(previousSchemeRegularityPeriodicData)
       : getRegularityKpi(previousRegularityKpiData)
@@ -1523,7 +1602,7 @@ export function CentralDashboard() {
     ? [toOutageReasonsData(outageReasonsData.outageReasonSchemeCount)]
     : null
   const nationalWaterSupplyOutageReasonsData = isCentralLandingView
-    ? mapOutageReasonsFromNationalDashboard(nationalDashboardData, [])
+    ? mapOutageReasonsFromNationalDashboard(filteredNationalDashboardData, [])
     : null
   const apiWaterSupplyOutageDistributionData = outageReasonsData?.childRegions?.length
     ? toOutageDistributionData(outageReasonsData.childRegions)
