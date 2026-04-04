@@ -16,11 +16,20 @@ jest.mock('../../services/query/use-super-admin-queries', () => ({
   useInviteUserMutation: () => mockUseInviteUserMutation(),
 }))
 
+function fillValidInviteForm() {
+  fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Raj' } })
+  fireEvent.change(screen.getByLabelText(/last name/i), { target: { value: 'Sharma' } })
+  fireEvent.change(screen.getByLabelText(/phone number/i), { target: { value: '9876543210' } })
+  fireEvent.change(screen.getByLabelText(/email address/i), {
+    target: { value: 'valid@example.com' },
+  })
+}
+
 describe('InviteSuperUserPage', () => {
   beforeEach(() => {
     mockNavigate.mockReset()
     mockUseInviteUserMutation.mockReturnValue({
-      mutateAsync: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
+      mutateAsync: jest.fn<(...args: unknown[]) => Promise<void>>().mockResolvedValue(undefined),
       isPending: false,
     })
   })
@@ -47,7 +56,8 @@ describe('InviteSuperUserPage', () => {
 
   it('submit button is disabled when email is invalid', () => {
     renderWithProviders(<InviteSuperUserPage />)
-    fireEvent.change(screen.getByRole('textbox', { name: /email address/i }), {
+    fillValidInviteForm()
+    fireEvent.change(screen.getByLabelText(/email address/i), {
       target: { value: 'notanemail' },
     })
     const submitBtn = screen.getByRole('button', {
@@ -58,9 +68,7 @@ describe('InviteSuperUserPage', () => {
 
   it('submit button is enabled when email is valid', () => {
     renderWithProviders(<InviteSuperUserPage />)
-    fireEvent.change(screen.getByRole('textbox', { name: /email address/i }), {
-      target: { value: 'valid@example.com' },
-    })
+    fillValidInviteForm()
     const submitBtn = screen.getByRole('button', {
       name: /add super user & send link via email/i,
     })
@@ -75,19 +83,21 @@ describe('InviteSuperUserPage', () => {
 
   it('calls mutateAsync with correct payload on submit', async () => {
     const mockMutateAsync = jest
-      .fn<(input: { email: string; role: string }) => Promise<void>>()
-      .mockResolvedValue(undefined)
+      .fn<(payload: object) => Promise<void>>()
+      .mockImplementation(async () => undefined)
     mockUseInviteUserMutation.mockReturnValue({ mutateAsync: mockMutateAsync, isPending: false })
 
     renderWithProviders(<InviteSuperUserPage />)
-    fireEvent.change(screen.getByRole('textbox', { name: /email address/i }), {
-      target: { value: 'test@example.com' },
-    })
+    fillValidInviteForm()
     fireEvent.click(screen.getByRole('button', { name: /add super user & send link via email/i }))
 
     await waitFor(() => {
+      expect(mockMutateAsync).toHaveBeenCalledTimes(1)
       expect(mockMutateAsync).toHaveBeenCalledWith({
-        email: 'test@example.com',
+        firstName: 'Raj',
+        lastName: 'Sharma',
+        phoneNumber: '9876543210',
+        email: 'valid@example.com',
         role: 'SUPER_USER',
       })
     })
@@ -95,18 +105,18 @@ describe('InviteSuperUserPage', () => {
 
   it('shows error toast when mutateAsync rejects', async () => {
     mockUseInviteUserMutation.mockReturnValue({
-      mutateAsync: jest.fn<() => Promise<void>>().mockRejectedValue(new Error('fail')),
+      mutateAsync: jest
+        .fn<(...args: unknown[]) => Promise<void>>()
+        .mockRejectedValue(new Error('fail')),
       isPending: false,
     })
 
     renderWithProviders(<InviteSuperUserPage />)
-    fireEvent.change(screen.getByRole('textbox', { name: /email address/i }), {
-      target: { value: 'test@example.com' },
-    })
+    fillValidInviteForm()
     fireEvent.click(screen.getByRole('button', { name: /add super user & send link via email/i }))
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toBeTruthy()
+      expect(screen.getByText(/failed to add super user/i)).toBeTruthy()
     })
   })
 })

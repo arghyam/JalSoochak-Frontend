@@ -14,7 +14,7 @@ import {
   FormErrorMessage,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { ToastContainer } from '@/shared/components/common'
+import { ToastContainer, PageHeader } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ROUTES } from '@/shared/constants/routes'
 import { isAlphabeticWithSpaces, exceedsMaxLength } from '@/shared/utils/validation'
@@ -126,8 +126,7 @@ export function InviteSuperUserPage() {
 
   return (
     <Box w="full">
-      {/* Breadcrumb */}
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={2}>
           {t('superUsers.addTitle')}
         </Heading>
@@ -154,7 +153,7 @@ export function InviteSuperUserPage() {
             {t('superUsers.breadcrumb.addNew')}
           </Text>
         </Flex>
-      </Box>
+      </PageHeader>
 
       {/* Form Card */}
       <Box

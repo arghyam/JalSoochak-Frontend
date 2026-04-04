@@ -1,0 +1,60 @@
+{
+  "login": {
+    "heading": "स्वागत है",
+    "phoneStep": {
+      "subtitle": "आगे बढ़ने के लिए अपना फ़ोन नंबर दर्ज करें।",
+      "phoneLabel": "फ़ोन नंबर",
+      "phonePlaceholder": "10-अंकीय नंबर दर्ज करें",
+      "stateLabel": "राज्य / केंद्र शासित प्रदेश",
+      "statePlaceholder": "राज्य / केंद्र शासित प्रदेश चुनें",
+      "stateLoading": "लोड हो रहा है...",
+      "sendOtp": "OTP भेजें",
+      "sendingOtp": "OTP भेजा जा रहा है...",
+      "phoneError": "कृपया एक वैध 10-अंकीय मोबाइल नंबर दर्ज करें।",
+      "phoneDigitsOnlyError": "फ़ोन नंबर में केवल अंक होने चाहिए।",
+      "stateError": "कृपया एक राज्य / केंद्र शासित प्रदेश चुनें।",
+      "sendOtpFailed": "OTP भेजने में विफल। कृपया पुनः प्रयास करें।"
+    },
+    "otpStep": {
+      "subtitle": "हमने {{maskedPhone}} पर {{otpLength}}-अंकीय कोड भेजा है।",
+      "otpLabel": "OTP दर्ज करें",
+      "didNotReceive": "कोड नहीं मिला?",
+      "resendIn": "{{seconds}} सेकंड में पुनः भेजें",
+      "resend": "पुनः भेजें",
+      "sending": "भेजा जा रहा है...",
+      "login": "लॉग इन करें",
+      "loggingIn": "लॉग इन हो रहा है...",
+      "back": "← वापस",
+      "incompleteOtp": "कृपया पूरा {{otpLength}}-अंकीय OTP दर्ज करें।",
+      "invalidOtp": "अमान्य OTP। कृपया पुनः प्रयास करें।",
+      "resendFailed": "OTP पुनः भेजने में विफल। कृपया पुनः प्रयास करें।"
+    }
+  },
+  "pages": {
+    "overview": {
+      "heading": "अवलोकन",
+      "comingSoon": "जल्द आ रहा है",
+      "subtitle": "अवलोकन पृष्ठ निर्माणाधीन है।"
+    },
+    "schemes": {
+      "heading": "योजनाएं",
+      "comingSoon": "जल्द आ रहा है",
+      "subtitle": "योजनाएं पृष्ठ निर्माणाधीन है।"
+    },
+    "pumpOperators": {
+      "heading": "पंप ऑपरेटर",
+      "comingSoon": "जल्द आ रहा है",
+      "subtitle": "पंप ऑपरेटर पृष्ठ निर्माणाधीन है।"
+    },
+    "anomalies": {
+      "heading": "विसंगतियां",
+      "comingSoon": "जल्द आ रहा है",
+      "subtitle": "विसंगतियां पृष्ठ निर्माणाधीन है।"
+    },
+    "escalations": {
+      "heading": "एस्कलेशन",
+      "comingSoon": "जल्द आ रहा है",
+      "subtitle": "वृद्धि पृष्ठ निर्माणाधीन है।"
+    }
+  }
+}

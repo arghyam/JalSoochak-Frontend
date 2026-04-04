@@ -129,12 +129,25 @@ describe('WaterNormsPage', () => {
     // Enter edit mode
     fireEvent.click(screen.getByLabelText(/edit/i))
 
-    fireEvent.click(screen.getByText(/save changes/i))
+    const oversupplyInput = screen.getByLabelText(/enter oversupply threshold/i)
+    fireEvent.change(oversupplyInput, { target: { value: '21' } })
+
+    await waitFor(() => {
+      expect((oversupplyInput as HTMLInputElement).value).toBe('21')
+    })
+
+    const saveBtn = screen.getByRole('button', { name: /save changes/i })
+    await waitFor(() => {
+      const isDisabled =
+        saveBtn.hasAttribute('disabled') || saveBtn.getAttribute('aria-disabled') === 'true'
+      expect(isDisabled).toBe(false)
+    })
+    fireEvent.click(saveBtn)
 
     await waitFor(() => {
       expect(mockMutateAsync).toHaveBeenCalledWith({
         stateQuantity: 100,
-        oversupplyThreshold: 20,
+        oversupplyThreshold: 21,
         undersupplyThreshold: 10,
         districtOverrides: [],
         isConfigured: true,

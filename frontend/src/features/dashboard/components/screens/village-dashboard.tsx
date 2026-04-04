@@ -756,8 +756,8 @@ function ReadingComplianceSection({
                 alignItems="center"
               >
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.schemeNameSchemeId', {
-                    defaultValue: 'Scheme name/ Scheme ID',
+                  {t('pumpOperators.details.fields.schemeId', {
+                    defaultValue: 'Scheme ID',
                   })}
                 </Text>
                 <Text
@@ -767,11 +767,13 @@ function ReadingComplianceSection({
                   textAlign={{ base: 'left', sm: 'right' }}
                   wordBreak="break-word"
                 >
-                  {resolvedActivePumpOperator.scheme}
+                  {typeof resolvedActivePumpOperator.schemeId === 'number'
+                    ? String(resolvedActivePumpOperator.schemeId)
+                    : 'N/A'}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.stationLocation', {
-                    defaultValue: 'Station location',
+                  {t('pumpOperators.details.fields.schemeName', {
+                    defaultValue: 'Scheme name',
                   })}
                 </Text>
                 <Text
@@ -781,7 +783,9 @@ function ReadingComplianceSection({
                   textAlign={{ base: 'left', sm: 'right' }}
                   wordBreak="break-word"
                 >
-                  {resolvedActivePumpOperator.stationLocation}
+                  {resolvedActivePumpOperator.schemeName ||
+                    resolvedActivePumpOperator.scheme ||
+                    'N/A'}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
                   {t('pumpOperators.details.fields.lastSubmission', {
@@ -958,37 +962,7 @@ export function VillageDashboardScreen({
 
   return (
     <>
-      <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
-        <Box
-          bg="white"
-          borderWidth="0.5px"
-          borderRadius="12px"
-          borderColor="#E4E4E7"
-          px="16px"
-          pt="24px"
-          pb="24px"
-          h="492px"
-          minW={0}
-        >
-          <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-            {t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
-          </Text>
-          {isQuantityTimeTrendLoading ? (
-            <Flex align="center" justify="center" h="400px">
-              <LoadingSpinner />
-            </Flex>
-          ) : quantityTimeTrendData.length > 0 ? (
-            <MonthlyTrendChart
-              data={quantityTimeTrendData}
-              height="400px"
-              xAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
-              yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
-              seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
-            />
-          ) : (
-            <ChartEmptyState minHeight="400px" />
-          )}
-        </Box>
+      <Grid templateColumns="1fr" gap={6} mb={6}>
         <Box
           bg="white"
           borderWidth="0.5px"
@@ -1019,6 +993,36 @@ export function VillageDashboardScreen({
               seriesName={t('performanceCharts.regularity.seriesName', {
                 defaultValue: 'Regularity',
               })}
+            />
+          ) : (
+            <ChartEmptyState minHeight="400px" />
+          )}
+        </Box>
+        <Box
+          bg="white"
+          borderWidth="0.5px"
+          borderRadius="12px"
+          borderColor="#E4E4E7"
+          px="16px"
+          pt="24px"
+          pb="24px"
+          h="492px"
+          minW={0}
+        >
+          <Text textStyle="bodyText3" fontWeight="400" mb={2}>
+            {t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
+          </Text>
+          {isQuantityTimeTrendLoading ? (
+            <Flex align="center" justify="center" h="400px">
+              <LoadingSpinner />
+            </Flex>
+          ) : quantityTimeTrendData.length > 0 ? (
+            <MonthlyTrendChart
+              data={quantityTimeTrendData}
+              height="400px"
+              xAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+              yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
+              seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
             />
           ) : (
             <ChartEmptyState minHeight="400px" />

@@ -21,6 +21,7 @@ import { DataTable, type DataTableColumn } from '../data-table'
 import { StatusChip } from '../atom/status-chip'
 import { SearchableSelect } from '../searchable-select'
 import type { UserAdminData, UserAdminRoutes, UserAdminListLabels } from './types'
+import { PageHeader } from '../page-header'
 
 type StatusFilter = 'all' | 'active' | 'inactive' | 'pending'
 
@@ -86,9 +87,11 @@ export function UserAdminListPage({
   if (isLoading) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {labels.pageTitle}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {labels.pageTitle}
+          </Heading>
+        </PageHeader>
         <Flex role="status" aria-live="polite" align="center" minH="200px" gap={3}>
           <Spinner size="md" color="primary.500" />
           <Text color="neutral.600">{t('loading')}</Text>
@@ -100,9 +103,11 @@ export function UserAdminListPage({
   if (isError) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {labels.pageTitle}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {labels.pageTitle}
+          </Heading>
+        </PageHeader>
         <Flex h="64" align="center" justify="center" direction="column" gap={4} role="alert">
           <Text color="error.500">{t('toast.failedToLoad')}</Text>
           <Button variant="secondary" size="sm" onClick={onRefetch}>
@@ -231,34 +236,30 @@ export function UserAdminListPage({
 
   return (
     <Box w="full" maxW="100%" minW={0}>
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
           {labels.pageTitle}
         </Heading>
-      </Box>
+      </PageHeader>
 
       {/* Toolbar */}
       <Flex
         justify="space-between"
-        align="center"
+        align="flex-start"
         mb={6}
-        h={{ base: 'auto', md: 16 }}
         py={4}
         px={{ base: 3, md: 6 }}
         gap={{ base: 3, md: 4 }}
-        flexDirection={{ base: 'column', md: 'row' }}
+        flexDirection={{ base: 'column', sm: 'row' }}
         borderWidth="0.5px"
         borderColor="neutral.200"
         borderRadius="12px"
         bg="white"
       >
-        <Flex
-          gap={3}
-          w={{ base: 'full', md: 'auto' }}
-          flexDirection={{ base: 'column', sm: 'row' }}
-        >
+        {/* Left: search + filters (wraps internally at medium widths) */}
+        <Flex gap={3} flex={1} w="full" flexWrap="wrap" align="center">
           {showSearch && (
-            <InputGroup w={{ base: 'full', md: '240px', lg: '404px' }}>
+            <InputGroup w={{ base: 'full', sm: '240px', lg: '280px' }} flexShrink={0}>
               <InputLeftElement pointerEvents="none" h={8}>
                 <SearchIcon color="neutral.300" aria-hidden="true" />
               </InputLeftElement>
@@ -283,7 +284,7 @@ export function UserAdminListPage({
               height="32px"
               onChange={(val) => setStatusFilter(val as StatusFilter)}
               placeholder={t('statusLabel')}
-              width={{ base: '100%', md: '140px' }}
+              width={{ base: '100%', sm: '140px' }}
               isFilter
             />
           )}
@@ -294,7 +295,8 @@ export function UserAdminListPage({
           fontWeight="600"
           onClick={() => navigate(routes.add)}
           gap={1}
-          w={{ base: 'full', md: 'auto' }}
+          w={{ base: 'full', sm: 'auto' }}
+          flexShrink={0}
           aria-label={labels.addButton}
         >
           <IoAddOutline size={24} aria-hidden="true" />

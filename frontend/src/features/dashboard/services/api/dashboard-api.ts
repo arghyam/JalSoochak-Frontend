@@ -1,9 +1,9 @@
 import { apiClient } from '@/shared/lib/axios'
 import { isAxiosError } from 'axios'
-import { mockReadingCompliance } from '../mock/dashboard-mock'
 import type {
   AverageSchemeRegularityQueryParams,
   AverageSchemeRegularityResponse,
+  GeoJsonGeometry,
   NationalSchemeRegularityPeriodicQueryParams,
   NationalSchemeRegularityPeriodicResponse,
   NationalDashboardQueryParams,
@@ -30,6 +30,8 @@ import type {
   SchemePerformanceResponse,
   SubmissionStatusQueryParams,
   SubmissionStatusResponse,
+  TenantBoundaryQueryParams,
+  TenantBoundaryResponse,
   WaterQuantityPeriodicQueryParams,
   WaterQuantityPeriodicResponse,
 } from '../../types'
@@ -60,6 +62,17 @@ export type TenantListResponse = {
   totalElements?: number
 }
 
+export type TenantPublicDateFormatConfig = {
+  dateFormat: string | null
+  timeFormat: string | null
+  timezone: string | null
+}
+
+export type TenantPublicConfig = {
+  averageMembersPerHousehold: number
+  dateFormatScreen: TenantPublicDateFormatConfig
+}
+
 const TENANTS_PAGE_SIZE = 10
 const TENANTS_MAX_PAGES = 1000
 
@@ -82,6 +95,56 @@ type RawAverageWaterSupplyPerRegionPayload = {
 type WrappedAnalyticsResponse<T> = {
   success?: boolean
   data?: T
+}
+
+type ApiEnvelope<T> = {
+  data: T
+}
+
+type TenantPublicConfigMap = {
+  DATE_FORMAT_SCREEN?: TenantPublicDateFormatConfig
+  AVERAGE_MEMBERS_PER_HOUSEHOLD?: { value?: string | null }
+}
+
+type TenantBoundaryChildRegionAlias = {
+  childLgdId?: number
+  childLgdTitle?: string
+  childDepartmentId?: number
+  childDepartmentTitle?: string
+  childBoundaryGeoJson?: string | null
+  boundaryGeoJson?: unknown
+}
+
+const parseBoundaryGeoJson = (value: unknown, context: string) => {
+  if (value == null) {
+    return null
+  }
+
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value) as unknown
+      return parsed && typeof parsed === 'object' ? parsed : null
+    } catch {
+      throw new Error(`Invalid ${context} response: boundary GeoJSON is not valid JSON`)
+    }
+  }
+
+  return value && typeof value === 'object' ? value : null
+}
+
+const isGeoJsonGeometry = (value: unknown): value is GeoJsonGeometry =>
+  Boolean(value) &&
+  typeof value === 'object' &&
+  typeof (value as { type?: unknown }).type === 'string'
+
+type AnalyticsChildRegionAlias = {
+  lgdId?: number
+  departmentId?: number
+  title?: string
+  childLgdId?: number
+  childDepartmentId?: number
+  childLgdTitle?: string
+  childDepartmentTitle?: string
 }
 
 const normalizeMissedSubmissionDays = (
@@ -147,6 +210,65 @@ const unwrapAnalyticsResponse = <T>(
 
   return response as T
 }
+
+const normalizeAnalyticsChildRegion = <T extends AnalyticsChildRegionAlias>(region: T): T => ({
+  ...region,
+  lgdId: region.lgdId !== undefined ? region.lgdId : (region.childLgdId ?? 0),
+  departmentId:
+    region.departmentId !== undefined ? region.departmentId : (region.childDepartmentId ?? 0),
+  title:
+    region.title !== undefined
+      ? region.title
+      : (region.childDepartmentTitle ?? region.childLgdTitle ?? ''),
+})
+
+const normalizeAverageWaterSupplyResponse = (
+  response: AverageWaterSupplyPerRegionResponse
+): AverageWaterSupplyPerRegionResponse => ({
+  ...response,
+  childRegions: Array.isArray(response.childRegions)
+    ? response.childRegions.map((region) => normalizeAnalyticsChildRegion(region))
+    : [],
+})
+
+const normalizeAverageSchemeRegularityResponse = (
+  response: AverageSchemeRegularityResponse
+): AverageSchemeRegularityResponse => ({
+  ...response,
+  childRegions: Array.isArray(response.childRegions)
+    ? response.childRegions.map((region) => normalizeAnalyticsChildRegion(region))
+    : [],
+})
+
+const normalizeTenantBoundaryChildRegion = <T extends TenantBoundaryChildRegionAlias>(
+  region: T,
+  context: string
+) => ({
+  ...region,
+  childLgdId: region.childLgdId ?? region.childDepartmentId ?? 0,
+  childLgdTitle: region.childLgdTitle ?? region.childDepartmentTitle ?? '',
+  boundaryGeoJson: (() => {
+    const parsed = parseBoundaryGeoJson(
+      region.boundaryGeoJson ?? region.childBoundaryGeoJson,
+      `${context} child region`
+    )
+    return isGeoJsonGeometry(parsed) ? parsed : null
+  })(),
+})
+
+const normalizeTenantBoundaryResponse = (
+  response: TenantBoundaryResponse,
+  context = 'tenant boundary analytics'
+): TenantBoundaryResponse => ({
+  ...response,
+  parsedBoundaryGeoJson: (() => {
+    const parsed = parseBoundaryGeoJson(response.boundaryGeoJson, context)
+    return isGeoJsonGeometry(parsed) ? parsed : null
+  })(),
+  childRegions: Array.isArray(response.childRegions)
+    ? response.childRegions.map((region) => normalizeTenantBoundaryChildRegion(region, context))
+    : [],
+})
 
 const resolveTenantListContainer = (value: TenantListResponse | undefined): TenantListContainer => {
   if (!value) {
@@ -315,8 +437,10 @@ const ensureValidParams = ({ level, entityId }: DashboardQueryParams): void => {
   }
 }
 
-const shouldUseMockReadingCompliance = (level: DashboardLevel) =>
-  level === 'block' || level === 'gram-panchayat'
+const normalizeDashboardData = (data: DashboardData): DashboardData => ({
+  ...data,
+  readingCompliance: data.readingCompliance ?? [],
+})
 
 const httpProvider: {
   getDashboardData: (params: DashboardQueryParams) => Promise<DashboardData>
@@ -329,18 +453,7 @@ const httpProvider: {
       throw new Error('Dashboard API returned an invalid payload')
     }
 
-    if (!shouldUseMockReadingCompliance(level)) {
-      return response.data
-    }
-
-    if (response.data.readingCompliance != null) {
-      return response.data
-    }
-
-    return {
-      ...response.data,
-      readingCompliance: mockReadingCompliance,
-    }
+    return normalizeDashboardData(response.data)
   },
 }
 
@@ -379,10 +492,10 @@ export const dashboardApi = {
     })
 
     if ('childRegions' in response.data) {
-      return response.data
+      return normalizeAverageWaterSupplyResponse(response.data)
     }
 
-    return (
+    return normalizeAverageWaterSupplyResponse(
       response.data.data ?? {
         tenantId: params.tenantId,
         stateCode: '',
@@ -397,6 +510,21 @@ export const dashboardApi = {
         childRegions: [],
       }
     )
+  },
+  getTenantPublicConfig: async (tenantId: number): Promise<TenantPublicConfig> => {
+    const response = await apiClient.get<ApiEnvelope<{ configs?: TenantPublicConfigMap }>>(
+      `/api/v1/tenants/${tenantId}/config/public`
+    )
+    const configs = response?.data?.data?.configs ?? {}
+
+    return {
+      averageMembersPerHousehold: Number(configs?.AVERAGE_MEMBERS_PER_HOUSEHOLD?.value) || 0,
+      dateFormatScreen: configs?.DATE_FORMAT_SCREEN ?? {
+        dateFormat: null,
+        timeFormat: null,
+        timezone: null,
+      },
+    }
   },
   getWaterQuantityPeriodic: async (
     params: WaterQuantityPeriodicQueryParams
@@ -440,7 +568,7 @@ export const dashboardApi = {
       },
     })
 
-    return (
+    return normalizeAverageSchemeRegularityResponse(
       unwrapAnalyticsResponse(response.data, 'average scheme regularity analytics') ?? {
         lgdId: 0,
         parentDepartmentId: 0,
@@ -454,6 +582,34 @@ export const dashboardApi = {
         totalSupplyDays: 0,
         averageRegularity: 0,
         childRegionCount: 0,
+        childRegions: [],
+      }
+    )
+  },
+  getTenantBoundaries: async (
+    params: TenantBoundaryQueryParams
+  ): Promise<TenantBoundaryResponse> => {
+    const response = await apiClient.get<
+      TenantBoundaryResponse | WrappedAnalyticsResponse<TenantBoundaryResponse>
+    >('/api/v1/analytics/tenant_data', {
+      params: {
+        tenant_id: params.tenantId,
+        parent_lgd_id: params.parentLgdId,
+        parent_department_id: params.parentDepartmentId,
+        start_date: params.startDate,
+        end_date: params.endDate,
+      },
+    })
+
+    return normalizeTenantBoundaryResponse(
+      unwrapAnalyticsResponse(response.data, 'tenant boundary analytics') ?? {
+        tenantId: params.tenantId,
+        stateCode: '',
+        childBoundaryCount: 0,
+        boundaryGeoJson: null,
+        averageSchemeRegularity: 0,
+        readingSubmissionRate: 0,
+        averagePerformanceScore: 0,
         childRegions: [],
       }
     )
@@ -489,18 +645,27 @@ export const dashboardApi = {
   getNationalSchemeRegularityPeriodic: async (
     params: NationalSchemeRegularityPeriodicQueryParams
   ): Promise<NationalSchemeRegularityPeriodicResponse> => {
-    const response = await apiClient.get<NationalSchemeRegularityPeriodicResponse>(
-      '/api/v1/analytics/scheme-regularity/periodic/national',
-      {
-        params: {
-          start_date: params.startDate,
-          end_date: params.endDate,
-          scale: params.scale,
-        },
+    const response = await apiClient.get<
+      | NationalSchemeRegularityPeriodicResponse
+      | WrappedAnalyticsResponse<NationalSchemeRegularityPeriodicResponse>
+    >('/api/v1/analytics/scheme-regularity/periodic/national', {
+      params: {
+        start_date: params.startDate,
+        end_date: params.endDate,
+        scale: params.scale,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data, 'national scheme regularity periodic analytics') ?? {
+        schemeCount: 0,
+        scale: params.scale,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        periodCount: 0,
+        metrics: [],
       }
     )
-
-    return response.data
   },
   getReadingSubmissionRate: async (
     params: ReadingSubmissionRateQueryParams

@@ -34,6 +34,14 @@ import {
 } from '@/features/state-admin'
 import { LoginPage, ResetPasswordPage, ProfilePage, ChangePasswordPage } from '@/features/auth'
 import { AccountActivationPage } from '@/features/auth/components/activate-account/activate-account-page'
+import {
+  StaffLoginPage,
+  StaffOverviewPage,
+  SchemesPage,
+  PumpOperatorsPage,
+  AnomaliesPage,
+  StaffEscalationsPage,
+} from '@/features/section-officer'
 import { ProtectedRoute, RedirectIfAuthenticated } from '@/shared/components/routing/ProtectedRoute'
 import { AUTH_ROLES } from '@/shared/constants/auth'
 import { NotFoundPage } from '@/shared/components/common'
@@ -224,6 +232,50 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.STATE_ADMIN_STATE_UT_ADMINS_EDIT,
         element: <StateUTAdminFormPage />,
+      },
+    ],
+  },
+
+  // Staff login (public, redirects if already authenticated)
+  {
+    path: ROUTES.STAFF_LOGIN,
+    element: (
+      <RedirectIfAuthenticated>
+        <StaffLoginPage />
+      </RedirectIfAuthenticated>
+    ),
+  },
+
+  // Staff panel — SECTION_OFFICER and SUB_DIVISIONAL_OFFICER
+  {
+    path: ROUTES.STAFF,
+    element: (
+      <ProtectedRoute
+        allowedRoles={[AUTH_ROLES.SECTION_OFFICER, AUTH_ROLES.SUB_DIVISIONAL_OFFICER]}
+      >
+        <MainLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        index: true,
+        element: <StaffOverviewPage />,
+      },
+      {
+        path: ROUTES.STAFF_SCHEMES,
+        element: <SchemesPage />,
+      },
+      {
+        path: ROUTES.STAFF_PUMP_OPERATORS,
+        element: <PumpOperatorsPage />,
+      },
+      {
+        path: ROUTES.STAFF_ANOMALIES,
+        element: <AnomaliesPage />,
+      },
+      {
+        path: ROUTES.STAFF_ESCALATIONS,
+        element: <StaffEscalationsPage />,
       },
     ],
   },

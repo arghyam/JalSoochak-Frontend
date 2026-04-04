@@ -14,6 +14,7 @@ import type {
   SchemePerformanceQueryParams,
   SubmissionStatusQueryParams,
   WaterQuantityPeriodicQueryParams,
+  TenantBoundaryQueryParams,
 } from '../../types'
 
 const DEFAULT_ANALYTICS_SCOPE = 'child'
@@ -29,6 +30,8 @@ export const dashboardQueryKeys = {
   all: ['dashboard'] as const,
   data: (level: DashboardLevel, entityId?: string) =>
     ['dashboard', 'data', level, entityId] as const,
+  tenantPublicConfig: (tenantId?: number) =>
+    ['dashboard', 'tenant-public-config', tenantId] as const,
   nationalDashboard: (params: NationalDashboardQueryParams | null) =>
     ['dashboard', 'analytics', 'national-dashboard', params?.startDate, params?.endDate] as const,
   averageWaterSupplyPerRegion: (params: AverageWaterSupplyPerRegionQueryParams | null) =>
@@ -82,6 +85,17 @@ export const dashboardQueryKeys = {
       params?.parentLgdId,
       params?.parentDepartmentId,
       normalizeAnalyticsScope(params),
+      params?.startDate,
+      params?.endDate,
+    ] as const,
+  tenantBoundaries: (params: TenantBoundaryQueryParams | null) =>
+    [
+      'dashboard',
+      'analytics',
+      'tenant-boundaries',
+      params?.tenantId,
+      params?.parentLgdId,
+      params?.parentDepartmentId,
       params?.startDate,
       params?.endDate,
     ] as const,

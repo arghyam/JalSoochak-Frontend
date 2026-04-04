@@ -1,11 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { Center, Spinner, Text, useMediaQuery, useTheme, VStack } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper, Toggle } from '@/shared/components/common'
 import { getBodyText6Style } from '@/shared/components/charts/chart-text-style'
 import type { EntityPerformance } from '../../types'
-import { ensureIndiaMapRegistered } from '../../utils/map-registry'
+import {
+  buildFeatureCollectionFromRegions,
+  ensureIndiaMapRegistered,
+  registerDynamicMap,
+} from '../../utils/map-registry'
 
 interface IndiaMapChartProps {
   data: EntityPerformance[]
@@ -13,6 +17,8 @@ interface IndiaMapChartProps {
   onStateHover?: (stateId: string, stateName: string, metrics: EntityPerformance) => void
   className?: string
   height?: string | number
+  mapName?: string
+  fallbackToIndiaMap?: boolean
 }
 
 export function IndiaMapChart({
@@ -21,15 +27,25 @@ export function IndiaMapChart({
   onStateHover,
   className,
   height = '600px',
+  mapName = 'india',
+  fallbackToIndiaMap = true,
 }: IndiaMapChartProps) {
   const theme = useTheme()
   const [isBelow500] = useMediaQuery('(max-width: 499.98px)')
   const [isBelowSm] = useMediaQuery('(max-width: 479.98px)')
   const { t } = useTranslation('dashboard')
+  const dynamicGeoJson = useMemo(() => buildFeatureCollectionFromRegions(data), [data])
   const [isRegularityView, setIsRegularityView] = useState(true)
-  const [isMapReady, setIsMapReady] = useState(() => echarts.getMap('india') != null)
+  const [hasLoadedFallbackMap, setHasLoadedFallbackMap] = useState(false)
   const [mapLoadError, setMapLoadError] = useState(false)
-  const metricKey: 'quantity' | 'regularity' = isRegularityView ? 'regularity' : 'quantity'
+  const metricKey: 'coverage' | 'regularity' = isRegularityView ? 'regularity' : 'coverage'
+  const shouldShowNoMapAvailable = !dynamicGeoJson && !fallbackToIndiaMap
+  const effectiveMapName = dynamicGeoJson ? mapName : fallbackToIndiaMap ? 'india' : null
+  const isRegisteredMapAvailable =
+    dynamicGeoJson != null || (effectiveMapName != null && echarts.getMap(effectiveMapName) != null)
+  const isMapReady = !shouldShowNoMapAvailable && (isRegisteredMapAvailable || hasLoadedFallbackMap)
+  const shouldShowMapLoadError =
+    mapLoadError && !dynamicGeoJson && !isRegisteredMapAvailable && !shouldShowNoMapAvailable
   const resolveThemeColor = useCallback(
     (token: string) => {
       const [scale, shade] = token.split('.')
@@ -41,13 +57,13 @@ export function IndiaMapChart({
   )
   const mapColors = useMemo(
     () => ({
-      gte90: resolveThemeColor('primary.500'),
-      gte70: resolveThemeColor('success.500'),
-      gte50: resolveThemeColor('secondary.500'),
-      gte30: resolveThemeColor('secondary.700'),
-      gte0: resolveThemeColor('error.500'),
-      noData: resolveThemeColor('neutral.400'),
-      emphasis: resolveThemeColor('primary.600'),
+      gte90: resolveThemeColor('#84BDE3'),
+      gte70: resolveThemeColor('#5EA955'),
+      gte50: resolveThemeColor('#FFD999'),
+      gte30: resolveThemeColor('#FFB433'),
+      gte0: resolveThemeColor('#FF5C5C'),
+      noData: resolveThemeColor('#D1D1D6'),
+      emphasis: resolveThemeColor('primary.50'),
     }),
     [resolveThemeColor]
   )
@@ -109,19 +125,13 @@ export function IndiaMapChart({
             }
           }
           if (p.data) {
-            const { name, value, metrics } = p.data
+            const { name, metrics } = p.data
             const safeName = echarts.format.encodeHTML(name)
-            const safeMetricLabel = echarts.format.encodeHTML(
-              metricKey === 'regularity' ? regularityLabel : quantityLabel
-            )
             return `
               <div style="padding: 8px;">
                 <strong>${safeName}</strong><br/>
-                ${safeMetricLabel}: ${value.toFixed(1)}${metricKey === 'regularity' ? '%' : ''}<br/>
-                Coverage: ${metrics.coverage.toFixed(1)}%<br/>
                 Regularity: ${metrics.regularity.toFixed(1)}%<br/>
-                Continuity: ${metrics.continuity.toFixed(1)}<br/>
-                Quantity: ${metrics.quantity} LPCD
+                Quantity: ${metrics.coverage} MLD
               </div>
             `
           }
@@ -132,10 +142,8 @@ export function IndiaMapChart({
         {
           name: 'State Performance',
           type: 'map',
-          map: 'india', // Requires India GeoJSON to be registered via registerIndiaMap()
+          map: effectiveMapName ?? mapName,
           roam: true,
-          // Note: If map is not registered, ECharts will show an error
-          // Register the map using: registerIndiaMap(geoJsonData) from utils/map-registry
           label: {
             show: true,
             fontSize: 10,
@@ -152,6 +160,7 @@ export function IndiaMapChart({
               borderWidth: 2,
             },
             label: {
+              show: true,
               fontSize: 12,
               fontWeight: 'bold',
             },
@@ -165,49 +174,89 @@ export function IndiaMapChart({
     mapColors.emphasis,
     mapColors.gte90,
     metricKey,
-    quantityLabel,
-    regularityLabel,
+    effectiveMapName,
+    mapName,
   ])
 
   const bodyText6 = getBodyText6Style(theme)
   const legendItems = [
-    { label: t('map.legend.gte90'), color: mapColors.gte90 },
-    { label: t('map.legend.gte70'), color: mapColors.gte70 },
-    { label: t('map.legend.gte50'), color: mapColors.gte50 },
-    { label: t('map.legend.gte30'), color: mapColors.gte30 },
-    { label: t('map.legend.gte0'), color: mapColors.gte0 },
+    {
+      label: isRegularityView
+        ? t('map.legend.gte90', { defaultValue: '>=90%' })
+        : t('map.legend.gte90Mld', { defaultValue: '>=90 MLD' }),
+      color: mapColors.gte90,
+    },
+    {
+      label: isRegularityView
+        ? t('map.legend.gte70', { defaultValue: '>=70%' })
+        : t('map.legend.gte70Mld', { defaultValue: '>=70 MLD' }),
+      color: mapColors.gte70,
+    },
+    {
+      label: isRegularityView
+        ? t('map.legend.gte50', { defaultValue: '>=50%' })
+        : t('map.legend.gte50Mld', { defaultValue: '>=50 MLD' }),
+      color: mapColors.gte50,
+    },
+    {
+      label: isRegularityView
+        ? t('map.legend.gte30', { defaultValue: '>=30%' })
+        : t('map.legend.gte30Mld', { defaultValue: '>=30 MLD' }),
+      color: mapColors.gte30,
+    },
+    {
+      label: isRegularityView
+        ? t('map.legend.gte0', { defaultValue: '>=0%' })
+        : t('map.legend.gte0Mld', { defaultValue: '>=0 MLD' }),
+      color: mapColors.gte0,
+    },
     { label: t('map.legend.noData'), color: mapColors.noData },
   ]
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
 
-  useEffect(() => {
-    if (isMapReady) {
+  useLayoutEffect(() => {
+    if (!dynamicGeoJson) {
       return
     }
 
+    registerDynamicMap(mapName, dynamicGeoJson)
+  }, [dynamicGeoJson, mapName])
+
+  useEffect(() => {
     let isMounted = true
 
-    void ensureIndiaMapRegistered()
-      .then(() => {
-        if (!isMounted) {
-          return
-        }
+    const registerMap = async () => {
+      if (shouldShowNoMapAvailable || effectiveMapName == null || dynamicGeoJson) {
+        return
+      }
 
-        setIsMapReady(true)
-        setMapLoadError(false)
-      })
-      .catch((error: unknown) => {
+      const hasRegisteredMap = echarts.getMap(effectiveMapName) != null
+
+      if (hasRegisteredMap) {
+        return
+      }
+
+      try {
+        await ensureIndiaMapRegistered()
+        if (isMounted) {
+          setHasLoadedFallbackMap(true)
+          setMapLoadError(false)
+        }
+      } catch (error: unknown) {
         console.error('Failed to register India map:', error)
         if (isMounted) {
           setMapLoadError(true)
         }
-      })
+      }
+    }
+
+    void registerMap()
 
     return () => {
       isMounted = false
     }
-  }, [isMapReady, mapLoadError])
+  }, [dynamicGeoJson, effectiveMapName, shouldShowNoMapAvailable])
 
   const handleChartReady = (chart: echarts.ECharts) => {
     // Register click event
@@ -301,12 +350,18 @@ export function IndiaMapChart({
               {regularityLabel}
             </span>
           </div>
-          {isMapReady ? (
+          {isMapReady && isRegisteredMapAvailable ? (
             <EChartsWrapper option={option} height="100%" onChartReady={handleChartReady} />
           ) : (
             <Center h="100%">
               <VStack spacing={3}>
-                {mapLoadError ? (
+                {shouldShowNoMapAvailable ? (
+                  <Text color="neutral.600">
+                    {t('map.noMapAvailable', {
+                      defaultValue: 'Map currently unavailable',
+                    })}
+                  </Text>
+                ) : shouldShowMapLoadError ? (
                   <Text color="neutral.600">
                     {t('map.loadError', {
                       defaultValue: 'Unable to load the map right now.',

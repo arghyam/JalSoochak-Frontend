@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next'
 import { FiUpload } from 'react-icons/fi'
 import { BsDroplet, BsCheck2Circle } from 'react-icons/bs'
 import { IoCloseCircleOutline } from 'react-icons/io5'
-import { DataTable, SearchableSelect, StatCard } from '@/shared/components/common'
+import { DataTable, SearchableSelect, StatCard, PageHeader } from '@/shared/components/common'
 import type { DataTableColumn, SortDirection } from '@/shared/components/common'
 import type { Scheme } from '../../types/scheme-sync'
 import {
@@ -189,9 +189,11 @@ export function SchemeSyncPage() {
   if (isError) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {t('schemeSync.title')}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('schemeSync.title')}
+          </Heading>
+        </PageHeader>
         <Flex h="64" align="center" justify="center" direction="column" gap={4} role="alert">
           <Text color="error.500">{t('schemeSync.messages.failedToLoad')}</Text>
           <Button variant="secondary" size="sm" onClick={() => void refetch()}>
@@ -204,54 +206,50 @@ export function SchemeSyncPage() {
 
   return (
     <Box w="full" maxW="100%" minW={0}>
-      {/* Page Header */}
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
           {t('schemeSync.title')}
         </Heading>
-      </Box>
+      </PageHeader>
 
       {/* Toolbar: search + filters + upload */}
       <Flex
         as="section"
         aria-label={t('schemeSync.aria.filterSection')}
         justify="space-between"
-        align="center"
+        align="flex-start"
         mb={6}
         py={3}
         px={{ base: 3, md: 6 }}
-        h={{ base: 'auto', md: 16 }}
         gap={{ base: 3, md: 4 }}
-        flexDirection={{ base: 'column', md: 'row' }}
-        flexWrap="wrap"
+        flexDirection={{ base: 'column', sm: 'row' }}
         borderWidth="0.5px"
         borderColor="neutral.200"
         borderRadius="12px"
         bg="white"
       >
-        {/* Left: search */}
-        <InputGroup w={{ base: 'full', md: '260px' }} flexShrink={0}>
-          <InputLeftElement pointerEvents="none" h={8}>
-            <SearchIcon color="neutral.300" aria-hidden="true" />
-          </InputLeftElement>
-          <Input
-            placeholder={t('schemeSync.searchPlaceholder')}
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value)
-            }}
-            aria-label={t('schemeSync.aria.searchSchemes')}
-            bg="white"
-            h={8}
-            borderWidth="1px"
-            borderRadius="4px"
-            borderColor="neutral.300"
-            _placeholder={{ color: 'neutral.300' }}
-          />
-        </InputGroup>
+        {/* Left: search + filters (wraps internally at medium widths) */}
+        <Flex align="center" gap={3} flex={1} w="full" flexWrap="wrap">
+          <InputGroup w={{ base: 'full', sm: '260px' }} flexShrink={0}>
+            <InputLeftElement pointerEvents="none" h={8}>
+              <SearchIcon color="neutral.300" aria-hidden="true" />
+            </InputLeftElement>
+            <Input
+              placeholder={t('schemeSync.searchPlaceholder')}
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+              }}
+              aria-label={t('schemeSync.aria.searchSchemes')}
+              bg="white"
+              h={8}
+              borderWidth="1px"
+              borderRadius="4px"
+              borderColor="neutral.300"
+              _placeholder={{ color: 'neutral.300' }}
+            />
+          </InputGroup>
 
-        {/* Middle: filters */}
-        <Flex align="center" gap={3} flex={1} flexWrap="wrap">
           <SearchableSelect
             options={workStatusOptions}
             value={workStatusFilter}
@@ -299,7 +297,7 @@ export function SchemeSyncPage() {
           fontWeight="600"
           flexShrink={0}
           aria-label={t('schemeSync.aria.uploadData')}
-          width="147px"
+          w={{ base: 'full', sm: '147px' }}
           onClick={() => setIsUploadOpen(true)}
         >
           <FiUpload aria-hidden="true" size={16} style={{ marginRight: '4px', flexShrink: 0 }} />

@@ -6,7 +6,12 @@ import { EditIcon } from '@chakra-ui/icons'
 import { APP_LANGUAGES } from '@/shared/constants/languages'
 import { ROUTES } from '@/shared/constants/routes'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer, SearchableSelect, EditableBreadcrumb } from '@/shared/components/common'
+import {
+  ToastContainer,
+  SearchableSelect,
+  EditableBreadcrumb,
+  PageHeader,
+} from '@/shared/components/common'
 import {
   useLanguageConfigurationQuery,
   useSaveLanguageConfigurationMutation,
@@ -125,9 +130,11 @@ export function LanguagePage() {
   if (isLoading) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
-          {t('language.title')}
-        </Heading>
+        <PageHeader mb={6}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('language.title')}
+          </Heading>
+        </PageHeader>
         <Flex align="center" role="status" aria-live="polite" aria-busy="true">
           <Spinner size="md" color="primary.500" mr={3} />
           <Text color="neutral.600">{t('common:loading')}</Text>
@@ -139,9 +146,11 @@ export function LanguagePage() {
   if (isError || !config) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
-          {t('language.title')}
-        </Heading>
+        <PageHeader mb={6}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('language.title')}
+          </Heading>
+        </PageHeader>
         <Text color="error.500">{t('common:toast.failedToLoad')}</Text>
       </Box>
     )
@@ -149,8 +158,7 @@ export function LanguagePage() {
 
   return (
     <Box w="full">
-      {/* Page Header */}
-      <Box mb={5}>
+      <PageHeader>
         <Heading
           as="h1"
           size={{ base: 'h2', md: 'h1' }}
@@ -166,7 +174,7 @@ export function LanguagePage() {
             editLabel={t('language.breadcrumb.edit')}
           />
         )}
-      </Box>
+      </PageHeader>
 
       {/* Language Configuration Card */}
       <Box

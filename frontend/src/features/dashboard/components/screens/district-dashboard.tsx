@@ -37,6 +37,7 @@ type DistrictDashboardScreenProps = {
   supplySubmissionRateLabel: string
   operatorsPerformanceTable: PumpOperatorPerformanceData[]
   pumpOperatorsTotal: number
+  childEntityLabel?: string
 }
 
 type ViewBy = 'geography' | 'time'
@@ -56,6 +57,7 @@ export function DistrictDashboardScreen({
   supplySubmissionRateLabel,
   operatorsPerformanceTable,
   pumpOperatorsTotal,
+  childEntityLabel = supplySubmissionRateLabel,
 }: DistrictDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
@@ -78,32 +80,8 @@ export function DistrictDashboardScreen({
   })
   return (
     <>
-      {/* Quantity + Regularity */}
-      <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-        <PerformanceChartCard
-          title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
-          viewByAriaLabel={t('performanceCharts.quantity.ariaViewByDistrict', {
-            defaultValue: 'District quantity performance view by',
-          })}
-          viewBy={quantityViewBy}
-          onViewByChange={setQuantityViewBy}
-          data={quantityPerformanceData}
-          metric="quantity"
-          timeTrendData={quantityTimeTrendData}
-          isTimeTrendLoading={isQuantityTimeTrendLoading}
-          isTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
-          entityLabel={t('performanceCharts.viewBy.blocks', { defaultValue: 'Blocks' })}
-          yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
-          seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
-          cardHeight="523px"
-          showAreaLine
-          areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
-            defaultValue: 'Demand',
-          })}
-          timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
-          selectColor="primary.500"
-          selectBorderColor="primary.500"
-        />
+      {/* Regularity + Quantity */}
+      <Grid templateColumns="1fr" gap={6} mb={6}>
         <PerformanceChartCard
           title={t('performanceCharts.regularity.title', {
             defaultValue: 'Regularity Performance',
@@ -117,7 +95,7 @@ export function DistrictDashboardScreen({
           metric="regularity"
           timeTrendData={regularityTimeTrendData}
           isTimeTrendLoading={isRegularityTimeTrendLoading}
-          entityLabel={t('performanceCharts.viewBy.blocks', { defaultValue: 'Blocks' })}
+          entityLabel={childEntityLabel}
           yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
             defaultValue: 'Regularity',
           })}
@@ -127,6 +105,30 @@ export function DistrictDashboardScreen({
           cardHeight="523px"
           timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
           isTimeTrendPercent
+          selectColor="primary.500"
+          selectBorderColor="primary.500"
+        />
+        <PerformanceChartCard
+          title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
+          viewByAriaLabel={t('performanceCharts.quantity.ariaViewByDistrict', {
+            defaultValue: 'District quantity performance view by',
+          })}
+          viewBy={quantityViewBy}
+          onViewByChange={setQuantityViewBy}
+          data={quantityPerformanceData}
+          metric="quantity"
+          timeTrendData={quantityTimeTrendData}
+          isTimeTrendLoading={isQuantityTimeTrendLoading}
+          isTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
+          entityLabel={childEntityLabel}
+          yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
+          seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
+          cardHeight="523px"
+          showAreaLine
+          areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
+            defaultValue: 'Demand',
+          })}
+          timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
           selectColor="primary.500"
           selectBorderColor="primary.500"
         />
@@ -188,7 +190,7 @@ export function DistrictDashboardScreen({
               <SupplyOutageDistributionChart
                 data={waterSupplyOutageDistributionData}
                 height="400px"
-                xAxisLabel="Blocks"
+                xAxisLabel={childEntityLabel}
               />
             ) : (
               <ChartEmptyState minHeight="400px" />

@@ -17,7 +17,12 @@ import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
 import { IoInformation } from 'react-icons/io5'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ToastContainer, EditableBreadcrumb, ActionTooltip } from '@/shared/components/common'
+import {
+  ToastContainer,
+  EditableBreadcrumb,
+  ActionTooltip,
+  PageHeader,
+} from '@/shared/components/common'
 import {
   useSystemConfigurationQuery,
   useSaveSystemConfigurationMutation,
@@ -130,9 +135,11 @@ export function SystemConfigPage() {
   if (isLoading) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
-          {t('configuration.pageTitle')}
-        </Heading>
+        <PageHeader mb={6}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('configuration.pageTitle')}
+          </Heading>
+        </PageHeader>
         <Flex align="center" role="status" aria-live="polite" aria-busy="true">
           <Spinner size="md" color="primary.500" mr={3} />
           <Text color="neutral.600">{t('common:loading')}</Text>
@@ -144,9 +151,11 @@ export function SystemConfigPage() {
   if (isError || !config) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={6}>
-          {t('configuration.pageTitle')}
-        </Heading>
+        <PageHeader mb={6}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('configuration.pageTitle')}
+          </Heading>
+        </PageHeader>
         <Text color="error.500">{t('common:toast.failedToLoad')}</Text>
       </Box>
     )
@@ -157,7 +166,7 @@ export function SystemConfigPage() {
 
   return (
     <Box w="full">
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={isEditing ? 2 : 0}>
           {t('configuration.pageTitle')}
         </Heading>
@@ -167,7 +176,7 @@ export function SystemConfigPage() {
           viewLabel={t('configuration.breadcrumb.view')}
           editLabel={t('configuration.breadcrumb.edit')}
         />
-      </Box>
+      </PageHeader>
 
       <Box
         as="section"

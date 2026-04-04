@@ -12,7 +12,7 @@ import {
 import { SearchIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { FiUpload } from 'react-icons/fi'
-import { DataTable } from '@/shared/components/common'
+import { DataTable, PageHeader } from '@/shared/components/common'
 import type { DataTableColumn, SortDirection } from '@/shared/components/common'
 import type { SchemeMapping } from '../../types/scheme-mappings-sync'
 import { useSchemeMappingsListQuery } from '../../services/query/use-state-admin-queries'
@@ -130,9 +130,11 @@ export function SchemeMappingsSyncPage() {
   if (isError) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {t('schemeMappingsSync.title')}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('schemeMappingsSync.title')}
+          </Heading>
+        </PageHeader>
         <Flex h="64" align="center" justify="center" direction="column" gap={4} role="alert">
           <Text color="error.500">{t('schemeMappingsSync.messages.failedToLoad')}</Text>
           <Button variant="secondary" size="sm" onClick={() => void refetch()}>
@@ -145,12 +147,11 @@ export function SchemeMappingsSyncPage() {
 
   return (
     <Box w="full" maxW="100%" minW={0}>
-      {/* Page Header */}
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
           {t('schemeMappingsSync.title')}
         </Heading>
-      </Box>
+      </PageHeader>
 
       {/* Toolbar: search + upload */}
       <Flex

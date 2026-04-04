@@ -10,6 +10,7 @@ const mockUseConfigurationQuery = jest.fn()
 const mockUseSystemChannelsQuery = jest.fn()
 
 jest.mock('react-router-dom', () => ({
+  ...jest.requireActual<typeof import('react-router-dom')>('react-router-dom'),
   useNavigate: () => mockNavigate,
 }))
 

@@ -14,7 +14,7 @@ import {
   FormErrorMessage,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { ToastContainer, SearchableSelect } from '@/shared/components/common'
+import { ToastContainer, SearchableSelect, PageHeader } from '@/shared/components/common'
 import { TENANT_STATUSES, type TenantStatus } from '../../types/states-uts'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ROUTES } from '@/shared/constants/routes'
@@ -229,9 +229,11 @@ export function EditStateUTPage() {
   if (tenantsQuery.isLoading) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {t('statesUts.editTitle')}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('statesUts.editTitle')}
+          </Heading>
+        </PageHeader>
         <Flex role="status" aria-live="polite" align="center" justify="center" minH="200px">
           <Text color="neutral.600">{t('common:loading')}</Text>
         </Flex>
@@ -242,9 +244,11 @@ export function EditStateUTPage() {
   if (!tenant) {
     return (
       <Box w="full">
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={5}>
-          {t('statesUts.editTitle')}
-        </Heading>
+        <PageHeader>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('statesUts.editTitle')}
+          </Heading>
+        </PageHeader>
         <Text color="neutral.600" mt={4}>
           {t('statesUts.messages.notFound')}
         </Text>
@@ -256,8 +260,7 @@ export function EditStateUTPage() {
 
   return (
     <Box w="full">
-      {/* Breadcrumb */}
-      <Box mb={5}>
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={2}>
           {t('statesUts.editTitle')}
         </Heading>
@@ -284,7 +287,7 @@ export function EditStateUTPage() {
             {t('statesUts.breadcrumb.edit')}
           </Text>
         </Flex>
-      </Box>
+      </PageHeader>
 
       {/* Form Card */}
       <Box
