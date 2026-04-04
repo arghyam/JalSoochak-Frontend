@@ -610,18 +610,27 @@ export const dashboardApi = {
   getNationalSchemeRegularityPeriodic: async (
     params: NationalSchemeRegularityPeriodicQueryParams
   ): Promise<NationalSchemeRegularityPeriodicResponse> => {
-    const response = await apiClient.get<NationalSchemeRegularityPeriodicResponse>(
-      '/api/v1/analytics/scheme-regularity/periodic/national',
-      {
-        params: {
-          start_date: params.startDate,
-          end_date: params.endDate,
-          scale: params.scale,
-        },
+    const response = await apiClient.get<
+      | NationalSchemeRegularityPeriodicResponse
+      | WrappedAnalyticsResponse<NationalSchemeRegularityPeriodicResponse>
+    >('/api/v1/analytics/scheme-regularity/periodic/national', {
+      params: {
+        start_date: params.startDate,
+        end_date: params.endDate,
+        scale: params.scale,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data, 'national scheme regularity periodic analytics') ?? {
+        schemeCount: 0,
+        scale: params.scale,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        periodCount: 0,
+        metrics: [],
       }
     )
-
-    return response.data
   },
   getReadingSubmissionRate: async (
     params: ReadingSubmissionRateQueryParams
