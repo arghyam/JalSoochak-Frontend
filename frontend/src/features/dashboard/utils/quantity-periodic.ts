@@ -155,7 +155,10 @@ export const mapNationalQuantityTrendPoints = (
         metric
       ): metric is NationalSchemeRegularityPeriodicMetric &
         Required<
-          Pick<NationalSchemeRegularityPeriodicMetric, 'periodStartDate' | 'periodEndDate'>
+          Pick<
+            NationalSchemeRegularityPeriodicMetric,
+            'periodStartDate' | 'periodEndDate' | 'totalWaterQuantity'
+          >
         > =>
         typeof metric.totalWaterQuantity === 'number' &&
         Number.isFinite(metric.totalWaterQuantity) &&

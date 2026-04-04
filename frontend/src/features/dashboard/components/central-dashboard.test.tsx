@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
-import { screen } from '@testing-library/react'
+import { act, screen } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { DashboardData } from '../types'
 import { CentralDashboard } from './central-dashboard'
@@ -20,6 +20,7 @@ import { useReadingSubmissionRateQuery } from '../services/query/use-reading-sub
 import { useSchemeRegularityPeriodicQuery } from '../services/query/use-scheme-regularity-periodic-query'
 import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
+import { useTenantPublicConfigQuery } from '../services/query/use-tenant-public-config-query'
 import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
 import { useTenantBoundariesQuery } from '../services/query/use-tenant-boundaries-query'
 import { getPreviousPeriodRange } from '../utils/formulas'
@@ -125,6 +126,10 @@ jest.mock('../services/query/use-submission-status-query', () => ({
   useSubmissionStatusQuery: jest.fn(),
 }))
 
+jest.mock('../services/query/use-tenant-public-config-query', () => ({
+  useTenantPublicConfigQuery: jest.fn(),
+}))
+
 jest.mock('../services/query/use-water-quantity-periodic-query', () => ({
   useWaterQuantityPeriodicQuery: jest.fn(),
 }))
@@ -228,6 +233,7 @@ describe('CentralDashboard', () => {
     ;(useSchemeRegularityPeriodicQuery as jest.Mock).mockReset()
     ;(useSchemePerformanceQuery as jest.Mock).mockReset()
     ;(useSubmissionStatusQuery as jest.Mock).mockReset()
+    ;(useTenantPublicConfigQuery as jest.Mock).mockReset()
     ;(useWaterQuantityPeriodicQuery as jest.Mock).mockReset()
     ;(useTenantBoundariesQuery as jest.Mock).mockReset()
     mockUseParams.mockReturnValue({})
@@ -254,6 +260,7 @@ describe('CentralDashboard', () => {
     })
     ;(useSchemePerformanceQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useSubmissionStatusQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useTenantPublicConfigQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useWaterQuantityPeriodicQuery as jest.Mock).mockReturnValue({
       data: undefined,
       isFetching: false,
@@ -301,6 +308,40 @@ describe('CentralDashboard', () => {
     })
   })
 
+  it('uses the selected tenant public config for duration format', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+      },
+    })
+    ;(useTenantPublicConfigQuery as jest.Mock).mockReturnValue({
+      data: {
+        averageMembersPerHousehold: 13,
+        dateFormatScreen: {
+          dateFormat: 'MM-DD-YYYY',
+          timeFormat: 'HH:mm',
+          timezone: 'Asia/Calcutta',
+        },
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useTenantPublicConfigQuery).toHaveBeenCalledWith({
+      tenantId: 17,
+      enabled: true,
+    })
+    expect(
+      getLatestDashboardFilterProps<{ durationDateFormat?: string }>().durationDateFormat
+    ).toBe('MM-DD-YYYY')
+  })
+
   it('computes previous national dashboard analytics from the active selected duration', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -336,6 +377,407 @@ describe('CentralDashboard', () => {
         enabled: true,
       },
     ])
+  })
+
+  it('normalizes picker-style duration values before requesting central analytics', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [{ id: 10, lgdCode: 110, title: 'Telangana' }],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardFilterProps = getLatestDashboardFilterProps<{
+      setSelectedDuration: (value: { startDate: string; endDate: string }) => void
+    }>()
+
+    act(() => {
+      dashboardFilterProps.setSelectedDuration({
+        startDate: '25/03/2026',
+        endDate: '26/03/2026',
+      })
+    })
+
+    expect(useAverageWaterSupplyPerRegionQuery).toHaveBeenCalledWith({
+      params: {
+        tenantId: 16,
+        parentLgdId: 10,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
+      params: {
+        parentLgdId: 10,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
+      params: {
+        parentLgdId: 10,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useOutageReasonsQuery).toHaveBeenCalledWith({
+      params: {
+        parentLgdId: 10,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+  })
+
+  it('normalizes picker-style duration values before requesting state-level analytics', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 18, tenantCode: 'AS' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [{ id: 1, lgdCode: 101, title: 'Assam' }],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardFilterProps = getLatestDashboardFilterProps<{
+      setSelectedDuration: (value: { startDate: string; endDate: string }) => void
+    }>()
+
+    act(() => {
+      dashboardFilterProps.setSelectedDuration({
+        startDate: '25/03/2026',
+        endDate: '26/03/2026',
+      })
+    })
+
+    expect(useAverageWaterSupplyPerRegionQuery).toHaveBeenCalledWith({
+      params: {
+        tenantId: 18,
+        parentLgdId: 1,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
+      params: {
+        parentLgdId: 1,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useOutageReasonsQuery).toHaveBeenCalledWith({
+      params: {
+        parentLgdId: 1,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+  })
+
+  it('normalizes picker-style duration values before requesting district-level analytics', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedDuration: {
+          startDate: '25/03/2026',
+          endDate: '26/03/2026',
+        },
+      })
+    )
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    mockUseSearchParams.mockReturnValue([new URLSearchParams('district=lakhimpur'), jest.fn()])
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 18, tenantCode: 'AS' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock)
+      .mockReturnValueOnce({
+        data: {
+          data: [{ id: 1, lgdCode: 101, title: 'Assam' }],
+        },
+      })
+      .mockReturnValueOnce({
+        data: {
+          data: [{ id: 2, lgdCode: 202, title: 'Lakhimpur' }],
+        },
+      })
+      .mockReturnValue({ data: undefined })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
+      params: {
+        parentLgdId: 202,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useOutageReasonsQuery).toHaveBeenCalledWith({
+      params: {
+        parentLgdId: 202,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+  })
+
+  it('normalizes picker-style duration values before requesting block-level analytics', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedDuration: {
+          startDate: '25/03/2026',
+          endDate: '26/03/2026',
+        },
+      })
+    )
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams('district=lakhimpur&block=boginadi'),
+      jest.fn(),
+    ])
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 18, tenantCode: 'AS' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock)
+      .mockReturnValueOnce({
+        data: {
+          data: [{ id: 1, lgdCode: 101, title: 'Assam' }],
+        },
+      })
+      .mockReturnValueOnce({
+        data: {
+          data: [{ id: 2, lgdCode: 202, title: 'Lakhimpur' }],
+        },
+      })
+      .mockReturnValueOnce({
+        data: {
+          data: [{ id: 3, lgdCode: 303, title: 'Boginadi' }],
+        },
+      })
+      .mockReturnValue({ data: undefined })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
+      params: {
+        parentLgdId: 303,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useOutageReasonsQuery).toHaveBeenCalledWith({
+      params: {
+        parentLgdId: 303,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useSchemePerformanceQuery).toHaveBeenCalledWith({
+      params: {
+        parentLgdId: 303,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+        schemeCount: 100,
+      },
+      enabled: true,
+    })
+  })
+
+  it('normalizes picker-style duration values before requesting gram panchayat-level analytics', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedDuration: {
+          startDate: '25/03/2026',
+          endDate: '26/03/2026',
+        },
+      })
+    )
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams('district=lakhimpur&block=boginadi&gramPanchayat=bhimpara'),
+      jest.fn(),
+    ])
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 18, tenantCode: 'AS' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock)
+      .mockReturnValueOnce({
+        data: {
+          data: [{ id: 1, lgdCode: 101, title: 'Assam' }],
+        },
+      })
+      .mockReturnValueOnce({
+        data: {
+          data: [{ id: 2, lgdCode: 202, title: 'Lakhimpur' }],
+        },
+      })
+      .mockReturnValueOnce({
+        data: {
+          data: [{ id: 3, lgdCode: 303, title: 'Boginadi' }],
+        },
+      })
+      .mockReturnValueOnce({
+        data: {
+          data: [{ id: 4, lgdCode: 404, title: 'Bhimpara' }],
+        },
+      })
+      .mockReturnValue({ data: undefined })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
+      params: {
+        parentLgdId: 404,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useOutageReasonsQuery).toHaveBeenCalledWith({
+      params: {
+        parentLgdId: 404,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useSchemePerformanceQuery).toHaveBeenCalledWith({
+      params: {
+        parentLgdId: 404,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+        schemeCount: 100,
+      },
+      enabled: true,
+    })
+  })
+
+  it('normalizes picker-style duration values before requesting village-level analytics', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedDuration: {
+          startDate: '25/03/2026',
+          endDate: '26/03/2026',
+        },
+      })
+    )
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams(
+        'district=11:211:sangareddy&block=22:322:patancheru&gramPanchayat=33:433:ismailkhanpet&village=44:544:rudraram'
+      ),
+      jest.fn(),
+    ])
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useWaterQuantityPeriodicQuery).toHaveBeenCalledWith({
+      params: {
+        lgdId: 544,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+        scale: 'day',
+      },
+      enabled: true,
+    })
+    expect(useSchemeRegularityPeriodicQuery).toHaveBeenCalledWith({
+      params: {
+        lgdId: 544,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+        scale: 'day',
+      },
+      enabled: true,
+    })
+    expect(useSchemePerformanceQuery).toHaveBeenCalledWith({
+      params: {
+        parentLgdId: 544,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+        schemeCount: 100,
+      },
+      enabled: true,
+    })
   })
 
   it('ignores a future stored selected duration and falls back to the default analytics range', () => {
@@ -452,11 +894,66 @@ describe('CentralDashboard', () => {
     })
   })
 
+  it('falls back to the state LGD code when root locations already contain districts', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 18, tenantCode: 'AS' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockImplementation((args?: unknown) => {
+      const parentId = (args as { parentId?: number } | undefined)?.parentId
+
+      if (typeof parentId === 'number') {
+        return { data: undefined }
+      }
+
+      return {
+        data: {
+          data: [
+            { id: 181, title: 'Bajali' },
+            { id: 182, title: 'Baksa' },
+          ],
+        },
+      }
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
+      params: expect.objectContaining({
+        parentLgdId: 18,
+        scope: 'child',
+      }),
+      enabled: true,
+    })
+    expect(useAverageWaterSupplyPerRegionQuery).toHaveBeenCalledWith({
+      params: expect.objectContaining({
+        tenantId: 18,
+        parentLgdId: 18,
+        scope: 'child',
+      }),
+      enabled: true,
+    })
+  })
+
   it('maps national dashboard analytics into central charts and overall performance table', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
       error: null,
+    })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'karnataka', label: 'Karnataka', tenantId: 1, tenantCode: 'KA' }],
+      },
     })
     ;(useNationalDashboardQuery as jest.Mock).mockReturnValue({
       data: {
@@ -474,6 +971,16 @@ describe('CentralDashboard', () => {
             totalWaterSuppliedLiters: 90_000_000,
             avgWaterSupplyPerScheme: 0,
           },
+          {
+            tenantId: 99,
+            stateCode: 'ZZ',
+            stateTitle: 'Inactive State',
+            schemeCount: 2,
+            totalHouseholdCount: 1000,
+            totalFhtcCount: 500,
+            totalWaterSuppliedLiters: 90_000_000,
+            avgWaterSupplyPerScheme: 0,
+          },
         ],
         stateWiseRegularity: [
           {
@@ -484,12 +991,28 @@ describe('CentralDashboard', () => {
             totalSupplyDays: 45,
             averageRegularity: 0,
           },
+          {
+            tenantId: 99,
+            stateCode: 'ZZ',
+            stateTitle: 'Inactive State',
+            schemeCount: 3,
+            totalSupplyDays: 45,
+            averageRegularity: 0,
+          },
         ],
         stateWiseReadingSubmissionRate: [
           {
             tenantId: 1,
             stateCode: 'KA',
             stateTitle: 'Karnataka',
+            schemeCount: 4,
+            totalSubmissionDays: 60,
+            readingSubmissionRate: 0,
+          },
+          {
+            tenantId: 99,
+            stateCode: 'ZZ',
+            stateTitle: 'Inactive State',
             schemeCount: 4,
             totalSubmissionDays: 60,
             readingSubmissionRate: 0,
@@ -580,15 +1103,7 @@ describe('CentralDashboard', () => {
         regularity: 50,
       })
     )
-    expect(dashboardBodyProps.waterSupplyOutagesData).toEqual([
-      expect.objectContaining({
-        electricityFailure: 7,
-        pipelineLeak: 5,
-        pumpFailure: 3,
-        valveIssue: 2,
-        sourceDrying: 1,
-      }),
-    ])
+    expect(dashboardBodyProps.waterSupplyOutagesData).toEqual([])
     expect(overallPerformanceProps.data[0]).toEqual(
       expect.objectContaining({
         name: 'Karnataka',
@@ -597,6 +1112,133 @@ describe('CentralDashboard', () => {
         regularity: 50,
       })
     )
+    expect(
+      dashboardBodyProps.quantityPerformanceData.some((row) => row.name === 'Inactive State')
+    ).toBe(false)
+    expect(
+      dashboardBodyProps.regularityPerformanceData.some((row) => row.name === 'Inactive State')
+    ).toBe(false)
+    expect(
+      dashboardBodyProps.supplySubmissionRateData.some((row) => row.name === 'Inactive State')
+    ).toBe(false)
+    expect(overallPerformanceProps.data.some((row) => row.name === 'Inactive State')).toBe(false)
+  })
+
+  it('does not filter national dashboard rows when location search states omit tenant ids', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 2,
+        states: [
+          { value: 'karnataka', label: 'Karnataka', tenantId: 1, tenantCode: 'KA' },
+          { value: 'maharashtra', label: 'Maharashtra', tenantCode: 'MH' },
+        ],
+      },
+    })
+    ;(useNationalDashboardQuery as jest.Mock).mockReturnValue({
+      data: {
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        stateWiseQuantityPerformance: [
+          {
+            tenantId: 1,
+            stateCode: 'KA',
+            stateTitle: 'Karnataka',
+            schemeCount: 2,
+            totalHouseholdCount: 1000,
+            totalFhtcCount: 500,
+            totalWaterSuppliedLiters: 90_000_000,
+            avgWaterSupplyPerScheme: 0,
+          },
+          {
+            tenantId: 2,
+            stateCode: 'MH',
+            stateTitle: 'Maharashtra',
+            schemeCount: 2,
+            totalHouseholdCount: 1000,
+            totalFhtcCount: 500,
+            totalWaterSuppliedLiters: 60_000_000,
+            avgWaterSupplyPerScheme: 0,
+          },
+        ],
+        stateWiseRegularity: [
+          {
+            tenantId: 1,
+            stateCode: 'KA',
+            stateTitle: 'Karnataka',
+            schemeCount: 3,
+            totalSupplyDays: 45,
+            averageRegularity: 0.5,
+          },
+          {
+            tenantId: 2,
+            stateCode: 'MH',
+            stateTitle: 'Maharashtra',
+            schemeCount: 3,
+            totalSupplyDays: 54,
+            averageRegularity: 0.6,
+          },
+        ],
+        stateWiseReadingSubmissionRate: [
+          {
+            tenantId: 1,
+            stateCode: 'KA',
+            stateTitle: 'Karnataka',
+            schemeCount: 4,
+            totalSubmissionDays: 60,
+            readingSubmissionRate: 0.5,
+          },
+          {
+            tenantId: 2,
+            stateCode: 'MH',
+            stateTitle: 'Maharashtra',
+            schemeCount: 4,
+            totalSubmissionDays: 72,
+            readingSubmissionRate: 0.6,
+          },
+        ],
+        overallOutageReasonDistribution: {},
+      },
+    })
+    ;(useNationalSchemeRegularityPeriodicQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isFetching: false,
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{
+      quantityPerformanceData: Array<{ name: string }>
+      regularityPerformanceData: Array<{ name: string }>
+      supplySubmissionRateData: Array<{ name: string }>
+    }>()
+    const overallPerformanceProps = (mockOverallPerformanceTable.mock.calls as unknown[][]).slice(
+      -1
+    )[0]?.[0] as {
+      data: Array<{ name: string }>
+    }
+
+    expect(dashboardBodyProps.quantityPerformanceData.map((row) => row.name)).toEqual([
+      'Karnataka',
+      'Maharashtra',
+    ])
+    expect(dashboardBodyProps.regularityPerformanceData.map((row) => row.name)).toEqual([
+      'Karnataka',
+      'Maharashtra',
+    ])
+    expect(dashboardBodyProps.supplySubmissionRateData.map((row) => row.name)).toEqual([
+      'Karnataka',
+      'Maharashtra',
+    ])
+    expect(overallPerformanceProps.data.map((row) => row.name)).toEqual([
+      'Karnataka',
+      'Maharashtra',
+    ])
   })
 
   it('calls useWaterQuantityPeriodicQuery with the resolved params and passes mapped quantity trend data to dashboard body', () => {
@@ -612,10 +1254,22 @@ describe('CentralDashboard', () => {
         states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
       },
     })
-    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
-      data: {
-        data: [{ id: 10, title: 'Telangana' }],
-      },
+    ;(useLocationChildrenQuery as jest.Mock).mockImplementation((args?: unknown) => {
+      const parentId = (args as { parentId?: number } | undefined)?.parentId
+
+      if (parentId === 10) {
+        return {
+          data: {
+            data: [{ id: 101, title: 'Sangareddy' }],
+          },
+        }
+      }
+
+      return {
+        data: {
+          data: [{ id: 10, title: 'Telangana' }],
+        },
+      }
     })
 
     const selectedDuration = getPreviousPeriodRange('2026-03-22', '2026-03-31')
@@ -627,7 +1281,7 @@ describe('CentralDashboard', () => {
     )
     ;(useWaterQuantityPeriodicQuery as jest.Mock).mockReturnValue({
       data: {
-        lgdId: 10,
+        lgdId: 36,
         startDate: selectedDuration.startDate,
         endDate: selectedDuration.endDate,
         scale: 'day',
@@ -727,10 +1381,22 @@ describe('CentralDashboard', () => {
         states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
       },
     })
-    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
-      data: {
-        data: [{ id: 10, title: 'Telangana' }],
-      },
+    ;(useLocationChildrenQuery as jest.Mock).mockImplementation((args?: unknown) => {
+      const parentId = (args as { parentId?: number } | undefined)?.parentId
+
+      if (parentId === 10) {
+        return {
+          data: {
+            data: [{ id: 101, title: 'Alpha' }],
+          },
+        }
+      }
+
+      return {
+        data: {
+          data: [{ id: 10, title: 'Telangana' }],
+        },
+      }
     })
     ;(useWaterQuantityPeriodicQuery as jest.Mock).mockReturnValue({
       data: undefined,
@@ -1225,15 +1891,517 @@ describe('CentralDashboard', () => {
 
     renderWithProviders(<CentralDashboard />)
 
-    const calls = mockOverallPerformanceTable.mock.calls as unknown[][]
-    const tableProps = calls[calls.length - 1]?.[0] as {
+    const tableProps = mockOverallPerformanceTable.mock.calls.at(-1)?.[0] as {
+      entityLabel: string
+    }
+
+    expect(tableProps.entityLabel).toBe('District')
+  })
+
+  it('filters out stale parent rows from Overall Performance during LGD drilldown', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 18, tenantCode: 'AS' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockImplementation((args?: unknown) => {
+      const parentId = (args as { parentId?: number } | undefined)?.parentId
+
+      if (parentId === 18) {
+        return {
+          data: {
+            data: [
+              { id: 181, title: 'Bajali' },
+              { id: 182, title: 'Baksa' },
+            ],
+          },
+        }
+      }
+
+      if (typeof parentId === 'number') {
+        return { data: undefined }
+      }
+
+      return {
+        data: {
+          data: [{ id: 18, title: 'Assam' }],
+        },
+      }
+    })
+    ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({
+      data: {
+        tenantId: 18,
+        stateCode: 'AS',
+        parentLgdLevel: 1,
+        parentDepartmentLevel: 0,
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        schemeCount: 4,
+        childRegionCount: 4,
+        schemes: [],
+        childRegions: [
+          {
+            lgdId: 9001,
+            departmentId: 0,
+            title: 'Bihar',
+            totalWaterSuppliedLiters: 10_000_000,
+            totalAchievedFhtcCount: 100,
+            schemeCount: 1,
+            avgWaterSupplyPerScheme: 0,
+          },
+          {
+            lgdId: 9002,
+            departmentId: 0,
+            title: 'Delhi',
+            totalWaterSuppliedLiters: 10_000_000,
+            totalAchievedFhtcCount: 100,
+            schemeCount: 1,
+            avgWaterSupplyPerScheme: 0,
+          },
+          {
+            lgdId: 181,
+            departmentId: 0,
+            title: 'Bajali',
+            totalWaterSuppliedLiters: 90_000_000,
+            totalAchievedFhtcCount: 1000,
+            schemeCount: 2,
+            avgWaterSupplyPerScheme: 0,
+          },
+          {
+            lgdId: 182,
+            departmentId: 0,
+            title: 'Baksa',
+            totalWaterSuppliedLiters: 80_000_000,
+            totalAchievedFhtcCount: 900,
+            schemeCount: 2,
+            avgWaterSupplyPerScheme: 0,
+          },
+        ],
+      },
+    })
+    ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({
+      data: {
+        lgdId: 18,
+        parentDepartmentId: 0,
+        parentLgdLevel: 1,
+        parentDepartmentLevel: 0,
+        scope: 'child',
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        schemeCount: 4,
+        totalSupplyDays: 60,
+        averageRegularity: 0,
+        childRegionCount: 4,
+        childRegions: [
+          {
+            lgdId: 181,
+            departmentId: 0,
+            title: 'Bajali',
+            schemeCount: 2,
+            totalSupplyDays: 30,
+            averageRegularity: 0,
+          },
+          {
+            lgdId: 182,
+            departmentId: 0,
+            title: 'Baksa',
+            schemeCount: 2,
+            totalSupplyDays: 30,
+            averageRegularity: 0,
+          },
+        ],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const tableProps = (mockOverallPerformanceTable.mock.calls as unknown[][])
+      .map((call) => call[0] as { data: Array<{ name: string }> })
+      .find((props) => props.data.length > 0) as {
+      data: Array<{ name: string }>
+    }
+
+    expect(tableProps.data.map((row) => row.name)).toEqual(['Bajali', 'Baksa'])
+  })
+
+  it('keeps Overall Performance empty while LGD child options are still unresolved', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 18, tenantCode: 'AS' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockImplementation((args?: unknown) => {
+      const parentId = (args as { parentId?: number } | undefined)?.parentId
+
+      if (typeof parentId === 'number') {
+        return { data: undefined }
+      }
+
+      return {
+        data: {
+          data: [{ id: 18, title: 'Assam' }],
+        },
+      }
+    })
+    ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({
+      data: {
+        tenantId: 18,
+        stateCode: 'AS',
+        parentLgdLevel: 1,
+        parentDepartmentLevel: 0,
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        schemeCount: 2,
+        childRegionCount: 2,
+        schemes: [],
+        childRegions: [
+          {
+            lgdId: 9001,
+            departmentId: 0,
+            title: 'Bihar',
+            totalWaterSuppliedLiters: 10_000_000,
+            totalAchievedFhtcCount: 100,
+            schemeCount: 1,
+            avgWaterSupplyPerScheme: 0,
+          },
+          {
+            lgdId: 9002,
+            departmentId: 0,
+            title: 'Delhi',
+            totalWaterSuppliedLiters: 10_000_000,
+            totalAchievedFhtcCount: 100,
+            schemeCount: 1,
+            avgWaterSupplyPerScheme: 0,
+          },
+        ],
+      },
+    })
+    ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({
+      data: {
+        lgdId: 18,
+        parentDepartmentId: 0,
+        parentLgdLevel: 1,
+        parentDepartmentLevel: 0,
+        scope: 'child',
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        schemeCount: 2,
+        totalSupplyDays: 30,
+        averageRegularity: 0,
+        childRegionCount: 2,
+        childRegions: [
+          {
+            lgdId: 9001,
+            departmentId: 0,
+            title: 'Bihar',
+            schemeCount: 1,
+            totalSupplyDays: 15,
+            averageRegularity: 0,
+          },
+          {
+            lgdId: 9002,
+            departmentId: 0,
+            title: 'Delhi',
+            schemeCount: 1,
+            totalSupplyDays: 15,
+            averageRegularity: 0,
+          },
+        ],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const tableProps = mockOverallPerformanceTable.mock.calls.at(-1)?.[0] as {
       entityLabel: string
       data: Array<{ name: string }>
     }
 
     expect(tableProps.entityLabel).toBe('District')
-    expect(tableProps.data.some((row) => row.name === 'Sangareddy')).toBe(true)
-    expect(tableProps.data.some((row) => row.name === 'Alpha')).toBe(false)
+    expect(tableProps.data).toEqual([])
+  })
+
+  it('filters Overall Performance rows using tenant boundary child names when location children are unresolved', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 18, tenantCode: 'AS' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockImplementation((args?: unknown) => {
+      const parentId = (args as { parentId?: number } | undefined)?.parentId
+
+      if (typeof parentId === 'number') {
+        return { data: undefined }
+      }
+
+      return {
+        data: {
+          data: [{ id: 18, title: 'Assam' }],
+        },
+      }
+    })
+    ;(useTenantBoundariesQuery as jest.Mock).mockReturnValue({
+      data: {
+        tenantId: 18,
+        stateCode: 'AS',
+        childBoundaryCount: 2,
+        boundaryGeoJson: null,
+        parsedBoundaryGeoJson: null,
+        averageSchemeRegularity: 0,
+        readingSubmissionRate: 0,
+        averagePerformanceScore: 0,
+        childRegions: [
+          {
+            childLgdId: 181,
+            childLgdTitle: 'Bajali',
+            averageSchemeRegularity: 0.12,
+            averagePerformanceScore: 0.12,
+            boundaryGeoJson: null,
+          },
+          {
+            childLgdId: 182,
+            childLgdTitle: 'Baksa',
+            averageSchemeRegularity: 0.12,
+            averagePerformanceScore: 0.12,
+            boundaryGeoJson: null,
+          },
+        ],
+      },
+    })
+    ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({
+      data: {
+        tenantId: 18,
+        stateCode: 'AS',
+        parentLgdLevel: 1,
+        parentDepartmentLevel: 0,
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        schemeCount: 4,
+        childRegionCount: 4,
+        schemes: [],
+        childRegions: [
+          {
+            lgdId: 9001,
+            departmentId: 0,
+            title: 'Bihar',
+            totalWaterSuppliedLiters: 10_000_000,
+            totalAchievedFhtcCount: 100,
+            schemeCount: 1,
+            avgWaterSupplyPerScheme: 0,
+          },
+          {
+            lgdId: 9002,
+            departmentId: 0,
+            title: 'Delhi',
+            totalWaterSuppliedLiters: 10_000_000,
+            totalAchievedFhtcCount: 100,
+            schemeCount: 1,
+            avgWaterSupplyPerScheme: 0,
+          },
+          {
+            lgdId: 181,
+            departmentId: 0,
+            title: 'Bajali',
+            totalWaterSuppliedLiters: 90_000_000,
+            totalAchievedFhtcCount: 1000,
+            schemeCount: 2,
+            avgWaterSupplyPerScheme: 0,
+          },
+          {
+            lgdId: 182,
+            departmentId: 0,
+            title: 'Baksa',
+            totalWaterSuppliedLiters: 80_000_000,
+            totalAchievedFhtcCount: 900,
+            schemeCount: 2,
+            avgWaterSupplyPerScheme: 0,
+          },
+        ],
+      },
+    })
+    ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({
+      data: {
+        lgdId: 18,
+        parentDepartmentId: 0,
+        parentLgdLevel: 1,
+        parentDepartmentLevel: 0,
+        scope: 'child',
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        schemeCount: 4,
+        totalSupplyDays: 60,
+        averageRegularity: 0,
+        childRegionCount: 4,
+        childRegions: [
+          {
+            lgdId: 181,
+            departmentId: 0,
+            title: 'Bajali',
+            schemeCount: 2,
+            totalSupplyDays: 30,
+            averageRegularity: 0,
+          },
+          {
+            lgdId: 182,
+            departmentId: 0,
+            title: 'Baksa',
+            schemeCount: 2,
+            totalSupplyDays: 30,
+            averageRegularity: 0,
+          },
+        ],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const tableProps = mockOverallPerformanceTable.mock.calls.at(-1)?.[0] as {
+      data: Array<{ name: string }>
+    }
+
+    expect(tableProps.data.map((row) => row.name)).toEqual(['Bajali', 'Baksa'])
+  })
+
+  it('keeps Overall Performance rows when child ids match even if analytics titles differ', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 18, tenantCode: 'AS' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockImplementation((args?: unknown) => {
+      const parentId = (args as { parentId?: number } | undefined)?.parentId
+
+      if (parentId === 18) {
+        return {
+          data: {
+            data: [
+              { id: 181, title: 'Bajali' },
+              { id: 182, title: 'Baksa' },
+            ],
+          },
+        }
+      }
+
+      if (typeof parentId === 'number') {
+        return { data: undefined }
+      }
+
+      return {
+        data: {
+          data: [{ id: 18, title: 'Assam' }],
+        },
+      }
+    })
+    ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({
+      data: {
+        tenantId: 18,
+        stateCode: 'AS',
+        parentLgdLevel: 1,
+        parentDepartmentLevel: 0,
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        schemeCount: 2,
+        childRegionCount: 2,
+        schemes: [],
+        childRegions: [
+          {
+            lgdId: 181,
+            departmentId: 0,
+            title: 'Bajali District',
+            totalWaterSuppliedLiters: 90_000_000,
+            totalAchievedFhtcCount: 1000,
+            schemeCount: 2,
+            avgWaterSupplyPerScheme: 0,
+          },
+          {
+            lgdId: 182,
+            departmentId: 0,
+            title: 'District Baksa',
+            totalWaterSuppliedLiters: 80_000_000,
+            totalAchievedFhtcCount: 900,
+            schemeCount: 2,
+            avgWaterSupplyPerScheme: 0,
+          },
+        ],
+      },
+    })
+    ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({
+      data: {
+        lgdId: 18,
+        parentDepartmentId: 0,
+        parentLgdLevel: 1,
+        parentDepartmentLevel: 0,
+        scope: 'child',
+        startDate: '2026-03-01',
+        endDate: '2026-03-30',
+        daysInRange: 30,
+        schemeCount: 2,
+        totalSupplyDays: 30,
+        averageRegularity: 0,
+        childRegionCount: 2,
+        childRegions: [
+          {
+            lgdId: 181,
+            departmentId: 0,
+            title: 'Bajali District',
+            schemeCount: 2,
+            totalSupplyDays: 30,
+            averageRegularity: 0,
+          },
+          {
+            lgdId: 182,
+            departmentId: 0,
+            title: 'District Baksa',
+            schemeCount: 2,
+            totalSupplyDays: 30,
+            averageRegularity: 0,
+          },
+        ],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const tableProps = mockOverallPerformanceTable.mock.calls.at(-1)?.[0] as {
+      data: Array<{ name: string }>
+    }
+
+    expect(tableProps.data.map((row) => row.name)).toEqual(['Bajali District', 'District Baksa'])
   })
 
   it('overrides reading submission status from analytics when a filtered view is open', () => {
@@ -1365,6 +2533,207 @@ describe('CentralDashboard', () => {
         scope: 'child',
         startDate: expect.any(String),
         endDate: expect.any(String),
+      },
+      enabled: true,
+    })
+  })
+
+  it('normalizes picker-style duration values before requesting departmental zone analytics', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+      },
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 1,
+        selectedDepartmentState: '501:department-state',
+        selectedDepartmentZone: '601:department-zone',
+        selectedDuration: {
+          startDate: '25/03/2026',
+          endDate: '26/03/2026',
+        },
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useAverageWaterSupplyPerRegionQuery).toHaveBeenCalledWith({
+      params: {
+        tenantId: 17,
+        parentDepartmentId: 601,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 601,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 601,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useOutageReasonsQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 601,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+  })
+
+  it('normalizes picker-style duration values before requesting departmental circle analytics', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+      },
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 1,
+        selectedDepartmentState: '501:department-state',
+        selectedDepartmentZone: '601:department-zone',
+        selectedDepartmentCircle: '701:department-circle',
+        selectedDuration: {
+          startDate: '25/03/2026',
+          endDate: '26/03/2026',
+        },
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useAverageWaterSupplyPerRegionQuery).toHaveBeenCalledWith({
+      params: {
+        tenantId: 17,
+        parentDepartmentId: 701,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 701,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 701,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useOutageReasonsQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 701,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+  })
+
+  it('normalizes picker-style duration values before requesting departmental division analytics', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+      },
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 1,
+        selectedDepartmentState: '501:department-state',
+        selectedDepartmentZone: '601:department-zone',
+        selectedDepartmentCircle: '701:department-circle',
+        selectedDepartmentDivision: '801:department-division',
+        selectedDuration: {
+          startDate: '25/03/2026',
+          endDate: '26/03/2026',
+        },
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useAverageWaterSupplyPerRegionQuery).toHaveBeenCalledWith({
+      params: {
+        tenantId: 17,
+        parentDepartmentId: 801,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 801,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 801,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useOutageReasonsQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 801,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
       },
       enabled: true,
     })
@@ -1549,6 +2918,91 @@ describe('CentralDashboard', () => {
       'Lower Assam Zone',
     ])
     expect(dashboardBodyProps.supplySubmissionRateLabel).toBe('Zones')
+  })
+
+  it('normalizes picker-style duration values before requesting departmental root analytics', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockImplementation((args: unknown) => {
+      const { parentId } = (args ?? {}) as { parentId?: number }
+
+      if (parentId === undefined) {
+        return {
+          data: {
+            data: [{ id: 501, title: 'Assam' }],
+          },
+        }
+      }
+
+      if (parentId === 501) {
+        return {
+          data: {
+            data: [{ id: 601, title: 'North Assam Zone' }],
+          },
+        }
+      }
+
+      return { data: undefined }
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 1,
+        selectedDuration: {
+          startDate: '25/03/2026',
+          endDate: '26/03/2026',
+        },
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useAverageWaterSupplyPerRegionQuery).toHaveBeenCalledWith({
+      params: {
+        tenantId: 17,
+        parentDepartmentId: 501,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 501,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 501,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
+    expect(useOutageReasonsQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 501,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+      },
+      enabled: true,
+    })
   })
 
   it('filters stray departmental rows from overall performance using the loaded child options', () => {
@@ -1790,6 +3244,66 @@ describe('CentralDashboard', () => {
 
     expect(dashboardBodyProps.selectedVillage).toBe('901:department-subdivision')
     expect(dashboardBodyProps.schemeId).toBe(1234)
+  })
+
+  it('normalizes picker-style duration values before requesting departmental subdivision analytics', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+      },
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 1,
+        selectedDepartmentState: '501:department-state',
+        selectedDepartmentZone: '601:department-zone',
+        selectedDepartmentCircle: '701:department-circle',
+        selectedDepartmentDivision: '801:department-division',
+        selectedDepartmentSubdivision: '901:department-subdivision',
+        selectedDuration: {
+          startDate: '25/03/2026',
+          endDate: '26/03/2026',
+        },
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useWaterQuantityPeriodicQuery).toHaveBeenCalledWith({
+      params: {
+        departmentId: 901,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+        scale: 'day',
+      },
+      enabled: true,
+    })
+    expect(useSchemeRegularityPeriodicQuery).toHaveBeenCalledWith({
+      params: {
+        departmentId: 901,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+        scale: 'day',
+      },
+      enabled: true,
+    })
+    expect(useSchemePerformanceQuery).toHaveBeenCalledWith({
+      params: {
+        parentDepartmentId: 901,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+        schemeCount: 100,
+      },
+      enabled: true,
+    })
   })
 
   it('overrides active schemes chart data from scheme performance analytics when rows are available', () => {
@@ -2103,18 +3617,9 @@ describe('CentralDashboard', () => {
 
     const tableProps = mockOverallPerformanceTable.mock.calls.at(-1)?.[0] as {
       entityLabel: string
-      data: Array<{ name: string; coverage: number; quantity: number; regularity: number }>
     }
 
     expect(tableProps.entityLabel).toBe('District')
-    expect(tableProps.data[0]).toEqual(
-      expect.objectContaining({
-        name: 'Alpha',
-        coverage: 3,
-        quantity: 600,
-        regularity: 50,
-      })
-    )
   })
 
   it('keeps dashboard performance table props empty when query params include stable id-prefixed values', () => {
@@ -2791,7 +4296,7 @@ describe('CentralDashboard', () => {
           call?.params?.parentLgdId === 10 &&
           call?.params?.scope === 'current'
       ).length
-    ).toBeGreaterThanOrEqual(2)
+    ).toBe(0)
   })
 
   it('passes neutral KPI trends when comparison values do not change', () => {
@@ -3493,7 +4998,7 @@ describe('CentralDashboard', () => {
     expect(useTenantBoundariesQuery).toHaveBeenLastCalledWith({
       params: {
         tenantId: 17,
-        parentLgdId: 18,
+        parentLgdId: 101,
         startDate: expect.any(String),
         endDate: expect.any(String),
       },
@@ -3507,7 +5012,7 @@ describe('CentralDashboard', () => {
       onStateClick?: unknown
     }>()
 
-    expect(mapProps.mapName).toBe('tenant-boundary-lgd-18')
+    expect(mapProps.mapName).toBe('tenant-boundary-lgd-101')
     expect(mapProps.fallbackToIndiaMap).toBe(false)
     expect(mapProps.onStateClick).toBeUndefined()
     expect(mapProps.data).toEqual([
@@ -3528,6 +5033,50 @@ describe('CentralDashboard', () => {
         },
       }),
     ])
+  })
+
+  it('uses the resolved root location id when the root location response omits lgdCode', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        states: [
+          {
+            value: 'assam',
+            label: 'Assam',
+            tenantId: 17,
+            tenantCode: 'AS',
+          },
+        ],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [
+          {
+            id: 1,
+            title: 'Assam',
+          },
+        ],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useAverageWaterSupplyPerRegionQuery).toHaveBeenCalledWith({
+      params: {
+        tenantId: 17,
+        parentLgdId: 1,
+        scope: 'child',
+        startDate: expect.any(String),
+        endDate: expect.any(String),
+      },
+      enabled: true,
+    })
   })
 
   it('uses loaded departmental labels when tenant boundary regions are unnamed', () => {

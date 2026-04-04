@@ -1,6 +1,8 @@
 import { describe, expect, it } from '@jest/globals'
 import {
   mapDemandSupplyToTrendPoints,
+  mapNationalQuantityTrendPoints,
+  mapNationalRegularityTrendPoints,
   mapOutageReasonsPeriodicToTrendPoints,
   mapSchemeRegularityPeriodicToTrendPoints,
   mapWaterQuantityPeriodicToTrendPoints,
@@ -111,5 +113,43 @@ describe('quantity-periodic utils', () => {
         ],
       })
     ).toEqual([{ period: '01 Mar - 07 Mar', value: 6 }])
+  })
+
+  it('maps national regularity metrics from wrapped-api-compatible payloads', () => {
+    expect(
+      mapNationalRegularityTrendPoints({
+        schemeCount: 10,
+        scale: 'day',
+        startDate: '2026-01-01',
+        endDate: '2026-01-31',
+        periodCount: 1,
+        metrics: [
+          {
+            periodStartDate: '2026-01-01',
+            periodEndDate: '2026-01-01',
+            averageRegularity: 0.74,
+          },
+        ],
+      })
+    ).toEqual([{ period: '01 Jan', value: 0.74 }])
+  })
+
+  it('skips national quantity points when water quantity is not present in the payload', () => {
+    expect(
+      mapNationalQuantityTrendPoints({
+        schemeCount: 10,
+        scale: 'day',
+        startDate: '2026-01-01',
+        endDate: '2026-01-31',
+        periodCount: 1,
+        metrics: [
+          {
+            periodStartDate: '2026-01-01',
+            periodEndDate: '2026-01-01',
+            averageRegularity: 0.74,
+          },
+        ],
+      })
+    ).toEqual([])
   })
 })

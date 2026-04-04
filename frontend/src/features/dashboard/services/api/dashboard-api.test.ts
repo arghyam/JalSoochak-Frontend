@@ -269,6 +269,57 @@ describe('dashboardApi.getDashboardData', () => {
   })
 })
 
+describe('dashboardApi.getNationalSchemeRegularityPeriodic', () => {
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+  })
+
+  it('unwraps wrapped national periodic analytics responses', async () => {
+    mockGet.mockImplementation(async () => ({
+      data: {
+        success: true,
+        data: {
+          schemeCount: 10,
+          scale: 'day',
+          startDate: '2026-01-01',
+          endDate: '2026-01-31',
+          periodCount: 1,
+          metrics: [
+            {
+              periodStartDate: '2026-01-01',
+              periodEndDate: '2026-01-01',
+              averageRegularity: 0.74,
+            },
+          ],
+        },
+      },
+    }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+    const response = await dashboardApi.getNationalSchemeRegularityPeriodic({
+      startDate: '2026-01-01',
+      endDate: '2026-01-31',
+      scale: 'day',
+    })
+
+    expect(response).toEqual({
+      schemeCount: 10,
+      scale: 'day',
+      startDate: '2026-01-01',
+      endDate: '2026-01-31',
+      periodCount: 1,
+      metrics: [
+        {
+          periodStartDate: '2026-01-01',
+          periodEndDate: '2026-01-01',
+          averageRegularity: 0.74,
+        },
+      ],
+    })
+  })
+})
+
 describe('dashboardApi analytics normalization', () => {
   beforeEach(() => {
     jest.resetModules()

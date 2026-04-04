@@ -227,8 +227,8 @@ export interface SchemeRegularityPeriodicResponse {
 export interface NationalSchemeRegularityPeriodicMetric {
   periodStartDate: string
   periodEndDate: string
-  totalSupplyDays: number
-  totalWaterQuantity: number
+  totalSupplyDays?: number
+  totalWaterQuantity?: number
   averageRegularity: number
 }
 

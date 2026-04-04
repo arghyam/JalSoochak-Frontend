@@ -30,6 +30,8 @@ export const dashboardQueryKeys = {
   all: ['dashboard'] as const,
   data: (level: DashboardLevel, entityId?: string) =>
     ['dashboard', 'data', level, entityId] as const,
+  tenantPublicConfig: (tenantId?: number) =>
+    ['dashboard', 'tenant-public-config', tenantId] as const,
   nationalDashboard: (params: NationalDashboardQueryParams | null) =>
     ['dashboard', 'analytics', 'national-dashboard', params?.startDate, params?.endDate] as const,
   averageWaterSupplyPerRegion: (params: AverageWaterSupplyPerRegionQueryParams | null) =>

@@ -34,6 +34,7 @@ type DashboardFiltersProps = {
   selectedVillage: string
   selectedScheme: string
   selectedDuration: DateRange | null
+  durationDateFormat?: string
   selectedDepartmentState: string
   selectedDepartmentZone: string
   selectedDepartmentCircle: string
@@ -149,6 +150,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     selectedVillage,
     activeTrailIndex,
     selectedDuration,
+    durationDateFormat,
     districtOptions,
     blockOptions,
     gramPanchayatOptions,
@@ -164,11 +166,13 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     selectedDepartmentZone,
     selectedDepartmentCircle,
     selectedDepartmentDivision,
+    selectedDepartmentSubdivision,
     selectedDepartmentVillage,
     onDepartmentStateChange,
     onDepartmentZoneChange,
     onDepartmentCircleChange,
     onDepartmentDivisionChange,
+    onDepartmentSubdivisionChange,
     onDepartmentVillageChange,
     setSelectedDepartmentZone,
     setSelectedDepartmentCircle,
@@ -200,7 +204,9 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   const activeSelectedGramPanchayat = isDepartmentTab
     ? selectedDepartmentDivision
     : selectedGramPanchayat
-  const activeSelectedVillage = isDepartmentTab ? selectedDepartmentVillage : selectedVillage
+  const activeSelectedVillage = isDepartmentTab
+    ? selectedDepartmentSubdivision || selectedDepartmentVillage
+    : selectedVillage
   const { data: rootLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
@@ -373,7 +379,10 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     activeSelectedGramPanchayat,
     activeSelectedVillage,
   ] as const
-  const { effectiveTrailIndex } = computeTrailIndices(trailSelectionValues, activeTrailIndex)
+  const { effectiveTrailIndex } = computeTrailIndices(
+    trailSelectionValues,
+    isDepartmentTab ? null : activeTrailIndex
+  )
   const hasSelectedState = effectiveTrailIndex >= 0 && Boolean(activeSelectedState)
   const hasSelectedDistrict = effectiveTrailIndex >= 1 && Boolean(activeSelectedDistrict)
   const hasSelectedBlock = effectiveTrailIndex >= 2 && Boolean(activeSelectedBlock)
@@ -407,9 +416,11 @@ export function DashboardFilters(props: DashboardFiltersProps) {
       }))
     : onGramPanchayatChange
   const villageSelectionHandler = isDepartmentTab
-    ? (onDepartmentVillageChange ??
+    ? (onDepartmentSubdivisionChange ??
+      onDepartmentVillageChange ??
       ((value: string) => {
-        setSelectedDepartmentVillage?.(value)
+        setSelectedDepartmentSubdivision?.(value)
+        setSelectedDepartmentVillage?.('')
       }))
     : setSelectedVillage
   const breadcrumbPanelConfig = hasSelectedGramPanchayat
@@ -552,6 +563,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
           <DateRangePicker
             value={selectedDuration}
             onChange={setSelectedDuration}
+            dateFormat={durationDateFormat}
             placeholder={t('filters.duration', 'Duration')}
             width={isBelowLgFilters ? '32px' : '160px'}
             height="32px"
@@ -563,7 +575,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
             isFilter={true}
             iconOnly={isBelowLgFilters}
             iconAriaLabel={t('filters.duration', 'Duration')}
-            popoverPlacement={isBelowLgFilters ? 'bottom-end' : 'bottom-start'}
+            popoverPlacement="bottom-end"
           />
           {!isBelowLgFilters ? (
             <Button
