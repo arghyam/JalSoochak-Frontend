@@ -59,6 +59,9 @@
       "quantity": "Quantity",
       "regularity": "Regularity"
     },
+    "noMapAvailable": "Map currently unavailable",
+    "loading": "Loading map...",
+    "loadError": "Unable to load the map right now.",
     "legend": {
       "gte90": ">=90%",
       "gte70": ">=70%",
@@ -74,6 +77,32 @@
       "quantityInLpcd": "Quantity in LPCD",
       "regularity": "Regularity"
     },
+    "tooltips": {
+      "quantityMld": {
+        "formulaLabel": "Quantity (MLD)",
+        "definitions": {
+          "waterQuantitySupplied": "water quantity supplied on day k",
+          "totalWaterSupplied": "total water supplied across all days",
+          "totalNumberOfDays": "total number of days"
+        }
+      },
+      "quantityLpcd": {
+        "formulaLabel": "Quantity (LPCD)",
+        "definitions": {
+          "waterQuantitySupplied": "water quantity supplied on day k",
+          "functionalHouseholdTapConnections": "functional household tap connections of scheme i",
+          "averagePersonsPerHousehold": "average persons per household",
+          "numberOfDays": "number of days"
+        }
+      },
+      "regularity": {
+        "formulaLabel": "Regularity of scheme",
+        "definitions": {
+          "numberOfSupplyDays": "number of supply-days of scheme i",
+          "totalNumberOfDaysInSelectedPeriod": "total number of days in the selected time period"
+        }
+      }
+    },
     "trends": {
       "percentDownLastDays": "-{{change}}% vs last {{days}} days",
       "lpcdUpLastMonth": "+{{change}} LPCD vs last month",
@@ -82,7 +111,7 @@
   },
   "overallPerformance": {
     "title": "Overall Performance",
-    "noData": "No data",
+    "noData": "No data available",
     "columns": {
       "entity": "State/UT",
       "quantityMld": "Quantity (MLD)",
@@ -163,7 +192,7 @@
         "columns": {
           "name": "Name",
           "village": "Village",
-          "lastSubmission": "Last Submission",
+          "lastSubmission": "Submission Date &Time",
           "readingValue": "Reading Value"
         }
       }

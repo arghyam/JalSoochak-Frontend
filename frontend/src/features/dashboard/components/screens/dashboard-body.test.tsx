@@ -20,6 +20,9 @@ const mockMonthlyTrendChart = jest.fn(
 const mockDistrictDashboardScreen = jest.fn((_props: unknown) => (
   <div data-testid="district-dashboard-screen" />
 ))
+const mockBlockDashboardScreen = jest.fn((_props: unknown) => (
+  <div data-testid="block-dashboard-screen" />
+))
 
 jest.mock('../charts', () => ({
   MetricPerformanceChart: (props: { data: EntityPerformance[]; metric: string }) =>
@@ -43,7 +46,7 @@ jest.mock('./district-dashboard', () => ({
 }))
 
 jest.mock('./block-dashboard', () => ({
-  BlockDashboardScreen: () => <div data-testid="block-dashboard-screen" />,
+  BlockDashboardScreen: (props: unknown) => mockBlockDashboardScreen(props),
 }))
 
 jest.mock('./gram-panchayat-dashboard', () => ({
@@ -64,12 +67,14 @@ jest.mock(
         ariaLabel,
         color,
         borderColor,
+        disabled,
       }: {
         value: 'geography' | 'time'
         onChange: (value: 'geography' | 'time') => void
         ariaLabel: string
         color?: string
         borderColor?: string
+        disabled?: boolean
       }) => {
         const { useState } = jest.requireActual<typeof import('react')>('react')
         const [isOpen, setIsOpen] = useState(false)
@@ -80,7 +85,12 @@ jest.mock(
             <button
               aria-label={ariaLabel}
               type="button"
-              onClick={() => setIsOpen((open: boolean) => !open)}
+              disabled={disabled}
+              onClick={() => {
+                if (!disabled) {
+                  setIsOpen((open: boolean) => !open)
+                }
+              }}
               style={{ color, borderColor, borderStyle: 'solid', borderWidth: '1px' }}
             >
               {label}
@@ -161,6 +171,9 @@ const mockDashboardData: DashboardData = {
   waterSupplyOutages: [
     {
       label: 'District 1',
+      reasons: {
+        electricityFailure: 1,
+      },
       electricityFailure: 1,
       pipelineLeak: 1,
       pumpFailure: 1,
@@ -190,10 +203,15 @@ function renderDashboardBody(overrides: Partial<ComponentProps<typeof DashboardB
   return renderWithProviders(
     <DashboardBody
       data={mockDashboardData}
+      performanceScreenKey="central"
       isStateSelected={false}
+      isDepartmentStateSelected={false}
       isDistrictSelected={false}
       isBlockSelected={false}
       isGramPanchayatSelected={false}
+      isDepartmentZoneSelected={false}
+      isDepartmentCircleSelected={false}
+      isDepartmentDivisionSelected={false}
       selectedVillage=""
       quantityPerformanceData={mockEntityData}
       quantityTimeTrendData={[{ period: '01 Mar', value: 85 }]}
@@ -229,6 +247,7 @@ describe('DashboardBody', () => {
     mockMetricPerformanceChart.mockClear()
     mockMonthlyTrendChart.mockClear()
     mockDistrictDashboardScreen.mockClear()
+    mockBlockDashboardScreen.mockClear()
   })
 
   it('renders independent geography/time selectors for both performance cards', () => {
@@ -255,13 +274,53 @@ describe('DashboardBody', () => {
     const metricChartCalls = mockMetricPerformanceChart.mock.calls as Array<
       [{ data: EntityPerformance[]; metric: string; showAreaLine?: boolean }]
     >
+    const quantityCall = metricChartCalls.find((call) => call[0].metric === 'quantity')
+    const regularityCall = metricChartCalls.find((call) => call[0].metric === 'regularity')
 
     expect(metricChartCalls).toHaveLength(2)
-    expect(metricChartCalls[0][0].data).toEqual(mockEntityData)
-    expect(metricChartCalls[0][0].showAreaLine).toBe(true)
-    expect(metricChartCalls[1][0].data).toEqual(mockEntityData)
-    expect(metricChartCalls[1][0].showAreaLine).toBeUndefined()
+    expect(quantityCall?.[0].data).toEqual(mockEntityData)
+    expect(quantityCall?.[0].showAreaLine).toBe(true)
+    expect(regularityCall?.[0].data).toEqual(mockEntityData)
+    expect(regularityCall?.[0].showAreaLine).toBeUndefined()
     expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
+  })
+
+  it('shows no-data messaging instead of empty geography chart shells', () => {
+    renderDashboardBody({
+      quantityPerformanceData: [],
+      regularityPerformanceData: [],
+      quantityTimeTrendData: [],
+      regularityTimeTrendData: [],
+    })
+
+    expect(screen.getAllByText('No data available')).toHaveLength(2)
+    expect(mockMetricPerformanceChart).not.toHaveBeenCalled()
+    expect(
+      screen.getByRole('button', { name: 'Quantity performance view by' }).getAttribute('disabled')
+    ).not.toBeNull()
+    expect(
+      screen
+        .getByRole('button', { name: 'Regularity performance view by' })
+        .getAttribute('disabled')
+    ).not.toBeNull()
+  })
+
+  it('disables metric selectors on geography when geography data is empty even if time data exists', () => {
+    renderDashboardBody({
+      quantityPerformanceData: [],
+      regularityPerformanceData: [],
+      quantityTimeTrendData: [{ period: 'Jan', value: 10 }],
+      regularityTimeTrendData: [{ period: 'Jan', value: 20 }],
+    })
+
+    expect(
+      screen.getByRole('button', { name: 'Quantity performance view by' }).getAttribute('disabled')
+    ).not.toBeNull()
+    expect(
+      screen
+        .getByRole('button', { name: 'Regularity performance view by' })
+        .getAttribute('disabled')
+    ).not.toBeNull()
   })
 
   it('switches each card to time chart independently', () => {
@@ -280,9 +339,201 @@ describe('DashboardBody', () => {
 
     fireEvent.click(regularitySelect)
     fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
-    expect(mockMonthlyTrendChart).toHaveBeenCalledTimes(3)
-    expect(mockMonthlyTrendChart.mock.calls[2]?.[0].seriesName).toBe('Regularity')
-    expect(mockMonthlyTrendChart.mock.calls[2]?.[0].isPercent).toBe(true)
+    expect(
+      mockMonthlyTrendChart.mock.calls.some((call) => call[0].seriesName === 'Regularity')
+    ).toBe(true)
+    const regularityTimeCall = [...mockMonthlyTrendChart.mock.calls]
+      .reverse()
+      .find((call) => call[0].seriesName === 'Regularity')
+    expect(regularityTimeCall?.[0].isPercent).toBe(true)
+  })
+
+  it('resets central quantity and regularity selectors back to geography after returning from a deeper level', () => {
+    const rendered = renderDashboardBody()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Quantity performance view by' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Regularity performance view by' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
+
+    expect(
+      screen.getByRole('button', { name: 'Quantity performance view by' }).textContent
+    ).toContain('Time')
+    expect(
+      screen.getByRole('button', { name: 'Regularity performance view by' }).textContent
+    ).toContain('Time')
+
+    rendered.rerender(
+      <DashboardBody
+        data={mockDashboardData}
+        performanceScreenKey="state:alpha"
+        isStateSelected={true}
+        isDistrictSelected={false}
+        isBlockSelected={false}
+        isGramPanchayatSelected={false}
+        selectedVillage=""
+        quantityPerformanceData={mockEntityData}
+        quantityTimeTrendData={[{ period: '01 Mar', value: 85 }]}
+        regularityPerformanceData={mockEntityData}
+        regularityTimeTrendData={[{ period: '01 Mar', value: 94 }]}
+        districtTableData={mockEntityData}
+        blockTableData={mockEntityData}
+        gramPanchayatTableData={mockEntityData}
+        villageTableData={mockEntityData}
+        supplySubmissionRateData={mockEntityData}
+        supplySubmissionRateLabel="States/UTs"
+        waterSupplyOutagesData={mockDashboardData.waterSupplyOutages}
+        waterSupplyOutageDistributionData={mockDashboardData.waterSupplyOutages}
+        pumpOperatorsTotal={12}
+        operatorsPerformanceTable={mockOperatorsPerformanceTable}
+        villagePhotoEvidenceRows={mockDashboardData.readingCompliance}
+        villagePumpOperatorDetails={{
+          name: 'Ajay Yadav',
+          scheme: 'Rural Water Supply 001',
+          stationLocation: 'Central Pumping Station',
+          lastSubmission: '11-02-24, 1:00pm',
+          reportingRate: '85%',
+          missingSubmissionCount: '3',
+          inactiveDays: '2',
+        }}
+      />
+    )
+
+    rendered.rerender(
+      <DashboardBody
+        data={mockDashboardData}
+        performanceScreenKey="central"
+        isStateSelected={false}
+        isDistrictSelected={false}
+        isBlockSelected={false}
+        isGramPanchayatSelected={false}
+        selectedVillage=""
+        quantityPerformanceData={mockEntityData}
+        quantityTimeTrendData={[{ period: '01 Mar', value: 85 }]}
+        regularityPerformanceData={mockEntityData}
+        regularityTimeTrendData={[{ period: '01 Mar', value: 94 }]}
+        districtTableData={mockEntityData}
+        blockTableData={mockEntityData}
+        gramPanchayatTableData={mockEntityData}
+        villageTableData={mockEntityData}
+        supplySubmissionRateData={mockEntityData}
+        supplySubmissionRateLabel="States/UTs"
+        waterSupplyOutagesData={mockDashboardData.waterSupplyOutages}
+        waterSupplyOutageDistributionData={mockDashboardData.waterSupplyOutages}
+        pumpOperatorsTotal={12}
+        operatorsPerformanceTable={mockOperatorsPerformanceTable}
+        villagePhotoEvidenceRows={mockDashboardData.readingCompliance}
+        villagePumpOperatorDetails={{
+          name: 'Ajay Yadav',
+          scheme: 'Rural Water Supply 001',
+          stationLocation: 'Central Pumping Station',
+          lastSubmission: '11-02-24, 1:00pm',
+          reportingRate: '85%',
+          missingSubmissionCount: '3',
+          inactiveDays: '2',
+        }}
+      />
+    )
+
+    expect(
+      screen.getByRole('button', { name: 'Quantity performance view by' }).textContent
+    ).toContain('Geography')
+    expect(
+      screen.getByRole('button', { name: 'Regularity performance view by' }).textContent
+    ).toContain('Geography')
+  })
+
+  it('resets state quantity and regularity selectors back to geography after returning from a deeper level', () => {
+    const rendered = renderDashboardBody({
+      performanceScreenKey: 'state:alpha',
+      isStateSelected: true,
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Quantity performance view by' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Regularity performance view by' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
+
+    rendered.rerender(
+      <DashboardBody
+        data={mockDashboardData}
+        performanceScreenKey={null}
+        isStateSelected={true}
+        isDistrictSelected={true}
+        isBlockSelected={false}
+        isGramPanchayatSelected={false}
+        selectedVillage=""
+        quantityPerformanceData={mockEntityData}
+        quantityTimeTrendData={[{ period: '01 Mar', value: 85 }]}
+        regularityPerformanceData={mockEntityData}
+        regularityTimeTrendData={[{ period: '01 Mar', value: 94 }]}
+        districtTableData={mockEntityData}
+        blockTableData={mockEntityData}
+        gramPanchayatTableData={mockEntityData}
+        villageTableData={mockEntityData}
+        supplySubmissionRateData={mockEntityData}
+        supplySubmissionRateLabel="States/UTs"
+        waterSupplyOutagesData={mockDashboardData.waterSupplyOutages}
+        waterSupplyOutageDistributionData={mockDashboardData.waterSupplyOutages}
+        pumpOperatorsTotal={12}
+        operatorsPerformanceTable={mockOperatorsPerformanceTable}
+        villagePhotoEvidenceRows={mockDashboardData.readingCompliance}
+        villagePumpOperatorDetails={{
+          name: 'Ajay Yadav',
+          scheme: 'Rural Water Supply 001',
+          stationLocation: 'Central Pumping Station',
+          lastSubmission: '11-02-24, 1:00pm',
+          reportingRate: '85%',
+          missingSubmissionCount: '3',
+          inactiveDays: '2',
+        }}
+      />
+    )
+
+    rendered.rerender(
+      <DashboardBody
+        data={mockDashboardData}
+        performanceScreenKey="state:alpha"
+        isStateSelected={true}
+        isDistrictSelected={false}
+        isBlockSelected={false}
+        isGramPanchayatSelected={false}
+        selectedVillage=""
+        quantityPerformanceData={mockEntityData}
+        quantityTimeTrendData={[{ period: '01 Mar', value: 85 }]}
+        regularityPerformanceData={mockEntityData}
+        regularityTimeTrendData={[{ period: '01 Mar', value: 94 }]}
+        districtTableData={mockEntityData}
+        blockTableData={mockEntityData}
+        gramPanchayatTableData={mockEntityData}
+        villageTableData={mockEntityData}
+        supplySubmissionRateData={mockEntityData}
+        supplySubmissionRateLabel="States/UTs"
+        waterSupplyOutagesData={mockDashboardData.waterSupplyOutages}
+        waterSupplyOutageDistributionData={mockDashboardData.waterSupplyOutages}
+        pumpOperatorsTotal={12}
+        operatorsPerformanceTable={mockOperatorsPerformanceTable}
+        villagePhotoEvidenceRows={mockDashboardData.readingCompliance}
+        villagePumpOperatorDetails={{
+          name: 'Ajay Yadav',
+          scheme: 'Rural Water Supply 001',
+          stationLocation: 'Central Pumping Station',
+          lastSubmission: '11-02-24, 1:00pm',
+          reportingRate: '85%',
+          missingSubmissionCount: '3',
+          inactiveDays: '2',
+        }}
+      />
+    )
+
+    expect(
+      screen.getByRole('button', { name: 'Quantity performance view by' }).textContent
+    ).toContain('Geography')
+    expect(
+      screen.getByRole('button', { name: 'Regularity performance view by' }).textContent
+    ).toContain('Geography')
   })
 
   it('shows no data for quantity time view when periodic analytics are empty', () => {
@@ -321,6 +572,27 @@ describe('DashboardBody', () => {
     expect(screen.getByTestId('village-dashboard-screen')).toBeTruthy()
     expect(screen.queryByText('Supply Outage Reasons')).toBeNull()
     expect(screen.queryByText('Reading Submission Rate')).toBeNull()
+  })
+
+  it('keeps the standard outage and submission rows on departmental circle view', () => {
+    renderDashboardBody({
+      isDepartmentCircleSelected: true,
+      supplySubmissionRateLabel: 'Divisions',
+    })
+
+    expect(screen.getByTestId('block-dashboard-screen')).toBeTruthy()
+    expect(screen.queryByText('Supply Outage Reasons')).toBeNull()
+    expect(screen.queryByText('Reading Submission Rate')).toBeNull()
+
+    const blockScreenProps = mockBlockDashboardScreen.mock.calls.at(-1)?.[0] as {
+      showSupplyOutageReasons?: boolean
+      showReadingSubmissionRate?: boolean
+      showReadingSubmissionSection?: boolean
+    }
+
+    expect(blockScreenProps.showSupplyOutageReasons).toBe(true)
+    expect(blockScreenProps.showReadingSubmissionRate).toBe(true)
+    expect(blockScreenProps.showReadingSubmissionSection).toBe(true)
   })
 
   it('renders geography charts with district data and labels when state is selected', () => {
@@ -373,13 +645,36 @@ describe('DashboardBody', () => {
     const metricChartCalls = mockMetricPerformanceChart.mock.calls as Array<
       [{ data: EntityPerformance[]; entityLabel?: string; showAreaLine?: boolean }]
     >
+    const quantityCall = metricChartCalls.find((call) => call[0].showAreaLine === true)
+    const regularityCall = metricChartCalls.find((call) => call[0].showAreaLine !== true)
 
     expect(metricChartCalls).toHaveLength(2)
-    expect(metricChartCalls[0][0].data[0]?.name).toBe('District A')
-    expect(metricChartCalls[1][0].data[0]?.name).toBe('District A')
-    expect(metricChartCalls[0][0].entityLabel).toBe('Districts')
-    expect(metricChartCalls[0][0].showAreaLine).toBe(true)
-    expect(metricChartCalls[1][0].entityLabel).toBe('Districts')
+    expect(quantityCall?.[0].data[0]?.name).toBe('District A')
+    expect(regularityCall?.[0].data[0]?.name).toBe('District A')
+    expect(quantityCall?.[0].entityLabel).toBe('Districts')
+    expect(quantityCall?.[0].showAreaLine).toBe(true)
+    expect(regularityCall?.[0].entityLabel).toBe('Districts')
+  })
+
+  it('uses the active hierarchy label for geography charts on the central departmental view', () => {
+    mockMetricPerformanceChart.mockClear()
+
+    renderDashboardBody({
+      isStateSelected: false,
+      isDistrictSelected: false,
+      isBlockSelected: false,
+      isGramPanchayatSelected: false,
+      selectedVillage: '',
+      supplySubmissionRateLabel: 'Zones',
+    })
+
+    const metricChartCalls = mockMetricPerformanceChart.mock.calls as Array<
+      [{ data: EntityPerformance[]; entityLabel?: string; showAreaLine?: boolean }]
+    >
+
+    expect(metricChartCalls).toHaveLength(2)
+    expect(metricChartCalls[0][0].entityLabel).toBe('Zones')
+    expect(metricChartCalls[1][0].entityLabel).toBe('Zones')
   })
 
   it('renders and switches the supply outage distribution selector on the state view', () => {
@@ -411,6 +706,115 @@ describe('DashboardBody', () => {
     expect(mockMonthlyTrendChart.mock.calls[0]?.[0].seriesName).toBe('Supply outage')
   })
 
+  it('renders state-style outage and submission sections for departmental state view', () => {
+    renderDashboardBody({
+      isDepartmentStateSelected: true,
+      supplySubmissionRateLabel: 'Zones',
+    })
+
+    expect(screen.getByText('Supply Outage Distribution')).toBeTruthy()
+    expect(screen.getByTestId('supply-outage-distribution-chart')).toBeTruthy()
+    expect(screen.getByTestId('state-ut-dashboard-screen')).toBeTruthy()
+  })
+
+  it('shows no data and disables the outage distribution selector when state outage data is empty', () => {
+    renderDashboardBody({
+      isStateSelected: true,
+      isDistrictSelected: false,
+      isBlockSelected: false,
+      isGramPanchayatSelected: false,
+      selectedVillage: '',
+      waterSupplyOutageDistributionData: [],
+      data: {
+        ...mockDashboardData,
+        supplyOutageTrend: [],
+      },
+    })
+
+    expect(screen.getByText('Supply Outage Distribution')).toBeTruthy()
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(
+      screen
+        .getByRole('button', { name: 'State supply outage distribution view by' })
+        .getAttribute('disabled')
+    ).not.toBeNull()
+  })
+
+  it('disables the outage distribution selector on geography when geography data is empty even if trend data exists', () => {
+    renderDashboardBody({
+      isStateSelected: true,
+      isDistrictSelected: false,
+      isBlockSelected: false,
+      isGramPanchayatSelected: false,
+      selectedVillage: '',
+      waterSupplyOutageDistributionData: [],
+      data: {
+        ...mockDashboardData,
+        supplyOutageTrend: [{ period: 'Jan', value: 12 }],
+      },
+    })
+
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(
+      screen
+        .getByRole('button', { name: 'State supply outage distribution view by' })
+        .getAttribute('disabled')
+    ).not.toBeNull()
+  })
+
+  it('shows no data for outage distribution when outage reasons have no renderable values', () => {
+    renderDashboardBody({
+      isStateSelected: true,
+      isDistrictSelected: false,
+      isBlockSelected: false,
+      isGramPanchayatSelected: false,
+      selectedVillage: '',
+      waterSupplyOutagesData: [
+        {
+          label: 'District 1',
+          reasons: {},
+          electricityFailure: 1,
+          pipelineLeak: 1,
+          pumpFailure: 1,
+          valveIssue: 1,
+          sourceDrying: 1,
+        },
+        {
+          label: 'District 2',
+          electricityFailure: 2,
+          pipelineLeak: 2,
+          pumpFailure: 2,
+          valveIssue: 2,
+          sourceDrying: 2,
+        },
+      ],
+      waterSupplyOutageDistributionData: mockDashboardData.waterSupplyOutages,
+      data: {
+        ...mockDashboardData,
+        supplyOutageTrend: [{ period: 'FY25', value: 7 }],
+      },
+    })
+
+    expect(screen.getByText('Supply Outage Distribution')).toBeTruthy()
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(screen.queryByTestId('supply-outage-distribution-chart')).toBeNull()
+    expect(
+      screen
+        .getByRole('button', { name: 'State supply outage distribution view by' })
+        .getAttribute('disabled')
+    ).not.toBeNull()
+  })
+
+  it('shows no data for the reading submission rate card when api data is empty', () => {
+    renderDashboardBody({
+      supplySubmissionRateData: [],
+    })
+
+    expect(screen.getByText('Reading Submission Rate')).toBeTruthy()
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(screen.queryByTestId('reading-submission-rate-chart')).toBeNull()
+  })
+
   it('passes dashboard data to district screen as outage single source-of-truth', () => {
     renderDashboardBody({
       isDistrictSelected: true,
@@ -437,5 +841,22 @@ describe('DashboardBody', () => {
     }
 
     expect(districtScreenProps.data?.waterSupplyOutages?.[0]?.label).toBe('Block 1')
+  })
+
+  it('routes departmental zone selections into the district-style dashboard screen', () => {
+    renderDashboardBody({
+      isDepartmentZoneSelected: true,
+      supplySubmissionRateLabel: 'Circles',
+    })
+
+    expect(screen.getByTestId('district-dashboard-screen')).toBeTruthy()
+
+    const districtScreenProps = (mockDistrictDashboardScreen.mock.calls.at(-1)?.[0] ?? {}) as {
+      supplySubmissionRateLabel?: string
+      childEntityLabel?: string
+    }
+
+    expect(districtScreenProps.supplySubmissionRateLabel).toBe('Circles')
+    expect(districtScreenProps.childEntityLabel).toBe('Circles')
   })
 })

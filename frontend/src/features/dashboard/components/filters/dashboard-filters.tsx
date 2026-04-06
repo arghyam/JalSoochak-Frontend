@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { Button, Flex, Text, useMediaQuery } from '@chakra-ui/react'
-import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { DateRangePicker } from '@/shared/components/common'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
@@ -9,14 +8,13 @@ import { SearchLayout } from '@/shared/components/layout'
 import { useLocationSearchQuery } from '../../services/query/use-location-search-query'
 import { useLocationChildrenQuery } from '../../services/query/use-location-children-query'
 import { useLocationHierarchyQuery } from '../../services/query/use-location-hierarchy-query'
-import { locationSearchQueryKeys } from '../../services/query/location-search-query-keys'
 import { computeTrailIndices } from '../../utils/trail-index'
 import {
   sanitizeLocationLabel,
   slugify,
   toCapitalizedWords,
 } from '../../utils/format-location-label'
-import { toStableLocationValue } from '../../utils/stable-location-value'
+import { parseStableLocationValue, toStableLocationValue } from '../../utils/stable-location-value'
 import type { HierarchyType } from '../../services/api/dashboard-api'
 import type { TenantChildLocation } from '../../services/api/dashboard-api'
 
@@ -34,6 +32,7 @@ type DashboardFiltersProps = {
   selectedVillage: string
   selectedScheme: string
   selectedDuration: DateRange | null
+  durationDateFormat?: string
   selectedDepartmentState: string
   selectedDepartmentZone: string
   selectedDepartmentCircle: string
@@ -45,8 +44,8 @@ type DashboardFiltersProps = {
   blockOptions: SearchableSelectOption[]
   gramPanchayatOptions: SearchableSelectOption[]
   villageOptions: SearchableSelectOption[]
-  mockFilterStates: SearchableSelectOption[]
-  mockFilterSchemes: SearchableSelectOption[]
+  mockFilterStates?: SearchableSelectOption[]
+  mockFilterSchemes?: SearchableSelectOption[]
   onStateChange: (value: string) => void
   onDistrictChange: (value: string) => void
   onBlockChange: (value: string) => void
@@ -55,11 +54,16 @@ type DashboardFiltersProps = {
   setSelectedScheme: Dispatch<SetStateAction<string>>
   setSelectedDuration: Dispatch<SetStateAction<DateRange | null>>
   onDepartmentStateChange: (value: string) => void
-  setSelectedDepartmentZone: Dispatch<SetStateAction<string>>
-  setSelectedDepartmentCircle: Dispatch<SetStateAction<string>>
-  setSelectedDepartmentDivision: Dispatch<SetStateAction<string>>
-  setSelectedDepartmentSubdivision: Dispatch<SetStateAction<string>>
-  setSelectedDepartmentVillage: Dispatch<SetStateAction<string>>
+  onDepartmentZoneChange?: (value: string) => void
+  onDepartmentCircleChange?: (value: string) => void
+  onDepartmentDivisionChange?: (value: string) => void
+  onDepartmentSubdivisionChange?: (value: string) => void
+  onDepartmentVillageChange?: (value: string) => void
+  setSelectedDepartmentZone?: Dispatch<SetStateAction<string>>
+  setSelectedDepartmentCircle?: Dispatch<SetStateAction<string>>
+  setSelectedDepartmentDivision?: Dispatch<SetStateAction<string>>
+  setSelectedDepartmentSubdivision?: Dispatch<SetStateAction<string>>
+  setSelectedDepartmentVillage?: Dispatch<SetStateAction<string>>
   onActiveTrailChange?: (trailIndex: number | null) => void
 }
 
@@ -144,6 +148,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     selectedVillage,
     activeTrailIndex,
     selectedDuration,
+    durationDateFormat,
     districtOptions,
     blockOptions,
     gramPanchayatOptions,
@@ -155,21 +160,53 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     setSelectedVillage,
     onActiveTrailChange,
     setSelectedDuration,
+    selectedDepartmentState,
+    selectedDepartmentZone,
+    selectedDepartmentCircle,
+    selectedDepartmentDivision,
+    selectedDepartmentSubdivision,
+    selectedDepartmentVillage,
+    onDepartmentStateChange,
+    onDepartmentZoneChange,
+    onDepartmentCircleChange,
+    onDepartmentDivisionChange,
+    onDepartmentSubdivisionChange,
+    onDepartmentVillageChange,
+    setSelectedDepartmentZone,
+    setSelectedDepartmentCircle,
+    setSelectedDepartmentDivision,
+    setSelectedDepartmentSubdivision,
+    setSelectedDepartmentVillage,
   } = props
 
-  const queryClient = useQueryClient()
   const [isBreadcrumbPanelOpen, setIsBreadcrumbPanelOpen] = useState(false)
   const { data: locationSearchData } = useLocationSearchQuery({
     enabled: isBreadcrumbPanelOpen,
   })
   const breadcrumbStateOptions = locationSearchData?.states ?? []
   const totalStatesCount = locationSearchData?.totalStatesCount ?? 0
-  const selectedTenant = breadcrumbStateOptions.find((option) => option.value === selectedState)
   const hierarchyType: HierarchyType = filterTabIndex === 0 ? 'LGD' : 'DEPARTMENT'
+  const isDepartmentTab = hierarchyType === 'DEPARTMENT'
+  const activeSelectedState =
+    isDepartmentTab && selectedDepartmentState ? selectedDepartmentState : selectedState
+  const activeSelectedTenantValue =
+    isDepartmentTab && selectedDepartmentState
+      ? (parseStableLocationValue(selectedDepartmentState).lastSegment ?? selectedDepartmentState)
+      : selectedState
+  const selectedTenant = breadcrumbStateOptions.find(
+    (option) => option.value === activeSelectedTenantValue
+  )
+  const activeSelectedDistrict = isDepartmentTab ? selectedDepartmentZone : selectedDistrict
+  const activeSelectedBlock = isDepartmentTab ? selectedDepartmentCircle : selectedBlock
+  const activeSelectedGramPanchayat = isDepartmentTab
+    ? selectedDepartmentDivision
+    : selectedGramPanchayat
+  const activeSelectedVillage = isDepartmentTab
+    ? selectedDepartmentSubdivision || selectedDepartmentVillage
+    : selectedVillage
   const { data: rootLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
-    parentId: 0,
     tenantCode: selectedTenant?.tenantCode,
     enabled: Boolean(selectedTenant?.tenantId),
   })
@@ -177,8 +214,8 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     () => mapLocationOptions(rootLocationsData?.data),
     [rootLocationsData?.data]
   )
-  const selectedRootOption = findLocationOption(rootLevelOptions, selectedState)
-  const isRootStateLevel = Boolean(selectedState) && Boolean(selectedRootOption)
+  const selectedRootOption = findLocationOption(rootLevelOptions, activeSelectedState)
+  const isRootStateLevel = Boolean(activeSelectedState) && Boolean(selectedRootOption)
   const districtParentId = isRootStateLevel ? selectedRootOption?.locationId : undefined
   const { data: districtLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
@@ -195,8 +232,9 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     // Some tenants return districts directly at parentId=0 instead of returning state first.
     return rootLevelOptions
   }, [districtLocationsData?.data, isRootStateLevel, rootLevelOptions])
-  const selectedDistrictOption = findLocationOption(districtApiOptions, selectedDistrict)
-  const selectedDistrictId = parseLocationId(selectedDistrict) ?? selectedDistrictOption?.locationId
+  const selectedDistrictOption = findLocationOption(districtApiOptions, activeSelectedDistrict)
+  const selectedDistrictId =
+    parseLocationId(activeSelectedDistrict) ?? selectedDistrictOption?.locationId
   const { data: blockLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
@@ -208,8 +246,8 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     () => mapLocationOptions(blockLocationsData?.data),
     [blockLocationsData?.data]
   )
-  const selectedBlockOption = findLocationOption(blockApiOptions, selectedBlock)
-  const selectedBlockId = parseLocationId(selectedBlock) ?? selectedBlockOption?.locationId
+  const selectedBlockOption = findLocationOption(blockApiOptions, activeSelectedBlock)
+  const selectedBlockId = parseLocationId(activeSelectedBlock) ?? selectedBlockOption?.locationId
   const { data: gramPanchayatLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
@@ -223,10 +261,10 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   )
   const selectedGramPanchayatOption = findLocationOption(
     gramPanchayatApiOptions,
-    selectedGramPanchayat
+    activeSelectedGramPanchayat
   )
   const selectedGramPanchayatId =
-    parseLocationId(selectedGramPanchayat) ?? selectedGramPanchayatOption?.locationId
+    parseLocationId(activeSelectedGramPanchayat) ?? selectedGramPanchayatOption?.locationId
   const { data: villageLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
@@ -303,35 +341,85 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   )
   const findLabel = (value: string, options: SearchableSelectOption[]): string | null => {
     if (!value) return null
+    const selectedId = parseLocationId(value)
     return (
-      options.find((option) => option.value === value || slugify(option.label) === value)?.label ??
-      null
+      options.find((option) => {
+        if (option.value === value || slugify(option.label) === value) {
+          return true
+        }
+
+        if (typeof selectedId === 'number') {
+          return parseLocationId(option.value) === selectedId
+        }
+
+        return false
+      })?.label ?? null
     )
   }
   const selectionTrail = [
-    findLabel(selectedState, breadcrumbStateOptions),
-    findLabel(selectedDistrict, resolvedDistrictOptions),
-    findLabel(selectedBlock, resolvedBlockOptions),
-    findLabel(selectedGramPanchayat, resolvedGramPanchayatOptions),
-    findLabel(selectedVillage, resolvedVillageOptions),
+    findLabel(activeSelectedState, breadcrumbStateOptions),
+    findLabel(activeSelectedDistrict, resolvedDistrictOptions),
+    findLabel(activeSelectedBlock, resolvedBlockOptions),
+    findLabel(activeSelectedGramPanchayat, resolvedGramPanchayatOptions),
+    findLabel(activeSelectedVillage, resolvedVillageOptions),
   ].filter((item): item is string => Boolean(item))
   const hasHierarchySelection = selectionTrail.length > 0
-  const clearButtonHoverStyles = hasHierarchySelection
+  const hasActiveFilters = hasHierarchySelection || Boolean(selectedDuration)
+  const clearButtonHoverStyles = hasActiveFilters
     ? { textDecoration: 'underline', textDecorationColor: 'neutral.300' }
     : { textDecoration: 'none' }
 
   const trailSelectionValues = [
-    selectedState,
-    selectedDistrict,
-    selectedBlock,
-    selectedGramPanchayat,
-    selectedVillage,
+    activeSelectedState,
+    activeSelectedDistrict,
+    activeSelectedBlock,
+    activeSelectedGramPanchayat,
+    activeSelectedVillage,
   ] as const
-  const { effectiveTrailIndex } = computeTrailIndices(trailSelectionValues, activeTrailIndex)
-  const hasSelectedState = effectiveTrailIndex >= 0 && Boolean(selectedState)
-  const hasSelectedDistrict = effectiveTrailIndex >= 1 && Boolean(selectedDistrict)
-  const hasSelectedBlock = effectiveTrailIndex >= 2 && Boolean(selectedBlock)
-  const hasSelectedGramPanchayat = effectiveTrailIndex >= 3 && Boolean(selectedGramPanchayat)
+  const { effectiveTrailIndex } = computeTrailIndices(
+    trailSelectionValues,
+    isDepartmentTab ? null : activeTrailIndex
+  )
+  const hasSelectedState = effectiveTrailIndex >= 0 && Boolean(activeSelectedState)
+  const hasSelectedDistrict = effectiveTrailIndex >= 1 && Boolean(activeSelectedDistrict)
+  const hasSelectedBlock = effectiveTrailIndex >= 2 && Boolean(activeSelectedBlock)
+  const hasSelectedGramPanchayat = effectiveTrailIndex >= 3 && Boolean(activeSelectedGramPanchayat)
+  const rootSelectionHandler = isDepartmentTab ? onDepartmentStateChange : onStateChange
+  const districtSelectionHandler = isDepartmentTab
+    ? (onDepartmentZoneChange ??
+      ((value: string) => {
+        setSelectedDepartmentZone?.(value)
+        setSelectedDepartmentCircle?.('')
+        setSelectedDepartmentDivision?.('')
+        setSelectedDepartmentSubdivision?.('')
+        setSelectedDepartmentVillage?.('')
+      }))
+    : onDistrictChange
+  const blockSelectionHandler = isDepartmentTab
+    ? (onDepartmentCircleChange ??
+      ((value: string) => {
+        setSelectedDepartmentCircle?.(value)
+        setSelectedDepartmentDivision?.('')
+        setSelectedDepartmentSubdivision?.('')
+        setSelectedDepartmentVillage?.('')
+      }))
+    : onBlockChange
+  const gramPanchayatSelectionHandler = isDepartmentTab
+    ? (onDepartmentDivisionChange ??
+      ((value: string) => {
+        setSelectedDepartmentDivision?.(value)
+        setSelectedDepartmentSubdivision?.('')
+        setSelectedDepartmentVillage?.('')
+      }))
+    : onGramPanchayatChange
+  const villageSelectionHandler = isDepartmentTab
+    ? (onDepartmentSubdivisionChange ??
+      onDepartmentVillageChange ??
+      ((value: string) => {
+        setSelectedDepartmentSubdivision?.(value)
+        setSelectedDepartmentVillage?.('')
+      }))
+    : setSelectedVillage
   const breadcrumbPanelConfig = hasSelectedGramPanchayat
     ? {
         options: resolvedVillageOptions,
@@ -340,7 +428,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
         noOptionsText: t('filters.noOptions.villages', {
           defaultValue: `No ${villageLabel.toLowerCase()} found`,
         }),
-        onSelect: setSelectedVillage,
+        onSelect: villageSelectionHandler,
       }
     : hasSelectedBlock
       ? {
@@ -350,7 +438,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
           noOptionsText: t('filters.noOptions.gramPanchayats', {
             defaultValue: `No ${gramPanchayatLabel.toLowerCase()} found`,
           }),
-          onSelect: onGramPanchayatChange,
+          onSelect: gramPanchayatSelectionHandler,
         }
       : hasSelectedDistrict
         ? {
@@ -360,7 +448,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
             noOptionsText: t('filters.noOptions.blocks', {
               defaultValue: `No ${blockLabel.toLowerCase()} found`,
             }),
-            onSelect: onBlockChange,
+            onSelect: blockSelectionHandler,
           }
         : hasSelectedState
           ? {
@@ -370,7 +458,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
               noOptionsText: t('filters.noOptions.districts', {
                 defaultValue: `No ${districtLabel.toLowerCase()} found`,
               }),
-              onSelect: onDistrictChange,
+              onSelect: districtSelectionHandler,
             }
           : {
               options: breadcrumbStateOptions,
@@ -379,10 +467,39 @@ export function DashboardFilters(props: DashboardFiltersProps) {
               noOptionsText: t('filters.noOptions.states', {
                 defaultValue: `No ${stateLabel.toLowerCase()} found`,
               }),
-              onSelect: onStateChange,
+              onSelect: rootSelectionHandler,
             }
 
   const handleTrailSelect = (trailIndex: number) => {
+    if (isDepartmentTab) {
+      if (trailIndex < 0) {
+        onDepartmentStateChange('')
+        return
+      }
+
+      if (trailIndex === 0) {
+        districtSelectionHandler('')
+        return
+      }
+
+      if (trailIndex === 1) {
+        blockSelectionHandler('')
+        return
+      }
+
+      if (trailIndex === 2) {
+        gramPanchayatSelectionHandler('')
+        return
+      }
+
+      if (trailIndex === 3) {
+        villageSelectionHandler('')
+        return
+      }
+
+      return
+    }
+
     if (trailIndex < 0) {
       onActiveTrailChange?.(-1)
       return
@@ -393,18 +510,11 @@ export function DashboardFilters(props: DashboardFiltersProps) {
 
   const handlePanelOpenChange = (isOpen: boolean) => {
     setIsBreadcrumbPanelOpen(isOpen)
-    if (isOpen) {
-      void queryClient.invalidateQueries({ queryKey: locationSearchQueryKeys.statesUts() })
-    }
   }
 
   return (
     <SearchLayout
-      actionLabel={
-        isXsFilters
-          ? t('searchLayout.download', 'Download')
-          : t('searchLayout.downloadReport', 'Download Report')
-      }
+      hideActionButton={true}
       selectionTrail={selectionTrail}
       activeTrailIndex={effectiveTrailIndex}
       breadcrumbPanelProps={{
@@ -424,7 +534,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
         onTabChange,
       }}
       closedTrailSlot={
-        isBelowLgFilters && hasHierarchySelection ? (
+        isBelowLgFilters && hasActiveFilters ? (
           <Flex w="full" justify="flex-end">
             <Button
               variant="link"
@@ -432,7 +542,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
               whiteSpace="nowrap"
               onClick={onClear}
               minW={0}
-              isDisabled={!hasHierarchySelection}
+              isDisabled={!hasActiveFilters}
               _hover={clearButtonHoverStyles}
             >
               <Text textStyle="h10" fontWeight="600" color="neutral.300" fontSize="14px">
@@ -447,6 +557,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
           <DateRangePicker
             value={selectedDuration}
             onChange={setSelectedDuration}
+            dateFormat={durationDateFormat}
             placeholder={t('filters.duration', 'Duration')}
             width={isBelowLgFilters ? '32px' : '160px'}
             height="32px"
@@ -458,7 +569,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
             isFilter={true}
             iconOnly={isBelowLgFilters}
             iconAriaLabel={t('filters.duration', 'Duration')}
-            popoverPlacement={isBelowLgFilters ? 'bottom-end' : 'bottom-start'}
+            popoverPlacement="bottom-end"
           />
           {!isBelowLgFilters ? (
             <Button
@@ -467,7 +578,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
               whiteSpace="nowrap"
               onClick={onClear}
               minW={0}
-              isDisabled={!hasHierarchySelection}
+              isDisabled={!hasActiveFilters}
               _hover={clearButtonHoverStyles}
             >
               <Text

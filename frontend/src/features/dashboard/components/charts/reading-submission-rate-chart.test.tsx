@@ -92,6 +92,34 @@ const chartData: EntityPerformance[] = [
 ]
 
 describe('ReadingSubmissionRateChart', () => {
+  it('adds extra space between x-axis labels and the axis line', () => {
+    renderWithProviders(<ReadingSubmissionRateChart data={chartData} />)
+
+    const chartOption = (
+      mockEChartsWrapper.mock.calls as Array<
+        [{ option?: { xAxis?: { axisLabel?: { margin?: number } } } }]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((option) => option?.xAxis?.axisLabel?.margin !== undefined)
+
+    expect(chartOption?.xAxis?.axisLabel?.margin).toBe(14)
+  })
+
+  it('matches metric chart y-axis tick spacing', () => {
+    renderWithProviders(<ReadingSubmissionRateChart data={chartData} />)
+
+    const axisOption = (
+      mockEChartsWrapper.mock.calls as Array<
+        [{ option?: { tooltip?: { show?: boolean }; yAxis?: { axisLabel?: { margin?: number } } } }]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((option) => option?.tooltip?.show === false)
+
+    expect(axisOption?.yAxis?.axisLabel?.margin).toBe(-12)
+  })
+
   it('enables tooltip and formats hovered value with percentage', () => {
     renderWithProviders(<ReadingSubmissionRateChart data={chartData} />)
 

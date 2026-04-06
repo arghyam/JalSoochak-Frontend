@@ -65,6 +65,7 @@ interface SearchLayoutProps {
   actionProps?: ButtonProps
   filterSlot?: ReactNode
   rightSlot?: ReactNode
+  hideActionButton?: boolean
   closedTrailSlot?: ReactNode
   breadcrumbPanelProps?: BreadcrumbPanelProps
   selectionTrail?: string[]
@@ -79,6 +80,7 @@ export function SearchLayout({
   actionProps,
   filterSlot,
   rightSlot,
+  hideActionButton = false,
   closedTrailSlot,
   breadcrumbPanelProps,
   selectionTrail,
@@ -89,6 +91,7 @@ export function SearchLayout({
   const isBelowLgLayout = useBreakpointValue({ base: true, lg: false }) ?? true
   const isBelowMdLayout = useBreakpointValue({ base: true, md: false }) ?? true
   const [isVeryCompactLayout] = useMediaQuery('(max-width: 569px)')
+  const [isBelowXsLayout] = useMediaQuery('(max-width: 480px)')
   const [searchValue, setSearchValue] = useState('')
   const [isBreadcrumbPanelOpen, setIsBreadcrumbPanelOpen] = useState(false)
   const [selectedStateValue, setSelectedStateValue] = useState('')
@@ -256,8 +259,8 @@ export function SearchLayout({
                   fontWeight="400"
                   variant="ghost"
                   onClick={() => handleTrailSelect(index)}
-                  _hover={{ bg: 'neutral.100' }}
-                  _active={{ bg: 'neutral.100' }}
+                  _hover={{ bg: 'primary.25' }}
+                  _active={{ bg: 'primary.25' }}
                   aria-label={t('searchLayout.aria.breadcrumb', {
                     item,
                     defaultValue: `Breadcrumb: ${item}`,
@@ -341,6 +344,8 @@ export function SearchLayout({
     </Button>
   )
 
+  const resolvedRightSlot = hideActionButton ? null : (rightSlot ?? actionButton)
+
   return (
     <Box
       as="section"
@@ -366,7 +371,7 @@ export function SearchLayout({
               <Box minW={0} flex="1 1 auto">
                 {filterSlot}
               </Box>
-              {rightSlot ?? actionButton}
+              {resolvedRightSlot}
             </Flex>
           </>
         ) : (
@@ -376,21 +381,23 @@ export function SearchLayout({
             </InputGroup>
             <Flex align="center" gap={{ base: 2, lg: '12px' }} flex="0 0 auto" minW={0}>
               {filterSlot}
-              {rightSlot ??
-                (isBelowLgLayout ? (
-                  <IconButton
-                    aria-label={resolvedActionLabel}
-                    onClick={onActionClick}
-                    h="32px"
-                    minW="32px"
-                    w="32px"
-                    icon={<FiDownload size="16" />}
-                    variant="primary"
-                    {...actionProps}
-                  />
-                ) : (
-                  actionButton
-                ))}
+              {hideActionButton
+                ? null
+                : (rightSlot ??
+                  (isBelowLgLayout ? (
+                    <IconButton
+                      aria-label={resolvedActionLabel}
+                      onClick={onActionClick}
+                      h="32px"
+                      minW="32px"
+                      w="32px"
+                      icon={<FiDownload size="16" />}
+                      variant="primary"
+                      {...actionProps}
+                    />
+                  ) : (
+                    actionButton
+                  )))}
             </Flex>
           </Flex>
         )}
@@ -531,18 +538,20 @@ export function SearchLayout({
               display="grid"
               gridTemplateColumns={{
                 base: 'minmax(0, 1fr)',
-                sm: 'repeat(2, minmax(0, 1fr))',
+                sm: isBelowXsLayout ? 'minmax(0, 1fr)' : 'repeat(2, minmax(0, 1fr))',
                 md: 'repeat(3, minmax(0, 1fr))',
-                lg: 'repeat(5, minmax(0, 1fr))',
+                lg: 'none',
               }}
               gridTemplateRows={{ lg: 'repeat(15, minmax(20px, auto))' }}
               gridAutoFlow={{ lg: 'column' }}
+              gridAutoColumns={{ lg: 'max-content' }}
               columnGap={{ base: '12px', lg: '24px' }}
               rowGap="8px"
               alignItems="start"
               alignContent="start"
-              maxH={{ base: '272px', sm: 'none' }}
-              overflowY={{ base: 'auto', sm: 'visible' }}
+              justifyContent={{ lg: 'start' }}
+              maxH={{ base: '272px', sm: isBelowXsLayout ? '272px' : 'none' }}
+              overflowY={{ base: 'auto', sm: isBelowXsLayout ? 'auto' : 'visible' }}
               pr={{ base: '4px', sm: 0 }}
               pb="16px"
               data-testid="search-options-grid"
@@ -560,7 +569,7 @@ export function SearchLayout({
                   h="auto"
                   fontSize="14px"
                   minW={0}
-                  whiteSpace="normal"
+                  whiteSpace="nowrap"
                   textAlign="left"
                   onClick={() => handleStateSelect(state.value)}
                   _hover={{ bg: 'transparent', color: 'primary.500' }}

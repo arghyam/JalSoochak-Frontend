@@ -28,9 +28,6 @@ const mockReadingSubmissionRateChart = jest.fn((_props: unknown) => (
 const mockSchemePerformanceTable = jest.fn((_props: unknown) => (
   <div data-testid="pump-operators-performance-table" />
 ))
-const mockReadingComplianceTable = jest.fn((_props: unknown) => (
-  <div data-testid="reading-compliance-table" />
-))
 
 jest.mock('../charts', () => ({
   MetricPerformanceChart: (props: unknown) => mockMetricPerformanceChart(props),
@@ -44,7 +41,6 @@ jest.mock('../charts', () => ({
 
 jest.mock('../tables', () => ({
   SchemePerformanceTable: (props: unknown) => mockSchemePerformanceTable(props),
-  ReadingComplianceTable: (props: unknown) => mockReadingComplianceTable(props),
 }))
 
 jest.mock('@/shared/components/common/view-by-select', () => ({
@@ -52,14 +48,17 @@ jest.mock('@/shared/components/common/view-by-select', () => ({
     value,
     onChange,
     ariaLabel,
+    disabled,
   }: {
     value: 'geography' | 'time'
     onChange: (value: 'geography' | 'time') => void
     ariaLabel: string
+    disabled?: boolean
   }) => (
     <select
       aria-label={ariaLabel}
       value={value}
+      disabled={disabled}
       onChange={(event) => onChange(event.target.value as 'geography' | 'time')}
     >
       <option value="geography">Geography</option>
@@ -123,6 +122,10 @@ const supplySubmissionRateData: EntityPerformance[] = [
 const waterSupplyOutagesData = [
   {
     label: 'Village 1',
+    reasons: {
+      electricityFailure: 10,
+      pipelineLeak: 12,
+    },
     electricityFailure: 10,
     pipelineLeak: 12,
     pumpFailure: 8,
@@ -156,15 +159,7 @@ const data: DashboardData = {
   mapData: [],
   demandSupply: [{ period: 'Jan', demand: 100, supply: 90 }],
   readingSubmissionStatus: [{ label: 'Compliant Submissions', value: 60 }],
-  readingCompliance: [
-    {
-      id: 'pe-1',
-      name: 'Operator 1',
-      village: 'Village 1',
-      lastSubmission: '2026-02-20',
-      readingValue: '120',
-    },
-  ],
+  readingCompliance: [],
   pumpOperators: [
     { label: 'Active pump operators', value: 10 },
     { label: 'Non-active pump operators', value: 5 },
@@ -205,7 +200,6 @@ describe('GramPanchayatDashboardScreen', () => {
     mockReadingSubmissionStatusChart.mockClear()
     mockReadingSubmissionRateChart.mockClear()
     mockSchemePerformanceTable.mockClear()
-    mockReadingComplianceTable.mockClear()
   })
 
   it('renders gram panchayat view selectors with Geography selected by default', () => {
@@ -226,7 +220,7 @@ describe('GramPanchayatDashboardScreen', () => {
     expect(outageSelect.value).toBe('geography')
   })
 
-  it('renders pump operators row and all 3 charts under it', () => {
+  it('renders pump operators row and both submission charts under it', () => {
     renderGramPanchayatDashboard()
 
     expect(screen.getByText('Schemes')).toBeTruthy()
@@ -238,21 +232,22 @@ describe('GramPanchayatDashboardScreen', () => {
     expect(screen.getByTestId('pump-operators-performance-table')).toBeTruthy()
     expect(screen.getByTestId('reading-submission-status-chart')).toBeTruthy()
     expect(screen.getByTestId('reading-submission-rate-chart')).toBeTruthy()
-    expect(screen.getByTestId('reading-compliance-table')).toBeTruthy()
   })
 
-  it('renders geography charts by default with village labels and reading compliance title', () => {
+  it('renders geography charts by default with village labels', () => {
     renderGramPanchayatDashboard()
 
     const metricCalls = mockMetricPerformanceChart.mock.calls as Array<[Record<string, unknown>]>
     expect(metricCalls).toHaveLength(2)
-    expect(metricCalls[0]?.[0].metric).toBe('quantity')
-    expect(metricCalls[1]?.[0].metric).toBe('regularity')
-    expect(metricCalls[0]?.[0].showAreaLine).toBe(true)
-    expect(metricCalls[0]?.[0].entityLabel).toBe('Villages')
-    expect(metricCalls[1]?.[0].entityLabel).toBe('Villages')
-    expect(metricCalls[0]?.[0].data).toEqual(villageQuantityData)
-    expect(metricCalls[1]?.[0].data).toEqual(villageRegularityData)
+    const metricProps = metricCalls.map(([props]) => props)
+    const quantityMetricCall = metricProps.find((props) => props.metric === 'quantity')
+    const regularityMetricCall = metricProps.find((props) => props.metric === 'regularity')
+
+    expect(quantityMetricCall?.showAreaLine).toBe(true)
+    expect(quantityMetricCall?.entityLabel).toBe('Villages')
+    expect(regularityMetricCall?.entityLabel).toBe('Villages')
+    expect(quantityMetricCall?.data).toEqual(villageQuantityData)
+    expect(regularityMetricCall?.data).toEqual(villageRegularityData)
     expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
 
     const outagesProps = mockSupplyOutageDistributionChart.mock.calls[0]?.[0] as {
@@ -266,11 +261,6 @@ describe('GramPanchayatDashboardScreen', () => {
       entityLabel: string
     }
     expect(submissionProps.entityLabel).toBe('Villages')
-
-    const complianceProps = mockReadingComplianceTable.mock.calls[0]?.[0] as {
-      title: string
-    }
-    expect(complianceProps.title).toBe('Reading Compliance')
   })
 
   it('switches quantity chart to time mode', () => {
@@ -335,5 +325,45 @@ describe('GramPanchayatDashboardScreen', () => {
         value: 12,
       },
     ])
+  })
+
+  it('shows no data for outage distribution when outage reasons have no renderable values', () => {
+    renderWithProviders(
+      <GramPanchayatDashboardScreen
+        data={{
+          ...data,
+          supplyOutageTrend: [{ period: 'Jan', value: 12 }],
+        }}
+        waterSupplyOutagesData={[
+          {
+            label: 'Village 1',
+            reasons: {},
+            electricityFailure: 10,
+            pipelineLeak: 12,
+            pumpFailure: 8,
+            valveIssue: 6,
+            sourceDrying: 4,
+          },
+        ]}
+        waterSupplyOutageDistributionData={waterSupplyOutagesData}
+        quantityPerformanceData={villageQuantityData}
+        quantityTimeTrendData={quantityTimeTrendData}
+        regularityPerformanceData={villageRegularityData}
+        regularityTimeTrendData={regularityTimeTrendData}
+        villageTableData={villageTableData}
+        supplySubmissionRateData={supplySubmissionRateData}
+        supplySubmissionRateLabel="Villages"
+        operatorsPerformanceTable={operatorsPerformanceTable}
+        pumpOperatorsTotal={15}
+      />
+    )
+
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(screen.queryByTestId('supply-outage-distribution-chart')).toBeNull()
+    expect(
+      screen
+        .getByRole('combobox', { name: 'Gram panchayat supply outage distribution view by' })
+        .getAttribute('disabled')
+    ).not.toBeNull()
   })
 })

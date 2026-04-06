@@ -41,6 +41,13 @@ function getNameOrder(container: HTMLElement) {
 }
 
 describe('SchemePerformanceTable', () => {
+  it('renders a no data available state when there are no rows', () => {
+    renderWithProviders(<SchemePerformanceTable title="Scheme Performance" data={[]} />)
+
+    expect(screen.getByText('No data available')).toBeTruthy()
+    expect(screen.queryAllByRole('columnheader')).toHaveLength(0)
+  })
+
   it('renders headers in Name, Village, Block order', () => {
     renderWithProviders(<SchemePerformanceTable title="Scheme Performance" data={tableData} />)
 

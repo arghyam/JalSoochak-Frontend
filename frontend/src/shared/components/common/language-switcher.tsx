@@ -20,8 +20,9 @@ interface LanguageSwitcherProps {
 export function LanguageSwitcher({ isMobileHeader = false }: LanguageSwitcherProps) {
   const { currentLanguage, setLanguage, getSupportedLanguages } = useLanguageStore()
   const supportedLanguages = getSupportedLanguages()
-  const iconWidth = isMobileHeader ? '60px' : '28px'
-  const iconHeight = isMobileHeader ? '60px' : '29px'
+  const iconWidth = { base: '30px', md: '35px' }
+  const iconHeight = { base: '30px', md: '35px' }
+  const buttonSize = { base: '30px', md: '35px' }
 
   const handleLanguageChange = (langCode: LanguageCode) => {
     setLanguage(langCode)
@@ -37,9 +38,9 @@ export function LanguageSwitcher({ isMobileHeader = false }: LanguageSwitcherPro
           aria-label="Change language"
           px={0}
           py={0}
-          minW="40px"
-          w="40px"
-          h="40px"
+          minW={buttonSize}
+          w={buttonSize}
+          h={buttonSize}
           bg="transparent"
           borderWidth="0"
           borderRadius="0"
