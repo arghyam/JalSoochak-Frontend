@@ -1826,8 +1826,8 @@ export function CentralDashboard() {
     {
       label: t('kpi.labels.quantityInMld', { defaultValue: 'Quantity in MLD' }),
       value: formatNumber(currentWaterSupplyKpis.quantityMld, {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2,
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
       }),
       trend: buildNeutralAwareTrend(
         currentWaterSupplyKpis.quantityMld,
