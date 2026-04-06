@@ -1633,8 +1633,7 @@ export function CentralDashboard() {
       departmentSubdivision: '',
       departmentVillage: '',
     })
-    setSelectedDuration(null)
-    setIsDurationCleared(true)
+    handleSelectedDurationChange(null)
     setSelectedScheme('')
     setSelectedDepartmentState('')
     setSelectedDepartmentZone('')

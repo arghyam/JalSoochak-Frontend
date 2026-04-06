@@ -414,6 +414,10 @@ describe('CentralDashboard', () => {
       selectedDuration: { startDate: string; endDate: string } | null
     }>()
     expect(updatedDashboardFilterProps.selectedDuration).toBeNull()
+    const storedFilters = JSON.parse(
+      window.localStorage.getItem('central-dashboard-filters') ?? '{}'
+    ) as { selectedDuration?: { startDate: string; endDate: string } | null }
+    expect(storedFilters.selectedDuration ?? null).toBeNull()
   })
 
   it('normalizes picker-style duration values before requesting central analytics', () => {

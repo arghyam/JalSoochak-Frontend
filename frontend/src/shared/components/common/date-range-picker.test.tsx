@@ -40,7 +40,7 @@ describe('DateRangePicker', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Duration' }))
 
-    const startDateNativeInput = container.querySelectorAll('input[type="date"]')[0]
+    const startDateNativeInput = container.querySelector('input[type="date"]:not([min])')
 
     expect(startDateNativeInput?.getAttribute('max')).toBe('2026-03-01')
   })
