@@ -733,13 +733,6 @@ export function CentralDashboard() {
     enabled: Boolean(selectedTenant?.tenantId && selectedDistrictId),
   })
   const blockApiOptions = mapLocationOptions(blockLocationsData?.data)
-  const { data: districtSchemeBlockLookup } = useDistrictSchemeBlockLookupQuery({
-    tenantId: selectedTenant?.tenantId,
-    hierarchyType,
-    districtId: isDistrictSelected && hierarchyType === 'LGD' ? selectedDistrictId : undefined,
-    tenantCode: selectedTenant?.tenantCode,
-    enabled: Boolean(isDistrictSelected && hierarchyType === 'LGD' && selectedDistrictId),
-  })
   const selectedBlockOption = findLocationOption(blockApiOptions, activeHierarchySelectedBlock)
   const selectedBlockId =
     parseLocationId(activeHierarchySelectedBlock) ?? selectedBlockOption?.locationId
@@ -1142,6 +1135,36 @@ export function CentralDashboard() {
   const { data: schemePerformanceData } = useSchemePerformanceQuery({
     params: schemePerformanceAnalyticsParams,
     enabled: Boolean(schemePerformanceAnalyticsParams),
+  })
+  const districtSchemeLookupTargetLgdIds = (schemePerformanceData?.topSchemes ?? []).flatMap(
+    (scheme) => {
+      const parentLevel = (scheme.immediateParentLgdCName ?? '').trim().toLowerCase()
+      const isNestedParentLevel =
+        parentLevel === 'village' ||
+        parentLevel === 'gram-panchayat' ||
+        parentLevel === 'gram panchayat'
+      const hasBlockTitle = Boolean(scheme.immediateParentDepartmentTitle?.trim())
+
+      return isNestedParentLevel &&
+        !hasBlockTitle &&
+        typeof scheme.immediateParentLgdId === 'number' &&
+        scheme.immediateParentLgdId > 0
+        ? [scheme.immediateParentLgdId]
+        : []
+    }
+  )
+  const { data: districtSchemeBlockLookup } = useDistrictSchemeBlockLookupQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    districtId: isDistrictSelected && hierarchyType === 'LGD' ? selectedDistrictId : undefined,
+    targetLgdIds: districtSchemeLookupTargetLgdIds,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(
+      isDistrictSelected &&
+      hierarchyType === 'LGD' &&
+      selectedDistrictId &&
+      districtSchemeLookupTargetLgdIds.length > 0
+    ),
   })
   const { data: submissionStatusData } = useSubmissionStatusQuery({
     params: submissionStatusAnalyticsParams,
