@@ -120,7 +120,8 @@ export function MainLayout({ children }: MainLayoutProps) {
           tabIndex={-1}
           flex={1}
           minW={0}
-          overflow="auto"
+          overflowX="hidden"
+          overflowY="auto"
           px={{ base: 3, sm: 4, md: 6, lg: 8 }}
           py={{ base: 4, md: 8, lg: 10 }}
           _focus={{ outline: 'none' }}
