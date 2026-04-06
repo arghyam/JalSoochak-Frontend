@@ -13,6 +13,7 @@ import {
 
 interface IndiaMapChartProps {
   data: EntityPerformance[]
+  isLoading?: boolean
   onStateClick?: (stateId: string, stateName: string) => void
   onStateHover?: (stateId: string, stateName: string, metrics: EntityPerformance) => void
   className?: string
@@ -23,6 +24,7 @@ interface IndiaMapChartProps {
 
 export function IndiaMapChart({
   data,
+  isLoading = false,
   onStateClick,
   onStateHover,
   className,
@@ -39,7 +41,7 @@ export function IndiaMapChart({
   const [hasLoadedFallbackMap, setHasLoadedFallbackMap] = useState(false)
   const [mapLoadError, setMapLoadError] = useState(false)
   const metricKey: 'coverage' | 'regularity' = isRegularityView ? 'regularity' : 'coverage'
-  const shouldShowNoMapAvailable = !dynamicGeoJson && !fallbackToIndiaMap
+  const shouldShowNoMapAvailable = !isLoading && !dynamicGeoJson && !fallbackToIndiaMap
   const effectiveMapName = dynamicGeoJson ? mapName : fallbackToIndiaMap ? 'india' : null
   const isRegisteredMapAvailable =
     dynamicGeoJson != null || (effectiveMapName != null && echarts.getMap(effectiveMapName) != null)

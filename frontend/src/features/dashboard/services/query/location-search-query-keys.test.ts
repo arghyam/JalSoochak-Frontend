@@ -39,5 +39,14 @@ describe('locationSearchQueryKeys', () => {
       undefined,
       undefined,
     ])
+    expect(locationSearchQueryKeys.districtSchemeBlockLookup(16, 'LGD', 455, '11,22')).toEqual([
+      'dashboard',
+      'location-search',
+      'district-scheme-block-lookup',
+      16,
+      'LGD',
+      455,
+      '11,22',
+    ])
   })
 })

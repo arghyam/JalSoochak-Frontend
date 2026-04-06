@@ -379,6 +379,47 @@ describe('CentralDashboard', () => {
     ])
   })
 
+  it('clears the selected duration in filters when clear all filters is triggered', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedDuration: {
+          startDate: '2026-03-10',
+          endDate: '2026-03-20',
+        },
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardFilterProps = getLatestDashboardFilterProps<{
+      selectedDuration: { startDate: string; endDate: string } | null
+      onClear: () => void
+    }>()
+    expect(dashboardFilterProps.selectedDuration).toEqual({
+      startDate: '2026-03-10',
+      endDate: '2026-03-20',
+    })
+
+    act(() => {
+      dashboardFilterProps.onClear()
+    })
+
+    const updatedDashboardFilterProps = getLatestDashboardFilterProps<{
+      selectedDuration: { startDate: string; endDate: string } | null
+    }>()
+    expect(updatedDashboardFilterProps.selectedDuration).toBeNull()
+    const storedFilters = JSON.parse(
+      window.localStorage.getItem('central-dashboard-filters') ?? '{}'
+    ) as { selectedDuration?: { startDate: string; endDate: string } | null }
+    expect(storedFilters.selectedDuration ?? null).toBeNull()
+  })
+
   it('normalizes picker-style duration values before requesting central analytics', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -1615,7 +1656,7 @@ describe('CentralDashboard', () => {
     expect(kpiProps[0]?.title).toBe('Quantity in MLD')
     expect(kpiProps[0]?.value).toBe('0.05')
     expect(kpiProps[0]?.trend).toEqual(
-      expect.objectContaining({ text: expect.stringContaining('vs last 30 days') })
+      expect.objectContaining({ text: expect.stringContaining('vs previous 2 days') })
     )
     expect(kpiProps[1]?.title).toBe('Quantity in LPCD')
     expect(kpiProps[1]?.value).toBe('18.3')
@@ -1744,15 +1785,15 @@ describe('CentralDashboard', () => {
     expect(kpiProps).toHaveLength(3)
     expect(kpiProps[0]?.title).toBe('Quantity in MLD')
     expect(kpiProps[0]?.value).toBe('5')
-    expect(kpiProps[0]?.trend).toEqual({ direction: 'down', text: '-16.7% vs last 30 days' })
+    expect(kpiProps[0]?.trend).toEqual({ direction: 'down', text: '-16.7% vs previous 30 days' })
 
     expect(kpiProps[1]?.title).toBe('Quantity in LPCD')
     expect(kpiProps[1]?.value).toBe('1,000')
-    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-200 LPCD vs last month' })
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-200 LPCD vs previous 30 days' })
 
     expect(kpiProps[2]?.title).toBe('Regularity')
     expect(kpiProps[2]?.value).toBe('70.0%')
-    expect(kpiProps[2]?.trend).toEqual({ direction: 'down', text: '-12.5% vs last month' })
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'down', text: '-12.5% vs previous 30 days' })
   })
 
   it('hydrates location filters from path and query params', () => {
@@ -4253,15 +4294,15 @@ describe('CentralDashboard', () => {
     expect(kpiProps).toHaveLength(3)
     expect(kpiProps[0]?.title).toBe('Quantity in MLD')
     expect(kpiProps[0]?.value).toBe('5')
-    expect(kpiProps[0]?.trend).toEqual({ direction: 'down', text: '-16.7% vs last 30 days' })
+    expect(kpiProps[0]?.trend).toEqual({ direction: 'down', text: '-16.7% vs previous 30 days' })
 
     expect(kpiProps[1]?.title).toBe('Quantity in LPCD')
     expect(kpiProps[1]?.value).toBe('500')
-    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-100 LPCD vs last month' })
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-100 LPCD vs previous 30 days' })
 
     expect(kpiProps[2]?.title).toBe('Regularity')
     expect(kpiProps[2]?.value).toBe('70.0%')
-    expect(kpiProps[2]?.trend).toEqual({ direction: 'down', text: '-12.5% vs last month' })
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'down', text: '-12.5% vs previous 30 days' })
 
     const waterSupplyQueryCalls = (useAverageWaterSupplyPerRegionQuery as jest.Mock).mock.calls
       .slice(initialWaterSupplyQueryCallCount)
@@ -4481,9 +4522,9 @@ describe('CentralDashboard', () => {
     )
 
     expect(kpiProps).toHaveLength(3)
-    expect(kpiProps[0]?.trend).toEqual({ direction: 'neutral', text: '0% vs last 30 days' })
-    expect(kpiProps[1]?.trend).toEqual({ direction: 'neutral', text: '0 LPCD vs last month' })
-    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs last month' })
+    expect(kpiProps[0]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'neutral', text: '0 LPCD vs previous 30 days' })
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
   })
 
   it('hides map and overall performance panel when a village is selected', () => {
@@ -4559,9 +4600,9 @@ describe('CentralDashboard', () => {
         }
     )
 
-    expect(kpiProps[0]?.trend).toEqual({ direction: 'neutral', text: '0% vs last 30 days' })
-    expect(kpiProps[1]?.trend).toEqual({ direction: 'neutral', text: '0 LPCD vs last month' })
-    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs last month' })
+    expect(kpiProps[0]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'neutral', text: '0 LPCD vs previous 30 days' })
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
   })
 
   it('uses the selected village LGD id for scheme performance analytics', () => {
@@ -4934,6 +4975,66 @@ describe('CentralDashboard', () => {
         },
       }),
     ])
+  })
+
+  it('passes map loading state while tenant boundary geojson is still fetching', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'madhya-pradesh' })
+    mockUseSearchParams.mockReturnValue([new URLSearchParams('departmentZone=201'), jest.fn()])
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        states: [
+          {
+            value: 'madhya-pradesh',
+            label: 'Madhya Pradesh',
+            tenantId: 10,
+            tenantCode: 'mp',
+          },
+        ],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock)
+      .mockReturnValueOnce({
+        data: {
+          data: [
+            {
+              id: 101,
+              title: 'Madhya Pradesh',
+              lgdCode: 10,
+            },
+          ],
+        },
+      })
+      .mockReturnValueOnce({
+        data: {
+          data: [
+            {
+              id: 201,
+              title: 'Bhopal Zone',
+              lgdCode: 601,
+            },
+          ],
+        },
+      })
+      .mockReturnValue({ data: undefined })
+    ;(useTenantBoundariesQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isFetching: true,
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const mapProps = getLatestIndiaMapChartProps<{
+      isLoading: boolean
+      fallbackToIndiaMap: boolean
+    }>()
+
+    expect(mapProps.fallbackToIndiaMap).toBe(false)
+    expect(mapProps.isLoading).toBe(true)
   })
 
   it('does not fall back to the India map for filtered LGD selections', () => {

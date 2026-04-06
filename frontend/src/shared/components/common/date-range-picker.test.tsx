@@ -35,6 +35,27 @@ describe('DateRangePicker', () => {
     expect(endDateNativeInput?.getAttribute('max')).toBe('2026-03-01')
   })
 
+  it('caps the native start date picker at today', () => {
+    const { container } = renderWithProviders(<DateRangePicker value={null} onChange={jest.fn()} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Duration' }))
+
+    const startDateNativeInput = container.querySelector('input[type="date"]:not([min])')
+
+    expect(startDateNativeInput?.getAttribute('max')).toBe('2026-03-01')
+  })
+
+  it('clamps a typed future start date back to today', () => {
+    renderWithProviders(<DateRangePicker value={null} onChange={jest.fn()} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Duration' }))
+
+    const [startDateInput] = screen.getAllByPlaceholderText('dd/mm/yyyy')
+    fireEvent.change(startDateInput, { target: { value: '03/03/2026' } })
+
+    expect((startDateInput as HTMLInputElement).value).toBe('01/03/2026')
+  })
+
   it('keeps this week preset applyable by clamping the end date to today', () => {
     renderWithProviders(<DateRangePicker value={null} onChange={jest.fn()} />)
 

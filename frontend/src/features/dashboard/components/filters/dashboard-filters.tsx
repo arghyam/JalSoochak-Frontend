@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { Button, Flex, Text, useMediaQuery } from '@chakra-ui/react'
-import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { DateRangePicker } from '@/shared/components/common'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
@@ -9,7 +8,6 @@ import { SearchLayout } from '@/shared/components/layout'
 import { useLocationSearchQuery } from '../../services/query/use-location-search-query'
 import { useLocationChildrenQuery } from '../../services/query/use-location-children-query'
 import { useLocationHierarchyQuery } from '../../services/query/use-location-hierarchy-query'
-import { locationSearchQueryKeys } from '../../services/query/location-search-query-keys'
 import { computeTrailIndices } from '../../utils/trail-index'
 import {
   sanitizeLocationLabel,
@@ -181,7 +179,6 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     setSelectedDepartmentVillage,
   } = props
 
-  const queryClient = useQueryClient()
   const [isBreadcrumbPanelOpen, setIsBreadcrumbPanelOpen] = useState(false)
   const { data: locationSearchData } = useLocationSearchQuery({
     enabled: isBreadcrumbPanelOpen,
@@ -513,9 +510,6 @@ export function DashboardFilters(props: DashboardFiltersProps) {
 
   const handlePanelOpenChange = (isOpen: boolean) => {
     setIsBreadcrumbPanelOpen(isOpen)
-    if (isOpen) {
-      void queryClient.invalidateQueries({ queryKey: locationSearchQueryKeys.statesUts() })
-    }
   }
 
   return (

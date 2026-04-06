@@ -455,6 +455,7 @@ export function CentralDashboard() {
   const [selectedDuration, setSelectedDuration] = useState<DateRange | null>(() =>
     getInitialStoredDuration(storedFilters)
   )
+  const [isDurationCleared, setIsDurationCleared] = useState(false)
   const [selectedScheme, setSelectedScheme] = useState(storedFilters.selectedScheme ?? '')
   const [storedSelectedDepartmentState, setSelectedDepartmentState] = useState(
     storedFilters.selectedDepartmentState ?? ''
@@ -605,7 +606,15 @@ export function CentralDashboard() {
     tenantPublicConfig?.dateFormatScreen.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
   )
   const effectiveSelectedDuration =
-    selectedDuration ?? getInitialStoredDuration(storedFilters, durationDateFormat)
+    selectedDuration ??
+    (isDurationCleared ? null : getInitialStoredDuration(storedFilters, durationDateFormat))
+  const handleSelectedDurationChange: Dispatch<SetStateAction<DateRange | null>> = (value) => {
+    setSelectedDuration((previousDuration) => {
+      const nextDuration = typeof value === 'function' ? value(previousDuration) : value
+      setIsDurationCleared(nextDuration === null)
+      return nextDuration
+    })
+  }
   const { data: locationHierarchyData } = useLocationHierarchyQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
@@ -724,13 +733,6 @@ export function CentralDashboard() {
     enabled: Boolean(selectedTenant?.tenantId && selectedDistrictId),
   })
   const blockApiOptions = mapLocationOptions(blockLocationsData?.data)
-  const { data: districtSchemeBlockLookup } = useDistrictSchemeBlockLookupQuery({
-    tenantId: selectedTenant?.tenantId,
-    hierarchyType,
-    districtId: isDistrictSelected && hierarchyType === 'LGD' ? selectedDistrictId : undefined,
-    tenantCode: selectedTenant?.tenantCode,
-    enabled: Boolean(isDistrictSelected && hierarchyType === 'LGD' && selectedDistrictId),
-  })
   const selectedBlockOption = findLocationOption(blockApiOptions, activeHierarchySelectedBlock)
   const selectedBlockId =
     parseLocationId(activeHierarchySelectedBlock) ?? selectedBlockOption?.locationId
@@ -1069,10 +1071,11 @@ export function CentralDashboard() {
     params: analyticsParams,
     enabled: Boolean(analyticsParams),
   })
-  const { data: tenantBoundaryData } = useTenantBoundariesQuery({
-    params: tenantBoundaryAnalyticsParams,
-    enabled: Boolean(tenantBoundaryAnalyticsParams),
-  })
+  const { data: tenantBoundaryData, isFetching: isTenantBoundariesFetching = false } =
+    useTenantBoundariesQuery({
+      params: tenantBoundaryAnalyticsParams,
+      enabled: Boolean(tenantBoundaryAnalyticsParams),
+    })
   const { data: nationalDashboardData } = useNationalDashboardQuery({
     params: nationalDashboardParams,
     enabled: Boolean(nationalDashboardParams),
@@ -1132,6 +1135,36 @@ export function CentralDashboard() {
   const { data: schemePerformanceData } = useSchemePerformanceQuery({
     params: schemePerformanceAnalyticsParams,
     enabled: Boolean(schemePerformanceAnalyticsParams),
+  })
+  const districtSchemeLookupTargetLgdIds = (schemePerformanceData?.topSchemes ?? []).flatMap(
+    (scheme) => {
+      const parentLevel = (scheme.immediateParentLgdCName ?? '').trim().toLowerCase()
+      const isNestedParentLevel =
+        parentLevel === 'village' ||
+        parentLevel === 'gram-panchayat' ||
+        parentLevel === 'gram panchayat'
+      const hasBlockTitle = Boolean(scheme.immediateParentDepartmentTitle?.trim())
+
+      return isNestedParentLevel &&
+        !hasBlockTitle &&
+        typeof scheme.immediateParentLgdId === 'number' &&
+        scheme.immediateParentLgdId > 0
+        ? [scheme.immediateParentLgdId]
+        : []
+    }
+  )
+  const { data: districtSchemeBlockLookup } = useDistrictSchemeBlockLookupQuery({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    districtId: isDistrictSelected && hierarchyType === 'LGD' ? selectedDistrictId : undefined,
+    targetLgdIds: districtSchemeLookupTargetLgdIds,
+    tenantCode: selectedTenant?.tenantCode,
+    enabled: Boolean(
+      isDistrictSelected &&
+      hierarchyType === 'LGD' &&
+      selectedDistrictId &&
+      districtSchemeLookupTargetLgdIds.length > 0
+    ),
   })
   const { data: submissionStatusData } = useSubmissionStatusQuery({
     params: submissionStatusAnalyticsParams,
@@ -1294,6 +1327,11 @@ export function CentralDashboard() {
         overallPerformanceTableData,
         tenantBoundaryLocationOptions
       )
+  const isMapDataLoading =
+    !isCentralLandingView &&
+    Boolean(tenantBoundaryAnalyticsParams) &&
+    !tenantBoundaryData &&
+    isTenantBoundariesFetching
   const quantityPerformanceData = isCentralLandingView
     ? mapQuantityPerformanceFromNationalDashboard(
         filteredNationalDashboardData,
@@ -1385,15 +1423,11 @@ export function CentralDashboard() {
     : isHierarchyLeafSelected
       ? getRegularityKpiFromPeriodic(previousSchemeRegularityPeriodicData)
       : getRegularityKpi(previousRegularityKpiData)
-  const previousWaterSupplyComparisonRange: {
-    daysInRange?: number
-    startDate?: string
-    endDate?: string
-  } = {
-    daysInRange: previousWaterSupplyKpiData?.daysInRange,
-    startDate: previousWaterSupplyAnalyticsParams?.startDate,
-    endDate: previousWaterSupplyAnalyticsParams?.endDate,
-  }
+  const comparisonDays = resolveDaysInRange(
+    undefined,
+    previousAnalyticsRange.startDate,
+    previousAnalyticsRange.endDate
+  )
 
   const updateFilterUrl = (filters: FilterUrlUpdate) => {
     const nextState = filters.state ?? ''
@@ -1599,7 +1633,7 @@ export function CentralDashboard() {
       departmentSubdivision: '',
       departmentVillage: '',
     })
-    setSelectedDuration(null)
+    handleSelectedDurationChange(null)
     setSelectedScheme('')
     setSelectedDepartmentState('')
     setSelectedDepartmentZone('')
@@ -1791,8 +1825,8 @@ export function CentralDashboard() {
     {
       label: t('kpi.labels.quantityInMld', { defaultValue: 'Quantity in MLD' }),
       value: formatNumber(currentWaterSupplyKpis.quantityMld, {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2,
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
       }),
       trend: buildNeutralAwareTrend(
         currentWaterSupplyKpis.quantityMld,
@@ -1801,11 +1835,7 @@ export function CentralDashboard() {
           `${formatSignedValue(trendValue, {
             minimumFractionDigits: 0,
             maximumFractionDigits: 1,
-          })}% vs last ${resolveDaysInRange(
-            previousWaterSupplyComparisonRange.daysInRange,
-            previousWaterSupplyComparisonRange.startDate,
-            previousWaterSupplyComparisonRange.endDate
-          )} days`
+          })}% vs previous ${comparisonDays} days`
       ),
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#E1FFEA" align="center" justify="center">
@@ -1852,7 +1882,7 @@ export function CentralDashboard() {
           `${formatSignedValue(trendValue, {
             minimumFractionDigits: 0,
             maximumFractionDigits: 1,
-          })} LPCD vs last month`
+          })} LPCD vs previous ${comparisonDays} days`
       ),
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
@@ -1906,7 +1936,7 @@ export function CentralDashboard() {
           `${formatSignedValue(trendValue, {
             minimumFractionDigits: 0,
             maximumFractionDigits: 1,
-          })}% vs last month`
+          })}% vs previous ${comparisonDays} days`
       ),
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#FFF4CC" align="center" justify="center">
@@ -1979,7 +2009,7 @@ export function CentralDashboard() {
         onGramPanchayatChange={handleGramPanchayatChange}
         setSelectedVillage={handleVillageChange}
         setSelectedScheme={setSelectedScheme}
-        setSelectedDuration={setSelectedDuration}
+        setSelectedDuration={handleSelectedDurationChange}
         onDepartmentStateChange={handleDepartmentStateChange}
         onDepartmentZoneChange={handleDepartmentZoneChange}
         onDepartmentCircleChange={handleDepartmentCircleChange}
@@ -2025,6 +2055,7 @@ export function CentralDashboard() {
           >
             <IndiaMapChart
               data={mapChartData}
+              isLoading={isMapDataLoading}
               mapName={
                 isCentralLandingView
                   ? 'india'

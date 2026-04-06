@@ -50,6 +50,7 @@ export function OverallPerformanceTable({
   return (
     <Box borderRadius="lg" overflow="visible" minW={0} w="full">
       <Box
+        h={scrollMaxHeight}
         maxH={scrollMaxHeight}
         overflowY={isEmpty ? 'hidden' : 'auto'}
         overflowX="auto"
@@ -209,9 +210,9 @@ export function OverallPerformanceTable({
                 {rows.map((state) => (
                   <Tr key={state.id} _odd={{ bg: 'primary.25' }}>
                     <Td>{state.name}</Td>
-                    <Td>{state.coverage.toFixed(0)}</Td>
+                    <Td>{state.coverage.toFixed(1)}</Td>
                     <Td>{state.quantity}</Td>
-                    <Td>{state.regularity.toFixed(0)}%</Td>
+                    <Td>{state.regularity.toFixed(1)}%</Td>
                   </Tr>
                 ))}
               </Tbody>
