@@ -1078,10 +1078,11 @@ export function CentralDashboard() {
     params: analyticsParams,
     enabled: Boolean(analyticsParams),
   })
-  const { data: tenantBoundaryData } = useTenantBoundariesQuery({
-    params: tenantBoundaryAnalyticsParams,
-    enabled: Boolean(tenantBoundaryAnalyticsParams),
-  })
+  const { data: tenantBoundaryData, isFetching: isTenantBoundariesFetching = false } =
+    useTenantBoundariesQuery({
+      params: tenantBoundaryAnalyticsParams,
+      enabled: Boolean(tenantBoundaryAnalyticsParams),
+    })
   const { data: nationalDashboardData } = useNationalDashboardQuery({
     params: nationalDashboardParams,
     enabled: Boolean(nationalDashboardParams),
@@ -1303,6 +1304,11 @@ export function CentralDashboard() {
         overallPerformanceTableData,
         tenantBoundaryLocationOptions
       )
+  const isMapDataLoading =
+    !isCentralLandingView &&
+    Boolean(tenantBoundaryAnalyticsParams) &&
+    !tenantBoundaryData &&
+    isTenantBoundariesFetching
   const quantityPerformanceData = isCentralLandingView
     ? mapQuantityPerformanceFromNationalDashboard(
         filteredNationalDashboardData,
@@ -2035,6 +2041,7 @@ export function CentralDashboard() {
           >
             <IndiaMapChart
               data={mapChartData}
+              isLoading={isMapDataLoading}
               mapName={
                 isCentralLandingView
                   ? 'india'

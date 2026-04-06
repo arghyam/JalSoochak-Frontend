@@ -68,6 +68,21 @@ describe('IndiaMapChart', () => {
     expect(mockRegisterMap).not.toHaveBeenCalled()
   })
 
+  it('shows loading state while departmental boundaries are still loading', () => {
+    renderWithProviders(
+      <IndiaMapChart
+        data={chartData}
+        mapName="tenant-boundary-department-201"
+        fallbackToIndiaMap={false}
+        isLoading
+      />
+    )
+
+    expect(screen.getByText('Loading map...')).toBeTruthy()
+    expect(screen.queryByText('Map currently unavailable')).toBeNull()
+    expect(mockEChartsWrapper).not.toHaveBeenCalled()
+  })
+
   it('renders departmental maps immediately when boundary geojson is available', () => {
     renderWithProviders(
       <IndiaMapChart

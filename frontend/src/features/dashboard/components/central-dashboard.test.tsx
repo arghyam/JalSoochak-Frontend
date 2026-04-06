@@ -4973,6 +4973,66 @@ describe('CentralDashboard', () => {
     ])
   })
 
+  it('passes map loading state while tenant boundary geojson is still fetching', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'madhya-pradesh' })
+    mockUseSearchParams.mockReturnValue([new URLSearchParams('departmentZone=201'), jest.fn()])
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        states: [
+          {
+            value: 'madhya-pradesh',
+            label: 'Madhya Pradesh',
+            tenantId: 10,
+            tenantCode: 'mp',
+          },
+        ],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock)
+      .mockReturnValueOnce({
+        data: {
+          data: [
+            {
+              id: 101,
+              title: 'Madhya Pradesh',
+              lgdCode: 10,
+            },
+          ],
+        },
+      })
+      .mockReturnValueOnce({
+        data: {
+          data: [
+            {
+              id: 201,
+              title: 'Bhopal Zone',
+              lgdCode: 601,
+            },
+          ],
+        },
+      })
+      .mockReturnValue({ data: undefined })
+    ;(useTenantBoundariesQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isFetching: true,
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const mapProps = getLatestIndiaMapChartProps<{
+      isLoading: boolean
+      fallbackToIndiaMap: boolean
+    }>()
+
+    expect(mapProps.fallbackToIndiaMap).toBe(false)
+    expect(mapProps.isLoading).toBe(true)
+  })
+
   it('does not fall back to the India map for filtered LGD selections', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
