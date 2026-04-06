@@ -105,6 +105,16 @@ const clampIsoDateToMax = (value: string, max: string) => {
   return value > max ? max : value
 }
 
+const getDefaultRangeIso = (todayIso: string) => {
+  const today = new Date(`${todayIso}T00:00:00`)
+  const startDate = new Date(today)
+  startDate.setDate(today.getDate() - 29)
+  return {
+    startDate: formatISODate(startDate),
+    endDate: todayIso,
+  }
+}
+
 export function DateRangePicker({
   value,
   onChange,
@@ -129,6 +139,9 @@ export function DateRangePicker({
   const dateInputPlaceholder = getDateInputPlaceholder(resolvedDateFormat)
   const [isTinyPicker] = useMediaQuery('(max-width: 599px)')
   const todayIso = useMemo(() => formatISODate(new Date()), [])
+  const defaultRangeIso = useMemo(() => getDefaultRangeIso(todayIso), [todayIso])
+  const showDefaultRange = isFilter && !value
+  const displayRange = value ?? (showDefaultRange ? defaultRangeIso : null)
   const [isOpen, setIsOpen] = useState(false)
   const [draft, setDraft] = useState<DateRange | null>(value)
   const [tinyPopoverWidth, setTinyPopoverWidth] = useState<number | null>(null)
@@ -146,12 +159,27 @@ export function DateRangePicker({
   const triggerRef = useRef<HTMLButtonElement | null>(null)
 
   const syncDraftFromValue = (nextValue: DateRange | null) => {
-    setDraft(nextValue)
-    setDraftIso(
-      nextValue
+    const resolvedValue = nextValue ?? (showDefaultRange ? defaultRangeIso : null)
+    setDraft(
+      resolvedValue
         ? {
-            startDate: parseDisplayDateToIso(nextValue.startDate, resolvedDateFormat),
-            endDate: parseDisplayDateToIso(nextValue.endDate, resolvedDateFormat),
+            startDate: formatIsoDateForDisplay(
+              parseDisplayDateToIso(resolvedValue.startDate, resolvedDateFormat),
+              resolvedDateFormat
+            ),
+            endDate: formatIsoDateForDisplay(
+              parseDisplayDateToIso(resolvedValue.endDate, resolvedDateFormat),
+              resolvedDateFormat
+            ),
+            preset: resolvedValue.preset,
+          }
+        : null
+    )
+    setDraftIso(
+      resolvedValue
+        ? {
+            startDate: parseDisplayDateToIso(resolvedValue.startDate, resolvedDateFormat),
+            endDate: parseDisplayDateToIso(resolvedValue.endDate, resolvedDateFormat),
           }
         : null
     )
@@ -222,22 +250,23 @@ export function DateRangePicker({
     [t]
   )
 
-  const displayLabel = value
-    ? value.preset ||
+  const displayLabel = displayRange
+    ? displayRange.preset ||
       toCompactDisplayRange(
-        parseDisplayDateToIso(value.startDate, resolvedDateFormat),
-        parseDisplayDateToIso(value.endDate, resolvedDateFormat),
+        parseDisplayDateToIso(displayRange.startDate, resolvedDateFormat),
+        parseDisplayDateToIso(displayRange.endDate, resolvedDateFormat),
         resolvedDateFormat
       )
     : placeholder
 
+  const hasActiveRange = Boolean(displayRange)
   const displayColor = isFilter
-    ? value
+    ? hasActiveRange
       ? 'primary.500'
       : textColor || placeholderColor
-    : textColor || (value ? 'neutral.950' : placeholderColor)
+    : textColor || (hasActiveRange ? 'neutral.950' : placeholderColor)
 
-  const displayBorderColor = isFilter ? (value ? 'primary.500' : borderColor) : borderColor
+  const displayBorderColor = isFilter ? (hasActiveRange ? 'primary.500' : borderColor) : borderColor
   const triggerAriaLabel = iconAriaLabel || placeholder
   const placement = isTinyPicker ? 'bottom-start' : popoverPlacement
   const modifiers = isTinyPicker
@@ -387,7 +416,11 @@ export function DateRangePicker({
           justify={iconOnly ? 'center' : 'space-between'}
           cursor={disabled ? 'not-allowed' : 'pointer'}
           opacity={disabled ? 0.6 : 1}
-          _hover={!disabled ? { borderColor: 'neutral.400' } : undefined}
+          _hover={
+            !disabled
+              ? { borderColor: hasActiveRange && isFilter ? 'primary.500' : 'neutral.400' }
+              : undefined
+          }
           _focus={{ borderColor: 'primary.500', outline: 'none' }}
           _disabled={{ cursor: 'not-allowed', opacity: 0.6, pointerEvents: 'none' }}
         >
@@ -397,14 +430,14 @@ export function DateRangePicker({
               minW={0}
               textAlign="left"
               fontSize={fontSize}
-              lineHeight={value ? '16px' : undefined}
+              lineHeight={hasActiveRange ? '16px' : undefined}
               color={displayColor}
               textStyle={textStyle}
               fontWeight={isFilter ? 'semibold' : '400'}
-              letterSpacing={value ? '-0.02em' : undefined}
+              letterSpacing={hasActiveRange ? '-0.02em' : undefined}
               noOfLines={1}
               sx={
-                value
+                hasActiveRange
                   ? {
                       fontSize: '11px',
                     }

@@ -146,6 +146,10 @@ export function IndiaMapChart({
           type: 'map',
           map: effectiveMapName ?? mapName,
           roam: true,
+          scaleLimit: {
+            min: 1,
+            max: 5,
+          },
           label: {
             show: true,
             fontSize: 10,
