@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/app/store/auth-store'
 import { schemesApi } from '../api/schemes-api'
 import { sectionOfficerQueryKeys } from './section-officer-query-keys'
@@ -18,6 +18,7 @@ export function useSchemesListQuery(page: number, pageSize: number, schemeName: 
         schemeName: schemeName || undefined,
       }),
     enabled: Boolean(personId) && Boolean(tenantCode),
+    placeholderData: keepPreviousData,
   })
 }
 

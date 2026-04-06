@@ -35,7 +35,11 @@ export function SchemesPage() {
     setPage(1)
   }
 
-  const { data, isLoading, isError, refetch } = useSchemesListQuery(page, pageSize, debouncedSearch)
+  const { data, isLoading, isFetching, isError, refetch } = useSchemesListQuery(
+    page,
+    pageSize,
+    debouncedSearch
+  )
 
   useEffect(() => {
     document.title = 'All Schemes | JalSoochak'
@@ -209,23 +213,29 @@ export function SchemesPage() {
         </InputGroup>
       </Flex>
 
-      <DataTable
-        columns={columns}
-        data={data?.content ?? []}
-        getRowKey={(row) => row.schemeId}
-        emptyMessage="No schemes found."
-        pagination={{
-          enabled: true,
-          page,
-          pageSize,
-          totalItems: data?.totalElements ?? 0,
-          onPageChange: setPage,
-          onPageSizeChange: (size) => {
-            setPageSize(size)
-            setPage(1)
-          },
-        }}
-      />
+      <Box
+        position="relative"
+        opacity={isFetching && !isLoading ? 0.6 : 1}
+        transition="opacity 0.15s"
+      >
+        <DataTable
+          columns={columns}
+          data={data?.content ?? []}
+          getRowKey={(row) => row.schemeId}
+          emptyMessage="No schemes found."
+          pagination={{
+            enabled: true,
+            page,
+            pageSize,
+            totalItems: data?.totalElements ?? 0,
+            onPageChange: setPage,
+            onPageSizeChange: (size) => {
+              setPageSize(size)
+              setPage(1)
+            },
+          }}
+        />
+      </Box>
     </Box>
   )
 }

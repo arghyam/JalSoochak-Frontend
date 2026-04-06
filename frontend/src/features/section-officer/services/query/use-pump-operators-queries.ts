@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/app/store/auth-store'
 import { pumpOperatorsApi } from '../api/pump-operators-api'
 import { sectionOfficerQueryKeys } from './section-officer-query-keys'
@@ -36,6 +36,7 @@ export function usePumpOperatorsListQuery(
         endDate: endDate || undefined,
       }),
     enabled: Boolean(personId) && Boolean(tenantCode),
+    placeholderData: keepPreviousData,
   })
 }
 

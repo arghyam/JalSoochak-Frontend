@@ -60,7 +60,7 @@ export function PumpOperatorsPage() {
     setPage(1)
   }
 
-  const { data, isLoading, isError, refetch } = usePumpOperatorsListQuery(
+  const { data, isLoading, isFetching, isError, refetch } = usePumpOperatorsListQuery(
     page,
     pageSize,
     debouncedSearch,
@@ -302,23 +302,29 @@ export function PumpOperatorsPage() {
         )}
       </Flex>
 
-      <DataTable
-        columns={columns}
-        data={data?.content ?? []}
-        getRowKey={(row) => row.id}
-        emptyMessage="No pump operators found."
-        pagination={{
-          enabled: true,
-          page,
-          pageSize,
-          totalItems: data?.totalElements ?? 0,
-          onPageChange: setPage,
-          onPageSizeChange: (size) => {
-            setPageSize(size)
-            setPage(1)
-          },
-        }}
-      />
+      <Box
+        position="relative"
+        opacity={isFetching && !isLoading ? 0.6 : 1}
+        transition="opacity 0.15s"
+      >
+        <DataTable
+          columns={columns}
+          data={data?.content ?? []}
+          getRowKey={(row) => row.id}
+          emptyMessage="No pump operators found."
+          pagination={{
+            enabled: true,
+            page,
+            pageSize,
+            totalItems: data?.totalElements ?? 0,
+            onPageChange: setPage,
+            onPageSizeChange: (size) => {
+              setPageSize(size)
+              setPage(1)
+            },
+          }}
+        />
+      </Box>
     </Box>
   )
 }
