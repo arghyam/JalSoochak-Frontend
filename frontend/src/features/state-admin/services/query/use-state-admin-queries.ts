@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   stateAdminApi,
+  type BroadcastWelcomePayload,
   type SaveConfigurationPayload,
   type SaveIntegrationConfigurationPayload,
   type SaveLanguageConfigurationPayload,
@@ -391,5 +392,12 @@ export function useUpdateLogoMutation() {
       await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.logo() })
       await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.configStatus() })
     },
+  })
+}
+
+export function useBroadcastWelcomeMessageMutation() {
+  return useMutation({
+    mutationFn: (payload: BroadcastWelcomePayload) =>
+      stateAdminApi.broadcastWelcomeMessage(payload),
   })
 }

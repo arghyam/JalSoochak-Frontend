@@ -34,6 +34,7 @@ import {
 import { useAuthStore } from '@/app/store/auth-store'
 import { useDebounce } from '@/shared/hooks/use-debounce'
 import { UploadStaffModal } from './upload-staff-modal'
+import { BroadcastModal } from './broadcast-modal'
 
 const DEFAULT_ROLES: StaffRole[] = ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER']
 const PAGE_SIZE = 10
@@ -56,6 +57,7 @@ export function StaffSyncPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(PAGE_SIZE)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
+  const [isBroadcastOpen, setIsBroadcastOpen] = useState(false)
   const debouncedSearch = useDebounce(searchQuery, DEBOUNCE_DELAY_MS)
 
   useEffect(() => {
@@ -325,19 +327,31 @@ export function StaffSyncPage() {
           )}
         </Flex>
 
-        {/* Right: upload */}
-        <Button
-          variant="secondary"
-          size="sm"
-          fontWeight="600"
-          w={{ base: 'full', sm: '147px' }}
-          flexShrink={0}
-          aria-label={t('staffSync.aria.uploadData')}
-          onClick={() => setIsUploadOpen(true)}
-        >
-          <FiUpload aria-hidden="true" size={16} style={{ marginRight: '4px', flexShrink: 0 }} />
-          {t('staffSync.uploadData')}
-        </Button>
+        {/* Right: broadcast + upload */}
+        <Flex gap={2} flexShrink={0} w={{ base: 'full', sm: 'auto' }}>
+          <Button
+            variant="secondary"
+            size="sm"
+            fontWeight="600"
+            flex={{ base: 1, sm: 'none' }}
+            aria-label={t('staffSync.broadcast.aria.broadcast')}
+            onClick={() => setIsBroadcastOpen(true)}
+          >
+            {t('staffSync.broadcast.button')}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            fontWeight="600"
+            flex={{ base: 1, sm: 'none' }}
+            w={{ base: 'auto', sm: '147px' }}
+            aria-label={t('staffSync.aria.uploadData')}
+            onClick={() => setIsUploadOpen(true)}
+          >
+            <FiUpload aria-hidden="true" size={16} style={{ marginRight: '4px', flexShrink: 0 }} />
+            {t('staffSync.uploadData')}
+          </Button>
+        </Flex>
       </Flex>
 
       {/* Stats Cards */}
@@ -395,6 +409,7 @@ export function StaffSyncPage() {
       />
 
       <UploadStaffModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />
+      <BroadcastModal isOpen={isBroadcastOpen} onClose={() => setIsBroadcastOpen(false)} />
     </Box>
   )
 }

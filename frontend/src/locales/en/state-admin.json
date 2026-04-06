@@ -313,6 +313,24 @@
       "searchStaff": "Search staff by name",
       "filterSection": "Filter staff members",
       "uploadData": "Upload staff data"
+    },
+    "broadcast": {
+      "button": "Broadcast",
+      "modal": {
+        "title": "Broadcast Message",
+        "selectRole": "Select Role",
+        "selectDuration": "Select Duration",
+        "selectTemplate": "Select Message Template",
+        "send": "Send",
+        "cancel": "Cancel"
+      },
+      "messages": {
+        "success": "Message broadcast successfully",
+        "error": "Failed to broadcast message. Please try again."
+      },
+      "aria": {
+        "broadcast": "Broadcast message to staff"
+      }
     }
   },
 
