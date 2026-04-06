@@ -33,7 +33,8 @@ export function ProtectedRoute({
   }
 
   if (requireAuth && !isAuthenticated) {
-    return <Navigate to={ROUTES.LOGIN} state={{ from: location }} replace />
+    const loginRoute = location.pathname.startsWith('/staff') ? ROUTES.STAFF_LOGIN : ROUTES.LOGIN
+    return <Navigate to={loginRoute} state={{ from: location }} replace />
   }
 
   if (allowedRoles && user && !allowedRoles.includes(user.role as AuthRole)) {
