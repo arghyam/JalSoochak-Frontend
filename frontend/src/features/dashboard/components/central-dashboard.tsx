@@ -2134,6 +2134,7 @@ export function CentralDashboard() {
                   : `tenant-boundary-${hierarchyType.toLowerCase()}-${analyticsParentId}`
               }
               fallbackToIndiaMap={isCentralLandingView}
+              usePrimaryFill={isCentralLandingView}
               onStateClick={isCentralLandingView ? handleStateClick : undefined}
               onStateHover={handleStateHover}
               height="100%"
