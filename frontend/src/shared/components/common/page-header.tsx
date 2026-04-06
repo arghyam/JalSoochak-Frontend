@@ -9,7 +9,7 @@ interface PageHeaderProps {
 
 export function PageHeader({ children, mb = 5 }: PageHeaderProps) {
   return (
-    <Flex justify="space-between" align="flex-start" mb={mb} w="full" maxW="100%" overflow="hidden">
+    <Flex justify="space-between" align="flex-start" mb={mb} w="full" maxW="100%">
       <Box flex="1 1 0%" minW={0}>
         {children}
       </Box>
