@@ -501,7 +501,32 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     }
 
     if (trailIndex < 0) {
-      onActiveTrailChange?.(-1)
+      rootSelectionHandler('')
+      return
+    }
+
+    if (trailIndex === 0) {
+      rootSelectionHandler(activeSelectedState)
+      return
+    }
+
+    if (trailIndex === 1) {
+      districtSelectionHandler(activeSelectedDistrict)
+      return
+    }
+
+    if (trailIndex === 2) {
+      blockSelectionHandler(activeSelectedBlock)
+      return
+    }
+
+    if (trailIndex === 3) {
+      gramPanchayatSelectionHandler(activeSelectedGramPanchayat)
+      return
+    }
+
+    if (trailIndex === 4) {
+      villageSelectionHandler(activeSelectedVillage)
       return
     }
 

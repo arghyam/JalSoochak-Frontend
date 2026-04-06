@@ -1468,12 +1468,26 @@ export function CentralDashboard() {
   const handleStateChange = (value: string) => {
     setActiveTrailIndex(null)
     setSelectedScheme('')
-    updateFilterUrl({ state: value, tab: 'administrative' })
+    updateFilterUrl({
+      state: value,
+      district: '',
+      block: '',
+      gramPanchayat: '',
+      village: '',
+      tab: 'administrative',
+    })
   }
   const handleDistrictChange = (value: string) => {
     setActiveTrailIndex(null)
     setSelectedScheme('')
-    updateFilterUrl({ state: selectedState, district: value, tab: 'administrative' })
+    updateFilterUrl({
+      state: selectedState,
+      district: value,
+      block: '',
+      gramPanchayat: '',
+      village: '',
+      tab: 'administrative',
+    })
   }
   const handleBlockChange = (value: string) => {
     setActiveTrailIndex(null)
@@ -1482,6 +1496,8 @@ export function CentralDashboard() {
       state: selectedState,
       district: selectedDistrict,
       block: value,
+      gramPanchayat: '',
+      village: '',
       tab: 'administrative',
     })
   }
@@ -1493,6 +1509,7 @@ export function CentralDashboard() {
       district: selectedDistrict,
       block: selectedBlock,
       gramPanchayat: value,
+      village: '',
       tab: 'administrative',
     })
   }
@@ -1528,6 +1545,20 @@ export function CentralDashboard() {
         departmentSubdivision: '',
         departmentVillage: '',
         tab: 'administrative',
+      })
+    } else {
+      setActiveTrailIndex(null)
+      updateFilterUrl({
+        state: selectedState,
+        district: '',
+        block: '',
+        gramPanchayat: '',
+        village: '',
+        departmentZone: '',
+        departmentCircle: '',
+        departmentDivision: '',
+        departmentSubdivision: '',
+        departmentVillage: '',
       })
     }
   }
