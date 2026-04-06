@@ -50,6 +50,7 @@ export function OverallPerformanceTable({
   return (
     <Box borderRadius="lg" overflow="visible" minW={0} w="full">
       <Box
+        h={scrollMaxHeight}
         maxH={scrollMaxHeight}
         overflowY={isEmpty ? 'hidden' : 'auto'}
         overflowX="auto"
