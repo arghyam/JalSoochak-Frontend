@@ -38,7 +38,9 @@ import {
   StaffLoginPage,
   StaffOverviewPage,
   SchemesPage,
+  SchemeViewPage,
   PumpOperatorsPage,
+  PumpOperatorViewPage,
   AnomaliesPage,
   StaffEscalationsPage,
 } from '@/features/section-officer'
@@ -266,8 +268,16 @@ export const router = createBrowserRouter([
         element: <SchemesPage />,
       },
       {
+        path: ROUTES.STAFF_SCHEMES_VIEW,
+        element: <SchemeViewPage />,
+      },
+      {
         path: ROUTES.STAFF_PUMP_OPERATORS,
         element: <PumpOperatorsPage />,
+      },
+      {
+        path: ROUTES.STAFF_PUMP_OPERATORS_VIEW,
+        element: <PumpOperatorViewPage />,
       },
       {
         path: ROUTES.STAFF_ANOMALIES,

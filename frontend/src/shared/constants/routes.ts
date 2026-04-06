@@ -39,7 +39,9 @@ export const ROUTES = {
   STAFF: '/staff',
   STAFF_OVERVIEW: '/staff',
   STAFF_SCHEMES: '/staff/schemes',
+  STAFF_SCHEMES_VIEW: '/staff/schemes/:schemeId',
   STAFF_PUMP_OPERATORS: '/staff/pump-operators',
+  STAFF_PUMP_OPERATORS_VIEW: '/staff/pump-operators/:operatorId',
   STAFF_ANOMALIES: '/staff/anomalies',
   STAFF_ESCALATIONS: '/staff/escalations',
   // Auth routes
