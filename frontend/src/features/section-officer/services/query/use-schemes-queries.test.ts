@@ -85,9 +85,10 @@ beforeEach(() => {
 
 describe('sectionOfficerQueryKeys', () => {
   it('generates a stable schemes list key', () => {
-    expect(sectionOfficerQueryKeys.schemesList('42', 1, 10, '')).toEqual([
+    expect(sectionOfficerQueryKeys.schemesList('nl', '42', 1, 10, '')).toEqual([
       'section-officer',
       'schemes',
+      'nl',
       '42',
       1,
       10,
@@ -96,17 +97,19 @@ describe('sectionOfficerQueryKeys', () => {
   })
 
   it('generates a stable scheme details key', () => {
-    expect(sectionOfficerQueryKeys.schemeDetails('1')).toEqual([
+    expect(sectionOfficerQueryKeys.schemeDetails('nl', '1')).toEqual([
       'section-officer',
       'scheme-details',
+      'nl',
       '1',
     ])
   })
 
   it('generates a stable scheme readings key', () => {
-    expect(sectionOfficerQueryKeys.schemeReadings('1', 1, 10)).toEqual([
+    expect(sectionOfficerQueryKeys.schemeReadings('nl', '1', 1, 10)).toEqual([
       'section-officer',
       'scheme-readings',
+      'nl',
       '1',
       1,
       10,

@@ -8,7 +8,7 @@ export function useSchemesListQuery(page: number, pageSize: number, schemeName: 
   const tenantCode = useAuthStore((state) => state.user?.tenantCode ?? '')
 
   return useQuery({
-    queryKey: sectionOfficerQueryKeys.schemesList(personId, page, pageSize, schemeName),
+    queryKey: sectionOfficerQueryKeys.schemesList(tenantCode, personId, page, pageSize, schemeName),
     queryFn: () =>
       schemesApi.getSchemesList({
         personId,
@@ -26,7 +26,7 @@ export function useSchemeDetailsQuery(schemeId: string | undefined) {
   const tenantCode = useAuthStore((state) => state.user?.tenantCode ?? '')
 
   return useQuery({
-    queryKey: sectionOfficerQueryKeys.schemeDetails(schemeId ?? ''),
+    queryKey: sectionOfficerQueryKeys.schemeDetails(tenantCode, schemeId ?? ''),
     queryFn: () => schemesApi.getSchemeDetails({ schemeId: schemeId!, tenantCode }),
     enabled: Boolean(schemeId) && Boolean(tenantCode),
   })
@@ -40,7 +40,7 @@ export function useSchemeReadingsQuery(
   const tenantCode = useAuthStore((state) => state.user?.tenantCode ?? '')
 
   return useQuery({
-    queryKey: sectionOfficerQueryKeys.schemeReadings(schemeId ?? '', page, pageSize),
+    queryKey: sectionOfficerQueryKeys.schemeReadings(tenantCode, schemeId ?? '', page, pageSize),
     queryFn: () =>
       schemesApi.getSchemeReadings({
         schemeId: schemeId!,

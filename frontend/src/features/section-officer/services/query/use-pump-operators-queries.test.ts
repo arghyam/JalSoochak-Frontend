@@ -96,9 +96,10 @@ beforeEach(() => {
 
 describe('sectionOfficerQueryKeys — pump operator keys', () => {
   it('generates a stable pump operators list key', () => {
-    expect(sectionOfficerQueryKeys.pumpOperatorsList('15', 1, 10, '', '', '', '')).toEqual([
+    expect(sectionOfficerQueryKeys.pumpOperatorsList('nl', '15', 1, 10, '', '', '', '')).toEqual([
       'section-officer',
       'pump-operators',
+      'nl',
       '15',
       1,
       10,
@@ -110,17 +111,19 @@ describe('sectionOfficerQueryKeys — pump operator keys', () => {
   })
 
   it('generates a stable pump operator details key', () => {
-    expect(sectionOfficerQueryKeys.pumpOperatorDetails('3')).toEqual([
+    expect(sectionOfficerQueryKeys.pumpOperatorDetails('nl', '3')).toEqual([
       'section-officer',
       'pump-operator-details',
+      'nl',
       '3',
     ])
   })
 
   it('generates a stable pump operator readings key', () => {
-    expect(sectionOfficerQueryKeys.pumpOperatorReadings('3', 1, 10, '')).toEqual([
+    expect(sectionOfficerQueryKeys.pumpOperatorReadings('nl', '3', 1, 10, '')).toEqual([
       'section-officer',
       'pump-operator-readings',
+      'nl',
       '3',
       1,
       10,

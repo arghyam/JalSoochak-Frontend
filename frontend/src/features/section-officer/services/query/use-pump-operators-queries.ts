@@ -16,6 +16,7 @@ export function usePumpOperatorsListQuery(
 
   return useQuery({
     queryKey: sectionOfficerQueryKeys.pumpOperatorsList(
+      tenantCode,
       personId,
       page,
       pageSize,
@@ -44,7 +45,7 @@ export function usePumpOperatorDetailsQuery(operatorId: string | undefined) {
   const tenantCode = useAuthStore((state) => state.user?.tenantCode ?? '')
 
   return useQuery({
-    queryKey: sectionOfficerQueryKeys.pumpOperatorDetails(operatorId ?? ''),
+    queryKey: sectionOfficerQueryKeys.pumpOperatorDetails(tenantCode, operatorId ?? ''),
     queryFn: () => pumpOperatorsApi.getPumpOperatorDetails({ operatorId: operatorId!, tenantCode }),
     enabled: Boolean(operatorId) && Boolean(tenantCode),
   })
@@ -60,6 +61,7 @@ export function usePumpOperatorReadingsQuery(
 
   return useQuery({
     queryKey: sectionOfficerQueryKeys.pumpOperatorReadings(
+      tenantCode,
       operatorId ?? '',
       page,
       pageSize,

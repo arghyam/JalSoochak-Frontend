@@ -219,6 +219,7 @@ describe('PumpOperatorViewPage', () => {
     })
     renderPage()
     expect(screen.getByText('Ravi')).toBeTruthy()
+    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders readings table', () => {
