@@ -38,6 +38,7 @@ import {
   StaffLoginPage,
   StaffOverviewPage,
   SchemesPage,
+  SchemeViewPage,
   PumpOperatorsPage,
   AnomaliesPage,
   StaffEscalationsPage,
@@ -264,6 +265,10 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.STAFF_SCHEMES,
         element: <SchemesPage />,
+      },
+      {
+        path: ROUTES.STAFF_SCHEMES_VIEW,
+        element: <SchemeViewPage />,
       },
       {
         path: ROUTES.STAFF_PUMP_OPERATORS,
