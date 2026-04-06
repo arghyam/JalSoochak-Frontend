@@ -526,6 +526,11 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     }
 
     if (trailIndex === 4) {
+      if (activeSelectedVillage === selectedVillage) {
+        onActiveTrailChange?.(trailIndex)
+        return
+      }
+
       villageSelectionHandler(activeSelectedVillage)
       return
     }

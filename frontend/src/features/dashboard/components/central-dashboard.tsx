@@ -1548,6 +1548,12 @@ export function CentralDashboard() {
       })
     } else {
       setActiveTrailIndex(null)
+      setSelectedDepartmentState('')
+      setSelectedDepartmentZone('')
+      setSelectedDepartmentCircle('')
+      setSelectedDepartmentDivision('')
+      setSelectedDepartmentSubdivision('')
+      setSelectedDepartmentVillage('')
       updateFilterUrl({
         state: selectedState,
         district: '',
