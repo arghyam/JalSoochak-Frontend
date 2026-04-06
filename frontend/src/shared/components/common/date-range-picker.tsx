@@ -295,7 +295,10 @@ export function DateRangePicker({
     ) {
       return
     }
-    const start = parseDisplayDateToIso(draft.startDate, resolvedDateFormat)
+    const start = clampIsoDateToMax(
+      parseDisplayDateToIso(draft.startDate, resolvedDateFormat),
+      todayIso
+    )
     const end = clampIsoDateToMax(
       parseDisplayDateToIso(draft.endDate, resolvedDateFormat),
       todayIso
@@ -328,6 +331,7 @@ export function DateRangePicker({
     !draft?.endDate ||
     !isValidDisplayDate(draft.startDate, resolvedDateFormat) ||
     !isValidDisplayDate(draft.endDate, resolvedDateFormat) ||
+    parseDisplayDateToIso(draft.startDate, resolvedDateFormat) > todayIso ||
     parseDisplayDateToIso(draft.endDate, resolvedDateFormat) > todayIso ||
     parseDisplayDateToIso(draft.endDate, resolvedDateFormat) <
       parseDisplayDateToIso(draft.startDate, resolvedDateFormat)
@@ -447,7 +451,12 @@ export function DateRangePicker({
                       value={draft?.startDate ?? ''}
                       onFocus={() => openPicker(startDateInputRef)}
                       onChange={(event) => {
-                        const nextValue = event.target.value
+                        const rawValue = event.target.value
+                        const nextValue =
+                          isValidDisplayDate(rawValue, resolvedDateFormat) &&
+                          parseDisplayDateToIso(rawValue, resolvedDateFormat) > todayIso
+                            ? formatIsoDateForDisplay(todayIso, resolvedDateFormat)
+                            : rawValue
                         setDraft((current) => {
                           const currentEnd = current?.endDate ?? ''
                           const shouldAdjustEnd =
@@ -481,11 +490,12 @@ export function DateRangePicker({
                     <Input
                       ref={startDateInputRef}
                       type="date"
+                      max={todayIso}
                       value={draftIso?.startDate ?? ''}
                       tabIndex={-1}
                       aria-hidden="true"
                       onChange={(event) => {
-                        const nextValue = event.target.value
+                        const nextValue = clampIsoDateToMax(event.target.value, todayIso)
                         setDraftIso((current) => {
                           const currentEnd = current?.endDate ?? ''
                           const nextEnd =
