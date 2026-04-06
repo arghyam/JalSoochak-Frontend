@@ -1652,7 +1652,7 @@ describe('CentralDashboard', () => {
     expect(kpiProps[0]?.title).toBe('Quantity in MLD')
     expect(kpiProps[0]?.value).toBe('0.05')
     expect(kpiProps[0]?.trend).toEqual(
-      expect.objectContaining({ text: expect.stringContaining('vs last 30 days') })
+      expect.objectContaining({ text: expect.stringContaining('vs previous 2 days') })
     )
     expect(kpiProps[1]?.title).toBe('Quantity in LPCD')
     expect(kpiProps[1]?.value).toBe('18.3')
@@ -1781,15 +1781,15 @@ describe('CentralDashboard', () => {
     expect(kpiProps).toHaveLength(3)
     expect(kpiProps[0]?.title).toBe('Quantity in MLD')
     expect(kpiProps[0]?.value).toBe('5')
-    expect(kpiProps[0]?.trend).toEqual({ direction: 'down', text: '-16.7% vs last 30 days' })
+    expect(kpiProps[0]?.trend).toEqual({ direction: 'down', text: '-16.7% vs previous 30 days' })
 
     expect(kpiProps[1]?.title).toBe('Quantity in LPCD')
     expect(kpiProps[1]?.value).toBe('1,000')
-    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-200 LPCD vs last month' })
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-200 LPCD vs previous 30 days' })
 
     expect(kpiProps[2]?.title).toBe('Regularity')
     expect(kpiProps[2]?.value).toBe('70.0%')
-    expect(kpiProps[2]?.trend).toEqual({ direction: 'down', text: '-12.5% vs last month' })
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'down', text: '-12.5% vs previous 30 days' })
   })
 
   it('hydrates location filters from path and query params', () => {
@@ -4290,15 +4290,15 @@ describe('CentralDashboard', () => {
     expect(kpiProps).toHaveLength(3)
     expect(kpiProps[0]?.title).toBe('Quantity in MLD')
     expect(kpiProps[0]?.value).toBe('5')
-    expect(kpiProps[0]?.trend).toEqual({ direction: 'down', text: '-16.7% vs last 30 days' })
+    expect(kpiProps[0]?.trend).toEqual({ direction: 'down', text: '-16.7% vs previous 30 days' })
 
     expect(kpiProps[1]?.title).toBe('Quantity in LPCD')
     expect(kpiProps[1]?.value).toBe('500')
-    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-100 LPCD vs last month' })
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-100 LPCD vs previous 30 days' })
 
     expect(kpiProps[2]?.title).toBe('Regularity')
     expect(kpiProps[2]?.value).toBe('70.0%')
-    expect(kpiProps[2]?.trend).toEqual({ direction: 'down', text: '-12.5% vs last month' })
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'down', text: '-12.5% vs previous 30 days' })
 
     const waterSupplyQueryCalls = (useAverageWaterSupplyPerRegionQuery as jest.Mock).mock.calls
       .slice(initialWaterSupplyQueryCallCount)
@@ -4518,9 +4518,9 @@ describe('CentralDashboard', () => {
     )
 
     expect(kpiProps).toHaveLength(3)
-    expect(kpiProps[0]?.trend).toEqual({ direction: 'neutral', text: '0% vs last 30 days' })
-    expect(kpiProps[1]?.trend).toEqual({ direction: 'neutral', text: '0 LPCD vs last month' })
-    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs last month' })
+    expect(kpiProps[0]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'neutral', text: '0 LPCD vs previous 30 days' })
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
   })
 
   it('hides map and overall performance panel when a village is selected', () => {
@@ -4596,9 +4596,9 @@ describe('CentralDashboard', () => {
         }
     )
 
-    expect(kpiProps[0]?.trend).toEqual({ direction: 'neutral', text: '0% vs last 30 days' })
-    expect(kpiProps[1]?.trend).toEqual({ direction: 'neutral', text: '0 LPCD vs last month' })
-    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs last month' })
+    expect(kpiProps[0]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'neutral', text: '0 LPCD vs previous 30 days' })
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
   })
 
   it('uses the selected village LGD id for scheme performance analytics', () => {

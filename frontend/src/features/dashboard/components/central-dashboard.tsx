@@ -1423,15 +1423,11 @@ export function CentralDashboard() {
     : isHierarchyLeafSelected
       ? getRegularityKpiFromPeriodic(previousSchemeRegularityPeriodicData)
       : getRegularityKpi(previousRegularityKpiData)
-  const previousWaterSupplyComparisonRange: {
-    daysInRange?: number
-    startDate?: string
-    endDate?: string
-  } = {
-    daysInRange: previousWaterSupplyKpiData?.daysInRange,
-    startDate: previousWaterSupplyAnalyticsParams?.startDate,
-    endDate: previousWaterSupplyAnalyticsParams?.endDate,
-  }
+  const comparisonDays = resolveDaysInRange(
+    undefined,
+    previousAnalyticsRange.startDate,
+    previousAnalyticsRange.endDate
+  )
 
   const updateFilterUrl = (filters: FilterUrlUpdate) => {
     const nextState = filters.state ?? ''
@@ -1840,11 +1836,7 @@ export function CentralDashboard() {
           `${formatSignedValue(trendValue, {
             minimumFractionDigits: 0,
             maximumFractionDigits: 1,
-          })}% vs last ${resolveDaysInRange(
-            previousWaterSupplyComparisonRange.daysInRange,
-            previousWaterSupplyComparisonRange.startDate,
-            previousWaterSupplyComparisonRange.endDate
-          )} days`
+          })}% vs previous ${comparisonDays} days`
       ),
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#E1FFEA" align="center" justify="center">
@@ -1891,7 +1883,7 @@ export function CentralDashboard() {
           `${formatSignedValue(trendValue, {
             minimumFractionDigits: 0,
             maximumFractionDigits: 1,
-          })} LPCD vs last month`
+          })} LPCD vs previous ${comparisonDays} days`
       ),
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
@@ -1945,7 +1937,7 @@ export function CentralDashboard() {
           `${formatSignedValue(trendValue, {
             minimumFractionDigits: 0,
             maximumFractionDigits: 1,
-          })}% vs last month`
+          })}% vs previous ${comparisonDays} days`
       ),
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#FFF4CC" align="center" justify="center">
