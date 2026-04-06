@@ -455,6 +455,7 @@ export function CentralDashboard() {
   const [selectedDuration, setSelectedDuration] = useState<DateRange | null>(() =>
     getInitialStoredDuration(storedFilters)
   )
+  const [isDurationCleared, setIsDurationCleared] = useState(false)
   const [selectedScheme, setSelectedScheme] = useState(storedFilters.selectedScheme ?? '')
   const [storedSelectedDepartmentState, setSelectedDepartmentState] = useState(
     storedFilters.selectedDepartmentState ?? ''
@@ -605,7 +606,15 @@ export function CentralDashboard() {
     tenantPublicConfig?.dateFormatScreen.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
   )
   const effectiveSelectedDuration =
-    selectedDuration ?? getInitialStoredDuration(storedFilters, durationDateFormat)
+    selectedDuration ??
+    (isDurationCleared ? null : getInitialStoredDuration(storedFilters, durationDateFormat))
+  const handleSelectedDurationChange: Dispatch<SetStateAction<DateRange | null>> = (value) => {
+    setSelectedDuration((previousDuration) => {
+      const nextDuration = typeof value === 'function' ? value(previousDuration) : value
+      setIsDurationCleared(nextDuration === null)
+      return nextDuration
+    })
+  }
   const { data: locationHierarchyData } = useLocationHierarchyQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
@@ -1600,6 +1609,7 @@ export function CentralDashboard() {
       departmentVillage: '',
     })
     setSelectedDuration(null)
+    setIsDurationCleared(true)
     setSelectedScheme('')
     setSelectedDepartmentState('')
     setSelectedDepartmentZone('')
@@ -1979,7 +1989,7 @@ export function CentralDashboard() {
         onGramPanchayatChange={handleGramPanchayatChange}
         setSelectedVillage={handleVillageChange}
         setSelectedScheme={setSelectedScheme}
-        setSelectedDuration={setSelectedDuration}
+        setSelectedDuration={handleSelectedDurationChange}
         onDepartmentStateChange={handleDepartmentStateChange}
         onDepartmentZoneChange={handleDepartmentZoneChange}
         onDepartmentCircleChange={handleDepartmentCircleChange}

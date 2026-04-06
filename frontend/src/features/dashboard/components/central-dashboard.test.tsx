@@ -379,6 +379,43 @@ describe('CentralDashboard', () => {
     ])
   })
 
+  it('clears the selected duration in filters when clear all filters is triggered', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedDuration: {
+          startDate: '2026-03-10',
+          endDate: '2026-03-20',
+        },
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardFilterProps = getLatestDashboardFilterProps<{
+      selectedDuration: { startDate: string; endDate: string } | null
+      onClear: () => void
+    }>()
+    expect(dashboardFilterProps.selectedDuration).toEqual({
+      startDate: '2026-03-10',
+      endDate: '2026-03-20',
+    })
+
+    act(() => {
+      dashboardFilterProps.onClear()
+    })
+
+    const updatedDashboardFilterProps = getLatestDashboardFilterProps<{
+      selectedDuration: { startDate: string; endDate: string } | null
+    }>()
+    expect(updatedDashboardFilterProps.selectedDuration).toBeNull()
+  })
+
   it('normalizes picker-style duration values before requesting central analytics', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
