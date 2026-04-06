@@ -178,7 +178,8 @@ describe('PumpOperatorViewPage', () => {
       refetch: jest.fn(),
     })
     renderPage()
-    expect(screen.getByText('Pump Operators')).toBeTruthy()
+    // 'Pump Operators' appears in both the h1 and the breadcrumb link
+    expect(screen.getAllByText('Pump Operators').length).toBeGreaterThanOrEqual(2)
     expect(screen.getByText('View Pump Operator')).toBeTruthy()
   })
 

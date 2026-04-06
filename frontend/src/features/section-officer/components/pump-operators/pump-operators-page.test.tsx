@@ -183,7 +183,8 @@ describe('PumpOperatorsPage', () => {
     renderPage()
     expect(screen.getByText('Ravi Kumar')).toBeTruthy()
     expect(screen.getByText('96')).toBeTruthy()
-    expect(screen.getByText('Active')).toBeTruthy()
+    // 'Active' appears in the StatusChip and in the mocked <option> — use getAllByText
+    expect(screen.getAllByText('Active').length).toBeGreaterThanOrEqual(1)
   })
 
   it('shows first scheme name and +N for multiple schemes', () => {
@@ -268,6 +269,7 @@ describe('PumpOperatorsPage', () => {
     renderPage()
     const searchInput = screen.getByRole('textbox', { name: 'Search by name' })
     await userEvent.type(searchInput, 'ravi')
-    expect(screen.getByRole('button', { name: 'Clear all filters' })).toBeTruthy()
+    // aria-label on the button is "Clear all filters" (accessible name)
+    expect(screen.getByRole('button', { name: /clear all filters/i })).toBeTruthy()
   })
 })

@@ -51,7 +51,7 @@ export function PumpOperatorsPage() {
     setPage(1)
   }
 
-  const hasActiveFilters = Boolean(debouncedSearch || statusFilter || dateRange)
+  const hasActiveFilters = Boolean(searchQuery || statusFilter || dateRange)
 
   function clearAllFilters() {
     setSearchQuery('')
