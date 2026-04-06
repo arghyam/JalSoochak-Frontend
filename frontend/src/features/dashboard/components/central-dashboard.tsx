@@ -621,25 +621,60 @@ export function CentralDashboard() {
     tenantCode: selectedTenant?.tenantCode,
     enabled: Boolean(selectedTenant?.tenantId),
   })
+  const isHindiUi =
+    i18n.resolvedLanguage?.toLowerCase().startsWith('hi') ||
+    i18n.language?.toLowerCase().startsWith('hi')
+  const normalizeHierarchyLabel = (value: string) => value.trim().toLowerCase().replace(/-/g, ' ')
+  const localizeDepartmentHierarchyLabel = (value: string, form: 'singular' | 'plural') => {
+    if (!isHindiUi) {
+      return value
+    }
+    const normalized = normalizeHierarchyLabel(value)
+    if (normalized === 'zone') {
+      return t(`performanceCharts.viewBy.${form === 'plural' ? 'zones' : 'zone'}`, {
+        defaultValue: form === 'plural' ? 'Zones' : 'Zone',
+      })
+    }
+    if (normalized === 'circle') {
+      return t(`performanceCharts.viewBy.${form === 'plural' ? 'circles' : 'circle'}`, {
+        defaultValue: form === 'plural' ? 'Circles' : 'Circle',
+      })
+    }
+    if (normalized === 'division') {
+      return t(`performanceCharts.viewBy.${form === 'plural' ? 'divisions' : 'division'}`, {
+        defaultValue: form === 'plural' ? 'Divisions' : 'Division',
+      })
+    }
+    if (normalized === 'sub division' || normalized === 'subdivision') {
+      return t(`performanceCharts.viewBy.${form === 'plural' ? 'subDivisions' : 'subDivision'}`, {
+        defaultValue: form === 'plural' ? 'Sub Divisions' : 'Sub Division',
+      })
+    }
+    return value
+  }
   const hierarchyLabelByLevel = (locationHierarchyData?.data?.levels ?? []).reduce<
     Record<number, string>
   >((acc, item) => {
     const levelNumber = typeof item.level === 'number' ? item.level : undefined
-    const levelTitle = toCapitalizedWords(item.levelName?.[0]?.title?.trim() ?? '')
-    if (!levelNumber || !levelTitle) {
+    const levelTitleRaw = toCapitalizedWords(item.levelName?.[0]?.title?.trim() ?? '')
+    if (!levelNumber || !levelTitleRaw) {
       return acc
     }
-    acc[levelNumber] = levelTitle
+    acc[levelNumber] = localizeDepartmentHierarchyLabel(levelTitleRaw, 'singular')
     return acc
   }, {})
   const toPluralHierarchyLabel = (value: string): string => {
-    const normalized = value.trim().toLowerCase()
+    const localized = localizeDepartmentHierarchyLabel(value, 'plural')
+    if (localized !== value) {
+      return localized
+    }
+    const normalized = normalizeHierarchyLabel(value)
     if (normalized === 'state') return 'States'
     if (normalized === 'district') return 'Districts'
     if (normalized === 'block') return 'Blocks'
     if (normalized === 'panchayat') return 'Panchayats'
     if (normalized === 'village') return 'Villages'
-    if (normalized === 'sub division' || normalized === 'sub-division') return 'Sub Divisions'
+    if (normalized === 'sub division' || normalized === 'subdivision') return 'Sub Divisions'
     if (value.endsWith('s')) return value
     return `${value}s`
   }

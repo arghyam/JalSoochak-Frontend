@@ -154,7 +154,15 @@
       "districts": "Districts",
       "statesUTs": "States/UTs",
       "gramPanchayats": "Gram Panchayats",
-      "villages": "Villages"
+      "villages": "Villages",
+      "zone": "Zone",
+      "circle": "Circle",
+      "division": "Division",
+      "subDivision": "Sub Division",
+      "zones": "Zones",
+      "circles": "Circles",
+      "divisions": "Divisions",
+      "subDivisions": "Sub Divisions"
     }
   },
   "outageAndSubmissionCharts": {
@@ -185,7 +193,9 @@
       "valveIssue": "Valve issue",
       "sourceDrying": "Source Drying",
       "complaintSubmission": "Complaint Submissions",
-      "automatedSubmission": "Anomalous Submissions"
+      "automatedSubmission": "Anomalous Submissions",
+      "compliantSubmission": "Compliant Submissions",
+      "anomalousSubmission": "Anomalous Submissions"
     },
     "tables": {
       "readingCompliance": {
@@ -205,6 +215,8 @@
     "details": {
       "title": "Pump Operator Details",
       "fields": {
+        "schemeId": "Scheme ID",
+        "schemeName": "Scheme name",
         "schemeNameSchemeId": "Scheme name/ Scheme ID",
         "stationLocation": "Station location",
         "lastSubmission": "Last submission",

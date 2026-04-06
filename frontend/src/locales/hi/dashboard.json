@@ -154,7 +154,15 @@
       "districts": "जिले",
       "statesUTs": "राज्य/केंद्रशासित प्रदेश",
       "gramPanchayats": "ग्राम पंचायतें",
-      "villages": "गांव"
+      "villages": "गांव",
+      "zone": "जोन",
+      "circle": "सर्कल",
+      "division": "डिवीजन",
+      "subDivision": "उप-विभाग",
+      "zones": "जोन",
+      "circles": "सर्कल",
+      "divisions": "डिवीजन",
+      "subDivisions": "उप-विभाग"
     }
   },
   "outageAndSubmissionCharts": {
@@ -185,7 +193,9 @@
       "valveIssue": "वाल्व समस्या",
       "sourceDrying": "स्रोत सूखना",
       "complaintSubmission": "शिकायत सबमिशन",
-      "automatedSubmission": "विसंगतिपूर्ण सबमिशन"
+      "automatedSubmission": "विसंगतिपूर्ण सबमिशन",
+      "compliantSubmission": "अनुपालक सबमिशन",
+      "anomalousSubmission": "विसंगतिपूर्ण सबमिशन"
     },
     "tables": {
       "readingCompliance": {
@@ -205,6 +215,8 @@
     "details": {
       "title": "पंप ऑपरेटर विवरण",
       "fields": {
+        "schemeId": "योजना आईडी",
+        "schemeName": "योजना का नाम",
         "schemeNameSchemeId": "योजना का नाम/ योजना आईडी",
         "stationLocation": "स्टेशन स्थान",
         "lastSubmission": "अंतिम सबमिशन",

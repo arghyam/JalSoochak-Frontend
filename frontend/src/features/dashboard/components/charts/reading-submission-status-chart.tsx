@@ -36,6 +36,16 @@ export function ReadingSubmissionStatusChart({
           defaultValue: 'Complaint Submissions',
         })
       }
+      if (normalized === 'compliant submission' || normalized === 'compliant submissions') {
+        return t('outageAndSubmissionCharts.legend.compliantSubmission', {
+          defaultValue: 'Compliant Submissions',
+        })
+      }
+      if (normalized === 'anomalous submission' || normalized === 'anomalous submissions') {
+        return t('outageAndSubmissionCharts.legend.anomalousSubmission', {
+          defaultValue: 'Anomalous Submissions',
+        })
+      }
       if (normalized === 'automated submission' || normalized === 'automated submissions') {
         return t('outageAndSubmissionCharts.legend.automatedSubmission', {
           defaultValue: 'Anomalous Submissions',
