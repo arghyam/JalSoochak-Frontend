@@ -997,12 +997,25 @@ export const mapOverallPerformanceFromNationalDashboard = (
   const regularityByName = new Map(
     (response.stateWiseRegularity ?? []).map((state) => [slugify(state.stateTitle), state] as const)
   )
+  const seenIds = new Set<string>()
 
   return response.stateWiseQuantityPerformance.map((state, index) => {
     const matchingRegularity = regularityByName.get(slugify(state.stateTitle))
+    const baseId = state.stateCode
+      ? `national-overall-${state.stateCode}`
+      : `national-overall-${slugify(state.stateTitle) || index}`
+    let resolvedId = baseId
+    if (seenIds.has(resolvedId)) {
+      let suffix = 1
+      while (seenIds.has(`${baseId}-${suffix}`)) {
+        suffix += 1
+      }
+      resolvedId = `${baseId}-${suffix}`
+    }
+    seenIds.add(resolvedId)
 
     return {
-      id: `national-overall-${state.stateCode || index}`,
+      id: resolvedId,
       name: formatEntityName(state.stateTitle, undefined, `State ${index + 1}`),
       coverage: calculateQuantityMld(state.totalWaterSuppliedLiters, daysInRange),
       regularity: matchingRegularity
