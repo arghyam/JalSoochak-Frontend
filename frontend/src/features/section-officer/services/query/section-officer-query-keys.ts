@@ -67,4 +67,48 @@ export const sectionOfficerQueryKeys = {
       pageSize,
       schemeName,
     ] as const,
+  anomaliesList: (
+    userId: string,
+    tenantId: string,
+    page: number,
+    pageSize: number,
+    schemeName: string,
+    status: string,
+    startDate: string,
+    endDate: string
+  ) =>
+    [
+      ...sectionOfficerQueryKeys.all,
+      'anomalies',
+      userId,
+      tenantId,
+      page,
+      pageSize,
+      schemeName,
+      status,
+      startDate,
+      endDate,
+    ] as const,
+  escalationsList: (
+    userId: string,
+    tenantId: string,
+    page: number,
+    pageSize: number,
+    schemeName: string,
+    status: string,
+    startDate: string,
+    endDate: string
+  ) =>
+    [
+      ...sectionOfficerQueryKeys.all,
+      'escalations',
+      userId,
+      tenantId,
+      page,
+      pageSize,
+      schemeName,
+      status,
+      startDate,
+      endDate,
+    ] as const,
 }
