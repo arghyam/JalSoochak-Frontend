@@ -155,7 +155,7 @@ export function IndiaMapChart({
           roam: true,
           scaleLimit: {
             min: 1,
-            max: 5,
+            max: 3,
           },
           label: {
             show: true,

@@ -42,6 +42,7 @@ import { ROUTES } from '@/shared/constants/routes'
 import { computeTrailIndices } from '../utils/trail-index'
 import { slugify, toCapitalizedWords } from '../utils/format-location-label'
 import { parseStableLocationValue, toStableLocationValue } from '../utils/stable-location-value'
+import { localizeDepartmentHierarchyLabel, normalizeHierarchyLabel } from '../utils/hierarchy-label'
 import {
   calculateAbsoluteChange,
   calculatePercentChange,
@@ -621,37 +622,6 @@ export function CentralDashboard() {
     tenantCode: selectedTenant?.tenantCode,
     enabled: Boolean(selectedTenant?.tenantId),
   })
-  const isHindiUi =
-    i18n.resolvedLanguage?.toLowerCase().startsWith('hi') ||
-    i18n.language?.toLowerCase().startsWith('hi')
-  const normalizeHierarchyLabel = (value: string) => value.trim().toLowerCase().replace(/-/g, ' ')
-  const localizeDepartmentHierarchyLabel = (value: string, form: 'singular' | 'plural') => {
-    if (!isHindiUi) {
-      return value
-    }
-    const normalized = normalizeHierarchyLabel(value)
-    if (normalized === 'zone') {
-      return t(`performanceCharts.viewBy.${form === 'plural' ? 'zones' : 'zone'}`, {
-        defaultValue: form === 'plural' ? 'Zones' : 'Zone',
-      })
-    }
-    if (normalized === 'circle') {
-      return t(`performanceCharts.viewBy.${form === 'plural' ? 'circles' : 'circle'}`, {
-        defaultValue: form === 'plural' ? 'Circles' : 'Circle',
-      })
-    }
-    if (normalized === 'division') {
-      return t(`performanceCharts.viewBy.${form === 'plural' ? 'divisions' : 'division'}`, {
-        defaultValue: form === 'plural' ? 'Divisions' : 'Division',
-      })
-    }
-    if (normalized === 'sub division' || normalized === 'subdivision') {
-      return t(`performanceCharts.viewBy.${form === 'plural' ? 'subDivisions' : 'subDivision'}`, {
-        defaultValue: form === 'plural' ? 'Sub Divisions' : 'Sub Division',
-      })
-    }
-    return value
-  }
   const hierarchyLabelByLevel = (locationHierarchyData?.data?.levels ?? []).reduce<
     Record<number, string>
   >((acc, item) => {
@@ -660,11 +630,11 @@ export function CentralDashboard() {
     if (!levelNumber || !levelTitleRaw) {
       return acc
     }
-    acc[levelNumber] = localizeDepartmentHierarchyLabel(levelTitleRaw, 'singular')
+    acc[levelNumber] = localizeDepartmentHierarchyLabel(levelTitleRaw, 'singular', i18n, t)
     return acc
   }, {})
   const toPluralHierarchyLabel = (value: string): string => {
-    const localized = localizeDepartmentHierarchyLabel(value, 'plural')
+    const localized = localizeDepartmentHierarchyLabel(value, 'plural', i18n, t)
     if (localized !== value) {
       return localized
     }

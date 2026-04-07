@@ -406,7 +406,7 @@ export function DateRangePicker({
           maxW={width}
           h={height}
           maxH={height}
-          pl={iconOnly ? '8px' : value ? '8px' : '12px'}
+          pl={iconOnly ? '8px' : hasActiveRange ? '8px' : '12px'}
           pr={iconOnly ? '8px' : '10px'}
           py="6px"
           bg="white"
