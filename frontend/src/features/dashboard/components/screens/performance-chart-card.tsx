@@ -30,6 +30,8 @@ type PerformanceChartCardProps = {
   selectBorderColor?: string
   quantityTimeScaleTab?: 'day' | 'week' | 'month'
   onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
+  regularityTimeScaleTab?: 'day' | 'week' | 'month'
+  onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
 }
 
 export function PerformanceChartCard({
@@ -55,6 +57,8 @@ export function PerformanceChartCard({
   selectBorderColor,
   quantityTimeScaleTab = 'day',
   onQuantityTimeScaleTabChange,
+  regularityTimeScaleTab = 'day',
+  onRegularityTimeScaleTabChange,
 }: PerformanceChartCardProps) {
   const hasGeographyData = data.length > 0
   const hasTimeData = timeTrendData.length > 0
@@ -62,10 +66,15 @@ export function PerformanceChartCard({
     viewBy === 'geography'
       ? !hasGeographyData
       : !hasTimeData && !isTimeTrendLoading && !isTimeTrendAwaitingParams
-  const quantityTimeXAxisLabel =
-    quantityTimeScaleTab === 'day' ? 'Day' : quantityTimeScaleTab === 'week' ? 'Week' : 'Month'
+  const timeScaleTab = metric === 'quantity' ? quantityTimeScaleTab : regularityTimeScaleTab
+  const onTimeScaleTabChange =
+    metric === 'quantity' ? onQuantityTimeScaleTabChange : onRegularityTimeScaleTabChange
+  const metricTimeXAxisLabel =
+    timeScaleTab === 'day' ? 'Day' : timeScaleTab === 'week' ? 'Week' : 'Month'
   const resolvedTimeXAxisLabel =
-    metric === 'quantity' && viewBy === 'time' ? quantityTimeXAxisLabel : timeXAxisLabel
+    (metric === 'quantity' || metric === 'regularity') && viewBy === 'time'
+      ? metricTimeXAxisLabel
+      : timeXAxisLabel
 
   return (
     <Box
@@ -86,21 +95,23 @@ export function PerformanceChartCard({
           {title}
         </Text>
         <Flex align="center" gap="8px">
-          {metric === 'quantity' && viewBy === 'time' && onQuantityTimeScaleTabChange ? (
+          {(metric === 'quantity' || metric === 'regularity') &&
+          viewBy === 'time' &&
+          onTimeScaleTabChange ? (
             <Flex
               align="center"
               bg="#F4F4F5"
               borderRadius="999px"
               p="4px"
               gap="4px"
-              aria-label="Quantity time scale tabs"
+              aria-label={`${metric} time scale tabs`}
             >
               {[
                 { key: 'day', label: 'D' },
                 { key: 'week', label: 'W' },
                 { key: 'month', label: 'M' },
               ].map((item) => {
-                const isActive = quantityTimeScaleTab === item.key
+                const isActive = timeScaleTab === item.key
                 return (
                   <Box
                     as="button"
@@ -114,9 +125,7 @@ export function PerformanceChartCard({
                     color="neutral.900"
                     textStyle="bodyText5"
                     fontWeight={isActive ? '600' : '500'}
-                    onClick={() =>
-                      onQuantityTimeScaleTabChange(item.key as 'day' | 'week' | 'month')
-                    }
+                    onClick={() => onTimeScaleTabChange(item.key as 'day' | 'week' | 'month')}
                   >
                     {item.label}
                   </Box>
@@ -128,8 +137,8 @@ export function PerformanceChartCard({
             ariaLabel={viewByAriaLabel}
             value={viewBy}
             onChange={(value) => {
-              if (metric === 'quantity' && value === 'time' && onQuantityTimeScaleTabChange) {
-                onQuantityTimeScaleTabChange('day')
+              if (value === 'time' && onTimeScaleTabChange) {
+                onTimeScaleTabChange('day')
               }
               onViewByChange(value)
             }}

@@ -506,6 +506,9 @@ export function CentralDashboard() {
   const filterTabIndex = hasDepartmentParamsInUrl ? 1 : storedFilterTabIndex
   const [activeTrailIndex, setActiveTrailIndex] = useState<number | null>(null)
   const [quantityTimeScaleTab, setQuantityTimeScaleTab] = useState<QuantityTimeScaleTab>('day')
+  const [regularityTimeScaleTab, setRegularityTimeScaleTab] = useState<QuantityTimeScaleTab>('day')
+  const [outageDistributionTimeScaleTab, setOutageDistributionTimeScaleTab] =
+    useState<QuantityTimeScaleTab>('day')
   const selectionTrailValues = [
     selectedState,
     selectedDistrict,
@@ -819,6 +822,14 @@ export function CentralDashboard() {
   }
   const selectedQuantityApiScale: 'day' | 'week' | 'month' =
     quantityTimeScaleTab === 'week' ? 'week' : quantityTimeScaleTab === 'day' ? 'day' : 'month'
+  const selectedRegularityApiScale: 'day' | 'week' | 'month' =
+    regularityTimeScaleTab === 'week' ? 'week' : regularityTimeScaleTab === 'day' ? 'day' : 'month'
+  const selectedOutageApiScale: 'day' | 'week' | 'month' =
+    outageDistributionTimeScaleTab === 'week'
+      ? 'week'
+      : outageDistributionTimeScaleTab === 'day'
+        ? 'day'
+        : 'month'
   const quantityPeriodicAnalyticsParams = !hasValidAnalyticsParentId
     ? null
     : hierarchyType === 'LGD'
@@ -841,19 +852,13 @@ export function CentralDashboard() {
           lgdId: analyticsParentId,
           startDate: analyticsDateRange.startDate,
           endDate: analyticsDateRange.endDate,
-          scale: resolveWaterQuantityPeriodicScale(
-            analyticsDateRange.startDate,
-            analyticsDateRange.endDate
-          ),
+          scale: selectedRegularityApiScale,
         }
       : {
           departmentId: analyticsParentId,
           startDate: analyticsDateRange.startDate,
           endDate: analyticsDateRange.endDate,
-          scale: resolveWaterQuantityPeriodicScale(
-            analyticsDateRange.startDate,
-            analyticsDateRange.endDate
-          ),
+          scale: selectedRegularityApiScale,
         }
   const nationalDashboardParams = hasCentralLandingFilters
     ? null
@@ -1011,19 +1016,13 @@ export function CentralDashboard() {
             lgdId: analyticsParentId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
-            scale: resolveWaterQuantityPeriodicScale(
-              analyticsDateRange.startDate,
-              analyticsDateRange.endDate
-            ),
+            scale: selectedOutageApiScale,
           }
         : {
             departmentId: analyticsParentId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
-            scale: resolveWaterQuantityPeriodicScale(
-              analyticsDateRange.startDate,
-              analyticsDateRange.endDate
-            ),
+            scale: selectedOutageApiScale,
           }
   const activePreviousPeriodSource = analyticsParams ??
     nationalDashboardParams ?? {
@@ -2172,6 +2171,10 @@ export function CentralDashboard() {
         selectedVillage={activeLeafSelection}
         quantityTimeScaleTab={quantityTimeScaleTab}
         onQuantityTimeScaleTabChange={(value) => setQuantityTimeScaleTab(value)}
+        regularityTimeScaleTab={regularityTimeScaleTab}
+        onRegularityTimeScaleTabChange={(value) => setRegularityTimeScaleTab(value)}
+        outageDistributionTimeScaleTab={outageDistributionTimeScaleTab}
+        onOutageDistributionTimeScaleTabChange={(value) => setOutageDistributionTimeScaleTab(value)}
         quantityPerformanceData={quantityPerformanceData}
         quantityTimeTrendData={quantityTimeTrendData}
         isQuantityTimeTrendLoading={

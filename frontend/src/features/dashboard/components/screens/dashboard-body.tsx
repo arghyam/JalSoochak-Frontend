@@ -38,6 +38,10 @@ type DashboardBodyProps = {
   selectedVillage: string
   quantityTimeScaleTab?: 'day' | 'week' | 'month'
   onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
+  regularityTimeScaleTab?: 'day' | 'week' | 'month'
+  onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
+  outageDistributionTimeScaleTab?: 'day' | 'week' | 'month'
+  onOutageDistributionTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
   quantityPerformanceData: EntityPerformance[]
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
@@ -78,6 +82,10 @@ export function DashboardBody({
   selectedVillage,
   quantityTimeScaleTab = 'day',
   onQuantityTimeScaleTabChange,
+  regularityTimeScaleTab = 'day',
+  onRegularityTimeScaleTabChange,
+  outageDistributionTimeScaleTab = 'day',
+  onOutageDistributionTimeScaleTabChange,
   quantityPerformanceData,
   quantityTimeTrendData,
   isQuantityTimeTrendLoading = false,
@@ -154,6 +162,12 @@ export function DashboardBody({
   const geographyEntityLabel = isAdministrativeStateScreen
     ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
     : supplySubmissionRateLabel
+  const outageTimeXAxisLabel =
+    outageDistributionTimeScaleTab === 'day'
+      ? 'Day'
+      : outageDistributionTimeScaleTab === 'week'
+        ? 'Week'
+        : 'Month'
   return (
     <>
       {/* Quantity + Regularity Charts */}
@@ -166,6 +180,8 @@ export function DashboardBody({
           isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
           quantityTimeScaleTab={quantityTimeScaleTab}
           onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
+          regularityTimeScaleTab={regularityTimeScaleTab}
+          onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
           regularityPerformanceData={regularityPerformanceData}
           regularityTimeTrendData={regularityTimeTrendData}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
@@ -184,6 +200,10 @@ export function DashboardBody({
           isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
           quantityTimeScaleTab={quantityTimeScaleTab}
           onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
+          regularityTimeScaleTab={regularityTimeScaleTab}
+          onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
+          outageDistributionTimeScaleTab={outageDistributionTimeScaleTab}
+          onOutageDistributionTimeScaleTabChange={onOutageDistributionTimeScaleTabChange}
           regularityPerformanceData={regularityPerformanceData}
           regularityTimeTrendData={regularityTimeTrendData}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
@@ -206,6 +226,10 @@ export function DashboardBody({
           isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
           quantityTimeScaleTab={quantityTimeScaleTab}
           onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
+          regularityTimeScaleTab={regularityTimeScaleTab}
+          onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
+          outageDistributionTimeScaleTab={outageDistributionTimeScaleTab}
+          onOutageDistributionTimeScaleTabChange={onOutageDistributionTimeScaleTabChange}
           regularityPerformanceData={regularityPerformanceData}
           regularityTimeTrendData={regularityTimeTrendData}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
@@ -231,6 +255,10 @@ export function DashboardBody({
           isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
           quantityTimeScaleTab={quantityTimeScaleTab}
           onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
+          regularityTimeScaleTab={regularityTimeScaleTab}
+          onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
+          outageDistributionTimeScaleTab={outageDistributionTimeScaleTab}
+          onOutageDistributionTimeScaleTabChange={onOutageDistributionTimeScaleTabChange}
           regularityPerformanceData={regularityPerformanceData}
           regularityTimeTrendData={regularityTimeTrendData}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
@@ -306,14 +334,54 @@ export function DashboardBody({
                       defaultValue: 'Supply Outage Distribution',
                     })}
                   </Text>
-                  <ViewBySelect
-                    ariaLabel={t('outageAndSubmissionCharts.ariaViewByState', {
-                      defaultValue: 'State supply outage distribution view by',
-                    })}
-                    value={outageDistributionViewBy}
-                    onChange={setOutageDistributionViewBy}
-                    disabled={isOutageDistributionSelectDisabled}
-                  />
+                  <Flex align="center" gap="8px">
+                    {outageDistributionViewBy === 'time' &&
+                    onOutageDistributionTimeScaleTabChange ? (
+                      <Flex align="center" bg="#F4F4F5" borderRadius="999px" p="4px" gap="4px">
+                        {[
+                          { key: 'day', label: 'D' },
+                          { key: 'week', label: 'W' },
+                          { key: 'month', label: 'M' },
+                        ].map((item) => {
+                          const isActive = outageDistributionTimeScaleTab === item.key
+                          return (
+                            <Box
+                              as="button"
+                              key={item.key}
+                              type="button"
+                              h="32px"
+                              minW="44px"
+                              px="12px"
+                              borderRadius="999px"
+                              bg={isActive ? 'white' : 'transparent'}
+                              textStyle="bodyText5"
+                              fontWeight={isActive ? '600' : '500'}
+                              onClick={() =>
+                                onOutageDistributionTimeScaleTabChange(
+                                  item.key as 'day' | 'week' | 'month'
+                                )
+                              }
+                            >
+                              {item.label}
+                            </Box>
+                          )
+                        })}
+                      </Flex>
+                    ) : null}
+                    <ViewBySelect
+                      ariaLabel={t('outageAndSubmissionCharts.ariaViewByState', {
+                        defaultValue: 'State supply outage distribution view by',
+                      })}
+                      value={outageDistributionViewBy}
+                      onChange={(value) => {
+                        if (value === 'time' && onOutageDistributionTimeScaleTabChange) {
+                          onOutageDistributionTimeScaleTabChange('day')
+                        }
+                        setOutageDistributionViewBy(value)
+                      }}
+                      disabled={isOutageDistributionSelectDisabled}
+                    />
+                  </Flex>
                 </Flex>
                 <Box flex="1" minH={0}>
                   {!hasOutageReasonsData ? (
@@ -332,7 +400,7 @@ export function DashboardBody({
                     <MonthlyTrendChart
                       data={outageDistributionTimeTrendData}
                       height="100%"
-                      xAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+                      xAxisLabel={outageTimeXAxisLabel}
                       yAxisLabel={t('outageAndSubmissionCharts.axis.noOfDays', {
                         defaultValue: 'No. of days',
                       })}
@@ -387,6 +455,8 @@ type PerformanceChartsSectionProps = {
   isQuantityTimeTrendAwaitingParams: boolean
   quantityTimeScaleTab: 'day' | 'week' | 'month'
   onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
+  regularityTimeScaleTab: 'day' | 'week' | 'month'
+  onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
   regularityPerformanceData: EntityPerformance[]
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading: boolean
@@ -400,6 +470,8 @@ function PerformanceChartsSection({
   isQuantityTimeTrendAwaitingParams,
   quantityTimeScaleTab,
   onQuantityTimeScaleTabChange,
+  regularityTimeScaleTab,
+  onRegularityTimeScaleTabChange,
   regularityPerformanceData,
   regularityTimeTrendData,
   isRegularityTimeTrendLoading,
@@ -434,6 +506,8 @@ function PerformanceChartsSection({
         cardHeight="536px"
         timeXAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
         isTimeTrendPercent
+        regularityTimeScaleTab={regularityTimeScaleTab}
+        onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
       />
       <PerformanceChartCard
         title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}

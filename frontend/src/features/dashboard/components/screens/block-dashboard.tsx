@@ -31,6 +31,10 @@ type BlockDashboardScreenProps = {
   isQuantityTimeTrendAwaitingParams?: boolean
   quantityTimeScaleTab?: 'day' | 'week' | 'month'
   onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
+  regularityTimeScaleTab?: 'day' | 'week' | 'month'
+  onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
+  outageDistributionTimeScaleTab?: 'day' | 'week' | 'month'
+  onOutageDistributionTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
   regularityPerformanceData: EntityPerformance[]
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading?: boolean
@@ -57,6 +61,10 @@ export function BlockDashboardScreen({
   isQuantityTimeTrendAwaitingParams = false,
   quantityTimeScaleTab = 'day',
   onQuantityTimeScaleTabChange,
+  regularityTimeScaleTab = 'day',
+  onRegularityTimeScaleTabChange,
+  outageDistributionTimeScaleTab = 'day',
+  onOutageDistributionTimeScaleTabChange,
   regularityPerformanceData,
   regularityTimeTrendData,
   isRegularityTimeTrendLoading = false,
@@ -88,6 +96,12 @@ export function BlockDashboardScreen({
     waterSupplyOutageDistributionData,
     outageDistributionTimeTrendData,
   })
+  const outageTimeXAxisLabel =
+    outageDistributionTimeScaleTab === 'day'
+      ? 'Day'
+      : outageDistributionTimeScaleTab === 'week'
+        ? 'Week'
+        : 'Month'
 
   return (
     <>
@@ -116,6 +130,8 @@ export function BlockDashboardScreen({
           cardHeight="523px"
           timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
           isTimeTrendPercent
+          regularityTimeScaleTab={regularityTimeScaleTab}
+          onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
           selectColor="primary.500"
           selectBorderColor="primary.500"
         />
@@ -194,16 +210,55 @@ export function BlockDashboardScreen({
                 defaultValue: 'Supply Outage Distribution',
               })}
             </Text>
-            <ViewBySelect
-              ariaLabel={t('outageAndSubmissionCharts.ariaViewByBlock', {
-                defaultValue: 'Block supply outage distribution view by',
-              })}
-              value={outageDistributionViewBy}
-              onChange={setOutageDistributionViewBy}
-              color="primary.500"
-              borderColor="primary.500"
-              disabled={isOutageDistributionSelectDisabled}
-            />
+            <Flex align="center" gap="8px">
+              {outageDistributionViewBy === 'time' && onOutageDistributionTimeScaleTabChange ? (
+                <Flex align="center" bg="#F4F4F5" borderRadius="999px" p="4px" gap="4px">
+                  {[
+                    { key: 'day', label: 'D' },
+                    { key: 'week', label: 'W' },
+                    { key: 'month', label: 'M' },
+                  ].map((item) => {
+                    const isActive = outageDistributionTimeScaleTab === item.key
+                    return (
+                      <Box
+                        as="button"
+                        key={item.key}
+                        type="button"
+                        h="32px"
+                        minW="44px"
+                        px="12px"
+                        borderRadius="999px"
+                        bg={isActive ? 'white' : 'transparent'}
+                        textStyle="bodyText5"
+                        fontWeight={isActive ? '600' : '500'}
+                        onClick={() =>
+                          onOutageDistributionTimeScaleTabChange(
+                            item.key as 'day' | 'week' | 'month'
+                          )
+                        }
+                      >
+                        {item.label}
+                      </Box>
+                    )
+                  })}
+                </Flex>
+              ) : null}
+              <ViewBySelect
+                ariaLabel={t('outageAndSubmissionCharts.ariaViewByBlock', {
+                  defaultValue: 'Block supply outage distribution view by',
+                })}
+                value={outageDistributionViewBy}
+                onChange={(value) => {
+                  if (value === 'time' && onOutageDistributionTimeScaleTabChange) {
+                    onOutageDistributionTimeScaleTabChange('day')
+                  }
+                  setOutageDistributionViewBy(value)
+                }}
+                color="primary.500"
+                borderColor="primary.500"
+                disabled={isOutageDistributionSelectDisabled}
+              />
+            </Flex>
           </Flex>
           {!hasOutageReasonsData ? (
             <ChartEmptyState minHeight="400px" />
@@ -221,7 +276,7 @@ export function BlockDashboardScreen({
             <MonthlyTrendChart
               data={outageDistributionTimeTrendData}
               height="400px"
-              xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+              xAxisLabel={outageTimeXAxisLabel}
               yAxisLabel={t('outageAndSubmissionCharts.axis.noOfDays', {
                 defaultValue: 'No. of days',
               })}
