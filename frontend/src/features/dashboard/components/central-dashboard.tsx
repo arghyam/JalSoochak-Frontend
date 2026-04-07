@@ -1886,10 +1886,18 @@ export function CentralDashboard() {
       ),
       tooltipContent: renderFormulaTooltip(
         <>
-          {t('kpi.tooltips.quantityMld.formulaLabel', { defaultValue: 'Quantity (MLD)' })} = SUM(W
-          <sub>k</sub>) / N
+          {t('kpi.tooltips.quantityMld.formulaLabel', {
+            defaultValue: 'Quantity (MLD: Million Liters per Day)',
+          })}{' '}
+          = SUM(W<sub>k</sub>) / N
         </>,
         [
+          <>
+            MLD ={' '}
+            {t('kpi.tooltips.quantityMld.definitions.mldFullForm', {
+              defaultValue: 'Million Liters per Day',
+            })}
+          </>,
           <>
             W<sub>k</sub> ={' '}
             {t('kpi.tooltips.quantityMld.definitions.waterQuantitySupplied', {
@@ -1905,7 +1913,7 @@ export function CentralDashboard() {
           <>
             N ={' '}
             {t('kpi.tooltips.quantityMld.definitions.totalNumberOfDays', {
-              defaultValue: 'total number of days',
+              defaultValue: 'total number of days in the selected time-period',
             })}
           </>,
         ]
@@ -1933,14 +1941,22 @@ export function CentralDashboard() {
       ),
       tooltipContent: renderFormulaTooltip(
         <>
-          {t('kpi.tooltips.quantityLpcd.formulaLabel', { defaultValue: 'Quantity (LPCD)' })} = SUM(W
-          <sub>k</sub>) / (SUM(FHTC<sub>i</sub>) x P x N)
+          {t('kpi.tooltips.quantityLpcd.formulaLabel', {
+            defaultValue: 'Quantity (LPCD: Litres per Capita per Day)',
+          })}{' '}
+          = SUM(W<sub>k</sub>) / (SUM(FHTC<sub>i</sub>) x P x N)
         </>,
         [
           <>
+            LPCD ={' '}
+            {t('kpi.tooltips.quantityLpcd.definitions.lpcdFullForm', {
+              defaultValue: 'Litres per Capita per Day',
+            })}
+          </>,
+          <>
             W<sub>k</sub> ={' '}
             {t('kpi.tooltips.quantityLpcd.definitions.waterQuantitySupplied', {
-              defaultValue: 'water quantity supplied on day k',
+              defaultValue: 'water quantity supplied on kth day',
             })}
           </>,
           <>
@@ -1953,13 +1969,12 @@ export function CentralDashboard() {
             P ={' '}
             {t('kpi.tooltips.quantityLpcd.definitions.averagePersonsPerHousehold', {
               defaultValue: 'average persons per household',
-            })}{' '}
-            ({averagePersonsPerHousehold})
+            })}
           </>,
           <>
             N ={' '}
             {t('kpi.tooltips.quantityLpcd.definitions.numberOfDays', {
-              defaultValue: 'number of days',
+              defaultValue: 'total number of days in the selected time-period',
             })}
           </>,
         ]
@@ -1988,7 +2003,7 @@ export function CentralDashboard() {
       tooltipContent: renderFormulaTooltip(
         <>
           {t('kpi.tooltips.regularity.formulaLabel', { defaultValue: 'Regularity of scheme' })} = X
-          <sub>i</sub> / N
+          <sub>i</sub> / N * 100
         </>,
         [
           <>

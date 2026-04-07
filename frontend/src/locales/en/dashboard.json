@@ -81,18 +81,18 @@
       "quantityMld": {
         "formulaLabel": "Quantity (MLD)",
         "definitions": {
-          "waterQuantitySupplied": "water quantity supplied on day k",
+          "waterQuantitySupplied": "water quantity supplied on kth day",
           "totalWaterSupplied": "total water supplied across all days",
-          "totalNumberOfDays": "total number of days"
+          "totalNumberOfDays": "total number of days in the selected time-period"
         }
       },
       "quantityLpcd": {
         "formulaLabel": "Quantity (LPCD)",
         "definitions": {
-          "waterQuantitySupplied": "water quantity supplied on day k",
+          "waterQuantitySupplied": "water quantity supplied on kth day",
           "functionalHouseholdTapConnections": "functional household tap connections of scheme i",
           "averagePersonsPerHousehold": "average persons per household",
-          "numberOfDays": "number of days"
+          "numberOfDays": "total number of days in the selected time-period"
         }
       },
       "regularity": {

@@ -81,18 +81,18 @@
       "quantityMld": {
         "formulaLabel": "मात्रा (MLD)",
         "definitions": {
-          "waterQuantitySupplied": "दिन k पर आपूर्ति की गई जल मात्रा",
+          "waterQuantitySupplied": "kवें दिन आपूर्ति की गई जल मात्रा",
           "totalWaterSupplied": "सभी दिनों में आपूर्ति किए गए जल की कुल मात्रा",
-          "totalNumberOfDays": "दिनों की कुल संख्या"
+          "totalNumberOfDays": "चयनित समयावधि में दिनों की कुल संख्या"
         }
       },
       "quantityLpcd": {
         "formulaLabel": "मात्रा (LPCD)",
         "definitions": {
-          "waterQuantitySupplied": "दिन k पर आपूर्ति की गई जल मात्रा",
+          "waterQuantitySupplied": "kवें दिन आपूर्ति की गई जल मात्रा",
           "functionalHouseholdTapConnections": "योजना i के कार्यात्मक घरेलू नल कनेक्शन",
           "averagePersonsPerHousehold": "प्रति परिवार औसत व्यक्तियों की संख्या",
-          "numberOfDays": "दिनों की संख्या"
+          "numberOfDays": "चयनित समयावधि में दिनों की कुल संख्या"
         }
       },
       "regularity": {
