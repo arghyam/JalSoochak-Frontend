@@ -80,11 +80,11 @@ export function DashboardBody({
   isDepartmentCircleSelected = false,
   isDepartmentDivisionSelected = false,
   selectedVillage,
-  quantityTimeScaleTab = 'day',
+  quantityTimeScaleTab,
   onQuantityTimeScaleTabChange,
-  regularityTimeScaleTab = 'day',
+  regularityTimeScaleTab,
   onRegularityTimeScaleTabChange,
-  outageDistributionTimeScaleTab = 'day',
+  outageDistributionTimeScaleTab,
   onOutageDistributionTimeScaleTabChange,
   quantityPerformanceData,
   quantityTimeTrendData,
@@ -167,7 +167,9 @@ export function DashboardBody({
       ? 'Day'
       : outageDistributionTimeScaleTab === 'week'
         ? 'Week'
-        : 'Month'
+        : outageDistributionTimeScaleTab === 'month'
+          ? 'Month'
+          : t('performanceCharts.viewBy.time', { defaultValue: 'Time' })
   return (
     <>
       {/* Quantity + Regularity Charts */}
@@ -346,6 +348,7 @@ export function DashboardBody({
                     }}
                   >
                     {outageDistributionViewBy === 'time' &&
+                    outageDistributionTimeScaleTab &&
                     onOutageDistributionTimeScaleTabChange ? (
                       <Flex
                         align="center"
@@ -366,11 +369,21 @@ export function DashboardBody({
                           { key: 'month', label: 'M' },
                         ].map((item) => {
                           const isActive = outageDistributionTimeScaleTab === item.key
+                          const timeScaleAriaLabelMap: Record<'day' | 'week' | 'month', string> = {
+                            day: 'Day view',
+                            week: 'Week view',
+                            month: 'Month view',
+                          }
                           return (
                             <Box
                               as="button"
                               key={item.key}
                               type="button"
+                              aria-pressed={isActive}
+                              aria-label={
+                                timeScaleAriaLabelMap[item.key as 'day' | 'week' | 'month'] ??
+                                `${item.label} view`
+                              }
                               h="32px"
                               minW="44px"
                               px="12px"
@@ -484,9 +497,9 @@ type PerformanceChartsSectionProps = {
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading: boolean
   isQuantityTimeTrendAwaitingParams: boolean
-  quantityTimeScaleTab: 'day' | 'week' | 'month'
+  quantityTimeScaleTab?: 'day' | 'week' | 'month'
   onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
-  regularityTimeScaleTab: 'day' | 'week' | 'month'
+  regularityTimeScaleTab?: 'day' | 'week' | 'month'
   onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
   regularityPerformanceData: EntityPerformance[]
   regularityTimeTrendData: MonthlyTrendPoint[]

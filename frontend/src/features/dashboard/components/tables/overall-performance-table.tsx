@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Box, Icon, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { BiSortAlt2 } from 'react-icons/bi'
+import type { KeyboardEvent } from 'react'
 import type { EntityPerformance } from '../../types'
 
 interface OverallPerformanceTableProps {
@@ -47,6 +48,14 @@ export function OverallPerformanceTable({
       return
     }
     setSortDirection((current) => (current === 'desc' ? 'asc' : 'desc'))
+  }
+
+  const handleRowKeyDown = (event: KeyboardEvent<HTMLTableRowElement>, row: EntityPerformance) => {
+    if (!onRowClick) return
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      onRowClick(row)
+    }
   }
 
   return (
@@ -195,9 +204,6 @@ export function OverallPerformanceTable({
               </Thead>
               <Tbody
                 sx={{
-                  tr: {
-                    cursor: 'pointer',
-                  },
                   td: {
                     textStyle: 'bodyText7',
                     fontWeight: '400',
@@ -213,7 +219,12 @@ export function OverallPerformanceTable({
                   <Tr
                     key={state.id}
                     _odd={{ bg: 'primary.25' }}
+                    cursor={onRowClick ? 'pointer' : 'default'}
+                    _hover={onRowClick ? { bg: 'primary.50' } : undefined}
                     onClick={onRowClick ? () => onRowClick(state) : undefined}
+                    tabIndex={onRowClick ? 0 : undefined}
+                    role={onRowClick ? 'button' : undefined}
+                    onKeyDown={onRowClick ? (event) => handleRowKeyDown(event, state) : undefined}
                   >
                     <Td>{state.name}</Td>
                     <Td>{state.coverage.toFixed(1)}</Td>

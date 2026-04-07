@@ -866,15 +866,19 @@ export function CentralDashboard() {
         startDate: analyticsDateRange.startDate,
         endDate: analyticsDateRange.endDate,
       }
-  const nationalPeriodAnalyticsParams = hasCentralLandingFilters
+  const nationalQuantityPeriodAnalyticsParams = hasCentralLandingFilters
     ? null
     : {
         startDate: analyticsDateRange.startDate,
         endDate: analyticsDateRange.endDate,
-        scale: resolveWaterQuantityPeriodicScale(
-          analyticsDateRange.startDate,
-          analyticsDateRange.endDate
-        ),
+        scale: selectedQuantityApiScale,
+      }
+  const nationalRegularityPeriodAnalyticsParams = hasCentralLandingFilters
+    ? null
+    : {
+        startDate: analyticsDateRange.startDate,
+        endDate: analyticsDateRange.endDate,
+        scale: selectedRegularityApiScale,
       }
   const analyticsParams =
     isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
@@ -1084,11 +1088,18 @@ export function CentralDashboard() {
     enabled: Boolean(nationalDashboardParams),
   })
   const {
+    data: nationalSchemeQuantityPeriodicData,
+    isFetching: isNationalSchemeQuantityPeriodicFetching,
+  } = useNationalSchemeRegularityPeriodicQuery({
+    params: nationalQuantityPeriodAnalyticsParams,
+    enabled: Boolean(nationalQuantityPeriodAnalyticsParams),
+  })
+  const {
     data: nationalSchemeRegularityPeriodicData,
     isFetching: isNationalSchemeRegularityPeriodicFetching,
   } = useNationalSchemeRegularityPeriodicQuery({
-    params: nationalPeriodAnalyticsParams,
-    enabled: Boolean(nationalPeriodAnalyticsParams),
+    params: nationalRegularityPeriodAnalyticsParams,
+    enabled: Boolean(nationalRegularityPeriodAnalyticsParams),
   })
   const {
     data: waterQuantityPeriodicData,
@@ -1269,6 +1280,32 @@ export function CentralDashboard() {
           : isHierarchyStateSelected
             ? districtApiOptions
             : emptyOptions
+  const boundaryOverallPerformanceOptions: LocationOption[] = (
+    tenantBoundaryData?.childRegions ?? []
+  ).flatMap((region) => {
+    const boundaryId = [region.childLgdId, region.childDepartmentId].find(
+      (id) => typeof id === 'number' && id > 0
+    )
+    const rawTitle = region.childLgdTitle ?? region.childDepartmentTitle ?? ''
+    const normalizedTitle = rawTitle.trim()
+
+    if (typeof boundaryId !== 'number' || !normalizedTitle) {
+      return []
+    }
+
+    return [
+      {
+        value: toStableLocationValue(boundaryId, boundaryId, slugify(normalizedTitle)),
+        label: normalizedTitle,
+        locationId: boundaryId,
+        analyticsId: boundaryId,
+      },
+    ]
+  })
+  const overallPerformanceLocationOptions = [
+    ...expectedOverallPerformanceOptions,
+    ...boundaryOverallPerformanceOptions,
+  ]
   const tenantBoundaryOverallPerformanceIds = new Set(
     (tenantBoundaryData?.childRegions ?? []).flatMap((region) => {
       const childIds = [region.childLgdId, region.childDepartmentId]
@@ -1381,7 +1418,7 @@ export function CentralDashboard() {
     schemeRegularityPeriodicData
   )
   const quantityTimeTrendData = isCentralLandingView
-    ? mapNationalQuantityTrendPoints(nationalSchemeRegularityPeriodicData)
+    ? mapNationalQuantityTrendPoints(nationalSchemeQuantityPeriodicData)
     : periodicQuantityTimeTrendData.length > 0
       ? periodicQuantityTimeTrendData
       : []
@@ -1736,7 +1773,7 @@ export function CentralDashboard() {
     const normalizedRowId = row.id?.trim()
     const normalizedRowName = slugify(row.name)
 
-    const matchedOption = expectedOverallPerformanceOptions.find((option) => {
+    const matchedOption = overallPerformanceLocationOptions.find((option) => {
       const locationOption = option as LocationOption
       const optionIds = [locationOption.locationId, locationOption.analyticsId]
       const hasMatchingId = optionIds.some(
@@ -1753,7 +1790,7 @@ export function CentralDashboard() {
     setActiveTrailIndex(null)
     setSelectedScheme('')
 
-    if (isCentralLandingView) {
+    if (isCentralLandingView && !isDepartmentTabActive) {
       handleStateClick(row.id, row.name)
       return
     }
@@ -1764,7 +1801,7 @@ export function CentralDashboard() {
     }
 
     if (isDepartmentTabActive) {
-      if (isDepartmentDivisionSelected) {
+      if (isDepartmentSubdivisionSelected) {
         handleDepartmentSubdivisionChange(selectedValue)
       } else if (isDepartmentCircleSelected) {
         handleDepartmentDivisionChange(selectedValue)
@@ -2235,7 +2272,7 @@ export function CentralDashboard() {
         quantityTimeTrendData={quantityTimeTrendData}
         isQuantityTimeTrendLoading={
           isCentralLandingView
-            ? isNationalSchemeRegularityPeriodicFetching
+            ? isNationalSchemeQuantityPeriodicFetching
             : isWaterQuantityPeriodicFetching
         }
         isQuantityTimeTrendAwaitingParams={

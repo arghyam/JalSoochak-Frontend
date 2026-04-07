@@ -20,6 +20,7 @@ import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 import { ChartEmptyState, ViewBySelect } from '@/shared/components/common'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { useOutageDistributionState } from './use-outage-distribution-state'
+import { getOutageTimeScaleXAxisLabel, OutageTimeScaleToggle } from './outage-time-scale-toggle'
 
 type BlockDashboardScreenProps = {
   data: DashboardData
@@ -59,11 +60,11 @@ export function BlockDashboardScreen({
   quantityTimeTrendData,
   isQuantityTimeTrendLoading = false,
   isQuantityTimeTrendAwaitingParams = false,
-  quantityTimeScaleTab = 'day',
+  quantityTimeScaleTab,
   onQuantityTimeScaleTabChange,
-  regularityTimeScaleTab = 'day',
+  regularityTimeScaleTab,
   onRegularityTimeScaleTabChange,
-  outageDistributionTimeScaleTab = 'day',
+  outageDistributionTimeScaleTab,
   onOutageDistributionTimeScaleTabChange,
   regularityPerformanceData,
   regularityTimeTrendData,
@@ -96,12 +97,7 @@ export function BlockDashboardScreen({
     waterSupplyOutageDistributionData,
     outageDistributionTimeTrendData,
   })
-  const outageTimeXAxisLabel =
-    outageDistributionTimeScaleTab === 'day'
-      ? 'Day'
-      : outageDistributionTimeScaleTab === 'week'
-        ? 'Week'
-        : 'Month'
+  const outageTimeXAxisLabel = getOutageTimeScaleXAxisLabel(outageDistributionTimeScaleTab, t)
 
   return (
     <>
@@ -221,58 +217,16 @@ export function BlockDashboardScreen({
                 },
               }}
             >
-              {outageDistributionViewBy === 'time' && onOutageDistributionTimeScaleTabChange ? (
-                <Flex
-                  align="center"
-                  bg="#F4F4F5"
-                  borderRadius="999px"
-                  p="4px"
-                  gap="4px"
-                  sx={{
-                    '@media (max-width: 525px)': {
-                      p: '2px',
-                      gap: '2px',
-                    },
-                  }}
-                >
-                  {[
-                    { key: 'day', label: 'D' },
-                    { key: 'week', label: 'W' },
-                    { key: 'month', label: 'M' },
-                  ].map((item) => {
-                    const isActive = outageDistributionTimeScaleTab === item.key
-                    return (
-                      <Box
-                        as="button"
-                        key={item.key}
-                        type="button"
-                        h="32px"
-                        minW="44px"
-                        px="12px"
-                        borderRadius="999px"
-                        bg={isActive ? 'white' : 'transparent'}
-                        textStyle="bodyText5"
-                        fontWeight={isActive ? '600' : '500'}
-                        onClick={() =>
-                          onOutageDistributionTimeScaleTabChange(
-                            item.key as 'day' | 'week' | 'month'
-                          )
-                        }
-                        sx={{
-                          '@media (max-width: 525px)': {
-                            h: '26px',
-                            minW: '34px',
-                            px: '8px',
-                            fontSize: '12px',
-                            lineHeight: '16px',
-                          },
-                        }}
-                      >
-                        {item.label}
-                      </Box>
-                    )
+              {outageDistributionViewBy === 'time' &&
+              outageDistributionTimeScaleTab &&
+              onOutageDistributionTimeScaleTabChange ? (
+                <OutageTimeScaleToggle
+                  value={outageDistributionTimeScaleTab}
+                  onChange={onOutageDistributionTimeScaleTabChange}
+                  ariaLabel={t('outageAndSubmissionCharts.ariaOutageTimeScale', {
+                    defaultValue: 'Outage time scale',
                   })}
-                </Flex>
+                />
               ) : null}
               <ViewBySelect
                 ariaLabel={t('outageAndSubmissionCharts.ariaViewByBlock', {

@@ -81,6 +81,7 @@
       "quantityMld": {
         "formulaLabel": "Quantity (MLD)",
         "definitions": {
+          "mldFullForm": "Million Liters per Day",
           "waterQuantitySupplied": "water quantity supplied on kth day",
           "totalWaterSupplied": "total water supplied across all days",
           "totalNumberOfDays": "total number of days in the selected time-period"
@@ -89,6 +90,7 @@
       "quantityLpcd": {
         "formulaLabel": "Quantity (LPCD)",
         "definitions": {
+          "lpcdFullForm": "Liters per Capita per Day",
           "waterQuantitySupplied": "water quantity supplied on kth day",
           "functionalHouseholdTapConnections": "functional household tap connections of scheme i",
           "averagePersonsPerHousehold": "average persons per household",
@@ -168,6 +170,7 @@
   "outageAndSubmissionCharts": {
     "ariaViewByBlock": "Block supply outage distribution view by",
     "ariaViewByGramPanchayat": "Gram panchayat supply outage distribution view by",
+    "ariaOutageTimeScale": "Outage time scale",
     "titles": {
       "supplyOutageReasons": "Supply Outage Reasons",
       "supplyOutageDistribution": "Supply Outage Distribution",
@@ -185,6 +188,16 @@
       "submissionRate": "Submission Rate",
       "readingSubmission": "Reading submission",
       "supplyOutage": "Supply outage"
+    },
+    "timeScale": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month"
+    },
+    "timeScaleShort": {
+      "day": "D",
+      "week": "W",
+      "month": "M"
     },
     "legend": {
       "electricalFailure": "Electrical failure",

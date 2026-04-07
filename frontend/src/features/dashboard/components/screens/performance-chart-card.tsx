@@ -55,9 +55,9 @@ export function PerformanceChartCard({
   isTimeTrendPercent = false,
   selectColor,
   selectBorderColor,
-  quantityTimeScaleTab = 'day',
+  quantityTimeScaleTab,
   onQuantityTimeScaleTabChange,
-  regularityTimeScaleTab = 'day',
+  regularityTimeScaleTab,
   onRegularityTimeScaleTabChange,
 }: PerformanceChartCardProps) {
   const hasGeographyData = data.length > 0
@@ -69,10 +69,11 @@ export function PerformanceChartCard({
   const timeScaleTab = metric === 'quantity' ? quantityTimeScaleTab : regularityTimeScaleTab
   const onTimeScaleTabChange =
     metric === 'quantity' ? onQuantityTimeScaleTabChange : onRegularityTimeScaleTabChange
+  const hasTimeScaleControl = Boolean(timeScaleTab && onTimeScaleTabChange)
   const metricTimeXAxisLabel =
     timeScaleTab === 'day' ? 'Day' : timeScaleTab === 'week' ? 'Week' : 'Month'
   const resolvedTimeXAxisLabel =
-    (metric === 'quantity' || metric === 'regularity') && viewBy === 'time'
+    (metric === 'quantity' || metric === 'regularity') && viewBy === 'time' && hasTimeScaleControl
       ? metricTimeXAxisLabel
       : timeXAxisLabel
 
@@ -107,7 +108,7 @@ export function PerformanceChartCard({
         >
           {(metric === 'quantity' || metric === 'regularity') &&
           viewBy === 'time' &&
-          onTimeScaleTabChange ? (
+          hasTimeScaleControl ? (
             <Flex
               align="center"
               bg="#F4F4F5"
@@ -141,7 +142,7 @@ export function PerformanceChartCard({
                     color="neutral.900"
                     textStyle="bodyText5"
                     fontWeight={isActive ? '600' : '500'}
-                    onClick={() => onTimeScaleTabChange(item.key as 'day' | 'week' | 'month')}
+                    onClick={() => onTimeScaleTabChange?.(item.key as 'day' | 'week' | 'month')}
                     sx={{
                       '@media (max-width: 525px)': {
                         h: '26px',
