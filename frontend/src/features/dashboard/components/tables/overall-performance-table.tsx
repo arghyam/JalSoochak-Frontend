@@ -9,6 +9,7 @@ interface OverallPerformanceTableProps {
   maxItems?: number
   scrollMaxHeight?: string
   entityLabel?: string
+  onRowClick?: (row: EntityPerformance) => void
 }
 
 type SortColumn = 'coverage' | 'quantity' | 'regularity' | null
@@ -19,6 +20,7 @@ export function OverallPerformanceTable({
   maxItems,
   scrollMaxHeight = '416px',
   entityLabel,
+  onRowClick,
 }: OverallPerformanceTableProps) {
   const { t } = useTranslation('dashboard')
   const [sortColumn, setSortColumn] = useState<SortColumn>(null)
@@ -208,7 +210,11 @@ export function OverallPerformanceTable({
                 }}
               >
                 {rows.map((state) => (
-                  <Tr key={state.id} _odd={{ bg: 'primary.25' }}>
+                  <Tr
+                    key={state.id}
+                    _odd={{ bg: 'primary.25' }}
+                    onClick={onRowClick ? () => onRowClick(state) : undefined}
+                  >
                     <Td>{state.name}</Td>
                     <Td>{state.coverage.toFixed(1)}</Td>
                     <Td>{state.quantity}</Td>

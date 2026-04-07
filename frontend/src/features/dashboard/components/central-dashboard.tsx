@@ -1732,6 +1732,61 @@ export function CentralDashboard() {
     updateFilterUrl({ state: stateOption?.value ?? toStateSlug(stateName) })
   }
 
+  const resolveOverallPerformanceLocationValue = (row: EntityPerformance): string | null => {
+    const normalizedRowId = row.id?.trim()
+    const normalizedRowName = slugify(row.name)
+
+    const matchedOption = expectedOverallPerformanceOptions.find((option) => {
+      const locationOption = option as LocationOption
+      const optionIds = [locationOption.locationId, locationOption.analyticsId]
+      const hasMatchingId = optionIds.some(
+        (id) => typeof id === 'number' && String(id) === normalizedRowId
+      )
+
+      return hasMatchingId || slugify(option.label) === normalizedRowName
+    })
+
+    return matchedOption?.value ?? null
+  }
+
+  const handleOverallPerformanceRowClick = (row: EntityPerformance) => {
+    setActiveTrailIndex(null)
+    setSelectedScheme('')
+
+    if (isCentralLandingView) {
+      handleStateClick(row.id, row.name)
+      return
+    }
+
+    const selectedValue = resolveOverallPerformanceLocationValue(row)
+    if (!selectedValue) {
+      return
+    }
+
+    if (isDepartmentTabActive) {
+      if (isDepartmentDivisionSelected) {
+        handleDepartmentSubdivisionChange(selectedValue)
+      } else if (isDepartmentCircleSelected) {
+        handleDepartmentDivisionChange(selectedValue)
+      } else if (isDepartmentZoneSelected) {
+        handleDepartmentCircleChange(selectedValue)
+      } else if (isDepartmentStateSelected) {
+        handleDepartmentZoneChange(selectedValue)
+      }
+      return
+    }
+
+    if (isHierarchyFourthLevelSelected) {
+      handleVillageChange(selectedValue)
+    } else if (isHierarchyThirdLevelSelected) {
+      handleGramPanchayatChange(selectedValue)
+    } else if (isHierarchySecondLevelSelected) {
+      handleBlockChange(selectedValue)
+    } else if (isHierarchyStateSelected) {
+      handleDistrictChange(selectedValue)
+    }
+  }
+
   const handleStateHover = (_stateId: string, _stateName: string, _metrics: unknown) => {
     // Hover tooltip is handled by ECharts
   }
@@ -2143,6 +2198,7 @@ export function CentralDashboard() {
               data={overallPerformanceTableData}
               entityLabel={overallPerformanceEntityLabel}
               scrollMaxHeight={overallPerformanceScrollHeight}
+              onRowClick={handleOverallPerformanceRowClick}
             />
           </Box>
         </Grid>
