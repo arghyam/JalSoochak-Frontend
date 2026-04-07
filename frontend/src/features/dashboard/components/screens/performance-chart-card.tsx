@@ -28,6 +28,10 @@ type PerformanceChartCardProps = {
   isTimeTrendPercent?: boolean
   selectColor?: string
   selectBorderColor?: string
+  quantityTimeScaleTab?: 'day' | 'week' | 'month'
+  onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
+  regularityTimeScaleTab?: 'day' | 'week' | 'month'
+  onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
 }
 
 export function PerformanceChartCard({
@@ -51,6 +55,10 @@ export function PerformanceChartCard({
   isTimeTrendPercent = false,
   selectColor,
   selectBorderColor,
+  quantityTimeScaleTab,
+  onQuantityTimeScaleTabChange,
+  regularityTimeScaleTab,
+  onRegularityTimeScaleTabChange,
 }: PerformanceChartCardProps) {
   const hasGeographyData = data.length > 0
   const hasTimeData = timeTrendData.length > 0
@@ -58,6 +66,16 @@ export function PerformanceChartCard({
     viewBy === 'geography'
       ? !hasGeographyData
       : !hasTimeData && !isTimeTrendLoading && !isTimeTrendAwaitingParams
+  const timeScaleTab = metric === 'quantity' ? quantityTimeScaleTab : regularityTimeScaleTab
+  const onTimeScaleTabChange =
+    metric === 'quantity' ? onQuantityTimeScaleTabChange : onRegularityTimeScaleTabChange
+  const hasTimeScaleControl = Boolean(timeScaleTab && onTimeScaleTabChange)
+  const metricTimeXAxisLabel =
+    timeScaleTab === 'day' ? 'Day' : timeScaleTab === 'week' ? 'Week' : 'Month'
+  const resolvedTimeXAxisLabel =
+    (metric === 'quantity' || metric === 'regularity') && viewBy === 'time' && hasTimeScaleControl
+      ? metricTimeXAxisLabel
+      : timeXAxisLabel
 
   return (
     <Box
@@ -77,14 +95,84 @@ export function PerformanceChartCard({
         <Text textStyle="bodyText3" fontWeight="400">
           {title}
         </Text>
-        <ViewBySelect
-          ariaLabel={viewByAriaLabel}
-          value={viewBy}
-          onChange={onViewByChange}
-          color={selectColor}
-          borderColor={selectBorderColor}
-          disabled={isSelectDisabled}
-        />
+        <Flex
+          align="center"
+          gap="8px"
+          sx={{
+            '@media (max-width: 525px)': {
+              flexDirection: 'column-reverse',
+              alignItems: 'flex-end',
+              gap: '6px',
+            },
+          }}
+        >
+          {(metric === 'quantity' || metric === 'regularity') &&
+          viewBy === 'time' &&
+          hasTimeScaleControl ? (
+            <Flex
+              align="center"
+              bg="#F4F4F5"
+              borderRadius="999px"
+              p="4px"
+              gap="4px"
+              aria-label={`${metric} time scale tabs`}
+              sx={{
+                '@media (max-width: 525px)': {
+                  p: '2px',
+                  gap: '2px',
+                },
+              }}
+            >
+              {[
+                { key: 'day', label: 'D' },
+                { key: 'week', label: 'W' },
+                { key: 'month', label: 'M' },
+              ].map((item) => {
+                const isActive = timeScaleTab === item.key
+                return (
+                  <Box
+                    as="button"
+                    key={item.key}
+                    type="button"
+                    h="32px"
+                    minW="44px"
+                    px="12px"
+                    borderRadius="999px"
+                    bg={isActive ? 'white' : 'transparent'}
+                    color="neutral.900"
+                    textStyle="bodyText5"
+                    fontWeight={isActive ? '600' : '500'}
+                    onClick={() => onTimeScaleTabChange?.(item.key as 'day' | 'week' | 'month')}
+                    sx={{
+                      '@media (max-width: 525px)': {
+                        h: '26px',
+                        minW: '34px',
+                        px: '8px',
+                        fontSize: '12px',
+                        lineHeight: '16px',
+                      },
+                    }}
+                  >
+                    {item.label}
+                  </Box>
+                )
+              })}
+            </Flex>
+          ) : null}
+          <ViewBySelect
+            ariaLabel={viewByAriaLabel}
+            value={viewBy}
+            onChange={(value) => {
+              if (value === 'time' && onTimeScaleTabChange) {
+                onTimeScaleTabChange('day')
+              }
+              onViewByChange(value)
+            }}
+            color={selectColor}
+            borderColor={selectBorderColor}
+            disabled={isSelectDisabled}
+          />
+        </Flex>
       </Flex>
       <Box flex="1" minH={0}>
         {viewBy === 'geography' ? (
@@ -115,7 +203,7 @@ export function PerformanceChartCard({
             data={timeTrendData}
             height="100%"
             isPercent={isTimeTrendPercent}
-            xAxisLabel={timeXAxisLabel}
+            xAxisLabel={resolvedTimeXAxisLabel}
             yAxisLabel={timeYAxisLabel ?? yAxisLabel}
             seriesName={seriesName}
           />

@@ -20,6 +20,7 @@ import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 import { ChartEmptyState, ViewBySelect } from '@/shared/components/common'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { useOutageDistributionState } from './use-outage-distribution-state'
+import { getOutageTimeScaleXAxisLabel, OutageTimeScaleToggle } from './outage-time-scale-toggle'
 
 type GramPanchayatDashboardScreenProps = {
   data: DashboardData
@@ -29,6 +30,12 @@ type GramPanchayatDashboardScreenProps = {
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
   isQuantityTimeTrendAwaitingParams?: boolean
+  quantityTimeScaleTab?: 'day' | 'week' | 'month'
+  onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
+  regularityTimeScaleTab?: 'day' | 'week' | 'month'
+  onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
+  outageDistributionTimeScaleTab?: 'day' | 'week' | 'month'
+  onOutageDistributionTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
   regularityPerformanceData: EntityPerformance[]
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading?: boolean
@@ -50,6 +57,12 @@ export function GramPanchayatDashboardScreen({
   quantityTimeTrendData,
   isQuantityTimeTrendLoading = false,
   isQuantityTimeTrendAwaitingParams = false,
+  quantityTimeScaleTab,
+  onQuantityTimeScaleTabChange,
+  regularityTimeScaleTab,
+  onRegularityTimeScaleTabChange,
+  outageDistributionTimeScaleTab,
+  onOutageDistributionTimeScaleTabChange,
   regularityPerformanceData,
   regularityTimeTrendData,
   isRegularityTimeTrendLoading = false,
@@ -78,6 +91,7 @@ export function GramPanchayatDashboardScreen({
     waterSupplyOutageDistributionData,
     outageDistributionTimeTrendData,
   })
+  const outageTimeXAxisLabel = getOutageTimeScaleXAxisLabel(outageDistributionTimeScaleTab, t)
 
   return (
     <>
@@ -106,6 +120,8 @@ export function GramPanchayatDashboardScreen({
           cardHeight="523px"
           timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
           isTimeTrendPercent
+          regularityTimeScaleTab={regularityTimeScaleTab}
+          onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
           selectColor="primary.500"
           selectBorderColor="primary.500"
         />
@@ -132,6 +148,8 @@ export function GramPanchayatDashboardScreen({
           timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
           selectColor="primary.500"
           selectBorderColor="primary.500"
+          quantityTimeScaleTab={quantityTimeScaleTab}
+          onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
         />
       </Grid>
 
@@ -173,16 +191,48 @@ export function GramPanchayatDashboardScreen({
                 defaultValue: 'Supply Outage Distribution',
               })}
             </Text>
-            <ViewBySelect
-              ariaLabel={t('outageAndSubmissionCharts.ariaViewByGramPanchayat', {
-                defaultValue: 'Gram panchayat supply outage distribution view by',
-              })}
-              value={outageDistributionViewBy}
-              onChange={setOutageDistributionViewBy}
-              color="primary.500"
-              borderColor="primary.500"
-              disabled={isOutageDistributionSelectDisabled}
-            />
+            <Flex
+              align="center"
+              gap="8px"
+              sx={{
+                '@media (max-width: 525px)': {
+                  flexDirection: 'column-reverse',
+                  alignItems: 'flex-end',
+                  gap: '6px',
+                },
+              }}
+            >
+              {outageDistributionViewBy === 'time' &&
+              outageDistributionTimeScaleTab &&
+              onOutageDistributionTimeScaleTabChange ? (
+                <OutageTimeScaleToggle
+                  value={outageDistributionTimeScaleTab}
+                  onChange={onOutageDistributionTimeScaleTabChange}
+                  ariaLabel={t('outageAndSubmissionCharts.ariaOutageTimeScale', {
+                    defaultValue: 'Outage time scale',
+                  })}
+                />
+              ) : null}
+              <ViewBySelect
+                ariaLabel={t('outageAndSubmissionCharts.ariaViewByGramPanchayat', {
+                  defaultValue: 'Gram panchayat supply outage distribution view by',
+                })}
+                value={outageDistributionViewBy}
+                onChange={(value) => {
+                  if (
+                    value === 'time' &&
+                    onOutageDistributionTimeScaleTabChange &&
+                    !outageDistributionTimeScaleTab
+                  ) {
+                    onOutageDistributionTimeScaleTabChange('day')
+                  }
+                  setOutageDistributionViewBy(value)
+                }}
+                color="primary.500"
+                borderColor="primary.500"
+                disabled={isOutageDistributionSelectDisabled}
+              />
+            </Flex>
           </Flex>
           {!hasOutageReasonsData ? (
             <ChartEmptyState minHeight="400px" />
@@ -200,7 +250,7 @@ export function GramPanchayatDashboardScreen({
             <MonthlyTrendChart
               data={outageDistributionTimeTrendData}
               height="400px"
-              xAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
+              xAxisLabel={outageTimeXAxisLabel}
               yAxisLabel={t('outageAndSubmissionCharts.axis.noOfDays', {
                 defaultValue: 'No. of days',
               })}

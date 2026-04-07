@@ -563,7 +563,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
         totalOptionsCount: breadcrumbPanelConfig.totalCount,
         noOptionsText: breadcrumbPanelConfig.noOptionsText,
         onOptionSelect: breadcrumbPanelConfig.onSelect,
-        closeOnOptionSelect: hasSelectedGramPanchayat,
+        closeOnOptionSelect: true,
         onTrailSelect: handleTrailSelect,
         onPanelOpenChange: handlePanelOpenChange,
         showTabs: true,

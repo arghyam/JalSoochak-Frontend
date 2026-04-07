@@ -134,6 +134,8 @@ type FilterUrlUpdate = {
   tab?: 'administrative'
 }
 
+type QuantityTimeScaleTab = 'day' | 'week' | 'month'
+
 type LocationOption = SearchableSelectOption & {
   locationId?: number
   analyticsId?: number
@@ -503,6 +505,10 @@ export function CentralDashboard() {
     : storedSelectedDepartmentVillage
   const filterTabIndex = hasDepartmentParamsInUrl ? 1 : storedFilterTabIndex
   const [activeTrailIndex, setActiveTrailIndex] = useState<number | null>(null)
+  const [quantityTimeScaleTab, setQuantityTimeScaleTab] = useState<QuantityTimeScaleTab>('day')
+  const [regularityTimeScaleTab, setRegularityTimeScaleTab] = useState<QuantityTimeScaleTab>('day')
+  const [outageDistributionTimeScaleTab, setOutageDistributionTimeScaleTab] =
+    useState<QuantityTimeScaleTab>('day')
   const selectionTrailValues = [
     selectedState,
     selectedDistrict,
@@ -814,6 +820,9 @@ export function CentralDashboard() {
       toIsoDate(effectiveSelectedDuration?.endDate, durationDateFormat) ??
       defaultAnalyticsRange.endDate,
   }
+  const selectedQuantityApiScale: QuantityTimeScaleTab = quantityTimeScaleTab
+  const selectedRegularityApiScale: QuantityTimeScaleTab = regularityTimeScaleTab
+  const selectedOutageApiScale: QuantityTimeScaleTab = outageDistributionTimeScaleTab
   const quantityPeriodicAnalyticsParams = !hasValidAnalyticsParentId
     ? null
     : hierarchyType === 'LGD'
@@ -821,19 +830,13 @@ export function CentralDashboard() {
           lgdId: analyticsParentId,
           startDate: analyticsDateRange.startDate,
           endDate: analyticsDateRange.endDate,
-          scale: resolveWaterQuantityPeriodicScale(
-            analyticsDateRange.startDate,
-            analyticsDateRange.endDate
-          ),
+          scale: selectedQuantityApiScale,
         }
       : {
           departmentId: analyticsParentId,
           startDate: analyticsDateRange.startDate,
           endDate: analyticsDateRange.endDate,
-          scale: resolveWaterQuantityPeriodicScale(
-            analyticsDateRange.startDate,
-            analyticsDateRange.endDate
-          ),
+          scale: selectedQuantityApiScale,
         }
   const regularityPeriodicAnalyticsParams = !hasValidAnalyticsParentId
     ? null
@@ -842,19 +845,13 @@ export function CentralDashboard() {
           lgdId: analyticsParentId,
           startDate: analyticsDateRange.startDate,
           endDate: analyticsDateRange.endDate,
-          scale: resolveWaterQuantityPeriodicScale(
-            analyticsDateRange.startDate,
-            analyticsDateRange.endDate
-          ),
+          scale: selectedRegularityApiScale,
         }
       : {
           departmentId: analyticsParentId,
           startDate: analyticsDateRange.startDate,
           endDate: analyticsDateRange.endDate,
-          scale: resolveWaterQuantityPeriodicScale(
-            analyticsDateRange.startDate,
-            analyticsDateRange.endDate
-          ),
+          scale: selectedRegularityApiScale,
         }
   const nationalDashboardParams = hasCentralLandingFilters
     ? null
@@ -862,15 +859,19 @@ export function CentralDashboard() {
         startDate: analyticsDateRange.startDate,
         endDate: analyticsDateRange.endDate,
       }
-  const nationalPeriodAnalyticsParams = hasCentralLandingFilters
+  const nationalQuantityPeriodAnalyticsParams = hasCentralLandingFilters
     ? null
     : {
         startDate: analyticsDateRange.startDate,
         endDate: analyticsDateRange.endDate,
-        scale: resolveWaterQuantityPeriodicScale(
-          analyticsDateRange.startDate,
-          analyticsDateRange.endDate
-        ),
+        scale: selectedQuantityApiScale,
+      }
+  const nationalRegularityPeriodAnalyticsParams = hasCentralLandingFilters
+    ? null
+    : {
+        startDate: analyticsDateRange.startDate,
+        endDate: analyticsDateRange.endDate,
+        scale: selectedRegularityApiScale,
       }
   const analyticsParams =
     isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
@@ -1012,19 +1013,13 @@ export function CentralDashboard() {
             lgdId: analyticsParentId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
-            scale: resolveWaterQuantityPeriodicScale(
-              analyticsDateRange.startDate,
-              analyticsDateRange.endDate
-            ),
+            scale: selectedOutageApiScale,
           }
         : {
             departmentId: analyticsParentId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
-            scale: resolveWaterQuantityPeriodicScale(
-              analyticsDateRange.startDate,
-              analyticsDateRange.endDate
-            ),
+            scale: selectedOutageApiScale,
           }
   const activePreviousPeriodSource = analyticsParams ??
     nationalDashboardParams ?? {
@@ -1086,11 +1081,18 @@ export function CentralDashboard() {
     enabled: Boolean(nationalDashboardParams),
   })
   const {
+    data: nationalSchemeQuantityPeriodicData,
+    isFetching: isNationalSchemeQuantityPeriodicFetching,
+  } = useNationalSchemeRegularityPeriodicQuery({
+    params: nationalQuantityPeriodAnalyticsParams,
+    enabled: Boolean(nationalQuantityPeriodAnalyticsParams),
+  })
+  const {
     data: nationalSchemeRegularityPeriodicData,
     isFetching: isNationalSchemeRegularityPeriodicFetching,
   } = useNationalSchemeRegularityPeriodicQuery({
-    params: nationalPeriodAnalyticsParams,
-    enabled: Boolean(nationalPeriodAnalyticsParams),
+    params: nationalRegularityPeriodAnalyticsParams,
+    enabled: Boolean(nationalRegularityPeriodAnalyticsParams),
   })
   const {
     data: waterQuantityPeriodicData,
@@ -1271,6 +1273,32 @@ export function CentralDashboard() {
           : isHierarchyStateSelected
             ? districtApiOptions
             : emptyOptions
+  const boundaryOverallPerformanceOptions: LocationOption[] = (
+    tenantBoundaryData?.childRegions ?? []
+  ).flatMap((region) => {
+    const boundaryId = [region.childLgdId, region.childDepartmentId].find(
+      (id) => typeof id === 'number' && id > 0
+    )
+    const rawTitle = region.childLgdTitle ?? region.childDepartmentTitle ?? ''
+    const normalizedTitle = rawTitle.trim()
+
+    if (typeof boundaryId !== 'number' || !normalizedTitle) {
+      return []
+    }
+
+    return [
+      {
+        value: toStableLocationValue(boundaryId, boundaryId, slugify(normalizedTitle)),
+        label: normalizedTitle,
+        locationId: boundaryId,
+        analyticsId: boundaryId,
+      },
+    ]
+  })
+  const overallPerformanceLocationOptions = [
+    ...expectedOverallPerformanceOptions,
+    ...boundaryOverallPerformanceOptions,
+  ]
   const tenantBoundaryOverallPerformanceIds = new Set(
     (tenantBoundaryData?.childRegions ?? []).flatMap((region) => {
       const childIds = [region.childLgdId, region.childDepartmentId]
@@ -1383,7 +1411,7 @@ export function CentralDashboard() {
     schemeRegularityPeriodicData
   )
   const quantityTimeTrendData = isCentralLandingView
-    ? mapNationalQuantityTrendPoints(nationalSchemeRegularityPeriodicData)
+    ? mapNationalQuantityTrendPoints(nationalSchemeQuantityPeriodicData)
     : periodicQuantityTimeTrendData.length > 0
       ? periodicQuantityTimeTrendData
       : []
@@ -1734,6 +1762,61 @@ export function CentralDashboard() {
     updateFilterUrl({ state: stateOption?.value ?? toStateSlug(stateName) })
   }
 
+  const resolveOverallPerformanceLocationValue = (row: EntityPerformance): string | null => {
+    const normalizedRowId = row.id?.trim()
+    const normalizedRowName = slugify(row.name)
+
+    const matchedOption = overallPerformanceLocationOptions.find((option) => {
+      const locationOption = option as LocationOption
+      const optionIds = [locationOption.locationId, locationOption.analyticsId]
+      const hasMatchingId = optionIds.some(
+        (id) => typeof id === 'number' && String(id) === normalizedRowId
+      )
+
+      return hasMatchingId || slugify(option.label) === normalizedRowName
+    })
+
+    return matchedOption?.value ?? null
+  }
+
+  const handleOverallPerformanceRowClick = (row: EntityPerformance) => {
+    setActiveTrailIndex(null)
+    setSelectedScheme('')
+
+    if (isCentralLandingView && !isDepartmentTabActive) {
+      handleStateClick(row.id, row.name)
+      return
+    }
+
+    const selectedValue = resolveOverallPerformanceLocationValue(row)
+    if (!selectedValue) {
+      return
+    }
+
+    if (isDepartmentTabActive) {
+      if (isDepartmentSubdivisionSelected) {
+        handleDepartmentSubdivisionChange(selectedValue)
+      } else if (isDepartmentCircleSelected) {
+        handleDepartmentDivisionChange(selectedValue)
+      } else if (isDepartmentZoneSelected) {
+        handleDepartmentCircleChange(selectedValue)
+      } else if (isDepartmentStateSelected) {
+        handleDepartmentZoneChange(selectedValue)
+      }
+      return
+    }
+
+    if (isHierarchyFourthLevelSelected) {
+      handleVillageChange(selectedValue)
+    } else if (isHierarchyThirdLevelSelected) {
+      handleGramPanchayatChange(selectedValue)
+    } else if (isHierarchySecondLevelSelected) {
+      handleBlockChange(selectedValue)
+    } else if (isHierarchyStateSelected) {
+      handleDistrictChange(selectedValue)
+    }
+  }
+
   const handleStateHover = (_stateId: string, _stateName: string, _metrics: unknown) => {
     // Hover tooltip is handled by ECharts
   }
@@ -1886,10 +1969,18 @@ export function CentralDashboard() {
       ),
       tooltipContent: renderFormulaTooltip(
         <>
-          {t('kpi.tooltips.quantityMld.formulaLabel', { defaultValue: 'Quantity (MLD)' })} = SUM(W
-          <sub>k</sub>) / N
+          {t('kpi.tooltips.quantityMld.formulaLabel', {
+            defaultValue: 'Quantity (MLD: Million Liters per Day)',
+          })}{' '}
+          = SUM(W<sub>k</sub>) / N
         </>,
         [
+          <>
+            MLD ={' '}
+            {t('kpi.tooltips.quantityMld.definitions.mldFullForm', {
+              defaultValue: 'Million Liters per Day',
+            })}
+          </>,
           <>
             W<sub>k</sub> ={' '}
             {t('kpi.tooltips.quantityMld.definitions.waterQuantitySupplied', {
@@ -1905,7 +1996,7 @@ export function CentralDashboard() {
           <>
             N ={' '}
             {t('kpi.tooltips.quantityMld.definitions.totalNumberOfDays', {
-              defaultValue: 'total number of days',
+              defaultValue: 'total number of days in the selected time-period',
             })}
           </>,
         ]
@@ -1933,14 +2024,22 @@ export function CentralDashboard() {
       ),
       tooltipContent: renderFormulaTooltip(
         <>
-          {t('kpi.tooltips.quantityLpcd.formulaLabel', { defaultValue: 'Quantity (LPCD)' })} = SUM(W
-          <sub>k</sub>) / (SUM(FHTC<sub>i</sub>) x P x N)
+          {t('kpi.tooltips.quantityLpcd.formulaLabel', {
+            defaultValue: 'Quantity (LPCD: Litres per Capita per Day)',
+          })}{' '}
+          = SUM(W<sub>k</sub>) / (SUM(FHTC<sub>i</sub>) x P x N)
         </>,
         [
           <>
+            LPCD ={' '}
+            {t('kpi.tooltips.quantityLpcd.definitions.lpcdFullForm', {
+              defaultValue: 'Litres per Capita per Day',
+            })}
+          </>,
+          <>
             W<sub>k</sub> ={' '}
             {t('kpi.tooltips.quantityLpcd.definitions.waterQuantitySupplied', {
-              defaultValue: 'water quantity supplied on day k',
+              defaultValue: 'water quantity supplied on kth day',
             })}
           </>,
           <>
@@ -1953,13 +2052,12 @@ export function CentralDashboard() {
             P ={' '}
             {t('kpi.tooltips.quantityLpcd.definitions.averagePersonsPerHousehold', {
               defaultValue: 'average persons per household',
-            })}{' '}
-            ({averagePersonsPerHousehold})
+            })}
           </>,
           <>
             N ={' '}
             {t('kpi.tooltips.quantityLpcd.definitions.numberOfDays', {
-              defaultValue: 'number of days',
+              defaultValue: 'total number of days in the selected time-period',
             })}
           </>,
         ]
@@ -1988,7 +2086,7 @@ export function CentralDashboard() {
       tooltipContent: renderFormulaTooltip(
         <>
           {t('kpi.tooltips.regularity.formulaLabel', { defaultValue: 'Regularity of scheme' })} = X
-          <sub>i</sub> / N
+          <sub>i</sub> / N * 100
         </>,
         [
           <>
@@ -2098,6 +2196,7 @@ export function CentralDashboard() {
             <IndiaMapChart
               data={mapChartData}
               isLoading={isMapDataLoading}
+              disableHoverEffect={isCentralLandingView}
               mapName={
                 isCentralLandingView
                   ? 'india'
@@ -2130,6 +2229,7 @@ export function CentralDashboard() {
               data={overallPerformanceTableData}
               entityLabel={overallPerformanceEntityLabel}
               scrollMaxHeight={overallPerformanceScrollHeight}
+              onRowClick={handleOverallPerformanceRowClick}
             />
           </Box>
         </Grid>
@@ -2156,11 +2256,17 @@ export function CentralDashboard() {
         isDepartmentCircleSelected={isDepartmentCircleSelected}
         isDepartmentDivisionSelected={isDepartmentDivisionSelected}
         selectedVillage={activeLeafSelection}
+        quantityTimeScaleTab={quantityTimeScaleTab}
+        onQuantityTimeScaleTabChange={(value) => setQuantityTimeScaleTab(value)}
+        regularityTimeScaleTab={regularityTimeScaleTab}
+        onRegularityTimeScaleTabChange={(value) => setRegularityTimeScaleTab(value)}
+        outageDistributionTimeScaleTab={outageDistributionTimeScaleTab}
+        onOutageDistributionTimeScaleTabChange={(value) => setOutageDistributionTimeScaleTab(value)}
         quantityPerformanceData={quantityPerformanceData}
         quantityTimeTrendData={quantityTimeTrendData}
         isQuantityTimeTrendLoading={
           isCentralLandingView
-            ? isNationalSchemeRegularityPeriodicFetching
+            ? isNationalSchemeQuantityPeriodicFetching
             : isWaterQuantityPeriodicFetching
         }
         isQuantityTimeTrendAwaitingParams={

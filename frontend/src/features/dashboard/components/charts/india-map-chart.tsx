@@ -21,6 +21,7 @@ interface IndiaMapChartProps {
   mapName?: string
   fallbackToIndiaMap?: boolean
   usePrimaryFill?: boolean
+  disableHoverEffect?: boolean
 }
 
 export function IndiaMapChart({
@@ -33,6 +34,7 @@ export function IndiaMapChart({
   mapName = 'india',
   fallbackToIndiaMap = true,
   usePrimaryFill = false,
+  disableHoverEffect = false,
 }: IndiaMapChartProps) {
   const theme = useTheme()
   const [isBelow500] = useMediaQuery('(max-width: 499.98px)')
@@ -67,9 +69,21 @@ export function IndiaMapChart({
       gte30: resolveThemeColor('#FFB433'),
       gte0: resolveThemeColor('#FF5C5C'),
       noData: resolveThemeColor('#D1D1D6'),
-      emphasis: resolveThemeColor('primary.50'),
     }),
     [resolveThemeColor]
+  )
+  const hoverColors = useMemo(
+    () => ({
+      // Manual placeholders: set your own hover colors per legend bucket.
+      // Example: gte90: '#84BDE3'
+      gte90: '#3291D1',
+      gte70: '#38962C',
+      gte50: '#FFB433',
+      gte30: '#CC8100',
+      gte0: '#C73131',
+      noData: '#A0A0AB',
+    }),
+    []
   )
   const primaryMapColor = resolveThemeColor('primary.500')
   const quantityLabel = t('map.metric.quantity', { defaultValue: 'Quantity' })
@@ -90,6 +104,17 @@ export function IndiaMapChart({
     (value: number) => (usePrimaryFill ? primaryMapColor : getRangeColor(value)),
     [getRangeColor, primaryMapColor, usePrimaryFill]
   )
+  const getHoverRangeColor = useCallback(
+    (value: number) => {
+      if (value >= 90) return hoverColors.gte90 || mapColors.gte90
+      if (value >= 70) return hoverColors.gte70 || mapColors.gte70
+      if (value >= 50) return hoverColors.gte50 || mapColors.gte50
+      if (value >= 30) return hoverColors.gte30 || mapColors.gte30
+      if (value >= 0) return hoverColors.gte0 || mapColors.gte0
+      return hoverColors.noData || mapColors.noData
+    },
+    [hoverColors, mapColors]
+  )
 
   const option = useMemo<echarts.EChartsOption>(() => {
     const isIndiaMap = (effectiveMapName ?? mapName) === 'india'
@@ -102,6 +127,13 @@ export function IndiaMapChart({
       itemStyle: {
         areaColor: resolveAreaColor(state[metricKey]),
       },
+      emphasis: disableHoverEffect
+        ? undefined
+        : {
+            itemStyle: {
+              areaColor: getHoverRangeColor(state[metricKey]),
+            },
+          },
       metrics: {
         coverage: state.coverage,
         regularity: state.regularity,
@@ -168,17 +200,16 @@ export function IndiaMapChart({
             borderColor: '#fff',
             borderWidth: 1,
           },
-          emphasis: isIndiaMap
+          emphasis: disableHoverEffect
             ? {
                 disabled: true,
               }
             : {
                 itemStyle: {
-                  areaColor: mapColors.emphasis,
                   borderWidth: 2,
                 },
                 label: {
-                  show: true,
+                  show: !isIndiaMap,
                   fontSize: 12,
                   fontWeight: 'bold',
                 },
@@ -192,10 +223,11 @@ export function IndiaMapChart({
     effectiveMapName,
     mapName,
     primaryMapColor,
-    mapColors.emphasis,
-    mapColors.gte90,
+    mapColors,
+    getHoverRangeColor,
     resolveAreaColor,
     usePrimaryFill,
+    disableHoverEffect,
   ])
 
   const bodyText6 = getBodyText6Style(theme)
@@ -293,20 +325,22 @@ export function IndiaMapChart({
     })
 
     // Register hover event
-    chart.on('mouseover', (params: unknown) => {
-      const p = params as {
-        data?: {
-          stateId: string
-          name: string
+    if (!disableHoverEffect) {
+      chart.on('mouseover', (params: unknown) => {
+        const p = params as {
+          data?: {
+            stateId: string
+            name: string
+          }
         }
-      }
-      if (p.data?.stateId && onStateHover) {
-        const stateData = data.find((d) => d.id === p.data?.stateId) ?? undefined
-        if (stateData) {
-          onStateHover(p.data.stateId, p.data.name, stateData)
+        if (p.data?.stateId && onStateHover) {
+          const stateData = data.find((d) => d.id === p.data?.stateId) ?? undefined
+          if (stateData) {
+            onStateHover(p.data.stateId, p.data.name, stateData)
+          }
         }
-      }
-    })
+      })
+    }
   }
 
   return (
@@ -404,19 +438,28 @@ export function IndiaMapChart({
       </div>
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: isBelow500 ? 'repeat(3, minmax(0, 1fr))' : 'repeat(6, max-content)',
+          display: 'flex',
+          flexWrap: 'wrap',
           alignItems: 'center',
           justifyContent: 'center',
-          justifyItems: isBelow500 ? 'start' : 'center',
-          columnGap: isBelow500 ? '12px' : '16px',
-          rowGap: isBelow500 ? '6px' : '0px',
+          gap: isBelow500 ? '6px 12px' : '0px 16px',
           paddingTop: '8px',
           width: '100%',
+          maxWidth: '100%',
+          overflow: 'hidden',
         }}
       >
         {legendItems.map((item) => (
-          <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div
+            key={item.label}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              minWidth: isBelow500 ? 'calc(33.333% - 12px)' : undefined,
+              justifyContent: isBelow500 ? 'flex-start' : 'center',
+            }}
+          >
             <span
               aria-hidden="true"
               style={{
@@ -433,6 +476,7 @@ export function IndiaMapChart({
                 lineHeight: `${bodyText6.lineHeight}px`,
                 fontWeight: bodyText6.fontWeight,
                 color: bodyText6.color,
+                whiteSpace: 'nowrap',
               }}
             >
               {item.label}
