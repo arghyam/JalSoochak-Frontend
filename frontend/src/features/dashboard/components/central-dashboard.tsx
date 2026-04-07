@@ -42,6 +42,7 @@ import { ROUTES } from '@/shared/constants/routes'
 import { computeTrailIndices } from '../utils/trail-index'
 import { slugify, toCapitalizedWords } from '../utils/format-location-label'
 import { parseStableLocationValue, toStableLocationValue } from '../utils/stable-location-value'
+import { localizeDepartmentHierarchyLabel, normalizeHierarchyLabel } from '../utils/hierarchy-label'
 import {
   calculateAbsoluteChange,
   calculatePercentChange,
@@ -625,21 +626,25 @@ export function CentralDashboard() {
     Record<number, string>
   >((acc, item) => {
     const levelNumber = typeof item.level === 'number' ? item.level : undefined
-    const levelTitle = toCapitalizedWords(item.levelName?.[0]?.title?.trim() ?? '')
-    if (!levelNumber || !levelTitle) {
+    const levelTitleRaw = toCapitalizedWords(item.levelName?.[0]?.title?.trim() ?? '')
+    if (!levelNumber || !levelTitleRaw) {
       return acc
     }
-    acc[levelNumber] = levelTitle
+    acc[levelNumber] = localizeDepartmentHierarchyLabel(levelTitleRaw, 'singular', i18n, t)
     return acc
   }, {})
   const toPluralHierarchyLabel = (value: string): string => {
-    const normalized = value.trim().toLowerCase()
+    const localized = localizeDepartmentHierarchyLabel(value, 'plural', i18n, t)
+    if (localized !== value) {
+      return localized
+    }
+    const normalized = normalizeHierarchyLabel(value)
     if (normalized === 'state') return 'States'
     if (normalized === 'district') return 'Districts'
     if (normalized === 'block') return 'Blocks'
     if (normalized === 'panchayat') return 'Panchayats'
     if (normalized === 'village') return 'Villages'
-    if (normalized === 'sub division' || normalized === 'sub-division') return 'Sub Divisions'
+    if (normalized === 'sub division' || normalized === 'subdivision') return 'Sub Divisions'
     if (value.endsWith('s')) return value
     return `${value}s`
   }
@@ -2099,6 +2104,7 @@ export function CentralDashboard() {
                   : `tenant-boundary-${hierarchyType.toLowerCase()}-${analyticsParentId}`
               }
               fallbackToIndiaMap={isCentralLandingView}
+              usePrimaryFill={isCentralLandingView}
               onStateClick={isCentralLandingView ? handleStateClick : undefined}
               onStateHover={handleStateHover}
               height="100%"

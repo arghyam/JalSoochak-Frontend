@@ -20,6 +20,7 @@ interface IndiaMapChartProps {
   height?: string | number
   mapName?: string
   fallbackToIndiaMap?: boolean
+  usePrimaryFill?: boolean
 }
 
 export function IndiaMapChart({
@@ -31,6 +32,7 @@ export function IndiaMapChart({
   height = '600px',
   mapName = 'india',
   fallbackToIndiaMap = true,
+  usePrimaryFill = false,
 }: IndiaMapChartProps) {
   const theme = useTheme()
   const [isBelow500] = useMediaQuery('(max-width: 499.98px)')
@@ -69,6 +71,7 @@ export function IndiaMapChart({
     }),
     [resolveThemeColor]
   )
+  const primaryMapColor = resolveThemeColor('primary.500')
   const quantityLabel = t('map.metric.quantity', { defaultValue: 'Quantity' })
   const regularityLabel = t('map.metric.regularity', { defaultValue: 'Regularity' })
   const selectedMetricLabel = isRegularityView ? regularityLabel : quantityLabel
@@ -83,8 +86,13 @@ export function IndiaMapChart({
     },
     [mapColors]
   )
+  const resolveAreaColor = useCallback(
+    (value: number) => (usePrimaryFill ? primaryMapColor : getRangeColor(value)),
+    [getRangeColor, primaryMapColor, usePrimaryFill]
+  )
 
   const option = useMemo<echarts.EChartsOption>(() => {
+    const isIndiaMap = (effectiveMapName ?? mapName) === 'india'
     // Create map data series
     const mapSeries = data.map((state) => ({
       name: state.name,
@@ -92,7 +100,7 @@ export function IndiaMapChart({
       stateId: state.id,
       status: state.status,
       itemStyle: {
-        areaColor: getRangeColor(state[metricKey]),
+        areaColor: resolveAreaColor(state[metricKey]),
       },
       metrics: {
         coverage: state.coverage,
@@ -146,38 +154,48 @@ export function IndiaMapChart({
           type: 'map',
           map: effectiveMapName ?? mapName,
           roam: true,
+          scaleLimit: {
+            min: 1,
+            max: 3,
+          },
           label: {
             show: true,
             fontSize: 10,
           },
           data: mapSeries,
           itemStyle: {
-            areaColor: mapColors.gte90,
+            areaColor: usePrimaryFill ? primaryMapColor : mapColors.gte90,
             borderColor: '#fff',
             borderWidth: 1,
           },
-          emphasis: {
-            itemStyle: {
-              areaColor: mapColors.emphasis,
-              borderWidth: 2,
-            },
-            label: {
-              show: true,
-              fontSize: 12,
-              fontWeight: 'bold',
-            },
-          },
+          emphasis: isIndiaMap
+            ? {
+                disabled: true,
+              }
+            : {
+                itemStyle: {
+                  areaColor: mapColors.emphasis,
+                  borderWidth: 2,
+                },
+                label: {
+                  show: true,
+                  fontSize: 12,
+                  fontWeight: 'bold',
+                },
+              },
         },
       ],
     }
   }, [
     data,
-    getRangeColor,
-    mapColors.emphasis,
-    mapColors.gte90,
     metricKey,
     effectiveMapName,
     mapName,
+    primaryMapColor,
+    mapColors.emphasis,
+    mapColors.gte90,
+    resolveAreaColor,
+    usePrimaryFill,
   ])
 
   const bodyText6 = getBodyText6Style(theme)
