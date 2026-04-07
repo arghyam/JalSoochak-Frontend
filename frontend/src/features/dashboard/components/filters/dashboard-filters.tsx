@@ -15,6 +15,10 @@ import {
   toCapitalizedWords,
 } from '../../utils/format-location-label'
 import { parseStableLocationValue, toStableLocationValue } from '../../utils/stable-location-value'
+import {
+  localizeDepartmentHierarchyLabel,
+  normalizeHierarchyLabel,
+} from '../../utils/hierarchy-label'
 import type { HierarchyType } from '../../services/api/dashboard-api'
 import type { TenantChildLocation } from '../../services/api/dashboard-api'
 
@@ -133,7 +137,7 @@ const mapLocationOptions = (locations: TenantChildLocation[] | undefined): Locat
 }
 
 export function DashboardFilters(props: DashboardFiltersProps) {
-  const { t } = useTranslation('dashboard')
+  const { t, i18n } = useTranslation('dashboard')
   const [isVeryCompactFilters] = useMediaQuery('(max-width: 569px)')
   const [isXsFilters] = useMediaQuery('(max-width: 479px)')
   const [isBelowLgFilters] = useMediaQuery('(max-width: 991.98px)')
@@ -314,13 +318,17 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     return acc
   }, {})
   const toPluralLabel = (value: string): string => {
-    const normalized = value.trim().toLowerCase()
+    const localized = localizeDepartmentHierarchyLabel(value, 'plural', i18n, t)
+    if (localized !== value) {
+      return localized
+    }
+    const normalized = normalizeHierarchyLabel(value)
     if (normalized === 'state') return 'States'
     if (normalized === 'district') return 'Districts'
     if (normalized === 'block') return 'Blocks'
     if (normalized === 'panchayat') return 'Panchayats'
     if (normalized === 'village') return 'Villages'
-    if (normalized === 'sub division' || normalized === 'sub-division') return 'Sub-divisions'
+    if (normalized === 'sub division' || normalized === 'subdivision') return 'Sub Divisions'
     if (value.endsWith('s')) return value
     return `${value}s`
   }
