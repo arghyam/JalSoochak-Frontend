@@ -92,6 +92,7 @@ export function IndiaMapChart({
   )
 
   const option = useMemo<echarts.EChartsOption>(() => {
+    const isIndiaMap = (effectiveMapName ?? mapName) === 'india'
     // Create map data series
     const mapSeries = data.map((state) => ({
       name: state.name,
@@ -167,17 +168,21 @@ export function IndiaMapChart({
             borderColor: '#fff',
             borderWidth: 1,
           },
-          emphasis: {
-            itemStyle: {
-              areaColor: mapColors.emphasis,
-              borderWidth: 2,
-            },
-            label: {
-              show: true,
-              fontSize: 12,
-              fontWeight: 'bold',
-            },
-          },
+          emphasis: isIndiaMap
+            ? {
+                disabled: true,
+              }
+            : {
+                itemStyle: {
+                  areaColor: mapColors.emphasis,
+                  borderWidth: 2,
+                },
+                label: {
+                  show: true,
+                  fontSize: 12,
+                  fontWeight: 'bold',
+                },
+              },
         },
       ],
     }
