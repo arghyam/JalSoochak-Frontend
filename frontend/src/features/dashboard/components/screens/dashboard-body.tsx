@@ -36,6 +36,8 @@ type DashboardBodyProps = {
   isDepartmentCircleSelected?: boolean
   isDepartmentDivisionSelected?: boolean
   selectedVillage: string
+  quantityTimeScaleTab?: 'day' | 'week' | 'month'
+  onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
   quantityPerformanceData: EntityPerformance[]
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
@@ -74,6 +76,8 @@ export function DashboardBody({
   isDepartmentCircleSelected = false,
   isDepartmentDivisionSelected = false,
   selectedVillage,
+  quantityTimeScaleTab = 'day',
+  onQuantityTimeScaleTabChange,
   quantityPerformanceData,
   quantityTimeTrendData,
   isQuantityTimeTrendLoading = false,
@@ -160,6 +164,8 @@ export function DashboardBody({
           quantityTimeTrendData={quantityTimeTrendData}
           isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
           isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
+          quantityTimeScaleTab={quantityTimeScaleTab}
+          onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
           regularityPerformanceData={regularityPerformanceData}
           regularityTimeTrendData={regularityTimeTrendData}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
@@ -176,6 +182,8 @@ export function DashboardBody({
           quantityTimeTrendData={quantityTimeTrendData}
           isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
           isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
+          quantityTimeScaleTab={quantityTimeScaleTab}
+          onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
           regularityPerformanceData={regularityPerformanceData}
           regularityTimeTrendData={regularityTimeTrendData}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
@@ -196,6 +204,8 @@ export function DashboardBody({
           quantityTimeTrendData={quantityTimeTrendData}
           isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
           isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
+          quantityTimeScaleTab={quantityTimeScaleTab}
+          onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
           regularityPerformanceData={regularityPerformanceData}
           regularityTimeTrendData={regularityTimeTrendData}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
@@ -219,6 +229,8 @@ export function DashboardBody({
           quantityTimeTrendData={quantityTimeTrendData}
           isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
           isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
+          quantityTimeScaleTab={quantityTimeScaleTab}
+          onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
           regularityPerformanceData={regularityPerformanceData}
           regularityTimeTrendData={regularityTimeTrendData}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
@@ -373,6 +385,8 @@ type PerformanceChartsSectionProps = {
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading: boolean
   isQuantityTimeTrendAwaitingParams: boolean
+  quantityTimeScaleTab: 'day' | 'week' | 'month'
+  onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
   regularityPerformanceData: EntityPerformance[]
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading: boolean
@@ -384,6 +398,8 @@ function PerformanceChartsSection({
   quantityTimeTrendData,
   isQuantityTimeTrendLoading,
   isQuantityTimeTrendAwaitingParams,
+  quantityTimeScaleTab,
+  onQuantityTimeScaleTabChange,
   regularityPerformanceData,
   regularityTimeTrendData,
   isRegularityTimeTrendLoading,
@@ -444,6 +460,8 @@ function PerformanceChartsSection({
           defaultValue: 'Demand',
         })}
         timeXAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+        quantityTimeScaleTab={quantityTimeScaleTab}
+        onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
       />
     </Grid>
   )

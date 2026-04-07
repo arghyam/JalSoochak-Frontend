@@ -134,6 +134,8 @@ type FilterUrlUpdate = {
   tab?: 'administrative'
 }
 
+type QuantityTimeScaleTab = 'day' | 'week' | 'month'
+
 type LocationOption = SearchableSelectOption & {
   locationId?: number
   analyticsId?: number
@@ -503,6 +505,7 @@ export function CentralDashboard() {
     : storedSelectedDepartmentVillage
   const filterTabIndex = hasDepartmentParamsInUrl ? 1 : storedFilterTabIndex
   const [activeTrailIndex, setActiveTrailIndex] = useState<number | null>(null)
+  const [quantityTimeScaleTab, setQuantityTimeScaleTab] = useState<QuantityTimeScaleTab>('day')
   const selectionTrailValues = [
     selectedState,
     selectedDistrict,
@@ -814,6 +817,8 @@ export function CentralDashboard() {
       toIsoDate(effectiveSelectedDuration?.endDate, durationDateFormat) ??
       defaultAnalyticsRange.endDate,
   }
+  const selectedQuantityApiScale: 'day' | 'week' | 'month' =
+    quantityTimeScaleTab === 'week' ? 'week' : quantityTimeScaleTab === 'day' ? 'day' : 'month'
   const quantityPeriodicAnalyticsParams = !hasValidAnalyticsParentId
     ? null
     : hierarchyType === 'LGD'
@@ -821,19 +826,13 @@ export function CentralDashboard() {
           lgdId: analyticsParentId,
           startDate: analyticsDateRange.startDate,
           endDate: analyticsDateRange.endDate,
-          scale: resolveWaterQuantityPeriodicScale(
-            analyticsDateRange.startDate,
-            analyticsDateRange.endDate
-          ),
+          scale: selectedQuantityApiScale,
         }
       : {
           departmentId: analyticsParentId,
           startDate: analyticsDateRange.startDate,
           endDate: analyticsDateRange.endDate,
-          scale: resolveWaterQuantityPeriodicScale(
-            analyticsDateRange.startDate,
-            analyticsDateRange.endDate
-          ),
+          scale: selectedQuantityApiScale,
         }
   const regularityPeriodicAnalyticsParams = !hasValidAnalyticsParentId
     ? null
@@ -2171,6 +2170,8 @@ export function CentralDashboard() {
         isDepartmentCircleSelected={isDepartmentCircleSelected}
         isDepartmentDivisionSelected={isDepartmentDivisionSelected}
         selectedVillage={activeLeafSelection}
+        quantityTimeScaleTab={quantityTimeScaleTab}
+        onQuantityTimeScaleTabChange={(value) => setQuantityTimeScaleTab(value)}
         quantityPerformanceData={quantityPerformanceData}
         quantityTimeTrendData={quantityTimeTrendData}
         isQuantityTimeTrendLoading={

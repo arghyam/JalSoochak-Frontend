@@ -29,6 +29,8 @@ type BlockDashboardScreenProps = {
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
   isQuantityTimeTrendAwaitingParams?: boolean
+  quantityTimeScaleTab?: 'day' | 'week' | 'month'
+  onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
   regularityPerformanceData: EntityPerformance[]
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading?: boolean
@@ -53,6 +55,8 @@ export function BlockDashboardScreen({
   quantityTimeTrendData,
   isQuantityTimeTrendLoading = false,
   isQuantityTimeTrendAwaitingParams = false,
+  quantityTimeScaleTab = 'day',
+  onQuantityTimeScaleTabChange,
   regularityPerformanceData,
   regularityTimeTrendData,
   isRegularityTimeTrendLoading = false,
@@ -138,6 +142,8 @@ export function BlockDashboardScreen({
           timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
           selectColor="primary.500"
           selectBorderColor="primary.500"
+          quantityTimeScaleTab={quantityTimeScaleTab}
+          onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
         />
       </Grid>
 

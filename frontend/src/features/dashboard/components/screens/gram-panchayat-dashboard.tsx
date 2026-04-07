@@ -29,6 +29,8 @@ type GramPanchayatDashboardScreenProps = {
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
   isQuantityTimeTrendAwaitingParams?: boolean
+  quantityTimeScaleTab?: 'day' | 'week' | 'month'
+  onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
   regularityPerformanceData: EntityPerformance[]
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading?: boolean
@@ -50,6 +52,8 @@ export function GramPanchayatDashboardScreen({
   quantityTimeTrendData,
   isQuantityTimeTrendLoading = false,
   isQuantityTimeTrendAwaitingParams = false,
+  quantityTimeScaleTab = 'day',
+  onQuantityTimeScaleTabChange,
   regularityPerformanceData,
   regularityTimeTrendData,
   isRegularityTimeTrendLoading = false,
@@ -132,6 +136,8 @@ export function GramPanchayatDashboardScreen({
           timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
           selectColor="primary.500"
           selectBorderColor="primary.500"
+          quantityTimeScaleTab={quantityTimeScaleTab}
+          onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
         />
       </Grid>
 

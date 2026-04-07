@@ -28,6 +28,8 @@ type PerformanceChartCardProps = {
   isTimeTrendPercent?: boolean
   selectColor?: string
   selectBorderColor?: string
+  quantityTimeScaleTab?: 'day' | 'week' | 'month'
+  onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
 }
 
 export function PerformanceChartCard({
@@ -51,6 +53,8 @@ export function PerformanceChartCard({
   isTimeTrendPercent = false,
   selectColor,
   selectBorderColor,
+  quantityTimeScaleTab = 'day',
+  onQuantityTimeScaleTabChange,
 }: PerformanceChartCardProps) {
   const hasGeographyData = data.length > 0
   const hasTimeData = timeTrendData.length > 0
@@ -58,6 +62,10 @@ export function PerformanceChartCard({
     viewBy === 'geography'
       ? !hasGeographyData
       : !hasTimeData && !isTimeTrendLoading && !isTimeTrendAwaitingParams
+  const quantityTimeXAxisLabel =
+    quantityTimeScaleTab === 'day' ? 'Day' : quantityTimeScaleTab === 'week' ? 'Week' : 'Month'
+  const resolvedTimeXAxisLabel =
+    metric === 'quantity' && viewBy === 'time' ? quantityTimeXAxisLabel : timeXAxisLabel
 
   return (
     <Box
@@ -77,14 +85,59 @@ export function PerformanceChartCard({
         <Text textStyle="bodyText3" fontWeight="400">
           {title}
         </Text>
-        <ViewBySelect
-          ariaLabel={viewByAriaLabel}
-          value={viewBy}
-          onChange={onViewByChange}
-          color={selectColor}
-          borderColor={selectBorderColor}
-          disabled={isSelectDisabled}
-        />
+        <Flex align="center" gap="8px">
+          {metric === 'quantity' && viewBy === 'time' && onQuantityTimeScaleTabChange ? (
+            <Flex
+              align="center"
+              bg="#F4F4F5"
+              borderRadius="999px"
+              p="4px"
+              gap="4px"
+              aria-label="Quantity time scale tabs"
+            >
+              {[
+                { key: 'day', label: 'D' },
+                { key: 'week', label: 'W' },
+                { key: 'month', label: 'M' },
+              ].map((item) => {
+                const isActive = quantityTimeScaleTab === item.key
+                return (
+                  <Box
+                    as="button"
+                    key={item.key}
+                    type="button"
+                    h="32px"
+                    minW="44px"
+                    px="12px"
+                    borderRadius="999px"
+                    bg={isActive ? 'white' : 'transparent'}
+                    color="neutral.900"
+                    textStyle="bodyText5"
+                    fontWeight={isActive ? '600' : '500'}
+                    onClick={() =>
+                      onQuantityTimeScaleTabChange(item.key as 'day' | 'week' | 'month')
+                    }
+                  >
+                    {item.label}
+                  </Box>
+                )
+              })}
+            </Flex>
+          ) : null}
+          <ViewBySelect
+            ariaLabel={viewByAriaLabel}
+            value={viewBy}
+            onChange={(value) => {
+              if (metric === 'quantity' && value === 'time' && onQuantityTimeScaleTabChange) {
+                onQuantityTimeScaleTabChange('day')
+              }
+              onViewByChange(value)
+            }}
+            color={selectColor}
+            borderColor={selectBorderColor}
+            disabled={isSelectDisabled}
+          />
+        </Flex>
       </Flex>
       <Box flex="1" minH={0}>
         {viewBy === 'geography' ? (
@@ -115,7 +168,7 @@ export function PerformanceChartCard({
             data={timeTrendData}
             height="100%"
             isPercent={isTimeTrendPercent}
-            xAxisLabel={timeXAxisLabel}
+            xAxisLabel={resolvedTimeXAxisLabel}
             yAxisLabel={timeYAxisLabel ?? yAxisLabel}
             seriesName={seriesName}
           />
