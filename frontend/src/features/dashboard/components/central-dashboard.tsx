@@ -2196,6 +2196,7 @@ export function CentralDashboard() {
             <IndiaMapChart
               data={mapChartData}
               isLoading={isMapDataLoading}
+              disableHoverEffect={isCentralLandingView}
               mapName={
                 isCentralLandingView
                   ? 'india'

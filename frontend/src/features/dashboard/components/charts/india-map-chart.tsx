@@ -21,6 +21,7 @@ interface IndiaMapChartProps {
   mapName?: string
   fallbackToIndiaMap?: boolean
   usePrimaryFill?: boolean
+  disableHoverEffect?: boolean
 }
 
 export function IndiaMapChart({
@@ -33,6 +34,7 @@ export function IndiaMapChart({
   mapName = 'india',
   fallbackToIndiaMap = true,
   usePrimaryFill = false,
+  disableHoverEffect = false,
 }: IndiaMapChartProps) {
   const theme = useTheme()
   const [isBelow500] = useMediaQuery('(max-width: 499.98px)')
@@ -125,11 +127,13 @@ export function IndiaMapChart({
       itemStyle: {
         areaColor: resolveAreaColor(state[metricKey]),
       },
-      emphasis: {
-        itemStyle: {
-          areaColor: getHoverRangeColor(state[metricKey]),
-        },
-      },
+      emphasis: disableHoverEffect
+        ? undefined
+        : {
+            itemStyle: {
+              areaColor: getHoverRangeColor(state[metricKey]),
+            },
+          },
       metrics: {
         coverage: state.coverage,
         regularity: state.regularity,
@@ -196,16 +200,20 @@ export function IndiaMapChart({
             borderColor: '#fff',
             borderWidth: 1,
           },
-          emphasis: {
-            itemStyle: {
-              borderWidth: 2,
-            },
-            label: {
-              show: !isIndiaMap,
-              fontSize: 12,
-              fontWeight: 'bold',
-            },
-          },
+          emphasis: disableHoverEffect
+            ? {
+                disabled: true,
+              }
+            : {
+                itemStyle: {
+                  borderWidth: 2,
+                },
+                label: {
+                  show: !isIndiaMap,
+                  fontSize: 12,
+                  fontWeight: 'bold',
+                },
+              },
         },
       ],
     }
@@ -219,6 +227,7 @@ export function IndiaMapChart({
     getHoverRangeColor,
     resolveAreaColor,
     usePrimaryFill,
+    disableHoverEffect,
   ])
 
   const bodyText6 = getBodyText6Style(theme)
@@ -316,20 +325,22 @@ export function IndiaMapChart({
     })
 
     // Register hover event
-    chart.on('mouseover', (params: unknown) => {
-      const p = params as {
-        data?: {
-          stateId: string
-          name: string
+    if (!disableHoverEffect) {
+      chart.on('mouseover', (params: unknown) => {
+        const p = params as {
+          data?: {
+            stateId: string
+            name: string
+          }
         }
-      }
-      if (p.data?.stateId && onStateHover) {
-        const stateData = data.find((d) => d.id === p.data?.stateId) ?? undefined
-        if (stateData) {
-          onStateHover(p.data.stateId, p.data.name, stateData)
+        if (p.data?.stateId && onStateHover) {
+          const stateData = data.find((d) => d.id === p.data?.stateId) ?? undefined
+          if (stateData) {
+            onStateHover(p.data.stateId, p.data.name, stateData)
+          }
         }
-      }
-    })
+      })
+    }
   }
 
   return (
