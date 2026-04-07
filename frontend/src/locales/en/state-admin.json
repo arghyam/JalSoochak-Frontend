@@ -322,7 +322,8 @@
         "selectDuration": "Select Duration",
         "selectTemplate": "Select Message Template",
         "send": "Send",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "close": "Close"
       },
       "messages": {
         "success": "Message broadcast successfully",

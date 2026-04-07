@@ -17,6 +17,7 @@ import {
 import { SearchIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { FiUpload } from 'react-icons/fi'
+import { TbBroadcast } from 'react-icons/tb'
 import { TotalStaffIcon, PumpOperatorIcon, TotalAdminsIcon } from '../overview/overview-icons'
 import {
   DataTable,
@@ -337,6 +338,11 @@ export function StaffSyncPage() {
             aria-label={t('staffSync.broadcast.aria.broadcast')}
             onClick={() => setIsBroadcastOpen(true)}
           >
+            <TbBroadcast
+              aria-hidden="true"
+              size={16}
+              style={{ marginRight: '4px', flexShrink: 0 }}
+            />
             {t('staffSync.broadcast.button')}
           </Button>
           <Button

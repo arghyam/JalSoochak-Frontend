@@ -1,10 +1,21 @@
 import { useState } from 'react'
-import { Button, Flex, FormControl, FormLabel, Text, VStack } from '@chakra-ui/react'
+import {
+  Button,
+  Flex,
+  FormControl,
+  FormLabel,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalOverlay,
+  SimpleGrid,
+  Text,
+} from '@chakra-ui/react'
+import { FiX } from 'react-icons/fi'
 import { useTranslation } from 'react-i18next'
 import {
   DateRangePicker,
-  Dialog,
-  MultiSearchableSelect,
+  MultiSelect,
   SearchableSelect,
   ToastContainer,
 } from '@/shared/components/common'
@@ -38,6 +49,7 @@ export function BroadcastModal({ isOpen, onClose }: BroadcastModalProps) {
     selectedRoles.length > 0 && selectedDuration !== null && selectedTemplate !== ''
 
   const handleClose = () => {
+    if (isPending) return
     setSelectedRoles([])
     setSelectedDuration(null)
     setSelectedTemplate('')
@@ -68,93 +80,111 @@ export function BroadcastModal({ isOpen, onClose }: BroadcastModalProps) {
 
   return (
     <>
-      <Dialog
-        open={isOpen}
-        onClose={handleClose}
-        title={t('staffSync.broadcast.modal.title')}
-        maxWidth="md"
-      >
-        <VStack spacing={5} align="stretch">
-          {/* Select Role */}
-          <FormControl>
-            <FormLabel mb={1}>
-              <Text fontSize="sm" fontWeight="500" color="neutral.700">
-                {t('staffSync.broadcast.modal.selectRole')}
+      <Modal isOpen={isOpen} onClose={handleClose} isCentered>
+        <ModalOverlay bg="blackAlpha.600" />
+        <ModalContent maxW="640px" borderRadius="12px" p={6}>
+          <ModalBody p={0}>
+            {/* Header */}
+            <Flex justify="space-between" align="center" mb={5}>
+              <Text textStyle="h6" fontWeight="600">
+                {t('staffSync.broadcast.modal.title')}
               </Text>
-            </FormLabel>
-            <MultiSearchableSelect
-              options={ROLE_OPTIONS}
-              value={selectedRoles}
-              onChange={setSelectedRoles}
-              placeholder={t('staffSync.broadcast.modal.selectRole')}
-              width="100%"
-              height="40px"
-              borderRadius="6px"
-              fontSize="sm"
-              ariaLabel={t('staffSync.broadcast.modal.selectRole')}
-              required
-            />
-          </FormControl>
+              <Button
+                variant="ghost"
+                size="sm"
+                p={1}
+                minW="auto"
+                h="auto"
+                onClick={handleClose}
+                aria-label={t('staffSync.broadcast.modal.close')}
+                isDisabled={isPending}
+              >
+                <FiX size={18} />
+              </Button>
+            </Flex>
 
-          {/* Select Duration */}
-          <FormControl>
-            <FormLabel mb={1}>
-              <Text fontSize="sm" fontWeight="500" color="neutral.700">
-                {t('staffSync.broadcast.modal.selectDuration')}
-              </Text>
-            </FormLabel>
-            <DateRangePicker
-              value={selectedDuration}
-              onChange={setSelectedDuration}
-              placeholder={t('staffSync.broadcast.modal.selectDuration')}
-              width="100%"
-              height="40px"
-              borderRadius="6px"
-              fontSize="sm"
-              textColor="neutral.700"
-              borderColor="neutral.300"
-              isFilter={false}
-            />
-          </FormControl>
+            {/* Fields — 2-column grid */}
+            <SimpleGrid columns={2} spacing={4} mb={2}>
+              {/* Select Role */}
+              <FormControl>
+                <FormLabel mb={1.5}>
+                  <Text textStyle="h10" fontWeight="500" color="neutral.700">
+                    {t('staffSync.broadcast.modal.selectRole')}
+                  </Text>
+                </FormLabel>
+                <MultiSelect
+                  options={ROLE_OPTIONS}
+                  value={selectedRoles}
+                  onChange={setSelectedRoles}
+                  placeholder={t('staffSync.broadcast.modal.selectRole')}
+                  width="100%"
+                  height="40px"
+                  borderRadius="6px"
+                  fontSize="sm"
+                  ariaLabel={t('staffSync.broadcast.modal.selectRole')}
+                />
+              </FormControl>
 
-          {/* Select Message Template */}
-          <FormControl>
-            <FormLabel mb={1}>
-              <Text fontSize="sm" fontWeight="500" color="neutral.700">
-                {t('staffSync.broadcast.modal.selectTemplate')}
-              </Text>
-            </FormLabel>
-            <SearchableSelect
-              options={TEMPLATE_OPTIONS}
-              value={selectedTemplate}
-              onChange={setSelectedTemplate}
-              placeholder={t('staffSync.broadcast.modal.selectTemplate')}
-              width="100%"
-              height="40px"
-              borderRadius="6px"
-              fontSize="sm"
-              ariaLabel={t('staffSync.broadcast.modal.selectTemplate')}
-              required
-            />
-          </FormControl>
+              {/* Select Duration */}
+              <FormControl>
+                <FormLabel mb={1.5}>
+                  <Text textStyle="h10" fontWeight="500" color="neutral.700">
+                    {t('staffSync.broadcast.modal.selectDuration')}
+                  </Text>
+                </FormLabel>
+                <DateRangePicker
+                  value={selectedDuration}
+                  onChange={setSelectedDuration}
+                  placeholder={t('staffSync.broadcast.modal.selectDuration')}
+                  width="100%"
+                  height="40px"
+                  borderRadius="6px"
+                  fontSize="sm"
+                  textColor="neutral.500"
+                  borderColor="neutral.300"
+                  isFilter={false}
+                />
+              </FormControl>
 
-          {/* Actions */}
-          <Flex justify="flex-end" gap={3} pt={2}>
-            <Button variant="ghost" size="sm" onClick={handleClose} isDisabled={isPending}>
-              {t('staffSync.broadcast.modal.cancel')}
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              isDisabled={!isSendEnabled}
-              isLoading={isPending}
-              onClick={handleSend}
-            >
-              {t('staffSync.broadcast.modal.send')}
-            </Button>
-          </Flex>
-        </VStack>
-      </Dialog>
+              {/* Select Message Template — spans full width */}
+              <FormControl gridColumn="span 1">
+                <FormLabel mb={1.5}>
+                  <Text textStyle="h10" fontWeight="500" color="neutral.700">
+                    {t('staffSync.broadcast.modal.selectTemplate')}
+                  </Text>
+                </FormLabel>
+                <SearchableSelect
+                  options={TEMPLATE_OPTIONS}
+                  value={selectedTemplate}
+                  onChange={setSelectedTemplate}
+                  placeholder={t('staffSync.broadcast.modal.selectTemplate')}
+                  width="100%"
+                  height="40px"
+                  borderRadius="6px"
+                  fontSize="sm"
+                  ariaLabel={t('staffSync.broadcast.modal.selectTemplate')}
+                />
+              </FormControl>
+            </SimpleGrid>
+
+            {/* Footer */}
+            <Flex gap={3} mt={6} justify="flex-end">
+              <Button variant="secondary" size="sm" onClick={handleClose} isDisabled={isPending}>
+                {t('staffSync.broadcast.modal.cancel')}
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                isLoading={isPending}
+                isDisabled={!isSendEnabled}
+                onClick={handleSend}
+              >
+                {t('staffSync.broadcast.modal.send')}
+              </Button>
+            </Flex>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </>
   )
