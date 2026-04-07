@@ -34,7 +34,27 @@
     "overview": {
       "heading": "अवलोकन",
       "comingSoon": "जल्द आ रहा है",
-      "subtitle": "अवलोकन पृष्ठ निर्माणाधीन है।"
+      "subtitle": "अवलोकन पृष्ठ निर्माणाधीन है।",
+      "stats": {
+        "totalSchemes": "कुल योजनाओं की संख्या",
+        "quantityMld": "मात्रा (MLD में)",
+        "anomaliesFlagged": "चिह्नित विसंगतियां",
+        "escalations": "एस्कलेशन"
+      },
+      "charts": {
+        "outageReasons": {
+          "title": "आउटेज के कारण",
+          "xAxisLabel": "तारीख"
+        },
+        "nonSubmissionReasons": {
+          "title": "गैर-प्रस्तुति के कारण",
+          "xAxisLabel": "तारीख"
+        },
+        "submissionStatus": {
+          "title": "प्रस्तुति स्थिति",
+          "xAxisLabel": "तारीख"
+        }
+      }
     },
     "schemes": {
       "heading": "योजनाएं",

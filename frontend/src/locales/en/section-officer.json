@@ -34,7 +34,27 @@
     "overview": {
       "heading": "Overview",
       "comingSoon": "Coming Soon",
-      "subtitle": "The Overview page is under construction."
+      "subtitle": "The Overview page is under construction.",
+      "stats": {
+        "totalSchemes": "Total No. of Schemes",
+        "quantityMld": "Quantity in MLD",
+        "anomaliesFlagged": "Anomalies Flagged",
+        "escalations": "Escalations"
+      },
+      "charts": {
+        "outageReasons": {
+          "title": "Outage Reasons",
+          "xAxisLabel": "Date"
+        },
+        "nonSubmissionReasons": {
+          "title": "Non-Submission Reasons",
+          "xAxisLabel": "Date"
+        },
+        "submissionStatus": {
+          "title": "Submission Status",
+          "xAxisLabel": "Date"
+        }
+      }
     },
     "schemes": {
       "heading": "Schemes",

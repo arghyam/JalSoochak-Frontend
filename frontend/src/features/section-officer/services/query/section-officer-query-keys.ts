@@ -91,6 +91,14 @@ export const sectionOfficerQueryKeys = {
       startDate,
       endDate,
     ] as const,
+  schemesCount: (personId: string, tenantCode: string) =>
+    [...sectionOfficerQueryKeys.all, 'schemes-count', personId, tenantCode] as const,
+  outageReasons: (startDate: string, endDate: string) =>
+    [...sectionOfficerQueryKeys.all, 'outage-reasons', startDate, endDate] as const,
+  nonSubmissionReasons: (startDate: string, endDate: string) =>
+    [...sectionOfficerQueryKeys.all, 'non-submission-reasons', startDate, endDate] as const,
+  submissionStatus: (startDate: string, endDate: string) =>
+    [...sectionOfficerQueryKeys.all, 'submission-status', startDate, endDate] as const,
   escalationsList: (
     userId: string,
     tenantId: string,
