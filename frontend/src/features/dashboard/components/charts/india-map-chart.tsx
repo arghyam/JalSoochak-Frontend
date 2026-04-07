@@ -67,9 +67,21 @@ export function IndiaMapChart({
       gte30: resolveThemeColor('#FFB433'),
       gte0: resolveThemeColor('#FF5C5C'),
       noData: resolveThemeColor('#D1D1D6'),
-      emphasis: resolveThemeColor('primary.50'),
     }),
     [resolveThemeColor]
+  )
+  const hoverColors = useMemo(
+    () => ({
+      // Manual placeholders: set your own hover colors per legend bucket.
+      // Example: gte90: '#84BDE3'
+      gte90: '#3291D1',
+      gte70: '#38962C',
+      gte50: '#FFB433',
+      gte30: '#CC8100',
+      gte0: '#C73131',
+      noData: '#A0A0AB',
+    }),
+    []
   )
   const primaryMapColor = resolveThemeColor('primary.500')
   const quantityLabel = t('map.metric.quantity', { defaultValue: 'Quantity' })
@@ -90,6 +102,17 @@ export function IndiaMapChart({
     (value: number) => (usePrimaryFill ? primaryMapColor : getRangeColor(value)),
     [getRangeColor, primaryMapColor, usePrimaryFill]
   )
+  const getHoverRangeColor = useCallback(
+    (value: number) => {
+      if (value >= 90) return hoverColors.gte90 || mapColors.gte90
+      if (value >= 70) return hoverColors.gte70 || mapColors.gte70
+      if (value >= 50) return hoverColors.gte50 || mapColors.gte50
+      if (value >= 30) return hoverColors.gte30 || mapColors.gte30
+      if (value >= 0) return hoverColors.gte0 || mapColors.gte0
+      return hoverColors.noData || mapColors.noData
+    },
+    [hoverColors, mapColors]
+  )
 
   const option = useMemo<echarts.EChartsOption>(() => {
     const isIndiaMap = (effectiveMapName ?? mapName) === 'india'
@@ -101,6 +124,11 @@ export function IndiaMapChart({
       status: state.status,
       itemStyle: {
         areaColor: resolveAreaColor(state[metricKey]),
+      },
+      emphasis: {
+        itemStyle: {
+          areaColor: getHoverRangeColor(state[metricKey]),
+        },
       },
       metrics: {
         coverage: state.coverage,
@@ -168,21 +196,16 @@ export function IndiaMapChart({
             borderColor: '#fff',
             borderWidth: 1,
           },
-          emphasis: isIndiaMap
-            ? {
-                disabled: true,
-              }
-            : {
-                itemStyle: {
-                  areaColor: mapColors.emphasis,
-                  borderWidth: 2,
-                },
-                label: {
-                  show: true,
-                  fontSize: 12,
-                  fontWeight: 'bold',
-                },
-              },
+          emphasis: {
+            itemStyle: {
+              borderWidth: 2,
+            },
+            label: {
+              show: !isIndiaMap,
+              fontSize: 12,
+              fontWeight: 'bold',
+            },
+          },
         },
       ],
     }
@@ -192,8 +215,8 @@ export function IndiaMapChart({
     effectiveMapName,
     mapName,
     primaryMapColor,
-    mapColors.emphasis,
-    mapColors.gte90,
+    mapColors,
+    getHoverRangeColor,
     resolveAreaColor,
     usePrimaryFill,
   ])
