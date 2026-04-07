@@ -44,11 +44,16 @@ export function OutageTimeScaleToggle({ value, onChange, ariaLabel }: OutageTime
     >
       {OUTAGE_TIME_SCALES.map((key) => {
         const isActive = value === key
+        const fullLabel = t(`outageAndSubmissionCharts.timeScale.${key}`, {
+          defaultValue: key === 'day' ? 'Daily' : key === 'week' ? 'Weekly' : 'Monthly',
+        })
         return (
           <Box
             as="button"
             key={key}
             type="button"
+            aria-label={fullLabel}
+            aria-pressed={isActive}
             h="32px"
             minW="44px"
             px="12px"

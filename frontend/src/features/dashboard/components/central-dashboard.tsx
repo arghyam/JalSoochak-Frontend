@@ -820,16 +820,9 @@ export function CentralDashboard() {
       toIsoDate(effectiveSelectedDuration?.endDate, durationDateFormat) ??
       defaultAnalyticsRange.endDate,
   }
-  const selectedQuantityApiScale: 'day' | 'week' | 'month' =
-    quantityTimeScaleTab === 'week' ? 'week' : quantityTimeScaleTab === 'day' ? 'day' : 'month'
-  const selectedRegularityApiScale: 'day' | 'week' | 'month' =
-    regularityTimeScaleTab === 'week' ? 'week' : regularityTimeScaleTab === 'day' ? 'day' : 'month'
-  const selectedOutageApiScale: 'day' | 'week' | 'month' =
-    outageDistributionTimeScaleTab === 'week'
-      ? 'week'
-      : outageDistributionTimeScaleTab === 'day'
-        ? 'day'
-        : 'month'
+  const selectedQuantityApiScale: QuantityTimeScaleTab = quantityTimeScaleTab
+  const selectedRegularityApiScale: QuantityTimeScaleTab = regularityTimeScaleTab
+  const selectedOutageApiScale: QuantityTimeScaleTab = outageDistributionTimeScaleTab
   const quantityPeriodicAnalyticsParams = !hasValidAnalyticsParentId
     ? null
     : hierarchyType === 'LGD'

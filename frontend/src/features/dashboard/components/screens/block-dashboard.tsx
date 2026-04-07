@@ -234,7 +234,11 @@ export function BlockDashboardScreen({
                 })}
                 value={outageDistributionViewBy}
                 onChange={(value) => {
-                  if (value === 'time' && onOutageDistributionTimeScaleTabChange) {
+                  if (
+                    value === 'time' &&
+                    onOutageDistributionTimeScaleTabChange &&
+                    !outageDistributionTimeScaleTab
+                  ) {
                     onOutageDistributionTimeScaleTabChange('day')
                   }
                   setOutageDistributionViewBy(value)
