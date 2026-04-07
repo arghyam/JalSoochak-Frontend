@@ -3,6 +3,14 @@ import { useAuthStore } from '@/app/store/auth-store'
 import { escalationsApi } from '../api/escalations-api'
 import { sectionOfficerQueryKeys } from './section-officer-query-keys'
 
+export function useEscalationStatusesQuery() {
+  return useQuery({
+    queryKey: sectionOfficerQueryKeys.escalationStatuses(),
+    queryFn: () => escalationsApi.getEscalationStatuses(),
+    staleTime: Infinity,
+  })
+}
+
 export function useEscalationsListQuery(
   page: number,
   pageSize: number,

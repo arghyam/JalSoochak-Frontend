@@ -1,5 +1,8 @@
 import { apiClient } from '@/shared/lib/axios'
-import type { EscalationsListResponse } from '../../types/anomalies-escalations'
+import type {
+  EscalationsListResponse,
+  StatusOptionsResponse,
+} from '../../types/anomalies-escalations'
 
 export interface GetEscalationsParams {
   userId: string
@@ -22,11 +25,18 @@ export const escalationsApi = {
         page_number: page,
         limit,
         ...(schemeName ? { scheme_name: schemeName } : {}),
-        ...(status ? { status } : {}),
+        ...(status ? { resolution_status: status } : {}),
         ...(startDate ? { start_date: startDate } : {}),
         ...(endDate ? { end_date: endDate } : {}),
       },
     })
+    return response.data
+  },
+
+  getEscalationStatuses: async (): Promise<StatusOptionsResponse> => {
+    const response = await apiClient.get<StatusOptionsResponse>(
+      '/api/v1/analytics/escalations/statuses'
+    )
     return response.data
   },
 }

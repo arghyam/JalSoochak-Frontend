@@ -21,7 +21,10 @@ import {
   StatusChip,
 } from '@/shared/components/common'
 import type { DataTableColumn, DateRange } from '@/shared/components/common'
-import { useEscalationsListQuery } from '../../services/query/use-escalations-queries'
+import {
+  useEscalationsListQuery,
+  useEscalationStatusesQuery,
+} from '../../services/query/use-escalations-queries'
 import { formatTimestamp } from '../../services/api/schemes-api'
 import type { EscalationItem } from '../../types/anomalies-escalations'
 
@@ -71,6 +74,13 @@ export function StaffEscalationsPage() {
     setDateRange(null)
     setPage(1)
   }
+
+  const { data: statusesData } = useEscalationStatusesQuery()
+
+  const statusOptions = (statusesData?.data ?? []).map((s) => ({
+    value: String(s.code),
+    label: s.label,
+  }))
 
   const { data, isLoading, isFetching, isError, refetch } = useEscalationsListQuery(
     page,
@@ -210,7 +220,7 @@ export function StaffEscalationsPage() {
         </InputGroup>
 
         <SearchableSelect
-          options={[]}
+          options={statusOptions}
           value={statusFilter}
           onChange={(val) => {
             setStatusFilter(val)

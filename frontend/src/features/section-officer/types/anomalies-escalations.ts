@@ -1,3 +1,13 @@
+export interface StatusOption {
+  code: number
+  label: string
+}
+
+export interface StatusOptionsResponse {
+  success: boolean
+  data: StatusOption[]
+}
+
 export interface AnomalyItem extends Record<string, unknown> {
   id: number
   uuid: string

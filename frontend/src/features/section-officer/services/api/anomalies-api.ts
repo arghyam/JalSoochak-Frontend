@@ -1,5 +1,8 @@
 import { apiClient } from '@/shared/lib/axios'
-import type { AnomaliesListResponse } from '../../types/anomalies-escalations'
+import type {
+  AnomaliesListResponse,
+  StatusOptionsResponse,
+} from '../../types/anomalies-escalations'
 
 export interface GetAnomaliesParams {
   userId: string
@@ -27,6 +30,13 @@ export const anomaliesApi = {
         ...(endDate ? { end_date: endDate } : {}),
       },
     })
+    return response.data
+  },
+
+  getAnomalyStatuses: async (): Promise<StatusOptionsResponse> => {
+    const response = await apiClient.get<StatusOptionsResponse>(
+      '/api/v1/analytics/anomalies/statuses'
+    )
     return response.data
   },
 }

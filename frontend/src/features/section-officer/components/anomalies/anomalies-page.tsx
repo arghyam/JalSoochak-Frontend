@@ -21,7 +21,10 @@ import {
   StatusChip,
 } from '@/shared/components/common'
 import type { DataTableColumn, DateRange } from '@/shared/components/common'
-import { useAnomaliesListQuery } from '../../services/query/use-anomalies-queries'
+import {
+  useAnomaliesListQuery,
+  useAnomalyStatusesQuery,
+} from '../../services/query/use-anomalies-queries'
 import { formatTimestamp } from '../../services/api/schemes-api'
 import type { AnomalyItem } from '../../types/anomalies-escalations'
 
@@ -71,6 +74,13 @@ export function AnomaliesPage() {
     setDateRange(null)
     setPage(1)
   }
+
+  const { data: statusesData } = useAnomalyStatusesQuery()
+
+  const statusOptions = (statusesData?.data ?? []).map((s) => ({
+    value: String(s.code),
+    label: s.label,
+  }))
 
   const { data, isLoading, isFetching, isError, refetch } = useAnomaliesListQuery(
     page,
@@ -208,7 +218,7 @@ export function AnomaliesPage() {
         </InputGroup>
 
         <SearchableSelect
-          options={[]}
+          options={statusOptions}
           value={statusFilter}
           onChange={(val) => {
             setStatusFilter(val)

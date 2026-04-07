@@ -82,7 +82,7 @@ describe('escalationsApi.getEscalationsList', () => {
         page_number: 1,
         limit: 10,
         scheme_name: 'Swajal',
-        status: 'Resolved',
+        resolution_status: 'Resolved',
         start_date: '2026-03-01',
         end_date: '2026-04-01',
       },

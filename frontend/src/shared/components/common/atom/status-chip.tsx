@@ -17,6 +17,9 @@ const STATUS_COLOR_MAP: Record<string, { bg: string; color: string }> = {
   suspended: { bg: 'warning.50', color: 'warning.500' },
   degraded: { bg: 'warning.50', color: 'warning.600' },
   archived: { bg: 'neutral.100', color: 'neutral.600' },
+  resolved: { bg: 'success.50', color: 'success.500' },
+  'in-progress': { bg: 'warning.50', color: 'warning.600' },
+  unresolved: { bg: 'error.50', color: 'error.500' },
 }
 
 const DEFAULT_COLORS = { bg: 'neutral.100', color: 'neutral.600' }

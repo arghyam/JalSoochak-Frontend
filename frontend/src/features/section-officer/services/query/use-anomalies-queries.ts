@@ -3,6 +3,14 @@ import { useAuthStore } from '@/app/store/auth-store'
 import { anomaliesApi } from '../api/anomalies-api'
 import { sectionOfficerQueryKeys } from './section-officer-query-keys'
 
+export function useAnomalyStatusesQuery() {
+  return useQuery({
+    queryKey: sectionOfficerQueryKeys.anomalyStatuses(),
+    queryFn: () => anomaliesApi.getAnomalyStatuses(),
+    staleTime: Infinity,
+  })
+}
+
 export function useAnomaliesListQuery(
   page: number,
   pageSize: number,
