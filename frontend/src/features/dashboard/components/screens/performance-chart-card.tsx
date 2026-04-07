@@ -94,7 +94,17 @@ export function PerformanceChartCard({
         <Text textStyle="bodyText3" fontWeight="400">
           {title}
         </Text>
-        <Flex align="center" gap="8px">
+        <Flex
+          align="center"
+          gap="8px"
+          sx={{
+            '@media (max-width: 525px)': {
+              flexDirection: 'column-reverse',
+              alignItems: 'flex-end',
+              gap: '6px',
+            },
+          }}
+        >
           {(metric === 'quantity' || metric === 'regularity') &&
           viewBy === 'time' &&
           onTimeScaleTabChange ? (
@@ -105,6 +115,12 @@ export function PerformanceChartCard({
               p="4px"
               gap="4px"
               aria-label={`${metric} time scale tabs`}
+              sx={{
+                '@media (max-width: 525px)': {
+                  p: '2px',
+                  gap: '2px',
+                },
+              }}
             >
               {[
                 { key: 'day', label: 'D' },
@@ -126,6 +142,15 @@ export function PerformanceChartCard({
                     textStyle="bodyText5"
                     fontWeight={isActive ? '600' : '500'}
                     onClick={() => onTimeScaleTabChange(item.key as 'day' | 'week' | 'month')}
+                    sx={{
+                      '@media (max-width: 525px)': {
+                        h: '26px',
+                        minW: '34px',
+                        px: '8px',
+                        fontSize: '12px',
+                        lineHeight: '16px',
+                      },
+                    }}
                   >
                     {item.label}
                   </Box>

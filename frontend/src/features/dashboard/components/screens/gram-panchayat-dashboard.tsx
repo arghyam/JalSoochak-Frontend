@@ -195,9 +195,31 @@ export function GramPanchayatDashboardScreen({
                 defaultValue: 'Supply Outage Distribution',
               })}
             </Text>
-            <Flex align="center" gap="8px">
+            <Flex
+              align="center"
+              gap="8px"
+              sx={{
+                '@media (max-width: 525px)': {
+                  flexDirection: 'column-reverse',
+                  alignItems: 'flex-end',
+                  gap: '6px',
+                },
+              }}
+            >
               {outageDistributionViewBy === 'time' && onOutageDistributionTimeScaleTabChange ? (
-                <Flex align="center" bg="#F4F4F5" borderRadius="999px" p="4px" gap="4px">
+                <Flex
+                  align="center"
+                  bg="#F4F4F5"
+                  borderRadius="999px"
+                  p="4px"
+                  gap="4px"
+                  sx={{
+                    '@media (max-width: 525px)': {
+                      p: '2px',
+                      gap: '2px',
+                    },
+                  }}
+                >
                   {[
                     { key: 'day', label: 'D' },
                     { key: 'week', label: 'W' },
@@ -221,6 +243,15 @@ export function GramPanchayatDashboardScreen({
                             item.key as 'day' | 'week' | 'month'
                           )
                         }
+                        sx={{
+                          '@media (max-width: 525px)': {
+                            h: '26px',
+                            minW: '34px',
+                            px: '8px',
+                            fontSize: '12px',
+                            lineHeight: '16px',
+                          },
+                        }}
                       >
                         {item.label}
                       </Box>
