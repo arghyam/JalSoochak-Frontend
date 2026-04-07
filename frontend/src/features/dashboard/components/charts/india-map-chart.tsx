@@ -404,19 +404,28 @@ export function IndiaMapChart({
       </div>
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: isBelow500 ? 'repeat(3, minmax(0, 1fr))' : 'repeat(6, max-content)',
+          display: 'flex',
+          flexWrap: 'wrap',
           alignItems: 'center',
           justifyContent: 'center',
-          justifyItems: isBelow500 ? 'start' : 'center',
-          columnGap: isBelow500 ? '12px' : '16px',
-          rowGap: isBelow500 ? '6px' : '0px',
+          gap: isBelow500 ? '6px 12px' : '0px 16px',
           paddingTop: '8px',
           width: '100%',
+          maxWidth: '100%',
+          overflow: 'hidden',
         }}
       >
         {legendItems.map((item) => (
-          <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div
+            key={item.label}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              minWidth: isBelow500 ? 'calc(33.333% - 12px)' : undefined,
+              justifyContent: isBelow500 ? 'flex-start' : 'center',
+            }}
+          >
             <span
               aria-hidden="true"
               style={{
@@ -433,6 +442,7 @@ export function IndiaMapChart({
                 lineHeight: `${bodyText6.lineHeight}px`,
                 fontWeight: bodyText6.fontWeight,
                 color: bodyText6.color,
+                whiteSpace: 'nowrap',
               }}
             >
               {item.label}
