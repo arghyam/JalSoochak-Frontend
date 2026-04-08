@@ -227,7 +227,7 @@ function ChartBoxWithTitle({ title, children }: ChartBoxWithTitleProps) {
       bg="white"
       borderWidth="0.5px"
       borderRadius="12px"
-      borderColor="#E4E4E7"
+      borderColor="neutral.200"
       p={{ base: 4, md: 5 }}
       overflow="hidden"
     >
