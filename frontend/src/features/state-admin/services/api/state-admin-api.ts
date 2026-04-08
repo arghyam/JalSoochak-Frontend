@@ -582,7 +582,7 @@ export const stateAdminApi = {
       if (!VALID_CONFIG_KEYS.has(key) || !VALID_STATUSES.has(val.status)) continue
       result[key as ConfigKey] = {
         status: val.status as ConfigKeyStatus,
-        mandatory: Boolean(val.mandatory),
+        mandatory: val.mandatory ?? true,
       }
     }
     return result

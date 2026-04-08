@@ -14,7 +14,7 @@ import { IoInformation } from 'react-icons/io5'
 import { useTranslation } from 'react-i18next'
 import type { SupplyOutageReason } from '../../types/configuration'
 import { isEmptyOrWhitespace } from '@/shared/utils/validation'
-import { ActionTooltip } from '@/shared/components/common'
+import { ActionTooltip, RequiredIndicator } from '@/shared/components/common'
 
 interface SupplyOutageReasonsSectionProps {
   title: string
@@ -67,16 +67,7 @@ export function SupplyOutageReasonsSection({
       <Flex align="center" gap={1} mb={3}>
         <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" color="neutral.950">
           {title}
-          {required === true && (
-            <Text as="span" color="error.500" ml={1}>
-              *
-            </Text>
-          )}
-          {required === false && (
-            <Text as="span" color="neutral.400" ml={1} fontSize="xs">
-              (Optional)
-            </Text>
-          )}
+          <RequiredIndicator required={required} />
         </Text>
         {infoTooltip && (
           <ActionTooltip label={infoTooltip}>

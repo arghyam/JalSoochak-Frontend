@@ -102,35 +102,39 @@ export function WaterNormsPage() {
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
 
-    const quantity = Number(stateQuantity)
-    if (!stateQuantity || Number.isNaN(quantity) || quantity <= 0) {
-      newErrors.stateQuantity = t('state-admin:validation.mustBePositive')
-    } else if (quantity > MAX_WATER_QUANTITY) {
-      newErrors.stateQuantity = t('state-admin:validation.mustBeInRange', {
-        min: 1,
-        max: MAX_WATER_QUANTITY,
-      })
+    if (isMandatory('WATER_NORM')) {
+      const quantity = Number(stateQuantity)
+      if (!stateQuantity || Number.isNaN(quantity) || quantity <= 0) {
+        newErrors.stateQuantity = t('state-admin:validation.mustBePositive')
+      } else if (quantity > MAX_WATER_QUANTITY) {
+        newErrors.stateQuantity = t('state-admin:validation.mustBeInRange', {
+          min: 1,
+          max: MAX_WATER_QUANTITY,
+        })
+      }
     }
 
-    const oversupply = Number(oversupplyThreshold)
-    if (!oversupplyThreshold || Number.isNaN(oversupply) || oversupply < 0 || oversupply > 1000) {
-      newErrors.oversupplyThreshold = t('state-admin:validation.mustBeInRange', {
-        min: 0,
-        max: 1000,
-      })
-    }
+    if (isMandatory('TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD')) {
+      const oversupply = Number(oversupplyThreshold)
+      if (!oversupplyThreshold || Number.isNaN(oversupply) || oversupply < 0 || oversupply > 1000) {
+        newErrors.oversupplyThreshold = t('state-admin:validation.mustBeInRange', {
+          min: 0,
+          max: 1000,
+        })
+      }
 
-    const undersupply = Number(undersupplyThreshold)
-    if (
-      !undersupplyThreshold ||
-      Number.isNaN(undersupply) ||
-      undersupply < 0 ||
-      undersupply > 100
-    ) {
-      newErrors.undersupplyThreshold = t('state-admin:validation.mustBeInRange', {
-        min: 0,
-        max: 100,
-      })
+      const undersupply = Number(undersupplyThreshold)
+      if (
+        !undersupplyThreshold ||
+        Number.isNaN(undersupply) ||
+        undersupply < 0 ||
+        undersupply > 100
+      ) {
+        newErrors.undersupplyThreshold = t('state-admin:validation.mustBeInRange', {
+          min: 0,
+          max: 100,
+        })
+      }
     }
 
     // Validate district overrides
@@ -162,9 +166,9 @@ export function WaterNormsPage() {
 
     try {
       await saveWaterNormsMutation.mutateAsync({
-        stateQuantity: Number(stateQuantity),
-        oversupplyThreshold: Number(oversupplyThreshold),
-        undersupplyThreshold: Number(undersupplyThreshold),
+        stateQuantity: stateQuantity ? Number(stateQuantity) : null,
+        oversupplyThreshold: oversupplyThreshold ? Number(oversupplyThreshold) : null,
+        undersupplyThreshold: undersupplyThreshold ? Number(undersupplyThreshold) : null,
         districtOverrides,
         isConfigured: true,
       })
