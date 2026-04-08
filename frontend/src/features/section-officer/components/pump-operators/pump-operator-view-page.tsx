@@ -38,12 +38,6 @@ function DetailField({ label, value }: { label: string; value: string }) {
   )
 }
 
-function splitName(fullName: string): { firstName: string; lastName: string } {
-  const idx = fullName.indexOf(' ')
-  if (idx === -1) return { firstName: fullName, lastName: '—' }
-  return { firstName: fullName.slice(0, idx), lastName: fullName.slice(idx + 1) }
-}
-
 export function PumpOperatorViewPage() {
   const { operatorId } = useParams<{ operatorId: string }>()
   const navigate = useNavigate()
@@ -181,8 +175,8 @@ export function PumpOperatorViewPage() {
             Pump Operator Details
           </Heading>
           <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
-            <DetailField label="First name" value={splitName(details.name).firstName} />
-            <DetailField label="Last name" value={splitName(details.name).lastName} />
+            <DetailField label="Name" value={details.name} />
+            <DetailField label="Phone Number" value={details.phoneNumber ?? '—'} />
             <DetailField
               label="Reporting rate"
               value={
