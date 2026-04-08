@@ -251,8 +251,9 @@ export function useSaveEscalationRulesMutation() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (payload: SaveEscalationRulesPayload) => stateAdminApi.saveEscalationRules(payload),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.setQueryData(stateAdminQueryKeys.escalationRules(), data)
+      await queryClient.invalidateQueries({ queryKey: stateAdminQueryKeys.configStatus() })
     },
   })
 }

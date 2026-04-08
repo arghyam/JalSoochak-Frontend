@@ -179,7 +179,7 @@ export function WaterNormsPage() {
       setIsEditing(false)
       setErrors({})
       toast.addToast(t('common:toast.changesSavedShort'), 'success')
-      if (andNavigate) navigate(ROUTES.STATE_ADMIN_INTEGRATION)
+      if (andNavigate) navigate(ROUTES.STATE_ADMIN_ESCALATIONS)
     } catch (error) {
       console.error('Failed to save water norms configuration:', error)
       toast.addToast(t('common:toast.failedToSave'), 'error')

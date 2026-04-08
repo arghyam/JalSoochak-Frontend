@@ -516,7 +516,10 @@
         "channelRequired": "Select at least one supported channel",
         "hierarchyRequired": "All hierarchy level names are required",
         "logoTooLarge": "Logo file must be 2 MB or smaller",
-        "logoInvalidType": "Logo must be a PNG or JPG file"
+        "logoInvalidType": "Logo must be a PNG or JPG file",
+        "logoRequired": "Please upload a logo",
+        "dateFormatScreenRequired": "Please select all date format fields for screen display",
+        "dateFormatTableRequired": "Please select all date format fields for table display"
       }
     }
   },

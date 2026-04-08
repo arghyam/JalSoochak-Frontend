@@ -286,6 +286,31 @@ export function ConfigurationPage() {
       })
     }
 
+    // Logo
+    if (isMandatory('TENANT_LOGO') && !current.logoUrl && !current.logoFile) {
+      newErrors.logo = t('configuration.messages.validation.logoRequired')
+    }
+
+    // Date format screen
+    if (
+      isMandatory('DATE_FORMAT_SCREEN') &&
+      (!current.dateFormatScreen.dateFormat ||
+        !current.dateFormatScreen.timeFormat ||
+        !current.dateFormatScreen.timezone)
+    ) {
+      newErrors.dateFormatScreen = t('configuration.messages.validation.dateFormatScreenRequired')
+    }
+
+    // Date format table
+    if (
+      isMandatory('DATE_FORMAT_TABLE') &&
+      (!current.dateFormatTable.dateFormat ||
+        !current.dateFormatTable.timeFormat ||
+        !current.dateFormatTable.timezone)
+    ) {
+      newErrors.dateFormatTable = t('configuration.messages.validation.dateFormatTableRequired')
+    }
+
     // Time fields
     if (isMandatory('DATA_CONSOLIDATION_TIME') && !current.dataConsolidationTime) {
       newErrors.dataConsolidationTime = t('state-admin:validation.timeRequired')
@@ -823,30 +848,38 @@ export function ConfigurationPage() {
 
                 {/* 8. Screen Date Format + Table Date Format */}
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                  <DateFormatSection
-                    title={t('configuration.sections.dateFormatScreen.title')}
-                    infoTooltip={t('configuration.infoText.dateFormatScreen')}
-                    required={isMandatory('DATE_FORMAT_SCREEN')}
-                    value={activeDraft.dateFormatScreen}
-                    onChange={(val) =>
-                      setDraft((prev) => ({
-                        ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
-                        dateFormatScreen: val,
-                      }))
-                    }
-                  />
-                  <DateFormatSection
-                    title={t('configuration.sections.dateFormatTable.title')}
-                    infoTooltip={t('configuration.infoText.dateFormatTable')}
-                    required={isMandatory('DATE_FORMAT_TABLE')}
-                    value={activeDraft.dateFormatTable}
-                    onChange={(val) =>
-                      setDraft((prev) => ({
-                        ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
-                        dateFormatTable: val,
-                      }))
-                    }
-                  />
+                  <FormControl isInvalid={!!errors.dateFormatScreen}>
+                    <DateFormatSection
+                      title={t('configuration.sections.dateFormatScreen.title')}
+                      infoTooltip={t('configuration.infoText.dateFormatScreen')}
+                      required={isMandatory('DATE_FORMAT_SCREEN')}
+                      value={activeDraft.dateFormatScreen}
+                      onChange={(val) => {
+                        clearError('dateFormatScreen')
+                        setDraft((prev) => ({
+                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                          dateFormatScreen: val,
+                        }))
+                      }}
+                    />
+                    <FormErrorMessage>{errors.dateFormatScreen}</FormErrorMessage>
+                  </FormControl>
+                  <FormControl isInvalid={!!errors.dateFormatTable}>
+                    <DateFormatSection
+                      title={t('configuration.sections.dateFormatTable.title')}
+                      infoTooltip={t('configuration.infoText.dateFormatTable')}
+                      required={isMandatory('DATE_FORMAT_TABLE')}
+                      value={activeDraft.dateFormatTable}
+                      onChange={(val) => {
+                        clearError('dateFormatTable')
+                        setDraft((prev) => ({
+                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                          dateFormatTable: val,
+                        }))
+                      }}
+                    />
+                    <FormErrorMessage>{errors.dateFormatTable}</FormErrorMessage>
+                  </FormControl>
                 </SimpleGrid>
 
                 {/* 9. Average Members Per Household */}
