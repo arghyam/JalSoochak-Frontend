@@ -2,6 +2,7 @@ import { apiClient } from '@/shared/lib/axios'
 import type { WaterSupplyOutageData, EntityPerformance } from '@/features/dashboard/types'
 import type {
   SchemesCountResponse,
+  DashboardStatsResponse,
   OutageReasonsResponse,
   NonSubmissionReasonsResponse,
   SubmissionStatusResponse,
@@ -91,6 +92,14 @@ export const overviewApi = {
     const response = await apiClient.get<ApiEnvelope<SchemesCountResponse>>(
       `/api/v1/pumpoperator/person/${personId}/schemes/count`,
       { params: { tenantCode } }
+    )
+    return response.data.data
+  },
+
+  getDashboardStats: async (tenantId: string, userId: string): Promise<DashboardStatsResponse> => {
+    const response = await apiClient.get<ApiEnvelope<DashboardStatsResponse>>(
+      '/api/v1/analytics/officer/dashboard',
+      { params: { tenant_id: tenantId, user_id: userId } }
     )
     return response.data.data
   },

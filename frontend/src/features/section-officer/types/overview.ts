@@ -2,6 +2,12 @@ export interface SchemesCountResponse {
   schemeCount: number
 }
 
+export interface DashboardStatsResponse {
+  totalEscalationCount: number
+  totalAnomalyCount: number
+  totalWaterSupplied: number
+}
+
 export interface OutageReasonsResponse {
   userId: number
   startDate: string

@@ -13,6 +13,7 @@ import {
 import { SupplyOutageDistributionChart } from '@/shared/components/charts/supply-outage-distribution-chart'
 import {
   useSchemesCountQuery,
+  useDashboardStatsQuery,
   useOutageReasonsQuery,
   useNonSubmissionReasonsQuery,
   useSubmissionStatusQuery,
@@ -36,6 +37,7 @@ export function StaffOverviewPage() {
   const [dateRange, setDateRange] = useState<DateRange>(() => getDefaultDateRange())
 
   const { data: schemesCountData, isLoading: isSchemesCountLoading } = useSchemesCountQuery()
+  const { data: dashboardStatsData, isLoading: isDashboardStatsLoading } = useDashboardStatsQuery()
 
   const {
     data: outageReasonsData,
@@ -60,6 +62,15 @@ export function StaffOverviewPage() {
   }, [t])
 
   const schemeCount = isSchemesCountLoading ? '…' : String(schemesCountData?.schemeCount ?? 0)
+  const waterSupplied = isDashboardStatsLoading
+    ? '…'
+    : String(dashboardStatsData?.totalWaterSupplied ?? 0)
+  const anomaliesFlagged = isDashboardStatsLoading
+    ? '…'
+    : String(dashboardStatsData?.totalAnomalyCount ?? 0)
+  const escalations = isDashboardStatsLoading
+    ? '…'
+    : String(dashboardStatsData?.totalEscalationCount ?? 0)
 
   const statsCards = [
     {
@@ -71,21 +82,21 @@ export function StaffOverviewPage() {
     },
     {
       title: t('pages.overview.stats.quantityMld'),
-      value: '—',
+      value: waterSupplied,
       icon: MdOutlineWaterDrop,
       iconBg: '#EBF4FA',
       iconColor: '#3291D1',
     },
     {
       title: t('pages.overview.stats.anomaliesFlagged'),
-      value: '—',
+      value: anomaliesFlagged,
       icon: IoCloseCircleOutline,
       iconBg: '#FEF3C7',
       iconColor: '#D97706',
     },
     {
       title: t('pages.overview.stats.escalations'),
-      value: '—',
+      value: escalations,
       icon: MdOutlineTrendingUp,
       iconBg: '#FEE2E2',
       iconColor: '#DC2626',
@@ -130,78 +141,93 @@ export function StaffOverviewPage() {
           ))}
         </SimpleGrid>
 
-        {/* Row 1: Outage Reasons */}
-        <ChartRow title={t('pages.overview.charts.outageReasons.title')}>
-          <ChartCell isLoading={isOutageReasonsLoading} isError={isOutageReasonsError}>
-            <SupplyOutageReasonsChart
-              data={outageReasonsData?.pieData ?? []}
-              height={CHART_HEIGHT}
-              pieSize={PIE_SIZE}
-            />
-          </ChartCell>
-          <ChartCell isLoading={isOutageReasonsLoading} isError={isOutageReasonsError}>
-            <SupplyOutageDistributionChart
-              data={outageReasonsData?.histogramData ?? []}
-              height={CHART_HEIGHT}
-              xAxisLabel={t('pages.overview.charts.outageReasons.xAxisLabel')}
-            />
-          </ChartCell>
-        </ChartRow>
+        {/* Charts Grid */}
+        <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={{ base: 4, md: 6 }}>
+          {/* Outage Reasons - Pie Chart */}
+          <ChartBoxWithTitle title={t('pages.overview.charts.outageReasons.pieTitle')}>
+            <ChartCell isLoading={isOutageReasonsLoading} isError={isOutageReasonsError}>
+              <SupplyOutageReasonsChart
+                data={outageReasonsData?.pieData ?? []}
+                height={CHART_HEIGHT}
+                pieSize={PIE_SIZE}
+              />
+            </ChartCell>
+          </ChartBoxWithTitle>
 
-        {/* Row 2: Non-Submission Reasons */}
-        <ChartRow title={t('pages.overview.charts.nonSubmissionReasons.title')}>
-          <ChartCell isLoading={isNonSubmissionLoading} isError={isNonSubmissionError}>
-            <SupplyOutageReasonsChart
-              data={nonSubmissionData?.pieData ?? []}
-              height={CHART_HEIGHT}
-              pieSize={PIE_SIZE}
-            />
-          </ChartCell>
-          <ChartCell isLoading={isNonSubmissionLoading} isError={isNonSubmissionError}>
-            <SupplyOutageDistributionChart
-              data={nonSubmissionData?.histogramData ?? []}
-              height={CHART_HEIGHT}
-              xAxisLabel={t('pages.overview.charts.nonSubmissionReasons.xAxisLabel')}
-            />
-          </ChartCell>
-        </ChartRow>
+          {/* Outage Reasons - Distribution Chart */}
+          <ChartBoxWithTitle title={t('pages.overview.charts.outageReasons.distributionTitle')}>
+            <ChartCell isLoading={isOutageReasonsLoading} isError={isOutageReasonsError}>
+              <SupplyOutageDistributionChart
+                data={outageReasonsData?.histogramData ?? []}
+                height={CHART_HEIGHT}
+                xAxisLabel={t('pages.overview.charts.outageReasons.xAxisLabel')}
+              />
+            </ChartCell>
+          </ChartBoxWithTitle>
 
-        {/* Row 3: Submission Status */}
-        <ChartRow title={t('pages.overview.charts.submissionStatus.title')}>
-          <ChartCell isLoading={isSubmissionStatusLoading} isError={isSubmissionStatusError}>
-            <SupplyOutageReasonsChart
-              data={submissionStatusData?.pieData ?? []}
-              height={CHART_HEIGHT}
-              pieSize={PIE_SIZE}
-            />
-          </ChartCell>
-          <ChartCell isLoading={isSubmissionStatusLoading} isError={isSubmissionStatusError}>
-            <ReadingSubmissionRateChart
-              data={submissionStatusData?.barData ?? []}
-              height={CHART_HEIGHT}
-              entityLabel={t('pages.overview.charts.submissionStatus.xAxisLabel')}
-            />
-          </ChartCell>
-        </ChartRow>
+          {/* Non-Submission Reasons - Pie Chart */}
+          <ChartBoxWithTitle title={t('pages.overview.charts.nonSubmissionReasons.pieTitle')}>
+            <ChartCell isLoading={isNonSubmissionLoading} isError={isNonSubmissionError}>
+              <SupplyOutageReasonsChart
+                data={nonSubmissionData?.pieData ?? []}
+                height={CHART_HEIGHT}
+                pieSize={PIE_SIZE}
+              />
+            </ChartCell>
+          </ChartBoxWithTitle>
+
+          {/* Non-Submission Reasons - Distribution Chart */}
+          <ChartBoxWithTitle
+            title={t('pages.overview.charts.nonSubmissionReasons.distributionTitle')}
+          >
+            <ChartCell isLoading={isNonSubmissionLoading} isError={isNonSubmissionError}>
+              <SupplyOutageDistributionChart
+                data={nonSubmissionData?.histogramData ?? []}
+                height={CHART_HEIGHT}
+                xAxisLabel={t('pages.overview.charts.nonSubmissionReasons.xAxisLabel')}
+              />
+            </ChartCell>
+          </ChartBoxWithTitle>
+
+          {/* Submission Status - Pie Chart */}
+          <ChartBoxWithTitle title={t('pages.overview.charts.submissionStatus.pieTitle')}>
+            <ChartCell isLoading={isSubmissionStatusLoading} isError={isSubmissionStatusError}>
+              <SupplyOutageReasonsChart
+                data={submissionStatusData?.pieData ?? []}
+                height={CHART_HEIGHT}
+                pieSize={PIE_SIZE}
+              />
+            </ChartCell>
+          </ChartBoxWithTitle>
+
+          {/* Submission Status - Bar Chart */}
+          <ChartBoxWithTitle title={t('pages.overview.charts.submissionStatus.barTitle')}>
+            <ChartCell isLoading={isSubmissionStatusLoading} isError={isSubmissionStatusError}>
+              <ReadingSubmissionRateChart
+                data={submissionStatusData?.barData ?? []}
+                height={CHART_HEIGHT}
+                entityLabel={t('pages.overview.charts.submissionStatus.xAxisLabel')}
+              />
+            </ChartCell>
+          </ChartBoxWithTitle>
+        </SimpleGrid>
       </Stack>
     </Box>
   )
 }
 
-interface ChartRowProps {
+interface ChartBoxWithTitleProps {
   readonly title: string
   readonly children: React.ReactNode
 }
 
-function ChartRow({ title, children }: ChartRowProps) {
+function ChartBoxWithTitle({ title, children }: ChartBoxWithTitleProps) {
   return (
-    <Box as="section">
+    <Box>
       <Text textStyle="h6" fontWeight="600" mb={3} color="neutral.800">
         {title}
       </Text>
-      <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={{ base: 4, md: 6 }}>
-        {children}
-      </SimpleGrid>
+      {children}
     </Box>
   )
 }

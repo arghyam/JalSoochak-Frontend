@@ -37,3 +37,14 @@ export function useSubmissionStatusQuery(startDate: string, endDate: string) {
     enabled: Boolean(startDate) && Boolean(endDate),
   })
 }
+
+export function useDashboardStatsQuery() {
+  const tenantId = useAuthStore((state) => state.user?.tenantId ?? '')
+  const userId = useAuthStore((state) => state.user?.id ?? '')
+
+  return useQuery({
+    queryKey: sectionOfficerQueryKeys.dashboardStats(tenantId, userId),
+    queryFn: () => overviewApi.getDashboardStats(tenantId, userId),
+    enabled: Boolean(tenantId) && Boolean(userId),
+  })
+}

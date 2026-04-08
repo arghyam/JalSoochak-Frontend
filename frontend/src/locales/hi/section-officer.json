@@ -37,21 +37,27 @@
       "subtitle": "अवलोकन पृष्ठ निर्माणाधीन है।",
       "stats": {
         "totalSchemes": "कुल योजनाओं की संख्या",
-        "quantityMld": "मात्रा (MLD में)",
+        "quantityMld": "आपूर्ति की गई मात्रा (MLD में)",
         "anomaliesFlagged": "चिह्नित विसंगतियां",
         "escalations": "एस्कलेशन"
       },
       "charts": {
         "outageReasons": {
           "title": "आउटेज के कारण",
+          "pieTitle": "जल आपूर्ति आउटेज के कारण",
+          "distributionTitle": "जल आपूर्ति आउटेज वितरण",
           "xAxisLabel": "तारीख"
         },
         "nonSubmissionReasons": {
           "title": "गैर-प्रस्तुति के कारण",
+          "pieTitle": "गैर-प्रस्तुति के कारण",
+          "distributionTitle": "गैर-प्रस्तुति वितरण",
           "xAxisLabel": "तारीख"
         },
         "submissionStatus": {
           "title": "प्रस्तुति स्थिति",
+          "pieTitle": "रीडिंग प्रस्तुति स्थिति",
+          "barTitle": "रीडिंग प्रस्तुति दर",
           "xAxisLabel": "तारीख"
         }
       }
