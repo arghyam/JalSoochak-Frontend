@@ -19,6 +19,7 @@ import { ActionTooltip } from '@/shared/components/common'
 interface SupplyOutageReasonsSectionProps {
   title: string
   infoTooltip?: string
+  required?: boolean
   reasons: SupplyOutageReason[]
   onChange: (reasons: SupplyOutageReason[]) => void
   errors?: Record<string, string>
@@ -28,6 +29,7 @@ interface SupplyOutageReasonsSectionProps {
 export function SupplyOutageReasonsSection({
   title,
   infoTooltip,
+  required,
   reasons,
   onChange,
   errors,
@@ -65,6 +67,16 @@ export function SupplyOutageReasonsSection({
       <Flex align="center" gap={1} mb={3}>
         <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" color="neutral.950">
           {title}
+          {required === true && (
+            <Text as="span" color="error.500" ml={1}>
+              *
+            </Text>
+          )}
+          {required === false && (
+            <Text as="span" color="neutral.400" ml={1} fontSize="xs">
+              (Optional)
+            </Text>
+          )}
         </Text>
         {infoTooltip && (
           <ActionTooltip label={infoTooltip}>

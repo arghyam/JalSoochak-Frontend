@@ -26,9 +26,11 @@ import {
 } from '@/shared/components/common'
 import { ROUTES } from '@/shared/constants/routes'
 import {
+  useConfigStatusQuery,
   useSaveWaterNormsConfigurationMutation,
   useWaterNormsConfigurationQuery,
 } from '../../services/query/use-state-admin-queries'
+import type { ConfigKey } from '../../types/config-status'
 
 const MAX_WATER_QUANTITY = 1000
 
@@ -36,6 +38,8 @@ export function WaterNormsPage() {
   const { t } = useTranslation(['state-admin', 'common'])
   const navigate = useNavigate()
   const { data: config, isLoading, isError } = useWaterNormsConfigurationQuery()
+  const { data: configStatuses } = useConfigStatusQuery()
+  const isMandatory = (key: ConfigKey): boolean => configStatuses?.[key]?.mandatory ?? true
   const saveWaterNormsMutation = useSaveWaterNormsConfigurationMutation()
   const [isEditing, setIsEditing] = useState(false)
   const [stateQuantityDraft, setStateQuantityDraft] = useState<string | null>(null)
@@ -337,9 +341,15 @@ export function WaterNormsPage() {
                     display="block"
                   >
                     {t('waterNorms.currentQuantity')}
-                    <Text as="span" color="error.500" ml={1}>
-                      *
-                    </Text>
+                    {isMandatory('WATER_NORM') ? (
+                      <Text as="span" color="error.500" ml={1}>
+                        *
+                      </Text>
+                    ) : (
+                      <Text as="span" color="neutral.400" ml={1} fontSize="xs">
+                        (Optional)
+                      </Text>
+                    )}
                   </Text>
                   <Input
                     id="state-quantity"
@@ -365,6 +375,7 @@ export function WaterNormsPage() {
 
                 {/* Alert Thresholds */}
                 <WaterNormsAlertThresholds
+                  required={isMandatory('TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD')}
                   oversupplyThreshold={oversupplyThreshold}
                   undersupplyThreshold={undersupplyThreshold}
                   onOversupplyThresholdChange={(v) => {

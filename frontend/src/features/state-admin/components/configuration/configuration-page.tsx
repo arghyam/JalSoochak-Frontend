@@ -25,12 +25,14 @@ import { IoInformation } from 'react-icons/io5'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ActionTooltip, TimePicker, ToastContainer, PageHeader } from '@/shared/components/common'
 import {
+  useConfigStatusQuery,
   useConfigurationQuery,
   useLogoQuery,
   useSaveConfigurationMutation,
   useSystemChannelsQuery,
   useUpdateLogoMutation,
 } from '../../services/query/use-state-admin-queries'
+import type { ConfigKey } from '../../types/config-status'
 import {
   CHANNEL_CODE_TO_NAME,
   FALLBACK_SYSTEM_CHANNELS,
@@ -114,6 +116,8 @@ export function ConfigurationPage() {
   const { t } = useTranslation(['state-admin', 'common'])
   const navigate = useNavigate()
   const { data: config, isLoading, isError } = useConfigurationQuery()
+  const { data: configStatuses } = useConfigStatusQuery()
+  const isMandatory = (key: ConfigKey): boolean => configStatuses?.[key]?.mandatory ?? true
   const {
     data: systemChannels,
     isLoading: isSystemChannelsLoading,
@@ -517,9 +521,15 @@ export function ConfigurationPage() {
                       color="neutral.950"
                     >
                       {t('configuration.sections.supportedChannels.title')}
-                      <Text as="span" color="error.500" ml={1}>
-                        *
-                      </Text>
+                      {isMandatory('TENANT_SUPPORTED_CHANNELS') ? (
+                        <Text as="span" color="error.500" ml={1}>
+                          *
+                        </Text>
+                      ) : (
+                        <Text as="span" color="neutral.400" ml={1} fontSize="xs">
+                          (Optional)
+                        </Text>
+                      )}
                     </Text>
                     <FieldInfoIcon tooltip={t('configuration.infoText.supportedChannels')} />
                   </Flex>
@@ -621,6 +631,7 @@ export function ConfigurationPage() {
                 <MeterChangeReasonsSection
                   title={t('configuration.sections.meterChangeReasons.title')}
                   infoTooltip={t('configuration.infoText.meterChangeReasons')}
+                  required={isMandatory('METER_CHANGE_REASONS')}
                   reasons={activeDraft.meterChangeReasons}
                   errors={errors}
                   onClearError={clearError}
@@ -636,6 +647,7 @@ export function ConfigurationPage() {
                 <SupplyOutageReasonsSection
                   title={t('configuration.sections.supplyOutageReasons.title')}
                   infoTooltip={t('configuration.infoText.supplyOutageReasons')}
+                  required={isMandatory('SUPPLY_OUTAGE_REASONS')}
                   reasons={activeDraft.supplyOutageReasons}
                   errors={errors}
                   onClearError={clearError}
@@ -658,6 +670,15 @@ export function ConfigurationPage() {
                         color="neutral.950"
                       >
                         {t('configuration.sections.locationCheckRequired.title')}
+                        {isMandatory('LOCATION_CHECK_REQUIRED') ? (
+                          <Text as="span" color="error.500" ml={1}>
+                            *
+                          </Text>
+                        ) : (
+                          <Text as="span" color="neutral.400" ml={1} fontSize="xs">
+                            (Optional)
+                          </Text>
+                        )}
                       </Text>
                       <FieldInfoIcon tooltip={t('configuration.infoText.locationCheckRequired')} />
                     </Flex>
@@ -694,6 +715,15 @@ export function ConfigurationPage() {
                         color="neutral.950"
                       >
                         {t('configuration.sections.displayDepartmentMaps.title')}
+                        {isMandatory('DISPLAY_DEPARTMENT_MAPS') ? (
+                          <Text as="span" color="error.500" ml={1}>
+                            *
+                          </Text>
+                        ) : (
+                          <Text as="span" color="neutral.400" ml={1} fontSize="xs">
+                            (Optional)
+                          </Text>
+                        )}
                       </Text>
                       <FieldInfoIcon tooltip={t('configuration.infoText.displayDepartmentMaps')} />
                     </Flex>
@@ -735,6 +765,15 @@ export function ConfigurationPage() {
                         display="block"
                       >
                         {t('configuration.sections.dataConsolidationTime.title')}
+                        {isMandatory('DATA_CONSOLIDATION_TIME') ? (
+                          <Text as="span" color="error.500" ml={1}>
+                            *
+                          </Text>
+                        ) : (
+                          <Text as="span" color="neutral.400" ml={1} fontSize="xs">
+                            (Optional)
+                          </Text>
+                        )}
                       </Text>
                       <FieldInfoIcon tooltip={t('configuration.infoText.dataConsolidationTime')} />
                     </Flex>
@@ -764,6 +803,15 @@ export function ConfigurationPage() {
                         display="block"
                       >
                         {t('configuration.sections.pumpOperatorReminderNudgeTime.title')}
+                        {isMandatory('PUMP_OPERATOR_REMINDER_NUDGE_TIME') ? (
+                          <Text as="span" color="error.500" ml={1}>
+                            *
+                          </Text>
+                        ) : (
+                          <Text as="span" color="neutral.400" ml={1} fontSize="xs">
+                            (Optional)
+                          </Text>
+                        )}
                       </Text>
                       <FieldInfoIcon
                         tooltip={t('configuration.infoText.pumpOperatorReminderNudgeTime')}
@@ -791,6 +839,7 @@ export function ConfigurationPage() {
                   <DateFormatSection
                     title={t('configuration.sections.dateFormatScreen.title')}
                     infoTooltip={t('configuration.infoText.dateFormatScreen')}
+                    required={isMandatory('DATE_FORMAT_SCREEN')}
                     value={activeDraft.dateFormatScreen}
                     onChange={(val) =>
                       setDraft((prev) => ({
@@ -802,6 +851,7 @@ export function ConfigurationPage() {
                   <DateFormatSection
                     title={t('configuration.sections.dateFormatTable.title')}
                     infoTooltip={t('configuration.infoText.dateFormatTable')}
+                    required={isMandatory('DATE_FORMAT_TABLE')}
                     value={activeDraft.dateFormatTable}
                     onChange={(val) =>
                       setDraft((prev) => ({
@@ -825,6 +875,15 @@ export function ConfigurationPage() {
                         display="block"
                       >
                         {t('configuration.sections.averageMembersPerHousehold.title')}
+                        {isMandatory('AVERAGE_MEMBERS_PER_HOUSEHOLD') ? (
+                          <Text as="span" color="error.500" ml={1}>
+                            *
+                          </Text>
+                        ) : (
+                          <Text as="span" color="neutral.400" ml={1} fontSize="xs">
+                            (Optional)
+                          </Text>
+                        )}
                       </Text>
                       <FieldInfoIcon
                         tooltip={t('configuration.infoText.averageMembersPerHousehold')}
@@ -877,6 +936,15 @@ export function ConfigurationPage() {
                       color="neutral.950"
                     >
                       {t('configuration.sections.logo.title')}
+                      {isMandatory('TENANT_LOGO') ? (
+                        <Text as="span" color="error.500" ml={1}>
+                          *
+                        </Text>
+                      ) : (
+                        <Text as="span" color="neutral.400" ml={1} fontSize="xs">
+                          (Optional)
+                        </Text>
+                      )}
                     </Text>
                     <FieldInfoIcon tooltip={t('configuration.infoText.logo')} />
                   </Flex>
