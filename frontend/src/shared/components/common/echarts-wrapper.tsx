@@ -25,13 +25,13 @@ export function EChartsWrapper({
     // Initialize chart instance once
     if (!chartInstanceRef.current) {
       chartInstanceRef.current = echarts.init(chartRef.current)
-      onChartReady?.(chartInstanceRef.current)
     }
 
     const chart = chartInstanceRef.current
 
     // Update chart options (doesn't re-create the chart)
     chart.setOption(option, true)
+    onChartReady?.(chart)
   }, [option, onChartReady])
 
   // Handle window resize

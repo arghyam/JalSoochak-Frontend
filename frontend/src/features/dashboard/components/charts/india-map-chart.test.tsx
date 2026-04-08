@@ -150,4 +150,29 @@ describe('IndiaMapChart', () => {
     expect(screen.getByText('>=30 MLD')).toBeTruthy()
     expect(screen.getByText('>=0 MLD')).toBeTruthy()
   })
+
+  it('uses bucket hover colors for selected regions instead of the default map select color', () => {
+    mockGetMap.mockReturnValue({})
+
+    renderWithProviders(<IndiaMapChart data={chartData} />)
+
+    const latestOption = mockEChartsWrapper.mock.calls.at(-1)?.[0]?.option as {
+      series?: Array<{
+        selectedMode?: string | boolean
+        data?: Array<{
+          itemStyle?: { areaColor?: string }
+          emphasis?: { itemStyle?: { areaColor?: string } }
+          select?: { itemStyle?: { areaColor?: string } }
+        }>
+      }>
+    }
+
+    expect(latestOption.series?.[0]?.selectedMode).toBe('single')
+    expect(latestOption.series?.[0]?.data?.[0]?.select?.itemStyle?.areaColor).toBe(
+      latestOption.series?.[0]?.data?.[0]?.emphasis?.itemStyle?.areaColor
+    )
+    expect(latestOption.series?.[0]?.data?.[0]?.select?.itemStyle?.areaColor).not.toBe(
+      latestOption.series?.[0]?.data?.[0]?.itemStyle?.areaColor
+    )
+  })
 })

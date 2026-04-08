@@ -134,6 +134,13 @@ export function IndiaMapChart({
               areaColor: getHoverRangeColor(state[metricKey]),
             },
           },
+      select: {
+        itemStyle: {
+          areaColor: disableHoverEffect
+            ? resolveAreaColor(state[metricKey])
+            : getHoverRangeColor(state[metricKey]),
+        },
+      },
       metrics: {
         coverage: state.coverage,
         regularity: state.regularity,
@@ -200,6 +207,7 @@ export function IndiaMapChart({
             borderColor: '#fff',
             borderWidth: 1,
           },
+          selectedMode: 'single',
           emphasis: disableHoverEffect
             ? {
                 disabled: true,
@@ -214,6 +222,16 @@ export function IndiaMapChart({
                   fontWeight: 'bold',
                 },
               },
+          select: {
+            itemStyle: {
+              borderWidth: 2,
+            },
+            label: {
+              show: !isIndiaMap,
+              fontSize: 12,
+              fontWeight: 'bold',
+            },
+          },
         },
       ],
     }
@@ -310,38 +328,44 @@ export function IndiaMapChart({
     }
   }, [dynamicGeoJson, effectiveMapName, shouldShowNoMapAvailable])
 
-  const handleChartReady = (chart: echarts.ECharts) => {
-    // Register click event
-    chart.on('click', (params: unknown) => {
-      const p = params as {
-        data?: {
-          stateId: string
-          name: string
-        }
-      }
-      if (p.data?.stateId && onStateClick) {
-        onStateClick(p.data.stateId, p.data.name)
-      }
-    })
+  const handleChartReady = useCallback(
+    (chart: echarts.ECharts) => {
+      chart.off('click')
+      chart.off('mouseover')
 
-    // Register hover event
-    if (!disableHoverEffect) {
-      chart.on('mouseover', (params: unknown) => {
+      // Register click event
+      chart.on('click', (params: unknown) => {
         const p = params as {
           data?: {
             stateId: string
             name: string
           }
         }
-        if (p.data?.stateId && onStateHover) {
-          const stateData = data.find((d) => d.id === p.data?.stateId) ?? undefined
-          if (stateData) {
-            onStateHover(p.data.stateId, p.data.name, stateData)
-          }
+        if (p.data?.stateId && onStateClick) {
+          onStateClick(p.data.stateId, p.data.name)
         }
       })
-    }
-  }
+
+      // Register hover event
+      if (!disableHoverEffect) {
+        chart.on('mouseover', (params: unknown) => {
+          const p = params as {
+            data?: {
+              stateId: string
+              name: string
+            }
+          }
+          if (p.data?.stateId && onStateHover) {
+            const stateData = data.find((d) => d.id === p.data?.stateId) ?? undefined
+            if (stateData) {
+              onStateHover(p.data.stateId, p.data.name, stateData)
+            }
+          }
+        })
+      }
+    },
+    [data, disableHoverEffect, onStateClick, onStateHover]
+  )
 
   return (
     <div

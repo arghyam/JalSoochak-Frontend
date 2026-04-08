@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Box, Flex, Text, Heading, Grid, Icon, Image, useBreakpointValue } from '@chakra-ui/react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -135,6 +135,11 @@ type FilterUrlUpdate = {
 }
 
 type QuantityTimeScaleTab = 'day' | 'week' | 'month'
+type LocationScopedTrailIndex = {
+  pathname: string
+  search: string
+  value: number | null
+}
 
 type LocationOption = SearchableSelectOption & {
   locationId?: number
@@ -435,6 +440,7 @@ export function CentralDashboard() {
     useBreakpointValue({ base: '320px', sm: '420px', lg: '620px' }) ?? '620px'
   const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
   const [searchParams] = useSearchParams()
+  const location = useLocation()
   const navigate = useNavigate()
   const { data } = useDashboardData('central')
   const [storedFilters] = useState(() => getStoredFilters())
@@ -504,7 +510,23 @@ export function CentralDashboard() {
     ? selectedDepartmentVillageFromUrl
     : storedSelectedDepartmentVillage
   const filterTabIndex = hasDepartmentParamsInUrl ? 1 : storedFilterTabIndex
-  const [activeTrailIndex, setActiveTrailIndex] = useState<number | null>(null)
+  const [activeTrailIndexState, setActiveTrailIndexState] = useState<LocationScopedTrailIndex>({
+    pathname: location.pathname,
+    search: location.search,
+    value: null,
+  })
+  const activeTrailIndex =
+    activeTrailIndexState.pathname === location.pathname &&
+    activeTrailIndexState.search === location.search
+      ? activeTrailIndexState.value
+      : null
+  const setActiveTrailIndex = (value: number | null) => {
+    setActiveTrailIndexState({
+      pathname: location.pathname,
+      search: location.search,
+      value,
+    })
+  }
   const [quantityTimeScaleTab, setQuantityTimeScaleTab] = useState<QuantityTimeScaleTab>('day')
   const [regularityTimeScaleTab, setRegularityTimeScaleTab] = useState<QuantityTimeScaleTab>('day')
   const [outageDistributionTimeScaleTab, setOutageDistributionTimeScaleTab] =
@@ -1281,6 +1303,17 @@ export function CentralDashboard() {
     )
     const rawTitle = region.childLgdTitle ?? region.childDepartmentTitle ?? ''
     const normalizedTitle = rawTitle.trim()
+    const matchedExpectedOption = expectedOverallPerformanceOptions.find((option) => {
+      const typedOption = option as LocationOption
+      const optionIds = [typedOption.locationId, typedOption.analyticsId]
+      const hasMatchingId =
+        typeof boundaryId === 'number' &&
+        optionIds.some((id) => typeof id === 'number' && id === boundaryId)
+
+      return hasMatchingId || slugify(typedOption.label) === slugify(normalizedTitle)
+    })
+    const matchedExpectedAnalyticsId = (matchedExpectedOption as LocationOption | undefined)
+      ?.analyticsId
 
     if (typeof boundaryId !== 'number' || !normalizedTitle) {
       return []
@@ -1288,10 +1321,14 @@ export function CentralDashboard() {
 
     return [
       {
-        value: toStableLocationValue(boundaryId, boundaryId, slugify(normalizedTitle)),
+        value: toStableLocationValue(
+          boundaryId,
+          matchedExpectedAnalyticsId ?? boundaryId,
+          slugify(normalizedTitle)
+        ),
         label: normalizedTitle,
         locationId: boundaryId,
-        analyticsId: boundaryId,
+        analyticsId: matchedExpectedAnalyticsId ?? boundaryId,
       },
     ]
   })
@@ -1779,20 +1816,50 @@ export function CentralDashboard() {
     return matchedOption?.value ?? null
   }
 
-  const handleOverallPerformanceRowClick = (row: EntityPerformance) => {
-    setActiveTrailIndex(null)
-    setSelectedScheme('')
+  const resolveMapRegionRow = (regionId: string, regionName: string): EntityPerformance | null => {
+    const normalizedRegionId = regionId.trim()
+    const normalizedRegionName = slugify(regionName)
 
-    if (isCentralLandingView && !isDepartmentTabActive) {
-      handleStateClick(row.id, row.name)
-      return
-    }
+    return (
+      mapChartData.find((region) => {
+        const normalizedRowId = region.id?.trim()
+        return (
+          (normalizedRowId.length > 0 && normalizedRowId === normalizedRegionId) ||
+          slugify(region.name) === normalizedRegionName
+        )
+      }) ??
+      overallPerformanceTableData.find((region) => {
+        const normalizedRowId = region.id?.trim()
+        return (
+          (normalizedRowId.length > 0 && normalizedRowId === normalizedRegionId) ||
+          slugify(region.name) === normalizedRegionName
+        )
+      }) ??
+      null
+    )
+  }
 
-    const selectedValue = resolveOverallPerformanceLocationValue(row)
-    if (!selectedValue) {
-      return
-    }
+  const resolveLocationValueForRegion = (
+    options: LocationOption[],
+    regionId: string,
+    regionName: string
+  ): string | null => {
+    const normalizedRegionId = regionId.trim()
+    const normalizedRegionName = slugify(regionName)
 
+    const matchedOption = options.find((option) => {
+      const optionIds = [option.locationId, option.analyticsId]
+      const hasMatchingId = optionIds.some(
+        (id) => typeof id === 'number' && String(id) === normalizedRegionId
+      )
+
+      return hasMatchingId || slugify(option.label) === normalizedRegionName
+    })
+
+    return matchedOption?.value ?? null
+  }
+
+  const navigateToResolvedLocationValue = (selectedValue: string) => {
     if (isDepartmentTabActive) {
       if (isDepartmentSubdivisionSelected) {
         handleDepartmentSubdivisionChange(selectedValue)
@@ -1815,6 +1882,48 @@ export function CentralDashboard() {
     } else if (isHierarchyStateSelected) {
       handleDistrictChange(selectedValue)
     }
+  }
+
+  const handleMapRegionClick = (regionId: string, regionName: string) => {
+    if (isCentralLandingView && !isDepartmentTabActive) {
+      handleStateClick(regionId, regionName)
+      return
+    }
+
+    const selectedValue =
+      resolveLocationValueForRegion(expectedOverallPerformanceOptions, regionId, regionName) ??
+      resolveLocationValueForRegion(boundaryOverallPerformanceOptions, regionId, regionName)
+
+    if (selectedValue) {
+      setActiveTrailIndex(null)
+      setSelectedScheme('')
+      navigateToResolvedLocationValue(selectedValue)
+      return
+    }
+
+    const matchedRow = resolveMapRegionRow(regionId, regionName)
+    if (!matchedRow) {
+      return
+    }
+
+    handleOverallPerformanceRowClick(matchedRow)
+  }
+
+  const handleOverallPerformanceRowClick = (row: EntityPerformance) => {
+    setActiveTrailIndex(null)
+    setSelectedScheme('')
+
+    if (isCentralLandingView && !isDepartmentTabActive) {
+      handleStateClick(row.id, row.name)
+      return
+    }
+
+    const selectedValue = resolveOverallPerformanceLocationValue(row)
+    if (!selectedValue) {
+      return
+    }
+
+    navigateToResolvedLocationValue(selectedValue)
   }
 
   const handleStateHover = (_stateId: string, _stateName: string, _metrics: unknown) => {
@@ -2204,7 +2313,7 @@ export function CentralDashboard() {
               }
               fallbackToIndiaMap={isCentralLandingView}
               usePrimaryFill={isCentralLandingView}
-              onStateClick={isCentralLandingView ? handleStateClick : undefined}
+              onStateClick={handleMapRegionClick}
               onStateHover={handleStateHover}
               height="100%"
             />
