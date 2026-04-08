@@ -49,6 +49,13 @@ export type SaveIntegrationConfigurationPayload = Omit<
 export type SaveWaterNormsConfigurationPayload = Omit<WaterNormsConfiguration, 'id'>
 export type SaveConfigurationPayload = Omit<ConfigurationData, 'id'>
 
+export interface BroadcastWelcomePayload {
+  roles: string[]
+  type: string
+  onboardedAfter: string
+  onboardedBefore: string
+}
+
 /** Reads tenantId from the auth store. Throws if the user is not authenticated. */
 const getTenantId = (): string => {
   const id = useAuthStore.getState().user?.tenantId
@@ -531,6 +538,13 @@ export const stateAdminApi = {
       hierarchyType: 'DEPARTMENT',
       levels: mapApiHierarchyToLevels(response.data.data.levels, DEFAULT_DEPARTMENT_HIERARCHY),
     }
+  },
+
+  // --- Real HTTP: Broadcast Welcome Message ---
+  broadcastWelcomeMessage: async (payload: BroadcastWelcomePayload): Promise<void> => {
+    const tenantCode = useAuthStore.getState().user?.tenantCode
+    if (!tenantCode) throw new Error('tenantCode unavailable — user not authenticated')
+    await apiClient.post(`/api/v1/tenant/user/welcome?tenantCode=${tenantCode}`, payload)
   },
 
   // --- Real HTTP: Config Status ---

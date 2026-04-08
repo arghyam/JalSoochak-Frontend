@@ -1,8 +1,11 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Box, Flex, Heading, Text, Button } from '@chakra-ui/react'
 import { ROUTES } from '@/shared/constants/routes'
 
 export function SessionExpiredPage() {
+  const location = useLocation()
+  const loginRoute = location.pathname.startsWith('/staff') ? ROUTES.STAFF_LOGIN : ROUTES.LOGIN
+
   return (
     <Flex minH="100vh" align="center" justify="center" bg="gray.50">
       <Box
@@ -23,7 +26,7 @@ export function SessionExpiredPage() {
           JalSoochak.
         </Text>
 
-        <Button as={Link} to={ROUTES.LOGIN} colorScheme="blue" mt={6} size="sm">
+        <Button as={Link} to={loginRoute} colorScheme="blue" mt={6} size="sm">
           Go to Login
         </Button>
       </Box>

@@ -67,4 +67,60 @@ export const sectionOfficerQueryKeys = {
       pageSize,
       schemeName,
     ] as const,
+  anomalyStatuses: () => [...sectionOfficerQueryKeys.all, 'anomaly-statuses'] as const,
+  escalationStatuses: () => [...sectionOfficerQueryKeys.all, 'escalation-statuses'] as const,
+  anomaliesList: (
+    userId: string,
+    tenantId: string,
+    page: number,
+    pageSize: number,
+    schemeName: string,
+    status: string,
+    startDate: string,
+    endDate: string
+  ) =>
+    [
+      ...sectionOfficerQueryKeys.all,
+      'anomalies',
+      userId,
+      tenantId,
+      page,
+      pageSize,
+      schemeName,
+      status,
+      startDate,
+      endDate,
+    ] as const,
+  schemesCount: (personId: string, tenantCode: string) =>
+    [...sectionOfficerQueryKeys.all, 'schemes-count', personId, tenantCode] as const,
+  outageReasons: (startDate: string, endDate: string) =>
+    [...sectionOfficerQueryKeys.all, 'outage-reasons', startDate, endDate] as const,
+  nonSubmissionReasons: (startDate: string, endDate: string) =>
+    [...sectionOfficerQueryKeys.all, 'non-submission-reasons', startDate, endDate] as const,
+  submissionStatus: (startDate: string, endDate: string) =>
+    [...sectionOfficerQueryKeys.all, 'submission-status', startDate, endDate] as const,
+  dashboardStats: (tenantId: string, userId: string) =>
+    [...sectionOfficerQueryKeys.all, 'dashboard-stats', tenantId, userId] as const,
+  escalationsList: (
+    userId: string,
+    tenantId: string,
+    page: number,
+    pageSize: number,
+    schemeName: string,
+    status: string,
+    startDate: string,
+    endDate: string
+  ) =>
+    [
+      ...sectionOfficerQueryKeys.all,
+      'escalations',
+      userId,
+      tenantId,
+      page,
+      pageSize,
+      schemeName,
+      status,
+      startDate,
+      endDate,
+    ] as const,
 }

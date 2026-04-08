@@ -34,7 +34,33 @@
     "overview": {
       "heading": "Overview",
       "comingSoon": "Coming Soon",
-      "subtitle": "The Overview page is under construction."
+      "subtitle": "The Overview page is under construction.",
+      "stats": {
+        "totalSchemes": "Total No. of Schemes",
+        "quantityMld": "Quantity Supplied (MLD)",
+        "anomaliesFlagged": "Anomalies Flagged",
+        "escalations": "Escalations"
+      },
+      "charts": {
+        "outageReasons": {
+          "title": "Outage Reasons",
+          "pieTitle": "Supply Outage Reasons",
+          "distributionTitle": "Supply Outage Distribution",
+          "xAxisLabel": "Date"
+        },
+        "nonSubmissionReasons": {
+          "title": "Non-Submission Reasons",
+          "pieTitle": "Non-Submission Reasons",
+          "distributionTitle": "Non-Submission Distribution",
+          "xAxisLabel": "Date"
+        },
+        "submissionStatus": {
+          "title": "Submission Status",
+          "pieTitle": "Reading Submission Status",
+          "barTitle": "Reading Submission Rate",
+          "xAxisLabel": "Date"
+        }
+      }
     },
     "schemes": {
       "heading": "Schemes",
