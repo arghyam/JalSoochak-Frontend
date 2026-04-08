@@ -29,6 +29,7 @@ import {
 import { AuthSideImage } from '@/features/auth/components/signup/auth-side-image'
 import { SearchableSelect } from '@/shared/components/common'
 import jalsoochakLogo from '@/assets/media/logo.svg'
+import { BiArrowBack } from 'react-icons/bi'
 import { useAuthStore } from '@/app/store'
 import {
   usePublicTenantsQuery,
@@ -36,7 +37,7 @@ import {
   useVerifyOtpMutation,
 } from '@/features/section-officer/services/query/use-staff-auth-queries'
 
-const OTP_RESEND_COOLDOWN_SECONDS = 30
+const OTP_RESEND_COOLDOWN_SECONDS = 60
 const OTP_FALLBACK_LENGTH = 6
 const PHONE_NUMBER_LENGTH = 10
 const COUNTRY_CODE = '91'
@@ -255,6 +256,25 @@ export function StaffLoginPage() {
               h="72px"
               mb={{ base: 10, md: 12 }}
             />
+            {step === 'otp' && (
+              <Flex justify="flex-start" mb={{ base: 6, md: 8 }} ml={{ base: 6, md: 8 }}>
+                <Link
+                  as="button"
+                  type="button"
+                  fontSize="sm"
+                  fontWeight="500"
+                  color="neutral.600"
+                  onClick={handleBackToPhone}
+                  data-testid="back-button"
+                  display="flex"
+                  alignItems="center"
+                  gap="4px"
+                >
+                  <BiArrowBack />
+                  {t('login.otpStep.back')}
+                </Link>
+              </Flex>
+            )}
           </Box>
 
           <Flex flex="1" align="center" justify="center">
@@ -290,7 +310,6 @@ export function StaffLoginPage() {
                   onOtpPaste={handleOtpPaste}
                   onResend={handleResendOtp}
                   onVerify={handleVerifyOtp}
-                  onBack={handleBackToPhone}
                 />
               )}
             </Box>
@@ -461,7 +480,6 @@ interface OtpStepProps {
   onOtpPaste: (e: React.ClipboardEvent<HTMLInputElement>) => void
   onResend: () => void
   onVerify: () => void
-  onBack: () => void
 }
 
 function OtpStep({
@@ -479,7 +497,6 @@ function OtpStep({
   onOtpPaste,
   onResend,
   onVerify,
-  onBack,
 }: OtpStepProps) {
   const isOtpComplete = otpValues.every((v) => v !== '')
 
@@ -575,20 +592,6 @@ function OtpStep({
         >
           {t('login.otpStep.login')}
         </Button>
-
-        <Flex justify="center">
-          <Link
-            as="button"
-            type="button"
-            fontSize="sm"
-            fontWeight="500"
-            color="neutral.600"
-            onClick={onBack}
-            data-testid="back-button"
-          >
-            {t('login.otpStep.back')}
-          </Link>
-        </Flex>
       </VStack>
     </VStack>
   )

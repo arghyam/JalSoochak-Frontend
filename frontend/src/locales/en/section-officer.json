@@ -24,7 +24,7 @@
       "sending": "Sending...",
       "login": "Log in",
       "loggingIn": "Logging in...",
-      "back": "← Back",
+      "back": "Back",
       "incompleteOtp": "Please enter the complete {{otpLength}}-digit OTP.",
       "invalidOtp": "Invalid OTP. Please try again.",
       "resendFailed": "Failed to resend OTP. Please try again."

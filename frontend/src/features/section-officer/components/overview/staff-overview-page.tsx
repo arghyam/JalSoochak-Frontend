@@ -223,8 +223,15 @@ interface ChartBoxWithTitleProps {
 
 function ChartBoxWithTitle({ title, children }: ChartBoxWithTitleProps) {
   return (
-    <Box>
-      <Text textStyle="h6" fontWeight="600" mb={3} color="neutral.800">
+    <Box
+      bg="white"
+      borderWidth="0.5px"
+      borderRadius="12px"
+      borderColor="neutral.200"
+      p={{ base: 4, md: 5 }}
+      overflow="hidden"
+    >
+      <Text textStyle="bodyText3" fontWeight="400" mb={4}>
         {title}
       </Text>
       {children}
@@ -252,16 +259,5 @@ function ChartCell({ isLoading, isError, children }: ChartCellProps) {
     content = children
   }
 
-  return (
-    <Box
-      bg="white"
-      borderRadius="12px"
-      border="1px solid"
-      borderColor="neutral.100"
-      p={{ base: 4, md: 5 }}
-      overflow="hidden"
-    >
-      {content}
-    </Box>
-  )
+  return <>{content}</>
 }
