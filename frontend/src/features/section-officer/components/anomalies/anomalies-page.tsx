@@ -60,12 +60,6 @@ export function AnomaliesPage() {
 
   const debouncedSearch = useDebounce(searchQuery, 400)
 
-  const [prevDebounced, setPrevDebounced] = useState(debouncedSearch)
-  if (prevDebounced !== debouncedSearch) {
-    setPrevDebounced(debouncedSearch)
-    setPage(1)
-  }
-
   const hasActiveFilters = Boolean(searchQuery || statusFilter || dateRange)
 
   function clearAllFilters() {

@@ -6,6 +6,14 @@ import { AUTH_ROLES, STAFF_ROLES, type AuthRole } from '@/shared/constants/auth'
 import { ROUTES } from '@/shared/constants/routes'
 import { ForbiddenPage, SessionExpiredPage, LoadingSpinner } from '@/shared/components/common'
 
+/**
+ * Check if a pathname belongs to the staff route tree (e.g., /staff, /staff/login).
+ * Uses segment boundaries to avoid false positives like /staffing.
+ */
+function isStaffRoute(pathname: string): boolean {
+  return pathname === ROUTES.STAFF || pathname.startsWith(ROUTES.STAFF + '/')
+}
+
 interface ProtectedRouteProps {
   children: ReactNode
   requireAuth?: boolean
@@ -33,7 +41,7 @@ export function ProtectedRoute({
   }
 
   if (requireAuth && !isAuthenticated) {
-    const loginRoute = location.pathname.startsWith('/staff') ? ROUTES.STAFF_LOGIN : ROUTES.LOGIN
+    const loginRoute = isStaffRoute(location.pathname) ? ROUTES.STAFF_LOGIN : ROUTES.LOGIN
     return <Navigate to={loginRoute} state={{ from: location }} replace />
   }
 

@@ -49,8 +49,10 @@ export function MultiSearchableSelect({
 }: MultiSearchableSelectProps) {
   const { t } = useTranslation('common')
   const [isOpen, setIsOpen] = useState(false)
+  const [focusedIndex, setFocusedIndex] = useState(-1)
   const containerRef = useRef<HTMLDivElement>(null)
   const listboxId = useId()
+  const listboxRef = useRef<HTMLDivElement>(null)
 
   useOutsideClick({
     ref: containerRef,
@@ -66,7 +68,43 @@ export function MultiSearchableSelect({
   }
 
   const handleToggle = () => {
-    if (!disabled) setIsOpen((prev) => !prev)
+    if (!disabled) {
+      setIsOpen((prev) => !prev)
+      if (!isOpen) setFocusedIndex(-1)
+    }
+  }
+
+  const handleListboxKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!isOpen) return
+
+    switch (e.key) {
+      case 'ArrowDown': {
+        e.preventDefault()
+        setFocusedIndex((prev) => (prev < options.length - 1 ? prev + 1 : prev))
+        break
+      }
+      case 'ArrowUp': {
+        e.preventDefault()
+        setFocusedIndex((prev) => (prev > 0 ? prev - 1 : -1))
+        break
+      }
+      case 'Enter':
+      case ' ': {
+        e.preventDefault()
+        if (focusedIndex >= 0 && focusedIndex < options.length) {
+          handleToggleOption(options[focusedIndex].value)
+        }
+        break
+      }
+      case 'Escape': {
+        e.preventDefault()
+        setIsOpen(false)
+        setFocusedIndex(-1)
+        break
+      }
+      default:
+        break
+    }
   }
 
   const getDisplayLabel = (): string => {
@@ -161,12 +199,18 @@ export function MultiSearchableSelect({
           overflow="hidden"
         >
           <VStack
+            ref={listboxRef}
             id={listboxId}
             role="listbox"
+            aria-activedescendant={
+              focusedIndex >= 0 ? `option-${options[focusedIndex]?.value}` : undefined
+            }
             align="stretch"
             spacing={0}
             maxH="233px"
             overflowY="auto"
+            onKeyDown={handleListboxKeyDown}
+            tabIndex={isOpen ? 0 : -1}
             sx={{
               '&::-webkit-scrollbar': { width: '4px' },
               '&::-webkit-scrollbar-track': { bg: 'neutral.50' },
@@ -174,17 +218,19 @@ export function MultiSearchableSelect({
             }}
           >
             {options.length > 0 ? (
-              options.map((option) => {
+              options.map((option, index) => {
                 const isSelected = value.includes(option.value)
+                const isFocused = focusedIndex === index
                 return (
                   <Box
                     key={option.value}
+                    id={`option-${option.value}`}
                     role="option"
                     aria-selected={isSelected}
                     px="12px"
                     py="10px"
                     cursor="pointer"
-                    bg={isSelected ? 'primary.50' : 'white'}
+                    bg={isFocused ? 'primary.100' : isSelected ? 'primary.50' : 'white'}
                     _hover={{ bg: isSelected ? 'primary.50' : 'neutral.50' }}
                     onClick={() => handleToggleOption(option.value)}
                   >

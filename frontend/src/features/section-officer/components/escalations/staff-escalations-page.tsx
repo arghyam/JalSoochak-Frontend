@@ -207,7 +207,6 @@ export function StaffEscalationsPage() {
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value)
-              setPage(1)
             }}
             aria-label="Search by scheme name"
             bg="white"
@@ -224,7 +223,6 @@ export function StaffEscalationsPage() {
           value={statusFilter}
           onChange={(val) => {
             setStatusFilter(val)
-            setPage(1)
           }}
           placeholder="Status"
           width="160px"
@@ -241,7 +239,6 @@ export function StaffEscalationsPage() {
           value={dateRange}
           onChange={(val) => {
             setDateRange(val)
-            setPage(1)
           }}
           placeholder="Duration"
           width="160px"

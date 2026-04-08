@@ -47,7 +47,9 @@ export function MultiSelect({
   placeholderColor = 'neutral.500',
 }: MultiSelectProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [focusedIndex, setFocusedIndex] = useState(-1)
   const containerRef = useRef<HTMLDivElement>(null)
+  const listboxRef = useRef<HTMLDivElement>(null)
   const listboxId = useId()
 
   useOutsideClick({
@@ -64,7 +66,58 @@ export function MultiSelect({
   }
 
   const handleToggle = () => {
-    if (!disabled) setIsOpen((prev) => !prev)
+    if (!disabled) {
+      setIsOpen((prev) => !prev)
+      if (!isOpen) setFocusedIndex(-1)
+    }
+  }
+
+  const handleListboxKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!isOpen) return
+
+    switch (e.key) {
+      case 'ArrowDown': {
+        e.preventDefault()
+        setFocusedIndex((prev) => (prev < options.length - 1 ? prev + 1 : prev))
+        break
+      }
+      case 'ArrowUp': {
+        e.preventDefault()
+        setFocusedIndex((prev) => (prev > 0 ? prev - 1 : -1))
+        break
+      }
+      case 'Home': {
+        e.preventDefault()
+        setFocusedIndex(0)
+        break
+      }
+      case 'End': {
+        e.preventDefault()
+        setFocusedIndex(options.length - 1)
+        break
+      }
+      case 'Enter':
+      case ' ': {
+        e.preventDefault()
+        if (focusedIndex >= 0 && focusedIndex < options.length) {
+          const option = options[focusedIndex]
+          if (value.includes(option.value)) {
+            onChange(value.filter((v) => v !== option.value))
+          } else {
+            onChange([...value, option.value])
+          }
+        }
+        break
+      }
+      case 'Escape': {
+        e.preventDefault()
+        setIsOpen(false)
+        setFocusedIndex(-1)
+        break
+      }
+      default:
+        break
+    }
   }
 
   const getDisplayLabel = (): string => {
@@ -94,7 +147,6 @@ export function MultiSelect({
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         aria-controls={listboxId}
-        aria-multiselectable="true"
         aria-labelledby={ariaLabelledBy}
         aria-label={ariaLabel}
         aria-disabled={disabled}
@@ -161,31 +213,41 @@ export function MultiSelect({
           overflow="hidden"
         >
           <VStack
+            ref={listboxRef}
             id={listboxId}
             role="listbox"
+            aria-multiselectable="true"
+            aria-activedescendant={
+              focusedIndex >= 0 ? `option-${options[focusedIndex]?.value}` : undefined
+            }
             align="stretch"
             spacing={0}
             maxH="233px"
             overflowY="auto"
+            onKeyDown={handleListboxKeyDown}
+            tabIndex={isOpen ? 0 : -1}
             sx={{
               '&::-webkit-scrollbar': { width: '4px' },
               '&::-webkit-scrollbar-track': { bg: 'neutral.50' },
               '&::-webkit-scrollbar-thumb': { bg: 'neutral.300', borderRadius: '2px' },
             }}
           >
-            {options.map((option) => {
+            {options.map((option, index) => {
               const isSelected = value.includes(option.value)
+              const isFocused = focusedIndex === index
               return (
                 <Flex
                   key={option.value}
+                  id={`option-${option.value}`}
                   role="option"
                   aria-selected={isSelected}
+                  tabIndex={isFocused ? 0 : -1}
                   px="12px"
                   py="10px"
                   gap={2}
                   align="center"
                   cursor="pointer"
-                  bg={isSelected ? 'primary.50' : 'white'}
+                  bg={isFocused ? 'primary.100' : isSelected ? 'primary.50' : 'white'}
                   _hover={{ bg: isSelected ? 'primary.50' : 'neutral.50' }}
                   onClick={() => handleToggleOption(option.value)}
                 >
