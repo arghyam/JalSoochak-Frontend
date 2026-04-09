@@ -91,15 +91,15 @@ export function StaffOverviewPage() {
       title: t('pages.overview.stats.anomaliesFlagged'),
       value: anomaliesFlagged,
       icon: IoCloseCircleOutline,
-      iconBg: '#FEF3C7',
-      iconColor: '#D97706',
+      iconBg: '#FEE2E2',
+      iconColor: '#DC2626',
     },
     {
       title: t('pages.overview.stats.escalations'),
       value: escalations,
       icon: MdOutlineTrendingUp,
-      iconBg: '#FEE2E2',
-      iconColor: '#DC2626',
+      iconBg: '#FEF3C7',
+      iconColor: '#D97706',
     },
   ]
 

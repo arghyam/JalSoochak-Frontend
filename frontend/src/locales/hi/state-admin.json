@@ -332,7 +332,9 @@
     },
     "table": {
       "schemeName": "योजना नाम",
-      "fhtcCount": "FHTC संख्या",
+      "stateSchemeId": "राज्य योजना आईडी",
+      "plannedFhtc": "योजनाबद्ध FHTC",
+      "achievedFhtc": "हासिल FHTC",
       "houseHoldCount": "घरेलू संख्या",
       "workStatus": "कार्य स्थिति",
       "operatingStatus": "संचालन स्थिति"

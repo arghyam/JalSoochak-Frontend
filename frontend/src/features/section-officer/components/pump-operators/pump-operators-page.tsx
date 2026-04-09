@@ -134,6 +134,17 @@ export function PumpOperatorsPage() {
       ),
     },
     {
+      key: 'lastWaterSupplied',
+      header: t('pages.pumpOperators.columns.waterSupplied'),
+      render: (row) => (
+        <Text textStyle="h10" fontWeight="400">
+          {row.lastWaterSupplied !== null && row.lastWaterSupplied !== undefined
+            ? `${row.lastWaterSupplied}`
+            : '—'}
+        </Text>
+      ),
+    },
+    {
       key: 'lastSubmissionAt',
       header: t('pages.pumpOperators.columns.lastSubmission'),
       render: (row) => (

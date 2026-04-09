@@ -128,8 +128,8 @@ export function SchemeSyncPage() {
       key: 'schemeName',
       header: t('schemeSync.table.schemeName'),
       sortable: true,
-      width: '30%',
-      minWidth: '200px',
+      width: '25%',
+      minWidth: '180px',
       render: (row) => (
         <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
           {row.schemeName}
@@ -137,11 +137,35 @@ export function SchemeSyncPage() {
       ),
     },
     {
-      key: 'fhtcCount',
-      header: t('schemeSync.table.fhtcCount'),
+      key: 'stateSchemeId',
+      header: t('schemeSync.table.stateSchemeId'),
       sortable: false,
-      width: '17%',
-      minWidth: '120px',
+      width: '12%',
+      minWidth: '100px',
+      render: (row) => (
+        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
+          {row.stateSchemeId}
+        </Text>
+      ),
+    },
+    {
+      key: 'plannedFhtc',
+      header: t('schemeSync.table.plannedFhtc'),
+      sortable: false,
+      width: '12%',
+      minWidth: '100px',
+      render: (row) => (
+        <Text textStyle="h10" fontWeight="400">
+          {row.plannedFhtc}
+        </Text>
+      ),
+    },
+    {
+      key: 'fhtcCount',
+      header: t('schemeSync.table.achievedFhtc'),
+      sortable: false,
+      width: '12%',
+      minWidth: '100px',
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.fhtcCount}
@@ -152,8 +176,8 @@ export function SchemeSyncPage() {
       key: 'houseHoldCount',
       header: t('schemeSync.table.houseHoldCount'),
       sortable: false,
-      width: '17%',
-      minWidth: '140px',
+      width: '13%',
+      minWidth: '120px',
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.houseHoldCount}
@@ -164,8 +188,8 @@ export function SchemeSyncPage() {
       key: 'workStatus',
       header: t('schemeSync.table.workStatus'),
       sortable: false,
-      width: '18%',
-      minWidth: '120px',
+      width: '13%',
+      minWidth: '100px',
       render: (row) => (
         <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
           {row.workStatus}
@@ -176,8 +200,8 @@ export function SchemeSyncPage() {
       key: 'operatingStatus',
       header: t('schemeSync.table.operatingStatus'),
       sortable: false,
-      width: '18%',
-      minWidth: '140px',
+      width: '13%',
+      minWidth: '110px',
       render: (row) => (
         <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
           {row.operatingStatus}

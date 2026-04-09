@@ -25,6 +25,7 @@ const translations: Record<string, string> = {
   'pages.pumpOperators.columns.name': 'Name',
   'pages.pumpOperators.columns.schemes': 'Schemes',
   'pages.pumpOperators.columns.reportingRate': 'Reporting Rate (%)',
+  'pages.pumpOperators.columns.waterSupplied': 'Water Supplied',
   'pages.pumpOperators.columns.lastSubmission': 'Last Submission',
   'pages.pumpOperators.columns.activityStatus': 'Activity Status',
   'pages.pumpOperators.columns.actions': 'Actions',
