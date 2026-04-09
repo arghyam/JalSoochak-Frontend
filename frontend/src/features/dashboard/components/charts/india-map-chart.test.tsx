@@ -4,7 +4,7 @@ import { renderWithProviders } from '@/test/render-with-providers'
 import type { EntityPerformance } from '../../types'
 import { IndiaMapChart } from './india-map-chart'
 
-const mockEChartsWrapper = jest.fn((_props: { option: unknown; renderer?: string }) => (
+const mockEChartsWrapper = jest.fn((_props: Record<string, unknown>) => (
   <div data-testid="echarts-wrapper" />
 ))
 const mockGetMap = jest.fn()
@@ -19,7 +19,7 @@ jest.mock('echarts', () => ({
 }))
 
 jest.mock('@/shared/components/common', () => ({
-  EChartsWrapper: (props: { option: unknown }) => mockEChartsWrapper(props),
+  EChartsWrapper: (props: Record<string, unknown>) => mockEChartsWrapper(props),
   Toggle: (props: {
     isChecked: boolean
     onChange: (event: { target: { checked: boolean } }) => void
@@ -197,5 +197,15 @@ describe('IndiaMapChart', () => {
         renderer: 'svg',
       })
     )
+  })
+
+  it('binds handlers via onChartReady so they can refresh on navigation changes', () => {
+    mockGetMap.mockReturnValue({})
+
+    renderWithProviders(<IndiaMapChart data={chartData} />)
+
+    const latestProps = mockEChartsWrapper.mock.calls.at(-1)?.[0] as Record<string, unknown>
+    expect(latestProps.onChartReady).toBeTruthy()
+    expect(latestProps.onChartReadyOnce).toBeUndefined()
   })
 })

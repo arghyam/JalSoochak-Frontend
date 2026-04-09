@@ -484,7 +484,7 @@ export function IndiaMapChart({
               option={option}
               height="100%"
               renderer="svg"
-              onChartReadyOnce={handleChartReady}
+              onChartReady={handleChartReady}
             />
           ) : (
             <Center h="100%">
