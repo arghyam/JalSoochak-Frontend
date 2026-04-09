@@ -246,6 +246,7 @@ export function IndiaMapChart({
           type: 'map',
           map: effectiveMapName ?? mapName,
           roam: true,
+          aspectScale: 0.927,
           scaleLimit: {
             min: 1,
             max: 3,
