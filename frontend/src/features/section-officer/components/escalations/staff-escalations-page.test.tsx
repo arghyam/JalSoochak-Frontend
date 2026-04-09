@@ -15,7 +15,7 @@ const translations: Record<string, string> = {
   'pages.escalations.searchPlaceholder': 'Search by scheme name',
   'pages.escalations.filterStatus': 'Filter by status',
   'pages.escalations.filterDuration': 'Duration',
-  'pages.escalations.clearAllFilters': 'clear all filters',
+  'pages.escalations.clearAllFilters': 'Clear all filters',
   'pages.escalations.columns.schemeName': 'Scheme Name',
   'pages.escalations.columns.dateTime': 'Date & Time',
   'pages.escalations.columns.escalationType': 'Escalation Type',

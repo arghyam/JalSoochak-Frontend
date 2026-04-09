@@ -14,7 +14,8 @@ jest.mock('react-router-dom', () => ({
 
 const translations: Record<string, string> = {
   'pages.schemes.heading': 'All Schemes',
-  'pages.schemes.loading': 'Loading scheme details…',
+  'pages.schemes.loading': 'Loading…',
+  'pages.schemes.error': 'Failed to load schemes. Please try again.',
   'pages.schemes.noSchemesFound': 'No schemes found.',
   'pages.schemes.searchPlaceholder': 'Search by scheme name',
   'pages.schemes.columns.schemeName': 'Scheme Name',

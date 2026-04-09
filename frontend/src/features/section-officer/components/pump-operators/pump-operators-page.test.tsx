@@ -20,7 +20,7 @@ const translations: Record<string, string> = {
   'pages.pumpOperators.searchPlaceholder': 'Search by name',
   'pages.pumpOperators.filterStatus': 'Filter by status',
   'pages.pumpOperators.filterDuration': 'Duration',
-  'pages.pumpOperators.clearAllFilters': 'clear all filters',
+  'pages.pumpOperators.clearAllFilters': 'Clear all filters',
   'pages.pumpOperators.viewTooltip': 'View pump operator',
   'pages.pumpOperators.columns.name': 'Name',
   'pages.pumpOperators.columns.schemes': 'Schemes',

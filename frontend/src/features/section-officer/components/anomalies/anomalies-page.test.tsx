@@ -15,7 +15,7 @@ const translations: Record<string, string> = {
   'pages.anomalies.searchPlaceholder': 'Search by scheme name',
   'pages.anomalies.filterStatus': 'Filter by status',
   'pages.anomalies.filterDuration': 'Duration',
-  'pages.anomalies.clearAllFilters': 'clear all filters',
+  'pages.anomalies.clearAllFilters': 'Clear all filters',
   'pages.anomalies.columns.schemeName': 'Scheme Name',
   'pages.anomalies.columns.dateTime': 'Date & Time',
   'pages.anomalies.columns.anomalyType': 'Anomaly Type',

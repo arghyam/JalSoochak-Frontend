@@ -31,6 +31,7 @@ import { SearchableSelect } from '@/shared/components/common'
 import jalsoochakLogo from '@/assets/media/logo.svg'
 import { BiArrowBack } from 'react-icons/bi'
 import { useAuthStore } from '@/app/store'
+import { getCookie, setCookie } from '@/shared/utils/cookies'
 import {
   usePublicTenantsQuery,
   useRequestOtpMutation,
@@ -41,6 +42,7 @@ const OTP_RESEND_COOLDOWN_SECONDS = 60
 const OTP_FALLBACK_LENGTH = 6
 const PHONE_NUMBER_LENGTH = 10
 const COUNTRY_CODE = '91'
+const TENANT_CODE_COOKIE = 'staff_login_tenant_code'
 
 type LoginStep = 'phone' | 'otp'
 
@@ -60,7 +62,7 @@ export function StaffLoginPage() {
 
   // Step 1 state
   const [phoneDigits, setPhoneDigits] = useState('')
-  const [tenantCode, setTenantCode] = useState('')
+  const [tenantCode, setTenantCode] = useState(() => getCookie(TENANT_CODE_COOKIE) || '')
   const [phoneError, setPhoneError] = useState<string | null>(null)
   const [tenantError, setTenantError] = useState<string | null>(null)
 
@@ -85,6 +87,13 @@ export function StaffLoginPage() {
   }))
 
   const fullPhoneNumber = `${COUNTRY_CODE}${phoneDigits}`
+
+  // Save tenant code to cookie whenever it changes
+  useEffect(() => {
+    if (tenantCode) {
+      setCookie(TENANT_CODE_COOKIE, tenantCode)
+    }
+  }, [tenantCode])
 
   const startCooldown = useCallback(() => {
     setResendCooldown(OTP_RESEND_COOLDOWN_SECONDS)
