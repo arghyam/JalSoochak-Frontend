@@ -108,9 +108,21 @@ export function WaterNormsPage() {
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
 
+    // Validate state quantity - required if mandatory, or validate format if provided
     if (isMandatory('WATER_NORM')) {
       const quantity = Number(stateQuantity)
       if (!stateQuantity || Number.isNaN(quantity) || quantity <= 0) {
+        newErrors.stateQuantity = t('state-admin:validation.mustBePositive')
+      } else if (quantity > MAX_WATER_QUANTITY) {
+        newErrors.stateQuantity = t('state-admin:validation.mustBeInRange', {
+          min: 1,
+          max: MAX_WATER_QUANTITY,
+        })
+      }
+    } else if (stateQuantity) {
+      // Validate format/range for optional non-empty field
+      const quantity = Number(stateQuantity)
+      if (Number.isNaN(quantity) || quantity <= 0) {
         newErrors.stateQuantity = t('state-admin:validation.mustBePositive')
       } else if (quantity > MAX_WATER_QUANTITY) {
         newErrors.stateQuantity = t('state-admin:validation.mustBeInRange', {
@@ -140,6 +152,27 @@ export function WaterNormsPage() {
           min: 0,
           max: 100,
         })
+      }
+    } else {
+      // Validate format/range for optional non-empty thresholds
+      if (oversupplyThreshold) {
+        const oversupply = Number(oversupplyThreshold)
+        if (Number.isNaN(oversupply) || oversupply < 0 || oversupply > 1000) {
+          newErrors.oversupplyThreshold = t('state-admin:validation.mustBeInRange', {
+            min: 0,
+            max: 1000,
+          })
+        }
+      }
+
+      if (undersupplyThreshold) {
+        const undersupply = Number(undersupplyThreshold)
+        if (Number.isNaN(undersupply) || undersupply < 0 || undersupply > 100) {
+          newErrors.undersupplyThreshold = t('state-admin:validation.mustBeInRange', {
+            min: 0,
+            max: 100,
+          })
+        }
       }
     }
 
@@ -357,7 +390,7 @@ export function WaterNormsPage() {
                       </Text>
                     ) : (
                       <Text as="span" color="neutral.400" ml={1} fontSize="xs">
-                        (Optional)
+                        {t('common:optional')}
                       </Text>
                     )}
                   </Text>

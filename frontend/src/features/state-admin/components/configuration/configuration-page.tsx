@@ -235,6 +235,10 @@ export function ConfigurationPage() {
     }
 
     // Meter change reasons
+    if (isMandatory('METER_CHANGE_REASONS') && current.meterChangeReasons.length === 0) {
+      newErrors.meterChangeReasons = t('state-admin:validation.selectAtLeastOne')
+    }
+
     const nonEmptyReasonNames: string[] = []
     current.meterChangeReasons.forEach((reason) => {
       const error = validateDescriptiveField(reason.name)
@@ -261,6 +265,10 @@ export function ConfigurationPage() {
     }
 
     // Supply outage reasons
+    if (isMandatory('SUPPLY_OUTAGE_REASONS') && current.supplyOutageReasons.length === 0) {
+      newErrors.supplyOutageReasons = t('state-admin:validation.selectAtLeastOne')
+    }
+
     const nonEmptyOutageNames: string[] = []
     current.supplyOutageReasons.forEach((reason) => {
       const error = validateDescriptiveField(reason.name)

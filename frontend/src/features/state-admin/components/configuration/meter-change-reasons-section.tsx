@@ -43,6 +43,10 @@ export function MeterChangeReasonsSection({
   }
 
   const handleDelete = (id: string) => {
+    // Prevent deletion of the last item if the field is required
+    if (required && reasons.length === 1) {
+      return
+    }
     onChange(reasons.filter((r) => r.id !== id))
     onClearError?.(`meterReason.${id}`)
   }
@@ -111,9 +115,11 @@ export function MeterChangeReasonsSection({
                   size="sm"
                   color="neutral.400"
                   onClick={() => handleDelete(reason.id)}
+                  isDisabled={required && reasons.length === 1}
                   h="36px"
                   minW="36px"
                   _hover={{ bg: 'error.50', color: 'error.500' }}
+                  _disabled={{ opacity: 0.4, cursor: 'not-allowed' }}
                 />
               </Flex>
               {fieldError && <FormErrorMessage>{fieldError}</FormErrorMessage>}
