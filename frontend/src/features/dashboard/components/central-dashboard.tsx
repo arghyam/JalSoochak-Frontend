@@ -23,6 +23,7 @@ import { useLocationSearchQuery } from '../services/query/use-location-search-qu
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
 import { useNationalDashboardQuery } from '../services/query/use-national-dashboard-query'
+import { useNationalDashboardBoundariesQuery } from '../services/query/use-national-dashboard-boundaries-query'
 import { useNationalSchemeRegularityPeriodicQuery } from '../services/query/use-national-scheme-regularity-periodic-query'
 import { useOutageReasonsPeriodicQuery } from '../services/query/use-outage-reasons-periodic-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
@@ -43,6 +44,7 @@ import type { DateRange, SearchableSelectOption } from '@/shared/components/comm
 import type {
   DashboardData,
   EntityPerformance,
+  NationalDashboardBoundaryResponse,
   NationalDashboardResponse,
   VillagePumpOperatorDetails,
 } from '../types'
@@ -284,6 +286,38 @@ const getStateLgdCode = (stateName?: string, stateCode?: string): number | undef
   return matchedState?.lgdCode
 }
 
+const mapNationalBoundariesToPerformance = (
+  response: NationalDashboardBoundaryResponse | undefined,
+  fallbackData: EntityPerformance[]
+): EntityPerformance[] => {
+  if (!response?.stateWiseBoundaries?.length) {
+    return fallbackData
+  }
+
+  const fallbackById = new Map(fallbackData.map((item) => [item.id, item] as const))
+  const fallbackByName = new Map(fallbackData.map((item) => [slugify(item.name), item] as const))
+
+  return response.stateWiseBoundaries.map((region, index) => {
+    const stateLgdCode = getStateLgdCode(region.stateTitle, region.stateCode)
+    const fallbackMatch =
+      fallbackById.get(String(region.tenantId)) ??
+      (typeof stateLgdCode === 'number' ? fallbackById.get(String(stateLgdCode)) : undefined) ??
+      fallbackByName.get(slugify(region.stateTitle))
+
+    return {
+      id: fallbackMatch?.id ?? String(region.tenantId || stateLgdCode || index),
+      name: region.stateTitle || fallbackMatch?.name || `State ${index + 1}`,
+      coverage: fallbackMatch?.coverage ?? 0,
+      regularity: fallbackMatch?.regularity ?? 0,
+      continuity: fallbackMatch?.continuity ?? 0,
+      quantity: fallbackMatch?.quantity ?? 0,
+      compositeScore: fallbackMatch?.compositeScore ?? 0,
+      status: fallbackMatch?.status ?? 'needs-attention',
+      boundaryGeoJson: region.boundary ?? null,
+    }
+  })
+}
+
 const getStoredFilters = (): StoredFilters => {
   if (typeof window === 'undefined') return {}
   try {
@@ -481,6 +515,22 @@ const filterNationalDashboardByTenantIds = (
     overallOutageReasonDistribution: hasFilteredInactiveTenants
       ? {}
       : response.overallOutageReasonDistribution,
+  }
+}
+
+const filterNationalDashboardBoundariesByTenantIds = (
+  response: NationalDashboardBoundaryResponse | undefined,
+  activeTenantIds: Set<number>
+): NationalDashboardBoundaryResponse | undefined => {
+  if (!response || activeTenantIds.size === 0) {
+    return response
+  }
+
+  return {
+    ...response,
+    stateWiseBoundaries: response.stateWiseBoundaries.filter((state) =>
+      activeTenantIds.has(state.tenantId)
+    ),
   }
 }
 
@@ -1262,7 +1312,7 @@ export function CentralDashboard() {
     params: analyticsParams,
     enabled: Boolean(analyticsParams),
   })
-  const { data: tenantBoundaryData, isFetching: isTenantBoundariesFetching = false } =
+  const { data: tenantBoundaryData, isLoading: isTenantBoundariesLoading = false } =
     useTenantBoundariesQuery({
       params: tenantBoundaryAnalyticsParams,
       enabled: Boolean(tenantBoundaryAnalyticsParams),
@@ -1270,6 +1320,12 @@ export function CentralDashboard() {
   const { data: nationalDashboardData } = useNationalDashboardQuery({
     params: nationalDashboardParams,
     enabled: Boolean(nationalDashboardParams),
+  })
+  const {
+    data: nationalDashboardBoundariesData,
+    isLoading: isNationalDashboardBoundariesLoading = false,
+  } = useNationalDashboardBoundariesQuery({
+    enabled: !hasCentralLandingFilters,
   })
   const {
     data: nationalSchemeQuantityPeriodicData,
@@ -1314,6 +1370,13 @@ export function CentralDashboard() {
     previousNationalDashboardData,
     activeTenantIds
   )
+  const filteredNationalDashboardBoundaries = filterNationalDashboardBoundariesByTenantIds(
+    nationalDashboardBoundariesData,
+    activeTenantIds
+  ) ?? {
+    nationalBoundary: null,
+    stateWiseBoundaries: [],
+  }
   const { data: currentWaterSupplyKpiData } = useAverageWaterSupplyPerRegionQuery({
     params: currentWaterSupplyAnalyticsParams,
     enabled: Boolean(currentWaterSupplyAnalyticsParams),
@@ -1562,17 +1625,15 @@ export function CentralDashboard() {
         ? emptyEntityPerformance
         : rawOverallPerformanceTableData
   const mapChartData = isCentralLandingView
-    ? dashboardData.mapData
+    ? mapNationalBoundariesToPerformance(filteredNationalDashboardBoundaries, dashboardData.mapData)
     : mapTenantBoundariesToPerformance(
         tenantBoundaryData,
         overallPerformanceTableData,
         tenantBoundaryLocationOptions
       )
-  const isMapDataLoading =
-    !isCentralLandingView &&
-    Boolean(tenantBoundaryAnalyticsParams) &&
-    !tenantBoundaryData &&
-    isTenantBoundariesFetching
+  const isMapDataLoading = isCentralLandingView
+    ? !nationalDashboardBoundariesData && isNationalDashboardBoundariesLoading
+    : Boolean(tenantBoundaryAnalyticsParams) && !tenantBoundaryData && isTenantBoundariesLoading
   const quantityPerformanceData = isCentralLandingView
     ? mapQuantityPerformanceFromNationalDashboard(
         filteredNationalDashboardData,
@@ -2416,6 +2477,9 @@ export function CentralDashboard() {
     >
       <IndiaMapChart
         data={mapChartData}
+        nationalBoundaryGeoJson={
+          isCentralLandingView ? filteredNationalDashboardBoundaries.nationalBoundary : undefined
+        }
         isLoading={isMapDataLoading}
         disableHoverEffect={isCentralLandingView}
         mapName={
@@ -2423,7 +2487,6 @@ export function CentralDashboard() {
             ? 'india'
             : `tenant-boundary-${hierarchyType.toLowerCase()}-${analyticsParentId}`
         }
-        fallbackToIndiaMap={isCentralLandingView}
         usePrimaryFill={isCentralLandingView}
         onStateClick={handleMapRegionClick}
         onStateHover={handleStateHover}

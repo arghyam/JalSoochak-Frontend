@@ -49,17 +49,29 @@ const chartData: EntityPerformance[] = [
     quantity: 54,
     compositeScore: 64,
     status: 'needs-attention',
+    boundaryGeoJson: {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+          [0, 1],
+          [0, 0],
+        ],
+      ],
+    },
   },
 ]
+
+const chartDataWithoutBoundary = chartData.map(
+  ({ boundaryGeoJson: _boundaryGeoJson, ...region }) => region
+)
 
 describe('IndiaMapChart', () => {
   it('shows no map available when a departmental map has no boundary geojson', () => {
     renderWithProviders(
-      <IndiaMapChart
-        data={chartData}
-        mapName="tenant-boundary-department-201"
-        fallbackToIndiaMap={false}
-      />
+      <IndiaMapChart data={chartDataWithoutBoundary} mapName="tenant-boundary-department-201" />
     )
 
     expect(screen.getByText('Map currently unavailable')).toBeTruthy()
@@ -71,9 +83,8 @@ describe('IndiaMapChart', () => {
   it('shows loading state while departmental boundaries are still loading', () => {
     renderWithProviders(
       <IndiaMapChart
-        data={chartData}
+        data={chartDataWithoutBoundary}
         mapName="tenant-boundary-department-201"
-        fallbackToIndiaMap={false}
         isLoading
       />
     )
@@ -111,7 +122,6 @@ describe('IndiaMapChart', () => {
           },
         ]}
         mapName="tenant-boundary-department-201"
-        fallbackToIndiaMap={false}
       />
     )
 

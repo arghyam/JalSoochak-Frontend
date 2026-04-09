@@ -8,6 +8,7 @@ import type {
   NationalSchemeRegularityPeriodicResponse,
   NationalDashboardQueryParams,
   NationalDashboardResponse,
+  NationalDashboardBoundaryResponse,
   AverageWaterSupplyPerRegionQueryParams,
   AverageWaterSupplyPerRegionResponse,
   DashboardData,
@@ -85,6 +86,11 @@ type RawPumpOperatorDetailsResponse = Omit<PumpOperatorDetailsResponse, 'data'> 
 type RawNationalDashboardPayload = {
   success?: boolean
   data?: NationalDashboardResponse
+}
+
+type RawNationalDashboardBoundaryPayload = {
+  success?: boolean
+  data?: NationalDashboardBoundaryResponse
 }
 
 type RawAverageWaterSupplyPerRegionPayload = {
@@ -180,6 +186,58 @@ const normalizeNationalDashboardResponse = (
   }
 
   return payload
+}
+
+const normalizeStateWiseBoundaries = (
+  stateWiseBoundaries: unknown
+): NationalDashboardBoundaryResponse['stateWiseBoundaries'] => {
+  if (!Array.isArray(stateWiseBoundaries)) {
+    return []
+  }
+
+  return stateWiseBoundaries.flatMap((boundary) => {
+    if (!boundary || typeof boundary !== 'object') {
+      return []
+    }
+
+    return {
+      ...boundary,
+      boundary: isGeoJsonGeometry(boundary.boundary) ? boundary.boundary : null,
+    }
+  })
+}
+
+const normalizeNationalDashboardBoundaryResponse = (
+  response: NationalDashboardBoundaryResponse | RawNationalDashboardBoundaryPayload
+): NationalDashboardBoundaryResponse => {
+  if (!response || typeof response !== 'object') {
+    throw new Error('Invalid national dashboard boundary response: expected an object payload')
+  }
+
+  if ('stateWiseBoundaries' in response) {
+    return {
+      nationalBoundary: isGeoJsonGeometry(response.nationalBoundary)
+        ? response.nationalBoundary
+        : null,
+      stateWiseBoundaries: normalizeStateWiseBoundaries(response.stateWiseBoundaries),
+    }
+  }
+
+  const payload = response.data
+  if (!payload || typeof payload !== 'object') {
+    throw new Error('Invalid national dashboard boundary response: missing data payload')
+  }
+
+  if (!('stateWiseBoundaries' in payload)) {
+    throw new Error(
+      'Invalid national dashboard boundary response: data payload is missing stateWiseBoundaries'
+    )
+  }
+
+  return {
+    nationalBoundary: isGeoJsonGeometry(payload.nationalBoundary) ? payload.nationalBoundary : null,
+    stateWiseBoundaries: normalizeStateWiseBoundaries(payload.stateWiseBoundaries),
+  }
 }
 
 const toTenantListContainer = (value: unknown): TenantListContainer | null => {
@@ -474,6 +532,13 @@ export const dashboardApi = {
     )
 
     return normalizeNationalDashboardResponse(response.data)
+  },
+  getNationalDashboardBoundaries: async (): Promise<NationalDashboardBoundaryResponse> => {
+    const response = await apiClient.get<
+      NationalDashboardBoundaryResponse | RawNationalDashboardBoundaryPayload
+    >('/api/v1/analytics/national/dashboard/boundary')
+
+    return normalizeNationalDashboardBoundaryResponse(response.data)
   },
   getAverageWaterSupplyPerRegion: async (
     params: AverageWaterSupplyPerRegionQueryParams
