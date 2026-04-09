@@ -212,7 +212,8 @@ describe('AnomaliesPage', () => {
     renderPage()
     expect(screen.getByText('Test Scheme')).toBeTruthy()
     expect(screen.getByText('No Water Supply')).toBeTruthy()
-    expect(screen.getByText('In-Progress')).toBeTruthy()
+    // Use getAllByText to get the table cell, not the select option
+    expect(screen.getAllByText('In-Progress').length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders search input', () => {

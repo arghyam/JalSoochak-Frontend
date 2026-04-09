@@ -132,8 +132,12 @@ describe('StaffLoginPage — Phone Step', () => {
 
     await userEvent.type(screen.getByTestId('phone-input'), '8179020960')
     // Open tenant select and pick an option
-    fireEvent.click(screen.getByRole('combobox'))
-    fireEvent.click(screen.getByText('Nagaland'))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('combobox'))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByText('Nagaland'))
+    })
 
     await act(async () => {
       fireEvent.click(screen.getByTestId('send-otp-button'))
@@ -152,8 +156,12 @@ describe('StaffLoginPage — Phone Step', () => {
     render(<StaffLoginPage />, { wrapper: createWrapper() })
 
     await userEvent.type(screen.getByTestId('phone-input'), '8179020960')
-    fireEvent.click(screen.getByRole('combobox'))
-    fireEvent.click(screen.getByText('Nagaland'))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('combobox'))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByText('Nagaland'))
+    })
 
     await act(async () => {
       fireEvent.click(screen.getByTestId('send-otp-button'))
@@ -171,13 +179,19 @@ describe('StaffLoginPage — OTP Step', () => {
     render(<StaffLoginPage />, { wrapper: createWrapper() })
 
     await userEvent.type(screen.getByTestId('phone-input'), '8179020960')
-    fireEvent.click(screen.getByRole('combobox'))
-    fireEvent.click(screen.getByText('Nagaland'))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('combobox'))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByText('Nagaland'))
+    })
 
     await act(async () => {
       fireEvent.click(screen.getByTestId('send-otp-button'))
     })
     await waitFor(() => expect(screen.getByTestId('otp-inputs')).toBeTruthy())
+    // Flush autoFocus-triggered Chakra FormControl state updates
+    await act(async () => {})
   }
 
   it('renders correct number of OTP inputs based on otpLength from API response', async () => {

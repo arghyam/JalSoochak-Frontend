@@ -43,7 +43,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
         error: null,
       })
 
-      if (user.role === AUTH_ROLES.SUPER_ADMIN) {
+      if (user.role === AUTH_ROLES.SUPER_ADMIN || user.role === AUTH_ROLES.SUPER_STATE_ADMIN) {
         return '/super-user'
       } else if (user.role === AUTH_ROLES.STATE_ADMIN) {
         return '/state-admin'
@@ -120,7 +120,8 @@ export const useAuthStore = create<AuthState>()((set) => ({
 
   setFromActivation: ({ user, accessToken }: LoginResponse) => {
     set({ accessToken, user, isAuthenticated: true, error: null, sessionExpired: false })
-    if (user.role === AUTH_ROLES.SUPER_ADMIN) return '/super-user'
+    if (user.role === AUTH_ROLES.SUPER_ADMIN || user.role === AUTH_ROLES.SUPER_STATE_ADMIN)
+      return '/super-user'
     if (user.role === AUTH_ROLES.STATE_ADMIN) return '/state-admin'
     if (STAFF_ROLES.includes(user.role as (typeof STAFF_ROLES)[number])) return ROUTES.STAFF
     return '/'

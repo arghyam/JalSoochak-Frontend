@@ -2,6 +2,13 @@ import { screen, fireEvent, waitFor } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
 import { EscalationsFormPage } from './escalations-form-page'
 
+jest.mock('@/app/store/auth-store', () => ({
+  useAuthStore: (selector?: (s: { user: { tenantCode: string } }) => unknown) => {
+    const mockState = { user: { tenantCode: 'TG' } }
+    return selector ? selector(mockState) : mockState
+  },
+}))
+
 jest.mock('@/shared/components/common', () => {
   const actual = jest.requireActual<typeof import('@/shared/components/common')>(
     '@/shared/components/common'
@@ -31,6 +38,11 @@ jest.mock('@/shared/components/common', () => {
 jest.mock('../../services/query/use-state-admin-queries', () => ({
   useEscalationRulesQuery: jest.fn(),
   useSaveEscalationRulesMutation: jest.fn(),
+  useConfigStatusQuery: () => ({
+    data: { FIELD_STAFF_ESCALATION_RULES: { status: 'CONFIGURED', mandatory: true } },
+    isLoading: false,
+    isError: false,
+  }),
 }))
 
 const { useEscalationRulesQuery, useSaveEscalationRulesMutation } = jest.requireMock(

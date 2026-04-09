@@ -113,6 +113,12 @@ export function StaffLoginPage() {
     otpInputRefs.current = Array(length).fill(null)
   }, [])
 
+  useEffect(() => {
+    if (step === 'otp') {
+      otpInputRefs.current[0]?.focus()
+    }
+  }, [step])
+
   const handleSendOtp = async () => {
     if (requestOtpMutation.isPending) return
     if (tenantsError) return
@@ -546,7 +552,6 @@ function OtpStep({
                 focusBorderColor={otpError ? 'error.500' : 'primary.500'}
                 _placeholder={{ color: 'neutral.300' }}
                 placeholder="0"
-                autoFocus={i === 0}
                 data-testid={`otp-input-${i}`}
               />
             ))}

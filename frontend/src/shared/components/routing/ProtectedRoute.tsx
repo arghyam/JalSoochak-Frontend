@@ -75,7 +75,7 @@ export function RedirectIfAuthenticated({ children }: { children: ReactNode }) {
   }
 
   // Default: role-based home
-  if (user.role === AUTH_ROLES.SUPER_ADMIN) {
+  if (user.role === AUTH_ROLES.SUPER_ADMIN || user.role === AUTH_ROLES.SUPER_STATE_ADMIN) {
     return <Navigate to={ROUTES.SUPER_ADMIN} replace />
   }
 

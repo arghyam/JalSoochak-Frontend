@@ -75,7 +75,9 @@ jest.mock('../../services/query/use-state-admin-queries', () => ({
 }))
 
 jest.mock('@/app/store', () => ({
-  useAuthStore: (selector: (state: typeof mockAuthState) => unknown) => selector(mockAuthState),
+  useAuthStore: (selector?: (state: typeof mockAuthState) => unknown) => {
+    return selector ? selector(mockAuthState) : mockAuthState
+  },
 }))
 
 beforeEach(() => {

@@ -8,8 +8,10 @@ import type { StaffCountsData } from '../../types/overview'
 // ── Mocks ────────────────────────────────────────────────────────────────────
 
 jest.mock('@/app/store/auth-store', () => ({
-  useAuthStore: (selector: (s: { user: { tenantCode: string } }) => unknown) =>
-    selector({ user: { tenantCode: 'AS' } }),
+  useAuthStore: (selector?: (s: { user: { tenantCode: string } }) => unknown) => {
+    const mockState = { user: { tenantCode: 'AS' } }
+    return selector ? selector(mockState) : mockState
+  },
 }))
 
 const mockUseStaffListQuery = jest.fn()

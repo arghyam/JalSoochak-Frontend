@@ -15,4 +15,7 @@ module.exports = {
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.test.json' }],
   },
+  globals: {
+    __SERVER_MODE__: '',
+  },
 }
