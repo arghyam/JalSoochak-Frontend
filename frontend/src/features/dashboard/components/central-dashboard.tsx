@@ -1,7 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { Box, Flex, Text, Heading, Grid, Icon, Image, useBreakpointValue } from '@chakra-ui/react'
+import {
+  Box,
+  Flex,
+  Text,
+  Heading,
+  Grid,
+  Icon,
+  Image,
+  Portal,
+  useBreakpointValue,
+} from '@chakra-ui/react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDashboardData } from '../hooks/use-dashboard-data'
@@ -508,6 +518,7 @@ export function CentralDashboard() {
   const [selectedDuration, setSelectedDuration] = useState<DateRange | null>(() =>
     getInitialStoredDuration(storedFilters)
   )
+  const [isMapFullscreen, setIsMapFullscreen] = useState(false)
   const [isDurationCleared, setIsDurationCleared] = useState(false)
   const [selectedScheme, setSelectedScheme] = useState(storedFilters.selectedScheme ?? '')
   const [storedSelectedDepartmentState, setSelectedDepartmentState] = useState(
@@ -576,6 +587,19 @@ export function CentralDashboard() {
       value,
     })
   }
+
+  useEffect(() => {
+    if (!isMapFullscreen) {
+      return
+    }
+
+    const originalOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.body.style.overflow = originalOverflow
+    }
+  }, [isMapFullscreen])
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
@@ -2333,6 +2357,41 @@ export function CentralDashboard() {
     ? operatorsPerformanceAnalyticsTable
     : [...leadingPumpOperators, ...bottomPumpOperators]
   const villagePhotoEvidenceRows = dashboardData.readingCompliance ?? []
+  const renderMapCard = (height: string | Record<string, string>, fullscreen = false) => (
+    <Box
+      bg="white"
+      borderWidth="0.5px"
+      borderRadius={fullscreen ? '16px' : '12px'}
+      borderColor="#E4E4E7"
+      pt="24px"
+      pb="10px"
+      pl="16px"
+      pr="16px"
+      w="full"
+      h={height}
+      minW={0}
+      position="relative"
+      boxShadow={fullscreen ? '0 24px 64px rgba(15, 23, 42, 0.16)' : 'none'}
+    >
+      <IndiaMapChart
+        data={mapChartData}
+        isLoading={isMapDataLoading}
+        disableHoverEffect={isCentralLandingView}
+        mapName={
+          isCentralLandingView
+            ? 'india'
+            : `tenant-boundary-${hierarchyType.toLowerCase()}-${analyticsParentId}`
+        }
+        fallbackToIndiaMap={isCentralLandingView}
+        usePrimaryFill={isCentralLandingView}
+        onStateClick={handleMapRegionClick}
+        onStateHover={handleStateHover}
+        isFullscreen={fullscreen}
+        onFullscreenToggle={() => setIsMapFullscreen((previous) => !previous)}
+        height="100%"
+      />
+    </Box>
+  )
   return (
     <Box>
       <DashboardFilters
@@ -2398,35 +2457,7 @@ export function CentralDashboard() {
       {/* Map and Overall Performance */}
       {!activeLeafSelection ? (
         <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-          <Box
-            bg="white"
-            borderWidth="0.5px"
-            borderRadius="12px"
-            borderColor="#E4E4E7"
-            pt="24px"
-            pb="10px"
-            pl="16px"
-            pr="16px"
-            w="full"
-            h={{ base: '420px', sm: '520px', lg: '710px' }}
-            minW={0}
-          >
-            <IndiaMapChart
-              data={mapChartData}
-              isLoading={isMapDataLoading}
-              disableHoverEffect={isCentralLandingView}
-              mapName={
-                isCentralLandingView
-                  ? 'india'
-                  : `tenant-boundary-${hierarchyType.toLowerCase()}-${analyticsParentId}`
-              }
-              fallbackToIndiaMap={isCentralLandingView}
-              usePrimaryFill={isCentralLandingView}
-              onStateClick={handleMapRegionClick}
-              onStateHover={handleStateHover}
-              height="100%"
-            />
-          </Box>
+          {renderMapCard({ base: '420px', sm: '520px', lg: '710px' })}
           <Box
             bg="white"
             borderWidth="0.5px"
@@ -2451,6 +2482,30 @@ export function CentralDashboard() {
             />
           </Box>
         </Grid>
+      ) : null}
+      {isMapFullscreen ? (
+        <Portal>
+          <Box
+            position="fixed"
+            inset={0}
+            zIndex={1400}
+            bg="rgba(15, 23, 42, 0.2)"
+            p={{ base: 3, md: 6 }}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            onClick={() => setIsMapFullscreen(false)}
+          >
+            <Box
+              w="full"
+              maxW={{ base: '100%', lg: '1200px', xl: '1320px' }}
+              h={{ base: '100%', md: '92vh' }}
+              onClick={(event) => event.stopPropagation()}
+            >
+              {renderMapCard('100%', true)}
+            </Box>
+          </Box>
+        </Portal>
       ) : null}
       <DashboardBody
         data={resolvedDashboardData}

@@ -1,8 +1,17 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
-import { Center, Spinner, Text, useMediaQuery, useTheme, VStack } from '@chakra-ui/react'
+import {
+  Center,
+  IconButton,
+  Spinner,
+  Text,
+  useMediaQuery,
+  useTheme,
+  VStack,
+} from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
-import { EChartsWrapper, Toggle } from '@/shared/components/common'
+import { ActionTooltip, EChartsWrapper, Toggle } from '@/shared/components/common'
+import { FiMaximize2, FiMinimize2 } from 'react-icons/fi'
 import { getBodyText6Style } from '@/shared/components/charts/chart-text-style'
 import type { EntityPerformance } from '../../types'
 import {
@@ -22,6 +31,8 @@ interface IndiaMapChartProps {
   fallbackToIndiaMap?: boolean
   usePrimaryFill?: boolean
   disableHoverEffect?: boolean
+  isFullscreen?: boolean
+  onFullscreenToggle?: () => void
 }
 
 export function IndiaMapChart({
@@ -35,6 +46,8 @@ export function IndiaMapChart({
   fallbackToIndiaMap = true,
   usePrimaryFill = false,
   disableHoverEffect = false,
+  isFullscreen = false,
+  onFullscreenToggle,
 }: IndiaMapChartProps) {
   const theme = useTheme()
   const [isBelow500] = useMediaQuery('(max-width: 499.98px)')
@@ -284,6 +297,12 @@ export function IndiaMapChart({
   ]
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
+  const fullscreenActionLabel = t(
+    isFullscreen ? 'map.actions.exitFullscreen' : 'map.actions.fullscreen',
+    {
+      defaultValue: isFullscreen ? 'Exit fullscreen map' : 'Show fullscreen map',
+    }
+  )
 
   useLayoutEffect(() => {
     if (!dynamicGeoJson) {
@@ -375,6 +394,7 @@ export function IndiaMapChart({
         height: containerHeight,
         display: 'flex',
         flexDirection: 'column',
+        position: 'relative',
       }}
     >
       <div style={{ flex: 1, minHeight: 0 }}>
@@ -428,6 +448,30 @@ export function IndiaMapChart({
               {regularityLabel}
             </span>
           </div>
+          {onFullscreenToggle ? (
+            <div
+              style={{
+                position: 'absolute',
+                right: '8px',
+                bottom: '8px',
+                zIndex: 3,
+              }}
+            >
+              <ActionTooltip label={fullscreenActionLabel}>
+                <IconButton
+                  aria-label={fullscreenActionLabel}
+                  icon={isFullscreen ? <FiMinimize2 /> : <FiMaximize2 />}
+                  size="sm"
+                  variant="outline"
+                  colorScheme="gray"
+                  bg="white"
+                  borderColor="#E4E4E7"
+                  _hover={{ bg: 'gray.50' }}
+                  onClick={onFullscreenToggle}
+                />
+              </ActionTooltip>
+            </div>
+          ) : null}
           {isMapReady && isRegisteredMapAvailable ? (
             <EChartsWrapper option={option} height="100%" onChartReady={handleChartReady} />
           ) : (
