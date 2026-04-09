@@ -15,6 +15,7 @@ import type {
   SubmissionStatusQueryParams,
   WaterQuantityPeriodicQueryParams,
   TenantBoundaryQueryParams,
+  WaterQuantityRegionWiseQueryParams,
 } from '../../types'
 
 const DEFAULT_ANALYTICS_SCOPE = 'child'
@@ -56,6 +57,18 @@ export const dashboardQueryKeys = {
       params?.lgdId,
       params?.departmentId,
       params?.scale,
+      params?.startDate,
+      params?.endDate,
+    ] as const,
+  waterQuantityRegionWise: (params: WaterQuantityRegionWiseQueryParams | null) =>
+    [
+      'dashboard',
+      'analytics',
+      'water-quantity-region-wise',
+      params?.tenantId,
+      params?.parentLgdId,
+      params?.parentDepartmentId,
+      normalizeAnalyticsScope(params),
       params?.startDate,
       params?.endDate,
     ] as const,

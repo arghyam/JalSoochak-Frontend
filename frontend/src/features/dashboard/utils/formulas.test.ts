@@ -427,8 +427,289 @@ describe('dashboard formulas', () => {
       expect.objectContaining({
         name: 'Region Alpha',
         regularity: 15,
-        quantity: 0,
+        quantity: -1,
         compositeScore: 48,
+      }),
+    ])
+  })
+
+  it('prefers tenant boundary averageSchemeRegularity over fallback regularity for map regions', () => {
+    expect(
+      mapTenantBoundariesToPerformance(
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          childBoundaryCount: 1,
+          childRegions: [
+            {
+              childDepartmentId: 10,
+              childDepartmentTitle: 'Region Alpha',
+              averageSchemeRegularity: 0.75,
+              averagePerformanceScore: 0.48,
+              boundaryGeoJson: null,
+            },
+          ],
+        },
+        [
+          {
+            id: '10',
+            name: 'Region Alpha',
+            coverage: 5,
+            regularity: 4.5,
+            continuity: 0,
+            quantity: 16.6,
+            compositeScore: 0,
+            status: 'needs-attention',
+          },
+        ]
+      )
+    ).toEqual([
+      expect.objectContaining({
+        id: '10',
+        name: 'Region Alpha',
+        regularity: 75,
+      }),
+    ])
+  })
+
+  it('does not fall back to overall performance regularity when tenant boundary regularity is missing', () => {
+    expect(
+      mapTenantBoundariesToPerformance(
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          childBoundaryCount: 1,
+          childRegions: [
+            {
+              childDepartmentId: 10,
+              childDepartmentTitle: 'Region Alpha',
+              averagePerformanceScore: 0.48,
+              boundaryGeoJson: null,
+            },
+          ],
+        },
+        [
+          {
+            id: '10',
+            name: 'Region Alpha',
+            coverage: 5,
+            regularity: 91,
+            continuity: 0,
+            quantity: 16.6,
+            compositeScore: 0,
+            status: 'needs-attention',
+          },
+        ]
+      )
+    ).toEqual([
+      expect.objectContaining({
+        id: '10',
+        name: 'Region Alpha',
+        regularity: 0,
+      }),
+    ])
+  })
+
+  it('uses average scheme regularity analytics when mapping tenant boundary regions', () => {
+    expect(
+      mapTenantBoundariesToPerformance(
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          childBoundaryCount: 1,
+          childRegions: [
+            {
+              childDepartmentId: 10,
+              childDepartmentTitle: 'Region Alpha',
+              averagePerformanceScore: 0.48,
+              boundaryGeoJson: null,
+            },
+          ],
+        },
+        [
+          {
+            id: '10',
+            name: 'Region Alpha',
+            coverage: 5,
+            regularity: 91,
+            continuity: 0,
+            quantity: 16.6,
+            compositeScore: 0,
+            status: 'needs-attention',
+          },
+        ],
+        [],
+        {
+          lgdId: 0,
+          parentDepartmentId: 0,
+          parentLgdLevel: 1,
+          parentDepartmentLevel: 0,
+          scope: 'child',
+          startDate: '2026-03-01',
+          endDate: '2026-03-30',
+          daysInRange: 30,
+          schemeCount: 1,
+          totalSupplyDays: 0,
+          averageRegularity: 0,
+          childRegionCount: 1,
+          childRegions: [
+            {
+              lgdId: 0,
+              departmentId: 10,
+              title: 'Region Alpha',
+              schemeCount: 1,
+              totalSupplyDays: 0,
+              averageRegularity: 0.75,
+            },
+          ],
+        }
+      )
+    ).toEqual([
+      expect.objectContaining({
+        id: '10',
+        name: 'Region Alpha',
+        regularity: 75,
+      }),
+    ])
+  })
+
+  it('uses water quantity region-wise analytics when mapping tenant boundary quantity percent', () => {
+    expect(
+      mapTenantBoundariesToPerformance(
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          childBoundaryCount: 1,
+          childRegions: [
+            {
+              childDepartmentId: 10,
+              childDepartmentTitle: 'Region Alpha',
+              averagePerformanceScore: 0.48,
+              boundaryGeoJson: null,
+            },
+          ],
+        },
+        [],
+        [],
+        {
+          lgdId: 0,
+          parentDepartmentId: 0,
+          parentLgdLevel: 1,
+          parentDepartmentLevel: 0,
+          scope: 'child',
+          startDate: '2026-03-01',
+          endDate: '2026-03-30',
+          daysInRange: 30,
+          schemeCount: 1,
+          totalSupplyDays: 0,
+          averageRegularity: 0,
+          childRegionCount: 0,
+          childRegions: [],
+        },
+        {
+          lgdId: 0,
+          parentDepartmentId: 0,
+          parentLgdLevel: 1,
+          parentDepartmentLevel: 0,
+          scope: 'child',
+          startDate: '2026-03-01',
+          endDate: '2026-03-30',
+          daysInRange: 30,
+          schemeCount: 2,
+          childRegionCount: 1,
+          childRegions: [
+            {
+              lgdId: 0,
+              departmentId: 10,
+              title: 'Region Alpha',
+              schemeCount: null,
+              householdCount: 150,
+              totalWaterQuantity: 8200,
+              supplyDaysInEfficientRange: 45,
+            },
+          ],
+        },
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          parentLgdLevel: 1,
+          parentDepartmentLevel: 0,
+          startDate: '2026-03-01',
+          endDate: '2026-03-30',
+          daysInRange: 30,
+          schemeCount: 2,
+          childRegionCount: 1,
+          schemes: [],
+          childRegions: [
+            {
+              lgdId: 0,
+              departmentId: 10,
+              title: 'Region Alpha',
+              totalHouseholdCount: 0,
+              totalWaterSuppliedLiters: 0,
+              schemeCount: 2,
+              avgWaterSupplyPerScheme: 0,
+            },
+          ],
+        }
+      )
+    ).toEqual([
+      expect.objectContaining({
+        id: '10',
+        name: 'Region Alpha',
+        quantity: 75,
+      }),
+    ])
+  })
+
+  it('shows no data for tenant boundary quantity when scheme count is zero', () => {
+    expect(
+      mapTenantBoundariesToPerformance(
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          childBoundaryCount: 1,
+          childRegions: [
+            {
+              childDepartmentId: 10,
+              childDepartmentTitle: 'Region Alpha',
+              averagePerformanceScore: 0.48,
+              boundaryGeoJson: null,
+            },
+          ],
+        },
+        [],
+        [],
+        undefined,
+        {
+          lgdId: 0,
+          parentDepartmentId: 0,
+          parentLgdLevel: 1,
+          parentDepartmentLevel: 0,
+          scope: 'child',
+          startDate: '2026-03-01',
+          endDate: '2026-03-30',
+          daysInRange: 30,
+          schemeCount: 0,
+          childRegionCount: 1,
+          childRegions: [
+            {
+              lgdId: 0,
+              departmentId: 10,
+              title: 'Region Alpha',
+              schemeCount: 0,
+              householdCount: 0,
+              totalWaterQuantity: 0,
+              supplyDaysInEfficientRange: 0,
+            },
+          ],
+        }
+      )
+    ).toEqual([
+      expect.objectContaining({
+        id: '10',
+        name: 'Region Alpha',
+        quantity: -1,
       }),
     ])
   })
@@ -490,14 +771,14 @@ describe('dashboard formulas', () => {
         name: 'Dhac(Haflong) Zone',
         coverage: 3,
         regularity: 14,
-        quantity: 36.6,
+        quantity: -1,
       }),
       expect.objectContaining({
         id: '602',
         name: 'Karbi Anglong Autonomous Council',
         coverage: 5,
         regularity: 12,
-        quantity: 16.6,
+        quantity: -1,
       }),
     ])
   })
@@ -557,14 +838,14 @@ describe('dashboard formulas', () => {
         name: 'Dhac(Haflong) Zone',
         coverage: 3,
         regularity: 14,
-        quantity: 36.6,
+        quantity: -1,
       }),
       expect.objectContaining({
         id: '602',
         name: 'Karbi Anglong Autonomous Council',
         coverage: 5,
         regularity: 12,
-        quantity: 16.6,
+        quantity: -1,
       }),
     ])
   })

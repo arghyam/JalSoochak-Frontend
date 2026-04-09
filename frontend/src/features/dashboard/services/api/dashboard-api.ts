@@ -35,6 +35,8 @@ import type {
   TenantBoundaryResponse,
   WaterQuantityPeriodicQueryParams,
   WaterQuantityPeriodicResponse,
+  WaterQuantityRegionWiseQueryParams,
+  WaterQuantityRegionWiseResponse,
 } from '../../types'
 
 export interface DashboardQueryParams {
@@ -115,8 +117,11 @@ type TenantPublicConfigMap = {
 type TenantBoundaryChildRegionAlias = {
   childLgdId?: number
   childLgdTitle?: string
+  lgdId?: number
   childDepartmentId?: number
   childDepartmentTitle?: string
+  departmentId?: number
+  title?: string
   childBoundaryGeoJson?: string | null
   boundaryGeoJson?: unknown
 }
@@ -298,13 +303,23 @@ const normalizeAverageSchemeRegularityResponse = (
     : [],
 })
 
+const normalizeWaterQuantityRegionWiseResponse = (
+  response: WaterQuantityRegionWiseResponse
+): WaterQuantityRegionWiseResponse => ({
+  ...response,
+  childRegions: Array.isArray(response.childRegions)
+    ? response.childRegions.map((region) => normalizeAnalyticsChildRegion(region))
+    : [],
+})
+
 const normalizeTenantBoundaryChildRegion = <T extends TenantBoundaryChildRegionAlias>(
   region: T,
   context: string
 ) => ({
   ...region,
-  childLgdId: region.childLgdId ?? region.childDepartmentId ?? 0,
-  childLgdTitle: region.childLgdTitle ?? region.childDepartmentTitle ?? '',
+  childLgdId: region.childLgdId ?? region.lgdId,
+  childDepartmentId: region.childDepartmentId ?? region.departmentId ?? undefined,
+  childLgdTitle: region.childLgdTitle ?? region.title ?? region.childDepartmentTitle ?? '',
   boundaryGeoJson: (() => {
     const parsed = parseBoundaryGeoJson(
       region.boundaryGeoJson ?? region.childBoundaryGeoJson,
@@ -615,6 +630,38 @@ export const dashboardApi = {
         endDate: params.endDate,
         periodCount: 0,
         metrics: [],
+      }
+    )
+  },
+  getWaterQuantityRegionWise: async (
+    params: WaterQuantityRegionWiseQueryParams
+  ): Promise<WaterQuantityRegionWiseResponse> => {
+    const response = await apiClient.get<
+      WaterQuantityRegionWiseResponse | WrappedAnalyticsResponse<WaterQuantityRegionWiseResponse>
+    >('/api/v1/analytics/water-quantity/region-wise', {
+      params: {
+        tenant_id: params.tenantId,
+        parent_lgd_id: params.parentLgdId,
+        parent_department_id: params.parentDepartmentId,
+        scope: params.scope ?? 'child',
+        start_date: params.startDate,
+        end_date: params.endDate,
+      },
+    })
+
+    return normalizeWaterQuantityRegionWiseResponse(
+      unwrapAnalyticsResponse(response.data, 'water quantity region-wise analytics') ?? {
+        lgdId: 0,
+        parentDepartmentId: 0,
+        parentLgdLevel: 0,
+        parentDepartmentLevel: 0,
+        scope: params.scope ?? 'child',
+        startDate: params.startDate,
+        endDate: params.endDate,
+        daysInRange: 0,
+        schemeCount: 0,
+        childRegionCount: 0,
+        childRegions: [],
       }
     )
   },

@@ -449,7 +449,7 @@ export function DashboardBody({
                       data={outageDistributionTimeTrendData}
                       height="100%"
                       xAxisLabel={outageTimeXAxisLabel}
-                      yAxisLabel={t('outageAndSubmissionCharts.axis.noOfDays', {
+                      yAxisLabel={t('outageAndSubmissionCharts.axis.noOfReasons', {
                         defaultValue: 'No. of days',
                       })}
                       seriesName={t('outageAndSubmissionCharts.series.supplyOutage', {
