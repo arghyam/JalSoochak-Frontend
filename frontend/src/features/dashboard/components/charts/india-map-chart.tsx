@@ -63,9 +63,9 @@ export function IndiaMapChart({
   const [isRegularityView, setIsRegularityView] = useState(true)
   const metricKey: 'coverage' | 'regularity' = isRegularityView ? 'regularity' : 'coverage'
   const shouldShowNoMapAvailable = !isLoading && !dynamicGeoJson
-  const effectiveMapName = dynamicGeoJson ? mapName : null
+  const effectiveMapName = mapName
   const isRegisteredMapAvailable =
-    dynamicGeoJson != null || (effectiveMapName != null && echarts.getMap(effectiveMapName) != null)
+    dynamicGeoJson != null || (mapName != null && echarts.getMap(mapName) != null)
   const isMapReady = !shouldShowNoMapAvailable && isRegisteredMapAvailable
   const resolveThemeColor = useCallback(
     (token: string) => {

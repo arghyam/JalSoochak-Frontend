@@ -201,10 +201,16 @@ const normalizeNationalDashboardBoundaryResponse = (
         ? response.nationalBoundary
         : null,
       stateWiseBoundaries: Array.isArray(response.stateWiseBoundaries)
-        ? response.stateWiseBoundaries.map((boundary) => ({
-            ...boundary,
-            boundary: isGeoJsonGeometry(boundary.boundary) ? boundary.boundary : null,
-          }))
+        ? response.stateWiseBoundaries.flatMap((boundary) => {
+            if (!boundary || typeof boundary !== 'object') {
+              return []
+            }
+
+            return {
+              ...boundary,
+              boundary: isGeoJsonGeometry(boundary.boundary) ? boundary.boundary : null,
+            }
+          })
         : [],
     }
   }
@@ -223,10 +229,16 @@ const normalizeNationalDashboardBoundaryResponse = (
   return {
     nationalBoundary: isGeoJsonGeometry(payload.nationalBoundary) ? payload.nationalBoundary : null,
     stateWiseBoundaries: Array.isArray(payload.stateWiseBoundaries)
-      ? payload.stateWiseBoundaries.map((boundary) => ({
-          ...boundary,
-          boundary: isGeoJsonGeometry(boundary.boundary) ? boundary.boundary : null,
-        }))
+      ? payload.stateWiseBoundaries.flatMap((boundary) => {
+          if (!boundary || typeof boundary !== 'object') {
+            return []
+          }
+
+          return {
+            ...boundary,
+            boundary: isGeoJsonGeometry(boundary.boundary) ? boundary.boundary : null,
+          }
+        })
       : [],
   }
 }

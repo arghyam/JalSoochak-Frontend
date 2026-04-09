@@ -302,8 +302,7 @@ const mapNationalBoundariesToPerformance = (
     const fallbackMatch =
       fallbackById.get(String(region.tenantId)) ??
       (typeof stateLgdCode === 'number' ? fallbackById.get(String(stateLgdCode)) : undefined) ??
-      fallbackByName.get(slugify(region.stateTitle)) ??
-      fallbackData[index]
+      fallbackByName.get(slugify(region.stateTitle))
 
     return {
       id: fallbackMatch?.id ?? String(region.tenantId || stateLgdCode || index),
