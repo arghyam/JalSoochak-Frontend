@@ -12,6 +12,7 @@ import { useLocationHierarchyQuery } from '../services/query/use-location-hierar
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
 import { useNationalDashboardQuery } from '../services/query/use-national-dashboard-query'
+import { useNationalDashboardBoundariesQuery } from '../services/query/use-national-dashboard-boundaries-query'
 import { useNationalSchemeRegularityPeriodicQuery } from '../services/query/use-national-scheme-regularity-periodic-query'
 import { useOutageReasonsPeriodicQuery } from '../services/query/use-outage-reasons-periodic-query'
 import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-query'
@@ -94,6 +95,10 @@ jest.mock('../services/query/use-average-scheme-regularity-query', () => ({
 
 jest.mock('../services/query/use-national-dashboard-query', () => ({
   useNationalDashboardQuery: jest.fn(),
+}))
+
+jest.mock('../services/query/use-national-dashboard-boundaries-query', () => ({
+  useNationalDashboardBoundariesQuery: jest.fn(),
 }))
 
 jest.mock('../services/query/use-national-scheme-regularity-periodic-query', () => ({
@@ -228,6 +233,7 @@ describe('CentralDashboard', () => {
     ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReset()
     ;(useAverageSchemeRegularityQuery as jest.Mock).mockReset()
     ;(useNationalDashboardQuery as jest.Mock).mockReset()
+    ;(useNationalDashboardBoundariesQuery as jest.Mock).mockReset()
     ;(useNationalSchemeRegularityPeriodicQuery as jest.Mock).mockReset()
     ;(useOutageReasonsPeriodicQuery as jest.Mock).mockReset()
     ;(useOutageReasonsQuery as jest.Mock).mockReset()
@@ -250,6 +256,10 @@ describe('CentralDashboard', () => {
     ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useNationalDashboardQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useNationalDashboardBoundariesQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+    })
     ;(useNationalSchemeRegularityPeriodicQuery as jest.Mock).mockReturnValue({
       data: undefined,
       isFetching: false,
@@ -1128,6 +1138,30 @@ describe('CentralDashboard', () => {
         },
       },
     })
+    ;(useNationalDashboardBoundariesQuery as jest.Mock).mockReturnValue({
+      data: {
+        nationalBoundary: null,
+        stateWiseBoundaries: [
+          {
+            tenantId: 1,
+            lgdId: 29,
+            tenantStatus: 1,
+            stateCode: 'KA',
+            stateTitle: 'Karnataka',
+            boundary: { type: 'Polygon', coordinates: [] },
+          },
+          {
+            tenantId: 99,
+            lgdId: 999,
+            tenantStatus: 0,
+            stateCode: 'ZZ',
+            stateTitle: 'Inactive State',
+            boundary: { type: 'Polygon', coordinates: [] },
+          },
+        ],
+      },
+      isFetching: false,
+    })
     ;(useNationalSchemeRegularityPeriodicQuery as jest.Mock).mockReturnValue({
       data: {
         schemeCount: 4,
@@ -1223,6 +1257,16 @@ describe('CentralDashboard', () => {
       dashboardBodyProps.supplySubmissionRateData.some((row) => row.name === 'Inactive State')
     ).toBe(false)
     expect(overallPerformanceProps.data.some((row) => row.name === 'Inactive State')).toBe(false)
+    const mapProps = getLatestIndiaMapChartProps<{
+      data: Array<{ name: string; coverage: number; boundaryGeoJson?: unknown }>
+    }>()
+    expect(mapProps.data).toEqual([
+      expect.objectContaining({
+        name: 'Karnataka',
+        coverage: 0,
+        boundaryGeoJson: { type: 'Polygon', coordinates: [] },
+      }),
+    ])
   })
 
   it('does not filter national dashboard rows when location search states omit tenant ids', () => {
@@ -5310,7 +5354,27 @@ describe('CentralDashboard', () => {
     ])
   })
 
-  it('passes map loading state while tenant boundary geojson is still fetching', () => {
+  it('passes map loading state while national boundary geojson is still loading', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    ;(useNationalDashboardBoundariesQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isLoading: true,
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const mapProps = getLatestIndiaMapChartProps<{
+      isLoading: boolean
+    }>()
+
+    expect(mapProps.isLoading).toBe(true)
+  })
+
+  it('passes map loading state while tenant boundary geojson is still loading', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
@@ -5356,7 +5420,7 @@ describe('CentralDashboard', () => {
       .mockReturnValue({ data: undefined })
     ;(useTenantBoundariesQuery as jest.Mock).mockReturnValue({
       data: undefined,
-      isFetching: true,
+      isLoading: true,
     })
 
     renderWithProviders(<CentralDashboard />)

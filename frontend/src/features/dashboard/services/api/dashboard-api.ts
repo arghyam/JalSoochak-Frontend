@@ -188,6 +188,25 @@ const normalizeNationalDashboardResponse = (
   return payload
 }
 
+const normalizeStateWiseBoundaries = (
+  stateWiseBoundaries: unknown
+): NationalDashboardBoundaryResponse['stateWiseBoundaries'] => {
+  if (!Array.isArray(stateWiseBoundaries)) {
+    return []
+  }
+
+  return stateWiseBoundaries.flatMap((boundary) => {
+    if (!boundary || typeof boundary !== 'object') {
+      return []
+    }
+
+    return {
+      ...boundary,
+      boundary: isGeoJsonGeometry(boundary.boundary) ? boundary.boundary : null,
+    }
+  })
+}
+
 const normalizeNationalDashboardBoundaryResponse = (
   response: NationalDashboardBoundaryResponse | RawNationalDashboardBoundaryPayload
 ): NationalDashboardBoundaryResponse => {
@@ -200,18 +219,7 @@ const normalizeNationalDashboardBoundaryResponse = (
       nationalBoundary: isGeoJsonGeometry(response.nationalBoundary)
         ? response.nationalBoundary
         : null,
-      stateWiseBoundaries: Array.isArray(response.stateWiseBoundaries)
-        ? response.stateWiseBoundaries.flatMap((boundary) => {
-            if (!boundary || typeof boundary !== 'object') {
-              return []
-            }
-
-            return {
-              ...boundary,
-              boundary: isGeoJsonGeometry(boundary.boundary) ? boundary.boundary : null,
-            }
-          })
-        : [],
+      stateWiseBoundaries: normalizeStateWiseBoundaries(response.stateWiseBoundaries),
     }
   }
 
@@ -228,18 +236,7 @@ const normalizeNationalDashboardBoundaryResponse = (
 
   return {
     nationalBoundary: isGeoJsonGeometry(payload.nationalBoundary) ? payload.nationalBoundary : null,
-    stateWiseBoundaries: Array.isArray(payload.stateWiseBoundaries)
-      ? payload.stateWiseBoundaries.flatMap((boundary) => {
-          if (!boundary || typeof boundary !== 'object') {
-            return []
-          }
-
-          return {
-            ...boundary,
-            boundary: isGeoJsonGeometry(boundary.boundary) ? boundary.boundary : null,
-          }
-        })
-      : [],
+    stateWiseBoundaries: normalizeStateWiseBoundaries(payload.stateWiseBoundaries),
   }
 }
 

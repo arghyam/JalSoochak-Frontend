@@ -518,6 +518,22 @@ const filterNationalDashboardByTenantIds = (
   }
 }
 
+const filterNationalDashboardBoundariesByTenantIds = (
+  response: NationalDashboardBoundaryResponse | undefined,
+  activeTenantIds: Set<number>
+): NationalDashboardBoundaryResponse | undefined => {
+  if (!response || activeTenantIds.size === 0) {
+    return response
+  }
+
+  return {
+    ...response,
+    stateWiseBoundaries: response.stateWiseBoundaries.filter((state) =>
+      activeTenantIds.has(state.tenantId)
+    ),
+  }
+}
+
 export function CentralDashboard() {
   const { t, i18n } = useTranslation('dashboard')
   const overallPerformanceScrollHeight =
@@ -1296,7 +1312,7 @@ export function CentralDashboard() {
     params: analyticsParams,
     enabled: Boolean(analyticsParams),
   })
-  const { data: tenantBoundaryData, isFetching: isTenantBoundariesFetching = false } =
+  const { data: tenantBoundaryData, isLoading: isTenantBoundariesLoading = false } =
     useTenantBoundariesQuery({
       params: tenantBoundaryAnalyticsParams,
       enabled: Boolean(tenantBoundaryAnalyticsParams),
@@ -1307,7 +1323,7 @@ export function CentralDashboard() {
   })
   const {
     data: nationalDashboardBoundariesData,
-    isFetching: isNationalDashboardBoundariesFetching,
+    isLoading: isNationalDashboardBoundariesLoading = false,
   } = useNationalDashboardBoundariesQuery({
     enabled: !hasCentralLandingFilters,
   })
@@ -1354,9 +1370,12 @@ export function CentralDashboard() {
     previousNationalDashboardData,
     activeTenantIds
   )
-  const filteredNationalDashboardBoundaries = {
-    nationalBoundary: nationalDashboardBoundariesData?.nationalBoundary ?? null,
-    stateWiseBoundaries: nationalDashboardBoundariesData?.stateWiseBoundaries ?? [],
+  const filteredNationalDashboardBoundaries = filterNationalDashboardBoundariesByTenantIds(
+    nationalDashboardBoundariesData,
+    activeTenantIds
+  ) ?? {
+    nationalBoundary: null,
+    stateWiseBoundaries: [],
   }
   const { data: currentWaterSupplyKpiData } = useAverageWaterSupplyPerRegionQuery({
     params: currentWaterSupplyAnalyticsParams,
@@ -1613,8 +1632,8 @@ export function CentralDashboard() {
         tenantBoundaryLocationOptions
       )
   const isMapDataLoading = isCentralLandingView
-    ? !nationalDashboardBoundariesData && isNationalDashboardBoundariesFetching
-    : Boolean(tenantBoundaryAnalyticsParams) && !tenantBoundaryData && isTenantBoundariesFetching
+    ? !nationalDashboardBoundariesData && isNationalDashboardBoundariesLoading
+    : Boolean(tenantBoundaryAnalyticsParams) && !tenantBoundaryData && isTenantBoundariesLoading
   const quantityPerformanceData = isCentralLandingView
     ? mapQuantityPerformanceFromNationalDashboard(
         filteredNationalDashboardData,
