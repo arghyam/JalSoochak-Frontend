@@ -34,6 +34,10 @@ import type { ConfigKey } from '../../types/config-status'
 
 const MAX_WATER_QUANTITY = 1000
 
+const formatThresholdDisplay = (value: number | null): string => {
+  return value !== undefined && value !== null ? `${value}%` : '—'
+}
+
 export function WaterNormsPage() {
   const { t } = useTranslation(['state-admin', 'common'])
   const navigate = useNavigate()
@@ -78,9 +82,11 @@ export function WaterNormsPage() {
   const hasChanges = useMemo(
     () =>
       Boolean(config?.isConfigured) &&
-      (stateQuantity !== String(config?.stateQuantity) ||
-        oversupplyThreshold !== String(config?.oversupplyThreshold) ||
-        undersupplyThreshold !== String(config?.undersupplyThreshold) ||
+      (stateQuantity !== (config?.stateQuantity != null ? String(config.stateQuantity) : '') ||
+        oversupplyThreshold !==
+          (config?.oversupplyThreshold != null ? String(config.oversupplyThreshold) : '') ||
+        undersupplyThreshold !==
+          (config?.undersupplyThreshold != null ? String(config.undersupplyThreshold) : '') ||
         (districtOverridesDraft !== null &&
           JSON.stringify(districtOverridesDraft) !== JSON.stringify(config?.districtOverrides))),
     [stateQuantity, oversupplyThreshold, undersupplyThreshold, districtOverridesDraft, config]
@@ -284,7 +290,7 @@ export function WaterNormsPage() {
                   {t('waterNorms.currentQuantity')}
                 </Text>
                 <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
-                  {config.stateQuantity}
+                  {config.stateQuantity != null ? config.stateQuantity : '—'}
                 </Text>
               </Box>
 
@@ -305,7 +311,7 @@ export function WaterNormsPage() {
                       {t('waterNorms.alertThresholds.undersupplyThreshold.title')}
                     </Text>
                     <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
-                      {config.undersupplyThreshold}%
+                      {formatThresholdDisplay(config.undersupplyThreshold)}
                     </Text>
                   </Box>
                   <Box>
@@ -313,7 +319,7 @@ export function WaterNormsPage() {
                       {t('waterNorms.alertThresholds.oversupplyThreshold.title')}
                     </Text>
                     <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
-                      {config.oversupplyThreshold}%
+                      {formatThresholdDisplay(config.oversupplyThreshold)}
                     </Text>
                   </Box>
                 </SimpleGrid>

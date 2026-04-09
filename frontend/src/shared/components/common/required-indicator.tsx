@@ -1,4 +1,4 @@
-import { Text } from '@chakra-ui/react'
+import { Text, VisuallyHidden } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 
 interface RequiredIndicatorProps {
@@ -10,8 +10,8 @@ export function RequiredIndicator({ required }: RequiredIndicatorProps) {
 
   if (required === true) {
     return (
-      <Text as="span" color="error.500" ml={1}>
-        *
+      <Text as="span" color="error.500" ml={1} aria-hidden="true">
+        *<VisuallyHidden>{t('required')}</VisuallyHidden>
       </Text>
     )
   }
