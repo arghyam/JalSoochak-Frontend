@@ -15,9 +15,6 @@ import { Box, Text } from '@chakra-ui/react'
  * - Single-tenant + invalid tenant ID: shows error
  */
 export function SingleTenantGate() {
-  const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
-  const { data: locationSearchData, isLoading, isError } = useLocationSearchQuery()
-
   // Multi-tenant mode: passthrough
   if (!isSingleTenantMode()) {
     return (
@@ -27,8 +24,30 @@ export function SingleTenantGate() {
     )
   }
 
+  // Single-tenant mode: delegate to nested component that fetches data
+  return <SingleTenantContent />
+}
+
+function SingleTenantContent() {
+  const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
+  const { data: locationSearchData, isLoading, isError } = useLocationSearchQuery()
+
   // Single-tenant mode: fetch configured tenant ID
   const tenantId = getSingleTenantId()
+
+  // Single-tenant mode but no tenant ID configured (check before loading/error)
+  if (tenantId == null) {
+    return (
+      <DashboardLayout>
+        <Box p={6} textAlign="center">
+          <Text color="red.500">
+            Single-tenant mode is enabled, but no tenant ID is configured. Please set
+            JALSOOCHAK_TENANT_ID.
+          </Text>
+        </Box>
+      </DashboardLayout>
+    )
+  }
 
   // Loading
   if (isLoading) {
@@ -46,20 +65,6 @@ export function SingleTenantGate() {
         <Box p={6} textAlign="center">
           <Text color="red.500">
             Failed to load tenant configuration. Please try again or contact support.
-          </Text>
-        </Box>
-      </DashboardLayout>
-    )
-  }
-
-  // Single-tenant mode but no tenant ID configured
-  if (!tenantId) {
-    return (
-      <DashboardLayout>
-        <Box p={6} textAlign="center">
-          <Text color="red.500">
-            Single-tenant mode is enabled, but no tenant ID is configured. Please set
-            JALSOOCHAK_TENANT_ID.
           </Text>
         </Box>
       </DashboardLayout>
@@ -85,7 +90,9 @@ export function SingleTenantGate() {
 
   // Current URL slug doesn't match configured tenant: redirect
   if (stateSlug !== configuredTenant.value) {
-    return <Navigate to={`/${configuredTenant.value}`} replace />
+    return (
+      <Navigate to={`/${configuredTenant.value}`} replace data-testid="single-tenant-redirect" />
+    )
   }
 
   // Correct slug: render dashboard

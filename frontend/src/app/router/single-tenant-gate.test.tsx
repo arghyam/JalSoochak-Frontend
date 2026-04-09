@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SingleTenantGate } from './single-tenant-gate'
 import * as serverConfig from '@/config/server-config'
@@ -43,12 +43,34 @@ function renderWithRouter(initialRoute = '/') {
     },
   })
 
+  // Component to capture and display current location for redirect verification
+  const LocationCapture = () => {
+    const location = useLocation()
+    return <div data-testid="current-location" data-pathname={location.pathname} />
+  }
+
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={[initialRoute]}>
         <Routes>
-          <Route path="/" element={<SingleTenantGate />} />
-          <Route path="/:stateSlug" element={<SingleTenantGate />} />
+          <Route
+            path="/"
+            element={
+              <>
+                <SingleTenantGate />
+                <LocationCapture />
+              </>
+            }
+          />
+          <Route
+            path="/:stateSlug"
+            element={
+              <>
+                <SingleTenantGate />
+                <LocationCapture />
+              </>
+            }
+          />
         </Routes>
       </MemoryRouter>
     </QueryClientProvider>
@@ -145,19 +167,17 @@ describe('SingleTenantGate', () => {
   })
 
   describe('single-tenant mode on wrong state slug', () => {
-    it('should trigger Navigate redirect when on wrong slug', () => {
+    it('should redirect to correct state slug when on wrong slug', () => {
       mockIsSingleTenantMode.mockReturnValue(true)
       mockGetSingleTenantId.mockReturnValue(1) // Maharashtra
 
-      // When navigating to wrong state (Karnataka, ID 2)
-      // The component should match maharashtra (ID 1), not karnataka (ID 2)
-      // Navigate will be called, but in MemoryRouter the actual location doesn't change
-      // until the next render cycle. The important thing is that Navigate is used.
+      // When navigating to wrong state (Karnataka)
+      // The component should match maharashtra (ID 1) and redirect to /maharashtra
       renderWithRouter('/karnataka')
 
-      // In single-tenant mode, Navigate is triggered for redirect
-      // The dashboard-layout is still rendered as part of the Navigate/passthrough
-      expect(screen.getByTestId('dashboard-layout')).toBeInTheDocument()
+      // Verify the redirect happened to the correct state slug
+      const locationElement = screen.getByTestId('current-location')
+      expect(locationElement).toHaveAttribute('data-pathname', '/maharashtra')
     })
   })
 })
