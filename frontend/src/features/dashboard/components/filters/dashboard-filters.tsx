@@ -50,6 +50,7 @@ type DashboardFiltersProps = {
   villageOptions: SearchableSelectOption[]
   mockFilterStates?: SearchableSelectOption[]
   mockFilterSchemes?: SearchableSelectOption[]
+  isSingleTenantMode?: boolean
   onStateChange: (value: string) => void
   onDistrictChange: (value: string) => void
   onBlockChange: (value: string) => void
@@ -181,6 +182,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     setSelectedDepartmentDivision,
     setSelectedDepartmentSubdivision,
     setSelectedDepartmentVillage,
+    isSingleTenantMode = false,
   } = props
 
   const [isBreadcrumbPanelOpen, setIsBreadcrumbPanelOpen] = useState(false)
@@ -392,7 +394,14 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   const hasSelectedDistrict = effectiveTrailIndex >= 1 && Boolean(activeSelectedDistrict)
   const hasSelectedBlock = effectiveTrailIndex >= 2 && Boolean(activeSelectedBlock)
   const hasSelectedGramPanchayat = effectiveTrailIndex >= 3 && Boolean(activeSelectedGramPanchayat)
-  const rootSelectionHandler = isDepartmentTab ? onDepartmentStateChange : onStateChange
+
+  // In single-tenant mode, prevent state changes (users cannot select a different state/tenant)
+  const wrappedOnStateChange = isSingleTenantMode ? () => {} : onStateChange
+  const wrappedOnDepartmentStateChange = isSingleTenantMode ? () => {} : onDepartmentStateChange
+
+  const rootSelectionHandler = isDepartmentTab
+    ? wrappedOnDepartmentStateChange
+    : wrappedOnStateChange
   const districtSelectionHandler = isDepartmentTab
     ? (onDepartmentZoneChange ??
       ((value: string) => {

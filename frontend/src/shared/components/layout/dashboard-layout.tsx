@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Flex, Box } from '@chakra-ui/react'
 import { Header } from './header'
+import { Footer } from './footer'
 
 interface DashboardLayoutProps {
   children: ReactNode
@@ -16,6 +17,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {children}
         </Box>
       </Box>
+
+      <Footer />
     </Flex>
   )
 }

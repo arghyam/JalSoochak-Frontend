@@ -17,5 +17,6 @@ module.exports = {
   },
   globals: {
     __SERVER_MODE__: '',
+    __TENANT_ID__: '',
   },
 }

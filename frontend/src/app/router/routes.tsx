@@ -1,7 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { ROUTES } from '@/shared/constants/routes'
-import { MainLayout, DashboardLayout } from '@/shared/components/layout'
-import { CentralDashboard } from '@/features/dashboard/components/central-dashboard'
+import { MainLayout } from '@/shared/components/layout'
+import { SingleTenantGate } from './single-tenant-gate'
 import {
   OverviewPage as SuperAdminOverviewPage,
   StatesUTsPage,
@@ -49,14 +49,10 @@ import { AUTH_ROLES } from '@/shared/constants/auth'
 import { NotFoundPage } from '@/shared/components/common'
 
 export const router = createBrowserRouter([
-  // Public dashboards
+  // Public dashboards (single-tenant aware)
   {
     path: ROUTES.DASHBOARD,
-    element: (
-      <DashboardLayout>
-        <CentralDashboard />
-      </DashboardLayout>
-    ),
+    element: <SingleTenantGate />,
   },
 
   // Shared routes — all authenticated roles
@@ -81,11 +77,7 @@ export const router = createBrowserRouter([
 
   {
     path: '/:stateSlug',
-    element: (
-      <DashboardLayout>
-        <CentralDashboard />
-      </DashboardLayout>
-    ),
+    element: <SingleTenantGate />,
   },
 
   // Auth

@@ -96,6 +96,7 @@ import {
   parseDisplayDateToIsoWithFallback,
 } from '@/shared/utils/date-format'
 import { INDIA_STATES } from '@/shared/constants/states'
+import { isSingleTenantMode, getSingleTenantId } from '@/config/server-config'
 
 const storageKey = 'central-dashboard-filters'
 
@@ -1732,7 +1733,12 @@ export function CentralDashboard() {
   )
 
   const updateFilterUrl = (filters: FilterUrlUpdate) => {
-    const nextState = filters.state ?? ''
+    // In single-tenant mode, always lock to the configured tenant
+    const inSingleTenantMode = isSingleTenantMode()
+    const singleTenantId = getSingleTenantId()
+    const forcedState = inSingleTenantMode && singleTenantId ? selectedState : (filters.state ?? '')
+
+    const nextState = forcedState
     const nextPath = nextState ? `/${encodeURIComponent(nextState)}` : ROUTES.DASHBOARD
     const nextSearchParams = new URLSearchParams(searchParams)
 
@@ -1960,8 +1966,9 @@ export function CentralDashboard() {
   const handleClearFilters = () => {
     setActiveTrailIndex(null)
     setFilterTabIndex(0)
+    // In single-tenant mode, state cannot be cleared; it will be locked by updateFilterUrl
     updateFilterUrl({
-      state: '',
+      state: isSingleTenantMode() ? selectedState : '',
       district: '',
       block: '',
       gramPanchayat: '',
@@ -2496,6 +2503,8 @@ export function CentralDashboard() {
       />
     </Box>
   )
+  const inSingleTenantMode = isSingleTenantMode()
+
   return (
     <Box>
       <DashboardFilters
@@ -2538,6 +2547,7 @@ export function CentralDashboard() {
         onDepartmentSubdivisionChange={handleDepartmentSubdivisionChange}
         onDepartmentVillageChange={handleDepartmentVillageChange}
         onActiveTrailChange={setActiveTrailIndex}
+        isSingleTenantMode={inSingleTenantMode}
       />
 
       {/* KPI Cards */}
