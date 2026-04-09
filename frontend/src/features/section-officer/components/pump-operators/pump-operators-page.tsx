@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Heading,
@@ -30,12 +31,8 @@ import { usePumpOperatorsListQuery } from '../../services/query/use-pump-operato
 import { formatTimestamp } from '../../services/api/schemes-api'
 import type { PumpOperatorListItem } from '../../types/pump-operators'
 
-const STATUS_OPTIONS = [
-  { value: 'ACTIVE', label: 'Active' },
-  { value: 'INACTIVE', label: 'Inactive' },
-]
-
 export function PumpOperatorsPage() {
+  const { t } = useTranslation('section-officer')
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -60,6 +57,11 @@ export function PumpOperatorsPage() {
     setPage(1)
   }
 
+  const statusOptions = [
+    { value: 'ACTIVE', label: 'Active' },
+    { value: 'INACTIVE', label: 'Inactive' },
+  ]
+
   const { data, isLoading, isFetching, isError, refetch } = usePumpOperatorsListQuery(
     page,
     pageSize,
@@ -70,13 +72,13 @@ export function PumpOperatorsPage() {
   )
 
   useEffect(() => {
-    document.title = 'Pump Operators | JalSoochak'
-  }, [])
+    document.title = `${t('pages.pumpOperators.heading')} ${t('common.documentTitle')}`
+  }, [t])
 
   const columns: DataTableColumn<PumpOperatorListItem>[] = [
     {
       key: 'name',
-      header: 'Name',
+      header: t('pages.pumpOperators.columns.name'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.name}
@@ -85,7 +87,7 @@ export function PumpOperatorsPage() {
     },
     {
       key: 'schemes',
-      header: 'Schemes',
+      header: t('pages.pumpOperators.columns.schemes'),
       render: (row) => {
         const schemes = row.schemes
         if (!schemes || schemes.length === 0) {
@@ -122,7 +124,7 @@ export function PumpOperatorsPage() {
     },
     {
       key: 'reportingRatePercent',
-      header: 'Reporting Rate (%)',
+      header: t('pages.pumpOperators.columns.reportingRate'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.reportingRatePercent !== null && row.reportingRatePercent !== undefined
@@ -132,8 +134,19 @@ export function PumpOperatorsPage() {
       ),
     },
     {
+      key: 'lastWaterSupplied',
+      header: t('pages.pumpOperators.columns.waterSupplied'),
+      render: (row) => (
+        <Text textStyle="h10" fontWeight="400">
+          {row.lastWaterSupplied !== null && row.lastWaterSupplied !== undefined
+            ? `${row.lastWaterSupplied}`
+            : '—'}
+        </Text>
+      ),
+    },
+    {
       key: 'lastSubmissionAt',
-      header: 'Last Submission',
+      header: t('pages.pumpOperators.columns.lastSubmission'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.lastSubmissionAt ? formatTimestamp(row.lastSubmissionAt) : '—'}
@@ -142,7 +155,7 @@ export function PumpOperatorsPage() {
     },
     {
       key: 'status',
-      header: 'Activity Status',
+      header: t('pages.pumpOperators.columns.activityStatus'),
       render: (row) => {
         const statusKey = typeof row.status === 'string' ? row.status.toLowerCase() : ''
         const STATUS_LABELS: Record<string, string> = { ACTIVE: 'Active', INACTIVE: 'Inactive' }
@@ -152,11 +165,11 @@ export function PumpOperatorsPage() {
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: t('pages.pumpOperators.columns.actions'),
       render: (row) => (
-        <ActionTooltip label="View pump operator">
+        <ActionTooltip label={t('pages.pumpOperators.viewTooltip')}>
           <IconButton
-            aria-label="View pump operator"
+            aria-label={t('pages.pumpOperators.viewTooltip')}
             icon={<FiEye aria-hidden="true" size={20} />}
             variant="ghost"
             width={5}
@@ -179,12 +192,12 @@ export function PumpOperatorsPage() {
       <Box w="full">
         <PageHeader>
           <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
-            Pump Operators
+            {t('pages.pumpOperators.heading')}
           </Heading>
         </PageHeader>
         <Flex role="status" aria-live="polite" align="center" minH="200px" gap={3}>
           <Spinner size="md" color="primary.500" />
-          <Text color="neutral.600">Loading…</Text>
+          <Text color="neutral.600">{t('pages.pumpOperators.loading')}</Text>
         </Flex>
       </Box>
     )
@@ -195,13 +208,13 @@ export function PumpOperatorsPage() {
       <Box w="full">
         <PageHeader>
           <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
-            Pump Operators
+            {t('pages.pumpOperators.heading')}
           </Heading>
         </PageHeader>
         <Flex h="64" align="center" justify="center" direction="column" gap={4} role="alert">
-          <Text color="error.500">Failed to load pump operators. Please try again.</Text>
+          <Text color="error.500">{t('pages.pumpOperators.error')}</Text>
           <Button variant="secondary" size="sm" onClick={() => void refetch()}>
-            Retry
+            {t('common.retry')}
           </Button>
         </Flex>
       </Box>
@@ -212,7 +225,7 @@ export function PumpOperatorsPage() {
     <Box w="full" maxW="100%" minW={0}>
       <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
-          Pump Operators
+          {t('pages.pumpOperators.heading')}
         </Heading>
       </PageHeader>
 
@@ -237,13 +250,13 @@ export function PumpOperatorsPage() {
             <SearchIcon color="neutral.300" aria-hidden="true" />
           </InputLeftElement>
           <Input
-            placeholder="Search by name"
+            placeholder={t('pages.pumpOperators.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value)
               setPage(1)
             }}
-            aria-label="Search by name"
+            aria-label={t('pages.pumpOperators.searchPlaceholder')}
             bg="white"
             h={8}
             borderWidth="1px"
@@ -254,13 +267,13 @@ export function PumpOperatorsPage() {
         </InputGroup>
 
         <SearchableSelect
-          options={STATUS_OPTIONS}
+          options={statusOptions}
           value={statusFilter}
           onChange={(val) => {
             setStatusFilter(val)
             setPage(1)
           }}
-          placeholder="Status"
+          placeholder={t('pages.pumpOperators.filterStatus')}
           width="160px"
           height="32px"
           borderRadius="4px"
@@ -277,7 +290,7 @@ export function PumpOperatorsPage() {
             setDateRange(val)
             setPage(1)
           }}
-          placeholder="Duration"
+          placeholder={t('pages.pumpOperators.filterDuration')}
           width="160px"
           height="32px"
           borderRadius="4px"
@@ -297,7 +310,7 @@ export function PumpOperatorsPage() {
             aria-label="Clear all filters"
             _hover={{ color: 'primary.500', bg: 'transparent' }}
           >
-            clear all filters
+            {t('pages.pumpOperators.clearAllFilters')}
           </Button>
         )}
       </Flex>
@@ -311,7 +324,7 @@ export function PumpOperatorsPage() {
           columns={columns}
           data={data?.content ?? []}
           getRowKey={(row) => row.id}
-          emptyMessage="No pump operators found."
+          emptyMessage={t('pages.pumpOperators.noPumpOperatorsFound')}
           pagination={{
             enabled: true,
             page,

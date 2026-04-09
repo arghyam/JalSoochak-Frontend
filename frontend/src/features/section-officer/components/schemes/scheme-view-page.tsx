@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Box, Heading, Text, Flex, SimpleGrid, Spinner, Button, Link } from '@chakra-ui/react'
 import { DataTable, PageHeader } from '@/shared/components/common'
 import type { DataTableColumn } from '@/shared/components/common'
@@ -25,6 +26,7 @@ function DetailField({ label, value }: { label: string; value: string }) {
 }
 
 export function SchemeViewPage() {
+  const { t } = useTranslation('section-officer')
   const { schemeId } = useParams<{ schemeId: string }>()
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
@@ -45,13 +47,15 @@ export function SchemeViewPage() {
   } = useSchemeReadingsQuery(schemeId, page, pageSize)
 
   useEffect(() => {
-    document.title = details ? `${details.schemeName} | JalSoochak` : 'View Scheme | JalSoochak'
-  }, [details])
+    document.title = details
+      ? `${details.schemeName} ${t('common.documentTitle')}`
+      : `${t('pages.schemes.viewScheme')} ${t('common.documentTitle')}`
+  }, [details, t])
 
   const readingsColumns: DataTableColumn<SchemeReadingRow>[] = [
     {
       key: 'pumpOperatorName',
-      header: 'Pump Operator',
+      header: t('pages.schemes.columns.pumpOperator'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.pumpOperatorName}
@@ -60,7 +64,7 @@ export function SchemeViewPage() {
     },
     {
       key: 'submittedAt',
-      header: 'Submission Date & Time',
+      header: t('pages.schemes.columns.submissionDateTime'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.submittedAt ? formatTimestamp(row.submittedAt) : '—'}
@@ -69,7 +73,7 @@ export function SchemeViewPage() {
     },
     {
       key: 'waterSupplied',
-      header: 'Water Supplied',
+      header: t('pages.schemes.columns.waterSupplied'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.waterSupplied}
@@ -78,7 +82,7 @@ export function SchemeViewPage() {
     },
     {
       key: 'readingValue',
-      header: 'Reading Value',
+      header: t('pages.schemes.columns.readingValue'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.readingValue}
@@ -91,7 +95,7 @@ export function SchemeViewPage() {
     <Box w="full" maxW="100%" minW={0}>
       <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={2}>
-          All Schemes
+          {t('pages.schemes.heading')}
         </Heading>
         <Flex as="nav" aria-label="Breadcrumb" gap={2} flexWrap="wrap">
           <Link
@@ -102,13 +106,13 @@ export function SchemeViewPage() {
             onClick={() => navigate(ROUTES.STAFF_SCHEMES)}
             cursor="pointer"
           >
-            All Schemes
+            {t('pages.schemes.breadcrumb')}
           </Link>
           <Text fontSize="14px" lineHeight="21px" color="neutral.500" aria-hidden="true">
             /
           </Text>
           <Text fontSize="14px" lineHeight="21px" color="#26272B" aria-current="page">
-            View Scheme
+            {t('pages.schemes.viewScheme')}
           </Text>
         </Flex>
       </PageHeader>
@@ -116,15 +120,15 @@ export function SchemeViewPage() {
       {detailsLoading && (
         <Flex role="status" aria-live="polite" align="center" minH="200px" gap={3}>
           <Spinner size="md" color="primary.500" />
-          <Text color="neutral.600">Loading scheme details…</Text>
+          <Text color="neutral.600">{t('pages.schemes.loading')}</Text>
         </Flex>
       )}
 
       {detailsError && (
         <Flex align="flex-start" direction="column" gap={3} mt={4} role="alert">
-          <Text color="red.500">Failed to load scheme details.</Text>
+          <Text color="red.500">{t('pages.schemes.error')}</Text>
           <Button variant="secondary" size="sm" onClick={() => void refetchDetails()}>
-            Retry
+            {t('common.retry')}
           </Button>
         </Flex>
       )}
@@ -141,17 +145,23 @@ export function SchemeViewPage() {
           mb={6}
         >
           <Heading as="h2" size="h3" fontWeight="400" mb={6}>
-            Scheme Details
+            {t('pages.schemes.schemeDetails')}
           </Heading>
           <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
-            <DetailField label="Scheme Name" value={details.schemeName} />
-            <DetailField label="State Scheme ID" value={details.stateSchemeId} />
             <DetailField
-              label="Last Submission"
+              label={t('pages.schemes.detailFields.schemeName')}
+              value={details.schemeName}
+            />
+            <DetailField
+              label={t('pages.schemes.detailFields.stateSchemeId')}
+              value={details.stateSchemeId}
+            />
+            <DetailField
+              label={t('pages.schemes.detailFields.lastSubmission')}
               value={details.lastSubmissionAt ? formatTimestamp(details.lastSubmissionAt) : '—'}
             />
             <DetailField
-              label="Reporting Rate"
+              label={t('pages.schemes.detailFields.reportingRate')}
               value={
                 details.reportingRatePercent !== null && details.reportingRatePercent !== undefined
                   ? `${details.reportingRatePercent}%`
@@ -165,15 +175,15 @@ export function SchemeViewPage() {
       {readingsLoading && (
         <Flex role="status" aria-live="polite" align="center" minH="120px" gap={3}>
           <Spinner size="md" color="primary.500" />
-          <Text color="neutral.600">Loading submissions…</Text>
+          <Text color="neutral.600">{t('pages.schemes.loadingSubmissions')}</Text>
         </Flex>
       )}
 
       {readingsError && (
         <Flex align="flex-start" direction="column" gap={3} mt={4} role="alert">
-          <Text color="red.500">Failed to load reading submissions.</Text>
+          <Text color="red.500">{t('pages.schemes.errorSubmissions')}</Text>
           <Button variant="secondary" size="sm" onClick={() => void refetchReadings()}>
-            Retry
+            {t('common.retry')}
           </Button>
         </Flex>
       )}
@@ -183,7 +193,7 @@ export function SchemeViewPage() {
           columns={readingsColumns}
           data={readings?.content ?? []}
           getRowKey={(row) => `${row.pumpOperatorId}-${row.submittedAt}`}
-          emptyMessage="No submissions found."
+          emptyMessage={t('pages.schemes.noSubmissionsFound')}
           pagination={{
             enabled: true,
             page,

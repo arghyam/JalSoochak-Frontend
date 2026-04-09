@@ -11,9 +11,33 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }))
 
+const translations: Record<string, string> = {
+  'pages.pumpOperators.heading': 'Pump Operators',
+  'pages.pumpOperators.breadcrumb': 'Pump Operators',
+  'pages.pumpOperators.viewPumpOperator': 'View Pump Operator',
+  'pages.pumpOperators.loadingDetails': 'Loading pump operator details…',
+  'pages.pumpOperators.errorDetails': 'Failed to load pump operator details.',
+  'pages.pumpOperators.pumpOperatorDetails': 'Pump Operator Details',
+  'pages.pumpOperators.detailFields.name': 'Name',
+  'pages.pumpOperators.detailFields.phoneNumber': 'Phone Number',
+  'pages.pumpOperators.detailFields.reportingRate': 'Reporting rate',
+  'pages.pumpOperators.detailFields.lastSubmission': 'Last submission',
+  'pages.pumpOperators.searchReadingsPlaceholder': 'Search by scheme name',
+  'pages.pumpOperators.loadingReadings': 'Loading readings…',
+  'pages.pumpOperators.errorReadings': 'Failed to load readings.',
+  'pages.pumpOperators.noReadingsFound': 'No readings found.',
+  'pages.pumpOperators.columns.schemeName': 'Scheme Name',
+  'pages.pumpOperators.columns.stateSchemeId': 'State Scheme ID',
+  'pages.pumpOperators.columns.submissionDateTime': 'Submission Date & Time',
+  'pages.pumpOperators.columns.waterSupplied': 'Water Supplied',
+  'pages.pumpOperators.columns.readingValue': 'Reading Value',
+  'common.retry': 'Retry',
+  'common.documentTitle': '| JalSoochak',
+}
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string) => translations[key] || key,
     i18n: { changeLanguage: jest.fn() },
   }),
   initReactI18next: { type: '3rdParty', init: jest.fn() },
@@ -183,7 +207,7 @@ describe('PumpOperatorViewPage', () => {
     expect(screen.getByText('View Pump Operator')).toBeTruthy()
   })
 
-  it('renders pump operator details with split name', () => {
+  it('renders pump operator details with name and metrics', () => {
     mockUsePumpOperatorDetailsQuery.mockReturnValue({
       isLoading: false,
       isError: false,
@@ -191,10 +215,8 @@ describe('PumpOperatorViewPage', () => {
       refetch: jest.fn(),
     })
     renderPage()
-    expect(screen.getByText('First name')).toBeTruthy()
-    expect(screen.getByText('Shyam')).toBeTruthy()
-    expect(screen.getByText('Last name')).toBeTruthy()
-    expect(screen.getByText('Singh')).toBeTruthy()
+    expect(screen.getByText('Shyam Singh')).toBeTruthy()
+    expect(screen.getByText('9919420001')).toBeTruthy()
     expect(screen.getByText('85%')).toBeTruthy()
   })
 
@@ -210,7 +232,7 @@ describe('PumpOperatorViewPage', () => {
     expect(dashes.length).toBeGreaterThanOrEqual(2)
   })
 
-  it('renders single-word name with "—" as last name', () => {
+  it('renders single-word name correctly', () => {
     mockUsePumpOperatorDetailsQuery.mockReturnValue({
       isLoading: false,
       isError: false,
@@ -219,7 +241,18 @@ describe('PumpOperatorViewPage', () => {
     })
     renderPage()
     expect(screen.getByText('Ravi')).toBeTruthy()
-    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('shows "—" for null name', () => {
+    mockUsePumpOperatorDetailsQuery.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: { ...MOCK_DETAILS, name: null },
+      refetch: jest.fn(),
+    })
+    renderPage()
+    const dashes = screen.getAllByText('—')
+    expect(dashes.length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders readings table', () => {

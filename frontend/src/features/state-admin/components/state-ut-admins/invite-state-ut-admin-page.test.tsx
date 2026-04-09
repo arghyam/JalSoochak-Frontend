@@ -27,8 +27,10 @@ jest.mock('../../services/query/use-state-admin-queries', () => ({
 }))
 
 jest.mock('@/app/store/auth-store', () => ({
-  useAuthStore: (selector: (s: { user: { tenantCode: string } }) => unknown) =>
-    selector({ user: { tenantCode: 'MH' } }),
+  useAuthStore: (selector?: (s: { user: { tenantCode: string } }) => unknown) => {
+    const mockState = { user: { tenantCode: 'MH' } }
+    return selector ? selector(mockState) : mockState
+  },
 }))
 
 const fillValidForm = () => {

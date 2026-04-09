@@ -114,7 +114,7 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.SUPER_ADMIN,
     element: (
-      <ProtectedRoute allowedRoles={[AUTH_ROLES.SUPER_ADMIN]}>
+      <ProtectedRoute allowedRoles={[AUTH_ROLES.SUPER_ADMIN, AUTH_ROLES.SUPER_STATE_ADMIN]}>
         <MainLayout />
       </ProtectedRoute>
     ),
@@ -170,7 +170,7 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.STATE_ADMIN,
     element: (
-      <ProtectedRoute allowedRoles={[AUTH_ROLES.STATE_ADMIN]}>
+      <ProtectedRoute allowedRoles={[AUTH_ROLES.STATE_ADMIN, AUTH_ROLES.SUPER_STATE_ADMIN]}>
         <MainLayout />
       </ProtectedRoute>
     ),

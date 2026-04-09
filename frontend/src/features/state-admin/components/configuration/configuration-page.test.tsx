@@ -9,6 +9,13 @@ const mockMutateAsync = jest.fn<(...args: any[]) => any>()
 const mockUseConfigurationQuery = jest.fn()
 const mockUseSystemChannelsQuery = jest.fn()
 
+jest.mock('@/app/store/auth-store', () => ({
+  useAuthStore: (selector?: (s: { user: { tenantCode: string } }) => unknown) => {
+    const mockState = { user: { tenantCode: 'MH' } }
+    return selector ? selector(mockState) : mockState
+  },
+}))
+
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual<typeof import('react-router-dom')>('react-router-dom'),
   useNavigate: () => mockNavigate,
@@ -26,6 +33,21 @@ jest.mock('../../services/query/use-state-admin-queries', () => ({
     isPending: false,
   }),
   useSystemChannelsQuery: () => mockUseSystemChannelsQuery(),
+  useConfigStatusQuery: () => ({
+    data: {
+      TENANT_SUPPORTED_CHANNELS: { status: 'CONFIGURED', mandatory: true },
+      METER_CHANGE_REASONS: { status: 'CONFIGURED', mandatory: true },
+      SUPPLY_OUTAGE_REASONS: { status: 'CONFIGURED', mandatory: true },
+      DATE_FORMAT_SCREEN: { status: 'CONFIGURED', mandatory: false },
+      DATE_FORMAT_TABLE: { status: 'CONFIGURED', mandatory: false },
+      DATA_CONSOLIDATION_TIME: { status: 'CONFIGURED', mandatory: true },
+      PUMP_OPERATOR_REMINDER_NUDGE_TIME: { status: 'CONFIGURED', mandatory: true },
+      AVERAGE_MEMBERS_PER_HOUSEHOLD: { status: 'CONFIGURED', mandatory: true },
+      TENANT_LOGO: { status: 'CONFIGURED', mandatory: false },
+    },
+    isLoading: false,
+    isError: false,
+  }),
 }))
 
 const defaultSupplyOutageReasons = [
@@ -178,7 +200,17 @@ describe('ConfigurationPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
 
     // Make a change so hasChanges becomes true (add BFM to existing selection)
+    await waitFor(() => {
+      expect(screen.getByRole('checkbox', { name: /bulk flow meter/i })).toBeTruthy()
+    })
     fireEvent.click(screen.getByRole('checkbox', { name: /bulk flow meter/i }))
+
+    await waitFor(() => {
+      const saveBtn = screen.getByRole('button', { name: /save changes/i })
+      expect(
+        saveBtn.hasAttribute('disabled') || saveBtn.getAttribute('aria-disabled') === 'true'
+      ).toBe(false)
+    })
 
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
 

@@ -12,9 +12,29 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }))
 
+const translations: Record<string, string> = {
+  'pages.pumpOperators.heading': 'Pump Operators',
+  'pages.pumpOperators.loading': 'Loading…',
+  'pages.pumpOperators.error': 'Failed to load pump operators. Please try again.',
+  'pages.pumpOperators.noPumpOperatorsFound': 'No pump operators found.',
+  'pages.pumpOperators.searchPlaceholder': 'Search by name',
+  'pages.pumpOperators.filterStatus': 'Filter by status',
+  'pages.pumpOperators.filterDuration': 'Duration',
+  'pages.pumpOperators.clearAllFilters': 'Clear all filters',
+  'pages.pumpOperators.viewTooltip': 'View pump operator',
+  'pages.pumpOperators.columns.name': 'Name',
+  'pages.pumpOperators.columns.schemes': 'Schemes',
+  'pages.pumpOperators.columns.reportingRate': 'Reporting Rate (%)',
+  'pages.pumpOperators.columns.waterSupplied': 'Water Supplied',
+  'pages.pumpOperators.columns.lastSubmission': 'Last Submission',
+  'pages.pumpOperators.columns.activityStatus': 'Activity Status',
+  'pages.pumpOperators.columns.actions': 'Actions',
+  'common.documentTitle': '| JalSoochak',
+}
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string) => translations[key] || key,
     i18n: { changeLanguage: jest.fn() },
   }),
   initReactI18next: { type: '3rdParty', init: jest.fn() },

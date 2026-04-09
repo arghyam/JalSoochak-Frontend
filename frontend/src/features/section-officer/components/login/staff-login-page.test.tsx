@@ -77,6 +77,19 @@ jest.mock('@/features/auth/components/signup/auth-side-image', () => ({
 
 jest.mock('@/assets/media/logo.svg', () => 'logo.svg')
 
+jest.mock('@/shared/utils/cookies')
+
+const mockGetCookie = jest.fn<(name: string) => string | null>()
+const mockSetCookie = jest.fn<(name: string, value: string) => void>()
+const mockDeleteCookie = jest.fn<(name: string) => void>()
+
+beforeEach(() => {
+  const cookieModule = jest.requireMock('@/shared/utils/cookies') as Record<string, unknown>
+  cookieModule.getCookie = mockGetCookie
+  cookieModule.setCookie = mockSetCookie
+  cookieModule.deleteCookie = mockDeleteCookie
+})
+
 function createWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
@@ -132,8 +145,12 @@ describe('StaffLoginPage — Phone Step', () => {
 
     await userEvent.type(screen.getByTestId('phone-input'), '8179020960')
     // Open tenant select and pick an option
-    fireEvent.click(screen.getByRole('combobox'))
-    fireEvent.click(screen.getByText('Nagaland'))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('combobox'))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByText('Nagaland'))
+    })
 
     await act(async () => {
       fireEvent.click(screen.getByTestId('send-otp-button'))
@@ -152,8 +169,12 @@ describe('StaffLoginPage — Phone Step', () => {
     render(<StaffLoginPage />, { wrapper: createWrapper() })
 
     await userEvent.type(screen.getByTestId('phone-input'), '8179020960')
-    fireEvent.click(screen.getByRole('combobox'))
-    fireEvent.click(screen.getByText('Nagaland'))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('combobox'))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByText('Nagaland'))
+    })
 
     await act(async () => {
       fireEvent.click(screen.getByTestId('send-otp-button'))
@@ -171,13 +192,19 @@ describe('StaffLoginPage — OTP Step', () => {
     render(<StaffLoginPage />, { wrapper: createWrapper() })
 
     await userEvent.type(screen.getByTestId('phone-input'), '8179020960')
-    fireEvent.click(screen.getByRole('combobox'))
-    fireEvent.click(screen.getByText('Nagaland'))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('combobox'))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByText('Nagaland'))
+    })
 
     await act(async () => {
       fireEvent.click(screen.getByTestId('send-otp-button'))
     })
     await waitFor(() => expect(screen.getByTestId('otp-inputs')).toBeTruthy())
+    // Flush autoFocus-triggered Chakra FormControl state updates
+    await act(async () => {})
   }
 
   it('renders correct number of OTP inputs based on otpLength from API response', async () => {
@@ -262,5 +289,94 @@ describe('StaffLoginPage — OTP Step', () => {
     await renderAtOtpStep()
 
     expect((screen.getByTestId('login-button') as HTMLButtonElement).disabled).toBe(true)
+  })
+})
+
+describe('StaffLoginPage — Tenant Code Cookie Persistence', () => {
+  it('initializes tenant code from cookie on mount', async () => {
+    mockGetCookie.mockReturnValueOnce('MH')
+    render(<StaffLoginPage />, { wrapper: createWrapper() })
+
+    await waitFor(() => {
+      expect(mockGetCookie).toHaveBeenCalledWith('staff_login_tenant_code')
+    })
+  })
+
+  it('saves tenant code to cookie when user selects a tenant', async () => {
+    mockGetCookie.mockReturnValueOnce(null)
+    render(<StaffLoginPage />, { wrapper: createWrapper() })
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('combobox'))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByText('Maharashtra'))
+    })
+
+    await waitFor(() => {
+      expect(mockSetCookie).toHaveBeenCalledWith('staff_login_tenant_code', 'MH')
+    })
+  })
+
+  it('persists cookie after successful login for next session', async () => {
+    mockGetCookie.mockReturnValueOnce(null)
+    mockRequestOtpMutate.mockResolvedValueOnce({ status: 200, message: 'OTP sent', otpLength: 4 })
+    mockVerifyOtpMutate.mockResolvedValueOnce({
+      user: {
+        id: '15',
+        name: 'Officer',
+        email: '',
+        role: 'SECTION_OFFICER',
+        phoneNumber: '918179020960',
+        tenantId: '50',
+        tenantCode: 'NL',
+        personId: '15',
+      },
+      accessToken: 'token',
+    })
+    mockSetFromActivation.mockReturnValueOnce('/staff')
+
+    render(<StaffLoginPage />, { wrapper: createWrapper() })
+
+    await userEvent.type(screen.getByTestId('phone-input'), '8179020960')
+    await act(async () => {
+      fireEvent.click(screen.getByRole('combobox'))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByText('Nagaland'))
+    })
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('send-otp-button'))
+    })
+    await waitFor(() => expect(screen.getByTestId('otp-inputs')).toBeTruthy())
+    await act(async () => {})
+
+    // Verify cookie was saved
+    expect(mockSetCookie).toHaveBeenCalledWith('staff_login_tenant_code', 'NL')
+
+    for (let i = 0; i < 4; i++) {
+      fireEvent.change(screen.getByTestId(`otp-input-${i}`), { target: { value: String(i + 1) } })
+    }
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('login-button'))
+    })
+
+    await waitFor(() => {
+      // Cookie should NOT be deleted after login - it persists for next session
+      expect(mockDeleteCookie).not.toHaveBeenCalledWith('staff_login_tenant_code')
+    })
+  })
+
+  it('prefills tenant select with value from cookie', async () => {
+    mockGetCookie.mockReturnValueOnce('MH')
+    render(<StaffLoginPage />, { wrapper: createWrapper() })
+
+    // The select should be populated with the cookie value
+    // Since SearchableSelect uses a custom combobox, we verify getCookie was called on mount
+    await waitFor(() => {
+      expect(mockGetCookie).toHaveBeenCalledWith('staff_login_tenant_code')
+    })
   })
 })

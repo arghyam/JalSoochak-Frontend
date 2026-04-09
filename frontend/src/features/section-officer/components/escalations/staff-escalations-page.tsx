@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Heading,
@@ -52,6 +53,7 @@ function TruncatedCell({ text }: { text: string }) {
 }
 
 export function StaffEscalationsPage() {
+  const { t } = useTranslation('section-officer')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [searchQuery, setSearchQuery] = useState('')
@@ -92,18 +94,18 @@ export function StaffEscalationsPage() {
   )
 
   useEffect(() => {
-    document.title = 'Escalations | JalSoochak'
-  }, [])
+    document.title = `${t('pages.escalations.heading')} ${t('common.documentTitle')}`
+  }, [t])
 
   const columns: DataTableColumn<EscalationItem>[] = [
     {
       key: 'scheme_name',
-      header: 'Scheme Name',
+      header: t('pages.escalations.columns.schemeName'),
       render: (row) => <TruncatedCell text={row.scheme_name ?? '—'} />,
     },
     {
       key: 'createdAt',
-      header: 'Date & Time',
+      header: t('pages.escalations.columns.dateTime'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.createdAt ? formatTimestamp(row.createdAt) : '—'}
@@ -112,7 +114,7 @@ export function StaffEscalationsPage() {
     },
     {
       key: 'escalationType',
-      header: 'Escalation Type',
+      header: t('pages.escalations.columns.escalationType'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.escalationType ?? '—'}
@@ -121,7 +123,7 @@ export function StaffEscalationsPage() {
     },
     {
       key: 'message',
-      header: 'Details',
+      header: t('pages.escalations.columns.details'),
       render: (row) => {
         const text = row.message ?? '—'
         return <TruncatedCell text={text} />
@@ -129,7 +131,7 @@ export function StaffEscalationsPage() {
     },
     {
       key: 'resolution_status',
-      header: 'Status',
+      header: t('pages.escalations.columns.status'),
       render: (row) => {
         const statusKey =
           typeof row.resolution_status === 'string'
@@ -145,12 +147,12 @@ export function StaffEscalationsPage() {
       <Box w="full">
         <PageHeader>
           <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
-            Escalations
+            {t('pages.escalations.heading')}
           </Heading>
         </PageHeader>
         <Flex role="status" aria-live="polite" align="center" minH="200px" gap={3}>
           <Spinner size="md" color="primary.500" />
-          <Text color="neutral.600">Loading…</Text>
+          <Text color="neutral.600">{t('pages.escalations.loading')}</Text>
         </Flex>
       </Box>
     )
@@ -161,13 +163,13 @@ export function StaffEscalationsPage() {
       <Box w="full">
         <PageHeader>
           <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
-            Escalations
+            {t('pages.escalations.heading')}
           </Heading>
         </PageHeader>
         <Flex h="64" align="center" justify="center" direction="column" gap={4} role="alert">
-          <Text color="error.500">Failed to load escalations. Please try again.</Text>
+          <Text color="error.500">{t('pages.escalations.error')}</Text>
           <Button variant="secondary" size="sm" onClick={() => void refetch()}>
-            Retry
+            {t('common.retry')}
           </Button>
         </Flex>
       </Box>
@@ -178,7 +180,7 @@ export function StaffEscalationsPage() {
     <Box w="full" maxW="100%" minW={0}>
       <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
-          Escalations
+          {t('pages.escalations.heading')}
         </Heading>
       </PageHeader>
 
@@ -203,12 +205,12 @@ export function StaffEscalationsPage() {
             <SearchIcon color="neutral.300" aria-hidden="true" />
           </InputLeftElement>
           <Input
-            placeholder="Search by scheme name"
+            placeholder={t('pages.escalations.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value)
             }}
-            aria-label="Search by scheme name"
+            aria-label={t('pages.escalations.searchPlaceholder')}
             bg="white"
             h={8}
             borderWidth="1px"
@@ -224,7 +226,7 @@ export function StaffEscalationsPage() {
           onChange={(val) => {
             setStatusFilter(val)
           }}
-          placeholder="Status"
+          placeholder={t('pages.escalations.filterStatus')}
           width="160px"
           height="32px"
           borderRadius="4px"
@@ -240,7 +242,7 @@ export function StaffEscalationsPage() {
           onChange={(val) => {
             setDateRange(val)
           }}
-          placeholder="Duration"
+          placeholder={t('pages.escalations.filterDuration')}
           width="160px"
           height="32px"
           borderRadius="4px"
@@ -260,7 +262,7 @@ export function StaffEscalationsPage() {
             aria-label="Clear all filters"
             _hover={{ color: 'primary.500', bg: 'transparent' }}
           >
-            clear all filters
+            {t('pages.escalations.clearAllFilters')}
           </Button>
         )}
       </Flex>
@@ -274,7 +276,7 @@ export function StaffEscalationsPage() {
           columns={columns}
           data={data?.escalations ?? []}
           getRowKey={(row) => row.id}
-          emptyMessage="No escalations found."
+          emptyMessage={t('pages.escalations.noEscalationsFound')}
           pagination={{
             enabled: true,
             page,

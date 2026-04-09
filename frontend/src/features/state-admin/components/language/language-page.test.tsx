@@ -7,11 +7,23 @@ import { renderWithProviders } from '@/test/render-with-providers'
 const mockMutateAsync = jest.fn<(...args: any[]) => any>()
 const mockUseLanguageConfigurationQuery = jest.fn()
 
+jest.mock('@/app/store/auth-store', () => ({
+  useAuthStore: (selector?: (s: { user: { tenantCode: string } }) => unknown) => {
+    const mockState = { user: { tenantCode: 'MH' } }
+    return selector ? selector(mockState) : mockState
+  },
+}))
+
 jest.mock('../../services/query/use-state-admin-queries', () => ({
   useLanguageConfigurationQuery: () => mockUseLanguageConfigurationQuery(),
   useSaveLanguageConfigurationMutation: () => ({
     mutateAsync: mockMutateAsync,
     isPending: false,
+  }),
+  useConfigStatusQuery: () => ({
+    data: { SUPPORTED_LANGUAGES: { status: 'CONFIGURED', mandatory: true } },
+    isLoading: false,
+    isError: false,
   }),
 }))
 

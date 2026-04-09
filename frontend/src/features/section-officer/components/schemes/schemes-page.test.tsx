@@ -12,9 +12,28 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }))
 
+const translations: Record<string, string> = {
+  'pages.schemes.heading': 'All Schemes',
+  'pages.schemes.loading': 'Loading…',
+  'pages.schemes.error': 'Failed to load schemes. Please try again.',
+  'pages.schemes.noSchemesFound': 'No schemes found.',
+  'pages.schemes.searchPlaceholder': 'Search by scheme name',
+  'pages.schemes.columns.schemeName': 'Scheme Name',
+  'pages.schemes.columns.stateSchemeId': 'State Scheme ID',
+  'pages.schemes.columns.pumpOperators': 'Pump Operators',
+  'pages.schemes.columns.lastReading': 'Last Reading',
+  'pages.schemes.columns.yesterdayReading': "Yesterday's Reading",
+  'pages.schemes.columns.lastWaterSupplied': 'Last Water Supplied',
+  'pages.schemes.columns.lastSubmission': 'Last Submission',
+  'pages.schemes.columns.actions': 'Actions',
+  'common.retry': 'Retry',
+  'common.viewScheme': 'View scheme',
+  'common.documentTitle': '| JalSoochak',
+}
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string) => translations[key] || key,
     i18n: { changeLanguage: jest.fn() },
   }),
   initReactI18next: { type: '3rdParty', init: jest.fn() },

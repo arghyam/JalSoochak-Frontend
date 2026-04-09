@@ -1,5 +1,5 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createElement } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -7,9 +7,26 @@ import { AnomaliesPage } from './anomalies-page'
 
 import type { ReactNode } from 'react'
 
+const translations: Record<string, string> = {
+  'pages.anomalies.heading': 'Anomalies',
+  'pages.anomalies.loading': 'Loading…',
+  'pages.anomalies.error': 'Failed to load anomalies. Please try again.',
+  'pages.anomalies.noAnomaliesFound': 'No anomalies found.',
+  'pages.anomalies.searchPlaceholder': 'Search by scheme name',
+  'pages.anomalies.filterStatus': 'Filter by status',
+  'pages.anomalies.filterDuration': 'Duration',
+  'pages.anomalies.clearAllFilters': 'Clear all filters',
+  'pages.anomalies.columns.schemeName': 'Scheme Name',
+  'pages.anomalies.columns.dateTime': 'Date & Time',
+  'pages.anomalies.columns.anomalyType': 'Anomaly Type',
+  'pages.anomalies.columns.details': 'Details',
+  'pages.anomalies.columns.status': 'Status',
+  'common.documentTitle': '| JalSoochak',
+}
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string) => translations[key] || key,
     i18n: { changeLanguage: jest.fn() },
   }),
   initReactI18next: { type: '3rdParty', init: jest.fn() },
@@ -212,7 +229,10 @@ describe('AnomaliesPage', () => {
     renderPage()
     expect(screen.getByText('Test Scheme')).toBeTruthy()
     expect(screen.getByText('No Water Supply')).toBeTruthy()
-    expect(screen.getByText('In-Progress')).toBeTruthy()
+
+    const table = screen.getByTestId('data-table')
+    // Assert the status appears in the table (not the filter option)
+    expect(within(table).getAllByText('In-Progress').length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders search input', () => {

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Flex, Box, Show } from '@chakra-ui/react'
 import { LanguageSwitcher } from './language-switcher'
+import { PanelSwitcher } from './panel-switcher'
 
 interface PageHeaderProps {
   readonly children: ReactNode
@@ -17,6 +18,7 @@ export function PageHeader({ children, mb = 5, rightContent }: PageHeaderProps) 
 
       <Box flexShrink={0} maxW="100%">
         <Flex align="center" gap="8px">
+          <PanelSwitcher />
           {rightContent ? <Box>{rightContent}</Box> : null}
           <Show above="lg">
             <LanguageSwitcher />
