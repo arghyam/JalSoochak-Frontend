@@ -182,7 +182,7 @@
     },
     "axis": {
       "percentage": "प्रतिशत",
-      "noOfDays": "दिनों की संख्या"
+      "noOfReasons": "कारणों की संख्या"
     },
     "series": {
       "submissionRate": "सबमिशन दर",

@@ -182,7 +182,7 @@
     },
     "axis": {
       "percentage": "Percentage",
-      "noOfDays": "No. of days"
+      "noOfReasons": "No. of Reasons"
     },
     "series": {
       "submissionRate": "Submission Rate",

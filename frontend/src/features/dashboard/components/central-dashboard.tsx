@@ -33,6 +33,7 @@ import { useSchemePerformanceQuery } from '../services/query/use-scheme-performa
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
 import { useTenantPublicConfigQuery } from '../services/query/use-tenant-public-config-query'
 import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
+import { useWaterQuantityRegionWiseQuery } from '../services/query/use-water-quantity-region-wise-query'
 import { useTenantBoundariesQuery } from '../services/query/use-tenant-boundaries-query'
 import { KPICard } from './kpi-card'
 import { DashboardBody } from './screens/dashboard-body'
@@ -1158,6 +1159,24 @@ export function CentralDashboard() {
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
           }
+  const quantityRegionWiseAnalyticsParams =
+    isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            tenantId: selectedTenant.tenantId,
+            parentLgdId: analyticsParentId,
+            scope: 'child' as const,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+          }
+        : {
+            tenantId: selectedTenant.tenantId,
+            parentDepartmentId: analyticsParentId,
+            scope: 'child' as const,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+          }
   const readingSubmissionRateAnalyticsParams =
     isHierarchyLeafSelected || !selectedTenant?.tenantId
       ? null
@@ -1388,6 +1407,10 @@ export function CentralDashboard() {
   const { data: averageSchemeRegularityData } = useAverageSchemeRegularityQuery({
     params: regularityAnalyticsParams,
     enabled: Boolean(regularityAnalyticsParams),
+  })
+  const { data: waterQuantityRegionWiseData } = useWaterQuantityRegionWiseQuery({
+    params: quantityRegionWiseAnalyticsParams,
+    enabled: Boolean(quantityRegionWiseAnalyticsParams),
   })
   const { data: readingSubmissionRateData } = useReadingSubmissionRateQuery({
     params: readingSubmissionRateAnalyticsParams,
@@ -1630,7 +1653,9 @@ export function CentralDashboard() {
         tenantBoundaryData,
         overallPerformanceTableData,
         tenantBoundaryLocationOptions,
-        averageSchemeRegularityData
+        averageSchemeRegularityData,
+        waterQuantityRegionWiseData,
+        averageWaterSupplyData
       )
   const isMapDataLoading = isCentralLandingView
     ? !nationalDashboardBoundariesData && isNationalDashboardBoundariesLoading

@@ -440,7 +440,7 @@ export function SupplyOutageDistributionChart({
               textOrientation: 'mixed',
             }}
           >
-            {t('outageAndSubmissionCharts.axis.noOfDays', { defaultValue: 'No. of days' })}
+            {t('outageAndSubmissionCharts.axis.noOfReasons', { defaultValue: 'No. of days' })}
           </Box>
         </Box>
         <Box

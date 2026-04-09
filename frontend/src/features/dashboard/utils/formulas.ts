@@ -14,6 +14,7 @@ import type {
   GeoJsonGeometry,
   WaterQuantityPeriodicResponse,
   WaterSupplyOutageData,
+  WaterQuantityRegionWiseResponse,
 } from '../types'
 import {
   getLocationTitleFromLookup,
@@ -496,7 +497,9 @@ export const mapTenantBoundariesToPerformance = (
   response: TenantBoundaryResponse | undefined,
   fallbackData: EntityPerformance[],
   locationOptions: LocationLabelOption[] = [],
-  regularityAnalytics?: AverageSchemeRegularityResponse
+  regularityAnalytics?: AverageSchemeRegularityResponse,
+  quantityAnalytics?: WaterQuantityRegionWiseResponse,
+  waterSupplyAnalytics?: AverageWaterSupplyPerRegionResponse
 ): EntityPerformance[] => {
   if (!response?.childRegions?.length) {
     return []
@@ -508,6 +511,12 @@ export const mapTenantBoundariesToPerformance = (
   const locationOptionsByName = mapLocationOptionsByName(locationOptions)
   const regularityById = new Map<string, number>()
   const regularityByName = new Map<string, number>()
+  const quantityById = new Map<string, number>()
+  const quantityByName = new Map<string, number>()
+  const quantityNoDataById = new Set<string>()
+  const quantityNoDataByName = new Set<string>()
+  const schemeCountById = new Map<string, number>()
+  const schemeCountByName = new Map<string, number>()
 
   ;(regularityAnalytics?.childRegions ?? []).forEach((region) => {
     const regularityPercent = Number((region.averageRegularity * 100).toFixed(1))
@@ -522,6 +531,75 @@ export const mapTenantBoundariesToPerformance = (
     if (typeof region.lgdId === 'number' && region.lgdId > 0) {
       regularityById.set(String(region.lgdId), regularityPercent)
     }
+  })
+
+  const quantityDaysInRange = resolveDaysInRange(
+    quantityAnalytics?.daysInRange ?? regularityAnalytics?.daysInRange,
+    quantityAnalytics?.startDate ?? regularityAnalytics?.startDate,
+    quantityAnalytics?.endDate ?? regularityAnalytics?.endDate
+  )
+
+  ;(waterSupplyAnalytics?.childRegions ?? []).forEach((region) => {
+    const schemeCount = Number(region.schemeCount)
+    if (!Number.isFinite(schemeCount) || schemeCount <= 0) {
+      return
+    }
+
+    const titleKey = slugify(region.title)
+    if (titleKey) {
+      schemeCountByName.set(titleKey, schemeCount)
+    }
+
+    if (typeof region.departmentId === 'number' && region.departmentId > 0) {
+      schemeCountById.set(String(region.departmentId), schemeCount)
+    }
+    if (typeof region.lgdId === 'number' && region.lgdId > 0) {
+      schemeCountById.set(String(region.lgdId), schemeCount)
+    }
+  })
+  ;(quantityAnalytics?.childRegions ?? []).forEach((region) => {
+    const titleKey = slugify(region.title)
+    const schemeCountRaw = Number(region.schemeCount)
+    const schemeCountLookup =
+      (typeof region.departmentId === 'number' && region.departmentId > 0
+        ? schemeCountById.get(String(region.departmentId))
+        : undefined) ??
+      (typeof region.lgdId === 'number' && region.lgdId > 0
+        ? schemeCountById.get(String(region.lgdId))
+        : undefined) ??
+      (titleKey ? schemeCountByName.get(titleKey) : undefined)
+    const schemeCount =
+      Number.isFinite(schemeCountRaw) && schemeCountRaw > 0
+        ? schemeCountRaw
+        : typeof schemeCountLookup === 'number'
+          ? schemeCountLookup
+          : Number.NaN
+    const supplyDays = Number(region.supplyDaysInEfficientRange)
+
+    const quantityPercent =
+      Number.isFinite(schemeCount) &&
+      schemeCount > 0 &&
+      Number.isFinite(supplyDays) &&
+      supplyDays >= 0 &&
+      quantityDaysInRange > 0
+        ? Number(((supplyDays / (quantityDaysInRange * schemeCount)) * 100).toFixed(1))
+        : null
+
+    const idCandidates = [
+      typeof region.departmentId === 'number' && region.departmentId > 0
+        ? String(region.departmentId)
+        : '',
+      typeof region.lgdId === 'number' && region.lgdId > 0 ? String(region.lgdId) : '',
+    ].filter(Boolean)
+
+    if (quantityPercent == null) {
+      idCandidates.forEach((id) => quantityNoDataById.add(id))
+      if (titleKey) quantityNoDataByName.add(titleKey)
+      return
+    }
+
+    idCandidates.forEach((id) => quantityById.set(id, quantityPercent))
+    if (titleKey) quantityByName.set(titleKey, quantityPercent)
   })
 
   return response.childRegions.map((region, index) => {
@@ -584,13 +662,50 @@ export const mapTenantBoundariesToPerformance = (
       return 0
     })()
 
+    const preferredQuantity = (() => {
+      if (quantityAnalytics?.childRegions?.length) {
+        const regionIdCandidate =
+          typeof locationId === 'number'
+            ? String(locationId)
+            : typeof regionLocationId === 'number'
+              ? String(regionLocationId)
+              : undefined
+        const titleCandidate = !isGenericRegionName(regionTitle) ? slugify(regionTitle) : ''
+        const labelCandidate = !isGenericRegionName(locationLabel)
+          ? slugify(locationLabel ?? '')
+          : ''
+
+        const fromNoData =
+          (regionIdCandidate ? quantityNoDataById.has(regionIdCandidate) : false) ||
+          (titleCandidate ? quantityNoDataByName.has(titleCandidate) : false) ||
+          (labelCandidate ? quantityNoDataByName.has(labelCandidate) : false)
+
+        if (fromNoData) {
+          return -1
+        }
+
+        const fromAnalytics =
+          (regionIdCandidate ? quantityById.get(regionIdCandidate) : undefined) ??
+          (titleCandidate ? quantityByName.get(titleCandidate) : undefined) ??
+          (labelCandidate ? quantityByName.get(labelCandidate) : undefined)
+
+        if (typeof fromAnalytics === 'number' && Number.isFinite(fromAnalytics)) {
+          return fromAnalytics
+        }
+
+        return -1
+      }
+
+      return fallbackMatch?.quantity ?? 0
+    })()
+
     return {
       id: fallbackMatch?.id ?? getTenantBoundaryRegionId(region, index),
       name: formatEntityName(preferredRegionName, undefined, `Region ${index + 1}`),
       coverage: fallbackMatch?.coverage ?? 0,
       regularity: preferredRegularity,
       continuity: fallbackMatch?.continuity ?? 0,
-      quantity: fallbackMatch?.quantity ?? 0,
+      quantity: preferredQuantity,
       compositeScore:
         fallbackMatch?.compositeScore ??
         (typeof region.averagePerformanceScore === 'number'

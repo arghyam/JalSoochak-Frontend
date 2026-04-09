@@ -148,17 +148,17 @@ describe('IndiaMapChart', () => {
     )
   })
 
-  it('shows MLD legend labels when switched to quantity view', () => {
+  it('shows percent legend labels when switched to quantity view', () => {
     renderWithProviders(<IndiaMapChart data={chartData} />)
 
     const toggle = screen.getByRole('checkbox')
     fireEvent.click(toggle)
 
-    expect(screen.getByText('>=90 MLD')).toBeTruthy()
-    expect(screen.getByText('>=70 MLD')).toBeTruthy()
-    expect(screen.getByText('>=50 MLD')).toBeTruthy()
-    expect(screen.getByText('>=30 MLD')).toBeTruthy()
-    expect(screen.getByText('>=0 MLD')).toBeTruthy()
+    expect(screen.getByText('>=90%')).toBeTruthy()
+    expect(screen.getByText('>=70%')).toBeTruthy()
+    expect(screen.getByText('>=50%')).toBeTruthy()
+    expect(screen.getByText('>=30%')).toBeTruthy()
+    expect(screen.getByText('>=0%')).toBeTruthy()
   })
 
   it('uses bucket hover colors for selected regions instead of the default map select color', () => {
