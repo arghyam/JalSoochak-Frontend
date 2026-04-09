@@ -2602,7 +2602,7 @@ export function CentralDashboard() {
             ? 'india'
             : `tenant-boundary-${hierarchyType.toLowerCase()}-${analyticsParentId}`
         }
-        quantityViewUnit={isCentralLandingView ? 'mld' : 'percent'}
+        quantityViewUnit="percent"
         onStateClick={handleMapRegionClick}
         onStateHover={handleStateHover}
         isFullscreen={fullscreen}

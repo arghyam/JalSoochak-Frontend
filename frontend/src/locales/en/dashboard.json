@@ -56,7 +56,7 @@
   },
   "map": {
     "metric": {
-      "quantity": "Quantity",
+      "quantity": "Schemes Quantity",
       "regularity": "Regularity"
     },
     "noMapAvailable": "Map currently unavailable",

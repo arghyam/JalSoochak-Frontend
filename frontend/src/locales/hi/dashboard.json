@@ -56,7 +56,7 @@
   },
   "map": {
     "metric": {
-      "quantity": "मात्रा",
+      "quantity": "योजना मात्रा",
       "regularity": "नियमितता"
     },
     "noMapAvailable": "मानचित्र फिलहाल उपलब्ध नहीं है",
