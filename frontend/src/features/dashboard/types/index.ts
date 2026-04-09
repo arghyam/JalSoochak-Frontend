@@ -193,6 +193,7 @@ export interface WaterQuantityPeriodicResponse {
 }
 
 export interface SchemeRegularityPeriodicQueryParams {
+  tenantId: number
   startDate: string
   endDate: string
   scale: 'day' | 'week' | 'month'
@@ -329,6 +330,7 @@ export interface AverageWaterSupplyPerRegionResponse {
 }
 
 export interface AverageSchemeRegularityQueryParams {
+  tenantId: number
   parentLgdId?: number
   parentDepartmentId?: number
   scope?: 'current' | 'child'
@@ -395,6 +397,7 @@ export interface TenantBoundaryResponse {
 }
 
 export interface ReadingSubmissionRateQueryParams {
+  tenantId: number
   parentLgdId?: number
   parentDepartmentId?: number
   scope?: 'current' | 'child'
@@ -563,6 +566,7 @@ export interface ReadingSubmissionRateResponse {
 }
 
 export interface SubmissionStatusQueryParams {
+  tenantId: number
   lgdId?: number
   departmentId?: number
   startDate: string
@@ -586,6 +590,7 @@ export interface SubmissionStatusResponse {
 }
 
 export interface OutageReasonsQueryParams {
+  tenantId: number
   startDate: string
   endDate: string
   parentLgdId?: number
@@ -593,6 +598,7 @@ export interface OutageReasonsQueryParams {
 }
 
 export interface OutageReasonsPeriodicQueryParams {
+  tenantId: number
   startDate: string
   endDate: string
   scale: 'day' | 'week' | 'month'

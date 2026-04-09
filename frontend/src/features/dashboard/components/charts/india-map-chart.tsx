@@ -1,8 +1,17 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
-import { Center, Spinner, Text, useMediaQuery, useTheme, VStack } from '@chakra-ui/react'
+import {
+  Center,
+  IconButton,
+  Spinner,
+  Text,
+  useMediaQuery,
+  useTheme,
+  VStack,
+} from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
-import { EChartsWrapper, Toggle } from '@/shared/components/common'
+import { ActionTooltip, EChartsWrapper, Toggle } from '@/shared/components/common'
+import { FiMaximize2, FiMinimize2 } from 'react-icons/fi'
 import { getBodyText6Style } from '@/shared/components/charts/chart-text-style'
 import type { EntityPerformance } from '../../types'
 import {
@@ -22,6 +31,8 @@ interface IndiaMapChartProps {
   fallbackToIndiaMap?: boolean
   usePrimaryFill?: boolean
   disableHoverEffect?: boolean
+  isFullscreen?: boolean
+  onFullscreenToggle?: () => void
 }
 
 export function IndiaMapChart({
@@ -35,6 +46,8 @@ export function IndiaMapChart({
   fallbackToIndiaMap = true,
   usePrimaryFill = false,
   disableHoverEffect = false,
+  isFullscreen = false,
+  onFullscreenToggle,
 }: IndiaMapChartProps) {
   const theme = useTheme()
   const [isBelow500] = useMediaQuery('(max-width: 499.98px)')
@@ -134,6 +147,13 @@ export function IndiaMapChart({
               areaColor: getHoverRangeColor(state[metricKey]),
             },
           },
+      select: {
+        itemStyle: {
+          areaColor: disableHoverEffect
+            ? resolveAreaColor(state[metricKey])
+            : getHoverRangeColor(state[metricKey]),
+        },
+      },
       metrics: {
         coverage: state.coverage,
         regularity: state.regularity,
@@ -200,6 +220,7 @@ export function IndiaMapChart({
             borderColor: '#fff',
             borderWidth: 1,
           },
+          selectedMode: 'single',
           emphasis: disableHoverEffect
             ? {
                 disabled: true,
@@ -214,6 +235,16 @@ export function IndiaMapChart({
                   fontWeight: 'bold',
                 },
               },
+          select: {
+            itemStyle: {
+              borderWidth: 2,
+            },
+            label: {
+              show: !isIndiaMap,
+              fontSize: 12,
+              fontWeight: 'bold',
+            },
+          },
         },
       ],
     }
@@ -266,6 +297,12 @@ export function IndiaMapChart({
   ]
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
+  const fullscreenActionLabel = t(
+    isFullscreen ? 'map.actions.exitFullscreen' : 'map.actions.fullscreen',
+    {
+      defaultValue: isFullscreen ? 'Exit fullscreen map' : 'Show fullscreen map',
+    }
+  )
 
   useLayoutEffect(() => {
     if (!dynamicGeoJson) {
@@ -310,38 +347,44 @@ export function IndiaMapChart({
     }
   }, [dynamicGeoJson, effectiveMapName, shouldShowNoMapAvailable])
 
-  const handleChartReady = (chart: echarts.ECharts) => {
-    // Register click event
-    chart.on('click', (params: unknown) => {
-      const p = params as {
-        data?: {
-          stateId: string
-          name: string
-        }
-      }
-      if (p.data?.stateId && onStateClick) {
-        onStateClick(p.data.stateId, p.data.name)
-      }
-    })
+  const handleChartReady = useCallback(
+    (chart: echarts.ECharts) => {
+      chart.off('click')
+      chart.off('mouseover')
 
-    // Register hover event
-    if (!disableHoverEffect) {
-      chart.on('mouseover', (params: unknown) => {
+      // Register click event
+      chart.on('click', (params: unknown) => {
         const p = params as {
           data?: {
             stateId: string
             name: string
           }
         }
-        if (p.data?.stateId && onStateHover) {
-          const stateData = data.find((d) => d.id === p.data?.stateId) ?? undefined
-          if (stateData) {
-            onStateHover(p.data.stateId, p.data.name, stateData)
-          }
+        if (p.data?.stateId && onStateClick) {
+          onStateClick(p.data.stateId, p.data.name)
         }
       })
-    }
-  }
+
+      // Register hover event
+      if (!disableHoverEffect) {
+        chart.on('mouseover', (params: unknown) => {
+          const p = params as {
+            data?: {
+              stateId: string
+              name: string
+            }
+          }
+          if (p.data?.stateId && onStateHover) {
+            const stateData = data.find((d) => d.id === p.data?.stateId) ?? undefined
+            if (stateData) {
+              onStateHover(p.data.stateId, p.data.name, stateData)
+            }
+          }
+        })
+      }
+    },
+    [data, disableHoverEffect, onStateClick, onStateHover]
+  )
 
   return (
     <div
@@ -351,6 +394,7 @@ export function IndiaMapChart({
         height: containerHeight,
         display: 'flex',
         flexDirection: 'column',
+        position: 'relative',
       }}
     >
       <div style={{ flex: 1, minHeight: 0 }}>
@@ -404,8 +448,37 @@ export function IndiaMapChart({
               {regularityLabel}
             </span>
           </div>
+          {onFullscreenToggle ? (
+            <div
+              style={{
+                position: 'absolute',
+                right: '8px',
+                bottom: '8px',
+                zIndex: 3,
+              }}
+            >
+              <ActionTooltip label={fullscreenActionLabel}>
+                <IconButton
+                  aria-label={fullscreenActionLabel}
+                  icon={isFullscreen ? <FiMinimize2 /> : <FiMaximize2 />}
+                  size="sm"
+                  variant="outline"
+                  colorScheme="gray"
+                  bg="white"
+                  borderColor="#E4E4E7"
+                  _hover={{ bg: 'gray.50' }}
+                  onClick={onFullscreenToggle}
+                />
+              </ActionTooltip>
+            </div>
+          ) : null}
           {isMapReady && isRegisteredMapAvailable ? (
-            <EChartsWrapper option={option} height="100%" onChartReady={handleChartReady} />
+            <EChartsWrapper
+              option={option}
+              height="100%"
+              renderer="svg"
+              onChartReadyOnce={handleChartReady}
+            />
           ) : (
             <Center h="100%">
               <VStack spacing={3}>

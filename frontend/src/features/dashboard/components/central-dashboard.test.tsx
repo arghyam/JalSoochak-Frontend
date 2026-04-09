@@ -28,6 +28,7 @@ import { getPreviousPeriodRange } from '../utils/formulas'
 const mockNavigate = jest.fn()
 const mockUseParams = jest.fn(() => ({}))
 const mockUseSearchParams = jest.fn(() => [new URLSearchParams(), jest.fn()])
+const mockUseLocation = jest.fn(() => ({ pathname: '/', search: '', hash: '', state: null }))
 const mockDashboardFilters = jest.fn((_props: unknown) => <div data-testid="dashboard-filters" />)
 const mockDashboardBody = jest.fn((_props: unknown) => <div data-testid="dashboard-body" />)
 const mockIndiaMapChart = jest.fn((_props: unknown) => <div data-testid="india-map-chart" />)
@@ -56,6 +57,7 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
   useParams: () => mockUseParams(),
   useSearchParams: () => mockUseSearchParams(),
+  useLocation: () => mockUseLocation(),
 }))
 
 jest.mock('../hooks/use-dashboard-data', () => ({
@@ -211,6 +213,7 @@ describe('CentralDashboard', () => {
     mockNavigate.mockReset()
     mockUseParams.mockReset()
     mockUseSearchParams.mockReset()
+    mockUseLocation.mockReset()
     mockDashboardFilters.mockClear()
     mockDashboardBody.mockClear()
     mockIndiaMapChart.mockClear()
@@ -238,6 +241,7 @@ describe('CentralDashboard', () => {
     ;(useTenantBoundariesQuery as jest.Mock).mockReset()
     mockUseParams.mockReturnValue({})
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()])
+    mockUseLocation.mockReturnValue({ pathname: '/', search: '', hash: '', state: null })
     ;(useLocationSearchQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useDistrictSchemeBlockLookupQuery as jest.Mock).mockReturnValue({ data: undefined })
@@ -464,6 +468,7 @@ describe('CentralDashboard', () => {
     })
     expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 16,
         parentLgdId: 10,
         scope: 'child',
         startDate: '2026-03-25',
@@ -473,6 +478,7 @@ describe('CentralDashboard', () => {
     })
     expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 16,
         parentLgdId: 10,
         scope: 'child',
         startDate: '2026-03-25',
@@ -482,6 +488,7 @@ describe('CentralDashboard', () => {
     })
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 16,
         parentLgdId: 10,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -534,6 +541,7 @@ describe('CentralDashboard', () => {
     })
     expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         parentLgdId: 1,
         scope: 'child',
         startDate: '2026-03-25',
@@ -543,6 +551,7 @@ describe('CentralDashboard', () => {
     })
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         parentLgdId: 1,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -591,6 +600,7 @@ describe('CentralDashboard', () => {
 
     expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         parentLgdId: 202,
         scope: 'child',
         startDate: '2026-03-25',
@@ -600,6 +610,7 @@ describe('CentralDashboard', () => {
     })
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         parentLgdId: 202,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -656,6 +667,7 @@ describe('CentralDashboard', () => {
 
     expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         parentLgdId: 303,
         scope: 'child',
         startDate: '2026-03-25',
@@ -665,6 +677,7 @@ describe('CentralDashboard', () => {
     })
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         parentLgdId: 303,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -735,6 +748,7 @@ describe('CentralDashboard', () => {
 
     expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         parentLgdId: 404,
         scope: 'child',
         startDate: '2026-03-25',
@@ -744,6 +758,7 @@ describe('CentralDashboard', () => {
     })
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         parentLgdId: 404,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -803,6 +818,7 @@ describe('CentralDashboard', () => {
     })
     expect(useSchemeRegularityPeriodicQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 16,
         lgdId: 544,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -933,6 +949,50 @@ describe('CentralDashboard', () => {
       params: null,
       enabled: false,
     })
+  })
+
+  it('does not fall back to state analytics when a district URL is unresolved after LGD back navigation', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    mockUseSearchParams.mockReturnValue([new URLSearchParams('district=lakhimpur'), jest.fn()])
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 18, tenantCode: 'AS' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock)
+      .mockReturnValueOnce({
+        data: {
+          data: [{ id: 1, lgdCode: 101, title: 'Assam' }],
+        },
+      })
+      .mockReturnValue({ data: undefined })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
+      params: null,
+      enabled: false,
+    })
+    expect(useOutageReasonsQuery).toHaveBeenCalledWith({
+      params: null,
+      enabled: false,
+    })
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{
+      isStateSelected: boolean
+      isDistrictSelected: boolean
+      isBlockSelected: boolean
+    }>()
+
+    expect(dashboardBodyProps.isStateSelected).toBe(true)
+    expect(dashboardBodyProps.isDistrictSelected).toBe(true)
+    expect(dashboardBodyProps.isBlockSelected).toBe(false)
   })
 
   it('falls back to the state LGD code when root locations already contain districts', () => {
@@ -1400,6 +1460,7 @@ describe('CentralDashboard', () => {
     })
     expect(useSchemeRegularityPeriodicQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 16,
         lgdId: 544,
         startDate: expect.any(String),
         endDate: expect.any(String),
@@ -1827,6 +1888,39 @@ describe('CentralDashboard', () => {
     expect(dashboardFilterProps.selectedVillage).toBe('rudraram')
   })
 
+  it('forces the administrative tab when LGD query params are present even if storage last used departmental', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 1,
+        selectedDepartmentState: 'assam',
+        selectedDepartmentZone: '601:department-zone',
+      })
+    )
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams('district=44:404:chirang&block=55:505:sidli-chirang&tab=administrative'),
+      jest.fn(),
+    ])
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardFilterProps = getLatestDashboardFilterProps<{
+      filterTabIndex: number
+      selectedDistrict: string
+      selectedBlock: string
+    }>()
+
+    expect(dashboardFilterProps.filterTabIndex).toBe(0)
+    expect(dashboardFilterProps.selectedDistrict).toBe('44:404:chirang')
+    expect(dashboardFilterProps.selectedBlock).toBe('55:505:sidli-chirang')
+  })
+
   it('hydrates departmental filters and active tab from query params', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -1858,6 +1952,68 @@ describe('CentralDashboard', () => {
     expect(dashboardFilterProps.selectedDepartmentCircle).toBe('701:department-circle')
     expect(dashboardFilterProps.selectedDepartmentDivision).toBe('801:department-division')
     expect(dashboardFilterProps.selectedDepartmentSubdivision).toBe('901:department-subdivision')
+  })
+
+  it('clears deeper departmental selections when browser navigation returns to the departmental root', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 1,
+        selectedDepartmentState: 'assam',
+        selectedDepartmentZone: '601:department-zone',
+        selectedDepartmentCircle: '701:department-circle',
+        selectedDepartmentDivision: '801:department-division',
+        selectedDepartmentSubdivision: '901:department-subdivision',
+      })
+    )
+
+    let currentSearchParams = new URLSearchParams(
+      'departmentZone=601:department-zone&departmentCircle=701:department-circle&departmentDivision=801:department-division&departmentSubdivision=901:department-subdivision'
+    )
+    let currentLocation = {
+      pathname: '/assam',
+      search:
+        '?departmentZone=601:department-zone&departmentCircle=701:department-circle&departmentDivision=801:department-division&departmentSubdivision=901:department-subdivision',
+      hash: '',
+      state: null,
+    }
+
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    mockUseSearchParams.mockImplementation(() => [currentSearchParams, jest.fn()])
+    mockUseLocation.mockImplementation(() => currentLocation)
+
+    const { rerender } = renderWithProviders(<CentralDashboard />)
+
+    currentSearchParams = new URLSearchParams()
+    currentLocation = {
+      pathname: '/assam',
+      search: '',
+      hash: '',
+      state: null,
+    }
+
+    rerender(<CentralDashboard />)
+
+    const dashboardFilterProps = getLatestDashboardFilterProps<{
+      filterTabIndex: number
+      selectedDepartmentState: string
+      selectedDepartmentZone: string
+      selectedDepartmentCircle: string
+      selectedDepartmentDivision: string
+      selectedDepartmentSubdivision: string
+    }>()
+
+    expect(dashboardFilterProps.filterTabIndex).toBe(1)
+    expect(dashboardFilterProps.selectedDepartmentState).toBe('assam')
+    expect(dashboardFilterProps.selectedDepartmentZone).toBe('')
+    expect(dashboardFilterProps.selectedDepartmentCircle).toBe('')
+    expect(dashboardFilterProps.selectedDepartmentDivision).toBe('')
+    expect(dashboardFilterProps.selectedDepartmentSubdivision).toBe('')
   })
 
   it('uses district data in Overall Performance table when a state is selected', () => {
@@ -2477,6 +2633,7 @@ describe('CentralDashboard', () => {
 
     expect(useSubmissionStatusQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         lgdId: expect.any(Number),
         startDate: expect.any(String),
         endDate: expect.any(String),
@@ -2519,6 +2676,7 @@ describe('CentralDashboard', () => {
 
     expect(useSubmissionStatusQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         departmentId: 501,
         startDate: expect.any(String),
         endDate: expect.any(String),
@@ -2570,6 +2728,7 @@ describe('CentralDashboard', () => {
     })
     expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 601,
         scope: 'child',
         startDate: expect.any(String),
@@ -2619,6 +2778,7 @@ describe('CentralDashboard', () => {
     })
     expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 601,
         scope: 'child',
         startDate: '2026-03-25',
@@ -2628,6 +2788,7 @@ describe('CentralDashboard', () => {
     })
     expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 601,
         scope: 'child',
         startDate: '2026-03-25',
@@ -2637,6 +2798,7 @@ describe('CentralDashboard', () => {
     })
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 601,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -2686,6 +2848,7 @@ describe('CentralDashboard', () => {
     })
     expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 701,
         scope: 'child',
         startDate: '2026-03-25',
@@ -2695,6 +2858,7 @@ describe('CentralDashboard', () => {
     })
     expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 701,
         scope: 'child',
         startDate: '2026-03-25',
@@ -2704,6 +2868,7 @@ describe('CentralDashboard', () => {
     })
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 701,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -2754,6 +2919,7 @@ describe('CentralDashboard', () => {
     })
     expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 801,
         scope: 'child',
         startDate: '2026-03-25',
@@ -2763,6 +2929,7 @@ describe('CentralDashboard', () => {
     })
     expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 801,
         scope: 'child',
         startDate: '2026-03-25',
@@ -2772,6 +2939,7 @@ describe('CentralDashboard', () => {
     })
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 801,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -3020,6 +3188,7 @@ describe('CentralDashboard', () => {
     })
     expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 501,
         scope: 'child',
         startDate: '2026-03-25',
@@ -3029,6 +3198,7 @@ describe('CentralDashboard', () => {
     })
     expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 501,
         scope: 'child',
         startDate: '2026-03-25',
@@ -3038,6 +3208,7 @@ describe('CentralDashboard', () => {
     })
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 501,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -3329,6 +3500,7 @@ describe('CentralDashboard', () => {
     })
     expect(useSchemeRegularityPeriodicQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         departmentId: 901,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -4067,6 +4239,7 @@ describe('CentralDashboard', () => {
 
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         startDate: expect.any(String),
         endDate: expect.any(String),
         parentLgdId: 707,
@@ -4778,8 +4951,8 @@ describe('CentralDashboard', () => {
     dashboardFilterProps.onTabChange(1)
     dashboardFilterProps.onDepartmentZoneChange('601:department-zone')
 
-    expect(mockNavigate).toHaveBeenCalledTimes(1)
-    expect(mockNavigate).toHaveBeenNthCalledWith(1, {
+    expect(mockNavigate).toHaveBeenCalledTimes(2)
+    expect(mockNavigate).toHaveBeenNthCalledWith(2, {
       pathname: '/assam',
       search: '?departmentZone=601%3Adepartment-zone',
     })
@@ -4828,12 +5001,174 @@ describe('CentralDashboard', () => {
     const mapProps = getLatestIndiaMapChartProps<{
       onStateClick: (stateId: string, stateName: string) => void
     }>()
-    mapProps.onStateClick('TG', 'Telangana')
+    act(() => {
+      mapProps.onStateClick('TG', 'Telangana')
+    })
 
     expect(mockNavigate).toHaveBeenCalledWith({
       pathname: '/telangana',
       search: '',
     })
+  })
+
+  it('drills down administrative regions when a filtered map region is clicked', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()])
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        states: [
+          {
+            value: 'assam',
+            label: 'Assam',
+            tenantId: 17,
+            tenantCode: 'AS',
+          },
+        ],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock)
+      .mockReturnValueOnce({
+        data: {
+          data: [
+            {
+              id: 101,
+              title: 'Assam',
+              lgdCode: 18,
+            },
+          ],
+        },
+      })
+      .mockReturnValueOnce({
+        data: {
+          data: [
+            {
+              id: 201,
+              title: 'Kamrup',
+              lgdCode: 404,
+            },
+          ],
+        },
+      })
+      .mockReturnValue({ data: undefined })
+    ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({
+      data: {
+        childAverageWaterSupplied: [
+          {
+            parentLgdId: 101,
+            childLgdId: 201,
+            childLgdTitle: 'Kamrup',
+            averageWaterSuppliedInMl: 4,
+            averageWaterSuppliedInLpcd: 55,
+          },
+        ],
+      },
+    })
+    ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({
+      data: {
+        childAverageSchemeRegularity: [
+          {
+            parentLgdId: 101,
+            childLgdId: 201,
+            childLgdTitle: 'Kamrup',
+            averageRegularityPercentage: 63,
+          },
+        ],
+      },
+    })
+    ;(useTenantBoundariesQuery as jest.Mock).mockReturnValue({
+      data: {
+        tenantId: 17,
+        stateCode: 'AS',
+        childBoundaryCount: 1,
+        childRegions: [
+          {
+            childLgdId: 201,
+            childLgdTitle: 'Kamrup',
+            averageSchemeRegularity: 0.63,
+            boundaryGeoJson: {
+              type: 'Polygon',
+              coordinates: [
+                [
+                  [0, 0],
+                  [1, 0],
+                  [1, 1],
+                  [0, 1],
+                  [0, 0],
+                ],
+              ],
+            },
+          },
+        ],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const mapProps = getLatestIndiaMapChartProps<{
+      onStateClick: (stateId: string, stateName: string) => void
+    }>()
+
+    act(() => {
+      mapProps.onStateClick('201', 'Kamrup')
+    })
+
+    expect(mockNavigate).toHaveBeenCalledWith({
+      pathname: '/assam',
+      search: '?district=201%3A201%3Akamrup&tab=administrative',
+    })
+  })
+
+  it('resets the active trail override when the URL hierarchy changes', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+
+    const setSearchParams = jest.fn()
+    let currentSearchParams = new URLSearchParams('district=sangareddy&block=patancheru')
+    let currentLocation = {
+      pathname: '/telangana',
+      search: '?district=sangareddy&block=patancheru',
+      hash: '',
+      state: null,
+    }
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    mockUseSearchParams.mockImplementation(() => [currentSearchParams, setSearchParams])
+    mockUseLocation.mockImplementation(() => currentLocation)
+
+    const { rerender } = renderWithProviders(<CentralDashboard />)
+
+    const dashboardFilterProps = getLatestDashboardFilterProps<{
+      onActiveTrailChange: (value: number | null) => void
+    }>()
+
+    act(() => {
+      dashboardFilterProps.onActiveTrailChange(0)
+    })
+
+    currentSearchParams = new URLSearchParams('district=sangareddy')
+    currentLocation = {
+      pathname: '/telangana',
+      search: '?district=sangareddy',
+      hash: '',
+      state: null,
+    }
+
+    rerender(<CentralDashboard />)
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{
+      isDistrictSelected: boolean
+      isBlockSelected: boolean
+    }>()
+
+    expect(dashboardBodyProps.isDistrictSelected).toBe(true)
+    expect(dashboardBodyProps.isBlockSelected).toBe(false)
   })
 
   it('renders the dashboard shell with empty fallback data when dashboard data is unavailable', () => {
@@ -4956,7 +5291,7 @@ describe('CentralDashboard', () => {
 
     expect(mapProps.mapName).toBe('tenant-boundary-department-201')
     expect(mapProps.fallbackToIndiaMap).toBe(false)
-    expect(mapProps.onStateClick).toBeUndefined()
+    expect(mapProps.onStateClick).toEqual(expect.any(Function))
     expect(mapProps.data).toEqual([
       expect.objectContaining({
         name: 'Child Region Title',
@@ -5115,7 +5450,7 @@ describe('CentralDashboard', () => {
 
     expect(mapProps.mapName).toBe('tenant-boundary-lgd-101')
     expect(mapProps.fallbackToIndiaMap).toBe(false)
-    expect(mapProps.onStateClick).toBeUndefined()
+    expect(mapProps.onStateClick).toEqual(expect.any(Function))
     expect(mapProps.data).toEqual([
       expect.objectContaining({
         name: 'Kamrup',
@@ -5134,6 +5469,129 @@ describe('CentralDashboard', () => {
         },
       }),
     ])
+  })
+
+  it('drills down department regions when a department map region is clicked', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'madhya-pradesh' })
+    mockUseSearchParams.mockReturnValue([new URLSearchParams('departmentZone=201'), jest.fn()])
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        states: [
+          {
+            value: 'madhya-pradesh',
+            label: 'Madhya Pradesh',
+            tenantId: 10,
+            tenantCode: 'MP',
+          },
+        ],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock)
+      .mockReturnValueOnce({
+        data: {
+          data: [
+            {
+              id: 101,
+              title: 'Madhya Pradesh',
+              lgdCode: 10,
+            },
+          ],
+        },
+      })
+      .mockReturnValueOnce({
+        data: {
+          data: [
+            {
+              id: 201,
+              title: 'Bhopal Zone',
+              lgdCode: 601,
+            },
+          ],
+        },
+      })
+      .mockReturnValueOnce({
+        data: {
+          data: [
+            {
+              id: 310,
+              title: 'Huzur Division',
+              lgdCode: 910,
+            },
+          ],
+        },
+      })
+      .mockReturnValue({ data: undefined })
+    ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({
+      data: {
+        childAverageWaterSupplied: [
+          {
+            parentDepartmentId: 201,
+            childDepartmentId: 310,
+            childDepartmentTitle: 'Huzur Division',
+            averageWaterSuppliedInMl: 4,
+            averageWaterSuppliedInLpcd: 55,
+          },
+        ],
+      },
+    })
+    ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({
+      data: {
+        childAverageSchemeRegularity: [
+          {
+            parentDepartmentId: 201,
+            childDepartmentId: 310,
+            childDepartmentTitle: 'Huzur Division',
+            averageRegularityPercentage: 63,
+          },
+        ],
+      },
+    })
+    ;(useTenantBoundariesQuery as jest.Mock).mockReturnValue({
+      data: {
+        tenantId: 10,
+        stateCode: 'MP',
+        childBoundaryCount: 1,
+        childRegions: [
+          {
+            childDepartmentId: 310,
+            childDepartmentTitle: 'Huzur Division',
+            averageSchemeRegularity: 0.63,
+            boundaryGeoJson: {
+              type: 'Polygon',
+              coordinates: [
+                [
+                  [0, 0],
+                  [1, 0],
+                  [1, 1],
+                  [0, 1],
+                  [0, 0],
+                ],
+              ],
+            },
+          },
+        ],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const mapProps = getLatestIndiaMapChartProps<{
+      onStateClick: (stateId: string, stateName: string) => void
+    }>()
+
+    act(() => {
+      mapProps.onStateClick('310', 'Huzur Division')
+    })
+
+    expect(mockNavigate).toHaveBeenCalledWith({
+      pathname: '/madhya-pradesh',
+      search: '?departmentZone=201&departmentCircle=310%3A310%3Ahuzur-division',
+    })
   })
 
   it('uses the resolved root location id when the root location response omits lgdCode', () => {

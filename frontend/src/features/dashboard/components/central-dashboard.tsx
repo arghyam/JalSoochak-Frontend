@@ -1,7 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { Box, Flex, Text, Heading, Grid, Icon, Image, useBreakpointValue } from '@chakra-ui/react'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import {
+  Box,
+  Flex,
+  Text,
+  Heading,
+  Grid,
+  Icon,
+  Image,
+  Portal,
+  useBreakpointValue,
+} from '@chakra-ui/react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDashboardData } from '../hooks/use-dashboard-data'
@@ -135,6 +145,11 @@ type FilterUrlUpdate = {
 }
 
 type QuantityTimeScaleTab = 'day' | 'week' | 'month'
+type LocationScopedTrailIndex = {
+  pathname: string
+  search: string
+  value: number | null
+}
 
 type LocationOption = SearchableSelectOption & {
   locationId?: number
@@ -181,6 +196,46 @@ const parseAnalyticsLocationId = (
   }
 
   return parseLocationId(value)
+}
+
+const resolveLgdAnalyticsParentId = ({
+  selectedVillage,
+  selectedGramPanchayat,
+  selectedBlock,
+  selectedDistrict,
+  villageOptions,
+  gramPanchayatOptions,
+  blockOptions,
+  districtOptions,
+  rootAnalyticsId,
+}: {
+  selectedVillage: string
+  selectedGramPanchayat: string
+  selectedBlock: string
+  selectedDistrict: string
+  villageOptions: LocationOption[]
+  gramPanchayatOptions: LocationOption[]
+  blockOptions: LocationOption[]
+  districtOptions: LocationOption[]
+  rootAnalyticsId?: number
+}): number => {
+  if (selectedVillage) {
+    return parseAnalyticsLocationId(selectedVillage, villageOptions) ?? 0
+  }
+
+  if (selectedGramPanchayat) {
+    return parseAnalyticsLocationId(selectedGramPanchayat, gramPanchayatOptions) ?? 0
+  }
+
+  if (selectedBlock) {
+    return parseAnalyticsLocationId(selectedBlock, blockOptions) ?? 0
+  }
+
+  if (selectedDistrict) {
+    return parseAnalyticsLocationId(selectedDistrict, districtOptions) ?? 0
+  }
+
+  return rootAnalyticsId ?? 0
 }
 
 const toIsoDate = (date?: string | Date | null, dateFormat?: string): string | undefined => {
@@ -435,6 +490,7 @@ export function CentralDashboard() {
     useBreakpointValue({ base: '320px', sm: '420px', lg: '620px' }) ?? '620px'
   const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
   const [searchParams] = useSearchParams()
+  const location = useLocation()
   const navigate = useNavigate()
   const { data } = useDashboardData('central')
   const [storedFilters] = useState(() => getStoredFilters())
@@ -448,6 +504,7 @@ export function CentralDashboard() {
   const selectedDepartmentDivisionFromUrl = searchParams.get('departmentDivision') ?? ''
   const selectedDepartmentSubdivisionFromUrl = searchParams.get('departmentSubdivision') ?? ''
   const selectedDepartmentVillageFromUrl = searchParams.get('departmentVillage') ?? ''
+  const isAdministrativeTabFromUrl = searchParams.get('tab') === 'administrative'
   const hasDepartmentParamsInUrl = Boolean(
     selectedDepartmentZoneFromUrl ||
     selectedDepartmentCircleFromUrl ||
@@ -455,9 +512,13 @@ export function CentralDashboard() {
     selectedDepartmentSubdivisionFromUrl ||
     selectedDepartmentVillageFromUrl
   )
+  const hasLgdParamsInUrl = Boolean(
+    selectedDistrict || selectedBlock || selectedGramPanchayat || selectedVillage
+  )
   const [selectedDuration, setSelectedDuration] = useState<DateRange | null>(() =>
     getInitialStoredDuration(storedFilters)
   )
+  const [isMapFullscreen, setIsMapFullscreen] = useState(false)
   const [isDurationCleared, setIsDurationCleared] = useState(false)
   const [selectedScheme, setSelectedScheme] = useState(storedFilters.selectedScheme ?? '')
   const [storedSelectedDepartmentState, setSelectedDepartmentState] = useState(
@@ -503,8 +564,120 @@ export function CentralDashboard() {
   const selectedDepartmentVillage = hasDepartmentParamsInUrl
     ? selectedDepartmentVillageFromUrl
     : storedSelectedDepartmentVillage
-  const filterTabIndex = hasDepartmentParamsInUrl ? 1 : storedFilterTabIndex
-  const [activeTrailIndex, setActiveTrailIndex] = useState<number | null>(null)
+  const filterTabIndex = hasDepartmentParamsInUrl
+    ? 1
+    : isAdministrativeTabFromUrl || hasLgdParamsInUrl
+      ? 0
+      : storedFilterTabIndex
+  const [activeTrailIndexState, setActiveTrailIndexState] = useState<LocationScopedTrailIndex>({
+    pathname: location.pathname,
+    search: location.search,
+    value: null,
+  })
+  const previousLocationRef = useRef<{ pathname: string; search: string } | null>(null)
+  const activeTrailIndex =
+    activeTrailIndexState.pathname === location.pathname &&
+    activeTrailIndexState.search === location.search
+      ? activeTrailIndexState.value
+      : null
+  const setActiveTrailIndex = (value: number | null) => {
+    setActiveTrailIndexState({
+      pathname: location.pathname,
+      search: location.search,
+      value,
+    })
+  }
+
+  useEffect(() => {
+    if (!isMapFullscreen) {
+      return
+    }
+
+    const originalOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.body.style.overflow = originalOverflow
+    }
+  }, [isMapFullscreen])
+
+  useEffect(() => {
+    if (!isMapFullscreen) {
+      return
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMapFullscreen(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isMapFullscreen])
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    const previousLocation = previousLocationRef.current
+    const didLocationChange =
+      previousLocation !== null &&
+      (previousLocation.pathname !== location.pathname ||
+        previousLocation.search !== location.search)
+
+    if (isAdministrativeTabFromUrl) {
+      setFilterTabIndex(0)
+      setSelectedDepartmentState('')
+      setSelectedDepartmentZone('')
+      setSelectedDepartmentCircle('')
+      setSelectedDepartmentDivision('')
+      setSelectedDepartmentSubdivision('')
+      setSelectedDepartmentVillage('')
+      previousLocationRef.current = {
+        pathname: location.pathname,
+        search: location.search,
+      }
+      return
+    }
+
+    if (hasDepartmentParamsInUrl) {
+      setFilterTabIndex(1)
+      setSelectedDepartmentState(selectedState)
+      setSelectedDepartmentZone(selectedDepartmentZoneFromUrl)
+      setSelectedDepartmentCircle(selectedDepartmentCircleFromUrl)
+      setSelectedDepartmentDivision(selectedDepartmentDivisionFromUrl)
+      setSelectedDepartmentSubdivision(selectedDepartmentSubdivisionFromUrl)
+      setSelectedDepartmentVillage(selectedDepartmentVillageFromUrl)
+    } else if (didLocationChange && storedFilterTabIndex === 1) {
+      setSelectedDepartmentState(selectedState)
+      setSelectedDepartmentZone('')
+      setSelectedDepartmentCircle('')
+      setSelectedDepartmentDivision('')
+      setSelectedDepartmentSubdivision('')
+      setSelectedDepartmentVillage('')
+    }
+
+    previousLocationRef.current = {
+      pathname: location.pathname,
+      search: location.search,
+    }
+  }, [
+    hasDepartmentParamsInUrl,
+    isAdministrativeTabFromUrl,
+    location.pathname,
+    location.search,
+    selectedDepartmentCircleFromUrl,
+    selectedDepartmentDivisionFromUrl,
+    selectedDepartmentSubdivisionFromUrl,
+    selectedDepartmentVillageFromUrl,
+    selectedDepartmentZoneFromUrl,
+    selectedState,
+    storedFilterTabIndex,
+  ])
+  /* eslint-enable react-hooks/set-state-in-effect */
+
   const [quantityTimeScaleTab, setQuantityTimeScaleTab] = useState<QuantityTimeScaleTab>('day')
   const [regularityTimeScaleTab, setRegularityTimeScaleTab] = useState<QuantityTimeScaleTab>('day')
   const [outageDistributionTimeScaleTab, setOutageDistributionTimeScaleTab] =
@@ -776,13 +949,17 @@ export function CentralDashboard() {
     enabled: Boolean(selectedTenant?.tenantId && selectedGramPanchayatId),
   })
   const villageApiOptions = mapLocationOptions(villageLocationsData?.data)
-  const lgdAnalyticsParentId =
-    parseAnalyticsLocationId(effectiveSelectedVillage, villageApiOptions) ??
-    parseAnalyticsLocationId(effectiveSelectedGramPanchayat, gramPanchayatApiOptions) ??
-    parseAnalyticsLocationId(effectiveSelectedBlock, blockApiOptions) ??
-    parseAnalyticsLocationId(effectiveSelectedDistrict, districtApiOptions) ??
-    selectedRootAnalyticsId ??
-    0
+  const lgdAnalyticsParentId = resolveLgdAnalyticsParentId({
+    selectedVillage: effectiveSelectedVillage,
+    selectedGramPanchayat: effectiveSelectedGramPanchayat,
+    selectedBlock: effectiveSelectedBlock,
+    selectedDistrict: effectiveSelectedDistrict,
+    villageOptions: villageApiOptions,
+    gramPanchayatOptions: gramPanchayatApiOptions,
+    blockOptions: blockApiOptions,
+    districtOptions: districtApiOptions,
+    rootAnalyticsId: selectedRootAnalyticsId,
+  })
   const departmentAnalyticsParentId =
     parseLocationId(selectedDepartmentVillage) ??
     parseLocationId(selectedDepartmentSubdivision) ??
@@ -838,21 +1015,24 @@ export function CentralDashboard() {
           endDate: analyticsDateRange.endDate,
           scale: selectedQuantityApiScale,
         }
-  const regularityPeriodicAnalyticsParams = !hasValidAnalyticsParentId
-    ? null
-    : hierarchyType === 'LGD'
-      ? {
-          lgdId: analyticsParentId,
-          startDate: analyticsDateRange.startDate,
-          endDate: analyticsDateRange.endDate,
-          scale: selectedRegularityApiScale,
-        }
-      : {
-          departmentId: analyticsParentId,
-          startDate: analyticsDateRange.startDate,
-          endDate: analyticsDateRange.endDate,
-          scale: selectedRegularityApiScale,
-        }
+  const regularityPeriodicAnalyticsParams =
+    !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            tenantId: selectedTenant.tenantId,
+            lgdId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            scale: selectedRegularityApiScale,
+          }
+        : {
+            tenantId: selectedTenant.tenantId,
+            departmentId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            scale: selectedRegularityApiScale,
+          }
   const nationalDashboardParams = hasCentralLandingFilters
     ? null
     : {
@@ -911,40 +1091,45 @@ export function CentralDashboard() {
             endDate: analyticsDateRange.endDate,
           }
   const regularityAnalyticsParams =
-    isHierarchyLeafSelected || !hasValidAnalyticsParentId
+    isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
+            tenantId: selectedTenant.tenantId,
             parentLgdId: analyticsParentId,
             scope: 'child' as const,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
           }
         : {
+            tenantId: selectedTenant.tenantId,
             parentDepartmentId: analyticsParentId,
             scope: 'child' as const,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
           }
-  const readingSubmissionRateAnalyticsParams = isHierarchyLeafSelected
-    ? null
-    : hierarchyType === 'LGD'
-      ? hasValidAnalyticsParentId
-        ? {
-            parentLgdId: analyticsParentId,
-            scope: 'child' as const,
-            startDate: analyticsDateRange.startDate,
-            endDate: analyticsDateRange.endDate,
-          }
-        : null
-      : hasValidAnalyticsParentId
-        ? {
-            parentDepartmentId: analyticsParentId,
-            scope: 'child' as const,
-            startDate: analyticsDateRange.startDate,
-            endDate: analyticsDateRange.endDate,
-          }
-        : null
+  const readingSubmissionRateAnalyticsParams =
+    isHierarchyLeafSelected || !selectedTenant?.tenantId
+      ? null
+      : hierarchyType === 'LGD'
+        ? hasValidAnalyticsParentId
+          ? {
+              tenantId: selectedTenant.tenantId,
+              parentLgdId: analyticsParentId,
+              scope: 'child' as const,
+              startDate: analyticsDateRange.startDate,
+              endDate: analyticsDateRange.endDate,
+            }
+          : null
+        : hasValidAnalyticsParentId
+          ? {
+              tenantId: selectedTenant.tenantId,
+              parentDepartmentId: analyticsParentId,
+              scope: 'child' as const,
+              startDate: analyticsDateRange.startDate,
+              endDate: analyticsDateRange.endDate,
+            }
+          : null
   const parsedSelectedSchemeId = Number.parseInt(selectedScheme, 10)
   const selectedSchemeId = Number.isFinite(parsedSelectedSchemeId)
     ? parsedSelectedSchemeId
@@ -978,15 +1163,17 @@ export function CentralDashboard() {
           schemeCount: isHierarchySecondLevelSelected ? districtSchemeCount : 10,
         }
   const submissionStatusAnalyticsParams =
-    !hasCentralLandingFilters || !hasValidSubmissionStatusParentId
+    !hasCentralLandingFilters || !selectedTenant?.tenantId || !hasValidSubmissionStatusParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
+            tenantId: selectedTenant.tenantId,
             lgdId: submissionStatusParentId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
           }
         : {
+            tenantId: selectedTenant.tenantId,
             departmentId: submissionStatusParentId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
@@ -996,11 +1183,13 @@ export function CentralDashboard() {
       ? null
       : hierarchyType === 'LGD'
         ? {
+            tenantId: selectedTenant.tenantId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
             parentLgdId: analyticsParentId,
           }
         : {
+            tenantId: selectedTenant.tenantId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
             parentDepartmentId: analyticsParentId,
@@ -1010,12 +1199,14 @@ export function CentralDashboard() {
       ? null
       : hierarchyType === 'LGD'
         ? {
+            tenantId: selectedTenant.tenantId,
             lgdId: analyticsParentId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
             scale: selectedOutageApiScale,
           }
         : {
+            tenantId: selectedTenant.tenantId,
             departmentId: analyticsParentId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
@@ -1212,10 +1403,11 @@ export function CentralDashboard() {
             ),
           }
   const previousRegularityPeriodicAnalyticsParams =
-    !isHierarchyLeafSelected || !hasValidAnalyticsParentId
+    !isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
+            tenantId: selectedTenant.tenantId,
             lgdId: analyticsParentId,
             startDate: previousAnalyticsRange.startDate,
             endDate: previousAnalyticsRange.endDate,
@@ -1225,6 +1417,7 @@ export function CentralDashboard() {
             ),
           }
         : {
+            tenantId: selectedTenant.tenantId,
             departmentId: analyticsParentId,
             startDate: previousAnalyticsRange.startDate,
             endDate: previousAnalyticsRange.endDate,
@@ -1281,6 +1474,17 @@ export function CentralDashboard() {
     )
     const rawTitle = region.childLgdTitle ?? region.childDepartmentTitle ?? ''
     const normalizedTitle = rawTitle.trim()
+    const matchedExpectedOption = expectedOverallPerformanceOptions.find((option) => {
+      const typedOption = option as LocationOption
+      const optionIds = [typedOption.locationId, typedOption.analyticsId]
+      const hasMatchingId =
+        typeof boundaryId === 'number' &&
+        optionIds.some((id) => typeof id === 'number' && id === boundaryId)
+
+      return hasMatchingId || slugify(typedOption.label) === slugify(normalizedTitle)
+    })
+    const matchedExpectedAnalyticsId = (matchedExpectedOption as LocationOption | undefined)
+      ?.analyticsId
 
     if (typeof boundaryId !== 'number' || !normalizedTitle) {
       return []
@@ -1288,10 +1492,14 @@ export function CentralDashboard() {
 
     return [
       {
-        value: toStableLocationValue(boundaryId, boundaryId, slugify(normalizedTitle)),
+        value: toStableLocationValue(
+          boundaryId,
+          matchedExpectedAnalyticsId ?? boundaryId,
+          slugify(normalizedTitle)
+        ),
         label: normalizedTitle,
         locationId: boundaryId,
-        analyticsId: boundaryId,
+        analyticsId: matchedExpectedAnalyticsId ?? boundaryId,
       },
     ]
   })
@@ -1779,20 +1987,50 @@ export function CentralDashboard() {
     return matchedOption?.value ?? null
   }
 
-  const handleOverallPerformanceRowClick = (row: EntityPerformance) => {
-    setActiveTrailIndex(null)
-    setSelectedScheme('')
+  const resolveMapRegionRow = (regionId: string, regionName: string): EntityPerformance | null => {
+    const normalizedRegionId = regionId.trim()
+    const normalizedRegionName = slugify(regionName)
 
-    if (isCentralLandingView && !isDepartmentTabActive) {
-      handleStateClick(row.id, row.name)
-      return
-    }
+    return (
+      mapChartData.find((region) => {
+        const normalizedRowId = region.id?.trim() ?? ''
+        return (
+          (normalizedRowId.length > 0 && normalizedRowId === normalizedRegionId) ||
+          slugify(region.name) === normalizedRegionName
+        )
+      }) ??
+      overallPerformanceTableData.find((region) => {
+        const normalizedRowId = region.id?.trim() ?? ''
+        return (
+          (normalizedRowId.length > 0 && normalizedRowId === normalizedRegionId) ||
+          slugify(region.name) === normalizedRegionName
+        )
+      }) ??
+      null
+    )
+  }
 
-    const selectedValue = resolveOverallPerformanceLocationValue(row)
-    if (!selectedValue) {
-      return
-    }
+  const resolveLocationValueForRegion = (
+    options: LocationOption[],
+    regionId: string,
+    regionName: string
+  ): string | null => {
+    const normalizedRegionId = regionId.trim()
+    const normalizedRegionName = slugify(regionName)
 
+    const matchedOption = options.find((option) => {
+      const optionIds = [option.locationId, option.analyticsId]
+      const hasMatchingId = optionIds.some(
+        (id) => typeof id === 'number' && String(id) === normalizedRegionId
+      )
+
+      return hasMatchingId || slugify(option.label) === normalizedRegionName
+    })
+
+    return matchedOption?.value ?? null
+  }
+
+  const navigateToResolvedLocationValue = (selectedValue: string) => {
     if (isDepartmentTabActive) {
       if (isDepartmentSubdivisionSelected) {
         handleDepartmentSubdivisionChange(selectedValue)
@@ -1815,6 +2053,51 @@ export function CentralDashboard() {
     } else if (isHierarchyStateSelected) {
       handleDistrictChange(selectedValue)
     }
+  }
+
+  const handleMapRegionClick = (regionId: string, regionName: string) => {
+    if (isCentralLandingView && !isDepartmentTabActive) {
+      handleStateClick(regionId, regionName)
+      return
+    }
+
+    const selectedValue =
+      resolveLocationValueForRegion(expectedOverallPerformanceOptions, regionId, regionName) ??
+      resolveLocationValueForRegion(boundaryOverallPerformanceOptions, regionId, regionName)
+
+    if (selectedValue) {
+      setActiveTrailIndex(null)
+      setSelectedScheme('')
+      navigateToResolvedLocationValue(selectedValue)
+      return
+    }
+
+    const matchedRow = resolveMapRegionRow(regionId, regionName)
+    if (!matchedRow) {
+      return
+    }
+
+    handleOverallPerformanceRowClick(matchedRow)
+  }
+
+  const handleOverallPerformanceRowClick = (row: EntityPerformance) => {
+    setActiveTrailIndex(null)
+    setSelectedScheme('')
+
+    if (isCentralLandingView && !isDepartmentTabActive) {
+      handleStateClick(row.id, row.name)
+      return
+    }
+
+    const selectedValue = resolveOverallPerformanceLocationValue(row)
+    if (!selectedValue) {
+      if (isDepartmentTabActive) {
+        handleStateClick(row.id, row.name)
+      }
+      return
+    }
+
+    navigateToResolvedLocationValue(selectedValue)
   }
 
   const handleStateHover = (_stateId: string, _stateName: string, _metrics: unknown) => {
@@ -2115,6 +2398,41 @@ export function CentralDashboard() {
     ? operatorsPerformanceAnalyticsTable
     : [...leadingPumpOperators, ...bottomPumpOperators]
   const villagePhotoEvidenceRows = dashboardData.readingCompliance ?? []
+  const renderMapCard = (height: string | Record<string, string>, fullscreen = false) => (
+    <Box
+      bg="white"
+      borderWidth="0.5px"
+      borderRadius={fullscreen ? '16px' : '12px'}
+      borderColor="#E4E4E7"
+      pt="24px"
+      pb="10px"
+      pl="16px"
+      pr="16px"
+      w="full"
+      h={height}
+      minW={0}
+      position="relative"
+      boxShadow={fullscreen ? '0 24px 64px rgba(15, 23, 42, 0.16)' : 'none'}
+    >
+      <IndiaMapChart
+        data={mapChartData}
+        isLoading={isMapDataLoading}
+        disableHoverEffect={isCentralLandingView}
+        mapName={
+          isCentralLandingView
+            ? 'india'
+            : `tenant-boundary-${hierarchyType.toLowerCase()}-${analyticsParentId}`
+        }
+        fallbackToIndiaMap={isCentralLandingView}
+        usePrimaryFill={isCentralLandingView}
+        onStateClick={handleMapRegionClick}
+        onStateHover={handleStateHover}
+        isFullscreen={fullscreen}
+        onFullscreenToggle={() => setIsMapFullscreen((previous) => !previous)}
+        height="100%"
+      />
+    </Box>
+  )
   return (
     <Box>
       <DashboardFilters
@@ -2180,35 +2498,7 @@ export function CentralDashboard() {
       {/* Map and Overall Performance */}
       {!activeLeafSelection ? (
         <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-          <Box
-            bg="white"
-            borderWidth="0.5px"
-            borderRadius="12px"
-            borderColor="#E4E4E7"
-            pt="24px"
-            pb="10px"
-            pl="16px"
-            pr="16px"
-            w="full"
-            h={{ base: '420px', sm: '520px', lg: '710px' }}
-            minW={0}
-          >
-            <IndiaMapChart
-              data={mapChartData}
-              isLoading={isMapDataLoading}
-              disableHoverEffect={isCentralLandingView}
-              mapName={
-                isCentralLandingView
-                  ? 'india'
-                  : `tenant-boundary-${hierarchyType.toLowerCase()}-${analyticsParentId}`
-              }
-              fallbackToIndiaMap={isCentralLandingView}
-              usePrimaryFill={isCentralLandingView}
-              onStateClick={isCentralLandingView ? handleStateClick : undefined}
-              onStateHover={handleStateHover}
-              height="100%"
-            />
-          </Box>
+          {renderMapCard({ base: '420px', sm: '520px', lg: '710px' })}
           <Box
             bg="white"
             borderWidth="0.5px"
@@ -2233,6 +2523,30 @@ export function CentralDashboard() {
             />
           </Box>
         </Grid>
+      ) : null}
+      {isMapFullscreen ? (
+        <Portal>
+          <Box
+            position="fixed"
+            inset={0}
+            zIndex={1400}
+            bg="rgba(15, 23, 42, 0.2)"
+            p={{ base: 3, md: 6 }}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            onClick={() => setIsMapFullscreen(false)}
+          >
+            <Box
+              w="full"
+              maxW={{ base: '100%', lg: '1200px', xl: '1320px' }}
+              h={{ base: '100%', md: '92vh' }}
+              onClick={(event) => event.stopPropagation()}
+            >
+              {renderMapCard('100%', true)}
+            </Box>
+          </Box>
+        </Portal>
       ) : null}
       <DashboardBody
         data={resolvedDashboardData}

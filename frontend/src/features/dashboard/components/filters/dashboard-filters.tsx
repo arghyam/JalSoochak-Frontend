@@ -374,7 +374,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   const hasHierarchySelection = selectionTrail.length > 0
   const hasActiveFilters = hasHierarchySelection || Boolean(selectedDuration)
   const clearButtonHoverStyles = hasActiveFilters
-    ? { textDecoration: 'underline', textDecorationColor: 'neutral.300' }
+    ? { textDecoration: 'underline', textDecorationColor: 'neutral.400' }
     : { textDecoration: 'none' }
 
   const trailSelectionValues = [
@@ -583,7 +583,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
               isDisabled={!hasActiveFilters}
               _hover={clearButtonHoverStyles}
             >
-              <Text textStyle="h10" fontWeight="600" color="neutral.300" fontSize="14px">
+              <Text textStyle="h10" fontWeight="600" color="neutral.500" fontSize="14px">
                 {t('filters.clear', 'Clear')}
               </Text>
             </Button>
@@ -622,7 +622,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
               <Text
                 textStyle="h10"
                 fontWeight="600"
-                color="neutral.300"
+                color="neutral.500"
                 fontSize={isVeryCompactFilters ? '11px' : '14px'}
               >
                 {isXsFilters
