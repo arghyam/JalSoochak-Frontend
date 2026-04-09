@@ -468,6 +468,7 @@ describe('CentralDashboard', () => {
     })
     expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 16,
         parentLgdId: 10,
         scope: 'child',
         startDate: '2026-03-25',
@@ -477,6 +478,7 @@ describe('CentralDashboard', () => {
     })
     expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 16,
         parentLgdId: 10,
         scope: 'child',
         startDate: '2026-03-25',
@@ -486,6 +488,7 @@ describe('CentralDashboard', () => {
     })
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 16,
         parentLgdId: 10,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -538,6 +541,7 @@ describe('CentralDashboard', () => {
     })
     expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         parentLgdId: 1,
         scope: 'child',
         startDate: '2026-03-25',
@@ -547,6 +551,7 @@ describe('CentralDashboard', () => {
     })
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         parentLgdId: 1,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -595,6 +600,7 @@ describe('CentralDashboard', () => {
 
     expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         parentLgdId: 202,
         scope: 'child',
         startDate: '2026-03-25',
@@ -604,6 +610,7 @@ describe('CentralDashboard', () => {
     })
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         parentLgdId: 202,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -660,6 +667,7 @@ describe('CentralDashboard', () => {
 
     expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         parentLgdId: 303,
         scope: 'child',
         startDate: '2026-03-25',
@@ -669,6 +677,7 @@ describe('CentralDashboard', () => {
     })
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         parentLgdId: 303,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -739,6 +748,7 @@ describe('CentralDashboard', () => {
 
     expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         parentLgdId: 404,
         scope: 'child',
         startDate: '2026-03-25',
@@ -748,6 +758,7 @@ describe('CentralDashboard', () => {
     })
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         parentLgdId: 404,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -807,6 +818,7 @@ describe('CentralDashboard', () => {
     })
     expect(useSchemeRegularityPeriodicQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 16,
         lgdId: 544,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -1448,6 +1460,7 @@ describe('CentralDashboard', () => {
     })
     expect(useSchemeRegularityPeriodicQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 16,
         lgdId: 544,
         startDate: expect.any(String),
         endDate: expect.any(String),
@@ -2620,6 +2633,7 @@ describe('CentralDashboard', () => {
 
     expect(useSubmissionStatusQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         lgdId: expect.any(Number),
         startDate: expect.any(String),
         endDate: expect.any(String),
@@ -2662,6 +2676,7 @@ describe('CentralDashboard', () => {
 
     expect(useSubmissionStatusQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         departmentId: 501,
         startDate: expect.any(String),
         endDate: expect.any(String),
@@ -2713,6 +2728,7 @@ describe('CentralDashboard', () => {
     })
     expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 601,
         scope: 'child',
         startDate: expect.any(String),
@@ -2762,6 +2778,7 @@ describe('CentralDashboard', () => {
     })
     expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 601,
         scope: 'child',
         startDate: '2026-03-25',
@@ -2771,6 +2788,7 @@ describe('CentralDashboard', () => {
     })
     expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 601,
         scope: 'child',
         startDate: '2026-03-25',
@@ -2780,6 +2798,7 @@ describe('CentralDashboard', () => {
     })
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 601,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -2829,6 +2848,7 @@ describe('CentralDashboard', () => {
     })
     expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 701,
         scope: 'child',
         startDate: '2026-03-25',
@@ -2838,6 +2858,7 @@ describe('CentralDashboard', () => {
     })
     expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 701,
         scope: 'child',
         startDate: '2026-03-25',
@@ -2847,6 +2868,7 @@ describe('CentralDashboard', () => {
     })
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 701,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -2897,6 +2919,7 @@ describe('CentralDashboard', () => {
     })
     expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 801,
         scope: 'child',
         startDate: '2026-03-25',
@@ -2906,6 +2929,7 @@ describe('CentralDashboard', () => {
     })
     expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 801,
         scope: 'child',
         startDate: '2026-03-25',
@@ -2915,6 +2939,7 @@ describe('CentralDashboard', () => {
     })
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 801,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -3163,6 +3188,7 @@ describe('CentralDashboard', () => {
     })
     expect(useAverageSchemeRegularityQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 501,
         scope: 'child',
         startDate: '2026-03-25',
@@ -3172,6 +3198,7 @@ describe('CentralDashboard', () => {
     })
     expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 501,
         scope: 'child',
         startDate: '2026-03-25',
@@ -3181,6 +3208,7 @@ describe('CentralDashboard', () => {
     })
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 501,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -3472,6 +3500,7 @@ describe('CentralDashboard', () => {
     })
     expect(useSchemeRegularityPeriodicQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         departmentId: 901,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -4210,6 +4239,7 @@ describe('CentralDashboard', () => {
 
     expect(useOutageReasonsQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         startDate: expect.any(String),
         endDate: expect.any(String),
         parentLgdId: 707,

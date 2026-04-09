@@ -147,6 +147,214 @@ describe('dashboardApi.getNationalDashboard', () => {
   })
 })
 
+describe('dashboardApi.getSchemeRegularityPeriodic', () => {
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+  })
+
+  it('sends tenant_id in periodic scheme regularity requests', async () => {
+    mockGet.mockImplementation(async () => ({
+      data: {
+        lgdId: 544,
+        departmentId: 0,
+        schemeCount: 3,
+        scale: 'day',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+        periodCount: 1,
+        metrics: [],
+      },
+    }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+    await dashboardApi.getSchemeRegularityPeriodic({
+      tenantId: 16,
+      lgdId: 544,
+      startDate: '2026-03-25',
+      endDate: '2026-03-26',
+      scale: 'day',
+    })
+
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/analytics/scheme-regularity/periodic', {
+      params: {
+        tenant_id: 16,
+        start_date: '2026-03-25',
+        end_date: '2026-03-26',
+        scale: 'day',
+        lgd_id: 544,
+        department_id: undefined,
+      },
+    })
+  })
+})
+
+describe('dashboardApi.getReadingSubmissionRate', () => {
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+  })
+
+  it('sends tenant_id in reading submission rate requests', async () => {
+    mockGet.mockImplementation(async () => ({
+      data: {
+        parentLgdId: 10,
+        parentDepartmentId: 0,
+        parentLgdLevel: 1,
+        parentDepartmentLevel: 0,
+        scope: 'child',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+        daysInRange: 2,
+        schemeCount: 3,
+        totalSubmissionDays: 2,
+        readingSubmissionRate: 66.7,
+        childRegionCount: 0,
+        childRegions: [],
+      },
+    }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+    await dashboardApi.getReadingSubmissionRate({
+      tenantId: 16,
+      parentLgdId: 10,
+      scope: 'child',
+      startDate: '2026-03-25',
+      endDate: '2026-03-26',
+    })
+
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/analytics/reading-submission-rate', {
+      params: {
+        tenant_id: 16,
+        parent_lgd_id: 10,
+        parent_department_id: undefined,
+        scope: 'child',
+        start_date: '2026-03-25',
+        end_date: '2026-03-26',
+      },
+    })
+  })
+})
+
+describe('dashboardApi.getOutageReasons', () => {
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+  })
+
+  it('sends tenant_id in outage reasons requests', async () => {
+    mockGet.mockImplementation(async () => ({
+      data: {
+        lgdId: 10,
+        departmentId: 0,
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+        parentLgdLevel: 1,
+        parentDepartmentLevel: 0,
+        outageReasonSchemeCount: {},
+        childRegionCount: 0,
+        childRegions: [],
+      },
+    }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+    await dashboardApi.getOutageReasons({
+      tenantId: 16,
+      parentLgdId: 10,
+      startDate: '2026-03-25',
+      endDate: '2026-03-26',
+    })
+
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/analytics/outage-reasons', {
+      params: {
+        tenant_id: 16,
+        start_date: '2026-03-25',
+        end_date: '2026-03-26',
+        parent_lgd_id: 10,
+        parent_department_id: undefined,
+      },
+    })
+  })
+})
+
+describe('dashboardApi.getOutageReasonsPeriodic', () => {
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+  })
+
+  it('sends tenant_id in outage reasons periodic requests', async () => {
+    mockGet.mockImplementation(async () => ({
+      data: {
+        lgdId: 10,
+        departmentId: 0,
+        scale: 'day',
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+        periodCount: 1,
+        metrics: [],
+      },
+    }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+    await dashboardApi.getOutageReasonsPeriodic({
+      tenantId: 16,
+      lgdId: 10,
+      startDate: '2026-03-25',
+      endDate: '2026-03-26',
+      scale: 'day',
+    })
+
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/analytics/outage-reasons/periodic', {
+      params: {
+        tenant_id: 16,
+        start_date: '2026-03-25',
+        end_date: '2026-03-26',
+        scale: 'day',
+        lgd_id: 10,
+        department_id: undefined,
+      },
+    })
+  })
+})
+
+describe('dashboardApi.getSubmissionStatus', () => {
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+  })
+
+  it('sends tenant_id in submission status requests', async () => {
+    mockGet.mockImplementation(async () => ({
+      data: {
+        startDate: '2026-03-25',
+        endDate: '2026-03-26',
+        schemeCount: 3,
+        compliantSubmissionCount: 2,
+        anomalousSubmissionCount: 1,
+      },
+    }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+    await dashboardApi.getSubmissionStatus({
+      tenantId: 16,
+      lgdId: 10,
+      startDate: '2026-03-25',
+      endDate: '2026-03-26',
+    })
+
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/analytics/submission-status', {
+      params: {
+        tenant_id: 16,
+        start_date: '2026-03-25',
+        end_date: '2026-03-26',
+        lgd_id: 10,
+        department_id: undefined,
+      },
+    })
+  })
+})
+
 describe('dashboardApi.getDashboardData', () => {
   beforeEach(() => {
     jest.resetModules()
@@ -404,10 +612,22 @@ describe('dashboardApi analytics normalization', () => {
 
     const { dashboardApi } = await import('./dashboard-api')
     const response = await dashboardApi.getAverageSchemeRegularity({
+      tenantId: 10,
       parentDepartmentId: 601,
       scope: 'child',
       startDate: '2026-03-01',
       endDate: '2026-03-30',
+    })
+
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/analytics/scheme-regularity/average', {
+      params: {
+        tenant_id: 10,
+        parent_lgd_id: undefined,
+        parent_department_id: 601,
+        scope: 'child',
+        start_date: '2026-03-01',
+        end_date: '2026-03-30',
+      },
     })
 
     expect(response.childRegions[0]).toEqual(
@@ -589,6 +809,7 @@ describe('state dashboard analytics wrappers', () => {
 
     const { dashboardApi } = await import('./dashboard-api')
     const response = await dashboardApi.getAverageSchemeRegularity({
+      tenantId: 17,
       parentLgdId: 17,
       scope: 'child',
       startDate: '2026-03-03',
@@ -624,6 +845,7 @@ describe('state dashboard analytics wrappers', () => {
 
     await expect(
       dashboardApi.getAverageSchemeRegularity({
+        tenantId: 17,
         parentLgdId: 17,
         scope: 'child',
         startDate: '2026-03-03',

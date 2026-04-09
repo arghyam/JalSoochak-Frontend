@@ -560,6 +560,7 @@ export const dashboardApi = {
       AverageSchemeRegularityResponse | WrappedAnalyticsResponse<AverageSchemeRegularityResponse>
     >('/api/v1/analytics/scheme-regularity/average', {
       params: {
+        tenant_id: params.tenantId,
         parent_lgd_id: params.parentLgdId,
         parent_department_id: params.parentDepartmentId,
         scope: params.scope ?? 'child',
@@ -621,6 +622,7 @@ export const dashboardApi = {
       SchemeRegularityPeriodicResponse | WrappedAnalyticsResponse<SchemeRegularityPeriodicResponse>
     >('/api/v1/analytics/scheme-regularity/periodic', {
       params: {
+        tenant_id: params.tenantId,
         start_date: params.startDate,
         end_date: params.endDate,
         scale: params.scale,
@@ -674,6 +676,7 @@ export const dashboardApi = {
       ReadingSubmissionRateResponse | WrappedAnalyticsResponse<ReadingSubmissionRateResponse>
     >('/api/v1/analytics/reading-submission-rate', {
       params: {
+        tenant_id: params.tenantId,
         parent_lgd_id: params.parentLgdId,
         parent_department_id: params.parentDepartmentId,
         scope: params.scope ?? 'child',
@@ -796,6 +799,7 @@ export const dashboardApi = {
       SubmissionStatusResponse | WrappedAnalyticsResponse<SubmissionStatusResponse>
     >('/api/v1/analytics/submission-status', {
       params: {
+        tenant_id: params.tenantId,
         start_date: params.startDate,
         end_date: params.endDate,
         lgd_id: params.lgdId,
@@ -818,6 +822,7 @@ export const dashboardApi = {
       OutageReasonsResponse | WrappedAnalyticsResponse<OutageReasonsResponse>
     >('/api/v1/analytics/outage-reasons', {
       params: {
+        tenant_id: params.tenantId,
         start_date: params.startDate,
         end_date: params.endDate,
         parent_lgd_id: params.parentLgdId,
@@ -846,6 +851,7 @@ export const dashboardApi = {
       OutageReasonsPeriodicResponse | WrappedAnalyticsResponse<OutageReasonsPeriodicResponse>
     >('/api/v1/analytics/outage-reasons/periodic', {
       params: {
+        tenant_id: params.tenantId,
         start_date: params.startDate,
         end_date: params.endDate,
         scale: params.scale,

@@ -993,21 +993,24 @@ export function CentralDashboard() {
           endDate: analyticsDateRange.endDate,
           scale: selectedQuantityApiScale,
         }
-  const regularityPeriodicAnalyticsParams = !hasValidAnalyticsParentId
-    ? null
-    : hierarchyType === 'LGD'
-      ? {
-          lgdId: analyticsParentId,
-          startDate: analyticsDateRange.startDate,
-          endDate: analyticsDateRange.endDate,
-          scale: selectedRegularityApiScale,
-        }
-      : {
-          departmentId: analyticsParentId,
-          startDate: analyticsDateRange.startDate,
-          endDate: analyticsDateRange.endDate,
-          scale: selectedRegularityApiScale,
-        }
+  const regularityPeriodicAnalyticsParams =
+    !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            tenantId: selectedTenant.tenantId,
+            lgdId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            scale: selectedRegularityApiScale,
+          }
+        : {
+            tenantId: selectedTenant.tenantId,
+            departmentId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            scale: selectedRegularityApiScale,
+          }
   const nationalDashboardParams = hasCentralLandingFilters
     ? null
     : {
@@ -1066,40 +1069,45 @@ export function CentralDashboard() {
             endDate: analyticsDateRange.endDate,
           }
   const regularityAnalyticsParams =
-    isHierarchyLeafSelected || !hasValidAnalyticsParentId
+    isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
+            tenantId: selectedTenant.tenantId,
             parentLgdId: analyticsParentId,
             scope: 'child' as const,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
           }
         : {
+            tenantId: selectedTenant.tenantId,
             parentDepartmentId: analyticsParentId,
             scope: 'child' as const,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
           }
-  const readingSubmissionRateAnalyticsParams = isHierarchyLeafSelected
-    ? null
-    : hierarchyType === 'LGD'
-      ? hasValidAnalyticsParentId
-        ? {
-            parentLgdId: analyticsParentId,
-            scope: 'child' as const,
-            startDate: analyticsDateRange.startDate,
-            endDate: analyticsDateRange.endDate,
-          }
-        : null
-      : hasValidAnalyticsParentId
-        ? {
-            parentDepartmentId: analyticsParentId,
-            scope: 'child' as const,
-            startDate: analyticsDateRange.startDate,
-            endDate: analyticsDateRange.endDate,
-          }
-        : null
+  const readingSubmissionRateAnalyticsParams =
+    isHierarchyLeafSelected || !selectedTenant?.tenantId
+      ? null
+      : hierarchyType === 'LGD'
+        ? hasValidAnalyticsParentId
+          ? {
+              tenantId: selectedTenant.tenantId,
+              parentLgdId: analyticsParentId,
+              scope: 'child' as const,
+              startDate: analyticsDateRange.startDate,
+              endDate: analyticsDateRange.endDate,
+            }
+          : null
+        : hasValidAnalyticsParentId
+          ? {
+              tenantId: selectedTenant.tenantId,
+              parentDepartmentId: analyticsParentId,
+              scope: 'child' as const,
+              startDate: analyticsDateRange.startDate,
+              endDate: analyticsDateRange.endDate,
+            }
+          : null
   const parsedSelectedSchemeId = Number.parseInt(selectedScheme, 10)
   const selectedSchemeId = Number.isFinite(parsedSelectedSchemeId)
     ? parsedSelectedSchemeId
@@ -1133,15 +1141,17 @@ export function CentralDashboard() {
           schemeCount: isHierarchySecondLevelSelected ? districtSchemeCount : 10,
         }
   const submissionStatusAnalyticsParams =
-    !hasCentralLandingFilters || !hasValidSubmissionStatusParentId
+    !hasCentralLandingFilters || !selectedTenant?.tenantId || !hasValidSubmissionStatusParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
+            tenantId: selectedTenant.tenantId,
             lgdId: submissionStatusParentId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
           }
         : {
+            tenantId: selectedTenant.tenantId,
             departmentId: submissionStatusParentId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
@@ -1151,11 +1161,13 @@ export function CentralDashboard() {
       ? null
       : hierarchyType === 'LGD'
         ? {
+            tenantId: selectedTenant.tenantId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
             parentLgdId: analyticsParentId,
           }
         : {
+            tenantId: selectedTenant.tenantId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
             parentDepartmentId: analyticsParentId,
@@ -1165,12 +1177,14 @@ export function CentralDashboard() {
       ? null
       : hierarchyType === 'LGD'
         ? {
+            tenantId: selectedTenant.tenantId,
             lgdId: analyticsParentId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
             scale: selectedOutageApiScale,
           }
         : {
+            tenantId: selectedTenant.tenantId,
             departmentId: analyticsParentId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
@@ -1367,10 +1381,11 @@ export function CentralDashboard() {
             ),
           }
   const previousRegularityPeriodicAnalyticsParams =
-    !isHierarchyLeafSelected || !hasValidAnalyticsParentId
+    !isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
+            tenantId: selectedTenant.tenantId,
             lgdId: analyticsParentId,
             startDate: previousAnalyticsRange.startDate,
             endDate: previousAnalyticsRange.endDate,
@@ -1380,6 +1395,7 @@ export function CentralDashboard() {
             ),
           }
         : {
+            tenantId: selectedTenant.tenantId,
             departmentId: analyticsParentId,
             startDate: previousAnalyticsRange.startDate,
             endDate: previousAnalyticsRange.endDate,
