@@ -31,6 +31,7 @@ const translations: Record<string, string> = {
   'pages.pumpOperators.columns.submissionDateTime': 'Submission Date & Time',
   'pages.pumpOperators.columns.waterSupplied': 'Water Supplied',
   'pages.pumpOperators.columns.readingValue': 'Reading Value',
+  'pages.pumpOperators.downloadAttendance': 'Attendance',
   'common.retry': 'Retry',
   'common.documentTitle': '| JalSoochak',
 }
@@ -52,9 +53,11 @@ jest.mock('@/app/store/auth-store', () => ({
 
 const mockUsePumpOperatorDetailsQuery = jest.fn()
 const mockUsePumpOperatorReadingsQuery = jest.fn()
+const mockUseOperatorAttendanceQuery = jest.fn()
 jest.mock('../../services/query/use-pump-operators-queries', () => ({
   usePumpOperatorDetailsQuery: (...args: unknown[]) => mockUsePumpOperatorDetailsQuery(...args),
   usePumpOperatorReadingsQuery: (...args: unknown[]) => mockUsePumpOperatorReadingsQuery(...args),
+  useOperatorAttendanceQuery: (...args: unknown[]) => mockUseOperatorAttendanceQuery(...args),
 }))
 
 import type { ReactNode } from 'react'
@@ -96,7 +99,8 @@ jest.mock('@/shared/components/common', () => ({
       )
     )
   },
-  PageHeader: ({ children }: { children: ReactNode }) => createElement('div', {}, children),
+  PageHeader: ({ children, rightContent }: { children: ReactNode; rightContent?: ReactNode }) =>
+    createElement('div', {}, children, rightContent),
 }))
 
 const MOCK_DETAILS = {
@@ -165,6 +169,9 @@ beforeEach(() => {
     isLoading: false,
     isError: false,
     data: MOCK_READINGS,
+    refetch: jest.fn(),
+  })
+  mockUseOperatorAttendanceQuery.mockReturnValue({
     refetch: jest.fn(),
   })
 })
@@ -312,5 +319,28 @@ describe('PumpOperatorViewPage', () => {
     })
     renderPage()
     expect(screen.getByText('Failed to load readings.')).toBeTruthy()
+  })
+
+  it('renders attendance button when details are loaded', () => {
+    mockUsePumpOperatorDetailsQuery.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: MOCK_DETAILS,
+      refetch: jest.fn(),
+    })
+    renderPage()
+    expect(screen.getByRole('button', { name: 'Attendance' })).toBeTruthy()
+  })
+
+  it('disables attendance button when details are not loaded', () => {
+    mockUsePumpOperatorDetailsQuery.mockReturnValue({
+      isLoading: true,
+      isError: false,
+      data: undefined,
+      refetch: jest.fn(),
+    })
+    renderPage()
+    const button = screen.getByRole('button', { name: 'Attendance' }) as HTMLButtonElement
+    expect(button.disabled).toBe(true)
   })
 })

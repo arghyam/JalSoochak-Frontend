@@ -67,6 +67,8 @@ export const sectionOfficerQueryKeys = {
       pageSize,
       schemeName,
     ] as const,
+  operatorAttendance: (uuid: string, startDate: string, endDate: string) =>
+    [...sectionOfficerQueryKeys.all, 'operator-attendance', uuid, startDate, endDate] as const,
   anomalyStatuses: () => [...sectionOfficerQueryKeys.all, 'anomaly-statuses'] as const,
   escalationStatuses: () => [...sectionOfficerQueryKeys.all, 'escalation-statuses'] as const,
   anomaliesList: (

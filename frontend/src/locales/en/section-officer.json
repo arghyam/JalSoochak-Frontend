@@ -137,7 +137,8 @@
         "reportingRate": "Reporting rate",
         "lastSubmission": "Last submission"
       },
-      "viewTooltip": "View pump operator"
+      "viewTooltip": "View pump operator",
+      "downloadAttendance": "Attendance"
     },
     "anomalies": {
       "heading": "Anomalies",

@@ -207,3 +207,54 @@ describe('pumpOperatorsApi.getPumpOperatorReadings', () => {
     ).rejects.toThrow('Server error')
   })
 })
+
+describe('pumpOperatorsApi.getOperatorAttendance', () => {
+  const MOCK_ATTENDANCE = [
+    { date: '2026-03-01', attendance: 0 },
+    { date: '2026-03-02', attendance: 0 },
+    { date: '2026-03-03', attendance: 1 },
+  ]
+
+  it('calls the correct URL with uuid and date range params', async () => {
+    mockGet.mockResolvedValueOnce({ data: { data: MOCK_ATTENDANCE } })
+
+    const result = await pumpOperatorsApi.getOperatorAttendance({
+      uuid: '4c3d5550-a181-4bb3-91b7-1c527c424de2',
+      startDate: '2026-03-01',
+      endDate: '2026-03-03',
+    })
+
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/analytics/operator-attendance', {
+      params: {
+        uuid: '4c3d5550-a181-4bb3-91b7-1c527c424de2',
+        start_date: '2026-03-01',
+        end_date: '2026-03-03',
+      },
+    })
+    expect(result).toEqual(MOCK_ATTENDANCE)
+  })
+
+  it('returns the unwrapped data array', async () => {
+    mockGet.mockResolvedValueOnce({ data: { data: MOCK_ATTENDANCE } })
+
+    const result = await pumpOperatorsApi.getOperatorAttendance({
+      uuid: 'test-uuid',
+      startDate: '2026-01-01',
+      endDate: '2026-03-31',
+    })
+
+    expect(Array.isArray(result)).toBe(true)
+    expect(result).toHaveLength(3)
+  })
+
+  it('propagates API errors', async () => {
+    mockGet.mockRejectedValueOnce(new Error('Unauthorized'))
+    await expect(
+      pumpOperatorsApi.getOperatorAttendance({
+        uuid: 'test-uuid',
+        startDate: '2026-01-01',
+        endDate: '2026-03-31',
+      })
+    ).rejects.toThrow('Unauthorized')
+  })
+})

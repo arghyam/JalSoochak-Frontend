@@ -8,6 +8,7 @@ import {
   usePumpOperatorsListQuery,
   usePumpOperatorDetailsQuery,
   usePumpOperatorReadingsQuery,
+  useOperatorAttendanceQuery,
 } from './use-pump-operators-queries'
 import { sectionOfficerQueryKeys } from './section-officer-query-keys'
 
@@ -16,6 +17,7 @@ jest.mock('../api/pump-operators-api', () => ({
     getPumpOperatorsList: jest.fn(),
     getPumpOperatorDetails: jest.fn(),
     getPumpOperatorReadings: jest.fn(),
+    getOperatorAttendance: jest.fn(),
   },
 }))
 
@@ -270,5 +272,111 @@ describe('usePumpOperatorReadingsQuery', () => {
     })
     expect(result.current.fetchStatus).toBe('idle')
     expect(pumpOperatorsApi.getPumpOperatorReadings).not.toHaveBeenCalled()
+  })
+})
+
+describe('sectionOfficerQueryKeys — operator attendance key', () => {
+  it('generates a stable operator attendance key', () => {
+    const key = sectionOfficerQueryKeys.operatorAttendance(
+      '4c3d5550-a181-4bb3-91b7-1c527c424de2',
+      '2026-01-01',
+      '2026-03-31'
+    )
+    expect(key).toEqual([
+      'section-officer',
+      'operator-attendance',
+      '4c3d5550-a181-4bb3-91b7-1c527c424de2',
+      '2026-01-01',
+      '2026-03-31',
+    ])
+  })
+})
+
+describe('useOperatorAttendanceQuery', () => {
+  const MOCK_ATTENDANCE = [
+    { date: '2026-03-01', attendance: 0 },
+    { date: '2026-03-02', attendance: 1 },
+  ]
+
+  it('is disabled by default', () => {
+    const { result } = renderHook(() => useOperatorAttendanceQuery('test-uuid'), {
+      wrapper: createWrapper(),
+    })
+    expect(result.current.fetchStatus).toBe('idle')
+    expect(pumpOperatorsApi.getOperatorAttendance).not.toHaveBeenCalled()
+  })
+
+  it('fetches attendance data when refetch is called', async () => {
+    ;(
+      pumpOperatorsApi.getOperatorAttendance as jest.MockedFunction<
+        typeof pumpOperatorsApi.getOperatorAttendance
+      >
+    ).mockResolvedValue(MOCK_ATTENDANCE)
+
+    const { result } = renderHook(() => useOperatorAttendanceQuery('test-uuid'), {
+      wrapper: createWrapper(),
+    })
+
+    // Initially idle
+    expect(result.current.fetchStatus).toBe('idle')
+
+    // Call refetch
+    result.current.refetch()
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+
+    expect(result.current.data).toEqual(MOCK_ATTENDANCE)
+  })
+
+  it('calls API with correct date range parameters', async () => {
+    ;(
+      pumpOperatorsApi.getOperatorAttendance as jest.MockedFunction<
+        typeof pumpOperatorsApi.getOperatorAttendance
+      >
+    ).mockResolvedValue(MOCK_ATTENDANCE)
+
+    const { result } = renderHook(() => useOperatorAttendanceQuery('test-uuid'), {
+      wrapper: createWrapper(),
+    })
+
+    result.current.refetch()
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+
+    const callArg = (
+      pumpOperatorsApi.getOperatorAttendance as jest.MockedFunction<
+        typeof pumpOperatorsApi.getOperatorAttendance
+      >
+    ).mock.calls[0]?.[0]
+
+    expect(callArg).toMatchObject({
+      uuid: 'test-uuid',
+    })
+    expect(callArg?.startDate).toBeDefined()
+    expect(callArg?.endDate).toBeDefined()
+    // Verify endDate is valid date string
+    expect(/^\d{4}-\d{2}-\d{2}$/.test(callArg?.endDate ?? '')).toBe(true)
+  })
+
+  it('does not fetch when uuid is undefined', () => {
+    const { result } = renderHook(() => useOperatorAttendanceQuery(undefined), {
+      wrapper: createWrapper(),
+    })
+    expect(result.current.fetchStatus).toBe('idle')
+    expect(pumpOperatorsApi.getOperatorAttendance).not.toHaveBeenCalled()
+  })
+
+  it('surfaces error state on fetch failure', async () => {
+    ;(
+      pumpOperatorsApi.getOperatorAttendance as jest.MockedFunction<
+        typeof pumpOperatorsApi.getOperatorAttendance
+      >
+    ).mockRejectedValue(new Error('API error'))
+
+    const { result } = renderHook(() => useOperatorAttendanceQuery('test-uuid'), {
+      wrapper: createWrapper(),
+    })
+
+    result.current.refetch()
+    await waitFor(() => expect(result.current.isError).toBe(true))
+    expect(result.current.error).toEqual(new Error('API error'))
   })
 })

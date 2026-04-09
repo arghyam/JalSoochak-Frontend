@@ -58,3 +58,8 @@ export interface PumpOperatorReadingsResponse {
   size: number
   number: number
 }
+
+export interface OperatorAttendanceRecord {
+  date: string
+  attendance: number
+}

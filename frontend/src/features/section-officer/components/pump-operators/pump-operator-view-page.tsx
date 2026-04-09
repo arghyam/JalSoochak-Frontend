@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import Papa from 'papaparse'
 import {
   Box,
   Heading,
@@ -15,6 +16,7 @@ import {
   InputLeftElement,
 } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
+import { FiDownload } from 'react-icons/fi'
 import { useDebounce } from '@/shared/hooks/use-debounce'
 import { DataTable, PageHeader } from '@/shared/components/common'
 import type { DataTableColumn } from '@/shared/components/common'
@@ -22,9 +24,11 @@ import { ROUTES } from '@/shared/constants/routes'
 import {
   usePumpOperatorDetailsQuery,
   usePumpOperatorReadingsQuery,
+  useOperatorAttendanceQuery,
 } from '../../services/query/use-pump-operators-queries'
 import { formatTimestamp } from '../../services/api/schemes-api'
 import type { PumpOperatorReading } from '../../types/pump-operators'
+import { sanitizeCsvData } from '../../utils/csv-sanitizer'
 
 function DetailField({ label, value }: { label: string; value: string }) {
   return (
@@ -46,6 +50,7 @@ export function PumpOperatorViewPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [searchQuery, setSearchQuery] = useState('')
+  const [isDownloading, setIsDownloading] = useState(false)
   const debouncedSearch = useDebounce(searchQuery, 400)
 
   const [prevDebounced, setPrevDebounced] = useState(debouncedSearch)
@@ -67,6 +72,53 @@ export function PumpOperatorViewPage() {
     isError: readingsError,
     refetch: refetchReadings,
   } = usePumpOperatorReadingsQuery(operatorId, page, pageSize, debouncedSearch)
+
+  const { refetch: refetchAttendance } = useOperatorAttendanceQuery(details?.uuid)
+
+  const handleDownloadAttendance = async () => {
+    try {
+      setIsDownloading(true)
+      const { data: attendance } = await refetchAttendance()
+
+      if (!attendance || attendance.length === 0) {
+        return
+      }
+
+      // Sanitize filename: remove unsafe characters
+      const safeName = (details?.name ?? 'operator').replace(/[/\\:*?"<>|]/g, '_')
+      const fileName = `${safeName}_attendance.csv`
+
+      // Build CSV data: headers + rows
+      const csvData = [
+        ['date', 'attendance', 'name', 'phoneNumber'],
+        // First row: first attendance record + operator details
+        [
+          attendance[0].date,
+          attendance[0].attendance.toString(),
+          details?.name ?? '',
+          details?.phoneNumber ?? '',
+        ],
+        // Remaining rows: attendance only
+        ...attendance.slice(1).map((record) => [record.date, record.attendance.toString(), '', '']),
+      ]
+
+      // Sanitize all cells to prevent CSV formula injection
+      const sanitizedCsvData = sanitizeCsvData(csvData as (string | number | boolean)[][])
+      const csv = Papa.unparse(sanitizedCsvData)
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', fileName)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    } finally {
+      setIsDownloading(false)
+    }
+  }
 
   useEffect(() => {
     const operatorName = details?.name?.trim()
@@ -125,7 +177,26 @@ export function PumpOperatorViewPage() {
 
   return (
     <Box w="full" maxW="100%" minW={0}>
-      <PageHeader>
+      <PageHeader
+        rightContent={
+          <Button
+            variant="secondary"
+            size="sm"
+            fontWeight="600"
+            isLoading={isDownloading}
+            isDisabled={!details?.uuid || isDownloading}
+            onClick={() => void handleDownloadAttendance()}
+            aria-label={t('pages.pumpOperators.downloadAttendance')}
+          >
+            <FiDownload
+              aria-hidden="true"
+              size={16}
+              style={{ marginRight: '4px', flexShrink: 0 }}
+            />
+            {t('pages.pumpOperators.downloadAttendance')}
+          </Button>
+        }
+      >
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={2}>
           {t('pages.pumpOperators.heading')}
         </Heading>
