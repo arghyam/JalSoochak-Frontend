@@ -21,7 +21,7 @@ export function Footer() {
               <Box w="196px" h="100px">
                 <img
                   src={logoWithText}
-                  alt="JalSoochak logo with text"
+                  alt={t('footer.logoAlt')}
                   style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                 />
               </Box>
