@@ -134,7 +134,7 @@
       "ariaViewBy": "Quantity performance view by",
       "ariaViewByDistrict": "District quantity performance view by",
       "ariaViewByGramPanchayat": "Gram panchayat quantity performance view by",
-      "yAxisLabel": "Quantity",
+      "yAxisLabel": "Quantity (ML)",
       "seriesName": "Quantity",
       "areaSeriesName": "Demand"
     },
@@ -143,8 +143,7 @@
       "ariaViewBy": "Regularity performance view by",
       "ariaViewByDistrict": "District regularity performance view by",
       "ariaViewByGramPanchayat": "Gram panchayat regularity performance view by",
-      "yAxisLabel": "Regularity",
-      "yAxisLabelPercent": "Regularity (%)",
+      "yAxisLabel": "Regularity (%)",
       "seriesName": "Regularity"
     },
     "viewBy": {

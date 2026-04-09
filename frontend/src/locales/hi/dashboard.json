@@ -134,7 +134,7 @@
       "ariaViewBy": "मात्रा प्रदर्शन दृश्य प्रकार",
       "ariaViewByDistrict": "जिला मात्रा प्रदर्शन दृश्य प्रकार",
       "ariaViewByGramPanchayat": "ग्राम पंचायत मात्रा प्रदर्शन दृश्य प्रकार",
-      "yAxisLabel": "मात्रा",
+      "yAxisLabel": "मात्रा (ML)",
       "seriesName": "मात्रा",
       "areaSeriesName": "मांग"
     },
@@ -143,8 +143,7 @@
       "ariaViewBy": "नियमितता प्रदर्शन दृश्य प्रकार",
       "ariaViewByDistrict": "जिला नियमितता प्रदर्शन दृश्य प्रकार",
       "ariaViewByGramPanchayat": "ग्राम पंचायत नियमितता प्रदर्शन दृश्य प्रकार",
-      "yAxisLabel": "नियमितता",
-      "yAxisLabelPercent": "नियमितता (%)",
+      "yAxisLabel": "नियमितता (%)",
       "seriesName": "नियमितता"
     },
     "viewBy": {
