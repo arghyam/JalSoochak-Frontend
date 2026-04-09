@@ -6,7 +6,7 @@ export interface DistrictOverride {
 
 export interface WaterNormsConfiguration {
   id: string
-  stateQuantity: number
+  stateQuantity: number | null
   districtOverrides: DistrictOverride[]
   oversupplyThreshold: number | null
   undersupplyThreshold: number | null

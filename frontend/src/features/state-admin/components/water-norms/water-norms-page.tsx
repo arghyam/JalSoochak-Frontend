@@ -26,16 +26,24 @@ import {
 } from '@/shared/components/common'
 import { ROUTES } from '@/shared/constants/routes'
 import {
+  useConfigStatusQuery,
   useSaveWaterNormsConfigurationMutation,
   useWaterNormsConfigurationQuery,
 } from '../../services/query/use-state-admin-queries'
+import type { ConfigKey } from '../../types/config-status'
 
 const MAX_WATER_QUANTITY = 1000
+
+const formatThresholdDisplay = (value: number | null): string => {
+  return value !== undefined && value !== null ? `${value}%` : '—'
+}
 
 export function WaterNormsPage() {
   const { t } = useTranslation(['state-admin', 'common'])
   const navigate = useNavigate()
   const { data: config, isLoading, isError } = useWaterNormsConfigurationQuery()
+  const { data: configStatuses } = useConfigStatusQuery()
+  const isMandatory = (key: ConfigKey): boolean => configStatuses?.[key]?.mandatory ?? true
   const saveWaterNormsMutation = useSaveWaterNormsConfigurationMutation()
   const [isEditing, setIsEditing] = useState(false)
   const [stateQuantityDraft, setStateQuantityDraft] = useState<string | null>(null)
@@ -74,9 +82,11 @@ export function WaterNormsPage() {
   const hasChanges = useMemo(
     () =>
       Boolean(config?.isConfigured) &&
-      (stateQuantity !== String(config?.stateQuantity) ||
-        oversupplyThreshold !== String(config?.oversupplyThreshold) ||
-        undersupplyThreshold !== String(config?.undersupplyThreshold) ||
+      (stateQuantity !== (config?.stateQuantity != null ? String(config.stateQuantity) : '') ||
+        oversupplyThreshold !==
+          (config?.oversupplyThreshold != null ? String(config.oversupplyThreshold) : '') ||
+        undersupplyThreshold !==
+          (config?.undersupplyThreshold != null ? String(config.undersupplyThreshold) : '') ||
         (districtOverridesDraft !== null &&
           JSON.stringify(districtOverridesDraft) !== JSON.stringify(config?.districtOverrides))),
     [stateQuantity, oversupplyThreshold, undersupplyThreshold, districtOverridesDraft, config]
@@ -98,35 +108,72 @@ export function WaterNormsPage() {
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
 
-    const quantity = Number(stateQuantity)
-    if (!stateQuantity || Number.isNaN(quantity) || quantity <= 0) {
-      newErrors.stateQuantity = t('state-admin:validation.mustBePositive')
-    } else if (quantity > MAX_WATER_QUANTITY) {
-      newErrors.stateQuantity = t('state-admin:validation.mustBeInRange', {
-        min: 1,
-        max: MAX_WATER_QUANTITY,
-      })
+    // Validate state quantity - required if mandatory, or validate format if provided
+    if (isMandatory('WATER_NORM')) {
+      const quantity = Number(stateQuantity)
+      if (!stateQuantity || Number.isNaN(quantity) || quantity <= 0) {
+        newErrors.stateQuantity = t('state-admin:validation.mustBePositive')
+      } else if (quantity > MAX_WATER_QUANTITY) {
+        newErrors.stateQuantity = t('state-admin:validation.mustBeInRange', {
+          min: 1,
+          max: MAX_WATER_QUANTITY,
+        })
+      }
+    } else if (stateQuantity) {
+      // Validate format/range for optional non-empty field
+      const quantity = Number(stateQuantity)
+      if (Number.isNaN(quantity) || quantity <= 0) {
+        newErrors.stateQuantity = t('state-admin:validation.mustBePositive')
+      } else if (quantity > MAX_WATER_QUANTITY) {
+        newErrors.stateQuantity = t('state-admin:validation.mustBeInRange', {
+          min: 1,
+          max: MAX_WATER_QUANTITY,
+        })
+      }
     }
 
-    const oversupply = Number(oversupplyThreshold)
-    if (!oversupplyThreshold || Number.isNaN(oversupply) || oversupply < 0 || oversupply > 1000) {
-      newErrors.oversupplyThreshold = t('state-admin:validation.mustBeInRange', {
-        min: 0,
-        max: 1000,
-      })
-    }
+    if (isMandatory('TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD')) {
+      const oversupply = Number(oversupplyThreshold)
+      if (!oversupplyThreshold || Number.isNaN(oversupply) || oversupply < 0 || oversupply > 1000) {
+        newErrors.oversupplyThreshold = t('state-admin:validation.mustBeInRange', {
+          min: 0,
+          max: 1000,
+        })
+      }
 
-    const undersupply = Number(undersupplyThreshold)
-    if (
-      !undersupplyThreshold ||
-      Number.isNaN(undersupply) ||
-      undersupply < 0 ||
-      undersupply > 100
-    ) {
-      newErrors.undersupplyThreshold = t('state-admin:validation.mustBeInRange', {
-        min: 0,
-        max: 100,
-      })
+      const undersupply = Number(undersupplyThreshold)
+      if (
+        !undersupplyThreshold ||
+        Number.isNaN(undersupply) ||
+        undersupply < 0 ||
+        undersupply > 100
+      ) {
+        newErrors.undersupplyThreshold = t('state-admin:validation.mustBeInRange', {
+          min: 0,
+          max: 100,
+        })
+      }
+    } else {
+      // Validate format/range for optional non-empty thresholds
+      if (oversupplyThreshold) {
+        const oversupply = Number(oversupplyThreshold)
+        if (Number.isNaN(oversupply) || oversupply < 0 || oversupply > 1000) {
+          newErrors.oversupplyThreshold = t('state-admin:validation.mustBeInRange', {
+            min: 0,
+            max: 1000,
+          })
+        }
+      }
+
+      if (undersupplyThreshold) {
+        const undersupply = Number(undersupplyThreshold)
+        if (Number.isNaN(undersupply) || undersupply < 0 || undersupply > 100) {
+          newErrors.undersupplyThreshold = t('state-admin:validation.mustBeInRange', {
+            min: 0,
+            max: 100,
+          })
+        }
+      }
     }
 
     // Validate district overrides
@@ -158,9 +205,9 @@ export function WaterNormsPage() {
 
     try {
       await saveWaterNormsMutation.mutateAsync({
-        stateQuantity: Number(stateQuantity),
-        oversupplyThreshold: Number(oversupplyThreshold),
-        undersupplyThreshold: Number(undersupplyThreshold),
+        stateQuantity: stateQuantity ? Number(stateQuantity) : null,
+        oversupplyThreshold: oversupplyThreshold ? Number(oversupplyThreshold) : null,
+        undersupplyThreshold: undersupplyThreshold ? Number(undersupplyThreshold) : null,
         districtOverrides,
         isConfigured: true,
       })
@@ -171,7 +218,7 @@ export function WaterNormsPage() {
       setIsEditing(false)
       setErrors({})
       toast.addToast(t('common:toast.changesSavedShort'), 'success')
-      if (andNavigate) navigate(ROUTES.STATE_ADMIN_INTEGRATION)
+      if (andNavigate) navigate(ROUTES.STATE_ADMIN_ESCALATIONS)
     } catch (error) {
       console.error('Failed to save water norms configuration:', error)
       toast.addToast(t('common:toast.failedToSave'), 'error')
@@ -276,7 +323,7 @@ export function WaterNormsPage() {
                   {t('waterNorms.currentQuantity')}
                 </Text>
                 <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
-                  {config.stateQuantity}
+                  {config.stateQuantity != null ? config.stateQuantity : '—'}
                 </Text>
               </Box>
 
@@ -297,7 +344,7 @@ export function WaterNormsPage() {
                       {t('waterNorms.alertThresholds.undersupplyThreshold.title')}
                     </Text>
                     <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
-                      {config.undersupplyThreshold}%
+                      {formatThresholdDisplay(config.undersupplyThreshold)}
                     </Text>
                   </Box>
                   <Box>
@@ -305,7 +352,7 @@ export function WaterNormsPage() {
                       {t('waterNorms.alertThresholds.oversupplyThreshold.title')}
                     </Text>
                     <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
-                      {config.oversupplyThreshold}%
+                      {formatThresholdDisplay(config.oversupplyThreshold)}
                     </Text>
                   </Box>
                 </SimpleGrid>
@@ -337,9 +384,15 @@ export function WaterNormsPage() {
                     display="block"
                   >
                     {t('waterNorms.currentQuantity')}
-                    <Text as="span" color="error.500" ml={1}>
-                      *
-                    </Text>
+                    {isMandatory('WATER_NORM') ? (
+                      <Text as="span" color="error.500" ml={1}>
+                        *
+                      </Text>
+                    ) : (
+                      <Text as="span" color="neutral.400" ml={1} fontSize="xs">
+                        {t('common:optional')}
+                      </Text>
+                    )}
                   </Text>
                   <Input
                     id="state-quantity"
@@ -365,6 +418,7 @@ export function WaterNormsPage() {
 
                 {/* Alert Thresholds */}
                 <WaterNormsAlertThresholds
+                  required={isMandatory('TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD')}
                   oversupplyThreshold={oversupplyThreshold}
                   undersupplyThreshold={undersupplyThreshold}
                   onOversupplyThresholdChange={(v) => {

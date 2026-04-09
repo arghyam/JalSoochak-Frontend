@@ -21,11 +21,18 @@ const TIME_FORMAT_OPTIONS = [
 interface DateFormatSectionProps {
   title: string
   infoTooltip?: string
+  required?: boolean
   value: DateFormatConfig
   onChange: (value: DateFormatConfig) => void
 }
 
-export function DateFormatSection({ title, infoTooltip, value, onChange }: DateFormatSectionProps) {
+export function DateFormatSection({
+  title,
+  infoTooltip,
+  required,
+  value,
+  onChange,
+}: Readonly<DateFormatSectionProps>) {
   const { t } = useTranslation('state-admin')
 
   const timezoneOptions = useMemo(
@@ -42,6 +49,16 @@ export function DateFormatSection({ title, infoTooltip, value, onChange }: DateF
       <Flex align="center" gap={1} mb={3}>
         <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" color="neutral.950">
           {title}
+          {required === true && (
+            <Text as="span" color="error.500" ml={1}>
+              *
+            </Text>
+          )}
+          {required === false && (
+            <Text as="span" color="neutral.400" ml={1} fontSize="xs">
+              (Optional)
+            </Text>
+          )}
         </Text>
         {infoTooltip && (
           <ActionTooltip label={infoTooltip}>

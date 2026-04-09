@@ -551,7 +551,7 @@ export const stateAdminApi = {
   getConfigStatus: async (): Promise<ConfigStatusMap> => {
     const tenantId = getTenantId()
     const response = await apiClient.get<
-      ApiEnvelope<{ configs: Record<string, { status: string }> }>
+      ApiEnvelope<{ configs: Record<string, { status: string; mandatory: boolean }> }>
     >(`/api/v1/tenants/${tenantId}/config/status`)
     const configs = response.data.data.configs
     const VALID_CONFIG_KEYS = new Set<string>([
@@ -567,12 +567,23 @@ export const stateAdminApi = {
       'TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD',
       'MESSAGE_BROKER_CONNECTION_SETTINGS',
       'FIELD_STAFF_ESCALATION_RULES',
+      'DATE_FORMAT_SCREEN',
+      'DATE_FORMAT_TABLE',
+      'GLIFIC_MESSAGE_TEMPLATES',
+      'STATE_IT_SYSTEM_CONNECTION',
+      'STATE_DATA_RECONCILIATION_TIME',
+      'EMAIL_TEMPLATE_JSON',
+      'DISPLAY_DEPARTMENT_MAPS',
+      'SUPPLY_OUTAGE_REASONS',
     ])
     const VALID_STATUSES = new Set<string>(['CONFIGURED', 'PENDING'])
     const result: ConfigStatusMap = {}
     for (const [key, val] of Object.entries(configs)) {
       if (!VALID_CONFIG_KEYS.has(key) || !VALID_STATUSES.has(val.status)) continue
-      result[key as ConfigKey] = val.status as ConfigKeyStatus
+      result[key as ConfigKey] = {
+        status: val.status as ConfigKeyStatus,
+        mandatory: val.mandatory ?? true,
+      }
     }
     return result
   },

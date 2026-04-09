@@ -260,7 +260,7 @@ export function mapWaterNormsToApiConfig(
 ): TenantConfigMap {
   // district overrides are intentionally excluded — not yet supported by backend
   return {
-    WATER_NORM: { value: String(payload.stateQuantity) },
+    WATER_NORM: { value: payload.stateQuantity === null ? '' : String(payload.stateQuantity) },
     TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD: {
       undersupplyThresholdPercent: payload.undersupplyThreshold,
       oversupplyThresholdPercent: payload.oversupplyThreshold,

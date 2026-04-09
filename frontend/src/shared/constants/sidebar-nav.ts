@@ -79,13 +79,16 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
     roles: [AUTH_ROLES.STATE_ADMIN],
     icon: 'IoWaterOutline',
   },
-  {
-    type: 'simple',
-    path: ROUTES.STATE_ADMIN_INTEGRATION,
-    labelKey: 'sidebar.integration',
-    roles: [AUTH_ROLES.STATE_ADMIN],
-    icon: 'AiOutlineMessage',
-  },
+
+  // archived items - to be potentially re-added in future
+
+  // {
+  //   type: 'simple',
+  //   path: ROUTES.STATE_ADMIN_INTEGRATION,
+  //   labelKey: 'sidebar.integration',
+  //   roles: [AUTH_ROLES.STATE_ADMIN],
+  //   icon: 'AiOutlineMessage',
+  // },
   {
     type: 'simple',
     path: ROUTES.STATE_ADMIN_ESCALATIONS,

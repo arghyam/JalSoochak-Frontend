@@ -21,9 +21,11 @@ import { TimePicker, ToastContainer, PageHeader } from '@/shared/components/comm
 
 const MAX_ESCALATION_DAYS = 365
 import {
+  useConfigStatusQuery,
   useEscalationRulesQuery,
   useSaveEscalationRulesMutation,
 } from '../../services/query/use-state-admin-queries'
+import type { ConfigKey } from '../../types/config-status'
 import {
   ESCALATION_USER_TYPE_LABELS,
   type EscalationUserType,
@@ -65,6 +67,8 @@ function formatTime(hour: number, minute: number): string {
 export function EscalationsFormPage() {
   const { t } = useTranslation(['state-admin', 'common'])
   const { data: config, isLoading, isError } = useEscalationRulesQuery()
+  const { data: configStatuses } = useConfigStatusQuery()
+  const isMandatory = (key: ConfigKey): boolean => configStatuses?.[key]?.mandatory ?? true
   const saveMutation = useSaveEscalationRulesMutation()
   const toast = useToast()
 
@@ -349,9 +353,15 @@ export function EscalationsFormPage() {
                       display="block"
                     >
                       {t('escalations.levelOfEscalation')}
-                      <Text as="span" color="error.500" ml={1}>
-                        *
-                      </Text>
+                      {isMandatory('FIELD_STAFF_ESCALATION_RULES') ? (
+                        <Text as="span" color="error.500" ml={1}>
+                          *
+                        </Text>
+                      ) : (
+                        <Text as="span" color="neutral.400" ml={1} fontSize="xs">
+                          (Optional)
+                        </Text>
+                      )}
                     </Text>
                     <Stack spacing={3}>
                       {activeLevels.map((level, index) => (
@@ -387,9 +397,15 @@ export function EscalationsFormPage() {
                       display="block"
                     >
                       {t('escalations.escalateAfterDays')}
-                      <Text as="span" color="error.500" ml={1}>
-                        *
-                      </Text>
+                      {isMandatory('FIELD_STAFF_ESCALATION_RULES') ? (
+                        <Text as="span" color="error.500" ml={1}>
+                          *
+                        </Text>
+                      ) : (
+                        <Text as="span" color="neutral.400" ml={1} fontSize="xs">
+                          (Optional)
+                        </Text>
+                      )}
                     </Text>
                     <Stack spacing={3}>
                       {activeLevels.map((level, index) => (

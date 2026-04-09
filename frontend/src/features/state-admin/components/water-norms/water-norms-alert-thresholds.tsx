@@ -8,6 +8,7 @@ export interface WaterNormsAlertThresholdsProps {
   onOversupplyThresholdChange: (value: string) => void
   onUndersupplyThresholdChange: (value: string) => void
   errors?: Record<string, string>
+  required?: boolean
 }
 
 export function WaterNormsAlertThresholds({
@@ -16,6 +17,7 @@ export function WaterNormsAlertThresholds({
   onOversupplyThresholdChange,
   onUndersupplyThresholdChange,
   errors,
+  required,
 }: Readonly<WaterNormsAlertThresholdsProps>) {
   const { t } = useTranslation(['state-admin', 'common'])
 
@@ -23,6 +25,16 @@ export function WaterNormsAlertThresholds({
     <Box mb={6}>
       <Heading as="h3" size="h3" fontWeight="400" fontSize={{ base: 'md', md: 'xl' }} mb={4}>
         {t('waterNorms.alertThresholds.title')}
+        {required === true && (
+          <Text as="span" color="error.500" ml={1} fontSize={{ base: 'md', md: 'xl' }}>
+            *
+          </Text>
+        )}
+        {required === false && (
+          <Text as="span" color="neutral.400" ml={1} fontSize="sm">
+            (Optional)
+          </Text>
+        )}
       </Heading>
       <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={{ base: 4, md: 6 }}>
         <Box>
