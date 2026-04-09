@@ -10,8 +10,9 @@ export function RequiredIndicator({ required }: RequiredIndicatorProps) {
 
   if (required === true) {
     return (
-      <Text as="span" color="error.500" ml={1} aria-hidden="true">
-        *<VisuallyHidden>{t('required')}</VisuallyHidden>
+      <Text as="span" color="error.500" ml={1}>
+        <VisuallyHidden>{t('required')}</VisuallyHidden>
+        <span aria-hidden="true">*</span>
       </Text>
     )
   }
