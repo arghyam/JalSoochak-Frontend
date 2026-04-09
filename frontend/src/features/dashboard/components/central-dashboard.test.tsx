@@ -939,6 +939,50 @@ describe('CentralDashboard', () => {
     })
   })
 
+  it('does not fall back to state analytics when a district URL is unresolved after LGD back navigation', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    mockUseSearchParams.mockReturnValue([new URLSearchParams('district=lakhimpur'), jest.fn()])
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 18, tenantCode: 'AS' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock)
+      .mockReturnValueOnce({
+        data: {
+          data: [{ id: 1, lgdCode: 101, title: 'Assam' }],
+        },
+      })
+      .mockReturnValue({ data: undefined })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useReadingSubmissionRateQuery).toHaveBeenCalledWith({
+      params: null,
+      enabled: false,
+    })
+    expect(useOutageReasonsQuery).toHaveBeenCalledWith({
+      params: null,
+      enabled: false,
+    })
+
+    const dashboardBodyProps = getLatestDashboardBodyProps<{
+      isStateSelected: boolean
+      isDistrictSelected: boolean
+      isBlockSelected: boolean
+    }>()
+
+    expect(dashboardBodyProps.isStateSelected).toBe(true)
+    expect(dashboardBodyProps.isDistrictSelected).toBe(true)
+    expect(dashboardBodyProps.isBlockSelected).toBe(false)
+  })
+
   it('falls back to the state LGD code when root locations already contain districts', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -1831,6 +1875,39 @@ describe('CentralDashboard', () => {
     expect(dashboardFilterProps.selectedVillage).toBe('rudraram')
   })
 
+  it('forces the administrative tab when LGD query params are present even if storage last used departmental', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 1,
+        selectedDepartmentState: 'assam',
+        selectedDepartmentZone: '601:department-zone',
+      })
+    )
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams('district=44:404:chirang&block=55:505:sidli-chirang&tab=administrative'),
+      jest.fn(),
+    ])
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardFilterProps = getLatestDashboardFilterProps<{
+      filterTabIndex: number
+      selectedDistrict: string
+      selectedBlock: string
+    }>()
+
+    expect(dashboardFilterProps.filterTabIndex).toBe(0)
+    expect(dashboardFilterProps.selectedDistrict).toBe('44:404:chirang')
+    expect(dashboardFilterProps.selectedBlock).toBe('55:505:sidli-chirang')
+  })
+
   it('hydrates departmental filters and active tab from query params', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -1862,6 +1939,68 @@ describe('CentralDashboard', () => {
     expect(dashboardFilterProps.selectedDepartmentCircle).toBe('701:department-circle')
     expect(dashboardFilterProps.selectedDepartmentDivision).toBe('801:department-division')
     expect(dashboardFilterProps.selectedDepartmentSubdivision).toBe('901:department-subdivision')
+  })
+
+  it('clears deeper departmental selections when browser navigation returns to the departmental root', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 1,
+        selectedDepartmentState: 'assam',
+        selectedDepartmentZone: '601:department-zone',
+        selectedDepartmentCircle: '701:department-circle',
+        selectedDepartmentDivision: '801:department-division',
+        selectedDepartmentSubdivision: '901:department-subdivision',
+      })
+    )
+
+    let currentSearchParams = new URLSearchParams(
+      'departmentZone=601:department-zone&departmentCircle=701:department-circle&departmentDivision=801:department-division&departmentSubdivision=901:department-subdivision'
+    )
+    let currentLocation = {
+      pathname: '/assam',
+      search:
+        '?departmentZone=601:department-zone&departmentCircle=701:department-circle&departmentDivision=801:department-division&departmentSubdivision=901:department-subdivision',
+      hash: '',
+      state: null,
+    }
+
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    mockUseSearchParams.mockImplementation(() => [currentSearchParams, jest.fn()])
+    mockUseLocation.mockImplementation(() => currentLocation)
+
+    const { rerender } = renderWithProviders(<CentralDashboard />)
+
+    currentSearchParams = new URLSearchParams()
+    currentLocation = {
+      pathname: '/assam',
+      search: '',
+      hash: '',
+      state: null,
+    }
+
+    rerender(<CentralDashboard />)
+
+    const dashboardFilterProps = getLatestDashboardFilterProps<{
+      filterTabIndex: number
+      selectedDepartmentState: string
+      selectedDepartmentZone: string
+      selectedDepartmentCircle: string
+      selectedDepartmentDivision: string
+      selectedDepartmentSubdivision: string
+    }>()
+
+    expect(dashboardFilterProps.filterTabIndex).toBe(1)
+    expect(dashboardFilterProps.selectedDepartmentState).toBe('assam')
+    expect(dashboardFilterProps.selectedDepartmentZone).toBe('')
+    expect(dashboardFilterProps.selectedDepartmentCircle).toBe('')
+    expect(dashboardFilterProps.selectedDepartmentDivision).toBe('')
+    expect(dashboardFilterProps.selectedDepartmentSubdivision).toBe('')
   })
 
   it('uses district data in Overall Performance table when a state is selected', () => {
@@ -4782,8 +4921,8 @@ describe('CentralDashboard', () => {
     dashboardFilterProps.onTabChange(1)
     dashboardFilterProps.onDepartmentZoneChange('601:department-zone')
 
-    expect(mockNavigate).toHaveBeenCalledTimes(1)
-    expect(mockNavigate).toHaveBeenNthCalledWith(1, {
+    expect(mockNavigate).toHaveBeenCalledTimes(2)
+    expect(mockNavigate).toHaveBeenNthCalledWith(2, {
       pathname: '/assam',
       search: '?departmentZone=601%3Adepartment-zone',
     })

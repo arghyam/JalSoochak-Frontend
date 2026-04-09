@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Box, Flex, Text, Heading, Grid, Icon, Image, useBreakpointValue } from '@chakra-ui/react'
@@ -186,6 +186,46 @@ const parseAnalyticsLocationId = (
   }
 
   return parseLocationId(value)
+}
+
+const resolveLgdAnalyticsParentId = ({
+  selectedVillage,
+  selectedGramPanchayat,
+  selectedBlock,
+  selectedDistrict,
+  villageOptions,
+  gramPanchayatOptions,
+  blockOptions,
+  districtOptions,
+  rootAnalyticsId,
+}: {
+  selectedVillage: string
+  selectedGramPanchayat: string
+  selectedBlock: string
+  selectedDistrict: string
+  villageOptions: LocationOption[]
+  gramPanchayatOptions: LocationOption[]
+  blockOptions: LocationOption[]
+  districtOptions: LocationOption[]
+  rootAnalyticsId?: number
+}): number => {
+  if (selectedVillage) {
+    return parseAnalyticsLocationId(selectedVillage, villageOptions) ?? 0
+  }
+
+  if (selectedGramPanchayat) {
+    return parseAnalyticsLocationId(selectedGramPanchayat, gramPanchayatOptions) ?? 0
+  }
+
+  if (selectedBlock) {
+    return parseAnalyticsLocationId(selectedBlock, blockOptions) ?? 0
+  }
+
+  if (selectedDistrict) {
+    return parseAnalyticsLocationId(selectedDistrict, districtOptions) ?? 0
+  }
+
+  return rootAnalyticsId ?? 0
 }
 
 const toIsoDate = (date?: string | Date | null, dateFormat?: string): string | undefined => {
@@ -454,12 +494,16 @@ export function CentralDashboard() {
   const selectedDepartmentDivisionFromUrl = searchParams.get('departmentDivision') ?? ''
   const selectedDepartmentSubdivisionFromUrl = searchParams.get('departmentSubdivision') ?? ''
   const selectedDepartmentVillageFromUrl = searchParams.get('departmentVillage') ?? ''
+  const isAdministrativeTabFromUrl = searchParams.get('tab') === 'administrative'
   const hasDepartmentParamsInUrl = Boolean(
     selectedDepartmentZoneFromUrl ||
     selectedDepartmentCircleFromUrl ||
     selectedDepartmentDivisionFromUrl ||
     selectedDepartmentSubdivisionFromUrl ||
     selectedDepartmentVillageFromUrl
+  )
+  const hasLgdParamsInUrl = Boolean(
+    selectedDistrict || selectedBlock || selectedGramPanchayat || selectedVillage
   )
   const [selectedDuration, setSelectedDuration] = useState<DateRange | null>(() =>
     getInitialStoredDuration(storedFilters)
@@ -509,12 +553,17 @@ export function CentralDashboard() {
   const selectedDepartmentVillage = hasDepartmentParamsInUrl
     ? selectedDepartmentVillageFromUrl
     : storedSelectedDepartmentVillage
-  const filterTabIndex = hasDepartmentParamsInUrl ? 1 : storedFilterTabIndex
+  const filterTabIndex = hasDepartmentParamsInUrl
+    ? 1
+    : isAdministrativeTabFromUrl || hasLgdParamsInUrl
+      ? 0
+      : storedFilterTabIndex
   const [activeTrailIndexState, setActiveTrailIndexState] = useState<LocationScopedTrailIndex>({
     pathname: location.pathname,
     search: location.search,
     value: null,
   })
+  const previousLocationRef = useRef<{ pathname: string; search: string } | null>(null)
   const activeTrailIndex =
     activeTrailIndexState.pathname === location.pathname &&
     activeTrailIndexState.search === location.search
@@ -527,6 +576,62 @@ export function CentralDashboard() {
       value,
     })
   }
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    const previousLocation = previousLocationRef.current
+    const didLocationChange =
+      previousLocation !== null &&
+      (previousLocation.pathname !== location.pathname ||
+        previousLocation.search !== location.search)
+
+    if (isAdministrativeTabFromUrl) {
+      setFilterTabIndex(0)
+      setSelectedDepartmentState('')
+      setSelectedDepartmentZone('')
+      setSelectedDepartmentCircle('')
+      setSelectedDepartmentDivision('')
+      setSelectedDepartmentSubdivision('')
+      setSelectedDepartmentVillage('')
+      return
+    }
+
+    if (hasDepartmentParamsInUrl) {
+      setFilterTabIndex(1)
+      setSelectedDepartmentState(selectedState)
+      setSelectedDepartmentZone(selectedDepartmentZoneFromUrl)
+      setSelectedDepartmentCircle(selectedDepartmentCircleFromUrl)
+      setSelectedDepartmentDivision(selectedDepartmentDivisionFromUrl)
+      setSelectedDepartmentSubdivision(selectedDepartmentSubdivisionFromUrl)
+      setSelectedDepartmentVillage(selectedDepartmentVillageFromUrl)
+    } else if (didLocationChange && storedFilterTabIndex === 1) {
+      setSelectedDepartmentState(selectedState)
+      setSelectedDepartmentZone('')
+      setSelectedDepartmentCircle('')
+      setSelectedDepartmentDivision('')
+      setSelectedDepartmentSubdivision('')
+      setSelectedDepartmentVillage('')
+    }
+
+    previousLocationRef.current = {
+      pathname: location.pathname,
+      search: location.search,
+    }
+  }, [
+    hasDepartmentParamsInUrl,
+    isAdministrativeTabFromUrl,
+    location.pathname,
+    location.search,
+    selectedDepartmentCircleFromUrl,
+    selectedDepartmentDivisionFromUrl,
+    selectedDepartmentSubdivisionFromUrl,
+    selectedDepartmentVillageFromUrl,
+    selectedDepartmentZoneFromUrl,
+    selectedState,
+    storedFilterTabIndex,
+  ])
+  /* eslint-enable react-hooks/set-state-in-effect */
+
   const [quantityTimeScaleTab, setQuantityTimeScaleTab] = useState<QuantityTimeScaleTab>('day')
   const [regularityTimeScaleTab, setRegularityTimeScaleTab] = useState<QuantityTimeScaleTab>('day')
   const [outageDistributionTimeScaleTab, setOutageDistributionTimeScaleTab] =
@@ -798,13 +903,17 @@ export function CentralDashboard() {
     enabled: Boolean(selectedTenant?.tenantId && selectedGramPanchayatId),
   })
   const villageApiOptions = mapLocationOptions(villageLocationsData?.data)
-  const lgdAnalyticsParentId =
-    parseAnalyticsLocationId(effectiveSelectedVillage, villageApiOptions) ??
-    parseAnalyticsLocationId(effectiveSelectedGramPanchayat, gramPanchayatApiOptions) ??
-    parseAnalyticsLocationId(effectiveSelectedBlock, blockApiOptions) ??
-    parseAnalyticsLocationId(effectiveSelectedDistrict, districtApiOptions) ??
-    selectedRootAnalyticsId ??
-    0
+  const lgdAnalyticsParentId = resolveLgdAnalyticsParentId({
+    selectedVillage: effectiveSelectedVillage,
+    selectedGramPanchayat: effectiveSelectedGramPanchayat,
+    selectedBlock: effectiveSelectedBlock,
+    selectedDistrict: effectiveSelectedDistrict,
+    villageOptions: villageApiOptions,
+    gramPanchayatOptions: gramPanchayatApiOptions,
+    blockOptions: blockApiOptions,
+    districtOptions: districtApiOptions,
+    rootAnalyticsId: selectedRootAnalyticsId,
+  })
   const departmentAnalyticsParentId =
     parseLocationId(selectedDepartmentVillage) ??
     parseLocationId(selectedDepartmentSubdivision) ??
