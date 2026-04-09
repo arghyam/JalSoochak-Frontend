@@ -317,8 +317,8 @@ const normalizeTenantBoundaryChildRegion = <T extends TenantBoundaryChildRegionA
   context: string
 ) => ({
   ...region,
-  childLgdId:
-    region.childLgdId ?? region.lgdId ?? region.childDepartmentId ?? region.departmentId ?? 0,
+  childLgdId: region.childLgdId ?? region.lgdId,
+  childDepartmentId: region.childDepartmentId ?? region.departmentId ?? undefined,
   childLgdTitle: region.childLgdTitle ?? region.title ?? region.childDepartmentTitle ?? '',
   boundaryGeoJson: (() => {
     const parsed = parseBoundaryGeoJson(

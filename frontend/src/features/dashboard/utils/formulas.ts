@@ -715,7 +715,7 @@ export const mapTenantBoundariesToPerformance = (
         return -1
       }
 
-      return fallbackMatch?.quantity ?? 0
+      return -1
     })()
 
     return {

@@ -427,7 +427,7 @@ describe('dashboard formulas', () => {
       expect.objectContaining({
         name: 'Region Alpha',
         regularity: 15,
-        quantity: 0,
+        quantity: -1,
         compositeScore: 48,
       }),
     ])
@@ -771,14 +771,14 @@ describe('dashboard formulas', () => {
         name: 'Dhac(Haflong) Zone',
         coverage: 3,
         regularity: 14,
-        quantity: 36.6,
+        quantity: -1,
       }),
       expect.objectContaining({
         id: '602',
         name: 'Karbi Anglong Autonomous Council',
         coverage: 5,
         regularity: 12,
-        quantity: 16.6,
+        quantity: -1,
       }),
     ])
   })
@@ -838,14 +838,14 @@ describe('dashboard formulas', () => {
         name: 'Dhac(Haflong) Zone',
         coverage: 3,
         regularity: 14,
-        quantity: 36.6,
+        quantity: -1,
       }),
       expect.objectContaining({
         id: '602',
         name: 'Karbi Anglong Autonomous Council',
         coverage: 5,
         regularity: 12,
-        quantity: 16.6,
+        quantity: -1,
       }),
     ])
   })
