@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useMemo, useState } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
   Center,
   IconButton,
@@ -346,6 +346,16 @@ export function IndiaMapChart({
     }
   )
 
+  const onStateClickRef = useRef(onStateClick)
+  const onStateHoverRef = useRef(onStateHover)
+  const dataRef = useRef(data)
+
+  useLayoutEffect(() => {
+    onStateClickRef.current = onStateClick
+    onStateHoverRef.current = onStateHover
+    dataRef.current = data
+  })
+
   useLayoutEffect(() => {
     if (!dynamicGeoJson) {
       return
@@ -367,8 +377,8 @@ export function IndiaMapChart({
             name: string
           }
         }
-        if (p.data?.stateId && onStateClick) {
-          onStateClick(p.data.stateId, p.data.name)
+        if (p.data?.stateId && onStateClickRef.current) {
+          onStateClickRef.current(p.data.stateId, p.data.name)
         }
       })
 
@@ -381,16 +391,16 @@ export function IndiaMapChart({
               name: string
             }
           }
-          if (p.data?.stateId && onStateHover) {
-            const stateData = data.find((d) => d.id === p.data?.stateId) ?? undefined
+          if (p.data?.stateId && onStateHoverRef.current) {
+            const stateData = dataRef.current.find((d) => d.id === p.data?.stateId)
             if (stateData) {
-              onStateHover(p.data.stateId, p.data.name, stateData)
+              onStateHoverRef.current(p.data.stateId, p.data.name, stateData)
             }
           }
         })
       }
     },
-    [data, disableHoverEffect, onStateClick, onStateHover]
+    [disableHoverEffect]
   )
 
   return (
