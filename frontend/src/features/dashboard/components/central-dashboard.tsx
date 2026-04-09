@@ -601,6 +601,24 @@ export function CentralDashboard() {
     }
   }, [isMapFullscreen])
 
+  useEffect(() => {
+    if (!isMapFullscreen) {
+      return
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMapFullscreen(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isMapFullscreen])
+
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     const previousLocation = previousLocationRef.current
@@ -617,6 +635,10 @@ export function CentralDashboard() {
       setSelectedDepartmentDivision('')
       setSelectedDepartmentSubdivision('')
       setSelectedDepartmentVillage('')
+      previousLocationRef.current = {
+        pathname: location.pathname,
+        search: location.search,
+      }
       return
     }
 
@@ -1971,14 +1993,14 @@ export function CentralDashboard() {
 
     return (
       mapChartData.find((region) => {
-        const normalizedRowId = region.id?.trim()
+        const normalizedRowId = region.id?.trim() ?? ''
         return (
           (normalizedRowId.length > 0 && normalizedRowId === normalizedRegionId) ||
           slugify(region.name) === normalizedRegionName
         )
       }) ??
       overallPerformanceTableData.find((region) => {
-        const normalizedRowId = region.id?.trim()
+        const normalizedRowId = region.id?.trim() ?? ''
         return (
           (normalizedRowId.length > 0 && normalizedRowId === normalizedRegionId) ||
           slugify(region.name) === normalizedRegionName
@@ -2069,6 +2091,9 @@ export function CentralDashboard() {
 
     const selectedValue = resolveOverallPerformanceLocationValue(row)
     if (!selectedValue) {
+      if (isDepartmentTabActive) {
+        handleStateClick(row.id, row.name)
+      }
       return
     }
 

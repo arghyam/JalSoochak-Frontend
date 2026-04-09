@@ -7,6 +7,7 @@ interface EChartsWrapperProps {
   className?: string
   height?: string | number
   onChartReady?: (chart: echarts.ECharts) => void
+  onChartReadyOnce?: (chart: echarts.ECharts) => void
 }
 
 export function EChartsWrapper({
@@ -14,9 +15,11 @@ export function EChartsWrapper({
   className,
   height = '400px',
   onChartReady,
+  onChartReadyOnce,
 }: EChartsWrapperProps) {
   const chartRef = useRef<HTMLDivElement>(null)
   const chartInstanceRef = useRef<echarts.ECharts | null>(null)
+  const chartInitializedRef = useRef(false)
 
   // Initialize chart and update options
   useEffect(() => {
@@ -29,10 +32,15 @@ export function EChartsWrapper({
 
     const chart = chartInstanceRef.current
 
+    if (!chartInitializedRef.current) {
+      onChartReadyOnce?.(chart)
+      chartInitializedRef.current = true
+    }
+
     // Update chart options (doesn't re-create the chart)
     chart.setOption(option, true)
     onChartReady?.(chart)
-  }, [option, onChartReady])
+  }, [onChartReady, onChartReadyOnce, option])
 
   // Handle window resize
   useEffect(() => {
@@ -71,6 +79,7 @@ export function EChartsWrapper({
       if (chartInstanceRef.current) {
         chartInstanceRef.current.dispose()
         chartInstanceRef.current = null
+        chartInitializedRef.current = false
       }
     }
   }, [])
