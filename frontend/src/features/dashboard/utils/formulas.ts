@@ -495,7 +495,8 @@ const getTenantBoundaryRegionId = (
 export const mapTenantBoundariesToPerformance = (
   response: TenantBoundaryResponse | undefined,
   fallbackData: EntityPerformance[],
-  locationOptions: LocationLabelOption[] = []
+  locationOptions: LocationLabelOption[] = [],
+  regularityAnalytics?: AverageSchemeRegularityResponse
 ): EntityPerformance[] => {
   if (!response?.childRegions?.length) {
     return []
@@ -505,6 +506,23 @@ export const mapTenantBoundariesToPerformance = (
   const fallbackByName = mapFallbackByName(fallbackData)
   const locationOptionsById = mapLocationOptionsById(locationOptions)
   const locationOptionsByName = mapLocationOptionsByName(locationOptions)
+  const regularityById = new Map<string, number>()
+  const regularityByName = new Map<string, number>()
+
+  ;(regularityAnalytics?.childRegions ?? []).forEach((region) => {
+    const regularityPercent = Number((region.averageRegularity * 100).toFixed(1))
+    const titleKey = slugify(region.title)
+    if (titleKey) {
+      regularityByName.set(titleKey, regularityPercent)
+    }
+
+    if (typeof region.departmentId === 'number' && region.departmentId > 0) {
+      regularityById.set(String(region.departmentId), regularityPercent)
+    }
+    if (typeof region.lgdId === 'number' && region.lgdId > 0) {
+      regularityById.set(String(region.lgdId), regularityPercent)
+    }
+  })
 
   return response.childRegions.map((region, index) => {
     const regionTitle =
@@ -540,15 +558,37 @@ export const mapTenantBoundariesToPerformance = (
           ? fallbackMatch?.name
           : undefined
 
+    const preferredRegularity = (() => {
+      const regionIdCandidate =
+        typeof locationId === 'number'
+          ? String(locationId)
+          : typeof regionLocationId === 'number'
+            ? String(regionLocationId)
+            : undefined
+      const titleCandidate = !isGenericRegionName(regionTitle) ? slugify(regionTitle) : ''
+      const labelCandidate = !isGenericRegionName(locationLabel) ? slugify(locationLabel ?? '') : ''
+
+      const fromAnalytics =
+        (regionIdCandidate ? regularityById.get(regionIdCandidate) : undefined) ??
+        (titleCandidate ? regularityByName.get(titleCandidate) : undefined) ??
+        (labelCandidate ? regularityByName.get(labelCandidate) : undefined)
+
+      if (typeof fromAnalytics === 'number') {
+        return fromAnalytics
+      }
+
+      if (typeof region.averageSchemeRegularity === 'number') {
+        return Number((region.averageSchemeRegularity * 100).toFixed(1))
+      }
+
+      return 0
+    })()
+
     return {
       id: fallbackMatch?.id ?? getTenantBoundaryRegionId(region, index),
       name: formatEntityName(preferredRegionName, undefined, `Region ${index + 1}`),
       coverage: fallbackMatch?.coverage ?? 0,
-      regularity:
-        fallbackMatch?.regularity ??
-        (typeof region.averageSchemeRegularity === 'number'
-          ? Number((region.averageSchemeRegularity * 100).toFixed(1))
-          : 0),
+      regularity: preferredRegularity,
       continuity: fallbackMatch?.continuity ?? 0,
       quantity: fallbackMatch?.quantity ?? 0,
       compositeScore:

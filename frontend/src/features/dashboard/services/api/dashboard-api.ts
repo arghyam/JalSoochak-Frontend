@@ -115,8 +115,11 @@ type TenantPublicConfigMap = {
 type TenantBoundaryChildRegionAlias = {
   childLgdId?: number
   childLgdTitle?: string
+  lgdId?: number
   childDepartmentId?: number
   childDepartmentTitle?: string
+  departmentId?: number
+  title?: string
   childBoundaryGeoJson?: string | null
   boundaryGeoJson?: unknown
 }
@@ -303,8 +306,9 @@ const normalizeTenantBoundaryChildRegion = <T extends TenantBoundaryChildRegionA
   context: string
 ) => ({
   ...region,
-  childLgdId: region.childLgdId ?? region.childDepartmentId ?? 0,
-  childLgdTitle: region.childLgdTitle ?? region.childDepartmentTitle ?? '',
+  childLgdId:
+    region.childLgdId ?? region.lgdId ?? region.childDepartmentId ?? region.departmentId ?? 0,
+  childLgdTitle: region.childLgdTitle ?? region.title ?? region.childDepartmentTitle ?? '',
   boundaryGeoJson: (() => {
     const parsed = parseBoundaryGeoJson(
       region.boundaryGeoJson ?? region.childBoundaryGeoJson,

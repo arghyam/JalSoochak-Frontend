@@ -433,6 +433,146 @@ describe('dashboard formulas', () => {
     ])
   })
 
+  it('prefers tenant boundary averageSchemeRegularity over fallback regularity for map regions', () => {
+    expect(
+      mapTenantBoundariesToPerformance(
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          childBoundaryCount: 1,
+          childRegions: [
+            {
+              childDepartmentId: 10,
+              childDepartmentTitle: 'Region Alpha',
+              averageSchemeRegularity: 0.75,
+              averagePerformanceScore: 0.48,
+              boundaryGeoJson: null,
+            },
+          ],
+        },
+        [
+          {
+            id: '10',
+            name: 'Region Alpha',
+            coverage: 5,
+            regularity: 4.5,
+            continuity: 0,
+            quantity: 16.6,
+            compositeScore: 0,
+            status: 'needs-attention',
+          },
+        ]
+      )
+    ).toEqual([
+      expect.objectContaining({
+        id: '10',
+        name: 'Region Alpha',
+        regularity: 75,
+      }),
+    ])
+  })
+
+  it('does not fall back to overall performance regularity when tenant boundary regularity is missing', () => {
+    expect(
+      mapTenantBoundariesToPerformance(
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          childBoundaryCount: 1,
+          childRegions: [
+            {
+              childDepartmentId: 10,
+              childDepartmentTitle: 'Region Alpha',
+              averagePerformanceScore: 0.48,
+              boundaryGeoJson: null,
+            },
+          ],
+        },
+        [
+          {
+            id: '10',
+            name: 'Region Alpha',
+            coverage: 5,
+            regularity: 91,
+            continuity: 0,
+            quantity: 16.6,
+            compositeScore: 0,
+            status: 'needs-attention',
+          },
+        ]
+      )
+    ).toEqual([
+      expect.objectContaining({
+        id: '10',
+        name: 'Region Alpha',
+        regularity: 0,
+      }),
+    ])
+  })
+
+  it('uses average scheme regularity analytics when mapping tenant boundary regions', () => {
+    expect(
+      mapTenantBoundariesToPerformance(
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          childBoundaryCount: 1,
+          childRegions: [
+            {
+              childDepartmentId: 10,
+              childDepartmentTitle: 'Region Alpha',
+              averagePerformanceScore: 0.48,
+              boundaryGeoJson: null,
+            },
+          ],
+        },
+        [
+          {
+            id: '10',
+            name: 'Region Alpha',
+            coverage: 5,
+            regularity: 91,
+            continuity: 0,
+            quantity: 16.6,
+            compositeScore: 0,
+            status: 'needs-attention',
+          },
+        ],
+        [],
+        {
+          lgdId: 0,
+          parentDepartmentId: 0,
+          parentLgdLevel: 1,
+          parentDepartmentLevel: 0,
+          scope: 'child',
+          startDate: '2026-03-01',
+          endDate: '2026-03-30',
+          daysInRange: 30,
+          schemeCount: 1,
+          totalSupplyDays: 0,
+          averageRegularity: 0,
+          childRegionCount: 1,
+          childRegions: [
+            {
+              lgdId: 0,
+              departmentId: 10,
+              title: 'Region Alpha',
+              schemeCount: 1,
+              totalSupplyDays: 0,
+              averageRegularity: 0.75,
+            },
+          ],
+        }
+      )
+    ).toEqual([
+      expect.objectContaining({
+        id: '10',
+        name: 'Region Alpha',
+        regularity: 75,
+      }),
+    ])
+  })
+
   it('matches tenant boundary regions to overall performance rows by department id before index', () => {
     expect(
       mapTenantBoundariesToPerformance(

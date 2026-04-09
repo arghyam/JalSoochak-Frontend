@@ -1629,7 +1629,8 @@ export function CentralDashboard() {
     : mapTenantBoundariesToPerformance(
         tenantBoundaryData,
         overallPerformanceTableData,
-        tenantBoundaryLocationOptions
+        tenantBoundaryLocationOptions,
+        averageSchemeRegularityData
       )
   const isMapDataLoading = isCentralLandingView
     ? !nationalDashboardBoundariesData && isNationalDashboardBoundariesLoading
