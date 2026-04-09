@@ -192,6 +192,44 @@ export interface WaterQuantityPeriodicResponse {
   metrics: WaterQuantityPeriodicMetric[]
 }
 
+export interface WaterQuantityRegionWiseQueryParams {
+  tenantId: number
+  parentLgdId?: number
+  parentDepartmentId?: number
+  scope?: 'current' | 'child'
+  startDate: string
+  endDate: string
+}
+
+export interface WaterQuantityRegionWiseChildRegion {
+  lgdId: number
+  departmentId: number
+  title: string
+  schemeCount: number | null
+  householdCount: number
+  totalWaterQuantity: number
+  supplyDaysInEfficientRange: number
+  childLgdId?: number
+  childLgdCName?: string
+  childLgdTitle?: string
+  childDepartmentId?: number
+  childDepartmentTitle?: string
+}
+
+export interface WaterQuantityRegionWiseResponse {
+  lgdId: number
+  parentDepartmentId: number
+  parentLgdLevel: number
+  parentDepartmentLevel: number
+  scope: string
+  startDate: string
+  endDate: string
+  daysInRange?: number
+  schemeCount?: number
+  childRegionCount: number
+  childRegions: WaterQuantityRegionWiseChildRegion[]
+}
+
 export interface SchemeRegularityPeriodicQueryParams {
   tenantId: number
   startDate: string

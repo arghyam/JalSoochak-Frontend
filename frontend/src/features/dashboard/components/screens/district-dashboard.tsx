@@ -250,7 +250,7 @@ export function DistrictDashboardScreen({
               data={outageDistributionTimeTrendData}
               height="400px"
               xAxisLabel={outageTimeXAxisLabel}
-              yAxisLabel={t('outageAndSubmissionCharts.axis.noOfDays', {
+              yAxisLabel={t('outageAndSubmissionCharts.axis.noOfReasons', {
                 defaultValue: 'No. of days',
               })}
               seriesName="Supply outage"

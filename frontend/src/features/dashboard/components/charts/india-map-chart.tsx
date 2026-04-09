@@ -61,11 +61,11 @@ export function IndiaMapChart({
     [data, nationalBoundaryGeoJson]
   )
   const [isRegularityView, setIsRegularityView] = useState(true)
-  const metricKey: 'coverage' | 'regularity' = isRegularityView ? 'regularity' : 'coverage'
+  const metricKey: 'quantity' | 'regularity' = isRegularityView ? 'regularity' : 'quantity'
   const shouldShowNoMapAvailable = !isLoading && !dynamicGeoJson
-  const effectiveMapName = dynamicGeoJson ? mapName : null
+  const effectiveMapName = mapName
   const isRegisteredMapAvailable =
-    dynamicGeoJson != null || (effectiveMapName != null && echarts.getMap(effectiveMapName) != null)
+    dynamicGeoJson != null || (mapName != null && echarts.getMap(mapName) != null)
   const isMapReady = !shouldShowNoMapAvailable && isRegisteredMapAvailable
   const resolveThemeColor = useCallback(
     (token: string) => {
@@ -229,11 +229,13 @@ export function IndiaMapChart({
             }
             const { name, metrics } = p.data
             const safeName = echarts.format.encodeHTML(name)
+            const formatPercent = (value: number) =>
+              Number.isFinite(value) && value >= 0 ? `${value.toFixed(1)}%` : 'N/A'
             return `
               <div style="padding: 8px;">
                 <strong>${safeName}</strong><br/>
-                Regularity: ${metrics.regularity.toFixed(1)}%<br/>
-                Quantity: ${metrics.coverage} MLD
+                Regularity: ${formatPercent(metrics.regularity)}<br/>
+                Quantity: ${formatPercent(metrics.quantity)}
               </div>
             `
           }
@@ -306,33 +308,23 @@ export function IndiaMapChart({
   const bodyText6 = getBodyText6Style(theme)
   const legendItems = [
     {
-      label: isRegularityView
-        ? t('map.legend.gte90', { defaultValue: '>=90%' })
-        : t('map.legend.gte90Mld', { defaultValue: '>=90 MLD' }),
+      label: t('map.legend.gte90', { defaultValue: '>=90%' }),
       color: mapColors.gte90,
     },
     {
-      label: isRegularityView
-        ? t('map.legend.gte70', { defaultValue: '>=70%' })
-        : t('map.legend.gte70Mld', { defaultValue: '>=70 MLD' }),
+      label: t('map.legend.gte70', { defaultValue: '>=70%' }),
       color: mapColors.gte70,
     },
     {
-      label: isRegularityView
-        ? t('map.legend.gte50', { defaultValue: '>=50%' })
-        : t('map.legend.gte50Mld', { defaultValue: '>=50 MLD' }),
+      label: t('map.legend.gte50', { defaultValue: '>=50%' }),
       color: mapColors.gte50,
     },
     {
-      label: isRegularityView
-        ? t('map.legend.gte30', { defaultValue: '>=30%' })
-        : t('map.legend.gte30Mld', { defaultValue: '>=30 MLD' }),
+      label: t('map.legend.gte30', { defaultValue: '>=30%' }),
       color: mapColors.gte30,
     },
     {
-      label: isRegularityView
-        ? t('map.legend.gte0', { defaultValue: '>=0%' })
-        : t('map.legend.gte0Mld', { defaultValue: '>=0 MLD' }),
+      label: t('map.legend.gte0', { defaultValue: '>=0%' }),
       color: mapColors.gte0,
     },
     { label: t('map.legend.noData'), color: mapColors.noData },
@@ -494,7 +486,7 @@ export function IndiaMapChart({
               option={option}
               height="100%"
               renderer="svg"
-              onChartReadyOnce={handleChartReady}
+              onChartReady={handleChartReady}
             />
           ) : (
             <Center h="100%">

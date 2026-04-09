@@ -180,8 +180,8 @@
       "issueTypeBreakdown": "समस्या प्रकार विभाजन"
     },
     "axis": {
-      "percentage": "प्रतिशत (%)",
-      "noOfDays": "दिनों की संख्या"
+      "percentage": "प्रतिशत",
+      "noOfReasons": "कारणों की संख्या"
     },
     "series": {
       "submissionRate": "सबमिशन दर",

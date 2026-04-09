@@ -33,6 +33,7 @@ import { useSchemePerformanceQuery } from '../services/query/use-scheme-performa
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
 import { useTenantPublicConfigQuery } from '../services/query/use-tenant-public-config-query'
 import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
+import { useWaterQuantityRegionWiseQuery } from '../services/query/use-water-quantity-region-wise-query'
 import { useTenantBoundariesQuery } from '../services/query/use-tenant-boundaries-query'
 import { KPICard } from './kpi-card'
 import { DashboardBody } from './screens/dashboard-body'
@@ -302,8 +303,7 @@ const mapNationalBoundariesToPerformance = (
     const fallbackMatch =
       fallbackById.get(String(region.tenantId)) ??
       (typeof stateLgdCode === 'number' ? fallbackById.get(String(stateLgdCode)) : undefined) ??
-      fallbackByName.get(slugify(region.stateTitle)) ??
-      fallbackData[index]
+      fallbackByName.get(slugify(region.stateTitle))
 
     return {
       id: fallbackMatch?.id ?? String(region.tenantId || stateLgdCode || index),
@@ -516,6 +516,22 @@ const filterNationalDashboardByTenantIds = (
     overallOutageReasonDistribution: hasFilteredInactiveTenants
       ? {}
       : response.overallOutageReasonDistribution,
+  }
+}
+
+const filterNationalDashboardBoundariesByTenantIds = (
+  response: NationalDashboardBoundaryResponse | undefined,
+  activeTenantIds: Set<number>
+): NationalDashboardBoundaryResponse | undefined => {
+  if (!response || activeTenantIds.size === 0) {
+    return response
+  }
+
+  return {
+    ...response,
+    stateWiseBoundaries: response.stateWiseBoundaries.filter((state) =>
+      activeTenantIds.has(state.tenantId)
+    ),
   }
 }
 
@@ -1143,6 +1159,24 @@ export function CentralDashboard() {
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
           }
+  const quantityRegionWiseAnalyticsParams =
+    isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            tenantId: selectedTenant.tenantId,
+            parentLgdId: analyticsParentId,
+            scope: 'child' as const,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+          }
+        : {
+            tenantId: selectedTenant.tenantId,
+            parentDepartmentId: analyticsParentId,
+            scope: 'child' as const,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+          }
   const readingSubmissionRateAnalyticsParams =
     isHierarchyLeafSelected || !selectedTenant?.tenantId
       ? null
@@ -1297,7 +1331,7 @@ export function CentralDashboard() {
     params: analyticsParams,
     enabled: Boolean(analyticsParams),
   })
-  const { data: tenantBoundaryData, isFetching: isTenantBoundariesFetching = false } =
+  const { data: tenantBoundaryData, isLoading: isTenantBoundariesLoading = false } =
     useTenantBoundariesQuery({
       params: tenantBoundaryAnalyticsParams,
       enabled: Boolean(tenantBoundaryAnalyticsParams),
@@ -1308,7 +1342,7 @@ export function CentralDashboard() {
   })
   const {
     data: nationalDashboardBoundariesData,
-    isFetching: isNationalDashboardBoundariesFetching,
+    isLoading: isNationalDashboardBoundariesLoading = false,
   } = useNationalDashboardBoundariesQuery({
     enabled: !hasCentralLandingFilters,
   })
@@ -1355,9 +1389,12 @@ export function CentralDashboard() {
     previousNationalDashboardData,
     activeTenantIds
   )
-  const filteredNationalDashboardBoundaries = {
-    nationalBoundary: nationalDashboardBoundariesData?.nationalBoundary ?? null,
-    stateWiseBoundaries: nationalDashboardBoundariesData?.stateWiseBoundaries ?? [],
+  const filteredNationalDashboardBoundaries = filterNationalDashboardBoundariesByTenantIds(
+    nationalDashboardBoundariesData,
+    activeTenantIds
+  ) ?? {
+    nationalBoundary: null,
+    stateWiseBoundaries: [],
   }
   const { data: currentWaterSupplyKpiData } = useAverageWaterSupplyPerRegionQuery({
     params: currentWaterSupplyAnalyticsParams,
@@ -1370,6 +1407,10 @@ export function CentralDashboard() {
   const { data: averageSchemeRegularityData } = useAverageSchemeRegularityQuery({
     params: regularityAnalyticsParams,
     enabled: Boolean(regularityAnalyticsParams),
+  })
+  const { data: waterQuantityRegionWiseData } = useWaterQuantityRegionWiseQuery({
+    params: quantityRegionWiseAnalyticsParams,
+    enabled: Boolean(quantityRegionWiseAnalyticsParams),
   })
   const { data: readingSubmissionRateData } = useReadingSubmissionRateQuery({
     params: readingSubmissionRateAnalyticsParams,
@@ -1611,11 +1652,14 @@ export function CentralDashboard() {
     : mapTenantBoundariesToPerformance(
         tenantBoundaryData,
         overallPerformanceTableData,
-        tenantBoundaryLocationOptions
+        tenantBoundaryLocationOptions,
+        averageSchemeRegularityData,
+        waterQuantityRegionWiseData,
+        averageWaterSupplyData
       )
   const isMapDataLoading = isCentralLandingView
-    ? !nationalDashboardBoundariesData && isNationalDashboardBoundariesFetching
-    : Boolean(tenantBoundaryAnalyticsParams) && !tenantBoundaryData && isTenantBoundariesFetching
+    ? !nationalDashboardBoundariesData && isNationalDashboardBoundariesLoading
+    : Boolean(tenantBoundaryAnalyticsParams) && !tenantBoundaryData && isTenantBoundariesLoading
   const quantityPerformanceData = isCentralLandingView
     ? mapQuantityPerformanceFromNationalDashboard(
         filteredNationalDashboardData,

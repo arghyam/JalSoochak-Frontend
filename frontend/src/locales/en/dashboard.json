@@ -180,8 +180,8 @@
       "issueTypeBreakdown": "Issue Type Breakdown"
     },
     "axis": {
-      "percentage": "Percentage (%)",
-      "noOfDays": "No. of days"
+      "percentage": "Percentage",
+      "noOfReasons": "No. of Reasons"
     },
     "series": {
       "submissionRate": "Submission Rate",
