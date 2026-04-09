@@ -26,6 +26,7 @@ interface IndiaMapChartProps {
   isLoading?: boolean
   onStateClick?: (stateId: string, stateName: string) => void
   onStateHover?: (stateId: string, stateName: string, metrics: EntityPerformance) => void
+  quantityViewUnit?: 'percent' | 'mld'
   className?: string
   height?: string | number
   mapName?: string
@@ -41,6 +42,7 @@ export function IndiaMapChart({
   isLoading = false,
   onStateClick,
   onStateHover,
+  quantityViewUnit = 'mld',
   className,
   height = '600px',
   mapName = 'india',
@@ -62,6 +64,7 @@ export function IndiaMapChart({
   )
   const [isRegularityView, setIsRegularityView] = useState(true)
   const metricKey: 'quantity' | 'regularity' = isRegularityView ? 'regularity' : 'quantity'
+  const isQuantityPercentView = quantityViewUnit === 'percent'
   const shouldShowNoMapAvailable = !isLoading && !dynamicGeoJson
   const effectiveMapName = mapName
   const isRegisteredMapAvailable =
@@ -231,11 +234,15 @@ export function IndiaMapChart({
             const safeName = echarts.format.encodeHTML(name)
             const formatPercent = (value: number) =>
               Number.isFinite(value) && value >= 0 ? `${value.toFixed(1)}%` : 'N/A'
+            const formatMld = (value: number) =>
+              Number.isFinite(value) && value >= 0 ? `${value.toFixed(2)} MLD` : 'N/A'
+            const formatQuantity = (value: number) =>
+              isQuantityPercentView ? formatPercent(value) : formatMld(value)
             return `
               <div style="padding: 8px;">
                 <strong>${safeName}</strong><br/>
                 Regularity: ${formatPercent(metrics.regularity)}<br/>
-                Quantity: ${formatPercent(metrics.quantity)}
+                Quantity: ${formatQuantity(metrics.quantity)}
               </div>
             `
           }
@@ -303,28 +310,44 @@ export function IndiaMapChart({
     resolveAreaColor,
     usePrimaryFill,
     disableHoverEffect,
+    isQuantityPercentView,
   ])
 
   const bodyText6 = getBodyText6Style(theme)
   const legendItems = [
     {
-      label: t('map.legend.gte90', { defaultValue: '>=90%' }),
+      label:
+        isRegularityView || isQuantityPercentView
+          ? t('map.legend.gte90', { defaultValue: '>=90%' })
+          : t('map.legend.gte90Mld', { defaultValue: '>=90 MLD' }),
       color: mapColors.gte90,
     },
     {
-      label: t('map.legend.gte70', { defaultValue: '>=70%' }),
+      label:
+        isRegularityView || isQuantityPercentView
+          ? t('map.legend.gte70', { defaultValue: '>=70%' })
+          : t('map.legend.gte70Mld', { defaultValue: '>=70 MLD' }),
       color: mapColors.gte70,
     },
     {
-      label: t('map.legend.gte50', { defaultValue: '>=50%' }),
+      label:
+        isRegularityView || isQuantityPercentView
+          ? t('map.legend.gte50', { defaultValue: '>=50%' })
+          : t('map.legend.gte50Mld', { defaultValue: '>=50 MLD' }),
       color: mapColors.gte50,
     },
     {
-      label: t('map.legend.gte30', { defaultValue: '>=30%' }),
+      label:
+        isRegularityView || isQuantityPercentView
+          ? t('map.legend.gte30', { defaultValue: '>=30%' })
+          : t('map.legend.gte30Mld', { defaultValue: '>=30 MLD' }),
       color: mapColors.gte30,
     },
     {
-      label: t('map.legend.gte0', { defaultValue: '>=0%' }),
+      label:
+        isRegularityView || isQuantityPercentView
+          ? t('map.legend.gte0', { defaultValue: '>=0%' })
+          : t('map.legend.gte0Mld', { defaultValue: '>=0 MLD' }),
       color: mapColors.gte0,
     },
     { label: t('map.legend.noData'), color: mapColors.noData },

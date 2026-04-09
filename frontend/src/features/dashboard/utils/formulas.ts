@@ -518,8 +518,27 @@ export const mapTenantBoundariesToPerformance = (
   const schemeCountById = new Map<string, number>()
   const schemeCountByName = new Map<string, number>()
 
+  const regularityDaysInRange = resolveDaysInRange(
+    regularityAnalytics?.daysInRange,
+    regularityAnalytics?.startDate,
+    regularityAnalytics?.endDate
+  )
+
   ;(regularityAnalytics?.childRegions ?? []).forEach((region) => {
-    const regularityPercent = Number((region.averageRegularity * 100).toFixed(1))
+    const regularityPercent =
+      Number.isFinite(region.totalSupplyDays) &&
+      region.totalSupplyDays > 0 &&
+      Number.isFinite(region.schemeCount) &&
+      region.schemeCount > 0 &&
+      regularityDaysInRange > 0
+        ? calculateAverageRegularityPercent(
+            region.totalSupplyDays,
+            region.schemeCount,
+            regularityDaysInRange
+          )
+        : typeof region.averageRegularity === 'number' && Number.isFinite(region.averageRegularity)
+          ? Number((region.averageRegularity * 100).toFixed(1))
+          : 0
     const titleKey = slugify(region.title)
     if (titleKey) {
       regularityByName.set(titleKey, regularityPercent)

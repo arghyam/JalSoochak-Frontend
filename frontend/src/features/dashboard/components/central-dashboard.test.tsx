@@ -23,6 +23,7 @@ import { useSchemePerformanceQuery } from '../services/query/use-scheme-performa
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
 import { useTenantPublicConfigQuery } from '../services/query/use-tenant-public-config-query'
 import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
+import { useWaterQuantityRegionWiseQuery } from '../services/query/use-water-quantity-region-wise-query'
 import { useTenantBoundariesQuery } from '../services/query/use-tenant-boundaries-query'
 import { getPreviousPeriodRange } from '../utils/formulas'
 
@@ -141,6 +142,10 @@ jest.mock('../services/query/use-water-quantity-periodic-query', () => ({
   useWaterQuantityPeriodicQuery: jest.fn(),
 }))
 
+jest.mock('../services/query/use-water-quantity-region-wise-query', () => ({
+  useWaterQuantityRegionWiseQuery: jest.fn(),
+}))
+
 jest.mock('../services/query/use-tenant-boundaries-query', () => ({
   useTenantBoundariesQuery: jest.fn(),
 }))
@@ -244,6 +249,7 @@ describe('CentralDashboard', () => {
     ;(useSubmissionStatusQuery as jest.Mock).mockReset()
     ;(useTenantPublicConfigQuery as jest.Mock).mockReset()
     ;(useWaterQuantityPeriodicQuery as jest.Mock).mockReset()
+    ;(useWaterQuantityRegionWiseQuery as jest.Mock).mockReset()
     ;(useTenantBoundariesQuery as jest.Mock).mockReset()
     mockUseParams.mockReturnValue({})
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()])
@@ -279,6 +285,7 @@ describe('CentralDashboard', () => {
       data: undefined,
       isFetching: false,
     })
+    ;(useWaterQuantityRegionWiseQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useTenantBoundariesQuery as jest.Mock).mockReturnValue({ data: undefined })
   })
 
@@ -2677,7 +2684,7 @@ describe('CentralDashboard', () => {
 
     expect(useSubmissionStatusQuery).toHaveBeenCalledWith({
       params: {
-        tenantId: 18,
+        tenantId: 16,
         lgdId: expect.any(Number),
         startDate: expect.any(String),
         endDate: expect.any(String),
@@ -2698,6 +2705,12 @@ describe('CentralDashboard', () => {
       data: mockDashboardData,
       isLoading: false,
       error: null,
+    })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+      },
     })
     window.localStorage.setItem(
       'central-dashboard-filters',

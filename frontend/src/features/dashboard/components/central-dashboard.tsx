@@ -58,7 +58,9 @@ import { parseStableLocationValue, toStableLocationValue } from '../utils/stable
 import { localizeDepartmentHierarchyLabel, normalizeHierarchyLabel } from '../utils/hierarchy-label'
 import {
   calculateAbsoluteChange,
+  calculateAverageRegularityPercent,
   calculatePercentChange,
+  calculateQuantityMld,
   getPreviousPeriodRange,
   getRegularityKpi,
   getRegularityKpiFromPeriodic,
@@ -823,7 +825,29 @@ export function CentralDashboard() {
   const activeTenantIds = hasCompleteTenantIds
     ? new Set(locationSearchStates.map((option) => option.tenantId as number))
     : new Set<number>()
-  const selectedTenant = locationSearchData?.states.find((option) => option.value === selectedState)
+  const selectedTenant = (() => {
+    const byStateSlug = locationSearchStates.find((option) => option.value === selectedState)
+    if (byStateSlug) {
+      return byStateSlug
+    }
+
+    if (isDepartmentTabActive && locationSearchStates.length > 0) {
+      if (locationSearchStates.length === 1) {
+        return locationSearchStates[0]
+      }
+
+      const departmentKey = parseStableLocationValue(effectiveSelectedDepartmentState).lastSegment
+      if (departmentKey) {
+        return (
+          locationSearchStates.find(
+            (option) => option.value === departmentKey || slugify(option.label) === departmentKey
+          ) ?? locationSearchStates[0]
+        )
+      }
+    }
+
+    return undefined
+  })()
   const { data: tenantPublicConfig } = useTenantPublicConfigQuery({
     tenantId: selectedTenant?.tenantId,
     enabled: Boolean(selectedTenant?.tenantId),
@@ -1647,8 +1671,60 @@ export function CentralDashboard() {
       : shouldRequireOverallPerformanceChildOptions
         ? emptyEntityPerformance
         : rawOverallPerformanceTableData
+  const nationalDaysInRange = resolveDaysInRange(
+    filteredNationalDashboardData?.daysInRange,
+    filteredNationalDashboardData?.startDate,
+    filteredNationalDashboardData?.endDate
+  )
+  const nationalQuantityByTenantId = (
+    filteredNationalDashboardData?.stateWiseQuantityPerformance ?? []
+  ).reduce<Map<number, number>>((acc, state) => {
+    if (state.tenantId > 0 && state.schemeCount > 0 && state.totalWaterSuppliedLiters > 0) {
+      acc.set(
+        state.tenantId,
+        calculateQuantityMld(state.totalWaterSuppliedLiters, nationalDaysInRange)
+      )
+    }
+    return acc
+  }, new Map())
+  const nationalRegularityByTenantId = (
+    filteredNationalDashboardData?.stateWiseRegularity ?? []
+  ).reduce<Map<number, number>>((acc, state) => {
+    if (state.tenantId > 0 && state.schemeCount > 0 && state.totalSupplyDays > 0) {
+      acc.set(
+        state.tenantId,
+        calculateAverageRegularityPercent(
+          state.totalSupplyDays,
+          state.schemeCount,
+          nationalDaysInRange
+        )
+      )
+    }
+    return acc
+  }, new Map())
+  const nationalMapFallbackData: EntityPerformance[] = (
+    filteredNationalDashboardBoundaries?.stateWiseBoundaries ?? []
+  ).map((state, index) => ({
+    id: String(state.tenantId || index),
+    name: state.stateTitle || `State ${index + 1}`,
+    coverage: 0,
+    regularity:
+      typeof nationalRegularityByTenantId.get(state.tenantId) === 'number'
+        ? (nationalRegularityByTenantId.get(state.tenantId) as number)
+        : -1,
+    continuity: 0,
+    quantity:
+      typeof nationalQuantityByTenantId.get(state.tenantId) === 'number'
+        ? (nationalQuantityByTenantId.get(state.tenantId) as number)
+        : -1,
+    compositeScore: 0,
+    status: 'needs-attention',
+  }))
   const mapChartData = isCentralLandingView
-    ? mapNationalBoundariesToPerformance(filteredNationalDashboardBoundaries, dashboardData.mapData)
+    ? mapNationalBoundariesToPerformance(
+        filteredNationalDashboardBoundaries,
+        nationalMapFallbackData
+      )
     : mapTenantBoundariesToPerformance(
         tenantBoundaryData,
         overallPerformanceTableData,
@@ -2269,6 +2345,22 @@ export function CentralDashboard() {
   const numberLocale = i18n.resolvedLanguage === 'hi' ? 'hi-IN' : 'en-IN'
   const formatNumber = (value: number, options?: Intl.NumberFormatOptions) =>
     new Intl.NumberFormat(numberLocale, options).format(value)
+  const formatQuantityMld = (value: number) => {
+    if (!Number.isFinite(value)) {
+      return formatNumber(0, { maximumFractionDigits: 0 })
+    }
+
+    const absoluteValue = Math.abs(value)
+    if (Number.isInteger(value)) {
+      return formatNumber(value, { maximumFractionDigits: 0 })
+    }
+
+    if (absoluteValue > 0 && absoluteValue < 1) {
+      return formatNumber(value, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    }
+
+    return formatNumber(value, { minimumFractionDigits: 0, maximumFractionDigits: 1 })
+  }
   const quantityMldChange = calculatePercentChange(
     currentWaterSupplyKpis.quantityMld,
     previousWaterSupplyKpis.quantityMld
@@ -2319,10 +2411,7 @@ export function CentralDashboard() {
   const coreMetrics = [
     {
       label: t('kpi.labels.quantityInMld', { defaultValue: 'Quantity in MLD' }),
-      value: formatNumber(currentWaterSupplyKpis.quantityMld, {
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1,
-      }),
+      value: formatQuantityMld(currentWaterSupplyKpis.quantityMld),
       trend: buildNeutralAwareTrend(
         currentWaterSupplyKpis.quantityMld,
         quantityMldChange,
@@ -2513,7 +2602,7 @@ export function CentralDashboard() {
             ? 'india'
             : `tenant-boundary-${hierarchyType.toLowerCase()}-${analyticsParentId}`
         }
-        usePrimaryFill={isCentralLandingView}
+        quantityViewUnit={isCentralLandingView ? 'mld' : 'percent'}
         onStateClick={handleMapRegionClick}
         onStateHover={handleStateHover}
         isFullscreen={fullscreen}

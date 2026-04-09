@@ -148,8 +148,21 @@ describe('IndiaMapChart', () => {
     )
   })
 
-  it('shows percent legend labels when switched to quantity view', () => {
+  it('shows MLD legend labels when switched to quantity view by default', () => {
     renderWithProviders(<IndiaMapChart data={chartData} />)
+
+    const toggle = screen.getByRole('checkbox')
+    fireEvent.click(toggle)
+
+    expect(screen.getByText('>=90 MLD')).toBeTruthy()
+    expect(screen.getByText('>=70 MLD')).toBeTruthy()
+    expect(screen.getByText('>=50 MLD')).toBeTruthy()
+    expect(screen.getByText('>=30 MLD')).toBeTruthy()
+    expect(screen.getByText('>=0 MLD')).toBeTruthy()
+  })
+
+  it('shows percent legend labels for quantity view when configured', () => {
+    renderWithProviders(<IndiaMapChart data={chartData} quantityViewUnit="percent" />)
 
     const toggle = screen.getByRole('checkbox')
     fireEvent.click(toggle)
