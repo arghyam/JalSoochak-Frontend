@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     define: {
       __SERVER_MODE__: JSON.stringify(env.JALSOOCHAK_SERVER_MODE ?? ''),
+      __TENANT_ID__: JSON.stringify(env.JALSOOCHAK_TENANT_ID ?? ''),
     },
     resolve: {
       alias: {
