@@ -28,6 +28,7 @@ import {
 } from '../../services/query/use-pump-operators-queries'
 import { formatTimestamp } from '../../services/api/schemes-api'
 import type { PumpOperatorReading } from '../../types/pump-operators'
+import { sanitizeCsvData } from '../../utils/csv-sanitizer'
 
 function DetailField({ label, value }: { label: string; value: string }) {
   return (
@@ -101,7 +102,9 @@ export function PumpOperatorViewPage() {
         ...attendance.slice(1).map((record) => [record.date, record.attendance.toString(), '', '']),
       ]
 
-      const csv = Papa.unparse(csvData)
+      // Sanitize all cells to prevent CSV formula injection
+      const sanitizedCsvData = sanitizeCsvData(csvData as (string | number | boolean)[][])
+      const csv = Papa.unparse(sanitizedCsvData)
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
       const link = document.createElement('a')
       const url = URL.createObjectURL(blob)

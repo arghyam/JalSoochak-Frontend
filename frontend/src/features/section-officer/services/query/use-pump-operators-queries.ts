@@ -94,12 +94,16 @@ export function useOperatorAttendanceQuery(uuid: string | undefined) {
 
   return useQuery({
     queryKey: sectionOfficerQueryKeys.operatorAttendance(uuid ?? '', startDate, endDate),
-    queryFn: () =>
-      pumpOperatorsApi.getOperatorAttendance({
-        uuid: uuid!,
+    queryFn: () => {
+      if (!uuid) {
+        return Promise.reject(new Error('Missing operator uuid'))
+      }
+      return pumpOperatorsApi.getOperatorAttendance({
+        uuid,
         startDate,
         endDate,
-      }),
+      })
+    },
     enabled: false,
   })
 }
