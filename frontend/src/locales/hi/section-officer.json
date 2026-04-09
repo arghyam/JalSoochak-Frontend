@@ -137,7 +137,8 @@
         "reportingRate": "रिपोर्टिंग दर",
         "lastSubmission": "अंतिम प्रस्तुति"
       },
-      "viewTooltip": "पंप ऑपरेटर देखें"
+      "viewTooltip": "पंप ऑपरेटर देखें",
+      "downloadAttendance": "उपस्थिति"
     },
     "anomalies": {
       "heading": "विसंगतियां",

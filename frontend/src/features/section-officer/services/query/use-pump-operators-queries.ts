@@ -78,3 +78,28 @@ export function usePumpOperatorReadingsQuery(
     enabled: Boolean(operatorId) && Boolean(tenantCode),
   })
 }
+
+const getAttendanceDateRange = () => {
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
+  const startDate = new Date(yesterday)
+  startDate.setDate(startDate.getDate() - 89) // 90 days total including yesterday
+
+  const format = (d: Date) => d.toISOString().split('T')[0]
+  return { startDate: format(startDate), endDate: format(yesterday) }
+}
+
+export function useOperatorAttendanceQuery(uuid: string | undefined) {
+  const { startDate, endDate } = getAttendanceDateRange()
+
+  return useQuery({
+    queryKey: sectionOfficerQueryKeys.operatorAttendance(uuid ?? '', startDate, endDate),
+    queryFn: () =>
+      pumpOperatorsApi.getOperatorAttendance({
+        uuid: uuid!,
+        startDate,
+        endDate,
+      }),
+    enabled: false,
+  })
+}

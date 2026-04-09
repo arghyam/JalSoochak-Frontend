@@ -3,6 +3,7 @@ import type {
   PumpOperatorsListResponse,
   PumpOperatorDetails,
   PumpOperatorReadingsResponse,
+  OperatorAttendanceRecord,
 } from '../../types/pump-operators'
 
 type ApiEnvelope<T> = { data: T }
@@ -29,6 +30,12 @@ export interface GetPumpOperatorReadingsParams {
   page: number
   size: number
   schemeName?: string
+}
+
+export interface GetOperatorAttendanceParams {
+  uuid: string
+  startDate: string
+  endDate: string
 }
 
 export const pumpOperatorsApi = {
@@ -76,6 +83,23 @@ export const pumpOperatorsApi = {
           page,
           size,
           ...(schemeName ? { schemeName } : {}),
+        },
+      }
+    )
+    return response.data.data
+  },
+
+  getOperatorAttendance: async (
+    params: GetOperatorAttendanceParams
+  ): Promise<OperatorAttendanceRecord[]> => {
+    const { uuid, startDate, endDate } = params
+    const response = await apiClient.get<ApiEnvelope<OperatorAttendanceRecord[]>>(
+      '/api/v1/analytics/operator-attendance',
+      {
+        params: {
+          uuid,
+          start_date: startDate,
+          end_date: endDate,
         },
       }
     )
