@@ -4,7 +4,7 @@ import { renderWithProviders } from '@/test/render-with-providers'
 import type { EntityPerformance } from '../../types'
 import { IndiaMapChart } from './india-map-chart'
 
-const mockEChartsWrapper = jest.fn((_props: { option: unknown }) => (
+const mockEChartsWrapper = jest.fn((_props: { option: unknown; renderer?: string }) => (
   <div data-testid="echarts-wrapper" />
 ))
 const mockGetMap = jest.fn()
@@ -173,6 +173,19 @@ describe('IndiaMapChart', () => {
     )
     expect(latestOption.series?.[0]?.data?.[0]?.select?.itemStyle?.areaColor).not.toBe(
       latestOption.series?.[0]?.data?.[0]?.itemStyle?.areaColor
+    )
+  })
+
+  it('renders the map with the svg renderer', () => {
+    mockGetMap.mockReturnValue({})
+
+    renderWithProviders(<IndiaMapChart data={chartData} />)
+
+    expect(mockEChartsWrapper).toHaveBeenCalled()
+    expect(mockEChartsWrapper.mock.calls.at(-1)?.[0]).toEqual(
+      expect.objectContaining({
+        renderer: 'svg',
+      })
     )
   })
 })

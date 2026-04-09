@@ -473,7 +473,12 @@ export function IndiaMapChart({
             </div>
           ) : null}
           {isMapReady && isRegisteredMapAvailable ? (
-            <EChartsWrapper option={option} height="100%" onChartReadyOnce={handleChartReady} />
+            <EChartsWrapper
+              option={option}
+              height="100%"
+              renderer="svg"
+              onChartReadyOnce={handleChartReady}
+            />
           ) : (
             <Center h="100%">
               <VStack spacing={3}>
