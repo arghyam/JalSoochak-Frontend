@@ -1,11 +1,11 @@
 import { Box, Divider, Flex, Link, SimpleGrid, Stack, Text, VStack } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { ROUTES } from '@/shared/constants/routes'
 import logoWithText from '@/assets/media/logo-with-text.svg'
 
-const description =
-  "AI-enabled water supply monitoring for India's Rural Water Supply. Empowering frontline workers with reliable, auditable data — from field to governance."
-
 export function Footer() {
+  const { t } = useTranslation()
   return (
     <VStack spacing={0} w="full" bg="primary.25" borderTopWidth="1px" borderColor="neutral.200">
       {/* Top Section: Content */}
@@ -26,7 +26,7 @@ export function Footer() {
                 />
               </Box>
               <Text fontSize="sm" color="neutral.500" lineHeight="1.6">
-                {description}
+                {t('footer.description')}
               </Text>
             </Stack>
 
@@ -39,16 +39,16 @@ export function Footer() {
                 textTransform="uppercase"
                 letterSpacing="0.5px"
               >
-                Quick Links
+                {t('footer.quickLinks')}
               </Text>
               <Link
                 as={RouterLink}
-                to="/staff/login"
+                to={ROUTES.STAFF_LOGIN}
                 color="primary.500"
                 fontSize="sm"
                 _hover={{ textDecoration: 'underline' }}
               >
-                Field official login
+                {t('footer.fieldOfficialLogin')}
               </Link>
               <Link
                 href="#"
@@ -57,7 +57,7 @@ export function Footer() {
                 fontSize="sm"
                 _hover={{ textDecoration: 'underline' }}
               >
-                JalSoochak website
+                {t('footer.jalsoochakWebsite')}
               </Link>
             </VStack>
 
@@ -70,17 +70,16 @@ export function Footer() {
                 textTransform="uppercase"
                 letterSpacing="0.5px"
               >
-                Contact Us
+                {t('footer.contactUs')}
               </Text>
               <Text fontSize="sm" color="neutral.950">
-                info@arghyam.org
+                {t('footer.email')}
               </Text>
               <Text fontSize="sm" color="neutral.950">
-                +91-80 4169 8941
+                {t('footer.phone')}
               </Text>
               <Text fontSize="sm" color="neutral.950" lineHeight="1.6">
-                #599, ROHINI, 12th Main Rd, 7th Cross, HAL 2nd Stage, Indiranagar, Bengaluru,
-                Karnataka 560068
+                {t('footer.address')}
               </Text>
             </VStack>
           </SimpleGrid>
@@ -95,7 +94,7 @@ export function Footer() {
         <Box w="full" maxW="1440px" mx="auto">
           <Flex justify="center">
             <Text fontSize="sm" color="neutral.500" textAlign="center">
-              © 2026 JalSoochak · An initiative by{' '}
+              {t('footer.copyright', { year: new Date().getFullYear() })}{' '}
               <Link
                 href="https://arghyam.org/"
                 isExternal
@@ -103,7 +102,7 @@ export function Footer() {
                 color="primary.500"
                 _hover={{ textDecoration: 'underline' }}
               >
-                Arghyam
+                {t('footer.arghyam')}
               </Link>
             </Text>
           </Flex>
