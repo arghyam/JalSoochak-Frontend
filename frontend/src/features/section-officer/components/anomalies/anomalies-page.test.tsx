@@ -7,9 +7,26 @@ import { AnomaliesPage } from './anomalies-page'
 
 import type { ReactNode } from 'react'
 
+const translations: Record<string, string> = {
+  'pages.anomalies.heading': 'Anomalies',
+  'pages.anomalies.loading': 'Loading…',
+  'pages.anomalies.error': 'Failed to load anomalies. Please try again.',
+  'pages.anomalies.noAnomaliesFound': 'No anomalies found.',
+  'pages.anomalies.searchPlaceholder': 'Search by scheme name',
+  'pages.anomalies.filterStatus': 'Filter by status',
+  'pages.anomalies.filterDuration': 'Duration',
+  'pages.anomalies.clearAllFilters': 'clear all filters',
+  'pages.anomalies.columns.schemeName': 'Scheme Name',
+  'pages.anomalies.columns.dateTime': 'Date & Time',
+  'pages.anomalies.columns.anomalyType': 'Anomaly Type',
+  'pages.anomalies.columns.details': 'Details',
+  'pages.anomalies.columns.status': 'Status',
+  'common.documentTitle': '| JalSoochak',
+}
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string) => translations[key] || key,
     i18n: { changeLanguage: jest.fn() },
   }),
   initReactI18next: { type: '3rdParty', init: jest.fn() },

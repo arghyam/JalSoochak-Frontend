@@ -7,9 +7,26 @@ import { StaffEscalationsPage } from './staff-escalations-page'
 
 import type { ReactNode } from 'react'
 
+const translations: Record<string, string> = {
+  'pages.escalations.heading': 'Escalations',
+  'pages.escalations.loading': 'Loading…',
+  'pages.escalations.error': 'Failed to load escalations. Please try again.',
+  'pages.escalations.noEscalationsFound': 'No escalations found.',
+  'pages.escalations.searchPlaceholder': 'Search by scheme name',
+  'pages.escalations.filterStatus': 'Filter by status',
+  'pages.escalations.filterDuration': 'Duration',
+  'pages.escalations.clearAllFilters': 'clear all filters',
+  'pages.escalations.columns.schemeName': 'Scheme Name',
+  'pages.escalations.columns.dateTime': 'Date & Time',
+  'pages.escalations.columns.escalationType': 'Escalation Type',
+  'pages.escalations.columns.details': 'Details',
+  'pages.escalations.columns.status': 'Status',
+  'common.documentTitle': '| JalSoochak',
+}
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string) => translations[key] || key,
     i18n: { changeLanguage: jest.fn() },
   }),
   initReactI18next: { type: '3rdParty', init: jest.fn() },
@@ -201,10 +218,11 @@ describe('StaffEscalationsPage', () => {
     expect(screen.getByText('Test Scheme')).toBeTruthy()
 
     const table = screen.getByTestId('data-table')
-    // Assert the full untruncated message appears in the table
-    expect(
-      within(table).getByText('pump operator has not submitted for 2 consecutive days')
-    ).toBeTruthy()
+    // Assert the message appears in the table (truncated with ellipsis in the UI)
+    const messageCell = within(table).queryByTitle(
+      'pump operator has not submitted for 2 consecutive days'
+    )
+    expect(messageCell).toBeTruthy()
     // Assert the status appears in the table (not the filter option)
     expect(within(table).getAllByText('In-Progress').length).toBeGreaterThanOrEqual(1)
   })

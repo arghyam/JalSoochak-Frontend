@@ -11,9 +11,33 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }))
 
+const translations: Record<string, string> = {
+  'pages.pumpOperators.heading': 'Pump Operators',
+  'pages.pumpOperators.breadcrumb': 'Pump Operators',
+  'pages.pumpOperators.viewPumpOperator': 'View Pump Operator',
+  'pages.pumpOperators.loadingDetails': 'Loading pump operator details…',
+  'pages.pumpOperators.errorDetails': 'Failed to load pump operator details.',
+  'pages.pumpOperators.pumpOperatorDetails': 'Pump Operator Details',
+  'pages.pumpOperators.detailFields.name': 'Name',
+  'pages.pumpOperators.detailFields.phoneNumber': 'Phone Number',
+  'pages.pumpOperators.detailFields.reportingRate': 'Reporting rate',
+  'pages.pumpOperators.detailFields.lastSubmission': 'Last submission',
+  'pages.pumpOperators.searchReadingsPlaceholder': 'Search by scheme name',
+  'pages.pumpOperators.loadingReadings': 'Loading readings…',
+  'pages.pumpOperators.errorReadings': 'Failed to load readings.',
+  'pages.pumpOperators.noReadingsFound': 'No readings found.',
+  'pages.pumpOperators.columns.schemeName': 'Scheme Name',
+  'pages.pumpOperators.columns.stateSchemeId': 'State Scheme ID',
+  'pages.pumpOperators.columns.submissionDateTime': 'Submission Date & Time',
+  'pages.pumpOperators.columns.waterSupplied': 'Water Supplied',
+  'pages.pumpOperators.columns.readingValue': 'Reading Value',
+  'common.retry': 'Retry',
+  'common.documentTitle': '| JalSoochak',
+}
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string) => translations[key] || key,
     i18n: { changeLanguage: jest.fn() },
   }),
   initReactI18next: { type: '3rdParty', init: jest.fn() },

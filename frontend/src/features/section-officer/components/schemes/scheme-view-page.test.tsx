@@ -12,9 +12,35 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }))
 
+const translations: Record<string, string> = {
+  'pages.schemes.heading': 'All Schemes',
+  'pages.schemes.breadcrumb': 'All Schemes',
+  'pages.schemes.viewScheme': 'View Scheme',
+  'pages.schemes.schemeDetails': 'Scheme Details',
+  'pages.schemes.loading': 'Loading scheme details…',
+  'pages.schemes.loadingSubmissions': 'Loading submissions…',
+  'pages.schemes.error': 'Failed to load scheme details.',
+  'pages.schemes.errorSubmissions': 'Failed to load reading submissions.',
+  'pages.schemes.noSubmissionsFound': 'No submissions found.',
+  'pages.schemes.noSchemesFound': 'No schemes found.',
+  'pages.schemes.searchPlaceholder': 'Search by scheme name',
+  'pages.schemes.detailFields.schemeName': 'Scheme Name',
+  'pages.schemes.detailFields.stateSchemeId': 'State Scheme ID',
+  'pages.schemes.detailFields.lastSubmission': 'Last Submission',
+  'pages.schemes.detailFields.reportingRate': 'Reporting Rate',
+  'pages.schemes.columns.schemeName': 'Scheme Name',
+  'pages.schemes.columns.stateSchemeId': 'State Scheme ID',
+  'pages.schemes.columns.pumpOperator': 'Pump Operator',
+  'pages.schemes.columns.submissionDateTime': 'Submission Date & Time',
+  'pages.schemes.columns.waterSupplied': 'Water Supplied',
+  'pages.schemes.columns.readingValue': 'Reading Value',
+  'common.retry': 'Retry',
+  'common.documentTitle': '| JalSoochak',
+}
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string) => translations[key] || key,
     i18n: { changeLanguage: jest.fn() },
   }),
   initReactI18next: { type: '3rdParty', init: jest.fn() },

@@ -69,8 +69,9 @@ export function PumpOperatorViewPage() {
   } = usePumpOperatorReadingsQuery(operatorId, page, pageSize, debouncedSearch)
 
   useEffect(() => {
-    document.title = details
-      ? `${details.name} ${t('common.documentTitle')}`
+    const operatorName = details?.name?.trim()
+    document.title = operatorName
+      ? `${operatorName} ${t('common.documentTitle')}`
       : `${t('pages.pumpOperators.viewPumpOperator')} ${t('common.documentTitle')}`
   }, [details, t])
 
