@@ -175,17 +175,7 @@ export function PumpOperatorViewPage() {
             Pump Operator Details
           </Heading>
           <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
-            {(() => {
-              const nameParts = details.name?.split(/\s+/, 2) ?? []
-              const firstName = nameParts[0] ?? ''
-              const lastName = nameParts[1] ?? '—'
-              return (
-                <>
-                  <DetailField label="First name" value={firstName} />
-                  <DetailField label="Last name" value={lastName} />
-                </>
-              )
-            })()}
+            <DetailField label="Name" value={details.name ?? '—'} />
             <DetailField label="Phone Number" value={details.phoneNumber ?? '—'} />
             <DetailField
               label="Reporting rate"

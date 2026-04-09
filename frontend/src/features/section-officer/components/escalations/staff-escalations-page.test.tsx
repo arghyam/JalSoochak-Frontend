@@ -1,5 +1,5 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createElement } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -199,10 +199,14 @@ describe('StaffEscalationsPage', () => {
     })
     renderPage()
     expect(screen.getByText('Test Scheme')).toBeTruthy()
-    // Text is truncated by TruncatedCell component, so search for truncated version
-    expect(screen.getByText(/pump operator has not submitte/)).toBeTruthy()
-    // Use getAllByText to get the table cell, not the select option
-    expect(screen.getAllByText('In-Progress').length).toBeGreaterThanOrEqual(1)
+
+    const table = screen.getByTestId('data-table')
+    // Assert the full untruncated message appears in the table
+    expect(
+      within(table).getByText('pump operator has not submitted for 2 consecutive days')
+    ).toBeTruthy()
+    // Assert the status appears in the table (not the filter option)
+    expect(within(table).getAllByText('In-Progress').length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders search input', () => {

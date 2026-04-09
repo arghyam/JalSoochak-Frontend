@@ -26,7 +26,11 @@ export function PanelSwitcher() {
   const pathname = location.pathname
   const isStateAdminPanel = pathname.startsWith(ROUTES.STATE_ADMIN)
   const isSuperAdminPanel = pathname.startsWith(ROUTES.SUPER_ADMIN)
-  const currentPanel = isStateAdminPanel ? 'state-admin' : 'super-user'
+  const currentPanel = isStateAdminPanel ? 'state-admin' : isSuperAdminPanel ? 'super-user' : null
+
+  if (!currentPanel) {
+    return null
+  }
 
   return (
     <Box position="relative" zIndex={1}>

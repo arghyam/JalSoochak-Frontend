@@ -183,7 +183,7 @@ describe('PumpOperatorViewPage', () => {
     expect(screen.getByText('View Pump Operator')).toBeTruthy()
   })
 
-  it('renders pump operator details with split name', () => {
+  it('renders pump operator details with name and metrics', () => {
     mockUsePumpOperatorDetailsQuery.mockReturnValue({
       isLoading: false,
       isError: false,
@@ -191,10 +191,8 @@ describe('PumpOperatorViewPage', () => {
       refetch: jest.fn(),
     })
     renderPage()
-    expect(screen.getByText('First name')).toBeTruthy()
-    expect(screen.getByText('Shyam')).toBeTruthy()
-    expect(screen.getByText('Last name')).toBeTruthy()
-    expect(screen.getByText('Singh')).toBeTruthy()
+    expect(screen.getByText('Shyam Singh')).toBeTruthy()
+    expect(screen.getByText('9919420001')).toBeTruthy()
     expect(screen.getByText('85%')).toBeTruthy()
   })
 
@@ -210,7 +208,7 @@ describe('PumpOperatorViewPage', () => {
     expect(dashes.length).toBeGreaterThanOrEqual(2)
   })
 
-  it('renders single-word name with "—" as last name', () => {
+  it('renders single-word name correctly', () => {
     mockUsePumpOperatorDetailsQuery.mockReturnValue({
       isLoading: false,
       isError: false,
@@ -219,7 +217,18 @@ describe('PumpOperatorViewPage', () => {
     })
     renderPage()
     expect(screen.getByText('Ravi')).toBeTruthy()
-    expect(screen.getAllByText('—').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('shows "—" for null name', () => {
+    mockUsePumpOperatorDetailsQuery.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: { ...MOCK_DETAILS, name: null },
+      refetch: jest.fn(),
+    })
+    renderPage()
+    const dashes = screen.getAllByText('—')
+    expect(dashes.length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders readings table', () => {
