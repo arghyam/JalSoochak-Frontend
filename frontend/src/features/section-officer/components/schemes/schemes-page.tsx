@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Heading,
@@ -23,6 +24,7 @@ import { formatTimestamp } from '../../services/api/schemes-api'
 import type { SchemesListItem } from '../../types/schemes'
 
 export function SchemesPage() {
+  const { t } = useTranslation('section-officer')
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -42,13 +44,13 @@ export function SchemesPage() {
   )
 
   useEffect(() => {
-    document.title = 'All Schemes | JalSoochak'
-  }, [])
+    document.title = `${t('pages.schemes.heading')} ${t('common.documentTitle')}`
+  }, [t])
 
   const columns: DataTableColumn<SchemesListItem>[] = [
     {
       key: 'schemeName',
-      header: 'Scheme Name',
+      header: t('pages.schemes.columns.schemeName'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.schemeName}
@@ -57,7 +59,7 @@ export function SchemesPage() {
     },
     {
       key: 'stateSchemeId',
-      header: 'State Scheme ID',
+      header: t('pages.schemes.columns.stateSchemeId'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.stateSchemeId}
@@ -66,7 +68,7 @@ export function SchemesPage() {
     },
     {
       key: 'pumpOperators',
-      header: 'Pump Operators',
+      header: t('pages.schemes.columns.pumpOperators'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.pumpOperatorNames.length > 0 ? row.pumpOperatorNames.join(', ') : '—'}
@@ -75,7 +77,7 @@ export function SchemesPage() {
     },
     {
       key: 'lastReading',
-      header: 'Last Reading',
+      header: t('pages.schemes.columns.lastReading'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.lastReading}
@@ -84,7 +86,7 @@ export function SchemesPage() {
     },
     {
       key: 'yesterdayReading',
-      header: "Yesterday's Reading",
+      header: t('pages.schemes.columns.yesterdayReading'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.yesterdayReading}
@@ -93,18 +95,16 @@ export function SchemesPage() {
     },
     {
       key: 'lastWaterSupplied',
-      header: 'Last Water Supplied',
+      header: t('pages.schemes.columns.lastWaterSupplied'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
-          {row.lastWaterSupplied !== null && row.lastWaterSupplied !== undefined
-            ? row.lastWaterSupplied
-            : '—'}
+          {row.lastWaterSupplied ?? '—'}
         </Text>
       ),
     },
     {
       key: 'lastSubmission',
-      header: 'Last Submission',
+      header: t('pages.schemes.columns.lastSubmission'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.lastReadingAt ? formatTimestamp(row.lastReadingAt) : '—'}
@@ -113,11 +113,11 @@ export function SchemesPage() {
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: t('pages.schemes.columns.actions'),
       render: (row) => (
-        <ActionTooltip label="View scheme">
+        <ActionTooltip label={t('common.viewScheme')}>
           <IconButton
-            aria-label="View scheme"
+            aria-label={t('common.viewScheme')}
             icon={<FiEye aria-hidden="true" size={20} />}
             variant="ghost"
             width={5}
@@ -140,7 +140,7 @@ export function SchemesPage() {
       <Box w="full">
         <PageHeader>
           <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
-            All Schemes
+            {t('pages.schemes.heading')}
           </Heading>
         </PageHeader>
         <Flex role="status" aria-live="polite" align="center" minH="200px" gap={3}>
@@ -156,13 +156,13 @@ export function SchemesPage() {
       <Box w="full">
         <PageHeader>
           <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
-            All Schemes
+            {t('pages.schemes.heading')}
           </Heading>
         </PageHeader>
         <Flex h="64" align="center" justify="center" direction="column" gap={4} role="alert">
           <Text color="error.500">Failed to load schemes. Please try again.</Text>
           <Button variant="secondary" size="sm" onClick={() => void refetch()}>
-            Retry
+            {t('common.retry')}
           </Button>
         </Flex>
       </Box>
@@ -173,7 +173,7 @@ export function SchemesPage() {
     <Box w="full" maxW="100%" minW={0}>
       <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
-          All Schemes
+          {t('pages.schemes.heading')}
         </Heading>
       </PageHeader>
 
@@ -199,10 +199,10 @@ export function SchemesPage() {
             <SearchIcon color="neutral.300" aria-hidden="true" />
           </InputLeftElement>
           <Input
-            placeholder="Search by scheme name"
+            placeholder={t('pages.schemes.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            aria-label="Search by scheme name"
+            aria-label={t('pages.schemes.searchPlaceholder')}
             bg="white"
             h={8}
             borderWidth="1px"
@@ -222,7 +222,7 @@ export function SchemesPage() {
           columns={columns}
           data={data?.content ?? []}
           getRowKey={(row) => row.schemeId}
-          emptyMessage="No schemes found."
+          emptyMessage={t('pages.schemes.noSchemesFound')}
           pagination={{
             enabled: true,
             page,

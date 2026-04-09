@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Heading,
@@ -39,6 +40,7 @@ function DetailField({ label, value }: { label: string; value: string }) {
 }
 
 export function PumpOperatorViewPage() {
+  const { t } = useTranslation('section-officer')
   const { operatorId } = useParams<{ operatorId: string }>()
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
@@ -67,13 +69,15 @@ export function PumpOperatorViewPage() {
   } = usePumpOperatorReadingsQuery(operatorId, page, pageSize, debouncedSearch)
 
   useEffect(() => {
-    document.title = details ? `${details.name} | JalSoochak` : 'View Pump Operator | JalSoochak'
-  }, [details])
+    document.title = details
+      ? `${details.name} ${t('common.documentTitle')}`
+      : `${t('pages.pumpOperators.viewPumpOperator')} ${t('common.documentTitle')}`
+  }, [details, t])
 
   const readingsColumns: DataTableColumn<PumpOperatorReading>[] = [
     {
       key: 'schemeName',
-      header: 'Scheme Name',
+      header: t('pages.pumpOperators.columns.schemeName'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.schemeName}
@@ -82,7 +86,7 @@ export function PumpOperatorViewPage() {
     },
     {
       key: 'stateSchemeId',
-      header: 'State Scheme ID',
+      header: t('pages.pumpOperators.columns.stateSchemeId'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.stateSchemeId}
@@ -91,7 +95,7 @@ export function PumpOperatorViewPage() {
     },
     {
       key: 'readingAt',
-      header: 'Submission Date & Time',
+      header: t('pages.pumpOperators.columns.submissionDateTime'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.readingAt ? formatTimestamp(row.readingAt) : '—'}
@@ -100,7 +104,7 @@ export function PumpOperatorViewPage() {
     },
     {
       key: 'waterSupplied',
-      header: 'Water Supplied',
+      header: t('pages.pumpOperators.columns.waterSupplied'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.waterSupplied !== null && row.waterSupplied !== undefined ? row.waterSupplied : '—'}
@@ -109,7 +113,7 @@ export function PumpOperatorViewPage() {
     },
     {
       key: 'readingValue',
-      header: 'Reading Value',
+      header: t('pages.pumpOperators.columns.readingValue'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.readingValue}
@@ -122,7 +126,7 @@ export function PumpOperatorViewPage() {
     <Box w="full" maxW="100%" minW={0}>
       <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={2}>
-          Pump Operators
+          {t('pages.pumpOperators.heading')}
         </Heading>
         <Flex as="nav" aria-label="Breadcrumb" gap={2} flexWrap="wrap">
           <Link
@@ -133,13 +137,13 @@ export function PumpOperatorViewPage() {
             onClick={() => navigate(ROUTES.STAFF_PUMP_OPERATORS)}
             cursor="pointer"
           >
-            Pump Operators
+            {t('pages.pumpOperators.breadcrumb')}
           </Link>
           <Text fontSize="14px" lineHeight="21px" color="neutral.500" aria-hidden="true">
             /
           </Text>
           <Text fontSize="14px" lineHeight="21px" color="#26272B" aria-current="page">
-            View Pump Operator
+            {t('pages.pumpOperators.viewPumpOperator')}
           </Text>
         </Flex>
       </PageHeader>
@@ -147,15 +151,15 @@ export function PumpOperatorViewPage() {
       {detailsLoading && (
         <Flex role="status" aria-live="polite" align="center" minH="200px" gap={3}>
           <Spinner size="md" color="primary.500" />
-          <Text color="neutral.600">Loading pump operator details…</Text>
+          <Text color="neutral.600">{t('pages.pumpOperators.loadingDetails')}</Text>
         </Flex>
       )}
 
       {detailsError && (
         <Flex align="flex-start" direction="column" gap={3} mt={4} role="alert">
-          <Text color="red.500">Failed to load pump operator details.</Text>
+          <Text color="red.500">{t('pages.pumpOperators.errorDetails')}</Text>
           <Button variant="secondary" size="sm" onClick={() => void refetchDetails()}>
-            Retry
+            {t('common.retry')}
           </Button>
         </Flex>
       )}
@@ -172,13 +176,19 @@ export function PumpOperatorViewPage() {
           mb={6}
         >
           <Heading as="h2" size="h3" fontWeight="400" mb={6}>
-            Pump Operator Details
+            {t('pages.pumpOperators.pumpOperatorDetails')}
           </Heading>
           <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
-            <DetailField label="Name" value={details.name ?? '—'} />
-            <DetailField label="Phone Number" value={details.phoneNumber ?? '—'} />
             <DetailField
-              label="Reporting rate"
+              label={t('pages.pumpOperators.detailFields.name')}
+              value={details.name ?? '—'}
+            />
+            <DetailField
+              label={t('pages.pumpOperators.detailFields.phoneNumber')}
+              value={details.phoneNumber ?? '—'}
+            />
+            <DetailField
+              label={t('pages.pumpOperators.detailFields.reportingRate')}
               value={
                 details.reportingRatePercent !== null && details.reportingRatePercent !== undefined
                   ? `${details.reportingRatePercent}%`
@@ -186,7 +196,7 @@ export function PumpOperatorViewPage() {
               }
             />
             <DetailField
-              label="Last submission"
+              label={t('pages.pumpOperators.detailFields.lastSubmission')}
               value={details.lastSubmissionAt ? formatTimestamp(details.lastSubmissionAt) : '—'}
             />
           </SimpleGrid>
@@ -214,10 +224,10 @@ export function PumpOperatorViewPage() {
             <SearchIcon color="neutral.300" aria-hidden="true" />
           </InputLeftElement>
           <Input
-            placeholder="Search by scheme name"
+            placeholder={t('pages.pumpOperators.searchReadingsPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            aria-label="Search by scheme name"
+            aria-label={t('pages.pumpOperators.searchReadingsPlaceholder')}
             bg="white"
             h={8}
             borderWidth="1px"
@@ -231,15 +241,15 @@ export function PumpOperatorViewPage() {
       {readingsLoading && (
         <Flex role="status" aria-live="polite" align="center" minH="120px" gap={3}>
           <Spinner size="md" color="primary.500" />
-          <Text color="neutral.600">Loading readings…</Text>
+          <Text color="neutral.600">{t('pages.pumpOperators.loadingReadings')}</Text>
         </Flex>
       )}
 
       {readingsError && (
         <Flex align="flex-start" direction="column" gap={3} mt={4} role="alert">
-          <Text color="red.500">Failed to load readings.</Text>
+          <Text color="red.500">{t('pages.pumpOperators.errorReadings')}</Text>
           <Button variant="secondary" size="sm" onClick={() => void refetchReadings()}>
-            Retry
+            {t('common.retry')}
           </Button>
         </Flex>
       )}
@@ -249,7 +259,7 @@ export function PumpOperatorViewPage() {
           columns={readingsColumns}
           data={readings?.content ?? []}
           getRowKey={(row) => `${row.schemeId}-${row.readingAt}`}
-          emptyMessage="No readings found."
+          emptyMessage={t('pages.pumpOperators.noReadingsFound')}
           pagination={{
             enabled: true,
             page,

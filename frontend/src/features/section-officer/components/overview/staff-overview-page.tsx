@@ -145,7 +145,11 @@ export function StaffOverviewPage() {
         <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={{ base: 4, md: 6 }}>
           {/* Outage Reasons - Pie Chart */}
           <ChartBoxWithTitle title={t('pages.overview.charts.outageReasons.pieTitle')}>
-            <ChartCell isLoading={isOutageReasonsLoading} isError={isOutageReasonsError}>
+            <ChartCell
+              isLoading={isOutageReasonsLoading}
+              isError={isOutageReasonsError}
+              errorMessage={t('pages.overview.charts.failedToLoadData')}
+            >
               <SupplyOutageReasonsChart
                 data={outageReasonsData?.pieData ?? []}
                 height={CHART_HEIGHT}
@@ -156,7 +160,11 @@ export function StaffOverviewPage() {
 
           {/* Outage Reasons - Distribution Chart */}
           <ChartBoxWithTitle title={t('pages.overview.charts.outageReasons.distributionTitle')}>
-            <ChartCell isLoading={isOutageReasonsLoading} isError={isOutageReasonsError}>
+            <ChartCell
+              isLoading={isOutageReasonsLoading}
+              isError={isOutageReasonsError}
+              errorMessage={t('pages.overview.charts.failedToLoadData')}
+            >
               <SupplyOutageDistributionChart
                 data={outageReasonsData?.histogramData ?? []}
                 height={CHART_HEIGHT}
@@ -167,7 +175,11 @@ export function StaffOverviewPage() {
 
           {/* Non-Submission Reasons - Pie Chart */}
           <ChartBoxWithTitle title={t('pages.overview.charts.nonSubmissionReasons.pieTitle')}>
-            <ChartCell isLoading={isNonSubmissionLoading} isError={isNonSubmissionError}>
+            <ChartCell
+              isLoading={isNonSubmissionLoading}
+              isError={isNonSubmissionError}
+              errorMessage={t('pages.overview.charts.failedToLoadData')}
+            >
               <SupplyOutageReasonsChart
                 data={nonSubmissionData?.pieData ?? []}
                 height={CHART_HEIGHT}
@@ -180,7 +192,11 @@ export function StaffOverviewPage() {
           <ChartBoxWithTitle
             title={t('pages.overview.charts.nonSubmissionReasons.distributionTitle')}
           >
-            <ChartCell isLoading={isNonSubmissionLoading} isError={isNonSubmissionError}>
+            <ChartCell
+              isLoading={isNonSubmissionLoading}
+              isError={isNonSubmissionError}
+              errorMessage={t('pages.overview.charts.failedToLoadData')}
+            >
               <SupplyOutageDistributionChart
                 data={nonSubmissionData?.histogramData ?? []}
                 height={CHART_HEIGHT}
@@ -191,7 +207,11 @@ export function StaffOverviewPage() {
 
           {/* Submission Status - Pie Chart */}
           <ChartBoxWithTitle title={t('pages.overview.charts.submissionStatus.pieTitle')}>
-            <ChartCell isLoading={isSubmissionStatusLoading} isError={isSubmissionStatusError}>
+            <ChartCell
+              isLoading={isSubmissionStatusLoading}
+              isError={isSubmissionStatusError}
+              errorMessage={t('pages.overview.charts.failedToLoadData')}
+            >
               <SupplyOutageReasonsChart
                 data={submissionStatusData?.pieData ?? []}
                 height={CHART_HEIGHT}
@@ -202,7 +222,11 @@ export function StaffOverviewPage() {
 
           {/* Submission Status - Bar Chart */}
           <ChartBoxWithTitle title={t('pages.overview.charts.submissionStatus.barTitle')}>
-            <ChartCell isLoading={isSubmissionStatusLoading} isError={isSubmissionStatusError}>
+            <ChartCell
+              isLoading={isSubmissionStatusLoading}
+              isError={isSubmissionStatusError}
+              errorMessage={t('pages.overview.charts.failedToLoadData')}
+            >
               <ReadingSubmissionRateChart
                 data={submissionStatusData?.barData ?? []}
                 height={CHART_HEIGHT}
@@ -243,9 +267,10 @@ interface ChartCellProps {
   readonly isLoading: boolean
   readonly isError: boolean
   readonly children: React.ReactNode
+  readonly errorMessage?: string
 }
 
-function ChartCell({ isLoading, isError, children }: ChartCellProps) {
+function ChartCell({ isLoading, isError, children, errorMessage }: ChartCellProps) {
   let content: React.ReactNode
   if (isLoading) {
     content = (
@@ -254,7 +279,7 @@ function ChartCell({ isLoading, isError, children }: ChartCellProps) {
       </Flex>
     )
   } else if (isError) {
-    content = <ChartEmptyState minHeight="340px" message="Failed to load data" />
+    content = <ChartEmptyState minHeight="340px" message={errorMessage ?? 'Failed to load data'} />
   } else {
     content = children
   }

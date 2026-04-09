@@ -59,28 +59,128 @@
           "pieTitle": "Reading Submission Status",
           "barTitle": "Reading Submission Rate",
           "xAxisLabel": "Date"
-        }
+        },
+        "failedToLoadData": "Failed to load data"
       }
     },
     "schemes": {
-      "heading": "Schemes",
+      "heading": "All Schemes",
       "comingSoon": "Coming Soon",
-      "subtitle": "The Schemes page is under construction."
+      "subtitle": "The Schemes page is under construction.",
+      "breadcrumb": "All Schemes",
+      "viewScheme": "View Scheme",
+      "schemeDetails": "Scheme Details",
+      "columns": {
+        "schemeName": "Scheme Name",
+        "stateSchemeId": "State Scheme ID",
+        "pumpOperators": "Pump Operators",
+        "lastReading": "Last Reading",
+        "yesterdayReading": "Yesterday's Reading",
+        "lastWaterSupplied": "Last Water Supplied",
+        "lastSubmission": "Last Submission",
+        "pumpOperator": "Pump Operator",
+        "submissionDateTime": "Submission Date & Time",
+        "waterSupplied": "Water Supplied",
+        "readingValue": "Reading Value",
+        "actions": "Actions"
+      },
+      "loading": "Loading scheme details…",
+      "loadingSubmissions": "Loading submissions…",
+      "error": "Failed to load scheme details.",
+      "errorSubmissions": "Failed to load reading submissions.",
+      "noSubmissionsFound": "No submissions found.",
+      "noSchemesFound": "No schemes found.",
+      "searchPlaceholder": "Search by scheme name",
+      "detailFields": {
+        "schemeName": "Scheme Name",
+        "stateSchemeId": "State Scheme ID",
+        "lastSubmission": "Last Submission",
+        "reportingRate": "Reporting Rate"
+      }
     },
     "pumpOperators": {
       "heading": "Pump Operators",
       "comingSoon": "Coming Soon",
-      "subtitle": "The Pump Operators page is under construction."
+      "subtitle": "The Pump Operators page is under construction.",
+      "breadcrumb": "Pump Operators",
+      "viewPumpOperator": "View Pump Operator",
+      "pumpOperatorDetails": "Pump Operator Details",
+      "columns": {
+        "name": "Name",
+        "schemes": "Schemes",
+        "reportingRate": "Reporting Rate (%)",
+        "lastSubmission": "Last Submission",
+        "activityStatus": "Activity Status",
+        "actions": "Actions",
+        "schemeName": "Scheme Name",
+        "stateSchemeId": "State Scheme ID",
+        "submissionDateTime": "Submission Date & Time",
+        "waterSupplied": "Water Supplied",
+        "readingValue": "Reading Value"
+      },
+      "loading": "Loading…",
+      "loadingDetails": "Loading pump operator details…",
+      "loadingReadings": "Loading readings…",
+      "error": "Failed to load pump operators. Please try again.",
+      "errorDetails": "Failed to load pump operator details.",
+      "errorReadings": "Failed to load readings.",
+      "noReadingsFound": "No readings found.",
+      "noPumpOperatorsFound": "No pump operators found.",
+      "searchPlaceholder": "Search by name",
+      "searchReadingsPlaceholder": "Search by scheme name",
+      "filterStatus": "Status",
+      "filterDuration": "Duration",
+      "clearAllFilters": "clear all filters",
+      "detailFields": {
+        "name": "Name",
+        "phoneNumber": "Phone Number",
+        "reportingRate": "Reporting rate",
+        "lastSubmission": "Last submission"
+      },
+      "viewTooltip": "View pump operator"
     },
     "anomalies": {
       "heading": "Anomalies",
       "comingSoon": "Coming Soon",
-      "subtitle": "The Anomalies page is under construction."
+      "subtitle": "The Anomalies page is under construction.",
+      "columns": {
+        "schemeName": "Scheme Name",
+        "dateTime": "Date & Time",
+        "anomalyType": "Anomaly Type",
+        "details": "Details",
+        "status": "Status"
+      },
+      "loading": "Loading…",
+      "error": "Failed to load anomalies. Please try again.",
+      "noAnomaliesFound": "No anomalies found.",
+      "searchPlaceholder": "Search by scheme name",
+      "filterStatus": "Status",
+      "filterDuration": "Duration",
+      "clearAllFilters": "clear all filters"
     },
     "escalations": {
       "heading": "Escalations",
       "comingSoon": "Coming Soon",
-      "subtitle": "The Escalations page is under construction."
+      "subtitle": "The Escalations page is under construction.",
+      "columns": {
+        "schemeName": "Scheme Name",
+        "dateTime": "Date & Time",
+        "escalationType": "Escalation Type",
+        "details": "Details",
+        "status": "Status"
+      },
+      "loading": "Loading…",
+      "error": "Failed to load escalations. Please try again.",
+      "noEscalationsFound": "No escalations found.",
+      "searchPlaceholder": "Search by scheme name",
+      "filterStatus": "Status",
+      "filterDuration": "Duration",
+      "clearAllFilters": "clear all filters"
     }
+  },
+  "common": {
+    "retry": "Retry",
+    "viewScheme": "View scheme",
+    "documentTitle": "| JalSoochak"
   }
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Heading,
@@ -52,6 +53,7 @@ function TruncatedCell({ text }: { text: string }) {
 }
 
 export function AnomaliesPage() {
+  const { t } = useTranslation('section-officer')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [searchQuery, setSearchQuery] = useState('')
@@ -86,18 +88,18 @@ export function AnomaliesPage() {
   )
 
   useEffect(() => {
-    document.title = 'Anomalies | JalSoochak'
-  }, [])
+    document.title = `${t('pages.anomalies.heading')} ${t('common.documentTitle')}`
+  }, [t])
 
   const columns: DataTableColumn<AnomalyItem>[] = [
     {
       key: 'scheme_name',
-      header: 'Scheme Name',
+      header: t('pages.anomalies.columns.schemeName'),
       render: (row) => <TruncatedCell text={row.scheme_name ?? '—'} />,
     },
     {
       key: 'createdAt',
-      header: 'Date & Time',
+      header: t('pages.anomalies.columns.dateTime'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.createdAt ? formatTimestamp(row.createdAt) : '—'}
@@ -106,7 +108,7 @@ export function AnomaliesPage() {
     },
     {
       key: 'type',
-      header: 'Anomaly Type',
+      header: t('pages.anomalies.columns.anomalyType'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.type ?? '—'}
@@ -115,7 +117,7 @@ export function AnomaliesPage() {
     },
     {
       key: 'reason',
-      header: 'Details',
+      header: t('pages.anomalies.columns.details'),
       render: (row) => {
         const text = row.reason ?? '—'
         return <TruncatedCell text={text} />
@@ -123,7 +125,7 @@ export function AnomaliesPage() {
     },
     {
       key: 'status',
-      header: 'Status',
+      header: t('pages.anomalies.columns.status'),
       render: (row) => {
         const statusKey =
           typeof row.status === 'string' ? row.status.toLowerCase().replace(/\s+/g, '-') : ''
@@ -137,12 +139,12 @@ export function AnomaliesPage() {
       <Box w="full">
         <PageHeader>
           <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
-            Anomalies
+            {t('pages.anomalies.heading')}
           </Heading>
         </PageHeader>
         <Flex role="status" aria-live="polite" align="center" minH="200px" gap={3}>
           <Spinner size="md" color="primary.500" />
-          <Text color="neutral.600">Loading…</Text>
+          <Text color="neutral.600">{t('pages.anomalies.loading')}</Text>
         </Flex>
       </Box>
     )
@@ -153,13 +155,13 @@ export function AnomaliesPage() {
       <Box w="full">
         <PageHeader>
           <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
-            Anomalies
+            {t('pages.anomalies.heading')}
           </Heading>
         </PageHeader>
         <Flex h="64" align="center" justify="center" direction="column" gap={4} role="alert">
-          <Text color="error.500">Failed to load anomalies. Please try again.</Text>
+          <Text color="error.500">{t('pages.anomalies.error')}</Text>
           <Button variant="secondary" size="sm" onClick={() => void refetch()}>
-            Retry
+            {t('common.retry')}
           </Button>
         </Flex>
       </Box>
@@ -170,7 +172,7 @@ export function AnomaliesPage() {
     <Box w="full" maxW="100%" minW={0}>
       <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
-          Anomalies
+          {t('pages.anomalies.heading')}
         </Heading>
       </PageHeader>
 
@@ -195,13 +197,13 @@ export function AnomaliesPage() {
             <SearchIcon color="neutral.300" aria-hidden="true" />
           </InputLeftElement>
           <Input
-            placeholder="Search by scheme name"
+            placeholder={t('pages.anomalies.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value)
               setPage(1)
             }}
-            aria-label="Search by scheme name"
+            aria-label={t('pages.anomalies.searchPlaceholder')}
             bg="white"
             h={8}
             borderWidth="1px"
@@ -218,7 +220,7 @@ export function AnomaliesPage() {
             setStatusFilter(val)
             setPage(1)
           }}
-          placeholder="Status"
+          placeholder={t('pages.anomalies.filterStatus')}
           width="160px"
           height="32px"
           borderRadius="4px"
@@ -235,7 +237,7 @@ export function AnomaliesPage() {
             setDateRange(val)
             setPage(1)
           }}
-          placeholder="Duration"
+          placeholder={t('pages.anomalies.filterDuration')}
           width="160px"
           height="32px"
           borderRadius="4px"
@@ -255,7 +257,7 @@ export function AnomaliesPage() {
             aria-label="Clear all filters"
             _hover={{ color: 'primary.500', bg: 'transparent' }}
           >
-            clear all filters
+            {t('pages.anomalies.clearAllFilters')}
           </Button>
         )}
       </Flex>
@@ -269,7 +271,7 @@ export function AnomaliesPage() {
           columns={columns}
           data={data?.anomalies ?? []}
           getRowKey={(row) => row.id}
-          emptyMessage="No anomalies found."
+          emptyMessage={t('pages.anomalies.noAnomaliesFound')}
           pagination={{
             enabled: true,
             page,
