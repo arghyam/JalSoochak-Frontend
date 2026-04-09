@@ -34,6 +34,8 @@ export const dashboardQueryKeys = {
     ['dashboard', 'tenant-public-config', tenantId] as const,
   nationalDashboard: (params: NationalDashboardQueryParams | null) =>
     ['dashboard', 'analytics', 'national-dashboard', params?.startDate, params?.endDate] as const,
+  nationalDashboardBoundaries: () =>
+    ['dashboard', 'analytics', 'national-dashboard-boundaries'] as const,
   averageWaterSupplyPerRegion: (params: AverageWaterSupplyPerRegionQueryParams | null) =>
     [
       'dashboard',

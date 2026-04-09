@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useState } from 'react'
 import {
   Center,
   IconButton,
@@ -16,19 +16,19 @@ import { getBodyText6Style } from '@/shared/components/charts/chart-text-style'
 import type { EntityPerformance } from '../../types'
 import {
   buildFeatureCollectionFromRegions,
-  ensureIndiaMapRegistered,
+  INDIA_NATIONAL_BOUNDARY_FEATURE_NAME,
   registerDynamicMap,
 } from '../../utils/map-registry'
 
 interface IndiaMapChartProps {
   data: EntityPerformance[]
+  nationalBoundaryGeoJson?: EntityPerformance['boundaryGeoJson']
   isLoading?: boolean
   onStateClick?: (stateId: string, stateName: string) => void
   onStateHover?: (stateId: string, stateName: string, metrics: EntityPerformance) => void
   className?: string
   height?: string | number
   mapName?: string
-  fallbackToIndiaMap?: boolean
   usePrimaryFill?: boolean
   disableHoverEffect?: boolean
   isFullscreen?: boolean
@@ -37,13 +37,13 @@ interface IndiaMapChartProps {
 
 export function IndiaMapChart({
   data,
+  nationalBoundaryGeoJson,
   isLoading = false,
   onStateClick,
   onStateHover,
   className,
   height = '600px',
   mapName = 'india',
-  fallbackToIndiaMap = true,
   usePrimaryFill = false,
   disableHoverEffect = false,
   isFullscreen = false,
@@ -53,18 +53,20 @@ export function IndiaMapChart({
   const [isBelow500] = useMediaQuery('(max-width: 499.98px)')
   const [isBelowSm] = useMediaQuery('(max-width: 479.98px)')
   const { t } = useTranslation('dashboard')
-  const dynamicGeoJson = useMemo(() => buildFeatureCollectionFromRegions(data), [data])
+  const dynamicGeoJson = useMemo(
+    () =>
+      buildFeatureCollectionFromRegions(data, {
+        nationalBoundaryGeoJson,
+      }),
+    [data, nationalBoundaryGeoJson]
+  )
   const [isRegularityView, setIsRegularityView] = useState(true)
-  const [hasLoadedFallbackMap, setHasLoadedFallbackMap] = useState(false)
-  const [mapLoadError, setMapLoadError] = useState(false)
   const metricKey: 'coverage' | 'regularity' = isRegularityView ? 'regularity' : 'coverage'
-  const shouldShowNoMapAvailable = !isLoading && !dynamicGeoJson && !fallbackToIndiaMap
-  const effectiveMapName = dynamicGeoJson ? mapName : fallbackToIndiaMap ? 'india' : null
+  const shouldShowNoMapAvailable = !isLoading && !dynamicGeoJson
+  const effectiveMapName = dynamicGeoJson ? mapName : null
   const isRegisteredMapAvailable =
     dynamicGeoJson != null || (effectiveMapName != null && echarts.getMap(effectiveMapName) != null)
-  const isMapReady = !shouldShowNoMapAvailable && (isRegisteredMapAvailable || hasLoadedFallbackMap)
-  const shouldShowMapLoadError =
-    mapLoadError && !dynamicGeoJson && !isRegisteredMapAvailable && !shouldShowNoMapAvailable
+  const isMapReady = !shouldShowNoMapAvailable && isRegisteredMapAvailable
   const resolveThemeColor = useCallback(
     (token: string) => {
       const [scale, shade] = token.split('.')
@@ -161,6 +163,41 @@ export function IndiaMapChart({
         quantity: state.quantity,
       },
     }))
+    const seriesData = nationalBoundaryGeoJson
+      ? [
+          {
+            name: INDIA_NATIONAL_BOUNDARY_FEATURE_NAME,
+            value: -1,
+            silent: true,
+            tooltip: { show: false },
+            label: { show: false },
+            itemStyle: {
+              areaColor: 'rgba(0,0,0,0)',
+              borderColor: '#FFFFFF',
+              borderWidth: 1.5,
+            },
+            emphasis: {
+              disabled: true,
+              label: { show: false },
+              itemStyle: {
+                areaColor: 'rgba(0,0,0,0)',
+                borderColor: '#FFFFFF',
+                borderWidth: 1.5,
+              },
+            },
+            select: {
+              disabled: true,
+              label: { show: false },
+              itemStyle: {
+                areaColor: 'rgba(0,0,0,0)',
+                borderColor: '#FFFFFF',
+                borderWidth: 1.5,
+              },
+            },
+          },
+          ...mapSeries,
+        ]
+      : mapSeries
 
     return {
       backgroundColor: '#FAFAFA',
@@ -187,6 +224,9 @@ export function IndiaMapChart({
             }
           }
           if (p.data) {
+            if (p.data.name === INDIA_NATIONAL_BOUNDARY_FEATURE_NAME) {
+              return ''
+            }
             const { name, metrics } = p.data
             const safeName = echarts.format.encodeHTML(name)
             return `
@@ -214,7 +254,7 @@ export function IndiaMapChart({
             show: true,
             fontSize: 10,
           },
-          data: mapSeries,
+          data: seriesData,
           itemStyle: {
             areaColor: usePrimaryFill ? primaryMapColor : mapColors.gte90,
             borderColor: '#fff',
@@ -256,6 +296,7 @@ export function IndiaMapChart({
     primaryMapColor,
     mapColors,
     getHoverRangeColor,
+    nationalBoundaryGeoJson,
     resolveAreaColor,
     usePrimaryFill,
     disableHoverEffect,
@@ -311,41 +352,6 @@ export function IndiaMapChart({
 
     registerDynamicMap(mapName, dynamicGeoJson)
   }, [dynamicGeoJson, mapName])
-
-  useEffect(() => {
-    let isMounted = true
-
-    const registerMap = async () => {
-      if (shouldShowNoMapAvailable || effectiveMapName == null || dynamicGeoJson) {
-        return
-      }
-
-      const hasRegisteredMap = echarts.getMap(effectiveMapName) != null
-
-      if (hasRegisteredMap) {
-        return
-      }
-
-      try {
-        await ensureIndiaMapRegistered()
-        if (isMounted) {
-          setHasLoadedFallbackMap(true)
-          setMapLoadError(false)
-        }
-      } catch (error: unknown) {
-        console.error('Failed to register India map:', error)
-        if (isMounted) {
-          setMapLoadError(true)
-        }
-      }
-    }
-
-    void registerMap()
-
-    return () => {
-      isMounted = false
-    }
-  }, [dynamicGeoJson, effectiveMapName, shouldShowNoMapAvailable])
 
   const handleChartReady = useCallback(
     (chart: echarts.ECharts) => {
@@ -486,12 +492,6 @@ export function IndiaMapChart({
                   <Text color="neutral.600">
                     {t('map.noMapAvailable', {
                       defaultValue: 'Map currently unavailable',
-                    })}
-                  </Text>
-                ) : shouldShowMapLoadError ? (
-                  <Text color="neutral.600">
-                    {t('map.loadError', {
-                      defaultValue: 'Unable to load the map right now.',
                     })}
                   </Text>
                 ) : (

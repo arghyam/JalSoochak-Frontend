@@ -6,7 +6,7 @@
 
 import * as echarts from 'echarts'
 
-let indiaMapRegistrationPromise: Promise<void> | null = null
+export const INDIA_NATIONAL_BOUNDARY_FEATURE_NAME = '__india_national_boundary__'
 
 export interface EChartsMapFeatureCollection {
   type: 'FeatureCollection'
@@ -143,42 +143,6 @@ const getGeometryCenter = (geometry: unknown): Position | null => {
   return null
 }
 
-/**
- * Register map GeoJSON with ECharts
- * Call this function once when the app loads (e.g., in main.tsx or App.tsx)
- *
- * @param geoJsonData - GeoJSON data
- */
-export function registerIndiaMap(geoJsonData: unknown) {
-  echarts.registerMap('india', geoJsonData as Parameters<typeof echarts.registerMap>[1])
-}
-
-/**
- * Check if registered
- */
-export function isIndiaMapRegistered(): boolean {
-  return echarts.getMap('india') != null
-}
-
-export async function ensureIndiaMapRegistered() {
-  if (isIndiaMapRegistered()) {
-    return
-  }
-
-  if (!indiaMapRegistrationPromise) {
-    indiaMapRegistrationPromise = import('@/assets/data/geojson/india.geojson?raw')
-      .then(({ default: indiaGeoJsonRaw }) => {
-        const indiaGeoJson = JSON.parse(indiaGeoJsonRaw) as unknown
-        registerIndiaMap(indiaGeoJson)
-      })
-      .finally(() => {
-        indiaMapRegistrationPromise = null
-      })
-  }
-
-  await indiaMapRegistrationPromise
-}
-
 export function registerDynamicMap(mapName: string, geoJsonData: EChartsMapFeatureCollection) {
   echarts.registerMap(mapName, geoJsonData as Parameters<typeof echarts.registerMap>[1])
 }
@@ -188,28 +152,45 @@ export function buildFeatureCollectionFromRegions(
     id: string
     name: string
     boundaryGeoJson?: unknown
-  }>
+  }>,
+  options?: {
+    nationalBoundaryGeoJson?: unknown
+  }
 ): EChartsMapFeatureCollection | null {
-  const features = regions.flatMap((region) => {
-    if (!region.boundaryGeoJson || typeof region.boundaryGeoJson !== 'object') {
-      return []
-    }
+  const features = [
+    ...(options?.nationalBoundaryGeoJson && typeof options.nationalBoundaryGeoJson === 'object'
+      ? [
+          {
+            type: 'Feature' as const,
+            id: INDIA_NATIONAL_BOUNDARY_FEATURE_NAME,
+            properties: {
+              name: INDIA_NATIONAL_BOUNDARY_FEATURE_NAME,
+            },
+            geometry: options.nationalBoundaryGeoJson,
+          },
+        ]
+      : []),
+    ...regions.flatMap((region) => {
+      if (!region.boundaryGeoJson || typeof region.boundaryGeoJson !== 'object') {
+        return []
+      }
 
-    const geometryCenter = getGeometryCenter(region.boundaryGeoJson)
+      const geometryCenter = getGeometryCenter(region.boundaryGeoJson)
 
-    return [
-      {
-        type: 'Feature' as const,
-        id: region.id,
-        properties: {
-          name: region.name,
-          regionId: region.id,
-          ...(geometryCenter ? { cp: geometryCenter } : {}),
+      return [
+        {
+          type: 'Feature' as const,
+          id: region.id,
+          properties: {
+            name: region.name,
+            regionId: region.id,
+            ...(geometryCenter ? { cp: geometryCenter } : {}),
+          },
+          geometry: region.boundaryGeoJson,
         },
-        geometry: region.boundaryGeoJson,
-      },
-    ]
-  })
+      ]
+    }),
+  ]
 
   if (!features.length) {
     return null

@@ -291,6 +291,20 @@ export interface NationalDashboardResponse {
   overallOutageReasonDistribution: NationalDashboardOutageReasonDistribution
 }
 
+export interface NationalDashboardBoundaryState {
+  tenantId: number
+  lgdId: number
+  tenantStatus: number
+  stateCode: string
+  stateTitle: string
+  boundary?: GeoJsonGeometry | null
+}
+
+export interface NationalDashboardBoundaryResponse {
+  nationalBoundary?: GeoJsonGeometry | null
+  stateWiseBoundaries: NationalDashboardBoundaryState[]
+}
+
 export interface AverageWaterSupplyScheme {
   schemeId: number
   schemeName: string

@@ -5285,12 +5285,10 @@ describe('CentralDashboard', () => {
     const mapProps = getLatestIndiaMapChartProps<{
       data: Array<{ name: string; boundaryGeoJson?: unknown; regularity: number; quantity: number }>
       mapName: string
-      fallbackToIndiaMap: boolean
       onStateClick?: unknown
     }>()
 
     expect(mapProps.mapName).toBe('tenant-boundary-department-201')
-    expect(mapProps.fallbackToIndiaMap).toBe(false)
     expect(mapProps.onStateClick).toEqual(expect.any(Function))
     expect(mapProps.data).toEqual([
       expect.objectContaining({
@@ -5365,10 +5363,8 @@ describe('CentralDashboard', () => {
 
     const mapProps = getLatestIndiaMapChartProps<{
       isLoading: boolean
-      fallbackToIndiaMap: boolean
     }>()
 
-    expect(mapProps.fallbackToIndiaMap).toBe(false)
     expect(mapProps.isLoading).toBe(true)
   })
 
@@ -5444,12 +5440,10 @@ describe('CentralDashboard', () => {
     const mapProps = getLatestIndiaMapChartProps<{
       data: Array<{ name: string; boundaryGeoJson?: unknown; regularity: number }>
       mapName: string
-      fallbackToIndiaMap: boolean
       onStateClick?: unknown
     }>()
 
     expect(mapProps.mapName).toBe('tenant-boundary-lgd-101')
-    expect(mapProps.fallbackToIndiaMap).toBe(false)
     expect(mapProps.onStateClick).toEqual(expect.any(Function))
     expect(mapProps.data).toEqual([
       expect.objectContaining({
