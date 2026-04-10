@@ -290,6 +290,7 @@ export interface NationalDashboardQuantityPerformanceItem {
   stateCode: string
   stateTitle: string
   schemeCount: number
+  supplyDaysInEfficientRange?: number
   totalHouseholdCount: number
   totalFhtcCount?: number
   totalPlannedFhtc?: number
