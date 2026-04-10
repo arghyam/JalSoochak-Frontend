@@ -19,4 +19,13 @@ module.exports = {
     __SERVER_MODE__: '',
     __TENANT_ID__: '',
   },
+  collectCoverageFrom: [
+    'src/**/*.{ts,tsx}',
+    '!src/**/*.d.ts',
+    '!src/test/**',
+    '!src/main.tsx',
+    '!src/vite-env.d.ts',
+  ],
+  coverageDirectory: 'coverage',
+  coverageReporters: ['lcov', 'text', 'text-summary'],
 }
