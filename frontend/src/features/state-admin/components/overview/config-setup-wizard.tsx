@@ -19,6 +19,10 @@ const WIZARD_STEPS: WizardStep[] = [
       'PUMP_OPERATOR_REMINDER_NUDGE_TIME',
       'LOCATION_CHECK_REQUIRED',
       'TENANT_LOGO',
+      'DATE_FORMAT_SCREEN',
+      'DATE_FORMAT_TABLE',
+      'DISPLAY_DEPARTMENT_MAPS',
+      'SUPPLY_OUTAGE_REASONS',
     ],
   },
   {
@@ -34,12 +38,6 @@ const WIZARD_STEPS: WizardStep[] = [
     keys: ['WATER_NORM', 'TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD'],
   },
   {
-    id: 'integration',
-    labelKey: 'overview.setupWizard.integration',
-    route: ROUTES.STATE_ADMIN_INTEGRATION,
-    keys: ['MESSAGE_BROKER_CONNECTION_SETTINGS'],
-  },
-  {
     id: 'escalations',
     labelKey: 'overview.setupWizard.escalations',
     route: ROUTES.STATE_ADMIN_ESCALATIONS,
@@ -48,7 +46,11 @@ const WIZARD_STEPS: WizardStep[] = [
 ]
 
 function isStepConfigured(step: WizardStep, statuses: ConfigStatusMap): boolean {
-  return step.keys.every((key) => statuses[key] === 'CONFIGURED')
+  return step.keys.every((key) => {
+    const entry = statuses[key]
+    if (!entry) return false
+    return !entry.mandatory || entry.status === 'CONFIGURED'
+  })
 }
 
 interface StepNodeProps {

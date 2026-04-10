@@ -29,17 +29,20 @@ import {
 import { AuthSideImage } from '@/features/auth/components/signup/auth-side-image'
 import { SearchableSelect } from '@/shared/components/common'
 import jalsoochakLogo from '@/assets/media/logo.svg'
+import { BiArrowBack } from 'react-icons/bi'
 import { useAuthStore } from '@/app/store'
+import { getCookie, setCookie } from '@/shared/utils/cookies'
 import {
   usePublicTenantsQuery,
   useRequestOtpMutation,
   useVerifyOtpMutation,
 } from '@/features/section-officer/services/query/use-staff-auth-queries'
 
-const OTP_RESEND_COOLDOWN_SECONDS = 30
+const OTP_RESEND_COOLDOWN_SECONDS = 60
 const OTP_FALLBACK_LENGTH = 6
 const PHONE_NUMBER_LENGTH = 10
 const COUNTRY_CODE = '91'
+const TENANT_CODE_COOKIE = 'staff_login_tenant_code'
 
 type LoginStep = 'phone' | 'otp'
 
@@ -59,7 +62,7 @@ export function StaffLoginPage() {
 
   // Step 1 state
   const [phoneDigits, setPhoneDigits] = useState('')
-  const [tenantCode, setTenantCode] = useState('')
+  const [tenantCode, setTenantCode] = useState(() => getCookie(TENANT_CODE_COOKIE) || '')
   const [phoneError, setPhoneError] = useState<string | null>(null)
   const [tenantError, setTenantError] = useState<string | null>(null)
 
@@ -84,6 +87,13 @@ export function StaffLoginPage() {
   }))
 
   const fullPhoneNumber = `${COUNTRY_CODE}${phoneDigits}`
+
+  // Save tenant code to cookie whenever it changes
+  useEffect(() => {
+    if (tenantCode) {
+      setCookie(TENANT_CODE_COOKIE, tenantCode)
+    }
+  }, [tenantCode])
 
   const startCooldown = useCallback(() => {
     setResendCooldown(OTP_RESEND_COOLDOWN_SECONDS)
@@ -111,6 +121,12 @@ export function StaffLoginPage() {
     setOtpValues(Array(length).fill(''))
     otpInputRefs.current = Array(length).fill(null)
   }, [])
+
+  useEffect(() => {
+    if (step === 'otp') {
+      otpInputRefs.current[0]?.focus()
+    }
+  }, [step])
 
   const handleSendOtp = async () => {
     if (requestOtpMutation.isPending) return
@@ -485,6 +501,24 @@ function OtpStep({
 
   return (
     <VStack align="stretch" spacing="1.5rem">
+      <Flex justify="flex-start" mb={{ base: 2, md: 4 }}>
+        <Link
+          as="button"
+          type="button"
+          fontSize="sm"
+          fontWeight="500"
+          color="neutral.600"
+          onClick={onBack}
+          data-testid="back-button"
+          display="flex"
+          alignItems="center"
+          gap="4px"
+        >
+          <BiArrowBack />
+          {t('login.otpStep.back')}
+        </Link>
+      </Flex>
+
       <Box>
         <Text textStyle="h5" fontWeight="600" mb="0.25rem">
           {t('login.heading')}
@@ -529,7 +563,6 @@ function OtpStep({
                 focusBorderColor={otpError ? 'error.500' : 'primary.500'}
                 _placeholder={{ color: 'neutral.300' }}
                 placeholder="0"
-                autoFocus={i === 0}
                 data-testid={`otp-input-${i}`}
               />
             ))}
@@ -575,20 +608,6 @@ function OtpStep({
         >
           {t('login.otpStep.login')}
         </Button>
-
-        <Flex justify="center">
-          <Link
-            as="button"
-            type="button"
-            fontSize="sm"
-            fontWeight="500"
-            color="neutral.600"
-            onClick={onBack}
-            data-testid="back-button"
-          >
-            {t('login.otpStep.back')}
-          </Link>
-        </Flex>
       </VStack>
     </VStack>
   )

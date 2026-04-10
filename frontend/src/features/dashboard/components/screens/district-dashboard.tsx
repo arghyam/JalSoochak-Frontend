@@ -20,6 +20,7 @@ import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 import { ChartEmptyState, ViewBySelect } from '@/shared/components/common'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { useOutageDistributionState } from './use-outage-distribution-state'
+import { getOutageTimeScaleXAxisLabel, OutageTimeScaleToggle } from './outage-time-scale-toggle'
 
 type DistrictDashboardScreenProps = {
   data: DashboardData
@@ -29,6 +30,12 @@ type DistrictDashboardScreenProps = {
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
   isQuantityTimeTrendAwaitingParams?: boolean
+  quantityTimeScaleTab?: 'day' | 'week' | 'month'
+  onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
+  regularityTimeScaleTab?: 'day' | 'week' | 'month'
+  onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
+  outageDistributionTimeScaleTab?: 'day' | 'week' | 'month'
+  onOutageDistributionTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
   regularityPerformanceData: EntityPerformance[]
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading?: boolean
@@ -50,6 +57,12 @@ export function DistrictDashboardScreen({
   quantityTimeTrendData,
   isQuantityTimeTrendLoading = false,
   isQuantityTimeTrendAwaitingParams = false,
+  quantityTimeScaleTab,
+  onQuantityTimeScaleTabChange,
+  regularityTimeScaleTab,
+  onRegularityTimeScaleTabChange,
+  outageDistributionTimeScaleTab,
+  onOutageDistributionTimeScaleTabChange,
   regularityPerformanceData,
   regularityTimeTrendData,
   isRegularityTimeTrendLoading = false,
@@ -78,6 +91,7 @@ export function DistrictDashboardScreen({
     waterSupplyOutageDistributionData,
     outageDistributionTimeTrendData,
   })
+  const outageTimeXAxisLabel = getOutageTimeScaleXAxisLabel(outageDistributionTimeScaleTab, t)
   return (
     <>
       {/* Regularity + Quantity */}
@@ -105,6 +119,8 @@ export function DistrictDashboardScreen({
           cardHeight="523px"
           timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
           isTimeTrendPercent
+          regularityTimeScaleTab={regularityTimeScaleTab}
+          onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
           selectColor="primary.500"
           selectBorderColor="primary.500"
         />
@@ -131,6 +147,8 @@ export function DistrictDashboardScreen({
           timeXAxisLabel={t('performanceCharts.viewBy.month', { defaultValue: 'Month' })}
           selectColor="primary.500"
           selectBorderColor="primary.500"
+          quantityTimeScaleTab={quantityTimeScaleTab}
+          onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
         />
       </Grid>
 
@@ -172,16 +190,48 @@ export function DistrictDashboardScreen({
                 defaultValue: 'Supply Outage Distribution',
               })}
             </Text>
-            <ViewBySelect
-              ariaLabel={t('outageAndSubmissionCharts.ariaViewByDistrict', {
-                defaultValue: 'District supply outage distribution view by',
-              })}
-              value={outageDistributionViewBy}
-              onChange={setOutageDistributionViewBy}
-              color="primary.500"
-              borderColor="primary.500"
-              disabled={isOutageDistributionSelectDisabled}
-            />
+            <Flex
+              align="center"
+              gap="8px"
+              sx={{
+                '@media (max-width: 525px)': {
+                  flexDirection: 'column-reverse',
+                  alignItems: 'flex-end',
+                  gap: '6px',
+                },
+              }}
+            >
+              {outageDistributionViewBy === 'time' &&
+              outageDistributionTimeScaleTab &&
+              onOutageDistributionTimeScaleTabChange ? (
+                <OutageTimeScaleToggle
+                  value={outageDistributionTimeScaleTab}
+                  onChange={onOutageDistributionTimeScaleTabChange}
+                  ariaLabel={t('outageAndSubmissionCharts.ariaOutageTimeScale', {
+                    defaultValue: 'Outage time scale',
+                  })}
+                />
+              ) : null}
+              <ViewBySelect
+                ariaLabel={t('outageAndSubmissionCharts.ariaViewByDistrict', {
+                  defaultValue: 'District supply outage distribution view by',
+                })}
+                value={outageDistributionViewBy}
+                onChange={(value) => {
+                  if (
+                    value === 'time' &&
+                    onOutageDistributionTimeScaleTabChange &&
+                    !outageDistributionTimeScaleTab
+                  ) {
+                    onOutageDistributionTimeScaleTabChange('day')
+                  }
+                  setOutageDistributionViewBy(value)
+                }}
+                color="primary.500"
+                borderColor="primary.500"
+                disabled={isOutageDistributionSelectDisabled}
+              />
+            </Flex>
           </Flex>
           {!hasOutageReasonsData ? (
             <ChartEmptyState minHeight="400px" />
@@ -199,8 +249,8 @@ export function DistrictDashboardScreen({
             <MonthlyTrendChart
               data={outageDistributionTimeTrendData}
               height="400px"
-              xAxisLabel="Month"
-              yAxisLabel={t('outageAndSubmissionCharts.axis.noOfDays', {
+              xAxisLabel={outageTimeXAxisLabel}
+              yAxisLabel={t('outageAndSubmissionCharts.axis.noOfReasons', {
                 defaultValue: 'No. of days',
               })}
               seriesName="Supply outage"

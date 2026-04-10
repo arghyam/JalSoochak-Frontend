@@ -369,10 +369,10 @@ function ReadingComplianceSection({
   >({})
   const readingComplianceParams = useMemo(
     () =>
-      tenantCode
+      tenantCode && typeof effectiveSchemeId === 'number'
         ? {
             tenant_code: tenantCode,
-            scheme_id: typeof effectiveSchemeId === 'number' ? effectiveSchemeId : undefined,
+            scheme_id: effectiveSchemeId,
             page: readingCompliancePage,
             size: READING_COMPLIANCE_PAGE_SIZE,
           }
@@ -1020,6 +1020,7 @@ export function VillageDashboardScreen({
             <MonthlyTrendChart
               data={quantityTimeTrendData}
               height="400px"
+              valueDivisor={1000000}
               xAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
               yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
               seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}

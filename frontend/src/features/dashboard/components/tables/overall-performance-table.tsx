@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Box, Icon, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { BiSortAlt2 } from 'react-icons/bi'
+import type { KeyboardEvent } from 'react'
 import type { EntityPerformance } from '../../types'
 
 interface OverallPerformanceTableProps {
@@ -9,9 +10,10 @@ interface OverallPerformanceTableProps {
   maxItems?: number
   scrollMaxHeight?: string
   entityLabel?: string
+  onRowClick?: (row: EntityPerformance) => void
 }
 
-type SortColumn = 'coverage' | 'quantity' | 'regularity' | null
+type SortColumn = 'name' | 'coverage' | 'quantity' | 'regularity' | null
 type SortDirection = 'asc' | 'desc' | null
 
 export function OverallPerformanceTable({
@@ -19,6 +21,7 @@ export function OverallPerformanceTable({
   maxItems,
   scrollMaxHeight = '416px',
   entityLabel,
+  onRowClick,
 }: OverallPerformanceTableProps) {
   const { t } = useTranslation('dashboard')
   const [sortColumn, setSortColumn] = useState<SortColumn>(null)
@@ -30,6 +33,12 @@ export function OverallPerformanceTable({
   const sortedRows =
     sortColumn && sortDirection
       ? [...data].sort((a, b) => {
+          if (sortColumn === 'name') {
+            return sortDirection === 'asc'
+              ? a.name.localeCompare(b.name)
+              : b.name.localeCompare(a.name)
+          }
+
           const aValue = a[sortColumn]
           const bValue = b[sortColumn]
           return sortDirection === 'asc' ? aValue - bValue : bValue - aValue
@@ -47,9 +56,18 @@ export function OverallPerformanceTable({
     setSortDirection((current) => (current === 'desc' ? 'asc' : 'desc'))
   }
 
+  const handleRowKeyDown = (event: KeyboardEvent<HTMLTableRowElement>, row: EntityPerformance) => {
+    if (!onRowClick) return
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      onRowClick(row)
+    }
+  }
+
   return (
     <Box borderRadius="lg" overflow="visible" minW={0} w="full">
       <Box
+        h={scrollMaxHeight}
         maxH={scrollMaxHeight}
         overflowY={isEmpty ? 'hidden' : 'auto'}
         overflowX="auto"
@@ -75,7 +93,7 @@ export function OverallPerformanceTable({
               size="sm"
               w="full"
               minW={{ base: 'max-content', md: '100%' }}
-              sx={{ tableLayout: 'auto' }}
+              sx={{ tableLayout: 'fixed' }}
             >
               <Thead
                 sx={{
@@ -90,11 +108,52 @@ export function OverallPerformanceTable({
                     px: { base: 2, md: 3 },
                     py: { base: 3, md: 5 },
                     whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                  },
+                  'th:first-of-type': {
+                    width: '200px',
+                    minWidth: '200px',
+                    maxWidth: '200px',
                   },
                 }}
               >
                 <Tr>
-                  <Th>{resolvedEntityLabel}</Th>
+                  <Th
+                    aria-sort={
+                      sortColumn === 'name'
+                        ? sortDirection === 'asc'
+                          ? 'ascending'
+                          : 'descending'
+                        : undefined
+                    }
+                  >
+                    <Box
+                      as="button"
+                      type="button"
+                      onClick={() => handleSort('name')}
+                      display="flex"
+                      alignItems="center"
+                      gap={1}
+                      cursor="pointer"
+                      textAlign="left"
+                      width="100%"
+                      minW={0}
+                      bg="none"
+                      border="none"
+                      p={0}
+                    >
+                      <Box as="span" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                        {resolvedEntityLabel}
+                      </Box>
+                      <Icon
+                        as={BiSortAlt2}
+                        boxSize="16px"
+                        color="neutral.500"
+                        aria-hidden
+                        flexShrink={0}
+                      />
+                    </Box>
+                  </Th>
                   <Th
                     aria-sort={
                       sortColumn === 'coverage'
@@ -108,22 +167,29 @@ export function OverallPerformanceTable({
                       as="button"
                       type="button"
                       onClick={() => handleSort('coverage')}
-                      display="inline-flex"
+                      display="flex"
                       alignItems="center"
                       gap={1}
                       cursor="pointer"
                       textAlign="left"
                       width="100%"
+                      minW={0}
                       bg="none"
                       border="none"
                       p={0}
                     >
-                      <Box as="span">
+                      <Box as="span" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
                         {t('overallPerformance.columns.quantityMld', {
                           defaultValue: 'Quantity (MLD)',
                         })}
                       </Box>
-                      <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
+                      <Icon
+                        as={BiSortAlt2}
+                        boxSize="16px"
+                        color="neutral.500"
+                        aria-hidden
+                        flexShrink={0}
+                      />
                     </Box>
                   </Th>
                   <Th
@@ -139,22 +205,29 @@ export function OverallPerformanceTable({
                       as="button"
                       type="button"
                       onClick={() => handleSort('quantity')}
-                      display="inline-flex"
+                      display="flex"
                       alignItems="center"
                       gap={1}
                       cursor="pointer"
                       textAlign="left"
                       width="100%"
+                      minW={0}
                       bg="none"
                       border="none"
                       p={0}
                     >
-                      <Box as="span">
+                      <Box as="span" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
                         {t('overallPerformance.columns.quantityLpcd', {
                           defaultValue: 'Quantity (LPCD)',
                         })}
                       </Box>
-                      <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
+                      <Icon
+                        as={BiSortAlt2}
+                        boxSize="16px"
+                        color="neutral.500"
+                        aria-hidden
+                        flexShrink={0}
+                      />
                     </Box>
                   </Th>
                   <Th
@@ -170,31 +243,35 @@ export function OverallPerformanceTable({
                       as="button"
                       type="button"
                       onClick={() => handleSort('regularity')}
-                      display="inline-flex"
+                      display="flex"
                       alignItems="center"
                       gap={1}
                       cursor="pointer"
                       textAlign="left"
                       width="100%"
+                      minW={0}
                       bg="none"
                       border="none"
                       p={0}
                     >
-                      <Box as="span">
+                      <Box as="span" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
                         {t('overallPerformance.columns.regularity', {
                           defaultValue: 'Regularity (%)',
                         })}
                       </Box>
-                      <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
+                      <Icon
+                        as={BiSortAlt2}
+                        boxSize="16px"
+                        color="neutral.500"
+                        aria-hidden
+                        flexShrink={0}
+                      />
                     </Box>
                   </Th>
                 </Tr>
               </Thead>
               <Tbody
                 sx={{
-                  tr: {
-                    cursor: 'pointer',
-                  },
                   td: {
                     textStyle: 'bodyText7',
                     fontWeight: '400',
@@ -204,14 +281,38 @@ export function OverallPerformanceTable({
                     lineHeight: { base: '20px', md: '40px' },
                     whiteSpace: 'nowrap',
                   },
+                  'td:first-of-type': {
+                    width: '200px',
+                    minWidth: '200px',
+                    maxWidth: '200px',
+                  },
                 }}
               >
                 {rows.map((state) => (
-                  <Tr key={state.id} _odd={{ bg: 'primary.25' }}>
-                    <Td>{state.name}</Td>
-                    <Td>{state.coverage.toFixed(0)}</Td>
+                  <Tr
+                    key={state.id}
+                    _odd={{ bg: 'primary.25' }}
+                    cursor={onRowClick ? 'pointer' : 'default'}
+                    _hover={onRowClick ? { bg: 'primary.50' } : undefined}
+                    onClick={onRowClick ? () => onRowClick(state) : undefined}
+                    tabIndex={onRowClick ? 0 : undefined}
+                    role={onRowClick ? 'button' : undefined}
+                    onKeyDown={onRowClick ? (event) => handleRowKeyDown(event, state) : undefined}
+                  >
+                    <Td>
+                      <Box
+                        title={state.name}
+                        overflow="hidden"
+                        textOverflow="ellipsis"
+                        whiteSpace="nowrap"
+                        maxW="200px"
+                      >
+                        {state.name}
+                      </Box>
+                    </Td>
+                    <Td>{state.coverage.toFixed(1)}</Td>
                     <Td>{state.quantity}</Td>
-                    <Td>{state.regularity.toFixed(0)}%</Td>
+                    <Td>{state.regularity.toFixed(1)}%</Td>
                   </Tr>
                 ))}
               </Tbody>

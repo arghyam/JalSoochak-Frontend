@@ -12,26 +12,57 @@ type UseDistrictSchemeBlockLookupQueryOptions = {
   tenantId?: number
   hierarchyType: HierarchyType
   districtId?: number
+  /** Accepts numeric strings for stable cache keys after normalization. */
+  targetLgdIds?: (number | string)[]
   tenantCode?: string
   enabled?: boolean
 }
 
-const LOCATION_LOOKUP_CONCURRENCY = 5
+function normalizePositiveTargetLgdIds(
+  targetLgdIds: readonly (number | string)[] | undefined
+): number[] {
+  return Array.from(
+    new Set(
+      (targetLgdIds ?? [])
+        .map((locationId) => {
+          if (typeof locationId === 'number') {
+            return Number.isFinite(locationId) && locationId > 0 ? locationId : NaN
+          }
+          if (typeof locationId === 'string') {
+            const trimmed = locationId.trim()
+            if (!trimmed) return NaN
+            const parsed = Number(trimmed)
+            return Number.isFinite(parsed) && parsed > 0 ? parsed : NaN
+          }
+          return NaN
+        })
+        .filter((n): n is number => Number.isFinite(n))
+    )
+  ).sort((left, right) => left - right)
+}
 
 export function useDistrictSchemeBlockLookupQuery(
   options: UseDistrictSchemeBlockLookupQueryOptions
 ) {
-  const { tenantId, hierarchyType, districtId, tenantCode, enabled = true } = options
+  const { tenantId, hierarchyType, districtId, targetLgdIds, tenantCode, enabled = true } = options
+  const normalizedTargetLgdIds = normalizePositiveTargetLgdIds(targetLgdIds)
+  const targetLgdIdsKey =
+    normalizedTargetLgdIds.length > 0 ? normalizedTargetLgdIds.join(',') : undefined
 
   return useQuery<LocationTitleLookup>({
     queryKey: locationSearchQueryKeys.districtSchemeBlockLookup(
       tenantId,
       hierarchyType,
-      districtId
+      districtId,
+      targetLgdIdsKey
     ),
     queryFn: async () => {
       if (tenantId === undefined || districtId === undefined) {
         throw new Error('tenantId and districtId are required for district scheme block lookup')
+      }
+
+      if (normalizedTargetLgdIds.length === 0) {
+        return createLocationTitleLookup()
       }
 
       const blocksResponse = await dashboardApi.getTenantChildLocations({
@@ -43,74 +74,80 @@ export function useDistrictSchemeBlockLookupQuery(
 
       const blocks = blocksResponse.data ?? []
       const lookup = createLocationTitleLookup()
+      const pendingLgdIds = new Set(normalizedTargetLgdIds)
 
-      for (
-        let blockIndex = 0;
-        blockIndex < blocks.length;
-        blockIndex += LOCATION_LOOKUP_CONCURRENCY
-      ) {
-        const blockChunk = blocks.slice(blockIndex, blockIndex + LOCATION_LOOKUP_CONCURRENCY)
+      for (const block of blocks) {
+        const blockId = typeof block.id === 'number' ? block.id : undefined
+        const blockTitle = block.title?.trim() ?? ''
 
-        await Promise.all(
-          blockChunk.map(async (block) => {
-            const blockId = typeof block.id === 'number' ? block.id : undefined
-            const blockTitle = block.title?.trim() ?? ''
+        addLocationTitleToLookup(lookup, block, blockTitle)
 
-            addLocationTitleToLookup(lookup, block, blockTitle)
+        if (blockId !== undefined && pendingLgdIds.has(blockId)) {
+          pendingLgdIds.delete(blockId)
+        }
 
-            if (blockId === undefined) {
-              return
+        if (pendingLgdIds.size === 0 || blockId === undefined) {
+          if (pendingLgdIds.size === 0) {
+            break
+          }
+          continue
+        }
+
+        const gramPanchayatsResponse = await dashboardApi.getTenantChildLocations({
+          tenantId,
+          hierarchyType,
+          parentId: blockId,
+          tenantCode,
+        })
+
+        for (const gramPanchayat of gramPanchayatsResponse.data ?? []) {
+          const gramPanchayatId =
+            typeof gramPanchayat.id === 'number' ? gramPanchayat.id : undefined
+
+          addLocationTitleToLookup(lookup, gramPanchayat, blockTitle)
+
+          if (gramPanchayatId !== undefined && pendingLgdIds.has(gramPanchayatId)) {
+            pendingLgdIds.delete(gramPanchayatId)
+          }
+
+          if (pendingLgdIds.size === 0 || gramPanchayatId === undefined) {
+            if (pendingLgdIds.size === 0) {
+              break
             }
+            continue
+          }
 
-            const gramPanchayatsResponse = await dashboardApi.getTenantChildLocations({
-              tenantId,
-              hierarchyType,
-              parentId: blockId,
-              tenantCode,
-            })
-
-            const gramPanchayats = gramPanchayatsResponse.data ?? []
-
-            for (
-              let gramPanchayatIndex = 0;
-              gramPanchayatIndex < gramPanchayats.length;
-              gramPanchayatIndex += LOCATION_LOOKUP_CONCURRENCY
-            ) {
-              const gramPanchayatChunk = gramPanchayats.slice(
-                gramPanchayatIndex,
-                gramPanchayatIndex + LOCATION_LOOKUP_CONCURRENCY
-              )
-
-              await Promise.all(
-                gramPanchayatChunk.map(async (gramPanchayat) => {
-                  const gramPanchayatId =
-                    typeof gramPanchayat.id === 'number' ? gramPanchayat.id : undefined
-
-                  addLocationTitleToLookup(lookup, gramPanchayat, blockTitle)
-
-                  if (gramPanchayatId === undefined) {
-                    return
-                  }
-
-                  const villagesResponse = await dashboardApi.getTenantChildLocations({
-                    tenantId,
-                    hierarchyType,
-                    parentId: gramPanchayatId,
-                    tenantCode,
-                  })
-
-                  for (const village of villagesResponse.data ?? []) {
-                    addLocationTitleToLookup(lookup, village, blockTitle)
-                  }
-                })
-              )
-            }
+          const villagesResponse = await dashboardApi.getTenantChildLocations({
+            tenantId,
+            hierarchyType,
+            parentId: gramPanchayatId,
+            tenantCode,
           })
-        )
+
+          for (const village of villagesResponse.data ?? []) {
+            const villageId = typeof village.id === 'number' ? village.id : undefined
+            addLocationTitleToLookup(lookup, village, blockTitle)
+            if (villageId !== undefined && pendingLgdIds.has(villageId)) {
+              pendingLgdIds.delete(villageId)
+            }
+          }
+
+          if (pendingLgdIds.size === 0) {
+            break
+          }
+        }
+
+        if (pendingLgdIds.size === 0) {
+          break
+        }
       }
 
       return lookup
     },
-    enabled: enabled && tenantId !== undefined && districtId !== undefined,
+    enabled:
+      enabled &&
+      tenantId !== undefined &&
+      districtId !== undefined &&
+      normalizedTargetLgdIds.length > 0,
   })
 }

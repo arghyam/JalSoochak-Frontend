@@ -1,5 +1,6 @@
 {
   "loading": "Loading...",
+  "optional": "(Optional)",
   "noDataAvailable": "No data available",
   "search": "Search",
   "select": "Select",
@@ -148,5 +149,24 @@
     "failed": "Failed to update password",
     "hidePassword": "Hide password",
     "showPassword": "Show password"
+  },
+
+  "footer": {
+    "logoAlt": "JalSoochak logo with text",
+    "description": "AI-enabled water supply monitoring for India's Rural Water Supply. Empowering frontline workers with reliable, auditable data — from field to governance.",
+    "quickLinks": "Quick Links",
+    "fieldOfficialLogin": "Field official login",
+    "jalsoochakWebsite": "JalSoochak website",
+    "contactUs": "Contact Us",
+    "email": "info@arghyam.org",
+    "phone": "+91-80 4169 8941",
+    "address": "#599, ROHINI, 12th Main Rd, 7th Cross, HAL 2nd Stage, Indiranagar, Bengaluru, Karnataka 560068",
+    "copyright": "© {{year}} JalSoochak · An initiative by",
+    "arghyam": "Arghyam",
+    "social": {
+      "x": "X (Twitter)",
+      "linkedin": "LinkedIn",
+      "email": "Email"
+    }
   }
 }

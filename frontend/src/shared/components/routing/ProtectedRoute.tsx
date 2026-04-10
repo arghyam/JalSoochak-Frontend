@@ -6,6 +6,14 @@ import { AUTH_ROLES, STAFF_ROLES, type AuthRole } from '@/shared/constants/auth'
 import { ROUTES } from '@/shared/constants/routes'
 import { ForbiddenPage, SessionExpiredPage, LoadingSpinner } from '@/shared/components/common'
 
+/**
+ * Check if a pathname belongs to the staff route tree (e.g., /staff, /staff/login).
+ * Uses segment boundaries to avoid false positives like /staffing.
+ */
+function isStaffRoute(pathname: string): boolean {
+  return pathname === ROUTES.STAFF || pathname.startsWith(ROUTES.STAFF + '/')
+}
+
 interface ProtectedRouteProps {
   children: ReactNode
   requireAuth?: boolean
@@ -33,7 +41,8 @@ export function ProtectedRoute({
   }
 
   if (requireAuth && !isAuthenticated) {
-    return <Navigate to={ROUTES.LOGIN} state={{ from: location }} replace />
+    const loginRoute = isStaffRoute(location.pathname) ? ROUTES.STAFF_LOGIN : ROUTES.LOGIN
+    return <Navigate to={loginRoute} state={{ from: location }} replace />
   }
 
   if (allowedRoles && user && !allowedRoles.includes(user.role as AuthRole)) {
@@ -66,7 +75,7 @@ export function RedirectIfAuthenticated({ children }: { children: ReactNode }) {
   }
 
   // Default: role-based home
-  if (user.role === AUTH_ROLES.SUPER_ADMIN) {
+  if (user.role === AUTH_ROLES.SUPER_ADMIN || user.role === AUTH_ROLES.SUPER_STATE_ADMIN) {
     return <Navigate to={ROUTES.SUPER_ADMIN} replace />
   }
 

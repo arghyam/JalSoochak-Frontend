@@ -108,6 +108,7 @@ export function ReadingComplianceTable({
       ) : (
         <Box
           ref={scrollContainerRef}
+          data-testid="reading-compliance-scroll-area"
           maxH={fillHeight ? undefined : scrollAreaMaxH}
           h={fillHeight ? undefined : undefined}
           flex={fillHeight ? 1 : undefined}

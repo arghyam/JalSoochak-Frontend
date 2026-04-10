@@ -1,5 +1,5 @@
 import { fireEvent, screen } from '@testing-library/react'
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it, jest } from '@jest/globals'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { EntityPerformance } from '../../types'
 import { OverallPerformanceTable } from './overall-performance-table'
@@ -64,9 +64,9 @@ describe('OverallPerformanceTable', () => {
   it('renders quantity (MLD) values without a percent sign', () => {
     renderWithProviders(<OverallPerformanceTable data={tableData} />)
 
-    expect(screen.getByText('65')).toBeTruthy()
-    expect(screen.queryByText('65%')).toBeNull()
-    expect(screen.getByText('70%')).toBeTruthy()
+    expect(screen.getByText('65.0')).toBeTruthy()
+    expect(screen.queryByText('65.0%')).toBeNull()
+    expect(screen.getByText('70.0%')).toBeTruthy()
   })
 
   it('sorts by Quantity (MLD) descending then ascending on repeated clicks', () => {
@@ -95,5 +95,15 @@ describe('OverallPerformanceTable', () => {
     expect(getStateOrder(container)).toEqual(['Gamma', 'Beta', 'Alpha'])
     expect(regularityButton.closest('th')?.getAttribute('aria-sort')).toBe('descending')
     expect(quantityLpcdButton.closest('th')?.getAttribute('aria-sort')).toBeNull()
+  })
+
+  it('calls onRowClick when a row is clicked', () => {
+    const onRowClick = jest.fn()
+    renderWithProviders(<OverallPerformanceTable data={tableData} onRowClick={onRowClick} />)
+
+    fireEvent.click(screen.getByText('Alpha'))
+
+    expect(onRowClick).toHaveBeenCalledTimes(1)
+    expect(onRowClick).toHaveBeenCalledWith(tableData[0])
   })
 })

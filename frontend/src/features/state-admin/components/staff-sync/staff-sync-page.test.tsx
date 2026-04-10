@@ -8,18 +8,22 @@ import type { StaffCountsData } from '../../types/overview'
 // ── Mocks ────────────────────────────────────────────────────────────────────
 
 jest.mock('@/app/store/auth-store', () => ({
-  useAuthStore: (selector: (s: { user: { tenantCode: string } }) => unknown) =>
-    selector({ user: { tenantCode: 'AS' } }),
+  useAuthStore: (selector?: (s: { user: { tenantCode: string } }) => unknown) => {
+    const mockState = { user: { tenantCode: 'AS' } }
+    return selector ? selector(mockState) : mockState
+  },
 }))
 
 const mockUseStaffListQuery = jest.fn()
 const mockUseStaffCountsQuery = jest.fn()
 const mockUseUploadMutation = jest.fn()
+const mockUseBroadcastMutation = jest.fn()
 
 jest.mock('../../services/query/use-state-admin-queries', () => ({
   useStaffListQuery: () => mockUseStaffListQuery(),
   useStaffCountsQuery: () => mockUseStaffCountsQuery(),
   useUploadPumpOperatorsMutation: () => mockUseUploadMutation(),
+  useBroadcastWelcomeMessageMutation: () => mockUseBroadcastMutation(),
 }))
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -103,6 +107,10 @@ describe('StaffSyncPage', () => {
       isLoading: false,
     })
     mockUseUploadMutation.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: false,
+    })
+    mockUseBroadcastMutation.mockReturnValue({
       mutate: jest.fn(),
       isPending: false,
     })

@@ -192,7 +192,46 @@ export interface WaterQuantityPeriodicResponse {
   metrics: WaterQuantityPeriodicMetric[]
 }
 
+export interface WaterQuantityRegionWiseQueryParams {
+  tenantId: number
+  parentLgdId?: number
+  parentDepartmentId?: number
+  scope?: 'current' | 'child'
+  startDate: string
+  endDate: string
+}
+
+export interface WaterQuantityRegionWiseChildRegion {
+  lgdId: number
+  departmentId: number
+  title: string
+  schemeCount: number | null
+  householdCount: number
+  totalWaterQuantity: number
+  supplyDaysInEfficientRange: number
+  childLgdId?: number
+  childLgdCName?: string
+  childLgdTitle?: string
+  childDepartmentId?: number
+  childDepartmentTitle?: string
+}
+
+export interface WaterQuantityRegionWiseResponse {
+  lgdId: number
+  parentDepartmentId: number
+  parentLgdLevel: number
+  parentDepartmentLevel: number
+  scope: string
+  startDate: string
+  endDate: string
+  daysInRange?: number
+  schemeCount?: number
+  childRegionCount: number
+  childRegions: WaterQuantityRegionWiseChildRegion[]
+}
+
 export interface SchemeRegularityPeriodicQueryParams {
+  tenantId: number
   startDate: string
   endDate: string
   scale: 'day' | 'week' | 'month'
@@ -251,6 +290,7 @@ export interface NationalDashboardQuantityPerformanceItem {
   stateCode: string
   stateTitle: string
   schemeCount: number
+  supplyDaysInEfficientRange: number
   totalHouseholdCount: number
   totalFhtcCount?: number
   totalPlannedFhtc?: number
@@ -288,6 +328,20 @@ export interface NationalDashboardResponse {
   stateWiseRegularity: NationalDashboardRegularityItem[]
   stateWiseReadingSubmissionRate: NationalDashboardReadingSubmissionRateItem[]
   overallOutageReasonDistribution: NationalDashboardOutageReasonDistribution
+}
+
+export interface NationalDashboardBoundaryState {
+  tenantId: number
+  lgdId: number
+  tenantStatus: number
+  stateCode: string
+  stateTitle: string
+  boundary?: GeoJsonGeometry | null
+}
+
+export interface NationalDashboardBoundaryResponse {
+  nationalBoundary?: GeoJsonGeometry | null
+  stateWiseBoundaries: NationalDashboardBoundaryState[]
 }
 
 export interface AverageWaterSupplyScheme {
@@ -329,6 +383,7 @@ export interface AverageWaterSupplyPerRegionResponse {
 }
 
 export interface AverageSchemeRegularityQueryParams {
+  tenantId: number
   parentLgdId?: number
   parentDepartmentId?: number
   scope?: 'current' | 'child'
@@ -395,6 +450,7 @@ export interface TenantBoundaryResponse {
 }
 
 export interface ReadingSubmissionRateQueryParams {
+  tenantId: number
   parentLgdId?: number
   parentDepartmentId?: number
   scope?: 'current' | 'child'
@@ -563,6 +619,7 @@ export interface ReadingSubmissionRateResponse {
 }
 
 export interface SubmissionStatusQueryParams {
+  tenantId: number
   lgdId?: number
   departmentId?: number
   startDate: string
@@ -586,6 +643,7 @@ export interface SubmissionStatusResponse {
 }
 
 export interface OutageReasonsQueryParams {
+  tenantId: number
   startDate: string
   endDate: string
   parentLgdId?: number
@@ -593,6 +651,7 @@ export interface OutageReasonsQueryParams {
 }
 
 export interface OutageReasonsPeriodicQueryParams {
+  tenantId: number
   startDate: string
   endDate: string
   scale: 'day' | 'week' | 'month'

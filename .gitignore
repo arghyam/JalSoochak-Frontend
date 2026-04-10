@@ -2,3 +2,5 @@
 .cursor
 .claude
 .codex
+
+.env

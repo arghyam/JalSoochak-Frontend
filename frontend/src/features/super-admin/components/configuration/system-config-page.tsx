@@ -35,8 +35,9 @@ import {
 
 interface ConfigDraft {
   supportedChannels: SystemSupportedChannel[]
-  oversupplyThreshold: string
-  undersupplyThreshold: string
+  // Archived for now, kept for future integration
+  // oversupplyThreshold: string
+  // undersupplyThreshold: string
   bfmImageConfidenceThreshold: string
   locationAffinityThreshold: string
 }
@@ -44,8 +45,9 @@ interface ConfigDraft {
 function buildDraft(config?: SystemConfiguration): ConfigDraft {
   return {
     supportedChannels: config ? [...config.supportedChannels] : [],
-    oversupplyThreshold: config != null ? String(config.oversupplyThreshold) : '',
-    undersupplyThreshold: config != null ? String(config.undersupplyThreshold) : '',
+    // Archived for now, kept for future integration
+    // oversupplyThreshold: config != null ? String(config.oversupplyThreshold) : '',
+    // undersupplyThreshold: config != null ? String(config.undersupplyThreshold) : '',
     bfmImageConfidenceThreshold: config != null ? String(config.bfmImageConfidenceThreshold) : '',
     locationAffinityThreshold: config != null ? String(config.locationAffinityThreshold) : '',
   }
@@ -89,8 +91,9 @@ export function SystemConfigPage() {
     try {
       await saveMutation.mutateAsync({
         supportedChannels: current.supportedChannels,
-        oversupplyThreshold: Number(current.oversupplyThreshold) || 0,
-        undersupplyThreshold: Number(current.undersupplyThreshold) || 0,
+        // Archived for now, kept for future integration
+        // oversupplyThreshold: Number(current.oversupplyThreshold) || 0,
+        // undersupplyThreshold: Number(current.undersupplyThreshold) || 0,
         bfmImageConfidenceThreshold: Number(current.bfmImageConfidenceThreshold) || 0,
         locationAffinityThreshold: Number(current.locationAffinityThreshold) || 0,
       })
@@ -125,8 +128,9 @@ export function SystemConfigPage() {
       [...config.supportedChannels].sort(compare).join()
     return (
       channelsChanged ||
-      Number(draft.oversupplyThreshold) !== config.oversupplyThreshold ||
-      Number(draft.undersupplyThreshold) !== config.undersupplyThreshold ||
+      // Archived for now, kept for future integration
+      // Number(draft.oversupplyThreshold) !== config.oversupplyThreshold ||
+      // Number(draft.undersupplyThreshold) !== config.undersupplyThreshold ||
       Number(draft.bfmImageConfidenceThreshold) !== config.bfmImageConfidenceThreshold ||
       Number(draft.locationAffinityThreshold) !== config.locationAffinityThreshold
     )
@@ -280,8 +284,9 @@ export function SystemConfigPage() {
                   </CheckboxGroup>
                 </Box>
 
+                {/* Archived for now, kept for future integration */}
                 {/* 2. Quantity Thresholds */}
-                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+                {/* <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
                   <ThresholdInput
                     id="water-qty-undersupply"
                     label={t('configuration.sections.undersupplyThreshold.title')}
@@ -302,7 +307,7 @@ export function SystemConfigPage() {
                     max={1000}
                     maxDecimals={4}
                   />
-                </SimpleGrid>
+                </SimpleGrid> */}
 
                 {/* 3. BFM + Location Thresholds */}
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
@@ -489,8 +494,9 @@ function ViewMode({
         </Text>
       </Box>
 
+      {/* Archived for now, kept for future integration */}
       {/* Quantity Thresholds */}
-      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+      {/* <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
         <ViewField
           label={t('configuration.sections.undersupplyThreshold.title')}
           value={String(config.undersupplyThreshold)}
@@ -499,7 +505,7 @@ function ViewMode({
           label={t('configuration.sections.oversupplyThreshold.title')}
           value={String(config.oversupplyThreshold)}
         />
-      </SimpleGrid>
+      </SimpleGrid> */}
 
       {/* BFM + Location */}
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>

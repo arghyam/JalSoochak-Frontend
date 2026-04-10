@@ -56,7 +56,7 @@
   },
   "map": {
     "metric": {
-      "quantity": "Quantity",
+      "quantity": "Schemes Quantity",
       "regularity": "Regularity"
     },
     "noMapAvailable": "Map currently unavailable",
@@ -81,18 +81,20 @@
       "quantityMld": {
         "formulaLabel": "Quantity (MLD)",
         "definitions": {
-          "waterQuantitySupplied": "water quantity supplied on day k",
+          "mldFullForm": "Million Liters per Day",
+          "waterQuantitySupplied": "water quantity supplied on kth day",
           "totalWaterSupplied": "total water supplied across all days",
-          "totalNumberOfDays": "total number of days"
+          "totalNumberOfDays": "total number of days in the selected time-period"
         }
       },
       "quantityLpcd": {
         "formulaLabel": "Quantity (LPCD)",
         "definitions": {
-          "waterQuantitySupplied": "water quantity supplied on day k",
+          "lpcdFullForm": "Liters per Capita per Day",
+          "waterQuantitySupplied": "water quantity supplied on kth day",
           "functionalHouseholdTapConnections": "functional household tap connections of scheme i",
           "averagePersonsPerHousehold": "average persons per household",
-          "numberOfDays": "number of days"
+          "numberOfDays": "total number of days in the selected time-period"
         }
       },
       "regularity": {
@@ -132,7 +134,7 @@
       "ariaViewBy": "Quantity performance view by",
       "ariaViewByDistrict": "District quantity performance view by",
       "ariaViewByGramPanchayat": "Gram panchayat quantity performance view by",
-      "yAxisLabel": "Quantity",
+      "yAxisLabel": "Quantity (MLD)",
       "seriesName": "Quantity",
       "areaSeriesName": "Demand"
     },
@@ -141,8 +143,7 @@
       "ariaViewBy": "Regularity performance view by",
       "ariaViewByDistrict": "District regularity performance view by",
       "ariaViewByGramPanchayat": "Gram panchayat regularity performance view by",
-      "yAxisLabel": "Regularity",
-      "yAxisLabelPercent": "Regularity (%)",
+      "yAxisLabel": "Regularity (%)",
       "seriesName": "Regularity"
     },
     "viewBy": {
@@ -154,12 +155,21 @@
       "districts": "Districts",
       "statesUTs": "States/UTs",
       "gramPanchayats": "Gram Panchayats",
-      "villages": "Villages"
+      "villages": "Villages",
+      "zone": "Zone",
+      "circle": "Circle",
+      "division": "Division",
+      "subDivision": "Sub Division",
+      "zones": "Zones",
+      "circles": "Circles",
+      "divisions": "Divisions",
+      "subDivisions": "Sub Divisions"
     }
   },
   "outageAndSubmissionCharts": {
     "ariaViewByBlock": "Block supply outage distribution view by",
     "ariaViewByGramPanchayat": "Gram panchayat supply outage distribution view by",
+    "ariaOutageTimeScale": "Outage time scale",
     "titles": {
       "supplyOutageReasons": "Supply Outage Reasons",
       "supplyOutageDistribution": "Supply Outage Distribution",
@@ -171,12 +181,22 @@
     },
     "axis": {
       "percentage": "Percentage",
-      "noOfDays": "No. of days"
+      "noOfReasons": "No. of Reasons"
     },
     "series": {
       "submissionRate": "Submission Rate",
       "readingSubmission": "Reading submission",
       "supplyOutage": "Supply outage"
+    },
+    "timeScale": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month"
+    },
+    "timeScaleShort": {
+      "day": "D",
+      "week": "W",
+      "month": "M"
     },
     "legend": {
       "electricalFailure": "Electrical failure",
@@ -185,7 +205,9 @@
       "valveIssue": "Valve issue",
       "sourceDrying": "Source Drying",
       "complaintSubmission": "Complaint Submissions",
-      "automatedSubmission": "Anomalous Submissions"
+      "automatedSubmission": "Anomalous Submissions",
+      "compliantSubmission": "Compliant Submissions",
+      "anomalousSubmission": "Anomalous Submissions"
     },
     "tables": {
       "readingCompliance": {
@@ -205,6 +227,8 @@
     "details": {
       "title": "Pump Operator Details",
       "fields": {
+        "schemeId": "Scheme ID",
+        "schemeName": "Scheme name",
         "schemeNameSchemeId": "Scheme name/ Scheme ID",
         "stationLocation": "Station location",
         "lastSubmission": "Last submission",

@@ -2,7 +2,8 @@
   "extends": "./tsconfig.app.json",
   "compilerOptions": {
     "esModuleInterop": true,
-    "module": "commonjs",
+    "module": "esnext",
+    "target": "ES2022",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "verbatimModuleSyntax": false,

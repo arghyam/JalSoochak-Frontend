@@ -25,8 +25,8 @@ export function DemandSupplyChart({ data, className, height = '400px' }: DemandS
         show: false,
       },
       grid: {
-        left: '8%',
-        right: '4%',
+        left: '8px',
+        right: '16px',
         top: '14%',
         bottom: '5%',
         containLabel: true,

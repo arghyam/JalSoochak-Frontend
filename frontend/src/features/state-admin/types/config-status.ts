@@ -13,15 +13,23 @@ export type ConfigKey =
   | 'TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD'
   | 'MESSAGE_BROKER_CONNECTION_SETTINGS'
   | 'FIELD_STAFF_ESCALATION_RULES'
+  | 'DATE_FORMAT_SCREEN'
+  | 'DATE_FORMAT_TABLE'
+  | 'GLIFIC_MESSAGE_TEMPLATES'
+  | 'STATE_IT_SYSTEM_CONNECTION'
+  | 'STATE_DATA_RECONCILIATION_TIME'
+  | 'EMAIL_TEMPLATE_JSON'
+  | 'DISPLAY_DEPARTMENT_MAPS'
+  | 'SUPPLY_OUTAGE_REASONS'
 
-export type ConfigStatusMap = { [K in ConfigKey]?: ConfigKeyStatus }
+export interface ConfigStatusEntry {
+  status: ConfigKeyStatus
+  mandatory: boolean
+}
 
-export type WizardStepId =
-  | 'configuration'
-  | 'language'
-  | 'waterNorms'
-  | 'integration'
-  | 'escalations'
+export type ConfigStatusMap = { [K in ConfigKey]?: ConfigStatusEntry }
+
+export type WizardStepId = 'configuration' | 'language' | 'waterNorms' | 'escalations'
 
 export interface WizardStep {
   id: WizardStepId

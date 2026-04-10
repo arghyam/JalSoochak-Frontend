@@ -15,6 +15,7 @@ import type {
   SubmissionStatusQueryParams,
   WaterQuantityPeriodicQueryParams,
   TenantBoundaryQueryParams,
+  WaterQuantityRegionWiseQueryParams,
 } from '../../types'
 
 const DEFAULT_ANALYTICS_SCOPE = 'child'
@@ -34,6 +35,8 @@ export const dashboardQueryKeys = {
     ['dashboard', 'tenant-public-config', tenantId] as const,
   nationalDashboard: (params: NationalDashboardQueryParams | null) =>
     ['dashboard', 'analytics', 'national-dashboard', params?.startDate, params?.endDate] as const,
+  nationalDashboardBoundaries: () =>
+    ['dashboard', 'analytics', 'national-dashboard-boundaries'] as const,
   averageWaterSupplyPerRegion: (params: AverageWaterSupplyPerRegionQueryParams | null) =>
     [
       'dashboard',
@@ -57,11 +60,24 @@ export const dashboardQueryKeys = {
       params?.startDate,
       params?.endDate,
     ] as const,
+  waterQuantityRegionWise: (params: WaterQuantityRegionWiseQueryParams | null) =>
+    [
+      'dashboard',
+      'analytics',
+      'water-quantity-region-wise',
+      params?.tenantId,
+      params?.parentLgdId,
+      params?.parentDepartmentId,
+      normalizeAnalyticsScope(params),
+      params?.startDate,
+      params?.endDate,
+    ] as const,
   schemeRegularityPeriodic: (params: SchemeRegularityPeriodicQueryParams | null) =>
     [
       'dashboard',
       'analytics',
       'scheme-regularity-periodic',
+      params?.tenantId,
       params?.lgdId,
       params?.departmentId,
       params?.scale,
@@ -82,6 +98,7 @@ export const dashboardQueryKeys = {
       'dashboard',
       'analytics',
       'average-scheme-regularity',
+      params?.tenantId,
       params?.parentLgdId,
       params?.parentDepartmentId,
       normalizeAnalyticsScope(params),
@@ -104,6 +121,7 @@ export const dashboardQueryKeys = {
       'dashboard',
       'analytics',
       'reading-submission-rate',
+      params?.tenantId,
       params?.parentLgdId,
       params?.parentDepartmentId,
       normalizeAnalyticsScope(params),
@@ -140,6 +158,7 @@ export const dashboardQueryKeys = {
       'dashboard',
       'analytics',
       'submission-status',
+      params?.tenantId,
       params?.lgdId,
       params?.departmentId,
       params?.startDate,
@@ -150,6 +169,7 @@ export const dashboardQueryKeys = {
       'dashboard',
       'analytics',
       'outage-reasons',
+      params?.tenantId,
       params?.parentLgdId,
       params?.parentDepartmentId,
       params?.startDate,
@@ -160,6 +180,7 @@ export const dashboardQueryKeys = {
       'dashboard',
       'analytics',
       'outage-reasons-periodic',
+      params?.tenantId,
       params?.lgdId,
       params?.departmentId,
       params?.scale,

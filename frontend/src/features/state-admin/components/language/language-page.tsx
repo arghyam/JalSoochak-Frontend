@@ -13,14 +13,18 @@ import {
   PageHeader,
 } from '@/shared/components/common'
 import {
+  useConfigStatusQuery,
   useLanguageConfigurationQuery,
   useSaveLanguageConfigurationMutation,
 } from '../../services/query/use-state-admin-queries'
+import type { ConfigKey } from '../../types/config-status'
 
 export function LanguagePage() {
   const { t } = useTranslation(['state-admin', 'common'])
   const navigate = useNavigate()
   const { data: config, isLoading, isError } = useLanguageConfigurationQuery()
+  const { data: configStatuses } = useConfigStatusQuery()
+  const isMandatory = (key: ConfigKey): boolean => configStatuses?.[key]?.mandatory ?? true
   const saveLanguageConfigMutation = useSaveLanguageConfigurationMutation()
   const [isEditing, setIsEditing] = useState(false)
   const [languageDraft, setLanguageDraft] = useState<{
@@ -290,9 +294,15 @@ export function LanguagePage() {
                     display="block"
                   >
                     {t('language.primaryLanguage')}
-                    <Text as="span" color="error.500" ml={1}>
-                      *
-                    </Text>
+                    {isMandatory('SUPPORTED_LANGUAGES') ? (
+                      <Text as="span" color="error.500" ml={1}>
+                        *
+                      </Text>
+                    ) : (
+                      <Text as="span" color="neutral.400" ml={1} fontSize="xs">
+                        (Optional)
+                      </Text>
+                    )}
                   </Text>
                   <SearchableSelect
                     options={primaryOptions}

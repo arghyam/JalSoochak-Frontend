@@ -5,7 +5,12 @@ export const locationSearchQueryKeys = {
     ['dashboard', 'location-search', 'hierarchy', tenantId, hierarchyType] as const,
   children: (tenantId?: number, hierarchyType?: string, parentId?: number) =>
     ['dashboard', 'location-search', 'children', tenantId, hierarchyType, parentId] as const,
-  districtSchemeBlockLookup: (tenantId?: number, hierarchyType?: string, districtId?: number) =>
+  districtSchemeBlockLookup: (
+    tenantId?: number,
+    hierarchyType?: string,
+    districtId?: number,
+    targetLgdIdsKey?: string
+  ) =>
     [
       'dashboard',
       'location-search',
@@ -13,6 +18,7 @@ export const locationSearchQueryKeys = {
       tenantId,
       hierarchyType,
       districtId,
+      targetLgdIdsKey,
     ] as const,
   blockSchemePanchayatLookup: (tenantId?: number, hierarchyType?: string, blockId?: number) =>
     [

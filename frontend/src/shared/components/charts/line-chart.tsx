@@ -47,8 +47,8 @@ export function LineChart<T extends object>({
     },
 
     grid: {
-      left: '3%',
-      right: '4%',
+      left: '8px',
+      right: '16px',
       bottom: '15%',
       top: '10%',
       containLabel: true,

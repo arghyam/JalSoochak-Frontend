@@ -275,7 +275,7 @@ describe('GramPanchayatDashboardScreen', () => {
     const quantityCall = monthlyCalls.find((call) => call[0]?.seriesName === 'Quantity')
     expect(quantityCall).toBeDefined()
     expect(quantityCall?.[0].xAxisLabel).toBe('Month')
-    expect(quantityCall?.[0].yAxisLabel).toBe('Quantity')
+    expect(quantityCall?.[0].yAxisLabel).toBe('Quantity (ML)')
     expect(quantityCall?.[0].data).toEqual(quantityTimeTrendData)
   })
 
@@ -317,8 +317,8 @@ describe('GramPanchayatDashboardScreen', () => {
     const monthlyCalls = mockMonthlyTrendChart.mock.calls as Array<[Record<string, unknown>]>
     const outageCall = monthlyCalls.find((call) => call[0]?.seriesName === 'Supply outage')
     expect(outageCall).toBeDefined()
-    expect(outageCall?.[0].xAxisLabel).toBe('Month')
-    expect(outageCall?.[0].yAxisLabel).toBe('No. of days')
+    expect(outageCall?.[0].xAxisLabel).toBe('Time')
+    expect(outageCall?.[0].yAxisLabel).toBe('No. of Reasons')
     expect(outageCall?.[0].data).toEqual([
       {
         period: 'Jan',

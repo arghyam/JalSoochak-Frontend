@@ -7,18 +7,18 @@ import type { StaffCountsData } from '../../types/overview'
 import type { SchemeCounts } from '../../types/scheme-sync'
 
 const allConfiguredConfigStatus: ConfigStatusMap = {
-  TENANT_SUPPORTED_CHANNELS: 'CONFIGURED',
-  METER_CHANGE_REASONS: 'CONFIGURED',
-  AVERAGE_MEMBERS_PER_HOUSEHOLD: 'CONFIGURED',
-  DATA_CONSOLIDATION_TIME: 'CONFIGURED',
-  PUMP_OPERATOR_REMINDER_NUDGE_TIME: 'CONFIGURED',
-  LOCATION_CHECK_REQUIRED: 'CONFIGURED',
-  TENANT_LOGO: 'CONFIGURED',
-  SUPPORTED_LANGUAGES: 'CONFIGURED',
-  WATER_NORM: 'CONFIGURED',
-  TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD: 'CONFIGURED',
-  MESSAGE_BROKER_CONNECTION_SETTINGS: 'CONFIGURED',
-  FIELD_STAFF_ESCALATION_RULES: 'CONFIGURED',
+  TENANT_SUPPORTED_CHANNELS: { status: 'CONFIGURED', mandatory: true },
+  METER_CHANGE_REASONS: { status: 'CONFIGURED', mandatory: true },
+  AVERAGE_MEMBERS_PER_HOUSEHOLD: { status: 'CONFIGURED', mandatory: true },
+  DATA_CONSOLIDATION_TIME: { status: 'CONFIGURED', mandatory: true },
+  PUMP_OPERATOR_REMINDER_NUDGE_TIME: { status: 'CONFIGURED', mandatory: true },
+  LOCATION_CHECK_REQUIRED: { status: 'CONFIGURED', mandatory: true },
+  TENANT_LOGO: { status: 'CONFIGURED', mandatory: false },
+  SUPPORTED_LANGUAGES: { status: 'CONFIGURED', mandatory: true },
+  WATER_NORM: { status: 'CONFIGURED', mandatory: true },
+  TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD: { status: 'CONFIGURED', mandatory: true },
+  MESSAGE_BROKER_CONNECTION_SETTINGS: { status: 'CONFIGURED', mandatory: true },
+  FIELD_STAFF_ESCALATION_RULES: { status: 'CONFIGURED', mandatory: true },
 }
 
 const mockConfigStatusState: {
@@ -75,7 +75,9 @@ jest.mock('../../services/query/use-state-admin-queries', () => ({
 }))
 
 jest.mock('@/app/store', () => ({
-  useAuthStore: (selector: (state: typeof mockAuthState) => unknown) => selector(mockAuthState),
+  useAuthStore: (selector?: (state: typeof mockAuthState) => unknown) => {
+    return selector ? selector(mockAuthState) : mockAuthState
+  },
 }))
 
 beforeEach(() => {

@@ -332,7 +332,9 @@
     },
     "table": {
       "schemeName": "योजना नाम",
-      "fhtcCount": "FHTC संख्या",
+      "stateSchemeId": "राज्य योजना आईडी",
+      "plannedFhtc": "योजनाबद्ध FHTC",
+      "achievedFhtc": "हासिल FHTC",
       "houseHoldCount": "घरेलू संख्या",
       "workStatus": "कार्य स्थिति",
       "operatingStatus": "संचालन स्थिति"
@@ -497,7 +499,10 @@
         "channelRequired": "कम से कम एक समर्थित चैनल चुनें",
         "hierarchyRequired": "सभी पदानुक्रम स्तर के नाम आवश्यक हैं",
         "logoTooLarge": "लोगो फ़ाइल 2 MB या उससे छोटी होनी चाहिए",
-        "logoInvalidType": "लोगो PNG या JPG फ़ाइल होनी चाहिए"
+        "logoInvalidType": "लोगो PNG या JPG फ़ाइल होनी चाहिए",
+        "logoRequired": "कृपया एक लोगो अपलोड करें",
+        "dateFormatScreenRequired": "कृपया स्क्रीन प्रदर्शन के लिए सभी दिनांक प्रारूप फ़ील्ड चुनें",
+        "dateFormatTableRequired": "कृपया तालिका प्रदर्शन के लिए सभी दिनांक प्रारूप फ़ील्ड चुनें"
       }
     }
   },

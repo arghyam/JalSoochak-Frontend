@@ -14,6 +14,7 @@ import type {
   GeoJsonGeometry,
   WaterQuantityPeriodicResponse,
   WaterSupplyOutageData,
+  WaterQuantityRegionWiseResponse,
 } from '../types'
 import {
   getLocationTitleFromLookup,
@@ -495,7 +496,10 @@ const getTenantBoundaryRegionId = (
 export const mapTenantBoundariesToPerformance = (
   response: TenantBoundaryResponse | undefined,
   fallbackData: EntityPerformance[],
-  locationOptions: LocationLabelOption[] = []
+  locationOptions: LocationLabelOption[] = [],
+  regularityAnalytics?: AverageSchemeRegularityResponse,
+  quantityAnalytics?: WaterQuantityRegionWiseResponse,
+  waterSupplyAnalytics?: AverageWaterSupplyPerRegionResponse
 ): EntityPerformance[] => {
   if (!response?.childRegions?.length) {
     return []
@@ -505,6 +509,117 @@ export const mapTenantBoundariesToPerformance = (
   const fallbackByName = mapFallbackByName(fallbackData)
   const locationOptionsById = mapLocationOptionsById(locationOptions)
   const locationOptionsByName = mapLocationOptionsByName(locationOptions)
+  const regularityById = new Map<string, number>()
+  const regularityByName = new Map<string, number>()
+  const quantityById = new Map<string, number>()
+  const quantityByName = new Map<string, number>()
+  const quantityNoDataById = new Set<string>()
+  const quantityNoDataByName = new Set<string>()
+  const schemeCountById = new Map<string, number>()
+  const schemeCountByName = new Map<string, number>()
+
+  const regularityDaysInRange = resolveDaysInRange(
+    regularityAnalytics?.daysInRange,
+    regularityAnalytics?.startDate,
+    regularityAnalytics?.endDate
+  )
+
+  ;(regularityAnalytics?.childRegions ?? []).forEach((region) => {
+    const regularityPercent =
+      Number.isFinite(region.totalSupplyDays) &&
+      region.totalSupplyDays > 0 &&
+      Number.isFinite(region.schemeCount) &&
+      region.schemeCount > 0 &&
+      regularityDaysInRange > 0
+        ? calculateAverageRegularityPercent(
+            region.totalSupplyDays,
+            region.schemeCount,
+            regularityDaysInRange
+          )
+        : typeof region.averageRegularity === 'number' && Number.isFinite(region.averageRegularity)
+          ? Number((region.averageRegularity * 100).toFixed(1))
+          : 0
+    const titleKey = slugify(region.title)
+    if (titleKey) {
+      regularityByName.set(titleKey, regularityPercent)
+    }
+
+    if (typeof region.departmentId === 'number' && region.departmentId > 0) {
+      regularityById.set(String(region.departmentId), regularityPercent)
+    }
+    if (typeof region.lgdId === 'number' && region.lgdId > 0) {
+      regularityById.set(String(region.lgdId), regularityPercent)
+    }
+  })
+
+  const quantityDaysInRange = resolveDaysInRange(
+    quantityAnalytics?.daysInRange ?? regularityAnalytics?.daysInRange,
+    quantityAnalytics?.startDate ?? regularityAnalytics?.startDate,
+    quantityAnalytics?.endDate ?? regularityAnalytics?.endDate
+  )
+
+  ;(waterSupplyAnalytics?.childRegions ?? []).forEach((region) => {
+    const schemeCount = Number(region.schemeCount)
+    if (!Number.isFinite(schemeCount) || schemeCount <= 0) {
+      return
+    }
+
+    const titleKey = slugify(region.title)
+    if (titleKey) {
+      schemeCountByName.set(titleKey, schemeCount)
+    }
+
+    if (typeof region.departmentId === 'number' && region.departmentId > 0) {
+      schemeCountById.set(String(region.departmentId), schemeCount)
+    }
+    if (typeof region.lgdId === 'number' && region.lgdId > 0) {
+      schemeCountById.set(String(region.lgdId), schemeCount)
+    }
+  })
+  ;(quantityAnalytics?.childRegions ?? []).forEach((region) => {
+    const titleKey = slugify(region.title)
+    const schemeCountRaw = Number(region.schemeCount)
+    const schemeCountLookup =
+      (typeof region.departmentId === 'number' && region.departmentId > 0
+        ? schemeCountById.get(String(region.departmentId))
+        : undefined) ??
+      (typeof region.lgdId === 'number' && region.lgdId > 0
+        ? schemeCountById.get(String(region.lgdId))
+        : undefined) ??
+      (titleKey ? schemeCountByName.get(titleKey) : undefined)
+    const schemeCount =
+      Number.isFinite(schemeCountRaw) && schemeCountRaw > 0
+        ? schemeCountRaw
+        : typeof schemeCountLookup === 'number'
+          ? schemeCountLookup
+          : Number.NaN
+    const supplyDays = Number(region.supplyDaysInEfficientRange)
+
+    const quantityPercent =
+      Number.isFinite(schemeCount) &&
+      schemeCount > 0 &&
+      Number.isFinite(supplyDays) &&
+      supplyDays >= 0 &&
+      quantityDaysInRange > 0
+        ? Number(((supplyDays / (quantityDaysInRange * schemeCount)) * 100).toFixed(1))
+        : null
+
+    const idCandidates = [
+      typeof region.departmentId === 'number' && region.departmentId > 0
+        ? String(region.departmentId)
+        : '',
+      typeof region.lgdId === 'number' && region.lgdId > 0 ? String(region.lgdId) : '',
+    ].filter(Boolean)
+
+    if (quantityPercent == null) {
+      idCandidates.forEach((id) => quantityNoDataById.add(id))
+      if (titleKey) quantityNoDataByName.add(titleKey)
+      return
+    }
+
+    idCandidates.forEach((id) => quantityById.set(id, quantityPercent))
+    if (titleKey) quantityByName.set(titleKey, quantityPercent)
+  })
 
   return response.childRegions.map((region, index) => {
     const regionTitle =
@@ -540,17 +655,76 @@ export const mapTenantBoundariesToPerformance = (
           ? fallbackMatch?.name
           : undefined
 
+    const preferredRegularity = (() => {
+      const regionIdCandidate =
+        typeof locationId === 'number'
+          ? String(locationId)
+          : typeof regionLocationId === 'number'
+            ? String(regionLocationId)
+            : undefined
+      const titleCandidate = !isGenericRegionName(regionTitle) ? slugify(regionTitle) : ''
+      const labelCandidate = !isGenericRegionName(locationLabel) ? slugify(locationLabel ?? '') : ''
+
+      const fromAnalytics =
+        (regionIdCandidate ? regularityById.get(regionIdCandidate) : undefined) ??
+        (titleCandidate ? regularityByName.get(titleCandidate) : undefined) ??
+        (labelCandidate ? regularityByName.get(labelCandidate) : undefined)
+
+      if (typeof fromAnalytics === 'number') {
+        return fromAnalytics
+      }
+
+      if (typeof region.averageSchemeRegularity === 'number') {
+        return Number((region.averageSchemeRegularity * 100).toFixed(1))
+      }
+
+      return 0
+    })()
+
+    const preferredQuantity = (() => {
+      if (quantityAnalytics?.childRegions?.length) {
+        const regionIdCandidate =
+          typeof locationId === 'number'
+            ? String(locationId)
+            : typeof regionLocationId === 'number'
+              ? String(regionLocationId)
+              : undefined
+        const titleCandidate = !isGenericRegionName(regionTitle) ? slugify(regionTitle) : ''
+        const labelCandidate = !isGenericRegionName(locationLabel)
+          ? slugify(locationLabel ?? '')
+          : ''
+
+        const fromNoData =
+          (regionIdCandidate ? quantityNoDataById.has(regionIdCandidate) : false) ||
+          (titleCandidate ? quantityNoDataByName.has(titleCandidate) : false) ||
+          (labelCandidate ? quantityNoDataByName.has(labelCandidate) : false)
+
+        if (fromNoData) {
+          return -1
+        }
+
+        const fromAnalytics =
+          (regionIdCandidate ? quantityById.get(regionIdCandidate) : undefined) ??
+          (titleCandidate ? quantityByName.get(titleCandidate) : undefined) ??
+          (labelCandidate ? quantityByName.get(labelCandidate) : undefined)
+
+        if (typeof fromAnalytics === 'number' && Number.isFinite(fromAnalytics)) {
+          return fromAnalytics
+        }
+
+        return -1
+      }
+
+      return -1
+    })()
+
     return {
       id: fallbackMatch?.id ?? getTenantBoundaryRegionId(region, index),
       name: formatEntityName(preferredRegionName, undefined, `Region ${index + 1}`),
       coverage: fallbackMatch?.coverage ?? 0,
-      regularity:
-        fallbackMatch?.regularity ??
-        (typeof region.averageSchemeRegularity === 'number'
-          ? Number((region.averageSchemeRegularity * 100).toFixed(1))
-          : 0),
+      regularity: preferredRegularity,
       continuity: fallbackMatch?.continuity ?? 0,
-      quantity: fallbackMatch?.quantity ?? 0,
+      quantity: preferredQuantity,
       compositeScore:
         fallbackMatch?.compositeScore ??
         (typeof region.averagePerformanceScore === 'number'
@@ -678,7 +852,15 @@ export const mapQuantityPerformanceFromNationalDashboard = (
   response: NationalDashboardResponse | undefined,
   fallbackData: EntityPerformance[],
   averagePersonsPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD,
-  litersPerPersonPerDay = DEFAULT_LITERS_PER_PERSON_PER_DAY
+  litersPerPersonPerDay = DEFAULT_LITERS_PER_PERSON_PER_DAY,
+  resolveDemandInputs?: (
+    state: NationalDashboardResponse['stateWiseQuantityPerformance'][number]
+  ) =>
+    | {
+        averagePersonsPerHousehold?: number
+        litersPerPersonPerDay?: number
+      }
+    | undefined
 ): EntityPerformance[] => {
   if (!response?.stateWiseQuantityPerformance?.length) {
     return []
@@ -688,14 +870,29 @@ export const mapQuantityPerformanceFromNationalDashboard = (
 
   return response.stateWiseQuantityPerformance.map((state, index) => {
     const fallbackMatch = mapNationalFallbackMatch(fallbackData, state.stateTitle, index)
+    const demandInputs = resolveDemandInputs?.(state)
+    const demandAveragePersonsPerHousehold = demandInputs?.averagePersonsPerHousehold
+    const demandLitersPerPersonPerDay = demandInputs?.litersPerPersonPerDay
+    const resolvedAveragePersonsPerHousehold =
+      typeof demandAveragePersonsPerHousehold === 'number' &&
+      Number.isFinite(demandAveragePersonsPerHousehold) &&
+      demandAveragePersonsPerHousehold > 0
+        ? demandAveragePersonsPerHousehold
+        : averagePersonsPerHousehold
+    const resolvedLitersPerPersonPerDay =
+      typeof demandLitersPerPersonPerDay === 'number' &&
+      Number.isFinite(demandLitersPerPersonPerDay) &&
+      demandLitersPerPersonPerDay > 0
+        ? demandLitersPerPersonPerDay
+        : litersPerPersonPerDay
 
     return {
       id: fallbackMatch?.id ?? `national-quantity-${state.stateCode || index}`,
       name: formatEntityName(state.stateTitle, fallbackMatch?.name, `State ${index + 1}`),
       coverage: calculateDemandMld(
         getNationalDemandFhtcCount(state),
-        averagePersonsPerHousehold,
-        litersPerPersonPerDay
+        resolvedAveragePersonsPerHousehold,
+        resolvedLitersPerPersonPerDay
       ),
       regularity: fallbackMatch?.regularity ?? 0,
       continuity: fallbackMatch?.continuity ?? 0,
@@ -997,12 +1194,25 @@ export const mapOverallPerformanceFromNationalDashboard = (
   const regularityByName = new Map(
     (response.stateWiseRegularity ?? []).map((state) => [slugify(state.stateTitle), state] as const)
   )
+  const seenIds = new Set<string>()
 
   return response.stateWiseQuantityPerformance.map((state, index) => {
     const matchingRegularity = regularityByName.get(slugify(state.stateTitle))
+    const baseId = state.stateCode
+      ? `national-overall-${state.stateCode}`
+      : `national-overall-${slugify(state.stateTitle) || index}`
+    let resolvedId = baseId
+    if (seenIds.has(resolvedId)) {
+      let suffix = 1
+      while (seenIds.has(`${baseId}-${suffix}`)) {
+        suffix += 1
+      }
+      resolvedId = `${baseId}-${suffix}`
+    }
+    seenIds.add(resolvedId)
 
     return {
-      id: `national-overall-${state.stateCode || index}`,
+      id: resolvedId,
       name: formatEntityName(state.stateTitle, undefined, `State ${index + 1}`),
       coverage: calculateQuantityMld(state.totalWaterSuppliedLiters, daysInRange),
       regularity: matchingRegularity

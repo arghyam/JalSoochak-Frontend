@@ -538,20 +538,22 @@ export function SearchLayout({
               display="grid"
               gridTemplateColumns={{
                 base: 'minmax(0, 1fr)',
-                sm: isBelowXsLayout ? 'minmax(0, 1fr)' : 'repeat(2, minmax(0, 1fr))',
-                md: 'repeat(3, minmax(0, 1fr))',
-                lg: 'none',
+                sm: isBelowXsLayout ? 'minmax(0, 1fr)' : 'repeat(2, 200px)',
+                md: 'repeat(3, 200px)',
+                lg: 'repeat(1, 200px)',
               }}
               gridTemplateRows={{ lg: 'repeat(15, minmax(20px, auto))' }}
               gridAutoFlow={{ lg: 'column' }}
-              gridAutoColumns={{ lg: 'max-content' }}
+              gridAutoColumns={{ lg: '200px' }}
               columnGap={{ base: '12px', lg: '24px' }}
               rowGap="8px"
               alignItems="start"
               alignContent="start"
               justifyContent={{ lg: 'start' }}
               maxH={{ base: '272px', sm: isBelowXsLayout ? '272px' : 'none' }}
+              maxW="100%"
               overflowY={{ base: 'auto', sm: isBelowXsLayout ? 'auto' : 'visible' }}
+              overflowX={{ base: 'hidden', sm: 'auto' }}
               pr={{ base: '4px', sm: 0 }}
               pb="16px"
               data-testid="search-options-grid"
@@ -561,21 +563,31 @@ export function SearchLayout({
                   key={state.value}
                   variant="ghost"
                   justifyContent="flex-start"
-                  alignItems="flex-start"
+                  alignItems="center"
                   fontWeight="400"
                   textStyle="bodyText5"
                   color="neutral.950"
                   p={0}
                   h="auto"
                   fontSize="14px"
+                  w="200px"
                   minW={0}
-                  whiteSpace="nowrap"
                   textAlign="left"
                   onClick={() => handleStateSelect(state.value)}
                   _hover={{ bg: 'transparent', color: 'primary.500' }}
                   _active={{ bg: 'transparent', color: 'primary.500' }}
                 >
-                  {state.label}
+                  <Text
+                    as="span"
+                    display="block"
+                    w="full"
+                    minW={0}
+                    whiteSpace="nowrap"
+                    overflow="hidden"
+                    textOverflow="ellipsis"
+                  >
+                    {state.label}
+                  </Text>
                 </Button>
               ))}
               {filteredStateOptions.length === 0 ? (

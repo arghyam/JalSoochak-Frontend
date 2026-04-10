@@ -8,6 +8,7 @@ import type {
   NationalSchemeRegularityPeriodicResponse,
   NationalDashboardQueryParams,
   NationalDashboardResponse,
+  NationalDashboardBoundaryResponse,
   AverageWaterSupplyPerRegionQueryParams,
   AverageWaterSupplyPerRegionResponse,
   DashboardData,
@@ -34,6 +35,8 @@ import type {
   TenantBoundaryResponse,
   WaterQuantityPeriodicQueryParams,
   WaterQuantityPeriodicResponse,
+  WaterQuantityRegionWiseQueryParams,
+  WaterQuantityRegionWiseResponse,
 } from '../../types'
 
 export interface DashboardQueryParams {
@@ -70,6 +73,7 @@ export type TenantPublicDateFormatConfig = {
 
 export type TenantPublicConfig = {
   averageMembersPerHousehold: number
+  waterNorm: number
   dateFormatScreen: TenantPublicDateFormatConfig
 }
 
@@ -85,6 +89,11 @@ type RawPumpOperatorDetailsResponse = Omit<PumpOperatorDetailsResponse, 'data'> 
 type RawNationalDashboardPayload = {
   success?: boolean
   data?: NationalDashboardResponse
+}
+
+type RawNationalDashboardBoundaryPayload = {
+  success?: boolean
+  data?: NationalDashboardBoundaryResponse
 }
 
 type RawAverageWaterSupplyPerRegionPayload = {
@@ -104,13 +113,17 @@ type ApiEnvelope<T> = {
 type TenantPublicConfigMap = {
   DATE_FORMAT_SCREEN?: TenantPublicDateFormatConfig
   AVERAGE_MEMBERS_PER_HOUSEHOLD?: { value?: string | null }
+  WATER_NORM?: { value?: string | null }
 }
 
 type TenantBoundaryChildRegionAlias = {
   childLgdId?: number
   childLgdTitle?: string
+  lgdId?: number
   childDepartmentId?: number
   childDepartmentTitle?: string
+  departmentId?: number
+  title?: string
   childBoundaryGeoJson?: string | null
   boundaryGeoJson?: unknown
 }
@@ -182,6 +195,58 @@ const normalizeNationalDashboardResponse = (
   return payload
 }
 
+const normalizeStateWiseBoundaries = (
+  stateWiseBoundaries: unknown
+): NationalDashboardBoundaryResponse['stateWiseBoundaries'] => {
+  if (!Array.isArray(stateWiseBoundaries)) {
+    return []
+  }
+
+  return stateWiseBoundaries.flatMap((boundary) => {
+    if (!boundary || typeof boundary !== 'object') {
+      return []
+    }
+
+    return {
+      ...boundary,
+      boundary: isGeoJsonGeometry(boundary.boundary) ? boundary.boundary : null,
+    }
+  })
+}
+
+const normalizeNationalDashboardBoundaryResponse = (
+  response: NationalDashboardBoundaryResponse | RawNationalDashboardBoundaryPayload
+): NationalDashboardBoundaryResponse => {
+  if (!response || typeof response !== 'object') {
+    throw new Error('Invalid national dashboard boundary response: expected an object payload')
+  }
+
+  if ('stateWiseBoundaries' in response) {
+    return {
+      nationalBoundary: isGeoJsonGeometry(response.nationalBoundary)
+        ? response.nationalBoundary
+        : null,
+      stateWiseBoundaries: normalizeStateWiseBoundaries(response.stateWiseBoundaries),
+    }
+  }
+
+  const payload = response.data
+  if (!payload || typeof payload !== 'object') {
+    throw new Error('Invalid national dashboard boundary response: missing data payload')
+  }
+
+  if (!('stateWiseBoundaries' in payload)) {
+    throw new Error(
+      'Invalid national dashboard boundary response: data payload is missing stateWiseBoundaries'
+    )
+  }
+
+  return {
+    nationalBoundary: isGeoJsonGeometry(payload.nationalBoundary) ? payload.nationalBoundary : null,
+    stateWiseBoundaries: normalizeStateWiseBoundaries(payload.stateWiseBoundaries),
+  }
+}
+
 const toTenantListContainer = (value: unknown): TenantListContainer | null => {
   if (!value || typeof value !== 'object') {
     return null
@@ -240,13 +305,23 @@ const normalizeAverageSchemeRegularityResponse = (
     : [],
 })
 
+const normalizeWaterQuantityRegionWiseResponse = (
+  response: WaterQuantityRegionWiseResponse
+): WaterQuantityRegionWiseResponse => ({
+  ...response,
+  childRegions: Array.isArray(response.childRegions)
+    ? response.childRegions.map((region) => normalizeAnalyticsChildRegion(region))
+    : [],
+})
+
 const normalizeTenantBoundaryChildRegion = <T extends TenantBoundaryChildRegionAlias>(
   region: T,
   context: string
 ) => ({
   ...region,
-  childLgdId: region.childLgdId ?? region.childDepartmentId ?? 0,
-  childLgdTitle: region.childLgdTitle ?? region.childDepartmentTitle ?? '',
+  childLgdId: region.childLgdId ?? region.lgdId,
+  childDepartmentId: region.childDepartmentId ?? region.departmentId ?? undefined,
+  childLgdTitle: region.childLgdTitle ?? region.title ?? region.childDepartmentTitle ?? '',
   boundaryGeoJson: (() => {
     const parsed = parseBoundaryGeoJson(
       region.boundaryGeoJson ?? region.childBoundaryGeoJson,
@@ -475,6 +550,13 @@ export const dashboardApi = {
 
     return normalizeNationalDashboardResponse(response.data)
   },
+  getNationalDashboardBoundaries: async (): Promise<NationalDashboardBoundaryResponse> => {
+    const response = await apiClient.get<
+      NationalDashboardBoundaryResponse | RawNationalDashboardBoundaryPayload
+    >('/api/v1/analytics/national/dashboard/boundary')
+
+    return normalizeNationalDashboardBoundaryResponse(response.data)
+  },
   getAverageWaterSupplyPerRegion: async (
     params: AverageWaterSupplyPerRegionQueryParams
   ): Promise<AverageWaterSupplyPerRegionResponse> => {
@@ -519,6 +601,10 @@ export const dashboardApi = {
 
     return {
       averageMembersPerHousehold: Number(configs?.AVERAGE_MEMBERS_PER_HOUSEHOLD?.value) || 0,
+      waterNorm: (() => {
+        const parsedWaterNorm = Number(configs?.WATER_NORM?.value)
+        return Number.isFinite(parsedWaterNorm) && parsedWaterNorm > 0 ? parsedWaterNorm : 0
+      })(),
       dateFormatScreen: configs?.DATE_FORMAT_SCREEN ?? {
         dateFormat: null,
         timeFormat: null,
@@ -553,6 +639,38 @@ export const dashboardApi = {
       }
     )
   },
+  getWaterQuantityRegionWise: async (
+    params: WaterQuantityRegionWiseQueryParams
+  ): Promise<WaterQuantityRegionWiseResponse> => {
+    const response = await apiClient.get<
+      WaterQuantityRegionWiseResponse | WrappedAnalyticsResponse<WaterQuantityRegionWiseResponse>
+    >('/api/v1/analytics/water-quantity/region-wise', {
+      params: {
+        tenant_id: params.tenantId,
+        parent_lgd_id: params.parentLgdId,
+        parent_department_id: params.parentDepartmentId,
+        scope: params.scope ?? 'child',
+        start_date: params.startDate,
+        end_date: params.endDate,
+      },
+    })
+
+    return normalizeWaterQuantityRegionWiseResponse(
+      unwrapAnalyticsResponse(response.data, 'water quantity region-wise analytics') ?? {
+        lgdId: 0,
+        parentDepartmentId: 0,
+        parentLgdLevel: 0,
+        parentDepartmentLevel: 0,
+        scope: params.scope ?? 'child',
+        startDate: params.startDate,
+        endDate: params.endDate,
+        daysInRange: 0,
+        schemeCount: 0,
+        childRegionCount: 0,
+        childRegions: [],
+      }
+    )
+  },
   getAverageSchemeRegularity: async (
     params: AverageSchemeRegularityQueryParams
   ): Promise<AverageSchemeRegularityResponse> => {
@@ -560,6 +678,7 @@ export const dashboardApi = {
       AverageSchemeRegularityResponse | WrappedAnalyticsResponse<AverageSchemeRegularityResponse>
     >('/api/v1/analytics/scheme-regularity/average', {
       params: {
+        tenant_id: params.tenantId,
         parent_lgd_id: params.parentLgdId,
         parent_department_id: params.parentDepartmentId,
         scope: params.scope ?? 'child',
@@ -621,6 +740,7 @@ export const dashboardApi = {
       SchemeRegularityPeriodicResponse | WrappedAnalyticsResponse<SchemeRegularityPeriodicResponse>
     >('/api/v1/analytics/scheme-regularity/periodic', {
       params: {
+        tenant_id: params.tenantId,
         start_date: params.startDate,
         end_date: params.endDate,
         scale: params.scale,
@@ -674,6 +794,7 @@ export const dashboardApi = {
       ReadingSubmissionRateResponse | WrappedAnalyticsResponse<ReadingSubmissionRateResponse>
     >('/api/v1/analytics/reading-submission-rate', {
       params: {
+        tenant_id: params.tenantId,
         parent_lgd_id: params.parentLgdId,
         parent_department_id: params.parentDepartmentId,
         scope: params.scope ?? 'child',
@@ -796,6 +917,7 @@ export const dashboardApi = {
       SubmissionStatusResponse | WrappedAnalyticsResponse<SubmissionStatusResponse>
     >('/api/v1/analytics/submission-status', {
       params: {
+        tenant_id: params.tenantId,
         start_date: params.startDate,
         end_date: params.endDate,
         lgd_id: params.lgdId,
@@ -818,6 +940,7 @@ export const dashboardApi = {
       OutageReasonsResponse | WrappedAnalyticsResponse<OutageReasonsResponse>
     >('/api/v1/analytics/outage-reasons', {
       params: {
+        tenant_id: params.tenantId,
         start_date: params.startDate,
         end_date: params.endDate,
         parent_lgd_id: params.parentLgdId,
@@ -846,6 +969,7 @@ export const dashboardApi = {
       OutageReasonsPeriodicResponse | WrappedAnalyticsResponse<OutageReasonsPeriodicResponse>
     >('/api/v1/analytics/outage-reasons/periodic', {
       params: {
+        tenant_id: params.tenantId,
         start_date: params.startDate,
         end_date: params.endDate,
         scale: params.scale,

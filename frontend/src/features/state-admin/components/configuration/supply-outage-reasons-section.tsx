@@ -14,11 +14,12 @@ import { IoInformation } from 'react-icons/io5'
 import { useTranslation } from 'react-i18next'
 import type { SupplyOutageReason } from '../../types/configuration'
 import { isEmptyOrWhitespace } from '@/shared/utils/validation'
-import { ActionTooltip } from '@/shared/components/common'
+import { ActionTooltip, RequiredIndicator } from '@/shared/components/common'
 
 interface SupplyOutageReasonsSectionProps {
   title: string
   infoTooltip?: string
+  required?: boolean
   reasons: SupplyOutageReason[]
   onChange: (reasons: SupplyOutageReason[]) => void
   errors?: Record<string, string>
@@ -28,6 +29,7 @@ interface SupplyOutageReasonsSectionProps {
 export function SupplyOutageReasonsSection({
   title,
   infoTooltip,
+  required,
   reasons,
   onChange,
   errors,
@@ -45,6 +47,10 @@ export function SupplyOutageReasonsSection({
   const handleDelete = (id: string) => {
     const reason = reasons.find((r) => r.id === id)
     if (!reason?.editable) return
+    // Prevent deletion of the last item if the field is required
+    if (required && reasons.length === 1) {
+      return
+    }
     onChange(reasons.filter((r) => r.id !== id))
     onClearError?.(`supplyOutageReason.${id}`)
   }
@@ -65,6 +71,7 @@ export function SupplyOutageReasonsSection({
       <Flex align="center" gap={1} mb={3}>
         <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" color="neutral.950">
           {title}
+          <RequiredIndicator required={required} />
         </Text>
         {infoTooltip && (
           <ActionTooltip label={infoTooltip}>
@@ -116,9 +123,11 @@ export function SupplyOutageReasonsSection({
                     size="sm"
                     color="neutral.400"
                     onClick={() => handleDelete(reason.id)}
+                    isDisabled={required && reasons.length === 1}
                     h="36px"
                     minW="36px"
                     _hover={{ bg: 'error.50', color: 'error.500' }}
+                    _disabled={{ opacity: 0.4, cursor: 'not-allowed' }}
                   />
                 )}
               </Flex>

@@ -1,7 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { ROUTES } from '@/shared/constants/routes'
-import { MainLayout, DashboardLayout } from '@/shared/components/layout'
-import { CentralDashboard } from '@/features/dashboard/components/central-dashboard'
+import { MainLayout } from '@/shared/components/layout'
+import { SingleTenantGate } from './single-tenant-gate'
 import {
   OverviewPage as SuperAdminOverviewPage,
   StatesUTsPage,
@@ -38,7 +38,9 @@ import {
   StaffLoginPage,
   StaffOverviewPage,
   SchemesPage,
+  SchemeViewPage,
   PumpOperatorsPage,
+  PumpOperatorViewPage,
   AnomaliesPage,
   StaffEscalationsPage,
 } from '@/features/section-officer'
@@ -47,14 +49,10 @@ import { AUTH_ROLES } from '@/shared/constants/auth'
 import { NotFoundPage } from '@/shared/components/common'
 
 export const router = createBrowserRouter([
-  // Public dashboards
+  // Public dashboards (single-tenant aware)
   {
     path: ROUTES.DASHBOARD,
-    element: (
-      <DashboardLayout>
-        <CentralDashboard />
-      </DashboardLayout>
-    ),
+    element: <SingleTenantGate />,
   },
 
   // Shared routes — all authenticated roles
@@ -79,11 +77,7 @@ export const router = createBrowserRouter([
 
   {
     path: '/:stateSlug',
-    element: (
-      <DashboardLayout>
-        <CentralDashboard />
-      </DashboardLayout>
-    ),
+    element: <SingleTenantGate />,
   },
 
   // Auth
@@ -112,7 +106,7 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.SUPER_ADMIN,
     element: (
-      <ProtectedRoute allowedRoles={[AUTH_ROLES.SUPER_ADMIN]}>
+      <ProtectedRoute allowedRoles={[AUTH_ROLES.SUPER_ADMIN, AUTH_ROLES.SUPER_STATE_ADMIN]}>
         <MainLayout />
       </ProtectedRoute>
     ),
@@ -168,7 +162,7 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.STATE_ADMIN,
     element: (
-      <ProtectedRoute allowedRoles={[AUTH_ROLES.STATE_ADMIN]}>
+      <ProtectedRoute allowedRoles={[AUTH_ROLES.STATE_ADMIN, AUTH_ROLES.SUPER_STATE_ADMIN]}>
         <MainLayout />
       </ProtectedRoute>
     ),
@@ -266,8 +260,16 @@ export const router = createBrowserRouter([
         element: <SchemesPage />,
       },
       {
+        path: ROUTES.STAFF_SCHEMES_VIEW,
+        element: <SchemeViewPage />,
+      },
+      {
         path: ROUTES.STAFF_PUMP_OPERATORS,
         element: <PumpOperatorsPage />,
+      },
+      {
+        path: ROUTES.STAFF_PUMP_OPERATORS_VIEW,
+        element: <PumpOperatorViewPage />,
       },
       {
         path: ROUTES.STAFF_ANOMALIES,

@@ -34,27 +34,154 @@
     "overview": {
       "heading": "अवलोकन",
       "comingSoon": "जल्द आ रहा है",
-      "subtitle": "अवलोकन पृष्ठ निर्माणाधीन है।"
+      "subtitle": "अवलोकन पृष्ठ निर्माणाधीन है।",
+      "stats": {
+        "totalSchemes": "कुल योजनाओं की संख्या",
+        "quantityMld": "आपूर्ति की गई मात्रा (MLD में)",
+        "anomaliesFlagged": "चिह्नित विसंगतियां",
+        "escalations": "एस्कलेशन"
+      },
+      "charts": {
+        "outageReasons": {
+          "title": "आउटेज के कारण",
+          "pieTitle": "जल आपूर्ति आउटेज के कारण",
+          "distributionTitle": "जल आपूर्ति आउटेज वितरण",
+          "xAxisLabel": "तारीख"
+        },
+        "nonSubmissionReasons": {
+          "title": "गैर-प्रस्तुति के कारण",
+          "pieTitle": "गैर-प्रस्तुति के कारण",
+          "distributionTitle": "गैर-प्रस्तुति वितरण",
+          "xAxisLabel": "तारीख"
+        },
+        "submissionStatus": {
+          "title": "प्रस्तुति स्थिति",
+          "pieTitle": "रीडिंग प्रस्तुति स्थिति",
+          "barTitle": "रीडिंग प्रस्तुति दर",
+          "xAxisLabel": "तारीख"
+        },
+        "failedToLoadData": "डेटा लोड करने में विफल"
+      }
     },
     "schemes": {
-      "heading": "योजनाएं",
+      "heading": "सभी योजनाएं",
       "comingSoon": "जल्द आ रहा है",
-      "subtitle": "योजनाएं पृष्ठ निर्माणाधीन है।"
+      "subtitle": "योजनाएं पृष्ठ निर्माणाधीन है।",
+      "breadcrumb": "सभी योजनाएं",
+      "viewScheme": "योजना देखें",
+      "schemeDetails": "योजना विवरण",
+      "columns": {
+        "schemeName": "योजना का नाम",
+        "stateSchemeId": "राज्य योजना ID",
+        "pumpOperators": "पंप ऑपरेटर",
+        "lastReading": "अंतिम रीडिंग",
+        "yesterdayReading": "कल की रीडिंग",
+        "lastWaterSupplied": "अंतिम जल आपूर्ति",
+        "lastSubmission": "अंतिम प्रस्तुति",
+        "pumpOperator": "पंप ऑपरेटर",
+        "submissionDateTime": "प्रस्तुति दिनांक और समय",
+        "waterSupplied": "जल आपूर्ति",
+        "readingValue": "रीडिंग मान",
+        "actions": "कार्य"
+      },
+      "loading": "योजना विवरण लोड हो रहा है…",
+      "loadingSubmissions": "प्रस्तुतियां लोड हो रही हैं…",
+      "error": "योजना विवरण लोड करने में विफल।",
+      "errorSubmissions": "पढ़ने की प्रस्तुतियां लोड करने में विफल।",
+      "noSubmissionsFound": "कोई प्रस्तुति नहीं मिली।",
+      "noSchemesFound": "कोई योजना नहीं मिली।",
+      "searchPlaceholder": "योजना के नाम से खोजें",
+      "detailFields": {
+        "schemeName": "योजना का नाम",
+        "stateSchemeId": "राज्य योजना ID",
+        "lastSubmission": "अंतिम प्रस्तुति",
+        "reportingRate": "रिपोर्टिंग दर"
+      }
     },
     "pumpOperators": {
       "heading": "पंप ऑपरेटर",
       "comingSoon": "जल्द आ रहा है",
-      "subtitle": "पंप ऑपरेटर पृष्ठ निर्माणाधीन है।"
+      "subtitle": "पंप ऑपरेटर पृष्ठ निर्माणाधीन है।",
+      "breadcrumb": "पंप ऑपरेटर",
+      "viewPumpOperator": "पंप ऑपरेटर देखें",
+      "pumpOperatorDetails": "पंप ऑपरेटर विवरण",
+      "columns": {
+        "name": "नाम",
+        "schemes": "योजनाएं",
+        "reportingRate": "रिपोर्टिंग दर (%)",
+        "lastSubmission": "अंतिम प्रस्तुति",
+        "activityStatus": "गतिविधि स्थिति",
+        "actions": "कार्य",
+        "schemeName": "योजना का नाम",
+        "stateSchemeId": "राज्य योजना ID",
+        "submissionDateTime": "प्रस्तुति दिनांक और समय",
+        "waterSupplied": "जल आपूर्ति",
+        "readingValue": "रीडिंग मान"
+      },
+      "loading": "लोड हो रहा है…",
+      "loadingDetails": "पंप ऑपरेटर विवरण लोड हो रहा है…",
+      "loadingReadings": "रीडिंग लोड हो रही हैं…",
+      "error": "पंप ऑपरेटर लोड करने में विफल। कृपया पुनः प्रयास करें।",
+      "errorDetails": "पंप ऑपरेटर विवरण लोड करने में विफल।",
+      "errorReadings": "रीडिंग लोड करने में विफल।",
+      "noReadingsFound": "कोई रीडिंग नहीं मिली।",
+      "noPumpOperatorsFound": "कोई पंप ऑपरेटर नहीं मिला।",
+      "searchPlaceholder": "नाम से खोजें",
+      "searchReadingsPlaceholder": "योजना के नाम से खोजें",
+      "filterStatus": "स्थिति",
+      "filterDuration": "अवधि",
+      "clearAllFilters": "सभी फिल्टर साफ़ करें",
+      "detailFields": {
+        "name": "नाम",
+        "phoneNumber": "फ़ोन नंबर",
+        "reportingRate": "रिपोर्टिंग दर",
+        "lastSubmission": "अंतिम प्रस्तुति"
+      },
+      "viewTooltip": "पंप ऑपरेटर देखें",
+      "downloadAttendance": "उपस्थिति"
     },
     "anomalies": {
       "heading": "विसंगतियां",
       "comingSoon": "जल्द आ रहा है",
-      "subtitle": "विसंगतियां पृष्ठ निर्माणाधीन है।"
+      "subtitle": "विसंगतियां पृष्ठ निर्माणाधीन है।",
+      "columns": {
+        "schemeName": "योजना का नाम",
+        "dateTime": "दिनांक और समय",
+        "anomalyType": "विसंगति प्रकार",
+        "details": "विवरण",
+        "status": "स्थिति"
+      },
+      "loading": "लोड हो रहा है…",
+      "error": "विसंगतियां लोड करने में विफल। कृपया पुनः प्रयास करें।",
+      "noAnomaliesFound": "कोई विसंगति नहीं मिली।",
+      "searchPlaceholder": "योजना के नाम से खोजें",
+      "filterStatus": "स्थिति",
+      "filterDuration": "अवधि",
+      "clearAllFilters": "सभी फिल्टर साफ़ करें"
     },
     "escalations": {
       "heading": "एस्कलेशन",
       "comingSoon": "जल्द आ रहा है",
-      "subtitle": "वृद्धि पृष्ठ निर्माणाधीन है।"
+      "subtitle": "एस्कलेशन पृष्ठ निर्माणाधीन है।",
+      "columns": {
+        "schemeName": "योजना का नाम",
+        "dateTime": "दिनांक और समय",
+        "escalationType": "एस्कलेशन प्रकार",
+        "details": "विवरण",
+        "status": "स्थिति"
+      },
+      "loading": "लोड हो रहा है…",
+      "error": "एस्कलेशन लोड करने में विफल। कृपया पुनः प्रयास करें।",
+      "noEscalationsFound": "कोई एस्कलेशन नहीं मिला।",
+      "searchPlaceholder": "योजना के नाम से खोजें",
+      "filterStatus": "स्थिति",
+      "filterDuration": "अवधि",
+      "clearAllFilters": "सभी फिल्टर साफ़ करें"
     }
+  },
+  "common": {
+    "retry": "पुनः प्रयास करें",
+    "viewScheme": "योजना देखें",
+    "documentTitle": "| JalSoochak"
   }
 }

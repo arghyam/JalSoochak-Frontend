@@ -23,14 +23,22 @@ import { EditIcon, WarningTwoIcon } from '@chakra-ui/icons'
 import { FiUpload } from 'react-icons/fi'
 import { IoInformation } from 'react-icons/io5'
 import { useToast } from '@/shared/hooks/use-toast'
-import { ActionTooltip, TimePicker, ToastContainer, PageHeader } from '@/shared/components/common'
 import {
+  ActionTooltip,
+  TimePicker,
+  ToastContainer,
+  PageHeader,
+  RequiredIndicator,
+} from '@/shared/components/common'
+import {
+  useConfigStatusQuery,
   useConfigurationQuery,
   useLogoQuery,
   useSaveConfigurationMutation,
   useSystemChannelsQuery,
   useUpdateLogoMutation,
 } from '../../services/query/use-state-admin-queries'
+import type { ConfigKey } from '../../types/config-status'
 import {
   CHANNEL_CODE_TO_NAME,
   FALLBACK_SYSTEM_CHANNELS,
@@ -114,6 +122,8 @@ export function ConfigurationPage() {
   const { t } = useTranslation(['state-admin', 'common'])
   const navigate = useNavigate()
   const { data: config, isLoading, isError } = useConfigurationQuery()
+  const { data: configStatuses } = useConfigStatusQuery()
+  const isMandatory = (key: ConfigKey): boolean => configStatuses?.[key]?.mandatory ?? true
   const {
     data: systemChannels,
     isLoading: isSystemChannelsLoading,
@@ -220,11 +230,15 @@ export function ConfigurationPage() {
     const newErrors: Record<string, string> = {}
 
     // Supported channels
-    if (current.supportedChannels.length === 0) {
+    if (isMandatory('TENANT_SUPPORTED_CHANNELS') && current.supportedChannels.length === 0) {
       newErrors.supportedChannels = t('state-admin:validation.selectAtLeastOne')
     }
 
     // Meter change reasons
+    if (isMandatory('METER_CHANGE_REASONS') && current.meterChangeReasons.length === 0) {
+      newErrors.meterChangeReasons = t('state-admin:validation.selectAtLeastOne')
+    }
+
     const nonEmptyReasonNames: string[] = []
     current.meterChangeReasons.forEach((reason) => {
       const error = validateDescriptiveField(reason.name)
@@ -251,6 +265,10 @@ export function ConfigurationPage() {
     }
 
     // Supply outage reasons
+    if (isMandatory('SUPPLY_OUTAGE_REASONS') && current.supplyOutageReasons.length === 0) {
+      newErrors.supplyOutageReasons = t('state-admin:validation.selectAtLeastOne')
+    }
+
     const nonEmptyOutageNames: string[] = []
     current.supplyOutageReasons.forEach((reason) => {
       const error = validateDescriptiveField(reason.name)
@@ -276,17 +294,52 @@ export function ConfigurationPage() {
       })
     }
 
+    // Logo
+    if (isMandatory('TENANT_LOGO') && !current.logoUrl && !current.logoFile) {
+      newErrors.logo = t('configuration.messages.validation.logoRequired')
+    }
+
+    // Date format screen
+    if (
+      isMandatory('DATE_FORMAT_SCREEN') &&
+      (!current.dateFormatScreen.dateFormat ||
+        !current.dateFormatScreen.timeFormat ||
+        !current.dateFormatScreen.timezone)
+    ) {
+      newErrors.dateFormatScreen = t('configuration.messages.validation.dateFormatScreenRequired')
+    }
+
+    // Date format table
+    if (
+      isMandatory('DATE_FORMAT_TABLE') &&
+      (!current.dateFormatTable.dateFormat ||
+        !current.dateFormatTable.timeFormat ||
+        !current.dateFormatTable.timezone)
+    ) {
+      newErrors.dateFormatTable = t('configuration.messages.validation.dateFormatTableRequired')
+    }
+
     // Time fields
-    if (!current.dataConsolidationTime) {
+    if (isMandatory('DATA_CONSOLIDATION_TIME') && !current.dataConsolidationTime) {
       newErrors.dataConsolidationTime = t('state-admin:validation.timeRequired')
     }
-    if (!current.pumpOperatorReminderNudgeTime) {
+    if (
+      isMandatory('PUMP_OPERATOR_REMINDER_NUDGE_TIME') &&
+      !current.pumpOperatorReminderNudgeTime
+    ) {
       newErrors.pumpOperatorReminderNudgeTime = t('state-admin:validation.timeRequired')
     }
 
     // Average members
-    if (!current.averageMembersPerHousehold || current.averageMembersPerHousehold <= 0) {
-      newErrors.averageMembersPerHousehold = t('state-admin:validation.mustBePositive')
+    if (isMandatory('AVERAGE_MEMBERS_PER_HOUSEHOLD')) {
+      if (!current.averageMembersPerHousehold || current.averageMembersPerHousehold <= 0) {
+        newErrors.averageMembersPerHousehold = t('state-admin:validation.mustBePositive')
+      } else if (current.averageMembersPerHousehold > MAX_AVG_MEMBERS) {
+        newErrors.averageMembersPerHousehold = t('state-admin:validation.mustBeInRange', {
+          min: 1,
+          max: MAX_AVG_MEMBERS,
+        })
+      }
     } else if (current.averageMembersPerHousehold > MAX_AVG_MEMBERS) {
       newErrors.averageMembersPerHousehold = t('state-admin:validation.mustBeInRange', {
         min: 1,
@@ -314,11 +367,20 @@ export function ConfigurationPage() {
         supplyOutageReasons: current.supplyOutageReasons,
         locationCheckRequired: current.locationCheckRequired,
         displayDepartmentMaps: current.displayDepartmentMaps,
-        dataConsolidationTime: current.dataConsolidationTime,
-        pumpOperatorReminderNudgeTime: current.pumpOperatorReminderNudgeTime,
+        dataConsolidationTime:
+          isMandatory('DATA_CONSOLIDATION_TIME') || current.dataConsolidationTime
+            ? current.dataConsolidationTime
+            : '',
+        pumpOperatorReminderNudgeTime:
+          isMandatory('PUMP_OPERATOR_REMINDER_NUDGE_TIME') || current.pumpOperatorReminderNudgeTime
+            ? current.pumpOperatorReminderNudgeTime
+            : '',
         dateFormatScreen: current.dateFormatScreen,
         dateFormatTable: current.dateFormatTable,
-        averageMembersPerHousehold: current.averageMembersPerHousehold,
+        averageMembersPerHousehold:
+          isMandatory('AVERAGE_MEMBERS_PER_HOUSEHOLD') || current.averageMembersPerHousehold > 0
+            ? current.averageMembersPerHousehold
+            : 0,
         isConfigured: true,
       })
       setDraft(null)
@@ -517,9 +579,7 @@ export function ConfigurationPage() {
                       color="neutral.950"
                     >
                       {t('configuration.sections.supportedChannels.title')}
-                      <Text as="span" color="error.500" ml={1}>
-                        *
-                      </Text>
+                      <RequiredIndicator required={isMandatory('TENANT_SUPPORTED_CHANNELS')} />
                     </Text>
                     <FieldInfoIcon tooltip={t('configuration.infoText.supportedChannels')} />
                   </Flex>
@@ -621,6 +681,7 @@ export function ConfigurationPage() {
                 <MeterChangeReasonsSection
                   title={t('configuration.sections.meterChangeReasons.title')}
                   infoTooltip={t('configuration.infoText.meterChangeReasons')}
+                  required={isMandatory('METER_CHANGE_REASONS')}
                   reasons={activeDraft.meterChangeReasons}
                   errors={errors}
                   onClearError={clearError}
@@ -636,6 +697,7 @@ export function ConfigurationPage() {
                 <SupplyOutageReasonsSection
                   title={t('configuration.sections.supplyOutageReasons.title')}
                   infoTooltip={t('configuration.infoText.supplyOutageReasons')}
+                  required={isMandatory('SUPPLY_OUTAGE_REASONS')}
                   reasons={activeDraft.supplyOutageReasons}
                   errors={errors}
                   onClearError={clearError}
@@ -658,6 +720,7 @@ export function ConfigurationPage() {
                         color="neutral.950"
                       >
                         {t('configuration.sections.locationCheckRequired.title')}
+                        <RequiredIndicator required={isMandatory('LOCATION_CHECK_REQUIRED')} />
                       </Text>
                       <FieldInfoIcon tooltip={t('configuration.infoText.locationCheckRequired')} />
                     </Flex>
@@ -694,6 +757,7 @@ export function ConfigurationPage() {
                         color="neutral.950"
                       >
                         {t('configuration.sections.displayDepartmentMaps.title')}
+                        <RequiredIndicator required={isMandatory('DISPLAY_DEPARTMENT_MAPS')} />
                       </Text>
                       <FieldInfoIcon tooltip={t('configuration.infoText.displayDepartmentMaps')} />
                     </Flex>
@@ -735,6 +799,7 @@ export function ConfigurationPage() {
                         display="block"
                       >
                         {t('configuration.sections.dataConsolidationTime.title')}
+                        <RequiredIndicator required={isMandatory('DATA_CONSOLIDATION_TIME')} />
                       </Text>
                       <FieldInfoIcon tooltip={t('configuration.infoText.dataConsolidationTime')} />
                     </Flex>
@@ -764,6 +829,9 @@ export function ConfigurationPage() {
                         display="block"
                       >
                         {t('configuration.sections.pumpOperatorReminderNudgeTime.title')}
+                        <RequiredIndicator
+                          required={isMandatory('PUMP_OPERATOR_REMINDER_NUDGE_TIME')}
+                        />
                       </Text>
                       <FieldInfoIcon
                         tooltip={t('configuration.infoText.pumpOperatorReminderNudgeTime')}
@@ -788,28 +856,38 @@ export function ConfigurationPage() {
 
                 {/* 8. Screen Date Format + Table Date Format */}
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                  <DateFormatSection
-                    title={t('configuration.sections.dateFormatScreen.title')}
-                    infoTooltip={t('configuration.infoText.dateFormatScreen')}
-                    value={activeDraft.dateFormatScreen}
-                    onChange={(val) =>
-                      setDraft((prev) => ({
-                        ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
-                        dateFormatScreen: val,
-                      }))
-                    }
-                  />
-                  <DateFormatSection
-                    title={t('configuration.sections.dateFormatTable.title')}
-                    infoTooltip={t('configuration.infoText.dateFormatTable')}
-                    value={activeDraft.dateFormatTable}
-                    onChange={(val) =>
-                      setDraft((prev) => ({
-                        ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
-                        dateFormatTable: val,
-                      }))
-                    }
-                  />
+                  <FormControl isInvalid={!!errors.dateFormatScreen}>
+                    <DateFormatSection
+                      title={t('configuration.sections.dateFormatScreen.title')}
+                      infoTooltip={t('configuration.infoText.dateFormatScreen')}
+                      required={isMandatory('DATE_FORMAT_SCREEN')}
+                      value={activeDraft.dateFormatScreen}
+                      onChange={(val) => {
+                        clearError('dateFormatScreen')
+                        setDraft((prev) => ({
+                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                          dateFormatScreen: val,
+                        }))
+                      }}
+                    />
+                    <FormErrorMessage>{errors.dateFormatScreen}</FormErrorMessage>
+                  </FormControl>
+                  <FormControl isInvalid={!!errors.dateFormatTable}>
+                    <DateFormatSection
+                      title={t('configuration.sections.dateFormatTable.title')}
+                      infoTooltip={t('configuration.infoText.dateFormatTable')}
+                      required={isMandatory('DATE_FORMAT_TABLE')}
+                      value={activeDraft.dateFormatTable}
+                      onChange={(val) => {
+                        clearError('dateFormatTable')
+                        setDraft((prev) => ({
+                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                          dateFormatTable: val,
+                        }))
+                      }}
+                    />
+                    <FormErrorMessage>{errors.dateFormatTable}</FormErrorMessage>
+                  </FormControl>
                 </SimpleGrid>
 
                 {/* 9. Average Members Per Household */}
@@ -825,6 +903,9 @@ export function ConfigurationPage() {
                         display="block"
                       >
                         {t('configuration.sections.averageMembersPerHousehold.title')}
+                        <RequiredIndicator
+                          required={isMandatory('AVERAGE_MEMBERS_PER_HOUSEHOLD')}
+                        />
                       </Text>
                       <FieldInfoIcon
                         tooltip={t('configuration.infoText.averageMembersPerHousehold')}
@@ -877,6 +958,7 @@ export function ConfigurationPage() {
                       color="neutral.950"
                     >
                       {t('configuration.sections.logo.title')}
+                      <RequiredIndicator required={isMandatory('TENANT_LOGO')} />
                     </Text>
                     <FieldInfoIcon tooltip={t('configuration.infoText.logo')} />
                   </Flex>

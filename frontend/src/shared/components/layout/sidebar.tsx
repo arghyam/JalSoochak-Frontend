@@ -24,11 +24,13 @@ import {
   IoSettingsOutline,
   IoSyncOutline,
   IoWaterOutline,
+  IoCloseCircleOutline,
 } from 'react-icons/io5'
 import { HiOutlineTemplate } from 'react-icons/hi'
 import { AiOutlineMessage } from 'react-icons/ai'
 import { BsPerson, BsListUl } from 'react-icons/bs'
 import jalsoochakLogo from '@/assets/media/logo.svg'
+import TapIconComponent from './tap-icon'
 
 function Users01Icon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -75,6 +77,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   BiKey,
   IoLanguageOutline,
   IoSettingsOutline,
+  IoCloseCircleOutline,
   IoSyncOutline,
   IoWaterOutline,
   HiOutlineTemplate,
@@ -82,6 +85,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   BsPerson,
   BsPeople: Users01Icon,
   BsListUl,
+  TapIcon: TapIconComponent,
 }
 
 function isSimple(item: SidebarNavItem): item is SimpleNavItem {

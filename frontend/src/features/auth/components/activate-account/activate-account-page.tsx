@@ -447,7 +447,7 @@ export function AccountActivationPage() {
               src={jalsoochakLogo}
               alt="JalSoochak logo"
               w="117.61px"
-              h="68.55px"
+              h="72px"
               mb={{ base: 10, md: 12 }}
             />
           </Box>

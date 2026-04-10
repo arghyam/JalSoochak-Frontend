@@ -71,7 +71,7 @@ export function AllStatesPerformanceChart({
       },
       grid: {
         left: isCompact ? 12 : 24,
-        right: '4%',
+        right: '16px',
         top: '10%',
         bottom: '2%',
         containLabel: true,
