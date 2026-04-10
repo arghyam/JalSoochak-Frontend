@@ -41,6 +41,6 @@ describe('MultiSearchableSelect', () => {
     const user = userEvent.setup()
     renderWithProviders(<MultiSearchableSelect options={[]} value={[]} onChange={jest.fn()} />)
     await user.click(screen.getByRole('combobox'))
-    expect(screen.getByRole('status')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent(/no results/i)
   })
 })

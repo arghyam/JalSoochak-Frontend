@@ -37,6 +37,6 @@ describe('MetricNumberCard', () => {
         cardAriaLabel="Metric card"
       />
     )
-    expect(screen.getByLabelText('Metric card')).toBeInTheDocument()
+    expect(screen.getByRole('article', { name: 'Metric card' })).toBeInTheDocument()
   })
 })

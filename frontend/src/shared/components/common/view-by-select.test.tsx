@@ -12,7 +12,8 @@ describe('ViewBySelect', () => {
     expect(btn).toHaveTextContent(/geography/i)
     await user.click(btn)
     await user.click(screen.getByText(/^time$/i))
-    expect(onChange).toHaveBeenCalledWith('time')
+    expect(onChange).toHaveBeenCalledTimes(1)
+    expect(onChange).toHaveBeenLastCalledWith('time')
   })
 
   it('does not open menu when disabled', async () => {

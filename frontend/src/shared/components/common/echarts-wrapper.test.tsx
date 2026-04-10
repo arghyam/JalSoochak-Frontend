@@ -11,6 +11,7 @@ beforeAll(() => {
     disconnect() {}
   }
   Object.defineProperty(globalThis, 'ResizeObserver', {
+    configurable: true,
     writable: true,
     value: ResizeObserverMock,
   })
@@ -25,19 +26,22 @@ afterAll(() => {
 })
 
 jest.mock('echarts', () => {
-  const mockChart = {
-    setOption: jest.fn(),
-    dispose: jest.fn(),
-    resize: jest.fn(),
-    isDisposed: jest.fn(() => false),
-  }
   return {
-    init: jest.fn(() => mockChart),
+    init: jest.fn().mockImplementation(() => ({
+      setOption: jest.fn(),
+      dispose: jest.fn(),
+      resize: jest.fn(),
+      isDisposed: jest.fn(() => false),
+    })),
     getInstanceByDom: jest.fn(() => undefined),
   }
 })
 
 describe('EChartsWrapper', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
   it('mounts container with dimensions and calls init and setOption', async () => {
     const option = { series: [] }
     const onChartReadyOnce = jest.fn()

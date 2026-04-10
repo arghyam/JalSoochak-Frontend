@@ -8,7 +8,7 @@ describe('StatusChip', () => {
     expect(screen.getByText('Active')).toBeInTheDocument()
   })
 
-  it('renders label for unknown status with default styling', () => {
+  it('renders label for unknown status', () => {
     renderWithProviders(<StatusChip status="unknown-custom" label="Custom" />)
     expect(screen.getByText('Custom')).toBeInTheDocument()
   })

@@ -18,5 +18,6 @@ describe('RequiredIndicator', () => {
     renderWithProviders(<RequiredIndicator />)
     expect(screen.queryByText('*')).not.toBeInTheDocument()
     expect(screen.queryByText('(Optional)')).not.toBeInTheDocument()
+    expect(screen.queryByText(/required/i)).not.toBeInTheDocument()
   })
 })

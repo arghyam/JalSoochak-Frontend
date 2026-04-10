@@ -4,7 +4,8 @@ import { ROUTES } from '@/shared/constants/routes'
 
 export function SessionExpiredPage() {
   const location = useLocation()
-  const loginRoute = location.pathname.startsWith('/staff') ? ROUTES.STAFF_LOGIN : ROUTES.LOGIN
+  const isStaffArea = location.pathname === '/staff' || location.pathname.startsWith('/staff/')
+  const loginRoute = isStaffArea ? ROUTES.STAFF_LOGIN : ROUTES.LOGIN
 
   return (
     <Flex minH="100vh" align="center" justify="center" bg="gray.50">

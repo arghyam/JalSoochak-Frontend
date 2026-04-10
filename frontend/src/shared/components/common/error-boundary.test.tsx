@@ -34,5 +34,6 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     )
     expect(screen.getByText('Custom error')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /something went wrong/i })).not.toBeInTheDocument()
   })
 })

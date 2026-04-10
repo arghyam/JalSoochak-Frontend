@@ -35,6 +35,12 @@ describe('SessionExpiredPage', () => {
     expect(link).toHaveAttribute('href', ROUTES.LOGIN)
   })
 
+  it('links to standard login when path starts with /staff but is not /staff area', () => {
+    renderAtPath(<SessionExpiredPage />, '/staffing')
+    const link = screen.getByRole('link', { name: /go to login/i })
+    expect(link).toHaveAttribute('href', ROUTES.LOGIN)
+  })
+
   it('renders session expired heading and copy', () => {
     renderAtPath(<SessionExpiredPage />, '/')
     expect(screen.getByRole('heading', { name: /session expired/i })).toBeInTheDocument()
