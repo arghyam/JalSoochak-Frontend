@@ -32,4 +32,17 @@ describe('useReadingSubmissionRateQuery', () => {
       })
     )
   })
+
+  it('disables when params missing', () => {
+    ;(useQuery as jest.Mock).mockReturnValue({})
+    renderHook(() => useReadingSubmissionRateQuery({ params: null }))
+
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: dashboardQueryKeys.readingSubmissionRate(null),
+        enabled: false,
+        retry: false,
+      })
+    )
+  })
 })

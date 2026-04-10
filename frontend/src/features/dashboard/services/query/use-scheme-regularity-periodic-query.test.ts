@@ -28,6 +28,7 @@ describe('useSchemeRegularityPeriodicQuery', () => {
       expect.objectContaining({
         queryKey: dashboardQueryKeys.schemeRegularityPeriodic(params),
         enabled: true,
+        retry: false,
       })
     )
   })
@@ -40,6 +41,7 @@ describe('useSchemeRegularityPeriodicQuery', () => {
       expect.objectContaining({
         queryKey: dashboardQueryKeys.schemeRegularityPeriodic(null),
         enabled: false,
+        retry: false,
       })
     )
   })
@@ -52,6 +54,7 @@ describe('useSchemeRegularityPeriodicQuery', () => {
       expect.objectContaining({
         queryKey: dashboardQueryKeys.schemeRegularityPeriodic(params),
         enabled: false,
+        retry: false,
       })
     )
   })

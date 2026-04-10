@@ -1,6 +1,7 @@
 import { describe, expect, it, jest, afterEach } from '@jest/globals'
 import { renderHook } from '@testing-library/react'
 import { useQuery } from '@tanstack/react-query'
+import { superAdminApi } from '../api/super-admin-api'
 import {
   useStateAdminsByTenantQuery,
   useStatesUTsPagedQuery,
@@ -44,7 +45,10 @@ describe('use-super-admin-queries', () => {
     )
   })
 
-  it('maps paged states query to zero-based API page', () => {
+  it('maps paged states query to zero-based API page', async () => {
+    const getStatesUTsPage = jest
+      .spyOn(superAdminApi, 'getStatesUTsPage')
+      .mockResolvedValue({ items: [], total: 0 })
     ;(useQuery as jest.Mock).mockReturnValue({})
     renderHook(() => useStatesUTsPagedQuery(2, 20, 'search', 'ACTIVE'))
     expect(useQuery).toHaveBeenCalledWith(
@@ -53,8 +57,17 @@ describe('use-super-admin-queries', () => {
         queryFn: expect.any(Function),
       })
     )
-    const options = (useQuery as jest.Mock).mock.calls[0][0] as { queryFn: unknown }
-    expect(options.queryFn).toBeDefined()
+    const options = (useQuery as jest.Mock).mock.calls[0][0] as {
+      queryFn: () => Promise<unknown>
+    }
+    await options.queryFn()
+    expect(getStatesUTsPage).toHaveBeenCalledWith({
+      page: 1,
+      size: 20,
+      search: 'search',
+      status: 'ACTIVE',
+    })
+    getStatesUTsPage.mockRestore()
   })
 
   it('wires super users list query key', () => {

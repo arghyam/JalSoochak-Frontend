@@ -20,27 +20,37 @@ describe('localizeDepartmentHierarchyLabel', () => {
   })
 
   it('translates zone/circle/division/sub-division for Hindi UI', () => {
-    localizeDepartmentHierarchyLabel('zone', 'plural', { resolvedLanguage: 'hi-IN' }, t)
+    expect(
+      localizeDepartmentHierarchyLabel('zone', 'plural', { resolvedLanguage: 'hi-IN' }, t)
+    ).toBe('Zones')
     expect(t).toHaveBeenCalledWith('performanceCharts.viewBy.zones', { defaultValue: 'Zones' })
 
     t.mockClear()
-    localizeDepartmentHierarchyLabel('Circle', 'singular', { language: 'HI' }, t)
+    expect(localizeDepartmentHierarchyLabel('Circle', 'singular', { language: 'HI' }, t)).toBe(
+      'Circle'
+    )
     expect(t).toHaveBeenCalledWith('performanceCharts.viewBy.circle', { defaultValue: 'Circle' })
 
     t.mockClear()
-    localizeDepartmentHierarchyLabel('Division', 'plural', { resolvedLanguage: 'hi' }, t)
+    expect(
+      localizeDepartmentHierarchyLabel('Division', 'plural', { resolvedLanguage: 'hi' }, t)
+    ).toBe('Divisions')
     expect(t).toHaveBeenCalledWith('performanceCharts.viewBy.divisions', {
       defaultValue: 'Divisions',
     })
 
     t.mockClear()
-    localizeDepartmentHierarchyLabel('Sub-division', 'singular', { language: 'hi' }, t)
+    expect(
+      localizeDepartmentHierarchyLabel('Sub-division', 'singular', { language: 'hi' }, t)
+    ).toBe('Sub Division')
     expect(t).toHaveBeenCalledWith('performanceCharts.viewBy.subDivision', {
       defaultValue: 'Sub Division',
     })
 
     t.mockClear()
-    localizeDepartmentHierarchyLabel('subdivision', 'plural', { language: 'hi' }, t)
+    expect(localizeDepartmentHierarchyLabel('subdivision', 'plural', { language: 'hi' }, t)).toBe(
+      'Sub Divisions'
+    )
     expect(t).toHaveBeenCalledWith('performanceCharts.viewBy.subDivisions', {
       defaultValue: 'Sub Divisions',
     })

@@ -49,6 +49,17 @@ describe('superAdminApi', () => {
       },
     } as never)
     const res = await superAdminApi.getSystemConfiguration()
+    expect(mockedApiClient.get).toHaveBeenCalledTimes(1)
+    const [requestUrl] = mockedApiClient.get.mock.calls[0] as [string]
+    expect(requestUrl).toMatch(/^\/api\/v1\/system\/config\?keys=/)
+    for (const key of [
+      'SYSTEM_SUPPORTED_CHANNELS',
+      'WATER_QUANTITY_SUPPLY_THRESHOLD',
+      'BFM_IMAGE_READING_CONFIDENCE_LEVEL_THRESHOLD',
+      'LOCATION_AFFINITY_THRESHOLD',
+    ]) {
+      expect(requestUrl).toContain(key)
+    }
     expect(res.supportedChannels).toEqual(['Bulk Flow Meter', 'Manual'])
     expect(res.bfmImageConfidenceThreshold).toBe(0.5)
     expect(res.locationAffinityThreshold).toBe(0.25)

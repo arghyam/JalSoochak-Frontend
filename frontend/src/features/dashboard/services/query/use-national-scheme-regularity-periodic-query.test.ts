@@ -15,7 +15,7 @@ describe('useNationalSchemeRegularityPeriodicQuery', () => {
     jest.clearAllMocks()
   })
 
-  it('wires national periodic key', () => {
+  it('wires national periodic key when params exist', () => {
     ;(useQuery as jest.Mock).mockReturnValue({})
     renderHook(() => useNationalSchemeRegularityPeriodicQuery({ params }))
 
@@ -23,6 +23,50 @@ describe('useNationalSchemeRegularityPeriodicQuery', () => {
       expect.objectContaining({
         queryKey: dashboardQueryKeys.nationalSchemeRegularityPeriodic(params),
         enabled: true,
+        retry: false,
+      })
+    )
+  })
+
+  it('disables when params are null', () => {
+    ;(useQuery as jest.Mock).mockReturnValue({})
+    renderHook(() => useNationalSchemeRegularityPeriodicQuery({ params: null }))
+
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: dashboardQueryKeys.nationalSchemeRegularityPeriodic(null),
+        enabled: false,
+        retry: false,
+      })
+    )
+  })
+
+  it('disables when params are undefined', () => {
+    ;(useQuery as jest.Mock).mockReturnValue({})
+    renderHook(() =>
+      useNationalSchemeRegularityPeriodicQuery({
+        // @ts-expect-error callers may omit params; Boolean(undefined) disables the query
+        params: undefined,
+      })
+    )
+
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: dashboardQueryKeys.nationalSchemeRegularityPeriodic(null),
+        enabled: false,
+        retry: false,
+      })
+    )
+  })
+
+  it('disables when explicit enabled is false', () => {
+    ;(useQuery as jest.Mock).mockReturnValue({})
+    renderHook(() => useNationalSchemeRegularityPeriodicQuery({ params, enabled: false }))
+
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: dashboardQueryKeys.nationalSchemeRegularityPeriodic(params),
+        enabled: false,
         retry: false,
       })
     )

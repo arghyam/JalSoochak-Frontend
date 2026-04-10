@@ -56,18 +56,26 @@ describe('use-state-admin-queries', () => {
     expect(useQuery).toHaveBeenCalledWith(expect.objectContaining({ enabled: true }))
   })
 
-  it('wires language, integration, and water norms configuration queries', () => {
+  it('wires language configuration query', () => {
     ;(useQuery as jest.Mock).mockReturnValue({})
     renderHook(() => useLanguageConfigurationQuery())
     expect(useQuery).toHaveBeenCalledWith(
       expect.objectContaining({ queryKey: ['state-admin', 'language-configuration'] })
     )
+  })
+
+  it('wires integration configuration query', () => {
     ;(useQuery as jest.Mock).mockClear()
+    ;(useQuery as jest.Mock).mockReturnValue({})
     renderHook(() => useIntegrationConfigurationQuery())
     expect(useQuery).toHaveBeenCalledWith(
       expect.objectContaining({ queryKey: ['state-admin', 'integration-configuration'] })
     )
+  })
+
+  it('wires water norms configuration query', () => {
     ;(useQuery as jest.Mock).mockClear()
+    ;(useQuery as jest.Mock).mockReturnValue({})
     renderHook(() => useWaterNormsConfigurationQuery())
     expect(useQuery).toHaveBeenCalledWith(
       expect.objectContaining({ queryKey: ['state-admin', 'water-norms-configuration'] })

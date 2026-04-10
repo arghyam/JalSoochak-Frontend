@@ -34,6 +34,9 @@ describe('ReadingComplianceTable', () => {
     renderWithProviders(<ReadingComplianceTable data={rows} showVillageColumn={false} />)
 
     expect(screen.queryByText('Village')).toBeNull()
+    for (const row of rows) {
+      expect(screen.queryByText(row.village)).toBeNull()
+    }
   })
 
   it('invokes onReachEnd when list has no scroll overflow', () => {

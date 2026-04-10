@@ -43,4 +43,33 @@ describe('useTenantBoundariesQuery', () => {
       })
     )
   })
+
+  it('disables when params are null', () => {
+    ;(useQuery as jest.Mock).mockReturnValue({})
+    renderHook(() => useTenantBoundariesQuery({ params: null }))
+
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: dashboardQueryKeys.tenantBoundaries(null),
+        enabled: false,
+      })
+    )
+  })
+
+  it('disables when params are undefined', () => {
+    ;(useQuery as jest.Mock).mockReturnValue({})
+    renderHook(() =>
+      useTenantBoundariesQuery({
+        // @ts-expect-error callers may omit params; Boolean(undefined) disables the query
+        params: undefined,
+      })
+    )
+
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: dashboardQueryKeys.tenantBoundaries(null),
+        enabled: false,
+      })
+    )
+  })
 })

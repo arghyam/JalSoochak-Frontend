@@ -33,4 +33,30 @@ describe('useOutageReasonsPeriodicQuery', () => {
       })
     )
   })
+
+  it('disables when params are null', () => {
+    ;(useQuery as jest.Mock).mockReturnValue({})
+    renderHook(() => useOutageReasonsPeriodicQuery({ params: null }))
+
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: dashboardQueryKeys.outageReasonsPeriodic(null),
+        enabled: false,
+        retry: false,
+      })
+    )
+  })
+
+  it('disables when explicit enabled is false', () => {
+    ;(useQuery as jest.Mock).mockReturnValue({})
+    renderHook(() => useOutageReasonsPeriodicQuery({ params, enabled: false }))
+
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: dashboardQueryKeys.outageReasonsPeriodic(params),
+        enabled: false,
+        retry: false,
+      })
+    )
+  })
 })

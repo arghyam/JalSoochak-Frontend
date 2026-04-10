@@ -39,6 +39,15 @@ describe('extractUploadValidationErrors', () => {
     expect(extractUploadValidationErrors({ fieldErrors: 'nope' })).toEqual([])
   })
 
+  it('parses errors when fieldErrors is present but not an array', () => {
+    expect(
+      extractUploadValidationErrors({
+        fieldErrors: 'nope',
+        errors: [{ rowNumber: 1, field: 'x', message: 'm' }],
+      })
+    ).toEqual([{ row: 1, field: 'x', message: 'm' }])
+  })
+
   it('prefers fieldErrors when both fieldErrors and errors are arrays', () => {
     expect(
       extractUploadValidationErrors({

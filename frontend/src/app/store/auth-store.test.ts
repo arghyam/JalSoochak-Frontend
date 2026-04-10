@@ -67,16 +67,27 @@ describe('useAuthStore', () => {
     expect(useAuthStore.getState().error).toBeNull()
   })
 
-  it('login maps staff roles to staff route', async () => {
-    const staffUser = { ...stateAdminUser, role: AUTH_ROLES.SECTION_OFFICER }
-    mockedAuth.login.mockResolvedValue({ user: staffUser, accessToken: 't' })
+  it.each([
+    { role: AUTH_ROLES.SECTION_OFFICER, expected: ROUTES.STAFF, label: 'SECTION_OFFICER' },
+    { role: AUTH_ROLES.SUPER_ADMIN, expected: ROUTES.SUPER_ADMIN, label: 'SUPER_ADMIN' },
+    {
+      role: AUTH_ROLES.SUPER_STATE_ADMIN,
+      expected: ROUTES.SUPER_ADMIN,
+      label: 'SUPER_STATE_ADMIN',
+    },
+    { role: 'UNKNOWN' as AuthUser['role'], expected: '/', label: 'UNKNOWN' },
+  ])('login returns $expected for $label', async ({ role, expected }) => {
+    mockedAuth.login.mockResolvedValue({
+      user: { ...stateAdminUser, role },
+      accessToken: 't',
+    })
 
     const path = await useAuthStore.getState().login({
       email: 'a@x.com',
       password: 'secret',
     })
 
-    expect(path).toBe(ROUTES.STAFF)
+    expect(path).toBe(expected)
   })
 
   it('login records error and clears session on failure', async () => {
@@ -148,28 +159,6 @@ describe('useAuthStore', () => {
 
     await expect(useAuthStore.getState().refreshAccessToken()).rejects.toThrow('nope')
     expect(useAuthStore.getState().isAuthenticated).toBe(false)
-  })
-
-  it('login returns super-user path for SUPER_USER and SUPER_STATE_ADMIN', async () => {
-    mockedAuth.login.mockResolvedValue({
-      user: { ...stateAdminUser, role: AUTH_ROLES.SUPER_ADMIN },
-      accessToken: 't',
-    })
-    expect(await useAuthStore.getState().login({ email: 'a', password: 'b' })).toBe('/super-user')
-
-    mockedAuth.login.mockResolvedValue({
-      user: { ...stateAdminUser, role: AUTH_ROLES.SUPER_STATE_ADMIN },
-      accessToken: 't',
-    })
-    expect(await useAuthStore.getState().login({ email: 'a', password: 'b' })).toBe('/super-user')
-  })
-
-  it('login returns root path for unknown roles', async () => {
-    mockedAuth.login.mockResolvedValue({
-      user: { ...stateAdminUser, role: 'UNKNOWN' },
-      accessToken: 't',
-    })
-    expect(await useAuthStore.getState().login({ email: 'a', password: 'b' })).toBe('/')
   })
 
   it('login uses generic message when thrown value is not an Error', async () => {

@@ -148,4 +148,24 @@ describe('apiClient response interceptor', () => {
 
     expect(refreshAccessToken!).not.toHaveBeenCalled()
   })
+
+  it('does not attempt token refresh for 401 on auth refresh', async () => {
+    const refreshAccessToken = mockGetState().refreshAccessToken
+    const { apiClient } = await import('./axios')
+    const err = new AxiosError('Unauthorized')
+    err.response = {
+      status: 401,
+      data: {},
+      statusText: '',
+      headers: {},
+      config: { url: '/api/v1/auth/refresh', headers: {} } as InternalAxiosRequestConfig,
+    }
+    err.config = { url: '/api/v1/auth/refresh', headers: {} } as InternalAxiosRequestConfig
+
+    await expect(
+      apiClient.post('/api/v1/auth/refresh', {}, { adapter: () => Promise.reject(err) })
+    ).rejects.toBe(err)
+
+    expect(refreshAccessToken!).not.toHaveBeenCalled()
+  })
 })
