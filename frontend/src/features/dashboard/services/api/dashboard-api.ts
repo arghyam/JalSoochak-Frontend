@@ -601,7 +601,10 @@ export const dashboardApi = {
 
     return {
       averageMembersPerHousehold: Number(configs?.AVERAGE_MEMBERS_PER_HOUSEHOLD?.value) || 0,
-      waterNorm: Number(configs?.WATER_NORM?.value) || 0,
+      waterNorm: (() => {
+        const parsedWaterNorm = Number(configs?.WATER_NORM?.value)
+        return Number.isFinite(parsedWaterNorm) && parsedWaterNorm > 0 ? parsedWaterNorm : 0
+      })(),
       dateFormatScreen: configs?.DATE_FORMAT_SCREEN ?? {
         dateFormat: null,
         timeFormat: null,

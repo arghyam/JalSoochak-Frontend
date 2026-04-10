@@ -74,16 +74,16 @@ const formatMetricLabel = (
     month: 'short',
   })
 
-  if (startLabel === endLabel) {
-    return startLabel
-  }
-
   if (scale === 'week') {
     const start = parseIsoDate(metric.periodStartDate)
     const end = parseIsoDate(metric.periodEndDate)
     if (start && end && start.getFullYear() === end.getFullYear()) {
       return `${startLabel} - ${endLabel}\n${start.getFullYear()}`
     }
+  }
+
+  if (startLabel === endLabel) {
+    return startLabel
   }
 
   return `${startLabel} - ${endLabel}`

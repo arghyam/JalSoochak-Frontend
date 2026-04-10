@@ -871,15 +871,19 @@ export const mapQuantityPerformanceFromNationalDashboard = (
   return response.stateWiseQuantityPerformance.map((state, index) => {
     const fallbackMatch = mapNationalFallbackMatch(fallbackData, state.stateTitle, index)
     const demandInputs = resolveDemandInputs?.(state)
+    const demandAveragePersonsPerHousehold = demandInputs?.averagePersonsPerHousehold
+    const demandLitersPerPersonPerDay = demandInputs?.litersPerPersonPerDay
     const resolvedAveragePersonsPerHousehold =
-      typeof demandInputs?.averagePersonsPerHousehold === 'number' &&
-      demandInputs.averagePersonsPerHousehold > 0
-        ? demandInputs.averagePersonsPerHousehold
+      typeof demandAveragePersonsPerHousehold === 'number' &&
+      Number.isFinite(demandAveragePersonsPerHousehold) &&
+      demandAveragePersonsPerHousehold > 0
+        ? demandAveragePersonsPerHousehold
         : averagePersonsPerHousehold
     const resolvedLitersPerPersonPerDay =
-      typeof demandInputs?.litersPerPersonPerDay === 'number' &&
-      demandInputs.litersPerPersonPerDay > 0
-        ? demandInputs.litersPerPersonPerDay
+      typeof demandLitersPerPersonPerDay === 'number' &&
+      Number.isFinite(demandLitersPerPersonPerDay) &&
+      demandLitersPerPersonPerDay > 0
+        ? demandLitersPerPersonPerDay
         : litersPerPersonPerDay
 
     return {
