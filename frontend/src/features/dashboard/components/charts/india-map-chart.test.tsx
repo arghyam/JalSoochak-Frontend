@@ -70,7 +70,7 @@ const chartDataWithoutBoundary = chartData.map(
 )
 
 describe('IndiaMapChart', () => {
-  it('renders parent boundary overlay in black when provided', () => {
+  it('renders parent boundary overlay using the configured dark border color', () => {
     mockGetMap.mockReturnValue({})
 
     const parentBoundaryGeoJson = {
@@ -104,7 +104,7 @@ describe('IndiaMapChart', () => {
     )
 
     expect(overlay?.silent).toBe(true)
-    expect(overlay?.itemStyle?.borderColor).toBe('#000000')
+    expect(overlay?.itemStyle?.borderColor).toBe('#1c1c1c')
     expect(mockRegisterMap).toHaveBeenCalledWith(
       'tenant-boundary-department-201',
       expect.objectContaining({
