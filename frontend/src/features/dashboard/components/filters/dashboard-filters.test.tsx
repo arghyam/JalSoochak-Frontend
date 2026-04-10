@@ -468,6 +468,7 @@ describe('DashboardFilters', () => {
     expect(screen.getByText(/Zones/)).toBeTruthy()
     fireEvent.click(screen.getByText('North Zone'))
 
+    fireEvent.focus(screen.getByRole('textbox'))
     expect(screen.getByText(/Circles/)).toBeTruthy()
     expect(screen.getByText('Guwahati Circle')).toBeTruthy()
     expect(screen.getAllByText('North Zone').length).toBeGreaterThan(0)
@@ -587,7 +588,7 @@ describe('DashboardFilters', () => {
 
     fireEvent.focus(screen.getByRole('textbox'))
 
-    expect(screen.getByText(/Sub-divisions/)).toBeTruthy()
+    expect(screen.getByText(/Sub Divisions/)).toBeTruthy()
     fireEvent.click(screen.getByText('Hojai Sub Division'))
 
     expect(handleDepartmentSubdivisionChange).toHaveBeenCalledWith('501:501:hojai-sub-division')

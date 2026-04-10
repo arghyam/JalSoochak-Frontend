@@ -64,9 +64,9 @@ describe('OverallPerformanceTable', () => {
   it('renders quantity (MLD) values without a percent sign', () => {
     renderWithProviders(<OverallPerformanceTable data={tableData} />)
 
-    expect(screen.getByText('65')).toBeTruthy()
-    expect(screen.queryByText('65%')).toBeNull()
-    expect(screen.getByText('70%')).toBeTruthy()
+    expect(screen.getByText('65.0')).toBeTruthy()
+    expect(screen.queryByText('65.0%')).toBeNull()
+    expect(screen.getByText('70.0%')).toBeTruthy()
   })
 
   it('sorts by Quantity (MLD) descending then ascending on repeated clicks', () => {

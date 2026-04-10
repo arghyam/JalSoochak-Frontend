@@ -5915,12 +5915,12 @@ describe('CentralDashboard', () => {
     expect(mapProps.data).toEqual([
       expect.objectContaining({
         name: 'North Assam Zone',
-        quantity: 0,
+        quantity: -1,
         regularity: 15,
       }),
       expect.objectContaining({
         name: 'Lower Assam Zone',
-        quantity: 21.2,
+        quantity: -1,
         regularity: 15,
       }),
     ])

@@ -687,7 +687,9 @@ describe('dashboardApi analytics normalization', () => {
     })
     expect(response.childRegions[0]).toEqual(
       expect.objectContaining({
-        childLgdId: 110,
+        childDepartmentId: 110,
+        childDepartmentTitle: 'Child Region Title',
+        childLgdId: undefined,
         childLgdTitle: 'Child Region Title',
         boundaryGeoJson: {
           type: 'Polygon',
