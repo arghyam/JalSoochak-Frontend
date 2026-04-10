@@ -2612,7 +2612,6 @@ export function CentralDashboard() {
             : (tenantBoundaryData?.parsedBoundaryGeoJson ?? undefined)
         }
         isLoading={isMapDataLoading}
-        disableHoverEffect={isCentralLandingView}
         mapName={
           isCentralLandingView
             ? 'india'

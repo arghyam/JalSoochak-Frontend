@@ -249,6 +249,26 @@ describe('IndiaMapChart', () => {
     )
   })
 
+  it('keeps India map labels visible on hover and selection states', () => {
+    mockGetMap.mockReturnValue({})
+
+    renderWithProviders(<IndiaMapChart data={chartData} />)
+
+    const latestOption = mockEChartsWrapper.mock.calls.at(-1)?.[0]?.option as {
+      series?: Array<{
+        emphasis?: { label?: { show?: boolean; fontSize?: number; fontWeight?: string } }
+        select?: { label?: { show?: boolean; fontSize?: number; fontWeight?: string } }
+      }>
+    }
+
+    expect(latestOption.series?.[0]?.emphasis?.label?.show).toBe(true)
+    expect(latestOption.series?.[0]?.emphasis?.label?.fontSize).toBe(12)
+    expect(latestOption.series?.[0]?.emphasis?.label?.fontWeight).toBe('bold')
+    expect(latestOption.series?.[0]?.select?.label?.show).toBe(true)
+    expect(latestOption.series?.[0]?.select?.label?.fontSize).toBe(12)
+    expect(latestOption.series?.[0]?.select?.label?.fontWeight).toBe('bold')
+  })
+
   it('renders the map with the svg renderer', () => {
     mockGetMap.mockReturnValue({})
 

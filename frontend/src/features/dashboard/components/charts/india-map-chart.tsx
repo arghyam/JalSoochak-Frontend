@@ -139,7 +139,6 @@ export function IndiaMapChart({
   )
 
   const option = useMemo<echarts.EChartsOption>(() => {
-    const isIndiaMap = (effectiveMapName ?? mapName) === 'india'
     // Create map data series
     const mapSeries = data.map((state) => ({
       name: state.name,
@@ -323,7 +322,7 @@ export function IndiaMapChart({
                   borderWidth: 2,
                 },
                 label: {
-                  show: !isIndiaMap,
+                  show: true,
                   fontSize: 12,
                   fontWeight: 'bold',
                 },
@@ -333,7 +332,7 @@ export function IndiaMapChart({
               borderWidth: 2,
             },
             label: {
-              show: !isIndiaMap,
+              show: true,
               fontSize: 12,
               fontWeight: 'bold',
             },
