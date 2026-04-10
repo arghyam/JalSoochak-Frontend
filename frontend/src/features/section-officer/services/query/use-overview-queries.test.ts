@@ -9,6 +9,7 @@ import {
   useOutageReasonsQuery,
   useNonSubmissionReasonsQuery,
   useSubmissionStatusQuery,
+  useDashboardStatsQuery,
 } from './use-overview-queries'
 import { sectionOfficerQueryKeys } from './section-officer-query-keys'
 
@@ -18,16 +19,30 @@ jest.mock('../api/overview-api', () => ({
     getOutageReasons: jest.fn(),
     getNonSubmissionReasons: jest.fn(),
     getSubmissionStatus: jest.fn(),
+    getDashboardStats: jest.fn(),
   },
 }))
 
 const MOCK_PERSON_ID = '15'
 const MOCK_TENANT_CODE = 'nl'
+const MOCK_TENANT_ID = 'tenant-123'
+const MOCK_USER_ID = 'user-456'
 
 jest.mock('@/app/store/auth-store', () => ({
   useAuthStore: jest.fn(
-    (selector: (s: { user: { personId: string; tenantCode: string } }) => unknown) =>
-      selector({ user: { personId: MOCK_PERSON_ID, tenantCode: MOCK_TENANT_CODE } })
+    (
+      selector: (s: {
+        user: { personId: string; tenantCode: string; tenantId: string; id: string }
+      }) => unknown
+    ) =>
+      selector({
+        user: {
+          personId: MOCK_PERSON_ID,
+          tenantCode: MOCK_TENANT_CODE,
+          tenantId: MOCK_TENANT_ID,
+          id: MOCK_USER_ID,
+        },
+      })
   ),
 }))
 
@@ -78,6 +93,24 @@ describe('sectionOfficerQueryKeys — overview keys', () => {
     expect(sectionOfficerQueryKeys.submissionStatus('2026-01-01', '2026-01-31')).toEqual([
       'section-officer',
       'submission-status',
+      '2026-01-01',
+      '2026-01-31',
+    ])
+  })
+
+  it('generates a stable dashboardStats key with dates', () => {
+    expect(
+      sectionOfficerQueryKeys.dashboardStats(
+        MOCK_TENANT_ID,
+        MOCK_USER_ID,
+        '2026-01-01',
+        '2026-01-31'
+      )
+    ).toEqual([
+      'section-officer',
+      'dashboard-stats',
+      MOCK_TENANT_ID,
+      MOCK_USER_ID,
       '2026-01-01',
       '2026-01-31',
     ])
@@ -209,5 +242,44 @@ describe('useSubmissionStatusQuery', () => {
     })
     expect(result.current.fetchStatus).toBe('idle')
     expect(overviewApi.getSubmissionStatus).not.toHaveBeenCalled()
+  })
+})
+
+// ── useDashboardStatsQuery ────────────────────────────────────────────────────
+
+describe('useDashboardStatsQuery', () => {
+  it('fetches dashboard stats with date parameters', async () => {
+    ;(
+      overviewApi.getDashboardStats as jest.MockedFunction<typeof overviewApi.getDashboardStats>
+    ).mockResolvedValue({
+      totalWaterSupplied: 100,
+      totalAnomalyCount: 5,
+      totalEscalationCount: 2,
+    })
+
+    const { result } = renderHook(() => useDashboardStatsQuery('2026-01-01', '2026-01-31'), {
+      wrapper: createWrapper(),
+    })
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+
+    expect(overviewApi.getDashboardStats).toHaveBeenCalledWith(
+      MOCK_TENANT_ID,
+      MOCK_USER_ID,
+      '2026-01-01',
+      '2026-01-31'
+    )
+    expect(result.current.data).toEqual({
+      totalWaterSupplied: 100,
+      totalAnomalyCount: 5,
+      totalEscalationCount: 2,
+    })
+  })
+
+  it('is disabled when dates are empty', async () => {
+    const { result } = renderHook(() => useDashboardStatsQuery('', ''), {
+      wrapper: createWrapper(),
+    })
+    expect(result.current.fetchStatus).toBe('idle')
+    expect(overviewApi.getDashboardStats).not.toHaveBeenCalled()
   })
 })

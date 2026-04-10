@@ -36,7 +36,10 @@ export function StaffOverviewPage() {
   const [dateRange, setDateRange] = useState<DateRange>(() => getDefaultDateRange())
 
   const { data: schemesCountData, isLoading: isSchemesCountLoading } = useSchemesCountQuery()
-  const { data: dashboardStatsData, isLoading: isDashboardStatsLoading } = useDashboardStatsQuery()
+  const { data: dashboardStatsData, isLoading: isDashboardStatsLoading } = useDashboardStatsQuery(
+    dateRange.startDate,
+    dateRange.endDate
+  )
 
   const {
     data: outageReasonsData,

@@ -101,8 +101,15 @@ export const sectionOfficerQueryKeys = {
     [...sectionOfficerQueryKeys.all, 'non-submission-reasons', startDate, endDate] as const,
   submissionStatus: (startDate: string, endDate: string) =>
     [...sectionOfficerQueryKeys.all, 'submission-status', startDate, endDate] as const,
-  dashboardStats: (tenantId: string, userId: string) =>
-    [...sectionOfficerQueryKeys.all, 'dashboard-stats', tenantId, userId] as const,
+  dashboardStats: (tenantId: string, userId: string, startDate: string, endDate: string) =>
+    [
+      ...sectionOfficerQueryKeys.all,
+      'dashboard-stats',
+      tenantId,
+      userId,
+      startDate,
+      endDate,
+    ] as const,
   escalationsList: (
     userId: string,
     tenantId: string,
