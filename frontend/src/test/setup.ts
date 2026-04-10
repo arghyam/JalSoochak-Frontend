@@ -1,5 +1,11 @@
 /// <reference types="node" />
 
+// Chakra checkbox/switch calls trackFocusVisible, which patches HTMLElement.prototype.focus and
+// throws in jsdom ("Cannot set property focus of #<HTMLElement> which has only a getter").
+jest.mock('@zag-js/focus-visible', () => ({
+  trackFocusVisible: jest.fn(() => () => {}),
+}))
+
 import '@testing-library/jest-dom'
 import { TextDecoder, TextEncoder } from 'node:util'
 
@@ -33,4 +39,11 @@ Object.defineProperty(globalThis, 'matchMedia', {
     removeEventListener: () => {},
     dispatchEvent: () => false,
   }),
+})
+
+// Chakra Menu calls scrollTo on menu container; jsdom may omit it.
+Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
+  configurable: true,
+  writable: true,
+  value: jest.fn(),
 })
