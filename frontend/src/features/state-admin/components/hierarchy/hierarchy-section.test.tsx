@@ -3,10 +3,12 @@ import { HierarchySection } from './hierarchy-section'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { HierarchyLevel } from '../../types/hierarchy'
 
-const levels: HierarchyLevel[] = [
-  { level: 1, name: 'State' },
-  { level: 2, name: 'District' },
-]
+function makeLevels(): HierarchyLevel[] {
+  return [
+    { level: 1, name: 'State' },
+    { level: 2, name: 'District' },
+  ]
+}
 
 describe('HierarchySection (hierarchy page)', () => {
   it('renders level inputs and calls onChange when name changes', () => {
@@ -15,7 +17,7 @@ describe('HierarchySection (hierarchy page)', () => {
       <HierarchySection
         sectionId="lgd"
         title="LGD hierarchy"
-        levels={levels}
+        levels={makeLevels()}
         structuralChangesAllowed={false}
         onChange={onChange}
       />
@@ -35,7 +37,7 @@ describe('HierarchySection (hierarchy page)', () => {
       <HierarchySection
         sectionId="lgd"
         title="LGD"
-        levels={levels}
+        levels={makeLevels()}
         structuralChangesAllowed
         onChange={onChange}
       />
@@ -54,7 +56,7 @@ describe('HierarchySection (hierarchy page)', () => {
       <HierarchySection
         sectionId="lgd"
         title="LGD"
-        levels={levels}
+        levels={makeLevels()}
         structuralChangesAllowed
         onChange={onChange}
       />
@@ -70,7 +72,7 @@ describe('HierarchySection (hierarchy page)', () => {
       <HierarchySection
         sectionId="lgd"
         title="LGD"
-        levels={levels}
+        levels={makeLevels()}
         structuralChangesAllowed={false}
         onChange={onChange}
         errors={{ 'lgd.0': 'Required' }}

@@ -86,4 +86,26 @@ describe('CreatePasswordPage', () => {
       { timeout: 5000 }
     )
   })
+
+  it('shows error toast and does not navigate to login when CreatePasswordPage submit fails', async () => {
+    const onShowToast = jest.fn()
+    mockUseParams.mockReturnValue({ id: 'user-1' })
+    authMock.getUserByInviteId.mockResolvedValue({ email: 'a@test.com' })
+    authMock.createPassword.mockRejectedValue(new Error('fail'))
+    const user = userEvent.setup()
+    renderWithProviders(<CreatePasswordPage onShowToast={onShowToast} />)
+    await waitFor(() => expect(screen.getByDisplayValue('a@test.com')).toBeInTheDocument())
+    // Drop any navigate calls from prior tests (success path uses a delayed navigate).
+    mockNavigate.mockClear()
+    const pwdInputs = screen.getAllByPlaceholderText('Enter your password')
+    await user.type(pwdInputs[0], 'Aa1@abcdef')
+    await user.type(pwdInputs[1], 'Aa1@abcdef')
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+    await waitFor(() => expect(authMock.createPassword).toHaveBeenCalled())
+    expect(buildSetPasswordRequest).toHaveBeenCalled()
+    expect(onShowToast).toHaveBeenCalledWith('fail', 'error')
+    await waitFor(() => {
+      expect(mockNavigate).not.toHaveBeenCalledWith(ROUTES.LOGIN)
+    })
+  })
 })

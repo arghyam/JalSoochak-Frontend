@@ -60,7 +60,7 @@ describe('BroadcastModal', () => {
     expect(screen.getByText('Broadcast Message')).toBeInTheDocument()
   })
 
-  it('disables send until role, duration, and template are set', async () => {
+  it('disables send on initial render', () => {
     renderWithProviders(<BroadcastModal isOpen onClose={jest.fn()} />)
     expect(screen.getByRole('button', { name: /send/i })).toBeDisabled()
   })
@@ -79,14 +79,11 @@ describe('BroadcastModal', () => {
     const send = screen.getByRole('button', { name: /send/i })
     expect(send).toBeEnabled()
     await user.click(send)
-    expect(mutate).toHaveBeenCalledWith(
-      {
-        roles: ['PUMP_OPERATOR'],
-        type: 'welcome_template',
-        onboardedAfter: '2024-01-01',
-        onboardedBefore: '2024-01-31',
-      },
-      expect.any(Object)
-    )
+    expect(mutate.mock.calls[0][0]).toEqual({
+      roles: ['PUMP_OPERATOR'],
+      type: 'welcome_template',
+      onboardedAfter: '2024-01-01',
+      onboardedBefore: '2024-01-31',
+    })
   })
 })

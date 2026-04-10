@@ -46,6 +46,7 @@ describe('SignupFlowPage', () => {
     authMock.getUserByInviteId.mockResolvedValue({ email: 'invited@test.com' })
     renderWithProviders(<SignupFlowPage initialStep="createPassword" />)
     await waitFor(() => expect(screen.getByDisplayValue('invited@test.com')).toBeInTheDocument())
+    expect(authMock.getUserByInviteId).toHaveBeenCalledWith('invite-1')
     expect(screen.getByText('Create a password to proceed further.')).toBeInTheDocument()
   })
 

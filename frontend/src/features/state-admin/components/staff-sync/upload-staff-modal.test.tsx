@@ -27,14 +27,21 @@ jest.mock('@/shared/components/common', () => ({
 const mockedHooks = queryHooks as jest.Mocked<typeof queryHooks>
 const mockedAuthStore = useAuthStore as unknown as jest.Mock
 
+const fakeAuthStoreState = { user: { tenantCode: 'TN' as string | undefined } }
+
 describe('UploadStaffModal', () => {
+  beforeEach(() => {
+    mockedAuthStore.mockImplementation((selector: (s: typeof fakeAuthStoreState) => unknown) =>
+      selector(fakeAuthStoreState)
+    )
+  })
+
   it('submits file with tenant code from auth store', async () => {
     const mutate = jest.fn()
     mockedHooks.useUploadPumpOperatorsMutation.mockReturnValue({
       mutate,
       isPending: false,
     } as never)
-    mockedAuthStore.mockReturnValue('TN')
     const user = userEvent.setup()
     renderWithProviders(<UploadStaffModal isOpen onClose={jest.fn()} />)
     await user.click(screen.getByRole('button', { name: 'submit-upload' }))

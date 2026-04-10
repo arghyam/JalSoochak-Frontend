@@ -88,5 +88,6 @@ describe('CredentialsPage', () => {
       expect(onShowToast).toHaveBeenCalledWith(expect.any(String), 'error')
     })
     expect(authMock.updateProfile).not.toHaveBeenCalled()
+    expect(mockNavigate).not.toHaveBeenCalled()
   })
 })

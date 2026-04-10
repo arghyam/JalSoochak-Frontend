@@ -4,9 +4,8 @@ import { renderWithProviders } from '@/test/render-with-providers'
 
 describe('AuthSideImage', () => {
   it('renders banner image when visible', () => {
-    const { container } = renderWithProviders(<AuthSideImage isVisible />)
-    const img = container.querySelector('img[alt="JalSoochak banner"]')
-    expect(img).toBeTruthy()
+    renderWithProviders(<AuthSideImage isVisible />)
+    expect(screen.queryByAltText('JalSoochak banner')).toBeInTheDocument()
   })
 
   it('renders nothing when not visible', () => {
@@ -15,7 +14,7 @@ describe('AuthSideImage', () => {
   })
 
   it('defaults to visible', () => {
-    const { container } = renderWithProviders(<AuthSideImage />)
-    expect(container.querySelector('img[alt="JalSoochak banner"]')).toBeTruthy()
+    renderWithProviders(<AuthSideImage />)
+    expect(screen.getByAltText('JalSoochak banner')).toBeInTheDocument()
   })
 })

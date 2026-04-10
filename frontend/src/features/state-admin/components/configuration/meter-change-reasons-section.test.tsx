@@ -25,6 +25,7 @@ describe('MeterChangeReasonsSection', () => {
       <MeterChangeReasonsSection title="Meter reasons" reasons={reasons} onChange={onChange} />
     )
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i })
+    expect(deleteButtons).toHaveLength(2)
     fireEvent.click(deleteButtons[0])
     expect(onChange).toHaveBeenCalledWith([{ id: 'b', name: 'B' }])
   })
