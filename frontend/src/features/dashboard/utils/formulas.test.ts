@@ -877,6 +877,7 @@ describe('dashboard formulas', () => {
           totalAchievedFhtcCount: 2_150_302_458,
           totalPlannedFhtcCount: 4_022_202,
           totalWaterSuppliedLiters: 15_706_406_504,
+          supplyDaysInEfficientRange: 0,
           avgWaterSupplyPerScheme: 902044.9405,
         },
       ],

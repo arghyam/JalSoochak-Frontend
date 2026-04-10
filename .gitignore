@@ -1,4 +1,6 @@
 # ai specific rules
 .cursor
 .claude
-.codex
+.codex   
+
+.env

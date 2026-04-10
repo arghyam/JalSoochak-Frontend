@@ -7,6 +7,7 @@
 import * as echarts from 'echarts'
 
 export const INDIA_NATIONAL_BOUNDARY_FEATURE_NAME = '__india_national_boundary__'
+export const PARENT_BOUNDARY_FEATURE_NAME = '__parent_boundary__'
 
 export interface EChartsMapFeatureCollection {
   type: 'FeatureCollection'
@@ -155,8 +156,30 @@ export function buildFeatureCollectionFromRegions(
   }>,
   options?: {
     nationalBoundaryGeoJson?: unknown
+    parentBoundaryGeoJson?: unknown
   }
 ): EChartsMapFeatureCollection | null {
+  const regionFeatures = regions.flatMap((region) => {
+    if (!region.boundaryGeoJson || typeof region.boundaryGeoJson !== 'object') {
+      return []
+    }
+
+    const geometryCenter = getGeometryCenter(region.boundaryGeoJson)
+
+    return [
+      {
+        type: 'Feature' as const,
+        id: region.id,
+        properties: {
+          name: region.name,
+          regionId: region.id,
+          ...(geometryCenter ? { cp: geometryCenter } : {}),
+        },
+        geometry: region.boundaryGeoJson,
+      },
+    ]
+  })
+
   const features = [
     ...(options?.nationalBoundaryGeoJson && typeof options.nationalBoundaryGeoJson === 'object'
       ? [
@@ -170,26 +193,21 @@ export function buildFeatureCollectionFromRegions(
           },
         ]
       : []),
-    ...regions.flatMap((region) => {
-      if (!region.boundaryGeoJson || typeof region.boundaryGeoJson !== 'object') {
-        return []
-      }
-
-      const geometryCenter = getGeometryCenter(region.boundaryGeoJson)
-
-      return [
-        {
-          type: 'Feature' as const,
-          id: region.id,
-          properties: {
-            name: region.name,
-            regionId: region.id,
-            ...(geometryCenter ? { cp: geometryCenter } : {}),
+    ...(regionFeatures.length &&
+    options?.parentBoundaryGeoJson &&
+    typeof options.parentBoundaryGeoJson === 'object'
+      ? [
+          {
+            type: 'Feature' as const,
+            id: PARENT_BOUNDARY_FEATURE_NAME,
+            properties: {
+              name: PARENT_BOUNDARY_FEATURE_NAME,
+            },
+            geometry: options.parentBoundaryGeoJson,
           },
-          geometry: region.boundaryGeoJson,
-        },
-      ]
-    }),
+        ]
+      : []),
+    ...regionFeatures,
   ]
 
   if (!features.length) {

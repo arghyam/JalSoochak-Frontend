@@ -60,7 +60,6 @@ import {
   calculateAbsoluteChange,
   calculateAverageRegularityPercent,
   calculatePercentChange,
-  calculateQuantityMld,
   getPreviousPeriodRange,
   getRegularityKpi,
   getRegularityKpiFromPeriodic,
@@ -1680,10 +1679,22 @@ export function CentralDashboard() {
   const nationalQuantityByTenantId = (
     filteredNationalDashboardData?.stateWiseQuantityPerformance ?? []
   ).reduce<Map<number, number>>((acc, state) => {
-    if (state.tenantId > 0 && state.schemeCount > 0 && state.totalWaterSuppliedLiters > 0) {
+    const schemeCount = Number(state.schemeCount)
+    const supplyDaysInEfficientRange = Number(state.supplyDaysInEfficientRange)
+
+    if (
+      state.tenantId > 0 &&
+      Number.isFinite(schemeCount) &&
+      schemeCount > 0 &&
+      Number.isFinite(supplyDaysInEfficientRange) &&
+      supplyDaysInEfficientRange >= 0 &&
+      nationalDaysInRange > 0
+    ) {
       acc.set(
         state.tenantId,
-        calculateQuantityMld(state.totalWaterSuppliedLiters, nationalDaysInRange)
+        Number(
+          ((supplyDaysInEfficientRange / (nationalDaysInRange * schemeCount)) * 100).toFixed(1)
+        )
       )
     }
     return acc
@@ -2602,8 +2613,12 @@ export function CentralDashboard() {
         nationalBoundaryGeoJson={
           isCentralLandingView ? filteredNationalDashboardBoundaries.nationalBoundary : undefined
         }
+        parentBoundaryGeoJson={
+          isCentralLandingView
+            ? undefined
+            : (tenantBoundaryData?.parsedBoundaryGeoJson ?? undefined)
+        }
         isLoading={isMapDataLoading}
-        disableHoverEffect={isCentralLandingView}
         mapName={
           isCentralLandingView
             ? 'india'

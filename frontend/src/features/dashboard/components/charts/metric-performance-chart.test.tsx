@@ -124,6 +124,35 @@ describe('MetricPerformanceChart', () => {
     expect(chartOption?.xAxis?.axisLabel?.margin).toBe(16)
   })
 
+  it('preserves caller-provided entity order on the x-axis', () => {
+    const orderedData: EntityPerformance[] = [
+      { ...chartData[0], id: 's3', name: 'Zeta Region' },
+      { ...chartData[1], id: 's4', name: 'Alpha Region' },
+      { ...chartData[0], id: 's5', name: 'Beta Region' },
+    ]
+
+    renderWithProviders(<MetricPerformanceChart data={orderedData} metric="quantity" />)
+
+    const chartOption = (
+      mockEChartsWrapper.mock.calls as Array<
+        [{ option?: { xAxis?: { data?: unknown } | Array<{ data?: unknown }> } }]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((option) => {
+        const xAxis = option?.xAxis
+        if (Array.isArray(xAxis)) {
+          return Array.isArray(xAxis[0]?.data) && xAxis[0].data.length === orderedData.length
+        }
+        return Array.isArray(xAxis?.data) && xAxis.data.length === orderedData.length
+      })
+
+    const xAxis = chartOption?.xAxis
+    const entities = Array.isArray(xAxis) ? xAxis[0]?.data : xAxis?.data
+
+    expect(entities).toEqual(['Zeta Region', 'Alpha Region', 'Beta Region'])
+  })
+
   it('renders area+bar legends when area line is enabled', () => {
     renderWithProviders(
       <MetricPerformanceChart

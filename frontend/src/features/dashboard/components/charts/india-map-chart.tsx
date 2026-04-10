@@ -17,12 +17,14 @@ import type { EntityPerformance } from '../../types'
 import {
   buildFeatureCollectionFromRegions,
   INDIA_NATIONAL_BOUNDARY_FEATURE_NAME,
+  PARENT_BOUNDARY_FEATURE_NAME,
   registerDynamicMap,
 } from '../../utils/map-registry'
 
 interface IndiaMapChartProps {
   data: EntityPerformance[]
   nationalBoundaryGeoJson?: EntityPerformance['boundaryGeoJson']
+  parentBoundaryGeoJson?: EntityPerformance['boundaryGeoJson']
   isLoading?: boolean
   onStateClick?: (stateId: string, stateName: string) => void
   onStateHover?: (stateId: string, stateName: string, metrics: EntityPerformance) => void
@@ -39,6 +41,7 @@ interface IndiaMapChartProps {
 export function IndiaMapChart({
   data,
   nationalBoundaryGeoJson,
+  parentBoundaryGeoJson,
   isLoading = false,
   onStateClick,
   onStateHover,
@@ -59,8 +62,9 @@ export function IndiaMapChart({
     () =>
       buildFeatureCollectionFromRegions(data, {
         nationalBoundaryGeoJson,
+        parentBoundaryGeoJson,
       }),
-    [data, nationalBoundaryGeoJson]
+    [data, nationalBoundaryGeoJson, parentBoundaryGeoJson]
   )
   const [isRegularityView, setIsRegularityView] = useState(true)
   const metricKey: 'quantity' | 'regularity' = isRegularityView ? 'regularity' : 'quantity'
@@ -135,7 +139,12 @@ export function IndiaMapChart({
   )
 
   const option = useMemo<echarts.EChartsOption>(() => {
-    const isIndiaMap = (effectiveMapName ?? mapName) === 'india'
+    const hasParentBoundaryFeature = Boolean(
+      dynamicGeoJson?.features.some(
+        (feature) => feature.properties?.name === PARENT_BOUNDARY_FEATURE_NAME
+      )
+    )
+
     // Create map data series
     const mapSeries = data.map((state) => ({
       name: state.name,
@@ -166,41 +175,77 @@ export function IndiaMapChart({
         quantity: state.quantity,
       },
     }))
-    const seriesData = nationalBoundaryGeoJson
-      ? [
-          {
-            name: INDIA_NATIONAL_BOUNDARY_FEATURE_NAME,
-            value: -1,
-            silent: true,
-            tooltip: { show: false },
-            label: { show: false },
-            itemStyle: {
-              areaColor: 'rgba(0,0,0,0)',
-              borderColor: '#FFFFFF',
-              borderWidth: 1.5,
-            },
-            emphasis: {
-              disabled: true,
+    const boundaryOverlays = [
+      ...(nationalBoundaryGeoJson
+        ? [
+            {
+              name: INDIA_NATIONAL_BOUNDARY_FEATURE_NAME,
+              value: -1,
+              silent: true,
+              tooltip: { show: false },
               label: { show: false },
               itemStyle: {
                 areaColor: 'rgba(0,0,0,0)',
-                borderColor: '#FFFFFF',
+                borderColor: '#1c1c1c',
                 borderWidth: 1.5,
               },
+              emphasis: {
+                disabled: true,
+                label: { show: false },
+                itemStyle: {
+                  areaColor: 'rgba(0,0,0,0)',
+                  borderColor: '#1c1c1c',
+                  borderWidth: 1.5,
+                },
+              },
+              select: {
+                disabled: true,
+                label: { show: false },
+                itemStyle: {
+                  areaColor: 'rgba(0,0,0,0)',
+                  borderColor: '#1c1c1c',
+                  borderWidth: 1.5,
+                },
+              },
             },
-            select: {
-              disabled: true,
+          ]
+        : []),
+      ...(hasParentBoundaryFeature
+        ? [
+            {
+              name: PARENT_BOUNDARY_FEATURE_NAME,
+              value: -1,
+              silent: true,
+              tooltip: { show: false },
               label: { show: false },
               itemStyle: {
                 areaColor: 'rgba(0,0,0,0)',
-                borderColor: '#FFFFFF',
-                borderWidth: 1.5,
+                borderColor: '#1c1c1c',
+                borderWidth: 2,
+              },
+              emphasis: {
+                disabled: true,
+                label: { show: false },
+                itemStyle: {
+                  areaColor: 'rgba(0,0,0,0)',
+                  borderColor: '#000000',
+                  borderWidth: 2,
+                },
+              },
+              select: {
+                disabled: true,
+                label: { show: false },
+                itemStyle: {
+                  areaColor: 'rgba(0,0,0,0)',
+                  borderColor: '#000000',
+                  borderWidth: 2,
+                },
               },
             },
-          },
-          ...mapSeries,
-        ]
-      : mapSeries
+          ]
+        : []),
+    ]
+    const seriesData = [...mapSeries, ...boundaryOverlays]
 
     return {
       backgroundColor: '#FAFAFA',
@@ -227,7 +272,10 @@ export function IndiaMapChart({
             }
           }
           if (p.data) {
-            if (p.data.name === INDIA_NATIONAL_BOUNDARY_FEATURE_NAME) {
+            if (
+              p.data.name === INDIA_NATIONAL_BOUNDARY_FEATURE_NAME ||
+              p.data.name === PARENT_BOUNDARY_FEATURE_NAME
+            ) {
               return ''
             }
             const { name, metrics } = p.data
@@ -280,7 +328,7 @@ export function IndiaMapChart({
                   borderWidth: 2,
                 },
                 label: {
-                  show: !isIndiaMap,
+                  show: true,
                   fontSize: 12,
                   fontWeight: 'bold',
                 },
@@ -290,7 +338,7 @@ export function IndiaMapChart({
               borderWidth: 2,
             },
             label: {
-              show: !isIndiaMap,
+              show: true,
               fontSize: 12,
               fontWeight: 'bold',
             },
@@ -313,6 +361,7 @@ export function IndiaMapChart({
     isQuantityPercentView,
     quantityLabel,
     regularityLabel,
+    dynamicGeoJson,
   ])
 
   const bodyText6 = getBodyText6Style(theme)
@@ -435,6 +484,8 @@ export function IndiaMapChart({
                 lineHeight: isBelowSm ? '16px' : `${bodyText6.lineHeight}px`,
                 fontWeight: bodyText6.fontWeight,
                 color: bodyText6.color,
+                opacity: isRegularityView ? 0.45 : 1,
+                transition: 'opacity 0.2s ease',
               }}
             >
               {quantityLabel}
@@ -462,6 +513,8 @@ export function IndiaMapChart({
                 lineHeight: isBelowSm ? '16px' : `${bodyText6.lineHeight}px`,
                 fontWeight: bodyText6.fontWeight,
                 color: bodyText6.color,
+                opacity: isRegularityView ? 1 : 0.45,
+                transition: 'opacity 0.2s ease',
               }}
             >
               {regularityLabel}

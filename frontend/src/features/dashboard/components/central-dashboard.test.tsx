@@ -1084,6 +1084,7 @@ describe('CentralDashboard', () => {
             stateCode: 'KA',
             stateTitle: 'Karnataka',
             schemeCount: 2,
+            supplyDaysInEfficientRange: 30,
             totalHouseholdCount: 1000,
             totalFhtcCount: 500,
             totalWaterSuppliedLiters: 90_000_000,
@@ -1094,6 +1095,7 @@ describe('CentralDashboard', () => {
             stateCode: 'ZZ',
             stateTitle: 'Inactive State',
             schemeCount: 2,
+            supplyDaysInEfficientRange: 30,
             totalHouseholdCount: 1000,
             totalFhtcCount: 500,
             totalWaterSuppliedLiters: 90_000_000,
@@ -1271,6 +1273,7 @@ describe('CentralDashboard', () => {
       expect.objectContaining({
         name: 'Karnataka',
         coverage: 0,
+        quantity: 50,
         boundaryGeoJson: { type: 'Polygon', coordinates: [] },
       }),
     ])

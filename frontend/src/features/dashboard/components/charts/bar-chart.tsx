@@ -64,8 +64,8 @@ export function BarChart({ data, metric, title, className, height = '400px' }: B
         },
       },
       grid: {
-        left: '3%',
-        right: '4%',
+        left: '8px',
+        right: '16px',
         bottom: '15%',
         containLabel: true,
       },
