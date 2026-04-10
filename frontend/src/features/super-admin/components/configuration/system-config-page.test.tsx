@@ -6,8 +6,9 @@ import type { SystemConfiguration } from '../../types/system-config'
 
 const mockConfig: SystemConfiguration = {
   supportedChannels: ['Bulk Flow Meter', 'Manual'],
-  oversupplyThreshold: 100,
-  undersupplyThreshold: 80,
+  // Archived for now, kept for future integration
+  // oversupplyThreshold: 100,
+  // undersupplyThreshold: 80,
   bfmImageConfidenceThreshold: 89,
   locationAffinityThreshold: 78,
 }
@@ -58,7 +59,8 @@ describe('SystemConfigPage', () => {
     renderWithProviders(<SystemConfigPage />)
     expect(screen.getByText('Configuration')).toBeTruthy()
     expect(screen.getByText('Bulk Flow Meter, Manual')).toBeTruthy()
-    expect(screen.getByText('100')).toBeTruthy()
+    // Archived for now, kept for future integration
+    // expect(screen.getByText('100')).toBeTruthy()
     expect(screen.getByText('89')).toBeTruthy()
     expect(screen.getByText('78')).toBeTruthy()
   })
@@ -152,21 +154,22 @@ describe('SystemConfigPage', () => {
     expect((input as HTMLInputElement).value).toBe('1000')
   })
 
-  it('rejects more than 4 decimal places on undersupply threshold', () => {
-    renderWithProviders(<SystemConfigPage />)
-    fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
-    const input = screen.getByRole('spinbutton', { name: /undersupply threshold/i })
-    fireEvent.change(input, { target: { value: '10.12345' } })
-    expect((input as HTMLInputElement).value).toBe('80')
-  })
+  // Archived for now, kept for future integration
+  // it('rejects more than 4 decimal places on undersupply threshold', () => {
+  //   renderWithProviders(<SystemConfigPage />)
+  //   fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
+  //   const input = screen.getByRole('spinbutton', { name: /undersupply threshold/i })
+  //   fireEvent.change(input, { target: { value: '10.12345' } })
+  //   expect((input as HTMLInputElement).value).toBe('80')
+  // })
 
-  it('accepts up to 4 decimal places on undersupply threshold', () => {
-    renderWithProviders(<SystemConfigPage />)
-    fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
-    const input = screen.getByRole('spinbutton', { name: /undersupply threshold/i })
-    fireEvent.change(input, { target: { value: '10.1234' } })
-    expect((input as HTMLInputElement).value).toBe('10.1234')
-  })
+  // it('accepts up to 4 decimal places on undersupply threshold', () => {
+  //   renderWithProviders(<SystemConfigPage />)
+  //   fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
+  //   const input = screen.getByRole('spinbutton', { name: /undersupply threshold/i })
+  //   fireEvent.change(input, { target: { value: '10.1234' } })
+  //   expect((input as HTMLInputElement).value).toBe('10.1234')
+  // })
 
   it('rejects more than 4 decimal places on BFM confidence threshold', () => {
     renderWithProviders(<SystemConfigPage />)
