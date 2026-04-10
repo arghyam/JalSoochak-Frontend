@@ -159,6 +159,27 @@ export function buildFeatureCollectionFromRegions(
     parentBoundaryGeoJson?: unknown
   }
 ): EChartsMapFeatureCollection | null {
+  const regionFeatures = regions.flatMap((region) => {
+    if (!region.boundaryGeoJson || typeof region.boundaryGeoJson !== 'object') {
+      return []
+    }
+
+    const geometryCenter = getGeometryCenter(region.boundaryGeoJson)
+
+    return [
+      {
+        type: 'Feature' as const,
+        id: region.id,
+        properties: {
+          name: region.name,
+          regionId: region.id,
+          ...(geometryCenter ? { cp: geometryCenter } : {}),
+        },
+        geometry: region.boundaryGeoJson,
+      },
+    ]
+  })
+
   const features = [
     ...(options?.nationalBoundaryGeoJson && typeof options.nationalBoundaryGeoJson === 'object'
       ? [
@@ -172,7 +193,9 @@ export function buildFeatureCollectionFromRegions(
           },
         ]
       : []),
-    ...(options?.parentBoundaryGeoJson && typeof options.parentBoundaryGeoJson === 'object'
+    ...(regionFeatures.length &&
+    options?.parentBoundaryGeoJson &&
+    typeof options.parentBoundaryGeoJson === 'object'
       ? [
           {
             type: 'Feature' as const,
@@ -184,26 +207,7 @@ export function buildFeatureCollectionFromRegions(
           },
         ]
       : []),
-    ...regions.flatMap((region) => {
-      if (!region.boundaryGeoJson || typeof region.boundaryGeoJson !== 'object') {
-        return []
-      }
-
-      const geometryCenter = getGeometryCenter(region.boundaryGeoJson)
-
-      return [
-        {
-          type: 'Feature' as const,
-          id: region.id,
-          properties: {
-            name: region.name,
-            regionId: region.id,
-            ...(geometryCenter ? { cp: geometryCenter } : {}),
-          },
-          geometry: region.boundaryGeoJson,
-        },
-      ]
-    }),
+    ...regionFeatures,
   ]
 
   if (!features.length) {
