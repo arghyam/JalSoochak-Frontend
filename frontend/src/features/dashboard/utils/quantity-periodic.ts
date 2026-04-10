@@ -32,6 +32,25 @@ const formatMetricLabel = (
     'periodStartDate' | 'periodEndDate'
   >
 ) => {
+  if (scale === 'day') {
+    const start = parseIsoDate(metric.periodStartDate)
+    const end = parseIsoDate(metric.periodEndDate)
+
+    if (
+      start &&
+      end &&
+      start.getFullYear() === end.getFullYear() &&
+      start.getMonth() === end.getMonth() &&
+      start.getDate() === end.getDate()
+    ) {
+      return new Intl.DateTimeFormat('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      }).format(start)
+    }
+  }
+
   if (scale === 'month') {
     const start = parseIsoDate(metric.periodStartDate)
     const end = parseIsoDate(metric.periodEndDate)
@@ -55,7 +74,19 @@ const formatMetricLabel = (
     month: 'short',
   })
 
-  return startLabel === endLabel ? startLabel : `${startLabel} - ${endLabel}`
+  if (startLabel === endLabel) {
+    return startLabel
+  }
+
+  if (scale === 'week') {
+    const start = parseIsoDate(metric.periodStartDate)
+    const end = parseIsoDate(metric.periodEndDate)
+    if (start && end && start.getFullYear() === end.getFullYear()) {
+      return `${startLabel} - ${endLabel}\n${start.getFullYear()}`
+    }
+  }
+
+  return `${startLabel} - ${endLabel}`
 }
 
 export const resolveWaterQuantityPeriodicScale = (
