@@ -1,13 +1,53 @@
 import { Box, Divider, Flex, HStack, Link, SimpleGrid, Stack, Text, VStack } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import type { ReactNode } from 'react'
 import { ROUTES } from '@/shared/constants/routes'
 import logoWithText from '@/assets/media/logo-with-text.svg'
 import { RiMailLine, RiTwitterXLine } from 'react-icons/ri'
 import { BiLogoLinkedin } from 'react-icons/bi'
 
+interface SocialLink {
+  href: string
+  ariaLabel: string
+  icon: ReactNode
+  isExternal?: boolean
+}
+
+const commonLinkProps = {
+  display: 'flex' as const,
+  alignItems: 'center' as const,
+  justifyContent: 'center' as const,
+  w: '40px',
+  h: '40px',
+  bg: 'neutral.100',
+  borderRadius: '8px',
+  _hover: { bg: 'neutral.200' },
+  transition: 'background-color 0.2s',
+}
+
 export function Footer() {
   const { t } = useTranslation()
+
+  const socialLinks: SocialLink[] = [
+    {
+      href: 'https://x.com/arghyamindia',
+      ariaLabel: t('footer.social.x'),
+      icon: <RiTwitterXLine size={20} color="#64748b" />,
+      isExternal: true,
+    },
+    {
+      href: 'https://www.linkedin.com/company/arghyam/',
+      ariaLabel: t('footer.social.linkedin'),
+      icon: <BiLogoLinkedin size={20} color="#64748b" />,
+      isExternal: true,
+    },
+    {
+      href: 'mailto:info@arghyam.org',
+      ariaLabel: t('footer.social.email'),
+      icon: <RiMailLine size={20} color="#64748b" />,
+    },
+  ]
   return (
     <VStack spacing={0} w="full" bg="primary.25" borderTopWidth="1px" borderColor="neutral.200">
       {/* Top Section: Content */}
@@ -38,53 +78,17 @@ export function Footer() {
               </Text>
               {/* Social Media Icons */}
               <HStack spacing="12px">
-                <Link
-                  href="https://x.com/arghyamindia"
-                  isExternal
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  w="40px"
-                  h="40px"
-                  bg="neutral.100"
-                  borderRadius="8px"
-                  _hover={{ bg: 'neutral.200' }}
-                  transition="background-color 0.2s"
-                  aria-label="X (Twitter)"
-                >
-                  <RiTwitterXLine size={20} color="#64748b" />
-                </Link>
-                <Link
-                  href="https://www.linkedin.com/company/arghyam/"
-                  isExternal
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  w="40px"
-                  h="40px"
-                  bg="neutral.100"
-                  borderRadius="8px"
-                  _hover={{ bg: 'neutral.200' }}
-                  transition="background-color 0.2s"
-                  aria-label="LinkedIn"
-                >
-                  <BiLogoLinkedin size={20} color="#64748b" />
-                </Link>
-                <Link
-                  href="mailto:info@arghyam.org"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  w="40px"
-                  h="40px"
-                  bg="neutral.100"
-                  borderRadius="8px"
-                  _hover={{ bg: 'neutral.200' }}
-                  transition="background-color 0.2s"
-                  aria-label="Email"
-                >
-                  <RiMailLine size={20} color="#64748b" />
-                </Link>
+                {socialLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    isExternal={link.isExternal}
+                    aria-label={link.ariaLabel}
+                    {...commonLinkProps}
+                  >
+                    {link.icon}
+                  </Link>
+                ))}
               </HStack>
             </Stack>
 
