@@ -38,13 +38,13 @@ export function useSubmissionStatusQuery(startDate: string, endDate: string) {
   })
 }
 
-export function useDashboardStatsQuery() {
+export function useDashboardStatsQuery(startDate: string, endDate: string) {
   const tenantId = useAuthStore((state) => state.user?.tenantId ?? '')
   const userId = useAuthStore((state) => state.user?.id ?? '')
 
   return useQuery({
-    queryKey: sectionOfficerQueryKeys.dashboardStats(tenantId, userId),
-    queryFn: () => overviewApi.getDashboardStats(tenantId, userId),
-    enabled: Boolean(tenantId) && Boolean(userId),
+    queryKey: sectionOfficerQueryKeys.dashboardStats(tenantId, userId, startDate, endDate),
+    queryFn: () => overviewApi.getDashboardStats(tenantId, userId, startDate, endDate),
+    enabled: Boolean(tenantId) && Boolean(userId) && Boolean(startDate) && Boolean(endDate),
   })
 }

@@ -96,10 +96,15 @@ export const overviewApi = {
     return response.data.data
   },
 
-  getDashboardStats: async (tenantId: string, userId: string): Promise<DashboardStatsResponse> => {
+  getDashboardStats: async (
+    tenantId: string,
+    userId: string,
+    startDate: string,
+    endDate: string
+  ): Promise<DashboardStatsResponse> => {
     const response = await apiClient.get<ApiEnvelope<DashboardStatsResponse>>(
       '/api/v1/analytics/officer/dashboard',
-      { params: { tenant_id: tenantId, user_id: userId } }
+      { params: { tenant_id: tenantId, user_id: userId, start_date: startDate, end_date: endDate } }
     )
     return response.data.data
   },
