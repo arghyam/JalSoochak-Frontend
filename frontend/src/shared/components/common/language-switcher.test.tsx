@@ -15,11 +15,27 @@ jest.mock('@/app/store', () => ({
   }),
 }))
 
+const originalScrollToDescriptor = Object.getOwnPropertyDescriptor(
+  HTMLElement.prototype,
+  'scrollTo'
+)
+
 describe('LanguageSwitcher', () => {
   beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
       configurable: true,
       value: jest.fn(),
+    })
+  })
+
+  afterAll(() => {
+    if (originalScrollToDescriptor) {
+      Object.defineProperty(HTMLElement.prototype, 'scrollTo', originalScrollToDescriptor)
+      return
+    }
+    Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
+      configurable: true,
+      value: undefined,
     })
   })
 

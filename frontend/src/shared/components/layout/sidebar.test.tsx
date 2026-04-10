@@ -23,5 +23,6 @@ describe('Sidebar', () => {
   it('renders user initials and profile menu trigger', () => {
     renderWithProviders(<Sidebar />)
     expect(screen.getByText('JD')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /jane doe/i })).toBeInTheDocument()
   })
 })

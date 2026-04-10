@@ -18,7 +18,10 @@ describe('UploadFileModal', () => {
       />
     )
 
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement
+    const input = document.querySelector('input[type="file"]')
+    if (!(input instanceof HTMLInputElement)) {
+      throw new Error('File input element not found in UploadFileModal')
+    }
     await user.upload(input, new File(['x'], 'sample.xls'))
     await user.click(screen.getByRole('button', { name: 'Upload' }))
     expect(onSubmit).toHaveBeenCalledWith(expect.any(File))

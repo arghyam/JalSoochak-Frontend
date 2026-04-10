@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/render-with-providers'
 import { LoginPage } from './login-page'
@@ -37,5 +37,8 @@ describe('LoginPage', () => {
     await user.type(screen.getByPlaceholderText('Enter your password'), 'pass')
     await user.click(screen.getByRole('button', { name: 'Log in' }))
     expect(mockLogin).toHaveBeenCalledWith({ email: 'user@test.com', password: 'pass' })
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/next', { replace: true })
+    })
   })
 })

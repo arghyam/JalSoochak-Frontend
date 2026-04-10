@@ -319,11 +319,11 @@ describe('StaffOverviewPage', () => {
     expect(document.title).toContain('JalSoochak')
   })
 
-  it('passes correct date parameters to query hooks', () => {
+  it('passes correct date parameters to query hooks', async () => {
     renderWithProviders(<StaffOverviewPage />)
 
     // Wait for component to initialize with default date range
-    waitFor(() => {
+    await waitFor(() => {
       expect(mockHooks.useDashboardStatsQuery).toHaveBeenCalled()
       expect(mockHooks.useOutageReasonsQuery).toHaveBeenCalled()
       expect(mockHooks.useNonSubmissionReasonsQuery).toHaveBeenCalled()
