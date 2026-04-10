@@ -172,7 +172,7 @@ export function MonthlyTrendChart({
       },
       grid: {
         left: '0%',
-        right: '4%',
+        right: '16px',
         top: chartGridTop,
         bottom: chartGridBottom,
         containLabel: false,
@@ -259,7 +259,7 @@ export function MonthlyTrendChart({
       },
       grid: {
         left: '0%',
-        right: 0,
+        right: '16px',
         top: chartGridTop,
         bottom: chartGridBottom,
         containLabel: false,
@@ -581,33 +581,35 @@ export function MonthlyTrendChart({
           {seriesName}
         </span>
       </div>
-      <Box mt="6px">
-        <Box
-          ref={scrollbarTrackRef}
-          height="4px"
-          bg="neutral.200"
-          borderRadius="999px"
-          position="relative"
-        >
+      {shouldScroll ? (
+        <Box mt="6px">
           <Box
-            role="presentation"
-            position="absolute"
-            top={0}
+            ref={scrollbarTrackRef}
             height="4px"
-            width="163px"
-            maxW="100%"
-            bg="neutral.300"
+            bg="neutral.200"
             borderRadius="999px"
-            cursor={shouldScroll ? 'grab' : 'default'}
-            ref={scrollbarThumbRef}
-            onPointerDown={handleThumbPointerDown}
-            onPointerMove={handleThumbPointerMove}
-            onPointerUp={handleThumbPointerUp}
-            onPointerLeave={handleThumbPointerUp}
-            onPointerCancel={handleThumbPointerCancel}
-          />
+            position="relative"
+          >
+            <Box
+              role="presentation"
+              position="absolute"
+              top={0}
+              height="4px"
+              width="163px"
+              maxW="100%"
+              bg="neutral.300"
+              borderRadius="999px"
+              cursor="grab"
+              ref={scrollbarThumbRef}
+              onPointerDown={handleThumbPointerDown}
+              onPointerMove={handleThumbPointerMove}
+              onPointerUp={handleThumbPointerUp}
+              onPointerLeave={handleThumbPointerUp}
+              onPointerCancel={handleThumbPointerCancel}
+            />
+          </Box>
         </Box>
-      </Box>
+      ) : null}
     </div>
   )
 }

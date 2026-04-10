@@ -49,8 +49,8 @@ export function AreaChart<T extends object>({
         }
       : undefined,
     grid: {
-      left: '3%',
-      right: '4%',
+      left: '8px',
+      right: '16px',
       bottom: legendLabel ? '15%' : '3%',
       top: '10%',
       containLabel: true,

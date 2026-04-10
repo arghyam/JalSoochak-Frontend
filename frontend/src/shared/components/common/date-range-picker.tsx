@@ -375,7 +375,13 @@ export function DateRangePicker({
     if (!startIso || !endIso) {
       return true
     }
-    return startIso > todayIso || endIso > todayIso || endIso < startIso
+    if (startIso > todayIso || endIso > todayIso || endIso < startIso) {
+      return true
+    }
+    if (displayRange && startIso === displayRange.startDate && endIso === displayRange.endDate) {
+      return true
+    }
+    return false
   })()
 
   const openPicker = (ref: React.RefObject<HTMLInputElement | null>) => {

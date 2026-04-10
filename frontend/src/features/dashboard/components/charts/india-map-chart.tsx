@@ -479,6 +479,8 @@ export function IndiaMapChart({
                 lineHeight: isBelowSm ? '16px' : `${bodyText6.lineHeight}px`,
                 fontWeight: bodyText6.fontWeight,
                 color: bodyText6.color,
+                opacity: isRegularityView ? 0.45 : 1,
+                transition: 'opacity 0.2s ease',
               }}
             >
               {quantityLabel}
@@ -506,6 +508,8 @@ export function IndiaMapChart({
                 lineHeight: isBelowSm ? '16px' : `${bodyText6.lineHeight}px`,
                 fontWeight: bodyText6.fontWeight,
                 color: bodyText6.color,
+                opacity: isRegularityView ? 1 : 0.45,
+                transition: 'opacity 0.2s ease',
               }}
             >
               {regularityLabel}

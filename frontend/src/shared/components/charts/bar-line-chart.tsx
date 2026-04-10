@@ -50,8 +50,8 @@ export function BarLineChart<T extends object>({
       },
     },
     grid: {
-      left: '3%',
-      right: '4%',
+      left: '8px',
+      right: '16px',
       bottom: labelRotate > 0 ? '20%' : '15%',
       top: '10%',
       containLabel: true,
