@@ -852,7 +852,15 @@ export const mapQuantityPerformanceFromNationalDashboard = (
   response: NationalDashboardResponse | undefined,
   fallbackData: EntityPerformance[],
   averagePersonsPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD,
-  litersPerPersonPerDay = DEFAULT_LITERS_PER_PERSON_PER_DAY
+  litersPerPersonPerDay = DEFAULT_LITERS_PER_PERSON_PER_DAY,
+  resolveDemandInputs?: (
+    state: NationalDashboardResponse['stateWiseQuantityPerformance'][number]
+  ) =>
+    | {
+        averagePersonsPerHousehold?: number
+        litersPerPersonPerDay?: number
+      }
+    | undefined
 ): EntityPerformance[] => {
   if (!response?.stateWiseQuantityPerformance?.length) {
     return []
@@ -862,14 +870,25 @@ export const mapQuantityPerformanceFromNationalDashboard = (
 
   return response.stateWiseQuantityPerformance.map((state, index) => {
     const fallbackMatch = mapNationalFallbackMatch(fallbackData, state.stateTitle, index)
+    const demandInputs = resolveDemandInputs?.(state)
+    const resolvedAveragePersonsPerHousehold =
+      typeof demandInputs?.averagePersonsPerHousehold === 'number' &&
+      demandInputs.averagePersonsPerHousehold > 0
+        ? demandInputs.averagePersonsPerHousehold
+        : averagePersonsPerHousehold
+    const resolvedLitersPerPersonPerDay =
+      typeof demandInputs?.litersPerPersonPerDay === 'number' &&
+      demandInputs.litersPerPersonPerDay > 0
+        ? demandInputs.litersPerPersonPerDay
+        : litersPerPersonPerDay
 
     return {
       id: fallbackMatch?.id ?? `national-quantity-${state.stateCode || index}`,
       name: formatEntityName(state.stateTitle, fallbackMatch?.name, `State ${index + 1}`),
       coverage: calculateDemandMld(
         getNationalDemandFhtcCount(state),
-        averagePersonsPerHousehold,
-        litersPerPersonPerDay
+        resolvedAveragePersonsPerHousehold,
+        resolvedLitersPerPersonPerDay
       ),
       regularity: fallbackMatch?.regularity ?? 0,
       continuity: fallbackMatch?.continuity ?? 0,

@@ -1223,7 +1223,7 @@ describe('CentralDashboard', () => {
     expect(dashboardBodyProps.quantityPerformanceData[0]).toEqual(
       expect.objectContaining({
         name: 'Karnataka',
-        coverage: 0.13,
+        coverage: 0.14,
         quantity: 3,
       })
     )

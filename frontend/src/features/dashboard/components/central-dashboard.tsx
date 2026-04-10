@@ -14,7 +14,9 @@ import {
 } from '@chakra-ui/react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useQueries } from '@tanstack/react-query'
 import { useDashboardData } from '../hooks/use-dashboard-data'
+import { dashboardApi } from '../services/api/dashboard-api'
 import { useLocationChildrenQuery } from '../services/query/use-location-children-query'
 import { useDistrictSchemeBlockLookupQuery } from '../services/query/use-district-scheme-block-lookup-query'
 import { useBlockSchemePanchayatLookupQuery } from '../services/query/use-block-scheme-panchayat-lookup-query'
@@ -35,6 +37,7 @@ import { useTenantPublicConfigQuery } from '../services/query/use-tenant-public-
 import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
 import { useWaterQuantityRegionWiseQuery } from '../services/query/use-water-quantity-region-wise-query'
 import { useTenantBoundariesQuery } from '../services/query/use-tenant-boundaries-query'
+import { dashboardQueryKeys } from '../services/query/dashboard-query-keys'
 import { KPICard } from './kpi-card'
 import { DashboardBody } from './screens/dashboard-body'
 import { IndiaMapChart } from './charts'
@@ -852,11 +855,26 @@ export function CentralDashboard() {
     tenantId: selectedTenant?.tenantId,
     enabled: Boolean(selectedTenant?.tenantId),
   })
-  const averagePersonsPerHousehold =
-    tenantPublicConfig?.averageMembersPerHousehold &&
-    tenantPublicConfig.averageMembersPerHousehold > 0
-      ? tenantPublicConfig.averageMembersPerHousehold
-      : 5
+  const defaultAverageMembersPerHousehold = resolvePositiveNumber(
+    typeof __DEFAULT_AVERAGE_MEMBERS_PER_HOUSEHOLD__ !== 'undefined'
+      ? __DEFAULT_AVERAGE_MEMBERS_PER_HOUSEHOLD__
+      : 5,
+    5
+  )
+  const defaultWaterNormLitersPerPersonPerDay = resolvePositiveNumber(
+    typeof __DEFAULT_WATER_NORM_LITERS_PER_PERSON_PER_DAY__ !== 'undefined'
+      ? __DEFAULT_WATER_NORM_LITERS_PER_PERSON_PER_DAY__
+      : 55,
+    55
+  )
+  const averagePersonsPerHousehold = resolvePositiveNumber(
+    tenantPublicConfig?.averageMembersPerHousehold,
+    defaultAverageMembersPerHousehold
+  )
+  const litersPerPersonPerDay = resolvePositiveNumber(
+    tenantPublicConfig?.waterNorm,
+    defaultWaterNormLitersPerPersonPerDay
+  )
   const durationDateFormat = normalizeDateFormat(
     tenantPublicConfig?.dateFormatScreen.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
   )
@@ -1545,6 +1563,36 @@ export function CentralDashboard() {
     enabled: Boolean(previousRegularityPeriodicAnalyticsParams),
   })
   const isCentralLandingView = !hasCentralLandingFilters
+  const nationalQuantityTenantIds = Array.from(
+    new Set(
+      (filteredNationalDashboardData?.stateWiseQuantityPerformance ?? [])
+        .map((state) => state.tenantId)
+        .filter((tenantId) => typeof tenantId === 'number' && tenantId > 0)
+    )
+  )
+  const nationalTenantPublicConfigQueries = useQueries({
+    queries: nationalQuantityTenantIds.map((tenantId) => ({
+      queryKey: dashboardQueryKeys.tenantPublicConfig(tenantId),
+      queryFn: () => dashboardApi.getTenantPublicConfig(tenantId),
+      enabled: isCentralLandingView,
+    })),
+  })
+  const nationalDemandInputsByTenantId = nationalQuantityTenantIds.reduce<
+    Map<number, { averagePersonsPerHousehold: number; litersPerPersonPerDay: number }>
+  >((acc, tenantId, index) => {
+    const config = nationalTenantPublicConfigQueries[index]?.data
+    acc.set(tenantId, {
+      averagePersonsPerHousehold: resolvePositiveNumber(
+        config?.averageMembersPerHousehold,
+        defaultAverageMembersPerHousehold
+      ),
+      litersPerPersonPerDay: resolvePositiveNumber(
+        config?.waterNorm,
+        defaultWaterNormLitersPerPersonPerDay
+      ),
+    })
+    return acc
+  }, new Map())
   const rawOverallPerformanceTableData = isCentralLandingView
     ? mapOverallPerformanceFromNationalDashboard(
         filteredNationalDashboardData,
@@ -1751,9 +1799,17 @@ export function CentralDashboard() {
   const quantityPerformanceData = isCentralLandingView
     ? mapQuantityPerformanceFromNationalDashboard(
         filteredNationalDashboardData,
-        emptyEntityPerformance
+        emptyEntityPerformance,
+        averagePersonsPerHousehold,
+        litersPerPersonPerDay,
+        (state) => nationalDemandInputsByTenantId.get(state.tenantId)
       )
-    : mapQuantityPerformanceFromAnalytics(averageWaterSupplyData, emptyEntityPerformance)
+    : mapQuantityPerformanceFromAnalytics(
+        averageWaterSupplyData,
+        emptyEntityPerformance,
+        averagePersonsPerHousehold,
+        litersPerPersonPerDay
+      )
   const regularityPerformanceData = isCentralLandingView
     ? mapRegularityPerformanceFromNationalDashboard(
         filteredNationalDashboardData,
@@ -2813,4 +2869,8 @@ export function CentralDashboard() {
       />
     </Box>
   )
+}
+const resolvePositiveNumber = (value: unknown, fallback: number) => {
+  const numericValue = Number(value)
+  return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : fallback
 }

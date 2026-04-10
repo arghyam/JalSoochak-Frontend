@@ -73,6 +73,7 @@ export type TenantPublicDateFormatConfig = {
 
 export type TenantPublicConfig = {
   averageMembersPerHousehold: number
+  waterNorm: number
   dateFormatScreen: TenantPublicDateFormatConfig
 }
 
@@ -112,6 +113,7 @@ type ApiEnvelope<T> = {
 type TenantPublicConfigMap = {
   DATE_FORMAT_SCREEN?: TenantPublicDateFormatConfig
   AVERAGE_MEMBERS_PER_HOUSEHOLD?: { value?: string | null }
+  WATER_NORM?: { value?: string | null }
 }
 
 type TenantBoundaryChildRegionAlias = {
@@ -599,6 +601,7 @@ export const dashboardApi = {
 
     return {
       averageMembersPerHousehold: Number(configs?.AVERAGE_MEMBERS_PER_HOUSEHOLD?.value) || 0,
+      waterNorm: Number(configs?.WATER_NORM?.value) || 0,
       dateFormatScreen: configs?.DATE_FORMAT_SCREEN ?? {
         dateFormat: null,
         timeFormat: null,
