@@ -13,7 +13,7 @@ interface OverallPerformanceTableProps {
   onRowClick?: (row: EntityPerformance) => void
 }
 
-type SortColumn = 'coverage' | 'quantity' | 'regularity' | null
+type SortColumn = 'name' | 'coverage' | 'quantity' | 'regularity' | null
 type SortDirection = 'asc' | 'desc' | null
 
 export function OverallPerformanceTable({
@@ -24,8 +24,8 @@ export function OverallPerformanceTable({
   onRowClick,
 }: OverallPerformanceTableProps) {
   const { t } = useTranslation('dashboard')
-  const [sortColumn, setSortColumn] = useState<SortColumn>(null)
-  const [sortDirection, setSortDirection] = useState<SortDirection>(null)
+  const [sortColumn, setSortColumn] = useState<SortColumn>('name')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
   const resolvedEntityLabel =
     entityLabel ?? t('overallPerformance.columns.entity', { defaultValue: 'State/UT' })
   const safeMaxItems =
@@ -33,6 +33,12 @@ export function OverallPerformanceTable({
   const sortedRows =
     sortColumn && sortDirection
       ? [...data].sort((a, b) => {
+          if (sortColumn === 'name') {
+            return sortDirection === 'asc'
+              ? a.name.localeCompare(b.name)
+              : b.name.localeCompare(a.name)
+          }
+
           const aValue = a[sortColumn]
           const bValue = b[sortColumn]
           return sortDirection === 'asc' ? aValue - bValue : bValue - aValue
@@ -106,7 +112,33 @@ export function OverallPerformanceTable({
                 }}
               >
                 <Tr>
-                  <Th>{resolvedEntityLabel}</Th>
+                  <Th
+                    aria-sort={
+                      sortColumn === 'name'
+                        ? sortDirection === 'asc'
+                          ? 'ascending'
+                          : 'descending'
+                        : undefined
+                    }
+                  >
+                    <Box
+                      as="button"
+                      type="button"
+                      onClick={() => handleSort('name')}
+                      display="inline-flex"
+                      alignItems="center"
+                      gap={1}
+                      cursor="pointer"
+                      textAlign="left"
+                      width="100%"
+                      bg="none"
+                      border="none"
+                      p={0}
+                    >
+                      <Box as="span">{resolvedEntityLabel}</Box>
+                      <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
+                    </Box>
+                  </Th>
                   <Th
                     aria-sort={
                       sortColumn === 'coverage'
