@@ -1,6 +1,6 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { renderWithProviders } from '@/test/render-with-providers'
 import { SchemeSyncPage } from './scheme-sync-page'
 import * as useStateAdminQueries from '../../services/query/use-state-admin-queries'
 import { useAuthStore } from '@/app/store/auth-store'
@@ -23,15 +23,7 @@ const mockUseStateAdminQueries = useStateAdminQueries as jest.Mocked<typeof useS
 const mockUseAuthStore = useAuthStore as unknown as jest.Mock
 
 describe('SchemeSyncPage', () => {
-  let queryClient: QueryClient
-
   beforeEach(() => {
-    queryClient = new QueryClient({
-      defaultOptions: {
-        queries: { retry: false },
-      },
-    })
-
     mockUseAuthStore.mockReturnValue({
       user: { tenantCode: 'TEST_STATE' },
     })
@@ -104,13 +96,9 @@ describe('SchemeSyncPage', () => {
       isLoading: false,
     })
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <SchemeSyncPage />
-      </QueryClientProvider>
-    )
+    renderWithProviders(<SchemeSyncPage />)
 
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('schemeSync.title')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Scheme Sync')
   })
 
   it('should display table with new columns: stateSchemeId, plannedFhtc, and achievedFhtc', async () => {
@@ -128,30 +116,27 @@ describe('SchemeSyncPage', () => {
       isLoading: false,
     })
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <SchemeSyncPage />
-      </QueryClientProvider>
-    )
+    renderWithProviders(<SchemeSyncPage />)
 
-    // Check for table headers
-    await waitFor(() => {
-      expect(screen.getByText('schemeSync.table.schemeName')).toBeInTheDocument()
-      expect(screen.getByText('schemeSync.table.stateSchemeId')).toBeInTheDocument()
-      expect(screen.getByText('schemeSync.table.plannedFhtc')).toBeInTheDocument()
-      expect(screen.getByText('schemeSync.table.achievedFhtc')).toBeInTheDocument()
-      expect(screen.getByText('schemeSync.table.houseHoldCount')).toBeInTheDocument()
-      expect(screen.getByText('schemeSync.table.workStatus')).toBeInTheDocument()
-      expect(screen.getByText('schemeSync.table.operatingStatus')).toBeInTheDocument()
-    })
+    // Check for table headers and data
+    expect(screen.getByText('Scheme Name')).toBeInTheDocument()
+    expect(screen.getByText('State Scheme ID')).toBeInTheDocument()
+    expect(screen.getByText('Planned FHTC')).toBeInTheDocument()
+    expect(screen.getByText('Achieved FHTC')).toBeInTheDocument()
+    expect(screen.getByText('Household Count')).toBeInTheDocument()
+    // Work Status and Operating Status appear as both filters and column headers
+    expect(screen.getAllByText('Work Status').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Operating Status').length).toBeGreaterThan(0)
 
     // Check for data in rows
     expect(screen.getByText('Scheme 1')).toBeInTheDocument()
     expect(screen.getByText('SS001')).toBeInTheDocument()
-    expect(screen.getByText('200')).toBeInTheDocument() // plannedFhtc
-    expect(screen.getByText('150')).toBeInTheDocument() // fhtcCount (achieved)
+    // Both schemes have plannedFhtc of 200, so there will be multiple matches
+    expect(screen.getAllByText('200').length).toBeGreaterThan(0)
+    expect(screen.getByText('150')).toBeInTheDocument() // fhtcCount (achieved) - only Scheme 1 has this
     expect(screen.getByText('Completed')).toBeInTheDocument()
-    expect(screen.getByText('Active')).toBeInTheDocument()
+    // Both schemes have Active status, so use getAllByText
+    expect(screen.getAllByText('Active').length).toBeGreaterThan(0)
   })
 
   it('should display stat cards with correct values', async () => {
@@ -169,16 +154,12 @@ describe('SchemeSyncPage', () => {
       isLoading: false,
     })
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <SchemeSyncPage />
-      </QueryClientProvider>
-    )
+    renderWithProviders(<SchemeSyncPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('schemeSync.stats.totalSchemes')).toBeInTheDocument()
-      expect(screen.getByText('schemeSync.stats.activeSchemes')).toBeInTheDocument()
-      expect(screen.getByText('schemeSync.stats.inactiveSchemes')).toBeInTheDocument()
+      expect(screen.getByText('Total Schemes')).toBeInTheDocument()
+      expect(screen.getByText('Active Schemes')).toBeInTheDocument()
+      expect(screen.getByText('Inactive Schemes')).toBeInTheDocument()
     })
   })
 
@@ -200,13 +181,9 @@ describe('SchemeSyncPage', () => {
 
     const user = userEvent.setup()
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <SchemeSyncPage />
-      </QueryClientProvider>
-    )
+    renderWithProviders(<SchemeSyncPage />)
 
-    const searchInput = screen.getByPlaceholderText('schemeSync.searchPlaceholder')
+    const searchInput = screen.getByPlaceholderText('Search by scheme name')
     await user.type(searchInput, 'test')
 
     // The debounce will delay the search, so we wait for the state to update
@@ -235,14 +212,10 @@ describe('SchemeSyncPage', () => {
 
     const user = userEvent.setup()
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <SchemeSyncPage />
-      </QueryClientProvider>
-    )
+    renderWithProviders(<SchemeSyncPage />)
 
     // Open modal
-    const uploadButton = screen.getByText('schemeSync.uploadData')
+    const uploadButton = screen.getByText('Upload Data')
     await user.click(uploadButton)
 
     await waitFor(() => {
@@ -273,14 +246,10 @@ describe('SchemeSyncPage', () => {
       isLoading: false,
     })
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <SchemeSyncPage />
-      </QueryClientProvider>
-    )
+    renderWithProviders(<SchemeSyncPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('schemeSync.messages.noSchemesFound')).toBeInTheDocument()
+      expect(screen.getByText('No schemes found')).toBeInTheDocument()
     })
   })
 
@@ -301,14 +270,10 @@ describe('SchemeSyncPage', () => {
 
     const user = userEvent.setup()
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <SchemeSyncPage />
-      </QueryClientProvider>
-    )
+    renderWithProviders(<SchemeSyncPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('schemeSync.messages.failedToLoad')).toBeInTheDocument()
+      expect(screen.getByText('Failed to load scheme data')).toBeInTheDocument()
     })
 
     const retryButton = screen.getByRole('button', { name: /retry/i })
@@ -333,16 +298,12 @@ describe('SchemeSyncPage', () => {
       isLoading: false,
     })
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <SchemeSyncPage />
-      </QueryClientProvider>
-    )
+    renderWithProviders(<SchemeSyncPage />)
 
     // The sorting is handled in handleSort which tests would require clicking on sortable headers
     // For now, we verify the table is rendered and sortable columns are present
     await waitFor(() => {
-      expect(screen.getByText('schemeSync.table.schemeName')).toBeInTheDocument()
+      expect(screen.getByText('Scheme Name')).toBeInTheDocument()
     })
   })
 
@@ -361,11 +322,7 @@ describe('SchemeSyncPage', () => {
       isLoading: true,
     })
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <SchemeSyncPage />
-      </QueryClientProvider>
-    )
+    renderWithProviders(<SchemeSyncPage />)
 
     // The DataTable should show loading state
     // Exact loading indicators depend on DataTable implementation
@@ -387,11 +344,7 @@ describe('SchemeSyncPage', () => {
       isLoading: false,
     })
 
-    render(
-      <QueryClientProvider client={queryClient}>
-        <SchemeSyncPage />
-      </QueryClientProvider>
-    )
+    renderWithProviders(<SchemeSyncPage />)
 
     await waitFor(() => {
       // Check first scheme row
