@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Box, Flex, Heading, SimpleGrid, Spinner, Stack, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-// import { BsDroplet } from 'react-icons/bs'
 import TapIconComponent from '@/shared/components/layout/tap-icon'
 import { MdOutlineWaterDrop, MdOutlineTrendingUp } from 'react-icons/md'
 import { ChartEmptyState, DateRangePicker, PageHeader, StatCard } from '@/shared/components/common'
@@ -109,6 +108,7 @@ export function StaffOverviewPage() {
         rightContent={
           <DateRangePicker
             isFilter
+            popoverPlacement="bottom-end"
             value={dateRange}
             onChange={(next) => {
               if (next) setDateRange(next)
