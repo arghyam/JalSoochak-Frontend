@@ -895,6 +895,55 @@ describe('dashboard formulas', () => {
     ])
   })
 
+  it('maps national quantity response using per-state demand inputs when provided', () => {
+    const fallbackData: EntityPerformance[] = [
+      {
+        id: 'assam',
+        name: 'Assam',
+        coverage: 0,
+        regularity: 0,
+        continuity: 0,
+        quantity: 0,
+        compositeScore: 68,
+        status: 'good',
+      },
+    ]
+    const response: NationalDashboardResponse = {
+      startDate: '2026-02-24',
+      endDate: '2026-03-25',
+      daysInRange: 30,
+      stateWiseQuantityPerformance: [
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          stateTitle: 'Assam',
+          schemeCount: 17412,
+          totalHouseholdCount: 0,
+          totalAchievedFhtcCount: 4_000,
+          totalPlannedFhtcCount: 4_022_202,
+          totalWaterSuppliedLiters: 15_706_406_504,
+          avgWaterSupplyPerScheme: 902044.9405,
+          supplyDaysInEfficientRange: 0,
+        },
+      ],
+      stateWiseRegularity: [],
+      stateWiseReadingSubmissionRate: [],
+      overallOutageReasonDistribution: {},
+    }
+
+    expect(
+      mapQuantityPerformanceFromNationalDashboard(response, fallbackData, 5, 55, () => ({
+        averagePersonsPerHousehold: 10,
+        litersPerPersonPerDay: 60,
+      }))
+    ).toEqual([
+      expect.objectContaining({
+        name: 'Assam',
+        coverage: 2.4,
+      }),
+    ])
+  })
+
   const fallbackData: EntityPerformance[] = [
     {
       id: 'alpha',

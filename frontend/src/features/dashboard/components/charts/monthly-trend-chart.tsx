@@ -24,6 +24,7 @@ interface MonthlyTrendChartProps {
   height?: string | number
   maxItems?: number
   isPercent?: boolean
+  valueDivisor?: number
   xAxisLabel?: string
   yAxisLabel?: string
   seriesName?: string
@@ -35,6 +36,7 @@ export function MonthlyTrendChart({
   height = '400px',
   maxItems = 5,
   isPercent = false,
+  valueDivisor = 1,
   xAxisLabel = 'Time',
   yAxisLabel = 'Value',
   seriesName = 'Trend',
@@ -71,33 +73,42 @@ export function MonthlyTrendChart({
     }, '')
   }, [data])
 
+  const normalizedDivisor = Number.isFinite(valueDivisor) && valueDivisor > 0 ? valueDivisor : 1
+
+  const normalizeValue = useCallback(
+    (value: number) => value / normalizedDivisor,
+    [normalizedDivisor]
+  )
+
   const formatYAxisTick = useCallback(
     (value: number) => {
       if (!Number.isFinite(value)) {
         return ''
       }
 
+      const normalizedValue = normalizeValue(value)
+
       if (isPercent) {
-        if (Number.isInteger(value)) {
-          return String(value)
+        if (Number.isInteger(normalizedValue)) {
+          return String(normalizedValue)
         }
 
-        return value.toFixed(1)
+        return normalizedValue.toFixed(1)
       }
 
-      if (Math.abs(value) >= 1000) {
+      if (Math.abs(normalizedValue) >= 1000) {
         return new Intl.NumberFormat('en-IN', {
           maximumFractionDigits: 0,
-        }).format(value)
+        }).format(normalizedValue)
       }
 
-      if (Number.isInteger(value)) {
-        return String(value)
+      if (Number.isInteger(normalizedValue)) {
+        return String(normalizedValue)
       }
 
-      return value.toFixed(1)
+      return normalizedValue.toFixed(1)
     },
-    [isPercent]
+    [isPercent, normalizeValue]
   )
 
   const yAxisScale = useMemo(() => {
@@ -153,10 +164,11 @@ export function MonthlyTrendChart({
             .map((point) => {
               const rawValue = typeof point.value === 'number' ? point.value : Number(point.value)
               const hasNumericValue = Number.isFinite(rawValue)
+              const normalizedValue = hasNumericValue ? normalizeValue(rawValue) : NaN
               const formattedValue = hasNumericValue
                 ? isPercent
-                  ? `${rawValue.toFixed(1)}%`
-                  : `${rawValue.toFixed(1)}`
+                  ? `${normalizedValue.toFixed(1)}%`
+                  : `${normalizedValue.toFixed(1)}`
                 : '-'
               const safeSeriesName = echarts.format.encodeHTML(point.seriesName ?? '')
 
@@ -245,6 +257,7 @@ export function MonthlyTrendChart({
     chartGridTop,
     data,
     isPercent,
+    normalizeValue,
     seriesName,
     xAxisLabelMargin,
     yAxisScale.interval,
