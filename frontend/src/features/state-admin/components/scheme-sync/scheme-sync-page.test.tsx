@@ -131,12 +131,12 @@ describe('SchemeSyncPage', () => {
     // Check for data in rows
     expect(screen.getByText('Scheme 1')).toBeInTheDocument()
     expect(screen.getByText('SS001')).toBeInTheDocument()
-    // Both schemes have plannedFhtc of 200, so there will be multiple matches
-    expect(screen.getAllByText('200').length).toBeGreaterThan(0)
+    // Both schemes have plannedFhtc of 200, so expect exactly 2 occurrences
+    expect(screen.getAllByText('200')).toHaveLength(2)
     expect(screen.getByText('150')).toBeInTheDocument() // fhtcCount (achieved) - only Scheme 1 has this
     expect(screen.getByText('Completed')).toBeInTheDocument()
-    // Both schemes have Active status, so use getAllByText
-    expect(screen.getAllByText('Active').length).toBeGreaterThan(0)
+    // Both schemes have Active status, so expect exactly 2 occurrences
+    expect(screen.getAllByText('Active')).toHaveLength(2)
   })
 
   it('should display stat cards with correct values', async () => {
