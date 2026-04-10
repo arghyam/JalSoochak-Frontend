@@ -7,6 +7,7 @@
 import * as echarts from 'echarts'
 
 export const INDIA_NATIONAL_BOUNDARY_FEATURE_NAME = '__india_national_boundary__'
+export const PARENT_BOUNDARY_FEATURE_NAME = '__parent_boundary__'
 
 export interface EChartsMapFeatureCollection {
   type: 'FeatureCollection'
@@ -155,6 +156,7 @@ export function buildFeatureCollectionFromRegions(
   }>,
   options?: {
     nationalBoundaryGeoJson?: unknown
+    parentBoundaryGeoJson?: unknown
   }
 ): EChartsMapFeatureCollection | null {
   const features = [
@@ -167,6 +169,18 @@ export function buildFeatureCollectionFromRegions(
               name: INDIA_NATIONAL_BOUNDARY_FEATURE_NAME,
             },
             geometry: options.nationalBoundaryGeoJson,
+          },
+        ]
+      : []),
+    ...(options?.parentBoundaryGeoJson && typeof options.parentBoundaryGeoJson === 'object'
+      ? [
+          {
+            type: 'Feature' as const,
+            id: PARENT_BOUNDARY_FEATURE_NAME,
+            properties: {
+              name: PARENT_BOUNDARY_FEATURE_NAME,
+            },
+            geometry: options.parentBoundaryGeoJson,
           },
         ]
       : []),

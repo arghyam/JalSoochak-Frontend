@@ -17,12 +17,14 @@ import type { EntityPerformance } from '../../types'
 import {
   buildFeatureCollectionFromRegions,
   INDIA_NATIONAL_BOUNDARY_FEATURE_NAME,
+  PARENT_BOUNDARY_FEATURE_NAME,
   registerDynamicMap,
 } from '../../utils/map-registry'
 
 interface IndiaMapChartProps {
   data: EntityPerformance[]
   nationalBoundaryGeoJson?: EntityPerformance['boundaryGeoJson']
+  parentBoundaryGeoJson?: EntityPerformance['boundaryGeoJson']
   isLoading?: boolean
   onStateClick?: (stateId: string, stateName: string) => void
   onStateHover?: (stateId: string, stateName: string, metrics: EntityPerformance) => void
@@ -39,6 +41,7 @@ interface IndiaMapChartProps {
 export function IndiaMapChart({
   data,
   nationalBoundaryGeoJson,
+  parentBoundaryGeoJson,
   isLoading = false,
   onStateClick,
   onStateHover,
@@ -59,8 +62,9 @@ export function IndiaMapChart({
     () =>
       buildFeatureCollectionFromRegions(data, {
         nationalBoundaryGeoJson,
+        parentBoundaryGeoJson,
       }),
-    [data, nationalBoundaryGeoJson]
+    [data, nationalBoundaryGeoJson, parentBoundaryGeoJson]
   )
   const [isRegularityView, setIsRegularityView] = useState(true)
   const metricKey: 'quantity' | 'regularity' = isRegularityView ? 'regularity' : 'quantity'
@@ -166,41 +170,77 @@ export function IndiaMapChart({
         quantity: state.quantity,
       },
     }))
-    const seriesData = nationalBoundaryGeoJson
-      ? [
-          {
-            name: INDIA_NATIONAL_BOUNDARY_FEATURE_NAME,
-            value: -1,
-            silent: true,
-            tooltip: { show: false },
-            label: { show: false },
-            itemStyle: {
-              areaColor: 'rgba(0,0,0,0)',
-              borderColor: '#FFFFFF',
-              borderWidth: 1.5,
-            },
-            emphasis: {
-              disabled: true,
+    const boundaryOverlays = [
+      ...(nationalBoundaryGeoJson
+        ? [
+            {
+              name: INDIA_NATIONAL_BOUNDARY_FEATURE_NAME,
+              value: -1,
+              silent: true,
+              tooltip: { show: false },
               label: { show: false },
               itemStyle: {
                 areaColor: 'rgba(0,0,0,0)',
                 borderColor: '#FFFFFF',
                 borderWidth: 1.5,
               },
+              emphasis: {
+                disabled: true,
+                label: { show: false },
+                itemStyle: {
+                  areaColor: 'rgba(0,0,0,0)',
+                  borderColor: '#FFFFFF',
+                  borderWidth: 1.5,
+                },
+              },
+              select: {
+                disabled: true,
+                label: { show: false },
+                itemStyle: {
+                  areaColor: 'rgba(0,0,0,0)',
+                  borderColor: '#FFFFFF',
+                  borderWidth: 1.5,
+                },
+              },
             },
-            select: {
-              disabled: true,
+          ]
+        : []),
+      ...(parentBoundaryGeoJson
+        ? [
+            {
+              name: PARENT_BOUNDARY_FEATURE_NAME,
+              value: -1,
+              silent: true,
+              tooltip: { show: false },
               label: { show: false },
               itemStyle: {
                 areaColor: 'rgba(0,0,0,0)',
-                borderColor: '#FFFFFF',
-                borderWidth: 1.5,
+                borderColor: '#1c1c1c',
+                borderWidth: 2,
+              },
+              emphasis: {
+                disabled: true,
+                label: { show: false },
+                itemStyle: {
+                  areaColor: 'rgba(0,0,0,0)',
+                  borderColor: '#000000',
+                  borderWidth: 2,
+                },
+              },
+              select: {
+                disabled: true,
+                label: { show: false },
+                itemStyle: {
+                  areaColor: 'rgba(0,0,0,0)',
+                  borderColor: '#000000',
+                  borderWidth: 2,
+                },
               },
             },
-          },
-          ...mapSeries,
-        ]
-      : mapSeries
+          ]
+        : []),
+    ]
+    const seriesData = [...mapSeries, ...boundaryOverlays]
 
     return {
       backgroundColor: '#FAFAFA',
@@ -227,7 +267,10 @@ export function IndiaMapChart({
             }
           }
           if (p.data) {
-            if (p.data.name === INDIA_NATIONAL_BOUNDARY_FEATURE_NAME) {
+            if (
+              p.data.name === INDIA_NATIONAL_BOUNDARY_FEATURE_NAME ||
+              p.data.name === PARENT_BOUNDARY_FEATURE_NAME
+            ) {
               return ''
             }
             const { name, metrics } = p.data
@@ -313,6 +356,7 @@ export function IndiaMapChart({
     isQuantityPercentView,
     quantityLabel,
     regularityLabel,
+    parentBoundaryGeoJson,
   ])
 
   const bodyText6 = getBodyText6Style(theme)

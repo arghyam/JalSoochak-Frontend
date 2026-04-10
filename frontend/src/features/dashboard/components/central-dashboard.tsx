@@ -2595,6 +2595,11 @@ export function CentralDashboard() {
         nationalBoundaryGeoJson={
           isCentralLandingView ? filteredNationalDashboardBoundaries.nationalBoundary : undefined
         }
+        parentBoundaryGeoJson={
+          isCentralLandingView
+            ? undefined
+            : (tenantBoundaryData?.parsedBoundaryGeoJson ?? undefined)
+        }
         isLoading={isMapDataLoading}
         disableHoverEffect={isCentralLandingView}
         mapName={

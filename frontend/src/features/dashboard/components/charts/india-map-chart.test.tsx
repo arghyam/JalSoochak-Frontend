@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { fireEvent, screen } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { EntityPerformance } from '../../types'
+import { PARENT_BOUNDARY_FEATURE_NAME } from '../../utils/map-registry'
 import { IndiaMapChart } from './india-map-chart'
 
 const mockEChartsWrapper = jest.fn((_props: Record<string, unknown>) => (
@@ -69,6 +70,55 @@ const chartDataWithoutBoundary = chartData.map(
 )
 
 describe('IndiaMapChart', () => {
+  it('renders parent boundary overlay in black when provided', () => {
+    mockGetMap.mockReturnValue({})
+
+    const parentBoundaryGeoJson = {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [-1, -1],
+          [2, -1],
+          [2, 2],
+          [-1, 2],
+          [-1, -1],
+        ],
+      ],
+    }
+
+    renderWithProviders(
+      <IndiaMapChart
+        data={chartData}
+        mapName="tenant-boundary-department-201"
+        parentBoundaryGeoJson={parentBoundaryGeoJson}
+      />
+    )
+
+    const latestOption = mockEChartsWrapper.mock.calls.at(-1)?.[0]?.option as {
+      series?: Array<{
+        data?: Array<{ name?: string; silent?: boolean; itemStyle?: { borderColor?: string } }>
+      }>
+    }
+    const overlay = latestOption.series?.[0]?.data?.find(
+      (item) => item.name === PARENT_BOUNDARY_FEATURE_NAME
+    )
+
+    expect(overlay?.silent).toBe(true)
+    expect(overlay?.itemStyle?.borderColor).toBe('#000000')
+    expect(mockRegisterMap).toHaveBeenCalledWith(
+      'tenant-boundary-department-201',
+      expect.objectContaining({
+        features: expect.arrayContaining([
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              name: PARENT_BOUNDARY_FEATURE_NAME,
+            }),
+          }),
+        ]),
+      })
+    )
+  })
+
   it('shows no map available when a departmental map has no boundary geojson', () => {
     renderWithProviders(
       <IndiaMapChart data={chartDataWithoutBoundary} mapName="tenant-boundary-department-201" />
