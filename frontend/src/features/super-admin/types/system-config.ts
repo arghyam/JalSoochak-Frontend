@@ -18,8 +18,9 @@ export const SYSTEM_CHANNEL_NAME_TO_CODE = Object.fromEntries(
 
 export interface SystemConfiguration {
   supportedChannels: SystemSupportedChannel[]
-  oversupplyThreshold: number
-  undersupplyThreshold: number
+  // Archived for now, kept for future integration
+  // oversupplyThreshold: number
+  // undersupplyThreshold: number
   bfmImageConfidenceThreshold: number
   locationAffinityThreshold: number
 }
@@ -52,15 +53,17 @@ export function mapApiResponseToSystemConfig(
     }
     return [SYSTEM_CHANNEL_CODE_TO_NAME[code]]
   })
-  const threshold = configs.WATER_QUANTITY_SUPPLY_THRESHOLD
+  // Archived for now, kept for future integration
+  // const threshold = configs.WATER_QUANTITY_SUPPLY_THRESHOLD
   const rawBfm = Number.parseFloat(
     configs.BFM_IMAGE_READING_CONFIDENCE_LEVEL_THRESHOLD?.value ?? ''
   )
   const rawLocation = Number.parseFloat(configs.LOCATION_AFFINITY_THRESHOLD?.value ?? '')
   return {
     supportedChannels: channels,
-    oversupplyThreshold: threshold?.oversupplyThresholdPercent ?? 0,
-    undersupplyThreshold: threshold?.undersupplyThresholdPercent ?? 0,
+    // Archived for now, kept for future integration
+    // oversupplyThreshold: threshold?.oversupplyThresholdPercent ?? 0,
+    // undersupplyThreshold: threshold?.undersupplyThresholdPercent ?? 0,
     bfmImageConfidenceThreshold: Number.isFinite(rawBfm) ? rawBfm : 0,
     locationAffinityThreshold: Number.isFinite(rawLocation) ? rawLocation : 0,
   }
@@ -81,10 +84,11 @@ export function mapSystemConfigToApiPayload(config: SaveSystemConfigPayload): {
           return [code]
         }),
       },
-      WATER_QUANTITY_SUPPLY_THRESHOLD: {
-        undersupplyThresholdPercent: config.undersupplyThreshold,
-        oversupplyThresholdPercent: config.oversupplyThreshold,
-      },
+      // Archived for now, kept for future integration
+      // WATER_QUANTITY_SUPPLY_THRESHOLD: {
+      //   undersupplyThresholdPercent: config.undersupplyThreshold,
+      //   oversupplyThresholdPercent: config.oversupplyThreshold,
+      // },
       BFM_IMAGE_READING_CONFIDENCE_LEVEL_THRESHOLD: {
         value: String(config.bfmImageConfidenceThreshold),
       },
