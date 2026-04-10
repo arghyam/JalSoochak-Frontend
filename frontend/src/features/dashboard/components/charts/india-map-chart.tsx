@@ -263,36 +263,60 @@ export function IndiaMapChart({
           label: {
             show: true,
             fontSize: 10,
+            color: '#1C1C1C',
+            opacity: 1,
           },
           data: seriesData,
           itemStyle: {
             areaColor: usePrimaryFill ? primaryMapColor : mapColors.gte90,
             borderColor: '#fff',
             borderWidth: 1,
+            opacity: 1,
           },
           selectedMode: 'single',
           emphasis: disableHoverEffect
             ? {
                 disabled: true,
+                label: {
+                  show: true,
+                  color: '#1C1C1C',
+                  opacity: 1,
+                },
               }
             : {
+                focus: 'none',
                 itemStyle: {
                   borderWidth: 2,
+                  opacity: 1,
                 },
                 label: {
                   show: !isIndiaMap,
                   fontSize: 12,
                   fontWeight: 'bold',
+                  color: '#1C1C1C',
+                  opacity: 1,
                 },
               },
           select: {
             itemStyle: {
               borderWidth: 2,
+              opacity: 1,
             },
             label: {
               show: !isIndiaMap,
               fontSize: 12,
               fontWeight: 'bold',
+              color: '#1C1C1C',
+              opacity: 1,
+            },
+          },
+          blur: {
+            itemStyle: {
+              opacity: 1,
+            },
+            label: {
+              opacity: 1,
+              color: '#1C1C1C',
             },
           },
         },
