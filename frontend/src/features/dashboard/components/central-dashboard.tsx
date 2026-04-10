@@ -867,6 +867,8 @@ export function CentralDashboard() {
       : 55,
     55
   )
+  const nationalDefaultAverageMembersPerHousehold = defaultAverageMembersPerHousehold
+  const nationalDefaultWaterNormLitersPerPersonPerDay = defaultWaterNormLitersPerPersonPerDay
   const averagePersonsPerHousehold = resolvePositiveNumber(
     tenantPublicConfig?.averageMembersPerHousehold,
     defaultAverageMembersPerHousehold
@@ -1597,7 +1599,7 @@ export function CentralDashboard() {
     ? mapOverallPerformanceFromNationalDashboard(
         filteredNationalDashboardData,
         emptyEntityPerformance,
-        averagePersonsPerHousehold
+        nationalDefaultAverageMembersPerHousehold
       )
     : mapOverallPerformanceFromAnalytics(
         averageWaterSupplyData,
@@ -1800,8 +1802,8 @@ export function CentralDashboard() {
     ? mapQuantityPerformanceFromNationalDashboard(
         filteredNationalDashboardData,
         emptyEntityPerformance,
-        averagePersonsPerHousehold,
-        litersPerPersonPerDay,
+        nationalDefaultAverageMembersPerHousehold,
+        nationalDefaultWaterNormLitersPerPersonPerDay,
         (state) => nationalDemandInputsByTenantId.get(state.tenantId)
       )
     : mapQuantityPerformanceFromAnalytics(
@@ -1864,7 +1866,7 @@ export function CentralDashboard() {
   const currentWaterSupplyKpis = isCentralLandingView
     ? getWaterSupplyKpisFromNationalDashboard(
         filteredNationalDashboardData,
-        averagePersonsPerHousehold
+        nationalDefaultAverageMembersPerHousehold
       )
     : isHierarchyLeafSelected
       ? getWaterSupplyKpisFromPeriodic(waterQuantityPeriodicData, averagePersonsPerHousehold)
@@ -1877,7 +1879,7 @@ export function CentralDashboard() {
   const previousWaterSupplyKpis = isCentralLandingView
     ? getWaterSupplyKpisFromNationalDashboard(
         filteredPreviousNationalDashboardData,
-        averagePersonsPerHousehold
+        nationalDefaultAverageMembersPerHousehold
       )
     : isHierarchyLeafSelected
       ? getWaterSupplyKpisFromPeriodic(

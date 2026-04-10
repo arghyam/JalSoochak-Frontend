@@ -570,7 +570,7 @@ function PerformanceChartsSection({
         isTimeTrendLoading={isQuantityTimeTrendLoading}
         isTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
         entityLabel={geographyEntityLabel}
-        yAxisLabel={t('performanceCharts.quantity.yAxisLabelGeo', {
+        yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
           defaultValue: 'Quantity',
         })}
         seriesName={t('performanceCharts.quantity.seriesName', {

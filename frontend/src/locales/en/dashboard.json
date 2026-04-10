@@ -134,8 +134,7 @@
       "ariaViewBy": "Quantity performance view by",
       "ariaViewByDistrict": "District quantity performance view by",
       "ariaViewByGramPanchayat": "Gram panchayat quantity performance view by",
-      "yAxisLabelGeo": "Quantity (MLD)",
-      "yAxisLabel": "Quantity (ML)",
+      "yAxisLabel": "Quantity (MLD)",
       "seriesName": "Quantity",
       "areaSeriesName": "Demand"
     },

@@ -1,10 +1,6 @@
 # ai specific rules
 .cursor
 .claude
-<<<<<<< Updated upstream
-.codex   
-=======
-.codex  
->>>>>>> Stashed changes
+.codex
 
 .env
