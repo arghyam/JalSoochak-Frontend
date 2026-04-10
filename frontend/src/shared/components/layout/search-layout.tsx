@@ -571,7 +571,6 @@ export function SearchLayout({
                   h="auto"
                   fontSize="14px"
                   w="200px"
-                  maxW="200px"
                   minW={0}
                   textAlign="left"
                   onClick={() => handleStateSelect(state.value)}

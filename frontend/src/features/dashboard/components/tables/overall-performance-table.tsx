@@ -24,8 +24,8 @@ export function OverallPerformanceTable({
   onRowClick,
 }: OverallPerformanceTableProps) {
   const { t } = useTranslation('dashboard')
-  const [sortColumn, setSortColumn] = useState<SortColumn>('name')
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
+  const [sortColumn, setSortColumn] = useState<SortColumn>(null)
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null)
   const resolvedEntityLabel =
     entityLabel ?? t('overallPerformance.columns.entity', { defaultValue: 'State/UT' })
   const safeMaxItems =

@@ -69,22 +69,22 @@ const chartDataWithoutBoundary = chartData.map(
   ({ boundaryGeoJson: _boundaryGeoJson, ...region }) => region
 )
 
+const parentBoundaryGeoJson = {
+  type: 'Polygon',
+  coordinates: [
+    [
+      [-1, -1],
+      [2, -1],
+      [2, 2],
+      [-1, 2],
+      [-1, -1],
+    ],
+  ],
+}
+
 describe('IndiaMapChart', () => {
   it('renders parent boundary overlay using the configured dark border color', () => {
     mockGetMap.mockReturnValue({})
-
-    const parentBoundaryGeoJson = {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [-1, -1],
-          [2, -1],
-          [2, 2],
-          [-1, 2],
-          [-1, -1],
-        ],
-      ],
-    }
 
     renderWithProviders(
       <IndiaMapChart
@@ -117,6 +117,42 @@ describe('IndiaMapChart', () => {
         ]),
       })
     )
+  })
+
+  it('does not register a departmental map when only a parent overlay boundary is provided', () => {
+    mockGetMap.mockReturnValue({})
+
+    renderWithProviders(
+      <IndiaMapChart
+        data={chartDataWithoutBoundary}
+        mapName="tenant-boundary-department-201"
+        parentBoundaryGeoJson={parentBoundaryGeoJson}
+      />
+    )
+
+    expect(mockRegisterMap).not.toHaveBeenCalled()
+
+    renderWithProviders(
+      <IndiaMapChart
+        data={chartDataWithoutBoundary}
+        mapName="tenant-boundary-department-201"
+        parentBoundaryGeoJson={parentBoundaryGeoJson}
+        isLoading
+      />
+    )
+
+    const latestOption = mockEChartsWrapper.mock.calls.at(-1)?.[0]?.option as {
+      series?: Array<{
+        data?: Array<{ name?: string; silent?: boolean; itemStyle?: { borderColor?: string } }>
+      }>
+    }
+    const overlay = latestOption.series?.[0]?.data?.find(
+      (item) => item.name === PARENT_BOUNDARY_FEATURE_NAME
+    )
+
+    expect(overlay?.silent).toBe(true)
+    expect(overlay?.itemStyle?.borderColor).toBe('#1c1c1c')
+    expect(mockRegisterMap).not.toHaveBeenCalled()
   })
 
   it('shows no map available when a departmental map has no boundary geojson', () => {
