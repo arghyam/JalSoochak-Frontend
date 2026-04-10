@@ -271,25 +271,6 @@ export function StaffLoginPage() {
               h="72px"
               mb={{ base: 10, md: 12 }}
             />
-            {step === 'otp' && (
-              <Flex justify="flex-start" mb={{ base: 6, md: 8 }} ml={{ base: 6, md: 8 }}>
-                <Link
-                  as="button"
-                  type="button"
-                  fontSize="sm"
-                  fontWeight="500"
-                  color="neutral.600"
-                  onClick={handleBackToPhone}
-                  data-testid="back-button"
-                  display="flex"
-                  alignItems="center"
-                  gap="4px"
-                >
-                  <BiArrowBack />
-                  {t('login.otpStep.back')}
-                </Link>
-              </Flex>
-            )}
           </Box>
 
           <Flex flex="1" align="center" justify="center">
@@ -325,6 +306,7 @@ export function StaffLoginPage() {
                   onOtpPaste={handleOtpPaste}
                   onResend={handleResendOtp}
                   onVerify={handleVerifyOtp}
+                  onBack={handleBackToPhone}
                 />
               )}
             </Box>
@@ -495,6 +477,7 @@ interface OtpStepProps {
   onOtpPaste: (e: React.ClipboardEvent<HTMLInputElement>) => void
   onResend: () => void
   onVerify: () => void
+  onBack: () => void
 }
 
 function OtpStep({
@@ -512,11 +495,30 @@ function OtpStep({
   onOtpPaste,
   onResend,
   onVerify,
+  onBack,
 }: OtpStepProps) {
   const isOtpComplete = otpValues.every((v) => v !== '')
 
   return (
     <VStack align="stretch" spacing="1.5rem">
+      <Flex justify="flex-start" mb={{ base: 2, md: 4 }}>
+        <Link
+          as="button"
+          type="button"
+          fontSize="sm"
+          fontWeight="500"
+          color="neutral.600"
+          onClick={onBack}
+          data-testid="back-button"
+          display="flex"
+          alignItems="center"
+          gap="4px"
+        >
+          <BiArrowBack />
+          {t('login.otpStep.back')}
+        </Link>
+      </Flex>
+
       <Box>
         <Text textStyle="h5" fontWeight="600" mb="0.25rem">
           {t('login.heading')}
