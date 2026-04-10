@@ -181,7 +181,7 @@ export function IndiaMapChart({
               label: { show: false },
               itemStyle: {
                 areaColor: 'rgba(0,0,0,0)',
-                borderColor: '#FFFFFF',
+                borderColor: '#1c1c1c',
                 borderWidth: 1.5,
               },
               emphasis: {
@@ -189,7 +189,7 @@ export function IndiaMapChart({
                 label: { show: false },
                 itemStyle: {
                   areaColor: 'rgba(0,0,0,0)',
-                  borderColor: '#FFFFFF',
+                  borderColor: '#1c1c1c',
                   borderWidth: 1.5,
                 },
               },
@@ -198,7 +198,7 @@ export function IndiaMapChart({
                 label: { show: false },
                 itemStyle: {
                   areaColor: 'rgba(0,0,0,0)',
-                  borderColor: '#FFFFFF',
+                  borderColor: '#1c1c1c',
                   borderWidth: 1.5,
                 },
               },
