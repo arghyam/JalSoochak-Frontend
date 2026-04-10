@@ -79,22 +79,29 @@ export function MetricPerformanceChart({
   const defaultItemWidth = 90
   const minItemWidth = 70
   const xAxisLabelMargin = 16
+  const sortedData = useMemo(
+    () =>
+      [...data].sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+      ),
+    [data]
+  )
   const effectiveItemWidth =
     containerWidth > 0
-      ? Math.max(minItemWidth, Math.floor(containerWidth / Math.max(data.length, 1)))
+      ? Math.max(minItemWidth, Math.floor(containerWidth / Math.max(sortedData.length, 1)))
       : defaultItemWidth
   const itemWidth = Math.min(defaultItemWidth, effectiveItemWidth)
   const dynamicBarWidth = Math.min(barWidth, Math.max(12, Math.floor(itemWidth * 0.6)))
   const longestEntityLabel = useMemo(() => {
-    return data.reduce((longest, item) => {
+    return sortedData.reduce((longest, item) => {
       return item.name.length > longest.length ? item.name : longest
     }, '')
-  }, [data])
+  }, [sortedData])
 
   const barSeriesName =
     seriesName ?? (metric === 'quantity' ? 'Quantity' : metric === 'regularity' ? 'Regularity' : '')
-  const yValues = useMemo(() => data.map((item) => item[metric]), [data, metric])
-  const demandValues = useMemo(() => data.map((item) => item.coverage), [data])
+  const yValues = useMemo(() => sortedData.map((item) => item[metric]), [sortedData, metric])
+  const demandValues = useMemo(() => sortedData.map((item) => item.coverage), [sortedData])
 
   const yAxisScale = useMemo(() => {
     if (metric !== 'quantity') {
@@ -122,7 +129,7 @@ export function MetricPerformanceChart({
   }, [formattedYAxisMaxLabel, yAxisTitleGutter])
 
   const option = useMemo<echarts.EChartsOption>(() => {
-    const entities = data.map((d) => d.name)
+    const entities = sortedData.map((d) => d.name)
 
     const series: echarts.SeriesOption[] = [
       {
@@ -186,7 +193,7 @@ export function MetricPerformanceChart({
           const firstPoint = points[0]
           const entityName =
             typeof firstPoint?.dataIndex === 'number'
-              ? (data[firstPoint.dataIndex]?.name ?? '')
+              ? (sortedData[firstPoint.dataIndex]?.name ?? '')
               : (firstPoint?.axisValueLabel ?? '')
           const safeEntityName = echarts.format.encodeHTML(entityName)
           const rows = points
@@ -261,7 +268,7 @@ export function MetricPerformanceChart({
     barRadius,
     barSeriesName,
     bodyText7,
-    data,
+    sortedData,
     demandValues,
     dynamicBarWidth,
     metric,
@@ -346,11 +353,11 @@ export function MetricPerformanceChart({
     yAxisTickMargin,
   ])
 
-  const baseChartWidth = data.length * itemWidth
+  const baseChartWidth = sortedData.length * itemWidth
   const chartPixelWidth =
     containerWidth > 0 ? Math.max(baseChartWidth, containerWidth) : baseChartWidth
   const shouldScroll =
-    data.length > normalizedMaxItems && containerWidth > 0 && baseChartWidth > containerWidth
+    sortedData.length > normalizedMaxItems && containerWidth > 0 && baseChartWidth > containerWidth
   const chartWidth = shouldScroll ? `${chartPixelWidth}px` : '100%'
 
   const getTrackWidth = () => {
@@ -490,7 +497,7 @@ export function MetricPerformanceChart({
 
   useEffect(() => {
     updateThumbFromScroll()
-  }, [data.length, containerWidth, updateThumbFromScroll])
+  }, [sortedData.length, containerWidth, updateThumbFromScroll])
 
   const legendItems = showAreaLine
     ? [
