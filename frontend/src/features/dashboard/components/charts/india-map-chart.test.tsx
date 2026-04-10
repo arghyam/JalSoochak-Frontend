@@ -150,8 +150,7 @@ describe('IndiaMapChart', () => {
       (item) => item.name === PARENT_BOUNDARY_FEATURE_NAME
     )
 
-    expect(overlay?.silent).toBe(true)
-    expect(overlay?.itemStyle?.borderColor).toBe('#1c1c1c')
+    expect(overlay).toBeUndefined()
     expect(mockRegisterMap).not.toHaveBeenCalled()
   })
 

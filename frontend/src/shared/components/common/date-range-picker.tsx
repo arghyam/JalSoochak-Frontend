@@ -362,6 +362,12 @@ export function DateRangePicker({
   const endIso = draft?.endDate
     ? parseDisplayDateToIso(draft.endDate, resolvedDateFormat)
     : undefined
+  const normalizedDisplayStart = displayRange
+    ? parseDisplayDateToIso(displayRange.startDate, resolvedDateFormat)
+    : undefined
+  const normalizedDisplayEnd = displayRange
+    ? parseDisplayDateToIso(displayRange.endDate, resolvedDateFormat)
+    : undefined
 
   const isApplyDisabled = (() => {
     if (
@@ -378,7 +384,7 @@ export function DateRangePicker({
     if (startIso > todayIso || endIso > todayIso || endIso < startIso) {
       return true
     }
-    if (displayRange && startIso === displayRange.startDate && endIso === displayRange.endDate) {
+    if (displayRange && normalizedDisplayStart === startIso && normalizedDisplayEnd === endIso) {
       return true
     }
     return false

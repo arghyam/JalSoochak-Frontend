@@ -139,6 +139,12 @@ export function IndiaMapChart({
   )
 
   const option = useMemo<echarts.EChartsOption>(() => {
+    const hasParentBoundaryFeature = Boolean(
+      dynamicGeoJson?.features.some(
+        (feature) => feature.properties?.name === PARENT_BOUNDARY_FEATURE_NAME
+      )
+    )
+
     // Create map data series
     const mapSeries = data.map((state) => ({
       name: state.name,
@@ -204,7 +210,7 @@ export function IndiaMapChart({
             },
           ]
         : []),
-      ...(parentBoundaryGeoJson
+      ...(hasParentBoundaryFeature
         ? [
             {
               name: PARENT_BOUNDARY_FEATURE_NAME,
@@ -355,7 +361,7 @@ export function IndiaMapChart({
     isQuantityPercentView,
     quantityLabel,
     regularityLabel,
-    parentBoundaryGeoJson,
+    dynamicGeoJson,
   ])
 
   const bodyText6 = getBodyText6Style(theme)
