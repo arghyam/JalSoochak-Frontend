@@ -220,7 +220,7 @@ export function MetricPerformanceChart({
       },
       grid: {
         left: '0%',
-        right: '4%',
+        right: '16px',
         top: chartGridTop,
         bottom: chartGridBottom,
         containLabel: false,
@@ -287,7 +287,7 @@ export function MetricPerformanceChart({
       },
       grid: {
         left: '0%',
-        right: 0,
+        right: '16px',
         top: chartGridTop,
         bottom: chartGridBottom,
         containLabel: false,
