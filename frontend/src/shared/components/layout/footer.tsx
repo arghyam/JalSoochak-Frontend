@@ -1,11 +1,53 @@
-import { Box, Divider, Flex, Link, SimpleGrid, Stack, Text, VStack } from '@chakra-ui/react'
+import { Box, Divider, Flex, HStack, Link, SimpleGrid, Stack, Text, VStack } from '@chakra-ui/react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import type { ReactNode } from 'react'
 import { ROUTES } from '@/shared/constants/routes'
 import logoWithText from '@/assets/media/logo-with-text.svg'
+import { RiMailLine, RiTwitterXLine } from 'react-icons/ri'
+import { BiLogoLinkedin } from 'react-icons/bi'
+
+interface SocialLink {
+  href: string
+  ariaLabel: string
+  icon: ReactNode
+  isExternal?: boolean
+}
+
+const commonLinkProps = {
+  display: 'flex' as const,
+  alignItems: 'center' as const,
+  justifyContent: 'center' as const,
+  w: '40px',
+  h: '40px',
+  bg: 'neutral.100',
+  borderRadius: '8px',
+  _hover: { bg: 'neutral.200' },
+  transition: 'background-color 0.2s',
+}
 
 export function Footer() {
   const { t } = useTranslation()
+
+  const socialLinks: SocialLink[] = [
+    {
+      href: 'https://x.com/arghyamindia',
+      ariaLabel: t('footer.social.x'),
+      icon: <RiTwitterXLine size={20} color="#64748b" />,
+      isExternal: true,
+    },
+    {
+      href: 'https://www.linkedin.com/company/arghyam/',
+      ariaLabel: t('footer.social.linkedin'),
+      icon: <BiLogoLinkedin size={20} color="#64748b" />,
+      isExternal: true,
+    },
+    {
+      href: 'mailto:info@arghyam.org',
+      ariaLabel: t('footer.social.email'),
+      icon: <RiMailLine size={20} color="#64748b" />,
+    },
+  ]
   return (
     <VStack spacing={0} w="full" bg="primary.25" borderTopWidth="1px" borderColor="neutral.200">
       {/* Top Section: Content */}
@@ -14,20 +56,40 @@ export function Footer() {
           <SimpleGrid
             columns={{ base: 1, md: 3 }}
             spacing={{ base: '32px', md: '48px', xl: '80px' }}
-            templateColumns={{ base: '1fr', md: '5fr 2fr 4fr' }}
+            templateColumns={{ base: '1fr', md: '14fr 10fr 10fr' }}
           >
             {/* Column 1: Logo & Description */}
             <Stack spacing="16px">
-              <Box w="196px" h="100px">
+              <Box w="156px" h="80px">
                 <img
                   src={logoWithText}
                   alt={t('footer.logoAlt')}
                   style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                 />
               </Box>
-              <Text fontSize="sm" color="neutral.500" lineHeight="1.6">
+              <Text
+                fontSize="sm"
+                color="neutral.500"
+                lineHeight="1.6"
+                width={{ base: '100%', md: '280px', lg: '400px' }}
+                mb={1}
+              >
                 {t('footer.description')}
               </Text>
+              {/* Social Media Icons */}
+              <HStack spacing="12px">
+                {socialLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    isExternal={link.isExternal}
+                    aria-label={link.ariaLabel}
+                    {...commonLinkProps}
+                  >
+                    {link.icon}
+                  </Link>
+                ))}
+              </HStack>
             </Stack>
 
             {/* Column 2: Quick Links */}
@@ -51,7 +113,7 @@ export function Footer() {
                 {t('footer.fieldOfficialLogin')}
               </Link>
               <Link
-                href="#"
+                href="https://jalsoochak.in/"
                 isExternal
                 color="primary.500"
                 fontSize="sm"
@@ -72,13 +134,13 @@ export function Footer() {
               >
                 {t('footer.contactUs')}
               </Text>
-              <Text fontSize="sm" color="neutral.950">
+              <Text fontSize="sm" color="neutral.500">
                 {t('footer.email')}
               </Text>
-              <Text fontSize="sm" color="neutral.950">
+              <Text fontSize="sm" color="neutral.500">
                 {t('footer.phone')}
               </Text>
-              <Text fontSize="sm" color="neutral.950" lineHeight="1.6">
+              <Text fontSize="sm" color="neutral.500" lineHeight="1.6">
                 {t('footer.address')}
               </Text>
             </VStack>
