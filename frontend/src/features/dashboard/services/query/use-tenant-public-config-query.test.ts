@@ -31,4 +31,16 @@ describe('useTenantPublicConfigQuery', () => {
 
     expect(useQuery).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }))
   })
+
+  it('honors explicit enabled: false for numeric tenant id', () => {
+    ;(useQuery as jest.Mock).mockReturnValue({})
+    renderHook(() => useTenantPublicConfigQuery({ tenantId: 42, enabled: false }))
+
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: dashboardQueryKeys.tenantPublicConfig(42),
+        enabled: false,
+      })
+    )
+  })
 })

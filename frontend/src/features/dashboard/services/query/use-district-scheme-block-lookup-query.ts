@@ -12,23 +12,40 @@ type UseDistrictSchemeBlockLookupQueryOptions = {
   tenantId?: number
   hierarchyType: HierarchyType
   districtId?: number
-  targetLgdIds?: number[]
+  /** Accepts numeric strings for stable cache keys after normalization. */
+  targetLgdIds?: (number | string)[]
   tenantCode?: string
   enabled?: boolean
+}
+
+function normalizePositiveTargetLgdIds(
+  targetLgdIds: readonly (number | string)[] | undefined
+): number[] {
+  return Array.from(
+    new Set(
+      (targetLgdIds ?? [])
+        .map((locationId) => {
+          if (typeof locationId === 'number') {
+            return Number.isFinite(locationId) && locationId > 0 ? locationId : NaN
+          }
+          if (typeof locationId === 'string') {
+            const trimmed = locationId.trim()
+            if (!trimmed) return NaN
+            const parsed = Number(trimmed)
+            return Number.isFinite(parsed) && parsed > 0 ? parsed : NaN
+          }
+          return NaN
+        })
+        .filter((n): n is number => Number.isFinite(n))
+    )
+  ).sort((left, right) => left - right)
 }
 
 export function useDistrictSchemeBlockLookupQuery(
   options: UseDistrictSchemeBlockLookupQueryOptions
 ) {
   const { tenantId, hierarchyType, districtId, targetLgdIds, tenantCode, enabled = true } = options
-  const normalizedTargetLgdIds = Array.from(
-    new Set(
-      (targetLgdIds ?? []).filter(
-        (locationId): locationId is number =>
-          typeof locationId === 'number' && Number.isFinite(locationId) && locationId > 0
-      )
-    )
-  ).sort((left, right) => left - right)
+  const normalizedTargetLgdIds = normalizePositiveTargetLgdIds(targetLgdIds)
   const targetLgdIdsKey =
     normalizedTargetLgdIds.length > 0 ? normalizedTargetLgdIds.join(',') : undefined
 

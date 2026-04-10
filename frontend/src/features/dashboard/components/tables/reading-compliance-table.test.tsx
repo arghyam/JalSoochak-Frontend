@@ -44,6 +44,26 @@ describe('ReadingComplianceTable', () => {
   })
 
   it('fires onReachEnd again after scroll away from bottom then back', () => {
+    const scrollTestId = 'reading-compliance-scroll-area'
+    const isScrollArea = (el: unknown): el is HTMLElement =>
+      el instanceof HTMLElement && el.getAttribute('data-testid') === scrollTestId
+
+    const scrollHeightDesc = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollHeight')
+    const clientHeightDesc = Object.getOwnPropertyDescriptor(Element.prototype, 'clientHeight')
+
+    const scrollHeightSpy = jest
+      .spyOn(Element.prototype, 'scrollHeight', 'get')
+      .mockImplementation(function (this: Element) {
+        if (isScrollArea(this)) return 500
+        return scrollHeightDesc?.get?.call(this) ?? 0
+      })
+    const clientHeightSpy = jest
+      .spyOn(Element.prototype, 'clientHeight', 'get')
+      .mockImplementation(function (this: Element) {
+        if (isScrollArea(this)) return 100
+        return clientHeightDesc?.get?.call(this) ?? 0
+      })
+
     const onReachEnd = jest.fn()
     const many = Array.from({ length: 40 }, (_, i) => ({
       id: `x${i}`,
@@ -53,31 +73,43 @@ describe('ReadingComplianceTable', () => {
       readingValue: '1',
     }))
 
-    const { container } = renderWithProviders(
-      <ReadingComplianceTable data={many} scrollAreaMaxH="80px" onReachEnd={onReachEnd} />
-    )
+    try {
+      const { container } = renderWithProviders(
+        <ReadingComplianceTable data={many} scrollAreaMaxH="80px" onReachEnd={onReachEnd} />
+      )
 
-    const scrollHost = container.querySelector('.chakra-table__container')?.parentElement
-      ?.parentElement as HTMLElement | null
-    const scrollEl =
-      scrollHost ??
-      (Array.from(container.querySelectorAll('div')).find(
-        (el) => el.scrollHeight > el.clientHeight + 1
-      ) as HTMLElement | undefined)
+      const scrollTarget = container.querySelector(
+        `[data-testid="${scrollTestId}"]`
+      ) as HTMLElement | null
 
-    if (!scrollEl) {
+      expect(scrollTarget).not.toBeNull()
       expect(many.length).toBeGreaterThan(1)
-      return
+
+      const scrollArea = scrollTarget as HTMLElement
+
+      // Effect should see overflow (500 − 100 > 24) so it does not pre-mark end; scroll drives callbacks.
+      onReachEnd.mockClear()
+
+      const setScrollTop = (value: number) => {
+        Object.defineProperty(scrollArea, 'scrollTop', {
+          configurable: true,
+          writable: true,
+          value,
+        })
+      }
+
+      setScrollTop(380)
+      fireEvent.scroll(scrollArea)
+      expect(onReachEnd).toHaveBeenCalledTimes(1)
+
+      setScrollTop(0)
+      fireEvent.scroll(scrollArea)
+      setScrollTop(400)
+      fireEvent.scroll(scrollArea)
+      expect(onReachEnd).toHaveBeenCalledTimes(2)
+    } finally {
+      scrollHeightSpy.mockRestore()
+      clientHeightSpy.mockRestore()
     }
-
-    onReachEnd.mockClear()
-    Object.defineProperty(scrollEl, 'scrollHeight', { configurable: true, value: 500 })
-    Object.defineProperty(scrollEl, 'clientHeight', { configurable: true, value: 100 })
-    fireEvent.scroll(scrollEl, { target: { ...scrollEl, scrollTop: 380 } })
-    expect(onReachEnd).toHaveBeenCalledTimes(1)
-
-    fireEvent.scroll(scrollEl, { target: { ...scrollEl, scrollTop: 0 } })
-    fireEvent.scroll(scrollEl, { target: { ...scrollEl, scrollTop: 400 } })
-    expect(onReachEnd).toHaveBeenCalledTimes(2)
   })
 })

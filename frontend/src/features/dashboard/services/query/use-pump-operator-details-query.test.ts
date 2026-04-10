@@ -34,4 +34,16 @@ describe('usePumpOperatorDetailsQuery', () => {
 
     expect(useQuery).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }))
   })
+
+  it('honors explicit enabled: false when params exist', () => {
+    ;(useQuery as jest.Mock).mockReturnValue({})
+    renderHook(() => usePumpOperatorDetailsQuery({ params, enabled: false }))
+
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: dashboardQueryKeys.pumpOperatorDetails(params),
+        enabled: false,
+      })
+    )
+  })
 })

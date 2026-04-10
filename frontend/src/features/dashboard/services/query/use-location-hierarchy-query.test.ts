@@ -33,4 +33,23 @@ describe('useLocationHierarchyQuery', () => {
 
     expect(useQuery).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }))
   })
+
+  it('honors explicit enabled: false when tenantId is defined', () => {
+    ;(useQuery as jest.Mock).mockReturnValue({})
+    renderHook(() =>
+      useLocationHierarchyQuery({
+        tenantId: 5,
+        hierarchyType: 'LGD',
+        tenantCode: 'MH',
+        enabled: false,
+      })
+    )
+
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: locationSearchQueryKeys.hierarchy(5, 'LGD'),
+        enabled: false,
+      })
+    )
+  })
 })

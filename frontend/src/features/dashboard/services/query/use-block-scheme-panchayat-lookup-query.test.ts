@@ -42,4 +42,23 @@ describe('useBlockSchemePanchayatLookupQuery', () => {
 
     expect(useQuery).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }))
   })
+
+  it('honors caller-provided enabled: false when tenant and block exist', () => {
+    ;(useQuery as jest.Mock).mockReturnValue({})
+    renderHook(() =>
+      useBlockSchemePanchayatLookupQuery({
+        tenantId: 3,
+        hierarchyType: 'LGD',
+        blockId: 40,
+        enabled: false,
+      })
+    )
+
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: locationSearchQueryKeys.blockSchemePanchayatLookup(3, 'LGD', 40),
+        enabled: false,
+      })
+    )
+  })
 })

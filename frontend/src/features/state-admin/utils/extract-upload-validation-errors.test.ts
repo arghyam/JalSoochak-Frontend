@@ -33,4 +33,38 @@ describe('extractUploadValidationErrors', () => {
       })
     ).toEqual([{ row: 1, field: 'ok', message: 'fine' }])
   })
+
+  it('returns empty array for object without errors arrays', () => {
+    expect(extractUploadValidationErrors({})).toEqual([])
+    expect(extractUploadValidationErrors({ fieldErrors: 'nope' })).toEqual([])
+  })
+
+  it('prefers fieldErrors when both fieldErrors and errors are arrays', () => {
+    expect(
+      extractUploadValidationErrors({
+        fieldErrors: [{ row: 1, field: 'a', message: 'm' }],
+        errors: [{ rowNumber: 2, field: 'b', message: 'x' }],
+      })
+    ).toEqual([{ row: 1, field: 'a', message: 'm' }])
+  })
+
+  it('filters null entries and non-objects in the list', () => {
+    expect(
+      extractUploadValidationErrors({
+        errors: [
+          null,
+          { rowNumber: 1, field: 'f', message: 'ok' },
+          'bad' as unknown as Record<string, unknown>,
+        ],
+      })
+    ).toEqual([{ row: 1, field: 'f', message: 'ok' }])
+  })
+
+  it('accepts rowNumber as number', () => {
+    expect(
+      extractUploadValidationErrors({
+        errors: [{ rowNumber: 3, field: 'c', message: 'msg' }],
+      })
+    ).toEqual([{ row: 3, field: 'c', message: 'msg' }])
+  })
 })

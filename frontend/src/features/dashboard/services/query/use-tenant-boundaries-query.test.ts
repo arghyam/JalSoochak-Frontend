@@ -31,4 +31,16 @@ describe('useTenantBoundariesQuery', () => {
       })
     )
   })
+
+  it('honors explicit enabled: false when params exist', () => {
+    ;(useQuery as jest.Mock).mockReturnValue({})
+    renderHook(() => useTenantBoundariesQuery({ params, enabled: false }))
+
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: dashboardQueryKeys.tenantBoundaries(params),
+        enabled: false,
+      })
+    )
+  })
 })

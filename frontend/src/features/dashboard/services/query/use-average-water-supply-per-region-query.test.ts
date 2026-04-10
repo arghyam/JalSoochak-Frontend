@@ -28,6 +28,7 @@ describe('useAverageWaterSupplyPerRegionQuery', () => {
       expect.objectContaining({
         queryKey: dashboardQueryKeys.averageWaterSupplyPerRegion(params),
         enabled: true,
+        retry: false,
       })
     )
   })

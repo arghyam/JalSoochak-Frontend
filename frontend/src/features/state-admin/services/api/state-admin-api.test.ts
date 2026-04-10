@@ -1,3 +1,5 @@
+import { describe, expect, it, jest, beforeEach } from '@jest/globals'
+import { AxiosError } from 'axios'
 import { stateAdminApi } from './state-admin-api'
 import { apiClient } from '@/shared/lib/axios'
 import { useAuthStore } from '@/app/store/auth-store'
@@ -47,5 +49,39 @@ describe('stateAdminApi', () => {
       expect.any(FormData),
       expect.objectContaining({ headers: expect.objectContaining({ 'X-Tenant-Code': 'TN' }) })
     )
+  })
+
+  it('maps LGD hierarchy from API levels', async () => {
+    mockedApiClient.get.mockResolvedValueOnce({
+      data: {
+        data: {
+          hierarchyType: 'LGD',
+          levels: [{ level: 1, levelName: [{ title: 'State' }] }],
+        },
+      },
+    } as never)
+    const res = await stateAdminApi.getLgdHierarchy()
+    expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/tenants/1/location-hierarchy/LGD')
+    expect(res.hierarchyType).toBe('LGD')
+    expect(res.levels[0]).toEqual({ level: 1, name: 'State' })
+  })
+
+  it('returns null when state UT admin is not found', async () => {
+    const err = new AxiosError('Not found')
+    err.response = { status: 404 } as never
+    mockedApiClient.get.mockRejectedValueOnce(err)
+    await expect(stateAdminApi.getStateUTAdminById('missing')).resolves.toBeNull()
+  })
+
+  it('throws when broadcast welcome is called without tenant code', async () => {
+    mockedGetState.mockReturnValue({ user: { tenantId: '1', tenantCode: '' } })
+    await expect(
+      stateAdminApi.broadcastWelcomeMessage({
+        roles: ['PUMP_OPERATOR'],
+        type: 'EMAIL',
+        onboardedAfter: '2026-01-01',
+        onboardedBefore: '2026-02-01',
+      })
+    ).rejects.toThrow(/tenantCode unavailable/)
   })
 })

@@ -31,4 +31,28 @@ describe('useSubmissionStatusQuery', () => {
       })
     )
   })
+
+  it('disables when params are null', () => {
+    ;(useQuery as jest.Mock).mockReturnValue({})
+    renderHook(() => useSubmissionStatusQuery({ params: null }))
+
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: dashboardQueryKeys.submissionStatus(null),
+        enabled: false,
+      })
+    )
+  })
+
+  it('honors explicit enabled: false when params exist', () => {
+    ;(useQuery as jest.Mock).mockReturnValue({})
+    renderHook(() => useSubmissionStatusQuery({ params, enabled: false }))
+
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: dashboardQueryKeys.submissionStatus(params),
+        enabled: false,
+      })
+    )
+  })
 })

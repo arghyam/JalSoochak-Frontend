@@ -28,6 +28,7 @@ describe('useReadingSubmissionRateQuery', () => {
       expect.objectContaining({
         queryKey: dashboardQueryKeys.readingSubmissionRate(params),
         enabled: true,
+        retry: false,
       })
     )
   })

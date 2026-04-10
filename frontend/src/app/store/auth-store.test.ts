@@ -149,4 +149,73 @@ describe('useAuthStore', () => {
     await expect(useAuthStore.getState().refreshAccessToken()).rejects.toThrow('nope')
     expect(useAuthStore.getState().isAuthenticated).toBe(false)
   })
+
+  it('login returns super-user path for SUPER_USER and SUPER_STATE_ADMIN', async () => {
+    mockedAuth.login.mockResolvedValue({
+      user: { ...stateAdminUser, role: AUTH_ROLES.SUPER_ADMIN },
+      accessToken: 't',
+    })
+    expect(await useAuthStore.getState().login({ email: 'a', password: 'b' })).toBe('/super-user')
+
+    mockedAuth.login.mockResolvedValue({
+      user: { ...stateAdminUser, role: AUTH_ROLES.SUPER_STATE_ADMIN },
+      accessToken: 't',
+    })
+    expect(await useAuthStore.getState().login({ email: 'a', password: 'b' })).toBe('/super-user')
+  })
+
+  it('login returns root path for unknown roles', async () => {
+    mockedAuth.login.mockResolvedValue({
+      user: { ...stateAdminUser, role: 'UNKNOWN' },
+      accessToken: 't',
+    })
+    expect(await useAuthStore.getState().login({ email: 'a', password: 'b' })).toBe('/')
+  })
+
+  it('login uses generic message when thrown value is not an Error', async () => {
+    mockedAuth.login.mockRejectedValue('string-failure')
+
+    await expect(useAuthStore.getState().login({ email: 'a', password: 'b' })).rejects.toBe(
+      'string-failure'
+    )
+    expect(useAuthStore.getState().error).toBe('Unable to login. Please try again.')
+  })
+
+  it('refreshAccessToken updates session on success', async () => {
+    mockedAuth.refresh.mockResolvedValue({
+      user: stateAdminUser,
+      accessToken: 'new',
+    })
+    const token = await useAuthStore.getState().refreshAccessToken()
+    expect(token).toBe('new')
+    expect(useAuthStore.getState().isAuthenticated).toBe(true)
+    expect(useAuthStore.getState().accessToken).toBe('new')
+  })
+
+  it('updateUser replaces user in state', () => {
+    useAuthStore.setState({ user: stateAdminUser })
+    const next = { ...stateAdminUser, name: 'Updated' }
+    useAuthStore.getState().updateUser(next)
+    expect(useAuthStore.getState().user?.name).toBe('Updated')
+  })
+
+  it('setFromActivation returns route by role and sets session', () => {
+    const path = useAuthStore.getState().setFromActivation({
+      user: { ...stateAdminUser, role: AUTH_ROLES.SUPER_ADMIN },
+      accessToken: 'act',
+    })
+    expect(path).toBe('/super-user')
+    expect(useAuthStore.getState().isAuthenticated).toBe(true)
+    expect(useAuthStore.getState().accessToken).toBe('act')
+  })
+
+  it('logout ignores API errors and still clears session', async () => {
+    useAuthStore.setState({ accessToken: 'x', user: stateAdminUser, isAuthenticated: true })
+    mockedAuth.logout.mockRejectedValue(new Error('network'))
+
+    await useAuthStore.getState().logout()
+
+    expect(useAuthStore.getState().accessToken).toBeNull()
+    expect(useAuthStore.getState().user).toBeNull()
+  })
 })

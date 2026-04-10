@@ -23,6 +23,7 @@ describe('useNationalSchemeRegularityPeriodicQuery', () => {
       expect.objectContaining({
         queryKey: dashboardQueryKeys.nationalSchemeRegularityPeriodic(params),
         enabled: true,
+        retry: false,
       })
     )
   })

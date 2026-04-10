@@ -1,6 +1,12 @@
+import { describe, expect, it, jest, afterEach } from '@jest/globals'
 import { renderHook } from '@testing-library/react'
 import { useQuery } from '@tanstack/react-query'
-import { useStateAdminsByTenantQuery, useTenantsSummaryQuery } from './use-super-admin-queries'
+import {
+  useStateAdminsByTenantQuery,
+  useStatesUTsPagedQuery,
+  useSuperUsersQuery,
+  useTenantsSummaryQuery,
+} from './use-super-admin-queries'
 
 jest.mock('@tanstack/react-query', () => ({
   useQuery: jest.fn(),
@@ -25,5 +31,40 @@ describe('use-super-admin-queries', () => {
     ;(useQuery as jest.Mock).mockReturnValue({})
     renderHook(() => useStateAdminsByTenantQuery(undefined))
     expect(useQuery).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }))
+  })
+
+  it('enables state-admins-by-tenant when tenantCode is set', () => {
+    ;(useQuery as jest.Mock).mockReturnValue({})
+    renderHook(() => useStateAdminsByTenantQuery('TN'))
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        enabled: true,
+        queryKey: ['super-admin', 'state-admins', 'by-tenant', 'TN'],
+      })
+    )
+  })
+
+  it('maps paged states query to zero-based API page', () => {
+    ;(useQuery as jest.Mock).mockReturnValue({})
+    renderHook(() => useStatesUTsPagedQuery(2, 20, 'search', 'ACTIVE'))
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: ['super-admin', 'states-uts', 2, 20, 'search', 'ACTIVE'],
+        queryFn: expect.any(Function),
+      })
+    )
+    const options = (useQuery as jest.Mock).mock.calls[0][0] as { queryFn: unknown }
+    expect(options.queryFn).toBeDefined()
+  })
+
+  it('wires super users list query key', () => {
+    ;(useQuery as jest.Mock).mockReturnValue({})
+    renderHook(() => useSuperUsersQuery(1, 10, 'active'))
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: ['super-admin', 'super-users', 1, 10, 'active'],
+        queryFn: expect.any(Function),
+      })
+    )
   })
 })

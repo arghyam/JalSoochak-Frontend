@@ -30,4 +30,28 @@ describe('useSchemePerformanceQuery', () => {
       })
     )
   })
+
+  it('disables when params are null', () => {
+    ;(useQuery as jest.Mock).mockReturnValue({})
+    renderHook(() => useSchemePerformanceQuery({ params: null }))
+
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: dashboardQueryKeys.schemePerformance(null),
+        enabled: false,
+      })
+    )
+  })
+
+  it('honors explicit enabled: false when params exist', () => {
+    ;(useQuery as jest.Mock).mockReturnValue({})
+    renderHook(() => useSchemePerformanceQuery({ params, enabled: false }))
+
+    expect(useQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: dashboardQueryKeys.schemePerformance(params),
+        enabled: false,
+      })
+    )
+  })
 })

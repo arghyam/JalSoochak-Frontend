@@ -29,6 +29,7 @@ describe('useOutageReasonsPeriodicQuery', () => {
       expect.objectContaining({
         queryKey: dashboardQueryKeys.outageReasonsPeriodic(params),
         enabled: true,
+        retry: false,
       })
     )
   })
