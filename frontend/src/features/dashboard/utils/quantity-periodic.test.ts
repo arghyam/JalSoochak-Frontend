@@ -36,7 +36,7 @@ describe('quantity-periodic utils', () => {
           },
         ],
       })
-    ).toEqual([{ period: '01 Mar', value: 42 }])
+    ).toEqual([{ period: '01 Mar 2026', value: 42 }])
   })
 
   it('maps regularity periodic metrics into trend points', () => {
@@ -58,7 +58,7 @@ describe('quantity-periodic utils', () => {
           },
         ],
       })
-    ).toEqual([{ period: '01 Mar - 07 Mar', value: 78.5 }])
+    ).toEqual([{ period: '01 Mar - 07 Mar\n2026', value: 78.5 }])
   })
 
   it('maps demand supply rows into fallback trend points', () => {
@@ -112,7 +112,7 @@ describe('quantity-periodic utils', () => {
           },
         ],
       })
-    ).toEqual([{ period: '01 Mar - 07 Mar', value: 6 }])
+    ).toEqual([{ period: '01 Mar - 07 Mar\n2026', value: 6 }])
   })
 
   it('maps national regularity metrics from wrapped-api-compatible payloads', () => {
@@ -131,7 +131,7 @@ describe('quantity-periodic utils', () => {
           },
         ],
       })
-    ).toEqual([{ period: '01 Jan', value: 0.74 }])
+    ).toEqual([{ period: '01 Jan 2026', value: 0.74 }])
   })
 
   it('skips national quantity points when water quantity is not present in the payload', () => {
