@@ -105,20 +105,13 @@ function StepNode({
   if (layout === 'horizontal') {
     return (
       <Flex
+        as="button"
+        type="button"
         align="center"
         gap={3}
         cursor="pointer"
         onClick={onClick}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') onClick()
-          if (e.key === ' ') {
-            e.preventDefault()
-            onClick()
-          }
-        }}
-        aria-label={t(step.labelKey)}
+        aria-label={`Step ${index + 1}: ${t(step.labelKey)}${configured ? ' - Completed' : ''}`}
         w="full"
       >
         <Flex flexShrink={0}>{nodeCircle}</Flex>
@@ -129,21 +122,14 @@ function StepNode({
 
   return (
     <Flex
+      as="button"
+      type="button"
       direction="column"
       align="center"
       gap={2}
       cursor="pointer"
       onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') onClick()
-        if (e.key === ' ') {
-          e.preventDefault()
-          onClick()
-        }
-      }}
-      aria-label={t(step.labelKey)}
+      aria-label={`Step ${index + 1}: ${t(step.labelKey)}${configured ? ' - Completed' : ''}`}
     >
       {nodeCircle}
       {label}
@@ -231,9 +217,7 @@ export function ConfigSetupWizard() {
                     configured={configured}
                     onClick={() => navigate(step.route)}
                   />
-                  {!isLast && (
-                    <Connector configured={(configured && prevConfigured) || configured} />
-                  )}
+                  {!isLast && <Connector configured={prevConfigured && configured} />}
                 </Flex>
               )
             })}
@@ -248,22 +232,15 @@ export function ConfigSetupWizard() {
 
               return (
                 <Flex
+                  as="button"
+                  type="button"
                   key={step.id}
                   direction="row"
                   align="flex-start"
                   gap={3}
                   cursor="pointer"
                   onClick={() => navigate(step.route)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') navigate(step.route)
-                    if (e.key === ' ') {
-                      e.preventDefault()
-                      navigate(step.route)
-                    }
-                  }}
-                  aria-label={t(step.labelKey)}
+                  aria-label={`Step ${i + 1}: ${t(step.labelKey)}${configured ? ' - Completed' : ''}`}
                 >
                   {/* Circle and connector column */}
                   <Flex
@@ -289,11 +266,7 @@ export function ConfigSetupWizard() {
                         </Text>
                       )}
                     </Flex>
-                    {!isLast && (
-                      <VerticalConnector
-                        configured={(configured && prevConfigured) || configured}
-                      />
-                    )}
+                    {!isLast && <VerticalConnector configured={prevConfigured && configured} />}
                   </Flex>
 
                   {/* Label */}

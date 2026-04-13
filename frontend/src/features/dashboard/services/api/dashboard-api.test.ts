@@ -1093,11 +1093,11 @@ describe('dashboardApi.getDashboardData validation', () => {
   })
 
   it('throws when entityId missing', async () => {
-    mockGet.mockResolvedValueOnce({ data: {} } as never)
     const { dashboardApi } = await import('./dashboard-api')
     await expect(dashboardApi.getDashboardData({ level: 'block', entityId: '' })).rejects.toThrow(
       /entityId is required/
     )
+    expect(mockGet).not.toHaveBeenCalled()
   })
 
   it('throws when payload is not valid dashboard data', async () => {

@@ -242,7 +242,7 @@ export function HierarchyPage() {
             >
               {t('hierarchy.sectionTitle')}
             </Heading>
-            {!isEditing && (
+            {
               <Button
                 variant="ghost"
                 h={6}
@@ -257,7 +257,7 @@ export function HierarchyPage() {
               >
                 <EditIcon h={5} w={5} aria-hidden="true" />
               </Button>
-            )}
+            }
           </Flex>
 
           {/* View Mode */}

@@ -60,7 +60,9 @@ describe('Sidebar', () => {
   it('renders state-admin navigation when role is STATE_ADMIN', () => {
     authState.user = { role: 'STATE_ADMIN', name: 'State User' }
     renderWithProviders(<Sidebar />)
-    expect(screen.getByRole('navigation', { name: /main navigation/i })).toBeInTheDocument()
-    expect(screen.getAllByRole('link').length).toBeGreaterThan(0)
+    const mainNav = screen.getByRole('navigation', { name: /main navigation/i })
+    expect(mainNav).toBeInTheDocument()
+    const navLinks = mainNav.querySelectorAll('a[role="link"]')
+    expect(navLinks.length).toBeGreaterThan(0)
   })
 })

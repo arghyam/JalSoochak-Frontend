@@ -207,7 +207,7 @@ export function SystemConfigPage() {
             >
               {t('configuration.sectionTitle')}
             </Heading>
-            {!isEditing && (
+            {
               <Button
                 variant="ghost"
                 h={6}
@@ -216,13 +216,13 @@ export function SystemConfigPage() {
                 pl="2px"
                 pr="2px"
                 onClick={handleEdit}
-                color="neutral.600"
+                color="neutral.950"
                 _hover={{ bg: 'primary.50', color: 'primary.500' }}
                 aria-label={t('configuration.aria.editConfiguration')}
               >
                 <EditIcon h={5} w={5} aria-hidden="true" />
               </Button>
-            )}
+            }
           </Flex>
 
           {/* View Mode */}

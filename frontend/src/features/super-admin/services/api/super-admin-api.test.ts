@@ -14,10 +14,21 @@ describe('superAdminApi', () => {
     jest.clearAllMocks()
   })
 
+  // Helper to create properly typed mock responses
+  const createMockApiResponse = <T>(data: T) =>
+    ({
+      data: { data },
+    }) as never
+
   it('maps tenants summary response to dashboard stats', async () => {
-    mockedApiClient.get.mockResolvedValueOnce({
-      data: { data: { totalTenants: 9, activeTenants: 7, inactiveTenants: 2, archivedTenants: 0 } },
-    } as never)
+    mockedApiClient.get.mockResolvedValueOnce(
+      createMockApiResponse({
+        totalTenants: 9,
+        activeTenants: 7,
+        inactiveTenants: 2,
+        archivedTenants: 0,
+      })
+    )
     const res = await superAdminApi.getTenantsSummary()
     expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/tenants/summary')
     expect(res).toEqual({ totalStatesManaged: 9, activeStates: 7, inactiveStates: 2 })
@@ -37,17 +48,15 @@ describe('superAdminApi', () => {
   })
 
   it('maps system configuration from API configs envelope', async () => {
-    mockedApiClient.get.mockResolvedValueOnce({
-      data: {
-        data: {
-          configs: {
-            SYSTEM_SUPPORTED_CHANNELS: { channels: ['BFM', 'MAN'] },
-            BFM_IMAGE_READING_CONFIDENCE_LEVEL_THRESHOLD: { value: '0.5' },
-            LOCATION_AFFINITY_THRESHOLD: { value: '0.25' },
-          },
+    mockedApiClient.get.mockResolvedValueOnce(
+      createMockApiResponse({
+        configs: {
+          SYSTEM_SUPPORTED_CHANNELS: { channels: ['BFM', 'MAN'] },
+          BFM_IMAGE_READING_CONFIDENCE_LEVEL_THRESHOLD: { value: '0.5' },
+          LOCATION_AFFINITY_THRESHOLD: { value: '0.25' },
         },
-      },
-    } as never)
+      })
+    )
     const res = await superAdminApi.getSystemConfiguration()
     expect(mockedApiClient.get).toHaveBeenCalledTimes(1)
     const [requestUrl] = mockedApiClient.get.mock.calls[0] as [string]
@@ -66,17 +75,15 @@ describe('superAdminApi', () => {
   })
 
   it('passes search and status to tenants page query', async () => {
-    mockedApiClient.get.mockResolvedValueOnce({
-      data: {
-        data: {
-          content: [],
-          totalElements: 0,
-          totalPages: 0,
-          size: 10,
-          number: 0,
-        },
-      },
-    } as never)
+    mockedApiClient.get.mockResolvedValueOnce(
+      createMockApiResponse({
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
+        size: 10,
+        number: 0,
+      })
+    )
     await superAdminApi.getStatesUTsPage({ page: 0, size: 10, search: 'mh', status: 'ACTIVE' })
     expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/tenants', {
       params: { page: 0, size: 10, search: 'mh', status: 'ACTIVE' },
@@ -91,22 +98,21 @@ describe('superAdminApi', () => {
   })
 
   it('getSuperUserById maps user on success', async () => {
-    mockedApiClient.get.mockResolvedValueOnce({
-      data: {
-        data: {
-          id: 3,
-          email: 'a@b.com',
-          firstName: 'F',
-          lastName: 'L',
-          phoneNumber: '1',
-          role: 'SUPER_USER',
-          tenantCode: null,
-          status: 'ACTIVE',
-          createdAt: '',
-        },
-      },
-    } as never)
+    mockedApiClient.get.mockResolvedValueOnce(
+      createMockApiResponse({
+        id: 3,
+        email: 'a@b.com',
+        firstName: 'F',
+        lastName: 'L',
+        phoneNumber: '1',
+        role: 'SUPER_USER',
+        tenantCode: null,
+        status: 'ACTIVE',
+        createdAt: '',
+      })
+    )
     const res = await superAdminApi.getSuperUserById('3')
+    expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/users/super-users/3')
     expect(res?.email).toBe('a@b.com')
     expect(res?.status).toBe('active')
   })
@@ -119,29 +125,27 @@ describe('superAdminApi', () => {
   })
 
   it('getStateAdminsByTenant maps content', async () => {
-    mockedApiClient.get.mockResolvedValueOnce({
-      data: {
-        data: {
-          content: [
-            {
-              id: 1,
-              email: 'e@e.com',
-              firstName: 'A',
-              lastName: 'B',
-              phoneNumber: '9',
-              role: 'STATE_ADMIN',
-              tenantCode: 'TN',
-              status: 'ACTIVE',
-              createdAt: '',
-            },
-          ],
-          totalElements: 1,
-          totalPages: 1,
-          size: 10,
-          number: 0,
-        },
-      },
-    } as never)
+    mockedApiClient.get.mockResolvedValueOnce(
+      createMockApiResponse({
+        content: [
+          {
+            id: 1,
+            email: 'e@e.com',
+            firstName: 'A',
+            lastName: 'B',
+            phoneNumber: '9',
+            role: 'STATE_ADMIN',
+            tenantCode: 'TN',
+            status: 'ACTIVE',
+            createdAt: '',
+          },
+        ],
+        totalElements: 1,
+        totalPages: 1,
+        size: 10,
+        number: 0,
+      })
+    )
     const res = await superAdminApi.getStateAdminsByTenant('TN')
     expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/users/state-admins', {
       params: { tenantCode: 'TN' },
@@ -150,17 +154,15 @@ describe('superAdminApi', () => {
   })
 
   it('getStateAdminsData omits optional name and status', async () => {
-    mockedApiClient.get.mockResolvedValueOnce({
-      data: {
-        data: {
-          content: [],
-          totalElements: 0,
-          totalPages: 0,
-          size: 10,
-          number: 0,
-        },
-      },
-    } as never)
+    mockedApiClient.get.mockResolvedValueOnce(
+      createMockApiResponse({
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
+        size: 10,
+        number: 0,
+      })
+    )
     await superAdminApi.getStateAdminsData({ page: 0, size: 10 })
     expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/users/state-admins', {
       params: { page: 0, size: 10 },
@@ -168,17 +170,15 @@ describe('superAdminApi', () => {
   })
 
   it('getSuperUsers passes status filter', async () => {
-    mockedApiClient.get.mockResolvedValueOnce({
-      data: {
-        data: {
-          content: [],
-          totalElements: 0,
-          totalPages: 0,
-          size: 10,
-          number: 0,
-        },
-      },
-    } as never)
+    mockedApiClient.get.mockResolvedValueOnce(
+      createMockApiResponse({
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
+        size: 10,
+        number: 0,
+      })
+    )
     await superAdminApi.getSuperUsers({ page: 0, size: 10, status: 'ACTIVE' })
     expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/users/super-users', {
       params: { page: 0, size: 10, status: 'ACTIVE' },
@@ -186,17 +186,15 @@ describe('superAdminApi', () => {
   })
 
   it('createTenant posts and maps tenant', async () => {
-    mockedApiClient.post.mockResolvedValueOnce({
-      data: {
-        data: {
-          id: 1,
-          stateCode: 'MH',
-          name: 'Maharashtra',
-          lgdCode: 27,
-          status: 'ACTIVE',
-        },
-      },
-    } as never)
+    mockedApiClient.post.mockResolvedValueOnce(
+      createMockApiResponse({
+        id: 1,
+        stateCode: 'MH',
+        name: 'Maharashtra',
+        lgdCode: 27,
+        status: 'ACTIVE',
+      })
+    )
     const t = await superAdminApi.createTenant({
       stateCode: 'MH',
       name: 'Maharashtra',
@@ -255,17 +253,15 @@ describe('superAdminApi', () => {
   })
 
   it('saveSystemConfiguration puts and maps response', async () => {
-    mockedApiClient.put.mockResolvedValueOnce({
-      data: {
-        data: {
-          configs: {
-            SYSTEM_SUPPORTED_CHANNELS: { channels: ['BFM'] },
-            BFM_IMAGE_READING_CONFIDENCE_LEVEL_THRESHOLD: { value: '0.8' },
-            LOCATION_AFFINITY_THRESHOLD: { value: '0.3' },
-          },
+    mockedApiClient.put.mockResolvedValueOnce(
+      createMockApiResponse({
+        configs: {
+          SYSTEM_SUPPORTED_CHANNELS: { channels: ['BFM'] },
+          BFM_IMAGE_READING_CONFIDENCE_LEVEL_THRESHOLD: { value: '0.8' },
+          LOCATION_AFFINITY_THRESHOLD: { value: '0.3' },
         },
-      },
-    } as never)
+      })
+    )
     const res = await superAdminApi.saveSystemConfiguration({
       supportedChannels: ['Bulk Flow Meter'],
       bfmImageConfidenceThreshold: 0.8,

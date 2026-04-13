@@ -275,7 +275,7 @@ export function EscalationsFormPage() {
             >
               {t('escalations.escalationRules')}
             </Heading>
-            {isConfigured && !effectiveIsEditing && (
+            {isConfigured && (
               <Button
                 variant="ghost"
                 h={6}
@@ -284,7 +284,7 @@ export function EscalationsFormPage() {
                 pl="2px"
                 pr="2px"
                 onClick={handleEdit}
-                color="neutral.600"
+                color="neutral.950"
                 _hover={{ bg: 'primary.50', color: 'primary.500' }}
                 aria-label={t('escalations.aria.editMode')}
               >

@@ -72,7 +72,15 @@ describe('stateAdminApi', () => {
       })
       expect(mockedApiClient.put).toHaveBeenCalledWith(
         '/api/v1/tenants/1/config',
-        expect.objectContaining({ configs: expect.any(Object) })
+        expect.objectContaining({
+          configs: expect.objectContaining({
+            SUPPORTED_LANGUAGES: expect.objectContaining({
+              languages: expect.arrayContaining([
+                expect.objectContaining({ language: 'en', preference: 1 }),
+              ]),
+            }),
+          }),
+        })
       )
     })
 
@@ -297,12 +305,15 @@ describe('stateAdminApi', () => {
       })
       expect(res.items).toEqual([{ id: 1 }])
       expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/scheme/schemes', {
-        params: expect.objectContaining({
+        params: {
+          tenantCode: 'TN',
+          page: 0,
+          limit: 10,
           workStatus: 'W',
           operatingStatus: 'O',
           schemeName: 'S',
           sortDir: 'asc',
-        }),
+        },
       })
     })
 
@@ -508,6 +519,13 @@ describe('stateAdminApi', () => {
       } as never)
       const lgd = await stateAdminApi.saveLgdHierarchy(levels)
       expect(lgd.hierarchyType).toBe('LGD')
+      expect(mockedApiClient.put).toHaveBeenNthCalledWith(
+        1,
+        '/api/v1/tenants/1/location-hierarchy/LGD',
+        expect.arrayContaining([
+          expect.objectContaining({ level: 1, levelName: [{ title: 'State' }] }),
+        ])
+      )
 
       mockedApiClient.put.mockResolvedValueOnce({
         data: {
@@ -518,6 +536,13 @@ describe('stateAdminApi', () => {
       } as never)
       const dept = await stateAdminApi.saveDepartmentHierarchy(levels)
       expect(dept.hierarchyType).toBe('DEPARTMENT')
+      expect(mockedApiClient.put).toHaveBeenNthCalledWith(
+        2,
+        '/api/v1/tenants/1/location-hierarchy/DEPARTMENT',
+        expect.arrayContaining([
+          expect.objectContaining({ level: 1, levelName: [{ title: 'State' }] }),
+        ])
+      )
     })
   })
 
@@ -532,7 +557,12 @@ describe('stateAdminApi', () => {
       })
       expect(mockedApiClient.post).toHaveBeenCalledWith(
         '/api/v1/tenant/user/welcome?tenantCode=TN',
-        expect.any(Object)
+        expect.objectContaining({
+          roles: ['PUMP_OPERATOR'],
+          type: 'EMAIL',
+          onboardedAfter: '2026-01-01',
+          onboardedBefore: '2026-02-01',
+        })
       )
     })
 

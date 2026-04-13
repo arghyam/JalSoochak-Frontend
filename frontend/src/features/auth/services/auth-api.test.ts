@@ -30,6 +30,7 @@ const tokenPayload = {
 
 describe('authApi', () => {
   beforeEach(() => {
+    parseJWTMock.mockReset()
     parseJWTMock.mockReturnValue({ sub: '1', name: 'Test User', email: 't@x.com' })
   })
 
@@ -173,9 +174,10 @@ describe('authApi', () => {
     })
     expect(mockedClient.post).toHaveBeenCalledWith(
       '/api/v2/user/set-password',
-      expect.objectContaining({ userId: '1' }),
-      expect.objectContaining({ headers: undefined })
+      expect.objectContaining({ userId: '1' })
     )
+    const config = mockedClient.post.mock.calls[0][2]
+    expect(config?.headers).toBeUndefined()
   })
 
   it('createPassword sends tenant headers when provided', async () => {

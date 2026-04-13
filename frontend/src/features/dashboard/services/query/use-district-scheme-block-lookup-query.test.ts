@@ -159,10 +159,14 @@ describe('useDistrictSchemeBlockLookupQuery', () => {
       })
     )
     const { queryFn } = mockedUseQuery.mock.calls[0][0] as {
-      queryFn: () => Promise<{ idLookup: Record<string, string> }>
+      queryFn: () => Promise<{
+        idLookup: Record<string, string>
+        lgdLookup: Record<string, string>
+      }>
     }
     const lookup = await queryFn()
     expect(lookup.idLookup).toEqual({})
+    expect(lookup.lgdLookup).toEqual({})
     expect(mockedGetChildren).not.toHaveBeenCalled()
   })
 
@@ -193,10 +197,23 @@ describe('useDistrictSchemeBlockLookupQuery', () => {
       queryFn: () => Promise<{ idLookup: Record<number, string> }>
     }
     const lookup = await queryFn()
-    expect(mockedGetChildren).toHaveBeenCalledWith({
+    expect(mockedGetChildren).toHaveBeenCalledTimes(3)
+    expect(mockedGetChildren).toHaveBeenNthCalledWith(1, {
       tenantId: 1,
       hierarchyType: 'LGD',
       parentId: 7,
+      tenantCode: 'TN',
+    })
+    expect(mockedGetChildren).toHaveBeenNthCalledWith(2, {
+      tenantId: 1,
+      hierarchyType: 'LGD',
+      parentId: 20,
+      tenantCode: 'TN',
+    })
+    expect(mockedGetChildren).toHaveBeenNthCalledWith(3, {
+      tenantId: 1,
+      hierarchyType: 'LGD',
+      parentId: 101,
       tenantCode: 'TN',
     })
     expect(lookup.idLookup[201]).toBe('V')
