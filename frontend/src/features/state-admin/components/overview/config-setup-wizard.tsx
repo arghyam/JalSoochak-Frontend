@@ -102,6 +102,16 @@ function StepNode({
     </Text>
   )
 
+  const ariaLabel = t(
+    configured
+      ? 'overview.setupWizard.aria.stepCompleted'
+      : 'overview.setupWizard.aria.stepDefault',
+    {
+      number: index + 1,
+      label: t(step.labelKey),
+    }
+  )
+
   if (layout === 'horizontal') {
     return (
       <Flex
@@ -111,7 +121,7 @@ function StepNode({
         gap={3}
         cursor="pointer"
         onClick={onClick}
-        aria-label={`Step ${index + 1}: ${t(step.labelKey)}${configured ? ' - Completed' : ''}`}
+        aria-label={ariaLabel}
         w="full"
       >
         <Flex flexShrink={0}>{nodeCircle}</Flex>
@@ -129,7 +139,7 @@ function StepNode({
       gap={2}
       cursor="pointer"
       onClick={onClick}
-      aria-label={`Step ${index + 1}: ${t(step.labelKey)}${configured ? ' - Completed' : ''}`}
+      aria-label={ariaLabel}
     >
       {nodeCircle}
       {label}
@@ -231,54 +241,15 @@ export function ConfigSetupWizard() {
               const prevConfigured = i > 0 ? isStepConfigured(WIZARD_STEPS[i - 1], statuses) : false
 
               return (
-                <Flex
-                  as="button"
-                  type="button"
-                  key={step.id}
-                  direction="row"
-                  align="flex-start"
-                  gap={3}
-                  cursor="pointer"
-                  onClick={() => navigate(step.route)}
-                  aria-label={`Step ${i + 1}: ${t(step.labelKey)}${configured ? ' - Completed' : ''}`}
-                >
-                  {/* Circle and connector column */}
-                  <Flex
-                    direction="column"
-                    align="center"
-                    gap={0}
-                    flexShrink={0}
-                    pointerEvents="none"
-                  >
-                    <Flex
-                      h="36px"
-                      w="36px"
-                      borderRadius="full"
-                      align="center"
-                      justify="center"
-                      bg={configured ? '#079455' : 'neutral.300'}
-                    >
-                      {configured ? (
-                        <Icon as={BsCheckLg} color="white" boxSize={4} aria-hidden="true" />
-                      ) : (
-                        <Text fontSize="sm" fontWeight="semibold" color="white">
-                          {i + 1}
-                        </Text>
-                      )}
-                    </Flex>
-                    {!isLast && <VerticalConnector configured={prevConfigured && configured} />}
-                  </Flex>
-
-                  {/* Label */}
-                  <Text
-                    fontSize="sm"
-                    fontWeight="medium"
-                    color={configured ? 'neutral.600' : 'neutral.400'}
-                    pt={1}
-                    pointerEvents="none"
-                  >
-                    {t(step.labelKey)}
-                  </Text>
+                <Flex key={step.id} align="flex-start" gap={0} direction="column">
+                  <StepNode
+                    step={step}
+                    index={i}
+                    configured={configured}
+                    onClick={() => navigate(step.route)}
+                    layout="horizontal"
+                  />
+                  {!isLast && <VerticalConnector configured={prevConfigured && configured} />}
                 </Flex>
               )
             })}

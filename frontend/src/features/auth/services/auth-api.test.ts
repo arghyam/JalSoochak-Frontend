@@ -174,10 +174,9 @@ describe('authApi', () => {
     })
     expect(mockedClient.post).toHaveBeenCalledWith(
       '/api/v2/user/set-password',
-      expect.objectContaining({ userId: '1' })
+      { userId: '1', emailId: 'a@b.com', newPassword: 'x', confirmPassword: 'x' },
+      { headers: undefined }
     )
-    const config = mockedClient.post.mock.calls[0][2]
-    expect(config?.headers).toBeUndefined()
   })
 
   it('createPassword sends tenant headers when provided', async () => {

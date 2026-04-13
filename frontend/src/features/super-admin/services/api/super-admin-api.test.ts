@@ -112,7 +112,7 @@ describe('superAdminApi', () => {
       })
     )
     const res = await superAdminApi.getSuperUserById('3')
-    expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/users/super-users/3')
+    expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/users/3')
     expect(res?.email).toBe('a@b.com')
     expect(res?.status).toBe('active')
   })

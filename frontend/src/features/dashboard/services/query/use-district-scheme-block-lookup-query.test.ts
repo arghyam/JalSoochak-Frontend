@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react'
-import { describe, expect, it, jest, afterEach, beforeEach } from '@jest/globals'
+import { describe, expect, it, jest, beforeEach } from '@jest/globals'
 import { useQuery } from '@tanstack/react-query'
 import { locationSearchQueryKeys } from './location-search-query-keys'
 import { useDistrictSchemeBlockLookupQuery } from './use-district-scheme-block-lookup-query'
@@ -19,10 +19,6 @@ const mockedGetChildren = jest.mocked(dashboardApi.getTenantChildLocations)
 
 describe('useDistrictSchemeBlockLookupQuery', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
-  })
-
-  afterEach(() => {
     jest.clearAllMocks()
   })
 

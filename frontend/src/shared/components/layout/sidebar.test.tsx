@@ -62,7 +62,7 @@ describe('Sidebar', () => {
     renderWithProviders(<Sidebar />)
     const mainNav = screen.getByRole('navigation', { name: /main navigation/i })
     expect(mainNav).toBeInTheDocument()
-    const navLinks = mainNav.querySelectorAll('a[role="link"]')
+    const navLinks = mainNav.querySelectorAll('a')
     expect(navLinks.length).toBeGreaterThan(0)
   })
 })

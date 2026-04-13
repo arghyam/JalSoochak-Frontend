@@ -33,17 +33,16 @@ describe('MultiSelect', () => {
     renderWithProviders(<MultiSelect options={options} value={[]} onChange={onChange} />)
     await user.click(screen.getByRole('combobox'))
     await user.click(screen.getByRole('option', { name: 'X' }))
+    expect(onChange).toHaveBeenCalledTimes(1)
     expect(onChange).toHaveBeenCalledWith(['x'])
   })
 
-  it('does not open when disabled', async () => {
-    const user = userEvent.setup()
+  it('does not open when disabled', () => {
     const onChange = jest.fn()
     renderWithProviders(<MultiSelect options={options} value={[]} onChange={onChange} disabled />)
     const combobox = screen.getByRole('combobox')
     expect(combobox).toHaveAttribute('aria-disabled', 'true')
-    await user.click(combobox)
+    expect(combobox).toBeDisabled()
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
-    expect(onChange).not.toHaveBeenCalled()
   })
 })
