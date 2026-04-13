@@ -89,4 +89,189 @@ describe('superAdminApi', () => {
     mockedApiClient.get.mockRejectedValueOnce(err)
     await expect(superAdminApi.getSuperUserById('99')).resolves.toBeNull()
   })
+
+  it('getSuperUserById maps user on success', async () => {
+    mockedApiClient.get.mockResolvedValueOnce({
+      data: {
+        data: {
+          id: 3,
+          email: 'a@b.com',
+          firstName: 'F',
+          lastName: 'L',
+          phoneNumber: '1',
+          role: 'SUPER_USER',
+          tenantCode: null,
+          status: 'ACTIVE',
+          createdAt: '',
+        },
+      },
+    } as never)
+    const res = await superAdminApi.getSuperUserById('3')
+    expect(res?.email).toBe('a@b.com')
+    expect(res?.status).toBe('active')
+  })
+
+  it('getSuperUserById rethrows non-404 errors', async () => {
+    const err = new AxiosError('bad')
+    err.response = { status: 500 } as never
+    mockedApiClient.get.mockRejectedValueOnce(err)
+    await expect(superAdminApi.getSuperUserById('1')).rejects.toBe(err)
+  })
+
+  it('getStateAdminsByTenant maps content', async () => {
+    mockedApiClient.get.mockResolvedValueOnce({
+      data: {
+        data: {
+          content: [
+            {
+              id: 1,
+              email: 'e@e.com',
+              firstName: 'A',
+              lastName: 'B',
+              phoneNumber: '9',
+              role: 'STATE_ADMIN',
+              tenantCode: 'TN',
+              status: 'ACTIVE',
+              createdAt: '',
+            },
+          ],
+          totalElements: 1,
+          totalPages: 1,
+          size: 10,
+          number: 0,
+        },
+      },
+    } as never)
+    const res = await superAdminApi.getStateAdminsByTenant('TN')
+    expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/users/state-admins', {
+      params: { tenantCode: 'TN' },
+    })
+    expect(res[0]?.email).toBe('e@e.com')
+  })
+
+  it('getStateAdminsData omits optional name and status', async () => {
+    mockedApiClient.get.mockResolvedValueOnce({
+      data: {
+        data: {
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          size: 10,
+          number: 0,
+        },
+      },
+    } as never)
+    await superAdminApi.getStateAdminsData({ page: 0, size: 10 })
+    expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/users/state-admins', {
+      params: { page: 0, size: 10 },
+    })
+  })
+
+  it('getSuperUsers passes status filter', async () => {
+    mockedApiClient.get.mockResolvedValueOnce({
+      data: {
+        data: {
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          size: 10,
+          number: 0,
+        },
+      },
+    } as never)
+    await superAdminApi.getSuperUsers({ page: 0, size: 10, status: 'ACTIVE' })
+    expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/users/super-users', {
+      params: { page: 0, size: 10, status: 'ACTIVE' },
+    })
+  })
+
+  it('createTenant posts and maps tenant', async () => {
+    mockedApiClient.post.mockResolvedValueOnce({
+      data: {
+        data: {
+          id: 1,
+          stateCode: 'MH',
+          name: 'Maharashtra',
+          lgdCode: 27,
+          status: 'ACTIVE',
+        },
+      },
+    } as never)
+    const t = await superAdminApi.createTenant({
+      stateCode: 'MH',
+      name: 'Maharashtra',
+      lgdCode: 27,
+    })
+    expect(mockedApiClient.post).toHaveBeenCalledWith('/api/v1/tenants', {
+      stateCode: 'MH',
+      name: 'Maharashtra',
+      lgdCode: 27,
+    })
+    expect(t.stateCode).toBe('MH')
+  })
+
+  it('inviteUser posts payload', async () => {
+    mockedApiClient.post.mockResolvedValueOnce({} as never)
+    await superAdminApi.inviteUser({
+      firstName: 'A',
+      lastName: 'B',
+      phoneNumber: '1',
+      email: 'e@e.com',
+      role: 'STATE_ADMIN',
+      tenantCode: 'TN',
+    })
+    expect(mockedApiClient.post).toHaveBeenCalledWith('/api/v1/users/invitations', {
+      firstName: 'A',
+      lastName: 'B',
+      phoneNumber: '1',
+      email: 'e@e.com',
+      role: 'STATE_ADMIN',
+      tenantCode: 'TN',
+    })
+  })
+
+  it('updateUser patches user', async () => {
+    mockedApiClient.patch.mockResolvedValueOnce({} as never)
+    await superAdminApi.updateUser('9', { firstName: 'X' })
+    expect(mockedApiClient.patch).toHaveBeenCalledWith('/api/v1/users/9', { firstName: 'X' })
+  })
+
+  it('updateUserStatus posts activate for active', async () => {
+    mockedApiClient.post.mockResolvedValueOnce({} as never)
+    await superAdminApi.updateUserStatus('2', 'active')
+    expect(mockedApiClient.post).toHaveBeenCalledWith('/api/v1/users/2/activate')
+  })
+
+  it('updateUserStatus posts deactivate for inactive', async () => {
+    mockedApiClient.post.mockResolvedValueOnce({} as never)
+    await superAdminApi.updateUserStatus('2', 'inactive')
+    expect(mockedApiClient.post).toHaveBeenCalledWith('/api/v1/users/2/deactivate')
+  })
+
+  it('reinviteUser posts invitations', async () => {
+    mockedApiClient.post.mockResolvedValueOnce({} as never)
+    await superAdminApi.reinviteUser('12')
+    expect(mockedApiClient.post).toHaveBeenCalledWith('/api/v1/users/12/invitations')
+  })
+
+  it('saveSystemConfiguration puts and maps response', async () => {
+    mockedApiClient.put.mockResolvedValueOnce({
+      data: {
+        data: {
+          configs: {
+            SYSTEM_SUPPORTED_CHANNELS: { channels: ['BFM'] },
+            BFM_IMAGE_READING_CONFIDENCE_LEVEL_THRESHOLD: { value: '0.8' },
+            LOCATION_AFFINITY_THRESHOLD: { value: '0.3' },
+          },
+        },
+      },
+    } as never)
+    const res = await superAdminApi.saveSystemConfiguration({
+      supportedChannels: ['Bulk Flow Meter'],
+      bfmImageConfidenceThreshold: 0.8,
+      locationAffinityThreshold: 0.3,
+    })
+    expect(mockedApiClient.put).toHaveBeenCalledWith('/api/v1/system/config', expect.any(Object))
+    expect(res.bfmImageConfidenceThreshold).toBe(0.8)
+  })
 })
