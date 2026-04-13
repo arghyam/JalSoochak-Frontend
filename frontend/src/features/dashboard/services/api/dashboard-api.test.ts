@@ -1089,6 +1089,7 @@ describe('dashboardApi.getDashboardData validation', () => {
   beforeEach(() => {
     jest.resetModules()
     jest.clearAllMocks()
+    mockGet.mockReset()
   })
 
   it('throws when entityId missing', async () => {

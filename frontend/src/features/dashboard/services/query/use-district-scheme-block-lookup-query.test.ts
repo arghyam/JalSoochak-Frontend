@@ -176,7 +176,7 @@ describe('useDistrictSchemeBlockLookupQuery', () => {
         data: [{ id: 101, title: 'GP' }],
       } satisfies TenantChildLocationsResponse)
       .mockResolvedValueOnce({
-        data: [{ id: 101, title: 'V' }],
+        data: [{ id: 201, title: 'V' }],
       } satisfies TenantChildLocationsResponse)
 
     renderHook(() =>
@@ -184,7 +184,7 @@ describe('useDistrictSchemeBlockLookupQuery', () => {
         tenantId: 1,
         hierarchyType: 'LGD',
         districtId: 7,
-        targetLgdIds: [101],
+        targetLgdIds: [201],
         tenantCode: 'TN',
       })
     )
@@ -199,6 +199,6 @@ describe('useDistrictSchemeBlockLookupQuery', () => {
       parentId: 7,
       tenantCode: 'TN',
     })
-    expect(lookup.idLookup[101]).toBe('B1')
+    expect(lookup.idLookup[201]).toBe('V')
   })
 })

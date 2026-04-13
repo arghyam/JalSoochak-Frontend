@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/render-with-providers'
 import { Sidebar } from './sidebar'
@@ -52,7 +52,9 @@ describe('Sidebar', () => {
     await user.click(screen.getByRole('button', { name: /jane doe/i }))
     await user.click(screen.getByRole('menuitem', { name: /logout/i }))
     expect(mockLogout).toHaveBeenCalled()
-    expect(mockNavigate).toHaveBeenCalledWith(ROUTES.LOGIN, { replace: true })
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(ROUTES.LOGIN, { replace: true })
+    })
   })
 
   it('renders state-admin navigation when role is STATE_ADMIN', () => {

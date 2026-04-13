@@ -39,7 +39,9 @@ describe('MultiSelect', () => {
   it('does not open when disabled', () => {
     const onChange = jest.fn()
     renderWithProviders(<MultiSelect options={options} value={[]} onChange={onChange} disabled />)
-    expect(screen.getByRole('combobox')).toHaveAttribute('aria-disabled', 'true')
+    const combobox = screen.getByRole('combobox')
+    expect(combobox).toHaveAttribute('aria-disabled', 'true')
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    expect(onChange).not.toHaveBeenCalled()
   })
 })

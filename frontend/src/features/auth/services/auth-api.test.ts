@@ -142,19 +142,25 @@ describe('authApi', () => {
 
   it('getUserByInviteId resolves known invite after delay', async () => {
     jest.useFakeTimers()
-    const p = authApi.getUserByInviteId('invite-123')
-    await jest.advanceTimersByTimeAsync(500)
-    await expect(p).resolves.toEqual({ email: 'test@test.com' })
-    jest.useRealTimers()
+    try {
+      const p = authApi.getUserByInviteId('invite-123')
+      await jest.advanceTimersByTimeAsync(500)
+      await expect(p).resolves.toEqual({ email: 'test@test.com' })
+    } finally {
+      jest.useRealTimers()
+    }
   })
 
   it('getUserByInviteId rejects unknown id', async () => {
     jest.useFakeTimers()
-    const p = authApi.getUserByInviteId('bad')
-    const assertion = expect(p).rejects.toThrow(/Invalid or expired invite/)
-    await jest.advanceTimersByTimeAsync(500)
-    await assertion
-    jest.useRealTimers()
+    try {
+      const p = authApi.getUserByInviteId('bad')
+      const assertion = expect(p).rejects.toThrow(/Invalid or expired invite/)
+      await jest.advanceTimersByTimeAsync(500)
+      await assertion
+    } finally {
+      jest.useRealTimers()
+    }
   })
 
   it('createPassword succeeds without optional headers', async () => {

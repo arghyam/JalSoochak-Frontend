@@ -16,6 +16,7 @@ describe('location-title-lookup', () => {
     const lookup = createLocationTitleLookup()
     addLocationTitleToLookup(lookup, { id: 1, lgdCode: 2 }, '')
     expect(lookup.idLookup).toEqual({})
+    expect(lookup.lgdLookup).toEqual({})
   })
 
   it('addLocationTitleToLookup keeps whitespace-only titles', () => {

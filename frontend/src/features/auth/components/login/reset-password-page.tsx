@@ -77,7 +77,7 @@ export function ResetPasswordPage() {
               src={jalsoochakLogo}
               alt="JalSoochak logo"
               h="72px"
-              w="117.61px"
+              w={{ base: '60px', md: '117.61px' }}
               mb={8}
               mx="auto"
             />
@@ -114,7 +114,7 @@ export function ResetPasswordPage() {
               src={jalsoochakLogo}
               alt="JalSoochak logo"
               h="72px"
-              w="117.61px"
+              w={{ base: '60px', md: '117.61px' }}
               mb={{ base: 10, md: 12 }}
             />
           </Box>

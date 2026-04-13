@@ -122,6 +122,16 @@ describe('stateAdminApi', () => {
       mockedApiClient.put.mockResolvedValueOnce(tenantEnvelope({}))
       const saved = await stateAdminApi.saveConfiguration(minimalSaveConfigurationPayload)
       expect(saved.id).toBe('1')
+      expect(mockedApiClient.put).toHaveBeenCalledWith(
+        '/api/v1/tenants/1/config',
+        expect.objectContaining({
+          configs: expect.objectContaining({
+            TENANT_SUPPORTED_CHANNELS: { channels: ['BFM'] },
+            LOCATION_CHECK_REQUIRED: { value: 'NO' },
+            DISPLAY_DEPARTMENT_MAPS: { value: 'NO' },
+          }),
+        })
+      )
     })
 
     it('getSystemChannels returns data array', async () => {
@@ -177,6 +187,8 @@ describe('stateAdminApi', () => {
           headers: { 'Content-Type': 'multipart/form-data' },
         })
       )
+      const formData = mockedApiClient.put.mock.calls[0][1] as FormData
+      expect(formData.get('logo')).toBe(file)
     })
   })
 
@@ -251,6 +263,8 @@ describe('stateAdminApi', () => {
         expect.any(FormData),
         expect.objectContaining({ headers: expect.objectContaining({ 'X-Tenant-Code': 'TN' }) })
       )
+      const formData = mockedApiClient.post.mock.calls[0][1] as FormData
+      expect(formData.get('file')).toBe(file)
     })
   })
 
@@ -301,6 +315,8 @@ describe('stateAdminApi', () => {
         expect.any(FormData),
         expect.objectContaining({ headers: expect.objectContaining({ 'X-Tenant-Code': 'TN' }) })
       )
+      const formData = mockedApiClient.post.mock.calls[0][1] as FormData
+      expect(formData.get('file')).toBe(file)
     })
 
     it('getSchemeMappingsList and uploadSchemeMappings', async () => {
@@ -323,6 +339,8 @@ describe('stateAdminApi', () => {
         expect.any(FormData),
         expect.objectContaining({ headers: expect.objectContaining({ 'X-Tenant-Code': 'TN' }) })
       )
+      const formData = mockedApiClient.post.mock.calls[0][1] as FormData
+      expect(formData.get('file')).toBe(file)
     })
   })
 

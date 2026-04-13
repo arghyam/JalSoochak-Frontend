@@ -271,7 +271,16 @@ describe('superAdminApi', () => {
       bfmImageConfidenceThreshold: 0.8,
       locationAffinityThreshold: 0.3,
     })
-    expect(mockedApiClient.put).toHaveBeenCalledWith('/api/v1/system/config', expect.any(Object))
+    expect(mockedApiClient.put).toHaveBeenCalledWith(
+      '/api/v1/system/config',
+      expect.objectContaining({
+        configs: expect.objectContaining({
+          SYSTEM_SUPPORTED_CHANNELS: { channels: ['BFM'] },
+          BFM_IMAGE_READING_CONFIDENCE_LEVEL_THRESHOLD: { value: '0.8' },
+          LOCATION_AFFINITY_THRESHOLD: { value: '0.3' },
+        }),
+      })
+    )
     expect(res.bfmImageConfidenceThreshold).toBe(0.8)
   })
 })
