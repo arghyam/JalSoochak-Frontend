@@ -141,12 +141,14 @@ describe('IndiaMapChart', () => {
       />
     )
 
-    const latestOption = mockEChartsWrapper.mock.calls.at(-1)?.[0]?.option as {
-      series?: Array<{
-        data?: Array<{ name?: string; silent?: boolean; itemStyle?: { borderColor?: string } }>
-      }>
-    }
-    const overlay = latestOption.series?.[0]?.data?.find(
+    const latestOption = mockEChartsWrapper.mock.calls.at(-1)?.[0]?.option as
+      | {
+          series?: Array<{
+            data?: Array<{ name?: string; silent?: boolean; itemStyle?: { borderColor?: string } }>
+          }>
+        }
+      | undefined
+    const overlay = latestOption?.series?.[0]?.data?.find(
       (item) => item.name === PARENT_BOUNDARY_FEATURE_NAME
     )
 

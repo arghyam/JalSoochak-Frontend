@@ -33,8 +33,8 @@ describe('locationSearchApi', () => {
     expect(response).toEqual({
       totalStatesCount: 2,
       states: [
-        { value: 'telangana', label: 'Telangana' },
         { value: 'andhra-pradesh', label: 'Andhra Pradesh' },
+        { value: 'telangana', label: 'Telangana' },
       ],
     })
   })
@@ -117,8 +117,8 @@ describe('locationSearchApi', () => {
     expect(response).toEqual({
       totalStatesCount: 2,
       states: [
-        { value: 'telangana', label: 'Telangana', tenantId: 16 },
         { value: 'assam', label: 'Assam', tenantId: 17 },
+        { value: 'telangana', label: 'Telangana', tenantId: 16 },
       ],
     })
   })

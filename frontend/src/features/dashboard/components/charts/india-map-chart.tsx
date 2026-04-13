@@ -85,11 +85,11 @@ export function IndiaMapChart({
   )
   const mapColors = useMemo(
     () => ({
-      gte90: resolveThemeColor('#84BDE3'),
-      gte70: resolveThemeColor('#5EA955'),
-      gte50: resolveThemeColor('#FFD999'),
-      gte30: resolveThemeColor('#FFB433'),
-      gte0: resolveThemeColor('#FF5C5C'),
+      gte90: resolveThemeColor('#5DBA52'),
+      gte70: resolveThemeColor('#89E57F'),
+      gte50: resolveThemeColor('#FFB433'),
+      gte30: resolveThemeColor('#FFD999'),
+      gte0: resolveThemeColor('#F4614F'),
       noData: resolveThemeColor('#D1D1D6'),
     }),
     [resolveThemeColor]
@@ -98,11 +98,11 @@ export function IndiaMapChart({
     () => ({
       // Manual placeholders: set your own hover colors per legend bucket.
       // Example: gte90: '#84BDE3'
-      gte90: '#3291D1',
-      gte70: '#38962C',
-      gte50: '#FFB433',
-      gte30: '#CC8100',
-      gte0: '#C73131',
+      gte90: '#38962C',
+      gte70: '#33BA11',
+      gte50: '#CC8100',
+      gte30: '#EB932D',
+      gte0: '#C74331',
       noData: '#A0A0AB',
     }),
     []
@@ -394,27 +394,32 @@ export function IndiaMapChart({
 
   const bodyText6 = getBodyText6Style(theme)
   const legendItems = [
+    { id: 'noData', label: t('map.legend.noData'), color: mapColors.noData },
     {
-      label: t('map.legend.gte90', { defaultValue: '>=90%' }),
-      color: mapColors.gte90,
+      id: 'gte0',
+      label: t('map.legend.gte0', { defaultValue: '>=0%' }),
+      color: mapColors.gte0,
     },
     {
-      label: t('map.legend.gte70', { defaultValue: '>=70%' }),
-      color: mapColors.gte70,
-    },
-    {
-      label: t('map.legend.gte50', { defaultValue: '>=50%' }),
-      color: mapColors.gte50,
-    },
-    {
+      id: 'gte30',
       label: t('map.legend.gte30', { defaultValue: '>=30%' }),
       color: mapColors.gte30,
     },
     {
-      label: t('map.legend.gte0', { defaultValue: '>=0%' }),
-      color: mapColors.gte0,
+      id: 'gte50',
+      label: t('map.legend.gte50', { defaultValue: '>=50%' }),
+      color: mapColors.gte50,
     },
-    { label: t('map.legend.noData'), color: mapColors.noData },
+    {
+      id: 'gte70',
+      label: t('map.legend.gte70', { defaultValue: '>=70%' }),
+      color: mapColors.gte70,
+    },
+    {
+      id: 'gte90',
+      label: t('map.legend.gte90', { defaultValue: '>=90%' }),
+      color: mapColors.gte90,
+    },
   ]
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
@@ -604,13 +609,17 @@ export function IndiaMapChart({
         </div>
       </div>
       <div
+        role="list"
+        aria-label={t('map.legend.ariaLabel', { defaultValue: 'Map value ranges' })}
         style={{
           display: 'flex',
           flexWrap: 'wrap',
-          alignItems: 'center',
+          alignItems: 'stretch',
           justifyContent: 'center',
-          gap: isBelow500 ? '6px 12px' : '0px 16px',
-          paddingTop: '8px',
+          columnGap: '4px',
+          rowGap: '4px',
+          paddingTop: '10px',
+          paddingBottom: '2px',
           width: '100%',
           maxWidth: '100%',
           overflow: 'hidden',
@@ -618,36 +627,43 @@ export function IndiaMapChart({
       >
         {legendItems.map((item) => (
           <div
-            key={item.label}
+            key={item.id}
+            role="listitem"
             style={{
               display: 'flex',
-              alignItems: 'center',
+              flexDirection: 'column',
+              alignItems: 'stretch',
               gap: '4px',
-              minWidth: isBelow500 ? 'calc(33.333% - 12px)' : undefined,
-              justifyContent: isBelow500 ? 'flex-start' : 'center',
+              flex: isBelow500 ? '1 1 calc((100% - 8px) / 3)' : '1 1 0',
+              minWidth: isBelow500 ? 'calc((100% - 8px) / 3)' : 0,
+              maxWidth: isBelow500 ? 'calc((100% - 8px) / 3)' : undefined,
             }}
           >
             <span
-              aria-hidden="true"
               style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '2px',
-                backgroundColor: item.color,
-                display: 'inline-block',
-              }}
-            />
-            <span
-              style={{
-                fontSize: bodyText6.fontSize,
-                lineHeight: `${bodyText6.lineHeight}px`,
+                display: 'block',
+                textAlign: 'center',
+                fontSize: isBelowSm ? '11px' : bodyText6.fontSize,
+                lineHeight: isBelowSm ? '14px' : `${bodyText6.lineHeight}px`,
                 fontWeight: bodyText6.fontWeight,
                 color: bodyText6.color,
                 whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}
             >
               {item.label}
             </span>
+            <span
+              aria-hidden="true"
+              style={{
+                width: '100%',
+                height: '5px',
+                borderRadius: '1px',
+                backgroundColor: item.color,
+                flexShrink: 0,
+              }}
+            />
           </div>
         ))}
       </div>

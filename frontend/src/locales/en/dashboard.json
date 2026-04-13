@@ -63,6 +63,7 @@
     "loading": "Loading map...",
     "loadError": "Unable to load the map right now.",
     "legend": {
+      "ariaLabel": "Map value ranges",
       "gte90": ">=90%",
       "gte70": ">=70%",
       "gte50": ">=50%",
