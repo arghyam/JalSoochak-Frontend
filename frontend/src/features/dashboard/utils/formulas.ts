@@ -314,12 +314,20 @@ export const getRegularityKpi = (response: AverageSchemeRegularityResponse | und
     return 0
   }
 
-  const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
-  return calculateAverageRegularityPercent(
-    response.totalSupplyDays,
-    response.schemeCount,
-    daysInRange
-  )
+  if (response.childRegions?.length) {
+    const valid = response.childRegions.filter((r) => Number.isFinite(r.averageRegularity))
+    if (!valid.length) {
+      return 0
+    }
+    const sum = valid.reduce((acc, r) => acc + r.averageRegularity, 0)
+    return Number(clamp((sum / valid.length) * 100, 0, 100).toFixed(1))
+  }
+
+  if (Number.isFinite(response.averageRegularity)) {
+    return Number(clamp(response.averageRegularity * 100, 0, 100).toFixed(1))
+  }
+
+  return 0
 }
 
 export const getRegularityKpiFromNationalDashboard = (
@@ -329,16 +337,15 @@ export const getRegularityKpiFromNationalDashboard = (
     return 0
   }
 
-  const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
-  const totals = response.stateWiseRegularity.reduce(
-    (acc, state) => ({
-      totalSupplyDays: acc.totalSupplyDays + (state.totalSupplyDays ?? 0),
-      schemeCount: acc.schemeCount + (state.schemeCount ?? 0),
-    }),
-    { totalSupplyDays: 0, schemeCount: 0 }
+  const validStates = response.stateWiseRegularity.filter((state) =>
+    Number.isFinite(state.averageRegularity)
   )
+  if (!validStates.length) {
+    return 0
+  }
 
-  return calculateAverageRegularityPercent(totals.totalSupplyDays, totals.schemeCount, daysInRange)
+  const sum = validStates.reduce((acc, state) => acc + state.averageRegularity, 0)
+  return Number(clamp((sum / validStates.length) * 100, 0, 100).toFixed(1))
 }
 
 export const getWaterSupplyKpisFromPeriodic = (
@@ -402,28 +409,13 @@ export const getRegularityKpiFromPeriodic = (
     return 0
   }
 
-  const totals = response.metrics.reduce(
-    (acc, metric) => {
-      const metricDays = resolveMetricDaysInRange(metric.periodStartDate, metric.periodEndDate)
-      const averageRegularity = Number(metric.averageRegularity ?? 0)
-
-      if (!isFiniteNumber(averageRegularity) || metricDays <= 0) {
-        return acc
-      }
-
-      return {
-        weightedRegularity: acc.weightedRegularity + averageRegularity * metricDays,
-        totalDays: acc.totalDays + metricDays,
-      }
-    },
-    { weightedRegularity: 0, totalDays: 0 }
-  )
-
-  if (totals.totalDays <= 0) {
+  const valid = response.metrics.filter((m) => isFiniteNumber(Number(m.averageRegularity ?? NaN)))
+  if (!valid.length) {
     return 0
   }
 
-  return Number((totals.weightedRegularity / totals.totalDays).toFixed(1))
+  const sum = valid.reduce((acc, m) => acc + Number(m.averageRegularity), 0)
+  return Number((sum / valid.length).toFixed(1))
 }
 
 export const calculatePercentChange = (currentValue: number, previousValue: number) => {

@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import type { ChangeEvent, FocusEvent, ReactNode } from 'react'
+import type { ChangeEvent, FocusEvent, MouseEvent, ReactNode } from 'react'
 import type { ButtonProps, InputProps } from '@chakra-ui/react'
 import {
   Flex,
@@ -96,6 +96,8 @@ export function SearchLayout({
   const [isBreadcrumbPanelOpen, setIsBreadcrumbPanelOpen] = useState(false)
   const [selectedStateValue, setSelectedStateValue] = useState('')
   const panelContainerRef = useRef<HTMLDivElement>(null)
+  const inputGroupRef = useRef<HTMLDivElement>(null)
+  const dropdownPanelRef = useRef<HTMLDivElement>(null)
 
   const showBreadcrumbPanel = Boolean(breadcrumbPanelProps)
   const hasExternalSelectionTrail = selectionTrail !== undefined
@@ -220,6 +222,14 @@ export function SearchLayout({
   }
 
   const handleCloseBreadcrumbPanel = () => {
+    setBreadcrumbPanelOpen(false)
+  }
+
+  const handleContainerMouseDown = (event: MouseEvent<HTMLDivElement>) => {
+    if (!isBreadcrumbPanelOpen) return
+    const target = event.target as Node
+    if (inputGroupRef.current?.contains(target)) return
+    if (dropdownPanelRef.current?.contains(target)) return
     setBreadcrumbPanelOpen(false)
   }
 
@@ -358,11 +368,12 @@ export function SearchLayout({
       borderColor="neutral.200"
       position="relative"
       ref={panelContainerRef}
+      onMouseDown={handleContainerMouseDown}
     >
       <Flex w="full" direction="column" gap={{ base: 3, lg: '24px' }}>
         {isCompactLayout ? (
           <>
-            <InputGroup w="full" minW={0}>
+            <InputGroup ref={inputGroupRef} w="full" minW={0}>
               {searchInput}
             </InputGroup>
             {closedTrailContent}
@@ -376,7 +387,12 @@ export function SearchLayout({
           </>
         ) : (
           <Flex w="full" align="center" justify="space-between" gap={{ base: 2, lg: '12px' }}>
-            <InputGroup w="full" flex="1 1 auto" minW={{ base: 0, lg: '300px' }}>
+            <InputGroup
+              ref={inputGroupRef}
+              w="full"
+              flex="1 1 auto"
+              minW={{ base: 0, lg: '300px' }}
+            >
               {searchInput}
             </InputGroup>
             <Flex align="center" gap={{ base: 2, lg: '12px' }} flex="0 0 auto" minW={0}>
@@ -406,6 +422,7 @@ export function SearchLayout({
       {!isCompactLayout && closedTrailContent ? closedTrailSlot : null}
       {showBreadcrumbPanel && isBreadcrumbPanelOpen ? (
         <Box
+          ref={dropdownPanelRef}
           position="absolute"
           top="56px"
           left="0"

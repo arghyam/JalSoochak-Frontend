@@ -315,7 +315,8 @@ export function IndiaMapChart({
             opacity: 1,
           },
           labelLayout: {
-            hideOverlap: true,
+            hideOverlap: false,
+            moveOverlap: 'shiftY',
           },
           data: seriesData,
           itemStyle: {
