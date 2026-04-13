@@ -59,7 +59,7 @@ export function MonthlyTrendChart({
   const yAxisTitleGutter = 24
   const chartGridTop = 24
   const chartGridBottom = 88
-  const xAxisLabelMargin = 16
+  const xAxisLabelMargin = 30
   const yAxisTickMargin = -12
   const yAxisTitleInset = 0
   const effectiveItemWidth =
@@ -209,6 +209,8 @@ export function MonthlyTrendChart({
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
           color: bodyText7.color,
+          align: 'center',
+          verticalAlign: 'top',
         },
       },
       yAxis: {
@@ -296,6 +298,8 @@ export function MonthlyTrendChart({
           fontWeight: 400,
           formatter: (value: string) => value,
           color: 'transparent',
+          align: 'center',
+          verticalAlign: 'top',
         },
       },
       yAxis: {
