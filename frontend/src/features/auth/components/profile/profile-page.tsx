@@ -182,13 +182,13 @@ export function ProfilePage() {
               <Heading as="h2" size="h3" fontWeight="400" id="profile-details-heading">
                 {t('profile.details')}
               </Heading>
-              {!isEditing && !isLoading && !isError && (
+              {!isLoading && !isError && (
                 <IconButton
                   aria-label={t('profile.editProfile')}
                   icon={<EditIcon boxSize={5} />}
                   variant="ghost"
                   size="sm"
-                  color="neutral.600"
+                  color="neutral.950"
                   _hover={{ color: 'primary.500', bg: 'transparent' }}
                   onClick={handleEdit}
                 />

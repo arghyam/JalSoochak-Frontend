@@ -1,4 +1,4 @@
-import { Box, Flex, Grid, Heading, Icon, Spinner, Text } from '@chakra-ui/react'
+import { Box, Flex, Heading, Icon, Spinner, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { BsCheckLg } from 'react-icons/bs'
@@ -58,55 +58,91 @@ interface StepNodeProps {
   index: number
   configured: boolean
   onClick: () => void
+  layout?: 'vertical' | 'horizontal'
 }
 
-function StepNode({ step, index, configured, onClick }: Readonly<StepNodeProps>) {
+function StepNode({
+  step,
+  index,
+  configured,
+  onClick,
+  layout = 'vertical',
+}: Readonly<StepNodeProps>) {
   const { t } = useTranslation('state-admin')
+
+  const nodeCircle = (
+    <Flex
+      h="36px"
+      w="36px"
+      borderRadius="full"
+      align="center"
+      justify="center"
+      bg={configured ? '#079455' : 'neutral.300'}
+      flexShrink={0}
+    >
+      {configured ? (
+        <Icon as={BsCheckLg} color="white" boxSize={4} aria-hidden="true" />
+      ) : (
+        <Text fontSize="sm" fontWeight="semibold" color="white">
+          {index + 1}
+        </Text>
+      )}
+    </Flex>
+  )
+
+  const label = (
+    <Text
+      fontSize="sm"
+      fontWeight="medium"
+      color={configured ? 'neutral.600' : 'neutral.400'}
+      textAlign={layout === 'horizontal' ? 'left' : 'center'}
+      whiteSpace="nowrap"
+    >
+      {t(step.labelKey)}
+    </Text>
+  )
+
+  const ariaLabel = t(
+    configured
+      ? 'overview.setupWizard.aria.stepCompleted'
+      : 'overview.setupWizard.aria.stepDefault',
+    {
+      number: index + 1,
+      label: t(step.labelKey),
+    }
+  )
+
+  if (layout === 'horizontal') {
+    return (
+      <Flex
+        as="button"
+        type="button"
+        align="center"
+        gap={3}
+        cursor="pointer"
+        onClick={onClick}
+        aria-label={ariaLabel}
+        w="full"
+      >
+        <Flex flexShrink={0}>{nodeCircle}</Flex>
+        {label}
+      </Flex>
+    )
+  }
 
   return (
     <Flex
+      as="button"
+      type="button"
       direction="column"
       align="center"
       gap={2}
       cursor="pointer"
       onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') onClick()
-        if (e.key === ' ') {
-          e.preventDefault()
-          onClick()
-        }
-      }}
-      aria-label={t(step.labelKey)}
+      aria-label={ariaLabel}
     >
-      <Flex
-        h="36px"
-        w="36px"
-        borderRadius="full"
-        align="center"
-        justify="center"
-        bg={configured ? '#079455' : 'neutral.300'}
-        flexShrink={0}
-      >
-        {configured ? (
-          <Icon as={BsCheckLg} color="white" boxSize={4} aria-hidden="true" />
-        ) : (
-          <Text fontSize="sm" fontWeight="semibold" color="white">
-            {index + 1}
-          </Text>
-        )}
-      </Flex>
-      <Text
-        fontSize="sm"
-        fontWeight="medium"
-        color={configured ? 'neutral.600' : 'neutral.400'}
-        textAlign="center"
-        whiteSpace="nowrap"
-      >
-        {t(step.labelKey)}
-      </Text>
+      {nodeCircle}
+      {label}
     </Flex>
   )
 }
@@ -125,6 +161,10 @@ function Connector({ configured }: Readonly<ConnectorProps>) {
       alignSelf="flex-start"
     />
   )
+}
+
+function VerticalConnector({ configured }: Readonly<ConnectorProps>) {
+  return <Box w="2px" h="24px" bg={configured ? '#079455' : 'neutral.200'} mx="auto" my={2} />
 }
 
 export function ConfigSetupWizard() {
@@ -187,29 +227,33 @@ export function ConfigSetupWizard() {
                     configured={configured}
                     onClick={() => navigate(step.route)}
                   />
-                  {!isLast && (
-                    <Connector configured={(configured && prevConfigured) || configured} />
-                  )}
+                  {!isLast && <Connector configured={prevConfigured && configured} />}
                 </Flex>
               )
             })}
           </Flex>
 
-          {/* Mobile: 2-column grid */}
-          <Grid display={{ base: 'grid', md: 'none' }} templateColumns="repeat(2, 1fr)" gap={6}>
+          {/* Mobile: vertical layout with connectors */}
+          <Flex display={{ base: 'flex', md: 'none' }} direction="column" w="full" pl={6} pr={6}>
             {WIZARD_STEPS.map((step, i) => {
               const configured = isStepConfigured(step, statuses)
+              const isLast = i === WIZARD_STEPS.length - 1
+              const prevConfigured = i > 0 ? isStepConfigured(WIZARD_STEPS[i - 1], statuses) : false
+
               return (
-                <StepNode
-                  key={step.id}
-                  step={step}
-                  index={i}
-                  configured={configured}
-                  onClick={() => navigate(step.route)}
-                />
+                <Flex key={step.id} align="flex-start" gap={0} direction="column">
+                  <StepNode
+                    step={step}
+                    index={i}
+                    configured={configured}
+                    onClick={() => navigate(step.route)}
+                    layout="horizontal"
+                  />
+                  {!isLast && <VerticalConnector configured={prevConfigured && configured} />}
+                </Flex>
               )
             })}
-          </Grid>
+          </Flex>
         </>
       )}
     </Box>

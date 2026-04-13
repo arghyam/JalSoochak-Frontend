@@ -93,7 +93,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             top={0}
             zIndex={40}
             h="56px"
-            px={4}
+            px={3}
             align="center"
             justify="space-between"
             bg="white"
@@ -107,6 +107,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               onClick={onOpen}
               minW="44px"
               minH="44px"
+              justifyContent="flex-start"
             />
             <LanguageSwitcher isMobileHeader />
           </Flex>

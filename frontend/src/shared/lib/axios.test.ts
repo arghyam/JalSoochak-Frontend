@@ -168,4 +168,116 @@ describe('apiClient response interceptor', () => {
 
     expect(refreshAccessToken!).not.toHaveBeenCalled()
   })
+
+  it('retries original request after successful refresh on 401', async () => {
+    const refreshAccessToken = jest.fn<() => Promise<string>>().mockResolvedValue('new-tok')
+    mockGetState.mockReturnValue({
+      accessToken: 'old',
+      refreshAccessToken,
+      setSessionExpired: jest.fn(),
+    })
+    const { apiClient } = await import('./axios')
+    let attempt = 0
+    const result = await apiClient.get('/api/v1/resource', {
+      adapter: async (config) => {
+        attempt += 1
+        if (attempt === 1) {
+          const err = new AxiosError('Unauthorized')
+          err.response = {
+            status: 401,
+            data: {},
+            statusText: '',
+            headers: {},
+            config: config as InternalAxiosRequestConfig,
+          }
+          err.config = config as InternalAxiosRequestConfig
+          return Promise.reject(err)
+        }
+        return {
+          data: { ok: true },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: config as InternalAxiosRequestConfig,
+        }
+      },
+    })
+    expect(refreshAccessToken).toHaveBeenCalledTimes(1)
+    expect(result.data).toEqual({ ok: true })
+  })
+
+  it('calls setSessionExpired when refresh fails', async () => {
+    const setSessionExpired = jest.fn()
+    const refreshAccessToken = jest
+      .fn<() => Promise<string>>()
+      .mockRejectedValue(new Error('refresh failed'))
+    mockGetState.mockReturnValue({
+      accessToken: 'old',
+      refreshAccessToken,
+      setSessionExpired,
+    })
+    const { apiClient } = await import('./axios')
+    const err = new AxiosError('Unauthorized')
+    err.response = {
+      status: 401,
+      data: {},
+      statusText: '',
+      headers: {},
+      config: { url: '/api/v1/resource', headers: {} } as InternalAxiosRequestConfig,
+    }
+    err.config = { url: '/api/v1/resource', headers: {} } as InternalAxiosRequestConfig
+
+    await expect(
+      apiClient.get('/api/v1/resource', { adapter: () => Promise.reject(err) })
+    ).rejects.toThrow()
+
+    expect(setSessionExpired).toHaveBeenCalled()
+  })
+
+  it('does not refresh again when retried request returns 401', async () => {
+    const refreshAccessToken = jest.fn<() => Promise<string>>().mockResolvedValue('new-tok')
+    mockGetState.mockReturnValue({
+      accessToken: 'old',
+      refreshAccessToken,
+      setSessionExpired: jest.fn(),
+    })
+    const { apiClient } = await import('./axios')
+    const make401 = (config: InternalAxiosRequestConfig) => {
+      const err = new AxiosError('Unauthorized')
+      err.response = {
+        status: 401,
+        data: {},
+        statusText: '',
+        headers: {},
+        config,
+      }
+      err.config = config
+      return Promise.reject(err)
+    }
+
+    await expect(
+      apiClient.get('/api/v1/resource', {
+        adapter: async (config) => {
+          return make401(config as InternalAxiosRequestConfig)
+        },
+      })
+    ).rejects.toMatchObject({ response: { status: 401 } })
+
+    expect(refreshAccessToken).toHaveBeenCalledTimes(1)
+  })
+
+  it('propagates errors without response status', async () => {
+    mockGetState.mockReturnValue({
+      accessToken: 't',
+      refreshAccessToken: jest.fn(),
+      setSessionExpired: jest.fn(),
+    })
+    const { apiClient } = await import('./axios')
+    const err = new AxiosError('Network')
+    err.config = { url: '/api/v1/x', headers: {} } as InternalAxiosRequestConfig
+
+    await expect(apiClient.get('/api/v1/x', { adapter: () => Promise.reject(err) })).rejects.toBe(
+      err
+    )
+  })
 })

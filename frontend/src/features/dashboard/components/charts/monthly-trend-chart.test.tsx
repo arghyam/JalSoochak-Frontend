@@ -100,4 +100,11 @@ describe('MonthlyTrendChart', () => {
     expect(chartOption?.xAxis?.axisLabel?.interval).toBe(0)
     expect(axisOption?.yAxis?.axisLabel?.margin).toBe(-12)
   })
+
+  it('renders wrapper for empty data without throwing', () => {
+    renderWithProviders(
+      <MonthlyTrendChart data={[]} xAxisLabel="Month" yAxisLabel="Value" seriesName="Trend" />
+    )
+    expect(mockEChartsWrapper).toHaveBeenCalled()
+  })
 })

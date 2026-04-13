@@ -69,7 +69,11 @@
       "language": "Language",
       "waterNorms": "Water Norms",
       "integration": "Integration",
-      "escalations": "Escalations"
+      "escalations": "Escalations",
+      "aria": {
+        "stepDefault": "Step {{number}}: {{label}}",
+        "stepCompleted": "Step {{number}}: {{label}} - Completed"
+      }
     }
   },
 

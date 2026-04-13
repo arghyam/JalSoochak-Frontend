@@ -39,4 +39,38 @@ describe('ManageStateAdminsPage', () => {
     await user.click(screen.getByRole('button', { name: /retry/i }))
     expect(refetch).toHaveBeenCalled()
   })
+
+  it('shows loading status in the table area', () => {
+    mockedHooks.useStateAdminsQuery.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+      refetch: jest.fn(),
+    } as never)
+    renderWithProviders(<ManageStateAdminsPage />)
+    expect(screen.getByRole('status', { busy: true })).toBeInTheDocument()
+  })
+
+  it('renders admin name from loaded data', () => {
+    mockedHooks.useStateAdminsQuery.mockReturnValue({
+      data: {
+        items: [
+          {
+            id: '1',
+            adminName: 'Ravi Kumar',
+            stateUt: 'MH',
+            mobileNumber: '999',
+            emailAddress: 'r@x.com',
+            status: 'active',
+          },
+        ],
+        total: 1,
+      },
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(),
+    } as never)
+    renderWithProviders(<ManageStateAdminsPage />)
+    expect(screen.getByText('Ravi Kumar')).toBeInTheDocument()
+  })
 })

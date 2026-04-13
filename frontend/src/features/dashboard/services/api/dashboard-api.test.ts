@@ -858,3 +858,281 @@ describe('state dashboard analytics wrappers', () => {
     )
   })
 })
+
+describe('dashboardApi.getTenantPublicConfig', () => {
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+  })
+
+  it('maps config envelope and defaults when keys missing', async () => {
+    mockGet.mockResolvedValueOnce({ data: { data: { configs: {} } } } as never)
+    const { dashboardApi } = await import('./dashboard-api')
+    const res = await dashboardApi.getTenantPublicConfig(5)
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/tenants/5/config/public')
+    expect(res.averageMembersPerHousehold).toBe(0)
+    expect(res.dateFormatScreen).toEqual({
+      dateFormat: null,
+      timeFormat: null,
+      timezone: null,
+    })
+  })
+
+  it('reads average members and date format from configs', async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        data: {
+          configs: {
+            AVERAGE_MEMBERS_PER_HOUSEHOLD: { value: '5' },
+            DATE_FORMAT_SCREEN: {
+              dateFormat: 'dd/MM/yyyy',
+              timeFormat: null,
+              timezone: 'Asia/Kolkata',
+            },
+          },
+        },
+      },
+    } as never)
+    const { dashboardApi } = await import('./dashboard-api')
+    const res = await dashboardApi.getTenantPublicConfig(9)
+    expect(res.averageMembersPerHousehold).toBe(5)
+    expect(res.dateFormatScreen.dateFormat).toBe('dd/MM/yyyy')
+  })
+})
+
+describe('dashboardApi.getNationalDashboardBoundaries', () => {
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+  })
+
+  it('unwraps wrapped boundary payload', async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        success: true,
+        data: {
+          nationalBoundary: null,
+          stateWiseBoundaries: [],
+        },
+      },
+    } as never)
+    const { dashboardApi } = await import('./dashboard-api')
+    const res = await dashboardApi.getNationalDashboardBoundaries()
+    expect(res.stateWiseBoundaries).toEqual([])
+  })
+})
+
+describe('dashboardApi.getWaterQuantityPeriodic', () => {
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+  })
+
+  it('unwraps wrapped periodic water quantity response', async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        success: true,
+        data: {
+          lgdId: 1,
+          departmentId: 0,
+          scale: 'day',
+          startDate: 'a',
+          endDate: 'b',
+          periodCount: 2,
+          metrics: [],
+        },
+      },
+    } as never)
+    const { dashboardApi } = await import('./dashboard-api')
+    const res = await dashboardApi.getWaterQuantityPeriodic({
+      startDate: 'a',
+      endDate: 'b',
+      scale: 'day',
+      lgdId: 1,
+    })
+    expect(res.periodCount).toBe(2)
+  })
+})
+
+describe('dashboardApi.getSchemePerformance', () => {
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+  })
+
+  it('sends scheme_count and unwraps wrapped payload', async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        success: true,
+        data: {
+          parentLgdId: 10,
+          parentDepartmentId: 0,
+          parentLgdCName: '',
+          parentDepartmentCName: '',
+          parentLgdTitle: '',
+          parentDepartmentTitle: '',
+          startDate: 's',
+          endDate: 'e',
+          daysInRange: 1,
+          activeSchemeCount: 2,
+          inactiveSchemeCount: 1,
+          topSchemeCount: 1,
+          topSchemes: [],
+        },
+      },
+    } as never)
+    const { dashboardApi } = await import('./dashboard-api')
+    const res = await dashboardApi.getSchemePerformance({
+      parentLgdId: 10,
+      startDate: 's',
+      endDate: 'e',
+      schemeCount: 25,
+    })
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/analytics/schemes/dashboard', {
+      params: {
+        parent_lgd_id: 10,
+        parent_department_id: undefined,
+        start_date: 's',
+        end_date: 'e',
+        scheme_count: 25,
+      },
+    })
+    expect(res.activeSchemeCount).toBe(2)
+  })
+})
+
+describe('dashboardApi pump operator endpoints', () => {
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+  })
+
+  it('getPumpOperatorDetails normalizes missedSubmissionDays from array length', async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        status: 200,
+        message: 'ok',
+        data: {
+          id: 1,
+          uuid: 'u',
+          name: 'n',
+          email: 'e',
+          phoneNumber: 'p',
+          status: 1,
+          schemeId: 9,
+          schemeName: 'S',
+          schemeLatitude: null,
+          schemeLongitude: null,
+          lastSubmissionAt: null,
+          firstSubmissionDate: null,
+          totalDaysSinceFirstSubmission: null,
+          submittedDays: 0,
+          reportingRatePercent: null,
+          missedSubmissionDays: ['2026-01-01', '2026-01-02'],
+        },
+      },
+    } as never)
+    const { dashboardApi } = await import('./dashboard-api')
+    const res = await dashboardApi.getPumpOperatorDetails({
+      pumpOperatorId: 7,
+      tenant_code: 'TN',
+    })
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/pumpoperator/pump-operators/7', {
+      params: { tenantCode: 'TN' },
+    })
+    expect(res.data.missedSubmissionDays).toBe(2)
+  })
+
+  it('getPumpOperatorsByScheme returns response data', async () => {
+    const payload = { status: 200, message: 'ok', data: [] }
+    mockGet.mockResolvedValueOnce({ data: payload } as never)
+    const { dashboardApi } = await import('./dashboard-api')
+    const res = await dashboardApi.getPumpOperatorsByScheme({
+      tenant_code: 'TN',
+      scheme_id: 3,
+    })
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/pumpoperator/pump-operators/by-scheme', {
+      params: { tenantCode: 'TN', schemeId: 3 },
+    })
+    expect(res).toEqual(payload)
+  })
+
+  it('getReadingCompliance uses by-scheme path when scheme_id set', async () => {
+    const body = { status: 200, message: 'ok', data: { content: [], totalElements: 0 } }
+    mockGet.mockResolvedValueOnce({ data: body } as never)
+    const { dashboardApi } = await import('./dashboard-api')
+    const res = await dashboardApi.getReadingCompliance({
+      tenant_code: 'TN',
+      scheme_id: 99,
+      page: 1,
+      size: 20,
+    })
+    expect(mockGet).toHaveBeenCalledWith(
+      '/api/v1/pumpoperator/pump-operators/by-scheme/reading-compliance',
+      { params: { tenantCode: 'TN', schemeId: 99, page: 1, size: 20 } }
+    )
+    expect(res).toEqual(body)
+  })
+
+  it('getReadingCompliance uses global path when scheme_id absent', async () => {
+    const body = { status: 200, message: 'ok', data: { content: [], totalElements: 0 } }
+    mockGet.mockResolvedValueOnce({ data: body } as never)
+    const { dashboardApi } = await import('./dashboard-api')
+    await dashboardApi.getReadingCompliance({ tenant_code: 'TN' })
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/pumpoperator/pump-operators/reading-compliance', {
+      params: { tenantCode: 'TN', schemeId: undefined, page: 0, size: 50 },
+    })
+  })
+})
+
+describe('dashboardApi.getDashboardData validation', () => {
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+    mockGet.mockReset()
+  })
+
+  it('throws when entityId missing', async () => {
+    const { dashboardApi } = await import('./dashboard-api')
+    await expect(dashboardApi.getDashboardData({ level: 'block', entityId: '' })).rejects.toThrow(
+      /entityId is required/
+    )
+    expect(mockGet).not.toHaveBeenCalled()
+  })
+
+  it('throws when payload is not valid dashboard data', async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        level: 'block',
+        entityId: 'b1',
+        kpis: {},
+      },
+    } as never)
+    const { dashboardApi } = await import('./dashboard-api')
+    await expect(dashboardApi.getDashboardData({ level: 'block', entityId: 'b1' })).rejects.toThrow(
+      /invalid payload/
+    )
+  })
+})
+
+describe('dashboardApi.getTenants', () => {
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+    mockGet.mockReset()
+  })
+
+  it('aggregates a single page of tenants', async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        content: [{ id: 1, name: 'A' }],
+        totalElements: 1,
+      },
+    } as never)
+    const { dashboardApi } = await import('./dashboard-api')
+    const res = await dashboardApi.getTenants()
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/tenants', { params: { page: 0, size: 10 } })
+    expect(res.content).toHaveLength(1)
+    expect(res.totalElements).toBe(1)
+  })
+})

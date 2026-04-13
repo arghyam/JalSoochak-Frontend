@@ -296,7 +296,7 @@ export function WaterNormsPage() {
             >
               {t('waterNorms.stateUtWaterNorms')}
             </Heading>
-            {config?.isConfigured && !effectiveIsEditing && (
+            {config?.isConfigured && (
               <Button
                 variant="ghost"
                 h={6}
@@ -305,7 +305,7 @@ export function WaterNormsPage() {
                 pl="2px"
                 pr="2px"
                 onClick={handleEdit}
-                color="neutral.500"
+                color="neutral.950"
                 _hover={{ bg: 'primary.50', color: 'primary.500' }}
                 aria-label={t('waterNorms.aria.editConfiguration')}
               >
