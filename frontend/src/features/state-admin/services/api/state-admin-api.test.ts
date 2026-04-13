@@ -188,7 +188,7 @@ describe('stateAdminApi', () => {
         })
       )
       const formData = mockedApiClient.put.mock.calls[0][1] as FormData
-      expect(formData.get('logo')).toBe(file)
+      expect(formData.get('file')).toBe(file)
     })
   })
 

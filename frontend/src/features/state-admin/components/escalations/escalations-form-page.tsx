@@ -284,7 +284,7 @@ export function EscalationsFormPage() {
                 pl="2px"
                 pr="2px"
                 onClick={handleEdit}
-                color="neutral.950"
+                color="neutral.600"
                 _hover={{ bg: 'primary.50', color: 'primary.500' }}
                 aria-label={t('escalations.aria.editMode')}
               >

@@ -171,12 +171,6 @@ export function LoginPage() {
                     </InputGroup>
                   </FormControl>
 
-                  {(error || (localError && !isEmailError)) && (
-                    <FormControl isInvalid>
-                      <FormErrorMessage>{localError || error}</FormErrorMessage>
-                    </FormControl>
-                  )}
-
                   <Flex justify="flex-start" mt="-4px" mb="4px">
                     <Link
                       as="button"
@@ -201,6 +195,11 @@ export function LoginPage() {
                   >
                     Log in
                   </Button>
+                  {(error || (localError && !isEmailError)) && (
+                    <FormControl isInvalid>
+                      <FormErrorMessage>{localError || error}</FormErrorMessage>
+                    </FormControl>
+                  )}
                 </VStack>
               </Box>
             </Box>
