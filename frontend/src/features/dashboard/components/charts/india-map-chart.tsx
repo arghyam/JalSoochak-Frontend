@@ -314,6 +314,9 @@ export function IndiaMapChart({
             color: '#1C1C1C',
             opacity: 1,
           },
+          labelLayout: {
+            hideOverlap: true,
+          },
           data: seriesData,
           itemStyle: {
             areaColor: usePrimaryFill ? primaryMapColor : mapColors.gte90,
