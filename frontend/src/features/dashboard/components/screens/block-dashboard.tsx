@@ -48,6 +48,7 @@ type BlockDashboardScreenProps = {
   showSupplyOutageReasons?: boolean
   showReadingSubmissionRate?: boolean
   showReadingSubmissionSection?: boolean
+  onReachSchemePerformanceEnd?: () => void
 }
 
 type ViewBy = 'geography' | 'time'
@@ -77,6 +78,7 @@ export function BlockDashboardScreen({
   showSupplyOutageReasons = true,
   showReadingSubmissionRate = true,
   showReadingSubmissionSection = true,
+  onReachSchemePerformanceEnd,
 }: BlockDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
@@ -326,10 +328,9 @@ export function BlockDashboardScreen({
             })}
             data={operatorsPerformanceTable}
             fillHeight
-            secondaryColumnLabel={t('performanceCharts.viewBy.gramPanchayats', {
-              defaultValue: 'Gram Panchayats',
-            })}
+            secondaryColumnLabel={childEntityLabel}
             showBlockColumn={false}
+            onReachEnd={onReachSchemePerformanceEnd}
           />
         </Box>
       </Grid>

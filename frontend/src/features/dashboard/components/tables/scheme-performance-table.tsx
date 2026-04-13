@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent, type RefObject } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent,
+  type RefObject,
+  type UIEvent,
+} from 'react'
 import { Box, Icon, Table, Tbody, Td, Text, Th, Thead, Tr, useMediaQuery } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { BiSortAlt2 } from 'react-icons/bi'
@@ -13,6 +21,8 @@ interface SchemePerformanceTableProps {
   showVillageColumn?: boolean
   secondaryColumnLabel?: string
   showBlockColumn?: boolean
+  blockColumnLabel?: string
+  onReachEnd?: () => void
 }
 
 type SortColumn = 'reportingRate' | 'waterSupplied' | null
@@ -74,6 +84,8 @@ export function SchemePerformanceTable({
   showVillageColumn = true,
   secondaryColumnLabel,
   showBlockColumn = true,
+  blockColumnLabel,
+  onReachEnd,
 }: SchemePerformanceTableProps) {
   const { t } = useTranslation('dashboard')
   const [enableHorizontalScroller] = useMediaQuery('(max-width: 1599px)')
@@ -83,6 +95,8 @@ export function SchemePerformanceTable({
   const scrollbarTrackRef = useRef<HTMLDivElement | null>(null)
   const scrollbarThumbRef = useRef<HTMLDivElement | null>(null)
   const isDraggingThumb = useRef(false)
+  const hasReachedEndRef = useRef(false)
+  const verticalScrollContainerRef = useRef<HTMLDivElement | null>(null)
   const dragStartX = useRef(0)
   const dragStartLeft = useRef(0)
   const thumbLeftRef = useRef(0)
@@ -153,6 +167,47 @@ export function SchemePerformanceTable({
     updateScrollbarThumb()
   }, [rows.length, showVillageColumn, showBlockColumn, hasHorizontalOverflow, updateScrollbarThumb])
 
+  useEffect(() => {
+    hasReachedEndRef.current = false
+  }, [rows.length])
+
+  useEffect(() => {
+    if (!onReachEnd || rows.length === 0) {
+      return
+    }
+
+    const container = verticalScrollContainerRef.current
+
+    if (!container) {
+      return
+    }
+
+    const checkOverflow = () => {
+      const hasOverflow = container.scrollHeight - container.clientHeight > 24
+
+      if (!hasOverflow && !hasReachedEndRef.current) {
+        hasReachedEndRef.current = true
+        onReachEnd()
+      }
+    }
+
+    checkOverflow()
+
+    if (typeof ResizeObserver === 'undefined') {
+      return
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      checkOverflow()
+    })
+
+    resizeObserver.observe(container)
+
+    return () => {
+      resizeObserver.disconnect()
+    }
+  }, [onReachEnd, rows.length])
+
   const handleThumbPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (!hasHorizontalOverflow) {
       return
@@ -220,6 +275,25 @@ export function SchemePerformanceTable({
     event.currentTarget.releasePointerCapture(event.pointerId)
   }
 
+  const handleVerticalScroll = (event: UIEvent<HTMLDivElement>) => {
+    if (!onReachEnd) {
+      return
+    }
+
+    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight
+
+    if (distanceFromBottom > 48) {
+      hasReachedEndRef.current = false
+      return
+    }
+
+    if (distanceFromBottom <= 24 && !hasReachedEndRef.current) {
+      hasReachedEndRef.current = true
+      onReachEnd()
+    }
+  }
+
   return (
     <Box
       borderRadius="lg"
@@ -248,6 +322,8 @@ export function SchemePerformanceTable({
         </Box>
       ) : (
         <Box
+          ref={verticalScrollContainerRef}
+          data-testid="scheme-performance-scroll-area"
           maxH={fillHeight ? undefined : maxTableHeight}
           flex={fillHeight ? 1 : undefined}
           minH={fillHeight ? 0 : undefined}
@@ -258,6 +334,7 @@ export function SchemePerformanceTable({
           minW={0}
           pr={2}
           pb={2}
+          onScroll={handleVerticalScroll}
           sx={{
             WebkitOverflowScrolling: 'touch',
             '&::-webkit-scrollbar': { width: '4px', height: '0px' },
@@ -316,9 +393,10 @@ export function SchemePerformanceTable({
                     ) : null}
                     {showBlockColumn ? (
                       <Th minW={enableHorizontalScroller ? '140px' : 'auto'}>
-                        {t('pumpOperators.performanceTable.columns.block', {
-                          defaultValue: 'Block',
-                        })}
+                        {blockColumnLabel ??
+                          t('pumpOperators.performanceTable.columns.block', {
+                            defaultValue: 'Block',
+                          })}
                       </Th>
                     ) : null}
                     <Th

@@ -22,5 +22,6 @@ export function useSchemePerformanceQuery(options: UseSchemePerformanceQueryOpti
     },
     enabled: enabled && Boolean(params),
     retry: false,
+    placeholderData: (previousData) => previousData,
   })
 }

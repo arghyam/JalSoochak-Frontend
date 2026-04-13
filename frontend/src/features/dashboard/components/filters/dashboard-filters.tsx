@@ -77,6 +77,8 @@ type LocationOption = SearchableSelectOption & {
   analyticsId?: number
 }
 const LOCATION_VALUE_SEPARATOR = ':'
+const sortByLabelAsc = <T extends { label: string }>(items: T[]): T[] =>
+  [...items].sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }))
 
 const parseLocationId = (value: string): number | undefined => {
   if (!value) {
@@ -111,7 +113,7 @@ const mapLocationOptions = (locations: TenantChildLocation[] | undefined): Locat
     return []
   }
 
-  return locations.flatMap((location) => {
+  const mappedOptions = locations.flatMap((location) => {
     if (typeof location.id !== 'number') {
       return []
     }
@@ -135,6 +137,8 @@ const mapLocationOptions = (locations: TenantChildLocation[] | undefined): Locat
       analyticsId,
     }
   })
+
+  return sortByLabelAsc(mappedOptions)
 }
 
 export function DashboardFilters(props: DashboardFiltersProps) {

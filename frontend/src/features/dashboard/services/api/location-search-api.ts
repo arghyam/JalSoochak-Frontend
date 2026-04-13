@@ -3,6 +3,9 @@ import { dashboardApi } from './dashboard-api'
 import type { TenantListContainer, TenantListItem, TenantListResponse } from './dashboard-api'
 import { slugify, toCapitalizedWords } from '../../utils/format-location-label'
 
+const sortByLabelAsc = <T extends { label: string }>(items: T[]): T[] =>
+  [...items].sort((a, b) => a.label.localeCompare(b.label, undefined, { sensitivity: 'base' }))
+
 const toTenantListContainer = (value: unknown): TenantListContainer | null => {
   if (!value || typeof value !== 'object') {
     return null
@@ -53,11 +56,12 @@ export const locationSearchApi = {
 
       return option
     })
-    const totalStatesCount = states.length
+    const sortedStates = sortByLabelAsc(states)
+    const totalStatesCount = sortedStates.length
 
     return {
       totalStatesCount,
-      states,
+      states: sortedStates,
     }
   },
 }

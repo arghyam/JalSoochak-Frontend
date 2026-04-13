@@ -1,7 +1,7 @@
 {
   "header": {
     "title": "JalSoochak",
-    "subtitle": "Operational Status of Water Supply Schemes"
+    "subtitle": "National Rural Drinking Water Supply Dashboard"
   },
   "searchLayout": {
     "placeholder": "Search by state/UT, district, block, gram panchayat, village",
@@ -63,6 +63,7 @@
     "loading": "Loading map...",
     "loadError": "Unable to load the map right now.",
     "legend": {
+      "ariaLabel": "Map value ranges",
       "gte90": ">=90%",
       "gte70": ">=70%",
       "gte50": ">=50%",
