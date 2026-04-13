@@ -64,6 +64,7 @@ type DashboardBodyProps = {
   villagePumpOperators?: VillagePumpOperatorDetails[]
   tenantCode?: string
   schemeId?: number
+  onReachSchemePerformanceEnd?: () => void
 }
 
 type ViewBy = 'geography' | 'time'
@@ -107,6 +108,7 @@ export function DashboardBody({
   villagePumpOperators,
   tenantCode,
   schemeId,
+  onReachSchemePerformanceEnd,
 }: DashboardBodyProps) {
   const { t } = useTranslation('dashboard')
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
@@ -215,6 +217,7 @@ export function DashboardBody({
           childEntityLabel={supplySubmissionRateLabel}
           operatorsPerformanceTable={operatorsPerformanceTable}
           pumpOperatorsTotal={pumpOperatorsTotal}
+          onReachSchemePerformanceEnd={onReachSchemePerformanceEnd}
         />
       ) : null}
       {isBlockScreen ? (
@@ -244,6 +247,7 @@ export function DashboardBody({
           showSupplyOutageReasons
           showReadingSubmissionRate
           showReadingSubmissionSection
+          onReachSchemePerformanceEnd={onReachSchemePerformanceEnd}
         />
       ) : null}
       {isGramPanchayatScreen ? (
@@ -270,6 +274,7 @@ export function DashboardBody({
           childEntityLabel={supplySubmissionRateLabel}
           pumpOperatorsTotal={pumpOperatorsTotal}
           operatorsPerformanceTable={operatorsPerformanceTable}
+          onReachSchemePerformanceEnd={onReachSchemePerformanceEnd}
         />
       ) : null}
 

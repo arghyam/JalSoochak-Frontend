@@ -1067,6 +1067,7 @@ export const mapSchemePerformanceToTable = (
   options?: {
     blockTitleByParentId?: LocationTitleLookup
     parentLgdTitleById?: LocationTitleLookup
+    useDepartmentHierarchyTitles?: boolean
   }
 ): PumpOperatorPerformanceData[] => {
   if (!response?.topSchemes?.length) {
@@ -1074,17 +1075,33 @@ export const mapSchemePerformanceToTable = (
   }
 
   return response.topSchemes.map((scheme, index) => {
+    const useDepartmentHierarchyTitles = options?.useDepartmentHierarchyTitles === true
     const parentLgdTitle = getLocationTitleFromLookup(
       options?.parentLgdTitleById,
-      scheme.immediateParentLgdId
+      useDepartmentHierarchyTitles
+        ? scheme.immediateParentDepartmentId
+        : scheme.immediateParentLgdId
     )
-    const blockTitle = getLocationTitleFromLookup(
+    const blockTitleByDepartmentId = getLocationTitleFromLookup(
+      options?.blockTitleByParentId,
+      scheme.immediateParentDepartmentId
+    )
+    const blockTitleByLgdId = getLocationTitleFromLookup(
       options?.blockTitleByParentId,
       scheme.immediateParentLgdId
     )
+    const normalizedParentLgdLevel = (scheme.immediateParentLgdCName ?? '').trim().toLowerCase()
+    const blockTitle =
+      blockTitleByDepartmentId ??
+      blockTitleByLgdId ??
+      (scheme.immediateParentDepartmentTitle?.trim() || undefined) ??
+      (normalizedParentLgdLevel === 'block' ? scheme.immediateParentLgdTitle?.trim() : undefined)
+    const primaryTitleFallback = useDepartmentHierarchyTitles
+      ? scheme.immediateParentDepartmentTitle?.trim() || scheme.immediateParentLgdTitle?.trim()
+      : scheme.immediateParentLgdTitle?.trim()
 
     return {
-      id: `scheme-performance-${scheme.schemeId ?? index}`,
+      id: `scheme-performance-${scheme.schemeId ?? index}-${index}`,
       name: formatEntityName(
         scheme.schemeName?.trim(),
         undefined,
@@ -1092,8 +1109,8 @@ export const mapSchemePerformanceToTable = (
       ),
       village: parentLgdTitle
         ? toCapitalizedWords(parentLgdTitle)
-        : scheme.immediateParentLgdTitle?.trim()
-          ? toCapitalizedWords(scheme.immediateParentLgdTitle.trim())
+        : primaryTitleFallback
+          ? toCapitalizedWords(primaryTitleFallback)
           : null,
       block: blockTitle
         ? toCapitalizedWords(blockTitle)
@@ -1102,7 +1119,9 @@ export const mapSchemePerformanceToTable = (
           : null,
       reportingRate:
         typeof scheme.reportingRate === 'number' && Number.isFinite(scheme.reportingRate)
-          ? scheme.reportingRate
+          ? scheme.reportingRate >= 0 && scheme.reportingRate <= 1
+            ? scheme.reportingRate * 100
+            : scheme.reportingRate
           : null,
       photoCompliance: 0,
       waterSupplied:

@@ -1,14 +1,10 @@
 import { Box, Flex, Image, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { LanguageSwitcher } from '@/shared/components/common'
-import logoIcon from '@/assets/media/logo.svg'
+import logoWithText from '@/assets/media/JalSoochak Logo with Text.svg'
 
 export function Header() {
   const { t } = useTranslation(['dashboard', 'common'])
-  const headerTitle = t('header.title', {
-    ns: 'dashboard',
-    defaultValue: 'JalSoochak',
-  })
   const headerSubtitle = t('header.subtitle', {
     ns: 'dashboard',
     defaultValue: 'Operational Status of Water Supply Schemes',
@@ -18,8 +14,8 @@ export function Header() {
     <Flex
       as="header"
       borderBottomWidth="1px"
-      bg="primary.25"
-      boxShadow="sm"
+      bg="primary.800"
+      boxShadow="0 6px 14px rgba(0, 0, 0, 0.24)"
       mb="28px"
       minH={{ base: 'auto', md: '124px' }}
       px={{ base: '40px', md: '80px' }}
@@ -35,43 +31,32 @@ export function Header() {
       >
         <Flex align="center" flexShrink={0}>
           <Image
-            src={logoIcon}
-            alt={t('sidebar.logoAlt', 'JalSoochak logo')}
+            src={logoWithText}
+            alt={t('footer.logoAlt', { ns: 'common', defaultValue: 'JalSoochak logo with text' })}
             display="block"
-            w={{ base: '70px', md: '117.61px' }}
-            h={{ base: '40px', md: '100px' }}
+            w={{ base: '90.5px', md: '181px' }}
+            h={{ base: '40px', md: '80px' }}
             objectFit="contain"
             objectPosition="left center"
           />
         </Flex>
 
-        <Flex flex="1" justify="center" w="full">
-          <Flex direction="column" align="center" textAlign="center">
-            <Text
-              color="primary.500"
-              fontFamily="Geist, sans-serif"
-              fontSize={{ base: '16px', md: '24px' }}
-              fontStyle="normal"
-              fontWeight="600"
-              lineHeight={{ base: '24px', md: '36px' }}
-            >
-              {headerTitle}
-            </Text>
-            <Text
-              color="primary.500"
-              fontFamily="Geist, sans-serif"
-              fontSize={{ base: '14px', md: '20px' }}
-              fontStyle="normal"
-              fontWeight="500"
-              lineHeight={{ base: '20px', md: '36px' }}
-            >
-              {headerSubtitle}
-            </Text>
-          </Flex>
+        <Flex flex="1" justify="center" w="full" px="15px">
+          <Text
+            textAlign="center"
+            color="#FFF"
+            fontFamily="Geist, sans-serif"
+            fontSize={{ base: '14px', md: '24px' }}
+            fontStyle="normal"
+            fontWeight="500"
+            lineHeight={{ base: '20px', md: '36px' }}
+          >
+            {headerSubtitle}
+          </Text>
         </Flex>
 
-        <Box display="flex" w={{ base: '70px', md: '117.61px' }} justifyContent="flex-end">
-          <LanguageSwitcher isMobileHeader />
+        <Box display="flex" w={{ base: '90.5px', md: '181px' }} justifyContent="flex-end">
+          <LanguageSwitcher isMobileHeader variant="white" />
         </Box>
       </Flex>
     </Flex>

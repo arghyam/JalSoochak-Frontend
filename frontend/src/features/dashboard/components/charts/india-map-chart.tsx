@@ -73,7 +73,7 @@ export function IndiaMapChart({
   const effectiveMapName = mapName
   const isRegisteredMapAvailable =
     dynamicGeoJson != null || (mapName != null && echarts.getMap(mapName) != null)
-  const isMapReady = !shouldShowNoMapAvailable && isRegisteredMapAvailable
+  const isMapReady = !isLoading && !shouldShowNoMapAvailable && isRegisteredMapAvailable
   const resolveThemeColor = useCallback(
     (token: string) => {
       const [scale, shade] = token.split('.')
@@ -305,8 +305,8 @@ export function IndiaMapChart({
           roam: true,
           aspectScale: 0.927,
           scaleLimit: {
-            min: 1,
-            max: 3,
+            min: 1.2,
+            max: 4,
           },
           label: {
             show: true,

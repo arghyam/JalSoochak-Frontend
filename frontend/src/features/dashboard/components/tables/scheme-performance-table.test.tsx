@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals'
+import { describe, expect, it, jest } from '@jest/globals'
 import { fireEvent, screen } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { PumpOperatorPerformanceData } from '../../types'
@@ -98,6 +98,21 @@ describe('SchemePerformanceTable', () => {
     expect(headers).toContain('My Secondary')
   })
 
+  it('uses custom block column label when provided', () => {
+    renderWithProviders(
+      <SchemePerformanceTable
+        title="Scheme Performance"
+        data={tableData}
+        showVillageColumn={false}
+        blockColumnLabel="Circle"
+      />
+    )
+
+    const headers = screen.getAllByRole('columnheader').map((header) => header.textContent ?? '')
+    expect(headers).toContain('Circle')
+    expect(headers).not.toContain('Block')
+  })
+
   it('sorts reporting rate descending then ascending', () => {
     const { container } = renderWithProviders(
       <SchemePerformanceTable title="Scheme Performance" data={tableData} />
@@ -143,5 +158,59 @@ describe('SchemePerformanceTable', () => {
     )
 
     expect(screen.getAllByText('-')).toHaveLength(4)
+  })
+
+  it('fires onReachEnd when scrolled to the bottom', () => {
+    const scrollTestId = 'scheme-performance-scroll-area'
+    const isScrollArea = (el: unknown): el is HTMLElement =>
+      el instanceof HTMLElement && el.getAttribute('data-testid') === scrollTestId
+    const scrollHeightDesc = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollHeight')
+    const clientHeightDesc = Object.getOwnPropertyDescriptor(Element.prototype, 'clientHeight')
+    const scrollHeightSpy = jest
+      .spyOn(Element.prototype, 'scrollHeight', 'get')
+      .mockImplementation(function (this: Element) {
+        if (isScrollArea(this)) return 500
+        return scrollHeightDesc?.get?.call(this) ?? 0
+      })
+    const clientHeightSpy = jest
+      .spyOn(Element.prototype, 'clientHeight', 'get')
+      .mockImplementation(function (this: Element) {
+        if (isScrollArea(this)) return 100
+        return clientHeightDesc?.get?.call(this) ?? 0
+      })
+    const onReachEnd = jest.fn()
+    const many = Array.from({ length: 40 }, (_, i) => ({
+      id: `scheme-${i}`,
+      name: `Scheme ${i}`,
+      village: `Village ${i}`,
+      block: `Block ${i}`,
+      reportingRate: i,
+      photoCompliance: 0,
+      waterSupplied: i * 1000,
+    }))
+
+    try {
+      const { container } = renderWithProviders(
+        <SchemePerformanceTable title="Scheme Performance" data={many} onReachEnd={onReachEnd} />
+      )
+      const scrollArea = container.querySelector(
+        `[data-testid="${scrollTestId}"]`
+      ) as HTMLElement | null
+
+      expect(scrollArea).not.toBeNull()
+      onReachEnd.mockClear()
+
+      Object.defineProperty(scrollArea as HTMLElement, 'scrollTop', {
+        configurable: true,
+        writable: true,
+        value: 390,
+      })
+      fireEvent.scroll(scrollArea as HTMLElement)
+
+      expect(onReachEnd).toHaveBeenCalledTimes(1)
+    } finally {
+      scrollHeightSpy.mockRestore()
+      clientHeightSpy.mockRestore()
+    }
   })
 })

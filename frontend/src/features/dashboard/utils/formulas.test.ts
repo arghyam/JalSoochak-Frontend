@@ -1234,7 +1234,7 @@ describe('dashboard formulas', () => {
       )
     ).toEqual([
       {
-        id: 'scheme-performance-101',
+        id: 'scheme-performance-101-0',
         name: 'Aichara Para Pwss',
         village: 'Uttar Pub Paka',
         block: 'Kalaigaon',
@@ -1291,13 +1291,179 @@ describe('dashboard formulas', () => {
       )
     ).toEqual([
       {
-        id: 'scheme-performance-201',
+        id: 'scheme-performance-201-0',
         name: 'Village Linked Scheme',
         village: 'Mairamara',
         block: 'Kalaigaon',
         reportingRate: 75,
         photoCompliance: 0,
         waterSupplied: 3200,
+      },
+    ])
+  })
+
+  it('maps scheme performance rows to blocks using immediate parent department id lookup', () => {
+    expect(
+      mapSchemePerformanceToTable(
+        {
+          parentLgdId: 1,
+          parentDepartmentId: 0,
+          parentLgdCName: 'district',
+          parentDepartmentCName: '',
+          parentLgdTitle: 'Barpeta',
+          parentDepartmentTitle: '',
+          startDate: '2026-03-14',
+          endDate: '2026-03-14',
+          daysInRange: 1,
+          activeSchemeCount: 1,
+          inactiveSchemeCount: 0,
+          topSchemeCount: 1,
+          topSchemes: [
+            {
+              schemeId: 211,
+              schemeName: 'Department Mapped Scheme',
+              statusCode: 1,
+              status: 'Active',
+              submissionDays: 30,
+              reportingRate: 76,
+              totalWaterSupplied: 4200,
+              immediateParentLgdId: 9901,
+              immediateParentLgdCName: 'village',
+              immediateParentLgdTitle: 'Some Village',
+              immediateParentDepartmentId: 7001,
+              immediateParentDepartmentCName: 'block',
+              immediateParentDepartmentTitle: '',
+            },
+          ],
+        },
+        [],
+        {
+          blockTitleByParentId: {
+            idLookup: {
+              7001: 'KALAIGAON',
+            },
+            lgdLookup: {},
+          },
+        }
+      )
+    ).toEqual([
+      {
+        id: 'scheme-performance-211-0',
+        name: 'Department Mapped Scheme',
+        village: 'Some Village',
+        block: 'Kalaigaon',
+        reportingRate: 76,
+        photoCompliance: 0,
+        waterSupplied: 4200,
+      },
+    ])
+  })
+
+  it('converts ratio reporting rates into percentages for table display', () => {
+    expect(
+      mapSchemePerformanceToTable(
+        {
+          parentLgdId: 1,
+          parentDepartmentId: 0,
+          parentLgdCName: 'district',
+          parentDepartmentCName: '',
+          parentLgdTitle: 'Barpeta',
+          parentDepartmentTitle: '',
+          startDate: '2026-03-14',
+          endDate: '2026-03-14',
+          daysInRange: 1,
+          activeSchemeCount: 1,
+          inactiveSchemeCount: 0,
+          topSchemeCount: 1,
+          topSchemes: [
+            {
+              schemeId: 212,
+              schemeName: 'Ratio Reporting Scheme',
+              statusCode: 1,
+              status: 'Active',
+              submissionDays: 30,
+              reportingRate: 0.9333,
+              totalWaterSupplied: 4200,
+              immediateParentLgdId: 9902,
+              immediateParentLgdCName: 'village',
+              immediateParentLgdTitle: 'Some Village',
+              immediateParentDepartmentId: 7002,
+              immediateParentDepartmentCName: 'block',
+              immediateParentDepartmentTitle: '',
+            },
+          ],
+        },
+        []
+      )
+    ).toEqual([
+      {
+        id: 'scheme-performance-212-0',
+        name: 'Ratio Reporting Scheme',
+        village: 'Some Village',
+        block: null,
+        reportingRate: 93.33,
+        photoCompliance: 0,
+        waterSupplied: 4200,
+      },
+    ])
+  })
+
+  it('uses departmental hierarchy titles when requested', () => {
+    expect(
+      mapSchemePerformanceToTable(
+        {
+          parentLgdId: 0,
+          parentDepartmentId: 500,
+          parentLgdCName: '',
+          parentDepartmentCName: 'zone',
+          parentLgdTitle: '',
+          parentDepartmentTitle: 'Zone A',
+          startDate: '2026-03-14',
+          endDate: '2026-03-14',
+          daysInRange: 1,
+          activeSchemeCount: 1,
+          inactiveSchemeCount: 0,
+          topSchemeCount: 1,
+          topSchemes: [
+            {
+              schemeId: 213,
+              schemeName: 'Department Scheme',
+              statusCode: 1,
+              status: 'Active',
+              submissionDays: 30,
+              reportingRate: 0.75,
+              totalWaterSupplied: 1234,
+              immediateParentLgdId: 101,
+              immediateParentLgdCName: 'village',
+              immediateParentLgdTitle: 'Lgd Village Name',
+              immediateParentDepartmentId: 9001,
+              immediateParentDepartmentCName: 'circle',
+              immediateParentDepartmentTitle: 'Department Circle Name',
+            },
+          ],
+        },
+        [],
+        {
+          useDepartmentHierarchyTitles: true,
+          parentLgdTitleById: {
+            idLookup: { 9001: 'Circle Lookup Name' },
+            lgdLookup: {},
+          },
+          blockTitleByParentId: {
+            idLookup: { 9001: 'Circle Lookup Name' },
+            lgdLookup: {},
+          },
+        }
+      )
+    ).toEqual([
+      {
+        id: 'scheme-performance-213-0',
+        name: 'Department Scheme',
+        village: 'Circle Lookup Name',
+        block: 'Circle Lookup Name',
+        reportingRate: 75,
+        photoCompliance: 0,
+        waterSupplied: 1234,
       },
     ])
   })
@@ -1348,7 +1514,7 @@ describe('dashboard formulas', () => {
       )
     ).toEqual([
       {
-        id: 'scheme-performance-202',
+        id: 'scheme-performance-202-0',
         name: 'Village Linked Scheme',
         village: 'Uttar Paka',
         block: null,
@@ -1407,7 +1573,7 @@ describe('dashboard formulas', () => {
       )
     ).toEqual([
       {
-        id: 'scheme-performance-203',
+        id: 'scheme-performance-203-0',
         name: 'Collision Check Scheme',
         village: 'Correct Lgd Title',
         block: null,
