@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import type { ChangeEvent, FocusEvent, MouseEvent, ReactNode } from 'react'
+import type { ChangeEvent, FocusEvent, PointerEvent, ReactNode } from 'react'
 import type { ButtonProps, InputProps } from '@chakra-ui/react'
 import {
   Flex,
@@ -225,7 +225,7 @@ export function SearchLayout({
     setBreadcrumbPanelOpen(false)
   }
 
-  const handleContainerMouseDown = (event: MouseEvent<HTMLDivElement>) => {
+  const handleContainerMouseDown = (event: PointerEvent<HTMLDivElement>) => {
     if (!isBreadcrumbPanelOpen) return
     const target = event.target as Node
     if (inputGroupRef.current?.contains(target)) return
@@ -368,7 +368,7 @@ export function SearchLayout({
       borderColor="neutral.200"
       position="relative"
       ref={panelContainerRef}
-      onMouseDown={handleContainerMouseDown}
+      onPointerDown={handleContainerMouseDown}
     >
       <Flex w="full" direction="column" gap={{ base: 3, lg: '24px' }}>
         {isCompactLayout ? (

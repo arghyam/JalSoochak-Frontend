@@ -182,11 +182,29 @@ export function SchemePerformanceTable({
       return
     }
 
-    const hasOverflow = container.scrollHeight - container.clientHeight > 24
+    const checkOverflow = () => {
+      const hasOverflow = container.scrollHeight - container.clientHeight > 24
 
-    if (!hasOverflow && !hasReachedEndRef.current) {
-      hasReachedEndRef.current = true
-      onReachEnd()
+      if (!hasOverflow && !hasReachedEndRef.current) {
+        hasReachedEndRef.current = true
+        onReachEnd()
+      }
+    }
+
+    checkOverflow()
+
+    if (typeof ResizeObserver === 'undefined') {
+      return
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      checkOverflow()
+    })
+
+    resizeObserver.observe(container)
+
+    return () => {
+      resizeObserver.disconnect()
     }
   }, [onReachEnd, rows.length])
 
