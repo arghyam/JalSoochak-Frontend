@@ -152,6 +152,39 @@ describe('quantity-periodic utils', () => {
     ])
   })
 
+  it('maps non-day scheme regularity quantity points using raw totalWaterQuantity values', () => {
+    expect(
+      mapSchemeRegularityQuantityToTrendPoints({
+        lgdId: 17,
+        departmentId: 0,
+        schemeCount: 2,
+        scale: 'week',
+        startDate: '2026-03-01',
+        endDate: '2026-03-14',
+        periodCount: 2,
+        metrics: [
+          {
+            periodStartDate: '2026-03-01',
+            periodEndDate: '2026-03-07',
+            totalSupplyDays: 7,
+            totalWaterQuantity: 700,
+            averageRegularity: 1,
+          },
+          {
+            periodStartDate: '2026-03-08',
+            periodEndDate: '2026-03-14',
+            totalSupplyDays: 7,
+            totalWaterQuantity: 1400,
+            averageRegularity: 1,
+          },
+        ],
+      })
+    ).toEqual([
+      { period: '01 Mar - 07 Mar\n2026', value: 700 },
+      { period: '08 Mar - 14 Mar\n2026', value: 1400 },
+    ])
+  })
+
   it('maps demand supply rows into fallback trend points', () => {
     expect(
       mapDemandSupplyToTrendPoints(
