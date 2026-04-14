@@ -6,6 +6,7 @@ import {
   type KeyboardEvent,
   type ClipboardEvent,
   type MutableRefObject,
+  type RefObject,
 } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -116,6 +117,7 @@ export function StaffLoginPage() {
   }, [])
 
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const loginButtonRef = useRef<HTMLButtonElement>(null)
 
   const resetOtpInputs = useCallback((length: number) => {
     setOtpValues(Array(length).fill(''))
@@ -127,6 +129,12 @@ export function StaffLoginPage() {
       otpInputRefs.current[0]?.focus()
     }
   }, [step])
+
+  useEffect(() => {
+    if (step === 'otp' && otpValues.every((v) => v !== '')) {
+      loginButtonRef.current?.focus()
+    }
+  }, [otpValues, step])
 
   const handleSendOtp = async () => {
     if (requestOtpMutation.isPending) return
@@ -219,8 +227,12 @@ export function StaffLoginPage() {
       next[i] = ch
     })
     setOtpValues(next)
-    const lastFilled = Math.min(pasted.length, otpLength - 1)
-    otpInputRefs.current[lastFilled]?.focus()
+    if (pasted.length === otpLength) {
+      setTimeout(() => loginButtonRef.current?.focus(), 0)
+    } else {
+      const lastFilled = Math.min(pasted.length, otpLength - 1)
+      otpInputRefs.current[lastFilled]?.focus()
+    }
   }
 
   const handleVerifyOtp = async () => {
@@ -297,6 +309,7 @@ export function StaffLoginPage() {
                   otpLength={otpLength}
                   otpValues={otpValues}
                   otpInputRefs={otpInputRefs}
+                  loginButtonRef={loginButtonRef}
                   otpError={otpError}
                   resendCooldown={resendCooldown}
                   isResending={requestOtpMutation.isPending}
@@ -468,6 +481,7 @@ interface OtpStepProps {
   otpLength: number
   otpValues: string[]
   otpInputRefs: MutableRefObject<(HTMLInputElement | null)[]>
+  loginButtonRef: RefObject<HTMLButtonElement>
   otpError: string | null
   resendCooldown: number
   isResending: boolean
@@ -486,6 +500,7 @@ function OtpStep({
   otpLength,
   otpValues,
   otpInputRefs,
+  loginButtonRef,
   otpError,
   resendCooldown,
   isResending,
@@ -596,6 +611,7 @@ function OtpStep({
         </HStack>
 
         <Button
+          ref={loginButtonRef}
           w="full"
           fontSize="16px"
           fontWeight="600"

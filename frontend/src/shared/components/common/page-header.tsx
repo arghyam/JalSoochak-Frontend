@@ -17,7 +17,7 @@ export function PageHeader({ children, mb = 5, rightContent }: PageHeaderProps) 
       </Box>
 
       <Box flexShrink={0} maxW="100%">
-        <Flex align="center" gap="8px">
+        <Flex align="center" gap="16px">
           <PanelSwitcher />
           {rightContent ? <Box>{rightContent}</Box> : null}
           <Show above="lg">
