@@ -154,6 +154,45 @@ export function OverallPerformanceTable({
                   </Th>
                   <Th
                     aria-sort={
+                      sortColumn === 'regularity'
+                        ? sortDirection === 'asc'
+                          ? 'ascending'
+                          : 'descending'
+                        : undefined
+                    }
+                  >
+                    <Box
+                      as="button"
+                      type="button"
+                      onClick={() => handleSort('regularity')}
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      gap={1}
+                      cursor="pointer"
+                      textAlign="center"
+                      width="100%"
+                      minW={0}
+                      bg="none"
+                      border="none"
+                      p={0}
+                    >
+                      <Box as="span" whiteSpace="normal">
+                        {t('overallPerformance.columns.regularity', {
+                          defaultValue: 'Regularity (%)',
+                        })}
+                      </Box>
+                      <Icon
+                        as={BiSortAlt2}
+                        boxSize="16px"
+                        color="neutral.500"
+                        aria-hidden
+                        flexShrink={0}
+                      />
+                    </Box>
+                  </Th>
+                  <Th
+                    aria-sort={
                       sortColumn === 'coverage'
                         ? sortDirection === 'asc'
                           ? 'ascending'
@@ -230,45 +269,6 @@ export function OverallPerformanceTable({
                       />
                     </Box>
                   </Th>
-                  <Th
-                    aria-sort={
-                      sortColumn === 'regularity'
-                        ? sortDirection === 'asc'
-                          ? 'ascending'
-                          : 'descending'
-                        : undefined
-                    }
-                  >
-                    <Box
-                      as="button"
-                      type="button"
-                      onClick={() => handleSort('regularity')}
-                      display="flex"
-                      alignItems="center"
-                      justifyContent="center"
-                      gap={1}
-                      cursor="pointer"
-                      textAlign="center"
-                      width="100%"
-                      minW={0}
-                      bg="none"
-                      border="none"
-                      p={0}
-                    >
-                      <Box as="span" whiteSpace="normal">
-                        {t('overallPerformance.columns.regularity', {
-                          defaultValue: 'Regularity (%)',
-                        })}
-                      </Box>
-                      <Icon
-                        as={BiSortAlt2}
-                        boxSize="16px"
-                        color="neutral.500"
-                        aria-hidden
-                        flexShrink={0}
-                      />
-                    </Box>
-                  </Th>
                 </Tr>
               </Thead>
               <Tbody
@@ -286,6 +286,10 @@ export function OverallPerformanceTable({
                     width: '200px',
                     minWidth: '200px',
                     maxWidth: '200px',
+                    textAlign: 'left',
+                  },
+                  'td:not(:first-of-type)': {
+                    textAlign: 'center',
                   },
                 }}
               >
@@ -311,9 +315,9 @@ export function OverallPerformanceTable({
                         {state.name}
                       </Box>
                     </Td>
+                    <Td>{state.regularity.toFixed(1)}%</Td>
                     <Td>{state.coverage.toFixed(1)}</Td>
                     <Td>{state.quantity}</Td>
-                    <Td>{state.regularity.toFixed(1)}%</Td>
                   </Tr>
                 ))}
               </Tbody>

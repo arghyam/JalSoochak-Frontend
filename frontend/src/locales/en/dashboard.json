@@ -113,7 +113,7 @@
     }
   },
   "overallPerformance": {
-    "title": "Overall Performance",
+    "title": "Performance Summary",
     "noData": "No data available",
     "columns": {
       "entity": "State/UT",

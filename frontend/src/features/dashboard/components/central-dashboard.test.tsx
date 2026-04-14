@@ -298,7 +298,7 @@ describe('CentralDashboard', () => {
 
     renderWithProviders(<CentralDashboard />)
 
-    expect(screen.getByText('Overall Performance')).toBeTruthy()
+    expect(screen.getByText('Performance Summary')).toBeTruthy()
     expect(screen.getByTestId('overall-performance-table')).toBeTruthy()
     expect(screen.queryByText('Core Metrics')).toBeNull()
   })

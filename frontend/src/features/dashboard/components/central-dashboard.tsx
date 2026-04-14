@@ -2833,7 +2833,7 @@ export function CentralDashboard() {
             minW={0}
           >
             <Text textStyle="bodyText3" fontWeight="400" mb={4}>
-              {t('overallPerformance.title', { defaultValue: 'Overall Performance' })}
+              {t('overallPerformance.title', { defaultValue: 'Performance Summary' })}
             </Text>
             <OverallPerformanceTable
               data={overallPerformanceTableData}
