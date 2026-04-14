@@ -161,6 +161,9 @@ export function useUpdateUserStatusMutation() {
       await queryClient.invalidateQueries({
         queryKey: [...superAdminQueryKeys.all, 'super-users'],
       })
+      await queryClient.invalidateQueries({
+        queryKey: [...superAdminQueryKeys.all, 'state-admins'],
+      })
     },
   })
 }

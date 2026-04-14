@@ -16,7 +16,7 @@ import {
 } from '@chakra-ui/react'
 import { EditIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
-import { ToastContainer, SearchableSelect, PageHeader } from '@/shared/components/common'
+import { ToastContainer, SearchableSelect, PageHeader, Toggle } from '@/shared/components/common'
 import { TENANT_STATUSES, type TenantStatus } from '../../types/states-uts'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ROUTES } from '@/shared/constants/routes'
@@ -26,6 +26,7 @@ import {
   useStateAdminsByTenantQuery,
   useUpdateTenantStatusMutation,
   useUpdateUserMutation,
+  useUpdateUserStatusMutation,
 } from '../../services/query/use-super-admin-queries'
 import type { UserAdminData } from '@/shared/components/common'
 
@@ -70,9 +71,14 @@ export function EditStateUTPage() {
 
   const updateStatusMutation = useUpdateTenantStatusMutation()
   const updateUserMutation = useUpdateUserMutation()
+  const updateUserStatusMutation = useUpdateUserStatusMutation()
 
   const [adminDrafts, setAdminDrafts] = useState<Record<string, AdminDraft>>({})
   const [adminTouched, setAdminTouched] = useState<Record<string, AdminTouchedFields>>({})
+  const [adminStatuses, setAdminStatuses] = useState<
+    Record<string, 'active' | 'inactive' | 'pending'>
+  >({})
+  const [statusTogglingId, setStatusTogglingId] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const navigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -157,6 +163,26 @@ export function EditStateUTPage() {
       toast.addToast(t('statesUts.messages.statusUpdatedSuccess'), 'success')
     } catch {
       toast.addToast(t('statesUts.messages.failedToUpdateStatus'), 'error')
+    }
+  }
+
+  const handleAdminStatusToggle = async (adminId: string, currentStatus: string) => {
+    if (statusTogglingId !== null || updateUserStatusMutation.isPending) return
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active'
+    setStatusTogglingId(adminId)
+    try {
+      await updateUserStatusMutation.mutateAsync({ id: adminId, status: newStatus })
+      setAdminStatuses((prev) => ({ ...prev, [adminId]: newStatus }))
+      toast.addToast(
+        newStatus === 'active'
+          ? t('statesUts.messages.adminActivatedSuccess')
+          : t('statesUts.messages.adminDeactivatedSuccess'),
+        'success'
+      )
+    } catch {
+      toast.addToast(t('statesUts.messages.failedToUpdateStatus'), 'error')
+    } finally {
+      setStatusTogglingId(null)
     }
   }
 
@@ -340,6 +366,7 @@ export function EditStateUTPage() {
             <SimpleGrid
               columns={{ base: 1, lg: 2 }}
               spacing={6}
+              columnGap={100}
               mb={7}
               aria-labelledby="state-details-heading"
             >
@@ -355,7 +382,6 @@ export function EditStateUTPage() {
                   borderColor="neutral.200"
                   color="neutral.400"
                   h={9}
-                  maxW={{ base: '100%', lg: '486px' }}
                   aria-readonly="true"
                 />
               </FormControl>
@@ -371,7 +397,6 @@ export function EditStateUTPage() {
                   borderColor="neutral.200"
                   color="neutral.400"
                   h={9}
-                  maxW={{ base: '100%', lg: '486px' }}
                   aria-readonly="true"
                 />
               </FormControl>
@@ -391,14 +416,11 @@ export function EditStateUTPage() {
                 onChange={(val) => void handleStatusChange(val as TenantStatus)}
                 disabled={updateStatusMutation.isPending}
                 ariaLabel={t('statesUts.statusSection.stateUtStatus')}
-                width={{ base: '100%', lg: '486px' }}
+                width={{ base: '100%', md: '175px' }}
               />
             </Box>
 
             {/* State Admin Details — editable */}
-            <Heading as="h2" size="h3" fontWeight="400" mb={4} id="admin-details-heading">
-              {t('statesUts.adminDetails.title')}
-            </Heading>
             {adminsQuery.isLoading && (
               <Text color="neutral.600" textStyle="h10" mb={4}>
                 {t('common:loading')}
@@ -418,91 +440,108 @@ export function EditStateUTPage() {
                     phone: adminDrafts[admin.id]?.phone ?? admin.phone,
                   }
                   const draftErrors = getAdminDraftErrors(admin.id, draft)
+                  const adminHeadingId = `admin-details-heading-${admin.id}`
+                  const currentAdminStatus = adminStatuses[admin.id] ?? admin.status
+                  const isTogglingThisAdmin = statusTogglingId === admin.id
                   return (
-                    <SimpleGrid
-                      key={admin.id}
-                      columns={{ base: 1, lg: 2 }}
-                      spacing={4}
-                      aria-labelledby="admin-details-heading"
-                    >
-                      <FormControl isInvalid={!!draftErrors.firstName}>
-                        <FormLabel textStyle="h10" mb={1}>
-                          {t('statesUts.adminDetails.firstName')}
-                        </FormLabel>
-                        <Input
-                          value={draft.firstName}
-                          onChange={(e) => setAdminField(admin.id, 'firstName', e.target.value)}
-                          onBlur={() => markAdminFieldTouched(admin.id, 'firstName')}
-                          placeholder={t('common:enter')}
-                          borderColor="neutral.200"
-                          h={9}
-                          maxW={{ base: '100%', lg: '486px' }}
-                          _placeholder={{ color: 'neutral.300' }}
-                        />
-                        {draftErrors.firstName && (
-                          <FormErrorMessage>{draftErrors.firstName}</FormErrorMessage>
-                        )}
-                      </FormControl>
-                      <FormControl isInvalid={!!draftErrors.lastName}>
-                        <FormLabel textStyle="h10" mb={1}>
-                          {t('statesUts.adminDetails.lastName')}
-                        </FormLabel>
-                        <Input
-                          value={draft.lastName}
-                          onChange={(e) => setAdminField(admin.id, 'lastName', e.target.value)}
-                          onBlur={() => markAdminFieldTouched(admin.id, 'lastName')}
-                          placeholder={t('common:enter')}
-                          borderColor="neutral.200"
-                          h={9}
-                          maxW={{ base: '100%', lg: '486px' }}
-                          _placeholder={{ color: 'neutral.300' }}
-                        />
-                        {draftErrors.lastName && (
-                          <FormErrorMessage>{draftErrors.lastName}</FormErrorMessage>
-                        )}
-                      </FormControl>
-                      <FormControl>
-                        <FormLabel textStyle="h10" color="neutral.400" mb={1}>
-                          {t('statesUts.adminDetails.email')}
-                        </FormLabel>
-                        <Input
-                          value={admin.email}
-                          isReadOnly
-                          isDisabled
-                          bg="neutral.50"
-                          borderColor="neutral.200"
-                          color="neutral.400"
-                          h={9}
-                          maxW={{ base: '100%', lg: '486px' }}
-                          aria-readonly="true"
-                        />
-                      </FormControl>
-                      <FormControl isInvalid={!!draftErrors.phone}>
-                        <FormLabel textStyle="h10" mb={1}>
-                          {t('statesUts.adminDetails.phone')}
-                        </FormLabel>
-                        <Input
-                          type="tel"
-                          value={draft.phone}
-                          onChange={(e) => {
-                            const digits = e.target.value.replaceAll(/\D/g, '')
-                            if (digits.length <= 10) {
-                              setAdminField(admin.id, 'phone', digits)
+                    <Box key={admin.id}>
+                      <Flex justify="space-between" align="center" mb={4}>
+                        <Heading as="h2" size="h3" fontWeight="400" id={adminHeadingId}>
+                          {t('statesUts.adminDetails.title')}
+                        </Heading>
+                        <Flex align="center" gap={2}>
+                          <Text textStyle="h10">{t('statesUts.statusSection.activated')}</Text>
+                          <Toggle
+                            isChecked={currentAdminStatus === 'active'}
+                            onChange={() =>
+                              void handleAdminStatusToggle(admin.id, currentAdminStatus)
                             }
-                          }}
-                          onBlur={() => markAdminFieldTouched(admin.id, 'phone')}
-                          placeholder="+91"
-                          borderColor="neutral.200"
-                          h={9}
-                          maxW={{ base: '100%', lg: '486px' }}
-                          _placeholder={{ color: 'neutral.300' }}
-                          inputMode="numeric"
-                        />
-                        {draftErrors.phone && (
-                          <FormErrorMessage>{draftErrors.phone}</FormErrorMessage>
-                        )}
-                      </FormControl>
-                    </SimpleGrid>
+                            isDisabled={isTogglingThisAdmin || currentAdminStatus === 'pending'}
+                            aria-label={`${t('statesUts.statusSection.activated')} ${admin.firstName}`}
+                          />
+                        </Flex>
+                      </Flex>
+                      <SimpleGrid
+                        columns={{ base: 1, lg: 2 }}
+                        spacing={4}
+                        columnGap={100}
+                        aria-labelledby={adminHeadingId}
+                      >
+                        <FormControl isInvalid={!!draftErrors.firstName}>
+                          <FormLabel textStyle="h10" mb={1}>
+                            {t('statesUts.adminDetails.firstName')}
+                          </FormLabel>
+                          <Input
+                            value={draft.firstName}
+                            onChange={(e) => setAdminField(admin.id, 'firstName', e.target.value)}
+                            onBlur={() => markAdminFieldTouched(admin.id, 'firstName')}
+                            placeholder={t('common:enter')}
+                            borderColor="neutral.200"
+                            h={9}
+                            _placeholder={{ color: 'neutral.300' }}
+                          />
+                          {draftErrors.firstName && (
+                            <FormErrorMessage>{draftErrors.firstName}</FormErrorMessage>
+                          )}
+                        </FormControl>
+                        <FormControl isInvalid={!!draftErrors.lastName}>
+                          <FormLabel textStyle="h10" mb={1}>
+                            {t('statesUts.adminDetails.lastName')}
+                          </FormLabel>
+                          <Input
+                            value={draft.lastName}
+                            onChange={(e) => setAdminField(admin.id, 'lastName', e.target.value)}
+                            onBlur={() => markAdminFieldTouched(admin.id, 'lastName')}
+                            placeholder={t('common:enter')}
+                            borderColor="neutral.200"
+                            h={9}
+                            _placeholder={{ color: 'neutral.300' }}
+                          />
+                          {draftErrors.lastName && (
+                            <FormErrorMessage>{draftErrors.lastName}</FormErrorMessage>
+                          )}
+                        </FormControl>
+                        <FormControl>
+                          <FormLabel textStyle="h10" color="neutral.400" mb={1}>
+                            {t('statesUts.adminDetails.email')}
+                          </FormLabel>
+                          <Input
+                            value={admin.email}
+                            isReadOnly
+                            isDisabled
+                            bg="neutral.50"
+                            borderColor="neutral.200"
+                            color="neutral.400"
+                            h={9}
+                            aria-readonly="true"
+                          />
+                        </FormControl>
+                        <FormControl isInvalid={!!draftErrors.phone}>
+                          <FormLabel textStyle="h10" mb={1}>
+                            {t('statesUts.adminDetails.phone')}
+                          </FormLabel>
+                          <Input
+                            type="tel"
+                            value={draft.phone}
+                            onChange={(e) => {
+                              const digits = e.target.value.replaceAll(/\D/g, '')
+                              if (digits.length <= 10) {
+                                setAdminField(admin.id, 'phone', digits)
+                              }
+                            }}
+                            onBlur={() => markAdminFieldTouched(admin.id, 'phone')}
+                            placeholder="+91"
+                            borderColor="neutral.200"
+                            h={9}
+                            _placeholder={{ color: 'neutral.300' }}
+                            inputMode="numeric"
+                          />
+                          {draftErrors.phone && (
+                            <FormErrorMessage>{draftErrors.phone}</FormErrorMessage>
+                          )}
+                        </FormControl>
+                      </SimpleGrid>
+                    </Box>
                   )
                 })}
               </Flex>
