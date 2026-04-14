@@ -841,7 +841,7 @@ export const dashboardApi = {
 
     return (
       unwrapAnalyticsResponse(response.data, 'scheme performance analytics') ?? {
-        parentLgdId: 0,
+        parentLgdId: params.parentLgdId ?? 0,
         parentDepartmentId: params.parentDepartmentId ?? 0,
         parentLgdCName: '',
         parentDepartmentCName: '',

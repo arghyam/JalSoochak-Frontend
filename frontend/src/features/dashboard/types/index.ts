@@ -504,7 +504,7 @@ export interface ReadingComplianceResponse {
 }
 
 export interface SchemePerformanceQueryParams {
-  tenantId?: number
+  tenantId: number
   parentLgdId?: number
   parentDepartmentId?: number
   startDate: string

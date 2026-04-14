@@ -1,12 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import type {
-  ChangeEvent,
-  FocusEvent,
-  KeyboardEvent,
-  MouseEvent,
-  PointerEvent,
-  ReactNode,
-} from 'react'
+import type { ChangeEvent, FocusEvent, MouseEvent, PointerEvent, ReactNode } from 'react'
 import type { ButtonProps, InputProps } from '@chakra-ui/react'
 import {
   Flex,
@@ -268,7 +261,7 @@ export function SearchLayout({
                     transform="rotate(-90deg)"
                   />
                 ) : null}
-                <Button
+                <Flex
                   h="26px"
                   minW="66px"
                   px="8px"
@@ -279,31 +272,40 @@ export function SearchLayout({
                   color="primary.600"
                   fontSize="14px"
                   fontWeight="400"
-                  variant="unstyled"
-                  display="inline-flex"
-                  alignItems="center"
+                  align="center"
                   gap="6px"
-                  cursor="default"
-                  onClick={() => handleTrailSelect(index)}
-                  _hover={{}}
-                  _active={{ bg: 'primary.25' }}
-                  aria-label={t('searchLayout.aria.breadcrumb', {
-                    item,
-                    defaultValue: `Breadcrumb: ${item}`,
-                  })}
-                  aria-current="page"
                 >
-                  <Text as="span" lineHeight="1">
-                    {item}
-                  </Text>
-                  <Box
-                    as="span"
+                  <Button
+                    variant="unstyled"
+                    h="full"
+                    minH="auto"
+                    minW="auto"
+                    display="inline-flex"
+                    alignItems="center"
+                    fontSize="inherit"
+                    fontWeight="inherit"
+                    lineHeight="1"
+                    cursor="default"
+                    onClick={() => handleTrailSelect(index)}
+                    _hover={{}}
+                    _active={{ bg: 'transparent' }}
+                    aria-label={t('searchLayout.aria.breadcrumb', {
+                      item,
+                      defaultValue: `Breadcrumb: ${item}`,
+                    })}
+                    aria-current="page"
+                  >
+                    <Text as="span" lineHeight="1">
+                      {item}
+                    </Text>
+                  </Button>
+                  <IconButton
                     aria-label={t('searchLayout.aria.clearBreadcrumb', {
                       item,
                       defaultValue: `Clear breadcrumb ${item}`,
                     })}
-                    role="button"
-                    tabIndex={0}
+                    icon={<CloseIcon boxSize="8px" />}
+                    variant="unstyled"
                     minW="14px"
                     h="14px"
                     borderRadius="full"
@@ -313,22 +315,13 @@ export function SearchLayout({
                     justifyContent="center"
                     cursor="default"
                     _hover={{ bg: 'primary.100', cursor: 'pointer' }}
-                    onClick={(event: MouseEvent<HTMLSpanElement>) => {
+                    _active={{ bg: 'primary.100' }}
+                    onClick={(event: MouseEvent<HTMLButtonElement>) => {
                       event.stopPropagation()
                       handleActiveTrailClear(index)
                     }}
-                    onKeyDown={(event: KeyboardEvent<HTMLSpanElement>) => {
-                      if (event.key !== 'Enter' && event.key !== ' ') {
-                        return
-                      }
-                      event.preventDefault()
-                      event.stopPropagation()
-                      handleActiveTrailClear(index)
-                    }}
-                  >
-                    <CloseIcon boxSize="8px" />
-                  </Box>
-                </Button>
+                  />
+                </Flex>
               </Flex>
             )
           }
