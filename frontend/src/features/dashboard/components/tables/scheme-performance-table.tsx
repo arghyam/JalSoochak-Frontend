@@ -1,15 +1,29 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type PointerEvent,
   type RefObject,
-  type UIEvent,
 } from 'react'
-import { Box, Icon, Table, Tbody, Td, Text, Th, Thead, Tr, useMediaQuery } from '@chakra-ui/react'
+import {
+  Box,
+  Button,
+  Flex,
+  Icon,
+  Table,
+  Tbody,
+  Td,
+  Text,
+  Th,
+  Thead,
+  Tr,
+  useMediaQuery,
+} from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { BiSortAlt2 } from 'react-icons/bi'
+import { LuArrowLeft, LuArrowRight, LuChevronsLeft, LuChevronsRight } from 'react-icons/lu'
 import type { PumpOperatorPerformanceData } from '../../types'
 
 interface SchemePerformanceTableProps {
@@ -22,7 +36,9 @@ interface SchemePerformanceTableProps {
   secondaryColumnLabel?: string
   showBlockColumn?: boolean
   blockColumnLabel?: string
-  onReachEnd?: () => void
+  currentPage?: number
+  totalPages?: number
+  onPageChange?: (page: number) => void
 }
 
 type SortColumn = 'reportingRate' | 'waterSupplied' | null
@@ -85,7 +101,9 @@ export function SchemePerformanceTable({
   secondaryColumnLabel,
   showBlockColumn = true,
   blockColumnLabel,
-  onReachEnd,
+  currentPage = 1,
+  totalPages = 0,
+  onPageChange,
 }: SchemePerformanceTableProps) {
   const { t } = useTranslation('dashboard')
   const [enableHorizontalScroller] = useMediaQuery('(max-width: 1599px)')
@@ -95,7 +113,6 @@ export function SchemePerformanceTable({
   const scrollbarTrackRef = useRef<HTMLDivElement | null>(null)
   const scrollbarThumbRef = useRef<HTMLDivElement | null>(null)
   const isDraggingThumb = useRef(false)
-  const hasReachedEndRef = useRef(false)
   const dragStartX = useRef(0)
   const dragStartLeft = useRef(0)
   const thumbLeftRef = useRef(0)
@@ -112,6 +129,33 @@ export function SchemePerformanceTable({
       : data
   const rows = typeof safeMaxItems === 'number' ? sortedRows.slice(0, safeMaxItems) : sortedRows
   const isEmpty = rows.length === 0
+
+  const safeTotalPages = typeof totalPages === 'number' && totalPages > 0 ? totalPages : 0
+  const safeCurrentPage =
+    safeTotalPages > 0 ? Math.min(Math.max(1, currentPage), safeTotalPages) : 1
+  const showPagination = safeTotalPages > 1
+
+  const visiblePageNumbers = useMemo(() => {
+    if (safeTotalPages <= 3) {
+      return Array.from({ length: safeTotalPages }, (_, index) => index + 1)
+    }
+    if (safeCurrentPage <= 2) {
+      return [1, 2, 3]
+    }
+    if (safeCurrentPage >= safeTotalPages - 1) {
+      return [safeTotalPages - 2, safeTotalPages - 1, safeTotalPages]
+    }
+    return [safeCurrentPage - 1, safeCurrentPage, safeCurrentPage + 1]
+  }, [safeCurrentPage, safeTotalPages])
+
+  const handlePageChange = (page: number) => {
+    if (!onPageChange) {
+      return
+    }
+    const clampedPage = Math.min(Math.max(1, page), safeTotalPages)
+    onPageChange(clampedPage)
+    scrollContainerRef.current?.scrollTo({ top: 0 })
+  }
 
   const handleSort = (column: Exclude<SortColumn, null>) => {
     if (sortColumn !== column) {
@@ -165,47 +209,6 @@ export function SchemePerformanceTable({
   useEffect(() => {
     updateScrollbarThumb()
   }, [rows.length, showVillageColumn, showBlockColumn, hasHorizontalOverflow, updateScrollbarThumb])
-
-  useEffect(() => {
-    hasReachedEndRef.current = false
-  }, [rows.length])
-
-  useEffect(() => {
-    if (!onReachEnd || rows.length === 0) {
-      return
-    }
-
-    const container = scrollContainerRef.current
-
-    if (!container) {
-      return
-    }
-
-    const checkOverflow = () => {
-      const hasOverflow = container.scrollHeight - container.clientHeight > 24
-
-      if (!hasOverflow && !hasReachedEndRef.current) {
-        hasReachedEndRef.current = true
-        onReachEnd()
-      }
-    }
-
-    checkOverflow()
-
-    if (typeof ResizeObserver === 'undefined') {
-      return
-    }
-
-    const resizeObserver = new ResizeObserver(() => {
-      checkOverflow()
-    })
-
-    resizeObserver.observe(container)
-
-    return () => {
-      resizeObserver.disconnect()
-    }
-  }, [onReachEnd, rows.length])
 
   const handleThumbPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (!hasHorizontalOverflow) {
@@ -274,25 +277,6 @@ export function SchemePerformanceTable({
     event.currentTarget.releasePointerCapture(event.pointerId)
   }
 
-  const handleVerticalScroll = (event: UIEvent<HTMLDivElement>) => {
-    if (!onReachEnd) {
-      return
-    }
-
-    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget
-    const distanceFromBottom = scrollHeight - scrollTop - clientHeight
-
-    if (distanceFromBottom > 48) {
-      hasReachedEndRef.current = false
-      return
-    }
-
-    if (distanceFromBottom <= 24 && !hasReachedEndRef.current) {
-      hasReachedEndRef.current = true
-      onReachEnd()
-    }
-  }
-
   return (
     <Box
       borderRadius="lg"
@@ -333,10 +317,7 @@ export function SchemePerformanceTable({
           minW={0}
           pr={2}
           pb={2}
-          onScroll={(e) => {
-            updateScrollbarThumb()
-            handleVerticalScroll(e)
-          }}
+          onScroll={updateScrollbarThumb}
           sx={{
             WebkitOverflowScrolling: 'touch',
             scrollbarWidth: 'none',
@@ -557,6 +538,96 @@ export function SchemePerformanceTable({
           />
         </Box>
       </Box>
+      {showPagination ? (
+        <Flex
+          mt={4}
+          align="center"
+          justify="center"
+          gap={{ base: 1, sm: 1.5 }}
+          wrap="wrap"
+          w="full"
+          maxW="100%"
+        >
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handlePageChange(1)}
+            isDisabled={safeCurrentPage === 1}
+            px={{ base: 1.5, sm: 2 }}
+            minW={0}
+            aria-label={t('pumpOperators.performanceTable.pagination.first', {
+              defaultValue: 'First page',
+            })}
+          >
+            <Icon as={LuChevronsLeft} boxSize={4} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            leftIcon={<Icon as={LuArrowLeft} boxSize={4} />}
+            onClick={() => handlePageChange(safeCurrentPage - 1)}
+            isDisabled={safeCurrentPage === 1}
+            px={{ base: 1.5, sm: 2 }}
+            minW={0}
+            aria-label={t('pumpOperators.details.pagination.previous', {
+              defaultValue: 'Previous',
+            })}
+          >
+            <Text as="span" display={{ base: 'none', sm: 'inline' }}>
+              {t('pumpOperators.details.pagination.previous', { defaultValue: 'Previous' })}
+            </Text>
+          </Button>
+          {visiblePageNumbers.map((pageNumber) => (
+            <Button
+              key={pageNumber}
+              variant="outline"
+              size="sm"
+              minW="34px"
+              px={0}
+              borderRadius="8px"
+              borderColor="#D4D4D8"
+              bg={safeCurrentPage === pageNumber ? '#3291D1' : 'white'}
+              color={safeCurrentPage === pageNumber ? 'white' : 'neutral.700'}
+              _hover={{
+                bg: safeCurrentPage === pageNumber ? '#3291D1' : 'neutral.100',
+              }}
+              onClick={() => handlePageChange(pageNumber)}
+              flexShrink={0}
+            >
+              {pageNumber}
+            </Button>
+          ))}
+          <Button
+            variant="ghost"
+            size="sm"
+            rightIcon={<Icon as={LuArrowRight} boxSize={4} />}
+            onClick={() => handlePageChange(safeCurrentPage + 1)}
+            isDisabled={safeCurrentPage === safeTotalPages}
+            px={{ base: 1.5, sm: 2 }}
+            minW={0}
+            aria-label={t('pumpOperators.details.pagination.next', {
+              defaultValue: 'Next',
+            })}
+          >
+            <Text as="span" display={{ base: 'none', sm: 'inline' }}>
+              {t('pumpOperators.details.pagination.next', { defaultValue: 'Next' })}
+            </Text>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handlePageChange(safeTotalPages)}
+            isDisabled={safeCurrentPage === safeTotalPages}
+            px={{ base: 1.5, sm: 2 }}
+            minW={0}
+            aria-label={t('pumpOperators.performanceTable.pagination.last', {
+              defaultValue: 'Last page',
+            })}
+          >
+            <Icon as={LuChevronsRight} boxSize={4} />
+          </Button>
+        </Flex>
+      ) : null}
     </Box>
   )
 }

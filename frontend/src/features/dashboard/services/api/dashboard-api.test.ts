@@ -960,7 +960,7 @@ describe('dashboardApi.getSchemePerformance', () => {
     jest.clearAllMocks()
   })
 
-  it('sends scheme_count and unwraps wrapped payload', async () => {
+  it('sends page_number and limit and unwraps wrapped payload', async () => {
     mockGet.mockResolvedValueOnce({
       data: {
         success: true,
@@ -976,6 +976,7 @@ describe('dashboardApi.getSchemePerformance', () => {
           daysInRange: 1,
           activeSchemeCount: 2,
           inactiveSchemeCount: 1,
+          totalCount: 25,
           topSchemeCount: 1,
           topSchemes: [],
         },
@@ -987,7 +988,8 @@ describe('dashboardApi.getSchemePerformance', () => {
       parentLgdId: 2,
       startDate: 's',
       endDate: 'e',
-      schemeCount: 25,
+      pageNumber: 2,
+      limit: 15,
     })
     expect(mockGet).toHaveBeenCalledWith('/api/v1/analytics/schemes/dashboard', {
       params: {
@@ -996,10 +998,12 @@ describe('dashboardApi.getSchemePerformance', () => {
         parent_department_id: undefined,
         start_date: 's',
         end_date: 'e',
-        scheme_count: 25,
+        page_number: 2,
+        limit: 15,
       },
     })
     expect(res.activeSchemeCount).toBe(2)
+    expect(res.totalCount).toBe(25)
   })
 })
 

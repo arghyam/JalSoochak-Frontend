@@ -834,7 +834,8 @@ export const dashboardApi = {
         parent_department_id: params.parentDepartmentId,
         start_date: params.startDate,
         end_date: params.endDate,
-        scheme_count: params.schemeCount ?? 10,
+        page_number: params.pageNumber ?? 1,
+        limit: params.limit ?? 15,
       },
     })
 
@@ -851,6 +852,7 @@ export const dashboardApi = {
         daysInRange: 0,
         activeSchemeCount: 0,
         inactiveSchemeCount: 0,
+        totalCount: 0,
         topSchemeCount: 0,
         topSchemes: [],
       }

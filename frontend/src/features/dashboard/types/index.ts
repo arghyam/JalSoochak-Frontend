@@ -509,7 +509,8 @@ export interface SchemePerformanceQueryParams {
   parentDepartmentId?: number
   startDate: string
   endDate: string
-  schemeCount?: number
+  pageNumber?: number
+  limit?: number
 }
 
 export interface PumpOperatorDetailsQueryParams {
@@ -606,6 +607,7 @@ export interface SchemePerformanceResponse {
   daysInRange: number
   activeSchemeCount: number
   inactiveSchemeCount: number
+  totalCount: number
   topSchemeCount: number
   topSchemes: SchemePerformanceItem[]
 }

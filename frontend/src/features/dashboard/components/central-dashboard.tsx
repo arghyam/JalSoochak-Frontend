@@ -103,7 +103,7 @@ import { INDIA_STATES } from '@/shared/constants/states'
 import { isSingleTenantMode, getSingleTenantId } from '@/config/server-config'
 
 const storageKey = 'central-dashboard-filters'
-const SCHEME_PERFORMANCE_PAGE_SIZE = 20
+const SCHEME_PERFORMANCE_PAGE_SIZE = 15
 
 const EMPTY_DASHBOARD_DATA: DashboardData = {
   level: 'central',
@@ -577,6 +577,13 @@ export function CentralDashboard() {
   const [isMapFullscreen, setIsMapFullscreen] = useState(false)
   const [isDurationCleared, setIsDurationCleared] = useState(false)
   const [selectedScheme, setSelectedScheme] = useState(storedFilters.selectedScheme ?? '')
+  const [schemePerformancePagination, setSchemePerformancePagination] = useState<{
+    key: string
+    page: number
+  }>({
+    key: '',
+    page: 1,
+  })
   const [storedSelectedDepartmentState, setSelectedDepartmentState] = useState(
     storedFilters.selectedDepartmentState ?? ''
   )
@@ -1092,6 +1099,17 @@ export function CentralDashboard() {
       toIsoDate(effectiveSelectedDuration?.endDate, durationDateFormat) ??
       defaultAnalyticsRange.endDate,
   }
+  const schemePerformanceResetKey = `${analyticsParentId}|${analyticsDateRange.startDate}|${analyticsDateRange.endDate}`
+  const schemePerformancePage =
+    schemePerformancePagination.key === schemePerformanceResetKey
+      ? schemePerformancePagination.page
+      : 1
+  const handleSchemePageChange = (page: number) => {
+    setSchemePerformancePagination({
+      key: schemePerformanceResetKey,
+      page,
+    })
+  }
   const selectedQuantityApiScale: QuantityTimeScaleTab = quantityTimeScaleTab
   const selectedRegularityApiScale: QuantityTimeScaleTab = regularityTimeScaleTab
   const selectedOutageApiScale: QuantityTimeScaleTab = outageDistributionTimeScaleTab
@@ -1272,7 +1290,6 @@ export function CentralDashboard() {
       isHierarchyFourthLevelSelected ||
       isHierarchyLeafSelected) &&
     analyticsParentId > 0
-  const schemePerformanceRequestCount = SCHEME_PERFORMANCE_PAGE_SIZE
   const schemePerformanceAnalyticsParams =
     !shouldFetchSchemePerformanceAnalytics || !selectedTenant?.tenantId
       ? null
@@ -1282,14 +1299,16 @@ export function CentralDashboard() {
             parentLgdId: analyticsParentId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
-            schemeCount: schemePerformanceRequestCount,
+            pageNumber: schemePerformancePage,
+            limit: SCHEME_PERFORMANCE_PAGE_SIZE,
           }
         : {
             tenantId: selectedTenant.tenantId,
             parentDepartmentId: analyticsParentId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
-            schemeCount: schemePerformanceRequestCount,
+            pageNumber: schemePerformancePage,
+            limit: SCHEME_PERFORMANCE_PAGE_SIZE,
           }
   const submissionStatusAnalyticsParams =
     !hasCentralLandingFilters || !selectedTenant?.tenantId || !hasValidSubmissionStatusParentId
@@ -1485,6 +1504,9 @@ export function CentralDashboard() {
     params: schemePerformanceAnalyticsParams,
     enabled: Boolean(schemePerformanceAnalyticsParams),
   })
+  const totalSchemePages = Math.ceil(
+    (schemePerformanceData?.totalCount ?? 0) / SCHEME_PERFORMANCE_PAGE_SIZE
+  )
   const { data: submissionStatusData } = useSubmissionStatusQuery({
     params: submissionStatusAnalyticsParams,
     enabled: Boolean(submissionStatusAnalyticsParams),
@@ -2890,7 +2912,9 @@ export function CentralDashboard() {
         villagePumpOperatorDetails={villagePumpOperatorDetails}
         tenantCode={selectedTenant?.tenantCode}
         schemeId={derivedVillageSchemeId}
-        onReachSchemePerformanceEnd={undefined}
+        schemePerformancePage={schemePerformancePage}
+        totalSchemePages={totalSchemePages}
+        onSchemePageChange={handleSchemePageChange}
       />
     </Box>
   )

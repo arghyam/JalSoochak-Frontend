@@ -1,5 +1,5 @@
 import { describe, expect, it, jest } from '@jest/globals'
-import { fireEvent, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { PumpOperatorPerformanceData } from '../../types'
 import { SchemePerformanceTable } from './scheme-performance-table'
@@ -160,26 +160,9 @@ describe('SchemePerformanceTable', () => {
     expect(screen.getAllByText('-')).toHaveLength(4)
   })
 
-  it('fires onReachEnd when scrolled to the bottom', () => {
-    const scrollTestId = 'scheme-performance-scroll-area'
-    const isScrollArea = (el: unknown): el is HTMLElement =>
-      el instanceof HTMLElement && el.getAttribute('data-testid') === scrollTestId
-    const scrollHeightDesc = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollHeight')
-    const clientHeightDesc = Object.getOwnPropertyDescriptor(Element.prototype, 'clientHeight')
-    const scrollHeightSpy = jest
-      .spyOn(Element.prototype, 'scrollHeight', 'get')
-      .mockImplementation(function (this: Element) {
-        if (isScrollArea(this)) return 500
-        return scrollHeightDesc?.get?.call(this) ?? 0
-      })
-    const clientHeightSpy = jest
-      .spyOn(Element.prototype, 'clientHeight', 'get')
-      .mockImplementation(function (this: Element) {
-        if (isScrollArea(this)) return 100
-        return clientHeightDesc?.get?.call(this) ?? 0
-      })
-    const onReachEnd = jest.fn()
-    const many = Array.from({ length: 40 }, (_, i) => ({
+  it('renders pagination controls when totalPages > 1', () => {
+    const onPageChange = jest.fn()
+    const many = Array.from({ length: 15 }, (_, i) => ({
       id: `scheme-${i}`,
       name: `Scheme ${i}`,
       village: `Village ${i}`,
@@ -189,28 +172,17 @@ describe('SchemePerformanceTable', () => {
       waterSupplied: i * 1000,
     }))
 
-    try {
-      const { container } = renderWithProviders(
-        <SchemePerformanceTable title="Scheme Performance" data={many} onReachEnd={onReachEnd} />
-      )
-      const scrollArea = container.querySelector(
-        `[data-testid="${scrollTestId}"]`
-      ) as HTMLElement | null
+    renderWithProviders(
+      <SchemePerformanceTable
+        title="Scheme Performance"
+        data={many}
+        currentPage={2}
+        totalPages={5}
+        onPageChange={onPageChange}
+      />
+    )
 
-      expect(scrollArea).not.toBeNull()
-      onReachEnd.mockClear()
-
-      Object.defineProperty(scrollArea as HTMLElement, 'scrollTop', {
-        configurable: true,
-        writable: true,
-        value: 390,
-      })
-      fireEvent.scroll(scrollArea as HTMLElement)
-
-      expect(onReachEnd).toHaveBeenCalledTimes(1)
-    } finally {
-      scrollHeightSpy.mockRestore()
-      clientHeightSpy.mockRestore()
-    }
+    expect(screen.getByText('2')).toBeDefined()
+    expect(screen.getByText('3')).toBeDefined()
   })
 })
