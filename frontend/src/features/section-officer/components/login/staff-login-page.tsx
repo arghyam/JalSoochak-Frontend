@@ -6,6 +6,7 @@ import {
   type KeyboardEvent,
   type ClipboardEvent,
   type MutableRefObject,
+  type RefObject,
 } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -129,6 +130,12 @@ export function StaffLoginPage() {
     }
   }, [step])
 
+  useEffect(() => {
+    if (step === 'otp' && otpValues.every((v) => v !== '')) {
+      loginButtonRef.current?.focus()
+    }
+  }, [otpValues, step])
+
   const handleSendOtp = async () => {
     if (requestOtpMutation.isPending) return
     if (tenantsError) return
@@ -200,12 +207,8 @@ export function StaffLoginPage() {
     const next = [...otpValues]
     next[index] = char
     setOtpValues(next)
-    if (char) {
-      if (index < otpLength - 1) {
-        otpInputRefs.current[index + 1]?.focus()
-      } else if (index === otpLength - 1) {
-        loginButtonRef.current?.focus()
-      }
+    if (char && index < otpLength - 1) {
+      otpInputRefs.current[index + 1]?.focus()
     }
   }
 
@@ -478,7 +481,7 @@ interface OtpStepProps {
   otpLength: number
   otpValues: string[]
   otpInputRefs: MutableRefObject<(HTMLInputElement | null)[]>
-  loginButtonRef: MutableRefObject<HTMLButtonElement | null>
+  loginButtonRef: RefObject<HTMLButtonElement>
   otpError: string | null
   resendCooldown: number
   isResending: boolean
