@@ -1,7 +1,7 @@
 import { Box, Text, VStack, Flex } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { useMemo } from 'react'
-import { IoInformation } from 'react-icons/io5'
+import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { SearchableSelect, ActionTooltip } from '@/shared/components/common'
 import type { DateFormatConfig } from '../../types/configuration'
 
@@ -69,7 +69,7 @@ export function DateFormatSection({
               cursor="default"
               _hover={{ color: 'primary.500' }}
             >
-              <IoInformation size={16} aria-label={infoTooltip} />
+              <AiOutlineInfoCircle size={16} aria-label={infoTooltip} />
             </Flex>
           </ActionTooltip>
         )}

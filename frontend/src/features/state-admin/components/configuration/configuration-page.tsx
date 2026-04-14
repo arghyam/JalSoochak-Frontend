@@ -21,7 +21,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { EditIcon, WarningTwoIcon } from '@chakra-ui/icons'
 import { FiUpload } from 'react-icons/fi'
-import { IoInformation } from 'react-icons/io5'
+import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useToast } from '@/shared/hooks/use-toast'
 import {
   ActionTooltip,
@@ -988,10 +988,15 @@ export function ConfigurationPage() {
                       variant="secondary"
                       size="sm"
                       fontWeight="600"
-                      gap={1}
-                      leftIcon={<FiUpload aria-hidden="true" />}
+                      flex={{ base: 1, sm: 'none' }}
+                      w={{ base: 'auto', sm: '147px' }}
                       onClick={() => fileInputRef.current?.click()}
                     >
+                      <FiUpload
+                        aria-hidden="true"
+                        size={16}
+                        style={{ marginRight: '4px', flexShrink: 0 }}
+                      />
                       {t('configuration.sections.logo.uploadButton')}
                     </Button>
                     <Text fontSize="xs" color="neutral.500">
@@ -1057,7 +1062,7 @@ function FieldInfoIcon({ tooltip }: { tooltip: string }) {
         cursor="default"
         _hover={{ color: 'primary.500' }}
       >
-        <IoInformation size={16} aria-label={tooltip} />
+        <AiOutlineInfoCircle size={16} aria-label={tooltip} />
       </Flex>
     </ActionTooltip>
   )
