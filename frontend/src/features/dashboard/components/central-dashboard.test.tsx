@@ -703,10 +703,12 @@ describe('CentralDashboard', () => {
     })
     expect(useSchemePerformanceQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         parentLgdId: 303,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
-        schemeCount: 20,
+        pageNumber: 1,
+        limit: 15,
       },
       enabled: true,
     })
@@ -784,10 +786,12 @@ describe('CentralDashboard', () => {
     })
     expect(useSchemePerformanceQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         parentLgdId: 404,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
-        schemeCount: 20,
+        pageNumber: 1,
+        limit: 15,
       },
       enabled: true,
     })
@@ -845,10 +849,12 @@ describe('CentralDashboard', () => {
     })
     expect(useSchemePerformanceQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 16,
         parentLgdId: 544,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
-        schemeCount: 20,
+        pageNumber: 1,
+        limit: 15,
       },
       enabled: true,
     })
@@ -3608,10 +3614,12 @@ describe('CentralDashboard', () => {
     })
     expect(useSchemePerformanceQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 901,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
-        schemeCount: 20,
+        pageNumber: 1,
+        limit: 15,
       },
       enabled: true,
     })
@@ -4968,7 +4976,7 @@ describe('CentralDashboard', () => {
     dashboardFilterProps.onDistrictChange('sangareddy')
 
     expect(mockNavigate).toHaveBeenCalledWith({
-      pathname: '/telangana',
+      pathname: '/tg',
       search: '?district=sangareddy&tab=administrative',
     })
   })
@@ -5077,7 +5085,7 @@ describe('CentralDashboard', () => {
 
     expect(mockNavigate).toHaveBeenCalledTimes(2)
     expect(mockNavigate).toHaveBeenNthCalledWith(2, {
-      pathname: '/assam',
+      pathname: '/as',
       search: '?departmentZone=601%3Adepartment-zone',
     })
   })
@@ -5130,7 +5138,7 @@ describe('CentralDashboard', () => {
     })
 
     expect(mockNavigate).toHaveBeenCalledWith({
-      pathname: '/telangana',
+      pathname: '/tg',
       search: '?tab=administrative',
     })
   })
@@ -5242,7 +5250,7 @@ describe('CentralDashboard', () => {
     })
 
     expect(mockNavigate).toHaveBeenCalledWith({
-      pathname: '/assam',
+      pathname: '/as',
       search: '?district=201%3A201%3Akamrup&tab=administrative',
     })
   })
@@ -5727,7 +5735,7 @@ describe('CentralDashboard', () => {
     })
 
     expect(mockNavigate).toHaveBeenCalledWith({
-      pathname: '/madhya-pradesh',
+      pathname: '/mp',
       search: '?departmentZone=201&departmentCircle=310%3A310%3Ahuzur-division',
     })
   })

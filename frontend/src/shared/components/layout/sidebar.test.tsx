@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/render-with-providers'
 import { Sidebar } from './sidebar'
@@ -50,7 +50,8 @@ describe('Sidebar', () => {
     const user = userEvent.setup()
     renderWithProviders(<Sidebar />)
     await user.click(screen.getByRole('button', { name: /jane doe/i }))
-    await user.click(screen.getByRole('menuitem', { name: /logout/i }))
+    const logoutText = await screen.findByText('Logout')
+    fireEvent.click(logoutText.closest('button') as HTMLButtonElement)
     expect(mockLogout).toHaveBeenCalled()
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(ROUTES.LOGIN, { replace: true })

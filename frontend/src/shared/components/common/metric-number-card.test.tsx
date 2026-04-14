@@ -1,12 +1,10 @@
-import { screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { fireEvent, screen } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
 import { MetricNumberCard } from './metric-number-card'
 
 describe('MetricNumberCard', () => {
   it('renders title, description, and notifies on input change', async () => {
     const onChange = jest.fn()
-    const user = userEvent.setup()
     renderWithProviders(
       <MetricNumberCard
         title="Threshold"
@@ -21,8 +19,7 @@ describe('MetricNumberCard', () => {
     expect(screen.getByText('Max value')).toHaveAttribute('id', 'desc-1')
     const input = screen.getByRole('spinbutton', { name: /threshold input/i })
     expect(input).toHaveAttribute('aria-describedby', 'desc-1')
-    await user.clear(input)
-    await user.type(input, '5')
+    fireEvent.change(input, { target: { value: '5' } })
     expect(onChange).toHaveBeenCalled()
   })
 

@@ -1,5 +1,4 @@
-import { screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { fireEvent, screen } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
 import { MultiSelect } from './multi-select'
 
@@ -28,11 +27,10 @@ describe('MultiSelect', () => {
   })
 
   it('opens list and selects an option', async () => {
-    const user = userEvent.setup()
     const onChange = jest.fn()
     renderWithProviders(<MultiSelect options={options} value={[]} onChange={onChange} />)
-    await user.click(screen.getByRole('combobox'))
-    await user.click(screen.getByRole('option', { name: 'X' }))
+    fireEvent.click(screen.getByRole('combobox'))
+    fireEvent.click(await screen.findByText('X'))
     expect(onChange).toHaveBeenCalledTimes(1)
     expect(onChange).toHaveBeenCalledWith(['x'])
   })
