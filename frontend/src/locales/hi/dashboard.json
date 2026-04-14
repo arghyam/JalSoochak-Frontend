@@ -56,7 +56,7 @@
   },
   "map": {
     "metric": {
-      "quantity": "योजना मात्रा",
+      "quantity": "मात्रा",
       "regularity": "नियमितता"
     },
     "noMapAvailable": "मानचित्र फिलहाल उपलब्ध नहीं है",
@@ -113,7 +113,7 @@
     }
   },
   "overallPerformance": {
-    "title": "समग्र प्रदर्शन",
+    "title": "प्रदर्शन सारांश",
     "noData": "डेटा नहीं",
     "columns": {
       "entity": "राज्य/केंद्रशासित प्रदेश",

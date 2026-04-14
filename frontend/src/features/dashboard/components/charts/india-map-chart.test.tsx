@@ -218,8 +218,8 @@ describe('IndiaMapChart', () => {
     const latestOption = mockEChartsWrapper.mock.calls.at(-1)?.[0]?.option as {
       series?: Array<{ label?: { show?: boolean }; emphasis?: { label?: { show?: boolean } } }>
     }
-    expect(latestOption.series?.[0]?.label?.show).toBe(true)
-    expect(latestOption.series?.[0]?.emphasis?.label?.show).toBe(true)
+    expect(latestOption.series?.[0]?.label?.show).toBe(false)
+    expect(latestOption.series?.[0]?.emphasis?.label?.show).toBe(false)
     expect(mockRegisterMap).toHaveBeenCalledWith(
       'tenant-boundary-department-201',
       expect.objectContaining({
@@ -286,7 +286,7 @@ describe('IndiaMapChart', () => {
     )
   })
 
-  it('keeps India map labels visible on hover and selection states', () => {
+  it('keeps India map labels hidden on hover and selection states', () => {
     mockGetMap.mockReturnValue({})
 
     renderWithProviders(<IndiaMapChart data={chartData} />)
@@ -298,12 +298,8 @@ describe('IndiaMapChart', () => {
       }>
     }
 
-    expect(latestOption.series?.[0]?.emphasis?.label?.show).toBe(true)
-    expect(latestOption.series?.[0]?.emphasis?.label?.fontSize).toBe(12)
-    expect(latestOption.series?.[0]?.emphasis?.label?.fontWeight).toBe('bold')
-    expect(latestOption.series?.[0]?.select?.label?.show).toBe(true)
-    expect(latestOption.series?.[0]?.select?.label?.fontSize).toBe(12)
-    expect(latestOption.series?.[0]?.select?.label?.fontWeight).toBe('bold')
+    expect(latestOption.series?.[0]?.emphasis?.label?.show).toBe(false)
+    expect(latestOption.series?.[0]?.select?.label?.show).toBe(false)
   })
 
   it('renders the map with the svg renderer', () => {

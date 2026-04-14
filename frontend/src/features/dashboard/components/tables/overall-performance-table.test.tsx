@@ -59,6 +59,11 @@ describe('OverallPerformanceTable', () => {
     expect(screen.getByRole('button', { name: 'Quantity (LPCD)' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Regularity (%)' })).toBeTruthy()
     expect(screen.queryByText('Average (%)')).toBeNull()
+
+    const headerOrder = screen
+      .getAllByRole('columnheader')
+      .map((header) => header.textContent?.replace(/\s+/g, ' ').trim())
+    expect(headerOrder).toEqual(['State/UT', 'Regularity (%)', 'Quantity (MLD)', 'Quantity (LPCD)'])
   })
 
   it('renders quantity (MLD) values without a percent sign', () => {

@@ -56,7 +56,7 @@
   },
   "map": {
     "metric": {
-      "quantity": "Schemes Quantity",
+      "quantity": "Quantity",
       "regularity": "Regularity"
     },
     "noMapAvailable": "Map currently unavailable",
@@ -113,7 +113,7 @@
     }
   },
   "overallPerformance": {
-    "title": "Overall Performance",
+    "title": "Performance Summary",
     "noData": "No data available",
     "columns": {
       "entity": "State/UT",

@@ -298,7 +298,7 @@ describe('CentralDashboard', () => {
 
     renderWithProviders(<CentralDashboard />)
 
-    expect(screen.getByText('Overall Performance')).toBeTruthy()
+    expect(screen.getByText('Performance Summary')).toBeTruthy()
     expect(screen.getByTestId('overall-performance-table')).toBeTruthy()
     expect(screen.queryByText('Core Metrics')).toBeNull()
   })
@@ -1396,7 +1396,7 @@ describe('CentralDashboard', () => {
     ])
   })
 
-  it('calls useWaterQuantityPeriodicQuery with the resolved params and passes mapped quantity trend data to dashboard body', () => {
+  it('passes quantity trend data from scheme-regularity periodic metrics to dashboard body', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
@@ -1444,17 +1444,47 @@ describe('CentralDashboard', () => {
           {
             periodStartDate: '2026-03-12',
             periodEndDate: '2026-03-12',
+            totalWaterQuantity: 87,
             averageWaterQuantity: 87,
           },
           {
             periodStartDate: '2026-03-13',
             periodEndDate: '2026-03-13',
+            totalWaterQuantity: 91,
             averageWaterQuantity: 91,
           },
         ],
       },
       isFetching: false,
       isAwaitingParams: false,
+    })
+    ;(useSchemeRegularityPeriodicQuery as jest.Mock).mockReturnValue({
+      data: {
+        lgdId: 36,
+        departmentId: 0,
+        schemeCount: 100,
+        startDate: selectedDuration.startDate,
+        endDate: selectedDuration.endDate,
+        scale: 'day',
+        periodCount: 2,
+        metrics: [
+          {
+            periodStartDate: '2026-03-12',
+            periodEndDate: '2026-03-12',
+            totalSupplyDays: 10,
+            totalWaterQuantity: 87,
+            averageRegularity: 0.5,
+          },
+          {
+            periodStartDate: '2026-03-13',
+            periodEndDate: '2026-03-13',
+            totalSupplyDays: 11,
+            totalWaterQuantity: 91,
+            averageRegularity: 0.6,
+          },
+        ],
+      },
+      isFetching: false,
     })
 
     renderWithProviders(<CentralDashboard />)
@@ -1524,7 +1554,7 @@ describe('CentralDashboard', () => {
     })
   })
 
-  it('passes isQuantityTimeTrendLoading=true to dashboard body while useWaterQuantityPeriodicQuery is loading', () => {
+  it('passes isQuantityTimeTrendLoading=true to dashboard body while scheme-regularity periodic query is loading', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
@@ -1558,6 +1588,10 @@ describe('CentralDashboard', () => {
       data: undefined,
       isFetching: true,
       isAwaitingParams: false,
+    })
+    ;(useSchemeRegularityPeriodicQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isFetching: true,
     })
 
     renderWithProviders(<CentralDashboard />)
@@ -1657,6 +1691,7 @@ describe('CentralDashboard', () => {
                   {
                     periodStartDate: '2026-03-23',
                     periodEndDate: '2026-03-23',
+                    totalWaterQuantity: 30000,
                     averageWaterQuantity: 30000,
                     householdCount: 0,
                     achievedFhtcCount: 500,
@@ -1665,6 +1700,7 @@ describe('CentralDashboard', () => {
                   {
                     periodStartDate: '2026-03-24',
                     periodEndDate: '2026-03-24',
+                    totalWaterQuantity: 30000,
                     averageWaterQuantity: 30000,
                     householdCount: 0,
                     achievedFhtcCount: 500,
@@ -1683,6 +1719,7 @@ describe('CentralDashboard', () => {
                   {
                     periodStartDate: '2026-03-25',
                     periodEndDate: '2026-03-25',
+                    totalWaterQuantity: 41243,
                     averageWaterQuantity: 41243,
                     householdCount: 0,
                     achievedFhtcCount: 501,
@@ -1691,6 +1728,7 @@ describe('CentralDashboard', () => {
                   {
                     periodStartDate: '2026-03-26',
                     periodEndDate: '2026-03-26',
+                    totalWaterQuantity: 50100,
                     averageWaterQuantity: 50100,
                     householdCount: 0,
                     achievedFhtcCount: 500,
