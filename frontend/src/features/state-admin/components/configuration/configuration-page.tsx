@@ -21,7 +21,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { EditIcon, WarningTwoIcon } from '@chakra-ui/icons'
 import { FiUpload } from 'react-icons/fi'
-import { IoInformation } from 'react-icons/io5'
+import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useToast } from '@/shared/hooks/use-toast'
 import {
   ActionTooltip,
@@ -1057,7 +1057,7 @@ function FieldInfoIcon({ tooltip }: { tooltip: string }) {
         cursor="default"
         _hover={{ color: 'primary.500' }}
       >
-        <IoInformation size={16} aria-label={tooltip} />
+        <AiOutlineInfoCircle size={16} aria-label={tooltip} />
       </Flex>
     </ActionTooltip>
   )

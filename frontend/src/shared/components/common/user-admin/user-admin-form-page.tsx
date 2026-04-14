@@ -300,7 +300,7 @@ function FormContent({
                 {labels.form.userDetails}
               </Heading>
               {isEditMode && (
-                <EditIcon boxSize={5} cursor="not-allowed" color="neutral.400" aria-hidden="true" />
+                <EditIcon boxSize={5} cursor="not-allowed" color="neutral.950" aria-hidden="true" />
               )}
             </Flex>
 

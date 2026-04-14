@@ -12,7 +12,9 @@ import {
   FormControl,
   FormLabel,
   FormErrorMessage,
+  IconButton,
 } from '@chakra-ui/react'
+import { EditIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { ToastContainer, SearchableSelect, PageHeader } from '@/shared/components/common'
 import { TENANT_STATUSES, type TenantStatus } from '../../types/states-uts'
@@ -261,9 +263,11 @@ export function EditStateUTPage() {
   return (
     <Box w="full">
       <PageHeader>
-        <Heading as="h1" size={{ base: 'h2', md: 'h1' }} mb={2}>
-          {t('statesUts.editTitle')}
-        </Heading>
+        <Flex justify="space-between" align="flex-start" mb={2}>
+          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
+            {t('statesUts.editTitle')}
+          </Heading>
+        </Flex>
         <Flex as="nav" aria-label="Breadcrumb" gap={2} flexWrap="wrap">
           <Text
             as="a"
@@ -315,9 +319,24 @@ export function EditStateUTPage() {
         >
           <Box>
             {/* State/UT Details — read-only */}
-            <Heading as="h2" size="h3" fontWeight="400" mb={4} id="state-details-heading">
-              {t('statesUts.details.title')}
-            </Heading>
+            <Flex justify="space-between" align="flex-start" mb={4}>
+              <Heading as="h2" size="h3" fontWeight="400" mb={4} id="state-details-heading">
+                {t('statesUts.details.title')}
+              </Heading>
+              {tenant && (
+                <IconButton
+                  aria-label={`${t('statesUts.aria.editStateUt')} ${tenant.name}`}
+                  icon={<EditIcon boxSize={5} />}
+                  variant="ghost"
+                  size="sm"
+                  color="neutral.950"
+                  _hover={{ color: 'primary.500', bg: 'transparent' }}
+                  onClick={() =>
+                    navigate(ROUTES.SUPER_ADMIN_STATES_UTS_VIEW.replace(':tenantCode', tenantCode!))
+                  }
+                />
+              )}
+            </Flex>
             <SimpleGrid
               columns={{ base: 1, lg: 2 }}
               spacing={6}

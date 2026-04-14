@@ -10,7 +10,7 @@ import {
   FormErrorMessage,
 } from '@chakra-ui/react'
 import { MdDeleteOutline } from 'react-icons/md'
-import { IoInformation } from 'react-icons/io5'
+import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useTranslation } from 'react-i18next'
 import type { SupplyOutageReason } from '../../types/configuration'
 import { isEmptyOrWhitespace } from '@/shared/utils/validation'
@@ -82,7 +82,7 @@ export function SupplyOutageReasonsSection({
               cursor="default"
               _hover={{ color: 'primary.500' }}
             >
-              <IoInformation size={16} aria-label={infoTooltip} />
+              <AiOutlineInfoCircle size={16} aria-label={infoTooltip} />
             </Flex>
           </ActionTooltip>
         )}
