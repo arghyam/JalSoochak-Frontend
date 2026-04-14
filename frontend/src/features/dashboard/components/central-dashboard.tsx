@@ -738,13 +738,6 @@ export function CentralDashboard() {
   const [regularityTimeScaleTab, setRegularityTimeScaleTab] = useState<QuantityTimeScaleTab>('day')
   const [outageDistributionTimeScaleTab, setOutageDistributionTimeScaleTab] =
     useState<QuantityTimeScaleTab>('day')
-  const [schemePerformancePagination, setSchemePerformancePagination] = useState<{
-    scopeKey: string
-    page: number
-  }>({
-    scopeKey: '',
-    page: 0,
-  })
   const selectionTrailValues = [
     selectedState,
     selectedDistrict,
@@ -1279,29 +1272,25 @@ export function CentralDashboard() {
       isHierarchyFourthLevelSelected ||
       isHierarchyLeafSelected) &&
     analyticsParentId > 0
-  const schemePerformanceScopeKey = shouldFetchSchemePerformanceAnalytics
-    ? `${hierarchyType}:${analyticsParentId}:${analyticsDateRange.startDate}:${analyticsDateRange.endDate}`
-    : 'disabled'
-  const schemePerformancePage =
-    schemePerformancePagination.scopeKey === schemePerformanceScopeKey
-      ? schemePerformancePagination.page
-      : 0
-  const schemePerformanceRequestCount = (schemePerformancePage + 1) * SCHEME_PERFORMANCE_PAGE_SIZE
-  const schemePerformanceAnalyticsParams = !shouldFetchSchemePerformanceAnalytics
-    ? null
-    : hierarchyType === 'LGD'
-      ? {
-          parentLgdId: analyticsParentId,
-          startDate: analyticsDateRange.startDate,
-          endDate: analyticsDateRange.endDate,
-          schemeCount: schemePerformanceRequestCount,
-        }
-      : {
-          parentDepartmentId: analyticsParentId,
-          startDate: analyticsDateRange.startDate,
-          endDate: analyticsDateRange.endDate,
-          schemeCount: schemePerformanceRequestCount,
-        }
+  const schemePerformanceRequestCount = SCHEME_PERFORMANCE_PAGE_SIZE
+  const schemePerformanceAnalyticsParams =
+    !shouldFetchSchemePerformanceAnalytics || !selectedTenant?.tenantId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            tenantId: selectedTenant.tenantId,
+            parentLgdId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            schemeCount: schemePerformanceRequestCount,
+          }
+        : {
+            tenantId: selectedTenant.tenantId,
+            parentDepartmentId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            schemeCount: schemePerformanceRequestCount,
+          }
   const submissionStatusAnalyticsParams =
     !hasCentralLandingFilters || !selectedTenant?.tenantId || !hasValidSubmissionStatusParentId
       ? null
@@ -1492,11 +1481,10 @@ export function CentralDashboard() {
     params: readingSubmissionRateAnalyticsParams,
     enabled: Boolean(readingSubmissionRateAnalyticsParams),
   })
-  const { data: schemePerformanceData, isFetching: isSchemePerformanceFetching } =
-    useSchemePerformanceQuery({
-      params: schemePerformanceAnalyticsParams,
-      enabled: Boolean(schemePerformanceAnalyticsParams),
-    })
+  const { data: schemePerformanceData } = useSchemePerformanceQuery({
+    params: schemePerformanceAnalyticsParams,
+    enabled: Boolean(schemePerformanceAnalyticsParams),
+  })
   const { data: submissionStatusData } = useSubmissionStatusQuery({
     params: submissionStatusAnalyticsParams,
     enabled: Boolean(submissionStatusAnalyticsParams),
@@ -1834,30 +1822,32 @@ export function CentralDashboard() {
     schemePerformanceData,
     shouldFetchSchemePerformanceAnalytics ? [] : (dashboardData?.pumpOperators ?? [])
   )
-  const tenantBoundaryBlockLookup = (tenantBoundaryData?.childRegions ?? []).reduce(
-    (lookup, region) => {
-      const normalizedTitle = (region.childLgdTitle ?? region.childDepartmentTitle ?? '').trim()
-      if (!normalizedTitle) {
+  const tenantBoundaryBlockLookup = (tenantBoundaryData?.childRegions ?? [])
+    .filter((region) => region.lgdLevel === 3)
+    .reduce(
+      (lookup, region) => {
+        const normalizedTitle = (region.childLgdTitle ?? region.childDepartmentTitle ?? '').trim()
+        if (!normalizedTitle) {
+          return lookup
+        }
+
+        if (typeof region.childLgdId === 'number' && region.childLgdId > 0) {
+          lookup.idLookup[region.childLgdId] = normalizedTitle
+          lookup.lgdLookup[region.childLgdId] = normalizedTitle
+        }
+
+        if (typeof region.childDepartmentId === 'number' && region.childDepartmentId > 0) {
+          lookup.idLookup[region.childDepartmentId] = normalizedTitle
+          lookup.lgdLookup[region.childDepartmentId] = normalizedTitle
+        }
+
         return lookup
+      },
+      { idLookup: {}, lgdLookup: {} } as {
+        idLookup: Record<number, string>
+        lgdLookup: Record<number, string>
       }
-
-      if (typeof region.childLgdId === 'number' && region.childLgdId > 0) {
-        lookup.idLookup[region.childLgdId] = normalizedTitle
-        lookup.lgdLookup[region.childLgdId] = normalizedTitle
-      }
-
-      if (typeof region.childDepartmentId === 'number' && region.childDepartmentId > 0) {
-        lookup.idLookup[region.childDepartmentId] = normalizedTitle
-        lookup.lgdLookup[region.childDepartmentId] = normalizedTitle
-      }
-
-      return lookup
-    },
-    { idLookup: {}, lgdLookup: {} } as {
-      idLookup: Record<number, string>
-      lgdLookup: Record<number, string>
-    }
-  )
+    )
   const operatorsPerformanceAnalyticsTable = mapSchemePerformanceToTable(
     schemePerformanceData,
     [],
@@ -1868,33 +1858,6 @@ export function CentralDashboard() {
       useDepartmentHierarchyTitles: hierarchyType !== 'LGD',
     }
   )
-  const totalSchemesFromAnalytics =
-    (schemePerformanceData?.activeSchemeCount ?? 0) +
-    (schemePerformanceData?.inactiveSchemeCount ?? 0)
-  const apiReturnedFullPage =
-    (schemePerformanceData?.topSchemes?.length ?? 0) >= schemePerformanceRequestCount
-  const hasMoreSchemePerformanceRows =
-    shouldFetchSchemePerformanceAnalytics &&
-    ((totalSchemesFromAnalytics > 0 &&
-      operatorsPerformanceAnalyticsTable.length < totalSchemesFromAnalytics) ||
-      (totalSchemesFromAnalytics === 0 && apiReturnedFullPage))
-  const handleReachSchemePerformanceEnd = () => {
-    if (!hasMoreSchemePerformanceRows || isSchemePerformanceFetching) {
-      return
-    }
-
-    if ((schemePerformanceData?.topSchemes ?? []).length === 0) {
-      return
-    }
-
-    setSchemePerformancePagination((current) => {
-      const basePage = current.scopeKey === schemePerformanceScopeKey ? current.page : 0
-      return {
-        scopeKey: schemePerformanceScopeKey,
-        page: basePage + 1,
-      }
-    })
-  }
   const derivedVillageSchemeId = isHierarchyLeafSelected
     ? (selectedSchemeId ?? schemePerformanceData?.topSchemes?.[0]?.schemeId)
     : undefined
@@ -2927,9 +2890,7 @@ export function CentralDashboard() {
         villagePumpOperatorDetails={villagePumpOperatorDetails}
         tenantCode={selectedTenant?.tenantCode}
         schemeId={derivedVillageSchemeId}
-        onReachSchemePerformanceEnd={
-          shouldFetchSchemePerformanceAnalytics ? handleReachSchemePerformanceEnd : undefined
-        }
+        onReachSchemePerformanceEnd={undefined}
       />
     </Box>
   )

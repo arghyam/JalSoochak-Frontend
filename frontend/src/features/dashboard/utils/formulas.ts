@@ -1082,6 +1082,10 @@ export const mapSchemePerformanceToTable = (
         ? scheme.immediateParentDepartmentId
         : scheme.immediateParentLgdId
     )
+    const blockTitleByLadderLevel3 = getLocationTitleFromLookup(
+      options?.blockTitleByParentId,
+      scheme.lgdLadder?.level_3 ?? undefined
+    )
     const blockTitleByDepartmentId = getLocationTitleFromLookup(
       options?.blockTitleByParentId,
       scheme.immediateParentDepartmentId
@@ -1092,6 +1096,7 @@ export const mapSchemePerformanceToTable = (
     )
     const normalizedParentLgdLevel = (scheme.immediateParentLgdCName ?? '').trim().toLowerCase()
     const blockTitle =
+      blockTitleByLadderLevel3 ??
       blockTitleByDepartmentId ??
       blockTitleByLgdId ??
       (scheme.immediateParentDepartmentTitle?.trim() || undefined) ??

@@ -983,14 +983,16 @@ describe('dashboardApi.getSchemePerformance', () => {
     } as never)
     const { dashboardApi } = await import('./dashboard-api')
     const res = await dashboardApi.getSchemePerformance({
-      parentLgdId: 10,
+      tenantId: 10,
+      parentLgdId: 2,
       startDate: 's',
       endDate: 'e',
       schemeCount: 25,
     })
     expect(mockGet).toHaveBeenCalledWith('/api/v1/analytics/schemes/dashboard', {
       params: {
-        parent_lgd_id: 10,
+        tenant_id: 10,
+        parent_lgd_id: 2,
         parent_department_id: undefined,
         start_date: 's',
         end_date: 'e',

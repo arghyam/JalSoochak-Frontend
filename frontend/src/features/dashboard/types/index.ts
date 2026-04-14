@@ -430,6 +430,7 @@ export interface TenantBoundaryChildRegion {
   childLgdId?: number
   childLgdCName?: string
   childLgdTitle?: string
+  lgdLevel?: number
   childDepartmentId?: number
   childDepartmentTitle?: string
   childBoundaryGeoJson?: string | null
@@ -503,6 +504,7 @@ export interface ReadingComplianceResponse {
 }
 
 export interface SchemePerformanceQueryParams {
+  tenantId?: number
   parentLgdId?: number
   parentDepartmentId?: number
   startDate: string
@@ -563,6 +565,15 @@ export interface PumpOperatorDetailsResponse {
   }
 }
 
+export interface LgdLadder {
+  level_1?: number | null
+  level_2?: number | null
+  level_3?: number | null
+  level_4?: number | null
+  level_5?: number | null
+  level_6?: number | null
+}
+
 export interface SchemePerformanceItem {
   schemeId: number
   schemeName: string
@@ -574,9 +585,13 @@ export interface SchemePerformanceItem {
   immediateParentLgdId: number
   immediateParentLgdCName: string
   immediateParentLgdTitle: string
+  immediateParentLgdLevel?: number | null
   immediateParentDepartmentId: number
   immediateParentDepartmentCName: string
   immediateParentDepartmentTitle: string
+  immediateParentDepartmentLevel?: number | null
+  lgdLadder?: LgdLadder | null
+  departmentLadder?: LgdLadder | null
 }
 
 export interface SchemePerformanceResponse {

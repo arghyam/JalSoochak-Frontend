@@ -120,6 +120,7 @@ type TenantBoundaryChildRegionAlias = {
   childLgdId?: number
   childLgdTitle?: string
   lgdId?: number
+  lgdLevel?: number
   childDepartmentId?: number
   childDepartmentTitle?: string
   departmentId?: number
@@ -828,6 +829,7 @@ export const dashboardApi = {
       SchemePerformanceResponse | WrappedAnalyticsResponse<SchemePerformanceResponse>
     >('/api/v1/analytics/schemes/dashboard', {
       params: {
+        tenant_id: params.tenantId,
         parent_lgd_id: params.parentLgdId,
         parent_department_id: params.parentDepartmentId,
         start_date: params.startDate,
@@ -838,7 +840,7 @@ export const dashboardApi = {
 
     return (
       unwrapAnalyticsResponse(response.data, 'scheme performance analytics') ?? {
-        parentLgdId: params.parentLgdId ?? 0,
+        parentLgdId: 0,
         parentDepartmentId: params.parentDepartmentId ?? 0,
         parentLgdCName: '',
         parentDepartmentCName: '',

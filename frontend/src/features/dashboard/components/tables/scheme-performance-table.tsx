@@ -96,7 +96,6 @@ export function SchemePerformanceTable({
   const scrollbarThumbRef = useRef<HTMLDivElement | null>(null)
   const isDraggingThumb = useRef(false)
   const hasReachedEndRef = useRef(false)
-  const verticalScrollContainerRef = useRef<HTMLDivElement | null>(null)
   const dragStartX = useRef(0)
   const dragStartLeft = useRef(0)
   const thumbLeftRef = useRef(0)
@@ -176,7 +175,7 @@ export function SchemePerformanceTable({
       return
     }
 
-    const container = verticalScrollContainerRef.current
+    const container = scrollContainerRef.current
 
     if (!container) {
       return
@@ -322,21 +321,25 @@ export function SchemePerformanceTable({
         </Box>
       ) : (
         <Box
-          ref={verticalScrollContainerRef}
+          ref={scrollContainerRef}
           data-testid="scheme-performance-scroll-area"
           maxH={fillHeight ? undefined : maxTableHeight}
           flex={fillHeight ? 1 : undefined}
           minH={fillHeight ? 0 : undefined}
           overflowY="auto"
-          overflowX="hidden"
+          overflowX={enableHorizontalScroller ? 'auto' : 'hidden'}
           w="full"
           maxW="100%"
           minW={0}
           pr={2}
           pb={2}
-          onScroll={handleVerticalScroll}
+          onScroll={(e) => {
+            updateScrollbarThumb()
+            handleVerticalScroll(e)
+          }}
           sx={{
             WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
             '&::-webkit-scrollbar': { width: '4px', height: '0px' },
             '&::-webkit-scrollbar-track': { bg: 'neutral.100', borderRadius: '999px' },
             '&::-webkit-scrollbar-thumb': {
@@ -346,194 +349,178 @@ export function SchemePerformanceTable({
             },
           }}
         >
-          <Box
-            ref={scrollContainerRef}
-            overflowX={enableHorizontalScroller ? 'auto' : 'hidden'}
-            overflowY="visible"
-            w="full"
-            minW={0}
-            onScroll={updateScrollbarThumb}
-            sx={{
-              WebkitOverflowScrolling: 'touch',
-              scrollbarWidth: 'none',
-              '&::-webkit-scrollbar': {
-                height: '0px',
-              },
-            }}
-          >
-            <Box w="full" minW={responsiveTableMinWidth}>
-              <Table size="sm" w="full" minW={responsiveTableMinWidth} sx={{ tableLayout: 'auto' }}>
-                <Thead
-                  sx={{
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 1,
-                    bg: 'white',
-                    th: {
-                      textStyle: 'bodyText7',
-                      textTransform: 'none',
-                      fontWeight: '500',
-                      px: 3,
-                      py: 4,
-                      whiteSpace: 'nowrap',
-                    },
-                  }}
-                >
-                  <Tr>
-                    <Th w="260px" minW="260px" maxW="260px">
-                      {t('pumpOperators.performanceTable.columns.name', { defaultValue: 'Name' })}
+          <Box w="full" minW={responsiveTableMinWidth}>
+            <Table size="sm" w="full" minW={responsiveTableMinWidth} sx={{ tableLayout: 'auto' }}>
+              <Thead
+                sx={{
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 1,
+                  bg: 'white',
+                  th: {
+                    textStyle: 'bodyText7',
+                    textTransform: 'none',
+                    fontWeight: '500',
+                    px: 3,
+                    py: 4,
+                    whiteSpace: 'nowrap',
+                  },
+                }}
+              >
+                <Tr>
+                  <Th w="260px" minW="260px" maxW="260px">
+                    {t('pumpOperators.performanceTable.columns.name', { defaultValue: 'Name' })}
+                  </Th>
+                  {showVillageColumn ? (
+                    <Th minW={enableHorizontalScroller ? '140px' : 'auto'}>
+                      {secondaryColumnLabel ??
+                        t('pumpOperators.performanceTable.columns.village', {
+                          defaultValue: 'Village',
+                        })}
                     </Th>
-                    {showVillageColumn ? (
-                      <Th minW={enableHorizontalScroller ? '140px' : 'auto'}>
-                        {secondaryColumnLabel ??
-                          t('pumpOperators.performanceTable.columns.village', {
-                            defaultValue: 'Village',
-                          })}
-                      </Th>
-                    ) : null}
-                    {showBlockColumn ? (
-                      <Th minW={enableHorizontalScroller ? '140px' : 'auto'}>
-                        {blockColumnLabel ??
-                          t('pumpOperators.performanceTable.columns.block', {
-                            defaultValue: 'Block',
-                          })}
-                      </Th>
-                    ) : null}
-                    <Th
-                      minW={enableHorizontalScroller ? '170px' : 'auto'}
-                      aria-sort={
-                        sortColumn === 'reportingRate'
-                          ? sortDirection === 'asc'
-                            ? 'ascending'
-                            : 'descending'
-                          : undefined
-                      }
+                  ) : null}
+                  {showBlockColumn ? (
+                    <Th minW={enableHorizontalScroller ? '140px' : 'auto'}>
+                      {blockColumnLabel ??
+                        t('pumpOperators.performanceTable.columns.block', {
+                          defaultValue: 'Block',
+                        })}
+                    </Th>
+                  ) : null}
+                  <Th
+                    minW={enableHorizontalScroller ? '170px' : 'auto'}
+                    aria-sort={
+                      sortColumn === 'reportingRate'
+                        ? sortDirection === 'asc'
+                          ? 'ascending'
+                          : 'descending'
+                        : undefined
+                    }
+                  >
+                    <Box
+                      as="button"
+                      type="button"
+                      onClick={() => handleSort('reportingRate')}
+                      display="inline-flex"
+                      alignItems="center"
+                      gap={1}
+                      cursor="pointer"
+                      textAlign="left"
+                      width="100%"
+                      bg="none"
+                      border="none"
+                      p={0}
                     >
-                      <Box
-                        as="button"
-                        type="button"
-                        onClick={() => handleSort('reportingRate')}
-                        display="inline-flex"
-                        alignItems="center"
-                        gap={1}
-                        cursor="pointer"
-                        textAlign="left"
-                        width="100%"
-                        bg="none"
-                        border="none"
-                        p={0}
-                      >
-                        <Box as="span">
-                          {t('pumpOperators.performanceTable.columns.reportingRate', {
-                            defaultValue: 'Reporting Rate (%)',
-                          })}
-                        </Box>
-                        <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
+                      <Box as="span">
+                        {t('pumpOperators.performanceTable.columns.reportingRate', {
+                          defaultValue: 'Reporting Rate (%)',
+                        })}
                       </Box>
-                    </Th>
-                    <Th
-                      minW={enableHorizontalScroller ? '150px' : 'auto'}
-                      aria-sort={
-                        sortColumn === 'waterSupplied'
-                          ? sortDirection === 'asc'
-                            ? 'ascending'
-                            : 'descending'
-                          : undefined
-                      }
+                      <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
+                    </Box>
+                  </Th>
+                  <Th
+                    minW={enableHorizontalScroller ? '150px' : 'auto'}
+                    aria-sort={
+                      sortColumn === 'waterSupplied'
+                        ? sortDirection === 'asc'
+                          ? 'ascending'
+                          : 'descending'
+                        : undefined
+                    }
+                  >
+                    <Box
+                      as="button"
+                      type="button"
+                      onClick={() => handleSort('waterSupplied')}
+                      display="inline-flex"
+                      alignItems="center"
+                      gap={1}
+                      cursor="pointer"
+                      textAlign="left"
+                      width="100%"
+                      bg="none"
+                      border="none"
+                      p={0}
                     >
-                      <Box
-                        as="button"
-                        type="button"
-                        onClick={() => handleSort('waterSupplied')}
-                        display="inline-flex"
-                        alignItems="center"
-                        gap={1}
-                        cursor="pointer"
-                        textAlign="left"
-                        width="100%"
-                        bg="none"
-                        border="none"
-                        p={0}
-                      >
-                        <Box as="span">
-                          {t('pumpOperators.performanceTable.columns.waterSupplied', {
-                            defaultValue: 'Water Supplied',
-                          })}
-                        </Box>
-                        <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
+                      <Box as="span">
+                        {t('pumpOperators.performanceTable.columns.waterSupplied', {
+                          defaultValue: 'Water Supplied',
+                        })}
                       </Box>
-                    </Th>
-                  </Tr>
-                </Thead>
-                <Tbody
-                  sx={{
-                    td: {
-                      textStyle: 'bodyText7',
-                      fontWeight: '400',
-                      px: 3,
-                      py: 3,
-                      whiteSpace: 'nowrap',
-                    },
-                  }}
-                >
-                  {rows.map((operator) => {
-                    const villageValue = formatCellValue(operator.village)
-                    const blockValue = formatCellValue(operator.block)
+                      <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
+                    </Box>
+                  </Th>
+                </Tr>
+              </Thead>
+              <Tbody
+                sx={{
+                  td: {
+                    textStyle: 'bodyText7',
+                    fontWeight: '400',
+                    px: 3,
+                    py: 3,
+                    whiteSpace: 'nowrap',
+                  },
+                }}
+              >
+                {rows.map((operator) => {
+                  const villageValue = formatCellValue(operator.village)
+                  const blockValue = formatCellValue(operator.block)
 
-                    return (
-                      <Tr key={operator.id} _odd={{ bg: 'primary.25' }}>
-                        <Td
-                          w="260px"
-                          minW="260px"
-                          maxW="260px"
+                  return (
+                    <Tr key={operator.id} _odd={{ bg: 'primary.25' }}>
+                      <Td
+                        w="260px"
+                        minW="260px"
+                        maxW="260px"
+                        overflow="hidden"
+                        lineHeight="20px"
+                        verticalAlign="top"
+                      >
+                        <Box
+                          maxW="240px"
                           overflow="hidden"
-                          lineHeight="20px"
-                          verticalAlign="top"
+                          textOverflow="ellipsis"
+                          whiteSpace="nowrap"
+                          title={operator.name}
                         >
+                          {operator.name}
+                        </Box>
+                      </Td>
+                      {showVillageColumn ? (
+                        <Td overflow="hidden" lineHeight="20px" verticalAlign="top">
                           <Box
-                            maxW="240px"
+                            maxW="100%"
                             overflow="hidden"
                             textOverflow="ellipsis"
                             whiteSpace="nowrap"
-                            title={operator.name}
+                            title={villageValue}
                           >
-                            {operator.name}
+                            {villageValue}
                           </Box>
                         </Td>
-                        {showVillageColumn ? (
-                          <Td overflow="hidden" lineHeight="20px" verticalAlign="top">
-                            <Box
-                              maxW="100%"
-                              overflow="hidden"
-                              textOverflow="ellipsis"
-                              whiteSpace="nowrap"
-                              title={villageValue}
-                            >
-                              {villageValue}
-                            </Box>
-                          </Td>
-                        ) : null}
-                        {showBlockColumn ? (
-                          <Td overflow="hidden" lineHeight="20px" verticalAlign="top">
-                            <Box
-                              maxW="100%"
-                              overflow="hidden"
-                              textOverflow="ellipsis"
-                              whiteSpace="nowrap"
-                              title={blockValue}
-                            >
-                              {blockValue}
-                            </Box>
-                          </Td>
-                        ) : null}
-                        <Td>{formatMetricValue(operator.reportingRate)}</Td>
-                        <Td>{formatMetricValue(operator.waterSupplied)}</Td>
-                      </Tr>
-                    )
-                  })}
-                </Tbody>
-              </Table>
-            </Box>
+                      ) : null}
+                      {showBlockColumn ? (
+                        <Td overflow="hidden" lineHeight="20px" verticalAlign="top">
+                          <Box
+                            maxW="100%"
+                            overflow="hidden"
+                            textOverflow="ellipsis"
+                            whiteSpace="nowrap"
+                            title={blockValue}
+                          >
+                            {blockValue}
+                          </Box>
+                        </Td>
+                      ) : null}
+                      <Td>{formatMetricValue(operator.reportingRate)}</Td>
+                      <Td>{formatMetricValue(operator.waterSupplied)}</Td>
+                    </Tr>
+                  )
+                })}
+              </Tbody>
+            </Table>
           </Box>
         </Box>
       )}
