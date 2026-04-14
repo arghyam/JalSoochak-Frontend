@@ -116,6 +116,7 @@ export function StaffLoginPage() {
   }, [])
 
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const loginButtonRef = useRef<HTMLButtonElement>(null)
 
   const resetOtpInputs = useCallback((length: number) => {
     setOtpValues(Array(length).fill(''))
@@ -199,8 +200,12 @@ export function StaffLoginPage() {
     const next = [...otpValues]
     next[index] = char
     setOtpValues(next)
-    if (char && index < otpLength - 1) {
-      otpInputRefs.current[index + 1]?.focus()
+    if (char) {
+      if (index < otpLength - 1) {
+        otpInputRefs.current[index + 1]?.focus()
+      } else if (index === otpLength - 1) {
+        loginButtonRef.current?.focus()
+      }
     }
   }
 
@@ -219,8 +224,12 @@ export function StaffLoginPage() {
       next[i] = ch
     })
     setOtpValues(next)
-    const lastFilled = Math.min(pasted.length, otpLength - 1)
-    otpInputRefs.current[lastFilled]?.focus()
+    if (pasted.length === otpLength) {
+      setTimeout(() => loginButtonRef.current?.focus(), 0)
+    } else {
+      const lastFilled = Math.min(pasted.length, otpLength - 1)
+      otpInputRefs.current[lastFilled]?.focus()
+    }
   }
 
   const handleVerifyOtp = async () => {
@@ -297,6 +306,7 @@ export function StaffLoginPage() {
                   otpLength={otpLength}
                   otpValues={otpValues}
                   otpInputRefs={otpInputRefs}
+                  loginButtonRef={loginButtonRef}
                   otpError={otpError}
                   resendCooldown={resendCooldown}
                   isResending={requestOtpMutation.isPending}
@@ -468,6 +478,7 @@ interface OtpStepProps {
   otpLength: number
   otpValues: string[]
   otpInputRefs: MutableRefObject<(HTMLInputElement | null)[]>
+  loginButtonRef: MutableRefObject<HTMLButtonElement | null>
   otpError: string | null
   resendCooldown: number
   isResending: boolean
@@ -486,6 +497,7 @@ function OtpStep({
   otpLength,
   otpValues,
   otpInputRefs,
+  loginButtonRef,
   otpError,
   resendCooldown,
   isResending,
@@ -596,6 +608,7 @@ function OtpStep({
         </HStack>
 
         <Button
+          ref={loginButtonRef}
           w="full"
           fontSize="16px"
           fontWeight="600"

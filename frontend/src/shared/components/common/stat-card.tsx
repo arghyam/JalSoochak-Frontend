@@ -33,15 +33,15 @@ export function StatCard({
     >
       <Flex direction="column" gap={3}>
         <Flex
-          h="40px"
-          w="40px"
+          h="48px"
+          w="48px"
           align="center"
           justify="center"
           borderRadius="full"
           bg={iconBg}
           aria-hidden="true"
         >
-          <Icon as={StatIcon} boxSize={5} color={iconColor} />
+          <Icon as={StatIcon} boxSize={7} color={iconColor} />
         </Flex>
         <Flex direction="column" gap={1}>
           <Text color="neutral.600" fontSize={{ base: 'sm', md: 'md' }}>
