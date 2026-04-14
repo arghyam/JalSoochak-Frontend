@@ -10,7 +10,6 @@ import {
   InputLeftElement,
   Button,
   IconButton,
-  useBreakpointValue,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { SearchIcon, EditIcon } from '@chakra-ui/icons'
@@ -60,8 +59,6 @@ export function StatesUTsPage() {
     debouncedSearch,
     statusFilter
   )
-
-  const showAddButtonText = useBreakpointValue({ base: false, sm: true }) ?? true
 
   useEffect(() => {
     document.title = `${t('statesUts.title')} | JalSoochak`
@@ -249,7 +246,7 @@ export function StatesUTsPage() {
           aria-label={t('statesUts.addNewStateUt')}
         >
           <IoAddOutline size={24} aria-hidden="true" />
-          {showAddButtonText && t('statesUts.addNewStateUt')}
+          {t('statesUts.addNewStateUt')}
         </Button>
       </Flex>
 
