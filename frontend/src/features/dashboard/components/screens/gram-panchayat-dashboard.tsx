@@ -45,7 +45,9 @@ type GramPanchayatDashboardScreenProps = {
   pumpOperatorsTotal: number
   operatorsPerformanceTable: PumpOperatorPerformanceData[]
   childEntityLabel?: string
-  onReachSchemePerformanceEnd?: () => void
+  schemePerformancePage?: number
+  totalSchemePages?: number
+  onSchemePageChange?: (page: number) => void
 }
 
 type ViewBy = 'geography' | 'time'
@@ -72,7 +74,9 @@ export function GramPanchayatDashboardScreen({
   pumpOperatorsTotal,
   operatorsPerformanceTable,
   childEntityLabel = supplySubmissionRateLabel,
-  onReachSchemePerformanceEnd,
+  schemePerformancePage,
+  totalSchemePages,
+  onSchemePageChange,
 }: GramPanchayatDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
@@ -315,7 +319,9 @@ export function GramPanchayatDashboardScreen({
             fillHeight
             secondaryColumnLabel={childEntityLabel}
             showBlockColumn={false}
-            onReachEnd={onReachSchemePerformanceEnd}
+            currentPage={schemePerformancePage}
+            totalPages={totalSchemePages}
+            onPageChange={onSchemePageChange}
           />
         </Box>
       </Grid>

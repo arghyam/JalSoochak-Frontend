@@ -45,7 +45,9 @@ type DistrictDashboardScreenProps = {
   operatorsPerformanceTable: PumpOperatorPerformanceData[]
   pumpOperatorsTotal: number
   childEntityLabel?: string
-  onReachSchemePerformanceEnd?: () => void
+  schemePerformancePage?: number
+  totalSchemePages?: number
+  onSchemePageChange?: (page: number) => void
 }
 
 type ViewBy = 'geography' | 'time'
@@ -72,7 +74,9 @@ export function DistrictDashboardScreen({
   operatorsPerformanceTable,
   pumpOperatorsTotal,
   childEntityLabel = supplySubmissionRateLabel,
-  onReachSchemePerformanceEnd,
+  schemePerformancePage,
+  totalSchemePages,
+  onSchemePageChange,
 }: DistrictDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
@@ -344,7 +348,9 @@ export function DistrictDashboardScreen({
             fillHeight
             showVillageColumn={false}
             blockColumnLabel={childEntityLabel}
-            onReachEnd={onReachSchemePerformanceEnd}
+            currentPage={schemePerformancePage}
+            totalPages={totalSchemePages}
+            onPageChange={onSchemePageChange}
           />
         </Box>
       </Grid>

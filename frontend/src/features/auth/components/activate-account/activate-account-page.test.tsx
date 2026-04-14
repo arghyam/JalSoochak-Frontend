@@ -1,5 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
 import { AccountActivationPage } from './activate-account-page'
 import { authApi } from '@/features/auth/services/auth-api'
@@ -34,11 +33,14 @@ describe('AccountActivationPage', () => {
       role: 'STATE_ADMIN',
       tenantName: 'X',
     })
-    const user = userEvent.setup()
     renderWithProviders(<AccountActivationPage />)
     await waitFor(() => expect(screen.getByDisplayValue('test@example.com')).toBeInTheDocument())
-    await user.type(screen.getByPlaceholderText('Enter your password'), 'Aa1@abcd')
-    await user.type(screen.getByPlaceholderText('Re-enter your password'), 'Aa1@abcd')
+    fireEvent.change(screen.getByPlaceholderText('Enter your password'), {
+      target: { value: 'Aa1@abcd' },
+    })
+    fireEvent.change(screen.getByPlaceholderText('Re-enter your password'), {
+      target: { value: 'Aa1@abcd' },
+    })
     expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled()
   })
 })

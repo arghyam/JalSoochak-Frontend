@@ -1,5 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { CreatePasswordPage } from './create-password-page'
 import { renderWithProviders } from '@/test/render-with-providers'
 import { authApi, buildSetPasswordRequest } from '@/features/auth/services/auth-api'
@@ -55,12 +54,11 @@ describe('CreatePasswordPage', () => {
   it('loads email and enables submit when password rules pass', async () => {
     mockUseParams.mockReturnValue({ id: 'user-1' })
     authMock.getUserByInviteId.mockResolvedValue({ email: 'a@test.com' })
-    const user = userEvent.setup()
     renderWithProviders(<CreatePasswordPage onShowToast={jest.fn()} />)
     await waitFor(() => expect(screen.getByDisplayValue('a@test.com')).toBeInTheDocument())
     const pwdInputs = screen.getAllByPlaceholderText('Enter your password')
-    await user.type(pwdInputs[0], 'Aa1@abcdef')
-    await user.type(pwdInputs[1], 'Aa1@abcdef')
+    fireEvent.change(pwdInputs[0], { target: { value: 'Aa1@abcdef' } })
+    fireEvent.change(pwdInputs[1], { target: { value: 'Aa1@abcdef' } })
     expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled()
   })
 
@@ -69,13 +67,12 @@ describe('CreatePasswordPage', () => {
     mockUseParams.mockReturnValue({ id: 'user-1' })
     authMock.getUserByInviteId.mockResolvedValue({ email: 'a@test.com' })
     authMock.createPassword.mockResolvedValue({ message: 'ok' })
-    const user = userEvent.setup()
     renderWithProviders(<CreatePasswordPage onShowToast={onShowToast} />)
     await waitFor(() => expect(screen.getByDisplayValue('a@test.com')).toBeInTheDocument())
     const pwdInputs = screen.getAllByPlaceholderText('Enter your password')
-    await user.type(pwdInputs[0], 'Aa1@abcdef')
-    await user.type(pwdInputs[1], 'Aa1@abcdef')
-    await user.click(screen.getByRole('button', { name: 'Next' }))
+    fireEvent.change(pwdInputs[0], { target: { value: 'Aa1@abcdef' } })
+    fireEvent.change(pwdInputs[1], { target: { value: 'Aa1@abcdef' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
     await waitFor(() => expect(authMock.createPassword).toHaveBeenCalled())
     expect(buildSetPasswordRequest).toHaveBeenCalled()
     expect(onShowToast).toHaveBeenCalledWith(expect.any(String), 'success')
@@ -92,15 +89,14 @@ describe('CreatePasswordPage', () => {
     mockUseParams.mockReturnValue({ id: 'user-1' })
     authMock.getUserByInviteId.mockResolvedValue({ email: 'a@test.com' })
     authMock.createPassword.mockRejectedValue(new Error('fail'))
-    const user = userEvent.setup()
     renderWithProviders(<CreatePasswordPage onShowToast={onShowToast} />)
     await waitFor(() => expect(screen.getByDisplayValue('a@test.com')).toBeInTheDocument())
     // Drop any navigate calls from prior tests (success path uses a delayed navigate).
     mockNavigate.mockClear()
     const pwdInputs = screen.getAllByPlaceholderText('Enter your password')
-    await user.type(pwdInputs[0], 'Aa1@abcdef')
-    await user.type(pwdInputs[1], 'Aa1@abcdef')
-    await user.click(screen.getByRole('button', { name: 'Next' }))
+    fireEvent.change(pwdInputs[0], { target: { value: 'Aa1@abcdef' } })
+    fireEvent.change(pwdInputs[1], { target: { value: 'Aa1@abcdef' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }))
     await waitFor(() => expect(authMock.createPassword).toHaveBeenCalled())
     expect(buildSetPasswordRequest).toHaveBeenCalled()
     expect(onShowToast).toHaveBeenCalledWith('fail', 'error')

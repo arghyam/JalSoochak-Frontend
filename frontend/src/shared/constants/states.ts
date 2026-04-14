@@ -42,3 +42,23 @@ export const INDIA_STATES: IndiaState[] = [
   { code: 'UK', name: 'Uttarakhand', lgdCode: 5 },
   { code: 'WB', name: 'West Bengal', lgdCode: 19 },
 ]
+
+const toStateNameSlug = (name: string) =>
+  name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+
+/** Convert a full-name slug (e.g. "uttar-pradesh") to a 2-letter code (e.g. "up"). */
+export const stateSlugToCode = (slug: string): string | undefined => {
+  if (!slug) return undefined
+  return INDIA_STATES.find((s) => toStateNameSlug(s.name) === slug)?.code.toLowerCase()
+}
+
+/** Convert a 2-letter code (e.g. "up") back to a full-name slug (e.g. "uttar-pradesh"). */
+export const stateCodeToSlug = (code: string): string | undefined => {
+  if (!code) return undefined
+  const state = INDIA_STATES.find((s) => s.code.toLowerCase() === code.toLowerCase())
+  return state ? toStateNameSlug(state.name) : undefined
+}

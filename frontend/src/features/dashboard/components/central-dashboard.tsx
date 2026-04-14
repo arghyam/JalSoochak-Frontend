@@ -99,11 +99,11 @@ import {
   normalizeDateFormat,
   parseDisplayDateToIsoWithFallback,
 } from '@/shared/utils/date-format'
-import { INDIA_STATES } from '@/shared/constants/states'
+import { INDIA_STATES, stateSlugToCode, stateCodeToSlug } from '@/shared/constants/states'
 import { isSingleTenantMode, getSingleTenantId } from '@/config/server-config'
 
 const storageKey = 'central-dashboard-filters'
-const SCHEME_PERFORMANCE_PAGE_SIZE = 20
+const SCHEME_PERFORMANCE_PAGE_SIZE = 15
 
 const EMPTY_DASHBOARD_DATA: DashboardData = {
   level: 'central',
@@ -550,7 +550,8 @@ export function CentralDashboard() {
   const navigate = useNavigate()
   const { data } = useDashboardData('central')
   const [storedFilters] = useState(() => getStoredFilters())
-  const selectedState = stateSlug
+  // Decode 2-letter code from URL (e.g. "up") back to internal slug (e.g. "uttar-pradesh")
+  const selectedState = stateCodeToSlug(stateSlug) ?? stateSlug
   const selectedDistrict = selectedState ? (searchParams.get('district') ?? '') : ''
   const selectedBlock = selectedDistrict ? (searchParams.get('block') ?? '') : ''
   const selectedGramPanchayat = selectedBlock ? (searchParams.get('gramPanchayat') ?? '') : ''
@@ -577,6 +578,13 @@ export function CentralDashboard() {
   const [isMapFullscreen, setIsMapFullscreen] = useState(false)
   const [isDurationCleared, setIsDurationCleared] = useState(false)
   const [selectedScheme, setSelectedScheme] = useState(storedFilters.selectedScheme ?? '')
+  const [schemePerformancePagination, setSchemePerformancePagination] = useState<{
+    key: string
+    page: number
+  }>({
+    key: '',
+    page: 1,
+  })
   const [storedSelectedDepartmentState, setSelectedDepartmentState] = useState(
     storedFilters.selectedDepartmentState ?? ''
   )
@@ -738,13 +746,6 @@ export function CentralDashboard() {
   const [regularityTimeScaleTab, setRegularityTimeScaleTab] = useState<QuantityTimeScaleTab>('day')
   const [outageDistributionTimeScaleTab, setOutageDistributionTimeScaleTab] =
     useState<QuantityTimeScaleTab>('day')
-  const [schemePerformancePagination, setSchemePerformancePagination] = useState<{
-    scopeKey: string
-    page: number
-  }>({
-    scopeKey: '',
-    page: 0,
-  })
   const selectionTrailValues = [
     selectedState,
     selectedDistrict,
@@ -1099,6 +1100,17 @@ export function CentralDashboard() {
       toIsoDate(effectiveSelectedDuration?.endDate, durationDateFormat) ??
       defaultAnalyticsRange.endDate,
   }
+  const schemePerformanceResetKey = `${analyticsParentId}|${analyticsDateRange.startDate}|${analyticsDateRange.endDate}`
+  const schemePerformancePage =
+    schemePerformancePagination.key === schemePerformanceResetKey
+      ? schemePerformancePagination.page
+      : 1
+  const handleSchemePageChange = (page: number) => {
+    setSchemePerformancePagination({
+      key: schemePerformanceResetKey,
+      page,
+    })
+  }
   const selectedQuantityApiScale: QuantityTimeScaleTab = quantityTimeScaleTab
   const selectedRegularityApiScale: QuantityTimeScaleTab = regularityTimeScaleTab
   const selectedOutageApiScale: QuantityTimeScaleTab = outageDistributionTimeScaleTab
@@ -1279,29 +1291,26 @@ export function CentralDashboard() {
       isHierarchyFourthLevelSelected ||
       isHierarchyLeafSelected) &&
     analyticsParentId > 0
-  const schemePerformanceScopeKey = shouldFetchSchemePerformanceAnalytics
-    ? `${hierarchyType}:${analyticsParentId}:${analyticsDateRange.startDate}:${analyticsDateRange.endDate}`
-    : 'disabled'
-  const schemePerformancePage =
-    schemePerformancePagination.scopeKey === schemePerformanceScopeKey
-      ? schemePerformancePagination.page
-      : 0
-  const schemePerformanceRequestCount = (schemePerformancePage + 1) * SCHEME_PERFORMANCE_PAGE_SIZE
-  const schemePerformanceAnalyticsParams = !shouldFetchSchemePerformanceAnalytics
-    ? null
-    : hierarchyType === 'LGD'
-      ? {
-          parentLgdId: analyticsParentId,
-          startDate: analyticsDateRange.startDate,
-          endDate: analyticsDateRange.endDate,
-          schemeCount: schemePerformanceRequestCount,
-        }
-      : {
-          parentDepartmentId: analyticsParentId,
-          startDate: analyticsDateRange.startDate,
-          endDate: analyticsDateRange.endDate,
-          schemeCount: schemePerformanceRequestCount,
-        }
+  const schemePerformanceAnalyticsParams =
+    !shouldFetchSchemePerformanceAnalytics || !selectedTenant?.tenantId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            tenantId: selectedTenant.tenantId,
+            parentLgdId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            pageNumber: schemePerformancePage,
+            limit: SCHEME_PERFORMANCE_PAGE_SIZE,
+          }
+        : {
+            tenantId: selectedTenant.tenantId,
+            parentDepartmentId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            pageNumber: schemePerformancePage,
+            limit: SCHEME_PERFORMANCE_PAGE_SIZE,
+          }
   const submissionStatusAnalyticsParams =
     !hasCentralLandingFilters || !selectedTenant?.tenantId || !hasValidSubmissionStatusParentId
       ? null
@@ -1492,11 +1501,13 @@ export function CentralDashboard() {
     params: readingSubmissionRateAnalyticsParams,
     enabled: Boolean(readingSubmissionRateAnalyticsParams),
   })
-  const { data: schemePerformanceData, isFetching: isSchemePerformanceFetching } =
-    useSchemePerformanceQuery({
-      params: schemePerformanceAnalyticsParams,
-      enabled: Boolean(schemePerformanceAnalyticsParams),
-    })
+  const { data: schemePerformanceData } = useSchemePerformanceQuery({
+    params: schemePerformanceAnalyticsParams,
+    enabled: Boolean(schemePerformanceAnalyticsParams),
+  })
+  const totalSchemePages = Math.ceil(
+    (schemePerformanceData?.totalCount ?? 0) / SCHEME_PERFORMANCE_PAGE_SIZE
+  )
   const { data: submissionStatusData } = useSubmissionStatusQuery({
     params: submissionStatusAnalyticsParams,
     enabled: Boolean(submissionStatusAnalyticsParams),
@@ -1834,30 +1845,32 @@ export function CentralDashboard() {
     schemePerformanceData,
     shouldFetchSchemePerformanceAnalytics ? [] : (dashboardData?.pumpOperators ?? [])
   )
-  const tenantBoundaryBlockLookup = (tenantBoundaryData?.childRegions ?? []).reduce(
-    (lookup, region) => {
-      const normalizedTitle = (region.childLgdTitle ?? region.childDepartmentTitle ?? '').trim()
-      if (!normalizedTitle) {
+  const tenantBoundaryBlockLookup = (tenantBoundaryData?.childRegions ?? [])
+    .filter((region) => region.lgdLevel === 3)
+    .reduce(
+      (lookup, region) => {
+        const normalizedTitle = (region.childLgdTitle ?? region.childDepartmentTitle ?? '').trim()
+        if (!normalizedTitle) {
+          return lookup
+        }
+
+        if (typeof region.childLgdId === 'number' && region.childLgdId > 0) {
+          lookup.idLookup[region.childLgdId] = normalizedTitle
+          lookup.lgdLookup[region.childLgdId] = normalizedTitle
+        }
+
+        if (typeof region.childDepartmentId === 'number' && region.childDepartmentId > 0) {
+          lookup.idLookup[region.childDepartmentId] = normalizedTitle
+          lookup.lgdLookup[region.childDepartmentId] = normalizedTitle
+        }
+
         return lookup
+      },
+      { idLookup: {}, lgdLookup: {} } as {
+        idLookup: Record<number, string>
+        lgdLookup: Record<number, string>
       }
-
-      if (typeof region.childLgdId === 'number' && region.childLgdId > 0) {
-        lookup.idLookup[region.childLgdId] = normalizedTitle
-        lookup.lgdLookup[region.childLgdId] = normalizedTitle
-      }
-
-      if (typeof region.childDepartmentId === 'number' && region.childDepartmentId > 0) {
-        lookup.idLookup[region.childDepartmentId] = normalizedTitle
-        lookup.lgdLookup[region.childDepartmentId] = normalizedTitle
-      }
-
-      return lookup
-    },
-    { idLookup: {}, lgdLookup: {} } as {
-      idLookup: Record<number, string>
-      lgdLookup: Record<number, string>
-    }
-  )
+    )
   const operatorsPerformanceAnalyticsTable = mapSchemePerformanceToTable(
     schemePerformanceData,
     [],
@@ -1868,33 +1881,6 @@ export function CentralDashboard() {
       useDepartmentHierarchyTitles: hierarchyType !== 'LGD',
     }
   )
-  const totalSchemesFromAnalytics =
-    (schemePerformanceData?.activeSchemeCount ?? 0) +
-    (schemePerformanceData?.inactiveSchemeCount ?? 0)
-  const apiReturnedFullPage =
-    (schemePerformanceData?.topSchemes?.length ?? 0) >= schemePerformanceRequestCount
-  const hasMoreSchemePerformanceRows =
-    shouldFetchSchemePerformanceAnalytics &&
-    ((totalSchemesFromAnalytics > 0 &&
-      operatorsPerformanceAnalyticsTable.length < totalSchemesFromAnalytics) ||
-      (totalSchemesFromAnalytics === 0 && apiReturnedFullPage))
-  const handleReachSchemePerformanceEnd = () => {
-    if (!hasMoreSchemePerformanceRows || isSchemePerformanceFetching) {
-      return
-    }
-
-    if ((schemePerformanceData?.topSchemes ?? []).length === 0) {
-      return
-    }
-
-    setSchemePerformancePagination((current) => {
-      const basePage = current.scopeKey === schemePerformanceScopeKey ? current.page : 0
-      return {
-        scopeKey: schemePerformanceScopeKey,
-        page: basePage + 1,
-      }
-    })
-  }
   const derivedVillageSchemeId = isHierarchyLeafSelected
     ? (selectedSchemeId ?? schemePerformanceData?.topSchemes?.[0]?.schemeId)
     : undefined
@@ -1969,7 +1955,9 @@ export function CentralDashboard() {
     const forcedState = inSingleTenantMode && singleTenantId ? selectedState : (filters.state ?? '')
 
     const nextState = forcedState
-    const nextPath = nextState ? `/${encodeURIComponent(nextState)}` : ROUTES.DASHBOARD
+    // Encode the internal slug (e.g. "uttar-pradesh") to a 2-letter code (e.g. "up") for the URL
+    const urlSegment = stateSlugToCode(nextState) ?? nextState
+    const nextPath = urlSegment ? `/${encodeURIComponent(urlSegment)}` : ROUTES.DASHBOARD
     const nextSearchParams = new URLSearchParams(searchParams)
 
     const setParam = (key: string, value?: string) => {
@@ -2006,13 +1994,14 @@ export function CentralDashboard() {
   const handleStateChange = (value: string) => {
     setActiveTrailIndex(null)
     setSelectedScheme('')
+    const nextTab = value ? 'administrative' : undefined
     updateFilterUrl({
       state: value,
       district: '',
       block: '',
       gramPanchayat: '',
       village: '',
-      tab: 'administrative',
+      tab: nextTab,
     })
   }
   const handleDistrictChange = (value: string) => {
@@ -2265,7 +2254,10 @@ export function CentralDashboard() {
     const stateOption = locationSearchData?.states.find(
       (option) => option.label.toLowerCase() === stateName.toLowerCase()
     )
-    updateFilterUrl({ state: stateOption?.value ?? toStateSlug(stateName) })
+    updateFilterUrl({
+      state: stateOption?.value ?? toStateSlug(stateName),
+      tab: 'administrative',
+    })
   }
 
   const resolveOverallPerformanceLocationValue = (row: EntityPerformance): string | null => {
@@ -2686,7 +2678,7 @@ export function CentralDashboard() {
           <>
             X<sub>i</sub> ={' '}
             {t('kpi.tooltips.regularity.definitions.numberOfSupplyDays', {
-              defaultValue: 'number of supply-days of scheme i',
+              defaultValue: 'Number of continuous supply-days of scheme',
             })}
           </>,
           <>
@@ -2927,9 +2919,9 @@ export function CentralDashboard() {
         villagePumpOperatorDetails={villagePumpOperatorDetails}
         tenantCode={selectedTenant?.tenantCode}
         schemeId={derivedVillageSchemeId}
-        onReachSchemePerformanceEnd={
-          shouldFetchSchemePerformanceAnalytics ? handleReachSchemePerformanceEnd : undefined
-        }
+        schemePerformancePage={schemePerformancePage}
+        totalSchemePages={totalSchemePages}
+        onSchemePageChange={handleSchemePageChange}
       />
     </Box>
   )

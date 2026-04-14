@@ -172,12 +172,12 @@ describe('SingleTenantGate', () => {
       mockGetSingleTenantId.mockReturnValue(1) // Maharashtra
 
       // When navigating to wrong state (Karnataka)
-      // The component should match maharashtra (ID 1) and redirect to /maharashtra
+      // The component should match tenant ID 1 and redirect to its code-based route (/mh)
       renderWithRouter('/karnataka')
 
       // Verify the redirect happened to the correct state slug
       const locationElement = screen.getByTestId('current-location')
-      expect(locationElement).toHaveAttribute('data-pathname', '/maharashtra')
+      expect(locationElement).toHaveAttribute('data-pathname', '/mh')
     })
   })
 })

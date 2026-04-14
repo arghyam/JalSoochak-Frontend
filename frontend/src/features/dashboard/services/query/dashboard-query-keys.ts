@@ -19,13 +19,9 @@ import type {
 } from '../../types'
 
 const DEFAULT_ANALYTICS_SCOPE = 'child'
-const DEFAULT_SCHEME_COUNT = 10
 
 const normalizeAnalyticsScope = <T extends { scope?: 'current' | 'child' } | null>(params: T) =>
   params?.scope ?? DEFAULT_ANALYTICS_SCOPE
-
-const normalizeSchemeCount = <T extends { schemeCount?: number } | null>(params: T) =>
-  params?.schemeCount ?? DEFAULT_SCHEME_COUNT
 
 export const dashboardQueryKeys = {
   all: ['dashboard'] as const,
@@ -137,7 +133,8 @@ export const dashboardQueryKeys = {
       params?.parentDepartmentId,
       params?.startDate,
       params?.endDate,
-      normalizeSchemeCount(params),
+      params?.pageNumber ?? 1,
+      params?.limit ?? 15,
     ] as const,
   pumpOperatorsByScheme: (params: PumpOperatorsBySchemeQueryParams | null) =>
     ['dashboard', 'pump-operator', 'by-scheme', params?.tenant_code, params?.scheme_id] as const,

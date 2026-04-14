@@ -1,5 +1,4 @@
-import { screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { fireEvent, screen } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
 import { LanguageSwitcher } from './language-switcher'
 
@@ -40,10 +39,9 @@ describe('LanguageSwitcher', () => {
   })
 
   it('changes language on menu item click', async () => {
-    const user = userEvent.setup()
     renderWithProviders(<LanguageSwitcher />)
-    await user.click(screen.getByRole('button', { name: 'Change language' }))
-    await user.click(screen.getAllByText('Hindi')[0])
+    fireEvent.click(screen.getByRole('button', { name: 'Change language' }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: /hindi hindi/i }))
     expect(setLanguage).toHaveBeenCalledWith('hi')
   })
 })

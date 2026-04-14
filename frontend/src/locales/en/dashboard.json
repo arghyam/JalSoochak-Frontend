@@ -46,6 +46,18 @@
       "gramPanchayats": "Gram Panchayats",
       "villages": "Villages"
     },
+    "searchBy": {
+      "label": "Search by {{label}}",
+      "stateUt": "State/UT",
+      "district": "District",
+      "block": "Block",
+      "gramPanchayat": "Gram Panchayat",
+      "village": "Village",
+      "zone": "Zone",
+      "circle": "Circle",
+      "division": "Division",
+      "subDivision": "Sub Division"
+    },
     "noOptions": {
       "states": "No states found",
       "districts": "No districts found",
@@ -101,7 +113,7 @@
       "regularity": {
         "formulaLabel": "Regularity of scheme",
         "definitions": {
-          "numberOfSupplyDays": "number of supply-days of scheme i",
+          "numberOfSupplyDays": "Number of continuous supply-days of scheme",
           "totalNumberOfDaysInSelectedPeriod": "total number of days in the selected time period"
         }
       }

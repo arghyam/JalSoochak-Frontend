@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import type { ChangeEvent, FocusEvent, PointerEvent, ReactNode } from 'react'
+import type { ChangeEvent, FocusEvent, MouseEvent, PointerEvent, ReactNode } from 'react'
 import type { ButtonProps, InputProps } from '@chakra-ui/react'
 import {
   Flex,
@@ -221,6 +221,11 @@ export function SearchLayout({
     breadcrumbPanelProps?.onTrailSelect?.(trailIndex)
   }
 
+  const handleActiveTrailClear = (trailIndex: number) => {
+    const previousTrailIndex = trailIndex - 1
+    handleTrailSelect(previousTrailIndex)
+  }
+
   const handleCloseBreadcrumbPanel = () => {
     setBreadcrumbPanelOpen(false)
   }
@@ -256,7 +261,7 @@ export function SearchLayout({
                     transform="rotate(-90deg)"
                   />
                 ) : null}
-                <Button
+                <Flex
                   h="26px"
                   minW="66px"
                   px="8px"
@@ -267,18 +272,56 @@ export function SearchLayout({
                   color="primary.600"
                   fontSize="14px"
                   fontWeight="400"
-                  variant="ghost"
-                  onClick={() => handleTrailSelect(index)}
-                  _hover={{ bg: 'primary.25' }}
-                  _active={{ bg: 'primary.25' }}
-                  aria-label={t('searchLayout.aria.breadcrumb', {
-                    item,
-                    defaultValue: `Breadcrumb: ${item}`,
-                  })}
-                  aria-current="page"
+                  align="center"
+                  gap="6px"
                 >
-                  {item}
-                </Button>
+                  <Button
+                    variant="unstyled"
+                    h="full"
+                    minH="auto"
+                    minW="auto"
+                    display="inline-flex"
+                    alignItems="center"
+                    fontSize="inherit"
+                    fontWeight="inherit"
+                    lineHeight="1"
+                    cursor="default"
+                    onClick={() => handleTrailSelect(index)}
+                    _hover={{}}
+                    _active={{ bg: 'transparent' }}
+                    aria-label={t('searchLayout.aria.breadcrumb', {
+                      item,
+                      defaultValue: `Breadcrumb: ${item}`,
+                    })}
+                    aria-current="page"
+                  >
+                    <Text as="span" lineHeight="1">
+                      {item}
+                    </Text>
+                  </Button>
+                  <IconButton
+                    aria-label={t('searchLayout.aria.clearBreadcrumb', {
+                      item,
+                      defaultValue: `Clear breadcrumb ${item}`,
+                    })}
+                    icon={<CloseIcon boxSize="8px" />}
+                    variant="unstyled"
+                    minW="14px"
+                    h="14px"
+                    borderRadius="full"
+                    color="inherit"
+                    display="inline-flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    cursor="default"
+                    _hover={{ bg: 'primary.100', cursor: 'pointer' }}
+                    _active={{ bg: 'primary.100' }}
+                    onClick={(event: MouseEvent<HTMLButtonElement>) => {
+                      event.stopPropagation()
+                      handleActiveTrailClear(index)
+                    }}
+                  />
+                </Flex>
               </Flex>
             )
           }
@@ -328,7 +371,7 @@ export function SearchLayout({
         fontSize="14px"
         h="32px"
         borderColor="neutral.300"
-        _placeholder={{ color: 'neutral.300' }}
+        _placeholder={{ color: 'neutral.400' }}
         value={inputValue}
         onFocus={handleFocus}
         onChange={handleInputChange}
