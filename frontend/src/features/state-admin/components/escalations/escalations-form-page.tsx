@@ -275,7 +275,7 @@ export function EscalationsFormPage() {
             >
               {t('escalations.escalationRules')}
             </Heading>
-            {isConfigured && !effectiveIsEditing && (
+            {isConfigured && (
               <Button
                 variant="ghost"
                 h={6}

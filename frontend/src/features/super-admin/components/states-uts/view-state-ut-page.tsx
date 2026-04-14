@@ -219,7 +219,7 @@ export function ViewStateUTPage() {
             icon={<EditIcon boxSize={5} />}
             variant="ghost"
             size="sm"
-            color="neutral.600"
+            color="neutral.950"
             _hover={{ color: 'primary.500', bg: 'transparent' }}
             onClick={handleEdit}
           />

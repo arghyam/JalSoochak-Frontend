@@ -69,7 +69,11 @@
       "language": "भाषा",
       "waterNorms": "जल मानदंड",
       "integration": "एकीकरण",
-      "escalations": "एस्केलेशन"
+      "escalations": "एस्केलेशन",
+      "aria": {
+        "stepDefault": "चरण {{number}}: {{label}}",
+        "stepCompleted": "चरण {{number}}: {{label}} - पूर्ण"
+      }
     }
   },
 

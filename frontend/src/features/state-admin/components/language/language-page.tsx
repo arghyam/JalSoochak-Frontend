@@ -206,7 +206,7 @@ export function LanguagePage() {
             >
               {t('language.configuration')}
             </Heading>
-            {config?.isConfigured && !effectiveIsEditing && (
+            {config?.isConfigured && (
               <Button
                 variant="ghost"
                 h={6}
