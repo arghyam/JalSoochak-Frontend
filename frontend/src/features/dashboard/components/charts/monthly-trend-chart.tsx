@@ -30,6 +30,30 @@ interface MonthlyTrendChartProps {
   seriesName?: string
 }
 
+const trimTrailingZeros = (value: string) => value.replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1')
+
+const getNiceCeil = (value: number) => {
+  if (!Number.isFinite(value) || value <= 0) {
+    return 1
+  }
+
+  const magnitude = Math.pow(10, Math.floor(Math.log10(value)))
+  const normalized = value / magnitude
+
+  let niceNormalized = 10
+  if (normalized <= 1) {
+    niceNormalized = 1
+  } else if (normalized <= 2) {
+    niceNormalized = 2
+  } else if (normalized <= 2.5) {
+    niceNormalized = 2.5
+  } else if (normalized <= 5) {
+    niceNormalized = 5
+  }
+
+  return niceNormalized * magnitude
+}
+
 export function MonthlyTrendChart({
   data,
   className,
@@ -106,22 +130,35 @@ export function MonthlyTrendChart({
         return String(normalizedValue)
       }
 
-      return normalizedValue.toFixed(1)
+      const absoluteValue = Math.abs(normalizedValue)
+
+      if (absoluteValue >= 100) {
+        return trimTrailingZeros(normalizedValue.toFixed(1))
+      }
+
+      if (absoluteValue >= 1) {
+        return trimTrailingZeros(normalizedValue.toFixed(2))
+      }
+
+      return trimTrailingZeros(normalizedValue.toFixed(4))
     },
     [isPercent, normalizeValue]
   )
 
   const yAxisScale = useMemo(() => {
-    const values = data.map((item) => item.value)
     if (isPercent) {
       return { max: 100, interval: 25 as number | undefined }
     }
 
-    const maxValue = values.length > 0 ? Math.max(...values) : 0
-    const max = maxValue > 100 ? Math.ceil(maxValue / 10) * 10 : 100
+    const normalizedValues = data
+      .map((item) => normalizeValue(item.value))
+      .filter((value) => Number.isFinite(value))
+    const maxNormalizedValue = normalizedValues.length > 0 ? Math.max(...normalizedValues) : 0
+    const normalizedMax = getNiceCeil(maxNormalizedValue * 1.1)
+    const max = normalizedMax * normalizedDivisor
 
     return { max, interval: undefined }
-  }, [data, isPercent])
+  }, [data, isPercent, normalizeValue, normalizedDivisor])
 
   const formattedYAxisMaxLabel = useMemo(
     () => formatYAxisTick(yAxisScale.max),

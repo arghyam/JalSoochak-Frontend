@@ -89,8 +89,8 @@ import {
   mapNationalQuantityTrendPoints,
   mapNationalRegularityTrendPoints,
   mapOutageReasonsPeriodicToTrendPoints,
+  mapSchemeRegularityQuantityToTrendPoints,
   mapSchemeRegularityPeriodicToTrendPoints,
-  mapWaterQuantityPeriodicToTrendPoints,
   resolveWaterQuantityPeriodicScale,
 } from '../utils/quantity-periodic'
 import type { HierarchyType, TenantChildLocation } from '../services/api/dashboard-api'
@@ -1135,6 +1135,24 @@ export function CentralDashboard() {
             endDate: analyticsDateRange.endDate,
             scale: selectedRegularityApiScale,
           }
+  const quantityTrendPeriodicAnalyticsParams =
+    !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            tenantId: selectedTenant.tenantId,
+            lgdId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            scale: selectedQuantityApiScale,
+          }
+        : {
+            tenantId: selectedTenant.tenantId,
+            departmentId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            scale: selectedQuantityApiScale,
+          }
   const nationalDashboardParams = hasCentralLandingFilters
     ? null
     : {
@@ -1416,11 +1434,7 @@ export function CentralDashboard() {
     params: nationalRegularityPeriodAnalyticsParams,
     enabled: Boolean(nationalRegularityPeriodAnalyticsParams),
   })
-  const {
-    data: waterQuantityPeriodicData,
-    isFetching: isWaterQuantityPeriodicFetching,
-    isAwaitingParams: isWaterQuantityPeriodicAwaitingParams,
-  } = useWaterQuantityPeriodicQuery({
+  const { data: waterQuantityPeriodicData } = useWaterQuantityPeriodicQuery({
     params: quantityPeriodicAnalyticsParams,
     enabled: Boolean(quantityPeriodicAnalyticsParams),
   })
@@ -1429,6 +1443,12 @@ export function CentralDashboard() {
       params: regularityPeriodicAnalyticsParams,
       enabled: Boolean(regularityPeriodicAnalyticsParams),
     })
+  const { data: schemeQuantityPeriodicData, isFetching: isSchemeQuantityPeriodicFetching } =
+    useSchemeRegularityPeriodicQuery({
+      params: quantityTrendPeriodicAnalyticsParams,
+      enabled: Boolean(quantityTrendPeriodicAnalyticsParams),
+    })
+  const isSchemeQuantityPeriodicAwaitingParams = !quantityTrendPeriodicAnalyticsParams
   const { data: outageReasonsPeriodicData } = useOutageReasonsPeriodicQuery({
     params: outageReasonsPeriodicAnalyticsParams,
     enabled: Boolean(outageReasonsPeriodicAnalyticsParams),
@@ -1884,8 +1904,9 @@ export function CentralDashboard() {
           (scheme) => scheme.schemeId === derivedVillageSchemeId
         )
       : undefined) ?? (isHierarchyLeafSelected ? schemePerformanceData?.topSchemes?.[0] : undefined)
-  const periodicQuantityTimeTrendData =
-    mapWaterQuantityPeriodicToTrendPoints(waterQuantityPeriodicData)
+  const periodicQuantityTimeTrendData = mapSchemeRegularityQuantityToTrendPoints(
+    schemeQuantityPeriodicData
+  )
   const periodicRegularityTimeTrendData = mapSchemeRegularityPeriodicToTrendPoints(
     schemeRegularityPeriodicData
   )
@@ -2880,10 +2901,10 @@ export function CentralDashboard() {
         isQuantityTimeTrendLoading={
           isCentralLandingView
             ? isNationalSchemeQuantityPeriodicFetching
-            : isWaterQuantityPeriodicFetching
+            : isSchemeQuantityPeriodicFetching
         }
         isQuantityTimeTrendAwaitingParams={
-          isCentralLandingView ? false : isWaterQuantityPeriodicAwaitingParams
+          isCentralLandingView ? false : isSchemeQuantityPeriodicAwaitingParams
         }
         regularityPerformanceData={regularityPerformanceData}
         regularityTimeTrendData={regularityTimeTrendData}

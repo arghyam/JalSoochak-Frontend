@@ -100,4 +100,61 @@ describe('MonthlyTrendChart', () => {
     expect(chartOption?.xAxis?.axisLabel?.interval).toBe(0)
     expect(axisOption?.yAxis?.axisLabel?.margin).toBe(-12)
   })
+
+  it('keeps zero-only quantity trend anchored to the bottom with dynamic max', () => {
+    renderWithProviders(
+      <MonthlyTrendChart
+        data={[
+          { period: '18 Mar', value: 0 },
+          { period: '19 Mar', value: 0 },
+        ]}
+        valueDivisor={1000000}
+      />
+    )
+
+    const chartOption = (
+      mockEChartsWrapper.mock.calls as Array<
+        [{ option?: { yAxis?: { max?: number; min?: number } } }]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((option) => option?.yAxis?.max !== undefined)
+
+    expect(chartOption?.yAxis?.min).toBe(0)
+    expect(chartOption?.yAxis?.max).toBe(1000000)
+  })
+
+  it('uses a dynamic quantity scale and readable labels for small MLD values', () => {
+    renderWithProviders(
+      <MonthlyTrendChart
+        data={[
+          { period: '18 Mar', value: 50000 },
+          { period: '19 Mar', value: 120000 },
+        ]}
+        valueDivisor={1000000}
+      />
+    )
+
+    const axisOption = (
+      mockEChartsWrapper.mock.calls as Array<
+        [
+          {
+            option?: {
+              yAxis?: {
+                max?: number
+                axisLabel?: { formatter?: (value: number) => string }
+              }
+            }
+          },
+        ]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((option) => option?.yAxis?.axisLabel?.formatter !== undefined)
+
+    const yAxis = axisOption?.yAxis
+
+    expect(yAxis?.max).toBe(200000)
+    expect(yAxis?.axisLabel?.formatter?.(100000)).toBe('0.1')
+  })
 })

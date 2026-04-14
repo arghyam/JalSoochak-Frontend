@@ -4,6 +4,7 @@ import {
   mapNationalQuantityTrendPoints,
   mapNationalRegularityTrendPoints,
   mapOutageReasonsPeriodicToTrendPoints,
+  mapSchemeRegularityQuantityToTrendPoints,
   mapSchemeRegularityPeriodicToTrendPoints,
   mapWaterQuantityPeriodicToTrendPoints,
   resolveWaterQuantityPeriodicScale,
@@ -16,7 +17,7 @@ describe('quantity-periodic utils', () => {
     expect(resolveWaterQuantityPeriodicScale('2026-03-01', '2026-09-30')).toBe('month')
   })
 
-  it('maps water quantity periodic metrics into trend points', () => {
+  it('maps water quantity periodic metrics into trend points using total water quantity', () => {
     expect(
       mapWaterQuantityPeriodicToTrendPoints({
         lgdId: 17,
@@ -29,7 +30,7 @@ describe('quantity-periodic utils', () => {
           {
             periodStartDate: '2026-03-01',
             periodEndDate: '2026-03-01',
-            averageWaterQuantity: 42,
+            totalWaterQuantity: 42,
             householdCount: 10,
             achievedFhtcCount: 8,
             plannedFhtcCount: 10,
@@ -37,6 +38,63 @@ describe('quantity-periodic utils', () => {
         ],
       })
     ).toEqual([{ period: '01 Mar 2026', value: 42 }])
+  })
+
+  it('skips water quantity periodic points when totalWaterQuantity is missing', () => {
+    expect(
+      mapWaterQuantityPeriodicToTrendPoints({
+        lgdId: 1,
+        departmentId: 0,
+        scale: 'day',
+        startDate: '2026-03-16',
+        endDate: '2026-04-14',
+        periodCount: 1,
+        metrics: [
+          {
+            periodStartDate: '2026-03-17',
+            periodEndDate: '2026-03-17',
+            averageWaterQuantity: 139299,
+            householdCount: 100,
+            achievedFhtcCount: 80,
+            plannedFhtcCount: 100,
+          },
+        ],
+      })
+    ).toEqual([])
+  })
+
+  it('uses totalWaterQuantity for water quantity periodic trend points', () => {
+    expect(
+      mapWaterQuantityPeriodicToTrendPoints({
+        lgdId: 1,
+        departmentId: 0,
+        scale: 'day',
+        startDate: '2026-03-16',
+        endDate: '2026-04-14',
+        periodCount: 2,
+        metrics: [
+          {
+            periodStartDate: '2026-03-16',
+            periodEndDate: '2026-03-16',
+            totalWaterQuantity: 0,
+            householdCount: 100,
+            achievedFhtcCount: 80,
+            plannedFhtcCount: 100,
+          },
+          {
+            periodStartDate: '2026-03-17',
+            periodEndDate: '2026-03-17',
+            totalWaterQuantity: 2425420120,
+            householdCount: 100,
+            achievedFhtcCount: 80,
+            plannedFhtcCount: 100,
+          },
+        ],
+      })
+    ).toEqual([
+      { period: '16 Mar 2026', value: 0 },
+      { period: '17 Mar 2026', value: 2425420120 },
+    ])
   })
 
   it('maps regularity periodic metrics into trend points', () => {
@@ -59,6 +117,39 @@ describe('quantity-periodic utils', () => {
         ],
       })
     ).toEqual([{ period: '01 Mar - 07 Mar\n2026', value: 78.5 }])
+  })
+
+  it('maps quantity trend points from scheme regularity periodic response using totalWaterQuantity', () => {
+    expect(
+      mapSchemeRegularityQuantityToTrendPoints({
+        lgdId: 17,
+        departmentId: 0,
+        schemeCount: 2,
+        scale: 'day',
+        startDate: '2026-03-16',
+        endDate: '2026-03-17',
+        periodCount: 2,
+        metrics: [
+          {
+            periodStartDate: '2026-03-16',
+            periodEndDate: '2026-03-16',
+            totalSupplyDays: 0,
+            totalWaterQuantity: 0,
+            averageRegularity: 0,
+          },
+          {
+            periodStartDate: '2026-03-17',
+            periodEndDate: '2026-03-17',
+            totalSupplyDays: 17411,
+            totalWaterQuantity: 2425420120,
+            averageRegularity: 1,
+          },
+        ],
+      })
+    ).toEqual([
+      { period: '16 Mar 2026', value: 0 },
+      { period: '17 Mar 2026', value: 2425420120 },
+    ])
   })
 
   it('maps demand supply rows into fallback trend points', () => {

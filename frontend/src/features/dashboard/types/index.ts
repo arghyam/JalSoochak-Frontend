@@ -175,7 +175,8 @@ export interface WaterQuantityPeriodicQueryParams {
 export interface WaterQuantityPeriodicMetric {
   periodStartDate: string
   periodEndDate: string
-  averageWaterQuantity: number
+  totalWaterQuantity?: number
+  averageWaterQuantity?: number
   householdCount: number
   totalAchievedFhtcCount?: number
   achievedFhtcCount: number
@@ -249,6 +250,7 @@ export interface SchemeRegularityPeriodicMetric {
   periodStartDate: string
   periodEndDate: string
   totalSupplyDays: number
+  totalWaterQuantity?: number
   averageRegularity: number
 }
 
