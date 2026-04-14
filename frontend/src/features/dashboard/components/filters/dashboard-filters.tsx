@@ -398,6 +398,25 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   const hasSelectedDistrict = effectiveTrailIndex >= 1 && Boolean(activeSelectedDistrict)
   const hasSelectedBlock = effectiveTrailIndex >= 2 && Boolean(activeSelectedBlock)
   const hasSelectedGramPanchayat = effectiveTrailIndex >= 3 && Boolean(activeSelectedGramPanchayat)
+  const searchByLabel = (() => {
+    if (isDepartmentTab) {
+      if (hasSelectedGramPanchayat) return t('filters.searchBy.subDivision', 'Sub Division')
+      if (hasSelectedBlock) return t('filters.searchBy.division', 'Division')
+      if (hasSelectedDistrict) return t('filters.searchBy.circle', 'Circle')
+      if (hasSelectedState) return t('filters.searchBy.zone', 'Zone')
+      return t('filters.searchBy.stateUt', 'State/UT')
+    }
+
+    if (hasSelectedGramPanchayat) return t('filters.searchBy.village', 'Village')
+    if (hasSelectedBlock) return t('filters.searchBy.gramPanchayat', 'Gram Panchayat')
+    if (hasSelectedDistrict) return t('filters.searchBy.block', 'Block')
+    if (hasSelectedState) return t('filters.searchBy.district', 'District')
+    return t('filters.searchBy.stateUt', 'State/UT')
+  })()
+  const dynamicSearchPlaceholder = t('filters.searchBy.label', {
+    label: searchByLabel,
+    defaultValue: `Search by ${searchByLabel}`,
+  })
 
   // In single-tenant mode, prevent state changes (users cannot select a different state/tenant)
   const wrappedOnStateChange = isSingleTenantMode ? () => {} : onStateChange
@@ -565,6 +584,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
 
   return (
     <SearchLayout
+      placeholder={dynamicSearchPlaceholder}
       hideActionButton={true}
       selectionTrail={selectionTrail}
       activeTrailIndex={effectiveTrailIndex}

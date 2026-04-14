@@ -1994,13 +1994,14 @@ export function CentralDashboard() {
   const handleStateChange = (value: string) => {
     setActiveTrailIndex(null)
     setSelectedScheme('')
+    const nextTab = value ? 'administrative' : undefined
     updateFilterUrl({
       state: value,
       district: '',
       block: '',
       gramPanchayat: '',
       village: '',
-      tab: 'administrative',
+      tab: nextTab,
     })
   }
   const handleDistrictChange = (value: string) => {
@@ -2253,7 +2254,10 @@ export function CentralDashboard() {
     const stateOption = locationSearchData?.states.find(
       (option) => option.label.toLowerCase() === stateName.toLowerCase()
     )
-    updateFilterUrl({ state: stateOption?.value ?? toStateSlug(stateName) })
+    updateFilterUrl({
+      state: stateOption?.value ?? toStateSlug(stateName),
+      tab: 'administrative',
+    })
   }
 
   const resolveOverallPerformanceLocationValue = (row: EntityPerformance): string | null => {
@@ -2674,7 +2678,7 @@ export function CentralDashboard() {
           <>
             X<sub>i</sub> ={' '}
             {t('kpi.tooltips.regularity.definitions.numberOfSupplyDays', {
-              defaultValue: 'number of supply-days of scheme i',
+              defaultValue: 'Number of continuous supply-days of scheme',
             })}
           </>,
           <>

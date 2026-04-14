@@ -4973,6 +4973,32 @@ describe('CentralDashboard', () => {
     })
   })
 
+  it('removes tab query param when clearing state back to central view', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams('district=sangareddy&tab=administrative'),
+      jest.fn(),
+    ])
+
+    renderWithProviders(<CentralDashboard />)
+    mockNavigate.mockClear()
+
+    const dashboardFilterProps = getLatestDashboardFilterProps<{
+      onStateChange: (value: string) => void
+    }>()
+    dashboardFilterProps.onStateChange('')
+
+    expect(mockNavigate).toHaveBeenCalledWith({
+      pathname: '/',
+      search: '',
+    })
+  })
+
   it('resolves LGD analytics ids from loaded options when administrative URL params use slugs', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -5105,7 +5131,7 @@ describe('CentralDashboard', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith({
       pathname: '/telangana',
-      search: '',
+      search: '?tab=administrative',
     })
   })
 

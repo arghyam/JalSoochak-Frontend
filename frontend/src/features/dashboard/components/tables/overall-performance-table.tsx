@@ -103,6 +103,7 @@ export function OverallPerformanceTable({
                   bg: 'white',
                   th: {
                     textStyle: 'bodyText7',
+                    fontSize: '14px',
                     textTransform: 'none',
                     fontWeight: '500',
                     px: { base: 2, md: 3 },
@@ -275,6 +276,7 @@ export function OverallPerformanceTable({
                 sx={{
                   td: {
                     textStyle: 'bodyText7',
+                    fontSize: '14px',
                     fontWeight: '400',
                     px: { base: 2, md: 3 },
                     py: { base: 2, md: 0 },

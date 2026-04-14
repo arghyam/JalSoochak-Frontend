@@ -46,6 +46,18 @@
       "gramPanchayats": "ग्राम पंचायतें",
       "villages": "गांव"
     },
+    "searchBy": {
+      "label": "{{label}} द्वारा खोजें",
+      "stateUt": "राज्य/केंद्रशासित प्रदेश",
+      "district": "जिला",
+      "block": "ब्लॉक",
+      "gramPanchayat": "ग्राम पंचायत",
+      "village": "गांव",
+      "zone": "जोन",
+      "circle": "सर्कल",
+      "division": "डिवीजन",
+      "subDivision": "उप-विभाग"
+    },
     "noOptions": {
       "states": "कोई राज्य नहीं मिला",
       "districts": "कोई जिला नहीं मिला",
@@ -101,7 +113,7 @@
       "regularity": {
         "formulaLabel": "योजना की नियमितता",
         "definitions": {
-          "numberOfSupplyDays": "योजना i के जल आपूर्ति वाले दिनों की संख्या",
+          "numberOfSupplyDays": "योजना के निरंतर आपूर्ति-दिनों की संख्या",
           "totalNumberOfDaysInSelectedPeriod": "चयनित समयावधि में दिनों की कुल संख्या"
         }
       }

@@ -1,5 +1,12 @@
 import { useMemo, useRef, useState } from 'react'
-import type { ChangeEvent, FocusEvent, PointerEvent, ReactNode } from 'react'
+import type {
+  ChangeEvent,
+  FocusEvent,
+  KeyboardEvent,
+  MouseEvent,
+  PointerEvent,
+  ReactNode,
+} from 'react'
 import type { ButtonProps, InputProps } from '@chakra-ui/react'
 import {
   Flex,
@@ -221,6 +228,11 @@ export function SearchLayout({
     breadcrumbPanelProps?.onTrailSelect?.(trailIndex)
   }
 
+  const handleActiveTrailClear = (trailIndex: number) => {
+    const previousTrailIndex = trailIndex - 1
+    handleTrailSelect(previousTrailIndex)
+  }
+
   const handleCloseBreadcrumbPanel = () => {
     setBreadcrumbPanelOpen(false)
   }
@@ -267,9 +279,13 @@ export function SearchLayout({
                   color="primary.600"
                   fontSize="14px"
                   fontWeight="400"
-                  variant="ghost"
+                  variant="unstyled"
+                  display="inline-flex"
+                  alignItems="center"
+                  gap="6px"
+                  cursor="default"
                   onClick={() => handleTrailSelect(index)}
-                  _hover={{ bg: 'primary.25' }}
+                  _hover={{}}
                   _active={{ bg: 'primary.25' }}
                   aria-label={t('searchLayout.aria.breadcrumb', {
                     item,
@@ -277,7 +293,41 @@ export function SearchLayout({
                   })}
                   aria-current="page"
                 >
-                  {item}
+                  <Text as="span" lineHeight="1">
+                    {item}
+                  </Text>
+                  <Box
+                    as="span"
+                    aria-label={t('searchLayout.aria.clearBreadcrumb', {
+                      item,
+                      defaultValue: `Clear breadcrumb ${item}`,
+                    })}
+                    role="button"
+                    tabIndex={0}
+                    minW="14px"
+                    h="14px"
+                    borderRadius="full"
+                    color="inherit"
+                    display="inline-flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    cursor="default"
+                    _hover={{ bg: 'primary.100', cursor: 'pointer' }}
+                    onClick={(event: MouseEvent<HTMLSpanElement>) => {
+                      event.stopPropagation()
+                      handleActiveTrailClear(index)
+                    }}
+                    onKeyDown={(event: KeyboardEvent<HTMLSpanElement>) => {
+                      if (event.key !== 'Enter' && event.key !== ' ') {
+                        return
+                      }
+                      event.preventDefault()
+                      event.stopPropagation()
+                      handleActiveTrailClear(index)
+                    }}
+                  >
+                    <CloseIcon boxSize="8px" />
+                  </Box>
                 </Button>
               </Flex>
             )
@@ -328,7 +378,7 @@ export function SearchLayout({
         fontSize="14px"
         h="32px"
         borderColor="neutral.300"
-        _placeholder={{ color: 'neutral.300' }}
+        _placeholder={{ color: 'neutral.400' }}
         value={inputValue}
         onFocus={handleFocus}
         onChange={handleInputChange}
