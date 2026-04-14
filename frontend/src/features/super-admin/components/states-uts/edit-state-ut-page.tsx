@@ -456,7 +456,11 @@ export function EditStateUTPage() {
                             onChange={() =>
                               void handleAdminStatusToggle(admin.id, currentAdminStatus)
                             }
-                            isDisabled={isTogglingThisAdmin || currentAdminStatus === 'pending'}
+                            isDisabled={
+                              updateUserStatusMutation.isPending ||
+                              isTogglingThisAdmin ||
+                              currentAdminStatus === 'pending'
+                            }
                             aria-label={`${t('statesUts.statusSection.activated')} ${admin.firstName}`}
                           />
                         </Flex>
