@@ -83,7 +83,9 @@ describe('ViewStateUTPage', () => {
 
   it('renders ACTIVE status chip', () => {
     renderWithProviders(<ViewStateUTPage />)
-    expect(screen.getByText(/active/i)).toBeTruthy()
+    const statusHeading = screen.getByText('Status')
+    const statusChip = statusHeading.parentElement?.querySelector('[class*="chakra-badge"]')
+    expect(statusChip?.textContent).toMatch(/active/i)
   })
 
   it('renders SUSPENDED status chip for suspended tenant', () => {
