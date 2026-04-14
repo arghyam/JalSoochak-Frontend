@@ -38,6 +38,7 @@ export interface SearchableSelectProps {
   'aria-labelledby'?: string
   ariaLabel?: string
   placeholderColor?: string
+  searchable?: boolean
 }
 
 export function SearchableSelect({
@@ -59,6 +60,7 @@ export function SearchableSelect({
   'aria-labelledby': ariaLabelledBy,
   ariaLabel,
   placeholderColor = 'neutral.500',
+  searchable = true,
 }: SearchableSelectProps) {
   const { t } = useTranslation('common')
   const [isOpen, setIsOpen] = useState(false)
@@ -185,24 +187,26 @@ export function SearchableSelect({
           overflow="hidden"
         >
           {/* Search Input */}
-          <Box p="8px" borderBottomWidth="1px" borderBottomColor="neutral.100">
-            <InputGroup size="sm" borderRadius="4px">
-              <InputLeftElement pointerEvents="none">
-                <SearchIcon color="neutral.400" boxSize={4} />
-              </InputLeftElement>
-              <Input
-                placeholder={t('searchableSelect.search')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                borderColor={borderColor}
-                borderRadius="4px"
-                _hover={{ borderColor: 'neutral.400' }}
-                _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
-                fontSize="sm"
-                autoFocus
-              />
-            </InputGroup>
-          </Box>
+          {searchable && (
+            <Box p="8px" borderBottomWidth="1px" borderBottomColor="neutral.100">
+              <InputGroup size="sm" borderRadius="4px">
+                <InputLeftElement pointerEvents="none">
+                  <SearchIcon color="neutral.400" boxSize={4} />
+                </InputLeftElement>
+                <Input
+                  placeholder={t('searchableSelect.search')}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  borderColor={borderColor}
+                  borderRadius="4px"
+                  _hover={{ borderColor: 'neutral.400' }}
+                  _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
+                  fontSize="sm"
+                  autoFocus
+                />
+              </InputGroup>
+            </Box>
+          )}
 
           {/* Options List */}
           <VStack
