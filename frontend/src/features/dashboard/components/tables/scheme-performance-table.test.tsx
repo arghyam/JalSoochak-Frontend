@@ -1,5 +1,5 @@
 import { describe, expect, it, jest } from '@jest/globals'
-import { screen } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { PumpOperatorPerformanceData } from '../../types'
 import { SchemePerformanceTable } from './scheme-performance-table'
@@ -182,7 +182,7 @@ describe('SchemePerformanceTable', () => {
       />
     )
 
-    expect(screen.getByText('2')).toBeDefined()
-    expect(screen.getByText('3')).toBeDefined()
+    expect(screen.getByRole('button', { name: '2' })).toBeDefined()
+    expect(screen.getByRole('button', { name: '3' })).toBeDefined()
   })
 })
