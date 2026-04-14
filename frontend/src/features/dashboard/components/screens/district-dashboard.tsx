@@ -45,6 +45,7 @@ type DistrictDashboardScreenProps = {
   operatorsPerformanceTable: PumpOperatorPerformanceData[]
   pumpOperatorsTotal: number
   childEntityLabel?: string
+  onReachSchemePerformanceEnd?: () => void
 }
 
 type ViewBy = 'geography' | 'time'
@@ -71,6 +72,7 @@ export function DistrictDashboardScreen({
   operatorsPerformanceTable,
   pumpOperatorsTotal,
   childEntityLabel = supplySubmissionRateLabel,
+  onReachSchemePerformanceEnd,
 }: DistrictDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
@@ -341,6 +343,8 @@ export function DistrictDashboardScreen({
             data={operatorsPerformanceTable}
             fillHeight
             showVillageColumn={false}
+            blockColumnLabel={childEntityLabel}
+            onReachEnd={onReachSchemePerformanceEnd}
           />
         </Box>
       </Grid>

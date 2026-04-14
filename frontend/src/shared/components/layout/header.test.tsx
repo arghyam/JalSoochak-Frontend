@@ -9,8 +9,8 @@ jest.mock('@/shared/components/common', () => ({
 describe('Header', () => {
   it('renders title, subtitle and language switcher', () => {
     renderWithProviders(<Header />)
-    expect(screen.getByText('JalSoochak')).toBeInTheDocument()
-    expect(screen.getByText('Operational Status of Water Supply Schemes')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /jalsoochak logo with text/i })).toBeInTheDocument()
+    expect(screen.getByText('National Rural Drinking Water Supply Dashboard')).toBeInTheDocument()
     expect(screen.getByText('Language Switcher')).toBeInTheDocument()
   })
 })

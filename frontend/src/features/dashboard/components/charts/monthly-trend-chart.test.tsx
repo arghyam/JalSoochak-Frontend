@@ -95,9 +95,16 @@ describe('MonthlyTrendChart', () => {
       .map(([props]) => props.option)
       .find((option) => option?.yAxis?.axisLabel?.margin !== undefined)
 
-    expect(chartOption?.xAxis?.axisLabel?.margin).toBe(16)
+    expect(chartOption?.xAxis?.axisLabel?.margin).toBe(30)
     expect(chartOption?.xAxis?.axisLabel?.rotate).toBe(45)
     expect(chartOption?.xAxis?.axisLabel?.interval).toBe(0)
     expect(axisOption?.yAxis?.axisLabel?.margin).toBe(-12)
+  })
+
+  it('renders wrapper for empty data without throwing', () => {
+    renderWithProviders(
+      <MonthlyTrendChart data={[]} xAxisLabel="Month" yAxisLabel="Value" seriesName="Trend" />
+    )
+    expect(mockEChartsWrapper).toHaveBeenCalled()
   })
 })

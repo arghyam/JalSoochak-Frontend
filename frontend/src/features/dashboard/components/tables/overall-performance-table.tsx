@@ -24,8 +24,8 @@ export function OverallPerformanceTable({
   onRowClick,
 }: OverallPerformanceTableProps) {
   const { t } = useTranslation('dashboard')
-  const [sortColumn, setSortColumn] = useState<SortColumn>(null)
-  const [sortDirection, setSortDirection] = useState<SortDirection>(null)
+  const [sortColumn, setSortColumn] = useState<SortColumn>('name')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
   const resolvedEntityLabel =
     entityLabel ?? t('overallPerformance.columns.entity', { defaultValue: 'State/UT' })
   const safeMaxItems =
@@ -107,8 +107,6 @@ export function OverallPerformanceTable({
                     fontWeight: '500',
                     px: { base: 2, md: 3 },
                     py: { base: 3, md: 5 },
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
                   },
                   'th:first-of-type': {
                     width: '200px',
@@ -169,16 +167,17 @@ export function OverallPerformanceTable({
                       onClick={() => handleSort('coverage')}
                       display="flex"
                       alignItems="center"
+                      justifyContent="center"
                       gap={1}
                       cursor="pointer"
-                      textAlign="left"
+                      textAlign="center"
                       width="100%"
                       minW={0}
                       bg="none"
                       border="none"
                       p={0}
                     >
-                      <Box as="span" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                      <Box as="span" whiteSpace="normal">
                         {t('overallPerformance.columns.quantityMld', {
                           defaultValue: 'Quantity (MLD)',
                         })}
@@ -207,16 +206,17 @@ export function OverallPerformanceTable({
                       onClick={() => handleSort('quantity')}
                       display="flex"
                       alignItems="center"
+                      justifyContent="center"
                       gap={1}
                       cursor="pointer"
-                      textAlign="left"
+                      textAlign="center"
                       width="100%"
                       minW={0}
                       bg="none"
                       border="none"
                       p={0}
                     >
-                      <Box as="span" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                      <Box as="span" whiteSpace="normal">
                         {t('overallPerformance.columns.quantityLpcd', {
                           defaultValue: 'Quantity (LPCD)',
                         })}
@@ -245,16 +245,17 @@ export function OverallPerformanceTable({
                       onClick={() => handleSort('regularity')}
                       display="flex"
                       alignItems="center"
+                      justifyContent="center"
                       gap={1}
                       cursor="pointer"
-                      textAlign="left"
+                      textAlign="center"
                       width="100%"
                       minW={0}
                       bg="none"
                       border="none"
                       p={0}
                     >
-                      <Box as="span" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                      <Box as="span" whiteSpace="normal">
                         {t('overallPerformance.columns.regularity', {
                           defaultValue: 'Regularity (%)',
                         })}

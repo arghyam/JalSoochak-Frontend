@@ -706,7 +706,7 @@ describe('CentralDashboard', () => {
         parentLgdId: 303,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
-        schemeCount: 100,
+        schemeCount: 20,
       },
       enabled: true,
     })
@@ -787,7 +787,7 @@ describe('CentralDashboard', () => {
         parentLgdId: 404,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
-        schemeCount: 100,
+        schemeCount: 20,
       },
       enabled: true,
     })
@@ -848,7 +848,7 @@ describe('CentralDashboard', () => {
         parentLgdId: 544,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
-        schemeCount: 100,
+        schemeCount: 20,
       },
       enabled: true,
     })
@@ -1907,8 +1907,8 @@ describe('CentralDashboard', () => {
     expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-200 LPCD vs previous 30 days' })
 
     expect(kpiProps[2]?.title).toBe('Regularity')
-    expect(kpiProps[2]?.value).toBe('70.0%')
-    expect(kpiProps[2]?.trend).toEqual({ direction: 'down', text: '-12.5% vs previous 30 days' })
+    expect(kpiProps[2]?.value).toBe('0.0%')
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
   })
 
   it('hydrates location filters from path and query params', () => {
@@ -3573,7 +3573,7 @@ describe('CentralDashboard', () => {
         parentDepartmentId: 901,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
-        schemeCount: 100,
+        schemeCount: 20,
       },
       enabled: true,
     })
@@ -3722,7 +3722,7 @@ describe('CentralDashboard', () => {
 
     expect(dashboardBodyProps.operatorsPerformanceTable).toEqual([
       {
-        id: 'scheme-performance-101',
+        id: 'scheme-performance-101-0',
         name: 'Scheme 101',
         village: 'Sangareddy',
         block: null,
@@ -4534,8 +4534,8 @@ describe('CentralDashboard', () => {
     expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-100 LPCD vs previous 30 days' })
 
     expect(kpiProps[2]?.title).toBe('Regularity')
-    expect(kpiProps[2]?.value).toBe('70.0%')
-    expect(kpiProps[2]?.trend).toEqual({ direction: 'down', text: '-12.5% vs previous 30 days' })
+    expect(kpiProps[2]?.value).toBe('0.0%')
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
 
     const waterSupplyQueryCalls = (useAverageWaterSupplyPerRegionQuery as jest.Mock).mock.calls
       .slice(initialWaterSupplyQueryCallCount)

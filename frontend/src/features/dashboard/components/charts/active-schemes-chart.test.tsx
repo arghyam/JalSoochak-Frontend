@@ -50,4 +50,23 @@ describe('ActiveSchemesChart', () => {
     expect(mockEChartsWrapper).not.toHaveBeenCalled()
     expect(screen.queryByText('Note: Schemes active for at least 30 days in a month.')).toBeNull()
   })
+
+  it('renders chart when data has positive values', () => {
+    renderWithProviders(
+      <ActiveSchemesChart
+        data={[
+          { label: 'Active', value: 8 },
+          { label: 'Inactive', value: 2 },
+        ]}
+      />
+    )
+    expect(mockEChartsWrapper).toHaveBeenCalled()
+    expect(screen.queryByText('No data available')).toBeNull()
+  })
+
+  it('shows note when chart has data', () => {
+    const note = 'Note: Schemes active for at least 30 days in a month.'
+    renderWithProviders(<ActiveSchemesChart data={[{ label: 'Active', value: 5 }]} note={note} />)
+    expect(screen.getByText(note)).toBeTruthy()
+  })
 })

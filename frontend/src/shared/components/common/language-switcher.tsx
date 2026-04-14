@@ -12,12 +12,17 @@ import {
 import { useLanguageStore } from '@/app/store'
 import type { LanguageCode } from '@/app/i18n'
 import languageIcon from '@/assets/media/Language icon.svg'
+import languageIconWhite from '@/assets/media/Language icon white.svg'
 
 interface LanguageSwitcherProps {
   isMobileHeader?: boolean
+  variant?: 'default' | 'white'
 }
 
-export function LanguageSwitcher({ isMobileHeader = false }: LanguageSwitcherProps) {
+export function LanguageSwitcher({
+  isMobileHeader = false,
+  variant = 'default',
+}: LanguageSwitcherProps) {
   const { currentLanguage, setLanguage, getSupportedLanguages } = useLanguageStore()
   const supportedLanguages = getSupportedLanguages()
   const iconWidth = { base: '30px', md: '35px' }
@@ -50,7 +55,12 @@ export function LanguageSwitcher({ isMobileHeader = false }: LanguageSwitcherPro
         >
           <Flex w="full" h="full" align="center" justify="center">
             <Box w={iconWidth} h={iconHeight} aria-hidden="true">
-              <Image src={languageIcon} alt="" w={iconWidth} h={iconHeight} />
+              <Image
+                src={variant === 'white' ? languageIconWhite : languageIcon}
+                alt=""
+                w={iconWidth}
+                h={iconHeight}
+              />
             </Box>
           </Flex>
         </MenuButton>

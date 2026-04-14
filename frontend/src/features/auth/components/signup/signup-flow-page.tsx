@@ -61,7 +61,7 @@ export function SignupFlowPage({ initialStep = 'signup' }: SignupFlowPageProps) 
               <Image
                 src={jalsoochakLogo}
                 alt="JalSoochak logo"
-                w="117.61px"
+                w={{ base: '60px', md: '117.61px' }}
                 h="72px"
                 mb={{ base: 10, md: 12 }}
               />

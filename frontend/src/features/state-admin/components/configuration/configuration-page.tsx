@@ -526,7 +526,7 @@ export function ConfigurationPage() {
             >
               {t('configuration.sectionTitle')}
             </Heading>
-            {config.isConfigured && !effectiveIsEditing && (
+            {config.isConfigured && (
               <Button
                 variant="ghost"
                 h={6}

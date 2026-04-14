@@ -103,8 +103,9 @@ export function useDistrictSchemeBlockLookupQuery(
         for (const gramPanchayat of gramPanchayatsResponse.data ?? []) {
           const gramPanchayatId =
             typeof gramPanchayat.id === 'number' ? gramPanchayat.id : undefined
+          const gramPanchayatTitle = gramPanchayat.title?.trim() ?? ''
 
-          addLocationTitleToLookup(lookup, gramPanchayat, blockTitle)
+          addLocationTitleToLookup(lookup, gramPanchayat, gramPanchayatTitle)
 
           if (gramPanchayatId !== undefined && pendingLgdIds.has(gramPanchayatId)) {
             pendingLgdIds.delete(gramPanchayatId)
@@ -126,7 +127,8 @@ export function useDistrictSchemeBlockLookupQuery(
 
           for (const village of villagesResponse.data ?? []) {
             const villageId = typeof village.id === 'number' ? village.id : undefined
-            addLocationTitleToLookup(lookup, village, blockTitle)
+            const villageTitle = village.title?.trim() ?? ''
+            addLocationTitleToLookup(lookup, village, villageTitle)
             if (villageId !== undefined && pendingLgdIds.has(villageId)) {
               pendingLgdIds.delete(villageId)
             }
