@@ -99,7 +99,7 @@ import {
   normalizeDateFormat,
   parseDisplayDateToIsoWithFallback,
 } from '@/shared/utils/date-format'
-import { INDIA_STATES } from '@/shared/constants/states'
+import { INDIA_STATES, stateSlugToCode, stateCodeToSlug } from '@/shared/constants/states'
 import { isSingleTenantMode, getSingleTenantId } from '@/config/server-config'
 
 const storageKey = 'central-dashboard-filters'
@@ -550,7 +550,8 @@ export function CentralDashboard() {
   const navigate = useNavigate()
   const { data } = useDashboardData('central')
   const [storedFilters] = useState(() => getStoredFilters())
-  const selectedState = stateSlug
+  // Decode 2-letter code from URL (e.g. "up") back to internal slug (e.g. "uttar-pradesh")
+  const selectedState = stateCodeToSlug(stateSlug) ?? stateSlug
   const selectedDistrict = selectedState ? (searchParams.get('district') ?? '') : ''
   const selectedBlock = selectedDistrict ? (searchParams.get('block') ?? '') : ''
   const selectedGramPanchayat = selectedBlock ? (searchParams.get('gramPanchayat') ?? '') : ''
@@ -1954,7 +1955,9 @@ export function CentralDashboard() {
     const forcedState = inSingleTenantMode && singleTenantId ? selectedState : (filters.state ?? '')
 
     const nextState = forcedState
-    const nextPath = nextState ? `/${encodeURIComponent(nextState)}` : ROUTES.DASHBOARD
+    // Encode the internal slug (e.g. "uttar-pradesh") to a 2-letter code (e.g. "up") for the URL
+    const urlSegment = stateSlugToCode(nextState) ?? nextState
+    const nextPath = urlSegment ? `/${encodeURIComponent(urlSegment)}` : ROUTES.DASHBOARD
     const nextSearchParams = new URLSearchParams(searchParams)
 
     const setParam = (key: string, value?: string) => {
