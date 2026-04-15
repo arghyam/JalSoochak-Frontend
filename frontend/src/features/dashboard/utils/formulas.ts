@@ -470,6 +470,8 @@ const mapLocationOptionsByName = (locationOptions: LocationLabelOption[]) =>
       .map((option) => [slugify(option.label), option] as const)
   )
 
+const NO_DATA_METRIC_VALUE = -1
+
 const getTenantBoundaryRegionId = (
   region: TenantBoundaryResponse['childRegions'][number],
   index: number
@@ -670,7 +672,7 @@ export const mapTenantBoundariesToPerformance = (
         return Number((region.averageSchemeRegularity * 100).toFixed(1))
       }
 
-      return 0
+      return NO_DATA_METRIC_VALUE
     })()
 
     const preferredQuantity = (() => {
@@ -692,7 +694,7 @@ export const mapTenantBoundariesToPerformance = (
           (labelCandidate ? quantityNoDataByName.has(labelCandidate) : false)
 
         if (fromNoData) {
-          return -1
+          return NO_DATA_METRIC_VALUE
         }
 
         const fromAnalytics =
@@ -704,10 +706,10 @@ export const mapTenantBoundariesToPerformance = (
           return fromAnalytics
         }
 
-        return -1
+        return NO_DATA_METRIC_VALUE
       }
 
-      return -1
+      return NO_DATA_METRIC_VALUE
     })()
 
     return {

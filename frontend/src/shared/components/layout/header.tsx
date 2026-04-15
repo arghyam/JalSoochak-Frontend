@@ -13,7 +13,6 @@ export function Header() {
   return (
     <Flex
       as="header"
-      borderBottomWidth="1px"
       bg="primary.800"
       boxShadow="0 6px 14px rgba(0, 0, 0, 0.24)"
       mb="28px"

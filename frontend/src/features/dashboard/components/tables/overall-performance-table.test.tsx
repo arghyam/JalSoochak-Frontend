@@ -111,4 +111,16 @@ describe('OverallPerformanceTable', () => {
     expect(onRowClick).toHaveBeenCalledTimes(1)
     expect(onRowClick).toHaveBeenCalledWith(tableData[0])
   })
+
+  it('calls onRowHover on enter and leave', () => {
+    const onRowHover = jest.fn()
+    renderWithProviders(<OverallPerformanceTable data={tableData} onRowHover={onRowHover} />)
+
+    const alphaCell = screen.getByText('Alpha')
+    fireEvent.mouseEnter(alphaCell)
+    fireEvent.mouseLeave(alphaCell)
+
+    expect(onRowHover).toHaveBeenNthCalledWith(1, tableData[0])
+    expect(onRowHover).toHaveBeenNthCalledWith(2, null)
+  })
 })

@@ -28,11 +28,9 @@ export function KPICard({ title, value, icon, trend, tooltipContent }: KPICardPr
 
   return (
     <Box
+      position="relative"
       bg="white"
       borderRadius="12px"
-      borderTopWidth="3px"
-      borderTopStyle="solid"
-      borderTopColor="primary.500"
       borderBottomWidth="0.5px"
       borderBottomStyle="solid"
       borderBottomColor="neutral.200"
@@ -48,6 +46,16 @@ export function KPICard({ title, value, icon, trend, tooltipContent }: KPICardPr
       py="24px"
       boxShadow="sm"
       transition="box-shadow 0.2s"
+      _before={{
+        content: '""',
+        position: 'absolute',
+        inset: 0,
+        borderTop: '3px solid',
+        borderTopColor: 'primary.500',
+        borderTopLeftRadius: '12px',
+        borderTopRightRadius: '12px',
+        pointerEvents: 'none',
+      }}
     >
       <Flex align="center" gap="12px">
         {icon ? (
