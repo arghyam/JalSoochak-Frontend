@@ -1389,12 +1389,12 @@ describe('CentralDashboard', () => {
       'Maharashtra',
     ])
     expect(dashboardBodyProps.regularityPerformanceData.map((row) => row.name)).toEqual([
-      'Karnataka',
       'Maharashtra',
+      'Karnataka',
     ])
     expect(dashboardBodyProps.supplySubmissionRateData.map((row) => row.name)).toEqual([
-      'Karnataka',
       'Maharashtra',
+      'Karnataka',
     ])
     expect(overallPerformanceProps.data.map((row) => row.name)).toEqual([
       'Karnataka',

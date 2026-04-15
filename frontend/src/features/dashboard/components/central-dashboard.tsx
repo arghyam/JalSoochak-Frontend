@@ -50,6 +50,7 @@ import type {
   NationalDashboardBoundaryResponse,
   NationalDashboardResponse,
   VillagePumpOperatorDetails,
+  WaterSupplyOutageData,
 } from '../types'
 import { DashboardFilters } from './filters/dashboard-filters'
 import { OverallPerformanceTable } from './tables'
@@ -470,6 +471,52 @@ const toOutageDistributionData = (
     ...toOutageReasonsData(region.outageReasonSchemeCount),
     label: toCapitalizedWords(region.title),
   }))
+
+const sortByMetricDescending = (
+  data: EntityPerformance[],
+  metric: 'quantity' | 'regularity'
+): EntityPerformance[] =>
+  [...data].sort((left, right) => {
+    const metricDelta = (right[metric] ?? 0) - (left[metric] ?? 0)
+    if (metricDelta !== 0) {
+      return metricDelta
+    }
+    return left.name.localeCompare(right.name)
+  })
+
+const getTotalOutages = (row: {
+  reasons?: Record<string, number>
+  electricityFailure?: number
+  pipelineLeak?: number
+  pumpFailure?: number
+  valveIssue?: number
+  sourceDrying?: number
+}) => {
+  const reasonsTotal = Object.values(row.reasons ?? {}).reduce(
+    (total, value) => total + (typeof value === 'number' && Number.isFinite(value) ? value : 0),
+    0
+  )
+  if (reasonsTotal > 0) {
+    return reasonsTotal
+  }
+
+  return (
+    (row.electricityFailure ?? 0) +
+    (row.pipelineLeak ?? 0) +
+    (row.pumpFailure ?? 0) +
+    (row.valveIssue ?? 0) +
+    (row.sourceDrying ?? 0)
+  )
+}
+
+const sortOutageDistributionByTotalDescending = (data: WaterSupplyOutageData[]) =>
+  [...data].sort((left, right) => {
+    const totalDelta = getTotalOutages(right) - getTotalOutages(left)
+    if (totalDelta !== 0) {
+      return totalDelta
+    }
+    return left.label.localeCompare(right.label)
+  })
 
 const formulaTooltipTextStyle = {
   fontSize: '12px',
@@ -1815,29 +1862,38 @@ export function CentralDashboard() {
     : Boolean(tenantBoundaryAnalyticsParams) &&
       !tenantBoundaryData &&
       (isTenantBoundariesLoading || isTenantBoundariesFetching)
-  const quantityPerformanceData = isCentralLandingView
-    ? mapQuantityPerformanceFromNationalDashboard(
-        filteredNationalDashboardData,
-        emptyEntityPerformance,
-        nationalDefaultAverageMembersPerHousehold,
-        nationalDefaultWaterNormLitersPerPersonPerDay,
-        (state) => nationalDemandInputsByTenantId.get(state.tenantId)
-      )
-    : mapQuantityPerformanceFromAnalytics(
-        averageWaterSupplyData,
-        emptyEntityPerformance,
-        averagePersonsPerHousehold,
-        litersPerPersonPerDay
-      )
-  const regularityPerformanceData = isCentralLandingView
-    ? mapRegularityPerformanceFromNationalDashboard(
-        filteredNationalDashboardData,
-        emptyEntityPerformance
-      )
-    : mapRegularityPerformanceFromAnalytics(averageSchemeRegularityData, emptyEntityPerformance)
-  const supplySubmissionRateData = isCentralLandingView
-    ? mapReadingSubmissionRateFromNationalDashboard(filteredNationalDashboardData, [])
-    : mapReadingSubmissionRateFromAnalytics(readingSubmissionRateData, [])
+  const quantityPerformanceData = sortByMetricDescending(
+    isCentralLandingView
+      ? mapQuantityPerformanceFromNationalDashboard(
+          filteredNationalDashboardData,
+          emptyEntityPerformance,
+          nationalDefaultAverageMembersPerHousehold,
+          nationalDefaultWaterNormLitersPerPersonPerDay,
+          (state) => nationalDemandInputsByTenantId.get(state.tenantId)
+        )
+      : mapQuantityPerformanceFromAnalytics(
+          averageWaterSupplyData,
+          emptyEntityPerformance,
+          averagePersonsPerHousehold,
+          litersPerPersonPerDay
+        ),
+    'quantity'
+  )
+  const regularityPerformanceData = sortByMetricDescending(
+    isCentralLandingView
+      ? mapRegularityPerformanceFromNationalDashboard(
+          filteredNationalDashboardData,
+          emptyEntityPerformance
+        )
+      : mapRegularityPerformanceFromAnalytics(averageSchemeRegularityData, emptyEntityPerformance),
+    'regularity'
+  )
+  const supplySubmissionRateData = sortByMetricDescending(
+    isCentralLandingView
+      ? mapReadingSubmissionRateFromNationalDashboard(filteredNationalDashboardData, [])
+      : mapReadingSubmissionRateFromAnalytics(readingSubmissionRateData, []),
+    'regularity'
+  )
   const readingSubmissionStatusData = mapReadingSubmissionStatusFromAnalytics(
     submissionStatusData,
     []
@@ -2450,7 +2506,9 @@ export function CentralDashboard() {
     : null
   const waterSupplyOutagesData =
     nationalWaterSupplyOutageReasonsData ?? apiWaterSupplyOutageReasonsData ?? []
-  const waterSupplyOutageDistributionData = apiWaterSupplyOutageDistributionData ?? []
+  const waterSupplyOutageDistributionData = sortOutageDistributionByTotalDescending(
+    apiWaterSupplyOutageDistributionData ?? []
+  )
   const resolvedSupplyOutageTrend =
     outageReasonsTimeTrendData.length > 0
       ? outageReasonsTimeTrendData
