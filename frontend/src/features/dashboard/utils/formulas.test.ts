@@ -505,7 +505,7 @@ describe('dashboard formulas', () => {
       expect.objectContaining({
         id: '10',
         name: 'Region Alpha',
-        regularity: 0,
+        regularity: -1,
       }),
     ])
   })

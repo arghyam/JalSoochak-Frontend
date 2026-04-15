@@ -14,10 +14,12 @@ import { ActionTooltip, EChartsWrapper, Toggle } from '@/shared/components/commo
 import { FiMaximize2, FiMinimize2 } from 'react-icons/fi'
 import { getBodyText6Style } from '@/shared/components/charts/chart-text-style'
 import type { EntityPerformance } from '../../types'
+import { slugify } from '../../utils/format-location-label'
 import {
   buildFeatureCollectionFromRegions,
   INDIA_NATIONAL_BOUNDARY_FEATURE_NAME,
   PARENT_BOUNDARY_FEATURE_NAME,
+  PARENT_BOUNDARY_FILL_FEATURE_NAME,
   registerDynamicMap,
 } from '../../utils/map-registry'
 
@@ -36,6 +38,9 @@ interface IndiaMapChartProps {
   disableHoverEffect?: boolean
   isFullscreen?: boolean
   onFullscreenToggle?: () => void
+  isRegularityView?: boolean
+  onRegularityViewChange?: (next: boolean) => void
+  hoveredRegion?: EntityPerformance | null
 }
 
 export function IndiaMapChart({
@@ -53,6 +58,9 @@ export function IndiaMapChart({
   disableHoverEffect = false,
   isFullscreen = false,
   onFullscreenToggle,
+  isRegularityView: controlledIsRegularityView,
+  onRegularityViewChange,
+  hoveredRegion = null,
 }: IndiaMapChartProps) {
   const theme = useTheme()
   const [isBelow500] = useMediaQuery('(max-width: 499.98px)')
@@ -66,7 +74,8 @@ export function IndiaMapChart({
       }),
     [data, nationalBoundaryGeoJson, parentBoundaryGeoJson]
   )
-  const [isRegularityView, setIsRegularityView] = useState(true)
+  const [internalIsRegularityView, setInternalIsRegularityView] = useState(true)
+  const isRegularityView = controlledIsRegularityView ?? internalIsRegularityView
   const metricKey: 'quantity' | 'regularity' = isRegularityView ? 'regularity' : 'quantity'
   const isQuantityPercentView = quantityViewUnit === 'percent'
   const shouldShowNoMapAvailable = !isLoading && !dynamicGeoJson
@@ -113,6 +122,7 @@ export function IndiaMapChart({
   const selectedMetricLabel = isRegularityView ? regularityLabel : quantityLabel
   const getRangeColor = useCallback(
     (value: number) => {
+      if (!Number.isFinite(value) || value < 0) return mapColors.noData
       if (value >= 90) return mapColors.gte90
       if (value >= 70) return mapColors.gte70
       if (value >= 50) return mapColors.gte50
@@ -128,6 +138,7 @@ export function IndiaMapChart({
   )
   const getHoverRangeColor = useCallback(
     (value: number) => {
+      if (!Number.isFinite(value) || value < 0) return hoverColors.noData || mapColors.noData
       if (value >= 90) return hoverColors.gte90 || mapColors.gte90
       if (value >= 70) return hoverColors.gte70 || mapColors.gte70
       if (value >= 50) return hoverColors.gte50 || mapColors.gte50
@@ -144,37 +155,92 @@ export function IndiaMapChart({
         (feature) => feature.properties?.name === PARENT_BOUNDARY_FEATURE_NAME
       )
     )
+    const hasParentBoundaryFillFeature = Boolean(
+      dynamicGeoJson?.features.some(
+        (feature) => feature.properties?.name === PARENT_BOUNDARY_FILL_FEATURE_NAME
+      )
+    )
 
     // Create map data series
-    const mapSeries = data.map((state) => ({
-      name: state.name,
-      value: state[metricKey],
-      stateId: state.id,
-      status: state.status,
-      itemStyle: {
-        areaColor: resolveAreaColor(state[metricKey]),
-      },
-      emphasis: disableHoverEffect
-        ? undefined
-        : {
-            itemStyle: {
-              areaColor: getHoverRangeColor(state[metricKey]),
+    const boundaryFillOverlays = [
+      ...(hasParentBoundaryFillFeature
+        ? [
+            {
+              name: PARENT_BOUNDARY_FILL_FEATURE_NAME,
+              value: -1,
+              silent: true,
+              tooltip: { show: false },
+              label: { show: false },
+              itemStyle: {
+                areaColor: mapColors.noData,
+                borderColor: 'rgba(0,0,0,0)',
+                borderWidth: 0,
+              },
+              emphasis: {
+                disabled: true,
+                label: { show: false },
+                itemStyle: {
+                  areaColor: mapColors.noData,
+                  borderColor: 'rgba(0,0,0,0)',
+                  borderWidth: 0,
+                },
+              },
+              select: {
+                disabled: true,
+                label: { show: false },
+                itemStyle: {
+                  areaColor: mapColors.noData,
+                  borderColor: 'rgba(0,0,0,0)',
+                  borderWidth: 0,
+                },
+              },
             },
-          },
-      select: {
+          ]
+        : []),
+    ]
+    const hoveredRegionId = hoveredRegion?.id?.trim()
+    const hoveredRegionName = hoveredRegion ? slugify(hoveredRegion.name) : ''
+    const mapSeries = data.map((state) => {
+      const stateId = state.id?.trim()
+      const stateName = slugify(state.name)
+      const isExternallyHovered = Boolean(
+        hoveredRegion &&
+        ((hoveredRegionId && stateId && hoveredRegionId === stateId) ||
+          (hoveredRegionName && hoveredRegionName === stateName))
+      )
+      const defaultAreaColor = resolveAreaColor(state[metricKey])
+      const hoverAreaColor = getHoverRangeColor(state[metricKey])
+
+      return {
+        name: state.name,
+        value: state[metricKey],
+        stateId: state.id,
+        status: state.status,
         itemStyle: {
-          areaColor: disableHoverEffect
-            ? resolveAreaColor(state[metricKey])
-            : getHoverRangeColor(state[metricKey]),
+          areaColor: isExternallyHovered ? hoverAreaColor : defaultAreaColor,
+          borderColor: isExternallyHovered ? '#51525c' : undefined,
+          borderWidth: isExternallyHovered ? 1 : undefined,
         },
-      },
-      metrics: {
-        coverage: state.coverage,
-        regularity: state.regularity,
-        continuity: state.continuity,
-        quantity: state.quantity,
-      },
-    }))
+        emphasis: disableHoverEffect
+          ? undefined
+          : {
+              itemStyle: {
+                areaColor: hoverAreaColor,
+              },
+            },
+        select: {
+          itemStyle: {
+            areaColor: disableHoverEffect ? defaultAreaColor : hoverAreaColor,
+          },
+        },
+        metrics: {
+          coverage: state.coverage,
+          regularity: state.regularity,
+          continuity: state.continuity,
+          quantity: state.quantity,
+        },
+      }
+    })
     const boundaryOverlays = [
       ...(nationalBoundaryGeoJson
         ? [
@@ -186,7 +252,7 @@ export function IndiaMapChart({
               label: { show: false },
               itemStyle: {
                 areaColor: 'rgba(0,0,0,0)',
-                borderColor: '#1c1c1c',
+                borderColor: '#51525c',
                 borderWidth: 1.5,
               },
               emphasis: {
@@ -194,7 +260,7 @@ export function IndiaMapChart({
                 label: { show: false },
                 itemStyle: {
                   areaColor: 'rgba(0,0,0,0)',
-                  borderColor: '#1c1c1c',
+                  borderColor: '#51525c',
                   borderWidth: 1.5,
                 },
               },
@@ -203,7 +269,7 @@ export function IndiaMapChart({
                 label: { show: false },
                 itemStyle: {
                   areaColor: 'rgba(0,0,0,0)',
-                  borderColor: '#1c1c1c',
+                  borderColor: '#51525c',
                   borderWidth: 1.5,
                 },
               },
@@ -220,8 +286,8 @@ export function IndiaMapChart({
               label: { show: false },
               itemStyle: {
                 areaColor: 'rgba(0,0,0,0)',
-                borderColor: '#1c1c1c',
-                borderWidth: 2,
+                borderColor: '#51525c',
+                borderWidth: 1,
               },
               emphasis: {
                 disabled: true,
@@ -229,7 +295,7 @@ export function IndiaMapChart({
                 itemStyle: {
                   areaColor: 'rgba(0,0,0,0)',
                   borderColor: '#000000',
-                  borderWidth: 2,
+                  borderWidth: 1,
                 },
               },
               select: {
@@ -238,14 +304,14 @@ export function IndiaMapChart({
                 itemStyle: {
                   areaColor: 'rgba(0,0,0,0)',
                   borderColor: '#000000',
-                  borderWidth: 2,
+                  borderWidth: 1,
                 },
               },
             },
           ]
         : []),
     ]
-    const seriesData = [...mapSeries, ...boundaryOverlays]
+    const seriesData = [...boundaryFillOverlays, ...mapSeries, ...boundaryOverlays]
 
     return {
       backgroundColor: '#FAFAFA',
@@ -274,7 +340,8 @@ export function IndiaMapChart({
           if (p.data) {
             if (
               p.data.name === INDIA_NATIONAL_BOUNDARY_FEATURE_NAME ||
-              p.data.name === PARENT_BOUNDARY_FEATURE_NAME
+              p.data.name === PARENT_BOUNDARY_FEATURE_NAME ||
+              p.data.name === PARENT_BOUNDARY_FILL_FEATURE_NAME
             ) {
               return ''
             }
@@ -311,7 +378,7 @@ export function IndiaMapChart({
           label: {
             show: false,
             fontSize: 10,
-            color: '#1C1C1C',
+            color: '#51525c',
             opacity: 1,
           },
           labelLayout: {
@@ -321,8 +388,8 @@ export function IndiaMapChart({
           data: seriesData,
           itemStyle: {
             areaColor: usePrimaryFill ? primaryMapColor : mapColors.gte90,
-            borderColor: '#fff',
-            borderWidth: 1,
+            borderColor: '#51525c',
+            borderWidth: 0.6,
             opacity: 1,
           },
           selectedMode: 'single',
@@ -331,34 +398,36 @@ export function IndiaMapChart({
                 disabled: true,
                 label: {
                   show: false,
-                  color: '#1C1C1C',
+                  color: '#51525c',
                   opacity: 1,
                 },
               }
             : {
                 focus: 'none',
                 itemStyle: {
-                  borderWidth: 2,
+                  borderColor: '#51525c',
+                  borderWidth: 0.5,
                   opacity: 1,
                 },
                 label: {
                   show: false,
                   fontSize: 12,
                   fontWeight: 'bold',
-                  color: '#1C1C1C',
+                  color: '#51525c',
                   opacity: 1,
                 },
               },
           select: {
             itemStyle: {
-              borderWidth: 2,
+              borderColor: '#51525c',
+              borderWidth: 0.5,
               opacity: 1,
             },
             label: {
               show: false,
               fontSize: 12,
               fontWeight: 'bold',
-              color: '#1C1C1C',
+              color: '#51525c',
               opacity: 1,
             },
           },
@@ -368,7 +437,7 @@ export function IndiaMapChart({
             },
             label: {
               opacity: 1,
-              color: '#1C1C1C',
+              color: '#51525c',
             },
           },
         },
@@ -390,6 +459,7 @@ export function IndiaMapChart({
     quantityLabel,
     regularityLabel,
     dynamicGeoJson,
+    hoveredRegion,
   ])
 
   const bodyText6 = getBodyText6Style(theme)
@@ -536,7 +606,11 @@ export function IndiaMapChart({
                   metric: selectedMetricLabel,
                 })}
                 onChange={(event) => {
-                  setIsRegularityView(event.target.checked)
+                  const nextValue = event.target.checked
+                  if (controlledIsRegularityView === undefined) {
+                    setInternalIsRegularityView(nextValue)
+                  }
+                  onRegularityViewChange?.(nextValue)
                 }}
               />
             </div>

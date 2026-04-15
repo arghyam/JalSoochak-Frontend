@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, FocusEvent, MouseEvent, PointerEvent, ReactNode } from 'react'
 import type { ButtonProps, InputProps } from '@chakra-ui/react'
 import {
@@ -70,6 +70,7 @@ interface SearchLayoutProps {
   breadcrumbPanelProps?: BreadcrumbPanelProps
   selectionTrail?: string[]
   activeTrailIndex?: number | null
+  resetSearchTrigger?: string | number
 }
 
 export function SearchLayout({
@@ -85,6 +86,7 @@ export function SearchLayout({
   breadcrumbPanelProps,
   selectionTrail,
   activeTrailIndex,
+  resetSearchTrigger,
 }: SearchLayoutProps) {
   const { t } = useTranslation('dashboard')
   const isCompactLayout = useBreakpointValue({ base: false, lg: false }) ?? false
@@ -92,9 +94,13 @@ export function SearchLayout({
   const isBelowMdLayout = useBreakpointValue({ base: true, md: false }) ?? true
   const [isVeryCompactLayout] = useMediaQuery('(max-width: 569px)')
   const [isBelowXsLayout] = useMediaQuery('(max-width: 480px)')
-  const [searchValue, setSearchValue] = useState('')
+  const [searchState, setSearchState] = useState(() => ({
+    value: '',
+    resetToken: resetSearchTrigger,
+  }))
   const [isBreadcrumbPanelOpen, setIsBreadcrumbPanelOpen] = useState(false)
   const [selectedStateValue, setSelectedStateValue] = useState('')
+  const lastSeenResetRef = useRef<SearchLayoutProps['resetSearchTrigger']>()
   const panelContainerRef = useRef<HTMLDivElement>(null)
   const inputGroupRef = useRef<HTMLDivElement>(null)
   const dropdownPanelRef = useRef<HTMLDivElement>(null)
@@ -131,7 +137,11 @@ export function SearchLayout({
     ? t('searchLayout.search', 'Search')
     : resolvedPlaceholder
   const resolvedActionLabel = actionLabel ?? t('searchLayout.downloadReport', 'Download Report')
-  const inputValue = inputProps?.value !== undefined ? String(inputProps.value ?? '') : searchValue
+  const shouldUseInternalSearchValue =
+    searchState.resetToken === resetSearchTrigger && lastSeenResetRef.current !== resetSearchTrigger // eslint-disable-line react-hooks/refs
+  const internalSearchValue = shouldUseInternalSearchValue ? searchState.value : ''
+  const inputValue =
+    inputProps?.value !== undefined ? String(inputProps.value ?? '') : internalSearchValue
   const selectedState = useMemo(
     () => breadcrumbPanelProps?.stateOptions.find((option) => option.value === selectedStateValue),
     [breadcrumbPanelProps?.stateOptions, selectedStateValue]
@@ -176,6 +186,25 @@ export function SearchLayout({
     return effectiveSelectionTrail.slice(0, effectiveActiveTrailIndex + 1)
   }, [effectiveActiveTrailIndex, effectiveSelectionTrail])
 
+  const setInternalSearchValue = (value: string) => {
+    // Local typing should always reflect immediately for the active reset token.
+    if (value !== '' && lastSeenResetRef.current === resetSearchTrigger) {
+      lastSeenResetRef.current = undefined
+    }
+    setSearchState({
+      value,
+      resetToken: resetSearchTrigger,
+    })
+  }
+
+  useEffect(() => {
+    if (searchState.resetToken === resetSearchTrigger) {
+      return
+    }
+    // Mark the reset token as consumed so repeating the same trigger won't revive stale text.
+    lastSeenResetRef.current = resetSearchTrigger
+  }, [searchState.resetToken, resetSearchTrigger])
+
   const setBreadcrumbPanelOpen = (isOpen: boolean) => {
     if (isBreadcrumbPanelOpen === isOpen) {
       return
@@ -201,14 +230,14 @@ export function SearchLayout({
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (inputProps?.value === undefined) {
-      setSearchValue(event.target.value)
+      setInternalSearchValue(event.target.value)
     }
     inputProps?.onChange?.(event)
   }
 
   const handleStateSelect = (stateValue: string) => {
     setSelectedStateValue(stateValue)
-    setSearchValue('')
+    setInternalSearchValue('')
     breadcrumbPanelProps?.onOptionSelect?.(stateValue)
     breadcrumbPanelProps?.onStateSelect?.(stateValue)
     if (breadcrumbPanelProps?.closeOnOptionSelect) {
@@ -217,7 +246,7 @@ export function SearchLayout({
   }
 
   const handleTrailSelect = (trailIndex: number) => {
-    setSearchValue('')
+    setInternalSearchValue('')
     breadcrumbPanelProps?.onTrailSelect?.(trailIndex)
   }
 

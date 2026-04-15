@@ -50,6 +50,7 @@ import type {
   NationalDashboardBoundaryResponse,
   NationalDashboardResponse,
   VillagePumpOperatorDetails,
+  WaterSupplyOutageData,
 } from '../types'
 import { DashboardFilters } from './filters/dashboard-filters'
 import { OverallPerformanceTable } from './tables'
@@ -314,9 +315,9 @@ const mapNationalBoundariesToPerformance = (
       id: fallbackMatch?.id ?? String(region.tenantId || stateLgdCode || index),
       name: region.stateTitle || fallbackMatch?.name || `State ${index + 1}`,
       coverage: fallbackMatch?.coverage ?? 0,
-      regularity: fallbackMatch?.regularity ?? 0,
+      regularity: fallbackMatch?.regularity ?? -1,
       continuity: fallbackMatch?.continuity ?? 0,
-      quantity: fallbackMatch?.quantity ?? 0,
+      quantity: fallbackMatch?.quantity ?? -1,
       compositeScore: fallbackMatch?.compositeScore ?? 0,
       status: fallbackMatch?.status ?? 'needs-attention',
       boundaryGeoJson: region.boundary ?? null,
@@ -471,6 +472,52 @@ const toOutageDistributionData = (
     label: toCapitalizedWords(region.title),
   }))
 
+const sortByMetricDescending = (
+  data: EntityPerformance[],
+  metric: 'quantity' | 'regularity'
+): EntityPerformance[] =>
+  [...data].sort((left, right) => {
+    const metricDelta = (right[metric] ?? 0) - (left[metric] ?? 0)
+    if (metricDelta !== 0) {
+      return metricDelta
+    }
+    return left.name.localeCompare(right.name)
+  })
+
+const getTotalOutages = (row: {
+  reasons?: Record<string, number>
+  electricityFailure?: number
+  pipelineLeak?: number
+  pumpFailure?: number
+  valveIssue?: number
+  sourceDrying?: number
+}) => {
+  const reasonsTotal = Object.values(row.reasons ?? {}).reduce(
+    (total, value) => total + (typeof value === 'number' && Number.isFinite(value) ? value : 0),
+    0
+  )
+  if (reasonsTotal > 0) {
+    return reasonsTotal
+  }
+
+  return (
+    (row.electricityFailure ?? 0) +
+    (row.pipelineLeak ?? 0) +
+    (row.pumpFailure ?? 0) +
+    (row.valveIssue ?? 0) +
+    (row.sourceDrying ?? 0)
+  )
+}
+
+const sortOutageDistributionByTotalDescending = (data: WaterSupplyOutageData[]) =>
+  [...data].sort((left, right) => {
+    const totalDelta = getTotalOutages(right) - getTotalOutages(left)
+    if (totalDelta !== 0) {
+      return totalDelta
+    }
+    return left.label.localeCompare(right.label)
+  })
+
 const formulaTooltipTextStyle = {
   fontSize: '12px',
   lineHeight: '18px',
@@ -576,6 +623,9 @@ export function CentralDashboard() {
     getInitialStoredDuration(storedFilters)
   )
   const [isMapFullscreen, setIsMapFullscreen] = useState(false)
+  const [isMapRegularityView, setIsMapRegularityView] = useState(true)
+  const [hoveredOverallPerformanceRow, setHoveredOverallPerformanceRow] =
+    useState<EntityPerformance | null>(null)
   const [isDurationCleared, setIsDurationCleared] = useState(false)
   const [selectedScheme, setSelectedScheme] = useState(storedFilters.selectedScheme ?? '')
   const [schemePerformancePagination, setSchemePerformancePagination] = useState<{
@@ -1735,6 +1785,21 @@ export function CentralDashboard() {
       : shouldRequireOverallPerformanceChildOptions
         ? emptyEntityPerformance
         : rawOverallPerformanceTableData
+  const normalizedHoveredOverallPerformanceId = hoveredOverallPerformanceRow?.id?.trim()
+  const normalizedHoveredOverallPerformanceName = hoveredOverallPerformanceRow
+    ? slugify(hoveredOverallPerformanceRow.name)
+    : null
+  const effectiveHoveredOverallPerformanceRow = hoveredOverallPerformanceRow
+    ? (overallPerformanceTableData.find((row) => {
+        const normalizedRowId = row.id?.trim()
+        return (
+          (normalizedHoveredOverallPerformanceId &&
+            normalizedRowId &&
+            normalizedHoveredOverallPerformanceId === normalizedRowId) ||
+          slugify(row.name) === normalizedHoveredOverallPerformanceName
+        )
+      }) ?? null)
+    : null
   const nationalDaysInRange = resolveDaysInRange(
     filteredNationalDashboardData?.daysInRange,
     filteredNationalDashboardData?.startDate,
@@ -1814,29 +1879,38 @@ export function CentralDashboard() {
     : Boolean(tenantBoundaryAnalyticsParams) &&
       !tenantBoundaryData &&
       (isTenantBoundariesLoading || isTenantBoundariesFetching)
-  const quantityPerformanceData = isCentralLandingView
-    ? mapQuantityPerformanceFromNationalDashboard(
-        filteredNationalDashboardData,
-        emptyEntityPerformance,
-        nationalDefaultAverageMembersPerHousehold,
-        nationalDefaultWaterNormLitersPerPersonPerDay,
-        (state) => nationalDemandInputsByTenantId.get(state.tenantId)
-      )
-    : mapQuantityPerformanceFromAnalytics(
-        averageWaterSupplyData,
-        emptyEntityPerformance,
-        averagePersonsPerHousehold,
-        litersPerPersonPerDay
-      )
-  const regularityPerformanceData = isCentralLandingView
-    ? mapRegularityPerformanceFromNationalDashboard(
-        filteredNationalDashboardData,
-        emptyEntityPerformance
-      )
-    : mapRegularityPerformanceFromAnalytics(averageSchemeRegularityData, emptyEntityPerformance)
-  const supplySubmissionRateData = isCentralLandingView
-    ? mapReadingSubmissionRateFromNationalDashboard(filteredNationalDashboardData, [])
-    : mapReadingSubmissionRateFromAnalytics(readingSubmissionRateData, [])
+  const quantityPerformanceData = sortByMetricDescending(
+    isCentralLandingView
+      ? mapQuantityPerformanceFromNationalDashboard(
+          filteredNationalDashboardData,
+          emptyEntityPerformance,
+          nationalDefaultAverageMembersPerHousehold,
+          nationalDefaultWaterNormLitersPerPersonPerDay,
+          (state) => nationalDemandInputsByTenantId.get(state.tenantId)
+        )
+      : mapQuantityPerformanceFromAnalytics(
+          averageWaterSupplyData,
+          emptyEntityPerformance,
+          averagePersonsPerHousehold,
+          litersPerPersonPerDay
+        ),
+    'quantity'
+  )
+  const regularityPerformanceData = sortByMetricDescending(
+    isCentralLandingView
+      ? mapRegularityPerformanceFromNationalDashboard(
+          filteredNationalDashboardData,
+          emptyEntityPerformance
+        )
+      : mapRegularityPerformanceFromAnalytics(averageSchemeRegularityData, emptyEntityPerformance),
+    'regularity'
+  )
+  const supplySubmissionRateData = sortByMetricDescending(
+    isCentralLandingView
+      ? mapReadingSubmissionRateFromNationalDashboard(filteredNationalDashboardData, [])
+      : mapReadingSubmissionRateFromAnalytics(readingSubmissionRateData, []),
+    'regularity'
+  )
   const readingSubmissionStatusData = mapReadingSubmissionStatusFromAnalytics(
     submissionStatusData,
     []
@@ -2323,6 +2397,8 @@ export function CentralDashboard() {
   const navigateToResolvedLocationValue = (selectedValue: string) => {
     if (isDepartmentTabActive) {
       if (isDepartmentSubdivisionSelected) {
+        handleDepartmentVillageChange(selectedValue)
+      } else if (isDepartmentDivisionSelected) {
         handleDepartmentSubdivisionChange(selectedValue)
       } else if (isDepartmentCircleSelected) {
         handleDepartmentDivisionChange(selectedValue)
@@ -2346,6 +2422,8 @@ export function CentralDashboard() {
   }
 
   const handleMapRegionClick = (regionId: string, regionName: string) => {
+    setHoveredOverallPerformanceRow(null)
+
     if (isCentralLandingView && !isDepartmentTabActive) {
       handleStateClick(regionId, regionName)
       return
@@ -2373,6 +2451,7 @@ export function CentralDashboard() {
   const handleOverallPerformanceRowClick = (row: EntityPerformance) => {
     setActiveTrailIndex(null)
     setSelectedScheme('')
+    setHoveredOverallPerformanceRow(null)
 
     if (isCentralLandingView && !isDepartmentTabActive) {
       handleStateClick(row.id, row.name)
@@ -2449,7 +2528,9 @@ export function CentralDashboard() {
     : null
   const waterSupplyOutagesData =
     nationalWaterSupplyOutageReasonsData ?? apiWaterSupplyOutageReasonsData ?? []
-  const waterSupplyOutageDistributionData = apiWaterSupplyOutageDistributionData ?? []
+  const waterSupplyOutageDistributionData = sortOutageDistributionByTotalDescending(
+    apiWaterSupplyOutageDistributionData ?? []
+  )
   const resolvedSupplyOutageTrend =
     outageReasonsTimeTrendData.length > 0
       ? outageReasonsTimeTrendData
@@ -2738,6 +2819,9 @@ export function CentralDashboard() {
         onStateHover={handleStateHover}
         isFullscreen={fullscreen}
         onFullscreenToggle={() => setIsMapFullscreen((previous) => !previous)}
+        isRegularityView={isMapRegularityView}
+        onRegularityViewChange={setIsMapRegularityView}
+        hoveredRegion={effectiveHoveredOverallPerformanceRow}
         height="100%"
       />
     </Box>
@@ -2832,6 +2916,7 @@ export function CentralDashboard() {
               entityLabel={overallPerformanceEntityLabel}
               scrollMaxHeight={overallPerformanceScrollHeight}
               onRowClick={handleOverallPerformanceRowClick}
+              onRowHover={setHoveredOverallPerformanceRow}
             />
           </Box>
         </Grid>

@@ -1,6 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { useState } from 'react'
+import type { ComponentProps } from 'react'
 import type { SearchableSelectOption } from '@/shared/components/common'
 import { renderWithProviders } from '@/test/render-with-providers'
 import { DashboardFilters } from './dashboard-filters'
@@ -22,6 +23,53 @@ jest.mock('../../services/query/use-location-children-query', () => ({
   useLocationChildrenQuery: (...args: unknown[]) => mockUseLocationChildrenQuery(...args),
 }))
 
+type DashboardFiltersProps = ComponentProps<typeof DashboardFilters>
+
+const renderDashboardFilters = (overrides: Partial<DashboardFiltersProps> = {}) => {
+  const defaultProps: DashboardFiltersProps = {
+    filterTabIndex: 0,
+    onTabChange: jest.fn(),
+    onClear: jest.fn(),
+    isAdvancedEnabled: true,
+    isDepartmentStateSelected: false,
+    emptyOptions,
+    selectedState: '',
+    selectedDistrict: '',
+    selectedBlock: '',
+    selectedGramPanchayat: '',
+    selectedVillage: '',
+    selectedScheme: '',
+    selectedDuration: null,
+    selectedDepartmentState: '',
+    selectedDepartmentZone: '',
+    selectedDepartmentCircle: '',
+    selectedDepartmentDivision: '',
+    selectedDepartmentSubdivision: '',
+    selectedDepartmentVillage: '',
+    districtOptions: emptyOptions,
+    blockOptions: emptyOptions,
+    gramPanchayatOptions: emptyOptions,
+    villageOptions: emptyOptions,
+    mockFilterStates: emptyOptions,
+    mockFilterSchemes: emptyOptions,
+    onStateChange: jest.fn(),
+    onDistrictChange: jest.fn(),
+    onBlockChange: jest.fn(),
+    onGramPanchayatChange: jest.fn(),
+    setSelectedVillage: jest.fn(),
+    setSelectedScheme: jest.fn(),
+    setSelectedDuration: jest.fn(),
+    onDepartmentStateChange: jest.fn(),
+    setSelectedDepartmentZone: jest.fn(),
+    setSelectedDepartmentCircle: jest.fn(),
+    setSelectedDepartmentDivision: jest.fn(),
+    setSelectedDepartmentSubdivision: jest.fn(),
+    setSelectedDepartmentVillage: jest.fn(),
+  }
+
+  return renderWithProviders(<DashboardFilters {...defaultProps} {...overrides} />)
+}
+
 describe('DashboardFilters', () => {
   beforeEach(() => {
     mockUseLocationSearchQuery.mockReturnValue({
@@ -35,48 +83,10 @@ describe('DashboardFilters', () => {
   })
 
   it('keeps duration control enabled even when advanced filters are disabled', () => {
-    renderWithProviders(
-      <DashboardFilters
-        filterTabIndex={1}
-        onTabChange={jest.fn()}
-        onClear={jest.fn()}
-        isAdvancedEnabled={false}
-        isDepartmentStateSelected={false}
-        emptyOptions={emptyOptions}
-        selectedState=""
-        selectedDistrict=""
-        selectedBlock=""
-        selectedGramPanchayat=""
-        selectedVillage=""
-        selectedScheme=""
-        selectedDuration={null}
-        selectedDepartmentState=""
-        selectedDepartmentZone=""
-        selectedDepartmentCircle=""
-        selectedDepartmentDivision=""
-        selectedDepartmentSubdivision=""
-        selectedDepartmentVillage=""
-        districtOptions={emptyOptions}
-        blockOptions={emptyOptions}
-        gramPanchayatOptions={emptyOptions}
-        villageOptions={emptyOptions}
-        mockFilterStates={emptyOptions}
-        mockFilterSchemes={emptyOptions}
-        onStateChange={jest.fn()}
-        onDistrictChange={jest.fn()}
-        onBlockChange={jest.fn()}
-        onGramPanchayatChange={jest.fn()}
-        setSelectedVillage={jest.fn()}
-        setSelectedScheme={jest.fn()}
-        setSelectedDuration={jest.fn()}
-        onDepartmentStateChange={jest.fn()}
-        setSelectedDepartmentZone={jest.fn()}
-        setSelectedDepartmentCircle={jest.fn()}
-        setSelectedDepartmentDivision={jest.fn()}
-        setSelectedDepartmentSubdivision={jest.fn()}
-        setSelectedDepartmentVillage={jest.fn()}
-      />
-    )
+    renderDashboardFilters({
+      filterTabIndex: 1,
+      isAdvancedEnabled: false,
+    })
 
     const durationButton = screen.getByRole('button', { name: 'Duration' })
     fireEvent.click(durationButton)
@@ -85,52 +95,95 @@ describe('DashboardFilters', () => {
   })
 
   it('enables clear all filters when only duration is selected', () => {
-    renderWithProviders(
-      <DashboardFilters
-        filterTabIndex={0}
-        onTabChange={jest.fn()}
-        onClear={jest.fn()}
-        isAdvancedEnabled={true}
-        isDepartmentStateSelected={false}
-        emptyOptions={emptyOptions}
-        selectedState=""
-        selectedDistrict=""
-        selectedBlock=""
-        selectedGramPanchayat=""
-        selectedVillage=""
-        selectedScheme=""
-        selectedDuration={{ startDate: '11/03/2026', endDate: '12/03/2026' }}
-        selectedDepartmentState=""
-        selectedDepartmentZone=""
-        selectedDepartmentCircle=""
-        selectedDepartmentDivision=""
-        selectedDepartmentSubdivision=""
-        selectedDepartmentVillage=""
-        districtOptions={emptyOptions}
-        blockOptions={emptyOptions}
-        gramPanchayatOptions={emptyOptions}
-        villageOptions={emptyOptions}
-        mockFilterStates={emptyOptions}
-        mockFilterSchemes={emptyOptions}
-        onStateChange={jest.fn()}
-        onDistrictChange={jest.fn()}
-        onBlockChange={jest.fn()}
-        onGramPanchayatChange={jest.fn()}
-        setSelectedVillage={jest.fn()}
-        setSelectedScheme={jest.fn()}
-        setSelectedDuration={jest.fn()}
-        onDepartmentStateChange={jest.fn()}
-        setSelectedDepartmentZone={jest.fn()}
-        setSelectedDepartmentCircle={jest.fn()}
-        setSelectedDepartmentDivision={jest.fn()}
-        setSelectedDepartmentSubdivision={jest.fn()}
-        setSelectedDepartmentVillage={jest.fn()}
-      />
-    )
+    renderDashboardFilters({
+      selectedDuration: { startDate: '11/03/2026', endDate: '12/03/2026' },
+    })
 
     expect(screen.getByRole('button', { name: 'Clear all filters' }).getAttribute('disabled')).toBe(
       null
     )
+  })
+
+  it('clears search input text when clear all filters is clicked', () => {
+    const onClear = jest.fn()
+
+    renderDashboardFilters({
+      onClear,
+      selectedDuration: { startDate: '11/03/2026', endDate: '12/03/2026' },
+    })
+
+    const searchInput = screen.getByRole('textbox')
+    fireEvent.change(searchInput, { target: { value: 'kgkjdhskh' } })
+    expect((searchInput as HTMLInputElement).value).toBe('kgkjdhskh')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Clear all filters' }))
+
+    expect(onClear).toHaveBeenCalledTimes(1)
+    expect((searchInput as HTMLInputElement).value).toBe('')
+  })
+
+  it('clears search input text when selected location changes externally', () => {
+    const Harness = () => {
+      const [selectedState, setSelectedState] = useState('')
+
+      return (
+        <>
+          <button type="button" onClick={() => setSelectedState('bihar')}>
+            select bihar
+          </button>
+          <DashboardFilters
+            filterTabIndex={0}
+            onTabChange={jest.fn()}
+            onClear={jest.fn()}
+            isAdvancedEnabled={true}
+            isDepartmentStateSelected={false}
+            emptyOptions={emptyOptions}
+            selectedState={selectedState}
+            selectedDistrict=""
+            selectedBlock=""
+            selectedGramPanchayat=""
+            selectedVillage=""
+            selectedScheme=""
+            selectedDuration={null}
+            selectedDepartmentState=""
+            selectedDepartmentZone=""
+            selectedDepartmentCircle=""
+            selectedDepartmentDivision=""
+            selectedDepartmentSubdivision=""
+            selectedDepartmentVillage=""
+            districtOptions={emptyOptions}
+            blockOptions={emptyOptions}
+            gramPanchayatOptions={emptyOptions}
+            villageOptions={emptyOptions}
+            mockFilterStates={emptyOptions}
+            mockFilterSchemes={emptyOptions}
+            onStateChange={jest.fn()}
+            onDistrictChange={jest.fn()}
+            onBlockChange={jest.fn()}
+            onGramPanchayatChange={jest.fn()}
+            setSelectedVillage={jest.fn()}
+            setSelectedScheme={jest.fn()}
+            setSelectedDuration={jest.fn()}
+            onDepartmentStateChange={jest.fn()}
+            setSelectedDepartmentZone={jest.fn()}
+            setSelectedDepartmentCircle={jest.fn()}
+            setSelectedDepartmentDivision={jest.fn()}
+            setSelectedDepartmentSubdivision={jest.fn()}
+            setSelectedDepartmentVillage={jest.fn()}
+          />
+        </>
+      )
+    }
+
+    renderWithProviders(<Harness />)
+
+    const searchInput = screen.getByRole('textbox')
+    fireEvent.change(searchInput, { target: { value: 'assam' } })
+    expect((searchInput as HTMLInputElement).value).toBe('assam')
+
+    fireEvent.click(screen.getByRole('button', { name: 'select bihar' }))
+
+    expect((searchInput as HTMLInputElement).value).toBe('')
   })
 
   it('shows districts in breadcrumb search panel when state is already selected', () => {
@@ -139,48 +192,11 @@ describe('DashboardFilters', () => {
       { value: 'rangareddy', label: 'Ranga Reddy' },
     ]
 
-    renderWithProviders(
-      <DashboardFilters
-        filterTabIndex={0}
-        onTabChange={jest.fn()}
-        onClear={jest.fn()}
-        isAdvancedEnabled={true}
-        isDepartmentStateSelected={false}
-        emptyOptions={emptyOptions}
-        selectedState="telangana"
-        selectedDistrict=""
-        selectedBlock=""
-        selectedGramPanchayat=""
-        selectedVillage=""
-        selectedScheme=""
-        selectedDuration={null}
-        selectedDepartmentState=""
-        selectedDepartmentZone=""
-        selectedDepartmentCircle=""
-        selectedDepartmentDivision=""
-        selectedDepartmentSubdivision=""
-        selectedDepartmentVillage=""
-        districtOptions={districtOptions}
-        blockOptions={emptyOptions}
-        gramPanchayatOptions={emptyOptions}
-        villageOptions={emptyOptions}
-        mockFilterStates={[{ value: 'telangana', label: 'Telangana' }]}
-        mockFilterSchemes={emptyOptions}
-        onStateChange={jest.fn()}
-        onDistrictChange={jest.fn()}
-        onBlockChange={jest.fn()}
-        onGramPanchayatChange={jest.fn()}
-        setSelectedVillage={jest.fn()}
-        setSelectedScheme={jest.fn()}
-        setSelectedDuration={jest.fn()}
-        onDepartmentStateChange={jest.fn()}
-        setSelectedDepartmentZone={jest.fn()}
-        setSelectedDepartmentCircle={jest.fn()}
-        setSelectedDepartmentDivision={jest.fn()}
-        setSelectedDepartmentSubdivision={jest.fn()}
-        setSelectedDepartmentVillage={jest.fn()}
-      />
-    )
+    renderDashboardFilters({
+      selectedState: 'telangana',
+      districtOptions,
+      mockFilterStates: [{ value: 'telangana', label: 'Telangana' }],
+    })
 
     const searchInput = screen.getByRole('textbox')
     fireEvent.focus(searchInput)
@@ -196,48 +212,12 @@ describe('DashboardFilters', () => {
       { value: 'rangareddy', label: 'Ranga Reddy' },
     ]
 
-    renderWithProviders(
-      <DashboardFilters
-        filterTabIndex={0}
-        onTabChange={jest.fn()}
-        onClear={jest.fn()}
-        isAdvancedEnabled={true}
-        isDepartmentStateSelected={false}
-        emptyOptions={emptyOptions}
-        selectedState="telangana"
-        selectedDistrict="sangareddy"
-        selectedBlock=""
-        selectedGramPanchayat=""
-        selectedVillage=""
-        selectedScheme=""
-        selectedDuration={null}
-        selectedDepartmentState=""
-        selectedDepartmentZone=""
-        selectedDepartmentCircle=""
-        selectedDepartmentDivision=""
-        selectedDepartmentSubdivision=""
-        selectedDepartmentVillage=""
-        districtOptions={districtOptions}
-        blockOptions={emptyOptions}
-        gramPanchayatOptions={emptyOptions}
-        villageOptions={emptyOptions}
-        mockFilterStates={[{ value: 'telangana', label: 'Telangana' }]}
-        mockFilterSchemes={emptyOptions}
-        onStateChange={jest.fn()}
-        onDistrictChange={jest.fn()}
-        onBlockChange={jest.fn()}
-        onGramPanchayatChange={jest.fn()}
-        setSelectedVillage={jest.fn()}
-        setSelectedScheme={jest.fn()}
-        setSelectedDuration={jest.fn()}
-        onDepartmentStateChange={jest.fn()}
-        setSelectedDepartmentZone={jest.fn()}
-        setSelectedDepartmentCircle={jest.fn()}
-        setSelectedDepartmentDivision={jest.fn()}
-        setSelectedDepartmentSubdivision={jest.fn()}
-        setSelectedDepartmentVillage={jest.fn()}
-      />
-    )
+    renderDashboardFilters({
+      selectedState: 'telangana',
+      selectedDistrict: 'sangareddy',
+      districtOptions,
+      mockFilterStates: [{ value: 'telangana', label: 'Telangana' }],
+    })
 
     const searchInput = screen.getByRole('textbox')
     fireEvent.focus(searchInput)
@@ -283,48 +263,11 @@ describe('DashboardFilters', () => {
       return { data: undefined }
     })
 
-    renderWithProviders(
-      <DashboardFilters
-        filterTabIndex={1}
-        onTabChange={jest.fn()}
-        onClear={jest.fn()}
-        isAdvancedEnabled={true}
-        isDepartmentStateSelected={false}
-        emptyOptions={emptyOptions}
-        selectedState="telangana"
-        selectedDistrict=""
-        selectedBlock=""
-        selectedGramPanchayat=""
-        selectedVillage=""
-        selectedScheme=""
-        selectedDuration={null}
-        selectedDepartmentState=""
-        selectedDepartmentZone=""
-        selectedDepartmentCircle=""
-        selectedDepartmentDivision=""
-        selectedDepartmentSubdivision=""
-        selectedDepartmentVillage=""
-        districtOptions={emptyOptions}
-        blockOptions={emptyOptions}
-        gramPanchayatOptions={emptyOptions}
-        villageOptions={emptyOptions}
-        mockFilterStates={[{ value: 'telangana', label: 'Telangana' }]}
-        mockFilterSchemes={emptyOptions}
-        onStateChange={jest.fn()}
-        onDistrictChange={jest.fn()}
-        onBlockChange={jest.fn()}
-        onGramPanchayatChange={jest.fn()}
-        setSelectedVillage={jest.fn()}
-        setSelectedScheme={jest.fn()}
-        setSelectedDuration={jest.fn()}
-        onDepartmentStateChange={jest.fn()}
-        setSelectedDepartmentZone={jest.fn()}
-        setSelectedDepartmentCircle={jest.fn()}
-        setSelectedDepartmentDivision={jest.fn()}
-        setSelectedDepartmentSubdivision={jest.fn()}
-        setSelectedDepartmentVillage={jest.fn()}
-      />
-    )
+    renderDashboardFilters({
+      filterTabIndex: 1,
+      selectedState: 'telangana',
+      mockFilterStates: [{ value: 'telangana', label: 'Telangana' }],
+    })
 
     fireEvent.focus(screen.getByRole('textbox'))
 
@@ -479,6 +422,64 @@ describe('DashboardFilters', () => {
     expect(screen.queryByText(/Circles/)).toBeNull()
   })
 
+  it('shows departmental empty-state text using the active hierarchy label', () => {
+    mockUseLocationSearchQuery.mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam' }],
+      },
+    })
+    mockUseLocationHierarchyQuery.mockReturnValue({
+      data: {
+        data: {
+          hierarchyType: 'department',
+          levels: [
+            { level: 1, levelName: [{ title: 'State' }] },
+            { level: 2, levelName: [{ title: 'Zone' }] },
+            { level: 3, levelName: [{ title: 'Circle' }] },
+            { level: 4, levelName: [{ title: 'Division' }] },
+            { level: 5, levelName: [{ title: 'Sub Division' }] },
+          ],
+        },
+      },
+    })
+    mockUseLocationChildrenQuery.mockImplementation((args?: unknown) => {
+      const options = args as { parentId?: number } | undefined
+      if (options?.parentId === 101) {
+        return {
+          data: {
+            data: [{ id: 201, title: 'North Zone' }],
+          },
+        }
+      }
+
+      if (options?.parentId === undefined) {
+        return {
+          data: {
+            data: [{ id: 101, title: 'Assam', lgdCode: 18 }],
+          },
+        }
+      }
+
+      return { data: undefined }
+    })
+
+    renderDashboardFilters({
+      filterTabIndex: 1,
+      isDepartmentStateSelected: true,
+      selectedState: 'assam',
+      selectedDepartmentState: 'assam',
+      mockFilterStates: [{ value: 'assam', label: 'Assam' }],
+    })
+
+    const searchInput = screen.getByRole('textbox')
+    fireEvent.focus(searchInput)
+    fireEvent.change(searchInput, { target: { value: 'kugkj' } })
+
+    expect(screen.getByText('No zones found')).toBeTruthy()
+    expect(screen.queryByText('No districts found')).toBeNull()
+  })
+
   it('uses departmental subdivision selection for the leaf level', () => {
     mockUseLocationSearchQuery.mockReturnValue({
       data: {
@@ -539,52 +540,20 @@ describe('DashboardFilters', () => {
 
     const handleDepartmentSubdivisionChange = jest.fn()
 
-    renderWithProviders(
-      <DashboardFilters
-        filterTabIndex={1}
-        onTabChange={jest.fn()}
-        onClear={jest.fn()}
-        isAdvancedEnabled={true}
-        isDepartmentStateSelected={true}
-        emptyOptions={emptyOptions}
-        selectedState="assam"
-        selectedDistrict=""
-        selectedBlock=""
-        selectedGramPanchayat=""
-        selectedVillage=""
-        selectedScheme=""
-        selectedDuration={null}
-        selectedDepartmentState="assam"
-        selectedDepartmentZone="201:201:north-zone"
-        selectedDepartmentCircle="301:301:guwahati-circle"
-        selectedDepartmentDivision="401:401:nagaon-division"
-        selectedDepartmentSubdivision=""
-        selectedDepartmentVillage=""
-        districtOptions={emptyOptions}
-        blockOptions={emptyOptions}
-        gramPanchayatOptions={emptyOptions}
-        villageOptions={emptyOptions}
-        mockFilterStates={[{ value: 'assam', label: 'Assam' }]}
-        mockFilterSchemes={emptyOptions}
-        onStateChange={jest.fn()}
-        onDistrictChange={jest.fn()}
-        onBlockChange={jest.fn()}
-        onGramPanchayatChange={jest.fn()}
-        setSelectedVillage={jest.fn()}
-        setSelectedScheme={jest.fn()}
-        setSelectedDuration={jest.fn()}
-        onDepartmentStateChange={jest.fn()}
-        onDepartmentZoneChange={jest.fn()}
-        onDepartmentCircleChange={jest.fn()}
-        onDepartmentDivisionChange={jest.fn()}
-        onDepartmentSubdivisionChange={handleDepartmentSubdivisionChange}
-        setSelectedDepartmentZone={jest.fn()}
-        setSelectedDepartmentCircle={jest.fn()}
-        setSelectedDepartmentDivision={jest.fn()}
-        setSelectedDepartmentSubdivision={jest.fn()}
-        setSelectedDepartmentVillage={jest.fn()}
-      />
-    )
+    renderDashboardFilters({
+      filterTabIndex: 1,
+      isDepartmentStateSelected: true,
+      selectedState: 'assam',
+      selectedDepartmentState: 'assam',
+      selectedDepartmentZone: '201:201:north-zone',
+      selectedDepartmentCircle: '301:301:guwahati-circle',
+      selectedDepartmentDivision: '401:401:nagaon-division',
+      onDepartmentZoneChange: jest.fn(),
+      onDepartmentCircleChange: jest.fn(),
+      onDepartmentDivisionChange: jest.fn(),
+      onDepartmentSubdivisionChange: handleDepartmentSubdivisionChange,
+      mockFilterStates: [{ value: 'assam', label: 'Assam' }],
+    })
 
     fireEvent.focus(screen.getByRole('textbox'))
 
@@ -604,48 +573,13 @@ describe('DashboardFilters', () => {
       { value: 'zaheerabad', label: 'Zaheerabad' },
     ]
 
-    renderWithProviders(
-      <DashboardFilters
-        filterTabIndex={0}
-        onTabChange={jest.fn()}
-        onClear={jest.fn()}
-        isAdvancedEnabled={true}
-        isDepartmentStateSelected={false}
-        emptyOptions={emptyOptions}
-        selectedState="telangana"
-        selectedDistrict="sangareddy"
-        selectedBlock=""
-        selectedGramPanchayat=""
-        selectedVillage=""
-        selectedScheme=""
-        selectedDuration={null}
-        selectedDepartmentState=""
-        selectedDepartmentZone=""
-        selectedDepartmentCircle=""
-        selectedDepartmentDivision=""
-        selectedDepartmentSubdivision=""
-        selectedDepartmentVillage=""
-        districtOptions={districtOptions}
-        blockOptions={blockOptions}
-        gramPanchayatOptions={emptyOptions}
-        villageOptions={emptyOptions}
-        mockFilterStates={[{ value: 'telangana', label: 'Telangana' }]}
-        mockFilterSchemes={emptyOptions}
-        onStateChange={jest.fn()}
-        onDistrictChange={jest.fn()}
-        onBlockChange={jest.fn()}
-        onGramPanchayatChange={jest.fn()}
-        setSelectedVillage={jest.fn()}
-        setSelectedScheme={jest.fn()}
-        setSelectedDuration={jest.fn()}
-        onDepartmentStateChange={jest.fn()}
-        setSelectedDepartmentZone={jest.fn()}
-        setSelectedDepartmentCircle={jest.fn()}
-        setSelectedDepartmentDivision={jest.fn()}
-        setSelectedDepartmentSubdivision={jest.fn()}
-        setSelectedDepartmentVillage={jest.fn()}
-      />
-    )
+    renderDashboardFilters({
+      selectedState: 'telangana',
+      selectedDistrict: 'sangareddy',
+      districtOptions,
+      blockOptions,
+      mockFilterStates: [{ value: 'telangana', label: 'Telangana' }],
+    })
 
     const searchInput = screen.getByRole('textbox')
     fireEvent.focus(searchInput)
@@ -669,48 +603,15 @@ describe('DashboardFilters', () => {
       { value: 'rudraram', label: 'Rudraram' },
     ]
 
-    renderWithProviders(
-      <DashboardFilters
-        filterTabIndex={0}
-        onTabChange={jest.fn()}
-        onClear={jest.fn()}
-        isAdvancedEnabled={true}
-        isDepartmentStateSelected={false}
-        emptyOptions={emptyOptions}
-        selectedState="telangana"
-        selectedDistrict="sangareddy"
-        selectedBlock="patancheru"
-        selectedGramPanchayat=""
-        selectedVillage=""
-        selectedScheme=""
-        selectedDuration={null}
-        selectedDepartmentState=""
-        selectedDepartmentZone=""
-        selectedDepartmentCircle=""
-        selectedDepartmentDivision=""
-        selectedDepartmentSubdivision=""
-        selectedDepartmentVillage=""
-        districtOptions={districtOptions}
-        blockOptions={blockOptions}
-        gramPanchayatOptions={gramPanchayatOptions}
-        villageOptions={emptyOptions}
-        mockFilterStates={[{ value: 'telangana', label: 'Telangana' }]}
-        mockFilterSchemes={emptyOptions}
-        onStateChange={jest.fn()}
-        onDistrictChange={jest.fn()}
-        onBlockChange={jest.fn()}
-        onGramPanchayatChange={jest.fn()}
-        setSelectedVillage={jest.fn()}
-        setSelectedScheme={jest.fn()}
-        setSelectedDuration={jest.fn()}
-        onDepartmentStateChange={jest.fn()}
-        setSelectedDepartmentZone={jest.fn()}
-        setSelectedDepartmentCircle={jest.fn()}
-        setSelectedDepartmentDivision={jest.fn()}
-        setSelectedDepartmentSubdivision={jest.fn()}
-        setSelectedDepartmentVillage={jest.fn()}
-      />
-    )
+    renderDashboardFilters({
+      selectedState: 'telangana',
+      selectedDistrict: 'sangareddy',
+      selectedBlock: 'patancheru',
+      districtOptions,
+      blockOptions,
+      gramPanchayatOptions,
+      mockFilterStates: [{ value: 'telangana', label: 'Telangana' }],
+    })
 
     const searchInput = screen.getByRole('textbox')
     fireEvent.focus(searchInput)
@@ -753,48 +654,11 @@ describe('DashboardFilters', () => {
       return { data: undefined }
     })
 
-    renderWithProviders(
-      <DashboardFilters
-        filterTabIndex={0}
-        onTabChange={jest.fn()}
-        onClear={jest.fn()}
-        isAdvancedEnabled={true}
-        isDepartmentStateSelected={false}
-        emptyOptions={emptyOptions}
-        selectedState="assam"
-        selectedDistrict="2:barpeta"
-        selectedBlock="3:chenga"
-        selectedGramPanchayat=""
-        selectedVillage=""
-        selectedScheme=""
-        selectedDuration={null}
-        selectedDepartmentState=""
-        selectedDepartmentZone=""
-        selectedDepartmentCircle=""
-        selectedDepartmentDivision=""
-        selectedDepartmentSubdivision=""
-        selectedDepartmentVillage=""
-        districtOptions={emptyOptions}
-        blockOptions={emptyOptions}
-        gramPanchayatOptions={emptyOptions}
-        villageOptions={emptyOptions}
-        mockFilterStates={emptyOptions}
-        mockFilterSchemes={emptyOptions}
-        onStateChange={jest.fn()}
-        onDistrictChange={jest.fn()}
-        onBlockChange={jest.fn()}
-        onGramPanchayatChange={jest.fn()}
-        setSelectedVillage={jest.fn()}
-        setSelectedScheme={jest.fn()}
-        setSelectedDuration={jest.fn()}
-        onDepartmentStateChange={jest.fn()}
-        setSelectedDepartmentZone={jest.fn()}
-        setSelectedDepartmentCircle={jest.fn()}
-        setSelectedDepartmentDivision={jest.fn()}
-        setSelectedDepartmentSubdivision={jest.fn()}
-        setSelectedDepartmentVillage={jest.fn()}
-      />
-    )
+    renderDashboardFilters({
+      selectedState: 'assam',
+      selectedDistrict: '2:barpeta',
+      selectedBlock: '3:chenga',
+    })
 
     const searchInput = screen.getByRole('textbox')
     fireEvent.focus(searchInput)
@@ -812,48 +676,12 @@ describe('DashboardFilters', () => {
       },
     })
 
-    renderWithProviders(
-      <DashboardFilters
-        filterTabIndex={1}
-        onTabChange={jest.fn()}
-        onClear={jest.fn()}
-        isAdvancedEnabled={true}
-        isDepartmentStateSelected={true}
-        emptyOptions={emptyOptions}
-        selectedState="assam"
-        selectedDistrict=""
-        selectedBlock=""
-        selectedGramPanchayat=""
-        selectedVillage=""
-        selectedScheme=""
-        selectedDuration={null}
-        selectedDepartmentState="101:18:assam"
-        selectedDepartmentZone=""
-        selectedDepartmentCircle=""
-        selectedDepartmentDivision=""
-        selectedDepartmentSubdivision=""
-        selectedDepartmentVillage=""
-        districtOptions={emptyOptions}
-        blockOptions={emptyOptions}
-        gramPanchayatOptions={emptyOptions}
-        villageOptions={emptyOptions}
-        mockFilterStates={emptyOptions}
-        mockFilterSchemes={emptyOptions}
-        onStateChange={jest.fn()}
-        onDistrictChange={jest.fn()}
-        onBlockChange={jest.fn()}
-        onGramPanchayatChange={jest.fn()}
-        setSelectedVillage={jest.fn()}
-        setSelectedScheme={jest.fn()}
-        setSelectedDuration={jest.fn()}
-        onDepartmentStateChange={jest.fn()}
-        setSelectedDepartmentZone={jest.fn()}
-        setSelectedDepartmentCircle={jest.fn()}
-        setSelectedDepartmentDivision={jest.fn()}
-        setSelectedDepartmentSubdivision={jest.fn()}
-        setSelectedDepartmentVillage={jest.fn()}
-      />
-    )
+    renderDashboardFilters({
+      filterTabIndex: 1,
+      isDepartmentStateSelected: true,
+      selectedState: 'assam',
+      selectedDepartmentState: '101:18:assam',
+    })
 
     expect(mockUseLocationChildrenQuery).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -899,48 +727,17 @@ describe('DashboardFilters', () => {
     const setSelectedDepartmentSubdivision = jest.fn()
     const setSelectedDepartmentVillage = jest.fn()
 
-    renderWithProviders(
-      <DashboardFilters
-        filterTabIndex={1}
-        onTabChange={jest.fn()}
-        onClear={jest.fn()}
-        isAdvancedEnabled={true}
-        isDepartmentStateSelected={true}
-        emptyOptions={emptyOptions}
-        selectedState="assam"
-        selectedDistrict=""
-        selectedBlock=""
-        selectedGramPanchayat=""
-        selectedVillage=""
-        selectedScheme=""
-        selectedDuration={null}
-        selectedDepartmentState="101:18:assam"
-        selectedDepartmentZone=""
-        selectedDepartmentCircle=""
-        selectedDepartmentDivision=""
-        selectedDepartmentSubdivision=""
-        selectedDepartmentVillage=""
-        districtOptions={emptyOptions}
-        blockOptions={emptyOptions}
-        gramPanchayatOptions={emptyOptions}
-        villageOptions={emptyOptions}
-        mockFilterStates={emptyOptions}
-        mockFilterSchemes={emptyOptions}
-        onStateChange={jest.fn()}
-        onDistrictChange={jest.fn()}
-        onBlockChange={jest.fn()}
-        onGramPanchayatChange={jest.fn()}
-        setSelectedVillage={jest.fn()}
-        setSelectedScheme={jest.fn()}
-        setSelectedDuration={jest.fn()}
-        onDepartmentStateChange={jest.fn()}
-        setSelectedDepartmentZone={setSelectedDepartmentZone}
-        setSelectedDepartmentCircle={setSelectedDepartmentCircle}
-        setSelectedDepartmentDivision={setSelectedDepartmentDivision}
-        setSelectedDepartmentSubdivision={setSelectedDepartmentSubdivision}
-        setSelectedDepartmentVillage={setSelectedDepartmentVillage}
-      />
-    )
+    renderDashboardFilters({
+      filterTabIndex: 1,
+      isDepartmentStateSelected: true,
+      selectedState: 'assam',
+      selectedDepartmentState: '101:18:assam',
+      setSelectedDepartmentZone,
+      setSelectedDepartmentCircle,
+      setSelectedDepartmentDivision,
+      setSelectedDepartmentSubdivision,
+      setSelectedDepartmentVillage,
+    })
 
     fireEvent.focus(screen.getByRole('textbox'))
     fireEvent.click(screen.getByText('North Zone'))
@@ -1013,53 +810,21 @@ describe('DashboardFilters', () => {
       return { data: undefined }
     })
 
-    renderWithProviders(
-      <DashboardFilters
-        filterTabIndex={1}
-        onTabChange={jest.fn()}
-        onClear={jest.fn()}
-        isAdvancedEnabled={true}
-        isDepartmentStateSelected={true}
-        emptyOptions={emptyOptions}
-        selectedState="assam"
-        selectedDistrict=""
-        selectedBlock=""
-        selectedGramPanchayat=""
-        selectedVillage=""
-        selectedScheme=""
-        selectedDuration={null}
-        selectedDepartmentState="101:18:assam"
-        selectedDepartmentZone="201:201:north-zone"
-        selectedDepartmentCircle="301:301:guwahati-circle"
-        selectedDepartmentDivision="401:401:division-1"
-        selectedDepartmentSubdivision=""
-        selectedDepartmentVillage="501:501:village-1"
-        activeTrailIndex={1}
-        districtOptions={emptyOptions}
-        blockOptions={emptyOptions}
-        gramPanchayatOptions={emptyOptions}
-        villageOptions={emptyOptions}
-        mockFilterStates={emptyOptions}
-        mockFilterSchemes={emptyOptions}
-        onStateChange={jest.fn()}
-        onDistrictChange={jest.fn()}
-        onBlockChange={jest.fn()}
-        onGramPanchayatChange={jest.fn()}
-        setSelectedVillage={jest.fn()}
-        setSelectedScheme={jest.fn()}
-        setSelectedDuration={jest.fn()}
-        onDepartmentStateChange={jest.fn()}
-        onDepartmentZoneChange={jest.fn()}
-        onDepartmentCircleChange={jest.fn()}
-        onDepartmentDivisionChange={jest.fn()}
-        onDepartmentVillageChange={jest.fn()}
-        setSelectedDepartmentZone={jest.fn()}
-        setSelectedDepartmentCircle={jest.fn()}
-        setSelectedDepartmentDivision={jest.fn()}
-        setSelectedDepartmentSubdivision={jest.fn()}
-        setSelectedDepartmentVillage={jest.fn()}
-      />
-    )
+    renderDashboardFilters({
+      filterTabIndex: 1,
+      isDepartmentStateSelected: true,
+      selectedState: 'assam',
+      selectedDepartmentState: '101:18:assam',
+      selectedDepartmentZone: '201:201:north-zone',
+      selectedDepartmentCircle: '301:301:guwahati-circle',
+      selectedDepartmentDivision: '401:401:division-1',
+      selectedDepartmentVillage: '501:501:village-1',
+      activeTrailIndex: 1,
+      onDepartmentZoneChange: jest.fn(),
+      onDepartmentCircleChange: jest.fn(),
+      onDepartmentDivisionChange: jest.fn(),
+      onDepartmentVillageChange: jest.fn(),
+    })
 
     fireEvent.focus(screen.getByRole('textbox'))
 
@@ -1086,48 +851,17 @@ describe('DashboardFilters', () => {
       { value: 'industrial-area', label: 'Industrial Area' },
     ]
 
-    renderWithProviders(
-      <DashboardFilters
-        filterTabIndex={0}
-        onTabChange={jest.fn()}
-        onClear={jest.fn()}
-        isAdvancedEnabled={true}
-        isDepartmentStateSelected={false}
-        emptyOptions={emptyOptions}
-        selectedState="telangana"
-        selectedDistrict="sangareddy"
-        selectedBlock="patancheru"
-        selectedGramPanchayat="isnapur"
-        selectedVillage=""
-        selectedScheme=""
-        selectedDuration={null}
-        selectedDepartmentState=""
-        selectedDepartmentZone=""
-        selectedDepartmentCircle=""
-        selectedDepartmentDivision=""
-        selectedDepartmentSubdivision=""
-        selectedDepartmentVillage=""
-        districtOptions={districtOptions}
-        blockOptions={blockOptions}
-        gramPanchayatOptions={gramPanchayatOptions}
-        villageOptions={villageOptions}
-        mockFilterStates={[{ value: 'telangana', label: 'Telangana' }]}
-        mockFilterSchemes={emptyOptions}
-        onStateChange={jest.fn()}
-        onDistrictChange={jest.fn()}
-        onBlockChange={jest.fn()}
-        onGramPanchayatChange={jest.fn()}
-        setSelectedVillage={jest.fn()}
-        setSelectedScheme={jest.fn()}
-        setSelectedDuration={jest.fn()}
-        onDepartmentStateChange={jest.fn()}
-        setSelectedDepartmentZone={jest.fn()}
-        setSelectedDepartmentCircle={jest.fn()}
-        setSelectedDepartmentDivision={jest.fn()}
-        setSelectedDepartmentSubdivision={jest.fn()}
-        setSelectedDepartmentVillage={jest.fn()}
-      />
-    )
+    renderDashboardFilters({
+      selectedState: 'telangana',
+      selectedDistrict: 'sangareddy',
+      selectedBlock: 'patancheru',
+      selectedGramPanchayat: 'isnapur',
+      districtOptions,
+      blockOptions,
+      gramPanchayatOptions,
+      villageOptions,
+      mockFilterStates: [{ value: 'telangana', label: 'Telangana' }],
+    })
 
     const searchInput = screen.getByRole('textbox')
     fireEvent.focus(searchInput)
@@ -1450,48 +1184,9 @@ describe('DashboardFilters', () => {
       { value: 'rangareddy', label: 'Ranga Reddy' },
     ]
 
-    const { rerender } = renderWithProviders(
-      <DashboardFilters
-        filterTabIndex={0}
-        onTabChange={jest.fn()}
-        onClear={jest.fn()}
-        isAdvancedEnabled={true}
-        isDepartmentStateSelected={false}
-        emptyOptions={emptyOptions}
-        selectedState=""
-        selectedDistrict=""
-        selectedBlock=""
-        selectedGramPanchayat=""
-        selectedVillage=""
-        selectedScheme=""
-        selectedDuration={null}
-        selectedDepartmentState=""
-        selectedDepartmentZone=""
-        selectedDepartmentCircle=""
-        selectedDepartmentDivision=""
-        selectedDepartmentSubdivision=""
-        selectedDepartmentVillage=""
-        districtOptions={emptyOptions}
-        blockOptions={emptyOptions}
-        gramPanchayatOptions={emptyOptions}
-        villageOptions={emptyOptions}
-        mockFilterStates={[{ value: 'telangana', label: 'Telangana' }]}
-        mockFilterSchemes={emptyOptions}
-        onStateChange={jest.fn()}
-        onDistrictChange={jest.fn()}
-        onBlockChange={jest.fn()}
-        onGramPanchayatChange={jest.fn()}
-        setSelectedVillage={jest.fn()}
-        setSelectedScheme={jest.fn()}
-        setSelectedDuration={jest.fn()}
-        onDepartmentStateChange={jest.fn()}
-        setSelectedDepartmentZone={jest.fn()}
-        setSelectedDepartmentCircle={jest.fn()}
-        setSelectedDepartmentDivision={jest.fn()}
-        setSelectedDepartmentSubdivision={jest.fn()}
-        setSelectedDepartmentVillage={jest.fn()}
-      />
-    )
+    const { rerender } = renderDashboardFilters({
+      mockFilterStates: [{ value: 'telangana', label: 'Telangana' }],
+    })
 
     const searchInput = screen.getByRole('textbox')
     fireEvent.focus(searchInput)
