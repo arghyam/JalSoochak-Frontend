@@ -217,7 +217,7 @@ export function ConfigSetupWizard() {
             {WIZARD_STEPS.map((step, i) => {
               const configured = isStepConfigured(step, statuses)
               const isLast = i === WIZARD_STEPS.length - 1
-              const prevConfigured = i > 0 ? isStepConfigured(WIZARD_STEPS[i - 1], statuses) : false
+              const prevConfigured = i >= 0 ? isStepConfigured(WIZARD_STEPS[i], statuses) : false
 
               return (
                 <Flex key={step.id} align="flex-start" flex={isLast ? 'none' : 1} gap={0}>
@@ -227,7 +227,7 @@ export function ConfigSetupWizard() {
                     configured={configured}
                     onClick={() => navigate(step.route)}
                   />
-                  {!isLast && <Connector configured={prevConfigured && configured} />}
+                  {!isLast && <Connector configured={prevConfigured} />}
                 </Flex>
               )
             })}
@@ -249,7 +249,7 @@ export function ConfigSetupWizard() {
                     onClick={() => navigate(step.route)}
                     layout="horizontal"
                   />
-                  {!isLast && <VerticalConnector configured={prevConfigured && configured} />}
+                  {!isLast && <VerticalConnector configured={prevConfigured} />}
                 </Flex>
               )
             })}

@@ -12,6 +12,11 @@ import {
   IconButton,
   Button,
   Spinner,
+  Tooltip,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverBody,
 } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
 import { FiEye } from 'react-icons/fi'
@@ -51,15 +56,25 @@ export function SchemesPage() {
     {
       key: 'schemeName',
       header: t('pages.schemes.columns.schemeName'),
+      width: '12.5%',
       render: (row) => (
-        <Text textStyle="h10" fontWeight="400">
-          {row.schemeName}
-        </Text>
+        <Tooltip label={row.schemeName} openDelay={400} hasArrow placement="top">
+          <Text
+            textStyle="h10"
+            fontWeight="400"
+            overflow="hidden"
+            textOverflow="ellipsis"
+            whiteSpace="nowrap"
+          >
+            {row.schemeName}
+          </Text>
+        </Tooltip>
       ),
     },
     {
       key: 'stateSchemeId',
       header: t('pages.schemes.columns.stateSchemeId'),
+      width: '12.5%',
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.stateSchemeId}
@@ -69,15 +84,63 @@ export function SchemesPage() {
     {
       key: 'pumpOperators',
       header: t('pages.schemes.columns.pumpOperators'),
-      render: (row) => (
-        <Text textStyle="h10" fontWeight="400">
-          {row.pumpOperatorNames.length > 0 ? row.pumpOperatorNames.join(', ') : '—'}
-        </Text>
-      ),
+      width: '12.5%',
+      render: (row) => {
+        const names = row.pumpOperatorNames
+        if (names.length === 0) {
+          return (
+            <Text textStyle="h10" fontWeight="400">
+              —
+            </Text>
+          )
+        }
+        const first = names[0]
+        if (names.length === 1) {
+          return (
+            <Text
+              textStyle="h10"
+              fontWeight="400"
+              overflow="hidden"
+              textOverflow="ellipsis"
+              whiteSpace="nowrap"
+            >
+              {first}
+            </Text>
+          )
+        }
+        return (
+          <Popover trigger="hover" placement="top" isLazy openDelay={0} closeDelay={150}>
+            <PopoverTrigger>
+              <Text
+                textStyle="h10"
+                fontWeight="400"
+                cursor="default"
+                overflow="hidden"
+                textOverflow="ellipsis"
+              >
+                {first}{' '}
+                <Text as="span" color="primary.500" fontWeight="500">
+                  +{names.length - 1}
+                </Text>
+              </Text>
+            </PopoverTrigger>
+            <PopoverContent w="auto" minW="200px" maxW="320px" boxShadow="md">
+              <PopoverBody maxH="250px" overflowY="auto" p={2}>
+                {names.map((name, idx) => (
+                  <Text key={idx} textStyle="h10" py={1} px={1}>
+                    {name}
+                  </Text>
+                ))}
+              </PopoverBody>
+            </PopoverContent>
+          </Popover>
+        )
+      },
     },
     {
       key: 'lastReading',
       header: t('pages.schemes.columns.lastReading'),
+      width: '12.5%',
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.lastReading}
@@ -87,6 +150,7 @@ export function SchemesPage() {
     {
       key: 'yesterdayReading',
       header: t('pages.schemes.columns.yesterdayReading'),
+      width: '12.5%',
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.yesterdayReading}
@@ -96,6 +160,7 @@ export function SchemesPage() {
     {
       key: 'lastWaterSupplied',
       header: t('pages.schemes.columns.lastWaterSupplied'),
+      width: '12.5%',
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.lastWaterSupplied ?? '—'}
@@ -105,15 +170,28 @@ export function SchemesPage() {
     {
       key: 'lastSubmission',
       header: t('pages.schemes.columns.lastSubmission'),
-      render: (row) => (
-        <Text textStyle="h10" fontWeight="400">
-          {row.lastReadingAt ? formatTimestamp(row.lastReadingAt) : '—'}
-        </Text>
-      ),
+      width: '12.5%',
+      render: (row) => {
+        const formatted = row.lastReadingAt ? formatTimestamp(row.lastReadingAt) : '—'
+        return (
+          <Tooltip label={formatted} openDelay={400} hasArrow placement="top">
+            <Text
+              textStyle="h10"
+              fontWeight="400"
+              overflow="hidden"
+              textOverflow="ellipsis"
+              whiteSpace="nowrap"
+            >
+              {formatted}
+            </Text>
+          </Tooltip>
+        )
+      },
     },
     {
       key: 'actions',
       header: t('pages.schemes.columns.actions'),
+      width: '12.5%',
       render: (row) => (
         <ActionTooltip label={t('common.viewScheme')}>
           <IconButton
@@ -223,6 +301,7 @@ export function SchemesPage() {
           data={data?.content ?? []}
           getRowKey={(row) => row.schemeId}
           emptyMessage={t('pages.schemes.noSchemesFound')}
+          tableLayout="fixed"
           pagination={{
             enabled: true,
             page,
