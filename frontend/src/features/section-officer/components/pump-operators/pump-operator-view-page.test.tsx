@@ -1,9 +1,25 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { createElement } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { PumpOperatorViewPage } from './pump-operator-view-page'
+
+let mockUnparse: jest.Mock
+jest.mock('papaparse', () => ({
+  __esModule: true,
+  default: {
+    unparse: (input: unknown) => {
+      if (!mockUnparse) {
+        mockUnparse = jest.fn((value: unknown) => {
+          void value
+          return 'csv-content'
+        })
+      }
+      return mockUnparse(input)
+    },
+  },
+}))
 
 const mockNavigate = jest.fn()
 jest.mock('react-router-dom', () => ({
@@ -101,6 +117,27 @@ jest.mock('@/shared/components/common', () => ({
   },
   PageHeader: ({ children, rightContent }: { children: ReactNode; rightContent?: ReactNode }) =>
     createElement('div', {}, children, rightContent),
+  DateRangePicker: ({
+    value,
+    onChange,
+    placeholder,
+  }: {
+    value: { startDate: string; endDate: string } | null
+    onChange: (value: { startDate: string; endDate: string } | null) => void
+    placeholder?: string
+  }) =>
+    createElement(
+      'button',
+      {
+        type: 'button',
+        onClick: () =>
+          onChange({
+            startDate: '2026-03-01',
+            endDate: '2026-03-31',
+          }),
+      },
+      value ? `${value.startDate} to ${value.endDate}` : placeholder
+    ),
 }))
 
 const MOCK_DETAILS = {
@@ -165,6 +202,14 @@ function renderPage(operatorId = '3') {
 
 beforeEach(() => {
   jest.clearAllMocks()
+  Object.defineProperty(URL, 'createObjectURL', {
+    writable: true,
+    value: jest.fn(() => 'blob:mock-url'),
+  })
+  Object.defineProperty(URL, 'revokeObjectURL', {
+    writable: true,
+    value: jest.fn(),
+  })
   mockUsePumpOperatorReadingsQuery.mockReturnValue({
     isLoading: false,
     isError: false,
@@ -342,5 +387,43 @@ describe('PumpOperatorViewPage', () => {
     renderPage()
     const button = screen.getByRole('button', { name: 'Attendance' }) as HTMLButtonElement
     expect(button.disabled).toBe(true)
+  })
+
+  it('opens attendance modal and downloads csv with metadata rows', async () => {
+    const refetchAttendance = jest.fn(async () => ({
+      data: [
+        { date: '2026-03-01', attendance: 1 },
+        { date: '2026-03-02', attendance: 0 },
+      ],
+    }))
+    mockUsePumpOperatorDetailsQuery.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: MOCK_DETAILS,
+      refetch: jest.fn(),
+    })
+    mockUseOperatorAttendanceQuery.mockReturnValue({
+      refetch: refetchAttendance,
+    })
+    renderPage()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Attendance' }))
+    expect(screen.getByText('pages.pumpOperators.attendanceModal.title')).toBeTruthy()
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'pages.pumpOperators.attendanceModal.download' })
+    )
+
+    await waitFor(() => expect(refetchAttendance).toHaveBeenCalled())
+    expect(mockUnparse).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        ['Name', '', 'Phone Number', ''],
+        ['Shyam Singh', '', '9919420001', ''],
+        ['', '', '', ''],
+        ['date', 'attendance'],
+        ['2026-03-01', '1'],
+        ['2026-03-02', '0'],
+      ])
+    )
   })
 })

@@ -14,12 +14,21 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
+  FormControl,
+  FormLabel,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
 } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
 import { FiDownload } from 'react-icons/fi'
 import { useDebounce } from '@/shared/hooks/use-debounce'
-import { DataTable, PageHeader } from '@/shared/components/common'
+import { DataTable, DateRangePicker, PageHeader } from '@/shared/components/common'
 import type { DataTableColumn } from '@/shared/components/common'
+import type { DateRange } from '@/shared/components/common'
 import { ROUTES } from '@/shared/constants/routes'
 import {
   usePumpOperatorDetailsQuery,
@@ -43,6 +52,20 @@ function DetailField({ label, value }: { label: string; value: string }) {
   )
 }
 
+const formatDateToIso = (date: Date) => date.toISOString().split('T')[0]
+
+const getDefaultAttendanceRange = (): DateRange => {
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
+  const startDate = new Date(yesterday)
+  startDate.setDate(startDate.getDate() - 29)
+
+  return {
+    startDate: formatDateToIso(startDate),
+    endDate: formatDateToIso(yesterday),
+  }
+}
+
 export function PumpOperatorViewPage() {
   const { t } = useTranslation('section-officer')
   const { operatorId } = useParams<{ operatorId: string }>()
@@ -51,6 +74,10 @@ export function PumpOperatorViewPage() {
   const [pageSize, setPageSize] = useState(10)
   const [searchQuery, setSearchQuery] = useState('')
   const [isDownloading, setIsDownloading] = useState(false)
+  const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false)
+  const [attendanceRange, setAttendanceRange] = useState<DateRange | null>(
+    getDefaultAttendanceRange
+  )
   const debouncedSearch = useDebounce(searchQuery, 400)
 
   const [prevDebounced, setPrevDebounced] = useState(debouncedSearch)
@@ -73,7 +100,21 @@ export function PumpOperatorViewPage() {
     refetch: refetchReadings,
   } = usePumpOperatorReadingsQuery(operatorId, page, pageSize, debouncedSearch)
 
-  const { refetch: refetchAttendance } = useOperatorAttendanceQuery(details?.uuid)
+  const { refetch: refetchAttendance } = useOperatorAttendanceQuery(
+    details?.uuid,
+    attendanceRange?.startDate,
+    attendanceRange?.endDate
+  )
+
+  const handleOpenAttendanceModal = () => {
+    setAttendanceRange(getDefaultAttendanceRange())
+    setIsAttendanceModalOpen(true)
+  }
+
+  const handleCloseAttendanceModal = () => {
+    if (isDownloading) return
+    setIsAttendanceModalOpen(false)
+  }
 
   const handleDownloadAttendance = async () => {
     try {
@@ -88,18 +129,13 @@ export function PumpOperatorViewPage() {
       const safeName = (details?.name ?? 'operator').replace(/[/\\:*?"<>|]/g, '_')
       const fileName = `${safeName}_attendance.csv`
 
-      // Build CSV data: headers + rows
+      // Build CSV data: horizontal metadata rows + attendance table
       const csvData = [
-        ['date', 'attendance', 'name', 'phoneNumber'],
-        // First row: first attendance record + operator details
-        [
-          attendance[0].date,
-          attendance[0].attendance.toString(),
-          details?.name ?? '',
-          details?.phoneNumber ?? '',
-        ],
-        // Remaining rows: attendance only
-        ...attendance.slice(1).map((record) => [record.date, record.attendance.toString(), '', '']),
+        ['Name', '', 'Phone Number', ''],
+        [details?.name ?? '', '', details?.phoneNumber ?? '', ''],
+        ['', '', '', ''],
+        ['date', 'attendance'],
+        ...attendance.map((record) => [record.date, record.attendance.toString()]),
       ]
 
       // Sanitize all cells to prevent CSV formula injection
@@ -115,6 +151,7 @@ export function PumpOperatorViewPage() {
       link.click()
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
+      setIsAttendanceModalOpen(false)
     } finally {
       setIsDownloading(false)
     }
@@ -185,7 +222,7 @@ export function PumpOperatorViewPage() {
             fontWeight="600"
             isLoading={isDownloading}
             isDisabled={!details?.uuid || isDownloading}
-            onClick={() => void handleDownloadAttendance()}
+            onClick={handleOpenAttendanceModal}
             aria-label={t('pages.pumpOperators.downloadAttendance')}
           >
             <FiDownload
@@ -345,6 +382,61 @@ export function PumpOperatorViewPage() {
           }}
         />
       )}
+
+      <Modal isOpen={isAttendanceModalOpen} onClose={handleCloseAttendanceModal} isCentered>
+        <ModalOverlay bg="blackAlpha.600" />
+        <ModalContent
+          maxW="465px"
+          height={{ base: '420px', md: '470px' }}
+          borderRadius="12px"
+          p={6}
+        >
+          <ModalHeader p={0} textStyle="h6" fontWeight="600">
+            {t('pages.pumpOperators.attendanceModal.title')}
+          </ModalHeader>
+          <ModalBody p={0} mt={5}>
+            <FormControl>
+              <FormLabel mb={1.5}>
+                <Text textStyle="h10" fontWeight="500" color="neutral.700">
+                  {t('pages.pumpOperators.attendanceModal.dateRangeLabel')}
+                </Text>
+              </FormLabel>
+              <DateRangePicker
+                value={attendanceRange}
+                onChange={setAttendanceRange}
+                placeholder={t('pages.pumpOperators.attendanceModal.dateRangePlaceholder')}
+                width="100%"
+                height="40px"
+                borderRadius="6px"
+                fontSize="sm"
+                textColor="neutral.500"
+                borderColor="neutral.300"
+                isFilter={false}
+                popoverPlacement="bottom-end"
+              />
+            </FormControl>
+          </ModalBody>
+          <ModalFooter p={0} mt={6} gap={3}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleCloseAttendanceModal}
+              isDisabled={isDownloading}
+            >
+              {t('pages.pumpOperators.attendanceModal.cancel')}
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => void handleDownloadAttendance()}
+              isLoading={isDownloading}
+              isDisabled={!attendanceRange?.startDate || !attendanceRange?.endDate}
+            >
+              {t('pages.pumpOperators.attendanceModal.download')}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   )
 }

@@ -79,24 +79,20 @@ export function usePumpOperatorReadingsQuery(
   })
 }
 
-const getAttendanceDateRange = () => {
-  const yesterday = new Date()
-  yesterday.setDate(yesterday.getDate() - 1)
-  const startDate = new Date(yesterday)
-  startDate.setDate(startDate.getDate() - 89) // 90 days total including yesterday
-
-  const format = (d: Date) => d.toISOString().split('T')[0]
-  return { startDate: format(startDate), endDate: format(yesterday) }
-}
-
-export function useOperatorAttendanceQuery(uuid: string | undefined) {
-  const { startDate, endDate } = getAttendanceDateRange()
-
+export function useOperatorAttendanceQuery(
+  uuid: string | undefined,
+  startDate: string | undefined,
+  endDate: string | undefined
+) {
   return useQuery({
-    queryKey: sectionOfficerQueryKeys.operatorAttendance(uuid ?? '', startDate, endDate),
+    queryKey: sectionOfficerQueryKeys.operatorAttendance(
+      uuid ?? '',
+      startDate ?? '',
+      endDate ?? ''
+    ),
     queryFn: () => {
-      if (!uuid) {
-        return Promise.reject(new Error('Missing operator uuid'))
+      if (!uuid || !startDate || !endDate) {
+        return Promise.reject(new Error('Missing attendance parameters'))
       }
       return pumpOperatorsApi.getOperatorAttendance({
         uuid,
