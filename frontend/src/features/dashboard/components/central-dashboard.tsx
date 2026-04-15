@@ -576,6 +576,7 @@ export function CentralDashboard() {
     getInitialStoredDuration(storedFilters)
   )
   const [isMapFullscreen, setIsMapFullscreen] = useState(false)
+  const [isMapRegularityView, setIsMapRegularityView] = useState(true)
   const [isDurationCleared, setIsDurationCleared] = useState(false)
   const [selectedScheme, setSelectedScheme] = useState(storedFilters.selectedScheme ?? '')
   const [schemePerformancePagination, setSchemePerformancePagination] = useState<{
@@ -2738,6 +2739,8 @@ export function CentralDashboard() {
         onStateHover={handleStateHover}
         isFullscreen={fullscreen}
         onFullscreenToggle={() => setIsMapFullscreen((previous) => !previous)}
+        isRegularityView={isMapRegularityView}
+        onRegularityViewChange={setIsMapRegularityView}
         height="100%"
       />
     </Box>

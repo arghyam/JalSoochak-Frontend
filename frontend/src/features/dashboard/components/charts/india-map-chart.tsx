@@ -36,6 +36,8 @@ interface IndiaMapChartProps {
   disableHoverEffect?: boolean
   isFullscreen?: boolean
   onFullscreenToggle?: () => void
+  isRegularityView?: boolean
+  onRegularityViewChange?: (next: boolean) => void
 }
 
 export function IndiaMapChart({
@@ -53,6 +55,8 @@ export function IndiaMapChart({
   disableHoverEffect = false,
   isFullscreen = false,
   onFullscreenToggle,
+  isRegularityView: controlledIsRegularityView,
+  onRegularityViewChange,
 }: IndiaMapChartProps) {
   const theme = useTheme()
   const [isBelow500] = useMediaQuery('(max-width: 499.98px)')
@@ -66,7 +70,8 @@ export function IndiaMapChart({
       }),
     [data, nationalBoundaryGeoJson, parentBoundaryGeoJson]
   )
-  const [isRegularityView, setIsRegularityView] = useState(true)
+  const [internalIsRegularityView, setInternalIsRegularityView] = useState(true)
+  const isRegularityView = controlledIsRegularityView ?? internalIsRegularityView
   const metricKey: 'quantity' | 'regularity' = isRegularityView ? 'regularity' : 'quantity'
   const isQuantityPercentView = quantityViewUnit === 'percent'
   const shouldShowNoMapAvailable = !isLoading && !dynamicGeoJson
@@ -536,7 +541,11 @@ export function IndiaMapChart({
                   metric: selectedMetricLabel,
                 })}
                 onChange={(event) => {
-                  setIsRegularityView(event.target.checked)
+                  const nextValue = event.target.checked
+                  if (controlledIsRegularityView === undefined) {
+                    setInternalIsRegularityView(nextValue)
+                  }
+                  onRegularityViewChange?.(nextValue)
                 }}
               />
             </div>

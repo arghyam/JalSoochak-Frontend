@@ -261,6 +261,23 @@ describe('IndiaMapChart', () => {
     expect(screen.getByText('>=0%')).toBeTruthy()
   })
 
+  it('supports controlled toggle state via isRegularityView/onRegularityViewChange', () => {
+    const handleRegularityViewChange = jest.fn()
+    renderWithProviders(
+      <IndiaMapChart
+        data={chartData}
+        isRegularityView={false}
+        onRegularityViewChange={handleRegularityViewChange}
+      />
+    )
+
+    const toggle = screen.getByRole('checkbox') as HTMLInputElement
+    expect(toggle.checked).toBe(false)
+    fireEvent.click(toggle)
+    expect(handleRegularityViewChange).toHaveBeenCalledWith(true)
+    expect(toggle.checked).toBe(false)
+  })
+
   it('uses bucket hover colors for selected regions instead of the default map select color', () => {
     mockGetMap.mockReturnValue({})
 
