@@ -47,7 +47,7 @@ export function PumpOperatorsPage() {
   const [pageSize, setPageSize] = useState(10)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
-  const [dateRange, setDateRange] = useState<DateRange>(() => getDefaultDateRange())
+  const [dateRange, setDateRange] = useState<DateRange | null>(() => getDefaultDateRange())
 
   const debouncedSearch = useDebounce(searchQuery, 400)
 
@@ -76,8 +76,8 @@ export function PumpOperatorsPage() {
     pageSize,
     debouncedSearch,
     statusFilter,
-    dateRange.startDate,
-    dateRange.endDate
+    dateRange?.startDate ?? '',
+    dateRange?.endDate ?? ''
   )
 
   useEffect(() => {
@@ -296,10 +296,8 @@ export function PumpOperatorsPage() {
         <DateRangePicker
           value={dateRange}
           onChange={(val) => {
-            if (val) {
-              setDateRange(val)
-              setPage(1)
-            }
+            setDateRange(val)
+            setPage(1)
           }}
           placeholder={t('pages.pumpOperators.filterDuration')}
           width="160px"
