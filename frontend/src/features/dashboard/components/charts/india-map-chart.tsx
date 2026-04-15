@@ -217,8 +217,8 @@ export function IndiaMapChart({
         status: state.status,
         itemStyle: {
           areaColor: isExternallyHovered ? hoverAreaColor : defaultAreaColor,
-          borderColor: isExternallyHovered ? '#1C1C1C' : undefined,
-          borderWidth: isExternallyHovered ? 0.5 : undefined,
+          borderColor: isExternallyHovered ? '#51525c' : undefined,
+          borderWidth: isExternallyHovered ? 1 : undefined,
         },
         emphasis: disableHoverEffect
           ? undefined
@@ -251,7 +251,7 @@ export function IndiaMapChart({
               label: { show: false },
               itemStyle: {
                 areaColor: 'rgba(0,0,0,0)',
-                borderColor: '#1c1c1c',
+                borderColor: '#51525c',
                 borderWidth: 1.5,
               },
               emphasis: {
@@ -259,7 +259,7 @@ export function IndiaMapChart({
                 label: { show: false },
                 itemStyle: {
                   areaColor: 'rgba(0,0,0,0)',
-                  borderColor: '#1c1c1c',
+                  borderColor: '#51525c',
                   borderWidth: 1.5,
                 },
               },
@@ -268,7 +268,7 @@ export function IndiaMapChart({
                 label: { show: false },
                 itemStyle: {
                   areaColor: 'rgba(0,0,0,0)',
-                  borderColor: '#1c1c1c',
+                  borderColor: '#51525c',
                   borderWidth: 1.5,
                 },
               },
@@ -285,8 +285,8 @@ export function IndiaMapChart({
               label: { show: false },
               itemStyle: {
                 areaColor: 'rgba(0,0,0,0)',
-                borderColor: '#1c1c1c',
-                borderWidth: 0.5,
+                borderColor: '#51525c',
+                borderWidth: 1,
               },
               emphasis: {
                 disabled: true,
@@ -294,7 +294,7 @@ export function IndiaMapChart({
                 itemStyle: {
                   areaColor: 'rgba(0,0,0,0)',
                   borderColor: '#000000',
-                  borderWidth: 0.5,
+                  borderWidth: 1,
                 },
               },
               select: {
@@ -303,7 +303,7 @@ export function IndiaMapChart({
                 itemStyle: {
                   areaColor: 'rgba(0,0,0,0)',
                   borderColor: '#000000',
-                  borderWidth: 0.5,
+                  borderWidth: 1,
                 },
               },
             },
@@ -377,7 +377,7 @@ export function IndiaMapChart({
           label: {
             show: false,
             fontSize: 10,
-            color: '#1C1C1C',
+            color: '#51525c',
             opacity: 1,
           },
           labelLayout: {
@@ -387,7 +387,7 @@ export function IndiaMapChart({
           data: seriesData,
           itemStyle: {
             areaColor: usePrimaryFill ? primaryMapColor : mapColors.gte90,
-            borderColor: '#1C1C1C',
+            borderColor: '#51525c',
             borderWidth: 0.6,
             opacity: 1,
           },
@@ -397,14 +397,14 @@ export function IndiaMapChart({
                 disabled: true,
                 label: {
                   show: false,
-                  color: '#1C1C1C',
+                  color: '#51525c',
                   opacity: 1,
                 },
               }
             : {
                 focus: 'none',
                 itemStyle: {
-                  borderColor: '#1C1C1C',
+                  borderColor: '#51525c',
                   borderWidth: 0.5,
                   opacity: 1,
                 },
@@ -412,13 +412,13 @@ export function IndiaMapChart({
                   show: false,
                   fontSize: 12,
                   fontWeight: 'bold',
-                  color: '#1C1C1C',
+                  color: '#51525c',
                   opacity: 1,
                 },
               },
           select: {
             itemStyle: {
-              borderColor: '#1C1C1C',
+              borderColor: '#51525c',
               borderWidth: 0.5,
               opacity: 1,
             },
@@ -426,7 +426,7 @@ export function IndiaMapChart({
               show: false,
               fontSize: 12,
               fontWeight: 'bold',
-              color: '#1C1C1C',
+              color: '#51525c',
               opacity: 1,
             },
           },
@@ -436,7 +436,7 @@ export function IndiaMapChart({
             },
             label: {
               opacity: 1,
-              color: '#1C1C1C',
+              color: '#51525c',
             },
           },
         },
