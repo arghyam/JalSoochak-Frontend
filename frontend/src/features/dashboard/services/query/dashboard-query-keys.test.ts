@@ -55,19 +55,22 @@ describe('dashboardQueryKeys', () => {
     )
   })
 
-  it('normalizes omitted schemeCount to the API default in query keys', () => {
+  it('defaults omitted pageNumber and limit in scheme performance query keys', () => {
     expect(
       dashboardQueryKeys.schemePerformance({
+        tenantId: 21,
         parentDepartmentId: 21,
         startDate: '2026-03-01',
         endDate: '2026-03-31',
       })
     ).toEqual(
       dashboardQueryKeys.schemePerformance({
+        tenantId: 21,
         parentDepartmentId: 21,
         startDate: '2026-03-01',
         endDate: '2026-03-31',
-        schemeCount: 10,
+        pageNumber: 1,
+        limit: 15,
       })
     )
   })

@@ -48,7 +48,9 @@ type BlockDashboardScreenProps = {
   showSupplyOutageReasons?: boolean
   showReadingSubmissionRate?: boolean
   showReadingSubmissionSection?: boolean
-  onReachSchemePerformanceEnd?: () => void
+  schemePerformancePage?: number
+  totalSchemePages?: number
+  onSchemePageChange?: (page: number) => void
 }
 
 type ViewBy = 'geography' | 'time'
@@ -78,7 +80,9 @@ export function BlockDashboardScreen({
   showSupplyOutageReasons = true,
   showReadingSubmissionRate = true,
   showReadingSubmissionSection = true,
-  onReachSchemePerformanceEnd,
+  schemePerformancePage,
+  totalSchemePages,
+  onSchemePageChange,
 }: BlockDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
@@ -330,7 +334,9 @@ export function BlockDashboardScreen({
             fillHeight
             secondaryColumnLabel={childEntityLabel}
             showBlockColumn={false}
-            onReachEnd={onReachSchemePerformanceEnd}
+            currentPage={schemePerformancePage}
+            totalPages={totalSchemePages}
+            onPageChange={onSchemePageChange}
           />
         </Box>
       </Grid>

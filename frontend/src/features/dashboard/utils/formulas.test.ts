@@ -1211,6 +1211,7 @@ describe('dashboard formulas', () => {
           daysInRange: 1,
           activeSchemeCount: 1,
           inactiveSchemeCount: 0,
+          totalCount: 1,
           topSchemeCount: 1,
           topSchemes: [
             {
@@ -1260,6 +1261,7 @@ describe('dashboard formulas', () => {
           daysInRange: 1,
           activeSchemeCount: 1,
           inactiveSchemeCount: 0,
+          totalCount: 1,
           topSchemeCount: 1,
           topSchemes: [
             {
@@ -1317,6 +1319,7 @@ describe('dashboard formulas', () => {
           daysInRange: 1,
           activeSchemeCount: 1,
           inactiveSchemeCount: 0,
+          totalCount: 1,
           topSchemeCount: 1,
           topSchemes: [
             {
@@ -1374,6 +1377,7 @@ describe('dashboard formulas', () => {
           daysInRange: 1,
           activeSchemeCount: 1,
           inactiveSchemeCount: 0,
+          totalCount: 1,
           topSchemeCount: 1,
           topSchemes: [
             {
@@ -1423,6 +1427,7 @@ describe('dashboard formulas', () => {
           daysInRange: 1,
           activeSchemeCount: 1,
           inactiveSchemeCount: 0,
+          totalCount: 1,
           topSchemeCount: 1,
           topSchemes: [
             {
@@ -1483,6 +1488,7 @@ describe('dashboard formulas', () => {
           daysInRange: 1,
           activeSchemeCount: 1,
           inactiveSchemeCount: 0,
+          totalCount: 1,
           topSchemeCount: 1,
           topSchemes: [
             {
@@ -1540,6 +1546,7 @@ describe('dashboard formulas', () => {
           daysInRange: 1,
           activeSchemeCount: 1,
           inactiveSchemeCount: 0,
+          totalCount: 1,
           topSchemeCount: 1,
           topSchemes: [
             {
@@ -1756,6 +1763,7 @@ describe('dashboard formulas', () => {
       daysInRange: 31,
       activeSchemeCount: 0,
       inactiveSchemeCount: 0,
+      totalCount: 0,
       topSchemeCount: 0,
       topSchemes: [],
     }

@@ -298,7 +298,7 @@ describe('CentralDashboard', () => {
 
     renderWithProviders(<CentralDashboard />)
 
-    expect(screen.getByText('Overall Performance')).toBeTruthy()
+    expect(screen.getByText('Performance Summary')).toBeTruthy()
     expect(screen.getByTestId('overall-performance-table')).toBeTruthy()
     expect(screen.queryByText('Core Metrics')).toBeNull()
   })
@@ -703,10 +703,12 @@ describe('CentralDashboard', () => {
     })
     expect(useSchemePerformanceQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         parentLgdId: 303,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
-        schemeCount: 20,
+        pageNumber: 1,
+        limit: 15,
       },
       enabled: true,
     })
@@ -784,10 +786,12 @@ describe('CentralDashboard', () => {
     })
     expect(useSchemePerformanceQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 18,
         parentLgdId: 404,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
-        schemeCount: 20,
+        pageNumber: 1,
+        limit: 15,
       },
       enabled: true,
     })
@@ -845,10 +849,12 @@ describe('CentralDashboard', () => {
     })
     expect(useSchemePerformanceQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 16,
         parentLgdId: 544,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
-        schemeCount: 20,
+        pageNumber: 1,
+        limit: 15,
       },
       enabled: true,
     })
@@ -1396,7 +1402,7 @@ describe('CentralDashboard', () => {
     ])
   })
 
-  it('calls useWaterQuantityPeriodicQuery with the resolved params and passes mapped quantity trend data to dashboard body', () => {
+  it('passes quantity trend data from scheme-regularity periodic metrics to dashboard body', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
@@ -1444,17 +1450,47 @@ describe('CentralDashboard', () => {
           {
             periodStartDate: '2026-03-12',
             periodEndDate: '2026-03-12',
+            totalWaterQuantity: 87,
             averageWaterQuantity: 87,
           },
           {
             periodStartDate: '2026-03-13',
             periodEndDate: '2026-03-13',
+            totalWaterQuantity: 91,
             averageWaterQuantity: 91,
           },
         ],
       },
       isFetching: false,
       isAwaitingParams: false,
+    })
+    ;(useSchemeRegularityPeriodicQuery as jest.Mock).mockReturnValue({
+      data: {
+        lgdId: 36,
+        departmentId: 0,
+        schemeCount: 100,
+        startDate: selectedDuration.startDate,
+        endDate: selectedDuration.endDate,
+        scale: 'day',
+        periodCount: 2,
+        metrics: [
+          {
+            periodStartDate: '2026-03-12',
+            periodEndDate: '2026-03-12',
+            totalSupplyDays: 10,
+            totalWaterQuantity: 87,
+            averageRegularity: 0.5,
+          },
+          {
+            periodStartDate: '2026-03-13',
+            periodEndDate: '2026-03-13',
+            totalSupplyDays: 11,
+            totalWaterQuantity: 91,
+            averageRegularity: 0.6,
+          },
+        ],
+      },
+      isFetching: false,
     })
 
     renderWithProviders(<CentralDashboard />)
@@ -1524,7 +1560,7 @@ describe('CentralDashboard', () => {
     })
   })
 
-  it('passes isQuantityTimeTrendLoading=true to dashboard body while useWaterQuantityPeriodicQuery is loading', () => {
+  it('passes isQuantityTimeTrendLoading=true to dashboard body while scheme-regularity periodic query is loading', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
@@ -1558,6 +1594,10 @@ describe('CentralDashboard', () => {
       data: undefined,
       isFetching: true,
       isAwaitingParams: false,
+    })
+    ;(useSchemeRegularityPeriodicQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isFetching: true,
     })
 
     renderWithProviders(<CentralDashboard />)
@@ -1657,6 +1697,7 @@ describe('CentralDashboard', () => {
                   {
                     periodStartDate: '2026-03-23',
                     periodEndDate: '2026-03-23',
+                    totalWaterQuantity: 30000,
                     averageWaterQuantity: 30000,
                     householdCount: 0,
                     achievedFhtcCount: 500,
@@ -1665,6 +1706,7 @@ describe('CentralDashboard', () => {
                   {
                     periodStartDate: '2026-03-24',
                     periodEndDate: '2026-03-24',
+                    totalWaterQuantity: 30000,
                     averageWaterQuantity: 30000,
                     householdCount: 0,
                     achievedFhtcCount: 500,
@@ -1683,6 +1725,7 @@ describe('CentralDashboard', () => {
                   {
                     periodStartDate: '2026-03-25',
                     periodEndDate: '2026-03-25',
+                    totalWaterQuantity: 41243,
                     averageWaterQuantity: 41243,
                     householdCount: 0,
                     achievedFhtcCount: 501,
@@ -1691,6 +1734,7 @@ describe('CentralDashboard', () => {
                   {
                     periodStartDate: '2026-03-26',
                     periodEndDate: '2026-03-26',
+                    totalWaterQuantity: 50100,
                     averageWaterQuantity: 50100,
                     householdCount: 0,
                     achievedFhtcCount: 500,
@@ -3570,10 +3614,12 @@ describe('CentralDashboard', () => {
     })
     expect(useSchemePerformanceQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         parentDepartmentId: 901,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
-        schemeCount: 20,
+        pageNumber: 1,
+        limit: 15,
       },
       enabled: true,
     })
@@ -4930,8 +4976,34 @@ describe('CentralDashboard', () => {
     dashboardFilterProps.onDistrictChange('sangareddy')
 
     expect(mockNavigate).toHaveBeenCalledWith({
-      pathname: '/telangana',
+      pathname: '/tg',
       search: '?district=sangareddy&tab=administrative',
+    })
+  })
+
+  it('removes tab query param when clearing state back to central view', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams('district=sangareddy&tab=administrative'),
+      jest.fn(),
+    ])
+
+    renderWithProviders(<CentralDashboard />)
+    mockNavigate.mockClear()
+
+    const dashboardFilterProps = getLatestDashboardFilterProps<{
+      onStateChange: (value: string) => void
+    }>()
+    dashboardFilterProps.onStateChange('')
+
+    expect(mockNavigate).toHaveBeenCalledWith({
+      pathname: '/',
+      search: '',
     })
   })
 
@@ -5013,7 +5085,7 @@ describe('CentralDashboard', () => {
 
     expect(mockNavigate).toHaveBeenCalledTimes(2)
     expect(mockNavigate).toHaveBeenNthCalledWith(2, {
-      pathname: '/assam',
+      pathname: '/as',
       search: '?departmentZone=601%3Adepartment-zone',
     })
   })
@@ -5066,8 +5138,8 @@ describe('CentralDashboard', () => {
     })
 
     expect(mockNavigate).toHaveBeenCalledWith({
-      pathname: '/telangana',
-      search: '',
+      pathname: '/tg',
+      search: '?tab=administrative',
     })
   })
 
@@ -5178,7 +5250,7 @@ describe('CentralDashboard', () => {
     })
 
     expect(mockNavigate).toHaveBeenCalledWith({
-      pathname: '/assam',
+      pathname: '/as',
       search: '?district=201%3A201%3Akamrup&tab=administrative',
     })
   })
@@ -5663,7 +5735,7 @@ describe('CentralDashboard', () => {
     })
 
     expect(mockNavigate).toHaveBeenCalledWith({
-      pathname: '/madhya-pradesh',
+      pathname: '/mp',
       search: '?departmentZone=201&departmentCircle=310%3A310%3Ahuzur-division',
     })
   })

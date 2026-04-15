@@ -175,7 +175,8 @@ export interface WaterQuantityPeriodicQueryParams {
 export interface WaterQuantityPeriodicMetric {
   periodStartDate: string
   periodEndDate: string
-  averageWaterQuantity: number
+  totalWaterQuantity?: number
+  averageWaterQuantity?: number
   householdCount: number
   totalAchievedFhtcCount?: number
   achievedFhtcCount: number
@@ -249,6 +250,7 @@ export interface SchemeRegularityPeriodicMetric {
   periodStartDate: string
   periodEndDate: string
   totalSupplyDays: number
+  totalWaterQuantity?: number
   averageRegularity: number
 }
 
@@ -428,6 +430,7 @@ export interface TenantBoundaryChildRegion {
   childLgdId?: number
   childLgdCName?: string
   childLgdTitle?: string
+  lgdLevel?: number
   childDepartmentId?: number
   childDepartmentTitle?: string
   childBoundaryGeoJson?: string | null
@@ -501,11 +504,13 @@ export interface ReadingComplianceResponse {
 }
 
 export interface SchemePerformanceQueryParams {
+  tenantId: number
   parentLgdId?: number
   parentDepartmentId?: number
   startDate: string
   endDate: string
-  schemeCount?: number
+  pageNumber?: number
+  limit?: number
 }
 
 export interface PumpOperatorDetailsQueryParams {
@@ -561,6 +566,15 @@ export interface PumpOperatorDetailsResponse {
   }
 }
 
+export interface LgdLadder {
+  level_1?: number | null
+  level_2?: number | null
+  level_3?: number | null
+  level_4?: number | null
+  level_5?: number | null
+  level_6?: number | null
+}
+
 export interface SchemePerformanceItem {
   schemeId: number
   schemeName: string
@@ -572,9 +586,13 @@ export interface SchemePerformanceItem {
   immediateParentLgdId: number
   immediateParentLgdCName: string
   immediateParentLgdTitle: string
+  immediateParentLgdLevel?: number | null
   immediateParentDepartmentId: number
   immediateParentDepartmentCName: string
   immediateParentDepartmentTitle: string
+  immediateParentDepartmentLevel?: number | null
+  lgdLadder?: LgdLadder | null
+  departmentLadder?: LgdLadder | null
 }
 
 export interface SchemePerformanceResponse {
@@ -589,6 +607,7 @@ export interface SchemePerformanceResponse {
   daysInRange: number
   activeSchemeCount: number
   inactiveSchemeCount: number
+  totalCount: number
   topSchemeCount: number
   topSchemes: SchemePerformanceItem[]
 }

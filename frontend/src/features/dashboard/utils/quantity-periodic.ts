@@ -121,18 +121,25 @@ export const mapWaterQuantityPeriodicToTrendPoints = (
     return []
   }
 
-  return response.metrics
-    .filter(
-      (metric) =>
-        typeof metric.averageWaterQuantity === 'number' &&
-        Number.isFinite(metric.averageWaterQuantity) &&
-        Boolean(metric.periodStartDate) &&
-        Boolean(metric.periodEndDate)
-    )
-    .map((metric) => ({
-      period: formatMetricLabel(response.scale, metric),
-      value: metric.averageWaterQuantity,
-    }))
+  return response.metrics.flatMap((metric) => {
+    if (!metric.periodStartDate || !metric.periodEndDate) {
+      return []
+    }
+
+    if (
+      typeof metric.totalWaterQuantity !== 'number' ||
+      !Number.isFinite(metric.totalWaterQuantity)
+    ) {
+      return []
+    }
+
+    return [
+      {
+        period: formatMetricLabel(response.scale, metric),
+        value: metric.totalWaterQuantity,
+      },
+    ]
+  })
 }
 
 export const mapSchemeRegularityPeriodicToTrendPoints = (
@@ -154,6 +161,34 @@ export const mapSchemeRegularityPeriodicToTrendPoints = (
       period: formatMetricLabel(response.scale, metric),
       value: metric.averageRegularity,
     }))
+}
+
+export const mapSchemeRegularityQuantityToTrendPoints = (
+  response: SchemeRegularityPeriodicResponse | undefined
+): MonthlyTrendPoint[] => {
+  if (!response?.metrics?.length) {
+    return []
+  }
+
+  return response.metrics.flatMap((metric) => {
+    if (!metric.periodStartDate || !metric.periodEndDate) {
+      return []
+    }
+
+    if (
+      typeof metric.totalWaterQuantity !== 'number' ||
+      !Number.isFinite(metric.totalWaterQuantity)
+    ) {
+      return []
+    }
+
+    return [
+      {
+        period: formatMetricLabel(response.scale, metric),
+        value: metric.totalWaterQuantity,
+      },
+    ]
+  })
 }
 
 export const mapDemandSupplyToTrendPoints = (

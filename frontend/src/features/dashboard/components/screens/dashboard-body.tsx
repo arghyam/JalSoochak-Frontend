@@ -64,7 +64,9 @@ type DashboardBodyProps = {
   villagePumpOperators?: VillagePumpOperatorDetails[]
   tenantCode?: string
   schemeId?: number
-  onReachSchemePerformanceEnd?: () => void
+  schemePerformancePage?: number
+  totalSchemePages?: number
+  onSchemePageChange?: (page: number) => void
 }
 
 type ViewBy = 'geography' | 'time'
@@ -108,7 +110,9 @@ export function DashboardBody({
   villagePumpOperators,
   tenantCode,
   schemeId,
-  onReachSchemePerformanceEnd,
+  schemePerformancePage,
+  totalSchemePages,
+  onSchemePageChange,
 }: DashboardBodyProps) {
   const { t } = useTranslation('dashboard')
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
@@ -217,7 +221,9 @@ export function DashboardBody({
           childEntityLabel={supplySubmissionRateLabel}
           operatorsPerformanceTable={operatorsPerformanceTable}
           pumpOperatorsTotal={pumpOperatorsTotal}
-          onReachSchemePerformanceEnd={onReachSchemePerformanceEnd}
+          schemePerformancePage={schemePerformancePage}
+          totalSchemePages={totalSchemePages}
+          onSchemePageChange={onSchemePageChange}
         />
       ) : null}
       {isBlockScreen ? (
@@ -247,7 +253,9 @@ export function DashboardBody({
           showSupplyOutageReasons
           showReadingSubmissionRate
           showReadingSubmissionSection
-          onReachSchemePerformanceEnd={onReachSchemePerformanceEnd}
+          schemePerformancePage={schemePerformancePage}
+          totalSchemePages={totalSchemePages}
+          onSchemePageChange={onSchemePageChange}
         />
       ) : null}
       {isGramPanchayatScreen ? (
@@ -274,7 +282,9 @@ export function DashboardBody({
           childEntityLabel={supplySubmissionRateLabel}
           pumpOperatorsTotal={pumpOperatorsTotal}
           operatorsPerformanceTable={operatorsPerformanceTable}
-          onReachSchemePerformanceEnd={onReachSchemePerformanceEnd}
+          schemePerformancePage={schemePerformancePage}
+          totalSchemePages={totalSchemePages}
+          onSchemePageChange={onSchemePageChange}
         />
       ) : null}
 

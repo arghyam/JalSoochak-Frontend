@@ -5,6 +5,7 @@ import { CentralDashboard } from '@/features/dashboard/components/central-dashbo
 import { isSingleTenantMode, getSingleTenantId } from '@/config/server-config'
 import { LoadingSpinner } from '@/shared/components/common'
 import { Box, Text } from '@chakra-ui/react'
+import { stateSlugToCode } from '@/shared/constants/states'
 
 /**
  * Router gate that enforces single-tenant mode:
@@ -89,10 +90,9 @@ function SingleTenantContent() {
   }
 
   // Current URL slug doesn't match configured tenant: redirect
-  if (stateSlug !== configuredTenant.value) {
-    return (
-      <Navigate to={`/${configuredTenant.value}`} replace data-testid="single-tenant-redirect" />
-    )
+  const configuredCode = stateSlugToCode(configuredTenant.value) ?? configuredTenant.value
+  if (stateSlug !== configuredCode) {
+    return <Navigate to={`/${configuredCode}`} replace data-testid="single-tenant-redirect" />
   }
 
   // Correct slug: render dashboard

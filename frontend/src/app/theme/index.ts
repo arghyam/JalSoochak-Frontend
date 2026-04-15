@@ -256,7 +256,7 @@ const theme = extendTheme({
           _hover: {
             bg: 'primary.600',
             _disabled: {
-              bg: 'neutral.200',
+              bg: 'neutral.300',
             },
           },
           _active: {

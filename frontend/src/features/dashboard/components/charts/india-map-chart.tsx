@@ -309,7 +309,7 @@ export function IndiaMapChart({
             max: 4,
           },
           label: {
-            show: true,
+            show: false,
             fontSize: 10,
             color: '#1C1C1C',
             opacity: 1,
@@ -330,7 +330,7 @@ export function IndiaMapChart({
             ? {
                 disabled: true,
                 label: {
-                  show: true,
+                  show: false,
                   color: '#1C1C1C',
                   opacity: 1,
                 },
@@ -342,7 +342,7 @@ export function IndiaMapChart({
                   opacity: 1,
                 },
                 label: {
-                  show: true,
+                  show: false,
                   fontSize: 12,
                   fontWeight: 'bold',
                   color: '#1C1C1C',
@@ -355,7 +355,7 @@ export function IndiaMapChart({
               opacity: 1,
             },
             label: {
-              show: true,
+              show: false,
               fontSize: 12,
               fontWeight: 'bold',
               color: '#1C1C1C',

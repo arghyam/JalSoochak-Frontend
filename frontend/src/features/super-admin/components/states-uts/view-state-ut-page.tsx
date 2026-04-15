@@ -276,9 +276,6 @@ export function ViewStateUTPage() {
         </Box>
 
         {/* State Admin Details */}
-        <Heading as="h2" size="h3" fontWeight="400" mb={4} id="admin-details-heading">
-          {t('statesUts.adminDetails.title')}
-        </Heading>
         {adminsQuery.isLoading && (
           <Text color="neutral.600" textStyle="h10">
             {t('common:loading')}
@@ -291,12 +288,7 @@ export function ViewStateUTPage() {
               <Text color="neutral.500" textStyle="h10" mb={4}>
                 {t('statesUts.adminDetails.noAdminDescription')}
               </Text>
-              <SimpleGrid
-                columns={{ base: 1, lg: 2 }}
-                spacing={6}
-                mb={4}
-                aria-labelledby="admin-details-heading"
-              >
+              <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6} mb={4}>
                 <FormControl isRequired isInvalid={!!fieldErrors.firstName}>
                   <FormLabel textStyle="h10" mb={1}>
                     {t('statesUts.adminDetails.firstName')}
@@ -391,47 +383,60 @@ export function ViewStateUTPage() {
           )}
         {!adminsQuery.isLoading && admins.length > 0 && (
           <Flex direction="column" gap={6}>
-            {admins.map((admin) => (
-              <SimpleGrid
-                key={admin.id}
-                columns={{ base: 1, lg: 2 }}
-                spacing={4}
-                aria-labelledby="admin-details-heading"
-              >
-                <Box>
-                  <Text textStyle="h10" fontWeight="500" mb={1}>
-                    {t('statesUts.adminDetails.firstName')}
-                  </Text>
-                  <Text textStyle="h10" fontWeight="400">
-                    {admin.firstName || t('common:na')}
-                  </Text>
+            {admins.map((admin) => {
+              const adminHeadingId = `admin-details-heading-${admin.id}`
+              return (
+                <Box key={admin.id}>
+                  <Flex align="center" mb={4} gap={5}>
+                    <Heading as="h2" size="h3" fontWeight="400" id={adminHeadingId}>
+                      {t('statesUts.adminDetails.title')}
+                    </Heading>
+                    <StatusChip
+                      status={admin.status}
+                      label={admin.status.charAt(0).toUpperCase() + admin.status.slice(1)}
+                    />
+                  </Flex>
+                  <SimpleGrid
+                    columns={{ base: 1, lg: 2 }}
+                    spacing={4}
+                    aria-labelledby={adminHeadingId}
+                  >
+                    <Box>
+                      <Text textStyle="h10" fontWeight="500" mb={1}>
+                        {t('statesUts.adminDetails.firstName')}
+                      </Text>
+                      <Text textStyle="h10" fontWeight="400">
+                        {admin.firstName || t('common:na')}
+                      </Text>
+                    </Box>
+                    <Box>
+                      <Text textStyle="h10" fontWeight="500" mb={1}>
+                        {t('statesUts.adminDetails.lastName')}
+                      </Text>
+                      <Text textStyle="h10" fontWeight="400">
+                        {admin.lastName || t('common:na')}
+                      </Text>
+                    </Box>
+                    <Box>
+                      <Text textStyle="h10" fontWeight="500" mb={1}>
+                        {t('statesUts.adminDetails.email')}
+                      </Text>
+                      <Text textStyle="h10" fontWeight="400">
+                        {admin.email}
+                      </Text>
+                    </Box>
+                    <Box>
+                      <Text textStyle="h10" fontWeight="500" mb={1}>
+                        {t('statesUts.adminDetails.phone')}
+                      </Text>
+                      <Text textStyle="h10" fontWeight="400">
+                        {admin.phone || t('common:na')}
+                      </Text>
+                    </Box>
+                  </SimpleGrid>
                 </Box>
-                <Box>
-                  <Text textStyle="h10" fontWeight="500" mb={1}>
-                    {t('statesUts.adminDetails.lastName')}
-                  </Text>
-                  <Text textStyle="h10" fontWeight="400">
-                    {admin.lastName || t('common:na')}
-                  </Text>
-                </Box>
-                <Box>
-                  <Text textStyle="h10" fontWeight="500" mb={1}>
-                    {t('statesUts.adminDetails.email')}
-                  </Text>
-                  <Text textStyle="h10" fontWeight="400">
-                    {admin.email}
-                  </Text>
-                </Box>
-                <Box>
-                  <Text textStyle="h10" fontWeight="500" mb={1}>
-                    {t('statesUts.adminDetails.phone')}
-                  </Text>
-                  <Text textStyle="h10" fontWeight="400">
-                    {admin.phone || t('common:na')}
-                  </Text>
-                </Box>
-              </SimpleGrid>
-            ))}
+              )
+            })}
           </Flex>
         )}
       </Box>

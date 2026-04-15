@@ -86,8 +86,8 @@ export function StaffOverviewPage() {
       title: t('pages.overview.stats.quantityMld'),
       value: waterSupplied,
       icon: MdOutlineWaterDrop,
-      iconBg: '#EBF4FA',
-      iconColor: '#3291D1',
+      iconBg: '#F1EEFF',
+      iconColor: '#584C93',
     },
     {
       title: t('pages.overview.stats.anomaliesFlagged'),
