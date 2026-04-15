@@ -190,6 +190,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   } = props
 
   const [isBreadcrumbPanelOpen, setIsBreadcrumbPanelOpen] = useState(false)
+  const [searchResetTrigger, setSearchResetTrigger] = useState(0)
   const { data: locationSearchData } = useLocationSearchQuery({
     enabled: isBreadcrumbPanelOpen,
   })
@@ -417,6 +418,11 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     label: searchByLabel,
     defaultValue: `Search by ${searchByLabel}`,
   })
+  const getNoOptionsText = (label: string): string =>
+    t('searchLayout.noOptionsFound', {
+      label: label.toLowerCase(),
+      defaultValue: `No ${label.toLowerCase()} found`,
+    })
 
   // In single-tenant mode, prevent state changes (users cannot select a different state/tenant)
   const wrappedOnStateChange = isSingleTenantMode ? () => {} : onStateChange
@@ -465,9 +471,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
         options: resolvedVillageOptions,
         label: villageLabel,
         totalCount: resolvedVillageOptions.length,
-        noOptionsText: t('filters.noOptions.villages', {
-          defaultValue: `No ${villageLabel.toLowerCase()} found`,
-        }),
+        noOptionsText: getNoOptionsText(villageLabel),
         onSelect: villageSelectionHandler,
       }
     : hasSelectedBlock
@@ -475,9 +479,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
           options: resolvedGramPanchayatOptions,
           label: gramPanchayatLabel,
           totalCount: resolvedGramPanchayatOptions.length,
-          noOptionsText: t('filters.noOptions.gramPanchayats', {
-            defaultValue: `No ${gramPanchayatLabel.toLowerCase()} found`,
-          }),
+          noOptionsText: getNoOptionsText(gramPanchayatLabel),
           onSelect: gramPanchayatSelectionHandler,
         }
       : hasSelectedDistrict
@@ -485,9 +487,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
             options: resolvedBlockOptions,
             label: blockLabel,
             totalCount: resolvedBlockOptions.length,
-            noOptionsText: t('filters.noOptions.blocks', {
-              defaultValue: `No ${blockLabel.toLowerCase()} found`,
-            }),
+            noOptionsText: getNoOptionsText(blockLabel),
             onSelect: blockSelectionHandler,
           }
         : hasSelectedState
@@ -495,18 +495,14 @@ export function DashboardFilters(props: DashboardFiltersProps) {
               options: resolvedDistrictOptions,
               label: districtLabel,
               totalCount: resolvedDistrictOptions.length,
-              noOptionsText: t('filters.noOptions.districts', {
-                defaultValue: `No ${districtLabel.toLowerCase()} found`,
-              }),
+              noOptionsText: getNoOptionsText(districtLabel),
               onSelect: districtSelectionHandler,
             }
           : {
               options: breadcrumbStateOptions,
               label: stateLabel,
               totalCount: totalStatesCount,
-              noOptionsText: t('filters.noOptions.states', {
-                defaultValue: `No ${stateLabel.toLowerCase()} found`,
-              }),
+              noOptionsText: getNoOptionsText(stateLabel),
               onSelect: rootSelectionHandler,
             }
 
@@ -581,10 +577,15 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   const handlePanelOpenChange = (isOpen: boolean) => {
     setIsBreadcrumbPanelOpen(isOpen)
   }
+  const handleClear = () => {
+    setSearchResetTrigger((value) => value + 1)
+    onClear()
+  }
 
   return (
     <SearchLayout
       placeholder={dynamicSearchPlaceholder}
+      resetSearchTrigger={searchResetTrigger}
       hideActionButton={true}
       selectionTrail={selectionTrail}
       activeTrailIndex={effectiveTrailIndex}
@@ -611,7 +612,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
               variant="link"
               size="sm"
               whiteSpace="nowrap"
-              onClick={onClear}
+              onClick={handleClear}
               minW={0}
               isDisabled={!hasActiveFilters}
               _hover={clearButtonHoverStyles}
@@ -647,7 +648,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
               variant="link"
               size="sm"
               whiteSpace="nowrap"
-              onClick={onClear}
+              onClick={handleClear}
               minW={0}
               isDisabled={!hasActiveFilters}
               _hover={clearButtonHoverStyles}

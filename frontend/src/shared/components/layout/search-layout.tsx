@@ -70,6 +70,7 @@ interface SearchLayoutProps {
   breadcrumbPanelProps?: BreadcrumbPanelProps
   selectionTrail?: string[]
   activeTrailIndex?: number | null
+  resetSearchTrigger?: number
 }
 
 export function SearchLayout({
@@ -85,6 +86,7 @@ export function SearchLayout({
   breadcrumbPanelProps,
   selectionTrail,
   activeTrailIndex,
+  resetSearchTrigger,
 }: SearchLayoutProps) {
   const { t } = useTranslation('dashboard')
   const isCompactLayout = useBreakpointValue({ base: false, lg: false }) ?? false
@@ -92,7 +94,10 @@ export function SearchLayout({
   const isBelowMdLayout = useBreakpointValue({ base: true, md: false }) ?? true
   const [isVeryCompactLayout] = useMediaQuery('(max-width: 569px)')
   const [isBelowXsLayout] = useMediaQuery('(max-width: 480px)')
-  const [searchValue, setSearchValue] = useState('')
+  const [searchState, setSearchState] = useState(() => ({
+    value: '',
+    resetToken: resetSearchTrigger,
+  }))
   const [isBreadcrumbPanelOpen, setIsBreadcrumbPanelOpen] = useState(false)
   const [selectedStateValue, setSelectedStateValue] = useState('')
   const panelContainerRef = useRef<HTMLDivElement>(null)
@@ -131,7 +136,9 @@ export function SearchLayout({
     ? t('searchLayout.search', 'Search')
     : resolvedPlaceholder
   const resolvedActionLabel = actionLabel ?? t('searchLayout.downloadReport', 'Download Report')
-  const inputValue = inputProps?.value !== undefined ? String(inputProps.value ?? '') : searchValue
+  const internalSearchValue = searchState.resetToken === resetSearchTrigger ? searchState.value : ''
+  const inputValue =
+    inputProps?.value !== undefined ? String(inputProps.value ?? '') : internalSearchValue
   const selectedState = useMemo(
     () => breadcrumbPanelProps?.stateOptions.find((option) => option.value === selectedStateValue),
     [breadcrumbPanelProps?.stateOptions, selectedStateValue]
@@ -176,6 +183,13 @@ export function SearchLayout({
     return effectiveSelectionTrail.slice(0, effectiveActiveTrailIndex + 1)
   }, [effectiveActiveTrailIndex, effectiveSelectionTrail])
 
+  const setInternalSearchValue = (value: string) => {
+    setSearchState({
+      value,
+      resetToken: resetSearchTrigger,
+    })
+  }
+
   const setBreadcrumbPanelOpen = (isOpen: boolean) => {
     if (isBreadcrumbPanelOpen === isOpen) {
       return
@@ -201,14 +215,14 @@ export function SearchLayout({
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (inputProps?.value === undefined) {
-      setSearchValue(event.target.value)
+      setInternalSearchValue(event.target.value)
     }
     inputProps?.onChange?.(event)
   }
 
   const handleStateSelect = (stateValue: string) => {
     setSelectedStateValue(stateValue)
-    setSearchValue('')
+    setInternalSearchValue('')
     breadcrumbPanelProps?.onOptionSelect?.(stateValue)
     breadcrumbPanelProps?.onStateSelect?.(stateValue)
     if (breadcrumbPanelProps?.closeOnOptionSelect) {
@@ -217,7 +231,7 @@ export function SearchLayout({
   }
 
   const handleTrailSelect = (trailIndex: number) => {
-    setSearchValue('')
+    setInternalSearchValue('')
     breadcrumbPanelProps?.onTrailSelect?.(trailIndex)
   }
 

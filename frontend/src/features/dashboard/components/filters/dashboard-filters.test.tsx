@@ -133,6 +133,62 @@ describe('DashboardFilters', () => {
     )
   })
 
+  it('clears search input text when clear all filters is clicked', () => {
+    const onClear = jest.fn()
+
+    renderWithProviders(
+      <DashboardFilters
+        filterTabIndex={0}
+        onTabChange={jest.fn()}
+        onClear={onClear}
+        isAdvancedEnabled={true}
+        isDepartmentStateSelected={false}
+        emptyOptions={emptyOptions}
+        selectedState=""
+        selectedDistrict=""
+        selectedBlock=""
+        selectedGramPanchayat=""
+        selectedVillage=""
+        selectedScheme=""
+        selectedDuration={{ startDate: '11/03/2026', endDate: '12/03/2026' }}
+        selectedDepartmentState=""
+        selectedDepartmentZone=""
+        selectedDepartmentCircle=""
+        selectedDepartmentDivision=""
+        selectedDepartmentSubdivision=""
+        selectedDepartmentVillage=""
+        districtOptions={emptyOptions}
+        blockOptions={emptyOptions}
+        gramPanchayatOptions={emptyOptions}
+        villageOptions={emptyOptions}
+        mockFilterStates={emptyOptions}
+        mockFilterSchemes={emptyOptions}
+        onStateChange={jest.fn()}
+        onDistrictChange={jest.fn()}
+        onBlockChange={jest.fn()}
+        onGramPanchayatChange={jest.fn()}
+        setSelectedVillage={jest.fn()}
+        setSelectedScheme={jest.fn()}
+        setSelectedDuration={jest.fn()}
+        onDepartmentStateChange={jest.fn()}
+        setSelectedDepartmentZone={jest.fn()}
+        setSelectedDepartmentCircle={jest.fn()}
+        setSelectedDepartmentDivision={jest.fn()}
+        setSelectedDepartmentSubdivision={jest.fn()}
+        setSelectedDepartmentVillage={jest.fn()}
+      />
+    )
+
+    const searchInput = screen.getByRole('textbox')
+    fireEvent.change(searchInput, { target: { value: 'kgkjdhskh' } })
+    expect((searchInput as HTMLInputElement).value).toBe('kgkjdhskh')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Clear all filters' }))
+
+    expect(onClear).toHaveBeenCalledTimes(1)
+    expect((searchInput as HTMLInputElement).value).toBe('')
+  })
+
   it('shows districts in breadcrumb search panel when state is already selected', () => {
     const districtOptions: SearchableSelectOption[] = [
       { value: 'sangareddy', label: 'Sangareddy' },
@@ -477,6 +533,99 @@ describe('DashboardFilters', () => {
 
     expect(screen.getByText(/Zones/)).toBeTruthy()
     expect(screen.queryByText(/Circles/)).toBeNull()
+  })
+
+  it('shows departmental empty-state text using the active hierarchy label', () => {
+    mockUseLocationSearchQuery.mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam' }],
+      },
+    })
+    mockUseLocationHierarchyQuery.mockReturnValue({
+      data: {
+        data: {
+          hierarchyType: 'department',
+          levels: [
+            { level: 1, levelName: [{ title: 'State' }] },
+            { level: 2, levelName: [{ title: 'Zone' }] },
+            { level: 3, levelName: [{ title: 'Circle' }] },
+            { level: 4, levelName: [{ title: 'Division' }] },
+            { level: 5, levelName: [{ title: 'Sub Division' }] },
+          ],
+        },
+      },
+    })
+    mockUseLocationChildrenQuery.mockImplementation((args?: unknown) => {
+      const options = args as { parentId?: number } | undefined
+      if (options?.parentId === 101) {
+        return {
+          data: {
+            data: [{ id: 201, title: 'North Zone' }],
+          },
+        }
+      }
+
+      if (options?.parentId === undefined) {
+        return {
+          data: {
+            data: [{ id: 101, title: 'Assam', lgdCode: 18 }],
+          },
+        }
+      }
+
+      return { data: undefined }
+    })
+
+    renderWithProviders(
+      <DashboardFilters
+        filterTabIndex={1}
+        onTabChange={jest.fn()}
+        onClear={jest.fn()}
+        isAdvancedEnabled={true}
+        isDepartmentStateSelected={true}
+        emptyOptions={emptyOptions}
+        selectedState="assam"
+        selectedDistrict=""
+        selectedBlock=""
+        selectedGramPanchayat=""
+        selectedVillage=""
+        selectedScheme=""
+        selectedDuration={null}
+        selectedDepartmentState="assam"
+        selectedDepartmentZone=""
+        selectedDepartmentCircle=""
+        selectedDepartmentDivision=""
+        selectedDepartmentSubdivision=""
+        selectedDepartmentVillage=""
+        districtOptions={emptyOptions}
+        blockOptions={emptyOptions}
+        gramPanchayatOptions={emptyOptions}
+        villageOptions={emptyOptions}
+        mockFilterStates={[{ value: 'assam', label: 'Assam' }]}
+        mockFilterSchemes={emptyOptions}
+        onStateChange={jest.fn()}
+        onDistrictChange={jest.fn()}
+        onBlockChange={jest.fn()}
+        onGramPanchayatChange={jest.fn()}
+        setSelectedVillage={jest.fn()}
+        setSelectedScheme={jest.fn()}
+        setSelectedDuration={jest.fn()}
+        onDepartmentStateChange={jest.fn()}
+        setSelectedDepartmentZone={jest.fn()}
+        setSelectedDepartmentCircle={jest.fn()}
+        setSelectedDepartmentDivision={jest.fn()}
+        setSelectedDepartmentSubdivision={jest.fn()}
+        setSelectedDepartmentVillage={jest.fn()}
+      />
+    )
+
+    const searchInput = screen.getByRole('textbox')
+    fireEvent.focus(searchInput)
+    fireEvent.change(searchInput, { target: { value: 'kugkj' } })
+
+    expect(screen.getByText('No zones found')).toBeTruthy()
+    expect(screen.queryByText('No districts found')).toBeNull()
   })
 
   it('uses departmental subdivision selection for the leaf level', () => {
