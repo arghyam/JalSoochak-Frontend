@@ -288,7 +288,7 @@ export function AllStatesPerformanceChart({
     return () => {
       resizeObserver.disconnect()
     }
-  }, [updateThumbFromScroll])
+  }, [shouldScroll, updateThumbFromScroll])
 
   const handleThumbPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (!shouldScroll) return
@@ -319,10 +319,17 @@ export function AllStatesPerformanceChart({
     node.scrollLeft = (nextLeft / maxThumbTravel) * maxScroll
   }
 
-  const handleThumbPointerUp = (event: PointerEvent<HTMLDivElement>) => {
+  const cleanupThumbDrag = (event: PointerEvent<HTMLDivElement>) => {
     if (!isDraggingThumb.current) return
     isDraggingThumb.current = false
-    event.currentTarget.releasePointerCapture(event.pointerId)
+    const thumb = scrollbarThumbRef.current ?? event.currentTarget
+    if (thumb.hasPointerCapture(event.pointerId)) {
+      thumb.releasePointerCapture(event.pointerId)
+    }
+  }
+
+  const handleThumbPointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    cleanupThumbDrag(event)
   }
 
   useEffect(() => {
@@ -450,6 +457,7 @@ export function AllStatesPerformanceChart({
               onPointerDown={handleThumbPointerDown}
               onPointerMove={handleThumbPointerMove}
               onPointerUp={handleThumbPointerUp}
+              onPointerCancel={handleThumbPointerUp}
               onPointerLeave={handleThumbPointerUp}
             />
           </Box>

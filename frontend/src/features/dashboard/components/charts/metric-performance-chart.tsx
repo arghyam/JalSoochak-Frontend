@@ -402,7 +402,7 @@ export function MetricPerformanceChart({
     return () => {
       resizeObserver.disconnect()
     }
-  }, [updateThumbFromScroll])
+  }, [shouldScroll, updateThumbFromScroll])
 
   const handleThumbPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (!shouldScroll) return

@@ -14,6 +14,7 @@ import { ActionTooltip, EChartsWrapper, Toggle } from '@/shared/components/commo
 import { FiMaximize2, FiMinimize2 } from 'react-icons/fi'
 import { getBodyText6Style } from '@/shared/components/charts/chart-text-style'
 import type { EntityPerformance } from '../../types'
+import { slugify } from '../../utils/format-location-label'
 import {
   buildFeatureCollectionFromRegions,
   INDIA_NATIONAL_BOUNDARY_FEATURE_NAME,
@@ -198,10 +199,10 @@ export function IndiaMapChart({
         : []),
     ]
     const hoveredRegionId = hoveredRegion?.id?.trim()
-    const hoveredRegionName = hoveredRegion?.name.trim().toLowerCase()
+    const hoveredRegionName = hoveredRegion ? slugify(hoveredRegion.name) : ''
     const mapSeries = data.map((state) => {
       const stateId = state.id?.trim()
-      const stateName = state.name.trim().toLowerCase()
+      const stateName = slugify(state.name)
       const isExternallyHovered = Boolean(
         hoveredRegion &&
         ((hoveredRegionId && stateId && hoveredRegionId === stateId) ||
