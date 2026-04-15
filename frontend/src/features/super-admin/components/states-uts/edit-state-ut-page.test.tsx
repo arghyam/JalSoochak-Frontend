@@ -23,6 +23,11 @@ const mockAdmin: UserAdminData = {
   status: 'active',
 }
 
+const mockPendingAdmin: UserAdminData = {
+  ...mockAdmin,
+  status: 'pending',
+}
+
 const mockNavigate = jest.fn()
 
 jest.mock('react-router-dom', () => ({
@@ -179,5 +184,13 @@ describe('EditStateUTPage', () => {
     await waitFor(() => {
       expect(mockStatusMutateAsync).toHaveBeenCalledWith({ id: 1, status: 'SUSPENDED' })
     })
+  })
+
+  it('disables admin toggle when status is pending', () => {
+    mockUseStateAdminsByTenantQuery.mockReturnValue({ data: [mockPendingAdmin], isLoading: false })
+    renderWithProviders(<EditStateUTPage />)
+
+    const toggle = screen.getByRole('checkbox', { name: /activated raj/i }) as HTMLInputElement
+    expect(toggle.disabled).toBe(true)
   })
 })

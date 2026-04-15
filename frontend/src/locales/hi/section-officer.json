@@ -138,7 +138,14 @@
         "lastSubmission": "अंतिम प्रस्तुति"
       },
       "viewTooltip": "पंप ऑपरेटर देखें",
-      "downloadAttendance": "उपस्थिति"
+      "downloadAttendance": "उपस्थिति",
+      "attendanceModal": {
+        "title": "उपस्थिति डाउनलोड करें",
+        "dateRangeLabel": "अवधि चुनें",
+        "dateRangePlaceholder": "अवधि चुनें",
+        "cancel": "रद्द करें",
+        "download": "डाउनलोड करें"
+      }
     },
     "anomalies": {
       "heading": "विसंगतियां",

@@ -138,7 +138,14 @@
         "lastSubmission": "Last submission"
       },
       "viewTooltip": "View pump operator",
-      "downloadAttendance": "Attendance"
+      "downloadAttendance": "Attendance",
+      "attendanceModal": {
+        "title": "Download Attendance",
+        "dateRangeLabel": "Select Duration",
+        "dateRangePlaceholder": "Select duration",
+        "cancel": "Cancel",
+        "download": "Download"
+      }
     },
     "anomalies": {
       "heading": "Anomalies",
