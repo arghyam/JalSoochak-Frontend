@@ -72,8 +72,8 @@ describe('pumpOperatorsApi.getPumpOperatorsList', () => {
         size: 10,
         name: 'ravi',
         status: 'ACTIVE',
-        startDate: '2026-01-01',
-        endDate: '2026-03-31',
+        start_date: '2026-01-01',
+        end_date: '2026-03-31',
       },
     })
   })
@@ -91,8 +91,8 @@ describe('pumpOperatorsApi.getPumpOperatorsList', () => {
     const callParams = mockGet.mock.calls[0][1] as { params: Record<string, unknown> }
     expect(callParams.params).not.toHaveProperty('name')
     expect(callParams.params).not.toHaveProperty('status')
-    expect(callParams.params).not.toHaveProperty('startDate')
-    expect(callParams.params).not.toHaveProperty('endDate')
+    expect(callParams.params).not.toHaveProperty('start_date')
+    expect(callParams.params).not.toHaveProperty('end_date')
   })
 
   it('propagates API errors', async () => {
