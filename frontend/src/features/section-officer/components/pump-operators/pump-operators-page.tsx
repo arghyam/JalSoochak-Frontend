@@ -143,6 +143,7 @@ export function PumpOperatorsPage() {
                 cursor="default"
                 overflow="hidden"
                 textOverflow="ellipsis"
+                whiteSpace="nowrap"
               >
                 {firstName}{' '}
                 <Text as="span" color="primary.500" fontWeight="500">

@@ -117,6 +117,7 @@ export function SchemesPage() {
                 cursor="default"
                 overflow="hidden"
                 textOverflow="ellipsis"
+                whiteSpace="nowrap"
               >
                 {first}{' '}
                 <Text as="span" color="primary.500" fontWeight="500">
