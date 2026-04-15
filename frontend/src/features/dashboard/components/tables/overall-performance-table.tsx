@@ -170,10 +170,10 @@ export function OverallPerformanceTable({
                       onClick={() => handleSort('regularity')}
                       display="flex"
                       alignItems="center"
-                      justifyContent="center"
+                      justifyContent="flex-start"
                       gap={1}
                       cursor="pointer"
-                      textAlign="center"
+                      textAlign="left"
                       width="100%"
                       minW={0}
                       bg="none"
@@ -209,10 +209,10 @@ export function OverallPerformanceTable({
                       onClick={() => handleSort('coverage')}
                       display="flex"
                       alignItems="center"
-                      justifyContent="center"
+                      justifyContent="flex-start"
                       gap={1}
                       cursor="pointer"
-                      textAlign="center"
+                      textAlign="left"
                       width="100%"
                       minW={0}
                       bg="none"
@@ -248,10 +248,10 @@ export function OverallPerformanceTable({
                       onClick={() => handleSort('quantity')}
                       display="flex"
                       alignItems="center"
-                      justifyContent="center"
+                      justifyContent="flex-start"
                       gap={1}
                       cursor="pointer"
-                      textAlign="center"
+                      textAlign="left"
                       width="100%"
                       minW={0}
                       bg="none"
@@ -293,7 +293,7 @@ export function OverallPerformanceTable({
                     textAlign: 'left',
                   },
                   'td:not(:first-of-type)': {
-                    textAlign: 'center',
+                    textAlign: 'left',
                   },
                 }}
               >
