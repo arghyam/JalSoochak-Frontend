@@ -306,7 +306,7 @@ export function OverallPerformanceTable({
                     onClick={onRowClick ? () => onRowClick(state) : undefined}
                     onMouseEnter={onRowHover ? () => onRowHover(state) : undefined}
                     onMouseLeave={onRowHover ? () => onRowHover(null) : undefined}
-                    tabIndex={onRowClick ? 0 : undefined}
+                    tabIndex={onRowHover ? 0 : undefined}
                     role={onRowClick ? 'button' : undefined}
                     onKeyDown={onRowClick ? (event) => handleRowKeyDown(event, state) : undefined}
                     onFocus={onRowHover ? () => onRowHover(state) : undefined}

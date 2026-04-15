@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, FocusEvent, MouseEvent, PointerEvent, ReactNode } from 'react'
 import type { ButtonProps, InputProps } from '@chakra-ui/react'
 import {
@@ -100,6 +100,7 @@ export function SearchLayout({
   }))
   const [isBreadcrumbPanelOpen, setIsBreadcrumbPanelOpen] = useState(false)
   const [selectedStateValue, setSelectedStateValue] = useState('')
+  const lastSeenResetRef = useRef<SearchLayoutProps['resetSearchTrigger']>()
   const panelContainerRef = useRef<HTMLDivElement>(null)
   const inputGroupRef = useRef<HTMLDivElement>(null)
   const dropdownPanelRef = useRef<HTMLDivElement>(null)
@@ -136,7 +137,9 @@ export function SearchLayout({
     ? t('searchLayout.search', 'Search')
     : resolvedPlaceholder
   const resolvedActionLabel = actionLabel ?? t('searchLayout.downloadReport', 'Download Report')
-  const internalSearchValue = searchState.resetToken === resetSearchTrigger ? searchState.value : ''
+  const shouldUseInternalSearchValue =
+    searchState.resetToken === resetSearchTrigger && lastSeenResetRef.current !== resetSearchTrigger // eslint-disable-line react-hooks/refs
+  const internalSearchValue = shouldUseInternalSearchValue ? searchState.value : ''
   const inputValue =
     inputProps?.value !== undefined ? String(inputProps.value ?? '') : internalSearchValue
   const selectedState = useMemo(
@@ -184,11 +187,23 @@ export function SearchLayout({
   }, [effectiveActiveTrailIndex, effectiveSelectionTrail])
 
   const setInternalSearchValue = (value: string) => {
+    // Local typing should always reflect immediately for the active reset token.
+    if (value !== '' && lastSeenResetRef.current === resetSearchTrigger) {
+      lastSeenResetRef.current = undefined
+    }
     setSearchState({
       value,
       resetToken: resetSearchTrigger,
     })
   }
+
+  useEffect(() => {
+    if (searchState.resetToken === resetSearchTrigger) {
+      return
+    }
+    // Mark the reset token as consumed so repeating the same trigger won't revive stale text.
+    lastSeenResetRef.current = resetSearchTrigger
+  }, [searchState.resetToken, resetSearchTrigger])
 
   const setBreadcrumbPanelOpen = (isOpen: boolean) => {
     if (isBreadcrumbPanelOpen === isOpen) {
