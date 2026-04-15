@@ -31,6 +31,15 @@ import { usePumpOperatorsListQuery } from '../../services/query/use-pump-operato
 import { formatTimestamp } from '../../services/api/schemes-api'
 import type { PumpOperatorListItem } from '../../types/pump-operators'
 
+function getDefaultDateRange(): DateRange {
+  const now = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const toIso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  const start = new Date(now)
+  start.setDate(now.getDate() - 29)
+  return { startDate: toIso(start), endDate: toIso(now) }
+}
+
 export function PumpOperatorsPage() {
   const { t } = useTranslation('section-officer')
   const navigate = useNavigate()
@@ -38,7 +47,7 @@ export function PumpOperatorsPage() {
   const [pageSize, setPageSize] = useState(10)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
-  const [dateRange, setDateRange] = useState<DateRange | null>(null)
+  const [dateRange, setDateRange] = useState<DateRange>(() => getDefaultDateRange())
 
   const debouncedSearch = useDebounce(searchQuery, 400)
 
@@ -48,12 +57,12 @@ export function PumpOperatorsPage() {
     setPage(1)
   }
 
-  const hasActiveFilters = Boolean(searchQuery || statusFilter || dateRange)
+  const hasActiveFilters = Boolean(searchQuery || statusFilter)
 
   function clearAllFilters() {
     setSearchQuery('')
     setStatusFilter('')
-    setDateRange(null)
+    setDateRange(getDefaultDateRange())
     setPage(1)
   }
 
@@ -67,8 +76,8 @@ export function PumpOperatorsPage() {
     pageSize,
     debouncedSearch,
     statusFilter,
-    dateRange?.startDate ?? '',
-    dateRange?.endDate ?? ''
+    dateRange.startDate,
+    dateRange.endDate
   )
 
   useEffect(() => {
@@ -287,8 +296,10 @@ export function PumpOperatorsPage() {
         <DateRangePicker
           value={dateRange}
           onChange={(val) => {
-            setDateRange(val)
-            setPage(1)
+            if (val) {
+              setDateRange(val)
+              setPage(1)
+            }
           }}
           placeholder={t('pages.pumpOperators.filterDuration')}
           width="160px"
