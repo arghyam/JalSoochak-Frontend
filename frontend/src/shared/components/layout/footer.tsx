@@ -110,7 +110,16 @@ export function Footer() {
                 fontSize="sm"
                 _hover={{ textDecoration: 'underline' }}
               >
-                {t('footer.fieldOfficialLogin')}
+                {t('footer.subDivisionalOfficerLogin')}
+              </Link>
+              <Link
+                as={RouterLink}
+                to={ROUTES.STAFF_LOGIN}
+                color="primary.500"
+                fontSize="sm"
+                _hover={{ textDecoration: 'underline' }}
+              >
+                {t('footer.sectionOfficerLogin')}
               </Link>
               <Link
                 href="https://jalsoochak.in/"
