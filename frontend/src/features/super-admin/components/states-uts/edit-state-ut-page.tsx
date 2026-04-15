@@ -16,7 +16,13 @@ import {
 } from '@chakra-ui/react'
 import { EditIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
-import { ToastContainer, SearchableSelect, PageHeader, Toggle } from '@/shared/components/common'
+import {
+  ToastContainer,
+  SearchableSelect,
+  PageHeader,
+  Toggle,
+  ActionTooltip,
+} from '@/shared/components/common'
 import { TENANT_STATUSES, type TenantStatus } from '../../types/states-uts'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ROUTES } from '@/shared/constants/routes'
@@ -443,6 +449,11 @@ export function EditStateUTPage() {
                   const adminHeadingId = `admin-details-heading-${admin.id}`
                   const currentAdminStatus = adminStatuses[admin.id] ?? admin.status
                   const isTogglingThisAdmin = statusTogglingId === admin.id
+                  const isPendingRegistration = currentAdminStatus === 'pending'
+                  const isToggleDisabled =
+                    updateUserStatusMutation.isPending ||
+                    isTogglingThisAdmin ||
+                    isPendingRegistration
                   return (
                     <Box key={admin.id}>
                       <Flex justify="space-between" align="center" mb={4}>
@@ -451,18 +462,32 @@ export function EditStateUTPage() {
                         </Heading>
                         <Flex align="center" gap={2}>
                           <Text textStyle="h10">{t('statesUts.statusSection.activated')}</Text>
-                          <Toggle
-                            isChecked={currentAdminStatus === 'active'}
-                            onChange={() =>
-                              void handleAdminStatusToggle(admin.id, currentAdminStatus)
-                            }
-                            isDisabled={
-                              updateUserStatusMutation.isPending ||
-                              isTogglingThisAdmin ||
-                              currentAdminStatus === 'pending'
-                            }
-                            aria-label={`${t('statesUts.statusSection.activated')} ${admin.firstName}`}
-                          />
+                          {isPendingRegistration ? (
+                            <ActionTooltip
+                              label={t('statesUts.messages.adminRegistrationPending')}
+                              shouldWrapChildren
+                            >
+                              <Box as="span">
+                                <Toggle
+                                  isChecked={false}
+                                  onChange={() =>
+                                    void handleAdminStatusToggle(admin.id, currentAdminStatus)
+                                  }
+                                  isDisabled={isToggleDisabled}
+                                  aria-label={`${t('statesUts.statusSection.activated')} ${admin.firstName}`}
+                                />
+                              </Box>
+                            </ActionTooltip>
+                          ) : (
+                            <Toggle
+                              isChecked={currentAdminStatus === 'active'}
+                              onChange={() =>
+                                void handleAdminStatusToggle(admin.id, currentAdminStatus)
+                              }
+                              isDisabled={isToggleDisabled}
+                              aria-label={`${t('statesUts.statusSection.activated')} ${admin.firstName}`}
+                            />
+                          )}
                         </Flex>
                       </Flex>
                       <SimpleGrid
