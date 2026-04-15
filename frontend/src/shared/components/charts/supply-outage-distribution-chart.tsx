@@ -522,7 +522,7 @@ export function SupplyOutageDistributionChart({
             ref={scrollbarTrackRef}
             style={{
               height: '4px',
-              background: 'transparent',
+              background: 'var(--chakra-colors-neutral-200)',
               borderRadius: '999px',
               position: 'relative',
             }}
