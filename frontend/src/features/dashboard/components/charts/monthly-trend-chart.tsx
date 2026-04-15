@@ -399,7 +399,8 @@ export function MonthlyTrendChart({
     if (!node || !thumb) return
     const trackWidth = getTrackWidth()
     if (trackWidth === 0) return
-    const thumbWidth = Math.min(163, trackWidth)
+    const ratio = node.scrollWidth > 0 ? node.clientWidth / node.scrollWidth : 1
+    const thumbWidth = Math.max(30, Math.floor(trackWidth * ratio))
     const maxThumbTravel = Math.max(0, trackWidth - thumbWidth)
     const maxScroll = node.scrollWidth - node.clientWidth
     const nextLeft =
@@ -453,7 +454,8 @@ export function MonthlyTrendChart({
     if (!node) return
     const trackWidth = getTrackWidth()
     if (trackWidth === 0) return
-    const thumbWidth = Math.min(163, trackWidth)
+    const ratio = node.scrollWidth > 0 ? node.clientWidth / node.scrollWidth : 1
+    const thumbWidth = Math.max(30, Math.floor(trackWidth * ratio))
     const maxThumbTravel = Math.max(0, trackWidth - thumbWidth)
     if (maxThumbTravel === 0) return
     const delta = event.clientX - dragStartX.current
@@ -649,9 +651,9 @@ export function MonthlyTrendChart({
               position="absolute"
               top={0}
               height="4px"
-              width="163px"
+              width="30px"
               maxW="100%"
-              bg="neutral.300"
+              bg="primary.300"
               borderRadius="999px"
               cursor="grab"
               ref={scrollbarThumbRef}

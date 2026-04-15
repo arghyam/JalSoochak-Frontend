@@ -346,7 +346,8 @@ export function SupplyOutageDistributionChart({
     if (!node || !thumb) return
     const trackWidth = getTrackWidth()
     if (trackWidth === 0) return
-    const thumbWidth = Math.min(163, trackWidth)
+    const ratio = node.scrollWidth > 0 ? node.clientWidth / node.scrollWidth : 1
+    const thumbWidth = Math.max(30, Math.floor(trackWidth * ratio))
     const maxThumbTravel = Math.max(0, trackWidth - thumbWidth)
     const maxScroll = node.scrollWidth - node.clientWidth
     const nextLeft =
@@ -394,7 +395,8 @@ export function SupplyOutageDistributionChart({
     if (!node) return
     const trackWidth = getTrackWidth()
     if (trackWidth === 0) return
-    const thumbWidth = Math.min(163, trackWidth)
+    const ratio = node.scrollWidth > 0 ? node.clientWidth / node.scrollWidth : 1
+    const thumbWidth = Math.max(30, Math.floor(trackWidth * ratio))
     const maxThumbTravel = Math.max(0, trackWidth - thumbWidth)
     if (maxThumbTravel === 0) return
     const delta = e.clientX - dragStartX.current
@@ -537,9 +539,9 @@ export function SupplyOutageDistributionChart({
                 position: 'absolute',
                 top: 0,
                 height: '4px',
-                width: '163px',
+                width: '30px',
                 maxWidth: '100%',
-                background: '#E4E4E7',
+                background: 'var(--chakra-colors-primary-300)',
                 borderRadius: '999px',
                 cursor: 'grab',
               }}

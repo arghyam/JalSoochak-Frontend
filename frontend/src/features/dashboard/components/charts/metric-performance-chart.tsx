@@ -363,7 +363,8 @@ export function MetricPerformanceChart({
     if (!node || !thumb) return
     const trackWidth = getTrackWidth()
     if (trackWidth === 0) return
-    const thumbWidth = Math.min(163, trackWidth)
+    const ratio = node.scrollWidth > 0 ? node.clientWidth / node.scrollWidth : 1
+    const thumbWidth = Math.max(30, Math.floor(trackWidth * ratio))
     const maxThumbTravel = Math.max(0, trackWidth - thumbWidth)
     const maxScroll = node.scrollWidth - node.clientWidth
     const nextLeft =
@@ -417,7 +418,8 @@ export function MetricPerformanceChart({
     if (!node) return
     const trackWidth = getTrackWidth()
     if (trackWidth === 0) return
-    const thumbWidth = Math.min(163, trackWidth)
+    const ratio = node.scrollWidth > 0 ? node.clientWidth / node.scrollWidth : 1
+    const thumbWidth = Math.max(30, Math.floor(trackWidth * ratio))
     const maxThumbTravel = Math.max(0, trackWidth - thumbWidth)
     if (maxThumbTravel === 0) return
     const delta = event.clientX - dragStartX.current
@@ -619,33 +621,35 @@ export function MetricPerformanceChart({
           </div>
         ))}
       </div>
-      <Box mt="6px" mb="0">
-        <Box
-          ref={scrollbarTrackRef}
-          height="4px"
-          bg="neutral.200"
-          borderRadius="999px"
-          position="relative"
-        >
+      {shouldScroll ? (
+        <Box mt="6px" mb="0">
           <Box
-            role="presentation"
-            position="absolute"
-            top={0}
+            ref={scrollbarTrackRef}
             height="4px"
-            width="163px"
-            maxW="100%"
-            bg="neutral.300"
+            bg="neutral.200"
             borderRadius="999px"
-            cursor={shouldScroll ? 'grab' : 'default'}
-            ref={scrollbarThumbRef}
-            onPointerDown={handleThumbPointerDown}
-            onPointerMove={handleThumbPointerMove}
-            onPointerUp={handleThumbPointerUp}
-            onPointerLeave={handleThumbPointerUp}
-            onPointerCancel={handleThumbPointerCancel}
-          />
+            position="relative"
+          >
+            <Box
+              role="presentation"
+              position="absolute"
+              top={0}
+              height="4px"
+              width="30px"
+              maxW="100%"
+              bg="primary.300"
+              borderRadius="999px"
+              cursor="grab"
+              ref={scrollbarThumbRef}
+              onPointerDown={handleThumbPointerDown}
+              onPointerMove={handleThumbPointerMove}
+              onPointerUp={handleThumbPointerUp}
+              onPointerLeave={handleThumbPointerUp}
+              onPointerCancel={handleThumbPointerCancel}
+            />
+          </Box>
         </Box>
-      </Box>
+      ) : null}
     </div>
   )
 }
