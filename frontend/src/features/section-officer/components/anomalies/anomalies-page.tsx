@@ -13,6 +13,7 @@ import {
 } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
 import { useDebounce } from '@/shared/hooks/use-debounce'
+import { formatScreamingSnakeCase } from '@/shared/utils/string-format'
 import {
   DataTable,
   PageHeader,
@@ -120,7 +121,7 @@ export function AnomaliesPage() {
       header: t('pages.anomalies.columns.anomalyType'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
-          {row.type ?? '—'}
+          {row.type ? formatScreamingSnakeCase(row.type) : '—'}
         </Text>
       ),
     },
