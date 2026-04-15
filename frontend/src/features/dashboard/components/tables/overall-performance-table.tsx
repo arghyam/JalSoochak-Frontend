@@ -11,6 +11,7 @@ interface OverallPerformanceTableProps {
   scrollMaxHeight?: string
   entityLabel?: string
   onRowClick?: (row: EntityPerformance) => void
+  onRowHover?: (row: EntityPerformance | null) => void
 }
 
 type SortColumn = 'name' | 'coverage' | 'quantity' | 'regularity' | null
@@ -22,6 +23,7 @@ export function OverallPerformanceTable({
   scrollMaxHeight = '416px',
   entityLabel,
   onRowClick,
+  onRowHover,
 }: OverallPerformanceTableProps) {
   const { t } = useTranslation('dashboard')
   const [sortColumn, setSortColumn] = useState<SortColumn>('name')
@@ -302,9 +304,13 @@ export function OverallPerformanceTable({
                     cursor={onRowClick ? 'pointer' : 'default'}
                     _hover={onRowClick ? { bg: 'primary.50' } : undefined}
                     onClick={onRowClick ? () => onRowClick(state) : undefined}
+                    onMouseEnter={onRowHover ? () => onRowHover(state) : undefined}
+                    onMouseLeave={onRowHover ? () => onRowHover(null) : undefined}
                     tabIndex={onRowClick ? 0 : undefined}
                     role={onRowClick ? 'button' : undefined}
                     onKeyDown={onRowClick ? (event) => handleRowKeyDown(event, state) : undefined}
+                    onFocus={onRowHover ? () => onRowHover(state) : undefined}
+                    onBlur={onRowHover ? () => onRowHover(null) : undefined}
                   >
                     <Td>
                       <Box

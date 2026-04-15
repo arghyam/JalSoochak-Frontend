@@ -315,9 +315,9 @@ const mapNationalBoundariesToPerformance = (
       id: fallbackMatch?.id ?? String(region.tenantId || stateLgdCode || index),
       name: region.stateTitle || fallbackMatch?.name || `State ${index + 1}`,
       coverage: fallbackMatch?.coverage ?? 0,
-      regularity: fallbackMatch?.regularity ?? 0,
+      regularity: fallbackMatch?.regularity ?? -1,
       continuity: fallbackMatch?.continuity ?? 0,
-      quantity: fallbackMatch?.quantity ?? 0,
+      quantity: fallbackMatch?.quantity ?? -1,
       compositeScore: fallbackMatch?.compositeScore ?? 0,
       status: fallbackMatch?.status ?? 'needs-attention',
       boundaryGeoJson: region.boundary ?? null,
@@ -624,6 +624,8 @@ export function CentralDashboard() {
   )
   const [isMapFullscreen, setIsMapFullscreen] = useState(false)
   const [isMapRegularityView, setIsMapRegularityView] = useState(true)
+  const [hoveredOverallPerformanceRow, setHoveredOverallPerformanceRow] =
+    useState<EntityPerformance | null>(null)
   const [isDurationCleared, setIsDurationCleared] = useState(false)
   const [selectedScheme, setSelectedScheme] = useState(storedFilters.selectedScheme ?? '')
   const [schemePerformancePagination, setSchemePerformancePagination] = useState<{
@@ -1783,6 +1785,21 @@ export function CentralDashboard() {
       : shouldRequireOverallPerformanceChildOptions
         ? emptyEntityPerformance
         : rawOverallPerformanceTableData
+  const normalizedHoveredOverallPerformanceId = hoveredOverallPerformanceRow?.id?.trim()
+  const normalizedHoveredOverallPerformanceName = hoveredOverallPerformanceRow
+    ? slugify(hoveredOverallPerformanceRow.name)
+    : null
+  const effectiveHoveredOverallPerformanceRow = hoveredOverallPerformanceRow
+    ? (overallPerformanceTableData.find((row) => {
+        const normalizedRowId = row.id?.trim()
+        return (
+          (normalizedHoveredOverallPerformanceId &&
+            normalizedRowId &&
+            normalizedHoveredOverallPerformanceId === normalizedRowId) ||
+          slugify(row.name) === normalizedHoveredOverallPerformanceName
+        )
+      }) ?? null)
+    : null
   const nationalDaysInRange = resolveDaysInRange(
     filteredNationalDashboardData?.daysInRange,
     filteredNationalDashboardData?.startDate,
@@ -2403,6 +2420,8 @@ export function CentralDashboard() {
   }
 
   const handleMapRegionClick = (regionId: string, regionName: string) => {
+    setHoveredOverallPerformanceRow(null)
+
     if (isCentralLandingView && !isDepartmentTabActive) {
       handleStateClick(regionId, regionName)
       return
@@ -2430,6 +2449,7 @@ export function CentralDashboard() {
   const handleOverallPerformanceRowClick = (row: EntityPerformance) => {
     setActiveTrailIndex(null)
     setSelectedScheme('')
+    setHoveredOverallPerformanceRow(null)
 
     if (isCentralLandingView && !isDepartmentTabActive) {
       handleStateClick(row.id, row.name)
@@ -2799,6 +2819,7 @@ export function CentralDashboard() {
         onFullscreenToggle={() => setIsMapFullscreen((previous) => !previous)}
         isRegularityView={isMapRegularityView}
         onRegularityViewChange={setIsMapRegularityView}
+        hoveredRegion={effectiveHoveredOverallPerformanceRow}
         height="100%"
       />
     </Box>
@@ -2893,6 +2914,7 @@ export function CentralDashboard() {
               entityLabel={overallPerformanceEntityLabel}
               scrollMaxHeight={overallPerformanceScrollHeight}
               onRowClick={handleOverallPerformanceRowClick}
+              onRowHover={setHoveredOverallPerformanceRow}
             />
           </Box>
         </Grid>

@@ -96,7 +96,11 @@ describe('IndiaMapChart', () => {
 
     const latestOption = mockEChartsWrapper.mock.calls.at(-1)?.[0]?.option as {
       series?: Array<{
-        data?: Array<{ name?: string; silent?: boolean; itemStyle?: { borderColor?: string } }>
+        data?: Array<{
+          name?: string
+          silent?: boolean
+          itemStyle?: { borderColor?: string; borderWidth?: number }
+        }>
       }>
     }
     const overlay = latestOption.series?.[0]?.data?.find(
@@ -105,6 +109,7 @@ describe('IndiaMapChart', () => {
 
     expect(overlay?.silent).toBe(true)
     expect(overlay?.itemStyle?.borderColor).toBe('#1c1c1c')
+    expect(overlay?.itemStyle?.borderWidth).toBe(1)
     expect(mockRegisterMap).toHaveBeenCalledWith(
       'tenant-boundary-department-201',
       expect.objectContaining({
@@ -340,5 +345,25 @@ describe('IndiaMapChart', () => {
     const latestProps = mockEChartsWrapper.mock.calls.at(-1)?.[0] as Record<string, unknown>
     expect(latestProps.onChartReady).toBeTruthy()
     expect(latestProps.onChartReadyOnce).toBeUndefined()
+  })
+
+  it('applies hover bucket color directly when hoveredRegion matches a map row', () => {
+    mockGetMap.mockReturnValue({})
+
+    renderWithProviders(<IndiaMapChart data={chartData} hoveredRegion={chartData[0]} />)
+
+    const latestOption = mockEChartsWrapper.mock.calls.at(-1)?.[0]?.option as {
+      series?: Array<{
+        data?: Array<{
+          itemStyle?: { areaColor?: string; borderWidth?: number }
+          emphasis?: { itemStyle?: { areaColor?: string } }
+        }>
+      }>
+    }
+
+    expect(latestOption.series?.[0]?.data?.[0]?.itemStyle?.areaColor).toBe(
+      latestOption.series?.[0]?.data?.[0]?.emphasis?.itemStyle?.areaColor
+    )
+    expect(latestOption.series?.[0]?.data?.[0]?.itemStyle?.borderWidth).toBe(1)
   })
 })
