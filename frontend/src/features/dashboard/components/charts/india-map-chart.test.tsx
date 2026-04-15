@@ -108,7 +108,7 @@ describe('IndiaMapChart', () => {
     )
 
     expect(overlay?.silent).toBe(true)
-    expect(overlay?.itemStyle?.borderColor).toBe('#1c1c1c')
+    expect(overlay?.itemStyle?.borderColor).toBe('#51525c')
     expect(overlay?.itemStyle?.borderWidth).toBe(1)
     expect(mockRegisterMap).toHaveBeenCalledWith(
       'tenant-boundary-department-201',
