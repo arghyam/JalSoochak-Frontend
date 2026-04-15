@@ -177,7 +177,8 @@ describe('SchemesPage', () => {
     renderPage()
     expect(screen.getByText('Test Scheme 1')).toBeTruthy()
     expect(screen.getByText('SS-001')).toBeTruthy()
-    expect(screen.getByText('Op A, Op B')).toBeTruthy()
+    expect(screen.getByText('Op A')).toBeTruthy()
+    expect(screen.getByText('+1')).toBeTruthy()
     expect(screen.getByText('2722')).toBeTruthy()
   })
 
@@ -191,6 +192,19 @@ describe('SchemesPage', () => {
     renderPage()
     const dashes = screen.getAllByText('—')
     expect(dashes.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('shows plain name for single pump operator', () => {
+    const singleOpScheme = [{ ...MOCK_SCHEMES[0], pumpOperatorNames: ['Op A'] }]
+    mockUseSchemesListQuery.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: { content: singleOpScheme, totalElements: 1 },
+      refetch: jest.fn(),
+    })
+    renderPage()
+    expect(screen.getByText('Op A')).toBeTruthy()
+    expect(screen.queryByText(/^\+\d/)).toBeNull()
   })
 
   it('renders search input', () => {

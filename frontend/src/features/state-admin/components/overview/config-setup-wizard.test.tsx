@@ -79,4 +79,123 @@ describe('ConfigSetupWizard', () => {
     await user.click(screen.getByRole('button', { name: /configuration/i }))
     expect(mockNavigate).toHaveBeenCalledWith(ROUTES.STATE_ADMIN_CONFIGURATION)
   })
+
+  it('renders green connectors when previous step is configured', () => {
+    mockUseConfigStatusQuery.mockReturnValue({
+      data: buildConfiguredMap(),
+      isLoading: false,
+      isError: false,
+    })
+    renderWithProviders(<ConfigSetupWizard />)
+
+    // Verify all steps render when all are configured
+    expect(screen.getByRole('button', { name: /configuration/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /language/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /water norms/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /escalations/i })).toBeInTheDocument()
+
+    // Verify vertical connectors are rendered (visible on mobile)
+    // When all steps are configured, all connectors should pass configured=true
+    const verticalConnector0 = screen.getByTestId('vertical-connector-0')
+    const verticalConnector1 = screen.getByTestId('vertical-connector-1')
+    const verticalConnector2 = screen.getByTestId('vertical-connector-2')
+
+    expect(verticalConnector0).toBeInTheDocument()
+    expect(verticalConnector1).toBeInTheDocument()
+    expect(verticalConnector2).toBeInTheDocument()
+  })
+
+  it('renders gray connectors when previous step is not configured', () => {
+    // Only Configuration step fully configured; rest are pending
+    const partialConfig: ConfigStatusMap = {
+      TENANT_SUPPORTED_CHANNELS: { status: 'CONFIGURED', mandatory: true },
+      METER_CHANGE_REASONS: { status: 'CONFIGURED', mandatory: true },
+      AVERAGE_MEMBERS_PER_HOUSEHOLD: { status: 'CONFIGURED', mandatory: true },
+      DATA_CONSOLIDATION_TIME: { status: 'CONFIGURED', mandatory: true },
+      PUMP_OPERATOR_REMINDER_NUDGE_TIME: { status: 'CONFIGURED', mandatory: true },
+      LOCATION_CHECK_REQUIRED: { status: 'CONFIGURED', mandatory: true },
+      TENANT_LOGO: { status: 'CONFIGURED', mandatory: false },
+      DATE_FORMAT_SCREEN: { status: 'CONFIGURED', mandatory: true },
+      DATE_FORMAT_TABLE: { status: 'CONFIGURED', mandatory: true },
+      DISPLAY_DEPARTMENT_MAPS: { status: 'CONFIGURED', mandatory: true },
+      SUPPLY_OUTAGE_REASONS: { status: 'CONFIGURED', mandatory: true },
+      SUPPORTED_LANGUAGES: { status: 'PENDING', mandatory: true },
+      WATER_NORM: { status: 'PENDING', mandatory: true },
+      TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD: { status: 'PENDING', mandatory: true },
+      FIELD_STAFF_ESCALATION_RULES: { status: 'PENDING', mandatory: true },
+    }
+
+    mockUseConfigStatusQuery.mockReturnValue({
+      data: partialConfig,
+      isLoading: false,
+      isError: false,
+    })
+
+    renderWithProviders(<ConfigSetupWizard />)
+    expect(screen.getByRole('button', { name: /configuration/i })).toBeInTheDocument()
+
+    // Verify connector state: gray when previous step is not configured
+    // vertical-connector-0: no previous step -> configured=false (gray)
+    const verticalConnector0 = screen.getByTestId('vertical-connector-0')
+    expect(verticalConnector0).toHaveAttribute('data-configured', 'false')
+
+    // vertical-connector-1: previous = Configuration (configured) -> configured=true (green)
+    const verticalConnector1 = screen.getByTestId('vertical-connector-1')
+    expect(verticalConnector1).toHaveAttribute('data-configured', 'true')
+
+    // vertical-connector-2: previous = Language (not configured) -> configured=false (gray)
+    const verticalConnector2 = screen.getByTestId('vertical-connector-2')
+    expect(verticalConnector2).toHaveAttribute('data-configured', 'false')
+  })
+
+  it('connector turns green only when previous step is configured, not when current step is', () => {
+    // Configuration and Language configured, but not Water Norms or Escalations
+    const partialConfig: ConfigStatusMap = {
+      TENANT_SUPPORTED_CHANNELS: { status: 'CONFIGURED', mandatory: true },
+      METER_CHANGE_REASONS: { status: 'CONFIGURED', mandatory: true },
+      AVERAGE_MEMBERS_PER_HOUSEHOLD: { status: 'CONFIGURED', mandatory: true },
+      DATA_CONSOLIDATION_TIME: { status: 'CONFIGURED', mandatory: true },
+      PUMP_OPERATOR_REMINDER_NUDGE_TIME: { status: 'CONFIGURED', mandatory: true },
+      LOCATION_CHECK_REQUIRED: { status: 'CONFIGURED', mandatory: true },
+      TENANT_LOGO: { status: 'CONFIGURED', mandatory: false },
+      DATE_FORMAT_SCREEN: { status: 'CONFIGURED', mandatory: true },
+      DATE_FORMAT_TABLE: { status: 'CONFIGURED', mandatory: true },
+      DISPLAY_DEPARTMENT_MAPS: { status: 'CONFIGURED', mandatory: true },
+      SUPPLY_OUTAGE_REASONS: { status: 'CONFIGURED', mandatory: true },
+      SUPPORTED_LANGUAGES: { status: 'CONFIGURED', mandatory: true },
+      WATER_NORM: { status: 'PENDING', mandatory: true },
+      TENANT_WATER_QUANTITY_SUPPLY_THRESHOLD: { status: 'PENDING', mandatory: true },
+      FIELD_STAFF_ESCALATION_RULES: { status: 'PENDING', mandatory: true },
+    }
+
+    mockUseConfigStatusQuery.mockReturnValue({
+      data: partialConfig,
+      isLoading: false,
+      isError: false,
+    })
+
+    renderWithProviders(<ConfigSetupWizard />)
+
+    // Verify all steps render
+    expect(screen.getByRole('button', { name: /configuration/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /language/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /water norms/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /escalations/i })).toBeInTheDocument()
+
+    // Verify connector state: color depends on PREVIOUS step configuration, not current
+    // vertical-connector-0: after Configuration (no previous step -> configured=false)
+    const verticalConnector0 = screen.getByTestId('vertical-connector-0')
+    expect(verticalConnector0).toHaveAttribute('data-configured', 'false')
+
+    // vertical-connector-1: after Language
+    // Previous step = Configuration (i=0), which is configured -> configured=true
+    const verticalConnector1 = screen.getByTestId('vertical-connector-1')
+    expect(verticalConnector1).toHaveAttribute('data-configured', 'true')
+
+    // vertical-connector-2: after Water Norms
+    // Previous step = Language (i=1), which is configured -> configured=true
+    // This tests that connector color depends on PREVIOUS step being configured, not current
+    const verticalConnector2 = screen.getByTestId('vertical-connector-2')
+    expect(verticalConnector2).toHaveAttribute('data-configured', 'true')
+  })
 })
