@@ -70,7 +70,7 @@ interface SearchLayoutProps {
   breadcrumbPanelProps?: BreadcrumbPanelProps
   selectionTrail?: string[]
   activeTrailIndex?: number | null
-  resetSearchTrigger?: number
+  resetSearchTrigger?: string | number
 }
 
 export function SearchLayout({

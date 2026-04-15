@@ -189,6 +189,70 @@ describe('DashboardFilters', () => {
     expect((searchInput as HTMLInputElement).value).toBe('')
   })
 
+  it('clears search input text when selected location changes externally', () => {
+    const Harness = () => {
+      const [selectedState, setSelectedState] = useState('')
+
+      return (
+        <>
+          <button type="button" onClick={() => setSelectedState('bihar')}>
+            select bihar
+          </button>
+          <DashboardFilters
+            filterTabIndex={0}
+            onTabChange={jest.fn()}
+            onClear={jest.fn()}
+            isAdvancedEnabled={true}
+            isDepartmentStateSelected={false}
+            emptyOptions={emptyOptions}
+            selectedState={selectedState}
+            selectedDistrict=""
+            selectedBlock=""
+            selectedGramPanchayat=""
+            selectedVillage=""
+            selectedScheme=""
+            selectedDuration={null}
+            selectedDepartmentState=""
+            selectedDepartmentZone=""
+            selectedDepartmentCircle=""
+            selectedDepartmentDivision=""
+            selectedDepartmentSubdivision=""
+            selectedDepartmentVillage=""
+            districtOptions={emptyOptions}
+            blockOptions={emptyOptions}
+            gramPanchayatOptions={emptyOptions}
+            villageOptions={emptyOptions}
+            mockFilterStates={emptyOptions}
+            mockFilterSchemes={emptyOptions}
+            onStateChange={jest.fn()}
+            onDistrictChange={jest.fn()}
+            onBlockChange={jest.fn()}
+            onGramPanchayatChange={jest.fn()}
+            setSelectedVillage={jest.fn()}
+            setSelectedScheme={jest.fn()}
+            setSelectedDuration={jest.fn()}
+            onDepartmentStateChange={jest.fn()}
+            setSelectedDepartmentZone={jest.fn()}
+            setSelectedDepartmentCircle={jest.fn()}
+            setSelectedDepartmentDivision={jest.fn()}
+            setSelectedDepartmentSubdivision={jest.fn()}
+            setSelectedDepartmentVillage={jest.fn()}
+          />
+        </>
+      )
+    }
+
+    renderWithProviders(<Harness />)
+
+    const searchInput = screen.getByRole('textbox')
+    fireEvent.change(searchInput, { target: { value: 'assam' } })
+    expect((searchInput as HTMLInputElement).value).toBe('assam')
+
+    fireEvent.click(screen.getByRole('button', { name: 'select bihar' }))
+
+    expect((searchInput as HTMLInputElement).value).toBe('')
+  })
+
   it('shows districts in breadcrumb search panel when state is already selected', () => {
     const districtOptions: SearchableSelectOption[] = [
       { value: 'sangareddy', label: 'Sangareddy' },

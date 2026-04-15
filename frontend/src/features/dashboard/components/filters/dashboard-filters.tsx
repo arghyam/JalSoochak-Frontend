@@ -190,7 +190,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   } = props
 
   const [isBreadcrumbPanelOpen, setIsBreadcrumbPanelOpen] = useState(false)
-  const [searchResetTrigger, setSearchResetTrigger] = useState(0)
+  const [manualSearchResetCounter, setManualSearchResetCounter] = useState(0)
   const { data: locationSearchData } = useLocationSearchQuery({
     enabled: isBreadcrumbPanelOpen,
   })
@@ -378,6 +378,16 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     findLabel(activeSelectedGramPanchayat, resolvedGramPanchayatOptions),
     findLabel(activeSelectedVillage, resolvedVillageOptions),
   ].filter((item): item is string => Boolean(item))
+  const selectionResetKey = [
+    filterTabIndex,
+    activeSelectedState,
+    activeSelectedDistrict,
+    activeSelectedBlock,
+    activeSelectedGramPanchayat,
+    activeSelectedVillage,
+  ].join('|')
+  const searchResetTrigger = `${selectionResetKey}|manual:${manualSearchResetCounter}`
+
   const hasHierarchySelection = selectionTrail.length > 0
   const hasActiveFilters = hasHierarchySelection || Boolean(selectedDuration)
   const clearButtonHoverStyles = hasActiveFilters
@@ -578,7 +588,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     setIsBreadcrumbPanelOpen(isOpen)
   }
   const handleClear = () => {
-    setSearchResetTrigger((value) => value + 1)
+    setManualSearchResetCounter((value) => value + 1)
     onClear()
   }
 
