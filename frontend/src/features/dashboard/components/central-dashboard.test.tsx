@@ -5740,6 +5740,121 @@ describe('CentralDashboard', () => {
     })
   })
 
+  it('drills from department division rows into subdivision without resetting to circle', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams(
+        'departmentZone=201:201:barak-valley-zone&departmentCircle=310:310:cachar-circle&departmentDivision=400:400:silchar-ii-division'
+      ),
+      jest.fn(),
+    ])
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        states: [
+          {
+            value: 'assam',
+            label: 'Assam',
+            tenantId: 17,
+            tenantCode: 'AS',
+          },
+        ],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockImplementation((args?: unknown) => {
+      const parentId = (args as { parentId?: number } | undefined)?.parentId
+
+      if (parentId === undefined) {
+        return {
+          data: {
+            data: [{ id: 501, title: 'Assam' }],
+          },
+        }
+      }
+
+      if (parentId === 501) {
+        return {
+          data: {
+            data: [{ id: 201, title: 'Barak Valley Zone' }],
+          },
+        }
+      }
+
+      if (parentId === 201) {
+        return {
+          data: {
+            data: [{ id: 310, title: 'Cachar Circle' }],
+          },
+        }
+      }
+
+      if (parentId === 310) {
+        return {
+          data: {
+            data: [{ id: 400, title: 'Silchar Ii Division' }],
+          },
+        }
+      }
+
+      if (parentId === 400) {
+        return {
+          data: {
+            data: [{ id: 489, title: 'Lakhipur' }],
+          },
+        }
+      }
+
+      return { data: undefined }
+    })
+    ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({
+      data: {
+        childAverageWaterSupplied: [
+          {
+            parentDepartmentId: 400,
+            childDepartmentId: 489,
+            childDepartmentTitle: 'Lakhipur',
+            averageWaterSuppliedInMl: 0.9,
+            averageWaterSuppliedInLpcd: 1.2,
+          },
+        ],
+      },
+    })
+    ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({
+      data: {
+        childAverageSchemeRegularity: [
+          {
+            parentDepartmentId: 400,
+            childDepartmentId: 489,
+            childDepartmentTitle: 'Lakhipur',
+            averageRegularityPercentage: 83.3,
+          },
+        ],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const tableProps = mockOverallPerformanceTable.mock.calls.at(-1)?.[0] as {
+      onRowClick: (row: { id: string; name: string }) => void
+    }
+
+    mockNavigate.mockClear()
+
+    act(() => {
+      tableProps.onRowClick({ id: '489', name: 'Lakhipur' })
+    })
+
+    expect(mockNavigate).toHaveBeenCalledWith({
+      pathname: '/as',
+      search:
+        '?departmentZone=201%3A201%3Abarak-valley-zone&departmentCircle=310%3A310%3Acachar-circle&departmentDivision=400%3A400%3Asilchar-ii-division&departmentSubdivision=489%3A489%3Alakhipur',
+    })
+  })
+
   it('uses the resolved root location id when the root location response omits lgdCode', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,

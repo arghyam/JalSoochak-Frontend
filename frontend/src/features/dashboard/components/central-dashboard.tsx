@@ -2397,6 +2397,8 @@ export function CentralDashboard() {
   const navigateToResolvedLocationValue = (selectedValue: string) => {
     if (isDepartmentTabActive) {
       if (isDepartmentSubdivisionSelected) {
+        handleDepartmentVillageChange(selectedValue)
+      } else if (isDepartmentDivisionSelected) {
         handleDepartmentSubdivisionChange(selectedValue)
       } else if (isDepartmentCircleSelected) {
         handleDepartmentDivisionChange(selectedValue)
