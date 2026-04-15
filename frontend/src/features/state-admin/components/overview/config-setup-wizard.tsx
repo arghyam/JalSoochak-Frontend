@@ -149,9 +149,10 @@ function StepNode({
 
 interface ConnectorProps {
   configured: boolean
+  'data-testid'?: string
 }
 
-function Connector({ configured }: Readonly<ConnectorProps>) {
+function Connector({ configured, 'data-testid': testId }: Readonly<ConnectorProps>) {
   return (
     <Box
       flex={1}
@@ -159,12 +160,24 @@ function Connector({ configured }: Readonly<ConnectorProps>) {
       bg={configured ? '#079455' : 'neutral.200'}
       mt="17px"
       alignSelf="flex-start"
+      data-testid={testId}
+      data-configured={configured}
     />
   )
 }
 
-function VerticalConnector({ configured }: Readonly<ConnectorProps>) {
-  return <Box w="2px" h="24px" bg={configured ? '#079455' : 'neutral.200'} mx="auto" my={2} />
+function VerticalConnector({ configured, 'data-testid': testId }: Readonly<ConnectorProps>) {
+  return (
+    <Box
+      w="2px"
+      h="24px"
+      bg={configured ? '#079455' : 'neutral.200'}
+      mx="auto"
+      my={2}
+      data-testid={testId}
+      data-configured={configured}
+    />
+  )
 }
 
 export function ConfigSetupWizard() {
@@ -227,7 +240,9 @@ export function ConfigSetupWizard() {
                     configured={configured}
                     onClick={() => navigate(step.route)}
                   />
-                  {!isLast && <Connector configured={prevConfigured && configured} />}
+                  {!isLast && (
+                    <Connector configured={prevConfigured} data-testid={`connector-${i}`} />
+                  )}
                 </Flex>
               )
             })}
@@ -249,7 +264,12 @@ export function ConfigSetupWizard() {
                     onClick={() => navigate(step.route)}
                     layout="horizontal"
                   />
-                  {!isLast && <VerticalConnector configured={prevConfigured && configured} />}
+                  {!isLast && (
+                    <VerticalConnector
+                      configured={prevConfigured}
+                      data-testid={`vertical-connector-${i}`}
+                    />
+                  )}
                 </Flex>
               )
             })}

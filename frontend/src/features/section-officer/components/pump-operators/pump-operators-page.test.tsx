@@ -219,6 +219,24 @@ describe('PumpOperatorsPage', () => {
     expect(screen.getByText('+1')).toBeTruthy()
   })
 
+  it('shows plain name for single scheme', () => {
+    const singleSchemeOp = [
+      {
+        ...MOCK_OPERATORS[0],
+        schemes: [{ schemeId: 1, schemeName: 'Swajal Dhara', stateSchemeId: 'SS-001' }],
+      },
+    ]
+    mockUsePumpOperatorsListQuery.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: { content: singleSchemeOp, totalElements: 1 },
+      refetch: jest.fn(),
+    })
+    renderPage()
+    expect(screen.getByText('Swajal Dhara')).toBeTruthy()
+    expect(screen.queryByText(/^\+\d/)).toBeNull()
+  })
+
   it('shows "—" when lastSubmissionAt is null', () => {
     const operatorNoSubmission = [{ ...MOCK_OPERATORS[0], lastSubmissionAt: null }]
     mockUsePumpOperatorsListQuery.mockReturnValue({

@@ -13,6 +13,7 @@ import {
 } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
 import { useDebounce } from '@/shared/hooks/use-debounce'
+import { formatScreamingSnakeCase } from '@/shared/utils/string-format'
 import {
   DataTable,
   PageHeader,
@@ -126,7 +127,7 @@ export function StaffEscalationsPage() {
       header: t('pages.escalations.columns.escalationType'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
-          {row.escalationType ?? '—'}
+          {row.escalationType ? formatScreamingSnakeCase(row.escalationType) : '—'}
         </Text>
       ),
     },
