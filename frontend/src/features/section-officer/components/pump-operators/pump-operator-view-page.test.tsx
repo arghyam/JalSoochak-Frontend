@@ -48,6 +48,10 @@ const translations: Record<string, string> = {
   'pages.pumpOperators.columns.waterSupplied': 'Water Supplied',
   'pages.pumpOperators.columns.readingValue': 'Reading Value',
   'pages.pumpOperators.downloadAttendance': 'Attendance',
+  'pages.pumpOperators.attendanceModal.title': 'Download Attendance',
+  'pages.pumpOperators.attendanceModal.download': 'Download',
+  'pages.pumpOperators.attendanceCsv.date': 'date',
+  'pages.pumpOperators.attendanceCsv.attendance': 'attendance',
   'common.retry': 'Retry',
   'common.documentTitle': '| JalSoochak',
 }
@@ -408,22 +412,25 @@ describe('PumpOperatorViewPage', () => {
     renderPage()
 
     fireEvent.click(screen.getByRole('button', { name: 'Attendance' }))
-    expect(screen.getByText('pages.pumpOperators.attendanceModal.title')).toBeTruthy()
+    expect(screen.getByText(translations['pages.pumpOperators.attendanceModal.title'])).toBeTruthy()
 
     fireEvent.click(
-      screen.getByRole('button', { name: 'pages.pumpOperators.attendanceModal.download' })
+      screen.getByRole('button', {
+        name: translations['pages.pumpOperators.attendanceModal.download'],
+      })
     )
 
     await waitFor(() => expect(refetchAttendance).toHaveBeenCalled())
-    expect(mockUnparse).toHaveBeenCalledWith(
-      expect.arrayContaining([
-        ['Name', '', 'Phone Number', ''],
-        ['Shyam Singh', '', '9919420001', ''],
-        ['', '', '', ''],
-        ['date', 'attendance'],
-        ['2026-03-01', '1'],
-        ['2026-03-02', '0'],
-      ])
-    )
+    expect(mockUnparse).toHaveBeenCalledWith([
+      ['Name', '', 'Phone Number', ''],
+      ['Shyam Singh', '', '9919420001', ''],
+      ['', '', '', ''],
+      [
+        translations['pages.pumpOperators.attendanceCsv.date'],
+        translations['pages.pumpOperators.attendanceCsv.attendance'],
+      ],
+      ['2026-03-01', '1'],
+      ['2026-03-02', '0'],
+    ])
   })
 })

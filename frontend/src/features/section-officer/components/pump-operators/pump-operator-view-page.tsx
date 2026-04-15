@@ -66,6 +66,15 @@ const getDefaultAttendanceRange = (): DateRange => {
   }
 }
 
+const translateWithFallback = (
+  t: (key: string) => string,
+  key: string,
+  fallback: string
+): string => {
+  const translated = t(key)
+  return translated === key ? fallback : translated
+}
+
 export function PumpOperatorViewPage() {
   const { t } = useTranslation('section-officer')
   const { operatorId } = useParams<{ operatorId: string }>()
@@ -129,12 +138,25 @@ export function PumpOperatorViewPage() {
       const safeName = (details?.name ?? 'operator').replace(/[/\\:*?"<>|]/g, '_')
       const fileName = `${safeName}_attendance.csv`
 
+      const nameLabel = translateWithFallback(t, 'pages.pumpOperators.detailFields.name', 'Name')
+      const phoneNumberLabel = translateWithFallback(
+        t,
+        'pages.pumpOperators.detailFields.phoneNumber',
+        'Phone Number'
+      )
+      const dateLabel = translateWithFallback(t, 'pages.pumpOperators.attendanceCsv.date', 'date')
+      const attendanceLabel = translateWithFallback(
+        t,
+        'pages.pumpOperators.attendanceCsv.attendance',
+        'attendance'
+      )
+
       // Build CSV data: horizontal metadata rows + attendance table
       const csvData = [
-        ['Name', '', 'Phone Number', ''],
+        [nameLabel, '', phoneNumberLabel, ''],
         [details?.name ?? '', '', details?.phoneNumber ?? '', ''],
         ['', '', '', ''],
-        ['date', 'attendance'],
+        [dateLabel, attendanceLabel],
         ...attendance.map((record) => [record.date, record.attendance.toString()]),
       ]
 
