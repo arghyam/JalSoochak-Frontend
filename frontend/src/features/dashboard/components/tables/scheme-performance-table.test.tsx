@@ -201,6 +201,7 @@ describe('SchemePerformanceTable', () => {
     fireEvent.click(screen.getByRole('button', { name: 'First page' }))
     fireEvent.click(screen.getByRole('button', { name: 'Last page' }))
 
+    expect(onPageChange).toHaveBeenCalledTimes(2)
     expect(onPageChange).toHaveBeenNthCalledWith(1, 1)
     expect(onPageChange).toHaveBeenNthCalledWith(2, 3)
   })

@@ -23,10 +23,13 @@ describe('state admin constants', () => {
     expect(CONDITION_TYPE_LABELS[CONDITION_TYPES.ANOMALY_DETECTED]).toBe('Anomaly Detected')
   })
 
-  it('maps message frequencies and water norm categories to labels', () => {
+  it('maps message frequencies to labels', () => {
     expect(MESSAGE_FREQUENCY_LABELS[MESSAGE_FREQUENCIES.DAILY]).toBe('Daily')
     expect(MESSAGE_FREQUENCY_LABELS[MESSAGE_FREQUENCIES.WEEKLY]).toBe('Weekly')
     expect(MESSAGE_FREQUENCY_LABELS[MESSAGE_FREQUENCIES.MONTHLY]).toBe('Monthly')
+  })
+
+  it('maps water norm categories to labels', () => {
     expect(WATER_NORM_CATEGORY_LABELS[WATER_NORM_CATEGORIES.RURAL]).toBe('Rural')
     expect(WATER_NORM_CATEGORY_LABELS[WATER_NORM_CATEGORIES.URBAN]).toBe('Urban')
   })

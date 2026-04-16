@@ -79,7 +79,8 @@ describe('AllStatesPerformanceChart', () => {
   })
 
   it('sorts bars by quantity descending for plotted series', () => {
-    renderWithProviders(<AllStatesPerformanceChart data={data} height={180} />)
+    const unsortedData: EntityPerformance[] = [data[1], data[0]]
+    renderWithProviders(<AllStatesPerformanceChart data={unsortedData} height={180} />)
 
     const mainOption = (
       mockEChartsWrapper.mock.calls as Array<

@@ -28,7 +28,7 @@ describe('KPICard', () => {
     expect(screen.getByRole('button', { name: 'More info' })).toBeInTheDocument()
   })
 
-  it('renders neutral trend text without arrow icon', () => {
+  it('renders neutral trend text', () => {
     render(
       <KPICard title="Quality" value="70%" trend={{ direction: 'neutral', text: 'No change' }} />
     )

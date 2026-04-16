@@ -30,6 +30,7 @@ import { stateAdminApi } from '../api/state-admin-api'
 import { stateAdminQueryKeys } from './state-admin-query-keys'
 import { useAuthStore } from '@/app/store/auth-store'
 import type { AuthState } from '@/app/store/auth-store'
+import type { SchemeListParams } from '../../types/scheme-sync'
 
 jest.mock('@tanstack/react-query', () => ({
   useQuery: jest.fn(),
@@ -140,27 +141,25 @@ describe('use-state-admin-queries', () => {
 
   it('enables and disables scheme list query based on tenant code', () => {
     mockedUseQuery.mockReturnValue({})
-    renderHook(() =>
-      useSchemeListQuery({
-        tenantCode: '',
-        page: 0,
-        limit: 10,
-        schemeName: '',
-        sortDir: '',
-      } as never)
-    )
+    const paramsEmpty: SchemeListParams = {
+      tenantCode: '',
+      page: 0,
+      limit: 10,
+      schemeName: '',
+      sortDir: '',
+    }
+    const paramsWithTenant: SchemeListParams = {
+      tenantCode: 'TN',
+      page: 0,
+      limit: 10,
+      schemeName: '',
+      sortDir: '',
+    }
+    renderHook(() => useSchemeListQuery(paramsEmpty))
     expect(mockedUseQuery).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }))
 
     mockedUseQuery.mockClear()
-    renderHook(() =>
-      useSchemeListQuery({
-        tenantCode: 'TN',
-        page: 0,
-        limit: 10,
-        schemeName: '',
-        sortDir: '',
-      } as never)
-    )
+    renderHook(() => useSchemeListQuery(paramsWithTenant))
     expect(mockedUseQuery).toHaveBeenCalledWith(expect.objectContaining({ enabled: true }))
   })
 
@@ -416,6 +415,7 @@ describe('use-state-admin-queries', () => {
       onSuccess: (_d: unknown, variables: { id: string }) => Promise<void>
     }
     await onSuccess(undefined, { id: 'u-1' })
+    expect(removeQueries).toHaveBeenCalledTimes(1)
     expect(removeQueries).toHaveBeenCalledWith({
       queryKey: stateAdminQueryKeys.stateUtAdminById('u-1'),
     })
@@ -427,10 +427,11 @@ describe('use-state-admin-queries', () => {
       onSuccess: (_d: unknown, variables: { id: string }) => Promise<void>
     }
     await onSuccess(undefined, { id: 'u-2' })
-    expect(invalidateQueries).toHaveBeenCalledWith({
+    expect(invalidateQueries).toHaveBeenCalledTimes(2)
+    expect(invalidateQueries).toHaveBeenNthCalledWith(1, {
       queryKey: [...stateAdminQueryKeys.all, 'state-ut-admins'],
     })
-    expect(invalidateQueries).toHaveBeenCalledWith({
+    expect(invalidateQueries).toHaveBeenNthCalledWith(2, {
       queryKey: stateAdminQueryKeys.stateUtAdminById('u-2'),
     })
   })
@@ -439,6 +440,7 @@ describe('use-state-admin-queries', () => {
     renderHook(() => useReinviteStateUTAdminMutation())
     const { onSuccess } = mockedUseMutation.mock.calls[0][0] as { onSuccess: () => Promise<void> }
     await onSuccess()
+    expect(invalidateQueries).toHaveBeenCalledTimes(1)
     expect(invalidateQueries).toHaveBeenCalledWith({
       queryKey: [...stateAdminQueryKeys.all, 'state-ut-admins'],
     })
