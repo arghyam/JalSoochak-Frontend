@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
@@ -128,6 +128,11 @@ const EMPTY_DASHBOARD_DATA: DashboardData = {
 }
 
 type StoredFilters = {
+  selectedState?: string
+  selectedDistrict?: string
+  selectedBlock?: string
+  selectedGramPanchayat?: string
+  selectedVillage?: string
   selectedDuration?: DateRange
   selectedScheme?: string
   selectedDepartmentState?: string
@@ -619,6 +624,26 @@ export function CentralDashboard() {
   const hasLgdParamsInUrl = Boolean(
     selectedDistrict || selectedBlock || selectedGramPanchayat || selectedVillage
   )
+  const hasStoredLgdFilters = Boolean(
+    storedFilters.selectedState ||
+    storedFilters.selectedDistrict ||
+    storedFilters.selectedBlock ||
+    storedFilters.selectedGramPanchayat ||
+    storedFilters.selectedVillage
+  )
+  const hasStoredDepartmentFilters = Boolean(
+    storedFilters.selectedDepartmentState ||
+    storedFilters.selectedDepartmentZone ||
+    storedFilters.selectedDepartmentCircle ||
+    storedFilters.selectedDepartmentDivision ||
+    storedFilters.selectedDepartmentSubdivision
+  )
+  const shouldHydrateFromStoredFilters =
+    !selectedState &&
+    !hasLgdParamsInUrl &&
+    !hasDepartmentParamsInUrl &&
+    !isAdministrativeTabFromUrl &&
+    (hasStoredLgdFilters || hasStoredDepartmentFilters)
   const [selectedDuration, setSelectedDuration] = useState<DateRange | null>(() =>
     getInitialStoredDuration(storedFilters)
   )
@@ -689,6 +714,7 @@ export function CentralDashboard() {
     value: null,
   })
   const previousLocationRef = useRef<{ pathname: string; search: string } | null>(null)
+  const hasAppliedStoredHydrationRef = useRef(false)
   const activeTrailIndex =
     activeTrailIndexState.pathname === location.pathname &&
     activeTrailIndexState.search === location.search
@@ -2022,48 +2048,98 @@ export function CentralDashboard() {
     previousAnalyticsRange.endDate
   )
 
-  const updateFilterUrl = (filters: FilterUrlUpdate) => {
-    // In single-tenant mode, always lock to the configured tenant
-    const inSingleTenantMode = isSingleTenantMode()
-    const singleTenantId = getSingleTenantId()
-    const forcedState = inSingleTenantMode && singleTenantId ? selectedState : (filters.state ?? '')
+  const updateFilterUrl = useCallback(
+    (filters: FilterUrlUpdate) => {
+      // In single-tenant mode, always lock to the configured tenant
+      const inSingleTenantMode = isSingleTenantMode()
+      const singleTenantId = getSingleTenantId()
+      const forcedState =
+        inSingleTenantMode && singleTenantId ? selectedState : (filters.state ?? '')
 
-    const nextState = forcedState
-    // Encode the internal slug (e.g. "uttar-pradesh") to a 2-letter code (e.g. "up") for the URL
-    const urlSegment = stateSlugToCode(nextState) ?? nextState
-    const nextPath = urlSegment ? `/${encodeURIComponent(urlSegment)}` : ROUTES.DASHBOARD
-    const nextSearchParams = new URLSearchParams(searchParams)
+      const nextState = forcedState
+      // Encode the internal slug (e.g. "uttar-pradesh") to a 2-letter code (e.g. "up") for the URL
+      const urlSegment = stateSlugToCode(nextState) ?? nextState
+      const nextPath = urlSegment ? `/${encodeURIComponent(urlSegment)}` : ROUTES.DASHBOARD
+      const nextSearchParams = new URLSearchParams(searchParams)
 
-    const setParam = (key: string, value?: string) => {
-      if (value) {
-        nextSearchParams.set(key, value)
-        return
+      const setParam = (key: string, value?: string) => {
+        if (value) {
+          nextSearchParams.set(key, value)
+          return
+        }
+        nextSearchParams.delete(key)
       }
-      nextSearchParams.delete(key)
+
+      setParam('district', filters.district)
+      setParam('block', filters.block)
+      setParam('gramPanchayat', filters.gramPanchayat)
+      setParam('village', filters.village)
+      setParam('departmentZone', filters.departmentZone)
+      setParam('departmentCircle', filters.departmentCircle)
+      setParam('departmentDivision', filters.departmentDivision)
+      setParam('departmentSubdivision', filters.departmentSubdivision)
+      setParam('departmentVillage', filters.departmentVillage)
+
+      if (filters.tab === 'administrative') {
+        nextSearchParams.set('tab', 'administrative')
+      } else {
+        nextSearchParams.delete('tab')
+      }
+
+      const nextSearch = nextSearchParams.toString()
+      navigate({
+        pathname: nextPath,
+        search: nextSearch ? `?${nextSearch}` : '',
+      })
+    },
+    [navigate, searchParams, selectedState]
+  )
+
+  useEffect(() => {
+    if (!shouldHydrateFromStoredFilters || hasAppliedStoredHydrationRef.current) {
+      return
+    }
+    hasAppliedStoredHydrationRef.current = true
+
+    if (storedFilters.filterTabIndex === 1 && hasStoredDepartmentFilters) {
+      updateFilterUrl({
+        state: storedFilters.selectedDepartmentState || storedFilters.selectedState || '',
+        district: '',
+        block: '',
+        gramPanchayat: '',
+        village: '',
+        departmentZone: storedFilters.selectedDepartmentZone ?? '',
+        departmentCircle: storedFilters.selectedDepartmentCircle ?? '',
+        departmentDivision: storedFilters.selectedDepartmentDivision ?? '',
+        departmentSubdivision: storedFilters.selectedDepartmentSubdivision ?? '',
+      })
+      return
     }
 
-    setParam('district', filters.district)
-    setParam('block', filters.block)
-    setParam('gramPanchayat', filters.gramPanchayat)
-    setParam('village', filters.village)
-    setParam('departmentZone', filters.departmentZone)
-    setParam('departmentCircle', filters.departmentCircle)
-    setParam('departmentDivision', filters.departmentDivision)
-    setParam('departmentSubdivision', filters.departmentSubdivision)
-    setParam('departmentVillage', filters.departmentVillage)
-
-    if (filters.tab === 'administrative') {
-      nextSearchParams.set('tab', 'administrative')
-    } else {
-      nextSearchParams.delete('tab')
-    }
-
-    const nextSearch = nextSearchParams.toString()
-    navigate({
-      pathname: nextPath,
-      search: nextSearch ? `?${nextSearch}` : '',
+    updateFilterUrl({
+      state: storedFilters.selectedState ?? '',
+      district: storedFilters.selectedDistrict ?? '',
+      block: storedFilters.selectedBlock ?? '',
+      gramPanchayat: storedFilters.selectedGramPanchayat ?? '',
+      village: storedFilters.selectedVillage ?? '',
+      tab: 'administrative',
     })
-  }
+  }, [
+    hasStoredDepartmentFilters,
+    shouldHydrateFromStoredFilters,
+    storedFilters.filterTabIndex,
+    storedFilters.selectedBlock,
+    storedFilters.selectedDepartmentCircle,
+    storedFilters.selectedDepartmentDivision,
+    storedFilters.selectedDepartmentState,
+    storedFilters.selectedDepartmentSubdivision,
+    storedFilters.selectedDepartmentZone,
+    storedFilters.selectedDistrict,
+    storedFilters.selectedGramPanchayat,
+    storedFilters.selectedState,
+    storedFilters.selectedVillage,
+    updateFilterUrl,
+  ])
 
   const handleStateChange = (value: string) => {
     setActiveTrailIndex(null)
@@ -2283,6 +2359,10 @@ export function CentralDashboard() {
   }
 
   useEffect(() => {
+    if (shouldHydrateFromStoredFilters) {
+      return
+    }
+
     const payload = {
       selectedState,
       selectedDistrict,
@@ -2319,6 +2399,7 @@ export function CentralDashboard() {
     selectedScheme,
     selectedState,
     selectedVillage,
+    shouldHydrateFromStoredFilters,
   ])
 
   const handleStateClick = (_stateId: string, stateName: string) => {

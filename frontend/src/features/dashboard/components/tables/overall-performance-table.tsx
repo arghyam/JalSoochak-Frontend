@@ -109,6 +109,7 @@ export function OverallPerformanceTable({
           '&::-webkit-scrollbar': { width: '4px', height: '4px' },
           '&::-webkit-scrollbar-track': { bg: 'neutral.100', borderRadius: '999px' },
           '&::-webkit-scrollbar-thumb': { bg: 'neutral.300', borderRadius: '999px' },
+          '&::-webkit-scrollbar-thumb:vertical': { bg: 'primary.300' },
           '&:active': {
             cursor: 'grabbing',
           },
