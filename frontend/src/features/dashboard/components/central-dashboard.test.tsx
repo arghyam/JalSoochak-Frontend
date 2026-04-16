@@ -1241,12 +1241,12 @@ describe('CentralDashboard', () => {
       })
     )
     expect(dashboardBodyProps.quantityTimeTrendData).toEqual([
-      { period: '01 Mar - 07 Mar\n2026', value: 1500 },
-      { period: '08 Mar - 14 Mar\n2026', value: 1750 },
+      { period: '01-03-2026\n07-03-2026', value: 1500 },
+      { period: '08-03-2026\n14-03-2026', value: 1750 },
     ])
     expect(dashboardBodyProps.regularityTimeTrendData).toEqual([
-      { period: '01 Mar - 07 Mar\n2026', value: 48 },
-      { period: '08 Mar - 14 Mar\n2026', value: 52 },
+      { period: '01-03-2026\n07-03-2026', value: 48 },
+      { period: '08-03-2026\n14-03-2026', value: 52 },
     ])
     expect(dashboardBodyProps.supplySubmissionRateData[0]).toEqual(
       expect.objectContaining({
@@ -1512,8 +1512,8 @@ describe('CentralDashboard', () => {
     }>()
 
     expect(dashboardBodyProps.quantityTimeTrendData).toEqual([
-      { period: '12 Mar 2026', value: 87 },
-      { period: '13 Mar 2026', value: 91 },
+      { period: '12-03-2026', value: 87 },
+      { period: '13-03-2026', value: 91 },
     ])
     expect(dashboardBodyProps.isQuantityTimeTrendLoading).toBe(false)
   })
@@ -4293,8 +4293,8 @@ describe('CentralDashboard', () => {
     }>()
 
     expect(dashboardBodyProps.data.supplyOutageTrend).toEqual([
-      { period: '01 Mar - 07 Mar\n2026', value: 4 },
-      { period: '08 Mar - 14 Mar\n2026', value: 2 },
+      { period: '01-03-2026\n07-03-2026', value: 4 },
+      { period: '08-03-2026\n14-03-2026', value: 2 },
     ])
   })
 

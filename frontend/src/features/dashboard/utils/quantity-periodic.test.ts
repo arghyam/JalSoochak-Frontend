@@ -37,7 +37,7 @@ describe('quantity-periodic utils', () => {
           },
         ],
       })
-    ).toEqual([{ period: '01 Mar 2026', value: 42 }])
+    ).toEqual([{ period: '01-03-2026', value: 42 }])
   })
 
   it('skips water quantity periodic points when totalWaterQuantity is missing', () => {
@@ -92,8 +92,8 @@ describe('quantity-periodic utils', () => {
         ],
       })
     ).toEqual([
-      { period: '16 Mar 2026', value: 0 },
-      { period: '17 Mar 2026', value: 2425420120 },
+      { period: '16-03-2026', value: 0 },
+      { period: '17-03-2026', value: 2425420120 },
     ])
   })
 
@@ -116,7 +116,7 @@ describe('quantity-periodic utils', () => {
           },
         ],
       })
-    ).toEqual([{ period: '01 Mar - 07 Mar\n2026', value: 78.5 }])
+    ).toEqual([{ period: '01-03-2026\n07-03-2026', value: 78.5 }])
   })
 
   it('maps quantity trend points from scheme regularity periodic response using totalWaterQuantity', () => {
@@ -147,8 +147,8 @@ describe('quantity-periodic utils', () => {
         ],
       })
     ).toEqual([
-      { period: '16 Mar 2026', value: 0 },
-      { period: '17 Mar 2026', value: 2425420120 },
+      { period: '16-03-2026', value: 0 },
+      { period: '17-03-2026', value: 2425420120 },
     ])
   })
 
@@ -180,8 +180,8 @@ describe('quantity-periodic utils', () => {
         ],
       })
     ).toEqual([
-      { period: '01 Mar - 07 Mar\n2026', value: 700 },
-      { period: '08 Mar - 14 Mar\n2026', value: 1400 },
+      { period: '01-03-2026\n07-03-2026', value: 700 },
+      { period: '08-03-2026\n14-03-2026', value: 1400 },
     ])
   })
 
@@ -236,7 +236,7 @@ describe('quantity-periodic utils', () => {
           },
         ],
       })
-    ).toEqual([{ period: '01 Mar - 07 Mar\n2026', value: 6 }])
+    ).toEqual([{ period: '01-03-2026\n07-03-2026', value: 6 }])
   })
 
   it('maps national regularity metrics from wrapped-api-compatible payloads', () => {
@@ -255,7 +255,7 @@ describe('quantity-periodic utils', () => {
           },
         ],
       })
-    ).toEqual([{ period: '01 Jan 2026', value: 0.74 }])
+    ).toEqual([{ period: '01-01-2026', value: 0.74 }])
   })
 
   it('skips national quantity points when water quantity is not present in the payload', () => {
@@ -275,5 +275,25 @@ describe('quantity-periodic utils', () => {
         ],
       })
     ).toEqual([])
+  })
+
+  it('formats monthly trend periods in two lines using numeric dates', () => {
+    expect(
+      mapNationalQuantityTrendPoints({
+        schemeCount: 10,
+        scale: 'month',
+        startDate: '2026-03-01',
+        endDate: '2026-03-31',
+        periodCount: 1,
+        metrics: [
+          {
+            periodStartDate: '2026-03-01',
+            periodEndDate: '2026-03-31',
+            totalWaterQuantity: 100,
+            averageRegularity: 0,
+          },
+        ],
+      })
+    ).toEqual([{ period: '01-03-2026\n31-03-2026', value: 100 }])
   })
 })

@@ -16,13 +16,16 @@ const parseIsoDate = (value: string) => {
   return Number.isNaN(parsed.getTime()) ? null : parsed
 }
 
-const formatSingleDate = (value: string, options: Intl.DateTimeFormatOptions) => {
+const formatSingleDateNumeric = (value: string) => {
   const date = parseIsoDate(value)
   if (!date) {
     return value
   }
 
-  return new Intl.DateTimeFormat('en-GB', options).format(date)
+  const day = String(date.getUTCDate()).padStart(2, '0')
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+  const year = date.getUTCFullYear()
+  return `${day}-${month}-${year}`
 }
 
 const formatMetricLabel = (
@@ -32,58 +35,15 @@ const formatMetricLabel = (
     'periodStartDate' | 'periodEndDate'
   >
 ) => {
-  if (scale === 'day') {
-    const start = parseIsoDate(metric.periodStartDate)
-    const end = parseIsoDate(metric.periodEndDate)
-
-    if (
-      start &&
-      end &&
-      start.getFullYear() === end.getFullYear() &&
-      start.getMonth() === end.getMonth() &&
-      start.getDate() === end.getDate()
-    ) {
-      return new Intl.DateTimeFormat('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      }).format(start)
-    }
-  }
-
-  if (scale === 'month') {
-    const start = parseIsoDate(metric.periodStartDate)
-    const end = parseIsoDate(metric.periodEndDate)
-
-    if (
-      start &&
-      end &&
-      start.getFullYear() === end.getFullYear() &&
-      start.getMonth() === end.getMonth()
-    ) {
-      return new Intl.DateTimeFormat('en-GB', { month: 'short', year: 'numeric' }).format(start)
-    }
-  }
-
-  const startLabel = formatSingleDate(metric.periodStartDate, {
-    day: '2-digit',
-    month: 'short',
-  })
-  const endLabel = formatSingleDate(metric.periodEndDate, {
-    day: '2-digit',
-    month: 'short',
-  })
-
-  if (scale === 'week') {
-    const start = parseIsoDate(metric.periodStartDate)
-    const end = parseIsoDate(metric.periodEndDate)
-    if (start && end && start.getFullYear() === end.getFullYear()) {
-      return `${startLabel} - ${endLabel}\n${start.getFullYear()}`
-    }
-  }
+  const startLabel = formatSingleDateNumeric(metric.periodStartDate)
+  const endLabel = formatSingleDateNumeric(metric.periodEndDate)
 
   if (startLabel === endLabel) {
     return startLabel
+  }
+
+  if (scale === 'week' || scale === 'month') {
+    return `${startLabel}\n${endLabel}`
   }
 
   return `${startLabel} - ${endLabel}`
