@@ -114,7 +114,10 @@
       "activatedSuccess": "State/UT activated successfully",
       "deactivatedSuccess": "State/UT deactivated successfully",
       "failedToUpdateStatus": "Failed to update status",
-      "statusUpdatedSuccess": "Status updated successfully"
+      "statusUpdatedSuccess": "Status updated successfully",
+      "adminActivatedSuccess": "State admin activated successfully",
+      "adminDeactivatedSuccess": "State admin deactivated successfully",
+      "adminRegistrationPending": "Registration of this user is still pending."
     },
     "filters": {
       "allStatuses": "All Statuses"

@@ -299,6 +299,7 @@ export function StaffSyncPage() {
             fontSize="sm"
             isFilter
             ariaLabel={t('staffSync.filters.role')}
+            searchable={false}
           />
 
           <SearchableSelect
@@ -312,6 +313,7 @@ export function StaffSyncPage() {
             fontSize="sm"
             isFilter
             ariaLabel={t('staffSync.filters.status')}
+            searchable={false}
           />
 
           {hasActiveFilters && (
@@ -335,6 +337,7 @@ export function StaffSyncPage() {
             size="sm"
             fontWeight="600"
             flex={{ base: 1, sm: 'none' }}
+            w={{ base: 'auto', sm: '147px' }}
             aria-label={t('staffSync.broadcast.aria.broadcast')}
             onClick={() => setIsBroadcastOpen(true)}
           >

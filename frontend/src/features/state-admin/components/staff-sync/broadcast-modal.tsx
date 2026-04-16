@@ -82,8 +82,13 @@ export function BroadcastModal({ isOpen, onClose }: BroadcastModalProps) {
     <>
       <Modal isOpen={isOpen} onClose={handleClose} isCentered>
         <ModalOverlay bg="blackAlpha.600" />
-        <ModalContent maxW="640px" borderRadius="12px" p={6}>
-          <ModalBody p={0}>
+        <ModalContent
+          maxW="640px"
+          height={{ base: '420px', md: '480px' }}
+          borderRadius="12px"
+          p={6}
+        >
+          <ModalBody p={0} display="flex" flexDirection="column" height="100%">
             {/* Header */}
             <Flex justify="space-between" align="center" mb={5}>
               <Text textStyle="h6" fontWeight="600">
@@ -143,6 +148,7 @@ export function BroadcastModal({ isOpen, onClose }: BroadcastModalProps) {
                   textColor="neutral.500"
                   borderColor="neutral.300"
                   isFilter={false}
+                  popoverPlacement="bottom-end"
                 />
               </FormControl>
 
@@ -163,12 +169,13 @@ export function BroadcastModal({ isOpen, onClose }: BroadcastModalProps) {
                   borderRadius="6px"
                   fontSize="sm"
                   ariaLabel={t('staffSync.broadcast.modal.selectTemplate')}
+                  searchable={false}
                 />
               </FormControl>
             </SimpleGrid>
 
             {/* Footer */}
-            <Flex gap={3} mt={6} justify="flex-end">
+            <Flex gap={3} mt="auto" justify="flex-end">
               <Button variant="secondary" size="sm" onClick={handleClose} isDisabled={isPending}>
                 {t('staffSync.broadcast.modal.cancel')}
               </Button>

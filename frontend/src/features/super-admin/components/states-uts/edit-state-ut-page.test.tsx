@@ -23,6 +23,11 @@ const mockAdmin: UserAdminData = {
   status: 'active',
 }
 
+const mockPendingAdmin: UserAdminData = {
+  ...mockAdmin,
+  status: 'pending',
+}
+
 const mockNavigate = jest.fn()
 
 jest.mock('react-router-dom', () => ({
@@ -35,12 +40,14 @@ const mockUseStatesUTsQuery = jest.fn()
 const mockUseStateAdminsByTenantQuery = jest.fn()
 const mockUseUpdateTenantStatusMutation = jest.fn()
 const mockUseUpdateUserMutation = jest.fn()
+const mockUseUpdateUserStatusMutation = jest.fn()
 
 jest.mock('../../services/query/use-super-admin-queries', () => ({
   useStatesUTsQuery: () => mockUseStatesUTsQuery(),
   useStateAdminsByTenantQuery: () => mockUseStateAdminsByTenantQuery(),
   useUpdateTenantStatusMutation: () => mockUseUpdateTenantStatusMutation(),
   useUpdateUserMutation: () => mockUseUpdateUserMutation(),
+  useUpdateUserStatusMutation: () => mockUseUpdateUserStatusMutation(),
 }))
 
 describe('EditStateUTPage', () => {
@@ -53,6 +60,10 @@ describe('EditStateUTPage', () => {
       isPending: false,
     })
     mockUseUpdateUserMutation.mockReturnValue({
+      mutateAsync: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
+      isPending: false,
+    })
+    mockUseUpdateUserStatusMutation.mockReturnValue({
       mutateAsync: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
       isPending: false,
     })
@@ -173,5 +184,13 @@ describe('EditStateUTPage', () => {
     await waitFor(() => {
       expect(mockStatusMutateAsync).toHaveBeenCalledWith({ id: 1, status: 'SUSPENDED' })
     })
+  })
+
+  it('disables admin toggle when status is pending', () => {
+    mockUseStateAdminsByTenantQuery.mockReturnValue({ data: [mockPendingAdmin], isLoading: false })
+    renderWithProviders(<EditStateUTPage />)
+
+    const toggle = screen.getByRole('checkbox', { name: /activated raj/i }) as HTMLInputElement
+    expect(toggle.disabled).toBe(true)
   })
 })

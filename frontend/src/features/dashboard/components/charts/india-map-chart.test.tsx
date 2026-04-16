@@ -366,4 +366,67 @@ describe('IndiaMapChart', () => {
     )
     expect(latestOption.series?.[0]?.data?.[0]?.itemStyle?.borderWidth).toBe(1)
   })
+
+  it('wires click and hover chart events through onChartReady callbacks', () => {
+    mockGetMap.mockReturnValue({})
+    const onStateClick = jest.fn()
+    const onStateHover = jest.fn()
+
+    renderWithProviders(
+      <IndiaMapChart data={chartData} onStateClick={onStateClick} onStateHover={onStateHover} />
+    )
+
+    const latestProps = mockEChartsWrapper.mock.calls.at(-1)?.[0] as {
+      onChartReady?: (chart: {
+        off: (event: string) => void
+        on: (event: string, handler: (params: unknown) => void) => void
+      }) => void
+    }
+
+    const handlers: Record<string, (params: unknown) => void> = {}
+    const chart = {
+      off: jest.fn(),
+      on: jest.fn((event: string, handler: (params: unknown) => void) => {
+        handlers[event] = handler
+      }),
+    }
+
+    latestProps.onChartReady?.(chart)
+
+    handlers.click?.({ data: { stateId: 'region-1', name: 'Region 1' } })
+    handlers.mouseover?.({ data: { stateId: 'region-1', name: 'Region 1' } })
+
+    expect(onStateClick).toHaveBeenCalledWith('region-1', 'Region 1')
+    expect(onStateHover).toHaveBeenCalledWith('region-1', 'Region 1', chartData[0])
+  })
+
+  it('uses MLD quantity formatting when quantityViewUnit is mld', () => {
+    mockGetMap.mockReturnValue({})
+    renderWithProviders(
+      <IndiaMapChart
+        data={chartData}
+        quantityViewUnit="mld"
+        isRegularityView={false}
+        onRegularityViewChange={jest.fn()}
+      />
+    )
+
+    const latestOption = mockEChartsWrapper.mock.calls.at(-1)?.[0]?.option as {
+      tooltip?: { formatter?: (params: unknown) => string }
+    }
+    const content = latestOption.tooltip?.formatter?.({
+      data: {
+        name: 'Region 1',
+        value: 54,
+        metrics: {
+          coverage: 65,
+          regularity: 72,
+          continuity: 0,
+          quantity: 54,
+        },
+      },
+    })
+
+    expect(content).toContain('54.00 MLD')
+  })
 })

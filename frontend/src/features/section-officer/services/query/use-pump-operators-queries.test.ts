@@ -297,11 +297,27 @@ describe('useOperatorAttendanceQuery', () => {
     { date: '2026-03-01', attendance: 0 },
     { date: '2026-03-02', attendance: 1 },
   ]
+  const START_DATE = '2026-03-01'
+  const END_DATE = '2026-03-31'
 
   it('is disabled by default', () => {
-    const { result } = renderHook(() => useOperatorAttendanceQuery('test-uuid'), {
-      wrapper: createWrapper(),
-    })
+    const { result } = renderHook(
+      () => useOperatorAttendanceQuery('test-uuid', START_DATE, END_DATE),
+      {
+        wrapper: createWrapper(),
+      }
+    )
+    expect(result.current.fetchStatus).toBe('idle')
+    expect(pumpOperatorsApi.getOperatorAttendance).not.toHaveBeenCalled()
+  })
+
+  it('is disabled when date range is missing', () => {
+    const { result } = renderHook(
+      () => useOperatorAttendanceQuery('test-uuid', undefined, END_DATE),
+      {
+        wrapper: createWrapper(),
+      }
+    )
     expect(result.current.fetchStatus).toBe('idle')
     expect(pumpOperatorsApi.getOperatorAttendance).not.toHaveBeenCalled()
   })
@@ -313,9 +329,12 @@ describe('useOperatorAttendanceQuery', () => {
       >
     ).mockResolvedValue(MOCK_ATTENDANCE)
 
-    const { result } = renderHook(() => useOperatorAttendanceQuery('test-uuid'), {
-      wrapper: createWrapper(),
-    })
+    const { result } = renderHook(
+      () => useOperatorAttendanceQuery('test-uuid', START_DATE, END_DATE),
+      {
+        wrapper: createWrapper(),
+      }
+    )
 
     // Initially idle
     expect(result.current.fetchStatus).toBe('idle')
@@ -334,9 +353,12 @@ describe('useOperatorAttendanceQuery', () => {
       >
     ).mockResolvedValue(MOCK_ATTENDANCE)
 
-    const { result } = renderHook(() => useOperatorAttendanceQuery('test-uuid'), {
-      wrapper: createWrapper(),
-    })
+    const { result } = renderHook(
+      () => useOperatorAttendanceQuery('test-uuid', START_DATE, END_DATE),
+      {
+        wrapper: createWrapper(),
+      }
+    )
 
     result.current.refetch()
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
@@ -349,17 +371,18 @@ describe('useOperatorAttendanceQuery', () => {
 
     expect(callArg).toMatchObject({
       uuid: 'test-uuid',
+      startDate: START_DATE,
+      endDate: END_DATE,
     })
-    expect(callArg?.startDate).toBeDefined()
-    expect(callArg?.endDate).toBeDefined()
-    // Verify endDate is valid date string
-    expect(/^\d{4}-\d{2}-\d{2}$/.test(callArg?.endDate ?? '')).toBe(true)
   })
 
   it('does not fetch when uuid is undefined', () => {
-    const { result } = renderHook(() => useOperatorAttendanceQuery(undefined), {
-      wrapper: createWrapper(),
-    })
+    const { result } = renderHook(
+      () => useOperatorAttendanceQuery(undefined, START_DATE, END_DATE),
+      {
+        wrapper: createWrapper(),
+      }
+    )
     expect(result.current.fetchStatus).toBe('idle')
     expect(pumpOperatorsApi.getOperatorAttendance).not.toHaveBeenCalled()
   })
@@ -371,9 +394,12 @@ describe('useOperatorAttendanceQuery', () => {
       >
     ).mockRejectedValue(new Error('API error'))
 
-    const { result } = renderHook(() => useOperatorAttendanceQuery('test-uuid'), {
-      wrapper: createWrapper(),
-    })
+    const { result } = renderHook(
+      () => useOperatorAttendanceQuery('test-uuid', START_DATE, END_DATE),
+      {
+        wrapper: createWrapper(),
+      }
+    )
 
     result.current.refetch()
     await waitFor(() => expect(result.current.isError).toBe(true))

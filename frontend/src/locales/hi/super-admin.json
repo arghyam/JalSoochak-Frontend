@@ -114,7 +114,10 @@
       "activatedSuccess": "राज्य/केंद्र शासित प्रदेश सफलतापूर्वक सक्रिय किया गया",
       "deactivatedSuccess": "राज्य/केंद्र शासित प्रदेश सफलतापूर्वक निष्क्रिय किया गया",
       "failedToUpdateStatus": "स्थिति अपडेट करने में विफल",
-      "statusUpdatedSuccess": "स्थिति सफलतापूर्वक अपडेट की गई"
+      "statusUpdatedSuccess": "स्थिति सफलतापूर्वक अपडेट की गई",
+      "adminActivatedSuccess": "राज्य व्यवस्थापक सफलतापूर्वक सक्रिय किया गया",
+      "adminDeactivatedSuccess": "राज्य व्यवस्थापक सफलतापूर्वक निष्क्रिय किया गया",
+      "adminRegistrationPending": "इस उपयोगकर्ता का पंजीकरण अभी लंबित है।"
     },
     "filters": {
       "allStatuses": "सभी स्थितियाँ"

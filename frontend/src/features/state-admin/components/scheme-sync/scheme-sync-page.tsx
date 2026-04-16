@@ -285,6 +285,7 @@ export function SchemeSyncPage() {
             fontSize="sm"
             isFilter
             ariaLabel={t('schemeSync.filters.workStatus')}
+            searchable={false}
           />
 
           <SearchableSelect
@@ -298,6 +299,7 @@ export function SchemeSyncPage() {
             fontSize="sm"
             isFilter
             ariaLabel={t('schemeSync.filters.operatingStatus')}
+            searchable={false}
           />
 
           {hasActiveFilters && (

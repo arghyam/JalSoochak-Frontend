@@ -52,8 +52,8 @@ export const pumpOperatorsApi = {
           size,
           ...(name ? { name } : {}),
           ...(status ? { status } : {}),
-          ...(startDate ? { startDate } : {}),
-          ...(endDate ? { endDate } : {}),
+          ...(startDate ? { start_date: startDate } : {}),
+          ...(endDate ? { end_date: endDate } : {}),
         },
       }
     )

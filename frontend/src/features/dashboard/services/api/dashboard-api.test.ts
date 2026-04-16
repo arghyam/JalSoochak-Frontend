@@ -1141,4 +1141,109 @@ describe('dashboardApi.getTenants', () => {
     expect(res.content).toHaveLength(1)
     expect(res.totalElements).toBe(1)
   })
+
+  it('aggregates nested data.data tenant containers across multiple pages', async () => {
+    mockGet
+      .mockResolvedValueOnce({
+        data: {
+          data: {
+            data: {
+              content: [{ uuid: 'u1', name: 'A', status: 'ACTIVE' }],
+              totalElements: 2,
+            },
+          },
+        },
+      } as never)
+      .mockResolvedValueOnce({
+        data: {
+          data: {
+            data: {
+              content: [{ uuid: 'u2', name: 'B', status: 'ACTIVE' }],
+              totalElements: 2,
+            },
+          },
+        },
+      } as never)
+
+    const { dashboardApi } = await import('./dashboard-api')
+    const response = await dashboardApi.getTenants()
+    expect(response.totalElements).toBe(2)
+    expect(response.content?.map((item) => item.uuid)).toEqual(['u1', 'u2'])
+  })
+})
+
+describe('dashboardApi additional normalization branches', () => {
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+  })
+
+  it('throws when national dashboard payload is not an object', async () => {
+    mockGet.mockResolvedValueOnce({ data: null } as never)
+    const { dashboardApi } = await import('./dashboard-api')
+    await expect(
+      dashboardApi.getNationalDashboard({ startDate: '2026-01-01', endDate: '2026-01-31' })
+    ).rejects.toThrow('Invalid national dashboard response: expected an object payload')
+  })
+
+  it('normalizes invalid state and national boundary values to null', async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        nationalBoundary: 'not-geojson',
+        stateWiseBoundaries: [{ stateCode: 'AS', boundary: 'bad-value' }],
+      },
+    } as never)
+
+    const { dashboardApi } = await import('./dashboard-api')
+    const response = await dashboardApi.getNationalDashboardBoundaries()
+
+    expect(response.nationalBoundary).toBeNull()
+    expect(response.stateWiseBoundaries[0]).toEqual(
+      expect.objectContaining({ stateCode: 'AS', boundary: null })
+    )
+  })
+
+  it('normalizes numeric and null missedSubmissionDays values', async () => {
+    mockGet
+      .mockResolvedValueOnce({
+        data: { status: 200, message: 'ok', data: { missedSubmissionDays: 7 } },
+      } as never)
+      .mockResolvedValueOnce({
+        data: { status: 200, message: 'ok', data: { missedSubmissionDays: null } },
+      } as never)
+    const { dashboardApi } = await import('./dashboard-api')
+
+    const numeric = await dashboardApi.getPumpOperatorDetails({
+      pumpOperatorId: 1,
+      tenant_code: 'TN',
+    })
+    const nullable = await dashboardApi.getPumpOperatorDetails({
+      pumpOperatorId: 2,
+      tenant_code: 'TN',
+    })
+
+    expect(numeric.data.missedSubmissionDays).toBe(7)
+    expect(nullable.data.missedSubmissionDays).toBeNull()
+  })
+
+  it('tries hierarchy aliases and falls back from invalid hierarchy errors', async () => {
+    const invalidHierarchyError = {
+      isAxiosError: true,
+      response: { status: 400, data: { type: 'invalid-hierarchy' } },
+      message: 'invalid-hierarchy',
+    }
+    mockGet
+      .mockRejectedValueOnce(invalidHierarchyError as never)
+      .mockResolvedValueOnce({ data: { data: { hierarchyType: 'DEPARTMENT' } } } as never)
+
+    const { dashboardApi } = await import('./dashboard-api')
+    const response = await dashboardApi.getTenantLocationHierarchy({
+      tenantId: 5,
+      hierarchyType: 'DEPT',
+    })
+
+    expect(response).toEqual({ data: { hierarchyType: 'DEPARTMENT' } })
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/tenants/5/location-hierarchy/DEPARTMENT')
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/tenants/5/location-hierarchy/DEPARTMENTAL')
+  })
 })

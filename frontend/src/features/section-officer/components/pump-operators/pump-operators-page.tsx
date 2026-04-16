@@ -13,6 +13,10 @@ import {
   Button,
   Spinner,
   Tooltip,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverBody,
 } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
 import { FiEye } from 'react-icons/fi'
@@ -31,6 +35,15 @@ import { usePumpOperatorsListQuery } from '../../services/query/use-pump-operato
 import { formatTimestamp } from '../../services/api/schemes-api'
 import type { PumpOperatorListItem } from '../../types/pump-operators'
 
+function getDefaultDateRange(): DateRange {
+  const now = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const toIso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  const start = new Date(now)
+  start.setDate(now.getDate() - 29)
+  return { startDate: toIso(start), endDate: toIso(now) }
+}
+
 export function PumpOperatorsPage() {
   const { t } = useTranslation('section-officer')
   const navigate = useNavigate()
@@ -38,7 +51,7 @@ export function PumpOperatorsPage() {
   const [pageSize, setPageSize] = useState(10)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
-  const [dateRange, setDateRange] = useState<DateRange | null>(null)
+  const [dateRange, setDateRange] = useState<DateRange | null>(() => getDefaultDateRange())
 
   const debouncedSearch = useDebounce(searchQuery, 400)
 
@@ -48,12 +61,12 @@ export function PumpOperatorsPage() {
     setPage(1)
   }
 
-  const hasActiveFilters = Boolean(searchQuery || statusFilter || dateRange)
+  const hasActiveFilters = Boolean(searchQuery || statusFilter)
 
   function clearAllFilters() {
     setSearchQuery('')
     setStatusFilter('')
-    setDateRange(null)
+    setDateRange(getDefaultDateRange())
     setPage(1)
   }
 
@@ -79,15 +92,25 @@ export function PumpOperatorsPage() {
     {
       key: 'name',
       header: t('pages.pumpOperators.columns.name'),
+      width: '14.28%',
       render: (row) => (
-        <Text textStyle="h10" fontWeight="400">
-          {row.name}
-        </Text>
+        <Tooltip label={row.name} openDelay={400} hasArrow placement="top">
+          <Text
+            textStyle="h10"
+            fontWeight="400"
+            overflow="hidden"
+            textOverflow="ellipsis"
+            whiteSpace="nowrap"
+          >
+            {row.name}
+          </Text>
+        </Tooltip>
       ),
     },
     {
       key: 'schemes',
       header: t('pages.pumpOperators.columns.schemes'),
+      width: '14.28%',
       render: (row) => {
         const schemes = row.schemes
         if (!schemes || schemes.length === 0) {
@@ -100,31 +123,51 @@ export function PumpOperatorsPage() {
         const firstName = schemes[0].schemeName
         if (schemes.length === 1) {
           return (
-            <Text textStyle="h10" fontWeight="400">
+            <Text
+              textStyle="h10"
+              fontWeight="400"
+              overflow="hidden"
+              textOverflow="ellipsis"
+              whiteSpace="nowrap"
+            >
               {firstName}
             </Text>
           )
         }
         return (
-          <Tooltip
-            label={schemes.map((s) => s.schemeName).join(', ')}
-            aria-label={`All schemes: ${schemes.map((s) => s.schemeName).join(', ')}`}
-            hasArrow
-            placement="top"
-          >
-            <Text textStyle="h10" fontWeight="400" cursor="default">
-              {firstName}{' '}
-              <Text as="span" color="primary.500" fontWeight="500">
-                +{schemes.length - 1}
+          <Popover trigger="hover" placement="top" isLazy openDelay={0} closeDelay={150}>
+            <PopoverTrigger>
+              <Text
+                textStyle="h10"
+                fontWeight="400"
+                cursor="default"
+                overflow="hidden"
+                textOverflow="ellipsis"
+                whiteSpace="nowrap"
+              >
+                {firstName}{' '}
+                <Text as="span" color="primary.500" fontWeight="500">
+                  +{schemes.length - 1}
+                </Text>
               </Text>
-            </Text>
-          </Tooltip>
+            </PopoverTrigger>
+            <PopoverContent w="auto" minW="200px" maxW="320px" boxShadow="md">
+              <PopoverBody maxH="250px" overflowY="auto" p={2}>
+                {schemes.map((s) => (
+                  <Text key={s.schemeId} textStyle="h10" py={1} px={1}>
+                    {s.schemeName}
+                  </Text>
+                ))}
+              </PopoverBody>
+            </PopoverContent>
+          </Popover>
         )
       },
     },
     {
       key: 'reportingRatePercent',
       header: t('pages.pumpOperators.columns.reportingRate'),
+      width: '14.28%',
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.reportingRatePercent !== null && row.reportingRatePercent !== undefined
@@ -136,6 +179,7 @@ export function PumpOperatorsPage() {
     {
       key: 'lastWaterSupplied',
       header: t('pages.pumpOperators.columns.waterSupplied'),
+      width: '14.28%',
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.lastWaterSupplied !== null && row.lastWaterSupplied !== undefined
@@ -147,6 +191,7 @@ export function PumpOperatorsPage() {
     {
       key: 'lastSubmissionAt',
       header: t('pages.pumpOperators.columns.lastSubmission'),
+      width: '14.28%',
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.lastSubmissionAt ? formatTimestamp(row.lastSubmissionAt) : '—'}
@@ -156,6 +201,7 @@ export function PumpOperatorsPage() {
     {
       key: 'status',
       header: t('pages.pumpOperators.columns.activityStatus'),
+      width: '14.28%',
       render: (row) => {
         const statusKey = typeof row.status === 'string' ? row.status.toLowerCase() : ''
         const STATUS_LABELS: Record<string, string> = { ACTIVE: 'Active', INACTIVE: 'Inactive' }
@@ -166,6 +212,7 @@ export function PumpOperatorsPage() {
     {
       key: 'actions',
       header: t('pages.pumpOperators.columns.actions'),
+      width: '14.28%',
       render: (row) => (
         <ActionTooltip label={t('pages.pumpOperators.viewTooltip')}>
           <IconButton
@@ -325,6 +372,7 @@ export function PumpOperatorsPage() {
           data={data?.content ?? []}
           getRowKey={(row) => row.id}
           emptyMessage={t('pages.pumpOperators.noPumpOperatorsFound')}
+          tableLayout="fixed"
           pagination={{
             enabled: true,
             page,
