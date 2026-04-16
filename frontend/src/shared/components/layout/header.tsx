@@ -58,11 +58,12 @@ export function Header() {
             textAlign="center"
             color="#FFF"
             fontFamily="Geist, sans-serif"
-            fontSize={{ base: '12px', sm: '14px', md: '24px' }}
+            fontSize={{ base: '12px', sm: '14px', md: '18px', lg: '24px' }}
             fontStyle="normal"
             fontWeight="500"
-            lineHeight={{ base: '18px', sm: '20px', md: '36px' }}
-            maxW={{ base: '210px', sm: 'unset' }}
+            lineHeight={{ base: '18px', sm: '20px', md: '26px', lg: '36px' }}
+            maxW={{ base: '210px', sm: '280px', md: '460px', lg: 'unset' }}
+            noOfLines={2}
           >
             {headerSubtitle}
           </Text>

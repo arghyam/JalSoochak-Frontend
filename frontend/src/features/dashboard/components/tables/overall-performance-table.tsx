@@ -97,7 +97,7 @@ export function OverallPerformanceTable({
         h={scrollMaxHeight}
         maxH={scrollMaxHeight}
         overflowY={isEmpty ? 'hidden' : 'auto'}
-        overflowX="auto"
+        overflowX={{ base: 'scroll', md: 'auto' }}
         w="full"
         maxW="100%"
         minW={0}
@@ -106,6 +106,7 @@ export function OverallPerformanceTable({
         cursor={{ base: 'grab', md: 'auto' }}
         sx={{
           WebkitOverflowScrolling: 'touch',
+          scrollbarGutter: 'stable',
           '&::-webkit-scrollbar': { width: '4px', height: '4px' },
           '&::-webkit-scrollbar-track': { bg: 'neutral.100', borderRadius: '999px' },
           '&::-webkit-scrollbar-thumb': { bg: 'neutral.300', borderRadius: '999px' },
@@ -116,12 +117,12 @@ export function OverallPerformanceTable({
           },
         }}
       >
-        <Box w="full" minW={{ base: '420px', md: '100%' }}>
+        <Box w="full" minW={{ base: '520px', sm: '420px', md: '100%' }}>
           {!isEmpty ? (
             <Table
               size="sm"
               w="full"
-              minW={{ base: '420px', md: '100%' }}
+              minW={{ base: '520px', sm: '420px', md: '100%' }}
               sx={{ tableLayout: 'fixed' }}
             >
               <Thead

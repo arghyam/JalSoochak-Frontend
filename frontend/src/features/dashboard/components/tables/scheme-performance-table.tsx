@@ -564,7 +564,7 @@ export function SchemePerformanceTable({
             height="4px"
             width="0px"
             maxW="100%"
-            bg="neutral.300"
+            bg="primary.300"
             borderRadius="999px"
             cursor={hasHorizontalOverflow ? (isThumbDragging ? 'grabbing' : 'grab') : 'default'}
             onPointerDown={handleThumbPointerDown}
