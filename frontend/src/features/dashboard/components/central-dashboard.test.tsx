@@ -26,6 +26,7 @@ import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quant
 import { useWaterQuantityRegionWiseQuery } from '../services/query/use-water-quantity-region-wise-query'
 import { useTenantBoundariesQuery } from '../services/query/use-tenant-boundaries-query'
 import { getPreviousPeriodRange } from '../utils/formulas'
+import { stateSlugToCode } from '@/shared/constants/states'
 
 const mockNavigate = jest.fn()
 const mockUseParams = jest.fn(() => ({}))
@@ -1240,12 +1241,12 @@ describe('CentralDashboard', () => {
       })
     )
     expect(dashboardBodyProps.quantityTimeTrendData).toEqual([
-      { period: '01 Mar - 07 Mar\n2026', value: 1500 },
-      { period: '08 Mar - 14 Mar\n2026', value: 1750 },
+      { period: '01-03-2026\n07-03-2026', value: 1500 },
+      { period: '08-03-2026\n14-03-2026', value: 1750 },
     ])
     expect(dashboardBodyProps.regularityTimeTrendData).toEqual([
-      { period: '01 Mar - 07 Mar\n2026', value: 48 },
-      { period: '08 Mar - 14 Mar\n2026', value: 52 },
+      { period: '01-03-2026\n07-03-2026', value: 48 },
+      { period: '08-03-2026\n14-03-2026', value: 52 },
     ])
     expect(dashboardBodyProps.supplySubmissionRateData[0]).toEqual(
       expect.objectContaining({
@@ -1511,8 +1512,8 @@ describe('CentralDashboard', () => {
     }>()
 
     expect(dashboardBodyProps.quantityTimeTrendData).toEqual([
-      { period: '12 Mar 2026', value: 87 },
-      { period: '13 Mar 2026', value: 91 },
+      { period: '12-03-2026', value: 87 },
+      { period: '13-03-2026', value: 91 },
     ])
     expect(dashboardBodyProps.isQuantityTimeTrendLoading).toBe(false)
   })
@@ -1984,6 +1985,30 @@ describe('CentralDashboard', () => {
     expect(dashboardFilterProps.selectedBlock).toBe('patancheru')
     expect(dashboardFilterProps.selectedGramPanchayat).toBe('ismailkhanpet')
     expect(dashboardFilterProps.selectedVillage).toBe('rudraram')
+  })
+
+  it('hydrates location filters from localStorage when URL is empty', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedState: 'assam',
+        selectedDistrict: '3:baksa',
+        selectedBlock: '4:barama',
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    const stateCode = stateSlugToCode('assam') ?? 'assam'
+    expect(mockNavigate).toHaveBeenCalledWith({
+      pathname: `/${encodeURIComponent(stateCode)}`,
+      search: '?district=3%3Abaksa&block=4%3Abarama&tab=administrative',
+    })
   })
 
   it('forces the administrative tab when LGD query params are present even if storage last used departmental', () => {
@@ -4268,8 +4293,8 @@ describe('CentralDashboard', () => {
     }>()
 
     expect(dashboardBodyProps.data.supplyOutageTrend).toEqual([
-      { period: '01 Mar - 07 Mar\n2026', value: 4 },
-      { period: '08 Mar - 14 Mar\n2026', value: 2 },
+      { period: '01-03-2026\n07-03-2026', value: 4 },
+      { period: '08-03-2026\n14-03-2026', value: 2 },
     ])
   })
 

@@ -1,5 +1,6 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { createElement } from 'react'
 import type { ReactNode } from 'react'
@@ -7,6 +8,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SchemeViewPage } from './scheme-view-page'
 
 const mockNavigate = jest.fn()
+jest.mock('react-router', () => ({
+  ...jest.requireActual<typeof import('react-router')>('react-router'),
+  useNavigate: () => mockNavigate,
+}))
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual<typeof import('react-router-dom')>('react-router-dom'),
   useNavigate: () => mockNavigate,
@@ -278,5 +283,25 @@ describe('SchemeViewPage', () => {
     })
     renderPage()
     expect(screen.getByText('Failed to load reading submissions.')).toBeTruthy()
+  })
+
+  it('navigates to pump operator view page when pump operator name is clicked', async () => {
+    mockUseSchemeDetailsQuery.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: MOCK_DETAILS,
+      refetch: jest.fn(),
+    })
+    mockUseSchemeReadingsQuery.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: MOCK_READINGS,
+      refetch: jest.fn(),
+    })
+    renderPage()
+    const user = userEvent.setup()
+    const operatorLink = screen.getByText('Op A')
+    await user.click(operatorLink)
+    expect(mockNavigate).toHaveBeenCalledWith('/staff/pump-operators/13')
   })
 })

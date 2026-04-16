@@ -206,6 +206,75 @@ describe('DashboardFilters', () => {
     expect(screen.getByText('Ranga Reddy')).toBeTruthy()
   })
 
+  it('keeps breadcrumb dropdown open when an intermediate region is selected', () => {
+    const districtOptions: SearchableSelectOption[] = [
+      { value: 'sangareddy', label: 'Sangareddy' },
+      { value: 'rangareddy', label: 'Ranga Reddy' },
+    ]
+    const blockOptions: SearchableSelectOption[] = [
+      { value: 'patancheru', label: 'Patancheru' },
+      { value: 'zaheerabad', label: 'Zaheerabad' },
+    ]
+
+    function Harness() {
+      const [selectedDistrict, setSelectedDistrict] = useState('')
+
+      return (
+        <DashboardFilters
+          filterTabIndex={0}
+          onTabChange={jest.fn()}
+          onClear={jest.fn()}
+          isAdvancedEnabled={true}
+          isDepartmentStateSelected={false}
+          emptyOptions={emptyOptions}
+          selectedState="telangana"
+          selectedDistrict={selectedDistrict}
+          selectedBlock=""
+          selectedGramPanchayat=""
+          selectedVillage=""
+          selectedScheme=""
+          selectedDuration={null}
+          selectedDepartmentState=""
+          selectedDepartmentZone=""
+          selectedDepartmentCircle=""
+          selectedDepartmentDivision=""
+          selectedDepartmentSubdivision=""
+          selectedDepartmentVillage=""
+          districtOptions={districtOptions}
+          blockOptions={blockOptions}
+          gramPanchayatOptions={emptyOptions}
+          villageOptions={emptyOptions}
+          mockFilterStates={[{ value: 'telangana', label: 'Telangana' }]}
+          mockFilterSchemes={emptyOptions}
+          onStateChange={jest.fn()}
+          onDistrictChange={setSelectedDistrict}
+          onBlockChange={jest.fn()}
+          onGramPanchayatChange={jest.fn()}
+          setSelectedVillage={jest.fn()}
+          setSelectedScheme={jest.fn()}
+          setSelectedDuration={jest.fn()}
+          onDepartmentStateChange={jest.fn()}
+          setSelectedDepartmentZone={jest.fn()}
+          setSelectedDepartmentCircle={jest.fn()}
+          setSelectedDepartmentDivision={jest.fn()}
+          setSelectedDepartmentSubdivision={jest.fn()}
+          setSelectedDepartmentVillage={jest.fn()}
+        />
+      )
+    }
+
+    renderWithProviders(<Harness />)
+
+    fireEvent.focus(screen.getByRole('textbox'))
+    expect(screen.getByText('Districts (2)')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sangareddy' }))
+
+    expect(screen.getByText('Blocks (2)')).toBeTruthy()
+    expect(screen.getByText('Patancheru')).toBeTruthy()
+    expect(screen.getByText('Zaheerabad')).toBeTruthy()
+  })
+
   it('shows selected district in top breadcrumb path inside search panel', () => {
     const districtOptions: SearchableSelectOption[] = [
       { value: 'sangareddy', label: 'Sangareddy' },
@@ -561,6 +630,7 @@ describe('DashboardFilters', () => {
     fireEvent.click(screen.getByText('Hojai Sub Division'))
 
     expect(handleDepartmentSubdivisionChange).toHaveBeenCalledWith('501:501:hojai-sub-division')
+    expect(screen.queryByText(/Sub Divisions/)).toBeNull()
   })
 
   it('shows blocks in breadcrumb search panel when district is selected', () => {

@@ -131,6 +131,8 @@
       "filterStatus": "स्थिति",
       "filterDuration": "अवधि",
       "clearAllFilters": "सभी फिल्टर साफ़ करें",
+      "today": "आज",
+      "yesterday": "कल",
       "detailFields": {
         "name": "नाम",
         "phoneNumber": "फ़ोन नंबर",

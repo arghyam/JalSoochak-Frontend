@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Box, Heading, Text, Flex, SimpleGrid, Spinner, Button, Link } from '@chakra-ui/react'
 import { DataTable, PageHeader } from '@/shared/components/common'
@@ -56,11 +56,29 @@ export function SchemeViewPage() {
     {
       key: 'pumpOperatorName',
       header: t('pages.schemes.columns.pumpOperator'),
-      render: (row) => (
-        <Text textStyle="h10" fontWeight="400">
-          {row.pumpOperatorName}
-        </Text>
-      ),
+      render: (row) => {
+        const to = ROUTES.STAFF_PUMP_OPERATORS_VIEW.replace(
+          ':operatorId',
+          String(row.pumpOperatorId)
+        )
+        return (
+          <Link
+            as={RouterLink}
+            to={to}
+            textStyle="h10"
+            fontWeight="400"
+            color="primary.500"
+            cursor="pointer"
+            _hover={{ textDecoration: 'underline' }}
+            onClick={(e) => {
+              e.preventDefault()
+              navigate(to)
+            }}
+          >
+            {row.pumpOperatorName}
+          </Link>
+        )
+      },
     },
     {
       key: 'submittedAt',

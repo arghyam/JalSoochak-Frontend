@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import Papa from 'papaparse'
 import {
@@ -191,9 +191,17 @@ export function PumpOperatorViewPage() {
       key: 'schemeName',
       header: t('pages.pumpOperators.columns.schemeName'),
       render: (row) => (
-        <Text textStyle="h10" fontWeight="400">
+        <Link
+          as={RouterLink}
+          to={ROUTES.STAFF_SCHEMES_VIEW.replace(':schemeId', String(row.schemeId))}
+          textStyle="h10"
+          fontWeight="400"
+          color="primary.500"
+          cursor="pointer"
+          _hover={{ textDecoration: 'underline' }}
+        >
           {row.schemeName}
-        </Text>
+        </Link>
       ),
     },
     {
@@ -309,7 +317,7 @@ export function PumpOperatorViewPage() {
           <Heading as="h2" size="h3" fontWeight="400" mb={6}>
             {t('pages.pumpOperators.pumpOperatorDetails')}
           </Heading>
-          <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
+          <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} spacing={6}>
             <DetailField
               label={t('pages.pumpOperators.detailFields.name')}
               value={details.name ?? '—'}

@@ -214,6 +214,11 @@ beforeEach(() => {
     writable: true,
     value: jest.fn(),
   })
+  // Prevent jsdom "navigation not implemented" when code triggers <a>.click()
+  Object.defineProperty(HTMLAnchorElement.prototype, 'click', {
+    writable: true,
+    value: jest.fn(),
+  })
   mockUsePumpOperatorReadingsQuery.mockReturnValue({
     isLoading: false,
     isError: false,
@@ -391,6 +396,18 @@ describe('PumpOperatorViewPage', () => {
     renderPage()
     const button = screen.getByRole('button', { name: 'Attendance' }) as HTMLButtonElement
     expect(button.disabled).toBe(true)
+  })
+
+  it('navigates to scheme view page when scheme name is clicked', async () => {
+    mockUsePumpOperatorDetailsQuery.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: MOCK_DETAILS,
+      refetch: jest.fn(),
+    })
+    renderPage()
+    const schemeLink = screen.getByRole('link', { name: 'Test Scheme 1' })
+    expect(schemeLink.getAttribute('href')).toBe('/staff/schemes/1')
   })
 
   it('opens attendance modal and downloads csv with metadata rows', async () => {

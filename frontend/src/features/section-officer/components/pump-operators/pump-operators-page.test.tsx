@@ -13,6 +13,8 @@ jest.mock('react-router-dom', () => ({
 }))
 
 const translations: Record<string, string> = {
+  'pages.pumpOperators.today': 'Today',
+  'pages.pumpOperators.yesterday': 'Yesterday',
   'pages.pumpOperators.heading': 'Pump Operators',
   'pages.pumpOperators.loading': 'Loading…',
   'pages.pumpOperators.error': 'Failed to load pump operators. Please try again.',
@@ -309,5 +311,44 @@ describe('PumpOperatorsPage', () => {
     await userEvent.type(searchInput, 'ravi')
     // aria-label on the button is "Clear all filters" (accessible name)
     expect(screen.getByRole('button', { name: /clear all filters/i })).toBeTruthy()
+  })
+
+  it('shows "Today" when lastSubmissionAt is today\'s date', () => {
+    const todayIso = new Date().toISOString()
+    const operator = [{ ...MOCK_OPERATORS[0], lastSubmissionAt: todayIso }]
+    mockUsePumpOperatorsListQuery.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: { content: operator, totalElements: 1 },
+      refetch: jest.fn(),
+    })
+    renderPage()
+    expect(screen.getByText('Today')).toBeTruthy()
+  })
+
+  it('shows "Yesterday" when lastSubmissionAt is yesterday\'s date', () => {
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    const operator = [{ ...MOCK_OPERATORS[0], lastSubmissionAt: yesterday.toISOString() }]
+    mockUsePumpOperatorsListQuery.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: { content: operator, totalElements: 1 },
+      refetch: jest.fn(),
+    })
+    renderPage()
+    expect(screen.getByText('Yesterday')).toBeTruthy()
+  })
+
+  it('shows formatted date for lastSubmissionAt older than yesterday', () => {
+    const operator = [{ ...MOCK_OPERATORS[0], lastSubmissionAt: '2026-04-06T05:28:08.640517' }]
+    mockUsePumpOperatorsListQuery.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: { content: operator, totalElements: 1 },
+      refetch: jest.fn(),
+    })
+    renderPage()
+    expect(screen.getByText('06-04-2026, 05:28')).toBeTruthy()
   })
 })
