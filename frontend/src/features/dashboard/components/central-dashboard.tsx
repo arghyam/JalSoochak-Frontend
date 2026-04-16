@@ -81,6 +81,7 @@ import {
   getWaterSupplyKpis,
   getWaterSupplyKpisFromPeriodic,
   getWaterSupplyKpisFromNationalDashboard,
+  getServedConnectionCountFromWaterSupplyResponse,
   mapOverallPerformanceFromAnalytics,
   mapQuantityPerformanceFromAnalytics,
   mapRegularityPerformanceFromAnalytics,
@@ -715,6 +716,7 @@ export function CentralDashboard() {
   })
   const previousLocationRef = useRef<{ pathname: string; search: string } | null>(null)
   const hasAppliedStoredHydrationRef = useRef(false)
+  const shouldPausePersistenceForHydrationRef = useRef(false)
   const activeTrailIndex =
     activeTrailIndexState.pathname === location.pathname &&
     activeTrailIndexState.search === location.search
@@ -1990,14 +1992,34 @@ export function CentralDashboard() {
           (scheme) => scheme.schemeId === derivedVillageSchemeId
         )
       : undefined) ?? (isHierarchyLeafSelected ? schemePerformanceData?.topSchemes?.[0] : undefined)
+  const quantityTrendServedConnectionCount = getServedConnectionCountFromWaterSupplyResponse(
+    hasWaterSupplyData(currentWaterSupplyKpiData)
+      ? currentWaterSupplyKpiData
+      : averageWaterSupplyData
+  )
+  const nationalQuantityTrendServedConnectionCount = (
+    filteredNationalDashboardData?.stateWiseQuantityPerformance ?? []
+  ).reduce((total, state) => {
+    const servedConnections =
+      state.totalAchievedFhtcCount ?? state.totalFhtcCount ?? state.totalHouseholdCount ?? 0
+    return (
+      total + (Number.isFinite(servedConnections) && servedConnections > 0 ? servedConnections : 0)
+    )
+  }, 0)
   const periodicQuantityTimeTrendData = mapSchemeRegularityQuantityToTrendPoints(
-    schemeQuantityPeriodicData
+    schemeQuantityPeriodicData,
+    quantityTrendServedConnectionCount,
+    averagePersonsPerHousehold
   )
   const periodicRegularityTimeTrendData = mapSchemeRegularityPeriodicToTrendPoints(
     schemeRegularityPeriodicData
   )
   const quantityTimeTrendData = isCentralLandingView
-    ? mapNationalQuantityTrendPoints(nationalSchemeQuantityPeriodicData)
+    ? mapNationalQuantityTrendPoints(
+        nationalSchemeQuantityPeriodicData,
+        nationalQuantityTrendServedConnectionCount,
+        nationalDefaultAverageMembersPerHousehold
+      )
     : periodicQuantityTimeTrendData.length > 0
       ? periodicQuantityTimeTrendData
       : []
@@ -2100,6 +2122,7 @@ export function CentralDashboard() {
       return
     }
     hasAppliedStoredHydrationRef.current = true
+    shouldPausePersistenceForHydrationRef.current = true
 
     if (storedFilters.filterTabIndex === 1 && hasStoredDepartmentFilters) {
       updateFilterUrl({
@@ -2140,6 +2163,12 @@ export function CentralDashboard() {
     storedFilters.selectedVillage,
     updateFilterUrl,
   ])
+
+  useEffect(() => {
+    if (!shouldHydrateFromStoredFilters) {
+      shouldPausePersistenceForHydrationRef.current = false
+    }
+  }, [shouldHydrateFromStoredFilters])
 
   const handleStateChange = (value: string) => {
     setActiveTrailIndex(null)
@@ -2359,7 +2388,7 @@ export function CentralDashboard() {
   }
 
   useEffect(() => {
-    if (shouldHydrateFromStoredFilters) {
+    if (shouldPausePersistenceForHydrationRef.current) {
       return
     }
 
