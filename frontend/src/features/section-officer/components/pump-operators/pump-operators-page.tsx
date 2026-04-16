@@ -20,6 +20,7 @@ import {
 } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
 import { FiEye } from 'react-icons/fi'
+import type { TFunction } from 'i18next'
 import { useDebounce } from '@/shared/hooks/use-debounce'
 import {
   DataTable,
@@ -34,6 +35,22 @@ import { ROUTES } from '@/shared/constants/routes'
 import { usePumpOperatorsListQuery } from '../../services/query/use-pump-operators-queries'
 import { formatTimestamp } from '../../services/api/schemes-api'
 import type { PumpOperatorListItem } from '../../types/pump-operators'
+
+function formatSubmissionDate(iso: string, t: TFunction): string {
+  if (!iso) return '—'
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return '—'
+  const today = new Date()
+  const yesterday = new Date(today)
+  yesterday.setDate(today.getDate() - 1)
+  const isSameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  if (isSameDay(date, today)) return t('pages.pumpOperators.today')
+  if (isSameDay(date, yesterday)) return t('pages.pumpOperators.yesterday')
+  return formatTimestamp(iso)
+}
 
 function getDefaultDateRange(): DateRange {
   const now = new Date()
@@ -194,7 +211,7 @@ export function PumpOperatorsPage() {
       width: '14.28%',
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
-          {row.lastSubmissionAt ? formatTimestamp(row.lastSubmissionAt) : '—'}
+          {row.lastSubmissionAt ? formatSubmissionDate(row.lastSubmissionAt, t) : '—'}
         </Text>
       ),
     },

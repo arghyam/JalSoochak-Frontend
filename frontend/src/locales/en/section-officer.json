@@ -131,6 +131,8 @@
       "filterStatus": "Status",
       "filterDuration": "Duration",
       "clearAllFilters": "clear all filters",
+      "today": "Today",
+      "yesterday": "Yesterday",
       "detailFields": {
         "name": "Name",
         "phoneNumber": "Phone Number",
