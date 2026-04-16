@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react'
-import { useTheme } from '@chakra-ui/react'
+import { useMediaQuery, useTheme } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
@@ -26,6 +26,7 @@ export function ReadingSubmissionStatusChart({
   const { t } = useTranslation('dashboard')
   const { t: tCommon } = useTranslation('common')
   const theme = useTheme()
+  const [isBelowXs] = useMediaQuery('(max-width: 480px)')
   const bodyText7 = getBodyText7Style(theme)
   const noDataLabel = tCommon('noDataAvailable', { defaultValue: 'No data available' })
   const localizedLegendLabel = useCallback(
@@ -118,6 +119,8 @@ export function ReadingSubmissionStatusChart({
   }, [chartData, localizedLegendLabel])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
+  const resolvedPieSize = isBelowXs ? Math.min(pieSize, 240) : pieSize
+  const legendMarginTop = isBelowXs ? 'auto' : `${chartLegendGapPx}px`
   const legendItems = chartData.map((entry, index) => ({
     key: entry.label,
     label: localizedLegendLabel(entry.label),
@@ -155,8 +158,8 @@ export function ReadingSubmissionStatusChart({
     >
       <div
         style={{
-          width: `${pieSize}px`,
-          height: `${pieSize}px`,
+          width: `${resolvedPieSize}px`,
+          height: `${resolvedPieSize}px`,
           maxWidth: '100%',
           margin: '0 auto',
         }}
@@ -166,7 +169,7 @@ export function ReadingSubmissionStatusChart({
       {legendItems.length > 0 ? (
         <div
           style={{
-            marginTop: `${chartLegendGapPx}px`,
+            marginTop: legendMarginTop,
             width: '100%',
             display: 'flex',
             alignItems: 'center',

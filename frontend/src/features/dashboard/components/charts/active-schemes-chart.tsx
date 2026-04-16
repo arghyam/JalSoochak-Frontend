@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react'
-import { useTheme } from '@chakra-ui/react'
+import { useMediaQuery, useTheme } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
@@ -46,6 +46,7 @@ export function ActiveSchemesChart({
   const { t } = useTranslation('dashboard')
   const { t: tCommon } = useTranslation('common')
   const theme = useTheme()
+  const [isBelowXs] = useMediaQuery('(max-width: 480px)')
   const bodyText7 = getBodyText7Style(theme)
   const noDataLabel = tCommon('noDataAvailable', { defaultValue: 'No data available' })
   const noteColor = theme?.colors?.neutral?.['950'] ?? bodyText7.color ?? '#667085'
@@ -121,7 +122,8 @@ export function ActiveSchemesChart({
   }, [data, localizedLegendLabel])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
-  const chartSize = 300
+  const chartSize = isBelowXs ? 240 : 300
+  const legendMarginTop = isBelowXs ? 'auto' : '12px'
   const hasRenderableData = useMemo(
     () => data.some((entry) => Number.isFinite(entry.value) && entry.value > 0),
     [data]
@@ -169,11 +171,12 @@ export function ActiveSchemesChart({
           maxWidth: '594px',
           minWidth: 0,
           minHeight: '336px',
+          flex: 1,
+          minBlockSize: 0,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          gap: '12px',
+          justifyContent: 'flex-start',
         }}
       >
         <div
@@ -191,6 +194,7 @@ export function ActiveSchemesChart({
         {legendItems.length > 0 ? (
           <div
             style={{
+              marginTop: legendMarginTop,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

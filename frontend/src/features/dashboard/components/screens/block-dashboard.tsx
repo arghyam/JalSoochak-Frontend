@@ -305,13 +305,7 @@ export function BlockDashboardScreen({
               {t('pumpOperators.totalLabel', { defaultValue: 'Total' })}: {pumpOperatorsTotal}
             </Text>
           </Flex>
-          <ActiveSchemesChart
-            data={data.pumpOperators}
-            height="360px"
-            note={t('pumpOperators.note', {
-              defaultValue: 'Note: Active schemes for at least 30 days in a month',
-            })}
-          />
+          <ActiveSchemesChart data={data.pumpOperators} height="360px" />
         </Box>
         <Box
           bg="white"
