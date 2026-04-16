@@ -209,169 +209,245 @@ export function ViewStateUTPage() {
         py={6}
         px={{ base: 3, md: 4 }}
       >
-        {/* State/UT Details */}
-        <Flex justify="space-between" align="flex-start" mb={4}>
-          <Heading as="h2" size="h3" fontWeight="400" id="state-details-heading">
-            {t('statesUts.details.title')}
-          </Heading>
-          <IconButton
-            aria-label={`${t('statesUts.aria.editStateUt')} ${tenant.name}`}
-            icon={<EditIcon boxSize={5} />}
-            variant="ghost"
-            size="sm"
-            color="neutral.950"
-            _hover={{ color: 'primary.500', bg: 'transparent' }}
-            onClick={handleEdit}
-          />
-        </Flex>
-        <SimpleGrid
-          columns={{ base: 1, lg: 2 }}
-          spacing={6}
-          mb={7}
-          aria-labelledby="state-details-heading"
+        <Flex
+          direction="column"
+          h="full"
+          justify="space-between"
+          minH={{ base: 'auto', lg: 'calc(100vh - 232px)' }}
         >
           <Box>
-            <Text textStyle="h10" fontWeight="500" mb={1}>
-              {t('statesUts.details.name')}
-            </Text>
-            <Text textStyle="h10" fontWeight="400">
-              {tenant.name}
-            </Text>
-          </Box>
-          <Box>
-            <Text textStyle="h10" fontWeight="500" mb={1}>
-              {t('statesUts.details.stateCode')}
-            </Text>
-            <Text textStyle="h10" fontWeight="400">
-              {tenant.stateCode}
-            </Text>
-          </Box>
-          <Box>
-            <Text textStyle="h10" fontWeight="500" mb={1}>
-              {t('statesUts.details.lgdCode')}
-            </Text>
-            <Text textStyle="h10" fontWeight="400">
-              {tenant.lgdCode}
-            </Text>
-          </Box>
-          <Box>
-            <Text textStyle="h10" fontWeight="500" mb={1}>
-              {t('statesUts.details.createdAt')}
-            </Text>
-            <Text textStyle="h10" fontWeight="400">
-              {new Date(tenant.createdAt).toLocaleDateString()}
-            </Text>
-          </Box>
-        </SimpleGrid>
+            {/* State/UT Details */}
+            <Flex justify="space-between" align="flex-start" mb={4}>
+              <Heading as="h2" size="h3" fontWeight="400" id="state-details-heading">
+                {t('statesUts.details.title')}
+              </Heading>
+              <IconButton
+                aria-label={`${t('statesUts.aria.editStateUt')} ${tenant.name}`}
+                icon={<EditIcon boxSize={5} />}
+                variant="ghost"
+                size="sm"
+                color="neutral.950"
+                _hover={{ color: 'primary.500', bg: 'transparent' }}
+                onClick={handleEdit}
+              />
+            </Flex>
+            <SimpleGrid
+              columns={{ base: 1, lg: 2 }}
+              spacing={6}
+              mb={7}
+              aria-labelledby="state-details-heading"
+            >
+              <Box>
+                <Text textStyle="h10" fontWeight="500" mb={1}>
+                  {t('statesUts.details.name')}
+                </Text>
+                <Text textStyle="h10" fontWeight="400">
+                  {tenant.name}
+                </Text>
+              </Box>
+              <Box>
+                <Text textStyle="h10" fontWeight="500" mb={1}>
+                  {t('statesUts.details.stateCode')}
+                </Text>
+                <Text textStyle="h10" fontWeight="400">
+                  {tenant.stateCode}
+                </Text>
+              </Box>
+              <Box>
+                <Text textStyle="h10" fontWeight="500" mb={1}>
+                  {t('statesUts.details.lgdCode')}
+                </Text>
+                <Text textStyle="h10" fontWeight="400">
+                  {tenant.lgdCode}
+                </Text>
+              </Box>
+              <Box>
+                <Text textStyle="h10" fontWeight="500" mb={1}>
+                  {t('statesUts.details.createdAt')}
+                </Text>
+                <Text textStyle="h10" fontWeight="400">
+                  {new Date(tenant.createdAt).toLocaleDateString()}
+                </Text>
+              </Box>
+            </SimpleGrid>
 
-        {/* Status Section */}
-        <Heading as="h2" size="h3" fontWeight="400" mb={4} id="status-heading">
-          {t('statesUts.statusSection.title')}
-        </Heading>
-        <Box mb={7}>
-          <StatusChip
-            status={tenant.status.toLowerCase()}
-            label={t(`statesUts.statusSection.statuses.${tenant.status}`)}
-          />
-        </Box>
+            {/* Status Section */}
+            <Heading as="h2" size="h3" fontWeight="400" mb={4} id="status-heading">
+              {t('statesUts.statusSection.title')}
+            </Heading>
+            <Box mb={7}>
+              <StatusChip
+                status={tenant.status.toLowerCase()}
+                label={t(`statesUts.statusSection.statuses.${tenant.status}`)}
+              />
+            </Box>
 
-        {/* State Admin Details */}
-        {adminsQuery.isLoading && (
-          <Text color="neutral.600" textStyle="h10">
-            {t('common:loading')}
-          </Text>
-        )}
-        {!adminsQuery.isLoading &&
-          !adminsQuery.isError &&
-          (adminsQuery.data?.length ?? admins.length) === 0 && (
-            <>
-              <Text color="neutral.500" textStyle="h10" mb={4}>
-                {t('statesUts.adminDetails.noAdminDescription')}
+            {/* State Admin Details */}
+            {adminsQuery.isLoading && (
+              <Text color="neutral.600" textStyle="h10">
+                {t('common:loading')}
               </Text>
-              <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6} mb={4}>
-                <FormControl isRequired isInvalid={!!fieldErrors.firstName}>
-                  <FormLabel textStyle="h10" mb={1}>
-                    {t('statesUts.adminDetails.firstName')}
-                  </FormLabel>
-                  <Input
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    onBlur={() => handleBlur('firstName')}
-                    placeholder={t('common:enter')}
-                    h={9}
-                    maxW={{ base: '100%', lg: '486px' }}
-                    borderColor="neutral.200"
-                    _placeholder={{ color: 'neutral.300' }}
-                    aria-required="true"
-                  />
-                  {fieldErrors.firstName && (
-                    <FormErrorMessage>{fieldErrors.firstName}</FormErrorMessage>
-                  )}
-                </FormControl>
-                <FormControl isRequired isInvalid={!!fieldErrors.lastName}>
-                  <FormLabel textStyle="h10" mb={1}>
-                    {t('statesUts.adminDetails.lastName')}
-                  </FormLabel>
-                  <Input
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    onBlur={() => handleBlur('lastName')}
-                    placeholder={t('common:enter')}
-                    h={9}
-                    borderColor="neutral.200"
-                    _placeholder={{ color: 'neutral.300' }}
-                    maxW={{ base: '100%', lg: '486px' }}
-                    aria-required="true"
-                  />
-                  {fieldErrors.lastName && (
-                    <FormErrorMessage>{fieldErrors.lastName}</FormErrorMessage>
-                  )}
-                </FormControl>
-                <FormControl isRequired isInvalid={!!fieldErrors.phone}>
-                  <FormLabel textStyle="h10" mb={1}>
-                    {t('statesUts.adminDetails.phone')}
-                  </FormLabel>
-                  <Input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => {
-                      const val = e.target.value.replaceAll(/\D/g, '')
-                      if (val.length <= 10) setPhone(val)
-                    }}
-                    onBlur={() => handleBlur('phone')}
-                    placeholder={t('common:enter')}
-                    inputMode="numeric"
-                    h={9}
-                    borderColor="neutral.200"
-                    maxW={{ base: '100%', lg: '486px' }}
-                    _placeholder={{ color: 'neutral.300' }}
-                    aria-required="true"
-                  />
-                  {fieldErrors.phone && <FormErrorMessage>{fieldErrors.phone}</FormErrorMessage>}
-                </FormControl>
-                <FormControl isRequired isInvalid={!!fieldErrors.email}>
-                  <FormLabel textStyle="h10" mb={1}>
-                    {t('statesUts.adminDetails.email')}
-                  </FormLabel>
-                  <Input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    onBlur={() => handleBlur('email')}
-                    placeholder={t('common:enter')}
-                    h={9}
-                    borderColor="neutral.200"
-                    _placeholder={{ color: 'neutral.300' }}
-                    maxW={{ base: '100%', lg: '486px' }}
-                    aria-required="true"
-                  />
-                  {fieldErrors.email && <FormErrorMessage>{fieldErrors.email}</FormErrorMessage>}
-                </FormControl>
-              </SimpleGrid>
-              <HStack justify="flex-end">
+            )}
+            {!adminsQuery.isLoading &&
+              !adminsQuery.isError &&
+              (adminsQuery.data?.length ?? admins.length) === 0 && (
+                <>
+                  <Text color="neutral.500" textStyle="h10" mb={4}>
+                    {t('statesUts.adminDetails.noAdminDescription')}
+                  </Text>
+                  <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6} mb={4}>
+                    <FormControl isRequired isInvalid={!!fieldErrors.firstName}>
+                      <FormLabel textStyle="h10" mb={1}>
+                        {t('statesUts.adminDetails.firstName')}
+                      </FormLabel>
+                      <Input
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        onBlur={() => handleBlur('firstName')}
+                        placeholder={t('common:enter')}
+                        h={9}
+                        maxW={{ base: '100%', lg: '486px' }}
+                        borderColor="neutral.200"
+                        _placeholder={{ color: 'neutral.300' }}
+                        aria-required="true"
+                      />
+                      {fieldErrors.firstName && (
+                        <FormErrorMessage>{fieldErrors.firstName}</FormErrorMessage>
+                      )}
+                    </FormControl>
+                    <FormControl isRequired isInvalid={!!fieldErrors.lastName}>
+                      <FormLabel textStyle="h10" mb={1}>
+                        {t('statesUts.adminDetails.lastName')}
+                      </FormLabel>
+                      <Input
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        onBlur={() => handleBlur('lastName')}
+                        placeholder={t('common:enter')}
+                        h={9}
+                        borderColor="neutral.200"
+                        _placeholder={{ color: 'neutral.300' }}
+                        maxW={{ base: '100%', lg: '486px' }}
+                        aria-required="true"
+                      />
+                      {fieldErrors.lastName && (
+                        <FormErrorMessage>{fieldErrors.lastName}</FormErrorMessage>
+                      )}
+                    </FormControl>
+                    <FormControl isRequired isInvalid={!!fieldErrors.phone}>
+                      <FormLabel textStyle="h10" mb={1}>
+                        {t('statesUts.adminDetails.phone')}
+                      </FormLabel>
+                      <Input
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => {
+                          const val = e.target.value.replaceAll(/\D/g, '')
+                          if (val.length <= 10) setPhone(val)
+                        }}
+                        onBlur={() => handleBlur('phone')}
+                        placeholder={t('common:enter')}
+                        inputMode="numeric"
+                        h={9}
+                        borderColor="neutral.200"
+                        maxW={{ base: '100%', lg: '486px' }}
+                        _placeholder={{ color: 'neutral.300' }}
+                        aria-required="true"
+                      />
+                      {fieldErrors.phone && (
+                        <FormErrorMessage>{fieldErrors.phone}</FormErrorMessage>
+                      )}
+                    </FormControl>
+                    <FormControl isRequired isInvalid={!!fieldErrors.email}>
+                      <FormLabel textStyle="h10" mb={1}>
+                        {t('statesUts.adminDetails.email')}
+                      </FormLabel>
+                      <Input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        onBlur={() => handleBlur('email')}
+                        placeholder={t('common:enter')}
+                        h={9}
+                        borderColor="neutral.200"
+                        _placeholder={{ color: 'neutral.300' }}
+                        maxW={{ base: '100%', lg: '486px' }}
+                        aria-required="true"
+                      />
+                      {fieldErrors.email && (
+                        <FormErrorMessage>{fieldErrors.email}</FormErrorMessage>
+                      )}
+                    </FormControl>
+                  </SimpleGrid>
+                </>
+              )}
+            {!adminsQuery.isLoading && admins.length > 0 && (
+              <Flex direction="column" gap={6}>
+                {admins.map((admin) => {
+                  const adminHeadingId = `admin-details-heading-${admin.id}`
+                  return (
+                    <Box key={admin.id}>
+                      <Flex align="center" mb={4} gap={5}>
+                        <Heading as="h2" size="h3" fontWeight="400" id={adminHeadingId}>
+                          {t('statesUts.adminDetails.title')}
+                        </Heading>
+                        <StatusChip
+                          status={admin.status}
+                          label={admin.status.charAt(0).toUpperCase() + admin.status.slice(1)}
+                        />
+                      </Flex>
+                      <SimpleGrid
+                        columns={{ base: 1, lg: 2 }}
+                        spacing={4}
+                        aria-labelledby={adminHeadingId}
+                      >
+                        <Box>
+                          <Text textStyle="h10" fontWeight="500" mb={1}>
+                            {t('statesUts.adminDetails.firstName')}
+                          </Text>
+                          <Text textStyle="h10" fontWeight="400">
+                            {admin.firstName || t('common:na')}
+                          </Text>
+                        </Box>
+                        <Box>
+                          <Text textStyle="h10" fontWeight="500" mb={1}>
+                            {t('statesUts.adminDetails.lastName')}
+                          </Text>
+                          <Text textStyle="h10" fontWeight="400">
+                            {admin.lastName || t('common:na')}
+                          </Text>
+                        </Box>
+                        <Box>
+                          <Text textStyle="h10" fontWeight="500" mb={1}>
+                            {t('statesUts.adminDetails.email')}
+                          </Text>
+                          <Text textStyle="h10" fontWeight="400">
+                            {admin.email}
+                          </Text>
+                        </Box>
+                        <Box>
+                          <Text textStyle="h10" fontWeight="500" mb={1}>
+                            {t('statesUts.adminDetails.phone')}
+                          </Text>
+                          <Text textStyle="h10" fontWeight="400">
+                            {admin.phone || t('common:na')}
+                          </Text>
+                        </Box>
+                      </SimpleGrid>
+                    </Box>
+                  )
+                })}
+              </Flex>
+            )}
+          </Box>
+          {!adminsQuery.isLoading &&
+            !adminsQuery.isError &&
+            (adminsQuery.data?.length ?? admins.length) === 0 && (
+              <HStack justify={{ base: 'stretch', sm: 'flex-end' }} mt={6}>
                 <Button
                   variant="primary"
                   size="md"
+                  width={{ base: 'full', sm: 'auto' }}
                   isLoading={inviteUserMutation.isPending}
                   isDisabled={inviteUserMutation.isPending}
                   onClick={() => void handleInviteSubmit()}
@@ -379,66 +455,8 @@ export function ViewStateUTPage() {
                   {t('statesUts.buttons.sendInvite')}
                 </Button>
               </HStack>
-            </>
-          )}
-        {!adminsQuery.isLoading && admins.length > 0 && (
-          <Flex direction="column" gap={6}>
-            {admins.map((admin) => {
-              const adminHeadingId = `admin-details-heading-${admin.id}`
-              return (
-                <Box key={admin.id}>
-                  <Flex align="center" mb={4} gap={5}>
-                    <Heading as="h2" size="h3" fontWeight="400" id={adminHeadingId}>
-                      {t('statesUts.adminDetails.title')}
-                    </Heading>
-                    <StatusChip
-                      status={admin.status}
-                      label={admin.status.charAt(0).toUpperCase() + admin.status.slice(1)}
-                    />
-                  </Flex>
-                  <SimpleGrid
-                    columns={{ base: 1, lg: 2 }}
-                    spacing={4}
-                    aria-labelledby={adminHeadingId}
-                  >
-                    <Box>
-                      <Text textStyle="h10" fontWeight="500" mb={1}>
-                        {t('statesUts.adminDetails.firstName')}
-                      </Text>
-                      <Text textStyle="h10" fontWeight="400">
-                        {admin.firstName || t('common:na')}
-                      </Text>
-                    </Box>
-                    <Box>
-                      <Text textStyle="h10" fontWeight="500" mb={1}>
-                        {t('statesUts.adminDetails.lastName')}
-                      </Text>
-                      <Text textStyle="h10" fontWeight="400">
-                        {admin.lastName || t('common:na')}
-                      </Text>
-                    </Box>
-                    <Box>
-                      <Text textStyle="h10" fontWeight="500" mb={1}>
-                        {t('statesUts.adminDetails.email')}
-                      </Text>
-                      <Text textStyle="h10" fontWeight="400">
-                        {admin.email}
-                      </Text>
-                    </Box>
-                    <Box>
-                      <Text textStyle="h10" fontWeight="500" mb={1}>
-                        {t('statesUts.adminDetails.phone')}
-                      </Text>
-                      <Text textStyle="h10" fontWeight="400">
-                        {admin.phone || t('common:na')}
-                      </Text>
-                    </Box>
-                  </SimpleGrid>
-                </Box>
-              )
-            })}
-          </Flex>
-        )}
+            )}
+        </Flex>
       </Box>
 
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
