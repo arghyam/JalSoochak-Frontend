@@ -46,6 +46,14 @@ describe('to12Hour', () => {
   it('pads single-digit minutes', () => {
     expect(to12Hour('09:05')).toEqual({ hour: '09', minute: '05', ampm: 'AM' })
   })
+
+  it('falls back to 12 for invalid hour and normalizes valid minute', () => {
+    expect(to12Hour('99:07')).toEqual({ hour: '12', minute: '07', ampm: 'AM' })
+  })
+
+  it('falls back minute to 00 when invalid', () => {
+    expect(to12Hour('10:99')).toEqual({ hour: '10', minute: '00', ampm: 'AM' })
+  })
 })
 
 // ─── Utility: to24Hour ───────────────────────────────────────────────────────
@@ -82,6 +90,12 @@ describe('to24Hour', () => {
 
   it('is the inverse of to12Hour for midnight', () => {
     expect(to24Hour(to12Hour('00:00'))).toBe('00:00')
+  })
+
+  it('returns 00:00 for invalid hour or minute', () => {
+    expect(to24Hour({ hour: '00', minute: '30', ampm: 'AM' })).toBe('00:00')
+    expect(to24Hour({ hour: '13', minute: '30', ampm: 'PM' })).toBe('00:00')
+    expect(to24Hour({ hour: '10', minute: '99', ampm: 'PM' })).toBe('00:00')
   })
 })
 
@@ -191,5 +205,37 @@ describe('TimePicker', () => {
       (el) => el.getAttribute('aria-selected') === 'true'
     )
     expect(selectedHour?.textContent).toBe('10')
+  })
+
+  it('supports keyboard navigation and save with enter', () => {
+    renderWithProviders(<TimePicker value="09:00" onChange={mockOnChange} />)
+    fireEvent.click(screen.getByRole('combobox', { name: 'Select time' }))
+    const dialog = screen.getByRole('dialog', { name: 'Time picker' })
+
+    fireEvent.keyDown(dialog, { key: 'ArrowDown' })
+    fireEvent.keyDown(dialog, { key: 'ArrowRight' })
+    fireEvent.keyDown(dialog, { key: 'ArrowDown' })
+    fireEvent.keyDown(dialog, { key: 'ArrowRight' })
+    fireEvent.keyDown(dialog, { key: 'ArrowDown' })
+    fireEvent.keyDown(dialog, { key: 'Enter' })
+
+    expect(mockOnChange).toHaveBeenCalledWith('22:01')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('closes dropdown on escape', () => {
+    renderWithProviders(<TimePicker value="09:00" onChange={mockOnChange} />)
+    fireEvent.click(screen.getByRole('combobox', { name: 'Select time' }))
+    const dialog = screen.getByRole('dialog', { name: 'Time picker' })
+    fireEvent.keyDown(dialog, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('saves on space key', () => {
+    renderWithProviders(<TimePicker value="09:00" onChange={mockOnChange} />)
+    fireEvent.click(screen.getByRole('combobox', { name: 'Select time' }))
+    const dialog = screen.getByRole('dialog', { name: 'Time picker' })
+    fireEvent.keyDown(dialog, { key: ' ' })
+    expect(mockOnChange).toHaveBeenCalledWith('09:00')
   })
 })

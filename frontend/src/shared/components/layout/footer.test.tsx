@@ -15,6 +15,10 @@ describe('Footer', () => {
       'href',
       '/staff/login'
     )
+    expect(screen.getByRole('link', { name: /system users login/i })).toHaveAttribute(
+      'href',
+      '/login'
+    )
     expect(screen.getByRole('link', { name: /jalsoochak website/i })).toHaveAttribute(
       'href',
       'https://jalsoochak.in/'

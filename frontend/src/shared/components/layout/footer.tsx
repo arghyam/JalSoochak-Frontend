@@ -122,6 +122,15 @@ export function Footer() {
                 {t('footer.sectionOfficerLogin')}
               </Link>
               <Link
+                as={RouterLink}
+                to={ROUTES.LOGIN}
+                color="primary.500"
+                fontSize="sm"
+                _hover={{ textDecoration: 'underline' }}
+              >
+                {t('footer.systemUsersLogin')}
+              </Link>
+              <Link
                 href="https://jalsoochak.in/"
                 isExternal
                 color="primary.500"

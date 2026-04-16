@@ -157,4 +157,63 @@ describe('MonthlyTrendChart', () => {
     expect(yAxis?.max).toBe(200000)
     expect(yAxis?.axisLabel?.formatter?.(100000)).toBe('0.1')
   })
+
+  it('formats percent and quantity tooltip values, including non-numeric fallback', () => {
+    renderWithProviders(
+      <MonthlyTrendChart
+        data={[
+          { period: '10 Apr', value: 1250 },
+          { period: '11 Apr', value: 2500 },
+        ]}
+        seriesName="Supply"
+        valueDivisor={1000}
+      />
+    )
+
+    const mainOption = (
+      mockEChartsWrapper.mock.calls as Array<
+        [{ option?: { tooltip?: { show?: boolean; formatter?: (params: unknown) => string } } }]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((option) => option?.tooltip?.show === true)
+
+    const formatter = mainOption?.tooltip?.formatter
+    expect(formatter?.([])).toBe('')
+    const tooltipText = formatter?.([
+      { axisValueLabel: '10 Apr', seriesName: 'Supply', value: 2500 },
+      { axisValueLabel: '10 Apr', seriesName: 'Broken', value: 'NaN' },
+    ])
+    expect(tooltipText).toContain('10 Apr')
+    expect(tooltipText).toContain('Supply: 2.5')
+    expect(tooltipText).toContain('Broken: -')
+  })
+
+  it('formats percent axis ticks with integer and decimal values', () => {
+    renderWithProviders(
+      <MonthlyTrendChart
+        data={[
+          { period: 'A', value: 0 },
+          { period: 'B', value: 75.5 },
+        ]}
+        isPercent
+      />
+    )
+
+    const axisOption = (
+      mockEChartsWrapper.mock.calls as Array<
+        [
+          {
+            option?: { yAxis?: { axisLabel?: { formatter?: (value: number) => string } } }
+          },
+        ]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((option) => option?.yAxis?.axisLabel?.formatter !== undefined)
+
+    const formatter = axisOption?.yAxis?.axisLabel?.formatter
+    expect(formatter?.(25)).toBe('25')
+    expect(formatter?.(25.5)).toBe('25.5')
+  })
 })
