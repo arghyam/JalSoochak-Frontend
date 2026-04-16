@@ -33,6 +33,13 @@ const toCapitalizedWords = (value: string): string => {
   })
 }
 
+const PANEL_COLUMN_WIDTH_PX = 200
+const PANEL_COLUMN_GAP_PX = 24
+const PANEL_HORIZONTAL_PADDING_PX = 32
+const PANEL_MIN_WIDTH_PX = 320
+const PANEL_MAX_WIDTH_PX = 1120
+const PANEL_MAX_ROWS_PER_COLUMN = 15
+
 export type SearchStateOption = {
   value: string
   label: string
@@ -178,6 +185,22 @@ export function SearchLayout({
 
     return panelOptions.filter((option) => option.label.toLowerCase().includes(query))
   }, [panelOptions, inputValue])
+  const desktopPanelWidth = useMemo(() => {
+    const visibleColumns = Math.max(
+      1,
+      Math.ceil(filteredStateOptions.length / PANEL_MAX_ROWS_PER_COLUMN)
+    )
+    const contentWidth =
+      visibleColumns * PANEL_COLUMN_WIDTH_PX +
+      (visibleColumns - 1) * PANEL_COLUMN_GAP_PX +
+      PANEL_HORIZONTAL_PADDING_PX
+    const constrainedWidth = Math.max(
+      PANEL_MIN_WIDTH_PX,
+      Math.min(contentWidth, PANEL_MAX_WIDTH_PX)
+    )
+
+    return `${constrainedWidth}px`
+  }, [filteredStateOptions.length])
   const closedSelectionTrail = useMemo(() => {
     if (effectiveActiveTrailIndex < 0) {
       return []
@@ -499,12 +522,8 @@ export function SearchLayout({
           top="56px"
           left="0"
           mt="16px"
-          width={{
-            base: '100%',
-            lg: 'min(960px, calc(100vw - 64px))',
-            xl: 'min(1120px, calc(100vw - 96px))',
-          }}
-          maxW="100%"
+          width={{ base: '100%', lg: desktopPanelWidth }}
+          maxW={{ base: '100%', lg: 'calc(100vw - 64px)' }}
           minH="375px"
           borderRadius="12px"
           border="1px solid"
@@ -631,7 +650,7 @@ export function SearchLayout({
                 md: 'repeat(3, 200px)',
                 lg: 'repeat(1, 200px)',
               }}
-              gridTemplateRows={{ lg: 'repeat(15, minmax(20px, auto))' }}
+              gridTemplateRows={{ lg: `repeat(${PANEL_MAX_ROWS_PER_COLUMN}, minmax(20px, auto))` }}
               gridAutoFlow={{ lg: 'column' }}
               gridAutoColumns={{ lg: '200px' }}
               columnGap={{ base: '12px', lg: '24px' }}
@@ -642,7 +661,7 @@ export function SearchLayout({
               maxH={{ base: '272px', sm: isBelowXsLayout ? '272px' : 'none' }}
               maxW="100%"
               overflowY={{ base: 'auto', sm: isBelowXsLayout ? 'auto' : 'visible' }}
-              overflowX={{ base: 'hidden', sm: 'auto' }}
+              overflowX={{ base: 'hidden', sm: 'auto', lg: 'hidden' }}
               pr={{ base: '4px', sm: 0 }}
               pb="16px"
               data-testid="search-options-grid"

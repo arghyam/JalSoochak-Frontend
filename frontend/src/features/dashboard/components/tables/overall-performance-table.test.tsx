@@ -66,6 +66,14 @@ describe('OverallPerformanceTable', () => {
     expect(headerOrder).toEqual(['State/UT', 'Regularity (%)', 'Quantity (MLD)', 'Quantity (LPCD)'])
   })
 
+  it('defaults to sorting by Regularity in descending order', () => {
+    const { container } = renderWithProviders(<OverallPerformanceTable data={tableData} />)
+    const regularityButton = screen.getByRole('button', { name: 'Regularity (%)' })
+
+    expect(getStateOrder(container)).toEqual(['Gamma', 'Beta', 'Alpha'])
+    expect(regularityButton.closest('th')?.getAttribute('aria-sort')).toBe('descending')
+  })
+
   it('renders quantity (MLD) values without a percent sign', () => {
     renderWithProviders(<OverallPerformanceTable data={tableData} />)
 

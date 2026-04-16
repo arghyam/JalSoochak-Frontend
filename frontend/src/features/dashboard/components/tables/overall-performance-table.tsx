@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Box, Icon, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { BiSortAlt2 } from 'react-icons/bi'
 import type { KeyboardEvent } from 'react'
 import type { EntityPerformance } from '../../types'
 
@@ -17,6 +16,32 @@ interface OverallPerformanceTableProps {
 type SortColumn = 'name' | 'coverage' | 'quantity' | 'regularity' | null
 type SortDirection = 'asc' | 'desc' | null
 
+function SortIndicator({
+  isActive,
+  direction,
+}: {
+  isActive: boolean
+  direction: Exclude<SortDirection, null>
+}) {
+  const activeColor = 'var(--chakra-colors-primary-500)'
+  const inactiveColor = 'var(--chakra-colors-neutral-500)'
+  const topArrowFill = isActive && direction === 'asc' ? activeColor : inactiveColor
+  const bottomArrowFill = isActive && direction === 'desc' ? activeColor : inactiveColor
+
+  return (
+    <Icon viewBox="0 0 16 16" boxSize="16px" aria-hidden flexShrink={0}>
+      <path
+        d="M8.00001 2C8.18565 2 8.36373 2.07902 8.49498 2.21967L11.295 5.21967C11.5683 5.51257 11.5683 5.98744 11.295 6.28034C11.0216 6.57321 10.5784 6.57321 10.305 6.28034L8.00001 3.81066L5.69498 6.28034C5.42161 6.57321 4.9784 6.57321 4.70502 6.28034C4.43166 5.98744 4.43166 5.51257 4.70502 5.21967L7.50504 2.21967C7.63629 2.07902 7.81437 2 8.00001 2Z"
+        fill={topArrowFill}
+      />
+      <path
+        d="M4.70502 9.71969C4.9784 9.42681 5.42161 9.42681 5.69498 9.71969L8.00001 12.1894L10.305 9.71969C10.5784 9.42681 11.0216 9.42681 11.295 9.71969C11.5683 10.0126 11.5683 10.4875 11.295 10.7803L8.49498 13.7803C8.22163 14.0732 7.77839 14.0732 7.50504 13.7803L4.70502 10.7803C4.43166 10.4875 4.43166 10.0126 4.70502 9.71969Z"
+        fill={bottomArrowFill}
+      />
+    </Icon>
+  )
+}
+
 export function OverallPerformanceTable({
   data,
   maxItems,
@@ -26,8 +51,8 @@ export function OverallPerformanceTable({
   onRowHover,
 }: OverallPerformanceTableProps) {
   const { t } = useTranslation('dashboard')
-  const [sortColumn, setSortColumn] = useState<SortColumn>('name')
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
+  const [sortColumn, setSortColumn] = useState<SortColumn>('regularity')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const resolvedEntityLabel =
     entityLabel ?? t('overallPerformance.columns.entity', { defaultValue: 'State/UT' })
   const safeMaxItems =
@@ -146,12 +171,9 @@ export function OverallPerformanceTable({
                       <Box as="span" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
                         {resolvedEntityLabel}
                       </Box>
-                      <Icon
-                        as={BiSortAlt2}
-                        boxSize="16px"
-                        color="neutral.500"
-                        aria-hidden
-                        flexShrink={0}
+                      <SortIndicator
+                        isActive={sortColumn === 'name'}
+                        direction={sortColumn === 'name' && sortDirection ? sortDirection : 'desc'}
                       />
                     </Box>
                   </Th>
@@ -185,12 +207,11 @@ export function OverallPerformanceTable({
                           defaultValue: 'Regularity (%)',
                         })}
                       </Box>
-                      <Icon
-                        as={BiSortAlt2}
-                        boxSize="16px"
-                        color="neutral.500"
-                        aria-hidden
-                        flexShrink={0}
+                      <SortIndicator
+                        isActive={sortColumn === 'regularity'}
+                        direction={
+                          sortColumn === 'regularity' && sortDirection ? sortDirection : 'desc'
+                        }
                       />
                     </Box>
                   </Th>
@@ -224,12 +245,11 @@ export function OverallPerformanceTable({
                           defaultValue: 'Quantity (MLD)',
                         })}
                       </Box>
-                      <Icon
-                        as={BiSortAlt2}
-                        boxSize="16px"
-                        color="neutral.500"
-                        aria-hidden
-                        flexShrink={0}
+                      <SortIndicator
+                        isActive={sortColumn === 'coverage'}
+                        direction={
+                          sortColumn === 'coverage' && sortDirection ? sortDirection : 'desc'
+                        }
                       />
                     </Box>
                   </Th>
@@ -263,12 +283,11 @@ export function OverallPerformanceTable({
                           defaultValue: 'Quantity (LPCD)',
                         })}
                       </Box>
-                      <Icon
-                        as={BiSortAlt2}
-                        boxSize="16px"
-                        color="neutral.500"
-                        aria-hidden
-                        flexShrink={0}
+                      <SortIndicator
+                        isActive={sortColumn === 'quantity'}
+                        direction={
+                          sortColumn === 'quantity' && sortDirection ? sortDirection : 'desc'
+                        }
                       />
                     </Box>
                   </Th>

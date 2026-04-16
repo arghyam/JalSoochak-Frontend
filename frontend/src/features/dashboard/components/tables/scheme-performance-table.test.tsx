@@ -113,15 +113,21 @@ describe('SchemePerformanceTable', () => {
     expect(headers).not.toContain('Block')
   })
 
-  it('sorts reporting rate descending then ascending', () => {
+  it('defaults to sorting by reporting rate in descending order', () => {
     const { container } = renderWithProviders(
       <SchemePerformanceTable title="Scheme Performance" data={tableData} />
     )
     const reportingButton = screen.getByRole('button', { name: 'Reporting Rate (%)' })
 
-    fireEvent.click(reportingButton)
     expect(getNameOrder(container)).toEqual(['Vikash', 'Navdeep', 'Nitish'])
     expect(reportingButton.closest('th')?.getAttribute('aria-sort')).toBe('descending')
+  })
+
+  it('sorts reporting rate ascending on click after default descending order', () => {
+    const { container } = renderWithProviders(
+      <SchemePerformanceTable title="Scheme Performance" data={tableData} />
+    )
+    const reportingButton = screen.getByRole('button', { name: 'Reporting Rate (%)' })
 
     fireEvent.click(reportingButton)
     expect(getNameOrder(container)).toEqual(['Nitish', 'Navdeep', 'Vikash'])
