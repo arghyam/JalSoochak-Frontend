@@ -191,9 +191,18 @@ export function PumpOperatorViewPage() {
       key: 'schemeName',
       header: t('pages.pumpOperators.columns.schemeName'),
       render: (row) => (
-        <Text textStyle="h10" fontWeight="400">
+        <Link
+          textStyle="h10"
+          fontWeight="400"
+          color="primary.500"
+          cursor="pointer"
+          _hover={{ textDecoration: 'underline' }}
+          onClick={() =>
+            navigate(ROUTES.STAFF_SCHEMES_VIEW.replace(':schemeId', String(row.schemeId)))
+          }
+        >
           {row.schemeName}
-        </Text>
+        </Link>
       ),
     },
     {
@@ -309,7 +318,7 @@ export function PumpOperatorViewPage() {
           <Heading as="h2" size="h3" fontWeight="400" mb={6}>
             {t('pages.pumpOperators.pumpOperatorDetails')}
           </Heading>
-          <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
+          <SimpleGrid columns={{ base: 1, sm: 2, lg: 4 }} spacing={6}>
             <DetailField
               label={t('pages.pumpOperators.detailFields.name')}
               value={details.name ?? '—'}

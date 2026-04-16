@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { StaffOverviewPage } from './staff-overview-page'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { WaterSupplyOutageData, EntityPerformance } from '@/features/dashboard/types'
@@ -35,6 +36,12 @@ function createMockQueryResult<T>(
     isPlaceholderData: false,
   }
 }
+
+const mockNavigate = jest.fn()
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual<typeof import('react-router-dom')>('react-router-dom'),
+  useNavigate: () => mockNavigate,
+}))
 
 jest.mock('../../services/query/use-overview-queries')
 
@@ -337,6 +344,20 @@ describe('StaffOverviewPage', () => {
       expect(startDate).toMatch(/^\d{4}-\d{2}-\d{2}$/)
       expect(endDate).toMatch(/^\d{4}-\d{2}-\d{2}$/)
     })
+  })
+
+  it('navigates to anomalies page when anomalies stat card is clicked', async () => {
+    renderWithProviders(<StaffOverviewPage />)
+    const anomaliesCard = screen.getByLabelText(/anomalies flagged: 15/i)
+    await userEvent.click(anomaliesCard)
+    expect(mockNavigate).toHaveBeenCalledWith('/staff/anomalies')
+  })
+
+  it('navigates to escalations page when escalations stat card is clicked', async () => {
+    renderWithProviders(<StaffOverviewPage />)
+    const escalationsCard = screen.getByLabelText(/escalations: 3/i)
+    await userEvent.click(escalationsCard)
+    expect(mockNavigate).toHaveBeenCalledWith('/staff/escalations')
   })
 
   it('calls all query hooks with date parameters on render', () => {

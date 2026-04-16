@@ -57,9 +57,20 @@ export function SchemeViewPage() {
       key: 'pumpOperatorName',
       header: t('pages.schemes.columns.pumpOperator'),
       render: (row) => (
-        <Text textStyle="h10" fontWeight="400">
+        <Link
+          textStyle="h10"
+          fontWeight="400"
+          color="primary.500"
+          cursor="pointer"
+          _hover={{ textDecoration: 'underline' }}
+          onClick={() =>
+            navigate(
+              ROUTES.STAFF_PUMP_OPERATORS_VIEW.replace(':operatorId', String(row.pumpOperatorId))
+            )
+          }
+        >
           {row.pumpOperatorName}
-        </Text>
+        </Link>
       ),
     },
     {

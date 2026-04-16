@@ -1,5 +1,6 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { createElement } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -391,6 +392,19 @@ describe('PumpOperatorViewPage', () => {
     renderPage()
     const button = screen.getByRole('button', { name: 'Attendance' }) as HTMLButtonElement
     expect(button.disabled).toBe(true)
+  })
+
+  it('navigates to scheme view page when scheme name is clicked', async () => {
+    mockUsePumpOperatorDetailsQuery.mockReturnValue({
+      isLoading: false,
+      isError: false,
+      data: MOCK_DETAILS,
+      refetch: jest.fn(),
+    })
+    renderPage()
+    const schemeLink = screen.getByText('Test Scheme 1')
+    await userEvent.click(schemeLink)
+    expect(mockNavigate).toHaveBeenCalledWith('/staff/schemes/1')
   })
 
   it('opens attendance modal and downloads csv with metadata rows', async () => {

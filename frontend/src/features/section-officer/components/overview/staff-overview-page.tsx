@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ElementType } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Box, Flex, Heading, SimpleGrid, Spinner, Stack, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import TapIconComponent from '@/shared/components/layout/tap-icon'
 import { MdOutlineWaterDrop, MdOutlineTrendingUp } from 'react-icons/md'
 import { ChartEmptyState, DateRangePicker, PageHeader, StatCard } from '@/shared/components/common'
 import type { DateRange } from '@/shared/components/common'
+import { ROUTES } from '@/shared/constants/routes'
 import {
   SupplyOutageReasonsChart,
   ReadingSubmissionRateChart,
@@ -33,6 +35,7 @@ const PIE_SIZE = 260
 
 export function StaffOverviewPage() {
   const { t } = useTranslation('section-officer')
+  const navigate = useNavigate()
   const [dateRange, setDateRange] = useState<DateRange>(() => getDefaultDateRange())
 
   const { data: schemesCountData, isLoading: isSchemesCountLoading } = useSchemesCountQuery()
@@ -74,7 +77,14 @@ export function StaffOverviewPage() {
     ? '…'
     : String(dashboardStatsData?.totalEscalationCount ?? 0)
 
-  const statsCards = [
+  const statsCards: Array<{
+    title: string
+    value: string
+    icon: ElementType
+    iconBg: string
+    iconColor: string
+    onClick?: () => void
+  }> = [
     {
       title: t('pages.overview.stats.totalSchemes'),
       value: schemeCount,
@@ -95,6 +105,7 @@ export function StaffOverviewPage() {
       icon: IoCloseCircleOutline,
       iconBg: '#FEE2E2',
       iconColor: '#DC2626',
+      onClick: () => navigate(ROUTES.STAFF_ANOMALIES),
     },
     {
       title: t('pages.overview.stats.escalations'),
@@ -102,6 +113,7 @@ export function StaffOverviewPage() {
       icon: MdOutlineTrendingUp,
       iconBg: '#FEF3C7',
       iconColor: '#D97706',
+      onClick: () => navigate(ROUTES.STAFF_ESCALATIONS),
     },
   ]
 
@@ -132,16 +144,38 @@ export function StaffOverviewPage() {
           columns={{ base: 1, sm: 2, md: 2, lg: 4 }}
           spacing={{ base: 4, md: 7 }}
         >
-          {statsCards.map((stat) => (
-            <StatCard
-              key={stat.title}
-              title={stat.title}
-              value={stat.value}
-              icon={stat.icon}
-              iconBg={stat.iconBg}
-              iconColor={stat.iconColor}
-            />
-          ))}
+          {statsCards.map((stat) =>
+            stat.onClick ? (
+              <Box
+                key={stat.title}
+                role="button"
+                tabIndex={0}
+                cursor="pointer"
+                _hover={{ opacity: 0.85 }}
+                onClick={stat.onClick}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') stat.onClick?.()
+                }}
+              >
+                <StatCard
+                  title={stat.title}
+                  value={stat.value}
+                  icon={stat.icon}
+                  iconBg={stat.iconBg}
+                  iconColor={stat.iconColor}
+                />
+              </Box>
+            ) : (
+              <StatCard
+                key={stat.title}
+                title={stat.title}
+                value={stat.value}
+                icon={stat.icon}
+                iconBg={stat.iconBg}
+                iconColor={stat.iconColor}
+              />
+            )
+          )}
         </SimpleGrid>
 
         {/* Charts Grid */}
