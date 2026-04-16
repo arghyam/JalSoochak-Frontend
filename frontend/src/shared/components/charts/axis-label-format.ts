@@ -1,5 +1,16 @@
 const MAX_AXIS_LABEL_LINES = 2
 const MAX_AXIS_LABEL_LINE_LENGTH = 14
+const ISO_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/
+
+export const formatIsoDateToDayFirst = (value: string) => {
+  const matches = value.trim().match(ISO_DATE_PATTERN)
+  if (!matches) {
+    return value
+  }
+
+  const [, year, month, day] = matches
+  return `${day}-${month}-${year}`
+}
 
 const truncateAxisLabelLine = (value: string, maxLength: number) => {
   if (value.length <= maxLength) {
@@ -31,7 +42,7 @@ export const formatAxisLabel = (
   maxLineLength = MAX_AXIS_LABEL_LINE_LENGTH,
   maxLines = MAX_AXIS_LABEL_LINES
 ) => {
-  const normalizedValue = value.trim()
+  const normalizedValue = formatIsoDateToDayFirst(value).trim()
   if (!normalizedValue) {
     return ''
   }
