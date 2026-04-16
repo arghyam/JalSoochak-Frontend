@@ -321,4 +321,75 @@ describe('SupplyOutageDistributionChart', () => {
     expect(mainOption?.yAxis?.max).toBe(100)
     expect(axisOption?.yAxis?.max).toBe(100)
   })
+
+  it('formats tooltip value as dash for non-numeric inputs and escapes labels', () => {
+    renderWithProviders(
+      <SupplyOutageDistributionChart
+        data={[
+          {
+            label: '<b>Unsafe</b>',
+            reasons: { electricityFailure: 1 },
+            electricityFailure: 1,
+            pipelineLeak: 0,
+            pumpFailure: 0,
+            valveIssue: 0,
+            sourceDrying: 0,
+          },
+        ]}
+      />
+    )
+
+    const option = (
+      mockEChartsWrapper.mock.calls as Array<
+        [{ option?: { tooltip?: { show?: boolean; formatter?: (params: unknown) => string } } }]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((entry) => entry?.tooltip?.show === true)
+
+    const tooltip = option?.tooltip?.formatter?.({
+      name: '<b>Unsafe</b>',
+      dataIndex: 0,
+      seriesName: '<i>series</i>',
+      value: 'NaN',
+    })
+    expect(tooltip).toContain('&lt;b&gt;Unsafe&lt;/b&gt;')
+    expect(tooltip).toContain('&lt;i&gt;series&lt;/i&gt;')
+    expect(tooltip).toContain(': -')
+  })
+
+  it('uses rounded bars on all corners when only one reason series exists', () => {
+    renderWithProviders(
+      <SupplyOutageDistributionChart
+        data={[
+          {
+            label: 'Single',
+            reasons: { onlyReason: 5 },
+            electricityFailure: 0,
+            pipelineLeak: 0,
+            pumpFailure: 0,
+            valveIssue: 0,
+            sourceDrying: 0,
+          },
+        ]}
+      />
+    )
+
+    const option = (
+      mockEChartsWrapper.mock.calls as Array<
+        [
+          {
+            option?: {
+              tooltip?: { show?: boolean }
+              series?: Array<{ itemStyle?: { borderRadius?: number[] } }>
+            }
+          },
+        ]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((entry) => entry?.tooltip?.show === true)
+
+    expect(option?.series?.[0]?.itemStyle?.borderRadius).toEqual([8, 8, 8, 8])
+  })
 })
