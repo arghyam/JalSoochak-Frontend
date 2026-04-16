@@ -373,6 +373,7 @@ export function PumpOperatorsPage() {
           getRowKey={(row) => row.id}
           emptyMessage={t('pages.pumpOperators.noPumpOperatorsFound')}
           tableLayout="fixed"
+          tableMinWidth="1000px"
           pagination={{
             enabled: true,
             page,
