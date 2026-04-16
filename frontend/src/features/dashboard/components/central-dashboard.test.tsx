@@ -1479,14 +1479,12 @@ describe('CentralDashboard', () => {
             periodStartDate: '2026-03-12',
             periodEndDate: '2026-03-12',
             totalSupplyDays: 10,
-            totalWaterQuantity: 87,
             averageRegularity: 0.5,
           },
           {
             periodStartDate: '2026-03-13',
             periodEndDate: '2026-03-13',
             totalSupplyDays: 11,
-            totalWaterQuantity: 91,
             averageRegularity: 0.6,
           },
         ],
@@ -1511,10 +1509,10 @@ describe('CentralDashboard', () => {
       isQuantityTimeTrendLoading: boolean
     }>()
 
-    expect(dashboardBodyProps.quantityTimeTrendData).toEqual([
-      { period: '12-03-2026', value: 0 },
-      { period: '13-03-2026', value: 0 },
-    ])
+    expect(dashboardBodyProps.quantityTimeTrendData).toEqual([])
+    expect(dashboardBodyProps.quantityTimeTrendData).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ value: 0 })])
+    )
     expect(dashboardBodyProps.isQuantityTimeTrendLoading).toBe(false)
   })
 
@@ -1646,6 +1644,9 @@ describe('CentralDashboard', () => {
     }>()
 
     expect(dashboardBodyProps.quantityTimeTrendData).toEqual([])
+    expect(dashboardBodyProps.quantityTimeTrendData).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ value: 0 })])
+    )
     expect(dashboardBodyProps.regularityTimeTrendData).toEqual([])
   })
 
