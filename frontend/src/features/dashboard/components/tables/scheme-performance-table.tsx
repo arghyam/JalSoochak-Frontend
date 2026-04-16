@@ -160,17 +160,22 @@ export function SchemePerformanceTable({
     safeTotalPages > 0 ? Math.min(Math.max(1, currentPage), safeTotalPages) : 1
   const showPagination = safeTotalPages > 1
 
-  const visiblePageNumbers = useMemo(() => {
+  const visiblePageNumbers = useMemo((): (number | 'ellipsis')[] => {
     if (safeTotalPages <= 3) {
       return Array.from({ length: safeTotalPages }, (_, index) => index + 1)
     }
-    if (safeCurrentPage <= 2) {
-      return [1, 2, 3]
+
+    const pages: (number | 'ellipsis')[] = []
+    const startPage = Math.min(Math.max(1, safeCurrentPage), safeTotalPages - 1)
+    const secondPage = startPage + 1
+
+    pages.push(startPage, secondPage)
+
+    if (secondPage < safeTotalPages) {
+      pages.push('ellipsis', safeTotalPages)
     }
-    if (safeCurrentPage >= safeTotalPages - 1) {
-      return [safeTotalPages - 2, safeTotalPages - 1, safeTotalPages]
-    }
-    return [safeCurrentPage - 1, safeCurrentPage, safeCurrentPage + 1]
+
+    return pages
   }, [safeCurrentPage, safeTotalPages])
 
   const handlePageChange = (page: number) => {
@@ -614,26 +619,32 @@ export function SchemePerformanceTable({
               {t('pumpOperators.details.pagination.previous', { defaultValue: 'Previous' })}
             </Text>
           </Button>
-          {visiblePageNumbers.map((pageNumber) => (
-            <Button
-              key={pageNumber}
-              variant="outline"
-              size="sm"
-              minW="34px"
-              px={0}
-              borderRadius="8px"
-              borderColor="#D4D4D8"
-              bg={safeCurrentPage === pageNumber ? '#3291D1' : 'white'}
-              color={safeCurrentPage === pageNumber ? 'white' : 'neutral.700'}
-              _hover={{
-                bg: safeCurrentPage === pageNumber ? '#3291D1' : 'neutral.100',
-              }}
-              onClick={() => handlePageChange(pageNumber)}
-              flexShrink={0}
-            >
-              {pageNumber}
-            </Button>
-          ))}
+          {visiblePageNumbers.map((pageNumber, index) =>
+            pageNumber === 'ellipsis' ? (
+              <Text key={`ellipsis-${index}`} px={1} color="neutral.500" aria-hidden="true">
+                ...
+              </Text>
+            ) : (
+              <Button
+                key={pageNumber}
+                variant="outline"
+                size="sm"
+                minW="34px"
+                px={0}
+                borderRadius="8px"
+                borderColor="#D4D4D8"
+                bg={safeCurrentPage === pageNumber ? '#3291D1' : 'white'}
+                color={safeCurrentPage === pageNumber ? 'white' : 'neutral.700'}
+                _hover={{
+                  bg: safeCurrentPage === pageNumber ? '#3291D1' : 'neutral.100',
+                }}
+                onClick={() => handlePageChange(pageNumber)}
+                flexShrink={0}
+              >
+                {pageNumber}
+              </Button>
+            )
+          )}
           <Button
             variant="ghost"
             size="sm"
