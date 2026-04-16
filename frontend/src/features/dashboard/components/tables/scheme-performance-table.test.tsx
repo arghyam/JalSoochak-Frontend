@@ -185,4 +185,49 @@ describe('SchemePerformanceTable', () => {
     expect(screen.getByRole('button', { name: '2' })).toBeDefined()
     expect(screen.getByRole('button', { name: '3' })).toBeDefined()
   })
+
+  it('clamps out-of-range pagination actions and calls onPageChange with bounded values', () => {
+    const onPageChange = jest.fn()
+    renderWithProviders(
+      <SchemePerformanceTable
+        title="Scheme Performance"
+        data={tableData}
+        currentPage={2}
+        totalPages={3}
+        onPageChange={onPageChange}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'First page' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Last page' }))
+
+    expect(onPageChange).toHaveBeenCalledTimes(2)
+    expect(onPageChange).toHaveBeenNthCalledWith(1, 1)
+    expect(onPageChange).toHaveBeenNthCalledWith(2, 3)
+  })
+
+  it('keeps null numeric values at the bottom in both sort directions', () => {
+    const withNull = [
+      ...tableData,
+      {
+        id: 'op-4',
+        name: 'No Metrics',
+        village: 'Unknown',
+        block: 'Unknown',
+        reportingRate: null,
+        photoCompliance: 0,
+        waterSupplied: null,
+      },
+    ]
+    const { container } = renderWithProviders(
+      <SchemePerformanceTable title="Scheme Performance" data={withNull} />
+    )
+
+    const reportingButton = screen.getByRole('button', { name: 'Reporting Rate (%)' })
+    fireEvent.click(reportingButton)
+    expect(getNameOrder(container).at(-1)).toBe('No Metrics')
+
+    fireEvent.click(reportingButton)
+    expect(getNameOrder(container).at(-1)).toBe('No Metrics')
+  })
 })

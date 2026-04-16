@@ -1,8 +1,12 @@
 import { screen } from '@testing-library/react'
-import { describe, expect, it, jest, beforeAll, afterAll } from '@jest/globals'
+import { describe, expect, it, jest, beforeAll, afterAll, beforeEach } from '@jest/globals'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { EntityPerformance } from '../../types'
 import { AllStatesPerformanceChart } from './performance-chart'
+
+const mockEChartsWrapper = jest.fn((_props: { option: unknown }) => (
+  <div data-testid="echarts-mock" />
+))
 
 const resizeObserverDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'ResizeObserver')
 
@@ -28,7 +32,7 @@ afterAll(() => {
 })
 
 jest.mock('@/shared/components/common', () => ({
-  EChartsWrapper: () => <div data-testid="echarts-mock" />,
+  EChartsWrapper: (props: { option: unknown }) => mockEChartsWrapper(props),
 }))
 
 const data: EntityPerformance[] = [
@@ -55,6 +59,10 @@ const data: EntityPerformance[] = [
 ]
 
 describe('AllStatesPerformanceChart', () => {
+  beforeEach(() => {
+    mockEChartsWrapper.mockClear()
+  })
+
   it('renders entity label, legend, and chart placeholders', () => {
     renderWithProviders(<AllStatesPerformanceChart data={data} entityLabel="States" height={200} />)
 
@@ -68,5 +76,31 @@ describe('AllStatesPerformanceChart', () => {
     renderWithProviders(<AllStatesPerformanceChart data={data} height={180} />)
 
     expect(screen.getByText('States/UTs')).toBeTruthy()
+  })
+
+  it('sorts bars by quantity descending for plotted series', () => {
+    const unsortedData: EntityPerformance[] = [data[1], data[0]]
+    renderWithProviders(<AllStatesPerformanceChart data={unsortedData} height={180} />)
+
+    const mainOption = (
+      mockEChartsWrapper.mock.calls as Array<
+        [
+          {
+            option?: {
+              series?: Array<{ name?: string; data?: number[] }>
+              xAxis?: { data?: string[] }
+            }
+          },
+        ]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((option) => Array.isArray(option?.series) && option?.series?.length === 2)
+
+    expect(mainOption?.xAxis?.data).toEqual(['State A', 'State B'])
+    expect(mainOption?.series?.[0]?.name).toBe('Quantity')
+    expect(mainOption?.series?.[0]?.data).toEqual([70, 55])
+    expect(mainOption?.series?.[1]?.name).toBe('Regularity')
+    expect(mainOption?.series?.[1]?.data).toEqual([60, 80])
   })
 })

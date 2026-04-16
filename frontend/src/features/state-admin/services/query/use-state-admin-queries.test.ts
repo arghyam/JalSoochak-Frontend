@@ -17,12 +17,20 @@ import {
   useUploadSchemesMutation,
   useUploadSchemeMappingsMutation,
   useWaterNormsConfigurationQuery,
+  useStateUTAdminByIdQuery,
+  useSchemeCountsQuery,
+  useSchemeListQuery,
+  useLogoQuery,
+  useUpdateStateUTAdminMutation,
+  useUpdateStateUTAdminStatusMutation,
+  useReinviteStateUTAdminMutation,
 } from './use-state-admin-queries'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { stateAdminApi } from '../api/state-admin-api'
 import { stateAdminQueryKeys } from './state-admin-query-keys'
 import { useAuthStore } from '@/app/store/auth-store'
 import type { AuthState } from '@/app/store/auth-store'
+import type { SchemeListParams } from '../../types/scheme-sync'
 
 jest.mock('@tanstack/react-query', () => ({
   useQuery: jest.fn(),
@@ -121,6 +129,40 @@ describe('use-state-admin-queries', () => {
     expect(mockedUseQuery).toHaveBeenCalledWith(expect.objectContaining({ enabled: true }))
   })
 
+  it('enables and disables scheme counts query based on tenant code', () => {
+    mockedUseQuery.mockReturnValue({})
+    renderHook(() => useSchemeCountsQuery(''))
+    expect(mockedUseQuery).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }))
+
+    mockedUseQuery.mockClear()
+    renderHook(() => useSchemeCountsQuery('TN'))
+    expect(mockedUseQuery).toHaveBeenCalledWith(expect.objectContaining({ enabled: true }))
+  })
+
+  it('enables and disables scheme list query based on tenant code', () => {
+    mockedUseQuery.mockReturnValue({})
+    const paramsEmpty: SchemeListParams = {
+      tenantCode: '',
+      page: 0,
+      limit: 10,
+      schemeName: '',
+      sortDir: '',
+    }
+    const paramsWithTenant: SchemeListParams = {
+      tenantCode: 'TN',
+      page: 0,
+      limit: 10,
+      schemeName: '',
+      sortDir: '',
+    }
+    renderHook(() => useSchemeListQuery(paramsEmpty))
+    expect(mockedUseQuery).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }))
+
+    mockedUseQuery.mockClear()
+    renderHook(() => useSchemeListQuery(paramsWithTenant))
+    expect(mockedUseQuery).toHaveBeenCalledWith(expect.objectContaining({ enabled: true }))
+  })
+
   it('wires language configuration query', () => {
     mockedUseQuery.mockReturnValue({})
     renderHook(() => useLanguageConfigurationQuery())
@@ -151,6 +193,16 @@ describe('use-state-admin-queries', () => {
     mockedUseQuery.mockReturnValue({})
     renderHook(() => useStateUTAdminsQuery(1, 10, '', 'all'))
     expect(mockedUseQuery).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }))
+  })
+
+  it('enables state UT admin by id query only when id is provided', () => {
+    mockedUseQuery.mockReturnValue({})
+    renderHook(() => useStateUTAdminByIdQuery(undefined))
+    expect(mockedUseQuery).toHaveBeenCalledWith(expect.objectContaining({ enabled: false }))
+
+    mockedUseQuery.mockClear()
+    renderHook(() => useStateUTAdminByIdQuery('42'))
+    expect(mockedUseQuery).toHaveBeenCalledWith(expect.objectContaining({ enabled: true }))
   })
 
   it('maps state UT admins API page with ACTIVE, INACTIVE, and PENDING statuses', async () => {
@@ -348,6 +400,49 @@ describe('use-state-admin-queries', () => {
     })
     expect(invalidateQueries).toHaveBeenCalledWith({
       queryKey: stateAdminQueryKeys.configStatus(),
+    })
+  })
+
+  it('sets logo query retry to false', () => {
+    mockedUseQuery.mockReturnValue({})
+    renderHook(() => useLogoQuery())
+    expect(mockedUseQuery).toHaveBeenCalledWith(expect.objectContaining({ retry: false }))
+  })
+
+  it('useUpdateStateUTAdminMutation removes per-id cache key', async () => {
+    renderHook(() => useUpdateStateUTAdminMutation())
+    const { onSuccess } = mockedUseMutation.mock.calls[0][0] as {
+      onSuccess: (_d: unknown, variables: { id: string }) => Promise<void>
+    }
+    await onSuccess(undefined, { id: 'u-1' })
+    expect(removeQueries).toHaveBeenCalledTimes(1)
+    expect(removeQueries).toHaveBeenCalledWith({
+      queryKey: stateAdminQueryKeys.stateUtAdminById('u-1'),
+    })
+  })
+
+  it('useUpdateStateUTAdminStatusMutation invalidates listing and detail keys', async () => {
+    renderHook(() => useUpdateStateUTAdminStatusMutation())
+    const { onSuccess } = mockedUseMutation.mock.calls[0][0] as {
+      onSuccess: (_d: unknown, variables: { id: string }) => Promise<void>
+    }
+    await onSuccess(undefined, { id: 'u-2' })
+    expect(invalidateQueries).toHaveBeenCalledTimes(2)
+    expect(invalidateQueries).toHaveBeenNthCalledWith(1, {
+      queryKey: [...stateAdminQueryKeys.all, 'state-ut-admins'],
+    })
+    expect(invalidateQueries).toHaveBeenNthCalledWith(2, {
+      queryKey: stateAdminQueryKeys.stateUtAdminById('u-2'),
+    })
+  })
+
+  it('useReinviteStateUTAdminMutation invalidates listing key', async () => {
+    renderHook(() => useReinviteStateUTAdminMutation())
+    const { onSuccess } = mockedUseMutation.mock.calls[0][0] as { onSuccess: () => Promise<void> }
+    await onSuccess()
+    expect(invalidateQueries).toHaveBeenCalledTimes(1)
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: [...stateAdminQueryKeys.all, 'state-ut-admins'],
     })
   })
 })

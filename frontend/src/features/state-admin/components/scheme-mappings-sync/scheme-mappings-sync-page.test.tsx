@@ -42,4 +42,21 @@ describe('SchemeMappingsSyncPage', () => {
     await user.click(screen.getByRole('button', { name: /upload scheme mappings data/i }))
     expect(screen.getByText('Upload Modal Open')).toBeInTheDocument()
   })
+
+  it('renders error state and retries query', async () => {
+    const refetch = jest.fn()
+    mockedQueries.useSchemeMappingsListQuery.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      refetch,
+    } as never)
+    const user = userEvent.setup()
+
+    renderWithProviders(<SchemeMappingsSyncPage />)
+
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Retry' }))
+    expect(refetch).toHaveBeenCalledTimes(1)
+  })
 })
