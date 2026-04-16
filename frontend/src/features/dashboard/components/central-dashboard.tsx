@@ -81,6 +81,7 @@ import {
   getWaterSupplyKpis,
   getWaterSupplyKpisFromPeriodic,
   getWaterSupplyKpisFromNationalDashboard,
+  getServedConnectionCountFromWaterSupplyResponse,
   mapOverallPerformanceFromAnalytics,
   mapQuantityPerformanceFromAnalytics,
   mapRegularityPerformanceFromAnalytics,
@@ -1990,14 +1991,34 @@ export function CentralDashboard() {
           (scheme) => scheme.schemeId === derivedVillageSchemeId
         )
       : undefined) ?? (isHierarchyLeafSelected ? schemePerformanceData?.topSchemes?.[0] : undefined)
+  const quantityTrendServedConnectionCount = getServedConnectionCountFromWaterSupplyResponse(
+    hasWaterSupplyData(currentWaterSupplyKpiData)
+      ? currentWaterSupplyKpiData
+      : averageWaterSupplyData
+  )
+  const nationalQuantityTrendServedConnectionCount = (
+    filteredNationalDashboardData?.stateWiseQuantityPerformance ?? []
+  ).reduce((total, state) => {
+    const servedConnections =
+      state.totalAchievedFhtcCount ?? state.totalFhtcCount ?? state.totalHouseholdCount ?? 0
+    return (
+      total + (Number.isFinite(servedConnections) && servedConnections > 0 ? servedConnections : 0)
+    )
+  }, 0)
   const periodicQuantityTimeTrendData = mapSchemeRegularityQuantityToTrendPoints(
-    schemeQuantityPeriodicData
+    schemeQuantityPeriodicData,
+    quantityTrendServedConnectionCount,
+    averagePersonsPerHousehold
   )
   const periodicRegularityTimeTrendData = mapSchemeRegularityPeriodicToTrendPoints(
     schemeRegularityPeriodicData
   )
   const quantityTimeTrendData = isCentralLandingView
-    ? mapNationalQuantityTrendPoints(nationalSchemeQuantityPeriodicData)
+    ? mapNationalQuantityTrendPoints(
+        nationalSchemeQuantityPeriodicData,
+        nationalQuantityTrendServedConnectionCount,
+        nationalDefaultAverageMembersPerHousehold
+      )
     : periodicQuantityTimeTrendData.length > 0
       ? periodicQuantityTimeTrendData
       : []

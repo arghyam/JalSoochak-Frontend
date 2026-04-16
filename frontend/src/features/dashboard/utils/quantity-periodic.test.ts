@@ -121,67 +121,75 @@ describe('quantity-periodic utils', () => {
 
   it('maps quantity trend points from scheme regularity periodic response using totalWaterQuantity', () => {
     expect(
-      mapSchemeRegularityQuantityToTrendPoints({
-        lgdId: 17,
-        departmentId: 0,
-        schemeCount: 2,
-        scale: 'day',
-        startDate: '2026-03-16',
-        endDate: '2026-03-17',
-        periodCount: 2,
-        metrics: [
-          {
-            periodStartDate: '2026-03-16',
-            periodEndDate: '2026-03-16',
-            totalSupplyDays: 0,
-            totalWaterQuantity: 0,
-            averageRegularity: 0,
-          },
-          {
-            periodStartDate: '2026-03-17',
-            periodEndDate: '2026-03-17',
-            totalSupplyDays: 17411,
-            totalWaterQuantity: 2425420120,
-            averageRegularity: 1,
-          },
-        ],
-      })
+      mapSchemeRegularityQuantityToTrendPoints(
+        {
+          lgdId: 17,
+          departmentId: 0,
+          schemeCount: 2,
+          scale: 'day',
+          startDate: '2026-03-16',
+          endDate: '2026-03-17',
+          periodCount: 2,
+          metrics: [
+            {
+              periodStartDate: '2026-03-16',
+              periodEndDate: '2026-03-16',
+              totalSupplyDays: 0,
+              totalWaterQuantity: 0,
+              averageRegularity: 0,
+            },
+            {
+              periodStartDate: '2026-03-17',
+              periodEndDate: '2026-03-17',
+              totalSupplyDays: 17411,
+              totalWaterQuantity: 2425420120,
+              averageRegularity: 1,
+            },
+          ],
+        },
+        80,
+        5
+      )
     ).toEqual([
       { period: '16-03-2026', value: 0 },
-      { period: '17-03-2026', value: 2425420120 },
+      { period: '17-03-2026', value: 6063550.3 },
     ])
   })
 
-  it('maps non-day scheme regularity quantity points using raw totalWaterQuantity values', () => {
+  it('maps non-day scheme regularity quantity points as LPCD values', () => {
     expect(
-      mapSchemeRegularityQuantityToTrendPoints({
-        lgdId: 17,
-        departmentId: 0,
-        schemeCount: 2,
-        scale: 'week',
-        startDate: '2026-03-01',
-        endDate: '2026-03-14',
-        periodCount: 2,
-        metrics: [
-          {
-            periodStartDate: '2026-03-01',
-            periodEndDate: '2026-03-07',
-            totalSupplyDays: 7,
-            totalWaterQuantity: 700,
-            averageRegularity: 1,
-          },
-          {
-            periodStartDate: '2026-03-08',
-            periodEndDate: '2026-03-14',
-            totalSupplyDays: 7,
-            totalWaterQuantity: 1400,
-            averageRegularity: 1,
-          },
-        ],
-      })
+      mapSchemeRegularityQuantityToTrendPoints(
+        {
+          lgdId: 17,
+          departmentId: 0,
+          schemeCount: 2,
+          scale: 'week',
+          startDate: '2026-03-01',
+          endDate: '2026-03-14',
+          periodCount: 2,
+          metrics: [
+            {
+              periodStartDate: '2026-03-01',
+              periodEndDate: '2026-03-07',
+              totalSupplyDays: 7,
+              totalWaterQuantity: 700,
+              averageRegularity: 1,
+            },
+            {
+              periodStartDate: '2026-03-08',
+              periodEndDate: '2026-03-14',
+              totalSupplyDays: 7,
+              totalWaterQuantity: 1400,
+              averageRegularity: 1,
+            },
+          ],
+        },
+        80,
+        5
+      )
     ).toEqual([
-      { period: '01-03-2026\n07-03-2026', value: 700 },
-      { period: '08-03-2026\n14-03-2026', value: 1400 },
+      { period: '01-03-2026\n07-03-2026', value: 1.8 },
+      { period: '08-03-2026\n14-03-2026', value: 3.5 },
     ])
   })
 
@@ -260,40 +268,48 @@ describe('quantity-periodic utils', () => {
 
   it('skips national quantity points when water quantity is not present in the payload', () => {
     expect(
-      mapNationalQuantityTrendPoints({
-        schemeCount: 10,
-        scale: 'day',
-        startDate: '2026-01-01',
-        endDate: '2026-01-31',
-        periodCount: 1,
-        metrics: [
-          {
-            periodStartDate: '2026-01-01',
-            periodEndDate: '2026-01-01',
-            averageRegularity: 0.74,
-          },
-        ],
-      })
+      mapNationalQuantityTrendPoints(
+        {
+          schemeCount: 10,
+          scale: 'day',
+          startDate: '2026-01-01',
+          endDate: '2026-01-31',
+          periodCount: 1,
+          metrics: [
+            {
+              periodStartDate: '2026-01-01',
+              periodEndDate: '2026-01-01',
+              averageRegularity: 0.74,
+            },
+          ],
+        },
+        100,
+        5
+      )
     ).toEqual([])
   })
 
   it('formats monthly trend periods in two lines using numeric dates', () => {
     expect(
-      mapNationalQuantityTrendPoints({
-        schemeCount: 10,
-        scale: 'month',
-        startDate: '2026-03-01',
-        endDate: '2026-03-31',
-        periodCount: 1,
-        metrics: [
-          {
-            periodStartDate: '2026-03-01',
-            periodEndDate: '2026-03-31',
-            totalWaterQuantity: 100,
-            averageRegularity: 0,
-          },
-        ],
-      })
-    ).toEqual([{ period: '01-03-2026\n31-03-2026', value: 100 }])
+      mapNationalQuantityTrendPoints(
+        {
+          schemeCount: 10,
+          scale: 'month',
+          startDate: '2026-03-01',
+          endDate: '2026-03-31',
+          periodCount: 1,
+          metrics: [
+            {
+              periodStartDate: '2026-03-01',
+              periodEndDate: '2026-03-31',
+              totalWaterQuantity: 100,
+              averageRegularity: 0,
+            },
+          ],
+        },
+        10,
+        5
+      )
+    ).toEqual([{ period: '01-03-2026\n31-03-2026', value: 2 }])
   })
 })
