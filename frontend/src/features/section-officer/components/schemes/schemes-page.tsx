@@ -303,6 +303,7 @@ export function SchemesPage() {
           getRowKey={(row) => row.schemeId}
           emptyMessage={t('pages.schemes.noSchemesFound')}
           tableLayout="fixed"
+          tableMinWidth="1200px"
           pagination={{
             enabled: true,
             page,
