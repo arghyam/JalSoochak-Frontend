@@ -1,6 +1,5 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { createElement } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -215,6 +214,11 @@ beforeEach(() => {
     writable: true,
     value: jest.fn(),
   })
+  // Prevent jsdom "navigation not implemented" when code triggers <a>.click()
+  Object.defineProperty(HTMLAnchorElement.prototype, 'click', {
+    writable: true,
+    value: jest.fn(),
+  })
   mockUsePumpOperatorReadingsQuery.mockReturnValue({
     isLoading: false,
     isError: false,
@@ -402,9 +406,8 @@ describe('PumpOperatorViewPage', () => {
       refetch: jest.fn(),
     })
     renderPage()
-    const schemeLink = screen.getByText('Test Scheme 1')
-    await userEvent.click(schemeLink)
-    expect(mockNavigate).toHaveBeenCalledWith('/staff/schemes/1')
+    const schemeLink = screen.getByRole('link', { name: 'Test Scheme 1' })
+    expect(schemeLink.getAttribute('href')).toBe('/staff/schemes/1')
   })
 
   it('opens attendance modal and downloads csv with metadata rows', async () => {

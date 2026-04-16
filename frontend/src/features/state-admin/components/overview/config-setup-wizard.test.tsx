@@ -134,16 +134,19 @@ describe('ConfigSetupWizard', () => {
     renderWithProviders(<ConfigSetupWizard />)
     expect(screen.getByRole('button', { name: /configuration/i })).toBeInTheDocument()
 
-    // Verify connector state: gray when previous step is not configured
-    // vertical-connector-0: no previous step -> configured=false (gray)
+    // Vertical connector `i` is rendered after step `i`
+    // (it visually connects step `i` to step `i + 1`), so its color reflects
+    // whether step `i` is configured.
+    //
+    // Here, only Configuration is configured.
     const verticalConnector0 = screen.getByTestId('vertical-connector-0')
-    expect(verticalConnector0).toHaveAttribute('data-configured', 'false')
+    expect(verticalConnector0).toHaveAttribute('data-configured', 'true')
 
-    // vertical-connector-1: previous = Configuration (configured) -> configured=true (green)
+    // After Language (pending) -> gray
     const verticalConnector1 = screen.getByTestId('vertical-connector-1')
-    expect(verticalConnector1).toHaveAttribute('data-configured', 'true')
+    expect(verticalConnector1).toHaveAttribute('data-configured', 'false')
 
-    // vertical-connector-2: previous = Language (not configured) -> configured=false (gray)
+    // After Water Norms (pending) -> gray
     const verticalConnector2 = screen.getByTestId('vertical-connector-2')
     expect(verticalConnector2).toHaveAttribute('data-configured', 'false')
   })
@@ -182,20 +185,17 @@ describe('ConfigSetupWizard', () => {
     expect(screen.getByRole('button', { name: /water norms/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /escalations/i })).toBeInTheDocument()
 
-    // Verify connector state: color depends on PREVIOUS step configuration, not current
-    // vertical-connector-0: after Configuration (no previous step -> configured=false)
+    // Verify connector state: connector `i` reflects step `i` (the step it follows)
+    // vertical-connector-0: after Configuration (configured) -> green
     const verticalConnector0 = screen.getByTestId('vertical-connector-0')
-    expect(verticalConnector0).toHaveAttribute('data-configured', 'false')
+    expect(verticalConnector0).toHaveAttribute('data-configured', 'true')
 
-    // vertical-connector-1: after Language
-    // Previous step = Configuration (i=0), which is configured -> configured=true
+    // vertical-connector-1: after Language (configured) -> green
     const verticalConnector1 = screen.getByTestId('vertical-connector-1')
     expect(verticalConnector1).toHaveAttribute('data-configured', 'true')
 
-    // vertical-connector-2: after Water Norms
-    // Previous step = Language (i=1), which is configured -> configured=true
-    // This tests that connector color depends on PREVIOUS step being configured, not current
+    // vertical-connector-2: after Water Norms (pending) -> gray
     const verticalConnector2 = screen.getByTestId('vertical-connector-2')
-    expect(verticalConnector2).toHaveAttribute('data-configured', 'true')
+    expect(verticalConnector2).toHaveAttribute('data-configured', 'false')
   })
 })
