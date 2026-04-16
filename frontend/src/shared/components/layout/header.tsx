@@ -19,7 +19,7 @@ export function Header() {
       boxShadow="0 6px 14px rgba(0, 0, 0, 0.24)"
       mb="28px"
       minH={{ base: 'auto', md: '90px' }}
-      px={{ base: '40px', md: '80px' }}
+      px={{ base: '12px', sm: '40px', md: '80px' }}
     >
       <Flex
         w="full"
@@ -28,7 +28,7 @@ export function Header() {
         align="center"
         py={{ base: '12px', md: '0' }}
         direction="row"
-        gap={{ base: 3, md: 0 }}
+        gap={{ base: 2, md: 0 }}
       >
         <Flex align="center" flexShrink={0}>
           <Link
@@ -45,29 +45,35 @@ export function Header() {
               src={logoWithText}
               alt={t('footer.logoAlt', { ns: 'common', defaultValue: 'JalSoochak logo with text' })}
               display="block"
-              w={{ base: '90.5px', md: '181px' }}
-              h={{ base: '40px', md: '65px' }}
+              w={{ base: '70px', sm: '90.5px', md: '181px' }}
+              h={{ base: '32px', sm: '40px', md: '65px' }}
               objectFit="contain"
               objectPosition="left center"
             />
           </Link>
         </Flex>
 
-        <Flex flex="1" justify="center" w="full" px="15px">
+        <Flex flex="1" justify="center" w="full" px={{ base: '6px', sm: '15px' }} minW={0}>
           <Text
             textAlign="center"
             color="#FFF"
             fontFamily="Geist, sans-serif"
-            fontSize={{ base: '14px', md: '24px' }}
+            fontSize={{ base: '12px', sm: '14px', md: '24px' }}
             fontStyle="normal"
             fontWeight="500"
-            lineHeight={{ base: '20px', md: '36px' }}
+            lineHeight={{ base: '18px', sm: '20px', md: '36px' }}
+            maxW={{ base: '210px', sm: 'unset' }}
           >
             {headerSubtitle}
           </Text>
         </Flex>
 
-        <Box display="flex" w={{ base: '90.5px', md: '181px' }} justifyContent="flex-end">
+        <Box
+          display="flex"
+          w={{ base: '70px', sm: '90.5px', md: '181px' }}
+          justifyContent="flex-end"
+          flexShrink={0}
+        >
           <LanguageSwitcher isMobileHeader variant="white" />
         </Box>
       </Flex>

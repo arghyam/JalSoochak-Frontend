@@ -25,9 +25,9 @@ export function LanguageSwitcher({
 }: LanguageSwitcherProps) {
   const { currentLanguage, setLanguage, getSupportedLanguages } = useLanguageStore()
   const supportedLanguages = getSupportedLanguages()
-  const iconWidth = { base: '30px', md: '35px' }
-  const iconHeight = { base: '30px', md: '35px' }
-  const buttonSize = { base: '30px', md: '35px' }
+  const iconWidth = { base: '18px', sm: '24px', md: '35px' }
+  const iconHeight = { base: '18px', sm: '24px', md: '35px' }
+  const buttonSize = { base: '18px', sm: '24px', md: '35px' }
 
   const handleLanguageChange = (langCode: LanguageCode) => {
     setLanguage(langCode)

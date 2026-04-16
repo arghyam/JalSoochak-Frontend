@@ -110,17 +110,18 @@ export function OverallPerformanceTable({
           '&::-webkit-scrollbar-track': { bg: 'neutral.100', borderRadius: '999px' },
           '&::-webkit-scrollbar-thumb': { bg: 'neutral.300', borderRadius: '999px' },
           '&::-webkit-scrollbar-thumb:vertical': { bg: 'primary.300' },
+          '&::-webkit-scrollbar-thumb:horizontal': { bg: 'primary.300' },
           '&:active': {
             cursor: 'grabbing',
           },
         }}
       >
-        <Box w="full" minW={{ base: 'max-content', md: '100%' }}>
+        <Box w="full" minW={{ base: '420px', md: '100%' }}>
           {!isEmpty ? (
             <Table
               size="sm"
               w="full"
-              minW={{ base: 'max-content', md: '100%' }}
+              minW={{ base: '420px', md: '100%' }}
               sx={{ tableLayout: 'fixed' }}
             >
               <Thead
@@ -138,9 +139,9 @@ export function OverallPerformanceTable({
                     py: { base: 3, md: 5 },
                   },
                   'th:first-of-type': {
-                    width: '200px',
-                    minWidth: '200px',
-                    maxWidth: '200px',
+                    width: { base: '160px', md: '200px' },
+                    minWidth: { base: '160px', md: '200px' },
+                    maxWidth: { base: '160px', md: '200px' },
                   },
                 }}
               >
@@ -307,9 +308,9 @@ export function OverallPerformanceTable({
                     whiteSpace: 'nowrap',
                   },
                   'td:first-of-type': {
-                    width: '200px',
-                    minWidth: '200px',
-                    maxWidth: '200px',
+                    width: { base: '160px', md: '200px' },
+                    minWidth: { base: '160px', md: '200px' },
+                    maxWidth: { base: '160px', md: '200px' },
                     textAlign: 'left',
                   },
                   'td:not(:first-of-type)': {
@@ -338,7 +339,7 @@ export function OverallPerformanceTable({
                         overflow="hidden"
                         textOverflow="ellipsis"
                         whiteSpace="nowrap"
-                        maxW="200px"
+                        maxW={{ base: '160px', md: '200px' }}
                       >
                         {state.name}
                       </Box>

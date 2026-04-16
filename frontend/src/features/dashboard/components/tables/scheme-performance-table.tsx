@@ -349,10 +349,12 @@ export function SchemePerformanceTable({
             '&::-webkit-scrollbar': { width: '4px', height: '0px' },
             '&::-webkit-scrollbar-track': { bg: 'neutral.100', borderRadius: '999px' },
             '&::-webkit-scrollbar-thumb': {
-              bg: 'neutral.300',
+              bg: 'primary.300',
               borderRadius: '999px',
               minHeight: '165px',
             },
+            '&::-webkit-scrollbar-thumb:vertical': { bg: 'primary.300' },
+            '&::-webkit-scrollbar-thumb:horizontal': { bg: 'primary.300' },
           }}
         >
           <Box w="full" minW={responsiveTableMinWidth}>

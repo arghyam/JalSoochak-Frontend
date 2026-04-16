@@ -658,12 +658,20 @@ export function SearchLayout({
               alignItems="start"
               alignContent="start"
               justifyContent={{ lg: 'start' }}
-              maxH={{ base: '272px', sm: isBelowXsLayout ? '272px' : 'none' }}
+              maxH={{ base: '416px', md: 'none' }}
               maxW="100%"
-              overflowY={{ base: 'auto', sm: isBelowXsLayout ? 'auto' : 'visible' }}
+              overflowY={{ base: 'auto', md: 'visible' }}
               overflowX={{ base: 'hidden', sm: 'auto', lg: 'hidden' }}
               pr={{ base: '4px', sm: 0 }}
               pb="16px"
+              sx={{
+                WebkitOverflowScrolling: 'touch',
+                '&::-webkit-scrollbar': { width: '4px', height: '4px' },
+                '&::-webkit-scrollbar-track': { bg: 'neutral.100', borderRadius: '999px' },
+                '&::-webkit-scrollbar-thumb': { bg: 'neutral.300', borderRadius: '999px' },
+                '&::-webkit-scrollbar-thumb:vertical': { bg: 'primary.300' },
+                '&::-webkit-scrollbar-thumb:horizontal': { bg: 'primary.300' },
+              }}
               data-testid="search-options-grid"
             >
               {filteredStateOptions.map((state) => (
