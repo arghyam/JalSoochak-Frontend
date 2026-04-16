@@ -716,6 +716,7 @@ export function CentralDashboard() {
   })
   const previousLocationRef = useRef<{ pathname: string; search: string } | null>(null)
   const hasAppliedStoredHydrationRef = useRef(false)
+  const shouldPausePersistenceForHydrationRef = useRef(false)
   const activeTrailIndex =
     activeTrailIndexState.pathname === location.pathname &&
     activeTrailIndexState.search === location.search
@@ -2121,6 +2122,7 @@ export function CentralDashboard() {
       return
     }
     hasAppliedStoredHydrationRef.current = true
+    shouldPausePersistenceForHydrationRef.current = true
 
     if (storedFilters.filterTabIndex === 1 && hasStoredDepartmentFilters) {
       updateFilterUrl({
@@ -2161,6 +2163,12 @@ export function CentralDashboard() {
     storedFilters.selectedVillage,
     updateFilterUrl,
   ])
+
+  useEffect(() => {
+    if (!shouldHydrateFromStoredFilters) {
+      shouldPausePersistenceForHydrationRef.current = false
+    }
+  }, [shouldHydrateFromStoredFilters])
 
   const handleStateChange = (value: string) => {
     setActiveTrailIndex(null)
@@ -2380,7 +2388,7 @@ export function CentralDashboard() {
   }
 
   useEffect(() => {
-    if (shouldHydrateFromStoredFilters) {
+    if (shouldPausePersistenceForHydrationRef.current) {
       return
     }
 
