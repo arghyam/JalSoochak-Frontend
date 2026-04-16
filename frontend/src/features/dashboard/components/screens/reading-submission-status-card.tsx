@@ -1,4 +1,4 @@
-import { Box, Text } from '@chakra-ui/react'
+import { Box, Text, useMediaQuery } from '@chakra-ui/react'
 import type { BoxProps } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { ReadingSubmissionStatusChart } from '../charts'
@@ -18,6 +18,9 @@ export function ReadingSubmissionStatusCard({
   boxProps,
 }: ReadingSubmissionStatusCardProps) {
   const { t } = useTranslation('dashboard')
+  const [isBelowXs] = useMediaQuery('(max-width: 480px)')
+  const resolvedCardHeight = isBelowXs ? 'auto' : cardHeight
+  const resolvedChartHeight = isBelowXs ? 'auto' : chartHeight
 
   return (
     <Box
@@ -28,16 +31,16 @@ export function ReadingSubmissionStatusCard({
       px="16px"
       pt="24px"
       pb="24px"
-      h={cardHeight}
+      h={resolvedCardHeight}
       minW={0}
       {...boxProps}
     >
-      <Text textStyle="bodyText3" fontWeight="400" mb="40px">
+      <Text textStyle="bodyText3" fontWeight="400" mb={isBelowXs ? '24px' : '40px'}>
         {t('outageAndSubmissionCharts.titles.readingSubmissionStatus', {
           defaultValue: 'Reading Submission Status',
         })}
       </Text>
-      <ReadingSubmissionStatusChart data={data} height={chartHeight} />
+      <ReadingSubmissionStatusChart data={data} height={resolvedChartHeight} />
     </Box>
   )
 }

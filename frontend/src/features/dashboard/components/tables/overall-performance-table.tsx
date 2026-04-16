@@ -103,26 +103,23 @@ export function OverallPerformanceTable({
         minW={0}
         pr={2}
         pb={2}
-        cursor={{ base: 'grab', md: 'auto' }}
+        cursor="grab"
         sx={{
           WebkitOverflowScrolling: 'touch',
+          scrollbarGutter: 'stable',
           '&::-webkit-scrollbar': { width: '4px', height: '4px' },
           '&::-webkit-scrollbar-track': { bg: 'neutral.100', borderRadius: '999px' },
           '&::-webkit-scrollbar-thumb': { bg: 'neutral.300', borderRadius: '999px' },
           '&::-webkit-scrollbar-thumb:vertical': { bg: 'primary.300' },
+          '&::-webkit-scrollbar-thumb:horizontal': { bg: 'primary.300' },
           '&:active': {
             cursor: 'grabbing',
           },
         }}
       >
-        <Box w="full" minW={{ base: 'max-content', md: '100%' }}>
+        <Box w="full" minW={0}>
           {!isEmpty ? (
-            <Table
-              size="sm"
-              w="full"
-              minW={{ base: 'max-content', md: '100%' }}
-              sx={{ tableLayout: 'fixed' }}
-            >
+            <Table size="sm" w="max-content" minW="100%" sx={{ tableLayout: 'auto' }}>
               <Thead
                 sx={{
                   position: 'sticky',
@@ -136,11 +133,7 @@ export function OverallPerformanceTable({
                     fontWeight: '500',
                     px: { base: 2, md: 3 },
                     py: { base: 3, md: 5 },
-                  },
-                  'th:first-of-type': {
-                    width: '200px',
-                    minWidth: '200px',
-                    maxWidth: '200px',
+                    whiteSpace: 'nowrap',
                   },
                 }}
               >
@@ -159,7 +152,7 @@ export function OverallPerformanceTable({
                       type="button"
                       onClick={() => handleSort('name')}
                       display="flex"
-                      alignItems="center"
+                      alignItems="flex-start"
                       gap={1}
                       cursor="pointer"
                       textAlign="left"
@@ -197,13 +190,13 @@ export function OverallPerformanceTable({
                       gap={1}
                       cursor="pointer"
                       textAlign="left"
-                      width="100%"
+                      width="fit-content"
                       minW={0}
                       bg="none"
                       border="none"
                       p={0}
                     >
-                      <Box as="span" whiteSpace="normal">
+                      <Box as="span" whiteSpace="normal" lineHeight="18px">
                         {t('overallPerformance.columns.regularity', {
                           defaultValue: 'Regularity (%)',
                         })}
@@ -230,18 +223,18 @@ export function OverallPerformanceTable({
                       type="button"
                       onClick={() => handleSort('coverage')}
                       display="flex"
-                      alignItems="center"
+                      alignItems="flex-start"
                       justifyContent="flex-start"
                       gap={1}
                       cursor="pointer"
                       textAlign="left"
-                      width="100%"
+                      width="fit-content"
                       minW={0}
                       bg="none"
                       border="none"
                       p={0}
                     >
-                      <Box as="span" whiteSpace="normal">
+                      <Box as="span" whiteSpace="normal" lineHeight="18px">
                         {t('overallPerformance.columns.quantityMld', {
                           defaultValue: 'Quantity (MLD)',
                         })}
@@ -268,18 +261,18 @@ export function OverallPerformanceTable({
                       type="button"
                       onClick={() => handleSort('quantity')}
                       display="flex"
-                      alignItems="center"
+                      alignItems="flex-start"
                       justifyContent="flex-start"
                       gap={1}
                       cursor="pointer"
                       textAlign="left"
-                      width="100%"
+                      width="fit-content"
                       minW={0}
                       bg="none"
                       border="none"
                       p={0}
                     >
-                      <Box as="span" whiteSpace="normal">
+                      <Box as="span" whiteSpace="normal" lineHeight="18px">
                         {t('overallPerformance.columns.quantityLpcd', {
                           defaultValue: 'Quantity (LPCD)',
                         })}
@@ -307,9 +300,6 @@ export function OverallPerformanceTable({
                     whiteSpace: 'nowrap',
                   },
                   'td:first-of-type': {
-                    width: '200px',
-                    minWidth: '200px',
-                    maxWidth: '200px',
                     textAlign: 'left',
                   },
                   'td:not(:first-of-type)': {
@@ -338,7 +328,7 @@ export function OverallPerformanceTable({
                         overflow="hidden"
                         textOverflow="ellipsis"
                         whiteSpace="nowrap"
-                        maxW="200px"
+                        maxW={{ base: '220px', md: '300px' }}
                       >
                         {state.name}
                       </Box>

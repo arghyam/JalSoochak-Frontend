@@ -131,6 +131,7 @@ export function ReadingComplianceTable({
               borderRadius: '999px',
               minHeight: '165px',
             },
+            '&::-webkit-scrollbar-thumb:horizontal': { bg: 'primary.300' },
             '&:active': {
               cursor: 'grabbing',
             },

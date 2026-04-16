@@ -532,6 +532,8 @@ export function SearchLayout({
           zIndex={10}
           overflow="hidden"
           boxShadow="0px 8px 24px rgba(0, 0, 0, 0.08)"
+          display="flex"
+          flexDirection="column"
         >
           <IconButton
             aria-label={t('searchLayout.aria.closeDropdown', 'Close search dropdown')}
@@ -638,7 +640,7 @@ export function SearchLayout({
               ))}
             </Flex>
           </Box>
-          <Box px="16px" mt="12px">
+          <Box px="16px" mt="12px" flex={1} minH={0} display="flex" flexDirection="column">
             <Text textStyle="bodyText5" fontWeight="500" color="neutral.950" mb="8px">
               {panelOptionsLabel} ({panelOptionsCount})
             </Text>
@@ -658,12 +660,24 @@ export function SearchLayout({
               alignItems="start"
               alignContent="start"
               justifyContent={{ lg: 'start' }}
-              maxH={{ base: '272px', sm: isBelowXsLayout ? '272px' : 'none' }}
+              flex={1}
+              minH={0}
               maxW="100%"
-              overflowY={{ base: 'auto', sm: isBelowXsLayout ? 'auto' : 'visible' }}
+              overflowY={{ base: 'auto', md: 'visible' }}
               overflowX={{ base: 'hidden', sm: 'auto', lg: 'hidden' }}
               pr={{ base: '4px', sm: 0 }}
               pb="16px"
+              mb={{ base: '8px', md: 0 }}
+              sx={{
+                WebkitOverflowScrolling: 'touch',
+                '&::-webkit-scrollbar': { width: '4px', height: '4px' },
+                '&::-webkit-scrollbar-track': { bg: 'neutral.100', borderRadius: '999px' },
+                '&::-webkit-scrollbar-thumb': { bg: 'neutral.300', borderRadius: '999px' },
+                '&::-webkit-scrollbar-thumb:vertical': { bg: 'primary.300' },
+                '&::-webkit-scrollbar-thumb:horizontal': { bg: 'primary.300' },
+                '&::-webkit-scrollbar-thumb:hover': { bg: 'primary.400' },
+                '&::-webkit-scrollbar-thumb:horizontal:hover': { bg: 'primary.400' },
+              }}
               data-testid="search-options-grid"
             >
               {filteredStateOptions.map((state) => (

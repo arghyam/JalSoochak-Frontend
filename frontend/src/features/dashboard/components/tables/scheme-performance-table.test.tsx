@@ -192,6 +192,33 @@ describe('SchemePerformanceTable', () => {
     expect(screen.getByRole('button', { name: '3' })).toBeDefined()
   })
 
+  it('renders ellipsis and the last page for large page counts', () => {
+    const many = Array.from({ length: 20 }, (_, i) => ({
+      id: `scheme-${i}`,
+      name: `Scheme ${i}`,
+      village: `Village ${i}`,
+      block: `Block ${i}`,
+      reportingRate: i,
+      photoCompliance: 0,
+      waterSupplied: i * 1000,
+    }))
+
+    renderWithProviders(
+      <SchemePerformanceTable
+        title="Scheme Performance"
+        data={many}
+        currentPage={2}
+        totalPages={20}
+        onPageChange={jest.fn()}
+      />
+    )
+
+    expect(screen.getByRole('button', { name: '2' })).toBeDefined()
+    expect(screen.getByRole('button', { name: '3' })).toBeDefined()
+    expect(screen.getByRole('button', { name: '20' })).toBeDefined()
+    expect(screen.getByText('...')).toBeDefined()
+  })
+
   it('clamps out-of-range pagination actions and calls onPageChange with bounded values', () => {
     const onPageChange = jest.fn()
     renderWithProviders(

@@ -727,7 +727,7 @@ function ReadingComplianceSection({
         pb="24px"
         pl="16px"
         pr="16px"
-        h={{ base: 'auto', md: '430px' }}
+        h="430px"
         minW={0}
         overflow="hidden"
       >
