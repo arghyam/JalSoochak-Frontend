@@ -296,4 +296,29 @@ describe('SupplyOutageDistributionChart', () => {
     expect(leftAxisOption?.yAxis?.max).toBe(225)
     expect(leftAxisOption?.yAxis?.interval).toBe(45)
   })
+
+  it('renders empty fallback scale and category when no outage data is provided', () => {
+    renderWithProviders(<SupplyOutageDistributionChart data={[]} height="300px" />)
+
+    const options = (
+      mockEChartsWrapper.mock.calls as Array<
+        [
+          {
+            option?: {
+              tooltip?: { show?: boolean }
+              xAxis?: { data?: string[] }
+              yAxis?: { max?: number }
+            }
+          },
+        ]
+      >
+    ).map(([props]) => props.option)
+
+    const mainOption = options.find((entry) => entry?.tooltip?.show === true)
+    const axisOption = options.find((entry) => entry?.tooltip?.show === false)
+
+    expect(mainOption?.xAxis?.data).toEqual([''])
+    expect(mainOption?.yAxis?.max).toBe(100)
+    expect(axisOption?.yAxis?.max).toBe(100)
+  })
 })
