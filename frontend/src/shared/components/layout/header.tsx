@@ -1,6 +1,8 @@
-import { Box, Flex, Image, Text } from '@chakra-ui/react'
+import { Box, Flex, Image, Link, Text } from '@chakra-ui/react'
+import { Link as RouterLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { LanguageSwitcher } from '@/shared/components/common'
+import { ROUTES } from '@/shared/constants/routes'
 import logoWithText from '@/assets/media/JalSoochak Logo with Text.svg'
 
 export function Header() {
@@ -16,7 +18,7 @@ export function Header() {
       bg="primary.800"
       boxShadow="0 6px 14px rgba(0, 0, 0, 0.24)"
       mb="28px"
-      minH={{ base: 'auto', md: '124px' }}
+      minH={{ base: 'auto', md: '90px' }}
       px={{ base: '40px', md: '80px' }}
     >
       <Flex
@@ -29,15 +31,26 @@ export function Header() {
         gap={{ base: 3, md: 0 }}
       >
         <Flex align="center" flexShrink={0}>
-          <Image
-            src={logoWithText}
-            alt={t('footer.logoAlt', { ns: 'common', defaultValue: 'JalSoochak logo with text' })}
-            display="block"
-            w={{ base: '90.5px', md: '181px' }}
-            h={{ base: '40px', md: '80px' }}
-            objectFit="contain"
-            objectPosition="left center"
-          />
+          <Link
+            as={RouterLink}
+            to={ROUTES.DASHBOARD}
+            display="inline-block"
+            aria-label={t('footer.logoAlt', {
+              ns: 'common',
+              defaultValue: 'JalSoochak logo with text',
+            })}
+            _hover={{ textDecoration: 'none' }}
+          >
+            <Image
+              src={logoWithText}
+              alt={t('footer.logoAlt', { ns: 'common', defaultValue: 'JalSoochak logo with text' })}
+              display="block"
+              w={{ base: '90.5px', md: '181px' }}
+              h={{ base: '40px', md: '65px' }}
+              objectFit="contain"
+              objectPosition="left center"
+            />
+          </Link>
         </Flex>
 
         <Flex flex="1" justify="center" w="full" px="15px">

@@ -2630,7 +2630,7 @@ export function CentralDashboard() {
           })}% vs previous ${comparisonDays} days`
       ),
       icon: (
-        <Flex w="48px" h="48px" borderRadius="100px" bg="#E1FFEA" align="center" justify="center">
+        <Flex w="48px" h="48px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
           <Image src={waterTapIcon} alt="" w="24px" h="24px" />
         </Flex>
       ),
@@ -2746,7 +2746,7 @@ export function CentralDashboard() {
           })}% vs previous ${comparisonDays} days`
       ),
       icon: (
-        <Flex w="48px" h="48px" borderRadius="100px" bg="#FFF4CC" align="center" justify="center">
+        <Flex w="48px" h="48px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
           <Image src={wallClockIcon} alt="" w="24px" h="24px" />
         </Flex>
       ),
