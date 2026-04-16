@@ -348,15 +348,19 @@ describe('StaffOverviewPage', () => {
 
   it('navigates to anomalies page when anomalies stat card is clicked', async () => {
     renderWithProviders(<StaffOverviewPage />)
-    const anomaliesCard = screen.getByLabelText(/anomalies flagged: 15/i)
-    await userEvent.click(anomaliesCard)
+    const user = userEvent.setup()
+    const anomaliesCard = screen.getByRole('button', { name: /anomalies flagged: 15/i })
+    anomaliesCard.focus()
+    await user.keyboard('{Enter}')
     expect(mockNavigate).toHaveBeenCalledWith('/staff/anomalies')
   })
 
   it('navigates to escalations page when escalations stat card is clicked', async () => {
     renderWithProviders(<StaffOverviewPage />)
-    const escalationsCard = screen.getByLabelText(/escalations: 3/i)
-    await userEvent.click(escalationsCard)
+    const user = userEvent.setup()
+    const escalationsCard = screen.getByRole('button', { name: /escalations: 3/i })
+    escalationsCard.focus()
+    await user.keyboard(' ')
     expect(mockNavigate).toHaveBeenCalledWith('/staff/escalations')
   })
 

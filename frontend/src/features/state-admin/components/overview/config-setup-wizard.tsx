@@ -230,7 +230,6 @@ export function ConfigSetupWizard() {
             {WIZARD_STEPS.map((step, i) => {
               const configured = isStepConfigured(step, statuses)
               const isLast = i === WIZARD_STEPS.length - 1
-              const prevConfigured = i > 0 ? isStepConfigured(WIZARD_STEPS[i - 1], statuses) : false
 
               return (
                 <Flex key={step.id} align="flex-start" flex={isLast ? 'none' : 1} gap={0}>
@@ -240,9 +239,7 @@ export function ConfigSetupWizard() {
                     configured={configured}
                     onClick={() => navigate(step.route)}
                   />
-                  {!isLast && (
-                    <Connector configured={prevConfigured} data-testid={`connector-${i}`} />
-                  )}
+                  {!isLast && <Connector configured={configured} data-testid={`connector-${i}`} />}
                 </Flex>
               )
             })}
@@ -253,7 +250,6 @@ export function ConfigSetupWizard() {
             {WIZARD_STEPS.map((step, i) => {
               const configured = isStepConfigured(step, statuses)
               const isLast = i === WIZARD_STEPS.length - 1
-              const prevConfigured = i > 0 ? isStepConfigured(WIZARD_STEPS[i - 1], statuses) : false
 
               return (
                 <Flex key={step.id} align="flex-start" gap={0} direction="column">
@@ -266,7 +262,7 @@ export function ConfigSetupWizard() {
                   />
                   {!isLast && (
                     <VerticalConnector
-                      configured={prevConfigured}
+                      configured={configured}
                       data-testid={`vertical-connector-${i}`}
                     />
                   )}

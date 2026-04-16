@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import Papa from 'papaparse'
 import {
@@ -192,14 +192,13 @@ export function PumpOperatorViewPage() {
       header: t('pages.pumpOperators.columns.schemeName'),
       render: (row) => (
         <Link
+          as={RouterLink}
+          to={ROUTES.STAFF_SCHEMES_VIEW.replace(':schemeId', String(row.schemeId))}
           textStyle="h10"
           fontWeight="400"
           color="primary.500"
           cursor="pointer"
           _hover={{ textDecoration: 'underline' }}
-          onClick={() =>
-            navigate(ROUTES.STAFF_SCHEMES_VIEW.replace(':schemeId', String(row.schemeId)))
-          }
         >
           {row.schemeName}
         </Link>

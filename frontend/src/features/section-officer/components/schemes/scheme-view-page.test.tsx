@@ -8,6 +8,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SchemeViewPage } from './scheme-view-page'
 
 const mockNavigate = jest.fn()
+jest.mock('react-router', () => ({
+  ...jest.requireActual<typeof import('react-router')>('react-router'),
+  useNavigate: () => mockNavigate,
+}))
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual<typeof import('react-router-dom')>('react-router-dom'),
   useNavigate: () => mockNavigate,
@@ -295,8 +299,9 @@ describe('SchemeViewPage', () => {
       refetch: jest.fn(),
     })
     renderPage()
+    const user = userEvent.setup()
     const operatorLink = screen.getByText('Op A')
-    await userEvent.click(operatorLink)
+    await user.click(operatorLink)
     expect(mockNavigate).toHaveBeenCalledWith('/staff/pump-operators/13')
   })
 })

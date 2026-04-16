@@ -154,7 +154,10 @@ export function StaffOverviewPage() {
                 _hover={{ opacity: 0.85 }}
                 onClick={stat.onClick}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') stat.onClick?.()
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    stat.onClick?.()
+                  }
                 }}
               >
                 <StatCard
