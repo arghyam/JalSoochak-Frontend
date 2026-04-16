@@ -3,7 +3,7 @@ import { Box, useBreakpointValue, useTheme } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
-import { formatAxisLabel } from './axis-label-format'
+import { formatAxisLabel, formatIsoDateToDayFirst } from './axis-label-format'
 import { getBodyText7Style } from './chart-text-style'
 
 export interface WaterSupplyOutageData {
@@ -147,7 +147,7 @@ export function SupplyOutageDistributionChart({
             typeof point.dataIndex === 'number'
               ? (data[point.dataIndex]?.label ?? '')
               : (point.name ?? '')
-          const safeName = echarts.format.encodeHTML(label)
+          const safeName = echarts.format.encodeHTML(formatIsoDateToDayFirst(label))
           const safeSeriesName = echarts.format.encodeHTML(point.seriesName ?? '')
 
           return `<strong>${safeName}</strong><br/>${safeSeriesName}: ${formattedValue}`

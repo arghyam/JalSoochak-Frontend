@@ -22,7 +22,6 @@ import {
   useMediaQuery,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { BiSortAlt2 } from 'react-icons/bi'
 import { LuArrowLeft, LuArrowRight, LuChevronsLeft, LuChevronsRight } from 'react-icons/lu'
 import type { PumpOperatorPerformanceData } from '../../types'
 
@@ -43,6 +42,32 @@ interface SchemePerformanceTableProps {
 
 type SortColumn = 'reportingRate' | 'waterSupplied' | null
 type SortDirection = 'asc' | 'desc' | null
+
+function SortIndicator({
+  isActive,
+  direction,
+}: {
+  isActive: boolean
+  direction: Exclude<SortDirection, null>
+}) {
+  const activeColor = 'var(--chakra-colors-primary-500)'
+  const inactiveColor = 'var(--chakra-colors-neutral-500)'
+  const topArrowFill = isActive && direction === 'asc' ? activeColor : inactiveColor
+  const bottomArrowFill = isActive && direction === 'desc' ? activeColor : inactiveColor
+
+  return (
+    <Icon viewBox="0 0 16 16" boxSize="16px" aria-hidden flexShrink={0}>
+      <path
+        d="M8.00001 2C8.18565 2 8.36373 2.07902 8.49498 2.21967L11.295 5.21967C11.5683 5.51257 11.5683 5.98744 11.295 6.28034C11.0216 6.57321 10.5784 6.57321 10.305 6.28034L8.00001 3.81066L5.69498 6.28034C5.42161 6.57321 4.9784 6.57321 4.70502 6.28034C4.43166 5.98744 4.43166 5.51257 4.70502 5.21967L7.50504 2.21967C7.63629 2.07902 7.81437 2 8.00001 2Z"
+        fill={topArrowFill}
+      />
+      <path
+        d="M4.70502 9.71969C4.9784 9.42681 5.42161 9.42681 5.69498 9.71969L8.00001 12.1894L10.305 9.71969C10.5784 9.42681 11.0216 9.42681 11.295 9.71969C11.5683 10.0126 11.5683 10.4875 11.295 10.7803L8.49498 13.7803C8.22163 14.0732 7.77839 14.0732 7.50504 13.7803L4.70502 10.7803C4.43166 10.4875 4.43166 10.0126 4.70502 9.71969Z"
+        fill={bottomArrowFill}
+      />
+    </Icon>
+  )
+}
 
 const compareNullableNumbers = (
   left: number | null | undefined,
@@ -107,8 +132,8 @@ export function SchemePerformanceTable({
 }: SchemePerformanceTableProps) {
   const { t } = useTranslation('dashboard')
   const [enableHorizontalScroller] = useMediaQuery('(max-width: 1599px)')
-  const [sortColumn, setSortColumn] = useState<SortColumn>(null)
-  const [sortDirection, setSortDirection] = useState<SortDirection>(null)
+  const [sortColumn, setSortColumn] = useState<SortColumn>('reportingRate')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
   const scrollbarTrackRef = useRef<HTMLDivElement | null>(null)
   const scrollbarThumbRef = useRef<HTMLDivElement | null>(null)
@@ -397,7 +422,12 @@ export function SchemePerformanceTable({
                           defaultValue: 'Reporting Rate (%)',
                         })}
                       </Box>
-                      <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
+                      <SortIndicator
+                        isActive={sortColumn === 'reportingRate'}
+                        direction={
+                          sortColumn === 'reportingRate' && sortDirection ? sortDirection : 'desc'
+                        }
+                      />
                     </Box>
                   </Th>
                   <Th
@@ -429,7 +459,12 @@ export function SchemePerformanceTable({
                           defaultValue: 'Water Supplied',
                         })}
                       </Box>
-                      <Icon as={BiSortAlt2} boxSize="16px" color="neutral.500" aria-hidden />
+                      <SortIndicator
+                        isActive={sortColumn === 'waterSupplied'}
+                        direction={
+                          sortColumn === 'waterSupplied' && sortDirection ? sortDirection : 'desc'
+                        }
+                      />
                     </Box>
                   </Th>
                 </Tr>

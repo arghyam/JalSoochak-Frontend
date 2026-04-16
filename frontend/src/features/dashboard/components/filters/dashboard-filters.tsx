@@ -515,6 +515,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
               noOptionsText: getNoOptionsText(stateLabel),
               onSelect: rootSelectionHandler,
             }
+  const shouldCloseOnOptionSelect = hasSelectedGramPanchayat
 
   const handleTrailSelect = (trailIndex: number) => {
     if (isDepartmentTab) {
@@ -607,7 +608,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
         totalOptionsCount: breadcrumbPanelConfig.totalCount,
         noOptionsText: breadcrumbPanelConfig.noOptionsText,
         onOptionSelect: breadcrumbPanelConfig.onSelect,
-        closeOnOptionSelect: true,
+        closeOnOptionSelect: shouldCloseOnOptionSelect,
         onTrailSelect: handleTrailSelect,
         onPanelOpenChange: handlePanelOpenChange,
         showTabs: true,

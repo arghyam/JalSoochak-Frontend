@@ -26,6 +26,7 @@ import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quant
 import { useWaterQuantityRegionWiseQuery } from '../services/query/use-water-quantity-region-wise-query'
 import { useTenantBoundariesQuery } from '../services/query/use-tenant-boundaries-query'
 import { getPreviousPeriodRange } from '../utils/formulas'
+import { stateSlugToCode } from '@/shared/constants/states'
 
 const mockNavigate = jest.fn()
 const mockUseParams = jest.fn(() => ({}))
@@ -1984,6 +1985,30 @@ describe('CentralDashboard', () => {
     expect(dashboardFilterProps.selectedBlock).toBe('patancheru')
     expect(dashboardFilterProps.selectedGramPanchayat).toBe('ismailkhanpet')
     expect(dashboardFilterProps.selectedVillage).toBe('rudraram')
+  })
+
+  it('hydrates location filters from localStorage when URL is empty', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedState: 'assam',
+        selectedDistrict: '3:baksa',
+        selectedBlock: '4:barama',
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    const stateCode = stateSlugToCode('assam') ?? 'assam'
+    expect(mockNavigate).toHaveBeenCalledWith({
+      pathname: `/${encodeURIComponent(stateCode)}`,
+      search: '?district=3%3Abaksa&block=4%3Abarama&tab=administrative',
+    })
   })
 
   it('forces the administrative tab when LGD query params are present even if storage last used departmental', () => {

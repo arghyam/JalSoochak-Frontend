@@ -193,4 +193,57 @@ describe('ReadingSubmissionRateChart', () => {
     expect(content).toContain('Dadra and Nagar Haveli and Daman and Diu')
     expect(content).not.toContain('Dadra and\nNagar Havel...')
   })
+
+  it('formats ISO date labels as dd-mm-yyyy on x-axis', () => {
+    renderWithProviders(
+      <ReadingSubmissionRateChart
+        data={[
+          {
+            ...chartData[0],
+            name: '2026-04-16',
+            regularity: 75,
+          },
+        ]}
+      />
+    )
+
+    const mainOption = (
+      mockEChartsWrapper.mock.calls as Array<
+        [{ option?: { xAxis?: { axisLabel?: { formatter?: (value: string) => string } } } }]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((option) => option?.xAxis?.axisLabel?.formatter !== undefined)
+
+    expect(mainOption?.xAxis?.axisLabel?.formatter?.('2026-04-16')).toBe('16-04-2026')
+  })
+
+  it('formats ISO date in tooltip using chart data label when dataIndex is present', () => {
+    renderWithProviders(
+      <ReadingSubmissionRateChart
+        data={[
+          {
+            ...chartData[0],
+            name: '2026-04-16',
+            regularity: 88,
+          },
+        ]}
+      />
+    )
+
+    const mainOption = (
+      mockEChartsWrapper.mock.calls as Array<
+        [{ option?: { tooltip?: { show?: boolean; formatter?: (params: unknown) => string } } }]
+      >
+    )
+      .map(([props]) => props.option)
+      .find((option) => option?.tooltip?.show === true)
+
+    const content = mainOption?.tooltip?.formatter?.([
+      { axisValueLabel: '16-04-2026', dataIndex: 0, seriesName: 'Submission Rate', value: 88 },
+    ])
+
+    expect(content).toContain('16-04-2026')
+    expect(content).not.toContain('2026-04-16')
+  })
 })

@@ -3,7 +3,10 @@ import { Box, useBreakpointValue, useTheme } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
-import { formatAxisLabel } from '@/shared/components/charts/axis-label-format'
+import {
+  formatAxisLabel,
+  formatIsoDateToDayFirst,
+} from '@/shared/components/charts/axis-label-format'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
 import type { EntityPerformance } from '../../types'
 
@@ -138,7 +141,7 @@ export function ReadingSubmissionRateChart({
             typeof firstPoint?.dataIndex === 'number'
               ? (data[firstPoint.dataIndex]?.name ?? '')
               : (firstPoint?.axisValueLabel ?? '')
-          const safeEntityName = echarts.format.encodeHTML(entityName)
+          const safeEntityName = echarts.format.encodeHTML(formatIsoDateToDayFirst(entityName))
           const rows = points
             .map((point) => {
               const rawValue = typeof point.value === 'number' ? point.value : Number(point.value)
