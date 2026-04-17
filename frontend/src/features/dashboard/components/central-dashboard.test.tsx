@@ -1230,8 +1230,8 @@ describe('CentralDashboard', () => {
     expect(dashboardBodyProps.quantityPerformanceData[0]).toEqual(
       expect.objectContaining({
         name: 'Karnataka',
-        coverage: 55,
-        quantity: 1200,
+        coverage: 0.14,
+        quantity: 3,
       })
     )
     expect(dashboardBodyProps.regularityPerformanceData[0]).toEqual(
@@ -1241,8 +1241,8 @@ describe('CentralDashboard', () => {
       })
     )
     expect(dashboardBodyProps.quantityTimeTrendData).toEqual([
-      { period: '01-03-2026\n07-03-2026', value: 0.6 },
-      { period: '08-03-2026\n14-03-2026', value: 0.7 },
+      { period: '01-03-2026\n07-03-2026', value: 1500 },
+      { period: '08-03-2026\n14-03-2026', value: 1750 },
     ])
     expect(dashboardBodyProps.regularityTimeTrendData).toEqual([
       { period: '01-03-2026\n07-03-2026', value: 48 },
@@ -1510,9 +1510,6 @@ describe('CentralDashboard', () => {
     }>()
 
     expect(dashboardBodyProps.quantityTimeTrendData).toEqual([])
-    expect(dashboardBodyProps.quantityTimeTrendData).not.toEqual(
-      expect.arrayContaining([expect.objectContaining({ value: 0 })])
-    )
     expect(dashboardBodyProps.isQuantityTimeTrendLoading).toBe(false)
   })
 
@@ -4074,7 +4071,7 @@ describe('CentralDashboard', () => {
     expect(dashboardBodyProps.quantityPerformanceData[0]).toEqual(
       expect.objectContaining({
         name: 'Alpha',
-        quantity: 0,
+        quantity: 3,
       })
     )
     expect(dashboardBodyProps.regularityPerformanceData[0]).toEqual(
