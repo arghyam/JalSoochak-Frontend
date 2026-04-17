@@ -120,17 +120,57 @@ export function IndiaMapChart({
   const quantityLabel = t('map.metric.quantity', { defaultValue: 'Quantity' })
   const regularityLabel = t('map.metric.regularity', { defaultValue: 'Regularity' })
   const selectedMetricLabel = isRegularityView ? regularityLabel : quantityLabel
+  const resolveLegendThreshold = useCallback(
+    (raw: string | number | undefined, fallback: number) => {
+      const parsed = Number(raw)
+      return Number.isFinite(parsed) ? parsed : fallback
+    },
+    []
+  )
+  const legendThresholds = useMemo(
+    () => ({
+      gte90: resolveLegendThreshold(
+        typeof __MAP_LEGEND_THRESHOLD_GTE_90__ !== 'undefined'
+          ? __MAP_LEGEND_THRESHOLD_GTE_90__
+          : 90,
+        90
+      ),
+      gte70: resolveLegendThreshold(
+        typeof __MAP_LEGEND_THRESHOLD_GTE_70__ !== 'undefined'
+          ? __MAP_LEGEND_THRESHOLD_GTE_70__
+          : 70,
+        70
+      ),
+      gte50: resolveLegendThreshold(
+        typeof __MAP_LEGEND_THRESHOLD_GTE_50__ !== 'undefined'
+          ? __MAP_LEGEND_THRESHOLD_GTE_50__
+          : 50,
+        50
+      ),
+      gte30: resolveLegendThreshold(
+        typeof __MAP_LEGEND_THRESHOLD_GTE_30__ !== 'undefined'
+          ? __MAP_LEGEND_THRESHOLD_GTE_30__
+          : 30,
+        30
+      ),
+      gte0: resolveLegendThreshold(
+        typeof __MAP_LEGEND_THRESHOLD_GTE_0__ !== 'undefined' ? __MAP_LEGEND_THRESHOLD_GTE_0__ : 0,
+        0
+      ),
+    }),
+    [resolveLegendThreshold]
+  )
   const getRangeColor = useCallback(
     (value: number) => {
       if (!Number.isFinite(value) || value < 0) return mapColors.noData
-      if (value >= 90) return mapColors.gte90
-      if (value >= 70) return mapColors.gte70
-      if (value >= 50) return mapColors.gte50
-      if (value >= 30) return mapColors.gte30
-      if (value >= 0) return mapColors.gte0
+      if (value >= legendThresholds.gte90) return mapColors.gte90
+      if (value >= legendThresholds.gte70) return mapColors.gte70
+      if (value >= legendThresholds.gte50) return mapColors.gte50
+      if (value >= legendThresholds.gte30) return mapColors.gte30
+      if (value >= legendThresholds.gte0) return mapColors.gte0
       return mapColors.noData
     },
-    [mapColors]
+    [legendThresholds, mapColors]
   )
   const resolveAreaColor = useCallback(
     (value: number) => (usePrimaryFill ? primaryMapColor : getRangeColor(value)),
@@ -139,14 +179,14 @@ export function IndiaMapChart({
   const getHoverRangeColor = useCallback(
     (value: number) => {
       if (!Number.isFinite(value) || value < 0) return hoverColors.noData || mapColors.noData
-      if (value >= 90) return hoverColors.gte90 || mapColors.gte90
-      if (value >= 70) return hoverColors.gte70 || mapColors.gte70
-      if (value >= 50) return hoverColors.gte50 || mapColors.gte50
-      if (value >= 30) return hoverColors.gte30 || mapColors.gte30
-      if (value >= 0) return hoverColors.gte0 || mapColors.gte0
+      if (value >= legendThresholds.gte90) return hoverColors.gte90 || mapColors.gte90
+      if (value >= legendThresholds.gte70) return hoverColors.gte70 || mapColors.gte70
+      if (value >= legendThresholds.gte50) return hoverColors.gte50 || mapColors.gte50
+      if (value >= legendThresholds.gte30) return hoverColors.gte30 || mapColors.gte30
+      if (value >= legendThresholds.gte0) return hoverColors.gte0 || mapColors.gte0
       return hoverColors.noData || mapColors.noData
     },
-    [hoverColors, mapColors]
+    [hoverColors, legendThresholds, mapColors]
   )
 
   const option = useMemo<echarts.EChartsOption>(() => {
@@ -467,27 +507,42 @@ export function IndiaMapChart({
     { id: 'noData', label: t('map.legend.noData'), color: mapColors.noData },
     {
       id: 'gte0',
-      label: t('map.legend.gte0', { defaultValue: '>=0%' }),
+      label: t('map.legend.gte0', {
+        value: legendThresholds.gte0,
+        defaultValue: `>=${legendThresholds.gte0}%`,
+      }),
       color: mapColors.gte0,
     },
     {
       id: 'gte30',
-      label: t('map.legend.gte30', { defaultValue: '>=30%' }),
+      label: t('map.legend.gte30', {
+        value: legendThresholds.gte30,
+        defaultValue: `>=${legendThresholds.gte30}%`,
+      }),
       color: mapColors.gte30,
     },
     {
       id: 'gte50',
-      label: t('map.legend.gte50', { defaultValue: '>=50%' }),
+      label: t('map.legend.gte50', {
+        value: legendThresholds.gte50,
+        defaultValue: `>=${legendThresholds.gte50}%`,
+      }),
       color: mapColors.gte50,
     },
     {
       id: 'gte70',
-      label: t('map.legend.gte70', { defaultValue: '>=70%' }),
+      label: t('map.legend.gte70', {
+        value: legendThresholds.gte70,
+        defaultValue: `>=${legendThresholds.gte70}%`,
+      }),
       color: mapColors.gte70,
     },
     {
       id: 'gte90',
-      label: t('map.legend.gte90', { defaultValue: '>=90%' }),
+      label: t('map.legend.gte90', {
+        value: legendThresholds.gte90,
+        defaultValue: `>=${legendThresholds.gte90}%`,
+      }),
       color: mapColors.gte90,
     },
   ]
