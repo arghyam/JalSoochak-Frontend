@@ -397,8 +397,8 @@ describe('dashboard formulas', () => {
       {
         ...fallbackData[0],
         name: 'Region Alpha',
-        coverage: 50,
-        quantity: 1200,
+        coverage: 0.13,
+        quantity: 3,
       },
     ])
   })
@@ -889,8 +889,8 @@ describe('dashboard formulas', () => {
     expect(mapQuantityPerformanceFromNationalDashboard(response, fallbackData)).toEqual([
       expect.objectContaining({
         name: 'Assam',
-        coverage: 50,
-        quantity: 0,
+        coverage: 537575.61,
+        quantity: 523.55,
       }),
     ])
   })
@@ -939,8 +939,8 @@ describe('dashboard formulas', () => {
     ).toEqual([
       expect.objectContaining({
         name: 'Assam',
-        coverage: 60,
-        quantity: 13_088.7,
+        coverage: 2.4,
+        quantity: 523.55,
       }),
     ])
   })

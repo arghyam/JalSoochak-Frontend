@@ -203,7 +203,7 @@ export function PerformanceChartCard({
             data={timeTrendData}
             height="100%"
             isPercent={isTimeTrendPercent}
-            valueDivisor={1}
+            valueDivisor={metric === 'quantity' ? 1000000 : 1}
             xAxisLabel={resolvedTimeXAxisLabel}
             yAxisLabel={timeYAxisLabel ?? yAxisLabel}
             seriesName={seriesName}

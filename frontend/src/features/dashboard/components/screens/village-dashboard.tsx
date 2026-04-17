@@ -1020,7 +1020,7 @@ export function VillageDashboardScreen({
             <MonthlyTrendChart
               data={quantityTimeTrendData}
               height="400px"
-              valueDivisor={1}
+              valueDivisor={1000000}
               xAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
               yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
               seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
