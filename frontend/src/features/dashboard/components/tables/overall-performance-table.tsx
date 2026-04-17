@@ -328,7 +328,7 @@ export function OverallPerformanceTable({
                         overflow="hidden"
                         textOverflow="ellipsis"
                         whiteSpace="nowrap"
-                        maxW={{ base: '220px', md: '300px' }}
+                        maxW={{ base: '220px', md: '210px' }}
                       >
                         {state.name}
                       </Box>
