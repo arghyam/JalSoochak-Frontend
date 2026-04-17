@@ -1,43 +1,45 @@
 import { describe, expect, it, afterEach } from '@jest/globals'
 
-type ServerGlobals = { __SERVER_MODE__: string; __TENANT_ID__: string }
-
-const g = globalThis as unknown as ServerGlobals
+type TestWindow = Window & {
+  APP_CONFIG?: {
+    JALSOOCHAK_SERVER_MODE?: string
+    JALSOOCHAK_TENANT_ID?: string | number
+  }
+}
 
 describe('server-config', () => {
-  const modeBefore = g.__SERVER_MODE__
-  const tenantBefore = g.__TENANT_ID__
+  const w = window as TestWindow
+  const appConfigBefore = w.APP_CONFIG
 
   afterEach(() => {
-    g.__SERVER_MODE__ = modeBefore
-    g.__TENANT_ID__ = tenantBefore
+    w.APP_CONFIG = appConfigBefore
     jest.resetModules()
   })
 
-  it('isSingleTenantMode is true only when global matches single_tenant_mode', async () => {
-    g.__SERVER_MODE__ = ''
+  it('isSingleTenantMode is true only when runtime config matches single_tenant_mode', async () => {
+    w.APP_CONFIG = { API_BASE_URL: '', JALSOOCHAK_SERVER_MODE: '' }
     let { isSingleTenantMode } = await import('./server-config')
     expect(isSingleTenantMode()).toBe(false)
 
     jest.resetModules()
-    g.__SERVER_MODE__ = 'single_tenant_mode'
+    w.APP_CONFIG = { API_BASE_URL: '', JALSOOCHAK_SERVER_MODE: 'single_tenant_mode' }
     ;({ isSingleTenantMode } = await import('./server-config'))
     expect(isSingleTenantMode()).toBe(true)
   })
 
-  it('getSingleTenantId returns null for empty or invalid tenant id global', async () => {
-    g.__TENANT_ID__ = ''
+  it('getSingleTenantId returns null for empty or invalid tenant id runtime config', async () => {
+    w.APP_CONFIG = { API_BASE_URL: '', JALSOOCHAK_TENANT_ID: '' }
     let { getSingleTenantId } = await import('./server-config')
     expect(getSingleTenantId()).toBeNull()
 
     jest.resetModules()
-    g.__TENANT_ID__ = 'not-a-number'
+    w.APP_CONFIG = { API_BASE_URL: '', JALSOOCHAK_TENANT_ID: 'not-a-number' }
     ;({ getSingleTenantId } = await import('./server-config'))
     expect(getSingleTenantId()).toBeNull()
   })
 
   it('getSingleTenantId parses numeric tenant id', async () => {
-    g.__TENANT_ID__ = '42'
+    w.APP_CONFIG = { API_BASE_URL: '', JALSOOCHAK_TENANT_ID: '42' }
     const { getSingleTenantId } = await import('./server-config')
     expect(getSingleTenantId()).toBe(42)
   })

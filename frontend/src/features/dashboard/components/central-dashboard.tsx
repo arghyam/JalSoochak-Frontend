@@ -102,6 +102,7 @@ import {
 } from '@/shared/utils/date-format'
 import { INDIA_STATES, stateSlugToCode, stateCodeToSlug } from '@/shared/constants/states'
 import { isSingleTenantMode, getSingleTenantId } from '@/config/server-config'
+import { getRuntimeConfig } from '@/config/runtime-config'
 
 const storageKey = 'central-dashboard-filters'
 const SCHEME_PERFORMANCE_PAGE_SIZE = 15
@@ -940,16 +941,13 @@ export function CentralDashboard() {
     tenantId: selectedTenant?.tenantId,
     enabled: Boolean(selectedTenant?.tenantId),
   })
+  const runtimeConfig = getRuntimeConfig()
   const defaultAverageMembersPerHousehold = resolvePositiveNumber(
-    typeof __DEFAULT_AVERAGE_MEMBERS_PER_HOUSEHOLD__ !== 'undefined'
-      ? __DEFAULT_AVERAGE_MEMBERS_PER_HOUSEHOLD__
-      : 5,
+    runtimeConfig.DEFAULT_AVERAGE_MEMBERS_PER_HOUSEHOLD,
     5
   )
   const defaultWaterNormLitersPerPersonPerDay = resolvePositiveNumber(
-    typeof __DEFAULT_WATER_NORM_LITERS_PER_PERSON_PER_DAY__ !== 'undefined'
-      ? __DEFAULT_WATER_NORM_LITERS_PER_PERSON_PER_DAY__
-      : 55,
+    runtimeConfig.DEFAULT_WATER_NORM_LITERS_PER_PERSON_PER_DAY,
     55
   )
   const nationalDefaultAverageMembersPerHousehold = defaultAverageMembersPerHousehold
@@ -2341,6 +2339,7 @@ export function CentralDashboard() {
     })
   }
   const handleClearFilters = () => {
+    hasAppliedStoredHydrationRef.current = true
     setActiveTrailIndex(null)
     setFilterTabIndex(0)
     // In single-tenant mode, state cannot be cleared; it will be locked by updateFilterUrl

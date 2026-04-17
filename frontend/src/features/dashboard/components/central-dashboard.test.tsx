@@ -2009,6 +2009,42 @@ describe('CentralDashboard', () => {
     })
   })
 
+  it('does not rehydrate stale localStorage filters after clear all filters', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedState: 'assam',
+        selectedDistrict: '3:baksa',
+      })
+    )
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    mockUseSearchParams.mockReturnValue([new URLSearchParams('district=3%3Abaksa'), jest.fn()])
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardFilterProps = getLatestDashboardFilterProps<{ onClear: () => void }>()
+    act(() => {
+      dashboardFilterProps.onClear()
+    })
+
+    expect(mockNavigate).toHaveBeenCalledWith({
+      pathname: '/',
+      search: '',
+    })
+    const postClearCalls = (mockNavigate as jest.Mock).mock.calls.slice(1)
+    expect(postClearCalls).not.toContainEqual([
+      {
+        pathname: `/${encodeURIComponent(stateSlugToCode('assam') ?? 'assam')}`,
+        search: '?district=3%3Abaksa&tab=administrative',
+      },
+    ])
+  })
+
   it('forces the administrative tab when LGD query params are present even if storage last used departmental', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
