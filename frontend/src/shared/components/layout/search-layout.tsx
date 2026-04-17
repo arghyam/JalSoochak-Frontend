@@ -304,7 +304,7 @@ export function SearchLayout({
 
           if (isActive) {
             return (
-              <Flex key={`${item}-${index}`} align="center" gap="8px">
+              <Flex key={`${item}-${index}`} align="center" gap="8px" minW={0} maxW="100%">
                 {index > 0 ? (
                   <Icon
                     as={FiChevronDown}
@@ -316,6 +316,8 @@ export function SearchLayout({
                 <Flex
                   h="26px"
                   minW="66px"
+                  w={isBelowXsLayout ? '240px' : 'auto'}
+                  maxW="100%"
                   px="8px"
                   py="4px"
                   borderRadius="16px"
@@ -326,6 +328,7 @@ export function SearchLayout({
                   fontWeight="400"
                   align="center"
                   gap="6px"
+                  overflow="hidden"
                 >
                   <Button
                     variant="unstyled"
@@ -334,6 +337,9 @@ export function SearchLayout({
                     minW="auto"
                     display="inline-flex"
                     alignItems="center"
+                    flex="1 1 auto"
+                    maxW="100%"
+                    overflow="hidden"
                     fontSize="inherit"
                     fontWeight="inherit"
                     lineHeight="1"
@@ -347,7 +353,15 @@ export function SearchLayout({
                     })}
                     aria-current="page"
                   >
-                    <Text as="span" lineHeight="1">
+                    <Text
+                      as="span"
+                      lineHeight="1"
+                      display="block"
+                      maxW="100%"
+                      whiteSpace="nowrap"
+                      overflow="hidden"
+                      textOverflow="ellipsis"
+                    >
                       {item}
                     </Text>
                   </Button>

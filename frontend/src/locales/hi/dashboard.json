@@ -76,11 +76,11 @@
     "loadError": "अभी मानचित्र लोड नहीं हो सका।",
     "legend": {
       "ariaLabel": "मानचित्र मान सीमाएँ",
-      "gte90": ">=90%",
-      "gte70": ">=70%",
-      "gte50": ">=50%",
-      "gte30": ">=30%",
-      "gte0": ">=0%",
+      "gte90": ">={{value}}%",
+      "gte70": ">={{value}}%",
+      "gte50": ">={{value}}%",
+      "gte30": ">={{value}}%",
+      "gte0": ">={{value}}%",
       "noData": "डेटा नहीं"
     }
   },
@@ -147,7 +147,7 @@
       "ariaViewBy": "मात्रा प्रदर्शन दृश्य प्रकार",
       "ariaViewByDistrict": "जिला मात्रा प्रदर्शन दृश्य प्रकार",
       "ariaViewByGramPanchayat": "ग्राम पंचायत मात्रा प्रदर्शन दृश्य प्रकार",
-      "yAxisLabel": "मात्रा (LPCD)",
+      "yAxisLabel": "मात्रा (ML)",
       "seriesName": "मात्रा",
       "areaSeriesName": "मांग"
     },

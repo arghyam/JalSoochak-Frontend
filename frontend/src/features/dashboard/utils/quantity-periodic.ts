@@ -124,19 +124,11 @@ export const mapSchemeRegularityPeriodicToTrendPoints = (
 }
 
 export const mapSchemeRegularityQuantityToTrendPoints = (
-  response: SchemeRegularityPeriodicResponse | undefined,
-  servedConnectionCount: number,
-  averagePersonsPerHousehold: number
+  response: SchemeRegularityPeriodicResponse | undefined
 ): MonthlyTrendPoint[] => {
   if (!response?.metrics?.length) {
     return []
   }
-
-  const hasValidLpcdInputs =
-    Number.isFinite(servedConnectionCount) &&
-    servedConnectionCount > 0 &&
-    Number.isFinite(averagePersonsPerHousehold) &&
-    averagePersonsPerHousehold > 0
 
   return response.metrics.flatMap((metric) => {
     if (!metric.periodStartDate || !metric.periodEndDate) {
@@ -153,14 +145,7 @@ export const mapSchemeRegularityQuantityToTrendPoints = (
     return [
       {
         period: formatMetricLabel(response.scale, metric),
-        value: hasValidLpcdInputs
-          ? Number(
-              (
-                metric.totalWaterQuantity /
-                (servedConnectionCount * averagePersonsPerHousehold)
-              ).toFixed(1)
-            )
-          : 0,
+        value: metric.totalWaterQuantity,
       },
     ]
   })
@@ -184,19 +169,11 @@ export const mapDemandSupplyToTrendPoints = (
 }
 
 export const mapNationalQuantityTrendPoints = (
-  response: NationalSchemeRegularityPeriodicResponse | undefined,
-  servedConnectionCount: number,
-  averagePersonsPerHousehold: number
+  response: NationalSchemeRegularityPeriodicResponse | undefined
 ): MonthlyTrendPoint[] => {
   if (!response?.metrics?.length) {
     return []
   }
-
-  const hasValidLpcdInputs =
-    Number.isFinite(servedConnectionCount) &&
-    servedConnectionCount > 0 &&
-    Number.isFinite(averagePersonsPerHousehold) &&
-    averagePersonsPerHousehold > 0
 
   return response.metrics
     .filter(
@@ -216,14 +193,7 @@ export const mapNationalQuantityTrendPoints = (
     )
     .map((metric) => ({
       period: formatMetricLabel(response.scale, metric),
-      value: hasValidLpcdInputs
-        ? Number(
-            (
-              metric.totalWaterQuantity /
-              (servedConnectionCount * averagePersonsPerHousehold)
-            ).toFixed(1)
-          )
-        : 0,
+      value: metric.totalWaterQuantity,
     }))
 }
 

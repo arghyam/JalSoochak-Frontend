@@ -82,7 +82,15 @@ jobs:
           ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/jalsoochak-frontend:$IMAGE_TAG frontend
+          docker build \
+          --build-arg DEFAULT_AVERAGE_MEMBERS_PER_HOUSEHOLD=5 \
+          --build-arg DEFAULT_WATER_NORM_LITERS_PER_PERSON_PER_DAY=55 \
+          --build-arg MAP_LEGEND_THRESHOLD_GTE_90=80 \
+          --build-arg MAP_LEGEND_THRESHOLD_GTE_70=70 \
+          --build-arg MAP_LEGEND_THRESHOLD_GTE_50=50 \
+          --build-arg MAP_LEGEND_THRESHOLD_GTE_30=30 \
+          --build-arg MAP_LEGEND_THRESHOLD_GTE_0=0 \
+          -t $ECR_REGISTRY/jalsoochak-frontend:$IMAGE_TAG frontend
           docker push $ECR_REGISTRY/jalsoochak-frontend:$IMAGE_TAG
 
       - name: Cache Trivy DB

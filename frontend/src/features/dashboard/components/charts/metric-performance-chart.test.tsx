@@ -211,7 +211,7 @@ describe('MetricPerformanceChart', () => {
       })
       .filter((max): max is number => typeof max === 'number')
 
-    expect(yAxisMaxes).toContain(190)
+    expect(yAxisMaxes).toContain(210)
   })
 
   it('formats quantity y-axis labels without clipping-sensitive decimals', () => {

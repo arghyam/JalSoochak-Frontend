@@ -49,6 +49,21 @@ const formatYAxisTick = (value: number) => {
   return value.toFixed(1)
 }
 
+const getNiceInterval = (rawInterval: number) => {
+  if (!Number.isFinite(rawInterval) || rawInterval <= 0) {
+    return 1
+  }
+
+  const magnitude = 10 ** Math.floor(Math.log10(rawInterval))
+  const normalized = rawInterval / magnitude
+
+  if (normalized <= 1) return 1 * magnitude
+  if (normalized <= 2) return 2 * magnitude
+  if (normalized <= 3) return 3 * magnitude
+  if (normalized <= 5) return 5 * magnitude
+  return 10 * magnitude
+}
+
 export function MetricPerformanceChart({
   data,
   metric,
@@ -103,9 +118,15 @@ export function MetricPerformanceChart({
 
     const seriesValues = showAreaLine ? [...yValues, ...demandValues] : yValues
     const maxValue = seriesValues.length > 0 ? Math.max(...seriesValues) : 0
-    const max = maxValue > 100 ? Math.ceil(maxValue / 10) * 10 : 100
+    if (maxValue <= 100) {
+      return { max: 100, interval: undefined }
+    }
 
-    return { max, interval: undefined }
+    const targetTickCount = 7
+    const interval = getNiceInterval(maxValue / targetTickCount)
+    const max = Math.ceil(maxValue / interval) * interval
+
+    return { max, interval }
   }, [demandValues, metric, showAreaLine, yValues])
 
   const formattedYAxisMaxLabel = useMemo(() => formatYAxisTick(yAxisScale.max), [yAxisScale.max])
