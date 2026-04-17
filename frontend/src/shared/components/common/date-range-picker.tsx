@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Box,
   Button,
@@ -105,10 +105,19 @@ const clampIsoDateToMax = (value: string, max: string) => {
   return value > max ? max : value
 }
 
+const getEffectiveCurrentDate = () => {
+  const now = new Date()
+  const effectiveDate = new Date(now)
+  if (now.getHours() < 18) {
+    effectiveDate.setDate(now.getDate() - 1)
+  }
+  return effectiveDate
+}
+
 const getDefaultRangeIso = (todayIso: string): DateRange => {
   const today = new Date(`${todayIso}T00:00:00`)
   const startDate = new Date(today)
-  startDate.setDate(today.getDate() - 29)
+  startDate.setDate(today.getDate() - 30)
   return {
     startDate: formatISODate(startDate),
     endDate: todayIso,
@@ -139,7 +148,20 @@ export function DateRangePicker({
   const resolvedDateFormat = normalizeDateFormat(dateFormat)
   const dateInputPlaceholder = getDateInputPlaceholder(resolvedDateFormat)
   const [isTinyPicker] = useMediaQuery('(max-width: 599px)')
-  const todayIso = useMemo(() => formatISODate(new Date()), [])
+  const [effectiveCurrentDate, setEffectiveCurrentDate] = useState(() => getEffectiveCurrentDate())
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      const nextDate = getEffectiveCurrentDate()
+      setEffectiveCurrentDate((currentDate) =>
+        formatISODate(currentDate) === formatISODate(nextDate) ? currentDate : nextDate
+      )
+    }, 60_000)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [])
+  const todayIso = useMemo(() => formatISODate(effectiveCurrentDate), [effectiveCurrentDate])
   const defaultRangeIso = useMemo(() => getDefaultRangeIso(todayIso), [todayIso])
   const showDefaultRange = isFilter && !value
   const displayRange = value ?? (showDefaultRange ? defaultRangeIso : null)
@@ -307,7 +329,7 @@ export function DateRangePicker({
   }
 
   const handlePreset = (preset: PresetDefinition) => {
-    const range = preset.getRange(new Date())
+    const range = preset.getRange(effectiveCurrentDate)
     const clampedEndDate = clampIsoDateToMax(range.endDate, todayIso)
     setDraft({
       startDate: formatIsoDateForDisplay(range.startDate, resolvedDateFormat),
