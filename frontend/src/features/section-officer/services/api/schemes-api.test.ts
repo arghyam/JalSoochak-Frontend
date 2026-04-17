@@ -16,12 +16,36 @@ beforeEach(() => {
 })
 
 describe('formatTimestamp', () => {
-  it('formats an ISO timestamp to dd-mm-yyyy, HH:MM', () => {
-    expect(formatTimestamp('2026-04-04T08:46:32.148617')).toBe('04-04-2026, 08:46')
+  it('formats a GMT ISO timestamp and converts to IST (UTC+5:30)', () => {
+    // Input: 2026-04-04 08:46 GMT
+    // Expected IST: 2026-04-04 14:16 (08:46 + 5:30)
+    expect(formatTimestamp('2026-04-04T08:46:32.148617')).toBe('04-04-2026, 14:16')
   })
 
-  it('pads single-digit day and month with zeros', () => {
-    expect(formatTimestamp('2026-01-05T09:05:00')).toBe('05-01-2026, 09:05')
+  it('pads single-digit day and month with zeros and converts to IST', () => {
+    // Input: 2026-01-05 09:05 GMT
+    // Expected IST: 2026-01-05 14:35 (09:05 + 5:30)
+    expect(formatTimestamp('2026-01-05T09:05:00')).toBe('05-01-2026, 14:35')
+  })
+
+  it('handles timestamps with explicit UTC timezone indicator', () => {
+    // Input: 2026-04-04 08:46 UTC (with Z suffix)
+    // Expected IST: 2026-04-04 14:16 (08:46 + 5:30)
+    expect(formatTimestamp('2026-04-04T08:46:32.148617Z')).toBe('04-04-2026, 14:16')
+  })
+
+  it('handles edge case: midnight GMT crossing to next day in IST', () => {
+    // Input: 2026-04-04 23:00 GMT
+    // Expected IST: 2026-04-05 04:30 (23:00 + 5:30, crosses to next day)
+    expect(formatTimestamp('2026-04-04T23:00:00')).toBe('05-04-2026, 04:30')
+  })
+
+  it('returns — for empty string', () => {
+    expect(formatTimestamp('')).toBe('—')
+  })
+
+  it('returns — for invalid timestamps', () => {
+    expect(formatTimestamp('invalid')).toBe('—')
   })
 })
 
