@@ -349,6 +349,7 @@ describe('PumpOperatorsPage', () => {
       refetch: jest.fn(),
     })
     renderPage()
-    expect(screen.getByText('06-04-2026, 05:28')).toBeTruthy()
+    // Input: 2026-04-06 05:28 GMT -> IST: 10:58 (05:28 + 5:30)
+    expect(screen.getByText('06-04-2026, 10:58')).toBeTruthy()
   })
 })

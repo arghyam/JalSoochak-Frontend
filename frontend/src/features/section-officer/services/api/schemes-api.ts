@@ -9,13 +9,28 @@ type ApiEnvelope<T> = { data: T }
 
 export function formatTimestamp(iso: string): string {
   if (!iso) return '—'
-  const date = new Date(iso)
+
+  // Parse ISO string. If no timezone info, assume GMT (as per API contract)
+  let date: Date
+  try {
+    // Ensure timezone-aware parsing: append 'Z' if not present
+    const hasTimezone = /Z|[+-]\d{2}:\d{2}/.exec(iso)
+    const isoString = iso.includes('T') && !hasTimezone ? `${iso}Z` : iso
+    date = new Date(isoString)
+  } catch {
+    return '—'
+  }
+
   if (Number.isNaN(date.getTime())) return '—'
-  const dd = String(date.getDate()).padStart(2, '0')
-  const mm = String(date.getMonth() + 1).padStart(2, '0')
-  const yyyy = date.getFullYear()
-  const hh = String(date.getHours()).padStart(2, '0')
-  const min = String(date.getMinutes()).padStart(2, '0')
+
+  // Convert UTC to IST (UTC+5:30)
+  const istDate = new Date(date.getTime() + 5.5 * 60 * 60 * 1000)
+
+  const dd = String(istDate.getUTCDate()).padStart(2, '0')
+  const mm = String(istDate.getUTCMonth() + 1).padStart(2, '0')
+  const yyyy = istDate.getUTCFullYear()
+  const hh = String(istDate.getUTCHours()).padStart(2, '0')
+  const min = String(istDate.getUTCMinutes()).padStart(2, '0')
   return `${dd}-${mm}-${yyyy}, ${hh}:${min}`
 }
 
