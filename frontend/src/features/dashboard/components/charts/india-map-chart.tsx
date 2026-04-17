@@ -13,6 +13,7 @@ import * as echarts from 'echarts'
 import { ActionTooltip, EChartsWrapper, Toggle } from '@/shared/components/common'
 import { FiMaximize2, FiMinimize2 } from 'react-icons/fi'
 import { getBodyText6Style } from '@/shared/components/charts/chart-text-style'
+import { getRuntimeConfig } from '@/config/runtime-config'
 import type { EntityPerformance } from '../../types'
 import { slugify } from '../../utils/format-location-label'
 import {
@@ -127,38 +128,16 @@ export function IndiaMapChart({
     },
     []
   )
+  const runtimeConfig = useMemo(() => getRuntimeConfig(), [])
   const legendThresholds = useMemo(
     () => ({
-      gte90: resolveLegendThreshold(
-        typeof __MAP_LEGEND_THRESHOLD_GTE_90__ !== 'undefined'
-          ? __MAP_LEGEND_THRESHOLD_GTE_90__
-          : 90,
-        90
-      ),
-      gte70: resolveLegendThreshold(
-        typeof __MAP_LEGEND_THRESHOLD_GTE_70__ !== 'undefined'
-          ? __MAP_LEGEND_THRESHOLD_GTE_70__
-          : 70,
-        70
-      ),
-      gte50: resolveLegendThreshold(
-        typeof __MAP_LEGEND_THRESHOLD_GTE_50__ !== 'undefined'
-          ? __MAP_LEGEND_THRESHOLD_GTE_50__
-          : 50,
-        50
-      ),
-      gte30: resolveLegendThreshold(
-        typeof __MAP_LEGEND_THRESHOLD_GTE_30__ !== 'undefined'
-          ? __MAP_LEGEND_THRESHOLD_GTE_30__
-          : 30,
-        30
-      ),
-      gte0: resolveLegendThreshold(
-        typeof __MAP_LEGEND_THRESHOLD_GTE_0__ !== 'undefined' ? __MAP_LEGEND_THRESHOLD_GTE_0__ : 0,
-        0
-      ),
+      gte90: resolveLegendThreshold(runtimeConfig.MAP_LEGEND_THRESHOLD_GTE_90, 90),
+      gte70: resolveLegendThreshold(runtimeConfig.MAP_LEGEND_THRESHOLD_GTE_70, 70),
+      gte50: resolveLegendThreshold(runtimeConfig.MAP_LEGEND_THRESHOLD_GTE_50, 50),
+      gte30: resolveLegendThreshold(runtimeConfig.MAP_LEGEND_THRESHOLD_GTE_30, 30),
+      gte0: resolveLegendThreshold(runtimeConfig.MAP_LEGEND_THRESHOLD_GTE_0, 0),
     }),
-    [resolveLegendThreshold]
+    [resolveLegendThreshold, runtimeConfig]
   )
   const getRangeColor = useCallback(
     (value: number) => {
