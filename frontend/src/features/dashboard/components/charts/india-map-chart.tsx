@@ -287,7 +287,7 @@ export function IndiaMapChart({
           regularity: state.regularity,
           continuity: state.continuity,
           quantity: state.quantity,
-          quantityLpcd: tooltipSourceRegion?.quantity ?? state.quantity,
+          quantityLpcd: tooltipSourceRegion?.quantity,
         },
       }
     })
@@ -400,13 +400,15 @@ export function IndiaMapChart({
             const safeName = echarts.format.encodeHTML(name)
             const formatPercent = (value: number) =>
               Number.isFinite(value) && value >= 0 ? `${value.toFixed(1)}%` : 'N/A'
-            const formatLpcd = (value: number) =>
-              Number.isFinite(value) && value >= 0 ? `${value.toFixed(1)}` : 'N/A'
+            const formatLpcd = (value?: number) =>
+              typeof value === 'number' && Number.isFinite(value) && value >= 0
+                ? `${value.toFixed(1)}`
+                : 'N/A'
             return `
               <div style="padding: 8px;">
                 <strong>${safeName}</strong><br/>
                 ${regularityLabel}: ${formatPercent(metrics.regularity)}<br/>
-                ${quantityLpcdLabel}: ${formatLpcd(metrics.quantityLpcd ?? metrics.quantity)}
+                ${quantityLpcdLabel}: ${formatLpcd(metrics.quantityLpcd)}
               </div>
             `
           }
