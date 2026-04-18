@@ -2888,6 +2888,7 @@ export function CentralDashboard() {
     >
       <IndiaMapChart
         data={mapChartData}
+        tooltipData={overallPerformanceTableData}
         nationalBoundaryGeoJson={
           isCentralLandingView ? filteredNationalDashboardBoundaries.nationalBoundary : undefined
         }
