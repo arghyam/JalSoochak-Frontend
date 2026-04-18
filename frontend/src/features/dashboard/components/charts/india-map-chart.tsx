@@ -26,6 +26,7 @@ import {
 
 interface IndiaMapChartProps {
   data: EntityPerformance[]
+  tooltipData?: EntityPerformance[]
   nationalBoundaryGeoJson?: EntityPerformance['boundaryGeoJson']
   parentBoundaryGeoJson?: EntityPerformance['boundaryGeoJson']
   isLoading?: boolean
@@ -46,6 +47,7 @@ interface IndiaMapChartProps {
 
 export function IndiaMapChart({
   data,
+  tooltipData,
   nationalBoundaryGeoJson,
   parentBoundaryGeoJson,
   isLoading = false,
@@ -78,7 +80,8 @@ export function IndiaMapChart({
   const [internalIsRegularityView, setInternalIsRegularityView] = useState(true)
   const isRegularityView = controlledIsRegularityView ?? internalIsRegularityView
   const metricKey: 'quantity' | 'regularity' = isRegularityView ? 'regularity' : 'quantity'
-  const isQuantityPercentView = quantityViewUnit === 'percent'
+  // Retained for API compatibility; map hover tooltip now always displays Quantity in LPCD.
+  void quantityViewUnit
   const shouldShowNoMapAvailable = !isLoading && !dynamicGeoJson
   const effectiveMapName = mapName
   const isRegisteredMapAvailable =
@@ -119,6 +122,9 @@ export function IndiaMapChart({
   )
   const primaryMapColor = resolveThemeColor('primary.500')
   const quantityLabel = t('map.metric.quantity', { defaultValue: 'Quantity' })
+  const quantityLpcdLabel = t('overallPerformance.columns.quantityLpcd', {
+    defaultValue: 'Quantity (LPCD)',
+  })
   const regularityLabel = t('map.metric.regularity', { defaultValue: 'Regularity' })
   const selectedMetricLabel = isRegularityView ? regularityLabel : quantityLabel
   const resolveLegendThreshold = useCallback(
@@ -166,6 +172,10 @@ export function IndiaMapChart({
       return hoverColors.noData || mapColors.noData
     },
     [hoverColors, legendThresholds, mapColors]
+  )
+  const hasInteractiveMetricValue = useCallback(
+    (value: number) => Number.isFinite(value) && value >= 0,
+    []
   )
 
   const option = useMemo<echarts.EChartsOption>(() => {
@@ -219,9 +229,20 @@ export function IndiaMapChart({
     ]
     const hoveredRegionId = hoveredRegion?.id?.trim()
     const hoveredRegionName = hoveredRegion ? slugify(hoveredRegion.name) : ''
+    const tooltipDataById = new Map(
+      (tooltipData ?? [])
+        .map((region) => [region.id?.trim(), region] as const)
+        .filter(([id]) => Boolean(id))
+    )
+    const tooltipDataBySlugName = new Map(
+      (tooltipData ?? []).map((region) => [slugify(region.name), region] as const)
+    )
     const mapSeries = data.map((state) => {
+      const hasInteractiveMetric = hasInteractiveMetricValue(state[metricKey])
       const stateId = state.id?.trim()
       const stateName = slugify(state.name)
+      const tooltipSourceRegion =
+        (stateId ? tooltipDataById.get(stateId) : undefined) ?? tooltipDataBySlugName.get(stateName)
       const isExternallyHovered = Boolean(
         hoveredRegion &&
         ((hoveredRegionId && stateId && hoveredRegionId === stateId) ||
@@ -229,6 +250,8 @@ export function IndiaMapChart({
       )
       const defaultAreaColor = resolveAreaColor(state[metricKey])
       const hoverAreaColor = getHoverRangeColor(state[metricKey])
+      const effectiveAreaColor =
+        isExternallyHovered && hasInteractiveMetric ? hoverAreaColor : defaultAreaColor
 
       return {
         name: state.name,
@@ -236,20 +259,27 @@ export function IndiaMapChart({
         stateId: state.id,
         status: state.status,
         itemStyle: {
-          areaColor: isExternallyHovered ? hoverAreaColor : defaultAreaColor,
+          areaColor: effectiveAreaColor,
           borderColor: isExternallyHovered ? '#51525c' : undefined,
           borderWidth: isExternallyHovered ? 1 : undefined,
         },
-        emphasis: disableHoverEffect
-          ? undefined
-          : {
-              itemStyle: {
-                areaColor: hoverAreaColor,
+        emphasis:
+          disableHoverEffect || !hasInteractiveMetric
+            ? {
+                disabled: true,
+                itemStyle: {
+                  areaColor: defaultAreaColor,
+                },
+              }
+            : {
+                itemStyle: {
+                  areaColor: hoverAreaColor,
+                },
               },
-            },
         select: {
           itemStyle: {
-            areaColor: disableHoverEffect ? defaultAreaColor : hoverAreaColor,
+            areaColor:
+              disableHoverEffect || !hasInteractiveMetric ? defaultAreaColor : hoverAreaColor,
           },
         },
         metrics: {
@@ -257,6 +287,7 @@ export function IndiaMapChart({
           regularity: state.regularity,
           continuity: state.continuity,
           quantity: state.quantity,
+          quantityLpcd: tooltipSourceRegion?.quantity,
         },
       }
     })
@@ -353,6 +384,7 @@ export function IndiaMapChart({
                 regularity: number
                 continuity: number
                 quantity: number
+                quantityLpcd?: number
               }
             }
           }
@@ -368,15 +400,15 @@ export function IndiaMapChart({
             const safeName = echarts.format.encodeHTML(name)
             const formatPercent = (value: number) =>
               Number.isFinite(value) && value >= 0 ? `${value.toFixed(1)}%` : 'N/A'
-            const formatMld = (value: number) =>
-              Number.isFinite(value) && value >= 0 ? `${value.toFixed(2)} MLD` : 'N/A'
-            const formatQuantity = (value: number) =>
-              isQuantityPercentView ? formatPercent(value) : formatMld(value)
+            const formatLpcd = (value?: number) =>
+              typeof value === 'number' && Number.isFinite(value) && value >= 0
+                ? `${value.toFixed(1)}`
+                : 'N/A'
             return `
               <div style="padding: 8px;">
                 <strong>${safeName}</strong><br/>
                 ${regularityLabel}: ${formatPercent(metrics.regularity)}<br/>
-                ${quantityLabel}: ${formatQuantity(metrics.quantity)}
+                ${quantityLpcdLabel}: ${formatLpcd(metrics.quantityLpcd)}
               </div>
             `
           }
@@ -388,7 +420,7 @@ export function IndiaMapChart({
           name: 'State Performance',
           type: 'map',
           map: effectiveMapName ?? mapName,
-          roam: true,
+          roam: isFullscreen ? 'scale' : false,
           aspectScale: 0.927,
           scaleLimit: {
             min: 1.2,
@@ -474,11 +506,12 @@ export function IndiaMapChart({
     resolveAreaColor,
     usePrimaryFill,
     disableHoverEffect,
-    isQuantityPercentView,
-    quantityLabel,
+    quantityLpcdLabel,
     regularityLabel,
     dynamicGeoJson,
     hoveredRegion,
+    isFullscreen,
+    tooltipData,
   ])
 
   const bodyText6 = getBodyText6Style(theme)
@@ -563,9 +596,10 @@ export function IndiaMapChart({
           data?: {
             stateId: string
             name: string
+            value: number
           }
         }
-        if (p.data?.stateId && onStateClickRef.current) {
+        if (p.data?.stateId && hasInteractiveMetricValue(p.data.value) && onStateClickRef.current) {
           onStateClickRef.current(p.data.stateId, p.data.name)
         }
       })
@@ -588,7 +622,7 @@ export function IndiaMapChart({
         })
       }
     },
-    [disableHoverEffect]
+    [disableHoverEffect, hasInteractiveMetricValue]
   )
 
   return (
