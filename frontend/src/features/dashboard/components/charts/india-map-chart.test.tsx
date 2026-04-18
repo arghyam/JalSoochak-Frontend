@@ -68,6 +68,11 @@ const chartData: EntityPerformance[] = [
 const chartDataWithoutBoundary = chartData.map(
   ({ boundaryGeoJson: _boundaryGeoJson, ...region }) => region
 )
+const noDataChartData: EntityPerformance[] = chartData.map((region) => ({
+  ...region,
+  regularity: -1,
+  quantity: -1,
+}))
 
 const parentBoundaryGeoJson = {
   type: 'Polygon',
@@ -337,6 +342,30 @@ describe('IndiaMapChart', () => {
     )
   })
 
+  it('disables map roam interactions when not in fullscreen', () => {
+    mockGetMap.mockReturnValue({})
+
+    renderWithProviders(<IndiaMapChart data={chartData} isFullscreen={false} />)
+
+    const latestOption = mockEChartsWrapper.mock.calls.at(-1)?.[0]?.option as {
+      series?: Array<{ roam?: boolean | string }>
+    }
+
+    expect(latestOption.series?.[0]?.roam).toBe(false)
+  })
+
+  it('enables zoom-only roam interactions in fullscreen', () => {
+    mockGetMap.mockReturnValue({})
+
+    renderWithProviders(<IndiaMapChart data={chartData} isFullscreen />)
+
+    const latestOption = mockEChartsWrapper.mock.calls.at(-1)?.[0]?.option as {
+      series?: Array<{ roam?: boolean | string }>
+    }
+
+    expect(latestOption.series?.[0]?.roam).toBe('scale')
+  })
+
   it('binds handlers via onChartReady so they can refresh on navigation changes', () => {
     mockGetMap.mockReturnValue({})
 
@@ -393,18 +422,77 @@ describe('IndiaMapChart', () => {
 
     latestProps.onChartReady?.(chart)
 
-    handlers.click?.({ data: { stateId: 'region-1', name: 'Region 1' } })
+    handlers.click?.({ data: { stateId: 'region-1', name: 'Region 1', value: 54 } })
     handlers.mouseover?.({ data: { stateId: 'region-1', name: 'Region 1' } })
 
     expect(onStateClick).toHaveBeenCalledWith('region-1', 'Region 1')
     expect(onStateHover).toHaveBeenCalledWith('region-1', 'Region 1', chartData[0])
   })
 
-  it('uses MLD quantity formatting when quantityViewUnit is mld', () => {
+  it('does not trigger click callback for no-data zones', () => {
+    mockGetMap.mockReturnValue({})
+    const onStateClick = jest.fn()
+
+    renderWithProviders(<IndiaMapChart data={chartData} onStateClick={onStateClick} />)
+
+    const latestProps = mockEChartsWrapper.mock.calls.at(-1)?.[0] as {
+      onChartReady?: (chart: {
+        off: (event: string) => void
+        on: (event: string, handler: (params: unknown) => void) => void
+      }) => void
+    }
+
+    const handlers: Record<string, (params: unknown) => void> = {}
+    const chart = {
+      off: jest.fn(),
+      on: jest.fn((event: string, handler: (params: unknown) => void) => {
+        handlers[event] = handler
+      }),
+    }
+
+    latestProps.onChartReady?.(chart)
+
+    handlers.click?.({ data: { stateId: 'region-1', name: 'Region 1', value: -1 } })
+
+    expect(onStateClick).not.toHaveBeenCalled()
+  })
+
+  it('does not apply hover emphasis color for no-data zones', () => {
+    mockGetMap.mockReturnValue({})
+
+    renderWithProviders(<IndiaMapChart data={noDataChartData} />)
+
+    const latestOption = mockEChartsWrapper.mock.calls.at(-1)?.[0]?.option as {
+      series?: Array<{
+        data?: Array<{
+          itemStyle?: { areaColor?: string }
+          emphasis?: { itemStyle?: { areaColor?: string } }
+          select?: { itemStyle?: { areaColor?: string } }
+        }>
+      }>
+    }
+
+    expect(latestOption.series?.[0]?.data?.[0]?.emphasis).toEqual(
+      expect.objectContaining({
+        disabled: true,
+      })
+    )
+    expect(latestOption.series?.[0]?.data?.[0]?.select?.itemStyle?.areaColor).toBe(
+      latestOption.series?.[0]?.data?.[0]?.itemStyle?.areaColor
+    )
+  })
+
+  it('shows Quantity (LPCD) in tooltip using table-mapped LPCD value when available', () => {
     mockGetMap.mockReturnValue({})
     renderWithProviders(
       <IndiaMapChart
         data={chartData}
+        tooltipData={[
+          {
+            ...chartData[0],
+            quantity: 8.5,
+          },
+        ]}
         quantityViewUnit="mld"
         isRegularityView={false}
         onRegularityViewChange={jest.fn()}
@@ -423,10 +511,11 @@ describe('IndiaMapChart', () => {
           regularity: 72,
           continuity: 0,
           quantity: 54,
+          quantityLpcd: 8.5,
         },
       },
     })
 
-    expect(content).toContain('54.00 MLD')
+    expect(content).toContain('Quantity (LPCD): 8.5')
   })
 })
