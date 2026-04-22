@@ -2148,6 +2148,9 @@ export function CentralDashboard() {
   }, [shouldHydrateFromStoredFilters])
 
   const handleStateChange = (value: string) => {
+    if (!value) {
+      hasAppliedStoredHydrationRef.current = true
+    }
     setActiveTrailIndex(null)
     setSelectedScheme('')
     const nextTab = value ? 'administrative' : undefined
