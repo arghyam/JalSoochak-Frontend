@@ -194,9 +194,7 @@ export function buildFeatureCollectionFromRegions(
           },
         ]
       : []),
-    ...(regionFeatures.length &&
-    options?.parentBoundaryGeoJson &&
-    typeof options.parentBoundaryGeoJson === 'object'
+    ...(options?.parentBoundaryGeoJson && typeof options.parentBoundaryGeoJson === 'object'
       ? [
           {
             type: 'Feature' as const,
