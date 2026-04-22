@@ -275,7 +275,9 @@ const toIsoDate = (date?: string | Date | null, dateFormat?: string): string | u
 }
 
 const getDefaultAnalyticsDateRange = () => {
-  const endDate = new Date()
+  const today = new Date()
+  const endDate = new Date(today)
+  endDate.setDate(today.getDate() - 1)
   const startDate = new Date(endDate)
   startDate.setDate(endDate.getDate() - 29)
 

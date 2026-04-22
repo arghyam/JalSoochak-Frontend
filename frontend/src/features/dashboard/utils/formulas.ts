@@ -93,8 +93,12 @@ export const getPreviousPeriodRange = (startDate: string, endDate: string) => {
 
   if (!start || !end) {
     const today = new Date()
-    const previousEnd = new Date(today)
-    previousEnd.setDate(today.getDate() - 30)
+    const currentEnd = new Date(today)
+    currentEnd.setDate(today.getDate() - 1)
+    const currentStart = new Date(currentEnd)
+    currentStart.setDate(currentEnd.getDate() - (daysInRange - 1))
+    const previousEnd = new Date(currentStart)
+    previousEnd.setDate(currentStart.getDate() - 1)
     const previousStart = new Date(previousEnd)
     previousStart.setDate(previousEnd.getDate() - (daysInRange - 1))
 

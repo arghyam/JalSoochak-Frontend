@@ -883,8 +883,8 @@ describe('CentralDashboard', () => {
 
     expect(useNationalDashboardQuery).toHaveBeenCalledWith({
       params: {
-        startDate: '2025-01-23',
-        endDate: '2025-02-21',
+        startDate: '2025-01-22',
+        endDate: '2025-02-20',
       },
       enabled: true,
     })
