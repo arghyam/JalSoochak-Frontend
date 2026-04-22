@@ -275,7 +275,9 @@ const toIsoDate = (date?: string | Date | null, dateFormat?: string): string | u
 }
 
 const getDefaultAnalyticsDateRange = () => {
-  const endDate = new Date()
+  const today = new Date()
+  const endDate = new Date(today)
+  endDate.setDate(today.getDate() - 1)
   const startDate = new Date(endDate)
   startDate.setDate(endDate.getDate() - 29)
 
@@ -2148,6 +2150,9 @@ export function CentralDashboard() {
   }, [shouldHydrateFromStoredFilters])
 
   const handleStateChange = (value: string) => {
+    if (!value) {
+      hasAppliedStoredHydrationRef.current = true
+    }
     setActiveTrailIndex(null)
     setSelectedScheme('')
     const nextTab = value ? 'administrative' : undefined

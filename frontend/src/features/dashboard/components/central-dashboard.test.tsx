@@ -883,8 +883,8 @@ describe('CentralDashboard', () => {
 
     expect(useNationalDashboardQuery).toHaveBeenCalledWith({
       params: {
-        startDate: '2025-01-23',
-        endDate: '2025-02-21',
+        startDate: '2025-01-22',
+        endDate: '2025-02-20',
       },
       enabled: true,
     })
@@ -2036,6 +2036,72 @@ describe('CentralDashboard', () => {
       pathname: '/',
       search: '',
     })
+    const postClearCalls = (mockNavigate as jest.Mock).mock.calls.slice(1)
+    expect(postClearCalls).not.toContainEqual([
+      {
+        pathname: `/${encodeURIComponent(stateSlugToCode('assam') ?? 'assam')}`,
+        search: '?district=3%3Abaksa&tab=administrative',
+      },
+    ])
+  })
+
+  it('does not rehydrate stale localStorage filters after clearing state breadcrumb', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedState: 'assam',
+        selectedDistrict: '3:baksa',
+      })
+    )
+    let currentSearchParams = new URLSearchParams('district=3%3Abaksa')
+    let currentLocation = {
+      pathname: '/assam',
+      search: '?district=3%3Abaksa',
+      hash: '',
+      state: null,
+    }
+
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    mockUseSearchParams.mockImplementation(() => [currentSearchParams, jest.fn()])
+    mockUseLocation.mockImplementation(() => currentLocation)
+
+    const { rerender } = renderWithProviders(<CentralDashboard />)
+
+    const dashboardFilterProps = getLatestDashboardFilterProps<{
+      onStateChange: (value: string) => void
+    }>()
+    act(() => {
+      dashboardFilterProps.onStateChange('')
+    })
+
+    expect(mockNavigate).toHaveBeenCalledWith({
+      pathname: '/',
+      search: '',
+    })
+
+    // Simulate router state after navigation so CentralDashboard reads an empty URL on rerender.
+    currentSearchParams = new URLSearchParams()
+    currentLocation = {
+      pathname: '/',
+      search: '',
+      hash: '',
+      state: null,
+    }
+    mockUseParams.mockReturnValue({})
+    rerender(<CentralDashboard />)
+
+    const updatedDashboardFilterProps = getLatestDashboardFilterProps<{
+      selectedState: string
+      selectedDistrict: string
+    }>()
+    expect(updatedDashboardFilterProps.selectedState).toBe('')
+    expect(updatedDashboardFilterProps.selectedDistrict).toBe('')
+
     const postClearCalls = (mockNavigate as jest.Mock).mock.calls.slice(1)
     expect(postClearCalls).not.toContainEqual([
       {
