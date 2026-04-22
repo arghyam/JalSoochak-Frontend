@@ -22,6 +22,7 @@ interface SupplyOutageDistributionChartProps {
   className?: string
   height?: string | number
   xAxisLabel?: string
+  dateFormat?: string
 }
 
 const outageColors = ['#D6E9F6', '#ADD3ED', '#84BDE3', '#3291D1', '#1E577D', '#6BAED6', '#9ECAE1']
@@ -59,6 +60,7 @@ export function SupplyOutageDistributionChart({
   className,
   height = '300px',
   xAxisLabel = 'Districts',
+  dateFormat,
 }: SupplyOutageDistributionChartProps) {
   const { t } = useTranslation('dashboard')
   const theme = useTheme()
@@ -147,7 +149,7 @@ export function SupplyOutageDistributionChart({
             typeof point.dataIndex === 'number'
               ? (data[point.dataIndex]?.label ?? '')
               : (point.name ?? '')
-          const safeName = echarts.format.encodeHTML(formatIsoDateToDayFirst(label))
+          const safeName = echarts.format.encodeHTML(formatIsoDateToDayFirst(label, dateFormat))
           const safeSeriesName = echarts.format.encodeHTML(point.seriesName ?? '')
 
           return `<strong>${safeName}</strong><br/>${safeSeriesName}: ${formattedValue}`
@@ -177,7 +179,7 @@ export function SupplyOutageDistributionChart({
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
-          formatter: (value: string) => formatAxisLabel(value),
+          formatter: (value: string) => formatAxisLabel(value, undefined, undefined, dateFormat),
           color: bodyText7.color || '#374151',
           overflow: 'none',
         },
@@ -257,6 +259,7 @@ export function SupplyOutageDistributionChart({
     chartGridBottom,
     chartGridTop,
     data,
+    dateFormat,
     alignedYAxisMax,
     xAxisLabelMargin,
     yAxisInterval,
@@ -290,7 +293,7 @@ export function SupplyOutageDistributionChart({
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
-          formatter: (value: string) => formatAxisLabel(value),
+          formatter: (value: string) => formatAxisLabel(value, undefined, undefined, dateFormat),
           color: 'transparent',
         },
       },
@@ -325,7 +328,15 @@ export function SupplyOutageDistributionChart({
       ],
       animation: false,
     }
-  }, [alignedYAxisMax, bodyText7, chartGridBottom, chartGridTop, xAxisLabelMargin, yAxisInterval])
+  }, [
+    alignedYAxisMax,
+    bodyText7,
+    chartGridBottom,
+    chartGridTop,
+    dateFormat,
+    xAxisLabelMargin,
+    yAxisInterval,
+  ])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
   const legendItems = chartItems.map((item) => ({

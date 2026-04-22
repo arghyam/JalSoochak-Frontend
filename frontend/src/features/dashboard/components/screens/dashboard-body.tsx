@@ -67,6 +67,7 @@ type DashboardBodyProps = {
   schemePerformancePage?: number
   totalSchemePages?: number
   onSchemePageChange?: (page: number) => void
+  tableDateFormat?: string
 }
 
 type ViewBy = 'geography' | 'time'
@@ -113,6 +114,7 @@ export function DashboardBody({
   schemePerformancePage,
   totalSchemePages,
   onSchemePageChange,
+  tableDateFormat,
 }: DashboardBodyProps) {
   const { t } = useTranslation('dashboard')
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
@@ -194,6 +196,7 @@ export function DashboardBody({
           regularityTimeTrendData={regularityTimeTrendData}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
           geographyEntityLabel={geographyEntityLabel}
+          tableDateFormat={tableDateFormat}
         />
       ) : null}
 
@@ -224,6 +227,7 @@ export function DashboardBody({
           schemePerformancePage={schemePerformancePage}
           totalSchemePages={totalSchemePages}
           onSchemePageChange={onSchemePageChange}
+          tableDateFormat={tableDateFormat}
         />
       ) : null}
       {isBlockScreen ? (
@@ -256,6 +260,7 @@ export function DashboardBody({
           schemePerformancePage={schemePerformancePage}
           totalSchemePages={totalSchemePages}
           onSchemePageChange={onSchemePageChange}
+          tableDateFormat={tableDateFormat}
         />
       ) : null}
       {isGramPanchayatScreen ? (
@@ -285,6 +290,7 @@ export function DashboardBody({
           schemePerformancePage={schemePerformancePage}
           totalSchemePages={totalSchemePages}
           onSchemePageChange={onSchemePageChange}
+          tableDateFormat={tableDateFormat}
         />
       ) : null}
 
@@ -302,6 +308,7 @@ export function DashboardBody({
           regularityTimeTrendData={regularityTimeTrendData}
           isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
+          tableDateFormat={tableDateFormat}
         />
       ) : null}
 
@@ -455,6 +462,7 @@ export function DashboardBody({
                         data={waterSupplyOutageDistributionData}
                         height="100%"
                         xAxisLabel={geographyEntityLabel}
+                        dateFormat={tableDateFormat}
                       />
                     ) : (
                       <ChartEmptyState minHeight="100%" />
@@ -470,6 +478,7 @@ export function DashboardBody({
                       seriesName={t('outageAndSubmissionCharts.series.supplyOutage', {
                         defaultValue: 'Supply outage',
                       })}
+                      dateFormat={tableDateFormat}
                     />
                   ) : (
                     <ChartEmptyState minHeight="100%" />
@@ -489,6 +498,7 @@ export function DashboardBody({
                       data={supplySubmissionRateData}
                       height="100%"
                       entityLabel={supplySubmissionRateLabel}
+                      dateFormat={tableDateFormat}
                     />
                   ) : (
                     <ChartEmptyState minHeight="100%" />
@@ -505,6 +515,7 @@ export function DashboardBody({
           data={data}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
+          tableDateFormat={tableDateFormat}
         />
       ) : null}
     </>
@@ -524,6 +535,7 @@ type PerformanceChartsSectionProps = {
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading: boolean
   geographyEntityLabel: string
+  tableDateFormat?: string
 }
 
 function PerformanceChartsSection({
@@ -539,6 +551,7 @@ function PerformanceChartsSection({
   regularityTimeTrendData,
   isRegularityTimeTrendLoading,
   geographyEntityLabel,
+  tableDateFormat,
 }: PerformanceChartsSectionProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
@@ -571,6 +584,7 @@ function PerformanceChartsSection({
         isTimeTrendPercent
         regularityTimeScaleTab={regularityTimeScaleTab}
         onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
+        dateFormat={tableDateFormat}
       />
       <PerformanceChartCard
         title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
@@ -599,6 +613,7 @@ function PerformanceChartsSection({
         timeXAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
         quantityTimeScaleTab={quantityTimeScaleTab}
         onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
+        dateFormat={tableDateFormat}
       />
     </Grid>
   )

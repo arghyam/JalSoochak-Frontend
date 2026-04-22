@@ -1,15 +1,17 @@
+import { formatIsoDateForDisplay, normalizeDateFormat } from '@/shared/utils/date-format'
+
 const MAX_AXIS_LABEL_LINES = 2
 const MAX_AXIS_LABEL_LINE_LENGTH = 14
 const ISO_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/
 
-export const formatIsoDateToDayFirst = (value: string) => {
-  const matches = value.trim().match(ISO_DATE_PATTERN)
+export const formatIsoDateToDayFirst = (value: string, dateFormat?: string) => {
+  const normalized = value.trim()
+  const matches = normalized.match(ISO_DATE_PATTERN)
   if (!matches) {
     return value
   }
 
-  const [, year, month, day] = matches
-  return `${day}-${month}-${year}`
+  return formatIsoDateForDisplay(normalized, normalizeDateFormat(dateFormat ?? 'DD/MM/YYYY'))
 }
 
 const truncateAxisLabelLine = (value: string, maxLength: number) => {
@@ -40,9 +42,10 @@ const appendAxisLabelEllipsis = (value: string, maxLength: number) => {
 export const formatAxisLabel = (
   value: string,
   maxLineLength = MAX_AXIS_LABEL_LINE_LENGTH,
-  maxLines = MAX_AXIS_LABEL_LINES
+  maxLines = MAX_AXIS_LABEL_LINES,
+  dateFormat?: string
 ) => {
-  const normalizedValue = formatIsoDateToDayFirst(value).trim()
+  const normalizedValue = formatIsoDateToDayFirst(value, dateFormat).trim()
   if (!normalizedValue) {
     return ''
   }

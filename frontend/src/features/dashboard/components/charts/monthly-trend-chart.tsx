@@ -12,6 +12,7 @@ import * as echarts from 'echarts'
 import type { EChartsOption } from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
+import { formatIsoDateToDayFirst } from '@/shared/components/charts/axis-label-format'
 
 export interface MonthlyTrendPoint {
   period: string
@@ -28,6 +29,7 @@ interface MonthlyTrendChartProps {
   xAxisLabel?: string
   yAxisLabel?: string
   seriesName?: string
+  dateFormat?: string
 }
 
 const trimTrailingZeros = (value: string) => value.replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1')
@@ -64,6 +66,7 @@ export function MonthlyTrendChart({
   xAxisLabel = 'Time',
   yAxisLabel = 'Value',
   seriesName = 'Trend',
+  dateFormat,
 }: MonthlyTrendChartProps) {
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
@@ -196,7 +199,10 @@ export function MonthlyTrendChart({
           }
 
           const period = points[0]?.axisValueLabel ?? ''
-          const safePeriod = echarts.format.encodeHTML(period)
+          const safePeriod = period
+            .split('\n')
+            .map((line) => echarts.format.encodeHTML(formatIsoDateToDayFirst(line, dateFormat)))
+            .join('<br/>')
           const rows = points
             .map((point) => {
               const rawValue = typeof point.value === 'number' ? point.value : Number(point.value)
@@ -294,6 +300,7 @@ export function MonthlyTrendChart({
     bodyText7,
     chartGridBottom,
     chartGridTop,
+    dateFormat,
     data,
     isPercent,
     normalizeValue,

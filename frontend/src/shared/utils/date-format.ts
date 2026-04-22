@@ -4,15 +4,11 @@ const SUPPORTED_DATE_FORMATS = [
   'DD/MM/YYYY',
   'MM/DD/YYYY',
   'YYYY/MM/DD',
-  'DD-MM-YYYY',
-  'MM-DD-YYYY',
-  'YYYY-MM-DD',
-  'DD.MM.YYYY',
-  'MM.DD.YYYY',
-  'YYYY.MM.DD',
+  'DD/MM/YY',
+  'MM/DD/YY',
 ] as const
 
-type DatePartToken = 'DD' | 'MM' | 'YYYY'
+type DatePartToken = 'DD' | 'MM' | 'YYYY' | 'YY'
 
 type ParsedDateFormat = {
   format: string
@@ -58,6 +54,7 @@ export const formatIsoDateForDisplay = (
     DD: day,
     MM: month,
     YYYY: options.shortYear ? year.slice(-2) : year,
+    YY: year.slice(-2),
   }
 
   return tokens.map((token) => values[token]).join(separator)
@@ -102,14 +99,28 @@ export const parseDisplayDateToIso = (value: string, format?: string | null) => 
       acc[token] = parts[index] ?? ''
       return acc
     },
-    { DD: '', MM: '', YYYY: '' }
+    { DD: '', MM: '', YYYY: '', YY: '' }
   )
 
-  if (!values.DD || !values.MM || values.YYYY.length !== 4) {
+  const resolvedYear =
+    values.YYYY.length === 4
+      ? values.YYYY
+      : values.YY.length === 2
+        ? (() => {
+            const parsedYear = Number.parseInt(values.YY, 10)
+            if (!Number.isFinite(parsedYear)) {
+              return ''
+            }
+
+            return String(parsedYear >= 70 ? 1900 + parsedYear : 2000 + parsedYear)
+          })()
+        : ''
+
+  if (!values.DD || !values.MM || !resolvedYear) {
     return ''
   }
 
-  return buildIsoDate(values.YYYY, values.MM, values.DD)
+  return buildIsoDate(resolvedYear, values.MM, values.DD)
 }
 
 export const isValidDisplayDate = (value: string, format?: string | null) => {

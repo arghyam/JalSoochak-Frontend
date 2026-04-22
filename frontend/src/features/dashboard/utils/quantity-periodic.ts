@@ -10,22 +10,20 @@ import type {
   WaterQuantityPeriodicMetric,
   WaterQuantityPeriodicResponse,
 } from '../types'
+import { formatIsoDateForDisplay, normalizeDateFormat } from '@/shared/utils/date-format'
 
 const parseIsoDate = (value: string) => {
   const parsed = new Date(`${value}T00:00:00Z`)
   return Number.isNaN(parsed.getTime()) ? null : parsed
 }
 
-const formatSingleDateNumeric = (value: string) => {
+const formatSingleDateNumeric = (value: string, dateFormat?: string) => {
   const date = parseIsoDate(value)
   if (!date) {
     return value
   }
 
-  const day = String(date.getUTCDate()).padStart(2, '0')
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
-  const year = date.getUTCFullYear()
-  return `${day}-${month}-${year}`
+  return formatIsoDateForDisplay(value, normalizeDateFormat(dateFormat ?? 'DD/MM/YYYY'))
 }
 
 const formatMetricLabel = (
@@ -33,10 +31,11 @@ const formatMetricLabel = (
   metric: Pick<
     WaterQuantityPeriodicMetric | SchemeRegularityPeriodicMetric,
     'periodStartDate' | 'periodEndDate'
-  >
+  >,
+  dateFormat?: string
 ) => {
-  const startLabel = formatSingleDateNumeric(metric.periodStartDate)
-  const endLabel = formatSingleDateNumeric(metric.periodEndDate)
+  const startLabel = formatSingleDateNumeric(metric.periodStartDate, dateFormat)
+  const endLabel = formatSingleDateNumeric(metric.periodEndDate, dateFormat)
 
   if (startLabel === endLabel) {
     return startLabel
@@ -75,7 +74,8 @@ export const resolveWaterQuantityPeriodicScale = (
 }
 
 export const mapWaterQuantityPeriodicToTrendPoints = (
-  response: WaterQuantityPeriodicResponse | undefined
+  response: WaterQuantityPeriodicResponse | undefined,
+  dateFormat?: string
 ): MonthlyTrendPoint[] => {
   if (!response?.metrics?.length) {
     return []
@@ -95,7 +95,7 @@ export const mapWaterQuantityPeriodicToTrendPoints = (
 
     return [
       {
-        period: formatMetricLabel(response.scale, metric),
+        period: formatMetricLabel(response.scale, metric, dateFormat),
         value: metric.totalWaterQuantity,
       },
     ]
@@ -103,7 +103,8 @@ export const mapWaterQuantityPeriodicToTrendPoints = (
 }
 
 export const mapSchemeRegularityPeriodicToTrendPoints = (
-  response: SchemeRegularityPeriodicResponse | undefined
+  response: SchemeRegularityPeriodicResponse | undefined,
+  dateFormat?: string
 ): MonthlyTrendPoint[] => {
   if (!response?.metrics?.length) {
     return []
@@ -118,13 +119,14 @@ export const mapSchemeRegularityPeriodicToTrendPoints = (
         Boolean(metric.periodEndDate)
     )
     .map((metric) => ({
-      period: formatMetricLabel(response.scale, metric),
+      period: formatMetricLabel(response.scale, metric, dateFormat),
       value: metric.averageRegularity,
     }))
 }
 
 export const mapSchemeRegularityQuantityToTrendPoints = (
-  response: SchemeRegularityPeriodicResponse | undefined
+  response: SchemeRegularityPeriodicResponse | undefined,
+  dateFormat?: string
 ): MonthlyTrendPoint[] => {
   if (!response?.metrics?.length) {
     return []
@@ -144,7 +146,7 @@ export const mapSchemeRegularityQuantityToTrendPoints = (
 
     return [
       {
-        period: formatMetricLabel(response.scale, metric),
+        period: formatMetricLabel(response.scale, metric, dateFormat),
         value: metric.totalWaterQuantity,
       },
     ]
@@ -169,7 +171,8 @@ export const mapDemandSupplyToTrendPoints = (
 }
 
 export const mapNationalQuantityTrendPoints = (
-  response: NationalSchemeRegularityPeriodicResponse | undefined
+  response: NationalSchemeRegularityPeriodicResponse | undefined,
+  dateFormat?: string
 ): MonthlyTrendPoint[] => {
   if (!response?.metrics?.length) {
     return []
@@ -192,13 +195,14 @@ export const mapNationalQuantityTrendPoints = (
         Boolean(metric.periodEndDate)
     )
     .map((metric) => ({
-      period: formatMetricLabel(response.scale, metric),
+      period: formatMetricLabel(response.scale, metric, dateFormat),
       value: metric.totalWaterQuantity,
     }))
 }
 
 export const mapNationalRegularityTrendPoints = (
-  response: NationalSchemeRegularityPeriodicResponse | undefined
+  response: NationalSchemeRegularityPeriodicResponse | undefined,
+  dateFormat?: string
 ): MonthlyTrendPoint[] => {
   if (!response?.metrics?.length) {
     return []
@@ -218,7 +222,7 @@ export const mapNationalRegularityTrendPoints = (
         Boolean(metric.periodEndDate)
     )
     .map((metric) => ({
-      period: formatMetricLabel(response.scale, metric),
+      period: formatMetricLabel(response.scale, metric, dateFormat),
       value: metric.averageRegularity,
     }))
 }
@@ -229,7 +233,8 @@ const getOutageMetricTotal = (metric: OutageReasonsPeriodicMetric) =>
   }, 0)
 
 export const mapOutageReasonsPeriodicToTrendPoints = (
-  response: OutageReasonsPeriodicResponse | undefined
+  response: OutageReasonsPeriodicResponse | undefined,
+  dateFormat?: string
 ): MonthlyTrendPoint[] => {
   if (!response?.metrics?.length) {
     return []
@@ -238,7 +243,7 @@ export const mapOutageReasonsPeriodicToTrendPoints = (
   return response.metrics
     .filter((metric) => Boolean(metric.periodStartDate) && Boolean(metric.periodEndDate))
     .map((metric) => ({
-      period: formatMetricLabel(response.scale, metric),
+      period: formatMetricLabel(response.scale, metric, dateFormat),
       value: getOutageMetricTotal(metric),
     }))
 }

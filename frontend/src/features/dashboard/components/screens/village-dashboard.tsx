@@ -32,6 +32,7 @@ type VillageDashboardScreenProps = {
   regularityTimeTrendData?: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
   isRegularityTimeTrendLoading?: boolean
+  tableDateFormat?: string
 }
 
 const READING_COMPLIANCE_PAGE_SIZE = 50
@@ -954,6 +955,7 @@ export function VillageDashboardScreen({
   regularityTimeTrendData = [],
   isQuantityTimeTrendLoading = false,
   isRegularityTimeTrendLoading = false,
+  tableDateFormat,
 }: VillageDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const effectiveSchemeId = schemeId ?? villagePumpOperatorDetails.schemeId
@@ -993,6 +995,7 @@ export function VillageDashboardScreen({
               seriesName={t('performanceCharts.regularity.seriesName', {
                 defaultValue: 'Regularity',
               })}
+              dateFormat={tableDateFormat}
             />
           ) : (
             <ChartEmptyState minHeight="400px" />
@@ -1024,6 +1027,7 @@ export function VillageDashboardScreen({
               xAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
               yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
               seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
+              dateFormat={tableDateFormat}
             />
           ) : (
             <ChartEmptyState minHeight="400px" />
