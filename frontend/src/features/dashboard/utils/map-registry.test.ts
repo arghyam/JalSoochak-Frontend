@@ -31,7 +31,15 @@ describe('map-registry', () => {
   it('builds parent boundary overlay features even when child boundaries are missing', () => {
     const parentBoundaryGeoJson = {
       type: 'Polygon',
-      coordinates: [],
+      coordinates: [
+        [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+          [0, 1],
+          [0, 0],
+        ],
+      ],
     }
     const result = buildFeatureCollectionFromRegions([{ id: '1', name: 'No Boundary' }], {
       parentBoundaryGeoJson,
