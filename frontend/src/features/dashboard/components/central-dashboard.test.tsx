@@ -2058,10 +2058,19 @@ describe('CentralDashboard', () => {
         selectedDistrict: '3:baksa',
       })
     )
-    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
-    mockUseSearchParams.mockReturnValue([new URLSearchParams('district=3%3Abaksa'), jest.fn()])
+    let currentSearchParams = new URLSearchParams('district=3%3Abaksa')
+    let currentLocation = {
+      pathname: '/assam',
+      search: '?district=3%3Abaksa',
+      hash: '',
+      state: null,
+    }
 
-    renderWithProviders(<CentralDashboard />)
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    mockUseSearchParams.mockImplementation(() => [currentSearchParams, jest.fn()])
+    mockUseLocation.mockImplementation(() => currentLocation)
+
+    const { rerender } = renderWithProviders(<CentralDashboard />)
 
     const dashboardFilterProps = getLatestDashboardFilterProps<{
       onStateChange: (value: string) => void
@@ -2074,6 +2083,25 @@ describe('CentralDashboard', () => {
       pathname: '/',
       search: '',
     })
+
+    // Simulate router state after navigation so CentralDashboard reads an empty URL on rerender.
+    currentSearchParams = new URLSearchParams()
+    currentLocation = {
+      pathname: '/',
+      search: '',
+      hash: '',
+      state: null,
+    }
+    mockUseParams.mockReturnValue({})
+    rerender(<CentralDashboard />)
+
+    const updatedDashboardFilterProps = getLatestDashboardFilterProps<{
+      selectedState: string
+      selectedDistrict: string
+    }>()
+    expect(updatedDashboardFilterProps.selectedState).toBe('')
+    expect(updatedDashboardFilterProps.selectedDistrict).toBe('')
+
     const postClearCalls = (mockNavigate as jest.Mock).mock.calls.slice(1)
     expect(postClearCalls).not.toContainEqual([
       {
