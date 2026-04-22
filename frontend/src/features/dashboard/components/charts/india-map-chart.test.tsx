@@ -129,7 +129,7 @@ describe('IndiaMapChart', () => {
     )
   })
 
-  it('does not register a departmental map when only a parent overlay boundary is provided', () => {
+  it('registers and renders a departmental map when only a parent boundary is provided', () => {
     mockGetMap.mockReturnValue({})
 
     renderWithProviders(
@@ -140,15 +140,17 @@ describe('IndiaMapChart', () => {
       />
     )
 
-    expect(mockRegisterMap).not.toHaveBeenCalled()
-
-    renderWithProviders(
-      <IndiaMapChart
-        data={chartDataWithoutBoundary}
-        mapName="tenant-boundary-department-201"
-        parentBoundaryGeoJson={parentBoundaryGeoJson}
-        isLoading
-      />
+    expect(mockRegisterMap).toHaveBeenCalledWith(
+      'tenant-boundary-department-201',
+      expect.objectContaining({
+        features: expect.arrayContaining([
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              name: PARENT_BOUNDARY_FEATURE_NAME,
+            }),
+          }),
+        ]),
+      })
     )
 
     const latestOption = mockEChartsWrapper.mock.calls.at(-1)?.[0]?.option as
@@ -162,8 +164,9 @@ describe('IndiaMapChart', () => {
       (item) => item.name === PARENT_BOUNDARY_FEATURE_NAME
     )
 
-    expect(overlay).toBeUndefined()
-    expect(mockRegisterMap).not.toHaveBeenCalled()
+    expect(overlay?.silent).toBe(true)
+    expect(screen.queryByText('Map currently unavailable')).toBeNull()
+    expect(mockEChartsWrapper).toHaveBeenCalled()
   })
 
   it('shows no map available when a departmental map has no boundary geojson', () => {

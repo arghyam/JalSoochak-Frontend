@@ -28,6 +28,20 @@ describe('map-registry', () => {
     expect(result).toBeNull()
   })
 
+  it('builds parent boundary overlay features even when child boundaries are missing', () => {
+    const parentBoundaryGeoJson = {
+      type: 'Polygon',
+      coordinates: [],
+    }
+    const result = buildFeatureCollectionFromRegions([{ id: '1', name: 'No Boundary' }], {
+      parentBoundaryGeoJson,
+    })
+
+    expect(result?.features).toHaveLength(2)
+    expect(result?.features[0]?.id).toBe(PARENT_BOUNDARY_FILL_FEATURE_NAME)
+    expect(result?.features[1]?.id).toBe(PARENT_BOUNDARY_FEATURE_NAME)
+  })
+
   it('builds region features and computes cp from polygon center', () => {
     const polygon = {
       type: 'Polygon',
