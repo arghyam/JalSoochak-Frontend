@@ -53,8 +53,9 @@ jest.mock('react-i18next', () => ({
 
 jest.mock('@/app/store/auth-store', () => ({
   useAuthStore: jest.fn(
-    (selector: (s: { user: { personId: string; tenantCode: string } }) => unknown) =>
-      selector({ user: { personId: '42', tenantCode: 'nl' } })
+    (
+      selector: (s: { user: { personId: string; tenantCode: string; tenantId: string } }) => unknown
+    ) => selector({ user: { personId: '42', tenantCode: 'nl', tenantId: '18' } })
   ),
 }))
 
@@ -100,9 +101,15 @@ jest.mock('@/shared/components/common', () => ({
 
 jest.mock('@/app/store/auth-store', () => ({
   useAuthStore: jest.fn(
-    (selector: (s: { user: { personId: string; tenantCode: string } }) => unknown) =>
-      selector({ user: { personId: '42', tenantCode: 'nl' } })
+    (
+      selector: (s: { user: { personId: string; tenantCode: string; tenantId: string } }) => unknown
+    ) => selector({ user: { personId: '42', tenantCode: 'nl', tenantId: '18' } })
   ),
+}))
+
+const mockUseTenantPublicConfigQuery = jest.fn()
+jest.mock('@/features/dashboard/services/query/use-tenant-public-config-query', () => ({
+  useTenantPublicConfigQuery: (...args: unknown[]) => mockUseTenantPublicConfigQuery(...args),
 }))
 
 const mockUseSchemeDetailsQuery = jest.fn()
@@ -163,6 +170,13 @@ function renderPage(schemeId = '1') {
 
 beforeEach(() => {
   jest.clearAllMocks()
+  mockUseTenantPublicConfigQuery.mockReturnValue({
+    data: {
+      dateFormatTable: {
+        dateFormat: 'MM/DD/YYYY',
+      },
+    },
+  })
 })
 
 describe('SchemeViewPage', () => {
@@ -230,6 +244,7 @@ describe('SchemeViewPage', () => {
     expect(screen.getByText('SS-001')).toBeTruthy()
     expect(screen.getByText('62.5%')).toBeTruthy()
     expect(screen.getByText('Scheme Details')).toBeTruthy()
+    expect(screen.getByText('04/04/2026, 14:16')).toBeTruthy()
   })
 
   it('renders readings table with data', () => {
@@ -249,6 +264,7 @@ describe('SchemeViewPage', () => {
     expect(screen.getByText('Op A')).toBeTruthy()
     expect(screen.getByText('4050')).toBeTruthy()
     expect(screen.getByText('-37417')).toBeTruthy()
+    expect(screen.getByText('04/02/2026, 12:42')).toBeTruthy()
   })
 
   it('renders empty state when readings list is empty', () => {

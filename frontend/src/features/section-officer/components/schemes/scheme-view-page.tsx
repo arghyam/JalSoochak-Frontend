@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Box, Heading, Text, Flex, SimpleGrid, Spinner, Button, Link } from '@chakra-ui/react'
+import { useAuthStore } from '@/app/store/auth-store'
 import { DataTable, PageHeader } from '@/shared/components/common'
 import type { DataTableColumn } from '@/shared/components/common'
 import { ROUTES } from '@/shared/constants/routes'
+import { DEFAULT_SCREEN_DATE_FORMAT, normalizeDateFormat } from '@/shared/utils/date-format'
+import { useTenantPublicConfigQuery } from '@/features/dashboard/services/query/use-tenant-public-config-query'
 import {
   useSchemeDetailsQuery,
   useSchemeReadingsQuery,
@@ -31,6 +34,15 @@ export function SchemeViewPage() {
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const tenantId = useAuthStore((state) => state.user?.tenantId ?? '')
+  const parsedTenantId = Number.parseInt(tenantId, 10)
+  const { data: tenantPublicConfig } = useTenantPublicConfigQuery({
+    tenantId: Number.isFinite(parsedTenantId) ? parsedTenantId : undefined,
+    enabled: Number.isFinite(parsedTenantId),
+  })
+  const tableDateFormat = normalizeDateFormat(
+    tenantPublicConfig?.dateFormatTable?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
+  )
 
   const {
     data: details,
@@ -85,7 +97,7 @@ export function SchemeViewPage() {
       header: t('pages.schemes.columns.submissionDateTime'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
-          {row.submittedAt ? formatTimestamp(row.submittedAt) : '—'}
+          {row.submittedAt ? formatTimestamp(row.submittedAt, tableDateFormat) : '—'}
         </Text>
       ),
     },
@@ -176,7 +188,11 @@ export function SchemeViewPage() {
             />
             <DetailField
               label={t('pages.schemes.detailFields.lastSubmission')}
-              value={details.lastSubmissionAt ? formatTimestamp(details.lastSubmissionAt) : '—'}
+              value={
+                details.lastSubmissionAt
+                  ? formatTimestamp(details.lastSubmissionAt, tableDateFormat)
+                  : '—'
+              }
             />
             <DetailField
               label={t('pages.schemes.detailFields.reportingRate')}

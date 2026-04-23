@@ -26,10 +26,13 @@ import {
 import { SearchIcon } from '@chakra-ui/icons'
 import { FiDownload } from 'react-icons/fi'
 import { useDebounce } from '@/shared/hooks/use-debounce'
+import { useAuthStore } from '@/app/store/auth-store'
 import { DataTable, DateRangePicker, PageHeader } from '@/shared/components/common'
 import type { DataTableColumn } from '@/shared/components/common'
 import type { DateRange } from '@/shared/components/common'
+import { DEFAULT_SCREEN_DATE_FORMAT, normalizeDateFormat } from '@/shared/utils/date-format'
 import { ROUTES } from '@/shared/constants/routes'
+import { useTenantPublicConfigQuery } from '@/features/dashboard/services/query/use-tenant-public-config-query'
 import {
   usePumpOperatorDetailsQuery,
   usePumpOperatorReadingsQuery,
@@ -86,6 +89,15 @@ export function PumpOperatorViewPage() {
   const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false)
   const [attendanceRange, setAttendanceRange] = useState<DateRange | null>(
     getDefaultAttendanceRange
+  )
+  const tenantId = useAuthStore((state) => state.user?.tenantId ?? '')
+  const parsedTenantId = Number.parseInt(tenantId, 10)
+  const { data: tenantPublicConfig } = useTenantPublicConfigQuery({
+    tenantId: Number.isFinite(parsedTenantId) ? parsedTenantId : undefined,
+    enabled: Number.isFinite(parsedTenantId),
+  })
+  const tableDateFormat = normalizeDateFormat(
+    tenantPublicConfig?.dateFormatTable?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
   )
   const debouncedSearch = useDebounce(searchQuery, 400)
 
@@ -218,7 +230,7 @@ export function PumpOperatorViewPage() {
       header: t('pages.pumpOperators.columns.submissionDateTime'),
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
-          {row.readingAt ? formatTimestamp(row.readingAt) : '—'}
+          {row.readingAt ? formatTimestamp(row.readingAt, tableDateFormat) : '—'}
         </Text>
       ),
     },
@@ -336,7 +348,11 @@ export function PumpOperatorViewPage() {
             />
             <DetailField
               label={t('pages.pumpOperators.detailFields.lastSubmission')}
-              value={details.lastSubmissionAt ? formatTimestamp(details.lastSubmissionAt) : '—'}
+              value={
+                details.lastSubmissionAt
+                  ? formatTimestamp(details.lastSubmissionAt, tableDateFormat)
+                  : '—'
+              }
             />
           </SimpleGrid>
         </Box>

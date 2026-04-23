@@ -330,7 +330,7 @@ describe('CentralDashboard', () => {
     })
   })
 
-  it('uses the selected tenant public config for duration format', () => {
+  it('keeps duration format fixed to DD/MM/YYYY even when tenant config is present', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
@@ -366,7 +366,7 @@ describe('CentralDashboard', () => {
     })
     expect(
       getLatestDashboardFilterProps<{ durationDateFormat?: string }>().durationDateFormat
-    ).toBe('MM-DD-YYYY')
+    ).toBe('DD/MM/YYYY')
   })
 
   it('computes previous national dashboard analytics from the active selected duration', () => {

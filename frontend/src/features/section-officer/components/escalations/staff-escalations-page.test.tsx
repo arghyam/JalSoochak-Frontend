@@ -40,10 +40,15 @@ jest.mock('@/app/store/auth-store', () => ({
 
 const mockUseEscalationsListQuery = jest.fn()
 const mockUseEscalationStatusesQuery = jest.fn()
+const mockUseTenantPublicConfigQuery = jest.fn()
 
 jest.mock('../../services/query/use-escalations-queries', () => ({
   useEscalationsListQuery: (...args: unknown[]) => mockUseEscalationsListQuery(...args),
   useEscalationStatusesQuery: () => mockUseEscalationStatusesQuery(),
+}))
+
+jest.mock('@/features/dashboard/services/query/use-tenant-public-config-query', () => ({
+  useTenantPublicConfigQuery: (...args: unknown[]) => mockUseTenantPublicConfigQuery(...args),
 }))
 
 jest.mock('@/shared/components/common', () => ({
@@ -153,6 +158,13 @@ function renderPage() {
 beforeEach(() => {
   jest.clearAllMocks()
   mockUseEscalationStatusesQuery.mockReturnValue({ data: MOCK_STATUSES })
+  mockUseTenantPublicConfigQuery.mockReturnValue({
+    data: {
+      dateFormatTable: {
+        dateFormat: 'MM/DD/YYYY',
+      },
+    },
+  })
 })
 
 describe('StaffEscalationsPage', () => {
@@ -216,6 +228,7 @@ describe('StaffEscalationsPage', () => {
     })
     renderPage()
     expect(screen.getByText('Test Scheme')).toBeTruthy()
+    expect(screen.getByText('04/01/2026, 13:40')).toBeTruthy()
 
     const table = screen.getByTestId('data-table')
     // Assert the message appears in the table (truncated with ellipsis in the UI)

@@ -1,4 +1,5 @@
 import { apiClient } from '@/shared/lib/axios'
+import { formatIsoDateForDisplay, normalizeDateFormat } from '@/shared/utils/date-format'
 import type {
   SchemesListResponse,
   SchemeDetails,
@@ -7,7 +8,7 @@ import type {
 
 type ApiEnvelope<T> = { data: T }
 
-export function formatTimestamp(iso: string): string {
+export function formatTimestamp(iso: string, dateFormat?: string | null): string {
   if (!iso) return '—'
 
   // Parse ISO string. If no timezone info, assume GMT (as per API contract)
@@ -31,7 +32,12 @@ export function formatTimestamp(iso: string): string {
   const yyyy = istDate.getUTCFullYear()
   const hh = String(istDate.getUTCHours()).padStart(2, '0')
   const min = String(istDate.getUTCMinutes()).padStart(2, '0')
-  return `${dd}-${mm}-${yyyy}, ${hh}:${min}`
+  const isoDate = `${yyyy}-${mm}-${dd}`
+  const formattedDate = dateFormat
+    ? formatIsoDateForDisplay(isoDate, normalizeDateFormat(dateFormat))
+    : `${dd}-${mm}-${yyyy}`
+
+  return `${formattedDate}, ${hh}:${min}`
 }
 
 export interface GetSchemesListParams {

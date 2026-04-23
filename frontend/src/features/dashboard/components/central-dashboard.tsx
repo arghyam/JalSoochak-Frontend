@@ -962,11 +962,9 @@ export function CentralDashboard() {
     tenantPublicConfig?.waterNorm,
     defaultWaterNormLitersPerPersonPerDay
   )
-  const durationDateFormat = normalizeDateFormat(
-    tenantPublicConfig?.dateFormatScreen.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
-  )
+  const durationDateFormat = DEFAULT_SCREEN_DATE_FORMAT
   const tableDateFormat = normalizeDateFormat(
-    tenantPublicConfig?.dateFormatTable?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
+    tenantPublicConfig?.dateFormatScreen?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
   )
   const effectiveSelectedDuration =
     selectedDuration ??
