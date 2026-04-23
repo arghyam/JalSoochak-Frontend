@@ -412,6 +412,7 @@ describe('IndiaMapChart', () => {
       onChartReady?: (chart: {
         off: (event: string) => void
         on: (event: string, handler: (params: unknown) => void) => void
+        getZr: () => { setCursorStyle: (cursor: string) => void }
       }) => void
     }
 
@@ -421,6 +422,9 @@ describe('IndiaMapChart', () => {
       on: jest.fn((event: string, handler: (params: unknown) => void) => {
         handlers[event] = handler
       }),
+      getZr: jest.fn(() => ({
+        setCursorStyle: jest.fn(),
+      })),
     }
 
     latestProps.onChartReady?.(chart)
@@ -442,6 +446,7 @@ describe('IndiaMapChart', () => {
       onChartReady?: (chart: {
         off: (event: string) => void
         on: (event: string, handler: (params: unknown) => void) => void
+        getZr: () => { setCursorStyle: (cursor: string) => void }
       }) => void
     }
 
@@ -451,6 +456,9 @@ describe('IndiaMapChart', () => {
       on: jest.fn((event: string, handler: (params: unknown) => void) => {
         handlers[event] = handler
       }),
+      getZr: jest.fn(() => ({
+        setCursorStyle: jest.fn(),
+      })),
     }
 
     latestProps.onChartReady?.(chart)
@@ -458,6 +466,42 @@ describe('IndiaMapChart', () => {
     handlers.click?.({ data: { stateId: 'region-1', name: 'Region 1', value: -1 } })
 
     expect(onStateClick).not.toHaveBeenCalled()
+  })
+
+  it('uses default cursor for no-data regions and pointer for interactive regions', () => {
+    mockGetMap.mockReturnValue({})
+
+    renderWithProviders(<IndiaMapChart data={chartData} />)
+
+    const latestProps = mockEChartsWrapper.mock.calls.at(-1)?.[0] as {
+      onChartReady?: (chart: {
+        off: (event: string) => void
+        on: (event: string, handler: (params: unknown) => void) => void
+        getZr: () => { setCursorStyle: (cursor: string) => void }
+      }) => void
+    }
+
+    const handlers: Record<string, (params: unknown) => void> = {}
+    const setCursorStyle = jest.fn()
+    const chart = {
+      off: jest.fn(),
+      on: jest.fn((event: string, handler: (params: unknown) => void) => {
+        handlers[event] = handler
+      }),
+      getZr: jest.fn(() => ({
+        setCursorStyle,
+      })),
+    }
+
+    latestProps.onChartReady?.(chart)
+
+    handlers.mousemove?.({ data: { stateId: 'region-1', value: -1 } })
+    handlers.mousemove?.({ data: { stateId: 'region-1', value: 54 } })
+    handlers.globalout?.({})
+
+    expect(setCursorStyle).toHaveBeenNthCalledWith(1, 'default')
+    expect(setCursorStyle).toHaveBeenNthCalledWith(2, 'pointer')
+    expect(setCursorStyle).toHaveBeenNthCalledWith(3, 'default')
   })
 
   it('does not apply hover emphasis color for no-data zones', () => {

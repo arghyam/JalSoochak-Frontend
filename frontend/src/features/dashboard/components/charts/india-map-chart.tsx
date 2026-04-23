@@ -589,6 +589,8 @@ export function IndiaMapChart({
     (chart: echarts.ECharts) => {
       chart.off('click')
       chart.off('mouseover')
+      chart.off('mousemove')
+      chart.off('globalout')
 
       // Register click event
       chart.on('click', (params: unknown) => {
@@ -621,6 +623,23 @@ export function IndiaMapChart({
           }
         })
       }
+
+      chart.on('mousemove', (params: unknown) => {
+        const p = params as {
+          data?: {
+            stateId?: string
+            value?: number
+          }
+        }
+        const hasInteractiveRegion = Boolean(
+          p.data?.stateId && hasInteractiveMetricValue(p.data?.value ?? Number.NaN)
+        )
+        chart.getZr().setCursorStyle(hasInteractiveRegion ? 'pointer' : 'default')
+      })
+
+      chart.on('globalout', () => {
+        chart.getZr().setCursorStyle('default')
+      })
     },
     [disableHoverEffect, hasInteractiveMetricValue]
   )
