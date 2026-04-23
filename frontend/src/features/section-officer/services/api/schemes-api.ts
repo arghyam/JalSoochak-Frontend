@@ -34,7 +34,7 @@ export function formatTimestamp(iso: string, dateFormat?: string | null): string
   const min = String(istDate.getUTCMinutes()).padStart(2, '0')
   const isoDate = `${yyyy}-${mm}-${dd}`
   const formattedDate = dateFormat
-    ? formatIsoDateForDisplay(isoDate, normalizeDateFormat(dateFormat))
+    ? formatIsoDateForDisplay(isoDate, normalizeDateFormat(dateFormat.toUpperCase()))
     : `${dd}-${mm}-${yyyy}`
 
   return `${formattedDate}, ${hh}:${min}`

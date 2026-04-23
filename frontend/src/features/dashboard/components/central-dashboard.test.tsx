@@ -367,6 +367,9 @@ describe('CentralDashboard', () => {
     expect(
       getLatestDashboardFilterProps<{ durationDateFormat?: string }>().durationDateFormat
     ).toBe('DD/MM/YYYY')
+    expect(getLatestDashboardBodyProps<{ tableDateFormat?: string }>().tableDateFormat).toBe(
+      'MM/DD/YYYY'
+    )
   })
 
   it('computes previous national dashboard analytics from the active selected duration', () => {

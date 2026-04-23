@@ -36,6 +36,31 @@ const buildIsoDate = (year: string, month: string, day: string) => `${year}-${mo
 
 export const normalizeDateFormat = (format?: string | null) => parseDateFormat(format).format
 
+const buildFallbackFormats = (preferredFormat?: string | null) => {
+  const normalizedPreferredFormat = normalizeDateFormat(preferredFormat)
+  const preferredShortYearFormat = normalizedPreferredFormat.replace('YYYY', 'YY')
+  const formats = [normalizedPreferredFormat]
+
+  if (
+    preferredShortYearFormat !== normalizedPreferredFormat &&
+    SUPPORTED_DATE_FORMATS.includes(
+      preferredShortYearFormat as (typeof SUPPORTED_DATE_FORMATS)[number]
+    )
+  ) {
+    formats.push(preferredShortYearFormat)
+  }
+
+  for (const format of SUPPORTED_DATE_FORMATS) {
+    if (format === normalizedPreferredFormat || format === preferredShortYearFormat) {
+      continue
+    }
+
+    formats.push(format)
+  }
+
+  return formats
+}
+
 export const getDateInputPlaceholder = (format?: string | null) =>
   normalizeDateFormat(format).toLowerCase()
 
@@ -146,10 +171,7 @@ export const parseDisplayDateToIsoWithFallback = (
   value: string,
   preferredFormat?: string | null
 ) => {
-  const formats = [
-    normalizeDateFormat(preferredFormat),
-    ...SUPPORTED_DATE_FORMATS.filter((format) => format !== normalizeDateFormat(preferredFormat)),
-  ]
+  const formats = buildFallbackFormats(preferredFormat)
 
   for (const format of formats) {
     if (!isValidDisplayDate(value, format)) {

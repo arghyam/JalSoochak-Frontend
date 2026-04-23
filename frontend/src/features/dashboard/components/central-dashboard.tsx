@@ -964,7 +964,7 @@ export function CentralDashboard() {
   )
   const durationDateFormat = DEFAULT_SCREEN_DATE_FORMAT
   const tableDateFormat = normalizeDateFormat(
-    tenantPublicConfig?.dateFormatScreen?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
+    tenantPublicConfig?.dateFormatTable?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
   )
   const effectiveSelectedDuration =
     selectedDuration ??
@@ -3106,6 +3106,7 @@ export function CentralDashboard() {
         schemePerformancePage={schemePerformancePage}
         totalSchemePages={totalSchemePages}
         onSchemePageChange={handleSchemePageChange}
+        tableDateFormat={tableDateFormat}
       />
     </Box>
   )

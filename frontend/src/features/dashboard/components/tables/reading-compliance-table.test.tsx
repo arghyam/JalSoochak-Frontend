@@ -39,6 +39,22 @@ describe('ReadingComplianceTable', () => {
     }
   })
 
+  it('formats ISO submission timestamps with the provided date format', () => {
+    const isoRows: ReadingComplianceData[] = [
+      {
+        id: 'iso-1',
+        name: 'PO ISO',
+        village: 'V-ISO',
+        lastSubmission: '2026-03-17T15:06:10.896445',
+        readingValue: '42',
+      },
+    ]
+
+    renderWithProviders(<ReadingComplianceTable data={isoRows} dateFormat="MM/DD/YYYY" />)
+
+    expect(screen.getByText('03/17/2026, 3:06pm')).toBeTruthy()
+  })
+
   it('invokes onReachEnd when list has no scroll overflow', () => {
     const onReachEnd = jest.fn()
     renderWithProviders(<ReadingComplianceTable data={rows} onReachEnd={onReachEnd} />)
