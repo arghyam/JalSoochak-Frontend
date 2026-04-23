@@ -194,7 +194,7 @@ describe('ReadingSubmissionRateChart', () => {
     expect(content).not.toContain('Dadra and\nNagar Havel...')
   })
 
-  it('formats ISO date labels as dd-mm-yyyy on x-axis', () => {
+  it('formats ISO date labels as dd/mm/yyyy on x-axis', () => {
     renderWithProviders(
       <ReadingSubmissionRateChart
         data={[
@@ -215,7 +215,7 @@ describe('ReadingSubmissionRateChart', () => {
       .map(([props]) => props.option)
       .find((option) => option?.xAxis?.axisLabel?.formatter !== undefined)
 
-    expect(mainOption?.xAxis?.axisLabel?.formatter?.('2026-04-16')).toBe('16-04-2026')
+    expect(mainOption?.xAxis?.axisLabel?.formatter?.('2026-04-16')).toBe('16/04/2026')
   })
 
   it('formats ISO date in tooltip using chart data label when dataIndex is present', () => {
@@ -240,10 +240,10 @@ describe('ReadingSubmissionRateChart', () => {
       .find((option) => option?.tooltip?.show === true)
 
     const content = mainOption?.tooltip?.formatter?.([
-      { axisValueLabel: '16-04-2026', dataIndex: 0, seriesName: 'Submission Rate', value: 88 },
+      { axisValueLabel: '16/04/2026', dataIndex: 0, seriesName: 'Submission Rate', value: 88 },
     ])
 
-    expect(content).toContain('16-04-2026')
+    expect(content).toContain('16/04/2026')
     expect(content).not.toContain('2026-04-16')
   })
 })
