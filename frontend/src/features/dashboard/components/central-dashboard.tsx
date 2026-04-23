@@ -962,8 +962,9 @@ export function CentralDashboard() {
     tenantPublicConfig?.waterNorm,
     defaultWaterNormLitersPerPersonPerDay
   )
-  const durationDateFormat = normalizeDateFormat(
-    tenantPublicConfig?.dateFormatScreen.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
+  const durationDateFormat = DEFAULT_SCREEN_DATE_FORMAT
+  const tableDateFormat = normalizeDateFormat(
+    tenantPublicConfig?.dateFormatTable?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
   )
   const effectiveSelectedDuration =
     selectedDuration ??
@@ -1992,23 +1993,27 @@ export function CentralDashboard() {
         )
       : undefined) ?? (isHierarchyLeafSelected ? schemePerformanceData?.topSchemes?.[0] : undefined)
   const periodicQuantityTimeTrendData = mapSchemeRegularityQuantityToTrendPoints(
-    schemeQuantityPeriodicData
+    schemeQuantityPeriodicData,
+    tableDateFormat
   )
   const periodicRegularityTimeTrendData = mapSchemeRegularityPeriodicToTrendPoints(
-    schemeRegularityPeriodicData
+    schemeRegularityPeriodicData,
+    tableDateFormat
   )
   const quantityTimeTrendData = isCentralLandingView
-    ? mapNationalQuantityTrendPoints(nationalSchemeQuantityPeriodicData)
+    ? mapNationalQuantityTrendPoints(nationalSchemeQuantityPeriodicData, tableDateFormat)
     : periodicQuantityTimeTrendData.length > 0
       ? periodicQuantityTimeTrendData
       : []
   const regularityTimeTrendData = isCentralLandingView
-    ? mapNationalRegularityTrendPoints(nationalSchemeRegularityPeriodicData)
+    ? mapNationalRegularityTrendPoints(nationalSchemeRegularityPeriodicData, tableDateFormat)
     : periodicRegularityTimeTrendData.length > 0
       ? periodicRegularityTimeTrendData
       : []
-  const outageReasonsTimeTrendData =
-    mapOutageReasonsPeriodicToTrendPoints(outageReasonsPeriodicData)
+  const outageReasonsTimeTrendData = mapOutageReasonsPeriodicToTrendPoints(
+    outageReasonsPeriodicData,
+    tableDateFormat
+  )
   const currentWaterSupplyKpis = isCentralLandingView
     ? getWaterSupplyKpisFromNationalDashboard(
         filteredNationalDashboardData,
@@ -3101,6 +3106,7 @@ export function CentralDashboard() {
         schemePerformancePage={schemePerformancePage}
         totalSchemePages={totalSchemePages}
         onSchemePageChange={handleSchemePageChange}
+        tableDateFormat={tableDateFormat}
       />
     </Box>
   )

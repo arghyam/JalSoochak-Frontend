@@ -41,9 +41,15 @@ jest.mock('react-i18next', () => ({
 
 jest.mock('@/app/store/auth-store', () => ({
   useAuthStore: jest.fn(
-    (selector: (s: { user: { personId: string; tenantCode: string } }) => unknown) =>
-      selector({ user: { personId: '42', tenantCode: 'nl' } })
+    (
+      selector: (s: { user: { personId: string; tenantCode: string; tenantId: string } }) => unknown
+    ) => selector({ user: { personId: '42', tenantCode: 'nl', tenantId: '18' } })
   ),
+}))
+
+const mockUseTenantPublicConfigQuery = jest.fn()
+jest.mock('@/features/dashboard/services/query/use-tenant-public-config-query', () => ({
+  useTenantPublicConfigQuery: (...args: unknown[]) => mockUseTenantPublicConfigQuery(...args),
 }))
 
 const mockUseSchemesListQuery = jest.fn()
@@ -122,6 +128,13 @@ function renderPage() {
 
 beforeEach(() => {
   jest.clearAllMocks()
+  mockUseTenantPublicConfigQuery.mockReturnValue({
+    data: {
+      dateFormatTable: {
+        dateFormat: 'MM/DD/YYYY',
+      },
+    },
+  })
 })
 
 describe('SchemesPage', () => {
@@ -180,6 +193,7 @@ describe('SchemesPage', () => {
     expect(screen.getByText('Op A')).toBeTruthy()
     expect(screen.getByText('+1')).toBeTruthy()
     expect(screen.getByText('2722')).toBeTruthy()
+    expect(screen.getByText('04/04/2026, 14:16')).toBeTruthy()
   })
 
   it('shows "—" for null lastWaterSupplied', () => {

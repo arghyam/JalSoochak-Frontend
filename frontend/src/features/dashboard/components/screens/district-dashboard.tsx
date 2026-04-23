@@ -48,6 +48,7 @@ type DistrictDashboardScreenProps = {
   schemePerformancePage?: number
   totalSchemePages?: number
   onSchemePageChange?: (page: number) => void
+  tableDateFormat?: string
 }
 
 type ViewBy = 'geography' | 'time'
@@ -77,6 +78,7 @@ export function DistrictDashboardScreen({
   schemePerformancePage,
   totalSchemePages,
   onSchemePageChange,
+  tableDateFormat,
 }: DistrictDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
@@ -129,6 +131,7 @@ export function DistrictDashboardScreen({
           onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
           selectColor="primary.500"
           selectBorderColor="primary.500"
+          dateFormat={tableDateFormat}
         />
         <PerformanceChartCard
           title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
@@ -155,6 +158,7 @@ export function DistrictDashboardScreen({
           selectBorderColor="primary.500"
           quantityTimeScaleTab={quantityTimeScaleTab}
           onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
+          dateFormat={tableDateFormat}
         />
       </Grid>
 
@@ -247,6 +251,7 @@ export function DistrictDashboardScreen({
                 data={waterSupplyOutageDistributionData}
                 height="400px"
                 xAxisLabel={childEntityLabel}
+                dateFormat={tableDateFormat}
               />
             ) : (
               <ChartEmptyState minHeight="400px" />
@@ -260,6 +265,7 @@ export function DistrictDashboardScreen({
                 defaultValue: 'No. of days',
               })}
               seriesName="Supply outage"
+              dateFormat={tableDateFormat}
             />
           ) : (
             <ChartEmptyState minHeight="400px" />
@@ -294,6 +300,7 @@ export function DistrictDashboardScreen({
                 data={supplySubmissionRateData}
                 height="100%"
                 entityLabel={supplySubmissionRateLabel}
+                dateFormat={tableDateFormat}
               />
             ) : (
               <ChartEmptyState minHeight="100%" />

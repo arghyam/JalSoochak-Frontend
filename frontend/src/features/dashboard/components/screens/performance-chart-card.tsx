@@ -32,6 +32,7 @@ type PerformanceChartCardProps = {
   onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
   regularityTimeScaleTab?: 'day' | 'week' | 'month'
   onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
+  dateFormat?: string
 }
 
 export function PerformanceChartCard({
@@ -59,6 +60,7 @@ export function PerformanceChartCard({
   onQuantityTimeScaleTabChange,
   regularityTimeScaleTab,
   onRegularityTimeScaleTabChange,
+  dateFormat,
 }: PerformanceChartCardProps) {
   const hasGeographyData = data.length > 0
   const hasTimeData = timeTrendData.length > 0
@@ -207,6 +209,7 @@ export function PerformanceChartCard({
             xAxisLabel={resolvedTimeXAxisLabel}
             yAxisLabel={timeYAxisLabel ?? yAxisLabel}
             seriesName={seriesName}
+            dateFormat={dateFormat}
           />
         ) : isTimeTrendAwaitingParams ? null : (
           <ChartEmptyState minHeight="100%" />

@@ -20,8 +20,8 @@ import {
 } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
 import { FiEye } from 'react-icons/fi'
-import type { TFunction } from 'i18next'
 import { useDebounce } from '@/shared/hooks/use-debounce'
+import { useAuthStore } from '@/app/store/auth-store'
 import {
   DataTable,
   PageHeader,
@@ -31,26 +31,12 @@ import {
   StatusChip,
 } from '@/shared/components/common'
 import type { DataTableColumn, DateRange } from '@/shared/components/common'
+import { DEFAULT_SCREEN_DATE_FORMAT, normalizeDateFormat } from '@/shared/utils/date-format'
 import { ROUTES } from '@/shared/constants/routes'
+import { useTenantPublicConfigQuery } from '@/features/dashboard/services/query/use-tenant-public-config-query'
 import { usePumpOperatorsListQuery } from '../../services/query/use-pump-operators-queries'
 import { formatTimestamp } from '../../services/api/schemes-api'
 import type { PumpOperatorListItem } from '../../types/pump-operators'
-
-function formatSubmissionDate(iso: string, t: TFunction): string {
-  if (!iso) return '—'
-  const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) return '—'
-  const today = new Date()
-  const yesterday = new Date(today)
-  yesterday.setDate(today.getDate() - 1)
-  const isSameDay = (a: Date, b: Date) =>
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  if (isSameDay(date, today)) return t('pages.pumpOperators.today')
-  if (isSameDay(date, yesterday)) return t('pages.pumpOperators.yesterday')
-  return formatTimestamp(iso)
-}
 
 function getDefaultDateRange(): DateRange {
   const now = new Date()
@@ -69,6 +55,15 @@ export function PumpOperatorsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [dateRange, setDateRange] = useState<DateRange | null>(() => getDefaultDateRange())
+  const tenantId = useAuthStore((state) => state.user?.tenantId ?? '')
+  const parsedTenantId = Number.parseInt(tenantId, 10)
+  const { data: tenantPublicConfig } = useTenantPublicConfigQuery({
+    tenantId: Number.isFinite(parsedTenantId) ? parsedTenantId : undefined,
+    enabled: Number.isFinite(parsedTenantId),
+  })
+  const tableDateFormat = normalizeDateFormat(
+    tenantPublicConfig?.dateFormatTable?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
+  )
 
   const debouncedSearch = useDebounce(searchQuery, 400)
 
@@ -211,7 +206,7 @@ export function PumpOperatorsPage() {
       width: '14.28%',
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
-          {row.lastSubmissionAt ? formatSubmissionDate(row.lastSubmissionAt, t) : '—'}
+          {row.lastSubmissionAt ? formatTimestamp(row.lastSubmissionAt, tableDateFormat) : '—'}
         </Text>
       ),
     },

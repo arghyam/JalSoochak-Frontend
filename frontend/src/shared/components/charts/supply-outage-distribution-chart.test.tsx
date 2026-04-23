@@ -68,8 +68,8 @@ describe('SupplyOutageDistributionChart', () => {
     )
   })
 
-  it('formats ISO date axis labels as day-month-year', () => {
-    expect(formatAxisLabel('2026-04-16')).toBe('16-04-2026')
+  it('formats ISO date axis labels as day/month/year', () => {
+    expect(formatAxisLabel('2026-04-16')).toBe('16/04/2026')
   })
 
   it('adds extra space between x-axis labels and the axis line', () => {

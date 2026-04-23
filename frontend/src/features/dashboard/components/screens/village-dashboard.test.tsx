@@ -14,7 +14,7 @@ const mockReadingSubmissionStatusChart = jest.fn((_props: unknown) => (
   <div data-testid="reading-submission-status-chart" />
 ))
 const mockReadingComplianceTable = jest.fn(
-  (props: { onReachEnd?: () => void; data?: Array<unknown> }) => (
+  (props: { onReachEnd?: () => void; data?: Array<unknown>; dateFormat?: string }) => (
     <div>
       {props.data?.length ? (
         <div data-testid="reading-compliance-table" />
@@ -47,7 +47,9 @@ jest.mock('../charts', () => ({
 
 jest.mock('../tables', () => ({
   ReadingComplianceTable: (props: unknown) =>
-    mockReadingComplianceTable(props as { onReachEnd?: () => void; data?: Array<unknown> }),
+    mockReadingComplianceTable(
+      props as { onReachEnd?: () => void; data?: Array<unknown>; dateFormat?: string }
+    ),
 }))
 
 jest.mock('../../services/query/use-pump-operators-by-scheme-query', () => ({
@@ -179,9 +181,11 @@ function renderVillageDashboard(
   {
     isQuantityTimeTrendLoading = false,
     isRegularityTimeTrendLoading = false,
+    tableDateFormat,
   }: {
     isQuantityTimeTrendLoading?: boolean
     isRegularityTimeTrendLoading?: boolean
+    tableDateFormat?: string
   } = {}
 ) {
   return renderWithProviders(
@@ -197,6 +201,7 @@ function renderVillageDashboard(
       regularityTimeTrendData={regularityTimeTrendData}
       isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
       isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
+      tableDateFormat={tableDateFormat}
     />
   )
 }
@@ -229,6 +234,41 @@ describe('VillageDashboardScreen', () => {
     expect(screen.getByTestId('supply-outage-reasons-chart')).toBeTruthy()
     expect(screen.getByTestId('reading-submission-status-chart')).toBeTruthy()
     expect(screen.getByTestId('reading-compliance-table')).toBeTruthy()
+  })
+
+  it('passes tableDateFormat to reading compliance and formats village timestamps accordingly', () => {
+    mockUseReadingComplianceQuery.mockReturnValue({
+      data: {
+        status: 200,
+        message: 'Pump operators retrieved',
+        data: {
+          content: [
+            {
+              id: 4,
+              uuid: 'uuid-1',
+              name: 'Ajay Yadav',
+              schemeId: 3,
+              readingAt: '2026-03-17T15:06:10.896445',
+              lastSubmissionAt: '2026-03-17T15:06:10.896445',
+              confirmedReading: 104958.72,
+            },
+          ],
+        },
+      },
+    })
+
+    renderVillageDashboard([], [villagePumpOperatorDetails], {
+      tableDateFormat: 'MM/DD/YYYY',
+    })
+
+    const complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
+      dateFormat?: string
+      data: Array<{ lastSubmission: string }>
+    }
+
+    expect(complianceProps.dateFormat).toBe('MM/DD/YYYY')
+    expect(complianceProps.data[0]?.lastSubmission).toBe('03/17/2026, 3:06pm')
+    expect(screen.getByText('03/17/2026, 3:06pm')).toBeTruthy()
   })
 
   it('prefers analytics trend props over legacy demandSupply data for village charts', () => {
@@ -578,7 +618,7 @@ describe('VillageDashboardScreen', () => {
         id: '3-4-2026-03-17T15:06:10.896445-104958.72-0',
         name: 'Ajay Yadav',
         village: 'N/A',
-        lastSubmission: '17-03-26, 3:06pm',
+        lastSubmission: '17/03/26, 3:06pm',
         readingValue: '104958.72',
       },
     ])
@@ -593,14 +633,14 @@ describe('VillageDashboardScreen', () => {
         id: '3-5-2026-03-19T10:00:00.000000-103400-0',
         name: 'Vikram Singh',
         village: 'N/A',
-        lastSubmission: '19-03-26, 10:00am',
+        lastSubmission: '19/03/26, 10:00am',
         readingValue: '103400',
       },
       {
         id: '3-5-2026-03-18T10:00:00.000000-103361.57-1',
         name: 'Vikram Singh',
         village: 'N/A',
-        lastSubmission: '18-03-26, 10:00am',
+        lastSubmission: '18/03/26, 10:00am',
         readingValue: '103361.57',
       },
     ])
@@ -754,14 +794,14 @@ describe('VillageDashboardScreen', () => {
         id: '3-5-2026-03-19T10:00:00.000000-103400-0',
         name: 'Vikram Singh',
         village: 'N/A',
-        lastSubmission: '19-03-26, 10:00am',
+        lastSubmission: '19/03/26, 10:00am',
         readingValue: '103400',
       },
       {
         id: '3-5-2026-03-18T10:00:00.000000-103361.57-1',
         name: 'Vikram Singh',
         village: 'N/A',
-        lastSubmission: '18-03-26, 10:00am',
+        lastSubmission: '18/03/26, 10:00am',
         readingValue: '103361.57',
       },
     ])
@@ -838,7 +878,7 @@ describe('VillageDashboardScreen', () => {
         id: '3-4-2026-03-17T15:06:20.896445-104602.8-0',
         name: 'Ajay Yadav',
         village: 'N/A',
-        lastSubmission: '17-03-26, 3:06pm',
+        lastSubmission: '17/03/26, 3:06pm',
         readingValue: '104602.8',
       },
     ])
@@ -863,7 +903,7 @@ describe('VillageDashboardScreen', () => {
         id: '9-7-2026-03-17T15:06:10.896445-103985.13-0',
         name: 'Sanjay Roy',
         village: 'N/A',
-        lastSubmission: '17-03-26, 3:06pm',
+        lastSubmission: '17/03/26, 3:06pm',
         readingValue: '103985.13',
       },
     ])
@@ -1131,14 +1171,14 @@ describe('VillageDashboardScreen', () => {
         id: '4500-6040-2026-03-17T15:06:10.896445-104958.72-0',
         name: 'Sanjay Das',
         village: 'N/A',
-        lastSubmission: '17-03-26, 3:06pm',
+        lastSubmission: '17/03/26, 3:06pm',
         readingValue: '104958.72',
       },
       {
         id: '4500-6040-2026-03-17T15:05:10.896445-101419.13-1',
         name: 'Sanjay Das',
         village: 'N/A',
-        lastSubmission: '17-03-26, 3:05pm',
+        lastSubmission: '17/03/26, 3:05pm',
         readingValue: '101419.13',
       },
     ])
@@ -1153,7 +1193,7 @@ describe('VillageDashboardScreen', () => {
         id: '4500-8877-2026-03-17T15:06:10.896445-104602.8-0',
         name: 'Anil Roy',
         village: 'N/A',
-        lastSubmission: '17-03-26, 3:06pm',
+        lastSubmission: '17/03/26, 3:06pm',
         readingValue: '104602.8',
       },
     ])
@@ -1270,14 +1310,14 @@ describe('VillageDashboardScreen', () => {
           id: '4500-6040-2026-03-17T15:06:10.896445-104958.72-0',
           name: 'Sanjay Das',
           village: 'N/A',
-          lastSubmission: '17-03-26, 3:06pm',
+          lastSubmission: '17/03/26, 3:06pm',
           readingValue: '104958.72',
         },
         {
           id: '4500-6040-2026-03-17T15:05:10.896445-101419.13-1',
           name: 'Sanjay Das',
           village: 'N/A',
-          lastSubmission: '17-03-26, 3:05pm',
+          lastSubmission: '17/03/26, 3:05pm',
           readingValue: '101419.13',
         },
       ])
@@ -1460,7 +1500,7 @@ describe('VillageDashboardScreen', () => {
       data: Array<{ lastSubmission: string }>
     }
     expect(complianceProps.data).toHaveLength(51)
-    expect(complianceProps.data.at(-1)?.lastSubmission).toBe('17-03-26, 3:04pm')
+    expect(complianceProps.data.at(-1)?.lastSubmission).toBe('17/03/26, 3:04pm')
   })
 
   it('passes fillHeight to reading compliance so the empty state stays centered', () => {

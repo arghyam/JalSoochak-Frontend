@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import type { UIEvent } from 'react'
 import { Box, Table, Tbody, Td, Text, Th, Thead, Tr } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
+import { formatIsoDateForDisplay, normalizeDateFormat } from '@/shared/utils/date-format'
 import type { ReadingComplianceData } from '../../types'
 
 interface ReadingComplianceTableProps {
@@ -12,6 +13,39 @@ interface ReadingComplianceTableProps {
   scrollAreaMaxH?: string | number
   onReachEnd?: () => void
   fillHeight?: boolean
+  dateFormat?: string
+}
+
+const ISO_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T/
+
+const formatSubmissionTimestamp = (value: string, dateFormat?: string) => {
+  const normalized = value.trim()
+  if (!ISO_TIMESTAMP_PATTERN.test(normalized)) {
+    return value
+  }
+
+  const parsedDate = new Date(normalized)
+  if (Number.isNaN(parsedDate.getTime())) {
+    return value
+  }
+
+  const year = parsedDate.getFullYear()
+  const month = String(parsedDate.getMonth() + 1).padStart(2, '0')
+  const day = String(parsedDate.getDate()).padStart(2, '0')
+  const datePart = formatIsoDateForDisplay(
+    `${year}-${month}-${day}`,
+    normalizeDateFormat(dateFormat ?? 'DD/MM/YY')
+  )
+  const timeParts = new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).formatToParts(parsedDate)
+  const hour = timeParts.find((part) => part.type === 'hour')?.value ?? ''
+  const minute = timeParts.find((part) => part.type === 'minute')?.value ?? ''
+  const dayPeriod = timeParts.find((part) => part.type === 'dayPeriod')?.value.toLowerCase() ?? ''
+
+  return `${datePart}, ${hour}:${minute}${dayPeriod}`
 }
 
 export function ReadingComplianceTable({
@@ -22,6 +56,7 @@ export function ReadingComplianceTable({
   scrollAreaMaxH = '432px',
   onReachEnd,
   fillHeight = false,
+  dateFormat,
 }: ReadingComplianceTableProps) {
   const { t } = useTranslation('dashboard')
   const hasReachedEndRef = useRef(false)
@@ -200,7 +235,7 @@ export function ReadingComplianceTable({
                   <Tr key={row.id} _odd={{ bg: 'primary.25' }}>
                     <Td>{row.name}</Td>
                     {showVillageColumn ? <Td>{row.village}</Td> : null}
-                    <Td>{row.lastSubmission}</Td>
+                    <Td>{formatSubmissionTimestamp(row.lastSubmission, dateFormat)}</Td>
                     <Td>{row.readingValue}</Td>
                   </Tr>
                 ))}

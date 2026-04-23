@@ -876,6 +876,11 @@ describe('dashboardApi.getTenantPublicConfig', () => {
       timeFormat: null,
       timezone: null,
     })
+    expect(res.dateFormatTable).toEqual({
+      dateFormat: null,
+      timeFormat: null,
+      timezone: null,
+    })
   })
 
   it('reads average members and date format from configs', async () => {
@@ -889,6 +894,11 @@ describe('dashboardApi.getTenantPublicConfig', () => {
               timeFormat: null,
               timezone: 'Asia/Kolkata',
             },
+            DATE_FORMAT_TABLE: {
+              dateFormat: 'MM/DD/YYYY',
+              timeFormat: 'HH:mm',
+              timezone: 'Asia/Kolkata',
+            },
           },
         },
       },
@@ -897,6 +907,7 @@ describe('dashboardApi.getTenantPublicConfig', () => {
     const res = await dashboardApi.getTenantPublicConfig(9)
     expect(res.averageMembersPerHousehold).toBe(5)
     expect(res.dateFormatScreen.dateFormat).toBe('dd/MM/yyyy')
+    expect(res.dateFormatTable.dateFormat).toBe('MM/DD/YYYY')
   })
 })
 

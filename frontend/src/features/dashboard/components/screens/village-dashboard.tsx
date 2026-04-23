@@ -3,6 +3,7 @@ import { Avatar, Box, Button, Flex, Grid, Icon, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { LuArrowLeft, LuArrowRight } from 'react-icons/lu'
 import { ChartEmptyState, LoadingSpinner } from '@/shared/components/common'
+import { formatIsoDateForDisplay, normalizeDateFormat } from '@/shared/utils/date-format'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import type {
   DashboardData,
@@ -32,11 +33,12 @@ type VillageDashboardScreenProps = {
   regularityTimeTrendData?: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
   isRegularityTimeTrendLoading?: boolean
+  tableDateFormat?: string
 }
 
 const READING_COMPLIANCE_PAGE_SIZE = 50
 
-const formatReadingComplianceTimestamp = (value?: string | null) => {
+const formatReadingComplianceTimestamp = (value?: string | null, dateFormat?: string) => {
   if (!value) {
     return 'N/A'
   }
@@ -46,11 +48,13 @@ const formatReadingComplianceTimestamp = (value?: string | null) => {
     return value
   }
 
-  const datePart = new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: '2-digit',
-    year: '2-digit',
-  }).format(parsedDate)
+  const year = parsedDate.getFullYear()
+  const month = String(parsedDate.getMonth() + 1).padStart(2, '0')
+  const day = String(parsedDate.getDate()).padStart(2, '0')
+  const datePart = formatIsoDateForDisplay(
+    `${year}-${month}-${day}`,
+    normalizeDateFormat(dateFormat ?? 'DD/MM/YY')
+  )
   const timeParts = new Intl.DateTimeFormat('en-US', {
     hour: 'numeric',
     minute: '2-digit',
@@ -60,7 +64,7 @@ const formatReadingComplianceTimestamp = (value?: string | null) => {
   const minute = timeParts.find((part) => part.type === 'minute')?.value ?? ''
   const dayPeriod = timeParts.find((part) => part.type === 'dayPeriod')?.value.toLowerCase() ?? ''
 
-  return `${datePart.replace(/\//g, '-')}, ${hour}:${minute}${dayPeriod}`
+  return `${datePart}, ${hour}:${minute}${dayPeriod}`
 }
 
 const getReadingComplianceTimestampValue = (item: {
@@ -172,7 +176,8 @@ const formatStationLocation = (
 
 const mapReadingComplianceItemToVillageDetails = (
   item: ReadingComplianceItem,
-  fallback?: VillagePumpOperatorDetails
+  fallback?: VillagePumpOperatorDetails,
+  tableDateFormat?: string
 ): VillagePumpOperatorDetails => {
   const matchingFallback = isSameOperator(item, fallback) ? fallback : undefined
   const missingSubmissionCount =
@@ -198,7 +203,10 @@ const mapReadingComplianceItemToVillageDetails = (
     stationLocation: matchingFallback?.stationLocation || 'N/A',
     lastSubmission:
       getReadingComplianceTimestampValue(item) != null
-        ? formatReadingComplianceTimestamp(getReadingComplianceTimestampValue(item))
+        ? formatReadingComplianceTimestamp(
+            getReadingComplianceTimestampValue(item),
+            tableDateFormat
+          )
         : matchingFallback?.lastSubmission || 'N/A',
     reportingRate:
       item.reportingRatePercent != null
@@ -270,7 +278,8 @@ const mapPumpOperatorDetailsToVillageDetails = (
     missedSubmissionDays: number | null
     inactiveDays?: number | null
   },
-  fallback?: VillagePumpOperatorDetails
+  fallback?: VillagePumpOperatorDetails,
+  tableDateFormat?: string
 ): VillagePumpOperatorDetails => {
   const normalizedSchemeName = normalizeSchemeLabel(item.schemeName)
   const missedSubmissionCount = getMissedSubmissionCount(item.missedSubmissionDays)
@@ -304,7 +313,7 @@ const mapPumpOperatorDetailsToVillageDetails = (
     ),
     lastSubmission:
       item.lastSubmissionAt != null
-        ? formatReadingComplianceTimestamp(item.lastSubmissionAt)
+        ? formatReadingComplianceTimestamp(item.lastSubmissionAt, tableDateFormat)
         : fallback?.lastSubmission || 'N/A',
     reportingRate:
       item.reportingRatePercent != null
@@ -353,6 +362,7 @@ type ReadingComplianceSectionProps = {
   villagePumpOperators: VillagePumpOperatorDetails[]
   tenantCode?: string
   effectiveSchemeId?: number
+  tableDateFormat?: string
 }
 
 function ReadingComplianceSection({
@@ -360,6 +370,7 @@ function ReadingComplianceSection({
   villagePumpOperators,
   tenantCode,
   effectiveSchemeId,
+  tableDateFormat,
 }: ReadingComplianceSectionProps) {
   const { t } = useTranslation('dashboard')
   const [pumpOperatorPage, setPumpOperatorPage] = useState(1)
@@ -524,7 +535,9 @@ function ReadingComplianceSection({
 
     const complianceDerivedOperators = Array.from(
       readingComplianceDataByOperator.latestEntryByOperatorKey.values()
-    ).map((item) => mapReadingComplianceItemToVillageDetails(item, villagePumpOperatorDetails))
+    ).map((item) =>
+      mapReadingComplianceItemToVillageDetails(item, villagePumpOperatorDetails, tableDateFormat)
+    )
 
     return complianceDerivedOperators.length > 0
       ? complianceDerivedOperators
@@ -533,6 +546,7 @@ function ReadingComplianceSection({
     fallbackPumpOperatorPages,
     pumpOperatorApiPages,
     readingComplianceDataByOperator,
+    tableDateFormat,
     villagePumpOperatorDetails,
   ])
   const totalPumpOperatorPages = Math.max(1, pumpOperatorPages.length)
@@ -560,14 +574,22 @@ function ReadingComplianceSection({
     const detailsPayload = pumpOperatorDetailsApiData?.data
 
     if (detailsPayload) {
-      return mapPumpOperatorDetailsToVillageDetails(detailsPayload, activePumpOperator)
+      return mapPumpOperatorDetailsToVillageDetails(
+        detailsPayload,
+        activePumpOperator,
+        tableDateFormat
+      )
     }
 
     const latestComplianceItem =
       readingComplianceDataByOperator.latestEntryByOperatorKey.get(activePumpOperatorKey)
 
     if (latestComplianceItem) {
-      return mapReadingComplianceItemToVillageDetails(latestComplianceItem, activePumpOperator)
+      return mapReadingComplianceItemToVillageDetails(
+        latestComplianceItem,
+        activePumpOperator,
+        tableDateFormat
+      )
     }
 
     return activePumpOperator
@@ -576,6 +598,7 @@ function ReadingComplianceSection({
     activePumpOperatorKey,
     pumpOperatorDetailsApiData?.data,
     readingComplianceDataByOperator.latestEntryByOperatorKey,
+    tableDateFormat,
   ])
   const selectedOperatorHistoryCount =
     readingComplianceDataByOperator.rowsByOperatorKey.get(activePumpOperatorKey)?.length ?? 0
@@ -604,7 +627,10 @@ function ReadingComplianceSection({
       ].join('-'),
       name: item.name?.trim() || 'N/A',
       village: 'N/A',
-      lastSubmission: formatReadingComplianceTimestamp(getReadingComplianceTimestampValue(item)),
+      lastSubmission: formatReadingComplianceTimestamp(
+        getReadingComplianceTimestampValue(item),
+        tableDateFormat
+      ),
       readingValue:
         item.confirmedReading === null || item.confirmedReading === undefined
           ? 'N/A'
@@ -635,6 +661,7 @@ function ReadingComplianceSection({
     effectiveSchemeId,
     readingComplianceDataByOperator,
     resolvedActivePumpOperator,
+    tableDateFormat,
   ])
   const isPumpOperatorDetailsEmpty = useMemo(
     () =>
@@ -928,6 +955,7 @@ function ReadingComplianceSection({
         <ReadingComplianceTable
           key={activePumpOperatorKey}
           data={hasMeaningfulReadingComplianceRows ? readingComplianceRows : []}
+          dateFormat={tableDateFormat}
           showVillageColumn={false}
           scrollAreaMaxH="320px"
           fillHeight
@@ -954,6 +982,7 @@ export function VillageDashboardScreen({
   regularityTimeTrendData = [],
   isQuantityTimeTrendLoading = false,
   isRegularityTimeTrendLoading = false,
+  tableDateFormat,
 }: VillageDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const effectiveSchemeId = schemeId ?? villagePumpOperatorDetails.schemeId
@@ -993,6 +1022,7 @@ export function VillageDashboardScreen({
               seriesName={t('performanceCharts.regularity.seriesName', {
                 defaultValue: 'Regularity',
               })}
+              dateFormat={tableDateFormat}
             />
           ) : (
             <ChartEmptyState minHeight="400px" />
@@ -1024,6 +1054,7 @@ export function VillageDashboardScreen({
               xAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
               yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
               seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
+              dateFormat={tableDateFormat}
             />
           ) : (
             <ChartEmptyState minHeight="400px" />
@@ -1064,6 +1095,7 @@ export function VillageDashboardScreen({
         villagePumpOperators={villagePumpOperators}
         tenantCode={tenantCode}
         effectiveSchemeId={effectiveSchemeId}
+        tableDateFormat={tableDateFormat}
       />
     </>
   )

@@ -48,6 +48,7 @@ type GramPanchayatDashboardScreenProps = {
   schemePerformancePage?: number
   totalSchemePages?: number
   onSchemePageChange?: (page: number) => void
+  tableDateFormat?: string
 }
 
 type ViewBy = 'geography' | 'time'
@@ -77,6 +78,7 @@ export function GramPanchayatDashboardScreen({
   schemePerformancePage,
   totalSchemePages,
   onSchemePageChange,
+  tableDateFormat,
 }: GramPanchayatDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
@@ -130,6 +132,7 @@ export function GramPanchayatDashboardScreen({
           onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
           selectColor="primary.500"
           selectBorderColor="primary.500"
+          dateFormat={tableDateFormat}
         />
         <PerformanceChartCard
           title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
@@ -156,6 +159,7 @@ export function GramPanchayatDashboardScreen({
           selectBorderColor="primary.500"
           quantityTimeScaleTab={quantityTimeScaleTab}
           onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
+          dateFormat={tableDateFormat}
         />
       </Grid>
 
@@ -248,6 +252,7 @@ export function GramPanchayatDashboardScreen({
                 data={waterSupplyOutageDistributionData}
                 height="400px"
                 xAxisLabel={childEntityLabel}
+                dateFormat={tableDateFormat}
               />
             ) : (
               <ChartEmptyState minHeight="400px" />
@@ -263,6 +268,7 @@ export function GramPanchayatDashboardScreen({
               seriesName={t('outageAndSubmissionCharts.series.supplyOutage', {
                 defaultValue: 'Supply outage',
               })}
+              dateFormat={tableDateFormat}
             />
           ) : (
             <ChartEmptyState minHeight="400px" />
@@ -347,6 +353,7 @@ export function GramPanchayatDashboardScreen({
                 data={supplySubmissionRateData}
                 height="100%"
                 entityLabel={supplySubmissionRateLabel}
+                dateFormat={tableDateFormat}
               />
             ) : (
               <ChartEmptyState minHeight="100%" />

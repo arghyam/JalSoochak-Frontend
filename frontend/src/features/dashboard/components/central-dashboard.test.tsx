@@ -330,7 +330,7 @@ describe('CentralDashboard', () => {
     })
   })
 
-  it('uses the selected tenant public config for duration format', () => {
+  it('keeps duration format fixed to DD/MM/YYYY even when tenant config is present', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
@@ -350,6 +350,11 @@ describe('CentralDashboard', () => {
           timeFormat: 'HH:mm',
           timezone: 'Asia/Calcutta',
         },
+        dateFormatTable: {
+          dateFormat: 'MM/DD/YYYY',
+          timeFormat: 'HH:mm',
+          timezone: 'Asia/Calcutta',
+        },
       },
     })
 
@@ -361,7 +366,10 @@ describe('CentralDashboard', () => {
     })
     expect(
       getLatestDashboardFilterProps<{ durationDateFormat?: string }>().durationDateFormat
-    ).toBe('MM-DD-YYYY')
+    ).toBe('DD/MM/YYYY')
+    expect(getLatestDashboardBodyProps<{ tableDateFormat?: string }>().tableDateFormat).toBe(
+      'MM/DD/YYYY'
+    )
   })
 
   it('computes previous national dashboard analytics from the active selected duration', () => {
@@ -1241,12 +1249,12 @@ describe('CentralDashboard', () => {
       })
     )
     expect(dashboardBodyProps.quantityTimeTrendData).toEqual([
-      { period: '01-03-2026\n07-03-2026', value: 1500 },
-      { period: '08-03-2026\n14-03-2026', value: 1750 },
+      { period: '01/03/2026\n07/03/2026', value: 1500 },
+      { period: '08/03/2026\n14/03/2026', value: 1750 },
     ])
     expect(dashboardBodyProps.regularityTimeTrendData).toEqual([
-      { period: '01-03-2026\n07-03-2026', value: 48 },
-      { period: '08-03-2026\n14-03-2026', value: 52 },
+      { period: '01/03/2026\n07/03/2026', value: 48 },
+      { period: '08/03/2026\n14/03/2026', value: 52 },
     ])
     expect(dashboardBodyProps.supplySubmissionRateData[0]).toEqual(
       expect.objectContaining({
@@ -4393,8 +4401,8 @@ describe('CentralDashboard', () => {
     }>()
 
     expect(dashboardBodyProps.data.supplyOutageTrend).toEqual([
-      { period: '01-03-2026\n07-03-2026', value: 4 },
-      { period: '08-03-2026\n14-03-2026', value: 2 },
+      { period: '01/03/2026\n07/03/2026', value: 4 },
+      { period: '08/03/2026\n14/03/2026', value: 2 },
     ])
   })
 

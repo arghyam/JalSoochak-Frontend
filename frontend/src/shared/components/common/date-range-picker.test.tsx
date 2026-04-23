@@ -89,10 +89,10 @@ describe('DateRangePicker', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Duration' }))
 
-    const [startDateInput, endDateInput] = screen.getAllByPlaceholderText('mm-dd-yyyy')
-    fireEvent.change(startDateInput, { target: { value: '02-28-2026' } })
-    fireEvent.change(endDateInput, { target: { value: '03-02-2026' } })
+    const [startDateInput, endDateInput] = screen.getAllByPlaceholderText('dd/mm/yyyy')
+    fireEvent.change(startDateInput, { target: { value: '28/02/2026' } })
+    fireEvent.change(endDateInput, { target: { value: '02/03/2026' } })
 
-    expect((endDateInput as HTMLInputElement).value).toBe('03-01-2026')
+    expect((endDateInput as HTMLInputElement).value).toBe('01/03/2026')
   })
 })

@@ -16,6 +16,7 @@ interface ReadingSubmissionRateChartProps {
   height?: string | number
   maxItems?: number
   entityLabel?: string
+  dateFormat?: string
 }
 
 const formatYAxisTick = (value: number) => {
@@ -42,6 +43,7 @@ export function ReadingSubmissionRateChart({
   height = '500px',
   maxItems = 5,
   entityLabel = 'States/UTs',
+  dateFormat,
 }: ReadingSubmissionRateChartProps) {
   const { t } = useTranslation('dashboard')
   const theme = useTheme()
@@ -141,7 +143,9 @@ export function ReadingSubmissionRateChart({
             typeof firstPoint?.dataIndex === 'number'
               ? (data[firstPoint.dataIndex]?.name ?? '')
               : (firstPoint?.axisValueLabel ?? '')
-          const safeEntityName = echarts.format.encodeHTML(formatIsoDateToDayFirst(entityName))
+          const safeEntityName = echarts.format.encodeHTML(
+            formatIsoDateToDayFirst(entityName, dateFormat)
+          )
           const rows = points
             .map((point) => {
               const rawValue = typeof point.value === 'number' ? point.value : Number(point.value)
@@ -181,7 +185,7 @@ export function ReadingSubmissionRateChart({
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
-          formatter: (value: string) => formatAxisLabel(value),
+          formatter: (value: string) => formatAxisLabel(value, undefined, undefined, dateFormat),
           color: bodyText7.color,
         },
       },
@@ -219,7 +223,7 @@ export function ReadingSubmissionRateChart({
         },
       ],
     }
-  }, [barRadius, bodyText7, chartGridBottom, chartGridTop, data, dynamicBarWidth, t])
+  }, [barRadius, bodyText7, chartGridBottom, chartGridTop, data, dateFormat, dynamicBarWidth, t])
 
   const axisOption = useMemo<echarts.EChartsOption>(() => {
     const placeholderLabel = longestEntityLabel || 'W'
@@ -250,7 +254,7 @@ export function ReadingSubmissionRateChart({
           fontSize: bodyText7.fontSize,
           lineHeight: bodyText7.lineHeight,
           fontWeight: 400,
-          formatter: (value: string) => formatAxisLabel(value),
+          formatter: (value: string) => formatAxisLabel(value, undefined, undefined, dateFormat),
           color: 'transparent',
         },
       },
@@ -289,6 +293,7 @@ export function ReadingSubmissionRateChart({
     bodyText7,
     chartGridBottom,
     chartGridTop,
+    dateFormat,
     longestEntityLabel,
     xAxisLabelMargin,
     yAxisTickMargin,
