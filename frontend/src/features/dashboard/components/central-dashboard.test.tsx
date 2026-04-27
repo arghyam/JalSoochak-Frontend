@@ -257,6 +257,7 @@ describe('CentralDashboard', () => {
     ;(useWaterQuantityPeriodicQuery as jest.Mock).mockReset()
     ;(useWaterQuantityRegionWiseQuery as jest.Mock).mockReset()
     ;(useTenantBoundariesQuery as jest.Mock).mockReset()
+    ;(useTenantBoundaryGeoJsonQuery as jest.Mock).mockReset()
     mockUseParams.mockReturnValue({})
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()])
     mockUseLocation.mockReturnValue({ pathname: '/', search: '', hash: '', state: null })
