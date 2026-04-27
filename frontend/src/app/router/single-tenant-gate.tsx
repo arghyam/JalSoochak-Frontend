@@ -9,9 +9,10 @@ import { Box, Text } from '@chakra-ui/react'
 /**
  * Router gate that enforces single-tenant mode:
  * - Multi-tenant: passes through to CentralDashboard
- * - Single-tenant + `/`: redirects to `/:tenantSlug`
- * - Single-tenant + wrong slug: redirects to correct slug
- * - Single-tenant + correct slug: renders CentralDashboard
+ * - Single-tenant deployments render dashboard at base URL `/` only
+ * - There is no slug-based routing in single-tenant mode
+ * - When `stateSlug` is truthy (any non-base path), this module redirects via
+ *   `Navigate to="/" replace`
  * - Single-tenant + invalid tenant ID: shows error
  */
 export function SingleTenantGate() {

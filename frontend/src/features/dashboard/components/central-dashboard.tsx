@@ -176,14 +176,11 @@ const navigateWithUpdatedFilters = ({
 }) => {
   // In single-tenant mode, always lock to the pre-selected tenant
   const forcedState = singleTenantOverride ? selectedState : (filters.state ?? '')
-  const nextState = forcedState
-  // Encode the internal slug (e.g. "uttar-pradesh") to a 2-letter code (e.g. "up") for the URL
-  const urlSegment = stateSlugToCode(nextState) ?? nextState
   // In single-tenant mode, always stay at / (base URL); otherwise encode state into path
   const nextPath = singleTenantOverride
     ? ROUTES.DASHBOARD
-    : urlSegment
-      ? `/${encodeURIComponent(urlSegment)}`
+    : forcedState
+      ? `/${encodeURIComponent(stateSlugToCode(forcedState) ?? forcedState)}`
       : ROUTES.DASHBOARD
   const nextSearchParams = new URLSearchParams(searchParamsSnapshot)
 
@@ -982,6 +979,9 @@ export function CentralDashboard({
   const selectedTenant = (() => {
     // In single-tenant mode, use the pre-selected tenant directly
     if (singleTenantOverride) {
+      if (typeof singleTenantOverride.tenantId !== 'number' || singleTenantOverride.tenantId <= 0) {
+        return undefined
+      }
       return singleTenantOverride
     }
 
@@ -2186,7 +2186,7 @@ export function CentralDashboard({
     navigate,
     searchParamsSnapshot,
     selectedState,
-    singleTenantOverride,
+    Boolean(singleTenantOverride),
   ])
 
   useEffect(() => {

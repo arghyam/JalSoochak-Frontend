@@ -168,5 +168,15 @@ describe('SingleTenantGate', () => {
       const locationElement = screen.getByTestId('current-location')
       expect(locationElement).toHaveAttribute('data-pathname', '/')
     })
+
+    it('should redirect to / when initial route matches configured tenant slug', () => {
+      mockIsSingleTenantMode.mockReturnValue(true)
+
+      // Start at /maharashtra which matches states[0].value from mocked location search response
+      renderWithRouter('/maharashtra')
+
+      const locationElement = screen.getByTestId('current-location')
+      expect(locationElement).toHaveAttribute('data-pathname', '/')
+    })
   })
 })

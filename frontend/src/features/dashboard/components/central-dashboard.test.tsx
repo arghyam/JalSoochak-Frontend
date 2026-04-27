@@ -6313,6 +6313,37 @@ describe('CentralDashboard', () => {
       // (This would have been empty string if selectedState was derived from empty stateSlug)
       const filterProps = getLatestDashboardFilterProps<{ selectedState: string }>()
       expect(filterProps.selectedState).toBe('maharashtra')
+      expect(useTenantPublicConfigQuery).toHaveBeenCalledWith({
+        tenantId: singleTenantOverride.tenantId,
+        enabled: true,
+      })
+    })
+
+    it('should keep selectedState empty when no URL state and no singleTenantOverride', () => {
+      mockUseParams.mockReturnValue({})
+      ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+        data: {
+          totalStatesCount: 1,
+          states: [{ value: 'maharashtra', label: 'Maharashtra', tenantId: 1, tenantCode: 'MH' }],
+        },
+        isLoading: false,
+        isError: false,
+      })
+      ;(useDashboardData as jest.Mock).mockReturnValue({
+        data: null,
+        isLoading: false,
+        isError: false,
+      })
+      ;(useTenantPublicConfigQuery as jest.Mock).mockReturnValue({
+        data: null,
+        isLoading: false,
+        isError: false,
+      })
+
+      renderWithProviders(<CentralDashboard />)
+
+      const filterProps = getLatestDashboardFilterProps<{ selectedState: string }>()
+      expect(filterProps.selectedState).toBe('')
     })
   })
 })
