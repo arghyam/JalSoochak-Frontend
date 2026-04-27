@@ -13,6 +13,7 @@ import type {
   SchemeRegularityPeriodicQueryParams,
   SchemePerformanceQueryParams,
   SubmissionStatusQueryParams,
+  TenantBoundaryGeoJsonQueryParams,
   WaterQuantityPeriodicQueryParams,
   TenantBoundaryQueryParams,
   WaterQuantityRegionWiseQueryParams,
@@ -111,6 +112,15 @@ export const dashboardQueryKeys = {
       params?.parentDepartmentId,
       params?.startDate,
       params?.endDate,
+    ] as const,
+  tenantBoundaryGeoJson: (params: TenantBoundaryGeoJsonQueryParams | null) =>
+    [
+      'dashboard',
+      'analytics',
+      'tenant-boundary-geojson',
+      params?.tenantId,
+      params?.parentLgdId,
+      params?.parentDepartmentId,
     ] as const,
   readingSubmissionRate: (params: ReadingSubmissionRateQueryParams | null) =>
     [

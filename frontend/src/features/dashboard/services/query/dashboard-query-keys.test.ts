@@ -154,6 +154,15 @@ describe('dashboardQueryKeys', () => {
     ])
   })
 
+  it('includes tenant and parent ids in the tenant boundary geojson query key', () => {
+    expect(
+      dashboardQueryKeys.tenantBoundaryGeoJson({
+        tenantId: 10,
+        parentDepartmentId: 601,
+      })
+    ).toEqual(['dashboard', 'analytics', 'tenant-boundary-geojson', 10, undefined, 601])
+  })
+
   it('includes tenant and parent ids in the reading submission rate query key', () => {
     expect(
       dashboardQueryKeys.readingSubmissionRate({

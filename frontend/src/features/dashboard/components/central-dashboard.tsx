@@ -37,6 +37,7 @@ import { useTenantPublicConfigQuery } from '../services/query/use-tenant-public-
 import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
 import { useWaterQuantityRegionWiseQuery } from '../services/query/use-water-quantity-region-wise-query'
 import { useTenantBoundariesQuery } from '../services/query/use-tenant-boundaries-query'
+import { useTenantBoundaryGeoJsonQuery } from '../services/query/use-tenant-boundary-geojson-query'
 import { dashboardQueryKeys } from '../services/query/dashboard-query-keys'
 import { KPICard } from './kpi-card'
 import { DashboardBody } from './screens/dashboard-body'
@@ -1368,6 +1369,21 @@ export function CentralDashboard({
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
           }
+  const tenantBoundaryGeoJsonParams =
+    !hasCentralLandingFilters ||
+    isHierarchyLeafSelected ||
+    !selectedTenant?.tenantId ||
+    !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            tenantId: selectedTenant.tenantId,
+            parentLgdId: analyticsParentId,
+          }
+        : {
+            tenantId: selectedTenant.tenantId,
+            parentDepartmentId: analyticsParentId,
+          }
   const regularityAnalyticsParams =
     isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
@@ -1564,6 +1580,14 @@ export function CentralDashboard({
   } = useTenantBoundariesQuery({
     params: tenantBoundaryAnalyticsParams,
     enabled: Boolean(tenantBoundaryAnalyticsParams),
+  })
+  const {
+    data: tenantBoundaryGeoJsonData,
+    isLoading: isTenantBoundaryGeoJsonLoading = false,
+    isFetching: isTenantBoundaryGeoJsonFetching = false,
+  } = useTenantBoundaryGeoJsonQuery({
+    params: tenantBoundaryGeoJsonParams,
+    enabled: Boolean(tenantBoundaryGeoJsonParams),
   })
   const { data: nationalDashboardData } = useNationalDashboardQuery({
     params: nationalDashboardParams,
@@ -1957,13 +1981,45 @@ export function CentralDashboard({
     compositeScore: 0,
     status: 'needs-attention',
   }))
+  const tenantBoundaryDataForMap = tenantBoundaryData
+    ? {
+        ...tenantBoundaryData,
+        childRegions: (tenantBoundaryData.childRegions ?? []).map((region) => {
+          const regionTitle =
+            region.title ?? region.childLgdTitle ?? region.childDepartmentTitle ?? ''
+          const matchingBoundaryRegion = (tenantBoundaryGeoJsonData?.childRegions ?? []).find(
+            (boundaryRegion) => {
+              const byDepartmentId =
+                typeof region.childDepartmentId === 'number' &&
+                typeof boundaryRegion.departmentId === 'number' &&
+                region.childDepartmentId === boundaryRegion.departmentId
+              const byLgdId =
+                typeof region.childLgdId === 'number' &&
+                typeof boundaryRegion.lgdId === 'number' &&
+                region.childLgdId === boundaryRegion.lgdId
+              const byTitle =
+                Boolean(regionTitle.trim()) &&
+                Boolean(boundaryRegion.title?.trim()) &&
+                slugify(regionTitle) === slugify(boundaryRegion.title ?? '')
+
+              return byDepartmentId || byLgdId || byTitle
+            }
+          )
+
+          return {
+            ...region,
+            boundaryGeoJson: matchingBoundaryRegion?.parsedBoundaryGeoJson ?? null,
+          }
+        }),
+      }
+    : undefined
   const mapChartData = isCentralLandingView
     ? mapNationalBoundariesToPerformance(
         filteredNationalDashboardBoundaries,
         nationalMapFallbackData
       )
     : mapTenantBoundariesToPerformance(
-        tenantBoundaryData,
+        tenantBoundaryDataForMap,
         overallPerformanceTableData,
         tenantBoundaryLocationOptions,
         averageSchemeRegularityData,
@@ -1973,8 +2029,11 @@ export function CentralDashboard({
   const isMapDataLoading = isCentralLandingView
     ? !nationalDashboardBoundariesData && isNationalDashboardBoundariesLoading
     : Boolean(tenantBoundaryAnalyticsParams) &&
-      !tenantBoundaryData &&
-      (isTenantBoundariesLoading || isTenantBoundariesFetching)
+      (!tenantBoundaryData || !tenantBoundaryGeoJsonData) &&
+      (isTenantBoundariesLoading ||
+        isTenantBoundariesFetching ||
+        isTenantBoundaryGeoJsonLoading ||
+        isTenantBoundaryGeoJsonFetching)
   const quantityPerformanceData = sortByMetricDescending(
     isCentralLandingView
       ? mapQuantityPerformanceFromNationalDashboard(
@@ -2951,7 +3010,7 @@ export function CentralDashboard({
         parentBoundaryGeoJson={
           isCentralLandingView
             ? undefined
-            : (tenantBoundaryData?.parsedBoundaryGeoJson ?? undefined)
+            : (tenantBoundaryGeoJsonData?.parsedParentBoundaryGeoJson ?? undefined)
         }
         isLoading={isMapDataLoading}
         mapName={

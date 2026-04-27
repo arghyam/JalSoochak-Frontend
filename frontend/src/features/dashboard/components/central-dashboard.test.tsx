@@ -25,6 +25,7 @@ import { useTenantPublicConfigQuery } from '../services/query/use-tenant-public-
 import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
 import { useWaterQuantityRegionWiseQuery } from '../services/query/use-water-quantity-region-wise-query'
 import { useTenantBoundariesQuery } from '../services/query/use-tenant-boundaries-query'
+import { useTenantBoundaryGeoJsonQuery } from '../services/query/use-tenant-boundary-geojson-query'
 import { getPreviousPeriodRange } from '../utils/formulas'
 import { stateSlugToCode } from '@/shared/constants/states'
 
@@ -151,6 +152,10 @@ jest.mock('../services/query/use-tenant-boundaries-query', () => ({
   useTenantBoundariesQuery: jest.fn(),
 }))
 
+jest.mock('../services/query/use-tenant-boundary-geojson-query', () => ({
+  useTenantBoundaryGeoJsonQuery: jest.fn(),
+}))
+
 jest.mock('./filters/dashboard-filters', () => ({
   DashboardFilters: (props: unknown) => mockDashboardFilters(props),
 }))
@@ -252,6 +257,7 @@ describe('CentralDashboard', () => {
     ;(useWaterQuantityPeriodicQuery as jest.Mock).mockReset()
     ;(useWaterQuantityRegionWiseQuery as jest.Mock).mockReset()
     ;(useTenantBoundariesQuery as jest.Mock).mockReset()
+    ;(useTenantBoundaryGeoJsonQuery as jest.Mock).mockReset()
     mockUseParams.mockReturnValue({})
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()])
     mockUseLocation.mockReturnValue({ pathname: '/', search: '', hash: '', state: null })
@@ -288,6 +294,7 @@ describe('CentralDashboard', () => {
     })
     ;(useWaterQuantityRegionWiseQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useTenantBoundariesQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useTenantBoundaryGeoJsonQuery as jest.Mock).mockReturnValue({ data: undefined })
   })
 
   it('renders Overall Performance table panel for central view', () => {
@@ -5518,7 +5525,33 @@ describe('CentralDashboard', () => {
             averageSchemeRegularity: 0.78,
             readingSubmissionRate: 0.86,
             averagePerformanceScore: 0.64,
-            boundaryGeoJson: {
+          },
+        ],
+      },
+    })
+    ;(useTenantBoundaryGeoJsonQuery as jest.Mock).mockReturnValue({
+      data: {
+        tenantId: 10,
+        stateCode: 'MP',
+        childBoundaryCount: 1,
+        childRegionCount: 1,
+        parsedParentBoundaryGeoJson: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [0, 0],
+              [2, 0],
+              [2, 2],
+              [0, 2],
+              [0, 0],
+            ],
+          ],
+        },
+        childRegions: [
+          {
+            departmentId: 110,
+            title: 'Child Region Title',
+            parsedBoundaryGeoJson: {
               type: 'Polygon',
               coordinates: [
                 [
@@ -5643,6 +5676,10 @@ describe('CentralDashboard', () => {
       data: undefined,
       isLoading: true,
     })
+    ;(useTenantBoundaryGeoJsonQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isLoading: true,
+    })
 
     renderWithProviders(<CentralDashboard />)
 
@@ -5693,7 +5730,33 @@ describe('CentralDashboard', () => {
             childLgdId: 201,
             childLgdTitle: 'Kamrup',
             averageSchemeRegularity: 0.78,
-            boundaryGeoJson: {
+          },
+        ],
+      },
+    })
+    ;(useTenantBoundaryGeoJsonQuery as jest.Mock).mockReturnValue({
+      data: {
+        tenantId: 17,
+        stateCode: 'AS',
+        childBoundaryCount: 1,
+        childRegionCount: 1,
+        parsedParentBoundaryGeoJson: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [0, 0],
+              [2, 0],
+              [2, 2],
+              [0, 2],
+              [0, 0],
+            ],
+          ],
+        },
+        childRegions: [
+          {
+            lgdId: 201,
+            title: 'Kamrup',
+            parsedBoundaryGeoJson: {
               type: 'Polygon',
               coordinates: [
                 [
