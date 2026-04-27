@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import type { NavigateFunction } from 'react-router-dom'
 import {
   Box,
   Flex,
@@ -49,6 +50,7 @@ import type {
   EntityPerformance,
   NationalDashboardBoundaryResponse,
   NationalDashboardResponse,
+  StateUtOption,
   VillagePumpOperatorDetails,
   WaterSupplyOutageData,
 } from '../types'
@@ -101,7 +103,7 @@ import {
   parseDisplayDateToIsoWithFallback,
 } from '@/shared/utils/date-format'
 import { INDIA_STATES, stateSlugToCode, stateCodeToSlug } from '@/shared/constants/states'
-import { isSingleTenantMode, getSingleTenantId } from '@/config/server-config'
+import { isSingleTenantMode } from '@/config/server-config'
 import { getRuntimeConfig } from '@/config/runtime-config'
 
 const storageKey = 'central-dashboard-filters'
@@ -157,6 +159,63 @@ type FilterUrlUpdate = {
   departmentSubdivision?: string
   departmentVillage?: string
   tab?: 'administrative'
+}
+
+const navigateWithUpdatedFilters = ({
+  filters,
+  navigate,
+  searchParamsSnapshot,
+  selectedState,
+  singleTenantOverride,
+}: {
+  filters: FilterUrlUpdate
+  navigate: NavigateFunction
+  searchParamsSnapshot: string
+  selectedState: string
+  singleTenantOverride?: boolean
+}) => {
+  // In single-tenant mode, always lock to the pre-selected tenant
+  const forcedState = singleTenantOverride ? selectedState : (filters.state ?? '')
+  const nextState = forcedState
+  // Encode the internal slug (e.g. "uttar-pradesh") to a 2-letter code (e.g. "up") for the URL
+  const urlSegment = stateSlugToCode(nextState) ?? nextState
+  // In single-tenant mode, always stay at / (base URL); otherwise encode state into path
+  const nextPath = singleTenantOverride
+    ? ROUTES.DASHBOARD
+    : urlSegment
+      ? `/${encodeURIComponent(urlSegment)}`
+      : ROUTES.DASHBOARD
+  const nextSearchParams = new URLSearchParams(searchParamsSnapshot)
+
+  const setParam = (key: string, value?: string) => {
+    if (value) {
+      nextSearchParams.set(key, value)
+      return
+    }
+    nextSearchParams.delete(key)
+  }
+
+  setParam('district', filters.district)
+  setParam('block', filters.block)
+  setParam('gramPanchayat', filters.gramPanchayat)
+  setParam('village', filters.village)
+  setParam('departmentZone', filters.departmentZone)
+  setParam('departmentCircle', filters.departmentCircle)
+  setParam('departmentDivision', filters.departmentDivision)
+  setParam('departmentSubdivision', filters.departmentSubdivision)
+  setParam('departmentVillage', filters.departmentVillage)
+
+  if (filters.tab === 'administrative') {
+    nextSearchParams.set('tab', 'administrative')
+  } else {
+    nextSearchParams.delete('tab')
+  }
+
+  const nextSearch = nextSearchParams.toString()
+  navigate({
+    pathname: nextPath,
+    search: nextSearch ? `?${nextSearch}` : '',
+  })
 }
 
 type QuantityTimeScaleTab = 'day' | 'week' | 'month'
@@ -595,18 +654,22 @@ const filterNationalDashboardBoundariesByTenantIds = (
   }
 }
 
-export function CentralDashboard() {
+export function CentralDashboard({
+  singleTenantOverride,
+}: { singleTenantOverride?: StateUtOption } = {}) {
   const { t, i18n } = useTranslation('dashboard')
   const overallPerformanceScrollHeight =
     useBreakpointValue({ base: '320px', sm: '420px', lg: '620px' }) ?? '620px'
   const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
   const [searchParams] = useSearchParams()
+  const searchParamsSnapshot = searchParams.toString()
   const location = useLocation()
   const navigate = useNavigate()
   const { data } = useDashboardData('central')
   const [storedFilters] = useState(() => getStoredFilters())
-  // Decode 2-letter code from URL (e.g. "up") back to internal slug (e.g. "uttar-pradesh")
-  const selectedState = stateCodeToSlug(stateSlug) ?? stateSlug
+  // When singleTenantOverride is provided (single-tenant mode), use its slug directly.
+  // Otherwise, decode 2-letter code from URL (e.g. "up") back to internal slug (e.g. "uttar-pradesh")
+  const selectedState = singleTenantOverride?.value ?? stateCodeToSlug(stateSlug) ?? stateSlug
   const selectedDistrict = selectedState ? (searchParams.get('district') ?? '') : ''
   const selectedBlock = selectedDistrict ? (searchParams.get('block') ?? '') : ''
   const selectedGramPanchayat = selectedBlock ? (searchParams.get('gramPanchayat') ?? '') : ''
@@ -917,6 +980,11 @@ export function CentralDashboard() {
     ? new Set(locationSearchStates.map((option) => option.tenantId as number))
     : new Set<number>()
   const selectedTenant = (() => {
+    // In single-tenant mode, use the pre-selected tenant directly
+    if (singleTenantOverride) {
+      return singleTenantOverride
+    }
+
     const byStateSlug = locationSearchStates.find((option) => option.value === selectedState)
     if (byStateSlug) {
       return byStateSlug
@@ -2049,52 +2117,15 @@ export function CentralDashboard() {
     previousAnalyticsRange.endDate
   )
 
-  const updateFilterUrl = useCallback(
-    (filters: FilterUrlUpdate) => {
-      // In single-tenant mode, always lock to the configured tenant
-      const inSingleTenantMode = isSingleTenantMode()
-      const singleTenantId = getSingleTenantId()
-      const forcedState =
-        inSingleTenantMode && singleTenantId ? selectedState : (filters.state ?? '')
-
-      const nextState = forcedState
-      // Encode the internal slug (e.g. "uttar-pradesh") to a 2-letter code (e.g. "up") for the URL
-      const urlSegment = stateSlugToCode(nextState) ?? nextState
-      const nextPath = urlSegment ? `/${encodeURIComponent(urlSegment)}` : ROUTES.DASHBOARD
-      const nextSearchParams = new URLSearchParams(searchParams)
-
-      const setParam = (key: string, value?: string) => {
-        if (value) {
-          nextSearchParams.set(key, value)
-          return
-        }
-        nextSearchParams.delete(key)
-      }
-
-      setParam('district', filters.district)
-      setParam('block', filters.block)
-      setParam('gramPanchayat', filters.gramPanchayat)
-      setParam('village', filters.village)
-      setParam('departmentZone', filters.departmentZone)
-      setParam('departmentCircle', filters.departmentCircle)
-      setParam('departmentDivision', filters.departmentDivision)
-      setParam('departmentSubdivision', filters.departmentSubdivision)
-      setParam('departmentVillage', filters.departmentVillage)
-
-      if (filters.tab === 'administrative') {
-        nextSearchParams.set('tab', 'administrative')
-      } else {
-        nextSearchParams.delete('tab')
-      }
-
-      const nextSearch = nextSearchParams.toString()
-      navigate({
-        pathname: nextPath,
-        search: nextSearch ? `?${nextSearch}` : '',
-      })
-    },
-    [navigate, searchParams, selectedState]
-  )
+  const updateFilterUrl = (filters: FilterUrlUpdate) => {
+    navigateWithUpdatedFilters({
+      filters,
+      navigate,
+      searchParamsSnapshot,
+      selectedState,
+      singleTenantOverride: Boolean(singleTenantOverride),
+    })
+  }
 
   useEffect(() => {
     if (!shouldHydrateFromStoredFilters || hasAppliedStoredHydrationRef.current) {
@@ -2104,27 +2135,39 @@ export function CentralDashboard() {
     shouldPausePersistenceForHydrationRef.current = true
 
     if (storedFilters.filterTabIndex === 1 && hasStoredDepartmentFilters) {
-      updateFilterUrl({
-        state: storedFilters.selectedDepartmentState || storedFilters.selectedState || '',
-        district: '',
-        block: '',
-        gramPanchayat: '',
-        village: '',
-        departmentZone: storedFilters.selectedDepartmentZone ?? '',
-        departmentCircle: storedFilters.selectedDepartmentCircle ?? '',
-        departmentDivision: storedFilters.selectedDepartmentDivision ?? '',
-        departmentSubdivision: storedFilters.selectedDepartmentSubdivision ?? '',
+      navigateWithUpdatedFilters({
+        navigate,
+        searchParamsSnapshot,
+        selectedState,
+        singleTenantOverride: Boolean(singleTenantOverride),
+        filters: {
+          state: storedFilters.selectedDepartmentState || storedFilters.selectedState || '',
+          district: '',
+          block: '',
+          gramPanchayat: '',
+          village: '',
+          departmentZone: storedFilters.selectedDepartmentZone ?? '',
+          departmentCircle: storedFilters.selectedDepartmentCircle ?? '',
+          departmentDivision: storedFilters.selectedDepartmentDivision ?? '',
+          departmentSubdivision: storedFilters.selectedDepartmentSubdivision ?? '',
+        },
       })
       return
     }
 
-    updateFilterUrl({
-      state: storedFilters.selectedState ?? '',
-      district: storedFilters.selectedDistrict ?? '',
-      block: storedFilters.selectedBlock ?? '',
-      gramPanchayat: storedFilters.selectedGramPanchayat ?? '',
-      village: storedFilters.selectedVillage ?? '',
-      tab: 'administrative',
+    navigateWithUpdatedFilters({
+      navigate,
+      searchParamsSnapshot,
+      selectedState,
+      singleTenantOverride: Boolean(singleTenantOverride),
+      filters: {
+        state: storedFilters.selectedState ?? '',
+        district: storedFilters.selectedDistrict ?? '',
+        block: storedFilters.selectedBlock ?? '',
+        gramPanchayat: storedFilters.selectedGramPanchayat ?? '',
+        village: storedFilters.selectedVillage ?? '',
+        tab: 'administrative',
+      },
     })
   }, [
     hasStoredDepartmentFilters,
@@ -2140,7 +2183,10 @@ export function CentralDashboard() {
     storedFilters.selectedGramPanchayat,
     storedFilters.selectedState,
     storedFilters.selectedVillage,
-    updateFilterUrl,
+    navigate,
+    searchParamsSnapshot,
+    selectedState,
+    singleTenantOverride,
   ])
 
   useEffect(() => {
