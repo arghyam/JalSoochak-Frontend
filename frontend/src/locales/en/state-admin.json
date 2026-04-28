@@ -472,6 +472,14 @@
         "yes": "Yes",
         "no": "No"
       },
+      "lgdMapLevels": {
+        "title": "LGD Map Levels",
+        "displayLevelLabel": "Display Level {{level}}"
+      },
+      "departmentMapLevels": {
+        "title": "Department Map Levels",
+        "displayLevelLabel": "Display Level {{level}}"
+      },
       "dataConsolidationTime": {
         "title": "Data Consolidation Time"
       },

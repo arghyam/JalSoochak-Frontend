@@ -77,6 +77,8 @@ export interface ConfigurationData {
   supplyOutageReasons: SupplyOutageReason[]
   locationCheckRequired: boolean
   displayDepartmentMaps: boolean
+  displayMapLgdLevels: boolean[]
+  displayDepartmentMapLevels: boolean[]
   dataConsolidationTime: string
   pumpOperatorReminderNudgeTime: string
   dateFormatScreen: DateFormatConfig

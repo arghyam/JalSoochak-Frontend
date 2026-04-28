@@ -33,6 +33,31 @@ jest.mock('../../services/query/use-state-admin-queries', () => ({
     isPending: false,
   }),
   useSystemChannelsQuery: () => mockUseSystemChannelsQuery(),
+  useLgdHierarchyQuery: () => ({
+    data: {
+      hierarchyType: 'LGD',
+      levels: [
+        { level: 1, name: 'State' },
+        { level: 2, name: 'District' },
+        { level: 3, name: 'Block' },
+        { level: 4, name: 'Panchayat' },
+      ],
+    },
+    isLoading: false,
+    isError: false,
+  }),
+  useDepartmentHierarchyQuery: () => ({
+    data: {
+      hierarchyType: 'DEPARTMENT',
+      levels: [
+        { level: 1, name: 'State' },
+        { level: 2, name: 'Zone' },
+        { level: 3, name: 'Circle' },
+      ],
+    },
+    isLoading: false,
+    isError: false,
+  }),
   useConfigStatusQuery: () => ({
     data: {
       TENANT_SUPPORTED_CHANNELS: { status: 'CONFIGURED', mandatory: true },
@@ -66,6 +91,8 @@ const configuredConfig = {
   supplyOutageReasons: defaultSupplyOutageReasons,
   locationCheckRequired: true,
   displayDepartmentMaps: false,
+  displayMapLgdLevels: [true, true, false, false, false, false],
+  displayDepartmentMapLevels: [true, true, true, false, false, false],
   dataConsolidationTime: '08:00',
   pumpOperatorReminderNudgeTime: '09:00',
   dateFormatScreen: { dateFormat: null, timeFormat: null, timezone: null },
@@ -86,6 +113,8 @@ const unconfiguredConfig = {
   supplyOutageReasons: defaultSupplyOutageReasons,
   locationCheckRequired: false,
   displayDepartmentMaps: false,
+  displayMapLgdLevels: [true, true, true, true, true, true],
+  displayDepartmentMapLevels: [true, true, true, true, true, true],
   dataConsolidationTime: '',
   pumpOperatorReminderNudgeTime: '',
   dateFormatScreen: { dateFormat: null, timeFormat: null, timezone: null },
@@ -447,5 +476,87 @@ describe('ConfigurationPage', () => {
     renderWithProviders(<ConfigurationPage />)
     fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
     expect(screen.getByRole('button', { name: /save changes/i })).toBeTruthy()
+  })
+
+  it('shows LGD map levels based on hierarchy count', () => {
+    renderWithProviders(<ConfigurationPage />)
+    fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
+
+    // With 4 LGD levels from hierarchy, should show 4 level rows
+    expect(screen.getByText('Display Level 1')).toBeTruthy()
+    expect(screen.getByText('Display Level 2')).toBeTruthy()
+    expect(screen.getByText('Display Level 3')).toBeTruthy()
+    expect(screen.getByText('Display Level 4')).toBeTruthy()
+  })
+
+  it('hides department map levels when displayDepartmentMaps is false', () => {
+    renderWithProviders(<ConfigurationPage />)
+    fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
+
+    // Department maps are disabled in configuredConfig, so dept level section should not appear
+    const allText = screen.getByText('LGD Map Levels').textContent
+    expect(allText).not.toContain('Department Map Levels')
+  })
+
+  it('shows department map levels when displayDepartmentMaps is true', () => {
+    const configWithDeptMaps = { ...configuredConfig, displayDepartmentMaps: true }
+    mockUseConfigurationQuery.mockReturnValue({
+      data: configWithDeptMaps,
+      isLoading: false,
+      isError: false,
+    })
+    renderWithProviders(<ConfigurationPage />)
+    fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
+
+    // With 3 dept levels from hierarchy and displayDepartmentMaps true, should show 3 dept level rows
+    const deptSection = screen.getByText('Department Map Levels')
+    expect(deptSection).toBeTruthy()
+  })
+
+  it('renders LGD map level section when in edit mode with lgdLevelCount > 0', () => {
+    const configWithAllTrue = {
+      ...configuredConfig,
+      displayMapLgdLevels: [true, true, true, true, true, true],
+    }
+    mockUseConfigurationQuery.mockReturnValue({
+      data: configWithAllTrue,
+      isLoading: false,
+      isError: false,
+    })
+    renderWithProviders(<ConfigurationPage />)
+    fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
+
+    // Should render all 4 LGD levels (based on mock hierarchy)
+    expect(screen.getByText('LGD Map Levels')).toBeTruthy()
+    expect(screen.getAllByText(/Level \d+/).length).toBeGreaterThan(0)
+  })
+
+  it('includes map level config in save payload', async () => {
+    mockMutateAsync.mockResolvedValue({ ...configuredConfig })
+    renderWithProviders(<ConfigurationPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
+
+    // Make a change to trigger save (e.g., toggle a level)
+    const noRadios = screen.getAllByRole('radio', { name: /no/i })
+    fireEvent.click(noRadios[0])
+
+    await waitFor(() => {
+      const saveBtn = screen.getByRole('button', { name: /save changes/i })
+      expect(
+        saveBtn.hasAttribute('disabled') || saveBtn.getAttribute('aria-disabled') === 'true'
+      ).toBe(false)
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+
+    await waitFor(() => {
+      expect(mockMutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          displayMapLgdLevels: expect.any(Array),
+          displayDepartmentMapLevels: expect.any(Array),
+        })
+      )
+    })
   })
 })
