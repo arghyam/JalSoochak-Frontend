@@ -34,8 +34,10 @@ type BlockDashboardScreenProps = {
   onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month' | 'quarter' | 'year') => void
   regularityTimeScaleTab?: 'day' | 'week' | 'month' | 'quarter' | 'year'
   onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month' | 'quarter' | 'year') => void
-  outageDistributionTimeScaleTab?: 'day' | 'week' | 'month'
-  onOutageDistributionTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
+  outageDistributionTimeScaleTab?: 'day' | 'week' | 'month' | 'quarter' | 'year'
+  onOutageDistributionTimeScaleTabChange?: (
+    value: 'day' | 'week' | 'month' | 'quarter' | 'year'
+  ) => void
   regularityPerformanceData: EntityPerformance[]
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading?: boolean

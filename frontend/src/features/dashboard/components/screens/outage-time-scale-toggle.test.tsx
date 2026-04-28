@@ -24,6 +24,8 @@ describe('getOutageTimeScaleXAxisLabel', () => {
     expect(getOutageTimeScaleXAxisLabel('day', t)).toBe('Day')
     expect(getOutageTimeScaleXAxisLabel('week', t)).toBe('Week')
     expect(getOutageTimeScaleXAxisLabel('month', t)).toBe('Month')
+    expect(getOutageTimeScaleXAxisLabel('quarter', t)).toBe('Quarter')
+    expect(getOutageTimeScaleXAxisLabel('year', t)).toBe('Year')
   })
 })
 
@@ -43,6 +45,12 @@ describe('OutageTimeScaleToggle', () => {
       'true'
     )
     expect(screen.getByRole('button', { name: 'Daily' }).getAttribute('aria-pressed')).toBe('false')
+  })
+
+  it('renders quarterly and yearly options', () => {
+    renderWithProviders(<OutageTimeScaleToggle value="day" onChange={jest.fn()} />)
+    expect(screen.getByRole('button', { name: 'Quarterly' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Yearly' })).toBeTruthy()
   })
 
   it('applies custom aria-label on the group', () => {

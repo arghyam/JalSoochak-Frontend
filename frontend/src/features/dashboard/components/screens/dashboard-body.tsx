@@ -22,7 +22,11 @@ import { StateUtDashboardScreen } from './state-ut-dashboard'
 import { ChartEmptyState, ViewBySelect } from '@/shared/components/common'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { VillageDashboardScreen } from './village-dashboard'
+import { getOutageTimeScaleXAxisLabel } from './outage-time-scale-toggle'
 import { useOutageDistributionState } from './use-outage-distribution-state'
+
+type PerformanceTimeScale = 'day' | 'week' | 'month' | 'quarter' | 'year'
+type OutageTimeScale = 'day' | 'week' | 'month' | 'quarter' | 'year'
 
 type DashboardBodyProps = {
   data: DashboardData
@@ -36,12 +40,12 @@ type DashboardBodyProps = {
   isDepartmentCircleSelected?: boolean
   isDepartmentDivisionSelected?: boolean
   selectedVillage: string
-  quantityTimeScaleTab?: 'day' | 'week' | 'month' | 'quarter' | 'year'
-  onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month' | 'quarter' | 'year') => void
-  regularityTimeScaleTab?: 'day' | 'week' | 'month' | 'quarter' | 'year'
-  onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month' | 'quarter' | 'year') => void
-  outageDistributionTimeScaleTab?: 'day' | 'week' | 'month'
-  onOutageDistributionTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
+  quantityTimeScaleTab?: PerformanceTimeScale
+  onQuantityTimeScaleTabChange?: (value: PerformanceTimeScale) => void
+  regularityTimeScaleTab?: PerformanceTimeScale
+  onRegularityTimeScaleTabChange?: (value: PerformanceTimeScale) => void
+  outageDistributionTimeScaleTab?: OutageTimeScale
+  onOutageDistributionTimeScaleTabChange?: (value: OutageTimeScale) => void
   quantityPerformanceData: EntityPerformance[]
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
@@ -172,14 +176,7 @@ export function DashboardBody({
   const geographyEntityLabel = isAdministrativeStateScreen
     ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
     : supplySubmissionRateLabel
-  const outageTimeXAxisLabel =
-    outageDistributionTimeScaleTab === 'day'
-      ? 'Day'
-      : outageDistributionTimeScaleTab === 'week'
-        ? 'Week'
-        : outageDistributionTimeScaleTab === 'month'
-          ? 'Month'
-          : t('performanceCharts.viewBy.time', { defaultValue: 'Time' })
+  const outageTimeXAxisLabel = getOutageTimeScaleXAxisLabel(outageDistributionTimeScaleTab, t)
   return (
     <>
       {/* Quantity + Regularity Charts */}
@@ -392,12 +389,16 @@ export function DashboardBody({
                           { key: 'day', label: 'D' },
                           { key: 'week', label: 'W' },
                           { key: 'month', label: 'M' },
+                          { key: 'quarter', label: 'Q' },
+                          { key: 'year', label: 'Y' },
                         ].map((item) => {
                           const isActive = outageDistributionTimeScaleTab === item.key
-                          const timeScaleAriaLabelMap: Record<'day' | 'week' | 'month', string> = {
+                          const timeScaleAriaLabelMap: Record<OutageTimeScale, string> = {
                             day: 'Day view',
                             week: 'Week view',
                             month: 'Month view',
+                            quarter: 'Quarter view',
+                            year: 'Year view',
                           }
                           return (
                             <Box
@@ -406,7 +407,7 @@ export function DashboardBody({
                               type="button"
                               aria-pressed={isActive}
                               aria-label={
-                                timeScaleAriaLabelMap[item.key as 'day' | 'week' | 'month'] ??
+                                timeScaleAriaLabelMap[item.key as OutageTimeScale] ??
                                 `${item.label} view`
                               }
                               h="32px"
@@ -417,9 +418,7 @@ export function DashboardBody({
                               textStyle="bodyText5"
                               fontWeight={isActive ? '600' : '500'}
                               onClick={() =>
-                                onOutageDistributionTimeScaleTabChange(
-                                  item.key as 'day' | 'week' | 'month'
-                                )
+                                onOutageDistributionTimeScaleTabChange(item.key as OutageTimeScale)
                               }
                               sx={{
                                 '@media (max-width: 525px)': {

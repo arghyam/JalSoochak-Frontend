@@ -71,6 +71,10 @@
       "quantity": "Quantity",
       "regularity": "Regularity"
     },
+    "viewTabs": {
+      "stateView": "State View",
+      "districtView": "District View"
+    },
     "noMapAvailable": "Map currently unavailable",
     "loading": "Loading map...",
     "loadError": "Unable to load the map right now.",
@@ -147,7 +151,7 @@
       "ariaViewBy": "Quantity performance view by",
       "ariaViewByDistrict": "District quantity performance view by",
       "ariaViewByGramPanchayat": "Gram panchayat quantity performance view by",
-      "yAxisLabel": "Quantity (MLD)",
+      "yAxisLabel": "Quantity (LPCD)",
       "seriesName": "Quantity",
       "areaSeriesName": "Demand"
     },
@@ -204,12 +208,16 @@
     "timeScale": {
       "day": "Day",
       "week": "Week",
-      "month": "Month"
+      "month": "Month",
+      "quarter": "Quarter",
+      "year": "Year"
     },
     "timeScaleShort": {
       "day": "D",
       "week": "W",
-      "month": "M"
+      "month": "M",
+      "quarter": "Q",
+      "year": "Y"
     },
     "legend": {
       "electricalFailure": "Electrical failure",

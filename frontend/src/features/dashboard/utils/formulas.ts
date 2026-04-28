@@ -43,16 +43,6 @@ const getNationalAchievedFhtcCount = (
   state: NationalDashboardResponse['stateWiseQuantityPerformance'][number]
 ) => state.totalAchievedFhtcCount ?? state.totalFhtcCount ?? state.totalHouseholdCount ?? 0
 
-const getNationalDemandFhtcCount = (
-  state: NationalDashboardResponse['stateWiseQuantityPerformance'][number]
-) =>
-  state.totalAchievedFhtcCount ??
-  state.totalFhtcCount ??
-  state.totalPlannedFhtcCount ??
-  state.totalPlannedFhtc ??
-  state.totalHouseholdCount ??
-  0
-
 const parseIsoDate = (value?: string) => {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return null
@@ -756,14 +746,15 @@ export const mapQuantityPerformanceFromAnalytics = (
         fallbackMatch?.id ??
         `quantity-performance-${index}-${slugify(region.title || String(index))}`,
       name: formatEntityName(region.title, fallbackMatch?.name, `Region ${index + 1}`),
-      coverage: calculateDemandMld(
-        getChildRegionAchievedFhtcCount(region),
-        averagePersonsPerHousehold,
-        litersPerPersonPerDay
-      ),
+      coverage: litersPerPersonPerDay,
       regularity: fallbackMatch?.regularity ?? 0,
       continuity: fallbackMatch?.continuity ?? 0,
-      quantity: calculateQuantityMld(region.totalWaterSuppliedLiters, daysInRange),
+      quantity: calculateQuantityLpcd(
+        region.totalWaterSuppliedLiters,
+        getChildRegionAchievedFhtcCount(region),
+        daysInRange,
+        averagePersonsPerHousehold
+      ),
       compositeScore: fallbackMatch?.compositeScore ?? 0,
       status: fallbackMatch?.status ?? 'needs-attention',
     }
@@ -887,14 +878,15 @@ export const mapQuantityPerformanceFromNationalDashboard = (
     return {
       id: fallbackMatch?.id ?? `national-quantity-${state.stateCode || index}`,
       name: formatEntityName(state.stateTitle, fallbackMatch?.name, `State ${index + 1}`),
-      coverage: calculateDemandMld(
-        getNationalDemandFhtcCount(state),
-        resolvedAveragePersonsPerHousehold,
-        resolvedLitersPerPersonPerDay
-      ),
+      coverage: resolvedLitersPerPersonPerDay,
       regularity: fallbackMatch?.regularity ?? 0,
       continuity: fallbackMatch?.continuity ?? 0,
-      quantity: calculateQuantityMld(state.totalWaterSuppliedLiters, daysInRange),
+      quantity: calculateQuantityLpcd(
+        state.totalWaterSuppliedLiters,
+        getNationalAchievedFhtcCount(state),
+        daysInRange,
+        resolvedAveragePersonsPerHousehold
+      ),
       compositeScore: fallbackMatch?.compositeScore ?? 0,
       status: fallbackMatch?.status ?? 'needs-attention',
     }

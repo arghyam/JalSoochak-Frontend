@@ -50,6 +50,7 @@ import type {
   DashboardData,
   EntityPerformance,
   NationalDashboardBoundaryResponse,
+  NationalDashboardBoundaryState,
   NationalDashboardResponse,
   StateUtOption,
   VillagePumpOperatorDetails,
@@ -217,7 +218,7 @@ const navigateWithUpdatedFilters = ({
 }
 
 type PerformanceTimeScaleTab = 'day' | 'week' | 'month' | 'quarter' | 'year'
-type OutageTimeScaleTab = 'day' | 'week' | 'month'
+type OutageTimeScaleTab = 'day' | 'week' | 'month' | 'quarter' | 'year'
 type LocationScopedTrailIndex = {
   pathname: string
   search: string
@@ -714,6 +715,7 @@ export function CentralDashboard({
   )
   const [isMapFullscreen, setIsMapFullscreen] = useState(false)
   const [isMapRegularityView, setIsMapRegularityView] = useState(true)
+  const [isMapDistrictView, setIsMapDistrictView] = useState(false)
   const [hoveredOverallPerformanceRow, setHoveredOverallPerformanceRow] =
     useState<EntityPerformance | null>(null)
   const [isDurationCleared, setIsDurationCleared] = useState(false)
@@ -1037,6 +1039,46 @@ export function CentralDashboard({
   const tableDateFormat = normalizeDateFormat(
     tenantPublicConfig?.dateFormatTable?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
   )
+  const shouldShowDepartmentMaps = tenantPublicConfig?.displayDepartmentMaps !== false
+  const lgdMapLevelVisibility = tenantPublicConfig?.displayMapLgdLevels ?? [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+  ]
+  const currentLgdMapLevel = isVillageSelected
+    ? 5
+    : isGramPanchayatSelected
+      ? 4
+      : isBlockSelected
+        ? 3
+        : isDistrictSelected
+          ? 2
+          : 1
+  const isLgdMapEnabledForCurrentLevel = lgdMapLevelVisibility[currentLgdMapLevel - 1] !== false
+  const departmentMapLevelVisibility = tenantPublicConfig?.displayDepartmentMapLevels ?? [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+  ]
+  const currentDepartmentMapLevel = isDepartmentDivisionSelected
+    ? 4
+    : isDepartmentCircleSelected
+      ? 3
+      : isDepartmentZoneSelected
+        ? 2
+        : 1
+  const isDepartmentMapEnabledForCurrentLevel =
+    departmentMapLevelVisibility[currentDepartmentMapLevel - 1] !== false
+  const shouldShowMapAlongsidePerformance = isDepartmentTabActive
+    ? shouldShowDepartmentMaps && isDepartmentMapEnabledForCurrentLevel
+    : isLgdMapEnabledForCurrentLevel
+  const performanceSummaryCardMaxHeight = { base: '420px', sm: '520px', lg: '710px' } as const
   const effectiveSelectedDuration =
     selectedDuration ??
     (isDurationCleared ? null : getInitialStoredDuration(storedFilters, durationDateFormat))
@@ -2036,6 +2078,59 @@ export function CentralDashboard({
         isTenantBoundariesFetching ||
         isTenantBoundaryGeoJsonLoading ||
         isTenantBoundaryGeoJsonFetching)
+
+  // District view: one query per state, lazy-loaded only when user activates district view
+  const stateWiseBoundaries = filteredNationalDashboardBoundaries?.stateWiseBoundaries ?? []
+  const districtBoundaryQueries = useQueries({
+    queries: stateWiseBoundaries.map((state) => ({
+      queryKey: dashboardQueryKeys.tenantBoundaryGeoJson({
+        tenantId: state.tenantId,
+        parentLgdId: state.lgdId,
+      }),
+      queryFn: () =>
+        dashboardApi.getTenantBoundaryGeoJson({
+          tenantId: state.tenantId,
+          parentLgdId: state.lgdId,
+        }),
+      enabled: isMapDistrictView && isCentralLandingView && Boolean(state.tenantId),
+      staleTime: Infinity,
+      retry: false,
+    })),
+  })
+  const districtMapChartData = districtBoundaryQueries.flatMap((query, index) => {
+    if (!query.data) return []
+    const state = stateWiseBoundaries[index]
+    const statePerf = mapChartData.find((s) => s.id === String(state.tenantId))
+    return (query.data.childRegions ?? []).flatMap((district) => {
+      if (!district.parsedBoundaryGeoJson) return []
+      const districtAnalyticsId = String(district.lgdId ?? district.lgdCode ?? '')
+      return [
+        {
+          id: districtAnalyticsId,
+          name: `${district.title ?? ''}::${districtAnalyticsId}`,
+          coverage: statePerf?.coverage ?? 0,
+          regularity: statePerf?.regularity ?? -1,
+          continuity: statePerf?.continuity ?? 0,
+          quantity: statePerf?.quantity ?? -1,
+          compositeScore: statePerf?.compositeScore ?? 0,
+          status: statePerf?.status ?? ('needs-attention' as const),
+          boundaryGeoJson: district.parsedBoundaryGeoJson,
+        },
+      ]
+    })
+  })
+  const hasAnyDistrictData = districtBoundaryQueries.some((q) => Boolean(q.data))
+  const isDistrictMapLoading = isMapDistrictView && isCentralLandingView && !hasAnyDistrictData
+
+  const districtToStateMap = new Map<string, NationalDashboardBoundaryState>()
+  districtBoundaryQueries.forEach((query, index) => {
+    if (!query.data) return
+    const state = stateWiseBoundaries[index]
+    ;(query.data.childRegions ?? []).forEach((district) => {
+      const id = String(district.lgdId ?? district.lgdCode ?? '')
+      if (id) districtToStateMap.set(id, state)
+    })
+  })
   const quantityPerformanceData = sortByMetricDescending(
     isCentralLandingView
       ? mapQuantityPerformanceFromNationalDashboard(
@@ -2539,6 +2634,36 @@ export function CentralDashboard({
     })
   }
 
+  const handleDistrictViewClick = (
+    districtId: string,
+    districtRawName: string,
+    parentState: NationalDashboardBoundaryState
+  ) => {
+    setActiveTrailIndex(null)
+    setSelectedScheme('')
+    const districtName = districtRawName.includes('::')
+      ? districtRawName.split('::')[0]
+      : districtRawName
+    const stateOption = locationSearchData?.states.find(
+      (option) => option.label.toLowerCase() === parentState.stateTitle.toLowerCase()
+    )
+    const stateValue = stateOption?.value ?? toStateSlug(parentState.stateTitle)
+    const districtLgdId = Number.parseInt(districtId, 10)
+    const districtValue = toStableLocationValue(
+      Number.isFinite(districtLgdId) ? districtLgdId : 0,
+      Number.isFinite(districtLgdId) ? districtLgdId : 0,
+      slugify(districtName)
+    )
+    updateFilterUrl({
+      state: stateValue,
+      district: districtValue,
+      block: '',
+      gramPanchayat: '',
+      village: '',
+      tab: 'administrative',
+    })
+  }
+
   const resolveOverallPerformanceLocationValue = (row: EntityPerformance): string | null => {
     const normalizedRowId = row.id?.trim()
     const normalizedRowName = slugify(row.name)
@@ -2628,6 +2753,12 @@ export function CentralDashboard({
 
   const handleMapRegionClick = (regionId: string, regionName: string) => {
     setHoveredOverallPerformanceRow(null)
+
+    if (isMapDistrictView && isCentralLandingView && !isDepartmentTabActive) {
+      const parentState = districtToStateMap.get(regionId)
+      if (parentState) handleDistrictViewClick(regionId, regionName, parentState)
+      return
+    }
 
     if (isCentralLandingView && !isDepartmentTabActive) {
       handleStateClick(regionId, regionName)
@@ -3004,7 +3135,7 @@ export function CentralDashboard({
       boxShadow={fullscreen ? '0 24px 64px rgba(15, 23, 42, 0.16)' : 'none'}
     >
       <IndiaMapChart
-        data={mapChartData}
+        data={isMapDistrictView && isCentralLandingView ? districtMapChartData : mapChartData}
         tooltipData={overallPerformanceTableData}
         nationalBoundaryGeoJson={
           isCentralLandingView ? filteredNationalDashboardBoundaries.nationalBoundary : undefined
@@ -3014,11 +3145,15 @@ export function CentralDashboard({
             ? undefined
             : (tenantBoundaryGeoJsonData?.parsedParentBoundaryGeoJson ?? undefined)
         }
-        isLoading={isMapDataLoading}
+        isLoading={
+          isMapDistrictView && isCentralLandingView ? isDistrictMapLoading : isMapDataLoading
+        }
         mapName={
-          isCentralLandingView
-            ? 'india'
-            : `tenant-boundary-${hierarchyType.toLowerCase()}-${analyticsParentId}`
+          isMapDistrictView && isCentralLandingView
+            ? 'india-district-view'
+            : isCentralLandingView
+              ? 'india'
+              : `tenant-boundary-${hierarchyType.toLowerCase()}-${analyticsParentId}`
         }
         quantityViewUnit="percent"
         onStateClick={handleMapRegionClick}
@@ -3028,6 +3163,10 @@ export function CentralDashboard({
         isRegularityView={isMapRegularityView}
         onRegularityViewChange={setIsMapRegularityView}
         hoveredRegion={effectiveHoveredOverallPerformanceRow}
+        showViewTabs={isCentralLandingView}
+        mapViewMode={isMapDistrictView ? 'district' : 'state'}
+        onMapViewModeChange={(mode) => setIsMapDistrictView(mode === 'district')}
+        stateBorderData={isMapDistrictView && isCentralLandingView ? mapChartData : undefined}
         height="100%"
       />
     </Box>
@@ -3099,8 +3238,17 @@ export function CentralDashboard({
 
       {/* Map and Overall Performance */}
       {!activeLeafSelection ? (
-        <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-          {renderMapCard({ base: '420px', sm: '520px', lg: '710px' })}
+        <Grid
+          templateColumns={{
+            base: '1fr',
+            lg: shouldShowMapAlongsidePerformance ? 'repeat(2, minmax(0, 1fr))' : '1fr',
+          }}
+          gap={6}
+          mb={6}
+        >
+          {shouldShowMapAlongsidePerformance
+            ? renderMapCard({ base: '420px', sm: '520px', lg: '710px' })
+            : null}
           <Box
             bg="white"
             borderWidth="0.5px"
@@ -3111,7 +3259,8 @@ export function CentralDashboard({
             pl="16px"
             pr="16px"
             w="full"
-            h={{ base: '420px', sm: '520px', lg: '710px' }}
+            h={shouldShowMapAlongsidePerformance ? performanceSummaryCardMaxHeight : 'auto'}
+            maxH={performanceSummaryCardMaxHeight}
             minW={0}
           >
             <Text textStyle="bodyText3" fontWeight="400" mb={4}>
@@ -3121,13 +3270,14 @@ export function CentralDashboard({
               data={overallPerformanceTableData}
               entityLabel={overallPerformanceEntityLabel}
               scrollMaxHeight={overallPerformanceScrollHeight}
+              autoHeightWithinMax={!shouldShowMapAlongsidePerformance}
               onRowClick={handleOverallPerformanceRowClick}
               onRowHover={setHoveredOverallPerformanceRow}
             />
           </Box>
         </Grid>
       ) : null}
-      {isMapFullscreen ? (
+      {shouldShowMapAlongsidePerformance && isMapFullscreen ? (
         <Portal>
           <Box
             position="fixed"

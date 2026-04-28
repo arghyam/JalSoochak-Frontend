@@ -2,9 +2,9 @@ import { Box, Flex } from '@chakra-ui/react'
 import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 
-export type OutageTimeScaleKey = 'day' | 'week' | 'month'
+export type OutageTimeScaleKey = 'day' | 'week' | 'month' | 'quarter' | 'year'
 
-const OUTAGE_TIME_SCALES: OutageTimeScaleKey[] = ['day', 'week', 'month']
+const OUTAGE_TIME_SCALES: OutageTimeScaleKey[] = ['day', 'week', 'month', 'quarter', 'year']
 
 export function getOutageTimeScaleXAxisLabel(
   timeScale: OutageTimeScaleKey | undefined,
@@ -14,7 +14,16 @@ export function getOutageTimeScaleXAxisLabel(
     return t('performanceCharts.viewBy.time', { defaultValue: 'Time' })
   }
   return t(`outageAndSubmissionCharts.timeScale.${timeScale}`, {
-    defaultValue: timeScale === 'day' ? 'Day' : timeScale === 'week' ? 'Week' : 'Month',
+    defaultValue:
+      timeScale === 'day'
+        ? 'Day'
+        : timeScale === 'week'
+          ? 'Week'
+          : timeScale === 'month'
+            ? 'Month'
+            : timeScale === 'quarter'
+              ? 'Quarter'
+              : 'Year',
   })
 }
 
@@ -45,7 +54,16 @@ export function OutageTimeScaleToggle({ value, onChange, ariaLabel }: OutageTime
       {OUTAGE_TIME_SCALES.map((key) => {
         const isActive = value === key
         const fullLabel = t(`outageAndSubmissionCharts.timeScale.${key}`, {
-          defaultValue: key === 'day' ? 'Daily' : key === 'week' ? 'Weekly' : 'Monthly',
+          defaultValue:
+            key === 'day'
+              ? 'Daily'
+              : key === 'week'
+                ? 'Weekly'
+                : key === 'month'
+                  ? 'Monthly'
+                  : key === 'quarter'
+                    ? 'Quarterly'
+                    : 'Yearly',
         })
         return (
           <Box
@@ -73,7 +91,16 @@ export function OutageTimeScaleToggle({ value, onChange, ariaLabel }: OutageTime
             }}
           >
             {t(`outageAndSubmissionCharts.timeScaleShort.${key}`, {
-              defaultValue: key === 'day' ? 'D' : key === 'week' ? 'W' : 'M',
+              defaultValue:
+                key === 'day'
+                  ? 'D'
+                  : key === 'week'
+                    ? 'W'
+                    : key === 'month'
+                      ? 'M'
+                      : key === 'quarter'
+                        ? 'Q'
+                        : 'Y',
             })}
           </Box>
         )
