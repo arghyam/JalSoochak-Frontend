@@ -639,7 +639,7 @@ export function IndiaMapChart({
             value: number
           }
         }
-        if (p.data?.stateId && hasInteractiveMetricValue(p.data.value) && onStateClickRef.current) {
+        if (p.data?.stateId && p.data?.name && onStateClickRef.current) {
           onStateClickRef.current(p.data.stateId, p.data.name)
         }
       })
@@ -669,9 +669,7 @@ export function IndiaMapChart({
             value?: number
           }
         }
-        const hasInteractiveRegion = Boolean(
-          p.data?.stateId && hasInteractiveMetricValue(p.data?.value ?? Number.NaN)
-        )
+        const hasInteractiveRegion = Boolean(p.data?.stateId)
         chart.getZr().setCursorStyle(hasInteractiveRegion ? 'pointer' : 'default')
       })
 
@@ -679,7 +677,7 @@ export function IndiaMapChart({
         chart.getZr().setCursorStyle('default')
       })
     },
-    [disableHoverEffect, hasInteractiveMetricValue]
+    [disableHoverEffect]
   )
 
   return (
