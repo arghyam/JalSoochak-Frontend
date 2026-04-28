@@ -78,6 +78,8 @@ interface SearchLayoutProps {
   selectionTrail?: string[]
   activeTrailIndex?: number | null
   resetSearchTrigger?: string | number
+  /** When true, hides the "All States/UTs" root breadcrumb button in the dropdown panel */
+  hideRootBreadcrumb?: boolean
 }
 
 export function SearchLayout({
@@ -94,6 +96,7 @@ export function SearchLayout({
   selectionTrail,
   activeTrailIndex,
   resetSearchTrigger,
+  hideRootBreadcrumb = false,
 }: SearchLayoutProps) {
   const { t } = useTranslation('dashboard')
   const isCompactLayout = useBreakpointValue({ base: false, lg: false }) ?? false
@@ -601,23 +604,25 @@ export function SearchLayout({
           ) : null}
           <Box bg="neutral.100" px="16px" py="8px">
             <Flex align="center" wrap="wrap" rowGap="4px">
-              <Button
-                variant="unstyled"
-                onClick={() => handleTrailSelect(-1)}
-                h="auto"
-                minH="auto"
-                textStyle="bodyText4"
-                color="neutral.500"
-                fontWeight="400"
-                _hover={{ color: 'primary.500' }}
-                _active={{ color: 'primary.500' }}
-                aria-label={t('searchLayout.aria.breadcrumb', {
-                  item: t('searchLayout.allStatesUTs', 'All States/UTs'),
-                  defaultValue: 'Breadcrumb: All States/UTs',
-                })}
-              >
-                {t('searchLayout.allStatesUTs', 'All States/UTs')}
-              </Button>
+              {!hideRootBreadcrumb ? (
+                <Button
+                  variant="unstyled"
+                  onClick={() => handleTrailSelect(-1)}
+                  h="auto"
+                  minH="auto"
+                  textStyle="bodyText4"
+                  color="neutral.500"
+                  fontWeight="400"
+                  _hover={{ color: 'primary.500' }}
+                  _active={{ color: 'primary.500' }}
+                  aria-label={t('searchLayout.aria.breadcrumb', {
+                    item: t('searchLayout.allStatesUTs', 'All States/UTs'),
+                    defaultValue: 'Breadcrumb: All States/UTs',
+                  })}
+                >
+                  {t('searchLayout.allStatesUTs', 'All States/UTs')}
+                </Button>
+              ) : null}
               {effectiveSelectionTrail.map((item, index) => (
                 <Flex key={`${item}-${index}`} align="center" wrap="nowrap" minW={0}>
                   <Icon

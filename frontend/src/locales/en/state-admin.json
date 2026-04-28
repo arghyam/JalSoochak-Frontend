@@ -512,8 +512,10 @@
       "displayDepartmentMaps": "When enabled, departmental map views are shown on the dashboard.",
       "dataConsolidationTime": "Daily time at which field data is compiled and consolidated for reporting.",
       "pumpOperatorReminderNudgeTime": "Daily time at which automated reminders are sent to pump operators who have not yet submitted readings.",
-      "dateFormatScreen": "Date, time, and timezone format used across all on-screen displays such as dashboards.",
-      "dateFormatTable": "Date, time, and timezone format used in data tables and exported reports.",
+      "lgdMapLevels": "Controls which LGD administrative levels are visible on the map.",
+      "departmentMapLevels": "Controls which department levels are visible on the departmental map view.",
+      "dateFormatScreen": "Date format used across all on-screen displays such as dashboards.",
+      "dateFormatTable": "Date format used in data tables and exported reports.",
       "averageMembersPerHousehold": "Used to estimate per-capita water consumption from household-level supply data. Accepted range: 1–20.",
       "logo": "Organization's logo displayed in the app. PNG or JPG, max 2 MB."
     },
@@ -532,8 +534,8 @@
         "logoTooLarge": "Logo file must be 2 MB or smaller",
         "logoInvalidType": "Logo must be a PNG or JPG file",
         "logoRequired": "Please upload a logo",
-        "dateFormatScreenRequired": "Please select all date format fields for screen display",
-        "dateFormatTableRequired": "Please select all date format fields for table display"
+        "dateFormatScreenRequired": "Please select a date format for screen display",
+        "dateFormatTableRequired": "Please select a date format for table display"
       }
     }
   },
