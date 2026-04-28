@@ -436,7 +436,7 @@ describe('IndiaMapChart', () => {
     expect(onStateHover).toHaveBeenCalledWith('region-1', 'Region 1', chartData[0])
   })
 
-  it('does not trigger click callback for no-data zones', () => {
+  it('triggers click callback for no-data zones when state id is present', () => {
     mockGetMap.mockReturnValue({})
     const onStateClick = jest.fn()
 
@@ -465,10 +465,10 @@ describe('IndiaMapChart', () => {
 
     handlers.click?.({ data: { stateId: 'region-1', name: 'Region 1', value: -1 } })
 
-    expect(onStateClick).not.toHaveBeenCalled()
+    expect(onStateClick).toHaveBeenCalledWith('region-1', 'Region 1')
   })
 
-  it('does not trigger click callback for no-data zones in district view', () => {
+  it('triggers click callback for no-data zones in district view when state id is present', () => {
     mockGetMap.mockReturnValue({})
     const onStateClick = jest.fn()
 
@@ -499,7 +499,7 @@ describe('IndiaMapChart', () => {
 
     handlers.click?.({ data: { stateId: 'region-1', name: 'Region 1', value: -1 } })
 
-    expect(onStateClick).not.toHaveBeenCalled()
+    expect(onStateClick).toHaveBeenCalledWith('region-1', 'Region 1')
   })
 
   it('uses default cursor for no-data regions and pointer for interactive regions', () => {
@@ -533,7 +533,7 @@ describe('IndiaMapChart', () => {
     handlers.mousemove?.({ data: { stateId: 'region-1', value: 54 } })
     handlers.globalout?.({})
 
-    expect(setCursorStyle).toHaveBeenNthCalledWith(1, 'default')
+    expect(setCursorStyle).toHaveBeenNthCalledWith(1, 'pointer')
     expect(setCursorStyle).toHaveBeenNthCalledWith(2, 'pointer')
     expect(setCursorStyle).toHaveBeenNthCalledWith(3, 'default')
   })
