@@ -436,7 +436,7 @@ describe('IndiaMapChart', () => {
     expect(onStateHover).toHaveBeenCalledWith('region-1', 'Region 1', chartData[0])
   })
 
-  it('does not trigger click callback for no-data zones', () => {
+  it('triggers click callback for no-data zones when state id is present', () => {
     mockGetMap.mockReturnValue({})
     const onStateClick = jest.fn()
 
@@ -465,7 +465,41 @@ describe('IndiaMapChart', () => {
 
     handlers.click?.({ data: { stateId: 'region-1', name: 'Region 1', value: -1 } })
 
-    expect(onStateClick).not.toHaveBeenCalled()
+    expect(onStateClick).toHaveBeenCalledWith('region-1', 'Region 1')
+  })
+
+  it('triggers click callback for no-data zones in district view when state id is present', () => {
+    mockGetMap.mockReturnValue({})
+    const onStateClick = jest.fn()
+
+    renderWithProviders(
+      <IndiaMapChart data={chartData} onStateClick={onStateClick} mapViewMode="district" />
+    )
+
+    const latestProps = mockEChartsWrapper.mock.calls.at(-1)?.[0] as {
+      onChartReady?: (chart: {
+        off: (event: string) => void
+        on: (event: string, handler: (params: unknown) => void) => void
+        getZr: () => { setCursorStyle: (cursor: string) => void }
+      }) => void
+    }
+
+    const handlers: Record<string, (params: unknown) => void> = {}
+    const chart = {
+      off: jest.fn(),
+      on: jest.fn((event: string, handler: (params: unknown) => void) => {
+        handlers[event] = handler
+      }),
+      getZr: jest.fn(() => ({
+        setCursorStyle: jest.fn(),
+      })),
+    }
+
+    latestProps.onChartReady?.(chart)
+
+    handlers.click?.({ data: { stateId: 'region-1', name: 'Region 1', value: -1 } })
+
+    expect(onStateClick).toHaveBeenCalledWith('region-1', 'Region 1')
   })
 
   it('uses default cursor for no-data regions and pointer for interactive regions', () => {
@@ -499,7 +533,7 @@ describe('IndiaMapChart', () => {
     handlers.mousemove?.({ data: { stateId: 'region-1', value: 54 } })
     handlers.globalout?.({})
 
-    expect(setCursorStyle).toHaveBeenNthCalledWith(1, 'default')
+    expect(setCursorStyle).toHaveBeenNthCalledWith(1, 'pointer')
     expect(setCursorStyle).toHaveBeenNthCalledWith(2, 'pointer')
     expect(setCursorStyle).toHaveBeenNthCalledWith(3, 'default')
   })
