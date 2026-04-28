@@ -43,6 +43,10 @@ interface IndiaMapChartProps {
   isRegularityView?: boolean
   onRegularityViewChange?: (next: boolean) => void
   hoveredRegion?: EntityPerformance | null
+  showViewTabs?: boolean
+  mapViewMode?: 'state' | 'district'
+  onMapViewModeChange?: (mode: 'state' | 'district') => void
+  stateBorderData?: EntityPerformance[]
 }
 
 export function IndiaMapChart({
@@ -64,6 +68,10 @@ export function IndiaMapChart({
   isRegularityView: controlledIsRegularityView,
   onRegularityViewChange,
   hoveredRegion = null,
+  showViewTabs = false,
+  mapViewMode = 'state',
+  onMapViewModeChange,
+  stateBorderData,
 }: IndiaMapChartProps) {
   const theme = useTheme()
   const [isBelow500] = useMediaQuery('(max-width: 499.98px)')
@@ -71,11 +79,11 @@ export function IndiaMapChart({
   const { t } = useTranslation('dashboard')
   const dynamicGeoJson = useMemo(
     () =>
-      buildFeatureCollectionFromRegions(data, {
+      buildFeatureCollectionFromRegions([...data, ...(stateBorderData ?? [])], {
         nationalBoundaryGeoJson,
         parentBoundaryGeoJson,
       }),
-    [data, nationalBoundaryGeoJson, parentBoundaryGeoJson]
+    [data, stateBorderData, nationalBoundaryGeoJson, parentBoundaryGeoJson]
   )
   const [internalIsRegularityView, setInternalIsRegularityView] = useState(true)
   const isRegularityView = controlledIsRegularityView ?? internalIsRegularityView
@@ -127,6 +135,8 @@ export function IndiaMapChart({
   })
   const regularityLabel = t('map.metric.regularity', { defaultValue: 'Regularity' })
   const selectedMetricLabel = isRegularityView ? regularityLabel : quantityLabel
+  const stateViewLabel = t('map.viewTabs.stateView', { defaultValue: 'State View' })
+  const districtViewLabel = t('map.viewTabs.districtView', { defaultValue: 'District View' })
   const resolveLegendThreshold = useCallback(
     (raw: string | number | undefined, fallback: number) => {
       const parsed = Number(raw)
@@ -361,7 +371,30 @@ export function IndiaMapChart({
           ]
         : []),
     ]
-    const seriesData = [...boundaryFillOverlays, ...mapSeries, ...boundaryOverlays]
+    const stateBorderOverlays = (stateBorderData ?? []).map((state) => ({
+      name: state.name,
+      value: -999,
+      silent: true,
+      tooltip: { show: false },
+      label: { show: false },
+      itemStyle: { areaColor: 'rgba(0,0,0,0)', borderColor: '#51525c', borderWidth: 0.8 },
+      emphasis: {
+        disabled: true,
+        label: { show: false },
+        itemStyle: { areaColor: 'rgba(0,0,0,0)' },
+      },
+      select: {
+        disabled: true,
+        label: { show: false },
+        itemStyle: { areaColor: 'rgba(0,0,0,0)' },
+      },
+    }))
+    const seriesData = [
+      ...boundaryFillOverlays,
+      ...mapSeries,
+      ...stateBorderOverlays,
+      ...boundaryOverlays,
+    ]
 
     return {
       backgroundColor: '#FAFAFA',
@@ -397,7 +430,9 @@ export function IndiaMapChart({
               return ''
             }
             const { name, metrics } = p.data
-            const safeName = echarts.format.encodeHTML(name)
+            const displayName =
+              typeof name === 'string' && name.includes('::') ? name.split('::')[0] : name
+            const safeName = echarts.format.encodeHTML(displayName)
             const formatPercent = (value: number) =>
               Number.isFinite(value) && value >= 0 ? `${value.toFixed(1)}%` : 'N/A'
             const formatLpcd = (value?: number) =>
@@ -496,6 +531,7 @@ export function IndiaMapChart({
     }
   }, [
     data,
+    stateBorderData,
     metricKey,
     effectiveMapName,
     mapName,
@@ -570,11 +606,13 @@ export function IndiaMapChart({
   const onStateClickRef = useRef(onStateClick)
   const onStateHoverRef = useRef(onStateHover)
   const dataRef = useRef(data)
+  const mapViewModeRef = useRef(mapViewMode)
 
   useLayoutEffect(() => {
     onStateClickRef.current = onStateClick
     onStateHoverRef.current = onStateHover
     dataRef.current = data
+    mapViewModeRef.current = mapViewMode
   })
 
   useLayoutEffect(() => {
@@ -589,6 +627,8 @@ export function IndiaMapChart({
     (chart: echarts.ECharts) => {
       chart.off('click')
       chart.off('mouseover')
+      chart.off('mousemove')
+      chart.off('globalout')
 
       // Register click event
       chart.on('click', (params: unknown) => {
@@ -599,7 +639,7 @@ export function IndiaMapChart({
             value: number
           }
         }
-        if (p.data?.stateId && hasInteractiveMetricValue(p.data.value) && onStateClickRef.current) {
+        if (p.data?.stateId && p.data?.name && onStateClickRef.current) {
           onStateClickRef.current(p.data.stateId, p.data.name)
         }
       })
@@ -621,8 +661,23 @@ export function IndiaMapChart({
           }
         })
       }
+
+      chart.on('mousemove', (params: unknown) => {
+        const p = params as {
+          data?: {
+            stateId?: string
+            value?: number
+          }
+        }
+        const hasInteractiveRegion = Boolean(p.data?.stateId)
+        chart.getZr().setCursorStyle(hasInteractiveRegion ? 'pointer' : 'default')
+      })
+
+      chart.on('globalout', () => {
+        chart.getZr().setCursorStyle('default')
+      })
     },
-    [disableHoverEffect, hasInteractiveMetricValue]
+    [disableHoverEffect]
   )
 
   return (
@@ -636,65 +691,119 @@ export function IndiaMapChart({
         position: 'relative',
       }}
     >
-      <div style={{ flex: 1, minHeight: 0 }}>
-        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-          <div
+      {/* Controls header: State/District view tabs (left) + Quantity/Regularity toggle (right) */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingBottom: '8px',
+          flexShrink: 0,
+          flexWrap: 'wrap',
+          gap: '8px',
+        }}
+      >
+        <div>
+          {showViewTabs ? (
+            <div
+              role="group"
+              aria-label={t('map.viewTabs.ariaLabel', { defaultValue: 'Map view' })}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+              }}
+            >
+              {(['state', 'district'] as const).map((mode) => {
+                const isActive = mapViewMode === mode
+                const label = mode === 'state' ? stateViewLabel : districtViewLabel
+                return (
+                  <button
+                    key={mode}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => onMapViewModeChange?.(mode)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '999px',
+                      border: 'none',
+                      outline: 'none',
+                      cursor: 'pointer',
+                      padding: '4px 16px',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      lineHeight: '21px',
+                      fontFamily: 'Geist',
+                      color: isActive ? '#3291D1' : '#A0A0AB',
+                      backgroundColor: isActive ? '#EBF4FA' : 'transparent',
+                      transition: 'background-color 0.2s ease, color 0.2s ease',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+          ) : null}
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <span
             style={{
-              position: 'absolute',
-              top: '10px',
-              right: '16px',
-              zIndex: 2,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
+              fontSize: isBelowSm ? '12px' : bodyText6.fontSize,
+              lineHeight: isBelowSm ? '16px' : `${bodyText6.lineHeight}px`,
+              fontWeight: bodyText6.fontWeight,
+              color: bodyText6.color,
+              opacity: isRegularityView ? 0.45 : 1,
+              transition: 'opacity 0.2s ease',
             }}
           >
-            <span
-              style={{
-                fontSize: isBelowSm ? '12px' : bodyText6.fontSize,
-                lineHeight: isBelowSm ? '16px' : `${bodyText6.lineHeight}px`,
-                fontWeight: bodyText6.fontWeight,
-                color: bodyText6.color,
-                opacity: isRegularityView ? 0.45 : 1,
-                transition: 'opacity 0.2s ease',
+            {quantityLabel}
+          </span>
+          <div
+            style={isBelowSm ? { transform: 'scale(0.85)', transformOrigin: 'center' } : undefined}
+          >
+            <Toggle
+              isChecked={isRegularityView}
+              alwaysPrimaryTrack
+              aria-label={t('map.metric.toggleAriaLabel', {
+                defaultValue: 'Switch map metric. Currently selected: {{metric}}',
+                metric: selectedMetricLabel,
+              })}
+              onChange={(event) => {
+                const nextValue = event.target.checked
+                if (controlledIsRegularityView === undefined) {
+                  setInternalIsRegularityView(nextValue)
+                }
+                onRegularityViewChange?.(nextValue)
               }}
-            >
-              {quantityLabel}
-            </span>
-            <div
-              style={
-                isBelowSm ? { transform: 'scale(0.85)', transformOrigin: 'center' } : undefined
-              }
-            >
-              <Toggle
-                isChecked={isRegularityView}
-                alwaysPrimaryTrack
-                aria-label={t('map.metric.toggleAriaLabel', {
-                  defaultValue: 'Switch map metric. Currently selected: {{metric}}',
-                  metric: selectedMetricLabel,
-                })}
-                onChange={(event) => {
-                  const nextValue = event.target.checked
-                  if (controlledIsRegularityView === undefined) {
-                    setInternalIsRegularityView(nextValue)
-                  }
-                  onRegularityViewChange?.(nextValue)
-                }}
-              />
-            </div>
-            <span
-              style={{
-                fontSize: isBelowSm ? '12px' : bodyText6.fontSize,
-                lineHeight: isBelowSm ? '16px' : `${bodyText6.lineHeight}px`,
-                fontWeight: bodyText6.fontWeight,
-                color: bodyText6.color,
-                opacity: isRegularityView ? 1 : 0.45,
-                transition: 'opacity 0.2s ease',
-              }}
-            >
-              {regularityLabel}
-            </span>
+            />
           </div>
+          <span
+            style={{
+              fontSize: isBelowSm ? '12px' : bodyText6.fontSize,
+              lineHeight: isBelowSm ? '16px' : `${bodyText6.lineHeight}px`,
+              fontWeight: bodyText6.fontWeight,
+              color: bodyText6.color,
+              opacity: isRegularityView ? 1 : 0.45,
+              transition: 'opacity 0.2s ease',
+            }}
+          >
+            {regularityLabel}
+          </span>
+        </div>
+      </div>
+
+      <div style={{ flex: 1, minHeight: 0 }}>
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
           {onFullscreenToggle ? (
             <div
               style={{

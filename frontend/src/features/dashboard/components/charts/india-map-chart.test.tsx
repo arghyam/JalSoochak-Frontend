@@ -129,7 +129,7 @@ describe('IndiaMapChart', () => {
     )
   })
 
-  it('does not register a departmental map when only a parent overlay boundary is provided', () => {
+  it('registers and renders a departmental map when only a parent boundary is provided', () => {
     mockGetMap.mockReturnValue({})
 
     renderWithProviders(
@@ -140,15 +140,17 @@ describe('IndiaMapChart', () => {
       />
     )
 
-    expect(mockRegisterMap).not.toHaveBeenCalled()
-
-    renderWithProviders(
-      <IndiaMapChart
-        data={chartDataWithoutBoundary}
-        mapName="tenant-boundary-department-201"
-        parentBoundaryGeoJson={parentBoundaryGeoJson}
-        isLoading
-      />
+    expect(mockRegisterMap).toHaveBeenCalledWith(
+      'tenant-boundary-department-201',
+      expect.objectContaining({
+        features: expect.arrayContaining([
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              name: PARENT_BOUNDARY_FEATURE_NAME,
+            }),
+          }),
+        ]),
+      })
     )
 
     const latestOption = mockEChartsWrapper.mock.calls.at(-1)?.[0]?.option as
@@ -162,8 +164,9 @@ describe('IndiaMapChart', () => {
       (item) => item.name === PARENT_BOUNDARY_FEATURE_NAME
     )
 
-    expect(overlay).toBeUndefined()
-    expect(mockRegisterMap).not.toHaveBeenCalled()
+    expect(overlay?.silent).toBe(true)
+    expect(screen.queryByText('Map currently unavailable')).toBeNull()
+    expect(mockEChartsWrapper).toHaveBeenCalled()
   })
 
   it('shows no map available when a departmental map has no boundary geojson', () => {
@@ -409,6 +412,7 @@ describe('IndiaMapChart', () => {
       onChartReady?: (chart: {
         off: (event: string) => void
         on: (event: string, handler: (params: unknown) => void) => void
+        getZr: () => { setCursorStyle: (cursor: string) => void }
       }) => void
     }
 
@@ -418,6 +422,9 @@ describe('IndiaMapChart', () => {
       on: jest.fn((event: string, handler: (params: unknown) => void) => {
         handlers[event] = handler
       }),
+      getZr: jest.fn(() => ({
+        setCursorStyle: jest.fn(),
+      })),
     }
 
     latestProps.onChartReady?.(chart)
@@ -429,7 +436,7 @@ describe('IndiaMapChart', () => {
     expect(onStateHover).toHaveBeenCalledWith('region-1', 'Region 1', chartData[0])
   })
 
-  it('does not trigger click callback for no-data zones', () => {
+  it('triggers click callback for no-data zones when state id is present', () => {
     mockGetMap.mockReturnValue({})
     const onStateClick = jest.fn()
 
@@ -439,6 +446,7 @@ describe('IndiaMapChart', () => {
       onChartReady?: (chart: {
         off: (event: string) => void
         on: (event: string, handler: (params: unknown) => void) => void
+        getZr: () => { setCursorStyle: (cursor: string) => void }
       }) => void
     }
 
@@ -448,13 +456,86 @@ describe('IndiaMapChart', () => {
       on: jest.fn((event: string, handler: (params: unknown) => void) => {
         handlers[event] = handler
       }),
+      getZr: jest.fn(() => ({
+        setCursorStyle: jest.fn(),
+      })),
     }
 
     latestProps.onChartReady?.(chart)
 
     handlers.click?.({ data: { stateId: 'region-1', name: 'Region 1', value: -1 } })
 
-    expect(onStateClick).not.toHaveBeenCalled()
+    expect(onStateClick).toHaveBeenCalledWith('region-1', 'Region 1')
+  })
+
+  it('triggers click callback for no-data zones in district view when state id is present', () => {
+    mockGetMap.mockReturnValue({})
+    const onStateClick = jest.fn()
+
+    renderWithProviders(
+      <IndiaMapChart data={chartData} onStateClick={onStateClick} mapViewMode="district" />
+    )
+
+    const latestProps = mockEChartsWrapper.mock.calls.at(-1)?.[0] as {
+      onChartReady?: (chart: {
+        off: (event: string) => void
+        on: (event: string, handler: (params: unknown) => void) => void
+        getZr: () => { setCursorStyle: (cursor: string) => void }
+      }) => void
+    }
+
+    const handlers: Record<string, (params: unknown) => void> = {}
+    const chart = {
+      off: jest.fn(),
+      on: jest.fn((event: string, handler: (params: unknown) => void) => {
+        handlers[event] = handler
+      }),
+      getZr: jest.fn(() => ({
+        setCursorStyle: jest.fn(),
+      })),
+    }
+
+    latestProps.onChartReady?.(chart)
+
+    handlers.click?.({ data: { stateId: 'region-1', name: 'Region 1', value: -1 } })
+
+    expect(onStateClick).toHaveBeenCalledWith('region-1', 'Region 1')
+  })
+
+  it('uses default cursor for no-data regions and pointer for interactive regions', () => {
+    mockGetMap.mockReturnValue({})
+
+    renderWithProviders(<IndiaMapChart data={chartData} />)
+
+    const latestProps = mockEChartsWrapper.mock.calls.at(-1)?.[0] as {
+      onChartReady?: (chart: {
+        off: (event: string) => void
+        on: (event: string, handler: (params: unknown) => void) => void
+        getZr: () => { setCursorStyle: (cursor: string) => void }
+      }) => void
+    }
+
+    const handlers: Record<string, (params: unknown) => void> = {}
+    const setCursorStyle = jest.fn()
+    const chart = {
+      off: jest.fn(),
+      on: jest.fn((event: string, handler: (params: unknown) => void) => {
+        handlers[event] = handler
+      }),
+      getZr: jest.fn(() => ({
+        setCursorStyle,
+      })),
+    }
+
+    latestProps.onChartReady?.(chart)
+
+    handlers.mousemove?.({ data: { stateId: 'region-1', value: -1 } })
+    handlers.mousemove?.({ data: { stateId: 'region-1', value: 54 } })
+    handlers.globalout?.({})
+
+    expect(setCursorStyle).toHaveBeenNthCalledWith(1, 'pointer')
+    expect(setCursorStyle).toHaveBeenNthCalledWith(2, 'pointer')
+    expect(setCursorStyle).toHaveBeenNthCalledWith(3, 'default')
   })
 
   it('does not apply hover emphasis color for no-data zones', () => {

@@ -66,9 +66,15 @@ jest.mock('react-i18next', () => ({
 
 jest.mock('@/app/store/auth-store', () => ({
   useAuthStore: jest.fn(
-    (selector: (s: { user: { personId: string; tenantCode: string } }) => unknown) =>
-      selector({ user: { personId: '15', tenantCode: 'nl' } })
+    (
+      selector: (s: { user: { personId: string; tenantCode: string; tenantId: string } }) => unknown
+    ) => selector({ user: { personId: '15', tenantCode: 'nl', tenantId: '18' } })
   ),
+}))
+
+const mockUseTenantPublicConfigQuery = jest.fn()
+jest.mock('@/features/dashboard/services/query/use-tenant-public-config-query', () => ({
+  useTenantPublicConfigQuery: (...args: unknown[]) => mockUseTenantPublicConfigQuery(...args),
 }))
 
 const mockUsePumpOperatorDetailsQuery = jest.fn()
@@ -206,6 +212,13 @@ function renderPage(operatorId = '3') {
 
 beforeEach(() => {
   jest.clearAllMocks()
+  mockUseTenantPublicConfigQuery.mockReturnValue({
+    data: {
+      dateFormatTable: {
+        dateFormat: 'MM/DD/YYYY',
+      },
+    },
+  })
   Object.defineProperty(URL, 'createObjectURL', {
     writable: true,
     value: jest.fn(() => 'blob:mock-url'),
@@ -279,6 +292,7 @@ describe('PumpOperatorViewPage', () => {
     expect(screen.getByText('Shyam Singh')).toBeTruthy()
     expect(screen.getByText('9919420001')).toBeTruthy()
     expect(screen.getByText('85%')).toBeTruthy()
+    expect(screen.getByText('04/06/2026, 10:58')).toBeTruthy()
   })
 
   it('shows "—" for null reporting rate and submission', () => {
@@ -326,6 +340,7 @@ describe('PumpOperatorViewPage', () => {
     renderPage()
     expect(screen.getByText('Test Scheme 1')).toBeTruthy()
     expect(screen.getByText('SS-001')).toBeTruthy()
+    expect(screen.getByText('03/31/2026, 23:18')).toBeTruthy()
     expect(screen.getByText('-2722')).toBeTruthy()
     expect(screen.getByText('0')).toBeTruthy()
   })

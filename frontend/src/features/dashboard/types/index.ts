@@ -167,7 +167,7 @@ export interface AverageWaterSupplyPerRegionQueryParams {
 export interface WaterQuantityPeriodicQueryParams {
   startDate: string
   endDate: string
-  scale: 'day' | 'week' | 'month'
+  scale: 'day' | 'week' | 'month' | 'quarter' | 'year'
   lgdId?: number
   departmentId?: number
 }
@@ -235,7 +235,7 @@ export interface SchemeRegularityPeriodicQueryParams {
   tenantId: number
   startDate: string
   endDate: string
-  scale: 'day' | 'week' | 'month'
+  scale: 'day' | 'week' | 'month' | 'quarter' | 'year'
   lgdId?: number
   departmentId?: number
 }
@@ -243,7 +243,7 @@ export interface SchemeRegularityPeriodicQueryParams {
 export interface NationalSchemeRegularityPeriodicQueryParams {
   startDate: string
   endDate: string
-  scale: 'day' | 'week' | 'month'
+  scale: 'day' | 'week' | 'month' | 'quarter' | 'year'
 }
 
 export interface SchemeRegularityPeriodicMetric {
@@ -427,6 +427,13 @@ export interface TenantBoundaryQueryParams {
 }
 
 export interface TenantBoundaryChildRegion {
+  lgdId?: number
+  departmentId?: number
+  parentLgdId?: number
+  parentDepartmentId?: number
+  title?: string
+  lgdCode?: string
+  schemeCount?: number
   childLgdId?: number
   childLgdCName?: string
   childLgdTitle?: string
@@ -443,13 +450,43 @@ export interface TenantBoundaryChildRegion {
 export interface TenantBoundaryResponse {
   tenantId: number
   stateCode: string
+  parentLgdLevel?: number | null
+  parentDepartmentLevel?: number | null
   childBoundaryCount: number
-  boundaryGeoJson?: string | null
   averageSchemeRegularity?: number
   readingSubmissionRate?: number
   averagePerformanceScore?: number
   childRegions: TenantBoundaryChildRegion[]
+}
+
+export interface TenantBoundaryGeoJsonQueryParams {
+  tenantId: number
+  parentLgdId?: number
+  parentDepartmentId?: number
+}
+
+export interface TenantBoundaryGeoJsonChildRegion {
+  lgdId?: number
+  departmentId?: number
+  parentLgdId?: number
+  parentDepartmentId?: number
+  lgdLevel?: number
+  title?: string
+  lgdCode?: string
+  boundaryGeoJson?: string | GeoJsonGeometry | null
   parsedBoundaryGeoJson?: GeoJsonGeometry | null
+}
+
+export interface TenantBoundaryGeoJsonResponse {
+  tenantId: number
+  stateCode: string
+  parentLgdLevel?: number | null
+  parentDepartmentLevel?: number | null
+  childBoundaryCount: number
+  childRegionCount?: number
+  parentBoundaryGeoJson?: string | GeoJsonGeometry | null
+  childRegions: TenantBoundaryGeoJsonChildRegion[]
+  parsedParentBoundaryGeoJson?: GeoJsonGeometry | null
 }
 
 export interface ReadingSubmissionRateQueryParams {
@@ -673,7 +710,7 @@ export interface OutageReasonsPeriodicQueryParams {
   tenantId: number
   startDate: string
   endDate: string
-  scale: 'day' | 'week' | 'month'
+  scale: 'day' | 'week' | 'month' | 'quarter' | 'year'
   lgdId?: number
   departmentId?: number
 }

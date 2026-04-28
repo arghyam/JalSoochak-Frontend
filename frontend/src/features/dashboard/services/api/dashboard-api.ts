@@ -31,6 +31,8 @@ import type {
   SchemePerformanceResponse,
   SubmissionStatusQueryParams,
   SubmissionStatusResponse,
+  TenantBoundaryGeoJsonQueryParams,
+  TenantBoundaryGeoJsonResponse,
   TenantBoundaryQueryParams,
   TenantBoundaryResponse,
   WaterQuantityPeriodicQueryParams,
@@ -75,6 +77,10 @@ export type TenantPublicConfig = {
   averageMembersPerHousehold: number
   waterNorm: number
   dateFormatScreen: TenantPublicDateFormatConfig
+  dateFormatTable: TenantPublicDateFormatConfig
+  displayDepartmentMaps?: boolean
+  displayDepartmentMapLevels?: boolean[]
+  displayMapLgdLevels?: boolean[]
 }
 
 const TENANTS_PAGE_SIZE = 10
@@ -112,8 +118,83 @@ type ApiEnvelope<T> = {
 
 type TenantPublicConfigMap = {
   DATE_FORMAT_SCREEN?: TenantPublicDateFormatConfig
+  DATE_FORMAT_TABLE?: TenantPublicDateFormatConfig
   AVERAGE_MEMBERS_PER_HOUSEHOLD?: { value?: string | null }
   WATER_NORM?: { value?: string | null }
+  DISPLAY_DEPARTMENT_MAPS?: { value?: string | null }
+  DISPLAY_DEPARTMENT_MAP_LEVEL_1?: { value?: string | null }
+  DISPLAY_DEPARTMENT_MAP_LEVEL_2?: { value?: string | null }
+  DISPLAY_DEPARTMENT_MAP_LEVEL_3?: { value?: string | null }
+  DISPLAY_DEPARTMENT_MAP_LEVEL_4?: { value?: string | null }
+  DISPLAY_DEPARTMENT_MAP_LEVEL_5?: { value?: string | null }
+  DISPLAY_DEPARTMENT_MAP_LEVEL_6?: { value?: string | null }
+  DISPLAY_MAP_LGD_LEVEL_1?: { value?: string | null }
+  DISPLAY_MAP_LGD_LEVEL_2?: { value?: string | null }
+  DISPLAY_MAP_LGD_LEVEL_3?: { value?: string | null }
+  DISPLAY_MAP_LGD_LEVEL_4?: { value?: string | null }
+  DISPLAY_MAP_LGD_LEVEL_5?: { value?: string | null }
+  DISPLAY_MAP_LGD_LEVEL_6?: { value?: string | null }
+}
+
+const DEPARTMENT_MAP_LEVEL_KEYS = [
+  'DISPLAY_DEPARTMENT_MAP_LEVEL_1',
+  'DISPLAY_DEPARTMENT_MAP_LEVEL_2',
+  'DISPLAY_DEPARTMENT_MAP_LEVEL_3',
+  'DISPLAY_DEPARTMENT_MAP_LEVEL_4',
+  'DISPLAY_DEPARTMENT_MAP_LEVEL_5',
+  'DISPLAY_DEPARTMENT_MAP_LEVEL_6',
+] as const
+
+const LGD_MAP_LEVEL_KEYS = [
+  'DISPLAY_MAP_LGD_LEVEL_1',
+  'DISPLAY_MAP_LGD_LEVEL_2',
+  'DISPLAY_MAP_LGD_LEVEL_3',
+  'DISPLAY_MAP_LGD_LEVEL_4',
+  'DISPLAY_MAP_LGD_LEVEL_5',
+  'DISPLAY_MAP_LGD_LEVEL_6',
+] as const
+
+const readBooleanConfigValue = (value: string | null | undefined, fallback: boolean): boolean => {
+  if (typeof value !== 'string') {
+    return fallback
+  }
+  if (value === 'TRUE' || value === 'YES') {
+    return true
+  }
+  if (value === 'FALSE' || value === 'NO') {
+    return false
+  }
+  return fallback
+}
+
+const readDepartmentMapLevelsWithCascade = (configs: TenantPublicConfigMap): boolean[] => {
+  const levels = DEPARTMENT_MAP_LEVEL_KEYS.map((key) => {
+    const entry = configs[key]
+    return readBooleanConfigValue(entry?.value, true)
+  })
+
+  for (let index = 1; index < levels.length; index += 1) {
+    if (!levels[index - 1]) {
+      levels[index] = false
+    }
+  }
+
+  return levels
+}
+
+const readLgdMapLevelsWithCascade = (configs: TenantPublicConfigMap): boolean[] => {
+  const levels = LGD_MAP_LEVEL_KEYS.map((key) => {
+    const entry = configs[key]
+    return readBooleanConfigValue(entry?.value, true)
+  })
+
+  for (let index = 1; index < levels.length; index += 1) {
+    if (!levels[index - 1]) {
+      levels[index] = false
+    }
+  }
+
+  return levels
 }
 
 type TenantBoundaryChildRegionAlias = {
@@ -124,8 +205,23 @@ type TenantBoundaryChildRegionAlias = {
   childDepartmentId?: number
   childDepartmentTitle?: string
   departmentId?: number
+  parentLgdId?: number
+  parentDepartmentId?: number
+  lgdCode?: string
+  schemeCount?: number
   title?: string
   childBoundaryGeoJson?: string | null
+  boundaryGeoJson?: unknown
+}
+
+type TenantBoundaryGeoJsonChildRegionAlias = {
+  lgdId?: number
+  departmentId?: number | null
+  parentLgdId?: number
+  parentDepartmentId?: number | null
+  lgdLevel?: number
+  title?: string
+  lgdCode?: string
   boundaryGeoJson?: unknown
 }
 
@@ -316,33 +412,48 @@ const normalizeWaterQuantityRegionWiseResponse = (
 })
 
 const normalizeTenantBoundaryChildRegion = <T extends TenantBoundaryChildRegionAlias>(
-  region: T,
-  context: string
+  region: T
 ) => ({
   ...region,
   childLgdId: region.childLgdId ?? region.lgdId,
   childDepartmentId: region.childDepartmentId ?? region.departmentId ?? undefined,
   childLgdTitle: region.childLgdTitle ?? region.title ?? region.childDepartmentTitle ?? '',
-  boundaryGeoJson: (() => {
-    const parsed = parseBoundaryGeoJson(
-      region.boundaryGeoJson ?? region.childBoundaryGeoJson,
-      `${context} child region`
-    )
+  title: region.title ?? region.childDepartmentTitle ?? region.childLgdTitle ?? '',
+})
+
+const normalizeTenantBoundaryResponse = (
+  response: TenantBoundaryResponse
+): TenantBoundaryResponse => ({
+  ...response,
+  childRegions: Array.isArray(response.childRegions)
+    ? response.childRegions.map((region) => normalizeTenantBoundaryChildRegion(region))
+    : [],
+})
+
+const normalizeTenantBoundaryGeoJsonChildRegion = <T extends TenantBoundaryGeoJsonChildRegionAlias>(
+  region: T,
+  context: string
+) => ({
+  ...region,
+  parsedBoundaryGeoJson: (() => {
+    const parsed = parseBoundaryGeoJson(region.boundaryGeoJson, `${context} child region`)
     return isGeoJsonGeometry(parsed) ? parsed : null
   })(),
 })
 
-const normalizeTenantBoundaryResponse = (
-  response: TenantBoundaryResponse,
-  context = 'tenant boundary analytics'
-): TenantBoundaryResponse => ({
+const normalizeTenantBoundaryGeoJsonResponse = (
+  response: TenantBoundaryGeoJsonResponse,
+  context = 'tenant boundary geojson analytics'
+): TenantBoundaryGeoJsonResponse => ({
   ...response,
-  parsedBoundaryGeoJson: (() => {
-    const parsed = parseBoundaryGeoJson(response.boundaryGeoJson, context)
+  parsedParentBoundaryGeoJson: (() => {
+    const parsed = parseBoundaryGeoJson(response.parentBoundaryGeoJson, context)
     return isGeoJsonGeometry(parsed) ? parsed : null
   })(),
   childRegions: Array.isArray(response.childRegions)
-    ? response.childRegions.map((region) => normalizeTenantBoundaryChildRegion(region, context))
+    ? response.childRegions.map((region) =>
+        normalizeTenantBoundaryGeoJsonChildRegion(region, context)
+      )
     : [],
 })
 
@@ -606,7 +717,15 @@ export const dashboardApi = {
         const parsedWaterNorm = Number(configs?.WATER_NORM?.value)
         return Number.isFinite(parsedWaterNorm) && parsedWaterNorm > 0 ? parsedWaterNorm : 0
       })(),
+      displayDepartmentMaps: configs?.DISPLAY_DEPARTMENT_MAPS?.value !== 'NO',
+      displayDepartmentMapLevels: readDepartmentMapLevelsWithCascade(configs),
+      displayMapLgdLevels: readLgdMapLevelsWithCascade(configs),
       dateFormatScreen: configs?.DATE_FORMAT_SCREEN ?? {
+        dateFormat: null,
+        timeFormat: null,
+        timezone: null,
+      },
+      dateFormatTable: configs?.DATE_FORMAT_TABLE ?? {
         dateFormat: null,
         timeFormat: null,
         timezone: null,
@@ -725,11 +844,38 @@ export const dashboardApi = {
       unwrapAnalyticsResponse(response.data, 'tenant boundary analytics') ?? {
         tenantId: params.tenantId,
         stateCode: '',
+        parentLgdLevel: null,
+        parentDepartmentLevel: null,
         childBoundaryCount: 0,
-        boundaryGeoJson: null,
         averageSchemeRegularity: 0,
         readingSubmissionRate: 0,
         averagePerformanceScore: 0,
+        childRegions: [],
+      }
+    )
+  },
+  getTenantBoundaryGeoJson: async (
+    params: TenantBoundaryGeoJsonQueryParams
+  ): Promise<TenantBoundaryGeoJsonResponse> => {
+    const response = await apiClient.get<
+      TenantBoundaryGeoJsonResponse | WrappedAnalyticsResponse<TenantBoundaryGeoJsonResponse>
+    >('/api/v1/analytics/tenant_boundaries', {
+      params: {
+        tenant_id: params.tenantId,
+        parent_lgd_id: params.parentLgdId,
+        parent_department_id: params.parentDepartmentId,
+      },
+    })
+
+    return normalizeTenantBoundaryGeoJsonResponse(
+      unwrapAnalyticsResponse(response.data, 'tenant boundary geojson analytics') ?? {
+        tenantId: params.tenantId,
+        stateCode: '',
+        parentLgdLevel: null,
+        parentDepartmentLevel: null,
+        childBoundaryCount: 0,
+        childRegionCount: 0,
+        parentBoundaryGeoJson: null,
         childRegions: [],
       }
     )

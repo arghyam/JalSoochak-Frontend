@@ -25,6 +25,7 @@ import { useTenantPublicConfigQuery } from '../services/query/use-tenant-public-
 import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
 import { useWaterQuantityRegionWiseQuery } from '../services/query/use-water-quantity-region-wise-query'
 import { useTenantBoundariesQuery } from '../services/query/use-tenant-boundaries-query'
+import { useTenantBoundaryGeoJsonQuery } from '../services/query/use-tenant-boundary-geojson-query'
 import { getPreviousPeriodRange } from '../utils/formulas'
 import { stateSlugToCode } from '@/shared/constants/states'
 
@@ -151,6 +152,10 @@ jest.mock('../services/query/use-tenant-boundaries-query', () => ({
   useTenantBoundariesQuery: jest.fn(),
 }))
 
+jest.mock('../services/query/use-tenant-boundary-geojson-query', () => ({
+  useTenantBoundaryGeoJsonQuery: jest.fn(),
+}))
+
 jest.mock('./filters/dashboard-filters', () => ({
   DashboardFilters: (props: unknown) => mockDashboardFilters(props),
 }))
@@ -252,6 +257,7 @@ describe('CentralDashboard', () => {
     ;(useWaterQuantityPeriodicQuery as jest.Mock).mockReset()
     ;(useWaterQuantityRegionWiseQuery as jest.Mock).mockReset()
     ;(useTenantBoundariesQuery as jest.Mock).mockReset()
+    ;(useTenantBoundaryGeoJsonQuery as jest.Mock).mockReset()
     mockUseParams.mockReturnValue({})
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()])
     mockUseLocation.mockReturnValue({ pathname: '/', search: '', hash: '', state: null })
@@ -288,6 +294,7 @@ describe('CentralDashboard', () => {
     })
     ;(useWaterQuantityRegionWiseQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useTenantBoundariesQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useTenantBoundaryGeoJsonQuery as jest.Mock).mockReturnValue({ data: undefined })
   })
 
   it('renders Overall Performance table panel for central view', () => {
@@ -330,7 +337,7 @@ describe('CentralDashboard', () => {
     })
   })
 
-  it('uses the selected tenant public config for duration format', () => {
+  it('keeps duration format fixed to DD/MM/YYYY even when tenant config is present', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
@@ -350,6 +357,11 @@ describe('CentralDashboard', () => {
           timeFormat: 'HH:mm',
           timezone: 'Asia/Calcutta',
         },
+        dateFormatTable: {
+          dateFormat: 'MM/DD/YYYY',
+          timeFormat: 'HH:mm',
+          timezone: 'Asia/Calcutta',
+        },
       },
     })
 
@@ -361,7 +373,10 @@ describe('CentralDashboard', () => {
     })
     expect(
       getLatestDashboardFilterProps<{ durationDateFormat?: string }>().durationDateFormat
-    ).toBe('MM-DD-YYYY')
+    ).toBe('DD/MM/YYYY')
+    expect(getLatestDashboardBodyProps<{ tableDateFormat?: string }>().tableDateFormat).toBe(
+      'MM/DD/YYYY'
+    )
   })
 
   it('computes previous national dashboard analytics from the active selected duration', () => {
@@ -883,8 +898,8 @@ describe('CentralDashboard', () => {
 
     expect(useNationalDashboardQuery).toHaveBeenCalledWith({
       params: {
-        startDate: '2025-01-23',
-        endDate: '2025-02-21',
+        startDate: '2025-01-22',
+        endDate: '2025-02-20',
       },
       enabled: true,
     })
@@ -1230,8 +1245,8 @@ describe('CentralDashboard', () => {
     expect(dashboardBodyProps.quantityPerformanceData[0]).toEqual(
       expect.objectContaining({
         name: 'Karnataka',
-        coverage: 0.14,
-        quantity: 3,
+        coverage: 55,
+        quantity: 1200,
       })
     )
     expect(dashboardBodyProps.regularityPerformanceData[0]).toEqual(
@@ -1241,12 +1256,12 @@ describe('CentralDashboard', () => {
       })
     )
     expect(dashboardBodyProps.quantityTimeTrendData).toEqual([
-      { period: '01-03-2026\n07-03-2026', value: 1500 },
-      { period: '08-03-2026\n14-03-2026', value: 1750 },
+      { period: '01/03/2026\n07/03/2026', value: 1500 },
+      { period: '08/03/2026\n14/03/2026', value: 1750 },
     ])
     expect(dashboardBodyProps.regularityTimeTrendData).toEqual([
-      { period: '01-03-2026\n07-03-2026', value: 48 },
-      { period: '08-03-2026\n14-03-2026', value: 52 },
+      { period: '01/03/2026\n07/03/2026', value: 48 },
+      { period: '08/03/2026\n14/03/2026', value: 52 },
     ])
     expect(dashboardBodyProps.supplySubmissionRateData[0]).toEqual(
       expect.objectContaining({
@@ -2036,6 +2051,72 @@ describe('CentralDashboard', () => {
       pathname: '/',
       search: '',
     })
+    const postClearCalls = (mockNavigate as jest.Mock).mock.calls.slice(1)
+    expect(postClearCalls).not.toContainEqual([
+      {
+        pathname: `/${encodeURIComponent(stateSlugToCode('assam') ?? 'assam')}`,
+        search: '?district=3%3Abaksa&tab=administrative',
+      },
+    ])
+  })
+
+  it('does not rehydrate stale localStorage filters after clearing state breadcrumb', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedState: 'assam',
+        selectedDistrict: '3:baksa',
+      })
+    )
+    let currentSearchParams = new URLSearchParams('district=3%3Abaksa')
+    let currentLocation = {
+      pathname: '/assam',
+      search: '?district=3%3Abaksa',
+      hash: '',
+      state: null,
+    }
+
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    mockUseSearchParams.mockImplementation(() => [currentSearchParams, jest.fn()])
+    mockUseLocation.mockImplementation(() => currentLocation)
+
+    const { rerender } = renderWithProviders(<CentralDashboard />)
+
+    const dashboardFilterProps = getLatestDashboardFilterProps<{
+      onStateChange: (value: string) => void
+    }>()
+    act(() => {
+      dashboardFilterProps.onStateChange('')
+    })
+
+    expect(mockNavigate).toHaveBeenCalledWith({
+      pathname: '/',
+      search: '',
+    })
+
+    // Simulate router state after navigation so CentralDashboard reads an empty URL on rerender.
+    currentSearchParams = new URLSearchParams()
+    currentLocation = {
+      pathname: '/',
+      search: '',
+      hash: '',
+      state: null,
+    }
+    mockUseParams.mockReturnValue({})
+    rerender(<CentralDashboard />)
+
+    const updatedDashboardFilterProps = getLatestDashboardFilterProps<{
+      selectedState: string
+      selectedDistrict: string
+    }>()
+    expect(updatedDashboardFilterProps.selectedState).toBe('')
+    expect(updatedDashboardFilterProps.selectedDistrict).toBe('')
+
     const postClearCalls = (mockNavigate as jest.Mock).mock.calls.slice(1)
     expect(postClearCalls).not.toContainEqual([
       {
@@ -4107,7 +4188,7 @@ describe('CentralDashboard', () => {
     expect(dashboardBodyProps.quantityPerformanceData[0]).toEqual(
       expect.objectContaining({
         name: 'Alpha',
-        quantity: 3,
+        quantity: 0,
       })
     )
     expect(dashboardBodyProps.regularityPerformanceData[0]).toEqual(
@@ -4327,8 +4408,8 @@ describe('CentralDashboard', () => {
     }>()
 
     expect(dashboardBodyProps.data.supplyOutageTrend).toEqual([
-      { period: '01-03-2026\n07-03-2026', value: 4 },
-      { period: '08-03-2026\n14-03-2026', value: 2 },
+      { period: '01/03/2026\n07/03/2026', value: 4 },
+      { period: '08/03/2026\n14/03/2026', value: 2 },
     ])
   })
 
@@ -5444,7 +5525,33 @@ describe('CentralDashboard', () => {
             averageSchemeRegularity: 0.78,
             readingSubmissionRate: 0.86,
             averagePerformanceScore: 0.64,
-            boundaryGeoJson: {
+          },
+        ],
+      },
+    })
+    ;(useTenantBoundaryGeoJsonQuery as jest.Mock).mockReturnValue({
+      data: {
+        tenantId: 10,
+        stateCode: 'MP',
+        childBoundaryCount: 1,
+        childRegionCount: 1,
+        parsedParentBoundaryGeoJson: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [0, 0],
+              [2, 0],
+              [2, 2],
+              [0, 2],
+              [0, 0],
+            ],
+          ],
+        },
+        childRegions: [
+          {
+            departmentId: 110,
+            title: 'Child Region Title',
+            parsedBoundaryGeoJson: {
               type: 'Polygon',
               coordinates: [
                 [
@@ -5569,6 +5676,10 @@ describe('CentralDashboard', () => {
       data: undefined,
       isLoading: true,
     })
+    ;(useTenantBoundaryGeoJsonQuery as jest.Mock).mockReturnValue({
+      data: undefined,
+      isLoading: true,
+    })
 
     renderWithProviders(<CentralDashboard />)
 
@@ -5619,7 +5730,33 @@ describe('CentralDashboard', () => {
             childLgdId: 201,
             childLgdTitle: 'Kamrup',
             averageSchemeRegularity: 0.78,
-            boundaryGeoJson: {
+          },
+        ],
+      },
+    })
+    ;(useTenantBoundaryGeoJsonQuery as jest.Mock).mockReturnValue({
+      data: {
+        tenantId: 17,
+        stateCode: 'AS',
+        childBoundaryCount: 1,
+        childRegionCount: 1,
+        parsedParentBoundaryGeoJson: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [0, 0],
+              [2, 0],
+              [2, 2],
+              [0, 2],
+              [0, 0],
+            ],
+          ],
+        },
+        childRegions: [
+          {
+            lgdId: 201,
+            title: 'Kamrup',
+            parsedBoundaryGeoJson: {
               type: 'Polygon',
               coordinates: [
                 [
@@ -6173,5 +6310,111 @@ describe('CentralDashboard', () => {
         regularity: 15,
       }),
     ])
+  })
+
+  describe('single-tenant mode with singleTenantOverride', () => {
+    it('should use singleTenantOverride to select tenant without URL slug', () => {
+      // In single-tenant mode at /, the dashboard has no stateSlug from URL
+      // but receives singleTenantOverride with the pre-selected tenant
+      mockUseParams.mockReturnValue({}) // No stateSlug in URL (at /)
+      ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+        data: {
+          totalStatesCount: 2,
+          states: [
+            { value: 'maharashtra', label: 'Maharashtra', tenantId: 1, tenantCode: 'MH' },
+            { value: 'karnataka', label: 'Karnataka', tenantId: 2, tenantCode: 'KA' },
+          ],
+        },
+        isLoading: false,
+        isError: false,
+      })
+      ;(useDashboardData as jest.Mock).mockReturnValue({
+        data: null,
+        isLoading: false,
+        isError: false,
+      })
+      ;(useTenantPublicConfigQuery as jest.Mock).mockReturnValue({
+        data: null,
+        isLoading: false,
+        isError: false,
+      })
+
+      // All other queries return empty/default data to avoid deep test complexity
+      ;[
+        useLocationChildrenQuery,
+        useDistrictSchemeBlockLookupQuery,
+        useBlockSchemePanchayatLookupQuery,
+        useLocationHierarchyQuery,
+        useAverageWaterSupplyPerRegionQuery,
+        useAverageSchemeRegularityQuery,
+        useNationalDashboardQuery,
+        useNationalDashboardBoundariesQuery,
+        useNationalSchemeRegularityPeriodicQuery,
+        useOutageReasonsPeriodicQuery,
+        useOutageReasonsQuery,
+        useReadingComplianceQuery,
+        useReadingSubmissionRateQuery,
+        useSchemeRegularityPeriodicQuery,
+        useSchemePerformanceQuery,
+        useSubmissionStatusQuery,
+        useWaterQuantityPeriodicQuery,
+        useWaterQuantityRegionWiseQuery,
+        useTenantBoundariesQuery,
+      ].forEach((hook) => {
+        ;(hook as jest.Mock).mockReturnValue({
+          data: null,
+          isLoading: false,
+          isError: false,
+        })
+      })
+
+      const singleTenantOverride = {
+        value: 'maharashtra',
+        label: 'Maharashtra',
+        tenantId: 1,
+        tenantCode: 'MH',
+      }
+
+      renderWithProviders(<CentralDashboard singleTenantOverride={singleTenantOverride} />)
+
+      // Verify the dashboard rendered (component exists)
+      expect(screen.getByTestId('dashboard-filters')).toBeTruthy()
+
+      // Verify the override was used by checking that the tenant filters are initialized
+      // (This would have been empty string if selectedState was derived from empty stateSlug)
+      const filterProps = getLatestDashboardFilterProps<{ selectedState: string }>()
+      expect(filterProps.selectedState).toBe('maharashtra')
+      expect(useTenantPublicConfigQuery).toHaveBeenCalledWith({
+        tenantId: singleTenantOverride.tenantId,
+        enabled: true,
+      })
+    })
+
+    it('should keep selectedState empty when no URL state and no singleTenantOverride', () => {
+      mockUseParams.mockReturnValue({})
+      ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+        data: {
+          totalStatesCount: 1,
+          states: [{ value: 'maharashtra', label: 'Maharashtra', tenantId: 1, tenantCode: 'MH' }],
+        },
+        isLoading: false,
+        isError: false,
+      })
+      ;(useDashboardData as jest.Mock).mockReturnValue({
+        data: null,
+        isLoading: false,
+        isError: false,
+      })
+      ;(useTenantPublicConfigQuery as jest.Mock).mockReturnValue({
+        data: null,
+        isLoading: false,
+        isError: false,
+      })
+
+      renderWithProviders(<CentralDashboard />)
+
+      const filterProps = getLatestDashboardFilterProps<{ selectedState: string }>()
+      expect(filterProps.selectedState).toBe('')
+    })
   })
 })

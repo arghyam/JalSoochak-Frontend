@@ -22,7 +22,11 @@ import { StateUtDashboardScreen } from './state-ut-dashboard'
 import { ChartEmptyState, ViewBySelect } from '@/shared/components/common'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { VillageDashboardScreen } from './village-dashboard'
+import { getOutageTimeScaleXAxisLabel } from './outage-time-scale-toggle'
 import { useOutageDistributionState } from './use-outage-distribution-state'
+
+type PerformanceTimeScale = 'day' | 'week' | 'month' | 'quarter' | 'year'
+type OutageTimeScale = 'day' | 'week' | 'month' | 'quarter' | 'year'
 
 type DashboardBodyProps = {
   data: DashboardData
@@ -36,12 +40,12 @@ type DashboardBodyProps = {
   isDepartmentCircleSelected?: boolean
   isDepartmentDivisionSelected?: boolean
   selectedVillage: string
-  quantityTimeScaleTab?: 'day' | 'week' | 'month'
-  onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
-  regularityTimeScaleTab?: 'day' | 'week' | 'month'
-  onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
-  outageDistributionTimeScaleTab?: 'day' | 'week' | 'month'
-  onOutageDistributionTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
+  quantityTimeScaleTab?: PerformanceTimeScale
+  onQuantityTimeScaleTabChange?: (value: PerformanceTimeScale) => void
+  regularityTimeScaleTab?: PerformanceTimeScale
+  onRegularityTimeScaleTabChange?: (value: PerformanceTimeScale) => void
+  outageDistributionTimeScaleTab?: OutageTimeScale
+  onOutageDistributionTimeScaleTabChange?: (value: OutageTimeScale) => void
   quantityPerformanceData: EntityPerformance[]
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
@@ -67,6 +71,8 @@ type DashboardBodyProps = {
   schemePerformancePage?: number
   totalSchemePages?: number
   onSchemePageChange?: (page: number) => void
+  tableDateFormat?: string
+  enableExtendedTimeScales?: boolean
 }
 
 type ViewBy = 'geography' | 'time'
@@ -113,6 +119,8 @@ export function DashboardBody({
   schemePerformancePage,
   totalSchemePages,
   onSchemePageChange,
+  tableDateFormat,
+  enableExtendedTimeScales = false,
 }: DashboardBodyProps) {
   const { t } = useTranslation('dashboard')
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
@@ -168,14 +176,7 @@ export function DashboardBody({
   const geographyEntityLabel = isAdministrativeStateScreen
     ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
     : supplySubmissionRateLabel
-  const outageTimeXAxisLabel =
-    outageDistributionTimeScaleTab === 'day'
-      ? 'Day'
-      : outageDistributionTimeScaleTab === 'week'
-        ? 'Week'
-        : outageDistributionTimeScaleTab === 'month'
-          ? 'Month'
-          : t('performanceCharts.viewBy.time', { defaultValue: 'Time' })
+  const outageTimeXAxisLabel = getOutageTimeScaleXAxisLabel(outageDistributionTimeScaleTab, t)
   return (
     <>
       {/* Quantity + Regularity Charts */}
@@ -194,6 +195,8 @@ export function DashboardBody({
           regularityTimeTrendData={regularityTimeTrendData}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
           geographyEntityLabel={geographyEntityLabel}
+          tableDateFormat={tableDateFormat}
+          enableExtendedTimeScales={enableExtendedTimeScales}
         />
       ) : null}
 
@@ -224,6 +227,7 @@ export function DashboardBody({
           schemePerformancePage={schemePerformancePage}
           totalSchemePages={totalSchemePages}
           onSchemePageChange={onSchemePageChange}
+          tableDateFormat={tableDateFormat}
         />
       ) : null}
       {isBlockScreen ? (
@@ -256,6 +260,7 @@ export function DashboardBody({
           schemePerformancePage={schemePerformancePage}
           totalSchemePages={totalSchemePages}
           onSchemePageChange={onSchemePageChange}
+          tableDateFormat={tableDateFormat}
         />
       ) : null}
       {isGramPanchayatScreen ? (
@@ -285,6 +290,7 @@ export function DashboardBody({
           schemePerformancePage={schemePerformancePage}
           totalSchemePages={totalSchemePages}
           onSchemePageChange={onSchemePageChange}
+          tableDateFormat={tableDateFormat}
         />
       ) : null}
 
@@ -302,6 +308,7 @@ export function DashboardBody({
           regularityTimeTrendData={regularityTimeTrendData}
           isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
+          tableDateFormat={tableDateFormat}
         />
       ) : null}
 
@@ -355,7 +362,7 @@ export function DashboardBody({
                     align="center"
                     gap="8px"
                     sx={{
-                      '@media (max-width: 525px)': {
+                      '@media (max-width: 1279px)': {
                         flexDirection: 'column-reverse',
                         alignItems: 'flex-end',
                         gap: '6px',
@@ -372,7 +379,7 @@ export function DashboardBody({
                         p="4px"
                         gap="4px"
                         sx={{
-                          '@media (max-width: 525px)': {
+                          '@media (max-width: 767px)': {
                             p: '2px',
                             gap: '2px',
                           },
@@ -382,12 +389,16 @@ export function DashboardBody({
                           { key: 'day', label: 'D' },
                           { key: 'week', label: 'W' },
                           { key: 'month', label: 'M' },
+                          { key: 'quarter', label: 'Q' },
+                          { key: 'year', label: 'Y' },
                         ].map((item) => {
                           const isActive = outageDistributionTimeScaleTab === item.key
-                          const timeScaleAriaLabelMap: Record<'day' | 'week' | 'month', string> = {
+                          const timeScaleAriaLabelMap: Record<OutageTimeScale, string> = {
                             day: 'Day view',
                             week: 'Week view',
                             month: 'Month view',
+                            quarter: 'Quarter view',
+                            year: 'Year view',
                           }
                           return (
                             <Box
@@ -396,7 +407,7 @@ export function DashboardBody({
                               type="button"
                               aria-pressed={isActive}
                               aria-label={
-                                timeScaleAriaLabelMap[item.key as 'day' | 'week' | 'month'] ??
+                                timeScaleAriaLabelMap[item.key as OutageTimeScale] ??
                                 `${item.label} view`
                               }
                               h="32px"
@@ -407,12 +418,10 @@ export function DashboardBody({
                               textStyle="bodyText5"
                               fontWeight={isActive ? '600' : '500'}
                               onClick={() =>
-                                onOutageDistributionTimeScaleTabChange(
-                                  item.key as 'day' | 'week' | 'month'
-                                )
+                                onOutageDistributionTimeScaleTabChange(item.key as OutageTimeScale)
                               }
                               sx={{
-                                '@media (max-width: 525px)': {
+                                '@media (max-width: 767px)': {
                                   h: '26px',
                                   minW: '34px',
                                   px: '8px',
@@ -455,6 +464,7 @@ export function DashboardBody({
                         data={waterSupplyOutageDistributionData}
                         height="100%"
                         xAxisLabel={geographyEntityLabel}
+                        dateFormat={tableDateFormat}
                       />
                     ) : (
                       <ChartEmptyState minHeight="100%" />
@@ -470,6 +480,7 @@ export function DashboardBody({
                       seriesName={t('outageAndSubmissionCharts.series.supplyOutage', {
                         defaultValue: 'Supply outage',
                       })}
+                      dateFormat={tableDateFormat}
                     />
                   ) : (
                     <ChartEmptyState minHeight="100%" />
@@ -489,6 +500,7 @@ export function DashboardBody({
                       data={supplySubmissionRateData}
                       height="100%"
                       entityLabel={supplySubmissionRateLabel}
+                      dateFormat={tableDateFormat}
                     />
                   ) : (
                     <ChartEmptyState minHeight="100%" />
@@ -505,6 +517,7 @@ export function DashboardBody({
           data={data}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
+          tableDateFormat={tableDateFormat}
         />
       ) : null}
     </>
@@ -516,14 +529,16 @@ type PerformanceChartsSectionProps = {
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading: boolean
   isQuantityTimeTrendAwaitingParams: boolean
-  quantityTimeScaleTab?: 'day' | 'week' | 'month'
-  onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
-  regularityTimeScaleTab?: 'day' | 'week' | 'month'
-  onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
+  quantityTimeScaleTab?: 'day' | 'week' | 'month' | 'quarter' | 'year'
+  onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month' | 'quarter' | 'year') => void
+  regularityTimeScaleTab?: 'day' | 'week' | 'month' | 'quarter' | 'year'
+  onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month' | 'quarter' | 'year') => void
   regularityPerformanceData: EntityPerformance[]
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading: boolean
   geographyEntityLabel: string
+  tableDateFormat?: string
+  enableExtendedTimeScales?: boolean
 }
 
 function PerformanceChartsSection({
@@ -539,6 +554,8 @@ function PerformanceChartsSection({
   regularityTimeTrendData,
   isRegularityTimeTrendLoading,
   geographyEntityLabel,
+  tableDateFormat,
+  enableExtendedTimeScales = false,
 }: PerformanceChartsSectionProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
@@ -571,6 +588,8 @@ function PerformanceChartsSection({
         isTimeTrendPercent
         regularityTimeScaleTab={regularityTimeScaleTab}
         onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
+        dateFormat={tableDateFormat}
+        enableExtendedTimeScales={enableExtendedTimeScales}
       />
       <PerformanceChartCard
         title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
@@ -599,6 +618,8 @@ function PerformanceChartsSection({
         timeXAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
         quantityTimeScaleTab={quantityTimeScaleTab}
         onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
+        dateFormat={tableDateFormat}
+        enableExtendedTimeScales={enableExtendedTimeScales}
       />
     </Grid>
   )

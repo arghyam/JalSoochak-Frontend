@@ -43,16 +43,6 @@ const getNationalAchievedFhtcCount = (
   state: NationalDashboardResponse['stateWiseQuantityPerformance'][number]
 ) => state.totalAchievedFhtcCount ?? state.totalFhtcCount ?? state.totalHouseholdCount ?? 0
 
-const getNationalDemandFhtcCount = (
-  state: NationalDashboardResponse['stateWiseQuantityPerformance'][number]
-) =>
-  state.totalAchievedFhtcCount ??
-  state.totalFhtcCount ??
-  state.totalPlannedFhtcCount ??
-  state.totalPlannedFhtc ??
-  state.totalHouseholdCount ??
-  0
-
 const parseIsoDate = (value?: string) => {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return null
@@ -93,8 +83,12 @@ export const getPreviousPeriodRange = (startDate: string, endDate: string) => {
 
   if (!start || !end) {
     const today = new Date()
-    const previousEnd = new Date(today)
-    previousEnd.setDate(today.getDate() - 30)
+    const currentEnd = new Date(today)
+    currentEnd.setDate(today.getDate() - 1)
+    const currentStart = new Date(currentEnd)
+    currentStart.setDate(currentEnd.getDate() - (daysInRange - 1))
+    const previousEnd = new Date(currentStart)
+    previousEnd.setDate(currentStart.getDate() - 1)
     const previousStart = new Date(previousEnd)
     previousStart.setDate(previousEnd.getDate() - (daysInRange - 1))
 
@@ -752,14 +746,15 @@ export const mapQuantityPerformanceFromAnalytics = (
         fallbackMatch?.id ??
         `quantity-performance-${index}-${slugify(region.title || String(index))}`,
       name: formatEntityName(region.title, fallbackMatch?.name, `Region ${index + 1}`),
-      coverage: calculateDemandMld(
-        getChildRegionAchievedFhtcCount(region),
-        averagePersonsPerHousehold,
-        litersPerPersonPerDay
-      ),
+      coverage: litersPerPersonPerDay,
       regularity: fallbackMatch?.regularity ?? 0,
       continuity: fallbackMatch?.continuity ?? 0,
-      quantity: calculateQuantityMld(region.totalWaterSuppliedLiters, daysInRange),
+      quantity: calculateQuantityLpcd(
+        region.totalWaterSuppliedLiters,
+        getChildRegionAchievedFhtcCount(region),
+        daysInRange,
+        averagePersonsPerHousehold
+      ),
       compositeScore: fallbackMatch?.compositeScore ?? 0,
       status: fallbackMatch?.status ?? 'needs-attention',
     }
@@ -883,14 +878,15 @@ export const mapQuantityPerformanceFromNationalDashboard = (
     return {
       id: fallbackMatch?.id ?? `national-quantity-${state.stateCode || index}`,
       name: formatEntityName(state.stateTitle, fallbackMatch?.name, `State ${index + 1}`),
-      coverage: calculateDemandMld(
-        getNationalDemandFhtcCount(state),
-        resolvedAveragePersonsPerHousehold,
-        resolvedLitersPerPersonPerDay
-      ),
+      coverage: resolvedLitersPerPersonPerDay,
       regularity: fallbackMatch?.regularity ?? 0,
       continuity: fallbackMatch?.continuity ?? 0,
-      quantity: calculateQuantityMld(state.totalWaterSuppliedLiters, daysInRange),
+      quantity: calculateQuantityLpcd(
+        state.totalWaterSuppliedLiters,
+        getNationalAchievedFhtcCount(state),
+        daysInRange,
+        resolvedAveragePersonsPerHousehold
+      ),
       compositeScore: fallbackMatch?.compositeScore ?? 0,
       status: fallbackMatch?.status ?? 'needs-attention',
     }

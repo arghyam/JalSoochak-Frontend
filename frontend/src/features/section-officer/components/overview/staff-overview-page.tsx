@@ -2,15 +2,18 @@ import { useEffect, useState, type ElementType } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Box, Flex, Heading, SimpleGrid, Spinner, Stack, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
+import { useAuthStore } from '@/app/store/auth-store'
 import TapIconComponent from '@/shared/components/layout/tap-icon'
 import { MdOutlineWaterDrop, MdOutlineTrendingUp } from 'react-icons/md'
 import { ChartEmptyState, DateRangePicker, PageHeader, StatCard } from '@/shared/components/common'
 import type { DateRange } from '@/shared/components/common'
+import { DEFAULT_SCREEN_DATE_FORMAT, normalizeDateFormat } from '@/shared/utils/date-format'
 import { ROUTES } from '@/shared/constants/routes'
 import {
   SupplyOutageReasonsChart,
   ReadingSubmissionRateChart,
 } from '@/features/dashboard/components/charts'
+import { useTenantPublicConfigQuery } from '@/features/dashboard/services/query/use-tenant-public-config-query'
 import { SupplyOutageDistributionChart } from '@/shared/components/charts/supply-outage-distribution-chart'
 import {
   useSchemesCountQuery,
@@ -37,6 +40,15 @@ export function StaffOverviewPage() {
   const { t } = useTranslation('section-officer')
   const navigate = useNavigate()
   const [dateRange, setDateRange] = useState<DateRange>(() => getDefaultDateRange())
+  const tenantId = useAuthStore((state) => state.user?.tenantId ?? '')
+  const parsedTenantId = Number.parseInt(tenantId, 10)
+  const { data: tenantPublicConfig } = useTenantPublicConfigQuery({
+    tenantId: Number.isFinite(parsedTenantId) ? parsedTenantId : undefined,
+    enabled: Number.isFinite(parsedTenantId),
+  })
+  const screenChartDateFormat = normalizeDateFormat(
+    tenantPublicConfig?.dateFormatScreen?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
+  )
 
   const { data: schemesCountData, isLoading: isSchemesCountLoading } = useSchemesCountQuery()
   const { data: dashboardStatsData, isLoading: isDashboardStatsLoading } = useDashboardStatsQuery(
@@ -209,6 +221,7 @@ export function StaffOverviewPage() {
                 data={outageReasonsData?.histogramData ?? []}
                 height={CHART_HEIGHT}
                 xAxisLabel={t('pages.overview.charts.outageReasons.xAxisLabel')}
+                dateFormat={screenChartDateFormat}
               />
             </ChartCell>
           </ChartBoxWithTitle>
@@ -241,6 +254,7 @@ export function StaffOverviewPage() {
                 data={nonSubmissionData?.histogramData ?? []}
                 height={CHART_HEIGHT}
                 xAxisLabel={t('pages.overview.charts.nonSubmissionReasons.xAxisLabel')}
+                dateFormat={screenChartDateFormat}
               />
             </ChartCell>
           </ChartBoxWithTitle>
@@ -271,6 +285,7 @@ export function StaffOverviewPage() {
                 data={submissionStatusData?.barData ?? []}
                 height={CHART_HEIGHT}
                 entityLabel={t('pages.overview.charts.submissionStatus.xAxisLabel')}
+                dateFormat={screenChartDateFormat}
               />
             </ChartCell>
           </ChartBoxWithTitle>

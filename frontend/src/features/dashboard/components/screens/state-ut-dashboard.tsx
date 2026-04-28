@@ -9,12 +9,14 @@ type StateUtDashboardScreenProps = {
   data: DashboardData
   supplySubmissionRateData: EntityPerformance[]
   supplySubmissionRateLabel: string
+  tableDateFormat?: string
 }
 
 export function StateUtDashboardScreen({
   data,
   supplySubmissionRateData,
   supplySubmissionRateLabel,
+  tableDateFormat,
 }: StateUtDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
 
@@ -49,6 +51,7 @@ export function StateUtDashboardScreen({
                 data={supplySubmissionRateData}
                 height="100%"
                 entityLabel={supplySubmissionRateLabel}
+                dateFormat={tableDateFormat}
               />
             ) : (
               <ChartEmptyState minHeight="100%" />

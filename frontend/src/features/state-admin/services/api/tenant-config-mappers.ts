@@ -58,6 +58,18 @@ export interface TenantConfigMap {
   }
   LOCATION_CHECK_REQUIRED?: { value: 'YES' | 'NO' }
   DISPLAY_DEPARTMENT_MAPS?: { value: 'YES' | 'NO' }
+  DISPLAY_MAP_LGD_LEVEL_1?: { value: 'TRUE' | 'FALSE' }
+  DISPLAY_MAP_LGD_LEVEL_2?: { value: 'TRUE' | 'FALSE' }
+  DISPLAY_MAP_LGD_LEVEL_3?: { value: 'TRUE' | 'FALSE' }
+  DISPLAY_MAP_LGD_LEVEL_4?: { value: 'TRUE' | 'FALSE' }
+  DISPLAY_MAP_LGD_LEVEL_5?: { value: 'TRUE' | 'FALSE' }
+  DISPLAY_MAP_LGD_LEVEL_6?: { value: 'TRUE' | 'FALSE' }
+  DISPLAY_DEPARTMENT_MAP_LEVEL_1?: { value: 'TRUE' | 'FALSE' }
+  DISPLAY_DEPARTMENT_MAP_LEVEL_2?: { value: 'TRUE' | 'FALSE' }
+  DISPLAY_DEPARTMENT_MAP_LEVEL_3?: { value: 'TRUE' | 'FALSE' }
+  DISPLAY_DEPARTMENT_MAP_LEVEL_4?: { value: 'TRUE' | 'FALSE' }
+  DISPLAY_DEPARTMENT_MAP_LEVEL_5?: { value: 'TRUE' | 'FALSE' }
+  DISPLAY_DEPARTMENT_MAP_LEVEL_6?: { value: 'TRUE' | 'FALSE' }
   DATA_CONSOLIDATION_TIME?: {
     schedule: { hour: number; minute: number } | null
     description: string | null
@@ -114,6 +126,21 @@ function formatHHmm(hour: number, minute: number): string {
 // Configuration page mappers
 // ---------------------------------------------------------------------------
 
+function extractMapLevelConfig(
+  configs: TenantConfigMap,
+  prefix: string,
+  maxLevels: number
+): boolean[] {
+  const result: boolean[] = []
+  for (let i = 1; i <= maxLevels; i++) {
+    const key = `${prefix}_LEVEL_${i}` as keyof TenantConfigMap
+    const value = configs[key] as { value: 'TRUE' | 'FALSE' } | undefined
+    // Default to true if key is missing (unconfigured)
+    result.push(value?.value !== 'FALSE')
+  }
+  return result
+}
+
 export function mapApiConfigToConfigurationData(
   configs: TenantConfigMap
 ): Omit<ConfigurationData, 'id'> {
@@ -160,6 +187,8 @@ export function mapApiConfigToConfigurationData(
     supplyOutageReasons,
     locationCheckRequired: configs.LOCATION_CHECK_REQUIRED?.value === 'YES',
     displayDepartmentMaps: configs.DISPLAY_DEPARTMENT_MAPS?.value === 'YES',
+    displayMapLgdLevels: extractMapLevelConfig(configs, 'DISPLAY_MAP_LGD', 6),
+    displayDepartmentMapLevels: extractMapLevelConfig(configs, 'DISPLAY_DEPARTMENT_MAP', 6),
     dataConsolidationTime: consolidationSchedule
       ? formatHHmm(consolidationSchedule.hour, consolidationSchedule.minute)
       : '',
@@ -181,6 +210,17 @@ export function mapConfigurationDataToApiConfig(
   const consolidation = parseHHmm(payload.dataConsolidationTime)
   const { hour, minute } = parseHHmm(payload.pumpOperatorReminderNudgeTime)
 
+  // Build map level configs
+  const mapLevelConfigs: Record<string, { value: 'TRUE' | 'FALSE' }> = {}
+  payload.displayMapLgdLevels.forEach((value, i) => {
+    const key = `DISPLAY_MAP_LGD_LEVEL_${i + 1}`
+    mapLevelConfigs[key] = { value: value ? 'TRUE' : 'FALSE' }
+  })
+  payload.displayDepartmentMapLevels.forEach((value, i) => {
+    const key = `DISPLAY_DEPARTMENT_MAP_LEVEL_${i + 1}`
+    mapLevelConfigs[key] = { value: value ? 'TRUE' : 'FALSE' }
+  })
+
   return {
     TENANT_SUPPORTED_CHANNELS: { channels: channelCodes },
     METER_CHANGE_REASONS: {
@@ -201,6 +241,7 @@ export function mapConfigurationDataToApiConfig(
     },
     LOCATION_CHECK_REQUIRED: { value: payload.locationCheckRequired ? 'YES' : 'NO' },
     DISPLAY_DEPARTMENT_MAPS: { value: payload.displayDepartmentMaps ? 'YES' : 'NO' },
+    ...mapLevelConfigs,
     DATA_CONSOLIDATION_TIME: {
       schedule: { hour: consolidation.hour, minute: consolidation.minute },
       description: null,

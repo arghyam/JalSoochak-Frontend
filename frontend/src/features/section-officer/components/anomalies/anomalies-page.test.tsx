@@ -40,10 +40,15 @@ jest.mock('@/app/store/auth-store', () => ({
 
 const mockUseAnomaliesListQuery = jest.fn()
 const mockUseAnomalyStatusesQuery = jest.fn()
+const mockUseTenantPublicConfigQuery = jest.fn()
 
 jest.mock('../../services/query/use-anomalies-queries', () => ({
   useAnomaliesListQuery: (...args: unknown[]) => mockUseAnomaliesListQuery(...args),
   useAnomalyStatusesQuery: () => mockUseAnomalyStatusesQuery(),
+}))
+
+jest.mock('@/features/dashboard/services/query/use-tenant-public-config-query', () => ({
+  useTenantPublicConfigQuery: (...args: unknown[]) => mockUseTenantPublicConfigQuery(...args),
 }))
 
 jest.mock('@/shared/components/common', () => ({
@@ -165,6 +170,13 @@ function renderPage() {
 beforeEach(() => {
   jest.clearAllMocks()
   mockUseAnomalyStatusesQuery.mockReturnValue({ data: MOCK_STATUSES })
+  mockUseTenantPublicConfigQuery.mockReturnValue({
+    data: {
+      dateFormatTable: {
+        dateFormat: 'MM/DD/YYYY',
+      },
+    },
+  })
 })
 
 describe('AnomaliesPage', () => {
@@ -228,6 +240,7 @@ describe('AnomaliesPage', () => {
     })
     renderPage()
     expect(screen.getByText('Test Scheme')).toBeTruthy()
+    expect(screen.getByText('04/02/2026, 00:22')).toBeTruthy()
     expect(screen.getByText('No Water Supply')).toBeTruthy()
 
     const table = screen.getByTestId('data-table')

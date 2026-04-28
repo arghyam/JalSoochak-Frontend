@@ -638,27 +638,28 @@ describe('dashboardApi analytics normalization', () => {
     )
   })
 
-  it('normalizes tenant boundary geojson payloads for departmental regions', async () => {
+  it('normalizes tenant_data payloads for departmental regions', async () => {
     mockGet.mockImplementation(async () => ({
       data: {
         success: true,
         data: {
           tenantId: 10,
           stateCode: 'MP',
+          parentLgdLevel: 1,
+          parentDepartmentLevel: null,
           childBoundaryCount: 1,
-          boundaryGeoJson: '{"type":"Polygon","coordinates":[[[0,0],[1,0],[1,1],[0,1],[0,0]]]}',
           averageSchemeRegularity: 0.75,
           readingSubmissionRate: 0.84,
-          averagePerformanceScore: 0.62,
           childRegions: [
             {
-              childDepartmentId: 110,
-              childDepartmentTitle: 'Child Region Title',
-              childBoundaryGeoJson:
-                '{"type":"Polygon","coordinates":[[[0,0],[0.5,0],[0.5,0.5],[0,0.5],[0,0]]]}',
-              averageSchemeRegularity: 0.78,
-              readingSubmissionRate: 0.86,
-              averagePerformanceScore: 0.64,
+              lgdId: 110,
+              departmentId: null,
+              parentLgdId: 101,
+              parentDepartmentId: null,
+              lgdLevel: 2,
+              schemeCount: 2,
+              title: 'Child Region Title',
+              lgdCode: 'C110',
             },
           ],
         },
@@ -673,7 +674,63 @@ describe('dashboardApi analytics normalization', () => {
       endDate: '2026-03-30',
     })
 
-    expect(response.parsedBoundaryGeoJson).toEqual({
+    expect(response.childRegions[0]).toEqual(
+      expect.objectContaining({
+        lgdId: 110,
+        title: 'Child Region Title',
+        lgdCode: 'C110',
+        childDepartmentId: undefined,
+        childLgdId: 110,
+        childLgdTitle: 'Child Region Title',
+      })
+    )
+  })
+
+  it('fetches tenant boundary geojson from tenant_boundaries endpoint', async () => {
+    mockGet.mockImplementation(async () => ({
+      data: {
+        success: true,
+        data: {
+          tenantId: 10,
+          stateCode: 'MP',
+          parentLgdLevel: 1,
+          parentDepartmentLevel: null,
+          childBoundaryCount: 2,
+          childRegionCount: 1,
+          parentBoundaryGeoJson:
+            '{"type":"Polygon","coordinates":[[[0,0],[1,0],[1,1],[0,1],[0,0]]]}',
+          childRegions: [
+            {
+              lgdId: 110,
+              departmentId: null,
+              parentLgdId: 101,
+              parentDepartmentId: null,
+              lgdLevel: 2,
+              title: 'Child Region Title',
+              lgdCode: 'C110',
+              boundaryGeoJson:
+                '{"type":"Polygon","coordinates":[[[0,0],[0.5,0],[0.5,0.5],[0,0.5],[0,0]]]}',
+            },
+          ],
+        },
+      },
+    }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+    const response = await dashboardApi.getTenantBoundaryGeoJson({
+      tenantId: 10,
+      parentLgdId: 101,
+    })
+
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/analytics/tenant_boundaries', {
+      params: {
+        tenant_id: 10,
+        parent_lgd_id: 101,
+        parent_department_id: undefined,
+      },
+    })
+
+    expect(response.parsedParentBoundaryGeoJson).toEqual({
       type: 'Polygon',
       coordinates: [
         [
@@ -687,11 +744,9 @@ describe('dashboardApi analytics normalization', () => {
     })
     expect(response.childRegions[0]).toEqual(
       expect.objectContaining({
-        childDepartmentId: 110,
-        childDepartmentTitle: 'Child Region Title',
-        childLgdId: undefined,
-        childLgdTitle: 'Child Region Title',
-        boundaryGeoJson: {
+        lgdId: 110,
+        title: 'Child Region Title',
+        parsedBoundaryGeoJson: {
           type: 'Polygon',
           coordinates: [
             [
@@ -876,6 +931,14 @@ describe('dashboardApi.getTenantPublicConfig', () => {
       timeFormat: null,
       timezone: null,
     })
+    expect(res.dateFormatTable).toEqual({
+      dateFormat: null,
+      timeFormat: null,
+      timezone: null,
+    })
+    expect(res.displayDepartmentMaps).toBe(true)
+    expect(res.displayDepartmentMapLevels).toEqual([true, true, true, true, true, true])
+    expect(res.displayMapLgdLevels).toEqual([true, true, true, true, true, true])
   })
 
   it('reads average members and date format from configs', async () => {
@@ -889,6 +952,19 @@ describe('dashboardApi.getTenantPublicConfig', () => {
               timeFormat: null,
               timezone: 'Asia/Kolkata',
             },
+            DATE_FORMAT_TABLE: {
+              dateFormat: 'MM/DD/YYYY',
+              timeFormat: 'HH:mm',
+              timezone: 'Asia/Kolkata',
+            },
+            DISPLAY_DEPARTMENT_MAPS: { value: 'YES' },
+            DISPLAY_DEPARTMENT_MAP_LEVEL_1: { value: 'TRUE' },
+            DISPLAY_DEPARTMENT_MAP_LEVEL_2: { value: 'FALSE' },
+            DISPLAY_DEPARTMENT_MAP_LEVEL_3: { value: 'TRUE' },
+            DISPLAY_MAP_LGD_LEVEL_1: { value: 'TRUE' },
+            DISPLAY_MAP_LGD_LEVEL_2: { value: 'TRUE' },
+            DISPLAY_MAP_LGD_LEVEL_3: { value: 'FALSE' },
+            DISPLAY_MAP_LGD_LEVEL_4: { value: 'TRUE' },
           },
         },
       },
@@ -897,6 +973,10 @@ describe('dashboardApi.getTenantPublicConfig', () => {
     const res = await dashboardApi.getTenantPublicConfig(9)
     expect(res.averageMembersPerHousehold).toBe(5)
     expect(res.dateFormatScreen.dateFormat).toBe('dd/MM/yyyy')
+    expect(res.dateFormatTable.dateFormat).toBe('MM/DD/YYYY')
+    expect(res.displayDepartmentMaps).toBe(true)
+    expect(res.displayDepartmentMapLevels).toEqual([true, false, false, false, false, false])
+    expect(res.displayMapLgdLevels).toEqual([true, true, false, false, false, false])
   })
 })
 

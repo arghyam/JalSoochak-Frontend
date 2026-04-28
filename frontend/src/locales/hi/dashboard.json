@@ -1,7 +1,8 @@
 {
   "header": {
     "title": "जलसूचक",
-    "subtitle": "जल आपूर्ति योजनाओं की परिचालन स्थिति"
+    "subtitle": "जल आपूर्ति योजनाओं की परिचालन स्थिति",
+    "subtitleSingleTenant": "{{tenantName}} ग्रामीण पेयजल आपूर्ति डैशबोर्ड"
   },
   "searchLayout": {
     "placeholder": "राष्ट्रीय ग्रामीण पेयजल आपूर्ति डैशबोर्ड",
@@ -70,6 +71,10 @@
     "metric": {
       "quantity": "मात्रा",
       "regularity": "नियमितता"
+    },
+    "viewTabs": {
+      "stateView": "राज्य दृश्य",
+      "districtView": "जिला दृश्य"
     },
     "noMapAvailable": "मानचित्र फिलहाल उपलब्ध नहीं है",
     "loading": "मानचित्र लोड हो रहा है...",
@@ -204,12 +209,16 @@
     "timeScale": {
       "day": "दिन",
       "week": "सप्ताह",
-      "month": "महीना"
+      "month": "महीना",
+      "quarter": "तिमाही",
+      "year": "वर्ष"
     },
     "timeScaleShort": {
       "day": "दि",
       "week": "स",
-      "month": "म"
+      "month": "म",
+      "quarter": "ति",
+      "year": "व"
     },
     "legend": {
       "electricalFailure": "बिजली विफलता",

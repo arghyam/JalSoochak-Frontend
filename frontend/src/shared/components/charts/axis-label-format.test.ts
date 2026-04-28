@@ -4,7 +4,7 @@ import { formatAxisLabel, formatIsoDateToDayFirst } from './axis-label-format'
 describe('axis-label-format', () => {
   describe('formatIsoDateToDayFirst', () => {
     it('converts ISO date string to day-first format', () => {
-      expect(formatIsoDateToDayFirst('2026-04-16')).toBe('16-04-2026')
+      expect(formatIsoDateToDayFirst('2026-04-16')).toBe('16/04/2026')
     })
 
     it('returns original value for non-ISO date string', () => {
@@ -13,7 +13,11 @@ describe('axis-label-format', () => {
     })
 
     it('supports leading and trailing whitespace in ISO date string', () => {
-      expect(formatIsoDateToDayFirst(' 2026-01-09 ')).toBe('09-01-2026')
+      expect(formatIsoDateToDayFirst(' 2026-01-09 ')).toBe('09/01/2026')
+    })
+
+    it('supports overriding date format for ISO labels', () => {
+      expect(formatIsoDateToDayFirst('2026-04-16', 'MM/DD/YYYY')).toBe('04/16/2026')
     })
   })
 
@@ -23,7 +27,7 @@ describe('axis-label-format', () => {
     })
 
     it('formats ISO date labels as day-month-year', () => {
-      expect(formatAxisLabel('2026-04-16')).toBe('16-04-2026')
+      expect(formatAxisLabel('2026-04-16')).toBe('16/04/2026')
     })
 
     it('splits multi-word labels into max two lines', () => {

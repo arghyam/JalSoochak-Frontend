@@ -4,15 +4,11 @@ const SUPPORTED_DATE_FORMATS = [
   'DD/MM/YYYY',
   'MM/DD/YYYY',
   'YYYY/MM/DD',
-  'DD-MM-YYYY',
-  'MM-DD-YYYY',
-  'YYYY-MM-DD',
-  'DD.MM.YYYY',
-  'MM.DD.YYYY',
-  'YYYY.MM.DD',
+  'DD/MM/YY',
+  'MM/DD/YY',
 ] as const
 
-type DatePartToken = 'DD' | 'MM' | 'YYYY'
+type DatePartToken = 'DD' | 'MM' | 'YYYY' | 'YY'
 
 type ParsedDateFormat = {
   format: string
@@ -40,6 +36,31 @@ const buildIsoDate = (year: string, month: string, day: string) => `${year}-${mo
 
 export const normalizeDateFormat = (format?: string | null) => parseDateFormat(format).format
 
+const buildFallbackFormats = (preferredFormat?: string | null) => {
+  const normalizedPreferredFormat = normalizeDateFormat(preferredFormat)
+  const preferredShortYearFormat = normalizedPreferredFormat.replace('YYYY', 'YY')
+  const formats = [normalizedPreferredFormat]
+
+  if (
+    preferredShortYearFormat !== normalizedPreferredFormat &&
+    SUPPORTED_DATE_FORMATS.includes(
+      preferredShortYearFormat as (typeof SUPPORTED_DATE_FORMATS)[number]
+    )
+  ) {
+    formats.push(preferredShortYearFormat)
+  }
+
+  for (const format of SUPPORTED_DATE_FORMATS) {
+    if (format === normalizedPreferredFormat || format === preferredShortYearFormat) {
+      continue
+    }
+
+    formats.push(format)
+  }
+
+  return formats
+}
+
 export const getDateInputPlaceholder = (format?: string | null) =>
   normalizeDateFormat(format).toLowerCase()
 
@@ -58,6 +79,7 @@ export const formatIsoDateForDisplay = (
     DD: day,
     MM: month,
     YYYY: options.shortYear ? year.slice(-2) : year,
+    YY: year.slice(-2),
   }
 
   return tokens.map((token) => values[token]).join(separator)
@@ -102,14 +124,28 @@ export const parseDisplayDateToIso = (value: string, format?: string | null) => 
       acc[token] = parts[index] ?? ''
       return acc
     },
-    { DD: '', MM: '', YYYY: '' }
+    { DD: '', MM: '', YYYY: '', YY: '' }
   )
 
-  if (!values.DD || !values.MM || values.YYYY.length !== 4) {
+  const resolvedYear =
+    values.YYYY.length === 4
+      ? values.YYYY
+      : values.YY.length === 2
+        ? (() => {
+            const parsedYear = Number.parseInt(values.YY, 10)
+            if (!Number.isFinite(parsedYear)) {
+              return ''
+            }
+
+            return String(parsedYear >= 70 ? 1900 + parsedYear : 2000 + parsedYear)
+          })()
+        : ''
+
+  if (!values.DD || !values.MM || !resolvedYear) {
     return ''
   }
 
-  return buildIsoDate(values.YYYY, values.MM, values.DD)
+  return buildIsoDate(resolvedYear, values.MM, values.DD)
 }
 
 export const isValidDisplayDate = (value: string, format?: string | null) => {
@@ -135,10 +171,7 @@ export const parseDisplayDateToIsoWithFallback = (
   value: string,
   preferredFormat?: string | null
 ) => {
-  const formats = [
-    normalizeDateFormat(preferredFormat),
-    ...SUPPORTED_DATE_FORMATS.filter((format) => format !== normalizeDateFormat(preferredFormat)),
-  ]
+  const formats = buildFallbackFormats(preferredFormat)
 
   for (const format of formats) {
     if (!isValidDisplayDate(value, format)) {

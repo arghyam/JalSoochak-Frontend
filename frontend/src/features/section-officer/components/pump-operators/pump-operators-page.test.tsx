@@ -44,9 +44,15 @@ jest.mock('react-i18next', () => ({
 
 jest.mock('@/app/store/auth-store', () => ({
   useAuthStore: jest.fn(
-    (selector: (s: { user: { personId: string; tenantCode: string } }) => unknown) =>
-      selector({ user: { personId: '15', tenantCode: 'nl' } })
+    (
+      selector: (s: { user: { personId: string; tenantCode: string; tenantId: string } }) => unknown
+    ) => selector({ user: { personId: '15', tenantCode: 'nl', tenantId: '18' } })
   ),
+}))
+
+const mockUseTenantPublicConfigQuery = jest.fn()
+jest.mock('@/features/dashboard/services/query/use-tenant-public-config-query', () => ({
+  useTenantPublicConfigQuery: (...args: unknown[]) => mockUseTenantPublicConfigQuery(...args),
 }))
 
 const mockUsePumpOperatorsListQuery = jest.fn()
@@ -146,6 +152,13 @@ function renderPage() {
 
 beforeEach(() => {
   jest.clearAllMocks()
+  mockUseTenantPublicConfigQuery.mockReturnValue({
+    data: {
+      dateFormatTable: {
+        dateFormat: 'MM/DD/YYYY',
+      },
+    },
+  })
 })
 
 describe('PumpOperatorsPage', () => {
@@ -313,34 +326,7 @@ describe('PumpOperatorsPage', () => {
     expect(screen.getByRole('button', { name: /clear all filters/i })).toBeTruthy()
   })
 
-  it('shows "Today" when lastSubmissionAt is today\'s date', () => {
-    const todayIso = new Date().toISOString()
-    const operator = [{ ...MOCK_OPERATORS[0], lastSubmissionAt: todayIso }]
-    mockUsePumpOperatorsListQuery.mockReturnValue({
-      isLoading: false,
-      isError: false,
-      data: { content: operator, totalElements: 1 },
-      refetch: jest.fn(),
-    })
-    renderPage()
-    expect(screen.getByText('Today')).toBeTruthy()
-  })
-
-  it('shows "Yesterday" when lastSubmissionAt is yesterday\'s date', () => {
-    const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1)
-    const operator = [{ ...MOCK_OPERATORS[0], lastSubmissionAt: yesterday.toISOString() }]
-    mockUsePumpOperatorsListQuery.mockReturnValue({
-      isLoading: false,
-      isError: false,
-      data: { content: operator, totalElements: 1 },
-      refetch: jest.fn(),
-    })
-    renderPage()
-    expect(screen.getByText('Yesterday')).toBeTruthy()
-  })
-
-  it('shows formatted date for lastSubmissionAt older than yesterday', () => {
+  it('shows formatted date for lastSubmissionAt using table date format', () => {
     const operator = [{ ...MOCK_OPERATORS[0], lastSubmissionAt: '2026-04-06T05:28:08.640517' }]
     mockUsePumpOperatorsListQuery.mockReturnValue({
       isLoading: false,
@@ -349,7 +335,7 @@ describe('PumpOperatorsPage', () => {
       refetch: jest.fn(),
     })
     renderPage()
-    // Input: 2026-04-06 05:28 GMT -> IST: 10:58 (05:28 + 5:30)
-    expect(screen.getByText('06-04-2026, 10:58')).toBeTruthy()
+    // Input: 2026-04-06 05:28 GMT -> IST: 10:58 (05:28 + 5:30), MM/DD/YYYY from config
+    expect(screen.getByText('04/06/2026, 10:58')).toBeTruthy()
   })
 })

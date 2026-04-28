@@ -8,6 +8,7 @@ interface OverallPerformanceTableProps {
   data: EntityPerformance[]
   maxItems?: number
   scrollMaxHeight?: string
+  autoHeightWithinMax?: boolean
   entityLabel?: string
   onRowClick?: (row: EntityPerformance) => void
   onRowHover?: (row: EntityPerformance | null) => void
@@ -46,6 +47,7 @@ export function OverallPerformanceTable({
   data,
   maxItems,
   scrollMaxHeight = '416px',
+  autoHeightWithinMax = false,
   entityLabel,
   onRowClick,
   onRowHover,
@@ -94,7 +96,7 @@ export function OverallPerformanceTable({
   return (
     <Box borderRadius="lg" overflow="visible" minW={0} w="full">
       <Box
-        h={scrollMaxHeight}
+        h={autoHeightWithinMax ? 'auto' : scrollMaxHeight}
         maxH={scrollMaxHeight}
         overflowY={isEmpty ? 'hidden' : 'auto'}
         overflowX="auto"

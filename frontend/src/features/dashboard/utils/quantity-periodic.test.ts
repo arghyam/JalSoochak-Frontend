@@ -37,7 +37,7 @@ describe('quantity-periodic utils', () => {
           },
         ],
       })
-    ).toEqual([{ period: '01-03-2026', value: 42 }])
+    ).toEqual([{ period: '01/03/2026', value: 42 }])
   })
 
   it('skips water quantity periodic points when totalWaterQuantity is missing', () => {
@@ -92,8 +92,8 @@ describe('quantity-periodic utils', () => {
         ],
       })
     ).toEqual([
-      { period: '16-03-2026', value: 0 },
-      { period: '17-03-2026', value: 2425420120 },
+      { period: '16/03/2026', value: 0 },
+      { period: '17/03/2026', value: 2425420120 },
     ])
   })
 
@@ -116,7 +116,7 @@ describe('quantity-periodic utils', () => {
           },
         ],
       })
-    ).toEqual([{ period: '01-03-2026\n07-03-2026', value: 78.5 }])
+    ).toEqual([{ period: '01/03/2026\n07/03/2026', value: 78.5 }])
   })
 
   it('maps quantity trend points from scheme regularity periodic response using totalWaterQuantity', () => {
@@ -147,8 +147,8 @@ describe('quantity-periodic utils', () => {
         ],
       })
     ).toEqual([
-      { period: '16-03-2026', value: 0 },
-      { period: '17-03-2026', value: 2425420120 },
+      { period: '16/03/2026', value: 0 },
+      { period: '17/03/2026', value: 2425420120 },
     ])
   })
 
@@ -180,8 +180,8 @@ describe('quantity-periodic utils', () => {
         ],
       })
     ).toEqual([
-      { period: '01-03-2026\n07-03-2026', value: 700 },
-      { period: '08-03-2026\n14-03-2026', value: 1400 },
+      { period: '01/03/2026\n07/03/2026', value: 700 },
+      { period: '08/03/2026\n14/03/2026', value: 1400 },
     ])
   })
 
@@ -236,7 +236,7 @@ describe('quantity-periodic utils', () => {
           },
         ],
       })
-    ).toEqual([{ period: '01-03-2026\n07-03-2026', value: 6 }])
+    ).toEqual([{ period: '01/03/2026\n07/03/2026', value: 6 }])
   })
 
   it('maps national regularity metrics from wrapped-api-compatible payloads', () => {
@@ -255,7 +255,32 @@ describe('quantity-periodic utils', () => {
           },
         ],
       })
-    ).toEqual([{ period: '01-01-2026', value: 0.74 }])
+    ).toEqual([{ period: '01/01/2026', value: 0.74 }])
+  })
+
+  it('uses provided date format for periodic labels', () => {
+    expect(
+      mapSchemeRegularityPeriodicToTrendPoints(
+        {
+          lgdId: 17,
+          departmentId: 0,
+          schemeCount: 2,
+          scale: 'day',
+          startDate: '2026-03-01',
+          endDate: '2026-03-31',
+          periodCount: 1,
+          metrics: [
+            {
+              periodStartDate: '2026-03-01',
+              periodEndDate: '2026-03-01',
+              totalSupplyDays: 1,
+              averageRegularity: 78.5,
+            },
+          ],
+        },
+        'MM/DD/YYYY'
+      )
+    ).toEqual([{ period: '03/01/2026', value: 78.5 }])
   })
 
   it('skips national quantity points when water quantity is not present in the payload', () => {
@@ -294,6 +319,45 @@ describe('quantity-periodic utils', () => {
           },
         ],
       })
-    ).toEqual([{ period: '01-03-2026\n31-03-2026', value: 100 }])
+    ).toEqual([{ period: '01/03/2026\n31/03/2026', value: 100 }])
+  })
+
+  it('formats quarterly trend periods in two lines using numeric dates', () => {
+    expect(
+      mapNationalQuantityTrendPoints({
+        schemeCount: 10,
+        scale: 'quarter',
+        startDate: '2026-01-01',
+        endDate: '2026-06-30',
+        periodCount: 1,
+        metrics: [
+          {
+            periodStartDate: '2026-04-01',
+            periodEndDate: '2026-06-30',
+            totalWaterQuantity: 100,
+            averageRegularity: 0,
+          },
+        ],
+      })
+    ).toEqual([{ period: '01/04/2026\n30/06/2026', value: 100 }])
+  })
+
+  it('formats yearly trend periods in two lines using numeric dates', () => {
+    expect(
+      mapNationalRegularityTrendPoints({
+        schemeCount: 10,
+        scale: 'year',
+        startDate: '2026-01-01',
+        endDate: '2026-12-31',
+        periodCount: 1,
+        metrics: [
+          {
+            periodStartDate: '2026-01-01',
+            periodEndDate: '2026-12-31',
+            averageRegularity: 0.74,
+          },
+        ],
+      })
+    ).toEqual([{ period: '01/01/2026\n31/12/2026', value: 0.74 }])
   })
 })

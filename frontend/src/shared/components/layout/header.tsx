@@ -4,13 +4,25 @@ import { useTranslation } from 'react-i18next'
 import { LanguageSwitcher } from '@/shared/components/common'
 import { ROUTES } from '@/shared/constants/routes'
 import logoWithText from '@/assets/media/JalSoochak Logo with Text.svg'
+import { useTenantInfo } from '@/app/context/tenant-context'
+import { isSingleTenantMode } from '@/config/server-config'
 
 export function Header() {
   const { t } = useTranslation(['dashboard', 'common'])
-  const headerSubtitle = t('header.subtitle', {
-    ns: 'dashboard',
-    defaultValue: 'Operational Status of Water Supply Schemes',
-  })
+  const { tenantName } = useTenantInfo()
+  const inSingleTenantMode = isSingleTenantMode()
+
+  const headerSubtitle =
+    inSingleTenantMode && tenantName
+      ? t('header.subtitleSingleTenant', {
+          ns: 'dashboard',
+          defaultValue: '{{tenantName}} Rural Drinking Water Supply Dashboard',
+          tenantName,
+        })
+      : t('header.subtitle', {
+          ns: 'dashboard',
+          defaultValue: 'Operational Status of Water Supply Schemes',
+        })
 
   return (
     <Flex

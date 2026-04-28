@@ -47,6 +47,10 @@ describe('formatTimestamp', () => {
   it('returns — for invalid timestamps', () => {
     expect(formatTimestamp('invalid')).toBe('—')
   })
+
+  it('applies provided date format for table-oriented displays', () => {
+    expect(formatTimestamp('2026-04-12T08:46:32.148617', 'MM/DD/YYYY')).toBe('04/12/2026, 14:16')
+  })
 })
 
 describe('schemesApi.getSchemesList', () => {

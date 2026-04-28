@@ -28,6 +28,8 @@ const minimalSaveConfigurationPayload: SaveConfigurationPayload = {
   supplyOutageReasons: DEFAULT_SUPPLY_OUTAGE_REASONS,
   locationCheckRequired: false,
   displayDepartmentMaps: false,
+  displayMapLgdLevels: [],
+  displayDepartmentMapLevels: [],
   dataConsolidationTime: '09:00',
   pumpOperatorReminderNudgeTime: '10:00',
   dateFormatScreen: DEFAULT_DATE_FORMAT_CONFIG,

@@ -1,7 +1,8 @@
 {
   "header": {
     "title": "JalSoochak",
-    "subtitle": "National Rural Drinking Water Supply Dashboard"
+    "subtitle": "National Rural Drinking Water Supply Dashboard",
+    "subtitleSingleTenant": "{{tenantName}} Rural Drinking Water Supply Dashboard"
   },
   "searchLayout": {
     "placeholder": "Search by state/UT, district, block, gram panchayat, village",
@@ -70,6 +71,10 @@
     "metric": {
       "quantity": "Quantity",
       "regularity": "Regularity"
+    },
+    "viewTabs": {
+      "stateView": "State View",
+      "districtView": "District View"
     },
     "noMapAvailable": "Map currently unavailable",
     "loading": "Loading map...",
@@ -147,7 +152,7 @@
       "ariaViewBy": "Quantity performance view by",
       "ariaViewByDistrict": "District quantity performance view by",
       "ariaViewByGramPanchayat": "Gram panchayat quantity performance view by",
-      "yAxisLabel": "Quantity (MLD)",
+      "yAxisLabel": "Quantity (LPCD)",
       "seriesName": "Quantity",
       "areaSeriesName": "Demand"
     },
@@ -204,12 +209,16 @@
     "timeScale": {
       "day": "Day",
       "week": "Week",
-      "month": "Month"
+      "month": "Month",
+      "quarter": "Quarter",
+      "year": "Year"
     },
     "timeScaleShort": {
       "day": "D",
       "week": "W",
-      "month": "M"
+      "month": "M",
+      "quarter": "Q",
+      "year": "Y"
     },
     "legend": {
       "electricalFailure": "Electrical failure",

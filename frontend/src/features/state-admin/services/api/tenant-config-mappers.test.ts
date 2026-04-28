@@ -9,7 +9,11 @@ import {
   mapWaterNormsToApiConfig,
   type TenantConfigMap,
 } from './tenant-config-mappers'
-import { DEFAULT_METER_CHANGE_REASONS, type SupportedChannel } from '../../types/configuration'
+import {
+  DEFAULT_METER_CHANGE_REASONS,
+  type ConfigurationData,
+  type SupportedChannel,
+} from '../../types/configuration'
 
 // ---------------------------------------------------------------------------
 // Configuration mappers
@@ -127,6 +131,8 @@ describe('mapConfigurationDataToApiConfig', () => {
       ],
       locationCheckRequired: false,
       displayDepartmentMaps: true,
+      displayMapLgdLevels: [true, true, true, true, true, true],
+      displayDepartmentMapLevels: [true, true, true, true, true, true],
       dataConsolidationTime: '18:00',
       pumpOperatorReminderNudgeTime: '08:00',
       dateFormatScreen: { dateFormat: 'DD/MM/YYYY', timeFormat: 'HH:mm', timezone: 'Asia/Kolkata' },
@@ -233,6 +239,113 @@ describe('mapConfigurationDataToApiConfig', () => {
       timeFormat: 'HH:mm',
       timezone: 'Asia/Kolkata',
     })
+  })
+
+  it('parses all 12 map level config keys with TRUE/FALSE values', () => {
+    const configs: TenantConfigMap = {
+      DISPLAY_MAP_LGD_LEVEL_1: { value: 'TRUE' },
+      DISPLAY_MAP_LGD_LEVEL_2: { value: 'FALSE' },
+      DISPLAY_MAP_LGD_LEVEL_3: { value: 'TRUE' },
+      DISPLAY_MAP_LGD_LEVEL_4: { value: 'TRUE' },
+      DISPLAY_MAP_LGD_LEVEL_5: { value: 'FALSE' },
+      DISPLAY_MAP_LGD_LEVEL_6: { value: 'FALSE' },
+      DISPLAY_DEPARTMENT_MAP_LEVEL_1: { value: 'TRUE' },
+      DISPLAY_DEPARTMENT_MAP_LEVEL_2: { value: 'TRUE' },
+      DISPLAY_DEPARTMENT_MAP_LEVEL_3: { value: 'FALSE' },
+      DISPLAY_DEPARTMENT_MAP_LEVEL_4: { value: 'TRUE' },
+      DISPLAY_DEPARTMENT_MAP_LEVEL_5: { value: 'FALSE' },
+      DISPLAY_DEPARTMENT_MAP_LEVEL_6: { value: 'TRUE' },
+      TENANT_SUPPORTED_CHANNELS: { channels: ['BFM'] },
+    }
+
+    const result = mapApiConfigToConfigurationData(configs)
+
+    expect(result.displayMapLgdLevels).toEqual([true, false, true, true, false, false])
+    expect(result.displayDepartmentMapLevels).toEqual([true, true, false, true, false, true])
+  })
+
+  it('defaults missing map level keys to true', () => {
+    const configs: TenantConfigMap = {
+      DISPLAY_MAP_LGD_LEVEL_1: { value: 'TRUE' },
+      // DISPLAY_MAP_LGD_LEVEL_2..6 missing
+      DISPLAY_DEPARTMENT_MAP_LEVEL_1: { value: 'FALSE' },
+      // DISPLAY_DEPARTMENT_MAP_LEVEL_2..6 missing
+      TENANT_SUPPORTED_CHANNELS: { channels: ['BFM'] },
+    }
+
+    const result = mapApiConfigToConfigurationData(configs)
+
+    // Missing keys default to true
+    expect(result.displayMapLgdLevels).toEqual([true, true, true, true, true, true])
+    expect(result.displayDepartmentMapLevels).toEqual([false, true, true, true, true, true])
+  })
+
+  it('emits all 12 map level config keys when converting back to API format', () => {
+    const payload: Omit<ConfigurationData, 'id'> = {
+      supportedChannels: ['BFM'] as SupportedChannel[],
+      meterChangeReasons: [],
+      supplyOutageReasons: [],
+      locationCheckRequired: false,
+      displayDepartmentMaps: true,
+      displayMapLgdLevels: [true, false, true, true, false, false],
+      displayDepartmentMapLevels: [true, true, false, true, false, true],
+      dataConsolidationTime: '00:00',
+      pumpOperatorReminderNudgeTime: '00:00',
+      dateFormatScreen: { dateFormat: null, timeFormat: null, timezone: null },
+      dateFormatTable: { dateFormat: null, timeFormat: null, timezone: null },
+      averageMembersPerHousehold: 0,
+      isConfigured: true,
+    }
+
+    const result = mapConfigurationDataToApiConfig(payload)
+
+    expect(result.DISPLAY_MAP_LGD_LEVEL_1).toEqual({ value: 'TRUE' })
+    expect(result.DISPLAY_MAP_LGD_LEVEL_2).toEqual({ value: 'FALSE' })
+    expect(result.DISPLAY_MAP_LGD_LEVEL_3).toEqual({ value: 'TRUE' })
+    expect(result.DISPLAY_MAP_LGD_LEVEL_4).toEqual({ value: 'TRUE' })
+    expect(result.DISPLAY_MAP_LGD_LEVEL_5).toEqual({ value: 'FALSE' })
+    expect(result.DISPLAY_MAP_LGD_LEVEL_6).toEqual({ value: 'FALSE' })
+    expect(result.DISPLAY_DEPARTMENT_MAP_LEVEL_1).toEqual({ value: 'TRUE' })
+    expect(result.DISPLAY_DEPARTMENT_MAP_LEVEL_2).toEqual({ value: 'TRUE' })
+    expect(result.DISPLAY_DEPARTMENT_MAP_LEVEL_3).toEqual({ value: 'FALSE' })
+    expect(result.DISPLAY_DEPARTMENT_MAP_LEVEL_4).toEqual({ value: 'TRUE' })
+    expect(result.DISPLAY_DEPARTMENT_MAP_LEVEL_5).toEqual({ value: 'FALSE' })
+    expect(result.DISPLAY_DEPARTMENT_MAP_LEVEL_6).toEqual({ value: 'TRUE' })
+  })
+
+  it('round-trips with map level configs: API → frontend → API', () => {
+    const configs: TenantConfigMap = {
+      TENANT_SUPPORTED_CHANNELS: { channels: ['IOT'] },
+      DISPLAY_MAP_LGD_LEVEL_1: { value: 'TRUE' },
+      DISPLAY_MAP_LGD_LEVEL_2: { value: 'FALSE' },
+      DISPLAY_MAP_LGD_LEVEL_3: { value: 'TRUE' },
+      DISPLAY_MAP_LGD_LEVEL_4: { value: 'FALSE' },
+      DISPLAY_MAP_LGD_LEVEL_5: { value: 'FALSE' },
+      DISPLAY_MAP_LGD_LEVEL_6: { value: 'FALSE' },
+      DISPLAY_DEPARTMENT_MAP_LEVEL_1: { value: 'FALSE' },
+      DISPLAY_DEPARTMENT_MAP_LEVEL_2: { value: 'TRUE' },
+      DISPLAY_DEPARTMENT_MAP_LEVEL_3: { value: 'TRUE' },
+      DISPLAY_DEPARTMENT_MAP_LEVEL_4: { value: 'FALSE' },
+      DISPLAY_DEPARTMENT_MAP_LEVEL_5: { value: 'TRUE' },
+      DISPLAY_DEPARTMENT_MAP_LEVEL_6: { value: 'FALSE' },
+      METER_CHANGE_REASONS: { reasons: [] },
+      SUPPLY_OUTAGE_REASONS: { reasons: [] },
+      LOCATION_CHECK_REQUIRED: { value: 'NO' },
+      DISPLAY_DEPARTMENT_MAPS: { value: 'YES' },
+      DATA_CONSOLIDATION_TIME: { schedule: { hour: 0, minute: 0 }, description: null },
+      PUMP_OPERATOR_REMINDER_NUDGE_TIME: { nudge: { schedule: { hour: 0, minute: 0 } } },
+      DATE_FORMAT_SCREEN: { dateFormat: null, timeFormat: null, timezone: null },
+      DATE_FORMAT_TABLE: { dateFormat: null, timeFormat: null, timezone: null },
+      AVERAGE_MEMBERS_PER_HOUSEHOLD: { value: '0' },
+    }
+
+    const frontend = mapApiConfigToConfigurationData(configs)
+    const backToApi = mapConfigurationDataToApiConfig(frontend)
+
+    expect(backToApi.DISPLAY_MAP_LGD_LEVEL_1).toEqual({ value: 'TRUE' })
+    expect(backToApi.DISPLAY_MAP_LGD_LEVEL_2).toEqual({ value: 'FALSE' })
+    expect(backToApi.DISPLAY_DEPARTMENT_MAP_LEVEL_1).toEqual({ value: 'FALSE' })
+    expect(backToApi.DISPLAY_DEPARTMENT_MAP_LEVEL_2).toEqual({ value: 'TRUE' })
   })
 })
 
