@@ -36,10 +36,10 @@ type DashboardBodyProps = {
   isDepartmentCircleSelected?: boolean
   isDepartmentDivisionSelected?: boolean
   selectedVillage: string
-  quantityTimeScaleTab?: 'day' | 'week' | 'month'
-  onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
-  regularityTimeScaleTab?: 'day' | 'week' | 'month'
-  onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
+  quantityTimeScaleTab?: 'day' | 'week' | 'month' | 'quarter' | 'year'
+  onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month' | 'quarter' | 'year') => void
+  regularityTimeScaleTab?: 'day' | 'week' | 'month' | 'quarter' | 'year'
+  onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month' | 'quarter' | 'year') => void
   outageDistributionTimeScaleTab?: 'day' | 'week' | 'month'
   onOutageDistributionTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
   quantityPerformanceData: EntityPerformance[]
@@ -68,6 +68,7 @@ type DashboardBodyProps = {
   totalSchemePages?: number
   onSchemePageChange?: (page: number) => void
   tableDateFormat?: string
+  enableExtendedTimeScales?: boolean
 }
 
 type ViewBy = 'geography' | 'time'
@@ -115,6 +116,7 @@ export function DashboardBody({
   totalSchemePages,
   onSchemePageChange,
   tableDateFormat,
+  enableExtendedTimeScales = false,
 }: DashboardBodyProps) {
   const { t } = useTranslation('dashboard')
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
@@ -197,6 +199,7 @@ export function DashboardBody({
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
           geographyEntityLabel={geographyEntityLabel}
           tableDateFormat={tableDateFormat}
+          enableExtendedTimeScales={enableExtendedTimeScales}
         />
       ) : null}
 
@@ -527,15 +530,16 @@ type PerformanceChartsSectionProps = {
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading: boolean
   isQuantityTimeTrendAwaitingParams: boolean
-  quantityTimeScaleTab?: 'day' | 'week' | 'month'
-  onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
-  regularityTimeScaleTab?: 'day' | 'week' | 'month'
-  onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
+  quantityTimeScaleTab?: 'day' | 'week' | 'month' | 'quarter' | 'year'
+  onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month' | 'quarter' | 'year') => void
+  regularityTimeScaleTab?: 'day' | 'week' | 'month' | 'quarter' | 'year'
+  onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month' | 'quarter' | 'year') => void
   regularityPerformanceData: EntityPerformance[]
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading: boolean
   geographyEntityLabel: string
   tableDateFormat?: string
+  enableExtendedTimeScales?: boolean
 }
 
 function PerformanceChartsSection({
@@ -552,6 +556,7 @@ function PerformanceChartsSection({
   isRegularityTimeTrendLoading,
   geographyEntityLabel,
   tableDateFormat,
+  enableExtendedTimeScales = false,
 }: PerformanceChartsSectionProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
@@ -585,6 +590,7 @@ function PerformanceChartsSection({
         regularityTimeScaleTab={regularityTimeScaleTab}
         onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
         dateFormat={tableDateFormat}
+        enableExtendedTimeScales={enableExtendedTimeScales}
       />
       <PerformanceChartCard
         title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
@@ -614,6 +620,7 @@ function PerformanceChartsSection({
         quantityTimeScaleTab={quantityTimeScaleTab}
         onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
         dateFormat={tableDateFormat}
+        enableExtendedTimeScales={enableExtendedTimeScales}
       />
     </Grid>
   )

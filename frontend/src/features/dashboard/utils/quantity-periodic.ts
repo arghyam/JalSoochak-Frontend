@@ -41,7 +41,7 @@ const formatMetricLabel = (
     return startLabel
   }
 
-  if (scale === 'week' || scale === 'month') {
+  if (scale === 'week' || scale === 'month' || scale === 'quarter' || scale === 'year') {
     return `${startLabel}\n${endLabel}`
   }
 
