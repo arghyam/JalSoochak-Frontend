@@ -453,6 +453,14 @@
         "yes": "हाँ",
         "no": "नहीं"
       },
+      "lgdMapLevels": {
+        "title": "LGD मानचित्र स्तर",
+        "displayLevelLabel": "स्तर {{level}} प्रदर्शित करें"
+      },
+      "departmentMapLevels": {
+        "title": "विभाग मानचित्र स्तर",
+        "displayLevelLabel": "स्तर {{level}} प्रदर्शित करें"
+      },
       "dataConsolidationTime": {
         "title": "डेटा समेकन समय"
       },
