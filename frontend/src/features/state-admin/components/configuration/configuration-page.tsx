@@ -163,8 +163,14 @@ export function ConfigurationPage() {
   const { data: lgdHierarchy } = useLgdHierarchyQuery()
   const { data: departmentHierarchy } = useDepartmentHierarchyQuery()
 
-  const lgdLevelCount = Math.min(lgdHierarchy?.levels.length ?? 0, 6)
-  const deptLevelCount = Math.min(departmentHierarchy?.levels.length ?? 0, 6)
+  const lgdLevelCount = Math.min(
+    lgdHierarchy?.levels.length ?? config?.displayMapLgdLevels.length ?? 0,
+    6
+  )
+  const deptLevelCount = Math.min(
+    departmentHierarchy?.levels.length ?? config?.displayDepartmentMapLevels.length ?? 0,
+    6
+  )
 
   const logoObjectUrl = useMemo(() => {
     if (logoBlobData instanceof Blob) return URL.createObjectURL(logoBlobData)
@@ -1344,7 +1350,11 @@ function ViewMode({
               <ViewField
                 key={`view-lgd-level-${i + 1}`}
                 label={t('configuration.sections.lgdMapLevels.displayLevelLabel', { level: i + 1 })}
-                value={config.displayMapLgdLevels[i] ? t('yes') : t('no')}
+                value={
+                  config.displayMapLgdLevels[i]
+                    ? t('yes', { ns: 'common' })
+                    : t('no', { ns: 'common' })
+                }
                 color="neutral.950"
               />
             ))}
@@ -1365,7 +1375,11 @@ function ViewMode({
                 label={t('configuration.sections.departmentMapLevels.displayLevelLabel', {
                   level: i + 1,
                 })}
-                value={config.displayDepartmentMapLevels[i] ? t('yes') : t('no')}
+                value={
+                  config.displayDepartmentMapLevels[i]
+                    ? t('yes', { ns: 'common' })
+                    : t('no', { ns: 'common' })
+                }
                 color="neutral.950"
               />
             ))}

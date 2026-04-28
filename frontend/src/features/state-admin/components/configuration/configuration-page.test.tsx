@@ -172,7 +172,7 @@ describe('ConfigurationPage', () => {
     expect(screen.getByText('IOT, Manual')).toBeTruthy()
     expect(screen.getByText('Meter Replaced')).toBeTruthy()
     expect(screen.getByText('Meter Not Working')).toBeTruthy()
-    expect(screen.getByText('Yes')).toBeTruthy()
+    expect(screen.getAllByText('Yes')).toHaveLength(3) // locationCheckRequired + 2 lgd levels
     expect(screen.getByText('08:00')).toBeTruthy()
   })
 
@@ -494,8 +494,7 @@ describe('ConfigurationPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
 
     // Department maps are disabled in configuredConfig, so dept level section should not appear
-    const allText = screen.getByText('LGD Map Levels').textContent
-    expect(allText).not.toContain('Department Map Levels')
+    expect(screen.queryByText('Department Map Levels')).toBeNull()
   })
 
   it('shows department map levels when displayDepartmentMaps is true', () => {
@@ -537,9 +536,9 @@ describe('ConfigurationPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
 
-    // Make a change to trigger save (e.g., toggle a level)
-    const noRadios = screen.getAllByRole('radio', { name: /no/i })
-    fireEvent.click(noRadios[0])
+    // Toggle any radio to trigger change detection (e.g., supported channels)
+    const allRadios = screen.getAllByRole('radio', { name: /no/i })
+    fireEvent.click(allRadios[0])
 
     await waitFor(() => {
       const saveBtn = screen.getByRole('button', { name: /save changes/i })
@@ -553,8 +552,8 @@ describe('ConfigurationPage', () => {
     await waitFor(() => {
       expect(mockMutateAsync).toHaveBeenCalledWith(
         expect.objectContaining({
-          displayMapLgdLevels: expect.any(Array),
-          displayDepartmentMapLevels: expect.any(Array),
+          displayMapLgdLevels: expect.arrayContaining([expect.any(Boolean)]),
+          displayDepartmentMapLevels: expect.arrayContaining([expect.any(Boolean)]),
         })
       )
     })
