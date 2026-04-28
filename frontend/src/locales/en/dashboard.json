@@ -71,6 +71,10 @@
       "quantity": "Quantity",
       "regularity": "Regularity"
     },
+    "viewTabs": {
+      "stateView": "State View",
+      "districtView": "District View"
+    },
     "noMapAvailable": "Map currently unavailable",
     "loading": "Loading map...",
     "loadError": "Unable to load the map right now.",

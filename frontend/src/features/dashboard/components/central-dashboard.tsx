@@ -50,6 +50,7 @@ import type {
   DashboardData,
   EntityPerformance,
   NationalDashboardBoundaryResponse,
+  NationalDashboardBoundaryState,
   NationalDashboardResponse,
   StateUtOption,
   VillagePumpOperatorDetails,
@@ -714,6 +715,7 @@ export function CentralDashboard({
   )
   const [isMapFullscreen, setIsMapFullscreen] = useState(false)
   const [isMapRegularityView, setIsMapRegularityView] = useState(true)
+  const [isMapDistrictView, setIsMapDistrictView] = useState(false)
   const [hoveredOverallPerformanceRow, setHoveredOverallPerformanceRow] =
     useState<EntityPerformance | null>(null)
   const [isDurationCleared, setIsDurationCleared] = useState(false)
@@ -2036,6 +2038,59 @@ export function CentralDashboard({
         isTenantBoundariesFetching ||
         isTenantBoundaryGeoJsonLoading ||
         isTenantBoundaryGeoJsonFetching)
+
+  // District view: one query per state, lazy-loaded only when user activates district view
+  const stateWiseBoundaries = filteredNationalDashboardBoundaries?.stateWiseBoundaries ?? []
+  const districtBoundaryQueries = useQueries({
+    queries: stateWiseBoundaries.map((state) => ({
+      queryKey: dashboardQueryKeys.tenantBoundaryGeoJson({
+        tenantId: state.tenantId,
+        parentLgdId: state.lgdId,
+      }),
+      queryFn: () =>
+        dashboardApi.getTenantBoundaryGeoJson({
+          tenantId: state.tenantId,
+          parentLgdId: state.lgdId,
+        }),
+      enabled: isMapDistrictView && isCentralLandingView && Boolean(state.tenantId),
+      staleTime: Infinity,
+      retry: false,
+    })),
+  })
+  const districtMapChartData = districtBoundaryQueries.flatMap((query, index) => {
+    if (!query.data) return []
+    const state = stateWiseBoundaries[index]
+    const statePerf = mapChartData.find((s) => s.id === String(state.tenantId))
+    return (query.data.childRegions ?? []).flatMap((district) => {
+      if (!district.parsedBoundaryGeoJson) return []
+      const districtAnalyticsId = String(district.lgdId ?? district.lgdCode ?? '')
+      return [
+        {
+          id: districtAnalyticsId,
+          name: `${district.title ?? ''}::${districtAnalyticsId}`,
+          coverage: statePerf?.coverage ?? 0,
+          regularity: statePerf?.regularity ?? -1,
+          continuity: statePerf?.continuity ?? 0,
+          quantity: statePerf?.quantity ?? -1,
+          compositeScore: statePerf?.compositeScore ?? 0,
+          status: statePerf?.status ?? ('needs-attention' as const),
+          boundaryGeoJson: district.parsedBoundaryGeoJson,
+        },
+      ]
+    })
+  })
+  const hasAnyDistrictData = districtBoundaryQueries.some((q) => Boolean(q.data))
+  const isDistrictMapLoading = isMapDistrictView && isCentralLandingView && !hasAnyDistrictData
+
+  const districtToStateMap = new Map<string, NationalDashboardBoundaryState>()
+  districtBoundaryQueries.forEach((query, index) => {
+    if (!query.data) return
+    const state = stateWiseBoundaries[index]
+    ;(query.data.childRegions ?? []).forEach((district) => {
+      const id = String(district.lgdId ?? district.lgdCode ?? '')
+      if (id) districtToStateMap.set(id, state)
+    })
+  })
   const quantityPerformanceData = sortByMetricDescending(
     isCentralLandingView
       ? mapQuantityPerformanceFromNationalDashboard(
@@ -2539,6 +2594,36 @@ export function CentralDashboard({
     })
   }
 
+  const handleDistrictViewClick = (
+    districtId: string,
+    districtRawName: string,
+    parentState: NationalDashboardBoundaryState
+  ) => {
+    setActiveTrailIndex(null)
+    setSelectedScheme('')
+    const districtName = districtRawName.includes('::')
+      ? districtRawName.split('::')[0]
+      : districtRawName
+    const stateOption = locationSearchData?.states.find(
+      (option) => option.label.toLowerCase() === parentState.stateTitle.toLowerCase()
+    )
+    const stateValue = stateOption?.value ?? toStateSlug(parentState.stateTitle)
+    const districtLgdId = Number.parseInt(districtId, 10)
+    const districtValue = toStableLocationValue(
+      Number.isFinite(districtLgdId) ? districtLgdId : 0,
+      Number.isFinite(districtLgdId) ? districtLgdId : 0,
+      slugify(districtName)
+    )
+    updateFilterUrl({
+      state: stateValue,
+      district: districtValue,
+      block: '',
+      gramPanchayat: '',
+      village: '',
+      tab: 'administrative',
+    })
+  }
+
   const resolveOverallPerformanceLocationValue = (row: EntityPerformance): string | null => {
     const normalizedRowId = row.id?.trim()
     const normalizedRowName = slugify(row.name)
@@ -2628,6 +2713,12 @@ export function CentralDashboard({
 
   const handleMapRegionClick = (regionId: string, regionName: string) => {
     setHoveredOverallPerformanceRow(null)
+
+    if (isMapDistrictView && isCentralLandingView && !isDepartmentTabActive) {
+      const parentState = districtToStateMap.get(regionId)
+      if (parentState) handleDistrictViewClick(regionId, regionName, parentState)
+      return
+    }
 
     if (isCentralLandingView && !isDepartmentTabActive) {
       handleStateClick(regionId, regionName)
@@ -3004,7 +3095,7 @@ export function CentralDashboard({
       boxShadow={fullscreen ? '0 24px 64px rgba(15, 23, 42, 0.16)' : 'none'}
     >
       <IndiaMapChart
-        data={mapChartData}
+        data={isMapDistrictView && isCentralLandingView ? districtMapChartData : mapChartData}
         tooltipData={overallPerformanceTableData}
         nationalBoundaryGeoJson={
           isCentralLandingView ? filteredNationalDashboardBoundaries.nationalBoundary : undefined
@@ -3014,11 +3105,15 @@ export function CentralDashboard({
             ? undefined
             : (tenantBoundaryGeoJsonData?.parsedParentBoundaryGeoJson ?? undefined)
         }
-        isLoading={isMapDataLoading}
+        isLoading={
+          isMapDistrictView && isCentralLandingView ? isDistrictMapLoading : isMapDataLoading
+        }
         mapName={
-          isCentralLandingView
-            ? 'india'
-            : `tenant-boundary-${hierarchyType.toLowerCase()}-${analyticsParentId}`
+          isMapDistrictView && isCentralLandingView
+            ? 'india-district-view'
+            : isCentralLandingView
+              ? 'india'
+              : `tenant-boundary-${hierarchyType.toLowerCase()}-${analyticsParentId}`
         }
         quantityViewUnit="percent"
         onStateClick={handleMapRegionClick}
@@ -3028,6 +3123,10 @@ export function CentralDashboard({
         isRegularityView={isMapRegularityView}
         onRegularityViewChange={setIsMapRegularityView}
         hoveredRegion={effectiveHoveredOverallPerformanceRow}
+        showViewTabs={isCentralLandingView}
+        mapViewMode={isMapDistrictView ? 'district' : 'state'}
+        onMapViewModeChange={(mode) => setIsMapDistrictView(mode === 'district')}
+        stateBorderData={isMapDistrictView && isCentralLandingView ? mapChartData : undefined}
         height="100%"
       />
     </Box>
