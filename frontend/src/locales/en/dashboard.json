@@ -1,7 +1,8 @@
 {
   "header": {
     "title": "JalSoochak",
-    "subtitle": "National Rural Drinking Water Supply Dashboard"
+    "subtitle": "National Rural Drinking Water Supply Dashboard",
+    "subtitleSingleTenant": "{{tenantName}} Rural Drinking Water Supply Dashboard"
   },
   "searchLayout": {
     "placeholder": "Search by state/UT, district, block, gram panchayat, village",

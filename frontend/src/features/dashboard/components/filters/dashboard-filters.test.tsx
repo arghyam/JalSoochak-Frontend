@@ -1316,4 +1316,47 @@ describe('DashboardFilters', () => {
     expect(screen.getByRole('tab', { name: 'Administrative' }).getAttribute('disabled')).toBe(null)
     expect(screen.getByRole('tab', { name: 'Departmental' }).getAttribute('disabled')).toBe(null)
   })
+
+  it('clears district via chip X button in single-tenant mode', () => {
+    const onDistrictChange = jest.fn()
+
+    // Override default mock so 'assam' is resolvable as a state label.
+    // Without this, findLabel('assam', breadcrumbStateOptions) returns null,
+    // fullSelectionTrail = ['Sangareddy'], and slicing removes it entirely.
+    mockUseLocationSearchQuery.mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'assam', label: 'Assam' }],
+      },
+    })
+
+    renderDashboardFilters({
+      isSingleTenantMode: true,
+      selectedState: 'assam',
+      selectedDistrict: 'sangareddy',
+      districtOptions: [{ value: 'sangareddy', label: 'Sangareddy' }],
+      onDistrictChange,
+    })
+
+    // State chip must NOT be visible; district chip must be visible
+    expect(screen.queryByRole('button', { name: /Breadcrumb: Assam/i })).toBeNull()
+    expect(screen.getByRole('button', { name: /Breadcrumb: Sangareddy/i })).toBeTruthy()
+
+    // Click the X button on the district chip
+    fireEvent.click(screen.getByRole('button', { name: /Clear breadcrumb Sangareddy/i }))
+
+    // District must be cleared
+    expect(onDistrictChange).toHaveBeenCalledWith('')
+  })
+
+  it('does not show district chip when only state is pre-selected in single-tenant mode', () => {
+    renderDashboardFilters({
+      isSingleTenantMode: true,
+      selectedState: 'assam',
+      selectedDistrict: '',
+    })
+
+    expect(screen.queryByRole('button', { name: /Breadcrumb: Assam/i })).toBeNull()
+    expect(screen.queryByTestId('search-trail-closed')).toBeNull()
+  })
 })
