@@ -362,7 +362,7 @@ export function DashboardBody({
                     align="center"
                     gap="8px"
                     sx={{
-                      '@media (max-width: 525px)': {
+                      '@media (max-width: 1279px)': {
                         flexDirection: 'column-reverse',
                         alignItems: 'flex-end',
                         gap: '6px',
@@ -379,7 +379,7 @@ export function DashboardBody({
                         p="4px"
                         gap="4px"
                         sx={{
-                          '@media (max-width: 525px)': {
+                          '@media (max-width: 767px)': {
                             p: '2px',
                             gap: '2px',
                           },
@@ -421,7 +421,7 @@ export function DashboardBody({
                                 onOutageDistributionTimeScaleTabChange(item.key as OutageTimeScale)
                               }
                               sx={{
-                                '@media (max-width: 525px)': {
+                                '@media (max-width: 767px)': {
                                   h: '26px',
                                   minW: '34px',
                                   px: '8px',

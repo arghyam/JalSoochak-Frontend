@@ -222,7 +222,7 @@ export function BlockDashboardScreen({
               align="center"
               gap="8px"
               sx={{
-                '@media (max-width: 525px)': {
+                '@media (max-width: 1279px)': {
                   flexDirection: 'column-reverse',
                   alignItems: 'flex-end',
                   gap: '6px',

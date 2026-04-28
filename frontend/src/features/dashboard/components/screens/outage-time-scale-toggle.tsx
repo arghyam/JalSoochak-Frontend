@@ -45,7 +45,7 @@ export function OutageTimeScaleToggle({ value, onChange, ariaLabel }: OutageTime
       gap="4px"
       aria-label={ariaLabel}
       sx={{
-        '@media (max-width: 525px)': {
+        '@media (max-width: 767px)': {
           p: '2px',
           gap: '2px',
         },
@@ -81,7 +81,7 @@ export function OutageTimeScaleToggle({ value, onChange, ariaLabel }: OutageTime
             fontWeight={isActive ? '600' : '500'}
             onClick={() => onChange(key)}
             sx={{
-              '@media (max-width: 525px)': {
+              '@media (max-width: 767px)': {
                 h: '26px',
                 minW: '34px',
                 px: '8px',
