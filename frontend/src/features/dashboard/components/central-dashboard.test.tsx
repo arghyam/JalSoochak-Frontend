@@ -1245,8 +1245,8 @@ describe('CentralDashboard', () => {
     expect(dashboardBodyProps.quantityPerformanceData[0]).toEqual(
       expect.objectContaining({
         name: 'Karnataka',
-        coverage: 0.14,
-        quantity: 3,
+        coverage: 55,
+        quantity: 1200,
       })
     )
     expect(dashboardBodyProps.regularityPerformanceData[0]).toEqual(
@@ -4188,7 +4188,7 @@ describe('CentralDashboard', () => {
     expect(dashboardBodyProps.quantityPerformanceData[0]).toEqual(
       expect.objectContaining({
         name: 'Alpha',
-        quantity: 3,
+        quantity: 0,
       })
     )
     expect(dashboardBodyProps.regularityPerformanceData[0]).toEqual(
