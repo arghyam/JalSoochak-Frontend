@@ -377,10 +377,13 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     findLabel(activeSelectedBlock, resolvedBlockOptions),
     findLabel(activeSelectedGramPanchayat, resolvedGramPanchayatOptions),
     findLabel(activeSelectedVillage, resolvedVillageOptions),
-  ].filter((item): item is string => Boolean(item))
+  ]
 
-  // In single-tenant mode, exclude the state/tenant name from the chips
-  const selectionTrail = isSingleTenantMode ? fullSelectionTrail.slice(1) : fullSelectionTrail
+  // In single-tenant mode, drop the state entry (index 0) before filtering so a
+  // temporarily-missing state label cannot cause the district chip to be removed.
+  const selectionTrail = (
+    isSingleTenantMode ? fullSelectionTrail.slice(1) : fullSelectionTrail
+  ).filter((item): item is string => Boolean(item))
   const selectionResetKey = [
     filterTabIndex,
     activeSelectedState,
