@@ -54,8 +54,9 @@ function Users01Icon(props: React.SVGProps<SVGSVGElement>) {
 }
 import { useAuthStore } from '@/app/store'
 import { ROUTES } from '@/shared/constants/routes'
-import { STAFF_ROLES } from '@/shared/constants/auth'
+import { AUTH_ROLES, STAFF_ROLES } from '@/shared/constants/auth'
 import { SIDEBAR_NAV_ITEMS } from '@/shared/constants/sidebar-nav'
+import { isSingleTenantMode } from '@/config/server-config'
 import type {
   SidebarNavItem,
   SimpleNavItem,
@@ -107,15 +108,27 @@ export function Sidebar({ onNavClick }: SidebarProps) {
 
   const visibleNavItems = useMemo(() => {
     if (!userRole) return []
+
+    // In single-tenant mode, SUPER_STATE_ADMIN sees only the items for the currently active panel
+    let activePanelRole: string | null = null
+    if (userRole === AUTH_ROLES.SUPER_STATE_ADMIN && isSingleTenantMode()) {
+      if (location.pathname.startsWith(ROUTES.STATE_ADMIN)) {
+        activePanelRole = AUTH_ROLES.STATE_ADMIN
+      } else if (location.pathname.startsWith(ROUTES.SUPER_ADMIN)) {
+        activePanelRole = AUTH_ROLES.SUPER_ADMIN
+      }
+    }
+
     return SIDEBAR_NAV_ITEMS.filter((item) => {
       if (!item.roles.includes(userRole)) return false
+      if (activePanelRole !== null && !item.roles.includes(activePanelRole)) return false
       if (isExpandable(item)) {
         const visibleChildren = item.children.filter((c) => c.roles.includes(userRole))
         return visibleChildren.length > 0
       }
       return true
     })
-  }, [userRole])
+  }, [userRole, location.pathname])
 
   const [expandedKey, setExpandedKey] = useState<string | null>(null)
   const [collapsedKeys, setCollapsedKeys] = useState<Set<string>>(() => new Set())
