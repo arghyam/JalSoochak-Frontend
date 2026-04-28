@@ -1076,6 +1076,7 @@ export function CentralDashboard({
   const shouldShowMapAlongsidePerformance = isDepartmentTabActive
     ? shouldShowDepartmentMaps && isDepartmentMapEnabledForCurrentLevel
     : isLgdMapEnabledForCurrentLevel
+  const performanceSummaryCardMaxHeight = { base: '420px', sm: '520px', lg: '710px' } as const
   const effectiveSelectedDuration =
     selectedDuration ??
     (isDurationCleared ? null : getInitialStoredDuration(storedFilters, durationDateFormat))
@@ -3159,7 +3160,8 @@ export function CentralDashboard({
             pl="16px"
             pr="16px"
             w="full"
-            h={{ base: '420px', sm: '520px', lg: '710px' }}
+            h={shouldShowMapAlongsidePerformance ? performanceSummaryCardMaxHeight : 'auto'}
+            maxH={performanceSummaryCardMaxHeight}
             minW={0}
           >
             <Text textStyle="bodyText3" fontWeight="400" mb={4}>
@@ -3169,6 +3171,7 @@ export function CentralDashboard({
               data={overallPerformanceTableData}
               entityLabel={overallPerformanceEntityLabel}
               scrollMaxHeight={overallPerformanceScrollHeight}
+              autoHeightWithinMax={!shouldShowMapAlongsidePerformance}
               onRowClick={handleOverallPerformanceRowClick}
               onRowHover={setHoveredOverallPerformanceRow}
             />
