@@ -10,6 +10,8 @@
   "filters": "Filters",
   "retry": "Retry",
   "na": "N/A",
+  "yes": "Yes",
+  "no": "No",
 
   "button": {
     "save": "Save",

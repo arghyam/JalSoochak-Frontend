@@ -2,17 +2,17 @@ import { useParams, Navigate } from 'react-router-dom'
 import { useLocationSearchQuery } from '@/features/dashboard/services/query/use-location-search-query'
 import { DashboardLayout } from '@/shared/components/layout'
 import { CentralDashboard } from '@/features/dashboard/components/central-dashboard'
-import { isSingleTenantMode, getSingleTenantId } from '@/config/server-config'
+import { isSingleTenantMode } from '@/config/server-config'
 import { LoadingSpinner } from '@/shared/components/common'
 import { Box, Text } from '@chakra-ui/react'
-import { stateSlugToCode } from '@/shared/constants/states'
 
 /**
  * Router gate that enforces single-tenant mode:
  * - Multi-tenant: passes through to CentralDashboard
- * - Single-tenant + `/`: redirects to `/:tenantSlug`
- * - Single-tenant + wrong slug: redirects to correct slug
- * - Single-tenant + correct slug: renders CentralDashboard
+ * - Single-tenant deployments render dashboard at base URL `/` only
+ * - There is no slug-based routing in single-tenant mode
+ * - When `stateSlug` is truthy (any non-base path), this module redirects via
+ *   `Navigate to="/" replace`
  * - Single-tenant + invalid tenant ID: shows error
  */
 export function SingleTenantGate() {
@@ -32,23 +32,6 @@ export function SingleTenantGate() {
 function SingleTenantContent() {
   const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
   const { data: locationSearchData, isLoading, isError } = useLocationSearchQuery()
-
-  // Single-tenant mode: fetch configured tenant ID
-  const tenantId = getSingleTenantId()
-
-  // Single-tenant mode but no tenant ID configured (check before loading/error)
-  if (tenantId == null) {
-    return (
-      <DashboardLayout>
-        <Box p={6} textAlign="center">
-          <Text color="red.500">
-            Single-tenant mode is enabled, but no tenant ID is configured. Please set
-            JALSOOCHAK_TENANT_ID.
-          </Text>
-        </Box>
-      </DashboardLayout>
-    )
-  }
 
   // Loading
   if (isLoading) {
@@ -72,33 +55,32 @@ function SingleTenantContent() {
     )
   }
 
-  // Find configured tenant in the location search data
-  const configuredTenant = locationSearchData.states.find((option) => option.tenantId === tenantId)
+  // In single-tenant mode, the configured tenant is always the first one from the API
+  // (single-tenant deployments only have one tenant in the backend)
+  const configuredTenant = locationSearchData.states[0]
 
-  // Tenant not found in list
+  // No tenants configured
   if (!configuredTenant) {
     return (
       <DashboardLayout>
         <Box p={6} textAlign="center">
           <Text color="red.500">
-            Configured tenant (ID: {tenantId}) not found. Please verify JALSOOCHAK_TENANT_ID is
-            correct.
+            No tenants found in single-tenant mode. Please check your configuration.
           </Text>
         </Box>
       </DashboardLayout>
     )
   }
 
-  // Current URL slug doesn't match configured tenant: redirect
-  const configuredCode = stateSlugToCode(configuredTenant.value) ?? configuredTenant.value
-  if (stateSlug !== configuredCode) {
-    return <Navigate to={`/${configuredCode}`} replace data-testid="single-tenant-redirect" />
+  // If user is at /:stateSlug, redirect to / (base URL) for single-tenant mode
+  if (stateSlug) {
+    return <Navigate to="/" replace data-testid="single-tenant-redirect" />
   }
 
-  // Correct slug: render dashboard
+  // Render dashboard at / with the tenant pre-selected
   return (
     <DashboardLayout>
-      <CentralDashboard />
+      <CentralDashboard singleTenantOverride={configuredTenant} />
     </DashboardLayout>
   )
 }

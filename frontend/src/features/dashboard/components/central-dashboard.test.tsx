@@ -6311,4 +6311,110 @@ describe('CentralDashboard', () => {
       }),
     ])
   })
+
+  describe('single-tenant mode with singleTenantOverride', () => {
+    it('should use singleTenantOverride to select tenant without URL slug', () => {
+      // In single-tenant mode at /, the dashboard has no stateSlug from URL
+      // but receives singleTenantOverride with the pre-selected tenant
+      mockUseParams.mockReturnValue({}) // No stateSlug in URL (at /)
+      ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+        data: {
+          totalStatesCount: 2,
+          states: [
+            { value: 'maharashtra', label: 'Maharashtra', tenantId: 1, tenantCode: 'MH' },
+            { value: 'karnataka', label: 'Karnataka', tenantId: 2, tenantCode: 'KA' },
+          ],
+        },
+        isLoading: false,
+        isError: false,
+      })
+      ;(useDashboardData as jest.Mock).mockReturnValue({
+        data: null,
+        isLoading: false,
+        isError: false,
+      })
+      ;(useTenantPublicConfigQuery as jest.Mock).mockReturnValue({
+        data: null,
+        isLoading: false,
+        isError: false,
+      })
+
+      // All other queries return empty/default data to avoid deep test complexity
+      ;[
+        useLocationChildrenQuery,
+        useDistrictSchemeBlockLookupQuery,
+        useBlockSchemePanchayatLookupQuery,
+        useLocationHierarchyQuery,
+        useAverageWaterSupplyPerRegionQuery,
+        useAverageSchemeRegularityQuery,
+        useNationalDashboardQuery,
+        useNationalDashboardBoundariesQuery,
+        useNationalSchemeRegularityPeriodicQuery,
+        useOutageReasonsPeriodicQuery,
+        useOutageReasonsQuery,
+        useReadingComplianceQuery,
+        useReadingSubmissionRateQuery,
+        useSchemeRegularityPeriodicQuery,
+        useSchemePerformanceQuery,
+        useSubmissionStatusQuery,
+        useWaterQuantityPeriodicQuery,
+        useWaterQuantityRegionWiseQuery,
+        useTenantBoundariesQuery,
+      ].forEach((hook) => {
+        ;(hook as jest.Mock).mockReturnValue({
+          data: null,
+          isLoading: false,
+          isError: false,
+        })
+      })
+
+      const singleTenantOverride = {
+        value: 'maharashtra',
+        label: 'Maharashtra',
+        tenantId: 1,
+        tenantCode: 'MH',
+      }
+
+      renderWithProviders(<CentralDashboard singleTenantOverride={singleTenantOverride} />)
+
+      // Verify the dashboard rendered (component exists)
+      expect(screen.getByTestId('dashboard-filters')).toBeTruthy()
+
+      // Verify the override was used by checking that the tenant filters are initialized
+      // (This would have been empty string if selectedState was derived from empty stateSlug)
+      const filterProps = getLatestDashboardFilterProps<{ selectedState: string }>()
+      expect(filterProps.selectedState).toBe('maharashtra')
+      expect(useTenantPublicConfigQuery).toHaveBeenCalledWith({
+        tenantId: singleTenantOverride.tenantId,
+        enabled: true,
+      })
+    })
+
+    it('should keep selectedState empty when no URL state and no singleTenantOverride', () => {
+      mockUseParams.mockReturnValue({})
+      ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+        data: {
+          totalStatesCount: 1,
+          states: [{ value: 'maharashtra', label: 'Maharashtra', tenantId: 1, tenantCode: 'MH' }],
+        },
+        isLoading: false,
+        isError: false,
+      })
+      ;(useDashboardData as jest.Mock).mockReturnValue({
+        data: null,
+        isLoading: false,
+        isError: false,
+      })
+      ;(useTenantPublicConfigQuery as jest.Mock).mockReturnValue({
+        data: null,
+        isLoading: false,
+        isError: false,
+      })
+
+      renderWithProviders(<CentralDashboard />)
+
+      const filterProps = getLatestDashboardFilterProps<{ selectedState: string }>()
+      expect(filterProps.selectedState).toBe('')
+    })
+  })
 })
