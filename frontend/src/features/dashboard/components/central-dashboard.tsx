@@ -217,7 +217,7 @@ const navigateWithUpdatedFilters = ({
 }
 
 type PerformanceTimeScaleTab = 'day' | 'week' | 'month' | 'quarter' | 'year'
-type OutageTimeScaleTab = 'day' | 'week' | 'month'
+type OutageTimeScaleTab = 'day' | 'week' | 'month' | 'quarter' | 'year'
 type LocationScopedTrailIndex = {
   pathname: string
   search: string

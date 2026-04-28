@@ -204,12 +204,16 @@
     "timeScale": {
       "day": "दिन",
       "week": "सप्ताह",
-      "month": "महीना"
+      "month": "महीना",
+      "quarter": "तिमाही",
+      "year": "वर्ष"
     },
     "timeScaleShort": {
       "day": "दि",
       "week": "स",
-      "month": "म"
+      "month": "म",
+      "quarter": "ति",
+      "year": "व"
     },
     "legend": {
       "electricalFailure": "बिजली विफलता",

@@ -204,12 +204,16 @@
     "timeScale": {
       "day": "Day",
       "week": "Week",
-      "month": "Month"
+      "month": "Month",
+      "quarter": "Quarter",
+      "year": "Year"
     },
     "timeScaleShort": {
       "day": "D",
       "week": "W",
-      "month": "M"
+      "month": "M",
+      "quarter": "Q",
+      "year": "Y"
     },
     "legend": {
       "electricalFailure": "Electrical failure",
