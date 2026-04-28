@@ -468,6 +468,40 @@ describe('IndiaMapChart', () => {
     expect(onStateClick).not.toHaveBeenCalled()
   })
 
+  it('does not trigger click callback for no-data zones in district view', () => {
+    mockGetMap.mockReturnValue({})
+    const onStateClick = jest.fn()
+
+    renderWithProviders(
+      <IndiaMapChart data={chartData} onStateClick={onStateClick} mapViewMode="district" />
+    )
+
+    const latestProps = mockEChartsWrapper.mock.calls.at(-1)?.[0] as {
+      onChartReady?: (chart: {
+        off: (event: string) => void
+        on: (event: string, handler: (params: unknown) => void) => void
+        getZr: () => { setCursorStyle: (cursor: string) => void }
+      }) => void
+    }
+
+    const handlers: Record<string, (params: unknown) => void> = {}
+    const chart = {
+      off: jest.fn(),
+      on: jest.fn((event: string, handler: (params: unknown) => void) => {
+        handlers[event] = handler
+      }),
+      getZr: jest.fn(() => ({
+        setCursorStyle: jest.fn(),
+      })),
+    }
+
+    latestProps.onChartReady?.(chart)
+
+    handlers.click?.({ data: { stateId: 'region-1', name: 'Region 1', value: -1 } })
+
+    expect(onStateClick).not.toHaveBeenCalled()
+  })
+
   it('uses default cursor for no-data regions and pointer for interactive regions', () => {
     mockGetMap.mockReturnValue({})
 

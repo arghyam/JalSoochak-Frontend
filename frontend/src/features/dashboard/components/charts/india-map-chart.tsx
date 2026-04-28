@@ -639,11 +639,7 @@ export function IndiaMapChart({
             value: number
           }
         }
-        if (
-          p.data?.stateId &&
-          (mapViewModeRef.current === 'district' || hasInteractiveMetricValue(p.data.value)) &&
-          onStateClickRef.current
-        ) {
+        if (p.data?.stateId && hasInteractiveMetricValue(p.data.value) && onStateClickRef.current) {
           onStateClickRef.current(p.data.stateId, p.data.name)
         }
       })
@@ -674,9 +670,7 @@ export function IndiaMapChart({
           }
         }
         const hasInteractiveRegion = Boolean(
-          p.data?.stateId &&
-          (mapViewModeRef.current === 'district' ||
-            hasInteractiveMetricValue(p.data?.value ?? Number.NaN))
+          p.data?.stateId && hasInteractiveMetricValue(p.data?.value ?? Number.NaN)
         )
         chart.getZr().setCursorStyle(hasInteractiveRegion ? 'pointer' : 'default')
       })
