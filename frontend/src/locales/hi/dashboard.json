@@ -71,6 +71,10 @@
       "quantity": "मात्रा",
       "regularity": "नियमितता"
     },
+    "viewTabs": {
+      "stateView": "राज्य दृश्य",
+      "districtView": "जिला दृश्य"
+    },
     "noMapAvailable": "मानचित्र फिलहाल उपलब्ध नहीं है",
     "loading": "मानचित्र लोड हो रहा है...",
     "loadError": "अभी मानचित्र लोड नहीं हो सका।",
