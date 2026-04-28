@@ -1037,6 +1037,45 @@ export function CentralDashboard({
   const tableDateFormat = normalizeDateFormat(
     tenantPublicConfig?.dateFormatTable?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
   )
+  const shouldShowDepartmentMaps = tenantPublicConfig?.displayDepartmentMaps !== false
+  const lgdMapLevelVisibility = tenantPublicConfig?.displayMapLgdLevels ?? [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+  ]
+  const currentLgdMapLevel = isVillageSelected
+    ? 5
+    : isGramPanchayatSelected
+      ? 4
+      : isBlockSelected
+        ? 3
+        : isDistrictSelected
+          ? 2
+          : 1
+  const isLgdMapEnabledForCurrentLevel = lgdMapLevelVisibility[currentLgdMapLevel - 1] !== false
+  const departmentMapLevelVisibility = tenantPublicConfig?.displayDepartmentMapLevels ?? [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+  ]
+  const currentDepartmentMapLevel = isDepartmentDivisionSelected
+    ? 4
+    : isDepartmentCircleSelected
+      ? 3
+      : isDepartmentZoneSelected
+        ? 2
+        : 1
+  const isDepartmentMapEnabledForCurrentLevel =
+    departmentMapLevelVisibility[currentDepartmentMapLevel - 1] !== false
+  const shouldShowMapAlongsidePerformance = isDepartmentTabActive
+    ? shouldShowDepartmentMaps && isDepartmentMapEnabledForCurrentLevel
+    : isLgdMapEnabledForCurrentLevel
   const effectiveSelectedDuration =
     selectedDuration ??
     (isDurationCleared ? null : getInitialStoredDuration(storedFilters, durationDateFormat))
@@ -3099,8 +3138,17 @@ export function CentralDashboard({
 
       {/* Map and Overall Performance */}
       {!activeLeafSelection ? (
-        <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-          {renderMapCard({ base: '420px', sm: '520px', lg: '710px' })}
+        <Grid
+          templateColumns={{
+            base: '1fr',
+            lg: shouldShowMapAlongsidePerformance ? 'repeat(2, minmax(0, 1fr))' : '1fr',
+          }}
+          gap={6}
+          mb={6}
+        >
+          {shouldShowMapAlongsidePerformance
+            ? renderMapCard({ base: '420px', sm: '520px', lg: '710px' })
+            : null}
           <Box
             bg="white"
             borderWidth="0.5px"
@@ -3127,7 +3175,7 @@ export function CentralDashboard({
           </Box>
         </Grid>
       ) : null}
-      {isMapFullscreen ? (
+      {shouldShowMapAlongsidePerformance && isMapFullscreen ? (
         <Portal>
           <Box
             position="fixed"

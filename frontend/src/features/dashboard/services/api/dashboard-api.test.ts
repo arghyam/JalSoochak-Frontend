@@ -936,6 +936,9 @@ describe('dashboardApi.getTenantPublicConfig', () => {
       timeFormat: null,
       timezone: null,
     })
+    expect(res.displayDepartmentMaps).toBe(true)
+    expect(res.displayDepartmentMapLevels).toEqual([true, true, true, true, true, true])
+    expect(res.displayMapLgdLevels).toEqual([true, true, true, true, true, true])
   })
 
   it('reads average members and date format from configs', async () => {
@@ -954,6 +957,14 @@ describe('dashboardApi.getTenantPublicConfig', () => {
               timeFormat: 'HH:mm',
               timezone: 'Asia/Kolkata',
             },
+            DISPLAY_DEPARTMENT_MAPS: { value: 'YES' },
+            DISPLAY_DEPARTMENT_MAP_LEVEL_1: { value: 'TRUE' },
+            DISPLAY_DEPARTMENT_MAP_LEVEL_2: { value: 'FALSE' },
+            DISPLAY_DEPARTMENT_MAP_LEVEL_3: { value: 'TRUE' },
+            DISPLAY_MAP_LGD_LEVEL_1: { value: 'TRUE' },
+            DISPLAY_MAP_LGD_LEVEL_2: { value: 'TRUE' },
+            DISPLAY_MAP_LGD_LEVEL_3: { value: 'FALSE' },
+            DISPLAY_MAP_LGD_LEVEL_4: { value: 'TRUE' },
           },
         },
       },
@@ -963,6 +974,9 @@ describe('dashboardApi.getTenantPublicConfig', () => {
     expect(res.averageMembersPerHousehold).toBe(5)
     expect(res.dateFormatScreen.dateFormat).toBe('dd/MM/yyyy')
     expect(res.dateFormatTable.dateFormat).toBe('MM/DD/YYYY')
+    expect(res.displayDepartmentMaps).toBe(true)
+    expect(res.displayDepartmentMapLevels).toEqual([true, false, false, false, false, false])
+    expect(res.displayMapLgdLevels).toEqual([true, true, false, false, false, false])
   })
 })
 

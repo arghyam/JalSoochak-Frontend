@@ -78,6 +78,9 @@ export type TenantPublicConfig = {
   waterNorm: number
   dateFormatScreen: TenantPublicDateFormatConfig
   dateFormatTable: TenantPublicDateFormatConfig
+  displayDepartmentMaps?: boolean
+  displayDepartmentMapLevels?: boolean[]
+  displayMapLgdLevels?: boolean[]
 }
 
 const TENANTS_PAGE_SIZE = 10
@@ -118,6 +121,80 @@ type TenantPublicConfigMap = {
   DATE_FORMAT_TABLE?: TenantPublicDateFormatConfig
   AVERAGE_MEMBERS_PER_HOUSEHOLD?: { value?: string | null }
   WATER_NORM?: { value?: string | null }
+  DISPLAY_DEPARTMENT_MAPS?: { value?: string | null }
+  DISPLAY_DEPARTMENT_MAP_LEVEL_1?: { value?: string | null }
+  DISPLAY_DEPARTMENT_MAP_LEVEL_2?: { value?: string | null }
+  DISPLAY_DEPARTMENT_MAP_LEVEL_3?: { value?: string | null }
+  DISPLAY_DEPARTMENT_MAP_LEVEL_4?: { value?: string | null }
+  DISPLAY_DEPARTMENT_MAP_LEVEL_5?: { value?: string | null }
+  DISPLAY_DEPARTMENT_MAP_LEVEL_6?: { value?: string | null }
+  DISPLAY_MAP_LGD_LEVEL_1?: { value?: string | null }
+  DISPLAY_MAP_LGD_LEVEL_2?: { value?: string | null }
+  DISPLAY_MAP_LGD_LEVEL_3?: { value?: string | null }
+  DISPLAY_MAP_LGD_LEVEL_4?: { value?: string | null }
+  DISPLAY_MAP_LGD_LEVEL_5?: { value?: string | null }
+  DISPLAY_MAP_LGD_LEVEL_6?: { value?: string | null }
+}
+
+const DEPARTMENT_MAP_LEVEL_KEYS = [
+  'DISPLAY_DEPARTMENT_MAP_LEVEL_1',
+  'DISPLAY_DEPARTMENT_MAP_LEVEL_2',
+  'DISPLAY_DEPARTMENT_MAP_LEVEL_3',
+  'DISPLAY_DEPARTMENT_MAP_LEVEL_4',
+  'DISPLAY_DEPARTMENT_MAP_LEVEL_5',
+  'DISPLAY_DEPARTMENT_MAP_LEVEL_6',
+] as const
+
+const LGD_MAP_LEVEL_KEYS = [
+  'DISPLAY_MAP_LGD_LEVEL_1',
+  'DISPLAY_MAP_LGD_LEVEL_2',
+  'DISPLAY_MAP_LGD_LEVEL_3',
+  'DISPLAY_MAP_LGD_LEVEL_4',
+  'DISPLAY_MAP_LGD_LEVEL_5',
+  'DISPLAY_MAP_LGD_LEVEL_6',
+] as const
+
+const readBooleanConfigValue = (value: string | null | undefined, fallback: boolean): boolean => {
+  if (typeof value !== 'string') {
+    return fallback
+  }
+  if (value === 'TRUE' || value === 'YES') {
+    return true
+  }
+  if (value === 'FALSE' || value === 'NO') {
+    return false
+  }
+  return fallback
+}
+
+const readDepartmentMapLevelsWithCascade = (configs: TenantPublicConfigMap): boolean[] => {
+  const levels = DEPARTMENT_MAP_LEVEL_KEYS.map((key) => {
+    const entry = configs[key]
+    return readBooleanConfigValue(entry?.value, true)
+  })
+
+  for (let index = 1; index < levels.length; index += 1) {
+    if (!levels[index - 1]) {
+      levels[index] = false
+    }
+  }
+
+  return levels
+}
+
+const readLgdMapLevelsWithCascade = (configs: TenantPublicConfigMap): boolean[] => {
+  const levels = LGD_MAP_LEVEL_KEYS.map((key) => {
+    const entry = configs[key]
+    return readBooleanConfigValue(entry?.value, true)
+  })
+
+  for (let index = 1; index < levels.length; index += 1) {
+    if (!levels[index - 1]) {
+      levels[index] = false
+    }
+  }
+
+  return levels
 }
 
 type TenantBoundaryChildRegionAlias = {
@@ -640,6 +717,9 @@ export const dashboardApi = {
         const parsedWaterNorm = Number(configs?.WATER_NORM?.value)
         return Number.isFinite(parsedWaterNorm) && parsedWaterNorm > 0 ? parsedWaterNorm : 0
       })(),
+      displayDepartmentMaps: configs?.DISPLAY_DEPARTMENT_MAPS?.value !== 'NO',
+      displayDepartmentMapLevels: readDepartmentMapLevelsWithCascade(configs),
+      displayMapLgdLevels: readLgdMapLevelsWithCascade(configs),
       dateFormatScreen: configs?.DATE_FORMAT_SCREEN ?? {
         dateFormat: null,
         timeFormat: null,
