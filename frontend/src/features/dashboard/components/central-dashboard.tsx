@@ -160,7 +160,8 @@ type FilterUrlUpdate = {
   tab?: 'administrative'
 }
 
-type QuantityTimeScaleTab = 'day' | 'week' | 'month'
+type PerformanceTimeScaleTab = 'day' | 'week' | 'month' | 'quarter' | 'year'
+type OutageTimeScaleTab = 'day' | 'week' | 'month'
 type LocationScopedTrailIndex = {
   pathname: string
   search: string
@@ -823,10 +824,11 @@ export function CentralDashboard() {
   ])
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  const [quantityTimeScaleTab, setQuantityTimeScaleTab] = useState<QuantityTimeScaleTab>('day')
-  const [regularityTimeScaleTab, setRegularityTimeScaleTab] = useState<QuantityTimeScaleTab>('day')
+  const [quantityTimeScaleTab, setQuantityTimeScaleTab] = useState<PerformanceTimeScaleTab>('day')
+  const [regularityTimeScaleTab, setRegularityTimeScaleTab] =
+    useState<PerformanceTimeScaleTab>('day')
   const [outageDistributionTimeScaleTab, setOutageDistributionTimeScaleTab] =
-    useState<QuantityTimeScaleTab>('day')
+    useState<OutageTimeScaleTab>('day')
   const selectionTrailValues = [
     selectedState,
     selectedDistrict,
@@ -1190,9 +1192,9 @@ export function CentralDashboard() {
       page,
     })
   }
-  const selectedQuantityApiScale: QuantityTimeScaleTab = quantityTimeScaleTab
-  const selectedRegularityApiScale: QuantityTimeScaleTab = regularityTimeScaleTab
-  const selectedOutageApiScale: QuantityTimeScaleTab = outageDistributionTimeScaleTab
+  const selectedQuantityApiScale: PerformanceTimeScaleTab = quantityTimeScaleTab
+  const selectedRegularityApiScale: PerformanceTimeScaleTab = regularityTimeScaleTab
+  const selectedOutageApiScale: OutageTimeScaleTab = outageDistributionTimeScaleTab
   const quantityPeriodicAnalyticsParams = !hasValidAnalyticsParentId
     ? null
     : hierarchyType === 'LGD'
@@ -3166,6 +3168,7 @@ export function CentralDashboard() {
         totalSchemePages={totalSchemePages}
         onSchemePageChange={handleSchemePageChange}
         tableDateFormat={tableDateFormat}
+        enableExtendedTimeScales
       />
     </Box>
   )

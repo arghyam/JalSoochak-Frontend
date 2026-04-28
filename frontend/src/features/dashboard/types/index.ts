@@ -167,7 +167,7 @@ export interface AverageWaterSupplyPerRegionQueryParams {
 export interface WaterQuantityPeriodicQueryParams {
   startDate: string
   endDate: string
-  scale: 'day' | 'week' | 'month'
+  scale: 'day' | 'week' | 'month' | 'quarter' | 'year'
   lgdId?: number
   departmentId?: number
 }
@@ -235,7 +235,7 @@ export interface SchemeRegularityPeriodicQueryParams {
   tenantId: number
   startDate: string
   endDate: string
-  scale: 'day' | 'week' | 'month'
+  scale: 'day' | 'week' | 'month' | 'quarter' | 'year'
   lgdId?: number
   departmentId?: number
 }
@@ -243,7 +243,7 @@ export interface SchemeRegularityPeriodicQueryParams {
 export interface NationalSchemeRegularityPeriodicQueryParams {
   startDate: string
   endDate: string
-  scale: 'day' | 'week' | 'month'
+  scale: 'day' | 'week' | 'month' | 'quarter' | 'year'
 }
 
 export interface SchemeRegularityPeriodicMetric {

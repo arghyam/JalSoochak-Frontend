@@ -321,4 +321,43 @@ describe('quantity-periodic utils', () => {
       })
     ).toEqual([{ period: '01/03/2026\n31/03/2026', value: 100 }])
   })
+
+  it('formats quarterly trend periods in two lines using numeric dates', () => {
+    expect(
+      mapNationalQuantityTrendPoints({
+        schemeCount: 10,
+        scale: 'quarter',
+        startDate: '2026-01-01',
+        endDate: '2026-06-30',
+        periodCount: 1,
+        metrics: [
+          {
+            periodStartDate: '2026-04-01',
+            periodEndDate: '2026-06-30',
+            totalWaterQuantity: 100,
+            averageRegularity: 0,
+          },
+        ],
+      })
+    ).toEqual([{ period: '01/04/2026\n30/06/2026', value: 100 }])
+  })
+
+  it('formats yearly trend periods in two lines using numeric dates', () => {
+    expect(
+      mapNationalRegularityTrendPoints({
+        schemeCount: 10,
+        scale: 'year',
+        startDate: '2026-01-01',
+        endDate: '2026-12-31',
+        periodCount: 1,
+        metrics: [
+          {
+            periodStartDate: '2026-01-01',
+            periodEndDate: '2026-12-31',
+            averageRegularity: 0.74,
+          },
+        ],
+      })
+    ).toEqual([{ period: '01/01/2026\n31/12/2026', value: 0.74 }])
+  })
 })

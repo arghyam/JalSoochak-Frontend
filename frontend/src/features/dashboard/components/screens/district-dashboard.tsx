@@ -30,10 +30,10 @@ type DistrictDashboardScreenProps = {
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
   isQuantityTimeTrendAwaitingParams?: boolean
-  quantityTimeScaleTab?: 'day' | 'week' | 'month'
-  onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
-  regularityTimeScaleTab?: 'day' | 'week' | 'month'
-  onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
+  quantityTimeScaleTab?: 'day' | 'week' | 'month' | 'quarter' | 'year'
+  onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month' | 'quarter' | 'year') => void
+  regularityTimeScaleTab?: 'day' | 'week' | 'month' | 'quarter' | 'year'
+  onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month' | 'quarter' | 'year') => void
   outageDistributionTimeScaleTab?: 'day' | 'week' | 'month'
   onOutageDistributionTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
   regularityPerformanceData: EntityPerformance[]

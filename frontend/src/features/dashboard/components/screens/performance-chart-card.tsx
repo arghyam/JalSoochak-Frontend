@@ -6,6 +6,7 @@ import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import type { EntityPerformance } from '../../types'
 
 type PerformanceMetric = 'quantity' | 'regularity'
+type PerformanceTimeScale = 'day' | 'week' | 'month' | 'quarter' | 'year'
 
 type PerformanceChartCardProps = {
   title: string
@@ -28,11 +29,12 @@ type PerformanceChartCardProps = {
   isTimeTrendPercent?: boolean
   selectColor?: string
   selectBorderColor?: string
-  quantityTimeScaleTab?: 'day' | 'week' | 'month'
-  onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
-  regularityTimeScaleTab?: 'day' | 'week' | 'month'
-  onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month') => void
+  quantityTimeScaleTab?: PerformanceTimeScale
+  onQuantityTimeScaleTabChange?: (value: PerformanceTimeScale) => void
+  regularityTimeScaleTab?: PerformanceTimeScale
+  onRegularityTimeScaleTabChange?: (value: PerformanceTimeScale) => void
   dateFormat?: string
+  enableExtendedTimeScales?: boolean
 }
 
 export function PerformanceChartCard({
@@ -61,6 +63,7 @@ export function PerformanceChartCard({
   regularityTimeScaleTab,
   onRegularityTimeScaleTabChange,
   dateFormat,
+  enableExtendedTimeScales = true,
 }: PerformanceChartCardProps) {
   const hasGeographyData = data.length > 0
   const hasTimeData = timeTrendData.length > 0
@@ -73,7 +76,29 @@ export function PerformanceChartCard({
     metric === 'quantity' ? onQuantityTimeScaleTabChange : onRegularityTimeScaleTabChange
   const hasTimeScaleControl = Boolean(timeScaleTab && onTimeScaleTabChange)
   const metricTimeXAxisLabel =
-    timeScaleTab === 'day' ? 'Day' : timeScaleTab === 'week' ? 'Week' : 'Month'
+    timeScaleTab === 'day'
+      ? 'Day'
+      : timeScaleTab === 'week'
+        ? 'Week'
+        : timeScaleTab === 'month'
+          ? 'Month'
+          : timeScaleTab === 'quarter'
+            ? 'Quarter'
+            : 'Year'
+  const timeScaleItems: Array<{ key: PerformanceTimeScale; label: string }> =
+    enableExtendedTimeScales
+      ? [
+          { key: 'day', label: 'D' },
+          { key: 'week', label: 'W' },
+          { key: 'month', label: 'M' },
+          { key: 'quarter', label: 'Q' },
+          { key: 'year', label: 'Y' },
+        ]
+      : [
+          { key: 'day', label: 'D' },
+          { key: 'week', label: 'W' },
+          { key: 'month', label: 'M' },
+        ]
   const resolvedTimeXAxisLabel =
     (metric === 'quantity' || metric === 'regularity') && viewBy === 'time' && hasTimeScaleControl
       ? metricTimeXAxisLabel
@@ -125,11 +150,7 @@ export function PerformanceChartCard({
                 },
               }}
             >
-              {[
-                { key: 'day', label: 'D' },
-                { key: 'week', label: 'W' },
-                { key: 'month', label: 'M' },
-              ].map((item) => {
+              {timeScaleItems.map((item) => {
                 const isActive = timeScaleTab === item.key
                 return (
                   <Box
@@ -144,7 +165,7 @@ export function PerformanceChartCard({
                     color="neutral.900"
                     textStyle="bodyText5"
                     fontWeight={isActive ? '600' : '500'}
-                    onClick={() => onTimeScaleTabChange?.(item.key as 'day' | 'week' | 'month')}
+                    onClick={() => onTimeScaleTabChange?.(item.key)}
                     sx={{
                       '@media (max-width: 525px)': {
                         h: '26px',
