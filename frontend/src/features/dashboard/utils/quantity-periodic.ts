@@ -48,6 +48,8 @@ const formatMetricLabel = (
   return `${startLabel} - ${endLabel}`
 }
 
+const toRegularityPercent = (value: number) => (value <= 1 ? value * 100 : value)
+
 export const resolveWaterQuantityPeriodicScale = (
   startDate: string,
   endDate: string
@@ -120,7 +122,7 @@ export const mapSchemeRegularityPeriodicToTrendPoints = (
     )
     .map((metric) => ({
       period: formatMetricLabel(response.scale, metric, dateFormat),
-      value: metric.averageRegularity,
+      value: toRegularityPercent(metric.averageRegularity),
     }))
 }
 
@@ -223,7 +225,7 @@ export const mapNationalRegularityTrendPoints = (
     )
     .map((metric) => ({
       period: formatMetricLabel(response.scale, metric, dateFormat),
-      value: metric.averageRegularity,
+      value: toRegularityPercent(metric.averageRegularity),
     }))
 }
 

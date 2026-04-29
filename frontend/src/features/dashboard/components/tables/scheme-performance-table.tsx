@@ -97,6 +97,9 @@ const formatCellValue = (value: string | null | undefined) => value?.trim() || '
 const formatMetricValue = (value: number | null | undefined, suffix = '') =>
   typeof value === 'number' && Number.isFinite(value) ? `${value}${suffix}` : '-'
 
+const formatReportingRateValue = (value: number | null | undefined) =>
+  typeof value === 'number' && Number.isFinite(value) ? `${Number(value.toFixed(2))}` : '-'
+
 function useResizeObserver(ref: RefObject<HTMLDivElement | null>, callback: () => void) {
   useEffect(() => {
     const node = ref.current
@@ -537,7 +540,7 @@ export function SchemePerformanceTable({
                           </Box>
                         </Td>
                       ) : null}
-                      <Td>{formatMetricValue(operator.reportingRate)}</Td>
+                      <Td>{formatReportingRateValue(operator.reportingRate)}</Td>
                       <Td>{formatMetricValue(operator.waterSupplied)}</Td>
                     </Tr>
                   )

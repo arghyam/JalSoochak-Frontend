@@ -119,6 +119,28 @@ describe('quantity-periodic utils', () => {
     ).toEqual([{ period: '01/03/2026\n07/03/2026', value: 78.5 }])
   })
 
+  it('converts fractional regularity periodic metrics into percentage trend points', () => {
+    expect(
+      mapSchemeRegularityPeriodicToTrendPoints({
+        lgdId: 17,
+        departmentId: 0,
+        schemeCount: 2,
+        scale: 'day',
+        startDate: '2026-03-01',
+        endDate: '2026-03-31',
+        periodCount: 1,
+        metrics: [
+          {
+            periodStartDate: '2026-03-01',
+            periodEndDate: '2026-03-01',
+            totalSupplyDays: 1,
+            averageRegularity: 0.3248,
+          },
+        ],
+      })
+    ).toEqual([{ period: '01/03/2026', value: 32.48 }])
+  })
+
   it('maps quantity trend points from scheme regularity periodic response using totalWaterQuantity', () => {
     expect(
       mapSchemeRegularityQuantityToTrendPoints({
@@ -255,7 +277,7 @@ describe('quantity-periodic utils', () => {
           },
         ],
       })
-    ).toEqual([{ period: '01/01/2026', value: 0.74 }])
+    ).toEqual([{ period: '01/01/2026', value: 74 }])
   })
 
   it('uses provided date format for periodic labels', () => {
@@ -358,6 +380,6 @@ describe('quantity-periodic utils', () => {
           },
         ],
       })
-    ).toEqual([{ period: '01/01/2026\n31/12/2026', value: 0.74 }])
+    ).toEqual([{ period: '01/01/2026\n31/12/2026', value: 74 }])
   })
 })
