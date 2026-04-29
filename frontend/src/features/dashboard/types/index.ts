@@ -639,6 +639,8 @@ export interface SchemePerformanceResponse {
   parentDepartmentCName: string
   parentLgdTitle: string
   parentDepartmentTitle: string
+  parentLgdLevel?: number | null
+  parentDepartmentLevel?: number | null
   startDate: string
   endDate: string
   daysInRange: number
