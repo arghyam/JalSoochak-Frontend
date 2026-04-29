@@ -371,13 +371,19 @@ export function DashboardFilters(props: DashboardFiltersProps) {
       })?.label ?? null
     )
   }
-  const selectionTrail = [
+  const fullSelectionTrail = [
     findLabel(activeSelectedState, breadcrumbStateOptions),
     findLabel(activeSelectedDistrict, resolvedDistrictOptions),
     findLabel(activeSelectedBlock, resolvedBlockOptions),
     findLabel(activeSelectedGramPanchayat, resolvedGramPanchayatOptions),
     findLabel(activeSelectedVillage, resolvedVillageOptions),
-  ].filter((item): item is string => Boolean(item))
+  ]
+
+  // In single-tenant mode, drop the state entry (index 0) before filtering so a
+  // temporarily-missing state label cannot cause the district chip to be removed.
+  const selectionTrail = (
+    isSingleTenantMode ? fullSelectionTrail.slice(1) : fullSelectionTrail
+  ).filter((item): item is string => Boolean(item))
   const selectionResetKey = [
     filterTabIndex,
     activeSelectedState,
@@ -401,14 +407,19 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     activeSelectedGramPanchayat,
     activeSelectedVillage,
   ] as const
-  const { effectiveTrailIndex } = computeTrailIndices(
+  const { effectiveTrailIndex: computedTrailIndex } = computeTrailIndices(
     trailSelectionValues,
     isDepartmentTab ? null : activeTrailIndex
   )
-  const hasSelectedState = effectiveTrailIndex >= 0 && Boolean(activeSelectedState)
-  const hasSelectedDistrict = effectiveTrailIndex >= 1 && Boolean(activeSelectedDistrict)
-  const hasSelectedBlock = effectiveTrailIndex >= 2 && Boolean(activeSelectedBlock)
-  const hasSelectedGramPanchayat = effectiveTrailIndex >= 3 && Boolean(activeSelectedGramPanchayat)
+  // Selection-level flags always use the raw computed index (state IS selected in single-tenant mode)
+  const hasSelectedState = computedTrailIndex >= 0 && Boolean(activeSelectedState)
+  const hasSelectedDistrict = computedTrailIndex >= 1 && Boolean(activeSelectedDistrict)
+  const hasSelectedBlock = computedTrailIndex >= 2 && Boolean(activeSelectedBlock)
+  const hasSelectedGramPanchayat = computedTrailIndex >= 3 && Boolean(activeSelectedGramPanchayat)
+  // In single-tenant mode, offset the active chip index by -1 to match the sliced trail (no state chip)
+  const effectiveTrailIndex = isSingleTenantMode
+    ? Math.max(-1, computedTrailIndex - 1)
+    : computedTrailIndex
   const searchByLabel = (() => {
     if (isDepartmentTab) {
       if (hasSelectedGramPanchayat) return t('filters.searchBy.subDivision', 'Sub Division')
@@ -547,6 +558,44 @@ export function DashboardFilters(props: DashboardFiltersProps) {
       return
     }
 
+    // In single-tenant mode the displayed trail starts at district (state chip is hidden).
+    // Display indices: -1 = clear district, 0 = district, 1 = block, 2 = GP, 3 = village
+    // Do NOT use rootSelectionHandler here — it is a no-op in single-tenant mode.
+    if (isSingleTenantMode) {
+      if (trailIndex < 0) {
+        districtSelectionHandler('')
+        return
+      }
+
+      if (trailIndex === 0) {
+        districtSelectionHandler(activeSelectedDistrict)
+        return
+      }
+
+      if (trailIndex === 1) {
+        blockSelectionHandler(activeSelectedBlock)
+        return
+      }
+
+      if (trailIndex === 2) {
+        gramPanchayatSelectionHandler(activeSelectedGramPanchayat)
+        return
+      }
+
+      if (trailIndex === 3) {
+        if (activeSelectedVillage === selectedVillage) {
+          onActiveTrailChange?.(trailIndex + 1)
+          return
+        }
+
+        villageSelectionHandler(activeSelectedVillage)
+        return
+      }
+
+      onActiveTrailChange?.(trailIndex + 1)
+      return
+    }
+
     if (trailIndex < 0) {
       rootSelectionHandler('')
       return
@@ -600,6 +649,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
       hideActionButton={true}
       selectionTrail={selectionTrail}
       activeTrailIndex={effectiveTrailIndex}
+      hideRootBreadcrumb={isSingleTenantMode}
       breadcrumbPanelProps={{
         stateOptions: breadcrumbStateOptions,
         totalStatesCount,

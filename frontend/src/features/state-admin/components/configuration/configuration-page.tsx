@@ -343,22 +343,16 @@ export function ConfigurationPage() {
     }
 
     // Date format screen
-    if (
-      isMandatory('DATE_FORMAT_SCREEN') &&
-      (!current.dateFormatScreen.dateFormat ||
-        !current.dateFormatScreen.timeFormat ||
-        !current.dateFormatScreen.timezone)
-    ) {
+    if (isMandatory('DATE_FORMAT_SCREEN') && !current.dateFormatScreen.dateFormat) {
+      // Kept for future integration if needed:
+      // || !current.dateFormatScreen.timeFormat || !current.dateFormatScreen.timezone
       newErrors.dateFormatScreen = t('configuration.messages.validation.dateFormatScreenRequired')
     }
 
     // Date format table
-    if (
-      isMandatory('DATE_FORMAT_TABLE') &&
-      (!current.dateFormatTable.dateFormat ||
-        !current.dateFormatTable.timeFormat ||
-        !current.dateFormatTable.timezone)
-    ) {
+    if (isMandatory('DATE_FORMAT_TABLE') && !current.dateFormatTable.dateFormat) {
+      // Kept for future integration if needed:
+      // || !current.dateFormatTable.timeFormat || !current.dateFormatTable.timezone
       newErrors.dateFormatTable = t('configuration.messages.validation.dateFormatTableRequired')
     }
 
@@ -836,9 +830,12 @@ export function ConfigurationPage() {
                 {/* 6a. LGD Map Levels (if lgdLevelCount > 0) */}
                 {lgdLevelCount > 0 && (
                   <Box>
-                    <Text fontSize="sm" fontWeight="600" color="neutral.950" mb={3}>
-                      {t('configuration.sections.lgdMapLevels.title')}
-                    </Text>
+                    <Flex align="center" gap={1} mb={3}>
+                      <Text fontSize="sm" fontWeight="600" color="neutral.950">
+                        {t('configuration.sections.lgdMapLevels.title')}
+                      </Text>
+                      <FieldInfoIcon tooltip={t('configuration.infoText.lgdMapLevels')} />
+                    </Flex>
                     <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
                       {Array.from({ length: lgdLevelCount }).map((_, i) => (
                         <Box key={`lgd-level-${i + 1}`}>
@@ -889,9 +886,12 @@ export function ConfigurationPage() {
                 {/* 6b. Department Map Levels (only if displayDepartmentMaps is true and deptLevelCount > 0) */}
                 {activeDraft.displayDepartmentMaps && deptLevelCount > 0 && (
                   <Box>
-                    <Text fontSize="sm" fontWeight="600" color="neutral.950" mb={3}>
-                      {t('configuration.sections.departmentMapLevels.title')}
-                    </Text>
+                    <Flex align="center" gap={1} mb={3}>
+                      <Text fontSize="sm" fontWeight="600" color="neutral.950">
+                        {t('configuration.sections.departmentMapLevels.title')}
+                      </Text>
+                      <FieldInfoIcon tooltip={t('configuration.infoText.departmentMapLevels')} />
+                    </Flex>
                     <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
                       {Array.from({ length: deptLevelCount }).map((_, i) => (
                         <Box key={`dept-level-${i + 1}`}>
@@ -1404,36 +1404,32 @@ function ViewMode({
       {/* Screen Date Format + Table Date Format */}
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
         <ViewSection title={t('configuration.sections.dateFormatScreen.title')}>
-          <VStack align="stretch" spacing={1}>
-            <Text fontSize="sm" color="neutral.950">
-              {t('configuration.sections.dateFormat.dateFormat')}:{' '}
-              {config.dateFormatScreen.dateFormat ?? '-'}
-            </Text>
-            <Text fontSize="sm" color="neutral.950">
-              {t('configuration.sections.dateFormat.timeFormat')}:{' '}
-              {config.dateFormatScreen.timeFormat ?? '-'}
-            </Text>
-            <Text fontSize="sm" color="neutral.950">
-              {t('configuration.sections.dateFormat.timezone')}:{' '}
-              {config.dateFormatScreen.timezone ?? '-'}
-            </Text>
-          </VStack>
+          <Text fontSize="sm" color="neutral.950">
+            {config.dateFormatScreen.dateFormat ?? '-'}
+          </Text>
+          {/* Kept for future integration if needed */}
+          {/* <Text fontSize="sm" color="neutral.950">
+            {t('configuration.sections.dateFormat.timeFormat')}:{' '}
+            {config.dateFormatScreen.timeFormat ?? '-'}
+          </Text>
+          <Text fontSize="sm" color="neutral.950">
+            {t('configuration.sections.dateFormat.timezone')}:{' '}
+            {config.dateFormatScreen.timezone ?? '-'}
+          </Text> */}
         </ViewSection>
         <ViewSection title={t('configuration.sections.dateFormatTable.title')}>
-          <VStack align="stretch" spacing={1}>
-            <Text fontSize="sm" color="neutral.950">
-              {t('configuration.sections.dateFormat.dateFormat')}:{' '}
-              {config.dateFormatTable.dateFormat ?? '-'}
-            </Text>
-            <Text fontSize="sm" color="neutral.950">
-              {t('configuration.sections.dateFormat.timeFormat')}:{' '}
-              {config.dateFormatTable.timeFormat ?? '-'}
-            </Text>
-            <Text fontSize="sm" color="neutral.950">
-              {t('configuration.sections.dateFormat.timezone')}:{' '}
-              {config.dateFormatTable.timezone ?? '-'}
-            </Text>
-          </VStack>
+          <Text fontSize="sm" color="neutral.950">
+            {config.dateFormatTable.dateFormat ?? '-'}
+          </Text>
+          {/* Kept for future integration if needed */}
+          {/* <Text fontSize="sm" color="neutral.950">
+            {t('configuration.sections.dateFormat.timeFormat')}:{' '}
+            {config.dateFormatTable.timeFormat ?? '-'}
+          </Text>
+          <Text fontSize="sm" color="neutral.950">
+            {t('configuration.sections.dateFormat.timezone')}:{' '}
+            {config.dateFormatTable.timezone ?? '-'}
+          </Text> */}
         </ViewSection>
       </SimpleGrid>
 

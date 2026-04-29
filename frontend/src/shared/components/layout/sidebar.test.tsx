@@ -7,6 +7,9 @@ import { ROUTES } from '@/shared/constants/routes'
 const mockNavigate = jest.fn()
 const mockLogout = jest.fn()
 
+let mockPathname = '/super-admin'
+let mockIsSingleTenant = false
+
 const authState = {
   user: { role: 'SUPER_ADMIN' as string, name: 'Jane Doe' },
   logout: mockLogout,
@@ -17,7 +20,7 @@ jest.mock('react-router-dom', () => {
   return {
     ...actual,
     useNavigate: () => mockNavigate,
-    useLocation: () => ({ pathname: '/super-admin' }),
+    useLocation: () => ({ pathname: mockPathname }),
   }
 })
 jest.mock('@/app/store', () => ({
@@ -25,10 +28,15 @@ jest.mock('@/app/store', () => ({
     selector: (s: { user: { role: string; name: string }; logout: () => Promise<void> }) => unknown
   ) => selector(authState),
 }))
+jest.mock('@/config/server-config', () => ({
+  isSingleTenantMode: () => mockIsSingleTenant,
+}))
 
 describe('Sidebar', () => {
   beforeEach(() => {
-    authState.user = { role: 'SUPER_ADMIN', name: 'Jane Doe' }
+    authState.user = { role: 'SUPER_USER', name: 'Jane Doe' }
+    mockPathname = '/super-user'
+    mockIsSingleTenant = false
     mockNavigate.mockClear()
     mockLogout.mockClear()
     mockLogout.mockResolvedValue(undefined)
@@ -41,7 +49,7 @@ describe('Sidebar', () => {
   })
 
   it('uses two-letter initials for single-word names', () => {
-    authState.user = { role: 'SUPER_ADMIN', name: 'Madonna' }
+    authState.user = { role: 'SUPER_USER', name: 'Madonna' }
     renderWithProviders(<Sidebar />)
     expect(screen.getByText('MA')).toBeInTheDocument()
   })
@@ -60,10 +68,53 @@ describe('Sidebar', () => {
 
   it('renders state-admin navigation when role is STATE_ADMIN', () => {
     authState.user = { role: 'STATE_ADMIN', name: 'State User' }
+    mockPathname = ROUTES.STATE_ADMIN
     renderWithProviders(<Sidebar />)
     const mainNav = screen.getByRole('navigation', { name: /main navigation/i })
     expect(mainNav).toBeInTheDocument()
     const navLinks = mainNav.querySelectorAll('a')
     expect(navLinks.length).toBeGreaterThan(0)
+  })
+
+  describe('SUPER_STATE_ADMIN in single-tenant mode', () => {
+    beforeEach(() => {
+      authState.user = { role: 'SUPER_STATE_ADMIN', name: 'Super State' }
+      mockIsSingleTenant = true
+    })
+
+    it('shows only super-admin nav items when on super-admin panel', () => {
+      mockPathname = ROUTES.SUPER_ADMIN + '/overview'
+      renderWithProviders(<Sidebar />)
+      const mainNav = screen.getByRole('navigation', { name: /main navigation/i })
+      // State-admin-only routes must not appear
+      expect(mainNav.querySelector(`a[href="${ROUTES.STATE_ADMIN_OVERVIEW}"]`)).toBeNull()
+      expect(mainNav.querySelector(`a[href="${ROUTES.STATE_ADMIN_LANGUAGE}"]`)).toBeNull()
+      // Super-admin routes must be present
+      expect(mainNav.querySelector(`a[href="${ROUTES.SUPER_ADMIN_OVERVIEW}"]`)).not.toBeNull()
+    })
+
+    it('shows only state-admin nav items when on state-admin panel', () => {
+      mockPathname = ROUTES.STATE_ADMIN + '/overview'
+      renderWithProviders(<Sidebar />)
+      const mainNav = screen.getByRole('navigation', { name: /main navigation/i })
+      // Super-admin-only routes must not appear
+      expect(mainNav.querySelector(`a[href="${ROUTES.SUPER_ADMIN_OVERVIEW}"]`)).toBeNull()
+      expect(mainNav.querySelector(`a[href="${ROUTES.SUPER_ADMIN_SUPER_USERS}"]`)).toBeNull()
+      // State-admin routes must be present
+      expect(mainNav.querySelector(`a[href="${ROUTES.STATE_ADMIN_OVERVIEW}"]`)).not.toBeNull()
+    })
+  })
+
+  describe('SUPER_STATE_ADMIN in multi-tenant mode', () => {
+    it('shows all accessible nav items (both panels)', () => {
+      authState.user = { role: 'SUPER_STATE_ADMIN', name: 'Super State' }
+      mockIsSingleTenant = false
+      mockPathname = ROUTES.SUPER_ADMIN + '/overview'
+      renderWithProviders(<Sidebar />)
+      const mainNav = screen.getByRole('navigation', { name: /main navigation/i })
+      // Both panel routes are visible
+      expect(mainNav.querySelector(`a[href="${ROUTES.SUPER_ADMIN_OVERVIEW}"]`)).not.toBeNull()
+      expect(mainNav.querySelector(`a[href="${ROUTES.STATE_ADMIN_OVERVIEW}"]`)).not.toBeNull()
+    })
   })
 })

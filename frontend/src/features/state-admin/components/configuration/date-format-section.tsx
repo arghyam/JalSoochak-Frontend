@@ -1,6 +1,5 @@
-import { Box, Text, VStack, Flex } from '@chakra-ui/react'
+import { Box, Text, Flex } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { useMemo } from 'react'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { SearchableSelect, ActionTooltip } from '@/shared/components/common'
 import type { DateFormatConfig } from '../../types/configuration'
@@ -13,10 +12,11 @@ const DATE_FORMAT_OPTIONS = [
   { value: 'MM/DD/YY', label: 'MM/DD/YY' },
 ]
 
-const TIME_FORMAT_OPTIONS = [
-  { value: 'HH:mm', label: '24-hour (HH:mm)' },
-  { value: 'hh:mm a', label: '12-hour (hh:mm a)' },
-]
+// Kept for future integration if needed
+// const TIME_FORMAT_OPTIONS = [
+//   { value: 'HH:mm', label: '24-hour (HH:mm)' },
+//   { value: 'hh:mm a', label: '12-hour (hh:mm a)' },
+// ]
 
 interface DateFormatSectionProps {
   title: string
@@ -35,14 +35,15 @@ export function DateFormatSection({
 }: Readonly<DateFormatSectionProps>) {
   const { t } = useTranslation('state-admin')
 
-  const timezoneOptions = useMemo(
-    () =>
-      Intl.supportedValuesOf('timeZone').map((tz) => ({
-        value: tz,
-        label: tz,
-      })),
-    []
-  )
+  // Kept for future integration if needed
+  // const timezoneOptions = useMemo(
+  //   () =>
+  //     Intl.supportedValuesOf('timeZone').map((tz) => ({
+  //       value: tz,
+  //       label: tz,
+  //     })),
+  //   []
+  // )
 
   return (
     <Box>
@@ -74,61 +75,56 @@ export function DateFormatSection({
           </ActionTooltip>
         )}
       </Flex>
-      <VStack spacing={3} align="stretch">
-        <Box>
-          <Text fontSize="xs" color="neutral.600" mb={1}>
-            {t('configuration.sections.dateFormat.dateFormat')}
-          </Text>
-          <SearchableSelect
-            options={DATE_FORMAT_OPTIONS}
-            value={value.dateFormat ?? ''}
-            onChange={(v) => onChange({ ...value, dateFormat: v || null })}
-            placeholder={t('configuration.sections.dateFormat.datePlaceholder')}
-            width={{ base: 'full', xl: '486px' }}
-            height="36px"
-            borderRadius="6px"
-            borderColor="neutral.300"
-            fontSize="sm"
-            ariaLabel={t('configuration.sections.dateFormat.dateFormat')}
-          />
-        </Box>
+      <SearchableSelect
+        options={DATE_FORMAT_OPTIONS}
+        value={value.dateFormat ?? ''}
+        onChange={(v) => onChange({ ...value, dateFormat: v || null })}
+        placeholder={t('configuration.sections.dateFormat.datePlaceholder')}
+        width={{ base: 'full', xl: '486px' }}
+        height="36px"
+        borderRadius="6px"
+        borderColor="neutral.300"
+        fontSize="sm"
+        ariaLabel={t('configuration.sections.dateFormat.dateFormat')}
+      />
 
-        <Box>
-          <Text fontSize="xs" color="neutral.600" mb={1}>
-            {t('configuration.sections.dateFormat.timeFormat')}
-          </Text>
-          <SearchableSelect
-            options={TIME_FORMAT_OPTIONS}
-            value={value.timeFormat ?? ''}
-            onChange={(v) => onChange({ ...value, timeFormat: v || null })}
-            placeholder={t('configuration.sections.dateFormat.timePlaceholder')}
-            width={{ base: 'full', xl: '486px' }}
-            height="36px"
-            borderRadius="6px"
-            borderColor="neutral.300"
-            fontSize="sm"
-            ariaLabel={t('configuration.sections.dateFormat.timeFormat')}
-          />
-        </Box>
+      {/* Kept for future integration if needed */}
+      {/* <Box>
+        <Text fontSize="xs" color="neutral.600" mb={1}>
+          {t('configuration.sections.dateFormat.timeFormat')}
+        </Text>
+        <SearchableSelect
+          options={TIME_FORMAT_OPTIONS}
+          value={value.timeFormat ?? ''}
+          onChange={(v) => onChange({ ...value, timeFormat: v || null })}
+          placeholder={t('configuration.sections.dateFormat.timePlaceholder')}
+          width={{ base: 'full', xl: '486px' }}
+          height="36px"
+          borderRadius="6px"
+          borderColor="neutral.300"
+          fontSize="sm"
+          ariaLabel={t('configuration.sections.dateFormat.timeFormat')}
+        />
+      </Box> */}
 
-        <Box>
-          <Text fontSize="xs" color="neutral.600" mb={1}>
-            {t('configuration.sections.dateFormat.timezone')}
-          </Text>
-          <SearchableSelect
-            options={timezoneOptions}
-            value={value.timezone ?? ''}
-            onChange={(tz) => onChange({ ...value, timezone: tz || null })}
-            placeholder={t('configuration.sections.dateFormat.timezonePlaceholder')}
-            width={{ base: 'full', xl: '486px' }}
-            height="36px"
-            borderRadius="6px"
-            borderColor="neutral.300"
-            fontSize="sm"
-            ariaLabel={t('configuration.sections.dateFormat.timezone')}
-          />
-        </Box>
-      </VStack>
+      {/* Kept for future integration if needed */}
+      {/* <Box>
+        <Text fontSize="xs" color="neutral.600" mb={1}>
+          {t('configuration.sections.dateFormat.timezone')}
+        </Text>
+        <SearchableSelect
+          options={timezoneOptions}
+          value={value.timezone ?? ''}
+          onChange={(tz) => onChange({ ...value, timezone: tz || null })}
+          placeholder={t('configuration.sections.dateFormat.timezonePlaceholder')}
+          width={{ base: 'full', xl: '486px' }}
+          height="36px"
+          borderRadius="6px"
+          borderColor="neutral.300"
+          fontSize="sm"
+          ariaLabel={t('configuration.sections.dateFormat.timezone')}
+        />
+      </Box> */}
     </Box>
   )
 }

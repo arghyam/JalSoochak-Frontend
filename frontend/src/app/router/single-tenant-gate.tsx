@@ -79,7 +79,12 @@ function SingleTenantContent() {
 
   // Render dashboard at / with the tenant pre-selected
   return (
-    <DashboardLayout>
+    <DashboardLayout
+      tenantInfo={{
+        tenantName: configuredTenant.label,
+        tenantCode: configuredTenant.tenantCode,
+      }}
+    >
       <CentralDashboard singleTenantOverride={configuredTenant} />
     </DashboardLayout>
   )

@@ -2,23 +2,27 @@ import type { ReactNode } from 'react'
 import { Flex, Box } from '@chakra-ui/react'
 import { Header } from './header'
 import { Footer } from './footer'
+import { TenantProvider, type TenantInfo } from '@/app/context/tenant-context'
 
 interface DashboardLayoutProps {
-  children: ReactNode
+  readonly children: ReactNode
+  readonly tenantInfo?: TenantInfo
 }
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+export function DashboardLayout({ children, tenantInfo }: DashboardLayoutProps) {
   return (
-    <Flex minH="100vh" direction="column" bg="neutral.50" overflowX="hidden">
-      <Header />
+    <TenantProvider tenantInfo={tenantInfo ?? {}}>
+      <Flex minH="100vh" direction="column" bg="neutral.50" overflowX="hidden">
+        <Header />
 
-      <Box as="main" flex="1" overflowX="hidden" px={{ base: '40px', md: '80px' }} pb="24px">
-        <Box w="full" maxW="1440px" mx="auto" minW={0}>
-          {children}
+        <Box as="main" flex="1" overflowX="hidden" px={{ base: '40px', md: '80px' }} pb="24px">
+          <Box w="full" maxW="1440px" mx="auto" minW={0}>
+            {children}
+          </Box>
         </Box>
-      </Box>
 
-      <Footer />
-    </Flex>
+        <Footer />
+      </Flex>
+    </TenantProvider>
   )
 }
