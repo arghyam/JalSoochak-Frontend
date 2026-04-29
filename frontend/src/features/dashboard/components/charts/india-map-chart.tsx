@@ -639,7 +639,8 @@ export function IndiaMapChart({
             value: number
           }
         }
-        if (p.data?.stateId && p.data?.name && onStateClickRef.current) {
+        const hasInteractiveMetric = hasInteractiveMetricValue(p.data?.value ?? Number.NaN)
+        if (p.data?.stateId && p.data?.name && hasInteractiveMetric && onStateClickRef.current) {
           onStateClickRef.current(p.data.stateId, p.data.name)
         }
       })
@@ -651,9 +652,11 @@ export function IndiaMapChart({
             data?: {
               stateId: string
               name: string
+              value: number
             }
           }
-          if (p.data?.stateId && onStateHoverRef.current) {
+          const hasInteractiveMetric = hasInteractiveMetricValue(p.data?.value ?? Number.NaN)
+          if (p.data?.stateId && hasInteractiveMetric && onStateHoverRef.current) {
             const stateData = dataRef.current.find((d) => d.id === p.data?.stateId)
             if (stateData) {
               onStateHoverRef.current(p.data.stateId, p.data.name, stateData)
@@ -669,7 +672,9 @@ export function IndiaMapChart({
             value?: number
           }
         }
-        const hasInteractiveRegion = Boolean(p.data?.stateId)
+        const hasInteractiveRegion = Boolean(
+          p.data?.stateId && hasInteractiveMetricValue(p.data?.value ?? Number.NaN)
+        )
         chart.getZr().setCursorStyle(hasInteractiveRegion ? 'pointer' : 'default')
       })
 
