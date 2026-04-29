@@ -1012,7 +1012,11 @@ export function CentralDashboard({
 
     return undefined
   })()
-  const { data: tenantPublicConfig } = useTenantPublicConfigQuery({
+  const {
+    data: tenantPublicConfig,
+    isLoading: isTenantPublicConfigLoading,
+    isFetching: isTenantPublicConfigFetching,
+  } = useTenantPublicConfigQuery({
     tenantId: selectedTenant?.tenantId,
     enabled: Boolean(selectedTenant?.tenantId),
   })
@@ -1039,6 +1043,8 @@ export function CentralDashboard({
   const tableDateFormat = normalizeDateFormat(
     tenantPublicConfig?.dateFormatTable?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
   )
+  const hasResolvedTenantPublicConfig =
+    !selectedTenant?.tenantId || (!isTenantPublicConfigLoading && !isTenantPublicConfigFetching)
   const shouldShowDepartmentMaps = tenantPublicConfig?.displayDepartmentMaps !== false
   const lgdMapLevelVisibility = tenantPublicConfig?.displayMapLgdLevels ?? [
     true,
@@ -1078,6 +1084,8 @@ export function CentralDashboard({
   const shouldShowMapAlongsidePerformance = isDepartmentTabActive
     ? shouldShowDepartmentMaps && isDepartmentMapEnabledForCurrentLevel
     : isLgdMapEnabledForCurrentLevel
+  const shouldFetchTenantBoundaryGeoJson =
+    hasResolvedTenantPublicConfig && shouldShowMapAlongsidePerformance
   const performanceSummaryCardMaxHeight = { base: '420px', sm: '520px', lg: '710px' } as const
   const effectiveSelectedDuration =
     selectedDuration ??
@@ -1631,7 +1639,7 @@ export function CentralDashboard({
     isFetching: isTenantBoundaryGeoJsonFetching = false,
   } = useTenantBoundaryGeoJsonQuery({
     params: tenantBoundaryGeoJsonParams,
-    enabled: Boolean(tenantBoundaryGeoJsonParams),
+    enabled: shouldFetchTenantBoundaryGeoJson && Boolean(tenantBoundaryGeoJsonParams),
   })
   const { data: nationalDashboardData } = useNationalDashboardQuery({
     params: nationalDashboardParams,
@@ -2092,7 +2100,11 @@ export function CentralDashboard({
           tenantId: state.tenantId,
           parentLgdId: state.lgdId,
         }),
-      enabled: isMapDistrictView && isCentralLandingView && Boolean(state.tenantId),
+      enabled:
+        shouldFetchTenantBoundaryGeoJson &&
+        isMapDistrictView &&
+        isCentralLandingView &&
+        Boolean(state.tenantId),
       staleTime: Infinity,
       retry: false,
     })),
@@ -2171,32 +2183,38 @@ export function CentralDashboard({
     schemePerformanceData,
     shouldFetchSchemePerformanceAnalytics ? [] : (dashboardData?.pumpOperators ?? [])
   )
-  const tenantBoundaryBlockLookup = (tenantBoundaryData?.childRegions ?? [])
-    .filter((region) => region.lgdLevel === 3)
-    .reduce(
-      (lookup, region) => {
-        const normalizedTitle = (region.childLgdTitle ?? region.childDepartmentTitle ?? '').trim()
-        if (!normalizedTitle) {
-          return lookup
-        }
-
-        if (typeof region.childLgdId === 'number' && region.childLgdId > 0) {
-          lookup.idLookup[region.childLgdId] = normalizedTitle
-          lookup.lgdLookup[region.childLgdId] = normalizedTitle
-        }
-
-        if (typeof region.childDepartmentId === 'number' && region.childDepartmentId > 0) {
-          lookup.idLookup[region.childDepartmentId] = normalizedTitle
-          lookup.lgdLookup[region.childDepartmentId] = normalizedTitle
-        }
-
+  const tenantBoundaryBlockLookup = (tenantBoundaryData?.childRegions ?? []).reduce(
+    (lookup, region) => {
+      const normalizedTitle = (
+        region.title ??
+        region.childLgdTitle ??
+        region.childDepartmentTitle ??
+        ''
+      ).trim()
+      if (!normalizedTitle) {
         return lookup
-      },
-      { idLookup: {}, lgdLookup: {} } as {
-        idLookup: Record<number, string>
-        lgdLookup: Record<number, string>
       }
-    )
+
+      const lgdId = region.childLgdId ?? region.lgdId
+      const departmentId = region.childDepartmentId ?? region.departmentId
+
+      if (typeof lgdId === 'number' && lgdId > 0) {
+        lookup.idLookup[lgdId] = normalizedTitle
+        lookup.lgdLookup[lgdId] = normalizedTitle
+      }
+
+      if (typeof departmentId === 'number' && departmentId > 0) {
+        lookup.idLookup[departmentId] = normalizedTitle
+        lookup.lgdLookup[departmentId] = normalizedTitle
+      }
+
+      return lookup
+    },
+    { idLookup: {}, lgdLookup: {} } as {
+      idLookup: Record<number, string>
+      lgdLookup: Record<number, string>
+    }
+  )
   const operatorsPerformanceAnalyticsTable = mapSchemePerformanceToTable(
     schemePerformanceData,
     [],

@@ -1474,6 +1474,142 @@ describe('dashboard formulas', () => {
     ])
   })
 
+  it('maps departmental scheme rows to the next ladder child region from tenant boundaries', () => {
+    expect(
+      mapSchemePerformanceToTable(
+        {
+          parentLgdId: 0,
+          parentDepartmentId: 8,
+          parentLgdCName: '',
+          parentDepartmentCName: 'Sub-division',
+          parentLgdTitle: '',
+          parentDepartmentTitle: 'Tangla',
+          parentLgdLevel: null,
+          parentDepartmentLevel: 2,
+          startDate: '2026-03-30',
+          endDate: '2026-04-28',
+          daysInRange: 30,
+          activeSchemeCount: 1,
+          inactiveSchemeCount: 0,
+          totalCount: 1,
+          topSchemeCount: 1,
+          topSchemes: [
+            {
+              schemeId: 214,
+              schemeName: 'CORRAMORE MPWSS POINT - IV 18296',
+              statusCode: 1,
+              status: 'active',
+              submissionDays: 12,
+              reportingRate: 0.4,
+              totalWaterSupplied: 15395802,
+              immediateParentLgdId: 0,
+              immediateParentLgdCName: '',
+              immediateParentLgdTitle: '',
+              immediateParentDepartmentId: 423,
+              immediateParentDepartmentCName: 'Division',
+              immediateParentDepartmentTitle: 'Tangla Division',
+              immediateParentDepartmentLevel: 4,
+              departmentLadder: {
+                level_1: 1,
+                level_2: 8,
+                level_3: 20,
+                level_4: 423,
+                level_5: 530,
+              },
+            },
+          ],
+        },
+        [],
+        {
+          useDepartmentHierarchyTitles: true,
+          blockTitleByParentId: {
+            idLookup: { 20: 'BTAD Circle' },
+            lgdLookup: {},
+          },
+          parentLgdTitleById: {
+            idLookup: { 20: 'BTAD Circle' },
+            lgdLookup: {},
+          },
+        }
+      )
+    ).toEqual([
+      {
+        id: 'scheme-performance-214-0',
+        name: 'Corramore Mpwss Point - Iv 18296',
+        village: 'Btad Circle',
+        block: 'Btad Circle',
+        reportingRate: 40,
+        photoCompliance: 0,
+        waterSupplied: 15395802,
+      },
+    ])
+  })
+
+  it('maps LGD scheme rows to the next ladder child region from tenant boundaries', () => {
+    expect(
+      mapSchemePerformanceToTable(
+        {
+          parentLgdId: 9,
+          parentDepartmentId: 0,
+          parentLgdCName: 'district',
+          parentDepartmentCName: '',
+          parentLgdTitle: 'Udalguri',
+          parentDepartmentTitle: '',
+          parentLgdLevel: 2,
+          parentDepartmentLevel: null,
+          startDate: '2026-03-30',
+          endDate: '2026-04-28',
+          daysInRange: 30,
+          activeSchemeCount: 1,
+          inactiveSchemeCount: 0,
+          totalCount: 1,
+          topSchemeCount: 1,
+          topSchemes: [
+            {
+              schemeId: 215,
+              schemeName: 'LGD Linked Scheme',
+              statusCode: 1,
+              status: 'active',
+              submissionDays: 12,
+              reportingRate: 0.5,
+              totalWaterSupplied: 9000,
+              immediateParentLgdId: 27476,
+              immediateParentLgdCName: 'village',
+              immediateParentLgdTitle: 'Some Village',
+              immediateParentDepartmentId: 423,
+              immediateParentDepartmentCName: 'Division',
+              immediateParentDepartmentTitle: 'Tangla Division',
+              lgdLadder: {
+                level_1: 1,
+                level_2: 9,
+                level_3: 88,
+                level_4: 864,
+                level_5: 27476,
+              },
+            },
+          ],
+        },
+        [],
+        {
+          blockTitleByParentId: {
+            idLookup: {},
+            lgdLookup: { 88: 'Kalaigaon Block' },
+          },
+        }
+      )
+    ).toEqual([
+      {
+        id: 'scheme-performance-215-0',
+        name: 'Lgd Linked Scheme',
+        village: 'Kalaigaon Block',
+        block: 'Kalaigaon Block',
+        reportingRate: 50,
+        photoCompliance: 0,
+        waterSupplied: 9000,
+      },
+    ])
+  })
+
   it('maps scheme performance rows to panchayats using a block hierarchy lookup when needed', () => {
     expect(
       mapSchemePerformanceToTable(

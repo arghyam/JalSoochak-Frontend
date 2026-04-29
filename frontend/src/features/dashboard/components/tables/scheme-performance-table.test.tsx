@@ -166,6 +166,27 @@ describe('SchemePerformanceTable', () => {
     expect(screen.getAllByText('-')).toHaveLength(4)
   })
 
+  it('rounds reporting rate values to 2 decimals in table cells', () => {
+    renderWithProviders(
+      <SchemePerformanceTable
+        title="Scheme Performance"
+        data={[
+          {
+            id: 'scheme-1',
+            name: 'Scheme Alpha',
+            village: 'Village A',
+            block: 'Block A',
+            reportingRate: 63.524555,
+            photoCompliance: 0,
+            waterSupplied: 1000,
+          },
+        ]}
+      />
+    )
+
+    expect(screen.getByText('63.52')).toBeTruthy()
+  })
+
   it('renders pagination controls when totalPages > 1', () => {
     const onPageChange = jest.fn()
     const many = Array.from({ length: 15 }, (_, i) => ({
