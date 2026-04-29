@@ -43,6 +43,18 @@ const getNationalAchievedFhtcCount = (
   state: NationalDashboardResponse['stateWiseQuantityPerformance'][number]
 ) => state.totalAchievedFhtcCount ?? state.totalFhtcCount ?? state.totalHouseholdCount ?? 0
 
+const getLadderLevelId = (
+  ladder: SchemePerformanceResponse['topSchemes'][number]['lgdLadder'],
+  level: number | null | undefined
+) => {
+  if (typeof level !== 'number' || !Number.isFinite(level)) {
+    return undefined
+  }
+
+  const ladderKey = `level_${level}` as keyof NonNullable<typeof ladder>
+  return ladder?.[ladderKey] ?? undefined
+}
+
 const parseIsoDate = (value?: string) => {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return null
@@ -1074,6 +1086,17 @@ export const mapSchemePerformanceToTable = (
 
   return response.topSchemes.map((scheme, index) => {
     const useDepartmentHierarchyTitles = options?.useDepartmentHierarchyTitles === true
+    const parentHierarchyLevel = useDepartmentHierarchyTitles
+      ? response.parentDepartmentLevel
+      : response.parentLgdLevel
+    const childRegionLadderId = getLadderLevelId(
+      useDepartmentHierarchyTitles ? scheme.departmentLadder : scheme.lgdLadder,
+      parentHierarchyLevel == null ? undefined : parentHierarchyLevel + 1
+    )
+    const childRegionTitle = getLocationTitleFromLookup(
+      options?.blockTitleByParentId,
+      childRegionLadderId
+    )
     const parentLgdTitle = getLocationTitleFromLookup(
       options?.parentLgdTitleById,
       useDepartmentHierarchyTitles
@@ -1094,6 +1117,7 @@ export const mapSchemePerformanceToTable = (
     )
     const normalizedParentLgdLevel = (scheme.immediateParentLgdCName ?? '').trim().toLowerCase()
     const blockTitle =
+      childRegionTitle ??
       blockTitleByLadderLevel3 ??
       blockTitleByDepartmentId ??
       blockTitleByLgdId ??
@@ -1110,11 +1134,13 @@ export const mapSchemePerformanceToTable = (
         undefined,
         `Scheme ${scheme.schemeId ?? index + 1}`
       ),
-      village: parentLgdTitle
-        ? toCapitalizedWords(parentLgdTitle)
-        : primaryTitleFallback
-          ? toCapitalizedWords(primaryTitleFallback)
-          : null,
+      village: childRegionTitle
+        ? toCapitalizedWords(childRegionTitle)
+        : parentLgdTitle
+          ? toCapitalizedWords(parentLgdTitle)
+          : primaryTitleFallback
+            ? toCapitalizedWords(primaryTitleFallback)
+            : null,
       block: blockTitle
         ? toCapitalizedWords(blockTitle)
         : scheme.immediateParentDepartmentTitle?.trim()

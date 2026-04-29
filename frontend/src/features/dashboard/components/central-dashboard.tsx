@@ -2183,32 +2183,38 @@ export function CentralDashboard({
     schemePerformanceData,
     shouldFetchSchemePerformanceAnalytics ? [] : (dashboardData?.pumpOperators ?? [])
   )
-  const tenantBoundaryBlockLookup = (tenantBoundaryData?.childRegions ?? [])
-    .filter((region) => region.lgdLevel === 3)
-    .reduce(
-      (lookup, region) => {
-        const normalizedTitle = (region.childLgdTitle ?? region.childDepartmentTitle ?? '').trim()
-        if (!normalizedTitle) {
-          return lookup
-        }
-
-        if (typeof region.childLgdId === 'number' && region.childLgdId > 0) {
-          lookup.idLookup[region.childLgdId] = normalizedTitle
-          lookup.lgdLookup[region.childLgdId] = normalizedTitle
-        }
-
-        if (typeof region.childDepartmentId === 'number' && region.childDepartmentId > 0) {
-          lookup.idLookup[region.childDepartmentId] = normalizedTitle
-          lookup.lgdLookup[region.childDepartmentId] = normalizedTitle
-        }
-
+  const tenantBoundaryBlockLookup = (tenantBoundaryData?.childRegions ?? []).reduce(
+    (lookup, region) => {
+      const normalizedTitle = (
+        region.title ??
+        region.childLgdTitle ??
+        region.childDepartmentTitle ??
+        ''
+      ).trim()
+      if (!normalizedTitle) {
         return lookup
-      },
-      { idLookup: {}, lgdLookup: {} } as {
-        idLookup: Record<number, string>
-        lgdLookup: Record<number, string>
       }
-    )
+
+      const lgdId = region.childLgdId ?? region.lgdId
+      const departmentId = region.childDepartmentId ?? region.departmentId
+
+      if (typeof lgdId === 'number' && lgdId > 0) {
+        lookup.idLookup[lgdId] = normalizedTitle
+        lookup.lgdLookup[lgdId] = normalizedTitle
+      }
+
+      if (typeof departmentId === 'number' && departmentId > 0) {
+        lookup.idLookup[departmentId] = normalizedTitle
+        lookup.lgdLookup[departmentId] = normalizedTitle
+      }
+
+      return lookup
+    },
+    { idLookup: {}, lgdLookup: {} } as {
+      idLookup: Record<number, string>
+      lgdLookup: Record<number, string>
+    }
+  )
   const operatorsPerformanceAnalyticsTable = mapSchemePerformanceToTable(
     schemePerformanceData,
     [],
