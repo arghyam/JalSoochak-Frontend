@@ -32,7 +32,7 @@ describe('SchemeMappingsSyncPage', () => {
 
   it('renders title and empty state', () => {
     renderWithProviders(<SchemeMappingsSyncPage />)
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Scheme Mappings Sync')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Scheme Mappings')
     expect(screen.getByText('No scheme mappings found')).toBeInTheDocument()
   })
 
