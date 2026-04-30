@@ -19,7 +19,6 @@ import { useQueries } from '@tanstack/react-query'
 import { useDashboardData } from '../hooks/use-dashboard-data'
 import { dashboardApi } from '../services/api/dashboard-api'
 import { useLocationChildrenQuery } from '../services/query/use-location-children-query'
-import { useBlockSchemePanchayatLookupQuery } from '../services/query/use-block-scheme-panchayat-lookup-query'
 import { useLocationHierarchyQuery } from '../services/query/use-location-hierarchy-query'
 import { useLocationSearchQuery } from '../services/query/use-location-search-query'
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
@@ -1222,13 +1221,6 @@ export function CentralDashboard({
   const selectedBlockOption = findLocationOption(blockApiOptions, activeHierarchySelectedBlock)
   const selectedBlockId =
     parseLocationId(activeHierarchySelectedBlock) ?? selectedBlockOption?.locationId
-  const { data: blockSchemePanchayatLookup } = useBlockSchemePanchayatLookupQuery({
-    tenantId: selectedTenant?.tenantId,
-    hierarchyType,
-    blockId: isBlockSelected && hierarchyType === 'LGD' ? selectedBlockId : undefined,
-    tenantCode: selectedTenant?.tenantCode,
-    enabled: Boolean(isBlockSelected && hierarchyType === 'LGD' && selectedBlockId),
-  })
   const { data: gramPanchayatLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
@@ -2220,8 +2212,7 @@ export function CentralDashboard({
     [],
     {
       blockTitleByParentId: tenantBoundaryBlockLookup,
-      parentLgdTitleById:
-        hierarchyType === 'LGD' ? blockSchemePanchayatLookup : tenantBoundaryBlockLookup,
+      parentLgdTitleById: hierarchyType === 'LGD' ? undefined : tenantBoundaryBlockLookup,
       useDepartmentHierarchyTitles: hierarchyType !== 'LGD',
     }
   )
