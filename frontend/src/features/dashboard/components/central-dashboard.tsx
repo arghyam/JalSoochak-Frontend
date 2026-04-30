@@ -2227,7 +2227,9 @@ export function CentralDashboard({
       : undefined) ?? (isHierarchyLeafSelected ? schemePerformanceData?.topSchemes?.[0] : undefined)
   const periodicQuantityTimeTrendData = mapSchemeRegularityQuantityToTrendPoints(
     schemeQuantityPeriodicData,
-    tableDateFormat
+    tableDateFormat,
+    waterQuantityPeriodicData,
+    averagePersonsPerHousehold
   )
   const periodicRegularityTimeTrendData = mapSchemeRegularityPeriodicToTrendPoints(
     schemeRegularityPeriodicData,

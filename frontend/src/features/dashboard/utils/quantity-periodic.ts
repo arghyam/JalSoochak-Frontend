@@ -11,6 +11,7 @@ import type {
   WaterQuantityPeriodicResponse,
 } from '../types'
 import { formatIsoDateForDisplay, normalizeDateFormat } from '@/shared/utils/date-format'
+import { DEFAULT_PERSONS_PER_HOUSEHOLD } from './formulas'
 
 const parseIsoDate = (value: string) => {
   const parsed = new Date(`${value}T00:00:00Z`)
@@ -49,6 +50,34 @@ const formatMetricLabel = (
 }
 
 const toRegularityPercent = (value: number) => (value <= 1 ? value * 100 : value)
+
+const resolveMetricDaysInRange = (startDate: string, endDate: string) => {
+  const start = parseIsoDate(startDate)
+  const end = parseIsoDate(endDate)
+
+  if (!start || !end || start > end) {
+    return 0
+  }
+
+  const millisecondsPerDay = 24 * 60 * 60 * 1000
+  return Math.floor((end.getTime() - start.getTime()) / millisecondsPerDay) + 1
+}
+
+const getMetricPeriodKey = (
+  metric: Pick<
+    WaterQuantityPeriodicMetric | SchemeRegularityPeriodicMetric,
+    'periodStartDate' | 'periodEndDate'
+  >
+) => `${metric.periodStartDate}|${metric.periodEndDate}`
+
+const getAchievedFhtcCount = (metric: WaterQuantityPeriodicMetric | undefined) => {
+  if (!metric) {
+    return 0
+  }
+
+  const count = Number(metric.totalAchievedFhtcCount ?? metric.achievedFhtcCount ?? 0)
+  return Number.isFinite(count) && count > 0 ? count : 0
+}
 
 export const resolveWaterQuantityPeriodicScale = (
   startDate: string,
@@ -128,11 +157,19 @@ export const mapSchemeRegularityPeriodicToTrendPoints = (
 
 export const mapSchemeRegularityQuantityToTrendPoints = (
   response: SchemeRegularityPeriodicResponse | undefined,
-  dateFormat?: string
+  dateFormat?: string,
+  waterQuantityResponse?: WaterQuantityPeriodicResponse,
+  averagePersonsPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD
 ): MonthlyTrendPoint[] => {
   if (!response?.metrics?.length) {
     return []
   }
+
+  const waterQuantityMetricsByPeriod = new Map(
+    (waterQuantityResponse?.metrics ?? [])
+      .filter((metric) => Boolean(metric.periodStartDate) && Boolean(metric.periodEndDate))
+      .map((metric) => [getMetricPeriodKey(metric), metric])
+  )
 
   return response.metrics.flatMap((metric) => {
     if (!metric.periodStartDate || !metric.periodEndDate) {
@@ -146,10 +183,28 @@ export const mapSchemeRegularityQuantityToTrendPoints = (
       return []
     }
 
+    const matchingWaterQuantityMetric = waterQuantityMetricsByPeriod.get(getMetricPeriodKey(metric))
+    const achievedFhtcCount = getAchievedFhtcCount(matchingWaterQuantityMetric)
+    const metricDays = resolveMetricDaysInRange(metric.periodStartDate, metric.periodEndDate)
+
+    if (
+      achievedFhtcCount <= 0 ||
+      metricDays <= 0 ||
+      !Number.isFinite(averagePersonsPerHousehold) ||
+      averagePersonsPerHousehold <= 0
+    ) {
+      return []
+    }
+
     return [
       {
         period: formatMetricLabel(response.scale, metric, dateFormat),
-        value: metric.totalWaterQuantity,
+        value: Number(
+          (
+            metric.totalWaterQuantity /
+            (achievedFhtcCount * averagePersonsPerHousehold * metricDays)
+          ).toFixed(1)
+        ),
       },
     ]
   })
