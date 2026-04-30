@@ -2,11 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { Avatar, Box, Button, Flex, Grid, Icon, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { LuArrowLeft, LuArrowRight } from 'react-icons/lu'
-import { ChartEmptyState, LoadingSpinner } from '@/shared/components/common'
+import { ChartEmptyState } from '@/shared/components/common'
 import { formatIsoDateForDisplay, normalizeDateFormat } from '@/shared/utils/date-format'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import type {
   DashboardData,
+  EntityPerformance,
   PumpOperatorsBySchemeItem,
   ReadingComplianceData,
   ReadingComplianceItem,
@@ -16,10 +17,13 @@ import type {
 import { usePumpOperatorDetailsQuery } from '../../services/query/use-pump-operator-details-query'
 import { usePumpOperatorsBySchemeQuery } from '../../services/query/use-pump-operators-by-scheme-query'
 import { useReadingComplianceQuery } from '../../services/query/use-reading-compliance-query'
-import { MonthlyTrendChart, SupplyOutageReasonsChart } from '../charts'
+import { SupplyOutageReasonsChart } from '../charts'
 import { ReadingComplianceTable } from '../tables'
+import { PerformanceChartCard } from './performance-chart-card'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 import { toCapitalizedWords } from '../../utils/format-location-label'
+
+type PerformanceTimeScale = 'day' | 'week' | 'month' | 'quarter' | 'year'
 
 type VillageDashboardScreenProps = {
   data: DashboardData
@@ -33,10 +37,16 @@ type VillageDashboardScreenProps = {
   regularityTimeTrendData?: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
   isRegularityTimeTrendLoading?: boolean
+  quantityTimeScaleTab?: PerformanceTimeScale
+  onQuantityTimeScaleTabChange?: (value: PerformanceTimeScale) => void
+  regularityTimeScaleTab?: PerformanceTimeScale
+  onRegularityTimeScaleTabChange?: (value: PerformanceTimeScale) => void
   tableDateFormat?: string
+  enableExtendedTimeScales?: boolean
 }
 
 const READING_COMPLIANCE_PAGE_SIZE = 50
+const VILLAGE_PERFORMANCE_DATA: EntityPerformance[] = []
 
 const formatReadingComplianceTimestamp = (value?: string | null, dateFormat?: string) => {
   if (!value) {
@@ -982,7 +992,12 @@ export function VillageDashboardScreen({
   regularityTimeTrendData = [],
   isQuantityTimeTrendLoading = false,
   isRegularityTimeTrendLoading = false,
+  quantityTimeScaleTab,
+  onQuantityTimeScaleTabChange,
+  regularityTimeScaleTab,
+  onRegularityTimeScaleTabChange,
   tableDateFormat,
+  enableExtendedTimeScales = true,
 }: VillageDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const effectiveSchemeId = schemeId ?? villagePumpOperatorDetails.schemeId
@@ -992,74 +1007,61 @@ export function VillageDashboardScreen({
   return (
     <>
       <Grid templateColumns="1fr" gap={6} mb={6}>
-        <Box
-          bg="white"
-          borderWidth="0.5px"
-          borderRadius="12px"
-          borderColor="#E4E4E7"
-          px="16px"
-          pt="24px"
-          pb="24px"
-          h="492px"
-          minW={0}
-        >
-          <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-            {t('performanceCharts.regularity.title', { defaultValue: 'Regularity Performance' })}
-          </Text>
-          {isRegularityTimeTrendLoading ? (
-            <Flex align="center" justify="center" h="400px">
-              <LoadingSpinner />
-            </Flex>
-          ) : regularityTimeTrendData.length > 0 ? (
-            <MonthlyTrendChart
-              data={regularityTimeTrendData}
-              height="400px"
-              isPercent
-              xAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
-              yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
-                defaultValue: 'Regularity',
-              })}
-              seriesName={t('performanceCharts.regularity.seriesName', {
-                defaultValue: 'Regularity',
-              })}
-              dateFormat={tableDateFormat}
-            />
-          ) : (
-            <ChartEmptyState minHeight="400px" />
-          )}
-        </Box>
-        <Box
-          bg="white"
-          borderWidth="0.5px"
-          borderRadius="12px"
-          borderColor="#E4E4E7"
-          px="16px"
-          pt="24px"
-          pb="24px"
-          h="492px"
-          minW={0}
-        >
-          <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-            {t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
-          </Text>
-          {isQuantityTimeTrendLoading ? (
-            <Flex align="center" justify="center" h="400px">
-              <LoadingSpinner />
-            </Flex>
-          ) : quantityTimeTrendData.length > 0 ? (
-            <MonthlyTrendChart
-              data={quantityTimeTrendData}
-              height="400px"
-              valueDivisor={1000000}
-              xAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
-              yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
-              seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
-              dateFormat={tableDateFormat}
-            />
-          ) : (
-            <ChartEmptyState minHeight="400px" />
-          )}
-        </Box>
+        <PerformanceChartCard
+          title={t('performanceCharts.regularity.title', {
+            defaultValue: 'Regularity Performance',
+          })}
+          viewByAriaLabel={t('performanceCharts.regularity.ariaViewByVillage', {
+            defaultValue: 'Village regularity performance view by',
+          })}
+          viewBy="time"
+          onViewByChange={() => undefined}
+          data={VILLAGE_PERFORMANCE_DATA}
+          metric="regularity"
+          timeTrendData={regularityTimeTrendData}
+          isTimeTrendLoading={isRegularityTimeTrendLoading}
+          entityLabel={t('performanceCharts.viewBy.villages', { defaultValue: 'Villages' })}
+          yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
+            defaultValue: 'Regularity',
+          })}
+          seriesName={t('performanceCharts.regularity.seriesName', {
+            defaultValue: 'Regularity',
+          })}
+          cardHeight="492px"
+          timeXAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+          isTimeTrendPercent
+          regularityTimeScaleTab={regularityTimeScaleTab}
+          onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
+          dateFormat={tableDateFormat}
+          enableExtendedTimeScales={enableExtendedTimeScales}
+          hideViewBySelect
+        />
+        <PerformanceChartCard
+          title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
+          viewByAriaLabel={t('performanceCharts.quantity.ariaViewByVillage', {
+            defaultValue: 'Village quantity performance view by',
+          })}
+          viewBy="time"
+          onViewByChange={() => undefined}
+          data={VILLAGE_PERFORMANCE_DATA}
+          metric="quantity"
+          timeTrendData={quantityTimeTrendData}
+          isTimeTrendLoading={isQuantityTimeTrendLoading}
+          entityLabel={t('performanceCharts.viewBy.villages', { defaultValue: 'Villages' })}
+          yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
+          seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
+          cardHeight="492px"
+          showAreaLine
+          areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
+            defaultValue: 'Demand',
+          })}
+          timeXAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+          quantityTimeScaleTab={quantityTimeScaleTab}
+          onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
+          dateFormat={tableDateFormat}
+          enableExtendedTimeScales={enableExtendedTimeScales}
+          hideViewBySelect
+        />
       </Grid>
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
         <Box

@@ -308,7 +308,12 @@ export function DashboardBody({
           regularityTimeTrendData={regularityTimeTrendData}
           isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
+          quantityTimeScaleTab={quantityTimeScaleTab}
+          onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
+          regularityTimeScaleTab={regularityTimeScaleTab}
+          onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
           tableDateFormat={tableDateFormat}
+          enableExtendedTimeScales={enableExtendedTimeScales}
         />
       ) : null}
 

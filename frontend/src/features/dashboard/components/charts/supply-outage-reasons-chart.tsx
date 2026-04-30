@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
-import { useMediaQuery, useTheme } from '@chakra-ui/react'
+import { IconButton, Tooltip, useMediaQuery, useTheme } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
+import { AiOutlineInfoCircle } from 'react-icons/ai'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
 import { ChartEmptyState } from '@/shared/components/common/chart-empty-state'
@@ -28,6 +29,10 @@ const outageColors = [
   '#143A54',
 ]
 const chartLegendGapPx = 20
+const chartHeadingOffset = '-70px'
+const chartHeadingLineHeight = '30px'
+const outageReasonTooltip =
+  'Counts are based on unique schemes. A scheme may appear in multiple regions, so region totals may be higher.'
 
 const toDisplayLabel = (value: string) =>
   value
@@ -153,6 +158,34 @@ export function SupplyOutageReasonsChart({
   const containerHeight = typeof height === 'number' ? `${height}px` : height
   const resolvedPieSize = isBelowXs ? Math.min(pieSize, 240) : pieSize
   const legendItems = chartItems.map(({ key, label, color }) => ({ key, label, color }))
+  const infoTooltip = (
+    <Tooltip
+      label={outageReasonTooltip}
+      hasArrow
+      placement="top-end"
+      bg="white"
+      color="neutral.700"
+      borderWidth="1px"
+      borderColor="neutral.200"
+      borderRadius="8px"
+      boxShadow="md"
+      p="12px"
+      maxW="320px"
+    >
+      <IconButton
+        aria-label="Supply outage reasons info"
+        icon={<AiOutlineInfoCircle />}
+        variant="ghost"
+        color="neutral.400"
+        minW="auto"
+        h="16px"
+        w="16px"
+        p="0"
+        _hover={{ bg: 'transparent' }}
+        _active={{ bg: 'transparent' }}
+      />
+    </Tooltip>
+  )
 
   if (!hasRenderableData) {
     return (
@@ -163,8 +196,21 @@ export function SupplyOutageReasonsChart({
           height: containerHeight,
           display: 'flex',
           flexDirection: 'column',
+          position: 'relative',
         }}
       >
+        <div
+          style={{
+            position: 'absolute',
+            top: chartHeadingOffset,
+            right: 0,
+            height: chartHeadingLineHeight,
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          {infoTooltip}
+        </div>
         <ChartEmptyState minHeight="100%" message={noDataLabel} />
       </div>
     )
@@ -179,8 +225,21 @@ export function SupplyOutageReasonsChart({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
+        position: 'relative',
       }}
     >
+      <div
+        style={{
+          position: 'absolute',
+          top: chartHeadingOffset,
+          right: 0,
+          height: chartHeadingLineHeight,
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
+        {infoTooltip}
+      </div>
       <div
         style={{
           width: `${resolvedPieSize}px`,
