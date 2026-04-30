@@ -31,8 +31,6 @@ const outageColors = [
 const chartLegendGapPx = 20
 const chartHeadingOffset = '-70px'
 const chartHeadingLineHeight = '30px'
-const outageReasonTooltip =
-  'Counts are based on unique schemes. A scheme may appear in multiple regions, so region totals may be higher.'
 
 const toDisplayLabel = (value: string) =>
   value
@@ -50,6 +48,7 @@ export function SupplyOutageReasonsChart({
   pieSize = 300,
 }: SupplyOutageReasonsChartProps) {
   const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation('dashboard')
   const theme = useTheme()
   const [isBelowXs] = useMediaQuery('(max-width: 480px)')
   const bodyText7 = getBodyText7Style(theme)
@@ -160,7 +159,7 @@ export function SupplyOutageReasonsChart({
   const legendItems = chartItems.map(({ key, label, color }) => ({ key, label, color }))
   const infoTooltip = (
     <Tooltip
-      label={outageReasonTooltip}
+      label={t('outageAndSubmissionCharts.supplyOutageReasons.tooltip')}
       hasArrow
       placement="top-end"
       bg="white"
@@ -173,7 +172,7 @@ export function SupplyOutageReasonsChart({
       maxW="320px"
     >
       <IconButton
-        aria-label="Supply outage reasons info"
+        aria-label={t('outageAndSubmissionCharts.supplyOutageReasons.ariaLabel')}
         icon={<AiOutlineInfoCircle />}
         variant="ghost"
         color="neutral.400"

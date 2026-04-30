@@ -41,6 +41,7 @@ type VillageDashboardScreenProps = {
   onQuantityTimeScaleTabChange?: (value: PerformanceTimeScale) => void
   regularityTimeScaleTab?: PerformanceTimeScale
   onRegularityTimeScaleTabChange?: (value: PerformanceTimeScale) => void
+  screenDateFormat?: string
   tableDateFormat?: string
   enableExtendedTimeScales?: boolean
 }
@@ -996,6 +997,7 @@ export function VillageDashboardScreen({
   onQuantityTimeScaleTabChange,
   regularityTimeScaleTab,
   onRegularityTimeScaleTabChange,
+  screenDateFormat,
   tableDateFormat,
   enableExtendedTimeScales = true,
 }: VillageDashboardScreenProps) {
@@ -1032,7 +1034,7 @@ export function VillageDashboardScreen({
           isTimeTrendPercent
           regularityTimeScaleTab={regularityTimeScaleTab}
           onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
-          dateFormat={tableDateFormat}
+          dateFormat={screenDateFormat ?? tableDateFormat}
           enableExtendedTimeScales={enableExtendedTimeScales}
           hideViewBySelect
         />
@@ -1058,7 +1060,7 @@ export function VillageDashboardScreen({
           timeXAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
           quantityTimeScaleTab={quantityTimeScaleTab}
           onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
-          dateFormat={tableDateFormat}
+          dateFormat={screenDateFormat ?? tableDateFormat}
           enableExtendedTimeScales={enableExtendedTimeScales}
           hideViewBySelect
         />

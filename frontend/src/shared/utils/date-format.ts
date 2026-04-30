@@ -6,9 +6,11 @@ const SUPPORTED_DATE_FORMATS = [
   'YYYY/MM/DD',
   'DD/MM/YY',
   'MM/DD/YY',
+  'DD/MON/YYYY',
+  'DD/MON/YY',
 ] as const
 
-type DatePartToken = 'DD' | 'MM' | 'YYYY' | 'YY'
+type DatePartToken = 'DD' | 'MM' | 'MON' | 'YYYY' | 'YY'
 
 type ParsedDateFormat = {
   format: string
@@ -22,7 +24,9 @@ const parseDateFormat = (format?: string | null): ParsedDateFormat => {
     SUPPORTED_DATE_FORMATS.includes(format as (typeof SUPPORTED_DATE_FORMATS)[number])
       ? format
       : DEFAULT_SCREEN_DATE_FORMAT
-  const separator = normalizedFormat.replace(/[DMY]/g, '').charAt(0) || '/'
+  const separator = normalizedFormat.includes('/')
+    ? '/'
+    : normalizedFormat.replace(/[DMY]/g, '').charAt(0) || '/'
   const tokens = normalizedFormat.split(separator) as DatePartToken[]
 
   return {
@@ -33,6 +37,32 @@ const parseDateFormat = (format?: string | null): ParsedDateFormat => {
 }
 
 const buildIsoDate = (year: string, month: string, day: string) => `${year}-${month}-${day}`
+
+const MONTH_ABBREVIATIONS = [
+  'JAN',
+  'FEB',
+  'MAR',
+  'APR',
+  'MAY',
+  'JUN',
+  'JUL',
+  'AUG',
+  'SEP',
+  'OCT',
+  'NOV',
+  'DEC',
+] as const
+
+const MONTH_ABBREVIATION_TO_NUMBER = MONTH_ABBREVIATIONS.reduce<Record<string, string>>(
+  (acc, month, index) => {
+    acc[month] = String(index + 1).padStart(2, '0')
+    return acc
+  },
+  {}
+)
+
+const resolveMonthAbbreviation = (month: string) =>
+  MONTH_ABBREVIATION_TO_NUMBER[month.trim().toUpperCase()] ?? ''
 
 export const normalizeDateFormat = (format?: string | null) => parseDateFormat(format).format
 
@@ -78,6 +108,7 @@ export const formatIsoDateForDisplay = (
   const values: Record<DatePartToken, string> = {
     DD: day,
     MM: month,
+    MON: MONTH_ABBREVIATIONS[Number(month) - 1] ?? month,
     YYYY: options.shortYear ? year.slice(-2) : year,
     YY: year.slice(-2),
   }
@@ -111,7 +142,16 @@ export const parseDisplayDateToIso = (value: string, format?: string | null) => 
   const { separator, tokens } = parseDateFormat(format)
   const escapedSeparator = separator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const matcher = new RegExp(
-    `^(\\d{2}|\\d{4})${escapedSeparator}(\\d{2}|\\d{4})${escapedSeparator}(\\d{2}|\\d{4})$`
+    `^${tokens
+      .map((token) => {
+        if (token === 'MON') {
+          return '([A-Za-z]{3})'
+        }
+
+        return token === 'YYYY' ? '(\\d{4})' : '(\\d{2})'
+      })
+      .join(escapedSeparator)}$`,
+    'i'
   )
   const match = trimmedValue.match(matcher)
   if (!match) {
@@ -124,9 +164,10 @@ export const parseDisplayDateToIso = (value: string, format?: string | null) => 
       acc[token] = parts[index] ?? ''
       return acc
     },
-    { DD: '', MM: '', YYYY: '', YY: '' }
+    { DD: '', MM: '', MON: '', YYYY: '', YY: '' }
   )
 
+  const resolvedMonth = values.MM || resolveMonthAbbreviation(values.MON)
   const resolvedYear =
     values.YYYY.length === 4
       ? values.YYYY
@@ -141,11 +182,11 @@ export const parseDisplayDateToIso = (value: string, format?: string | null) => 
           })()
         : ''
 
-  if (!values.DD || !values.MM || !resolvedYear) {
+  if (!values.DD || !resolvedMonth || !resolvedYear) {
     return ''
   }
 
-  return buildIsoDate(resolvedYear, values.MM, values.DD)
+  return buildIsoDate(resolvedYear, resolvedMonth, values.DD)
 }
 
 export const isValidDisplayDate = (value: string, format?: string | null) => {

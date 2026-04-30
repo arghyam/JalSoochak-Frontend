@@ -188,6 +188,10 @@
     "ariaViewByBlock": "Block supply outage distribution view by",
     "ariaViewByGramPanchayat": "Gram panchayat supply outage distribution view by",
     "ariaOutageTimeScale": "Outage time scale",
+    "supplyOutageReasons": {
+      "tooltip": "Counts are based on unique schemes. A scheme may appear in multiple regions, so region totals may be higher.",
+      "ariaLabel": "Supply outage reasons info"
+    },
     "titles": {
       "supplyOutageReasons": "Supply Outage Reasons",
       "supplyOutageDistribution": "Supply Outage Distribution",

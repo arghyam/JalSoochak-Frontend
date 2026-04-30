@@ -1038,7 +1038,10 @@ export function CentralDashboard({
     tenantPublicConfig?.waterNorm,
     defaultWaterNormLitersPerPersonPerDay
   )
-  const durationDateFormat = DEFAULT_SCREEN_DATE_FORMAT
+  const screenDateFormat = normalizeDateFormat(
+    tenantPublicConfig?.dateFormatScreen?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
+  )
+  const durationDateFormat = screenDateFormat
   const tableDateFormat = normalizeDateFormat(
     tenantPublicConfig?.dateFormatTable?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
   )
@@ -2227,27 +2230,27 @@ export function CentralDashboard({
       : undefined) ?? (isHierarchyLeafSelected ? schemePerformanceData?.topSchemes?.[0] : undefined)
   const periodicQuantityTimeTrendData = mapSchemeRegularityQuantityToTrendPoints(
     schemeQuantityPeriodicData,
-    tableDateFormat,
+    screenDateFormat,
     waterQuantityPeriodicData,
     averagePersonsPerHousehold
   )
   const periodicRegularityTimeTrendData = mapSchemeRegularityPeriodicToTrendPoints(
     schemeRegularityPeriodicData,
-    tableDateFormat
+    screenDateFormat
   )
   const quantityTimeTrendData = isCentralLandingView
-    ? mapNationalQuantityTrendPoints(nationalSchemeQuantityPeriodicData, tableDateFormat)
+    ? mapNationalQuantityTrendPoints(nationalSchemeQuantityPeriodicData, screenDateFormat)
     : periodicQuantityTimeTrendData.length > 0
       ? periodicQuantityTimeTrendData
       : []
   const regularityTimeTrendData = isCentralLandingView
-    ? mapNationalRegularityTrendPoints(nationalSchemeRegularityPeriodicData, tableDateFormat)
+    ? mapNationalRegularityTrendPoints(nationalSchemeRegularityPeriodicData, screenDateFormat)
     : periodicRegularityTimeTrendData.length > 0
       ? periodicRegularityTimeTrendData
       : []
   const outageReasonsTimeTrendData = mapOutageReasonsPeriodicToTrendPoints(
     outageReasonsPeriodicData,
-    tableDateFormat
+    screenDateFormat
   )
   const currentWaterSupplyKpis = isCentralLandingView
     ? getWaterSupplyKpisFromNationalDashboard(
@@ -3374,6 +3377,7 @@ export function CentralDashboard({
         schemePerformancePage={schemePerformancePage}
         totalSchemePages={totalSchemePages}
         onSchemePageChange={handleSchemePageChange}
+        screenDateFormat={screenDateFormat}
         tableDateFormat={tableDateFormat}
         enableExtendedTimeScales
       />

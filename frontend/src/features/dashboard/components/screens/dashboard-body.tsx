@@ -71,6 +71,7 @@ type DashboardBodyProps = {
   schemePerformancePage?: number
   totalSchemePages?: number
   onSchemePageChange?: (page: number) => void
+  screenDateFormat?: string
   tableDateFormat?: string
   enableExtendedTimeScales?: boolean
 }
@@ -119,6 +120,7 @@ export function DashboardBody({
   schemePerformancePage,
   totalSchemePages,
   onSchemePageChange,
+  screenDateFormat,
   tableDateFormat,
   enableExtendedTimeScales = false,
 }: DashboardBodyProps) {
@@ -195,6 +197,7 @@ export function DashboardBody({
           regularityTimeTrendData={regularityTimeTrendData}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
           geographyEntityLabel={geographyEntityLabel}
+          screenDateFormat={screenDateFormat}
           tableDateFormat={tableDateFormat}
           enableExtendedTimeScales={enableExtendedTimeScales}
         />
@@ -227,6 +230,7 @@ export function DashboardBody({
           schemePerformancePage={schemePerformancePage}
           totalSchemePages={totalSchemePages}
           onSchemePageChange={onSchemePageChange}
+          screenDateFormat={screenDateFormat}
           tableDateFormat={tableDateFormat}
         />
       ) : null}
@@ -260,6 +264,7 @@ export function DashboardBody({
           schemePerformancePage={schemePerformancePage}
           totalSchemePages={totalSchemePages}
           onSchemePageChange={onSchemePageChange}
+          screenDateFormat={screenDateFormat}
           tableDateFormat={tableDateFormat}
         />
       ) : null}
@@ -290,6 +295,7 @@ export function DashboardBody({
           schemePerformancePage={schemePerformancePage}
           totalSchemePages={totalSchemePages}
           onSchemePageChange={onSchemePageChange}
+          screenDateFormat={screenDateFormat}
           tableDateFormat={tableDateFormat}
         />
       ) : null}
@@ -312,6 +318,7 @@ export function DashboardBody({
           onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
           regularityTimeScaleTab={regularityTimeScaleTab}
           onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
+          screenDateFormat={screenDateFormat}
           tableDateFormat={tableDateFormat}
           enableExtendedTimeScales={enableExtendedTimeScales}
         />
@@ -469,7 +476,7 @@ export function DashboardBody({
                         data={waterSupplyOutageDistributionData}
                         height="100%"
                         xAxisLabel={geographyEntityLabel}
-                        dateFormat={tableDateFormat}
+                        dateFormat={screenDateFormat}
                       />
                     ) : (
                       <ChartEmptyState minHeight="100%" />
@@ -485,7 +492,7 @@ export function DashboardBody({
                       seriesName={t('outageAndSubmissionCharts.series.supplyOutage', {
                         defaultValue: 'Supply outage',
                       })}
-                      dateFormat={tableDateFormat}
+                      dateFormat={screenDateFormat}
                     />
                   ) : (
                     <ChartEmptyState minHeight="100%" />
@@ -505,7 +512,7 @@ export function DashboardBody({
                       data={supplySubmissionRateData}
                       height="100%"
                       entityLabel={supplySubmissionRateLabel}
-                      dateFormat={tableDateFormat}
+                      dateFormat={screenDateFormat}
                     />
                   ) : (
                     <ChartEmptyState minHeight="100%" />
@@ -522,7 +529,7 @@ export function DashboardBody({
           data={data}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
-          tableDateFormat={tableDateFormat}
+          screenDateFormat={screenDateFormat}
         />
       ) : null}
     </>
@@ -542,6 +549,7 @@ type PerformanceChartsSectionProps = {
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading: boolean
   geographyEntityLabel: string
+  screenDateFormat?: string
   tableDateFormat?: string
   enableExtendedTimeScales?: boolean
 }
@@ -559,6 +567,7 @@ function PerformanceChartsSection({
   regularityTimeTrendData,
   isRegularityTimeTrendLoading,
   geographyEntityLabel,
+  screenDateFormat,
   tableDateFormat,
   enableExtendedTimeScales = false,
 }: PerformanceChartsSectionProps) {
@@ -593,7 +602,7 @@ function PerformanceChartsSection({
         isTimeTrendPercent
         regularityTimeScaleTab={regularityTimeScaleTab}
         onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
-        dateFormat={tableDateFormat}
+        dateFormat={screenDateFormat ?? tableDateFormat}
         enableExtendedTimeScales={enableExtendedTimeScales}
       />
       <PerformanceChartCard
@@ -623,7 +632,7 @@ function PerformanceChartsSection({
         timeXAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
         quantityTimeScaleTab={quantityTimeScaleTab}
         onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
-        dateFormat={tableDateFormat}
+        dateFormat={screenDateFormat ?? tableDateFormat}
         enableExtendedTimeScales={enableExtendedTimeScales}
       />
     </Grid>
