@@ -30,6 +30,8 @@ export interface DataTableColumn<T> {
   width?: string
   /** Minimum column width (e.g. '200px'). Applied to the Th element. */
   minWidth?: string
+  /** Maximum number of lines for the header label. Defaults to a single line. */
+  headerMaxLines?: number
 }
 
 export interface PaginationConfig {
@@ -399,11 +401,17 @@ export function DataTable<T extends object>({
                       px={{ base: 3, md: 5 }}
                       py={3}
                       textTransform="none"
-                      whiteSpace="nowrap"
+                      whiteSpace={column.headerMaxLines ? 'normal' : 'nowrap'}
                       aria-sort={column.sortable ? ariaSortValue : undefined}
                     >
                       <Flex align="center" gap={2} textStyle="h10">
-                        <Text whiteSpace="nowrap">{column.header}</Text>
+                        <Text
+                          noOfLines={column.headerMaxLines}
+                          whiteSpace={column.headerMaxLines ? 'normal' : 'nowrap'}
+                          lineHeight={column.headerMaxLines ? '18px' : undefined}
+                        >
+                          {column.header}
+                        </Text>
                         {column.sortable && (
                           <Box aria-hidden="true">
                             {isSorted ? (

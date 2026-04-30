@@ -71,6 +71,7 @@ describe('SupplyOutageReasonsChart', () => {
     expect(pieData).toHaveLength(6)
     expect(tooltipText).toContain('15.0')
     expect(tooltipText).toContain('%')
+    expect(screen.getByRole('button', { name: 'Supply outage reasons info' })).toBeTruthy()
 
     pieData.forEach((slice) => {
       expect(slice.emphasis?.itemStyle?.color).toBe(slice.itemStyle?.color)

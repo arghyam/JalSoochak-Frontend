@@ -35,6 +35,7 @@ type PerformanceChartCardProps = {
   onRegularityTimeScaleTabChange?: (value: PerformanceTimeScale) => void
   dateFormat?: string
   enableExtendedTimeScales?: boolean
+  hideViewBySelect?: boolean
 }
 
 export function PerformanceChartCard({
@@ -64,6 +65,7 @@ export function PerformanceChartCard({
   onRegularityTimeScaleTabChange,
   dateFormat,
   enableExtendedTimeScales = true,
+  hideViewBySelect = false,
 }: PerformanceChartCardProps) {
   const hasGeographyData = data.length > 0
   const hasTimeData = timeTrendData.length > 0
@@ -182,19 +184,21 @@ export function PerformanceChartCard({
               })}
             </Flex>
           ) : null}
-          <ViewBySelect
-            ariaLabel={viewByAriaLabel}
-            value={viewBy}
-            onChange={(value) => {
-              if (value === 'time' && onTimeScaleTabChange) {
-                onTimeScaleTabChange('day')
-              }
-              onViewByChange(value)
-            }}
-            color={selectColor}
-            borderColor={selectBorderColor}
-            disabled={isSelectDisabled}
-          />
+          {hideViewBySelect ? null : (
+            <ViewBySelect
+              ariaLabel={viewByAriaLabel}
+              value={viewBy}
+              onChange={(value) => {
+                if (value === 'time' && onTimeScaleTabChange) {
+                  onTimeScaleTabChange('day')
+                }
+                onViewByChange(value)
+              }}
+              color={selectColor}
+              borderColor={selectBorderColor}
+              disabled={isSelectDisabled}
+            />
+          )}
         </Flex>
       </Flex>
       <Box flex="1" minH={0}>
@@ -226,7 +230,6 @@ export function PerformanceChartCard({
             data={timeTrendData}
             height="100%"
             isPercent={isTimeTrendPercent}
-            valueDivisor={metric === 'quantity' ? 1000000 : 1}
             xAxisLabel={resolvedTimeXAxisLabel}
             yAxisLabel={timeYAxisLabel ?? yAxisLabel}
             seriesName={seriesName}

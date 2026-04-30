@@ -270,11 +270,13 @@ export interface NationalSchemeRegularityPeriodicMetric {
   periodEndDate: string
   totalSupplyDays?: number
   totalWaterQuantity?: number
+  totalAchievedFhtcCount?: number
   averageRegularity: number
 }
 
 export interface NationalSchemeRegularityPeriodicResponse {
   schemeCount: number
+  totalAchievedFhtcCount?: number
   scale: string
   startDate: string
   endDate: string
