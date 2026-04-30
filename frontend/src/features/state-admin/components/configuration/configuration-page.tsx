@@ -750,82 +750,42 @@ export function ConfigurationPage() {
                   }
                 />
 
-                {/* 6. Record Location + Display Department Maps side by side */}
-                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                  {/* Record Location */}
-                  <Box>
-                    <Flex align="center" gap={1} mb={3}>
-                      <Text
-                        fontSize={{ base: 'xs', md: 'sm' }}
-                        fontWeight="medium"
-                        color="neutral.950"
-                      >
-                        {t('configuration.sections.locationCheckRequired.title')}
-                        <RequiredIndicator required={isMandatory('LOCATION_CHECK_REQUIRED')} />
-                      </Text>
-                      <FieldInfoIcon tooltip={t('configuration.infoText.locationCheckRequired')} />
-                    </Flex>
-                    <RadioGroup
-                      value={activeDraft.locationCheckRequired ? 'yes' : 'no'}
-                      onChange={(val) =>
-                        setDraft((prev) => ({
-                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
-                          locationCheckRequired: val === 'yes',
-                        }))
-                      }
+                {/* 6. Record Location */}
+                <Box>
+                  <Flex align="center" gap={1} mb={3}>
+                    <Text
+                      fontSize={{ base: 'xs', md: 'sm' }}
+                      fontWeight="medium"
+                      color="neutral.950"
                     >
-                      <HStack spacing={6}>
-                        <Radio value="yes">
-                          <Text fontSize="sm" color="neutral.950">
-                            {t('configuration.sections.locationCheckRequired.yes')}
-                          </Text>
-                        </Radio>
-                        <Radio value="no">
-                          <Text fontSize="sm" color="neutral.950">
-                            {t('configuration.sections.locationCheckRequired.no')}
-                          </Text>
-                        </Radio>
-                      </HStack>
-                    </RadioGroup>
-                  </Box>
-
-                  {/* Display Department Maps */}
-                  <Box>
-                    <Flex align="center" gap={1} mb={3}>
-                      <Text
-                        fontSize={{ base: 'xs', md: 'sm' }}
-                        fontWeight="medium"
-                        color="neutral.950"
-                      >
-                        {t('configuration.sections.displayDepartmentMaps.title')}
-                        <RequiredIndicator required={isMandatory('DISPLAY_DEPARTMENT_MAPS')} />
-                      </Text>
-                      <FieldInfoIcon tooltip={t('configuration.infoText.displayDepartmentMaps')} />
-                    </Flex>
-                    <RadioGroup
-                      value={activeDraft.displayDepartmentMaps ? 'yes' : 'no'}
-                      onChange={(val) =>
-                        setDraft((prev) => ({
-                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
-                          displayDepartmentMaps: val === 'yes',
-                        }))
-                      }
-                    >
-                      <HStack spacing={6}>
-                        <Radio value="yes">
-                          <Text fontSize="sm" color="neutral.950">
-                            {t('configuration.sections.displayDepartmentMaps.yes')}
-                          </Text>
-                        </Radio>
-                        <Radio value="no">
-                          <Text fontSize="sm" color="neutral.950">
-                            {t('configuration.sections.displayDepartmentMaps.no')}
-                          </Text>
-                        </Radio>
-                      </HStack>
-                    </RadioGroup>
-                  </Box>
-                </SimpleGrid>
+                      {t('configuration.sections.locationCheckRequired.title')}
+                      <RequiredIndicator required={isMandatory('LOCATION_CHECK_REQUIRED')} />
+                    </Text>
+                    <FieldInfoIcon tooltip={t('configuration.infoText.locationCheckRequired')} />
+                  </Flex>
+                  <RadioGroup
+                    value={activeDraft.locationCheckRequired ? 'yes' : 'no'}
+                    onChange={(val) =>
+                      setDraft((prev) => ({
+                        ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                        locationCheckRequired: val === 'yes',
+                      }))
+                    }
+                  >
+                    <HStack spacing={6}>
+                      <Radio value="yes">
+                        <Text fontSize="sm" color="neutral.950">
+                          {t('configuration.sections.locationCheckRequired.yes')}
+                        </Text>
+                      </Radio>
+                      <Radio value="no">
+                        <Text fontSize="sm" color="neutral.950">
+                          {t('configuration.sections.locationCheckRequired.no')}
+                        </Text>
+                      </Radio>
+                    </HStack>
+                  </RadioGroup>
+                </Box>
 
                 {/* 6a. LGD Map Levels (if lgdLevelCount > 0) */}
                 {lgdLevelCount > 0 && (
@@ -883,7 +843,44 @@ export function ConfigurationPage() {
                   </Box>
                 )}
 
-                {/* 6b. Department Map Levels (only if displayDepartmentMaps is true and deptLevelCount > 0) */}
+                {/* 6b. Display Department Maps */}
+                <Box>
+                  <Flex align="center" gap={1} mb={3}>
+                    <Text
+                      fontSize={{ base: 'xs', md: 'sm' }}
+                      fontWeight="medium"
+                      color="neutral.950"
+                    >
+                      {t('configuration.sections.displayDepartmentMaps.title')}
+                      <RequiredIndicator required={isMandatory('DISPLAY_DEPARTMENT_MAPS')} />
+                    </Text>
+                    <FieldInfoIcon tooltip={t('configuration.infoText.displayDepartmentMaps')} />
+                  </Flex>
+                  <RadioGroup
+                    value={activeDraft.displayDepartmentMaps ? 'yes' : 'no'}
+                    onChange={(val) =>
+                      setDraft((prev) => ({
+                        ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                        displayDepartmentMaps: val === 'yes',
+                      }))
+                    }
+                  >
+                    <HStack spacing={6}>
+                      <Radio value="yes">
+                        <Text fontSize="sm" color="neutral.950">
+                          {t('configuration.sections.displayDepartmentMaps.yes')}
+                        </Text>
+                      </Radio>
+                      <Radio value="no">
+                        <Text fontSize="sm" color="neutral.950">
+                          {t('configuration.sections.displayDepartmentMaps.no')}
+                        </Text>
+                      </Radio>
+                    </HStack>
+                  </RadioGroup>
+                </Box>
+
+                {/* 6c. Department Map Levels (only if displayDepartmentMaps is true and deptLevelCount > 0) */}
                 {activeDraft.displayDepartmentMaps && deptLevelCount > 0 && (
                   <Box>
                     <Flex align="center" gap={1} mb={3}>
@@ -1317,27 +1314,16 @@ function ViewMode({
         )}
       </ViewSection>
 
-      {/* Record Location + Display Department Maps side by side */}
-      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-        <ViewField
-          label={t('configuration.sections.locationCheckRequired.title')}
-          value={
-            config.locationCheckRequired
-              ? t('configuration.sections.locationCheckRequired.yes')
-              : t('configuration.sections.locationCheckRequired.no')
-          }
-          color="neutral.950"
-        />
-        <ViewField
-          label={t('configuration.sections.displayDepartmentMaps.title')}
-          value={
-            config.displayDepartmentMaps
-              ? t('configuration.sections.displayDepartmentMaps.yes')
-              : t('configuration.sections.displayDepartmentMaps.no')
-          }
-          color="neutral.950"
-        />
-      </SimpleGrid>
+      {/* Record Location */}
+      <ViewField
+        label={t('configuration.sections.locationCheckRequired.title')}
+        value={
+          config.locationCheckRequired
+            ? t('configuration.sections.locationCheckRequired.yes')
+            : t('configuration.sections.locationCheckRequired.no')
+        }
+        color="neutral.950"
+      />
 
       {/* LGD Map Levels */}
       {lgdLevelCount > 0 && (
@@ -1361,6 +1347,17 @@ function ViewMode({
           </SimpleGrid>
         </Box>
       )}
+
+      {/* Display Department Maps */}
+      <ViewField
+        label={t('configuration.sections.displayDepartmentMaps.title')}
+        value={
+          config.displayDepartmentMaps
+            ? t('configuration.sections.displayDepartmentMaps.yes')
+            : t('configuration.sections.displayDepartmentMaps.no')
+        }
+        color="neutral.950"
+      />
 
       {/* Department Map Levels (only if Display Department Maps is enabled) */}
       {config.displayDepartmentMaps && deptLevelCount > 0 && (

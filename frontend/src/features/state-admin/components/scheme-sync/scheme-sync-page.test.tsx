@@ -98,7 +98,7 @@ describe('SchemeSyncPage', () => {
 
     renderWithProviders(<SchemeSyncPage />)
 
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Scheme Sync')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Schemes')
   })
 
   it('should display table with new columns: stateSchemeId, plannedFhtc, and achievedFhtc', async () => {

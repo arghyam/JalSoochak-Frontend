@@ -10,6 +10,8 @@ const DATE_FORMAT_OPTIONS = [
   { value: 'YYYY/MM/DD', label: 'YYYY/MM/DD' },
   { value: 'DD/MM/YY', label: 'DD/MM/YY' },
   { value: 'MM/DD/YY', label: 'MM/DD/YY' },
+  { value: 'DD/MON/YYYY', label: 'DD/MON/YYYY' },
+  { value: 'DD/MON/YY', label: 'DD/MON/YY' },
 ]
 
 // Kept for future integration if needed

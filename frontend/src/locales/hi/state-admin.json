@@ -138,7 +138,7 @@
       "view": "जल मानक देखें",
       "edit": "जल मानक संपादित करें"
     },
-    "currentQuantity": "वर्तमान मात्रा (LPCD)",
+    "currentQuantity": "मानक मात्रा (LPCD)",
     "alertThresholds": {
       "title": "अलर्ट सीमाएं",
       "undersupplyThreshold": {
@@ -270,7 +270,7 @@
   },
 
   "staffSync": {
-    "title": "स्टाफ सिंक",
+    "title": "स्टाफ",
     "searchPlaceholder": "नाम से खोजें",
     "uploadData": "डेटा अपलोड करें",
     "filters": {
@@ -321,7 +321,7 @@
   },
 
   "schemeSync": {
-    "title": "योजना सिंक",
+    "title": "योजनाएं",
     "searchPlaceholder": "योजना नाम से खोजें",
     "uploadData": "डेटा अपलोड करें",
     "filters": {
@@ -367,7 +367,7 @@
   },
 
   "schemeMappingsSync": {
-    "title": "योजना मैपिंग सिंक",
+    "title": "योजना मैपिंग",
     "searchPlaceholder": "योजना नाम से खोजें",
     "uploadData": "डेटा अपलोड करें",
     "filters": {
