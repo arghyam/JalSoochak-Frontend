@@ -363,6 +363,79 @@ describe('quantity-periodic utils', () => {
     ).toEqual([])
   })
 
+  it('maps national quantity points as LPCD using total achieved FHTC count and default household size', () => {
+    expect(
+      mapNationalQuantityTrendPoints({
+        schemeCount: 0,
+        totalAchievedFhtcCount: 900,
+        scale: 'day',
+        startDate: '2026-01-01',
+        endDate: '2026-01-31',
+        periodCount: 1,
+        metrics: [
+          {
+            periodStartDate: '2026-01-01',
+            periodEndDate: '2026-01-01',
+            totalWaterQuantity: 500000,
+            averageRegularity: 0.74,
+          },
+        ],
+      })
+    ).toEqual([{ period: '01/01/2026', value: 111.1 }])
+  })
+
+  it('uses response-level achieved FHTC count for each national weekly quantity point', () => {
+    expect(
+      mapNationalQuantityTrendPoints({
+        schemeCount: 276819,
+        totalAchievedFhtcCount: 28757662,
+        scale: 'week',
+        startDate: '2026-03-31',
+        endDate: '2026-04-29',
+        periodCount: 2,
+        metrics: [
+          {
+            periodStartDate: '2026-03-31',
+            periodEndDate: '2026-04-06',
+            totalSupplyDays: 975396,
+            totalWaterQuantity: 284944385187,
+            averageRegularity: 0.5034,
+          },
+          {
+            periodStartDate: '2026-04-07',
+            periodEndDate: '2026-04-13',
+            totalSupplyDays: 557771,
+            totalWaterQuantity: 188058431113,
+            averageRegularity: 0.2878,
+          },
+        ],
+      })
+    ).toEqual([
+      { period: '31/03/2026\n06/04/2026', value: 283.1 },
+      { period: '07/04/2026\n13/04/2026', value: 186.8 },
+    ])
+  })
+
+  it('skips national quantity points when achieved FHTC count is missing', () => {
+    expect(
+      mapNationalQuantityTrendPoints({
+        schemeCount: 10,
+        scale: 'day',
+        startDate: '2026-01-01',
+        endDate: '2026-01-31',
+        periodCount: 1,
+        metrics: [
+          {
+            periodStartDate: '2026-01-01',
+            periodEndDate: '2026-01-01',
+            totalWaterQuantity: 500000,
+            averageRegularity: 0.74,
+          },
+        ],
+      })
+    ).toEqual([])
+  })
+
   it('formats monthly trend periods in two lines using numeric dates', () => {
     expect(
       mapNationalQuantityTrendPoints({
@@ -375,12 +448,13 @@ describe('quantity-periodic utils', () => {
           {
             periodStartDate: '2026-03-01',
             periodEndDate: '2026-03-31',
-            totalWaterQuantity: 100,
+            totalWaterQuantity: 15500,
+            totalAchievedFhtcCount: 100,
             averageRegularity: 0,
           },
         ],
       })
-    ).toEqual([{ period: '01/03/2026\n31/03/2026', value: 100 }])
+    ).toEqual([{ period: '01/03/2026\n31/03/2026', value: 1 }])
   })
 
   it('formats quarterly trend periods in two lines using numeric dates', () => {
@@ -395,12 +469,13 @@ describe('quantity-periodic utils', () => {
           {
             periodStartDate: '2026-04-01',
             periodEndDate: '2026-06-30',
-            totalWaterQuantity: 100,
+            totalWaterQuantity: 45500,
+            totalAchievedFhtcCount: 100,
             averageRegularity: 0,
           },
         ],
       })
-    ).toEqual([{ period: '01/04/2026\n30/06/2026', value: 100 }])
+    ).toEqual([{ period: '01/04/2026\n30/06/2026', value: 1 }])
   })
 
   it('formats yearly trend periods in two lines using numeric dates', () => {

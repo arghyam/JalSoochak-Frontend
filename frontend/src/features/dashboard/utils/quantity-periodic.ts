@@ -229,32 +229,47 @@ export const mapDemandSupplyToTrendPoints = (
 
 export const mapNationalQuantityTrendPoints = (
   response: NationalSchemeRegularityPeriodicResponse | undefined,
-  dateFormat?: string
+  dateFormat?: string,
+  averagePersonsPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD
 ): MonthlyTrendPoint[] => {
   if (!response?.metrics?.length) {
     return []
   }
 
-  return response.metrics
-    .filter(
-      (
-        metric
-      ): metric is NationalSchemeRegularityPeriodicMetric &
-        Required<
-          Pick<
-            NationalSchemeRegularityPeriodicMetric,
-            'periodStartDate' | 'periodEndDate' | 'totalWaterQuantity'
-          >
-        > =>
-        typeof metric.totalWaterQuantity === 'number' &&
-        Number.isFinite(metric.totalWaterQuantity) &&
-        Boolean(metric.periodStartDate) &&
-        Boolean(metric.periodEndDate)
-    )
-    .map((metric) => ({
-      period: formatMetricLabel(response.scale, metric, dateFormat),
-      value: metric.totalWaterQuantity,
-    }))
+  return response.metrics.flatMap((metric) => {
+    if (
+      typeof metric.totalWaterQuantity === 'number' &&
+      Number.isFinite(metric.totalWaterQuantity) &&
+      Boolean(metric.periodStartDate) &&
+      Boolean(metric.periodEndDate)
+    ) {
+      const achievedFhtcCount = Number(
+        metric.totalAchievedFhtcCount ?? response.totalAchievedFhtcCount ?? 0
+      )
+      const metricDays = resolveMetricDaysInRange(metric.periodStartDate, metric.periodEndDate)
+
+      if (
+        achievedFhtcCount > 0 &&
+        metricDays > 0 &&
+        Number.isFinite(averagePersonsPerHousehold) &&
+        averagePersonsPerHousehold > 0
+      ) {
+        return [
+          {
+            period: formatMetricLabel(response.scale, metric, dateFormat),
+            value: Number(
+              (
+                metric.totalWaterQuantity /
+                (achievedFhtcCount * averagePersonsPerHousehold * metricDays)
+              ).toFixed(1)
+            ),
+          },
+        ]
+      }
+    }
+
+    return []
+  })
 }
 
 export const mapNationalRegularityTrendPoints = (

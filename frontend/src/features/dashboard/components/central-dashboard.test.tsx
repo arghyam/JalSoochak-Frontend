@@ -1199,6 +1199,7 @@ describe('CentralDashboard', () => {
             periodEndDate: '2026-03-07',
             totalSupplyDays: 10,
             totalWaterQuantity: 1500,
+            totalAchievedFhtcCount: 10,
             averageRegularity: 48,
           },
           {
@@ -1206,6 +1207,7 @@ describe('CentralDashboard', () => {
             periodEndDate: '2026-03-14',
             totalSupplyDays: 11,
             totalWaterQuantity: 1750,
+            totalAchievedFhtcCount: 10,
             averageRegularity: 52,
           },
         ],
@@ -1249,8 +1251,8 @@ describe('CentralDashboard', () => {
       })
     )
     expect(dashboardBodyProps.quantityTimeTrendData).toEqual([
-      { period: '01/03/2026\n07/03/2026', value: 1500 },
-      { period: '08/03/2026\n14/03/2026', value: 1750 },
+      { period: '01/03/2026\n07/03/2026', value: 4.3 },
+      { period: '08/03/2026\n14/03/2026', value: 5 },
     ])
     expect(dashboardBodyProps.regularityTimeTrendData).toEqual([
       { period: '01/03/2026\n07/03/2026', value: 48 },

@@ -66,6 +66,7 @@ import {
   calculateAbsoluteChange,
   calculateAverageRegularityPercent,
   calculatePercentChange,
+  DEFAULT_PERSONS_PER_HOUSEHOLD,
   getPreviousPeriodRange,
   getRegularityKpi,
   getRegularityKpiFromPeriodic,
@@ -1028,7 +1029,7 @@ export function CentralDashboard({
     runtimeConfig.DEFAULT_WATER_NORM_LITERS_PER_PERSON_PER_DAY,
     55
   )
-  const nationalDefaultAverageMembersPerHousehold = defaultAverageMembersPerHousehold
+  const nationalDefaultAverageMembersPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD
   const nationalDefaultWaterNormLitersPerPersonPerDay = defaultWaterNormLitersPerPersonPerDay
   const averagePersonsPerHousehold = resolvePositiveNumber(
     tenantPublicConfig?.averageMembersPerHousehold,
@@ -2239,7 +2240,11 @@ export function CentralDashboard({
     screenDateFormat
   )
   const quantityTimeTrendData = isCentralLandingView
-    ? mapNationalQuantityTrendPoints(nationalSchemeQuantityPeriodicData, screenDateFormat)
+    ? mapNationalQuantityTrendPoints(
+        nationalSchemeQuantityPeriodicData,
+        screenDateFormat,
+        nationalDefaultAverageMembersPerHousehold
+      )
     : periodicQuantityTimeTrendData.length > 0
       ? periodicQuantityTimeTrendData
       : []
