@@ -19,7 +19,6 @@ import { useQueries } from '@tanstack/react-query'
 import { useDashboardData } from '../hooks/use-dashboard-data'
 import { dashboardApi } from '../services/api/dashboard-api'
 import { useLocationChildrenQuery } from '../services/query/use-location-children-query'
-import { useBlockSchemePanchayatLookupQuery } from '../services/query/use-block-scheme-panchayat-lookup-query'
 import { useLocationHierarchyQuery } from '../services/query/use-location-hierarchy-query'
 import { useLocationSearchQuery } from '../services/query/use-location-search-query'
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
@@ -67,6 +66,7 @@ import {
   calculateAbsoluteChange,
   calculateAverageRegularityPercent,
   calculatePercentChange,
+  DEFAULT_PERSONS_PER_HOUSEHOLD,
   getPreviousPeriodRange,
   getRegularityKpi,
   getRegularityKpiFromPeriodic,
@@ -1029,7 +1029,7 @@ export function CentralDashboard({
     runtimeConfig.DEFAULT_WATER_NORM_LITERS_PER_PERSON_PER_DAY,
     55
   )
-  const nationalDefaultAverageMembersPerHousehold = defaultAverageMembersPerHousehold
+  const nationalDefaultAverageMembersPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD
   const nationalDefaultWaterNormLitersPerPersonPerDay = defaultWaterNormLitersPerPersonPerDay
   const averagePersonsPerHousehold = resolvePositiveNumber(
     tenantPublicConfig?.averageMembersPerHousehold,
@@ -1039,7 +1039,10 @@ export function CentralDashboard({
     tenantPublicConfig?.waterNorm,
     defaultWaterNormLitersPerPersonPerDay
   )
-  const durationDateFormat = DEFAULT_SCREEN_DATE_FORMAT
+  const screenDateFormat = normalizeDateFormat(
+    tenantPublicConfig?.dateFormatScreen?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
+  )
+  const durationDateFormat = screenDateFormat
   const tableDateFormat = normalizeDateFormat(
     tenantPublicConfig?.dateFormatTable?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
   )
@@ -1222,13 +1225,6 @@ export function CentralDashboard({
   const selectedBlockOption = findLocationOption(blockApiOptions, activeHierarchySelectedBlock)
   const selectedBlockId =
     parseLocationId(activeHierarchySelectedBlock) ?? selectedBlockOption?.locationId
-  const { data: blockSchemePanchayatLookup } = useBlockSchemePanchayatLookupQuery({
-    tenantId: selectedTenant?.tenantId,
-    hierarchyType,
-    blockId: isBlockSelected && hierarchyType === 'LGD' ? selectedBlockId : undefined,
-    tenantCode: selectedTenant?.tenantCode,
-    enabled: Boolean(isBlockSelected && hierarchyType === 'LGD' && selectedBlockId),
-  })
   const { data: gramPanchayatLocationsData } = useLocationChildrenQuery({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
@@ -2220,8 +2216,7 @@ export function CentralDashboard({
     [],
     {
       blockTitleByParentId: tenantBoundaryBlockLookup,
-      parentLgdTitleById:
-        hierarchyType === 'LGD' ? blockSchemePanchayatLookup : tenantBoundaryBlockLookup,
+      parentLgdTitleById: hierarchyType === 'LGD' ? undefined : tenantBoundaryBlockLookup,
       useDepartmentHierarchyTitles: hierarchyType !== 'LGD',
     }
   )
@@ -2236,25 +2231,31 @@ export function CentralDashboard({
       : undefined) ?? (isHierarchyLeafSelected ? schemePerformanceData?.topSchemes?.[0] : undefined)
   const periodicQuantityTimeTrendData = mapSchemeRegularityQuantityToTrendPoints(
     schemeQuantityPeriodicData,
-    tableDateFormat
+    screenDateFormat,
+    waterQuantityPeriodicData,
+    averagePersonsPerHousehold
   )
   const periodicRegularityTimeTrendData = mapSchemeRegularityPeriodicToTrendPoints(
     schemeRegularityPeriodicData,
-    tableDateFormat
+    screenDateFormat
   )
   const quantityTimeTrendData = isCentralLandingView
-    ? mapNationalQuantityTrendPoints(nationalSchemeQuantityPeriodicData, tableDateFormat)
+    ? mapNationalQuantityTrendPoints(
+        nationalSchemeQuantityPeriodicData,
+        screenDateFormat,
+        nationalDefaultAverageMembersPerHousehold
+      )
     : periodicQuantityTimeTrendData.length > 0
       ? periodicQuantityTimeTrendData
       : []
   const regularityTimeTrendData = isCentralLandingView
-    ? mapNationalRegularityTrendPoints(nationalSchemeRegularityPeriodicData, tableDateFormat)
+    ? mapNationalRegularityTrendPoints(nationalSchemeRegularityPeriodicData, screenDateFormat)
     : periodicRegularityTimeTrendData.length > 0
       ? periodicRegularityTimeTrendData
       : []
   const outageReasonsTimeTrendData = mapOutageReasonsPeriodicToTrendPoints(
     outageReasonsPeriodicData,
-    tableDateFormat
+    screenDateFormat
   )
   const currentWaterSupplyKpis = isCentralLandingView
     ? getWaterSupplyKpisFromNationalDashboard(
@@ -3381,6 +3382,7 @@ export function CentralDashboard({
         schemePerformancePage={schemePerformancePage}
         totalSchemePages={totalSchemePages}
         onSchemePageChange={handleSchemePageChange}
+        screenDateFormat={screenDateFormat}
         tableDateFormat={tableDateFormat}
         enableExtendedTimeScales
       />

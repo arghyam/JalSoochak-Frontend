@@ -59,6 +59,7 @@ export function SchemesPage() {
     pageSize,
     debouncedSearch
   )
+  const schemeTableHeaderMaxLines = 2
 
   useEffect(() => {
     document.title = `${t('pages.schemes.heading')} ${t('common.documentTitle')}`
@@ -68,6 +69,7 @@ export function SchemesPage() {
     {
       key: 'schemeName',
       header: t('pages.schemes.columns.schemeName'),
+      headerMaxLines: schemeTableHeaderMaxLines,
       width: '12.5%',
       render: (row) => (
         <Tooltip label={row.schemeName} openDelay={400} hasArrow placement="top">
@@ -86,6 +88,7 @@ export function SchemesPage() {
     {
       key: 'stateSchemeId',
       header: t('pages.schemes.columns.stateSchemeId'),
+      headerMaxLines: schemeTableHeaderMaxLines,
       width: '12.5%',
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
@@ -96,6 +99,7 @@ export function SchemesPage() {
     {
       key: 'pumpOperators',
       header: t('pages.schemes.columns.pumpOperators'),
+      headerMaxLines: schemeTableHeaderMaxLines,
       width: '12.5%',
       render: (row) => {
         const names = row.pumpOperatorNames
@@ -153,6 +157,7 @@ export function SchemesPage() {
     {
       key: 'lastReading',
       header: t('pages.schemes.columns.lastReading'),
+      headerMaxLines: schemeTableHeaderMaxLines,
       width: '12.5%',
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
@@ -163,6 +168,7 @@ export function SchemesPage() {
     {
       key: 'yesterdayReading',
       header: t('pages.schemes.columns.yesterdayReading'),
+      headerMaxLines: schemeTableHeaderMaxLines,
       width: '12.5%',
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
@@ -173,6 +179,7 @@ export function SchemesPage() {
     {
       key: 'lastWaterSupplied',
       header: t('pages.schemes.columns.lastWaterSupplied'),
+      headerMaxLines: schemeTableHeaderMaxLines,
       width: '12.5%',
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
@@ -183,6 +190,7 @@ export function SchemesPage() {
     {
       key: 'lastSubmission',
       header: t('pages.schemes.columns.lastSubmission'),
+      headerMaxLines: schemeTableHeaderMaxLines,
       width: '12.5%',
       render: (row) => {
         const formatted = row.lastReadingAt
@@ -206,6 +214,7 @@ export function SchemesPage() {
     {
       key: 'actions',
       header: t('pages.schemes.columns.actions'),
+      headerMaxLines: schemeTableHeaderMaxLines,
       width: '12.5%',
       render: (row) => (
         <ActionTooltip label={t('common.viewScheme')}>

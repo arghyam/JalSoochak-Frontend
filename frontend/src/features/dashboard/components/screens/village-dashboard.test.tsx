@@ -301,6 +301,48 @@ describe('VillageDashboardScreen', () => {
     ])
   })
 
+  it('shows time scale controls for village quantity and regularity charts', () => {
+    const onQuantityTimeScaleTabChange = jest.fn()
+    const onRegularityTimeScaleTabChange = jest.fn()
+
+    renderWithProviders(
+      <VillageDashboardScreen
+        data={data}
+        villagePhotoEvidenceRows={data.readingCompliance}
+        waterSupplyOutagesData={waterSupplyOutagesData}
+        villagePumpOperatorDetails={villagePumpOperatorDetails}
+        villagePumpOperators={villagePumpOperators}
+        tenantCode="as"
+        schemeId={3}
+        quantityTimeTrendData={quantityTimeTrendData}
+        regularityTimeTrendData={regularityTimeTrendData}
+        quantityTimeScaleTab="day"
+        onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
+        regularityTimeScaleTab="day"
+        onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
+        enableExtendedTimeScales
+      />
+    )
+
+    expect(screen.getAllByText('D')).toHaveLength(2)
+    expect(screen.getAllByText('W')).toHaveLength(2)
+    expect(screen.getAllByText('M')).toHaveLength(2)
+    expect(screen.getAllByText('Q')).toHaveLength(2)
+    expect(screen.getAllByText('Y')).toHaveLength(2)
+    expect(
+      screen.queryByRole('button', { name: 'Village regularity performance view by' })
+    ).toBeNull()
+    expect(
+      screen.queryByRole('button', { name: 'Village quantity performance view by' })
+    ).toBeNull()
+
+    fireEvent.click(screen.getAllByText('Q')[0])
+    fireEvent.click(screen.getAllByText('Y')[1])
+
+    expect(onRegularityTimeScaleTabChange).toHaveBeenCalledWith('quarter')
+    expect(onQuantityTimeScaleTabChange).toHaveBeenCalledWith('year')
+  })
+
   it('shows empty chart states when analytics trend props are absent', () => {
     renderWithProviders(
       <VillageDashboardScreen

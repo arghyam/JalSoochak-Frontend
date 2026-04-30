@@ -29,7 +29,7 @@ import {
 import { HiOutlineTemplate } from 'react-icons/hi'
 import { AiOutlineMessage } from 'react-icons/ai'
 import { BsPerson, BsListUl } from 'react-icons/bs'
-import jalsoochakLogo from '@/assets/media/logo.svg'
+import logoWithText from '@/assets/media/JalSoochak Logo with Text.svg'
 import TapIconComponent from './tap-icon'
 
 function Users01Icon(props: React.SVGProps<SVGSVGElement>) {
@@ -172,15 +172,15 @@ export function Sidebar({ onNavClick }: SidebarProps) {
       top={0}
       zIndex={40}
       h="100vh"
-      w="250px"
+      w="260px"
     >
       <Flex
         direction="column"
         h="100vh"
-        w="250px"
-        bg="white"
+        w="260px"
+        bg="primary.800"
         borderRight="1px"
-        borderColor="neutral.100"
+        borderColor="primary.700"
         py={12}
       >
         {/* Brand Section */}
@@ -191,14 +191,15 @@ export function Sidebar({ onNavClick }: SidebarProps) {
           justify="center"
           gap={2}
           borderBottom="1px"
-          borderColor="neutral.100"
+          borderColor="primary.700"
           px={7}
         >
           <Image
-            src={jalsoochakLogo}
+            src={logoWithText}
             alt={t('sidebar.logoAlt', 'JalSoochak logo')}
-            height="72px"
-            width="168px"
+            height="65px"
+            width="181px"
+            objectFit="contain"
           />
         </Flex>
 
@@ -211,18 +212,18 @@ export function Sidebar({ onNavClick }: SidebarProps) {
           overflowY="auto"
           sx={{
             scrollbarWidth: 'thin',
-            scrollbarColor: '#D1D1D6 transparent',
+            scrollbarColor: 'rgba(255,255,255,0.3) transparent',
             '&::-webkit-scrollbar': { width: '4px' },
             '&::-webkit-scrollbar-button': { display: 'none' },
             '&::-webkit-scrollbar-track': {
               background: 'transparent',
             },
             '&::-webkit-scrollbar-thumb': {
-              background: '#D1D1D6',
+              background: 'rgba(255,255,255,0.3)',
               borderRadius: '999px',
             },
             '&::-webkit-scrollbar-thumb:hover': {
-              background: '#D1D1D6',
+              background: 'rgba(255,255,255,0.5)',
             },
           }}
         >
@@ -251,11 +252,11 @@ export function Sidebar({ onNavClick }: SidebarProps) {
                       fontSize="sm"
                       fontWeight="medium"
                       transition="all 0.2s"
-                      bg={isActive ? 'primary.25' : 'transparent'}
-                      color={isActive ? 'primary.700' : 'neutral.950'}
+                      bg={isActive ? 'primary.700' : 'transparent'}
+                      color="white"
                       minH="44px"
                       _hover={{
-                        bg: isActive ? 'primary.25' : 'neutral.100',
+                        bg: isActive ? 'primary.700' : 'whiteAlpha.200',
                       }}
                     >
                       {ItemIcon && (
@@ -291,8 +292,8 @@ export function Sidebar({ onNavClick }: SidebarProps) {
                       fontSize="sm"
                       fontWeight="medium"
                       transition="all 0.2s"
-                      bg={isParentActive ? 'primary.25' : 'transparent'}
-                      color={isParentActive ? 'primary.700' : 'neutral.950'}
+                      bg={isParentActive ? 'primary.700' : 'transparent'}
+                      color="white"
                       minH="44px"
                       w="full"
                       textAlign="left"
@@ -300,7 +301,7 @@ export function Sidebar({ onNavClick }: SidebarProps) {
                       border="none"
                       aria-expanded={isOpen}
                       _hover={{
-                        bg: isParentActive ? 'primary.25' : 'neutral.100',
+                        bg: isParentActive ? 'primary.700' : 'whiteAlpha.200',
                       }}
                       onClick={() => {
                         if (isOpen) {
@@ -353,10 +354,10 @@ export function Sidebar({ onNavClick }: SidebarProps) {
                                 fontWeight="medium"
                                 transition="all 0.2s"
                                 bg="transparent"
-                                color={isActive ? 'primary.500' : 'neutral.950'}
+                                color={isActive ? 'white' : 'whiteAlpha.600'}
                                 minH="40px"
                                 _hover={{
-                                  bg: 'neutral.100',
+                                  bg: 'whiteAlpha.200',
                                 }}
                               >
                                 <Text isTruncated>{t(child.labelKey)}</Text>
@@ -380,11 +381,11 @@ export function Sidebar({ onNavClick }: SidebarProps) {
           <MenuButton
             w="100%"
             borderTop="1px"
-            borderColor="neutral.100"
+            borderColor="primary.700"
             px={7}
             py={4}
             cursor="pointer"
-            _hover={{ bg: 'neutral.50' }}
+            _hover={{ bg: 'whiteAlpha.200' }}
           >
             <Flex align="center" gap={3}>
               <Flex
@@ -394,21 +395,21 @@ export function Sidebar({ onNavClick }: SidebarProps) {
                 align="center"
                 justify="center"
                 borderRadius="full"
-                bg="primary.500"
-                color="white"
+                bg="white"
+                color="primary.800"
               >
                 <Text fontSize="sm" fontWeight="semibold">
                   {user ? getInitials(user.name) : 'U'}
                 </Text>
               </Flex>
               <Flex direction="column" minW={0}>
-                <Text fontSize="sm" fontWeight="medium" color="neutral.950" isTruncated>
+                <Text fontSize="sm" fontWeight="medium" color="white" isTruncated>
                   {user?.name || 'User'}
                 </Text>
               </Flex>
             </Flex>
           </MenuButton>
-          <MenuList px={7} py={2}>
+          <MenuList px={2} py={2} bg="primary.800" borderColor="primary.700">
             {!isStaffRole && (
               <MenuItem
                 w="100%"
@@ -417,11 +418,13 @@ export function Sidebar({ onNavClick }: SidebarProps) {
                 gap={2}
                 borderRadius="lg"
                 minH="44px"
+                bg="primary.800"
+                color="white"
                 onClick={() => {
                   navigate(ROUTES.PROFILE)
                   onNavClick?.()
                 }}
-                _hover={{ bg: 'neutral.100' }}
+                _hover={{ bg: 'whiteAlpha.200' }}
               >
                 <Icon as={BsPerson} boxSize={5} flexShrink={0} aria-hidden="true" />
                 <Text fontSize="sm" fontWeight="medium">
@@ -437,11 +440,13 @@ export function Sidebar({ onNavClick }: SidebarProps) {
                 gap={2}
                 borderRadius="lg"
                 minH="44px"
+                bg="primary.800"
+                color="white"
                 onClick={() => {
                   navigate(ROUTES.CHANGE_PASSWORD)
                   onNavClick?.()
                 }}
-                _hover={{ bg: 'neutral.100' }}
+                _hover={{ bg: 'whiteAlpha.200' }}
               >
                 <Icon as={BiKey} boxSize={5} flexShrink={0} aria-hidden="true" />
                 <Text fontSize="sm" fontWeight="medium">
@@ -456,8 +461,10 @@ export function Sidebar({ onNavClick }: SidebarProps) {
               gap={2}
               borderRadius="lg"
               minH="44px"
+              bg="primary.800"
+              color="white"
               onClick={handleLogout}
-              _hover={{ bg: 'neutral.100' }}
+              _hover={{ bg: 'whiteAlpha.200' }}
             >
               <Icon as={FiLogOut} boxSize={5} flexShrink={0} aria-hidden="true" />
               <Text fontSize="sm" fontWeight="medium">

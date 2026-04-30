@@ -827,63 +827,7 @@ export function ConfigurationPage() {
                   </Box>
                 </SimpleGrid>
 
-                {/* 6a. LGD Map Levels (if lgdLevelCount > 0) */}
-                {lgdLevelCount > 0 && (
-                  <Box>
-                    <Flex align="center" gap={1} mb={3}>
-                      <Text fontSize="sm" fontWeight="600" color="neutral.950">
-                        {t('configuration.sections.lgdMapLevels.title')}
-                      </Text>
-                      <FieldInfoIcon tooltip={t('configuration.infoText.lgdMapLevels')} />
-                    </Flex>
-                    <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                      {Array.from({ length: lgdLevelCount }).map((_, i) => (
-                        <Box key={`lgd-level-${i + 1}`}>
-                          <Flex align="center" gap={1} mb={2}>
-                            <Text
-                              fontSize={{ base: 'xs', md: 'sm' }}
-                              fontWeight="medium"
-                              color="neutral.950"
-                            >
-                              {t('configuration.sections.lgdMapLevels.displayLevelLabel', {
-                                level: i + 1,
-                              })}
-                            </Text>
-                          </Flex>
-                          <RadioGroup
-                            value={activeDraft.displayMapLgdLevels[i] ? 'yes' : 'no'}
-                            onChange={(val) =>
-                              setDraft((prev) => ({
-                                ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
-                                displayMapLgdLevels: applyLevelCascade(
-                                  prev?.displayMapLgdLevels ?? activeDraft.displayMapLgdLevels,
-                                  i,
-                                  val === 'yes'
-                                ),
-                              }))
-                            }
-                            isDisabled={i > 0 && !activeDraft.displayMapLgdLevels[i - 1]}
-                          >
-                            <HStack spacing={6}>
-                              <Radio value="yes">
-                                <Text fontSize="sm" color="neutral.950">
-                                  {t('common:yes')}
-                                </Text>
-                              </Radio>
-                              <Radio value="no">
-                                <Text fontSize="sm" color="neutral.950">
-                                  {t('common:no')}
-                                </Text>
-                              </Radio>
-                            </HStack>
-                          </RadioGroup>
-                        </Box>
-                      ))}
-                    </SimpleGrid>
-                  </Box>
-                )}
-
-                {/* 6b. Department Map Levels (only if displayDepartmentMaps is true and deptLevelCount > 0) */}
+                {/* 6a. Department Map Levels (only if displayDepartmentMaps is true and deptLevelCount > 0) */}
                 {activeDraft.displayDepartmentMaps && deptLevelCount > 0 && (
                   <Box>
                     <Flex align="center" gap={1} mb={3}>
@@ -920,6 +864,62 @@ export function ConfigurationPage() {
                               }))
                             }
                             isDisabled={i > 0 && !activeDraft.displayDepartmentMapLevels[i - 1]}
+                          >
+                            <HStack spacing={6}>
+                              <Radio value="yes">
+                                <Text fontSize="sm" color="neutral.950">
+                                  {t('common:yes')}
+                                </Text>
+                              </Radio>
+                              <Radio value="no">
+                                <Text fontSize="sm" color="neutral.950">
+                                  {t('common:no')}
+                                </Text>
+                              </Radio>
+                            </HStack>
+                          </RadioGroup>
+                        </Box>
+                      ))}
+                    </SimpleGrid>
+                  </Box>
+                )}
+
+                {/* 6b. LGD Map Levels (if lgdLevelCount > 0) */}
+                {lgdLevelCount > 0 && (
+                  <Box>
+                    <Flex align="center" gap={1} mb={3}>
+                      <Text fontSize="sm" fontWeight="600" color="neutral.950">
+                        {t('configuration.sections.lgdMapLevels.title')}
+                      </Text>
+                      <FieldInfoIcon tooltip={t('configuration.infoText.lgdMapLevels')} />
+                    </Flex>
+                    <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+                      {Array.from({ length: lgdLevelCount }).map((_, i) => (
+                        <Box key={`lgd-level-${i + 1}`}>
+                          <Flex align="center" gap={1} mb={2}>
+                            <Text
+                              fontSize={{ base: 'xs', md: 'sm' }}
+                              fontWeight="medium"
+                              color="neutral.950"
+                            >
+                              {t('configuration.sections.lgdMapLevels.displayLevelLabel', {
+                                level: i + 1,
+                              })}
+                            </Text>
+                          </Flex>
+                          <RadioGroup
+                            value={activeDraft.displayMapLgdLevels[i] ? 'yes' : 'no'}
+                            onChange={(val) =>
+                              setDraft((prev) => ({
+                                ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                                displayMapLgdLevels: applyLevelCascade(
+                                  prev?.displayMapLgdLevels ?? activeDraft.displayMapLgdLevels,
+                                  i,
+                                  val === 'yes'
+                                ),
+                              }))
+                            }
+                            isDisabled={i > 0 && !activeDraft.displayMapLgdLevels[i - 1]}
                           >
                             <HStack spacing={6}>
                               <Radio value="yes">
@@ -1339,29 +1339,6 @@ function ViewMode({
         />
       </SimpleGrid>
 
-      {/* LGD Map Levels */}
-      {lgdLevelCount > 0 && (
-        <Box>
-          <Text fontSize="sm" fontWeight="600" color="neutral.950" mb={3}>
-            {t('configuration.sections.lgdMapLevels.title')}
-          </Text>
-          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-            {Array.from({ length: lgdLevelCount }).map((_, i) => (
-              <ViewField
-                key={`view-lgd-level-${i + 1}`}
-                label={t('configuration.sections.lgdMapLevels.displayLevelLabel', { level: i + 1 })}
-                value={
-                  config.displayMapLgdLevels[i]
-                    ? t('yes', { ns: 'common' })
-                    : t('no', { ns: 'common' })
-                }
-                color="neutral.950"
-              />
-            ))}
-          </SimpleGrid>
-        </Box>
-      )}
-
       {/* Department Map Levels (only if Display Department Maps is enabled) */}
       {config.displayDepartmentMaps && deptLevelCount > 0 && (
         <Box>
@@ -1377,6 +1354,29 @@ function ViewMode({
                 })}
                 value={
                   config.displayDepartmentMapLevels[i]
+                    ? t('yes', { ns: 'common' })
+                    : t('no', { ns: 'common' })
+                }
+                color="neutral.950"
+              />
+            ))}
+          </SimpleGrid>
+        </Box>
+      )}
+
+      {/* LGD Map Levels */}
+      {lgdLevelCount > 0 && (
+        <Box>
+          <Text fontSize="sm" fontWeight="600" color="neutral.950" mb={3}>
+            {t('configuration.sections.lgdMapLevels.title')}
+          </Text>
+          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+            {Array.from({ length: lgdLevelCount }).map((_, i) => (
+              <ViewField
+                key={`view-lgd-level-${i + 1}`}
+                label={t('configuration.sections.lgdMapLevels.displayLevelLabel', { level: i + 1 })}
+                value={
+                  config.displayMapLgdLevels[i]
                     ? t('yes', { ns: 'common' })
                     : t('no', { ns: 'common' })
                 }

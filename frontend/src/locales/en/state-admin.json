@@ -138,7 +138,7 @@
       "view": "View Water Norms",
       "edit": "Edit Water Norms"
     },
-    "currentQuantity": "Current quantity (LPCD)",
+    "currentQuantity": "Standard Quantity (LPCD)",
     "alertThresholds": {
       "title": "Alert Thresholds",
       "undersupplyThreshold": {
@@ -270,7 +270,7 @@
   },
 
   "staffSync": {
-    "title": "Staff Sync",
+    "title": "Staff",
     "searchPlaceholder": "Search by name",
     "uploadData": "Upload Data",
     "filters": {
@@ -340,7 +340,7 @@
   },
 
   "schemeSync": {
-    "title": "Scheme Sync",
+    "title": "Schemes",
     "searchPlaceholder": "Search by scheme name",
     "uploadData": "Upload Data",
     "filters": {
@@ -386,7 +386,7 @@
   },
 
   "schemeMappingsSync": {
-    "title": "Scheme Mappings Sync",
+    "title": "Scheme Mappings",
     "searchPlaceholder": "Search by scheme name",
     "uploadData": "Upload Data",
     "filters": {
