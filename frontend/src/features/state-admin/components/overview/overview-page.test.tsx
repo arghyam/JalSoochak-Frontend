@@ -227,17 +227,17 @@ describe('Generate Token button', () => {
   })
 
   it('shows success toast and copies token to clipboard on success', async () => {
-    const mockWriteText = jest.fn().mockResolvedValue(undefined)
+    const mockWriteText = jest
+      .fn<(text: string) => Promise<void>>()
+      .mockReturnValue(Promise.resolve())
     Object.defineProperty(navigator, 'clipboard', {
       value: { writeText: mockWriteText },
       configurable: true,
     })
-
-    mockGenerateTokenMutate.mockImplementation(
-      (_: undefined, options: { onSuccess?: (token: string) => void }) => {
-        options?.onSuccess?.('test-token-abc')
-      }
-    )
+    ;(mockGenerateTokenMutate as jest.Mock).mockImplementation((...args: unknown[]) => {
+      const options = args[1] as { onSuccess?: (token: string) => void }
+      options?.onSuccess?.('test-token-abc')
+    })
 
     renderWithProviders(<OverviewPage />)
     fireEvent.click(screen.getByRole('button', { name: /generate api token/i }))
@@ -248,11 +248,10 @@ describe('Generate Token button', () => {
   })
 
   it('shows error toast when mutation fails', async () => {
-    mockGenerateTokenMutate.mockImplementation(
-      (_: undefined, options: { onError?: () => void }) => {
-        options?.onError?.()
-      }
-    )
+    ;(mockGenerateTokenMutate as jest.Mock).mockImplementation((...args: unknown[]) => {
+      const options = args[1] as { onError?: () => void }
+      options?.onError?.()
+    })
 
     renderWithProviders(<OverviewPage />)
     fireEvent.click(screen.getByRole('button', { name: /generate api token/i }))
