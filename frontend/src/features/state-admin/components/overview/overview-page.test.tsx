@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, expect, it, jest, beforeEach } from '@jest/globals'
 import { OverviewPage } from './overview-page'
 import { renderWithProviders } from '@/test/render-with-providers'
@@ -68,10 +68,20 @@ const mockAuthState: { user: { tenantCode: string } | null } = {
   user: { tenantCode: 'TG' },
 }
 
+const mockGenerateTokenMutate = jest.fn()
+const mockGenerateTokenState: {
+  isPending: boolean
+  mutate: typeof mockGenerateTokenMutate
+} = {
+  isPending: false,
+  mutate: mockGenerateTokenMutate,
+}
+
 jest.mock('../../services/query/use-state-admin-queries', () => ({
   useStaffCountsQuery: () => mockStaffCountsState,
   useSchemeCountsQuery: () => mockSchemeCountsState,
   useConfigStatusQuery: () => mockConfigStatusState,
+  useGenerateApiTokenMutation: () => mockGenerateTokenState,
 }))
 
 jest.mock('@/app/store', () => ({
@@ -104,6 +114,8 @@ beforeEach(() => {
   mockConfigStatusState.isLoading = false
   mockConfigStatusState.isError = false
   mockAuthState.user = { tenantCode: 'TG' }
+  mockGenerateTokenState.isPending = false
+  mockGenerateTokenMutate.mockReset()
 })
 
 describe('data state', () => {
@@ -198,5 +210,66 @@ describe('fallback heading', () => {
     expect(screen.getByRole('heading', { level: 1 })).toBeTruthy()
     expect(screen.getByText('Overview of State')).toBeTruthy()
     expect(screen.queryByText(/Telangana/i)).toBeNull()
+  })
+})
+
+describe('Generate Token button', () => {
+  it('renders the Generate Token button', () => {
+    renderWithProviders(<OverviewPage />)
+    expect(screen.getByRole('button', { name: /generate api token/i })).toBeTruthy()
+    expect(screen.getByText('Generate Token')).toBeTruthy()
+  })
+
+  it('calls mutate when button is clicked', () => {
+    renderWithProviders(<OverviewPage />)
+    fireEvent.click(screen.getByRole('button', { name: /generate api token/i }))
+    expect(mockGenerateTokenMutate).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows success toast and copies token to clipboard on success', async () => {
+    const mockWriteText = jest
+      .fn<(text: string) => Promise<void>>()
+      .mockReturnValue(Promise.resolve())
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: mockWriteText },
+      configurable: true,
+    })
+    ;(mockGenerateTokenMutate as jest.Mock).mockImplementation((...args: unknown[]) => {
+      const options = args[1] as { onSuccess?: (token: string) => void }
+      options?.onSuccess?.('test-token-abc')
+    })
+
+    renderWithProviders(<OverviewPage />)
+    fireEvent.click(screen.getByRole('button', { name: /generate api token/i }))
+
+    await waitFor(() => {
+      expect(mockWriteText).toHaveBeenCalledWith('test-token-abc')
+    })
+  })
+
+  it('shows error toast when mutation fails', async () => {
+    ;(mockGenerateTokenMutate as jest.Mock).mockImplementation((...args: unknown[]) => {
+      const options = args[1] as { onError?: () => void }
+      options?.onError?.()
+    })
+
+    renderWithProviders(<OverviewPage />)
+    fireEvent.click(screen.getByRole('button', { name: /generate api token/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Failed to generate API token')).toBeTruthy()
+    })
+  })
+
+  it('disables button and shows loading state while pending', () => {
+    mockGenerateTokenState.isPending = true
+
+    renderWithProviders(<OverviewPage />)
+
+    const button = screen.getByRole('button', { name: /generate api token/i })
+    expect(button).toBeTruthy()
+    // Chakra sets aria-disabled on isLoading buttons
+    expect((button as HTMLButtonElement).dataset['loading']).not.toBeUndefined()
+    expect(button).toBeDisabled()
   })
 })

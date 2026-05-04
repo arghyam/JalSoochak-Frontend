@@ -402,3 +402,9 @@ export function useBroadcastWelcomeMessageMutation() {
       stateAdminApi.broadcastWelcomeMessage(payload),
   })
 }
+
+export function useGenerateApiTokenMutation() {
+  return useMutation({
+    mutationFn: () => stateAdminApi.generateApiToken(),
+  })
+}
