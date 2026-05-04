@@ -57,6 +57,13 @@
       "november": "November",
       "december": "December"
     },
+    "generateToken": {
+      "buttonLabel": "Generate Token",
+      "ariaLabel": "Generate API token and copy to clipboard",
+      "copied": "Token copied to clipboard successfully",
+      "clipboardError": "Token generated but failed to copy to clipboard",
+      "error": "Failed to generate API token"
+    },
     "aria": {
       "selectMonth": "Select month for chart",
       "statsSection": "Statistics overview",

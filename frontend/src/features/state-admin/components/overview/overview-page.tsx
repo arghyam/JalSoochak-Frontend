@@ -1,14 +1,17 @@
 import { useEffect } from 'react'
-import { Box, Flex, SimpleGrid, Stack, Heading, Spinner, Text } from '@chakra-ui/react'
+import { Box, Button, Flex, SimpleGrid, Stack, Heading, Spinner, Text } from '@chakra-ui/react'
 
 import { useTranslation } from 'react-i18next'
 import i18n from '@/app/i18n'
 import { useAuthStore } from '@/app/store'
 import { INDIA_STATES } from '@/shared/constants/states'
 import { StatCard, PageHeader } from '@/shared/components/common'
+import { ToastContainer } from '@/shared/components/common/toast-container'
+import { useToast } from '@/shared/hooks/use-toast'
 import {
   useSchemeCountsQuery,
   useStaffCountsQuery,
+  useGenerateApiTokenMutation,
 } from '../../services/query/use-state-admin-queries'
 import { BsDroplet } from 'react-icons/bs'
 import { TotalStaffIcon, PumpOperatorIcon, TotalAdminsIcon } from './overview-icons'
@@ -18,6 +21,7 @@ export function OverviewPage() {
   const { t } = useTranslation(['state-admin', 'common'])
   const user = useAuthStore((state) => state.user)
   const tenantCode = user?.tenantCode ?? ''
+  const toast = useToast()
   const {
     data: staffCountsData,
     isLoading: isStaffCountsLoading,
@@ -28,6 +32,25 @@ export function OverviewPage() {
     isLoading: isSchemeCountsLoading,
     isError: isSchemeCountsError,
   } = useSchemeCountsQuery(tenantCode)
+  const generateTokenMutation = useGenerateApiTokenMutation()
+
+  const handleGenerateToken = () => {
+    generateTokenMutation.mutate(undefined, {
+      onSuccess: (token) => {
+        navigator.clipboard
+          .writeText(token)
+          .then(() => {
+            toast.success(t('overview.generateToken.copied'))
+          })
+          .catch(() => {
+            toast.error(t('overview.generateToken.clipboardError'))
+          })
+      },
+      onError: () => {
+        toast.error(t('overview.generateToken.error'))
+      },
+    })
+  }
 
   const stateName =
     INDIA_STATES.find((s) => s.code === user?.tenantCode?.toUpperCase())?.name ??
@@ -101,7 +124,20 @@ export function OverviewPage() {
 
   return (
     <Box w="full">
-      <PageHeader>
+      <PageHeader
+        rightContent={
+          <Button
+            size="sm"
+            variant="outline"
+            colorScheme="primary"
+            isLoading={generateTokenMutation.isPending}
+            onClick={handleGenerateToken}
+            aria-label={t('overview.generateToken.ariaLabel')}
+          >
+            {t('overview.generateToken.buttonLabel')}
+          </Button>
+        }
+      >
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
           {stateName ? t('overview.title', { state: stateName }) : t('overview.titleFallback')}
         </Heading>
@@ -131,6 +167,8 @@ export function OverviewPage() {
         {/* Configuration Setup Wizard */}
         <ConfigSetupWizard />
       </Stack>
+
+      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </Box>
   )
 }

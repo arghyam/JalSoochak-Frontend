@@ -559,6 +559,14 @@ export const stateAdminApi = {
     await apiClient.post(`/api/v1/tenant/user/welcome?tenantCode=${tenantCode}`, payload)
   },
 
+  // --- Real HTTP: API Token ---
+  generateApiToken: async (): Promise<string> => {
+    const response = await apiClient.post<ApiEnvelope<{ token: string }>>(
+      '/api/v1/tenants/api-token'
+    )
+    return response.data.data.token
+  },
+
   // --- Real HTTP: Config Status ---
   getConfigStatus: async (): Promise<ConfigStatusMap> => {
     const tenantId = getTenantId()
