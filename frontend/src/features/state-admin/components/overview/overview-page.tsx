@@ -37,14 +37,22 @@ export function OverviewPage() {
   const handleGenerateToken = () => {
     generateTokenMutation.mutate(undefined, {
       onSuccess: (token) => {
-        navigator.clipboard
-          .writeText(token)
-          .then(() => {
+        if (typeof navigator?.clipboard?.writeText === 'function') {
+          navigator.clipboard
+            .writeText(token)
+            .then(() => {
+              toast.success(t('overview.generateToken.copied'))
+            })
+            .catch(() => {
+              toast.error(t('overview.generateToken.clipboardError'))
+            })
+        } else {
+          try {
             toast.success(t('overview.generateToken.copied'))
-          })
-          .catch(() => {
+          } catch {
             toast.error(t('overview.generateToken.clipboardError'))
-          })
+          }
+        }
       },
       onError: () => {
         toast.error(t('overview.generateToken.error'))

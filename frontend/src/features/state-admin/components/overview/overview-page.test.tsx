@@ -270,5 +270,6 @@ describe('Generate Token button', () => {
     expect(button).toBeTruthy()
     // Chakra sets aria-disabled on isLoading buttons
     expect((button as HTMLButtonElement).dataset['loading']).not.toBeUndefined()
+    expect(button).toBeDisabled()
   })
 })
