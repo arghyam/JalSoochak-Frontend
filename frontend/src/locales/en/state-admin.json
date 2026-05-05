@@ -58,10 +58,16 @@
       "december": "December"
     },
     "generateToken": {
+      "sectionTitle": "API Token",
+      "sectionHint": "Please copy the token and keep it safe. The same token will not be shown again. In case you forget the token, create a new one.",
       "buttonLabel": "Generate Token",
-      "ariaLabel": "Generate API token and copy to clipboard",
-      "copied": "Token copied to clipboard successfully",
-      "clipboardError": "Token generated but failed to copy to clipboard",
+      "ariaLabel": "Generate a new API token",
+      "generated": "New token generated successfully",
+      "showToken": "Show token",
+      "hideToken": "Hide token",
+      "copyToken": "Copy token to clipboard",
+      "copied": "Token copied to clipboard",
+      "clipboardError": "Failed to copy token to clipboard",
       "error": "Failed to generate API token"
     },
     "aria": {

@@ -1,5 +1,18 @@
-import { useEffect } from 'react'
-import { Box, Button, Flex, SimpleGrid, Stack, Heading, Spinner, Text } from '@chakra-ui/react'
+import { useEffect, useState } from 'react'
+import {
+  Box,
+  Button,
+  Flex,
+  HStack,
+  Icon,
+  IconButton,
+  Input,
+  SimpleGrid,
+  Stack,
+  Heading,
+  Spinner,
+  Text,
+} from '@chakra-ui/react'
 
 import { useTranslation } from 'react-i18next'
 import i18n from '@/app/i18n'
@@ -13,7 +26,7 @@ import {
   useStaffCountsQuery,
   useGenerateApiTokenMutation,
 } from '../../services/query/use-state-admin-queries'
-import { BsDroplet } from 'react-icons/bs'
+import { BsDroplet, BsEye, BsEyeSlash, BsClipboard } from 'react-icons/bs'
 import { TotalStaffIcon, PumpOperatorIcon, TotalAdminsIcon } from './overview-icons'
 import { ConfigSetupWizard } from './config-setup-wizard'
 
@@ -33,31 +46,32 @@ export function OverviewPage() {
     isError: isSchemeCountsError,
   } = useSchemeCountsQuery(tenantCode)
   const generateTokenMutation = useGenerateApiTokenMutation()
+  const [generatedToken, setGeneratedToken] = useState<string | null>(null)
+  const [isTokenVisible, setIsTokenVisible] = useState(false)
 
   const handleGenerateToken = () => {
     generateTokenMutation.mutate(undefined, {
       onSuccess: (token) => {
-        if (typeof navigator?.clipboard?.writeText === 'function') {
-          navigator.clipboard
-            .writeText(token)
-            .then(() => {
-              toast.success(t('overview.generateToken.copied'))
-            })
-            .catch(() => {
-              toast.error(t('overview.generateToken.clipboardError'))
-            })
-        } else {
-          try {
-            toast.success(t('overview.generateToken.copied'))
-          } catch {
-            toast.error(t('overview.generateToken.clipboardError'))
-          }
-        }
+        setGeneratedToken(token)
+        setIsTokenVisible(false)
+        toast.success(t('overview.generateToken.generated'))
       },
       onError: () => {
         toast.error(t('overview.generateToken.error'))
       },
     })
+  }
+
+  const handleCopyToken = () => {
+    if (!generatedToken) return
+    navigator.clipboard
+      .writeText(generatedToken)
+      .then(() => {
+        toast.success(t('overview.generateToken.copied'))
+      })
+      .catch(() => {
+        toast.error(t('overview.generateToken.clipboardError'))
+      })
   }
 
   const stateName =
@@ -132,20 +146,7 @@ export function OverviewPage() {
 
   return (
     <Box w="full">
-      <PageHeader
-        rightContent={
-          <Button
-            size="sm"
-            variant="outline"
-            colorScheme="primary"
-            isLoading={generateTokenMutation.isPending}
-            onClick={handleGenerateToken}
-            aria-label={t('overview.generateToken.ariaLabel')}
-          >
-            {t('overview.generateToken.buttonLabel')}
-          </Button>
-        }
-      >
+      <PageHeader>
         <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
           {stateName ? t('overview.title', { state: stateName }) : t('overview.titleFallback')}
         </Heading>
@@ -174,6 +175,79 @@ export function OverviewPage() {
 
         {/* Configuration Setup Wizard */}
         <ConfigSetupWizard />
+
+        {/* API Token Section */}
+        <Box
+          as="section"
+          aria-labelledby="api-token-heading"
+          bg="white"
+          borderWidth="1px"
+          borderColor="neutral.100"
+          borderRadius="xl"
+          boxShadow="default"
+          py={{ base: 4, md: 6 }}
+          px={{ base: 4, md: 6 }}
+        >
+          <Heading
+            as="h2"
+            id="api-token-heading"
+            size="h3"
+            fontWeight="400"
+            mb={1}
+            fontSize={{ base: 'md', md: 'xl' }}
+          >
+            {t('overview.generateToken.sectionTitle')}
+          </Heading>
+          <Text fontSize="sm" color="neutral.500" mb={4}>
+            {t('overview.generateToken.sectionHint')}
+          </Text>
+          <HStack gap={3} align="center" flexWrap={{ base: 'wrap', md: 'nowrap' }}>
+            <Button
+              size="sm"
+              variant="outline"
+              colorScheme="primary"
+              isLoading={generateTokenMutation.isPending}
+              onClick={handleGenerateToken}
+              aria-label={t('overview.generateToken.ariaLabel')}
+              flexShrink={0}
+            >
+              {t('overview.generateToken.buttonLabel')}
+            </Button>
+            {generatedToken && (
+              <HStack gap={2} flex={1} minW="0">
+                <Input
+                  value={generatedToken}
+                  type={isTokenVisible ? 'text' : 'password'}
+                  isReadOnly
+                  fontFamily="mono"
+                  fontSize="sm"
+                  flex={1}
+                  minW="0"
+                  bg="neutral.50"
+                  aria-label={t('overview.generateToken.ariaLabel')}
+                />
+                <IconButton
+                  aria-label={
+                    isTokenVisible
+                      ? t('overview.generateToken.hideToken')
+                      : t('overview.generateToken.showToken')
+                  }
+                  icon={<Icon as={isTokenVisible ? BsEyeSlash : BsEye} />}
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setIsTokenVisible((v) => !v)}
+                />
+                <IconButton
+                  aria-label={t('overview.generateToken.copyToken')}
+                  icon={<Icon as={BsClipboard} />}
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleCopyToken}
+                />
+              </HStack>
+            )}
+          </HStack>
+        </Box>
       </Stack>
 
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
