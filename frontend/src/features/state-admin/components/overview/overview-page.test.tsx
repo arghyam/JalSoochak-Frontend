@@ -216,14 +216,14 @@ describe('fallback heading', () => {
 describe('Generate Token button', () => {
   it('renders the Generate Token button in the API Token section', () => {
     renderWithProviders(<OverviewPage />)
-    expect(screen.getByRole('button', { name: /generate a new api token/i })).toBeTruthy()
-    expect(screen.getByText('Generate Token')).toBeTruthy()
-    expect(screen.getByRole('heading', { name: /api token/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /generate a new api key/i })).toBeTruthy()
+    expect(screen.getByText('Generate Key')).toBeTruthy()
+    expect(screen.getByRole('heading', { name: /api key/i })).toBeTruthy()
   })
 
   it('calls mutate when button is clicked', () => {
     renderWithProviders(<OverviewPage />)
-    fireEvent.click(screen.getByRole('button', { name: /generate a new api token/i }))
+    fireEvent.click(screen.getByRole('button', { name: /generate a new api key/i }))
     expect(mockGenerateTokenMutate).toHaveBeenCalledTimes(1)
   })
 
@@ -234,22 +234,22 @@ describe('Generate Token button', () => {
     })
 
     renderWithProviders(<OverviewPage />)
-    fireEvent.click(screen.getByRole('button', { name: /generate a new api token/i }))
+    fireEvent.click(screen.getByRole('button', { name: /generate a new api key/i }))
 
     await waitFor(() => {
-      expect(screen.getByText('New token generated successfully')).toBeTruthy()
+      expect(screen.getByText('New key generated successfully')).toBeTruthy()
     })
     // Token input appears after generation
     expect(screen.getByDisplayValue('test-token-abc')).toBeTruthy()
     // View and copy icon buttons appear
-    expect(screen.getByRole('button', { name: /show token/i })).toBeTruthy()
-    expect(screen.getByRole('button', { name: /copy token/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /show key/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /copy key/i })).toBeTruthy()
   })
 
   it('does not show token field before generation', () => {
     renderWithProviders(<OverviewPage />)
-    expect(screen.queryByRole('button', { name: /show token/i })).toBeNull()
-    expect(screen.queryByRole('button', { name: /copy token/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /show key/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /copy key/i })).toBeNull()
   })
 
   it('toggles token visibility when view button is clicked', async () => {
@@ -259,20 +259,20 @@ describe('Generate Token button', () => {
     })
 
     renderWithProviders(<OverviewPage />)
-    fireEvent.click(screen.getByRole('button', { name: /generate a new api token/i }))
+    fireEvent.click(screen.getByRole('button', { name: /generate a new api key/i }))
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /show token/i })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /show key/i })).toBeTruthy()
     })
 
     const input = screen.getByDisplayValue('test-token-abc') as HTMLInputElement
     expect(input.type).toBe('password')
 
-    fireEvent.click(screen.getByRole('button', { name: /show token/i }))
+    fireEvent.click(screen.getByRole('button', { name: /show key/i }))
     expect(input.type).toBe('text')
-    expect(screen.getByRole('button', { name: /hide token/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /hide key/i })).toBeTruthy()
 
-    fireEvent.click(screen.getByRole('button', { name: /hide token/i }))
+    fireEvent.click(screen.getByRole('button', { name: /hide key/i }))
     expect(input.type).toBe('password')
   })
 
@@ -290,20 +290,43 @@ describe('Generate Token button', () => {
     })
 
     renderWithProviders(<OverviewPage />)
-    fireEvent.click(screen.getByRole('button', { name: /generate a new api token/i }))
+    fireEvent.click(screen.getByRole('button', { name: /generate a new api key/i }))
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /copy token/i })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /copy key/i })).toBeTruthy()
     })
 
-    fireEvent.click(screen.getByRole('button', { name: /copy token/i }))
+    fireEvent.click(screen.getByRole('button', { name: /copy key/i }))
 
     await waitFor(() => {
       expect(mockWriteText).toHaveBeenCalledWith('test-token-abc')
     })
     await waitFor(() => {
-      expect(screen.getByText('Token copied to clipboard')).toBeTruthy()
+      expect(screen.getByText('Key copied to clipboard')).toBeTruthy()
     })
+  })
+
+  it('shows error toast when clipboard is unavailable (non-secure context)', async () => {
+    Object.defineProperty(globalThis, 'isSecureContext', { value: false, configurable: true })
+    ;(mockGenerateTokenMutate as jest.Mock).mockImplementation((...args: unknown[]) => {
+      const options = args[1] as { onSuccess?: (token: string) => void }
+      options?.onSuccess?.('test-token-abc')
+    })
+
+    renderWithProviders(<OverviewPage />)
+    fireEvent.click(screen.getByRole('button', { name: /generate a new api key/i }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /copy key/i })).toBeTruthy()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /copy key/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Failed to copy key to clipboard')).toBeTruthy()
+    })
+
+    Object.defineProperty(globalThis, 'isSecureContext', { value: true, configurable: true })
   })
 
   it('shows error toast when mutation fails', async () => {
@@ -313,10 +336,10 @@ describe('Generate Token button', () => {
     })
 
     renderWithProviders(<OverviewPage />)
-    fireEvent.click(screen.getByRole('button', { name: /generate a new api token/i }))
+    fireEvent.click(screen.getByRole('button', { name: /generate a new api key/i }))
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to generate API token')).toBeTruthy()
+      expect(screen.getByText('Failed to generate API key')).toBeTruthy()
     })
   })
 
@@ -325,7 +348,7 @@ describe('Generate Token button', () => {
 
     renderWithProviders(<OverviewPage />)
 
-    const button = screen.getByRole('button', { name: /generate a new api token/i })
+    const button = screen.getByRole('button', { name: /generate a new api key/i })
     expect(button).toBeTruthy()
     // Chakra sets data-loading on isLoading buttons and disables them
     expect((button as HTMLButtonElement).dataset['loading']).not.toBeUndefined()

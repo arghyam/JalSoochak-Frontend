@@ -64,6 +64,10 @@ export function OverviewPage() {
 
   const handleCopyToken = () => {
     if (!generatedToken) return
+    if (!globalThis.isSecureContext || !navigator.clipboard) {
+      toast.error(t('overview.generateToken.clipboardError'))
+      return
+    }
     navigator.clipboard
       .writeText(generatedToken)
       .then(() => {
@@ -224,7 +228,7 @@ export function OverviewPage() {
                   flex={1}
                   minW="0"
                   bg="neutral.50"
-                  aria-label={t('overview.generateToken.ariaLabel')}
+                  aria-label={t('overview.generateToken.tokenInputLabel')}
                 />
                 <IconButton
                   aria-label={
