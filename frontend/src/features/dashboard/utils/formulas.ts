@@ -415,13 +415,11 @@ export const getRegularityKpiFromPeriodic = (
     return 0
   }
 
-  const valid = response.metrics.filter((m) => isFiniteNumber(Number(m.averageRegularity ?? NaN)))
-  if (!valid.length) {
-    return 0
-  }
-
-  const sum = valid.reduce((acc, m) => acc + Number(m.averageRegularity), 0)
-  return Number((sum / valid.length).toFixed(1))
+  const sum = response.metrics.reduce((acc, m) => {
+    const value = Number(m.averageRegularity ?? 0)
+    return acc + (isFiniteNumber(value) ? value : 0)
+  }, 0)
+  return Number(((sum / response.metrics.length) * 100).toFixed(1))
 }
 
 export const calculatePercentChange = (currentValue: number, previousValue: number) => {
