@@ -104,6 +104,8 @@ beforeEach(() => {
   mockConfigStatusState.isLoading = false
   mockConfigStatusState.isError = false
   mockAuthState.user = { tenantCode: 'TG' }
+  Object.defineProperty(globalThis, 'isSecureContext', { value: true, configurable: true })
+  Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true })
 })
 
 describe('data state', () => {
