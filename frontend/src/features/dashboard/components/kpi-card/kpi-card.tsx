@@ -30,7 +30,7 @@ export function KPICard({ title, value, icon, trend, tooltipContent }: KPICardPr
     <Box
       position="relative"
       bg="white"
-      borderRadius="12px"
+      borderRadius="8px"
       borderBottomWidth="0.5px"
       borderBottomStyle="solid"
       borderBottomColor="neutral.200"
@@ -41,9 +41,9 @@ export function KPICard({ title, value, icon, trend, tooltipContent }: KPICardPr
       borderRightStyle="solid"
       borderRightColor="neutral.200"
       w="full"
-      minH="140px"
-      px="16px"
-      py="24px"
+      minH="110px"
+      px="12px"
+      py="16px"
       boxShadow="sm"
       transition="box-shadow 0.2s"
       _before={{
@@ -52,12 +52,12 @@ export function KPICard({ title, value, icon, trend, tooltipContent }: KPICardPr
         inset: 0,
         borderTop: '3px solid',
         borderTopColor: 'primary.500',
-        borderTopLeftRadius: '12px',
-        borderTopRightRadius: '12px',
+        borderTopLeftRadius: '8px',
+        borderTopRightRadius: '8px',
         pointerEvents: 'none',
       }}
     >
-      <Flex align="center" gap="12px">
+      <Flex align="center" gap="8px">
         {icon ? (
           <Flex align="center" justify="center">
             {icon}
@@ -65,12 +65,7 @@ export function KPICard({ title, value, icon, trend, tooltipContent }: KPICardPr
         ) : null}
         <Flex direction="column" flex="1" minW={0}>
           <Flex justify="space-between" align="flex-start" mb={1}>
-            <Text
-              textStyle="bodyText4"
-              fontWeight="400"
-              color="neutral.600"
-              fontSize={{ base: '14px', md: '16px' }}
-            >
+            <Text textStyle="bodyText4" fontWeight="400" color="neutral.600" fontSize="14px">
               {title}
             </Text>
             {tooltipContent ? (

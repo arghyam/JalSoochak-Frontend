@@ -2,17 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import type { NavigateFunction } from 'react-router-dom'
-import {
-  Box,
-  Flex,
-  Text,
-  Heading,
-  Grid,
-  Icon,
-  Image,
-  Portal,
-  useBreakpointValue,
-} from '@chakra-ui/react'
+import { Box, Flex, Text, Heading, Grid, Portal, useBreakpointValue } from '@chakra-ui/react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQueries } from '@tanstack/react-query'
@@ -41,9 +31,6 @@ import { dashboardQueryKeys } from '../services/query/dashboard-query-keys'
 import { KPICard } from './kpi-card'
 import { DashboardBody } from './screens/dashboard-body'
 import { IndiaMapChart } from './charts'
-import { MdOutlineWaterDrop } from 'react-icons/md'
-import waterTapIcon from '@/assets/media/water-tap_1822589 1.svg'
-import wallClockIcon from '@/assets/media/wall-clock.svg'
 import type { DateRange, SearchableSelectOption } from '@/shared/components/common'
 import type {
   DashboardData,
@@ -2973,6 +2960,17 @@ export function CentralDashboard({
 
   const coreMetrics = [
     {
+      label: t('kpi.labels.schemesSupplyingWater', {
+        defaultValue: 'Schemes Supplying Water',
+      }),
+      value: formatNumber(0),
+      trend: {
+        direction: 'neutral' as const,
+        text: `0% vs previous ${comparisonDays} days`,
+      },
+      tooltipContent: undefined,
+    },
+    {
       label: t('kpi.labels.quantityInMld', { defaultValue: 'Quantity in MLD' }),
       value: formatQuantityMld(currentWaterSupplyKpis.quantityMld),
       trend: buildNeutralAwareTrend(
@@ -2983,11 +2981,6 @@ export function CentralDashboard({
             minimumFractionDigits: 0,
             maximumFractionDigits: 1,
           })}% vs previous ${comparisonDays} days`
-      ),
-      icon: (
-        <Flex w="48px" h="48px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
-          <Image src={waterTapIcon} alt="" w="24px" h="24px" />
-        </Flex>
       ),
       tooltipContent: renderFormulaTooltip(
         <>
@@ -3038,11 +3031,6 @@ export function CentralDashboard({
             minimumFractionDigits: 0,
             maximumFractionDigits: 1,
           })} LPCD vs previous ${comparisonDays} days`
-      ),
-      icon: (
-        <Flex w="48px" h="48px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
-          <Icon as={MdOutlineWaterDrop} w="24px" h="24px" color="#2E90FA" />
-        </Flex>
       ),
       tooltipContent: renderFormulaTooltip(
         <>
@@ -3100,11 +3088,6 @@ export function CentralDashboard({
             maximumFractionDigits: 1,
           })}% vs previous ${comparisonDays} days`
       ),
-      icon: (
-        <Flex w="48px" h="48px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
-          <Image src={wallClockIcon} alt="" w="24px" h="24px" />
-        </Flex>
-      ),
       tooltipContent: renderFormulaTooltip(
         <>
           {t('kpi.tooltips.regularity.formulaLabel', { defaultValue: 'Regularity of scheme' })} = X
@@ -3125,6 +3108,15 @@ export function CentralDashboard({
           </>,
         ]
       ),
+    },
+    {
+      label: t('kpi.labels.criticalSchemes', { defaultValue: 'Critical Schemes' }),
+      value: formatNumber(0),
+      trend: {
+        direction: 'neutral' as const,
+        text: `0% vs previous ${comparisonDays} days`,
+      },
+      tooltipContent: undefined,
     },
   ] as const
   const pumpOperatorsTotal = resolvedDashboardData.pumpOperators.reduce(
@@ -3239,7 +3231,11 @@ export function CentralDashboard({
 
       {/* KPI Cards */}
       <Grid
-        templateColumns={{ base: '1fr', md: 'repeat(auto-fit, minmax(240px, 1fr))' }}
+        templateColumns={{
+          base: '1fr',
+          sm: 'repeat(2, minmax(0, 1fr))',
+          lg: 'repeat(5, minmax(0, 1fr))',
+        }}
         gap={4}
         mb={6}
       >
@@ -3248,7 +3244,6 @@ export function CentralDashboard({
             key={metric.label}
             title={metric.label}
             value={metric.value}
-            icon={metric.icon}
             trend={metric.trend}
             tooltipContent={metric.tooltipContent}
           />

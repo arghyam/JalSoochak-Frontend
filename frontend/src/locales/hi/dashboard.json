@@ -91,9 +91,11 @@
   },
   "kpi": {
     "labels": {
+      "schemesSupplyingWater": "जल आपूर्ति करने वाली योजनाएं",
       "quantityInMld": "एमएलडी में मात्रा",
       "quantityInLpcd": "एलपीसीडी में मात्रा",
-      "regularity": "नियमितता"
+      "regularity": "नियमितता",
+      "criticalSchemes": "गंभीर योजनाएं"
     },
     "tooltips": {
       "quantityMld": {

@@ -1812,7 +1812,7 @@ describe('CentralDashboard', () => {
 
     renderWithProviders(<CentralDashboard />)
 
-    const kpiProps = mockKPICard.mock.calls.slice(-3).map(
+    const kpiProps = mockKPICard.mock.calls.slice(-5).map(
       (call) =>
         call[0] as {
           title: string
@@ -1821,15 +1821,17 @@ describe('CentralDashboard', () => {
         }
     )
 
-    expect(kpiProps[0]?.title).toBe('Quantity in MLD')
-    expect(kpiProps[0]?.value).toBe('0.05')
-    expect(kpiProps[0]?.trend).toEqual(
+    expect(kpiProps[0]?.title).toBe('Schemes Supplying Water')
+    expect(kpiProps[1]?.title).toBe('Quantity in MLD')
+    expect(kpiProps[1]?.value).toBe('0.05')
+    expect(kpiProps[1]?.trend).toEqual(
       expect.objectContaining({ text: expect.stringContaining('vs previous 2 days') })
     )
-    expect(kpiProps[1]?.title).toBe('Quantity in LPCD')
-    expect(kpiProps[1]?.value).toBe('18.3')
-    expect(kpiProps[2]?.title).toBe('Regularity')
-    expect(kpiProps[2]?.value).toBe('50.0%')
+    expect(kpiProps[2]?.title).toBe('Quantity in LPCD')
+    expect(kpiProps[2]?.value).toBe('18.3')
+    expect(kpiProps[3]?.title).toBe('Regularity')
+    expect(kpiProps[3]?.value).toBe('50.0%')
+    expect(kpiProps[4]?.title).toBe('Critical Schemes')
   })
 
   it('uses national dashboard analytics for central landing KPI cards', () => {
@@ -1941,7 +1943,7 @@ describe('CentralDashboard', () => {
 
     renderWithProviders(<CentralDashboard />)
 
-    const kpiProps = mockKPICard.mock.calls.slice(0, 3).map(
+    const kpiProps = mockKPICard.mock.calls.slice(0, 5).map(
       (call) =>
         call[0] as {
           title: string
@@ -1950,18 +1952,20 @@ describe('CentralDashboard', () => {
         }
     )
 
-    expect(kpiProps).toHaveLength(3)
-    expect(kpiProps[0]?.title).toBe('Quantity in MLD')
-    expect(kpiProps[0]?.value).toBe('5')
-    expect(kpiProps[0]?.trend).toEqual({ direction: 'down', text: '-16.7% vs previous 30 days' })
+    expect(kpiProps).toHaveLength(5)
+    expect(kpiProps[0]?.title).toBe('Schemes Supplying Water')
+    expect(kpiProps[1]?.title).toBe('Quantity in MLD')
+    expect(kpiProps[1]?.value).toBe('5')
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-16.7% vs previous 30 days' })
 
-    expect(kpiProps[1]?.title).toBe('Quantity in LPCD')
-    expect(kpiProps[1]?.value).toBe('1,000')
-    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-200 LPCD vs previous 30 days' })
+    expect(kpiProps[2]?.title).toBe('Quantity in LPCD')
+    expect(kpiProps[2]?.value).toBe('1,000')
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'down', text: '-200 LPCD vs previous 30 days' })
 
-    expect(kpiProps[2]?.title).toBe('Regularity')
-    expect(kpiProps[2]?.value).toBe('0.0%')
-    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
+    expect(kpiProps[3]?.title).toBe('Regularity')
+    expect(kpiProps[3]?.value).toBe('0.0%')
+    expect(kpiProps[3]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
+    expect(kpiProps[4]?.title).toBe('Critical Schemes')
   })
 
   it('hydrates location filters from path and query params', () => {
@@ -4696,7 +4700,7 @@ describe('CentralDashboard', () => {
 
     renderWithProviders(<CentralDashboard />)
 
-    const kpiProps = mockKPICard.mock.calls.slice(-3).map(
+    const kpiProps = mockKPICard.mock.calls.slice(-5).map(
       (call) =>
         call[0] as {
           title: string
@@ -4705,18 +4709,20 @@ describe('CentralDashboard', () => {
         }
     )
 
-    expect(kpiProps).toHaveLength(3)
-    expect(kpiProps[0]?.title).toBe('Quantity in MLD')
-    expect(kpiProps[0]?.value).toBe('5')
-    expect(kpiProps[0]?.trend).toEqual({ direction: 'down', text: '-16.7% vs previous 30 days' })
+    expect(kpiProps).toHaveLength(5)
+    expect(kpiProps[0]?.title).toBe('Schemes Supplying Water')
+    expect(kpiProps[1]?.title).toBe('Quantity in MLD')
+    expect(kpiProps[1]?.value).toBe('5')
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-16.7% vs previous 30 days' })
 
-    expect(kpiProps[1]?.title).toBe('Quantity in LPCD')
-    expect(kpiProps[1]?.value).toBe('500')
-    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-100 LPCD vs previous 30 days' })
+    expect(kpiProps[2]?.title).toBe('Quantity in LPCD')
+    expect(kpiProps[2]?.value).toBe('500')
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'down', text: '-100 LPCD vs previous 30 days' })
 
-    expect(kpiProps[2]?.title).toBe('Regularity')
-    expect(kpiProps[2]?.value).toBe('0.0%')
-    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
+    expect(kpiProps[3]?.title).toBe('Regularity')
+    expect(kpiProps[3]?.value).toBe('0.0%')
+    expect(kpiProps[3]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
+    expect(kpiProps[4]?.title).toBe('Critical Schemes')
 
     const waterSupplyQueryCalls = (useAverageWaterSupplyPerRegionQuery as jest.Mock).mock.calls
       .slice(initialWaterSupplyQueryCallCount)
@@ -4926,7 +4932,7 @@ describe('CentralDashboard', () => {
 
     renderWithProviders(<CentralDashboard />)
 
-    const kpiProps = mockKPICard.mock.calls.slice(0, 3).map(
+    const kpiProps = mockKPICard.mock.calls.slice(0, 5).map(
       (call) =>
         call[0] as {
           title: string
@@ -4935,10 +4941,10 @@ describe('CentralDashboard', () => {
         }
     )
 
-    expect(kpiProps).toHaveLength(3)
-    expect(kpiProps[0]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
-    expect(kpiProps[1]?.trend).toEqual({ direction: 'neutral', text: '0 LPCD vs previous 30 days' })
-    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
+    expect(kpiProps).toHaveLength(5)
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0 LPCD vs previous 30 days' })
+    expect(kpiProps[3]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
   })
 
   it('hides map and overall performance panel when a village is selected', () => {
@@ -5007,16 +5013,16 @@ describe('CentralDashboard', () => {
 
     renderWithProviders(<CentralDashboard />)
 
-    const kpiProps = mockKPICard.mock.calls.slice(0, 3).map(
+    const kpiProps = mockKPICard.mock.calls.slice(0, 5).map(
       (call) =>
         call[0] as {
           trend?: { direction: 'up' | 'down' | 'neutral'; text: string }
         }
     )
 
-    expect(kpiProps[0]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
-    expect(kpiProps[1]?.trend).toEqual({ direction: 'neutral', text: '0 LPCD vs previous 30 days' })
-    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0 LPCD vs previous 30 days' })
+    expect(kpiProps[3]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
   })
 
   it('uses the selected village LGD id for scheme performance analytics', () => {

@@ -91,9 +91,11 @@
   },
   "kpi": {
     "labels": {
+      "schemesSupplyingWater": "Schemes Supplying Water",
       "quantityInMld": "Quantity in MLD",
       "quantityInLpcd": "Quantity in LPCD",
-      "regularity": "Regularity"
+      "regularity": "Regularity",
+      "criticalSchemes": "Critical Schemes"
     },
     "tooltips": {
       "quantityMld": {
