@@ -277,6 +277,7 @@ describe('Generate Token button', () => {
   })
 
   it('copies token to clipboard and shows success toast when copy button is clicked', async () => {
+    Object.defineProperty(globalThis, 'isSecureContext', { value: true, configurable: true })
     const mockWriteText = jest
       .fn<(text: string) => Promise<void>>()
       .mockReturnValue(Promise.resolve())
