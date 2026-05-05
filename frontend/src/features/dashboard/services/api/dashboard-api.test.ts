@@ -10,6 +10,9 @@ jest.mock('@/shared/lib/axios', () => ({
       response: { use: jest.fn() },
     },
   },
+  publicApiClient: {
+    get: (...args: unknown[]) => mockGet(...args),
+  },
 }))
 
 describe('dashboardApi.getNationalDashboard', () => {

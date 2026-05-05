@@ -75,6 +75,20 @@ describe('apiClient request interceptor', () => {
 
     expect(captured?.headers?.Authorization).toBeUndefined()
   })
+
+  it('does not add Authorization on the public API client even when a token exists', async () => {
+    const { publicApiClient } = await import('./axios')
+    let captured: InternalAxiosRequestConfig | undefined
+
+    await publicApiClient.get('/api/v1/analytics/water-supply/average-per-region', {
+      adapter: async (config) => {
+        captured = config
+        return { data: {}, status: 200, statusText: 'OK', headers: {}, config }
+      },
+    })
+
+    expect(captured?.headers?.Authorization).toBeUndefined()
+  })
 })
 
 describe('apiClient response interceptor', () => {
