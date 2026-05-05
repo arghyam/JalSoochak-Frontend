@@ -530,6 +530,39 @@ export function DashboardFilters(props: DashboardFiltersProps) {
 
   const handleTrailSelect = (trailIndex: number) => {
     if (isDepartmentTab) {
+      // In single-tenant mode the display trail starts at zone (state chip is hidden),
+      // so display indices are offset by -1 relative to the raw hierarchy depth.
+      // Re-applying the current value (instead of '') navigates to that level and only
+      // clears deeper levels, matching the LGD single-tenant behaviour.
+      if (isSingleTenantMode) {
+        if (trailIndex < 0) {
+          districtSelectionHandler('')
+          return
+        }
+
+        if (trailIndex === 0) {
+          districtSelectionHandler(activeSelectedDistrict)
+          return
+        }
+
+        if (trailIndex === 1) {
+          blockSelectionHandler(activeSelectedBlock)
+          return
+        }
+
+        if (trailIndex === 2) {
+          gramPanchayatSelectionHandler(activeSelectedGramPanchayat)
+          return
+        }
+
+        if (trailIndex === 3) {
+          villageSelectionHandler(activeSelectedVillage)
+          return
+        }
+
+        return
+      }
+
       if (trailIndex < 0) {
         onDepartmentStateChange('')
         return
