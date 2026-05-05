@@ -419,7 +419,12 @@ export const getRegularityKpiFromPeriodic = (
     const value = Number(m.averageRegularity ?? 0)
     return acc + (isFiniteNumber(value) ? value : 0)
   }, 0)
-  return Number(((sum / response.metrics.length) * 100).toFixed(1))
+  const averageRegularity = sum / response.metrics.length
+
+  // Periodic payloads can arrive as either a ratio (0..1) or a percent (0..100).
+  const normalizedPercent = averageRegularity <= 1 ? averageRegularity * 100 : averageRegularity
+
+  return Number(clamp(normalizedPercent, 0, 100).toFixed(1))
 }
 
 export const calculatePercentChange = (currentValue: number, previousValue: number) => {
