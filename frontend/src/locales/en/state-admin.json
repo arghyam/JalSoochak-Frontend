@@ -58,11 +58,18 @@
       "december": "December"
     },
     "generateToken": {
-      "buttonLabel": "Generate Token",
-      "ariaLabel": "Generate API token and copy to clipboard",
-      "copied": "Token copied to clipboard successfully",
-      "clipboardError": "Token generated but failed to copy to clipboard",
-      "error": "Failed to generate API token"
+      "sectionTitle": "API Key",
+      "sectionHint": "Please copy the key and keep it safe. The same key will not be shown again. In case you forget the key, create a new one.",
+      "buttonLabel": "Generate Key",
+      "ariaLabel": "Generate a new API key",
+      "tokenInputLabel": "Generated API key",
+      "generated": "New key generated successfully",
+      "showToken": "Show key",
+      "hideToken": "Hide key",
+      "copyToken": "Copy key to clipboard",
+      "copied": "Key copied to clipboard",
+      "clipboardError": "Failed to copy key to clipboard",
+      "error": "Failed to generate API key"
     },
     "aria": {
       "selectMonth": "Select month for chart",
