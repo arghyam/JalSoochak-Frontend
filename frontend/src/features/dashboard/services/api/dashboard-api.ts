@@ -1,4 +1,4 @@
-import { apiClient } from '@/shared/lib/axios'
+import { publicApiClient } from '@/shared/lib/axios'
 import { isAxiosError } from 'axios'
 import type {
   AverageSchemeRegularityQueryParams,
@@ -639,7 +639,7 @@ const httpProvider: {
   getDashboardData: async ({ level, entityId }: DashboardQueryParams) => {
     ensureValidParams({ level, entityId })
     const endpoint = `/api/dashboard/${level}/${entityId}`
-    const response = await apiClient.get<DashboardData>(endpoint)
+    const response = await publicApiClient.get<DashboardData>(endpoint)
     if (!isDashboardDataPayload(response.data)) {
       throw new Error('Dashboard API returned an invalid payload')
     }
@@ -654,20 +654,19 @@ export const dashboardApi = {
   getNationalDashboard: async (
     params: NationalDashboardQueryParams
   ): Promise<NationalDashboardResponse> => {
-    const response = await apiClient.get<NationalDashboardResponse | RawNationalDashboardPayload>(
-      '/api/v1/analytics/national/dashboard',
-      {
-        params: {
-          start_date: params.startDate,
-          end_date: params.endDate,
-        },
-      }
-    )
+    const response = await publicApiClient.get<
+      NationalDashboardResponse | RawNationalDashboardPayload
+    >('/api/v1/analytics/national/dashboard', {
+      params: {
+        start_date: params.startDate,
+        end_date: params.endDate,
+      },
+    })
 
     return normalizeNationalDashboardResponse(response.data)
   },
   getNationalDashboardBoundaries: async (): Promise<NationalDashboardBoundaryResponse> => {
-    const response = await apiClient.get<
+    const response = await publicApiClient.get<
       NationalDashboardBoundaryResponse | RawNationalDashboardBoundaryPayload
     >('/api/v1/analytics/national/dashboard/boundary')
 
@@ -676,7 +675,7 @@ export const dashboardApi = {
   getAverageWaterSupplyPerRegion: async (
     params: AverageWaterSupplyPerRegionQueryParams
   ): Promise<AverageWaterSupplyPerRegionResponse> => {
-    const response = await apiClient.get<
+    const response = await publicApiClient.get<
       AverageWaterSupplyPerRegionResponse | RawAverageWaterSupplyPerRegionPayload
     >('/api/v1/analytics/water-supply/average-per-region', {
       params: {
@@ -710,7 +709,7 @@ export const dashboardApi = {
     )
   },
   getTenantPublicConfig: async (tenantId: number): Promise<TenantPublicConfig> => {
-    const response = await apiClient.get<ApiEnvelope<{ configs?: TenantPublicConfigMap }>>(
+    const response = await publicApiClient.get<ApiEnvelope<{ configs?: TenantPublicConfigMap }>>(
       `/api/v1/tenants/${tenantId}/config/public`
     )
     const configs = response?.data?.data?.configs ?? {}
@@ -739,7 +738,7 @@ export const dashboardApi = {
   getWaterQuantityPeriodic: async (
     params: WaterQuantityPeriodicQueryParams
   ): Promise<WaterQuantityPeriodicResponse> => {
-    const response = await apiClient.get<
+    const response = await publicApiClient.get<
       WaterQuantityPeriodicResponse | WrappedAnalyticsResponse<WaterQuantityPeriodicResponse>
     >('/api/v1/analytics/water-quantity/periodic', {
       params: {
@@ -766,7 +765,7 @@ export const dashboardApi = {
   getWaterQuantityRegionWise: async (
     params: WaterQuantityRegionWiseQueryParams
   ): Promise<WaterQuantityRegionWiseResponse> => {
-    const response = await apiClient.get<
+    const response = await publicApiClient.get<
       WaterQuantityRegionWiseResponse | WrappedAnalyticsResponse<WaterQuantityRegionWiseResponse>
     >('/api/v1/analytics/water-quantity/region-wise', {
       params: {
@@ -798,7 +797,7 @@ export const dashboardApi = {
   getAverageSchemeRegularity: async (
     params: AverageSchemeRegularityQueryParams
   ): Promise<AverageSchemeRegularityResponse> => {
-    const response = await apiClient.get<
+    const response = await publicApiClient.get<
       AverageSchemeRegularityResponse | WrappedAnalyticsResponse<AverageSchemeRegularityResponse>
     >('/api/v1/analytics/scheme-regularity/average', {
       params: {
@@ -832,7 +831,7 @@ export const dashboardApi = {
   getTenantBoundaries: async (
     params: TenantBoundaryQueryParams
   ): Promise<TenantBoundaryResponse> => {
-    const response = await apiClient.get<
+    const response = await publicApiClient.get<
       TenantBoundaryResponse | WrappedAnalyticsResponse<TenantBoundaryResponse>
     >('/api/v1/analytics/tenant_data', {
       params: {
@@ -861,7 +860,7 @@ export const dashboardApi = {
   getTenantBoundaryGeoJson: async (
     params: TenantBoundaryGeoJsonQueryParams
   ): Promise<TenantBoundaryGeoJsonResponse> => {
-    const response = await apiClient.get<
+    const response = await publicApiClient.get<
       TenantBoundaryGeoJsonResponse | WrappedAnalyticsResponse<TenantBoundaryGeoJsonResponse>
     >('/api/v1/analytics/tenant_boundaries', {
       params: {
@@ -887,7 +886,7 @@ export const dashboardApi = {
   getSchemeRegularityPeriodic: async (
     params: SchemeRegularityPeriodicQueryParams
   ): Promise<SchemeRegularityPeriodicResponse> => {
-    const response = await apiClient.get<
+    const response = await publicApiClient.get<
       SchemeRegularityPeriodicResponse | WrappedAnalyticsResponse<SchemeRegularityPeriodicResponse>
     >('/api/v1/analytics/scheme-regularity/periodic', {
       params: {
@@ -916,7 +915,7 @@ export const dashboardApi = {
   getNationalSchemeRegularityPeriodic: async (
     params: NationalSchemeRegularityPeriodicQueryParams
   ): Promise<NationalSchemeRegularityPeriodicResponse> => {
-    const response = await apiClient.get<
+    const response = await publicApiClient.get<
       | NationalSchemeRegularityPeriodicResponse
       | WrappedAnalyticsResponse<NationalSchemeRegularityPeriodicResponse>
     >('/api/v1/analytics/scheme-regularity/periodic/national', {
@@ -941,7 +940,7 @@ export const dashboardApi = {
   getReadingSubmissionRate: async (
     params: ReadingSubmissionRateQueryParams
   ): Promise<ReadingSubmissionRateResponse> => {
-    const response = await apiClient.get<
+    const response = await publicApiClient.get<
       ReadingSubmissionRateResponse | WrappedAnalyticsResponse<ReadingSubmissionRateResponse>
     >('/api/v1/analytics/reading-submission-rate', {
       params: {
@@ -975,7 +974,7 @@ export const dashboardApi = {
   getSchemePerformance: async (
     params: SchemePerformanceQueryParams
   ): Promise<SchemePerformanceResponse> => {
-    const response = await apiClient.get<
+    const response = await publicApiClient.get<
       SchemePerformanceResponse | WrappedAnalyticsResponse<SchemePerformanceResponse>
     >('/api/v1/analytics/schemes/dashboard', {
       params: {
@@ -1070,7 +1069,7 @@ export const dashboardApi = {
   getPumpOperatorDetails: async (
     params: PumpOperatorDetailsQueryParams
   ): Promise<PumpOperatorDetailsResponse> => {
-    const response = await apiClient.get<RawPumpOperatorDetailsResponse>(
+    const response = await publicApiClient.get<RawPumpOperatorDetailsResponse>(
       `/api/v1/pumpoperator/pump-operators/${params.pumpOperatorId}`,
       {
         params: {
@@ -1092,7 +1091,7 @@ export const dashboardApi = {
   getPumpOperatorsByScheme: async (
     params: PumpOperatorsBySchemeQueryParams
   ): Promise<PumpOperatorsBySchemeResponse> => {
-    const response = await apiClient.get<PumpOperatorsBySchemeResponse>(
+    const response = await publicApiClient.get<PumpOperatorsBySchemeResponse>(
       '/api/v1/pumpoperator/pump-operators/by-scheme',
       {
         params: {
@@ -1107,7 +1106,7 @@ export const dashboardApi = {
   getReadingCompliance: async (
     params: ReadingComplianceQueryParams
   ): Promise<ReadingComplianceResponse> => {
-    const response = await apiClient.get<ReadingComplianceResponse>(
+    const response = await publicApiClient.get<ReadingComplianceResponse>(
       params.scheme_id != null
         ? '/api/v1/pumpoperator/pump-operators/by-scheme/reading-compliance'
         : '/api/v1/pumpoperator/pump-operators/reading-compliance',
@@ -1126,7 +1125,7 @@ export const dashboardApi = {
   getSubmissionStatus: async (
     params: SubmissionStatusQueryParams
   ): Promise<SubmissionStatusResponse> => {
-    const response = await apiClient.get<
+    const response = await publicApiClient.get<
       SubmissionStatusResponse | WrappedAnalyticsResponse<SubmissionStatusResponse>
     >('/api/v1/analytics/submission-status', {
       params: {
@@ -1149,7 +1148,7 @@ export const dashboardApi = {
     )
   },
   getOutageReasons: async (params: OutageReasonsQueryParams): Promise<OutageReasonsResponse> => {
-    const response = await apiClient.get<
+    const response = await publicApiClient.get<
       OutageReasonsResponse | WrappedAnalyticsResponse<OutageReasonsResponse>
     >('/api/v1/analytics/outage-reasons', {
       params: {
@@ -1178,7 +1177,7 @@ export const dashboardApi = {
   getOutageReasonsPeriodic: async (
     params: OutageReasonsPeriodicQueryParams
   ): Promise<OutageReasonsPeriodicResponse> => {
-    const response = await apiClient.get<
+    const response = await publicApiClient.get<
       OutageReasonsPeriodicResponse | WrappedAnalyticsResponse<OutageReasonsPeriodicResponse>
     >('/api/v1/analytics/outage-reasons/periodic', {
       params: {
@@ -1219,7 +1218,7 @@ export const dashboardApi = {
       }
       iterations += 1
 
-      const response = await apiClient.get<TenantListResponse>('/api/v1/tenants', {
+      const response = await publicApiClient.get<TenantListResponse>('/api/v1/tenants', {
         params: { page, size: TENANTS_PAGE_SIZE },
       })
       const payload = response.data
@@ -1274,7 +1273,7 @@ export const dashboardApi = {
     for (const candidate of hierarchyTypeCandidates) {
       const endpoint = `/api/v1/tenants/${tenantId}/location-hierarchy/${candidate}`
       try {
-        const response = await apiClient.get<TenantLocationHierarchyResponse>(endpoint)
+        const response = await publicApiClient.get<TenantLocationHierarchyResponse>(endpoint)
         hierarchyTypeResolutionCache.set(cacheKey, candidate)
         return response.data
       } catch (error) {
@@ -1304,7 +1303,7 @@ export const dashboardApi = {
           ? `/api/v1/tenants/${tenantId}/locations/${candidate}?parentId=${parentId}`
           : `/api/v1/tenants/${tenantId}/locations/${candidate}`
       try {
-        const response = await apiClient.get<TenantChildLocationsResponse>(endpoint)
+        const response = await publicApiClient.get<TenantChildLocationsResponse>(endpoint)
         hierarchyTypeResolutionCache.set(cacheKey, candidate)
         return response.data
       } catch (error) {

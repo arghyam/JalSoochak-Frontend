@@ -11,6 +11,15 @@ export const apiClient = axios.create({
   },
 })
 
+export const publicApiClient = axios.create({
+  baseURL: getApiBaseUrl(),
+  timeout: 30000,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
+
 // Auth endpoints that should not receive the Authorization header
 const AUTH_ENDPOINTS = ['/api/v1/auth/login', '/api/v1/auth/refresh', '/api/v1/auth/logout']
 
