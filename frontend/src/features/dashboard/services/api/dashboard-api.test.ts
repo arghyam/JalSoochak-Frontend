@@ -1079,6 +1079,28 @@ describe('dashboardApi.getContinuousSchemes', () => {
     })
     expect(res.continuousSchemeCount).toBe(5714)
   })
+
+  it('throws when wrapped continuous schemes payload is missing data', async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        success: true,
+        data: undefined,
+      },
+    } as never)
+
+    const { dashboardApi } = await import('./dashboard-api')
+
+    await expect(
+      dashboardApi.getContinuousSchemes({
+        tenantId: 17,
+        lgdId: 1,
+        startDate: '2026-03-01',
+        endDate: '2026-03-05',
+      })
+    ).rejects.toThrow(
+      'Invalid continuous schemes analytics response: wrapped payload is missing data'
+    )
+  })
 })
 
 describe('dashboardApi.getCriticalSchemes', () => {
@@ -1122,6 +1144,28 @@ describe('dashboardApi.getCriticalSchemes', () => {
       },
     })
     expect(res.criticalSchemeCount).toBe(5714)
+  })
+
+  it('throws when wrapped critical schemes payload is missing data', async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        success: true,
+        data: undefined,
+      },
+    } as never)
+
+    const { dashboardApi } = await import('./dashboard-api')
+
+    await expect(
+      dashboardApi.getCriticalSchemes({
+        tenantId: 17,
+        lgdId: 1,
+        startDate: '2026-03-01',
+        endDate: '2026-03-05',
+      })
+    ).rejects.toThrow(
+      'Invalid critical schemes analytics response: wrapped payload is missing data'
+    )
   })
 })
 

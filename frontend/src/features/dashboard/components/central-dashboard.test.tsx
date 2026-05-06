@@ -304,6 +304,10 @@ describe('CentralDashboard', () => {
     ;(useTenantBoundaryGeoJsonQuery as jest.Mock).mockReturnValue({ data: undefined })
   })
 
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
   it('renders Overall Performance table panel for central view', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -1911,9 +1915,6 @@ describe('CentralDashboard', () => {
         isFetching: false,
       }
     })
-    ;(useContinuousSchemesQuery as jest.Mock).mockReturnValue({ data: undefined })
-    ;(useCriticalSchemesQuery as jest.Mock).mockReturnValue({ data: undefined })
-
     renderWithProviders(<CentralDashboard />)
 
     const kpiProps = mockKPICard.mock.calls.slice(-5).map(
