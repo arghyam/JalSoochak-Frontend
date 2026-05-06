@@ -692,7 +692,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
             onChange={setSelectedDuration}
             dateFormat={durationDateFormat}
             placeholder={t('filters.duration', 'Duration')}
-            width={isBelowLgFilters ? '32px' : '160px'}
+            width={isBelowLgFilters ? '32px' : '206px'}
             height="32px"
             borderRadius="4px"
             fontSize={isVeryCompactFilters ? '11px' : 'sm'}

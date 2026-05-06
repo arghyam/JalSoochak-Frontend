@@ -107,13 +107,11 @@ const clampIsoDateToMax = (value: string, max: string) => {
 
 const getDefaultRangeIso = (todayIso: string): DateRange => {
   const today = new Date(`${todayIso}T00:00:00`)
-  const endDate = new Date(today)
-  endDate.setDate(today.getDate() - 1)
-  const startDate = new Date(endDate)
-  startDate.setDate(endDate.getDate() - 29)
+  const startDate = new Date(today)
+  startDate.setDate(today.getDate() - 29)
   return {
     startDate: formatISODate(startDate),
-    endDate: formatISODate(endDate),
+    endDate: todayIso,
     preset: undefined,
   }
 }

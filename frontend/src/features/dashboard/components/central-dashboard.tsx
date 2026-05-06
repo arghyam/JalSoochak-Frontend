@@ -112,6 +112,7 @@ import { getRuntimeConfig } from '@/config/runtime-config'
 
 const storageKey = 'central-dashboard-filters'
 const SCHEME_PERFORMANCE_PAGE_SIZE = 15
+const DASHBOARD_DURATION_DATE_FORMAT = 'DD/MM/YYYY'
 
 const EMPTY_DASHBOARD_DATA: DashboardData = {
   level: 'central',
@@ -1044,7 +1045,7 @@ export function CentralDashboard({
   const screenDateFormat = normalizeDateFormat(
     tenantPublicConfig?.dateFormatScreen?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
   )
-  const durationDateFormat = screenDateFormat
+  const durationDateFormat = DASHBOARD_DURATION_DATE_FORMAT
   const tableDateFormat = normalizeDateFormat(
     tenantPublicConfig?.dateFormatTable?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
   )

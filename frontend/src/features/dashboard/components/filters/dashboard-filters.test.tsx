@@ -104,6 +104,15 @@ describe('DashboardFilters', () => {
     )
   })
 
+  it('shows dashboard duration with a full DD/MM/YYYY year range', () => {
+    renderDashboardFilters({
+      selectedDuration: { startDate: '2026-03-11', endDate: '2026-03-12' },
+      durationDateFormat: 'DD/MM/YYYY',
+    })
+
+    expect(screen.getByText('11/03/2026-12/03/2026')).toBeTruthy()
+  })
+
   it('clears search input text when clear all filters is clicked', () => {
     const onClear = jest.fn()
 

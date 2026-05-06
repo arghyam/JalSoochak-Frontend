@@ -95,4 +95,15 @@ describe('DateRangePicker', () => {
 
     expect((endDateInput as HTMLInputElement).value).toBe('01/03/2026')
   })
+
+  it('shows the full year in the collapsed date range label', () => {
+    renderWithProviders(
+      <DateRangePicker
+        value={{ startDate: '2026-02-01', endDate: '2026-02-28' }}
+        onChange={jest.fn()}
+      />
+    )
+
+    expect(screen.getByText('01/02/2026-28/02/2026')).toBeTruthy()
+  })
 })
