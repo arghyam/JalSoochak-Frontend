@@ -355,53 +355,64 @@ export const getRegularityKpiFromNationalDashboard = (
 }
 
 export const getWaterSupplyKpisFromPeriodic = (
-  response: WaterQuantityPeriodicResponse | undefined,
+  schemeQuantityResponse: SchemeRegularityPeriodicResponse | undefined,
+  waterQuantityResponse: WaterQuantityPeriodicResponse | undefined,
   averagePersonsPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD
 ) => {
-  if (!response?.metrics?.length) {
+  if (!schemeQuantityResponse?.metrics?.length) {
     return { quantityMld: 0, quantityLpcd: 0 }
   }
 
-  const totals = response.metrics.reduce(
-    (acc, metric) => {
-      const metricDays = resolveMetricDaysInRange(metric.periodStartDate, metric.periodEndDate)
-      const waterQuantity = Number(metric.averageWaterQuantity ?? 0)
-      const chosenAchievedFhtcCount = Number(
-        metric.totalAchievedFhtcCount ?? metric.achievedFhtcCount ?? 0
-      )
+  // Sum totalWaterQuantity from scheme-regularity/periodic metrics
+  let totalWaterSuppliedLiters = 0
+  let totalDays = 0
 
-      if (!isFiniteNumber(waterQuantity) || metricDays <= 0) {
-        return acc
-      }
+  for (const metric of schemeQuantityResponse.metrics) {
+    const metricDays = resolveMetricDaysInRange(metric.periodStartDate, metric.periodEndDate)
+    const waterQuantity = Number(metric.totalWaterQuantity ?? 0)
 
-      return {
-        totalWaterSuppliedLiters: acc.totalWaterSuppliedLiters + waterQuantity * metricDays,
-        totalServedConnectionsDays:
-          acc.totalServedConnectionsDays +
-          (isFiniteNumber(chosenAchievedFhtcCount) && chosenAchievedFhtcCount > 0
-            ? chosenAchievedFhtcCount
-            : 0) *
-            metricDays,
-        totalDays: acc.totalDays + metricDays,
-      }
-    },
-    { totalWaterSuppliedLiters: 0, totalServedConnectionsDays: 0, totalDays: 0 }
-  )
+    if (!isFiniteNumber(waterQuantity) || metricDays <= 0) {
+      continue
+    }
 
-  if (totals.totalDays <= 0) {
+    totalWaterSuppliedLiters += waterQuantity
+    totalDays += metricDays
+  }
+
+  if (totalDays <= 0) {
     return { quantityMld: 0, quantityLpcd: 0 }
   }
+
+  // Average achievedFhtcCount from water-quantity/periodic metrics (valid periods only)
+  let totalAchievedFhtcCount = 0
+  let achievedFhtcMetricCount = 0
+
+  for (const metric of waterQuantityResponse?.metrics ?? []) {
+    const metricDays = resolveMetricDaysInRange(metric.periodStartDate, metric.periodEndDate)
+    if (metricDays <= 0) {
+      continue
+    }
+
+    const count = Number(metric.totalAchievedFhtcCount ?? metric.achievedFhtcCount ?? 0)
+    if (isFiniteNumber(count)) {
+      totalAchievedFhtcCount += count
+      achievedFhtcMetricCount++
+    }
+  }
+
+  const averageAchievedFhtcCount =
+    achievedFhtcMetricCount > 0 ? totalAchievedFhtcCount / achievedFhtcMetricCount : 0
 
   return {
-    quantityMld: calculateQuantityMld(totals.totalWaterSuppliedLiters, totals.totalDays),
+    quantityMld: calculateQuantityMld(totalWaterSuppliedLiters, totalDays),
     quantityLpcd:
-      totals.totalServedConnectionsDays > 0 &&
+      averageAchievedFhtcCount > 0 &&
       Number.isFinite(averagePersonsPerHousehold) &&
       averagePersonsPerHousehold > 0
         ? Number(
             (
-              totals.totalWaterSuppliedLiters /
-              (totals.totalServedConnectionsDays * averagePersonsPerHousehold)
+              totalWaterSuppliedLiters /
+              (averageAchievedFhtcCount * totalDays * averagePersonsPerHousehold)
             ).toFixed(1)
           )
         : 0,
