@@ -1010,7 +1010,7 @@ export const dashboardApi = {
   getCriticalSchemes: async (
     params: CriticalSchemesQueryParams
   ): Promise<CriticalSchemesResponse> => {
-    const response = await apiClient.get<
+    const response = await publicApiClient.get<
       CriticalSchemesResponse | WrappedAnalyticsResponse<CriticalSchemesResponse>
     >('/api/v1/analytics/critical-schemes', {
       params: {
@@ -1038,7 +1038,7 @@ export const dashboardApi = {
   getContinuousSchemes: async (
     params: ContinuousSchemesQueryParams
   ): Promise<ContinuousSchemesResponse> => {
-    const response = await apiClient.get<
+    const response = await publicApiClient.get<
       ContinuousSchemesResponse | WrappedAnalyticsResponse<ContinuousSchemesResponse>
     >('/api/v1/analytics/continuous-schemes', {
       params: {
