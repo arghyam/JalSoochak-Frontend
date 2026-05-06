@@ -117,6 +117,29 @@ describe('dashboardQueryKeys', () => {
     ])
   })
 
+  it('includes tenant, entity id, dates, and list mode in the continuous schemes query key', () => {
+    expect(
+      dashboardQueryKeys.continuousSchemes({
+        tenantId: 17,
+        lgdId: 1,
+        startDate: '2026-03-01',
+        endDate: '2026-03-05',
+      })
+    ).toEqual([
+      'dashboard',
+      'analytics',
+      'continuous-schemes',
+      17,
+      1,
+      undefined,
+      '2026-03-01',
+      '2026-03-05',
+      false,
+      undefined,
+      undefined,
+    ])
+  })
+
   it('includes scale and dates in the national periodic query key', () => {
     expect(
       dashboardQueryKeys.nationalSchemeRegularityPeriodic({
