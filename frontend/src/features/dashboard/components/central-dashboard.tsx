@@ -1870,6 +1870,34 @@ export function CentralDashboard({
     params: previousRegularityPeriodicAnalyticsParams,
     enabled: Boolean(previousRegularityPeriodicAnalyticsParams),
   })
+  const previousQuantityTrendPeriodicAnalyticsParams =
+    !isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            tenantId: selectedTenant.tenantId,
+            lgdId: analyticsParentId,
+            startDate: previousAnalyticsRange.startDate,
+            endDate: previousAnalyticsRange.endDate,
+            scale: resolveWaterQuantityPeriodicScale(
+              previousAnalyticsRange.startDate,
+              previousAnalyticsRange.endDate
+            ),
+          }
+        : {
+            tenantId: selectedTenant.tenantId,
+            departmentId: analyticsParentId,
+            startDate: previousAnalyticsRange.startDate,
+            endDate: previousAnalyticsRange.endDate,
+            scale: resolveWaterQuantityPeriodicScale(
+              previousAnalyticsRange.startDate,
+              previousAnalyticsRange.endDate
+            ),
+          }
+  const { data: previousSchemeQuantityPeriodicData } = useSchemeRegularityPeriodicQuery({
+    params: previousQuantityTrendPeriodicAnalyticsParams,
+    enabled: Boolean(previousQuantityTrendPeriodicAnalyticsParams),
+  })
   const isCentralLandingView = !hasCentralLandingFilters
   const nationalQuantityTenantIds = Array.from(
     new Set(
@@ -2337,7 +2365,11 @@ export function CentralDashboard({
         nationalDefaultAverageMembersPerHousehold
       )
     : isHierarchyLeafSelected
-      ? getWaterSupplyKpisFromPeriodic(waterQuantityPeriodicData, averagePersonsPerHousehold)
+      ? getWaterSupplyKpisFromPeriodic(
+          schemeQuantityPeriodicData,
+          waterQuantityPeriodicData,
+          averagePersonsPerHousehold
+        )
       : getWaterSupplyKpis(
           hasWaterSupplyData(currentWaterSupplyKpiData)
             ? currentWaterSupplyKpiData
@@ -2351,6 +2383,7 @@ export function CentralDashboard({
       )
     : isHierarchyLeafSelected
       ? getWaterSupplyKpisFromPeriodic(
+          previousSchemeQuantityPeriodicData,
           previousWaterQuantityPeriodicData,
           averagePersonsPerHousehold
         )
