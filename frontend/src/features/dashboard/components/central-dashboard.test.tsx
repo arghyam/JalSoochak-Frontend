@@ -357,6 +357,7 @@ describe('CentralDashboard', () => {
         call[0] as {
           title: string
           value: string
+          icon?: unknown
           trend?: { direction: 'up' | 'down' | 'neutral'; text: string }
         }
     )
@@ -365,6 +366,9 @@ describe('CentralDashboard', () => {
     expect(kpiProps[0]?.title).toBe('Quantity in MLD')
     expect(kpiProps[1]?.title).toBe('Quantity in LPCD')
     expect(kpiProps[2]?.title).toBe('Regularity')
+    expect(kpiProps[0]?.icon).toBeTruthy()
+    expect(kpiProps[1]?.icon).toBeTruthy()
+    expect(kpiProps[2]?.icon).toBeTruthy()
     expect(useCriticalSchemesQuery).toHaveBeenCalledWith({
       params: null,
       enabled: false,
@@ -1862,19 +1866,23 @@ describe('CentralDashboard', () => {
         call[0] as {
           title: string
           value: string
+          icon?: unknown
           trend?: { direction: 'up' | 'down' | 'neutral'; text: string }
         }
     )
 
     expect(kpiProps[0]?.title).toBe('Schemes Supplying Water')
     expect(kpiProps[1]?.title).toBe('Quantity in MLD')
+    expect(kpiProps[1]?.icon).toBeUndefined()
     expect(kpiProps[1]?.value).toBe('0.05')
     expect(kpiProps[1]?.trend).toEqual(
       expect.objectContaining({ text: expect.stringContaining('vs previous 2 days') })
     )
     expect(kpiProps[2]?.title).toBe('Quantity in LPCD')
+    expect(kpiProps[2]?.icon).toBeUndefined()
     expect(kpiProps[2]?.value).toBe('18.3')
     expect(kpiProps[3]?.title).toBe('Regularity')
+    expect(kpiProps[3]?.icon).toBeUndefined()
     expect(kpiProps[3]?.value).toBe('50.0%')
     expect(kpiProps[4]?.title).toBe('Critical Schemes')
   })
