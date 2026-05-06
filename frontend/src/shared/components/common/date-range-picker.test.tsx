@@ -35,6 +35,34 @@ describe('DateRangePicker', () => {
     expect(endDateNativeInput?.getAttribute('max')).toBe('2026-03-01')
   })
 
+  it('uses the provided max date for the default filter range and native date caps', () => {
+    const { container } = renderWithProviders(
+      <DateRangePicker value={null} onChange={jest.fn()} isFilter={true} maxDate="2026-02-28" />
+    )
+
+    expect(screen.getByText('30/01/2026-28/02/2026')).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Duration' }))
+
+    const [startDateNativeInput, endDateNativeInput] =
+      container.querySelectorAll('input[type="date"]')
+
+    expect(startDateNativeInput?.getAttribute('max')).toBe('2026-02-28')
+    expect(endDateNativeInput?.getAttribute('max')).toBe('2026-02-28')
+  })
+
+  it('clamps a typed date to the provided max date', () => {
+    renderWithProviders(<DateRangePicker value={null} onChange={jest.fn()} maxDate="2026-02-28" />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Duration' }))
+
+    const [startDateInput, endDateInput] = screen.getAllByPlaceholderText('dd/mm/yyyy')
+    fireEvent.change(startDateInput, { target: { value: '28/02/2026' } })
+    fireEvent.change(endDateInput, { target: { value: '01/03/2026' } })
+
+    expect((endDateInput as HTMLInputElement).value).toBe('28/02/2026')
+  })
+
   it('caps the native start date picker at today', () => {
     const { container } = renderWithProviders(<DateRangePicker value={null} onChange={jest.fn()} />)
 

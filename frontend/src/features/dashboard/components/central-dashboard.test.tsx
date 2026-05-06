@@ -344,6 +344,28 @@ describe('CentralDashboard', () => {
     })
   })
 
+  it('defaults national analytics to the 30 days ending yesterday', () => {
+    jest.useFakeTimers()
+    jest.setSystemTime(new Date('2026-05-06T09:00:00'))
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useNationalDashboardQuery).toHaveBeenCalledWith({
+      params: {
+        startDate: '2026-04-06',
+        endDate: '2026-05-05',
+      },
+      enabled: true,
+    })
+
+    jest.useRealTimers()
+  })
+
   it('hides count KPI cards on the unfiltered central landing view', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -942,6 +964,37 @@ describe('CentralDashboard', () => {
       params: {
         startDate: '2025-01-22',
         endDate: '2025-02-20',
+      },
+      enabled: true,
+    })
+
+    jest.useRealTimers()
+  })
+
+  it('ignores a stored selected duration ending today and falls back to yesterday', () => {
+    jest.useFakeTimers()
+    jest.setSystemTime(new Date('2026-05-06T09:00:00'))
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedDuration: {
+          startDate: '2026-04-07',
+          endDate: '2026-05-06',
+        },
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useNationalDashboardQuery).toHaveBeenCalledWith({
+      params: {
+        startDate: '2026-04-06',
+        endDate: '2026-05-05',
       },
       enabled: true,
     })

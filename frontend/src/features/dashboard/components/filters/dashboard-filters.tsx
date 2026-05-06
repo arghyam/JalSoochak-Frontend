@@ -141,6 +141,9 @@ const mapLocationOptions = (locations: TenantChildLocation[] | undefined): Locat
   return sortByLabelAsc(mappedOptions)
 }
 
+const formatIsoDate = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+
 export function DashboardFilters(props: DashboardFiltersProps) {
   const { t, i18n } = useTranslation('dashboard')
   const [isVeryCompactFilters] = useMediaQuery('(max-width: 569px)')
@@ -189,6 +192,11 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     isSingleTenantMode = false,
   } = props
 
+  const durationMaxDate = useMemo(() => {
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    return formatIsoDate(yesterday)
+  }, [])
   const [isBreadcrumbPanelOpen, setIsBreadcrumbPanelOpen] = useState(false)
   const [manualSearchResetCounter, setManualSearchResetCounter] = useState(0)
   const { data: locationSearchData } = useLocationSearchQuery({
@@ -691,6 +699,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
             value={selectedDuration}
             onChange={setSelectedDuration}
             dateFormat={durationDateFormat}
+            maxDate={durationMaxDate}
             placeholder={t('filters.duration', 'Duration')}
             width={isBelowLgFilters ? '32px' : '206px'}
             height="32px"

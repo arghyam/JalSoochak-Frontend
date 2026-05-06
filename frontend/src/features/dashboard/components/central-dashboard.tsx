@@ -444,7 +444,7 @@ const getInitialStoredDuration = (
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  if (endDate > today) {
+  if (endDate >= today) {
     return null
   }
 
