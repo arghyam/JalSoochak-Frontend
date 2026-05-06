@@ -99,10 +99,10 @@
     },
     "tooltips": {
       "schemesSupplyingWater": {
-        "description": "Count of schemes that supplied water for the selected day or consistently on all days within the selected duration."
+        "description": "Count of schemes that supplied water for the selected date range consistently."
       },
       "criticalSchemes": {
-        "description": "Schemes identified as failing to supply water, based on the duration of no water supply."
+        "description": "Schemes identified as failing to supply water, based on {{days}} days."
       },
       "quantityMld": {
         "formulaLabel": "Quantity (MLD)",

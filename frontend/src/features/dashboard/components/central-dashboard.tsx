@@ -476,20 +476,6 @@ const findLocationOption = (
   )
 }
 
-const getLocationSelectionLabel = (value: string, options: LocationOption[] = []) => {
-  if (!value) {
-    return ''
-  }
-
-  const matchedOption = findLocationOption(options, value)
-  if (matchedOption?.label) {
-    return matchedOption.label
-  }
-
-  const fallbackSegment = parseStableLocationValue(value).lastSegment ?? value
-  return toCapitalizedWords(fallbackSegment.replace(/-/g, ' '))
-}
-
 const mapLocationOptions = (locations: TenantChildLocation[] | undefined): LocationOption[] => {
   if (!locations?.length) {
     return []
@@ -608,8 +594,8 @@ const formulaTooltipTextStyle = {
 } as const
 
 const renderFormulaTooltip = (formula: ReactNode, definitions: ReactNode[]) => (
-  <Box w="296px" minH="80px">
-    <Text sx={formulaTooltipTextStyle} mb="8px">
+  <Box w="296px">
+    <Text sx={formulaTooltipTextStyle} mb={definitions.length > 0 ? '8px' : '0'}>
       {formula}
     </Text>
     {definitions.map((definition, index) => (
@@ -1045,6 +1031,9 @@ export function CentralDashboard({
   const defaultWaterNormLitersPerPersonPerDay = resolvePositiveNumber(
     runtimeConfig.DEFAULT_WATER_NORM_LITERS_PER_PERSON_PER_DAY,
     55
+  )
+  const criticalSchemeStatusAfterDays = Math.round(
+    resolvePositiveNumber(runtimeConfig.ANALYTICS_SCHEME_STATUS_CRITICAL_AFTER_DAYS, 5)
   )
   const nationalDefaultAverageMembersPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD
   const nationalDefaultWaterNormLitersPerPersonPerDay = defaultWaterNormLitersPerPersonPerDay
@@ -3017,30 +3006,6 @@ export function CentralDashboard({
   const previousContinuousSchemesCount = previousContinuousSchemesData?.continuousSchemeCount ?? 0
   const criticalSchemesCount = criticalSchemesData?.criticalSchemeCount ?? 0
   const previousCriticalSchemesCount = previousCriticalSchemesData?.criticalSchemeCount ?? 0
-  const schemesSupplyingWaterFilterParts = [
-    selectedTenant?.label,
-    isLgdTabActive
-      ? getLocationSelectionLabel(effectiveSelectedDistrict, districtApiOptions)
-      : getLocationSelectionLabel(selectedDepartmentZone, districtApiOptions),
-    isLgdTabActive
-      ? getLocationSelectionLabel(effectiveSelectedBlock, blockApiOptions)
-      : getLocationSelectionLabel(selectedDepartmentCircle, blockApiOptions),
-    isLgdTabActive
-      ? getLocationSelectionLabel(effectiveSelectedGramPanchayat, gramPanchayatApiOptions)
-      : getLocationSelectionLabel(selectedDepartmentDivision, gramPanchayatApiOptions),
-    isLgdTabActive
-      ? getLocationSelectionLabel(effectiveSelectedVillage, villageApiOptions)
-      : getLocationSelectionLabel(
-          selectedDepartmentVillage || selectedDepartmentSubdivision,
-          villageApiOptions
-        ),
-  ].filter(Boolean)
-  const schemesSupplyingWaterFilterLabel =
-    schemesSupplyingWaterFilterParts.length > 0
-      ? schemesSupplyingWaterFilterParts.join(' / ')
-      : t('kpi.tooltips.schemesSupplyingWater.filters.all', {
-          defaultValue: 'All States/UTs',
-        })
   const quantityLpcdChange = calculateAbsoluteChange(
     currentWaterSupplyKpis.quantityLpcd,
     previousWaterSupplyKpis.quantityLpcd
@@ -3112,34 +3077,10 @@ export function CentralDashboard({
       }),
       value: formatNumber(continuousSchemesCount),
       trend: buildCountPercentTrend(continuousSchemesCount, previousContinuousSchemesCount),
-      tooltipContent: renderFormulaTooltip(
-        t('kpi.tooltips.schemesSupplyingWater.description', {
-          defaultValue:
-            'Count of schemes that supplied water for the selected day or consistently on all days within the selected duration.',
-        }),
-        [
-          <>
-            {t('kpi.tooltips.schemesSupplyingWater.currentPeriod', {
-              defaultValue: 'Current period',
-            })}
-            : {formatNumber(continuousSchemesCount)} ({analyticsDateRange.startDate} to{' '}
-            {analyticsDateRange.endDate})
-          </>,
-          <>
-            {t('kpi.tooltips.schemesSupplyingWater.previousPeriod', {
-              defaultValue: 'Previous period',
-            })}
-            : {formatNumber(previousContinuousSchemesCount)} ({previousAnalyticsRange.startDate} to{' '}
-            {previousAnalyticsRange.endDate})
-          </>,
-          <>
-            {t('kpi.tooltips.schemesSupplyingWater.filter', {
-              defaultValue: 'Filter',
-            })}
-            : {schemesSupplyingWaterFilterLabel}
-          </>,
-        ]
-      ),
+      tooltipContent: t('kpi.tooltips.schemesSupplyingWater.description', {
+        defaultValue:
+          'Count of schemes that supplied water for the selected date range consistently.',
+      }),
     },
     {
       label: t('kpi.labels.quantityInMld', { defaultValue: 'Quantity in MLD' }),
@@ -3300,8 +3241,8 @@ export function CentralDashboard({
       value: formatNumber(criticalSchemesCount),
       trend: buildCountPercentTrend(criticalSchemesCount, previousCriticalSchemesCount),
       tooltipContent: t('kpi.tooltips.criticalSchemes.description', {
-        defaultValue:
-          'Schemes identified as failing to supply water, based on the duration of no water supply.',
+        days: criticalSchemeStatusAfterDays,
+        defaultValue: 'Schemes identified as failing to supply water, based on {{days}} days.',
       }),
     },
   ] as const
