@@ -476,6 +476,20 @@ const findLocationOption = (
   )
 }
 
+const getLocationSelectionLabel = (value: string, options: LocationOption[] = []) => {
+  if (!value) {
+    return ''
+  }
+
+  const matchedOption = findLocationOption(options, value)
+  if (matchedOption?.label) {
+    return matchedOption.label
+  }
+
+  const fallbackSegment = parseStableLocationValue(value).lastSegment ?? value
+  return toCapitalizedWords(fallbackSegment.replace(/-/g, ' '))
+}
+
 const mapLocationOptions = (locations: TenantChildLocation[] | undefined): LocationOption[] => {
   if (!locations?.length) {
     return []
@@ -3001,16 +3015,32 @@ export function CentralDashboard({
   )
   const continuousSchemesCount = continuousSchemesData?.continuousSchemeCount ?? 0
   const previousContinuousSchemesCount = previousContinuousSchemesData?.continuousSchemeCount ?? 0
-  const continuousSchemesChange = calculatePercentChange(
-    continuousSchemesCount,
-    previousContinuousSchemesCount
-  )
   const criticalSchemesCount = criticalSchemesData?.criticalSchemeCount ?? 0
   const previousCriticalSchemesCount = previousCriticalSchemesData?.criticalSchemeCount ?? 0
-  const criticalSchemesChange = calculatePercentChange(
-    criticalSchemesCount,
-    previousCriticalSchemesCount
-  )
+  const schemesSupplyingWaterFilterParts = [
+    selectedTenant?.label,
+    isLgdTabActive
+      ? getLocationSelectionLabel(effectiveSelectedDistrict, districtApiOptions)
+      : getLocationSelectionLabel(selectedDepartmentZone, districtApiOptions),
+    isLgdTabActive
+      ? getLocationSelectionLabel(effectiveSelectedBlock, blockApiOptions)
+      : getLocationSelectionLabel(selectedDepartmentCircle, blockApiOptions),
+    isLgdTabActive
+      ? getLocationSelectionLabel(effectiveSelectedGramPanchayat, gramPanchayatApiOptions)
+      : getLocationSelectionLabel(selectedDepartmentDivision, gramPanchayatApiOptions),
+    isLgdTabActive
+      ? getLocationSelectionLabel(effectiveSelectedVillage, villageApiOptions)
+      : getLocationSelectionLabel(
+          selectedDepartmentVillage || selectedDepartmentSubdivision,
+          villageApiOptions
+        ),
+  ].filter(Boolean)
+  const schemesSupplyingWaterFilterLabel =
+    schemesSupplyingWaterFilterParts.length > 0
+      ? schemesSupplyingWaterFilterParts.join(' / ')
+      : t('kpi.tooltips.schemesSupplyingWater.filters.all', {
+          defaultValue: 'All States/UTs',
+        })
   const quantityLpcdChange = calculateAbsoluteChange(
     currentWaterSupplyKpis.quantityLpcd,
     previousWaterSupplyKpis.quantityLpcd
@@ -3053,6 +3083,27 @@ export function CentralDashboard({
       text: formatter(changeValue),
     }
   }
+  const getCountPercentChange = (currentValue: number, previousValue: number) => {
+    if (currentValue > 0 && previousValue < 0) {
+      return 100
+    }
+
+    return calculatePercentChange(currentValue, previousValue)
+  }
+  const buildCountPercentTrend = (currentValue: number, previousValue: number) => {
+    const changeValue = getCountPercentChange(currentValue, previousValue)
+
+    return {
+      direction:
+        currentValue === 0 && previousValue === 0
+          ? ('neutral' as const)
+          : toTrendDirection(changeValue),
+      text: `${formatSignedValue(changeValue, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 1,
+      })}% vs previous ${comparisonDays} days`,
+    }
+  }
 
   const coreMetrics = [
     {
@@ -3060,19 +3111,35 @@ export function CentralDashboard({
         defaultValue: 'Schemes Supplying Water',
       }),
       value: formatNumber(continuousSchemesCount),
-      trend: buildNeutralAwareTrend(
-        continuousSchemesCount,
-        continuousSchemesChange,
-        (trendValue) =>
-          `${formatSignedValue(trendValue, {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 1,
-          })}% vs previous ${comparisonDays} days`
+      trend: buildCountPercentTrend(continuousSchemesCount, previousContinuousSchemesCount),
+      tooltipContent: renderFormulaTooltip(
+        t('kpi.tooltips.schemesSupplyingWater.description', {
+          defaultValue:
+            'Count of schemes that supplied water for the selected day or consistently on all days within the selected duration.',
+        }),
+        [
+          <>
+            {t('kpi.tooltips.schemesSupplyingWater.currentPeriod', {
+              defaultValue: 'Current period',
+            })}
+            : {formatNumber(continuousSchemesCount)} ({analyticsDateRange.startDate} to{' '}
+            {analyticsDateRange.endDate})
+          </>,
+          <>
+            {t('kpi.tooltips.schemesSupplyingWater.previousPeriod', {
+              defaultValue: 'Previous period',
+            })}
+            : {formatNumber(previousContinuousSchemesCount)} ({previousAnalyticsRange.startDate} to{' '}
+            {previousAnalyticsRange.endDate})
+          </>,
+          <>
+            {t('kpi.tooltips.schemesSupplyingWater.filter', {
+              defaultValue: 'Filter',
+            })}
+            : {schemesSupplyingWaterFilterLabel}
+          </>,
+        ]
       ),
-      tooltipContent: t('kpi.tooltips.schemesSupplyingWater.description', {
-        defaultValue:
-          'Count of schemes that supplied water for the selected day or consistently on all days within the selected duration.',
-      }),
     },
     {
       label: t('kpi.labels.quantityInMld', { defaultValue: 'Quantity in MLD' }),
@@ -3231,15 +3298,7 @@ export function CentralDashboard({
     {
       label: t('kpi.labels.criticalSchemes', { defaultValue: 'Critical Schemes' }),
       value: formatNumber(criticalSchemesCount),
-      trend: buildNeutralAwareTrend(
-        criticalSchemesCount,
-        criticalSchemesChange,
-        (trendValue) =>
-          `${formatSignedValue(trendValue, {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 1,
-          })}% vs previous ${comparisonDays} days`
-      ),
+      trend: buildCountPercentTrend(criticalSchemesCount, previousCriticalSchemesCount),
       tooltipContent: t('kpi.tooltips.criticalSchemes.description', {
         defaultValue:
           'Schemes identified as failing to supply water, based on the duration of no water supply.',

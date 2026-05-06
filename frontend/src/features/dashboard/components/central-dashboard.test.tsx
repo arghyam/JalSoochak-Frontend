@@ -1858,6 +1858,8 @@ describe('CentralDashboard', () => {
         isFetching: false,
       }
     })
+    ;(useContinuousSchemesQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useCriticalSchemesQuery as jest.Mock).mockReturnValue({ data: undefined })
 
     renderWithProviders(<CentralDashboard />)
 
@@ -1872,6 +1874,12 @@ describe('CentralDashboard', () => {
     )
 
     expect(kpiProps[0]?.title).toBe('Schemes Supplying Water')
+    expect(kpiProps[0]?.icon).toBeUndefined()
+    expect(kpiProps[0]?.value).toBe('0')
+    expect(kpiProps[0]?.trend).toEqual({
+      direction: 'neutral',
+      text: '0% vs previous 2 days',
+    })
     expect(kpiProps[1]?.title).toBe('Quantity in MLD')
     expect(kpiProps[1]?.icon).toBeUndefined()
     expect(kpiProps[1]?.value).toBe('0.05')
@@ -1885,6 +1893,12 @@ describe('CentralDashboard', () => {
     expect(kpiProps[3]?.icon).toBeUndefined()
     expect(kpiProps[3]?.value).toBe('50.0%')
     expect(kpiProps[4]?.title).toBe('Critical Schemes')
+    expect(kpiProps[4]?.icon).toBeUndefined()
+    expect(kpiProps[4]?.value).toBe('0')
+    expect(kpiProps[4]?.trend).toEqual({
+      direction: 'neutral',
+      text: '0% vs previous 2 days',
+    })
   })
 
   it('uses national dashboard analytics for central landing KPI cards', () => {
@@ -2320,15 +2334,6 @@ describe('CentralDashboard', () => {
     ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
       data: {
         data: [{ id: 10, title: 'Telangana' }],
-      },
-    })
-    ;(useCriticalSchemesQuery as jest.Mock).mockReturnValue({
-      data: {
-        criticalSchemeCount: 215,
-        list: false,
-        page: null,
-        limit: null,
-        schemes: null,
       },
     })
     ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({
@@ -4885,6 +4890,90 @@ describe('CentralDashboard', () => {
           call?.params?.scope === 'current'
       ).length
     ).toBe(0)
+  })
+
+  it('shows negative count KPI trends when current count drops to zero', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [{ id: 10, title: 'Telangana' }],
+      },
+    })
+    ;(useContinuousSchemesQuery as jest.Mock).mockImplementation(
+      (() => {
+        let callCount = 0
+
+        return () => {
+          const isCurrentPeriod = callCount % 2 === 0
+          callCount += 1
+
+          return {
+            data: {
+              continuousSchemeCount: isCurrentPeriod ? 0 : 12,
+              list: false,
+              page: null,
+              limit: null,
+              schemes: null,
+            },
+          }
+        }
+      })()
+    )
+    ;(useCriticalSchemesQuery as jest.Mock).mockImplementation(
+      (() => {
+        let callCount = 0
+
+        return () => {
+          const isCurrentPeriod = callCount % 2 === 0
+          callCount += 1
+
+          return {
+            data: {
+              criticalSchemeCount: isCurrentPeriod ? 0 : 5,
+              list: false,
+              page: null,
+              limit: null,
+              schemes: null,
+            },
+          }
+        }
+      })()
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    const kpiProps = mockKPICard.mock.calls.slice(-5).map(
+      (call) =>
+        call[0] as {
+          title: string
+          value: string
+          trend?: { direction: 'up' | 'down' | 'neutral'; text: string }
+        }
+    )
+
+    expect(kpiProps[0]?.title).toBe('Schemes Supplying Water')
+    expect(kpiProps[0]?.value).toBe('0')
+    expect(kpiProps[0]?.trend).toEqual({
+      direction: 'down',
+      text: '-100% vs previous 30 days',
+    })
+    expect(kpiProps[4]?.title).toBe('Critical Schemes')
+    expect(kpiProps[4]?.value).toBe('0')
+    expect(kpiProps[4]?.trend).toEqual({
+      direction: 'down',
+      text: '-100% vs previous 30 days',
+    })
   })
 
   it('passes neutral KPI trends when comparison values do not change', () => {
