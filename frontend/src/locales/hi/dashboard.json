@@ -91,11 +91,19 @@
   },
   "kpi": {
     "labels": {
+      "schemesSupplyingWater": "जल आपूर्ति करने वाली योजनाएं",
       "quantityInMld": "एमएलडी में मात्रा",
       "quantityInLpcd": "एलपीसीडी में मात्रा",
-      "regularity": "नियमितता"
+      "regularity": "नियमितता",
+      "criticalSchemes": "गंभीर योजनाएं"
     },
     "tooltips": {
+      "schemesSupplyingWater": {
+        "description": "चयनित तिथि सीमा में लगातार जल आपूर्ति करने वाली योजनाओं की संख्या।"
+      },
+      "criticalSchemes": {
+        "description": "{{days}} दिनों के आधार पर जल आपूर्ति में विफल पहचानी गई योजनाएं।"
+      },
       "quantityMld": {
         "formulaLabel": "मात्रा (MLD)",
         "definitions": {
