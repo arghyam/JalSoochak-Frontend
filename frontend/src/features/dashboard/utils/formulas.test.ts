@@ -88,106 +88,181 @@ describe('dashboard formulas', () => {
     expect(calculateDemandMld(500, 5, 50)).toBe(0.13)
   })
 
-  it('calculates village KPI totals from periodic water quantity metrics', () => {
+  it('calculates village KPI totals using totalWaterQuantity from scheme-regularity and achievedFhtcCount from water-quantity', () => {
     expect(
-      getWaterSupplyKpisFromPeriodic({
-        lgdId: 19501,
-        departmentId: 0,
-        scale: 'day',
-        startDate: '2026-02-25',
-        endDate: '2026-02-26',
-        periodCount: 2,
-        metrics: [
-          {
-            periodStartDate: '2026-02-25',
-            periodEndDate: '2026-02-25',
-            averageWaterQuantity: 41_243,
-            householdCount: 0,
-            achievedFhtcCount: 501,
-            plannedFhtcCount: 448,
-          },
-          {
-            periodStartDate: '2026-02-26',
-            periodEndDate: '2026-02-26',
-            averageWaterQuantity: 50_100,
-            householdCount: 0,
-            achievedFhtcCount: 500,
-            plannedFhtcCount: 448,
-          },
-        ],
-      })
+      getWaterSupplyKpisFromPeriodic(
+        {
+          lgdId: 19501,
+          departmentId: 0,
+          schemeCount: 1,
+          scale: 'day',
+          startDate: '2026-02-25',
+          endDate: '2026-02-26',
+          periodCount: 2,
+          metrics: [
+            {
+              periodStartDate: '2026-02-25',
+              periodEndDate: '2026-02-25',
+              totalSupplyDays: 1,
+              totalWaterQuantity: 41_243,
+              averageRegularity: 1,
+            },
+            {
+              periodStartDate: '2026-02-26',
+              periodEndDate: '2026-02-26',
+              totalSupplyDays: 1,
+              totalWaterQuantity: 50_100,
+              averageRegularity: 1,
+            },
+          ],
+        },
+        {
+          lgdId: 19501,
+          departmentId: 0,
+          scale: 'day',
+          startDate: '2026-02-25',
+          endDate: '2026-02-26',
+          periodCount: 2,
+          metrics: [
+            {
+              periodStartDate: '2026-02-25',
+              periodEndDate: '2026-02-25',
+              householdCount: 0,
+              achievedFhtcCount: 501,
+              plannedFhtcCount: 448,
+            },
+            {
+              periodStartDate: '2026-02-26',
+              periodEndDate: '2026-02-26',
+              householdCount: 0,
+              achievedFhtcCount: 500,
+              plannedFhtcCount: 448,
+            },
+          ],
+        }
+      )
     ).toEqual({
       quantityMld: 0.05,
-      quantityLpcd: 18.3,
+      quantityLpcd: 18.2,
     })
   })
 
-  it('prefers totalAchievedFhtcCount over achievedFhtcCount in periodic water quantity metrics', () => {
+  it('prefers totalAchievedFhtcCount over achievedFhtcCount when averaging FHTC', () => {
     expect(
-      getWaterSupplyKpisFromPeriodic({
-        lgdId: 19501,
-        departmentId: 0,
-        scale: 'day',
-        startDate: '2026-02-25',
-        endDate: '2026-02-26',
-        periodCount: 2,
-        metrics: [
-          {
-            periodStartDate: '2026-02-25',
-            periodEndDate: '2026-02-25',
-            averageWaterQuantity: 41_243,
-            householdCount: 0,
-            totalAchievedFhtcCount: 501,
-            achievedFhtcCount: 5,
-            plannedFhtcCount: 448,
-          },
-          {
-            periodStartDate: '2026-02-26',
-            periodEndDate: '2026-02-26',
-            averageWaterQuantity: 50_100,
-            householdCount: 0,
-            totalAchievedFhtcCount: 500,
-            achievedFhtcCount: 5,
-            plannedFhtcCount: 448,
-          },
-        ],
-      })
+      getWaterSupplyKpisFromPeriodic(
+        {
+          lgdId: 19501,
+          departmentId: 0,
+          schemeCount: 1,
+          scale: 'day',
+          startDate: '2026-02-25',
+          endDate: '2026-02-26',
+          periodCount: 2,
+          metrics: [
+            {
+              periodStartDate: '2026-02-25',
+              periodEndDate: '2026-02-25',
+              totalSupplyDays: 1,
+              totalWaterQuantity: 41_243,
+              averageRegularity: 1,
+            },
+            {
+              periodStartDate: '2026-02-26',
+              periodEndDate: '2026-02-26',
+              totalSupplyDays: 1,
+              totalWaterQuantity: 50_100,
+              averageRegularity: 1,
+            },
+          ],
+        },
+        {
+          lgdId: 19501,
+          departmentId: 0,
+          scale: 'day',
+          startDate: '2026-02-25',
+          endDate: '2026-02-26',
+          periodCount: 2,
+          metrics: [
+            {
+              periodStartDate: '2026-02-25',
+              periodEndDate: '2026-02-25',
+              householdCount: 0,
+              totalAchievedFhtcCount: 501,
+              achievedFhtcCount: 5,
+              plannedFhtcCount: 448,
+            },
+            {
+              periodStartDate: '2026-02-26',
+              periodEndDate: '2026-02-26',
+              householdCount: 0,
+              totalAchievedFhtcCount: 500,
+              achievedFhtcCount: 5,
+              plannedFhtcCount: 448,
+            },
+          ],
+        }
+      )
     ).toEqual({
       quantityMld: 0.05,
-      quantityLpcd: 18.3,
+      quantityLpcd: 18.2,
     })
   })
 
-  it('skips periodic water quantity metrics with invalid metric dates', () => {
+  it('skips metrics with invalid dates in both scheme-regularity and water-quantity responses', () => {
     expect(
-      getWaterSupplyKpisFromPeriodic({
-        lgdId: 19501,
-        departmentId: 0,
-        scale: 'day',
-        startDate: '2026-02-25',
-        endDate: '2026-02-26',
-        periodCount: 2,
-        metrics: [
-          {
-            periodStartDate: '',
-            periodEndDate: '',
-            averageWaterQuantity: 999_999,
-            householdCount: 0,
-            totalAchievedFhtcCount: 999,
-            achievedFhtcCount: 999,
-            plannedFhtcCount: 448,
-          },
-          {
-            periodStartDate: '2026-02-26',
-            periodEndDate: '2026-02-26',
-            averageWaterQuantity: 50_100,
-            householdCount: 0,
-            totalAchievedFhtcCount: 500,
-            achievedFhtcCount: 500,
-            plannedFhtcCount: 448,
-          },
-        ],
-      })
+      getWaterSupplyKpisFromPeriodic(
+        {
+          lgdId: 19501,
+          departmentId: 0,
+          schemeCount: 1,
+          scale: 'day',
+          startDate: '2026-02-25',
+          endDate: '2026-02-26',
+          periodCount: 2,
+          metrics: [
+            {
+              periodStartDate: '',
+              periodEndDate: '',
+              totalSupplyDays: 0,
+              totalWaterQuantity: 999_999,
+              averageRegularity: 1,
+            },
+            {
+              periodStartDate: '2026-02-26',
+              periodEndDate: '2026-02-26',
+              totalSupplyDays: 1,
+              totalWaterQuantity: 50_100,
+              averageRegularity: 1,
+            },
+          ],
+        },
+        {
+          lgdId: 19501,
+          departmentId: 0,
+          scale: 'day',
+          startDate: '2026-02-25',
+          endDate: '2026-02-26',
+          periodCount: 2,
+          metrics: [
+            {
+              periodStartDate: '',
+              periodEndDate: '',
+              householdCount: 0,
+              totalAchievedFhtcCount: 999,
+              achievedFhtcCount: 999,
+              plannedFhtcCount: 448,
+            },
+            {
+              periodStartDate: '2026-02-26',
+              periodEndDate: '2026-02-26',
+              householdCount: 0,
+              totalAchievedFhtcCount: 500,
+              achievedFhtcCount: 500,
+              plannedFhtcCount: 448,
+            },
+          ],
+        }
+      )
     ).toEqual({
       quantityMld: 0.05,
       quantityLpcd: 20,
