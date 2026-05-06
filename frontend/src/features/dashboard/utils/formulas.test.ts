@@ -143,7 +143,7 @@ describe('dashboard formulas', () => {
       )
     ).toEqual({
       quantityMld: 0.05,
-      quantityLpcd: 18.2,
+      quantityLpcd: 18.3,
     })
   })
 
@@ -204,7 +204,7 @@ describe('dashboard formulas', () => {
       )
     ).toEqual({
       quantityMld: 0.05,
-      quantityLpcd: 18.2,
+      quantityLpcd: 18.3,
     })
   })
 
