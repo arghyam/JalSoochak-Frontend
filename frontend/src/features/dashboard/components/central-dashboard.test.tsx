@@ -10,6 +10,7 @@ import { useDistrictSchemeBlockLookupQuery } from '../services/query/use-distric
 import { useLocationHierarchyQuery } from '../services/query/use-location-hierarchy-query'
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
+import { useContinuousSchemesQuery } from '../services/query/use-continuous-schemes-query'
 import { useCriticalSchemesQuery } from '../services/query/use-critical-schemes-query'
 import { useNationalDashboardQuery } from '../services/query/use-national-dashboard-query'
 import { useNationalDashboardBoundariesQuery } from '../services/query/use-national-dashboard-boundaries-query'
@@ -90,6 +91,10 @@ jest.mock('../services/query/use-average-water-supply-per-region-query', () => (
 
 jest.mock('../services/query/use-average-scheme-regularity-query', () => ({
   useAverageSchemeRegularityQuery: jest.fn(),
+}))
+
+jest.mock('../services/query/use-continuous-schemes-query', () => ({
+  useContinuousSchemesQuery: jest.fn(),
 }))
 
 jest.mock('../services/query/use-critical-schemes-query', () => ({
@@ -242,6 +247,7 @@ describe('CentralDashboard', () => {
     ;(useLocationHierarchyQuery as jest.Mock).mockReset()
     ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReset()
     ;(useAverageSchemeRegularityQuery as jest.Mock).mockReset()
+    ;(useContinuousSchemesQuery as jest.Mock).mockReset()
     ;(useCriticalSchemesQuery as jest.Mock).mockReset()
     ;(useNationalDashboardQuery as jest.Mock).mockReset()
     ;(useNationalDashboardBoundariesQuery as jest.Mock).mockReset()
@@ -267,6 +273,7 @@ describe('CentralDashboard', () => {
     ;(useLocationHierarchyQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useContinuousSchemesQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useCriticalSchemesQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useNationalDashboardQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useNationalDashboardBoundariesQuery as jest.Mock).mockReturnValue({
@@ -334,6 +341,37 @@ describe('CentralDashboard', () => {
         scale: expect.any(String),
       },
       enabled: true,
+    })
+  })
+
+  it('hides count KPI cards on the unfiltered central landing view', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    renderWithProviders(<CentralDashboard />)
+
+    const kpiProps = mockKPICard.mock.calls.slice(-3).map(
+      (call) =>
+        call[0] as {
+          title: string
+          value: string
+          trend?: { direction: 'up' | 'down' | 'neutral'; text: string }
+        }
+    )
+
+    expect(kpiProps).toHaveLength(3)
+    expect(kpiProps[0]?.title).toBe('Quantity in MLD')
+    expect(kpiProps[1]?.title).toBe('Quantity in LPCD')
+    expect(kpiProps[2]?.title).toBe('Regularity')
+    expect(useCriticalSchemesQuery).toHaveBeenCalledWith({
+      params: null,
+      enabled: false,
+    })
+    expect(useContinuousSchemesQuery).toHaveBeenCalledWith({
+      params: null,
+      enabled: false,
     })
   })
 
@@ -1950,7 +1988,7 @@ describe('CentralDashboard', () => {
 
     renderWithProviders(<CentralDashboard />)
 
-    const kpiProps = mockKPICard.mock.calls.slice(0, 5).map(
+    const kpiProps = mockKPICard.mock.calls.slice(0, 3).map(
       (call) =>
         call[0] as {
           title: string
@@ -1959,20 +1997,18 @@ describe('CentralDashboard', () => {
         }
     )
 
-    expect(kpiProps).toHaveLength(5)
-    expect(kpiProps[0]?.title).toBe('Schemes Supplying Water')
-    expect(kpiProps[1]?.title).toBe('Quantity in MLD')
-    expect(kpiProps[1]?.value).toBe('5')
-    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-16.7% vs previous 30 days' })
+    expect(kpiProps).toHaveLength(3)
+    expect(kpiProps[0]?.title).toBe('Quantity in MLD')
+    expect(kpiProps[0]?.value).toBe('5')
+    expect(kpiProps[0]?.trend).toEqual({ direction: 'down', text: '-16.7% vs previous 30 days' })
 
-    expect(kpiProps[2]?.title).toBe('Quantity in LPCD')
-    expect(kpiProps[2]?.value).toBe('1,000')
-    expect(kpiProps[2]?.trend).toEqual({ direction: 'down', text: '-200 LPCD vs previous 30 days' })
+    expect(kpiProps[1]?.title).toBe('Quantity in LPCD')
+    expect(kpiProps[1]?.value).toBe('1,000')
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-200 LPCD vs previous 30 days' })
 
-    expect(kpiProps[3]?.title).toBe('Regularity')
-    expect(kpiProps[3]?.value).toBe('0.0%')
-    expect(kpiProps[3]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
-    expect(kpiProps[4]?.title).toBe('Critical Schemes')
+    expect(kpiProps[2]?.title).toBe('Regularity')
+    expect(kpiProps[2]?.value).toBe('0.0%')
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
   })
 
   it('hydrates location filters from path and query params', () => {
@@ -4710,6 +4746,49 @@ describe('CentralDashboard', () => {
         }
       })()
     )
+    ;(useContinuousSchemesQuery as jest.Mock).mockImplementation(
+      (() => {
+        let callCount = 0
+
+        return () => {
+          const isCurrentPeriod = callCount % 2 === 0
+          callCount += 1
+
+          return {
+            data: {
+              continuousSchemeCount: isCurrentPeriod ? 5714 : 5000,
+              list: false,
+              page: null,
+              limit: null,
+              startDate: isCurrentPeriod ? '2026-03-01' : '2026-01-30',
+              endDate: isCurrentPeriod ? '2026-03-30' : '2026-02-28',
+              daysInRange: 30,
+              schemes: null,
+            },
+          }
+        }
+      })()
+    )
+    ;(useCriticalSchemesQuery as jest.Mock).mockImplementation(
+      (() => {
+        let callCount = 0
+
+        return () => {
+          const isCurrentPeriod = callCount % 2 === 0
+          callCount += 1
+
+          return {
+            data: {
+              criticalSchemeCount: isCurrentPeriod ? 215 : 250,
+              list: false,
+              page: null,
+              limit: null,
+              schemes: null,
+            },
+          }
+        }
+      })()
+    )
 
     const initialWaterSupplyQueryCallCount = (useAverageWaterSupplyPerRegionQuery as jest.Mock).mock
       .calls.length
@@ -4727,6 +4806,8 @@ describe('CentralDashboard', () => {
 
     expect(kpiProps).toHaveLength(5)
     expect(kpiProps[0]?.title).toBe('Schemes Supplying Water')
+    expect(kpiProps[0]?.value).toBe('5,714')
+    expect(kpiProps[0]?.trend).toEqual({ direction: 'up', text: '+14.3% vs previous 30 days' })
     expect(kpiProps[1]?.title).toBe('Quantity in MLD')
     expect(kpiProps[1]?.value).toBe('5')
     expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-16.7% vs previous 30 days' })
@@ -4740,10 +4821,23 @@ describe('CentralDashboard', () => {
     expect(kpiProps[3]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
     expect(kpiProps[4]?.title).toBe('Critical Schemes')
     expect(kpiProps[4]?.value).toBe('215')
+    expect(kpiProps[4]?.trend).toEqual({ direction: 'down', text: '-14% vs previous 30 days' })
     expect(useCriticalSchemesQuery).toHaveBeenCalledWith({
       params: {
         tenantId: 16,
         lgdId: 10,
+        startDate: expect.any(String),
+        endDate: expect.any(String),
+        list: false,
+      },
+      enabled: true,
+    })
+    expect(useContinuousSchemesQuery).toHaveBeenCalledWith({
+      params: {
+        tenantId: 16,
+        lgdId: 10,
+        startDate: expect.any(String),
+        endDate: expect.any(String),
         list: false,
       },
       enabled: true,
@@ -5038,16 +5132,16 @@ describe('CentralDashboard', () => {
 
     renderWithProviders(<CentralDashboard />)
 
-    const kpiProps = mockKPICard.mock.calls.slice(0, 5).map(
+    const kpiProps = mockKPICard.mock.calls.slice(0, 3).map(
       (call) =>
         call[0] as {
           trend?: { direction: 'up' | 'down' | 'neutral'; text: string }
         }
     )
 
-    expect(kpiProps[1]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
-    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0 LPCD vs previous 30 days' })
-    expect(kpiProps[3]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
+    expect(kpiProps[0]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'neutral', text: '0 LPCD vs previous 30 days' })
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
   })
 
   it('uses the selected village LGD id for scheme performance analytics', () => {

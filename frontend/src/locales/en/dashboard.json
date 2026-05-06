@@ -98,6 +98,12 @@
       "criticalSchemes": "Critical Schemes"
     },
     "tooltips": {
+      "schemesSupplyingWater": {
+        "description": "Count of schemes that supplied water for the selected day or consistently on all days within the selected duration."
+      },
+      "criticalSchemes": {
+        "description": "Schemes identified as failing to supply water, based on the duration of no water supply."
+      },
       "quantityMld": {
         "formulaLabel": "Quantity (MLD)",
         "definitions": {

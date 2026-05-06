@@ -556,6 +556,8 @@ export interface CriticalSchemesQueryParams {
   tenantId: number
   lgdId?: number
   departmentId?: number
+  startDate?: string
+  endDate?: string
   list?: boolean
   page?: number
   limit?: number
@@ -566,6 +568,28 @@ export interface CriticalSchemesResponse {
   list: boolean
   page: number | null
   limit: number | null
+  schemes: unknown[] | null
+}
+
+export interface ContinuousSchemesQueryParams {
+  tenantId: number
+  lgdId?: number
+  departmentId?: number
+  startDate: string
+  endDate: string
+  list?: boolean
+  page?: number
+  limit?: number
+}
+
+export interface ContinuousSchemesResponse {
+  continuousSchemeCount: number
+  list: boolean
+  page: number | null
+  limit: number | null
+  startDate: string
+  endDate: string
+  daysInRange: number
   schemes: unknown[] | null
 }
 

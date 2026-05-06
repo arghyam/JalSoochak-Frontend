@@ -13,6 +13,7 @@ import { useLocationHierarchyQuery } from '../services/query/use-location-hierar
 import { useLocationSearchQuery } from '../services/query/use-location-search-query'
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
+import { useContinuousSchemesQuery } from '../services/query/use-continuous-schemes-query'
 import { useCriticalSchemesQuery } from '../services/query/use-critical-schemes-query'
 import { useNationalDashboardQuery } from '../services/query/use-national-dashboard-query'
 import { useNationalDashboardBoundariesQuery } from '../services/query/use-national-dashboard-boundaries-query'
@@ -1510,17 +1511,39 @@ export function CentralDashboard({
             limit: SCHEME_PERFORMANCE_PAGE_SIZE,
           }
   const criticalSchemesAnalyticsParams =
-    !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+    !hasCentralLandingFilters || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
             tenantId: selectedTenant.tenantId,
             lgdId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
             list: false,
           }
         : {
             tenantId: selectedTenant.tenantId,
             departmentId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            list: false,
+          }
+  const continuousSchemesAnalyticsParams =
+    !hasCentralLandingFilters || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            tenantId: selectedTenant.tenantId,
+            lgdId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            list: false,
+          }
+        : {
+            tenantId: selectedTenant.tenantId,
+            departmentId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
             list: false,
           }
   const submissionStatusAnalyticsParams =
@@ -1593,6 +1616,22 @@ export function CentralDashboard({
       ? null
       : {
           ...analyticsParams,
+          startDate: previousAnalyticsRange.startDate,
+          endDate: previousAnalyticsRange.endDate,
+        }
+  const previousCriticalSchemesAnalyticsParams =
+    criticalSchemesAnalyticsParams === null
+      ? null
+      : {
+          ...criticalSchemesAnalyticsParams,
+          startDate: previousAnalyticsRange.startDate,
+          endDate: previousAnalyticsRange.endDate,
+        }
+  const previousContinuousSchemesAnalyticsParams =
+    continuousSchemesAnalyticsParams === null
+      ? null
+      : {
+          ...continuousSchemesAnalyticsParams,
           startDate: previousAnalyticsRange.startDate,
           endDate: previousAnalyticsRange.endDate,
         }
@@ -1728,6 +1767,18 @@ export function CentralDashboard({
   const { data: criticalSchemesData } = useCriticalSchemesQuery({
     params: criticalSchemesAnalyticsParams,
     enabled: Boolean(criticalSchemesAnalyticsParams),
+  })
+  const { data: continuousSchemesData } = useContinuousSchemesQuery({
+    params: continuousSchemesAnalyticsParams,
+    enabled: Boolean(continuousSchemesAnalyticsParams),
+  })
+  const { data: previousCriticalSchemesData } = useCriticalSchemesQuery({
+    params: previousCriticalSchemesAnalyticsParams,
+    enabled: Boolean(previousCriticalSchemesAnalyticsParams),
+  })
+  const { data: previousContinuousSchemesData } = useContinuousSchemesQuery({
+    params: previousContinuousSchemesAnalyticsParams,
+    enabled: Boolean(previousContinuousSchemesAnalyticsParams),
   })
   const totalSchemePages = Math.ceil(
     (schemePerformanceData?.totalCount ?? 0) / SCHEME_PERFORMANCE_PAGE_SIZE
@@ -2934,6 +2985,18 @@ export function CentralDashboard({
     currentWaterSupplyKpis.quantityMld,
     previousWaterSupplyKpis.quantityMld
   )
+  const continuousSchemesCount = continuousSchemesData?.continuousSchemeCount ?? 0
+  const previousContinuousSchemesCount = previousContinuousSchemesData?.continuousSchemeCount ?? 0
+  const continuousSchemesChange = calculatePercentChange(
+    continuousSchemesCount,
+    previousContinuousSchemesCount
+  )
+  const criticalSchemesCount = criticalSchemesData?.criticalSchemeCount ?? 0
+  const previousCriticalSchemesCount = previousCriticalSchemesData?.criticalSchemeCount ?? 0
+  const criticalSchemesChange = calculatePercentChange(
+    criticalSchemesCount,
+    previousCriticalSchemesCount
+  )
   const quantityLpcdChange = calculateAbsoluteChange(
     currentWaterSupplyKpis.quantityLpcd,
     previousWaterSupplyKpis.quantityLpcd
@@ -2982,12 +3045,20 @@ export function CentralDashboard({
       label: t('kpi.labels.schemesSupplyingWater', {
         defaultValue: 'Schemes Supplying Water',
       }),
-      value: formatNumber(0),
-      trend: {
-        direction: 'neutral' as const,
-        text: `0% vs previous ${comparisonDays} days`,
-      },
-      tooltipContent: undefined,
+      value: formatNumber(continuousSchemesCount),
+      trend: buildNeutralAwareTrend(
+        continuousSchemesCount,
+        continuousSchemesChange,
+        (trendValue) =>
+          `${formatSignedValue(trendValue, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 1,
+          })}% vs previous ${comparisonDays} days`
+      ),
+      tooltipContent: t('kpi.tooltips.schemesSupplyingWater.description', {
+        defaultValue:
+          'Count of schemes that supplied water for the selected day or consistently on all days within the selected duration.',
+      }),
     },
     {
       label: t('kpi.labels.quantityInMld', { defaultValue: 'Quantity in MLD' }),
@@ -3130,14 +3201,23 @@ export function CentralDashboard({
     },
     {
       label: t('kpi.labels.criticalSchemes', { defaultValue: 'Critical Schemes' }),
-      value: formatNumber(criticalSchemesData?.criticalSchemeCount ?? 0),
-      trend: {
-        direction: 'neutral' as const,
-        text: `0% vs previous ${comparisonDays} days`,
-      },
-      tooltipContent: undefined,
+      value: formatNumber(criticalSchemesCount),
+      trend: buildNeutralAwareTrend(
+        criticalSchemesCount,
+        criticalSchemesChange,
+        (trendValue) =>
+          `${formatSignedValue(trendValue, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 1,
+          })}% vs previous ${comparisonDays} days`
+      ),
+      tooltipContent: t('kpi.tooltips.criticalSchemes.description', {
+        defaultValue:
+          'Schemes identified as failing to supply water, based on the duration of no water supply.',
+      }),
     },
   ] as const
+  const visibleCoreMetrics = isCentralLandingView ? coreMetrics.slice(1, 4) : coreMetrics
   const pumpOperatorsTotal = resolvedDashboardData.pumpOperators.reduce(
     (total, item) => total + item.value,
     0
@@ -3253,12 +3333,12 @@ export function CentralDashboard({
         templateColumns={{
           base: '1fr',
           sm: 'repeat(2, minmax(0, 1fr))',
-          lg: 'repeat(5, minmax(0, 1fr))',
+          lg: `repeat(${visibleCoreMetrics.length}, minmax(0, 1fr))`,
         }}
         gap={4}
         mb={6}
       >
-        {coreMetrics.map((metric) => (
+        {visibleCoreMetrics.map((metric) => (
           <KPICard
             key={metric.label}
             title={metric.label}

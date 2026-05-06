@@ -65,7 +65,7 @@ export function KPICard({ title, value, icon, trend, tooltipContent }: KPICardPr
         ) : null}
         <Flex direction="column" flex="1" minW={0}>
           <Flex justify="space-between" align="flex-start" mb={1}>
-            <Text textStyle="bodyText4" fontWeight="400" color="neutral.600" fontSize="14px">
+            <Text textStyle="bodyText4" fontWeight="400" color="neutral.600" fontSize="16px">
               {title}
             </Text>
             {tooltipContent ? (

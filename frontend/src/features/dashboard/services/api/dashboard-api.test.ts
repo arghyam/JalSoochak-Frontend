@@ -1034,6 +1034,53 @@ describe('dashboardApi.getWaterQuantityPeriodic', () => {
   })
 })
 
+describe('dashboardApi.getContinuousSchemes', () => {
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+  })
+
+  it('requests count-only continuous schemes and unwraps the response', async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        success: true,
+        data: {
+          continuousSchemeCount: 5714,
+          list: false,
+          page: null,
+          limit: null,
+          startDate: '2026-03-01',
+          endDate: '2026-03-05',
+          daysInRange: 5,
+          schemes: null,
+        },
+      },
+    } as never)
+
+    const { dashboardApi } = await import('./dashboard-api')
+    const res = await dashboardApi.getContinuousSchemes({
+      tenantId: 17,
+      lgdId: 1,
+      startDate: '2026-03-01',
+      endDate: '2026-03-05',
+    })
+
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/analytics/continuous-schemes', {
+      params: {
+        tenant_id: 17,
+        lgd_id: 1,
+        department_id: undefined,
+        start_date: '2026-03-01',
+        end_date: '2026-03-05',
+        list: false,
+        page: undefined,
+        limit: undefined,
+      },
+    })
+    expect(res.continuousSchemeCount).toBe(5714)
+  })
+})
+
 describe('dashboardApi.getSchemePerformance', () => {
   beforeEach(() => {
     jest.resetModules()

@@ -22,6 +22,5 @@ export function useCriticalSchemesQuery(options: UseCriticalSchemesQueryOptions)
     },
     enabled: enabled && Boolean(params),
     retry: false,
-    placeholderData: (previousData) => previousData,
   })
 }

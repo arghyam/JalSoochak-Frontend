@@ -11,6 +11,8 @@ import type {
   NationalDashboardBoundaryResponse,
   AverageWaterSupplyPerRegionQueryParams,
   AverageWaterSupplyPerRegionResponse,
+  ContinuousSchemesQueryParams,
+  ContinuousSchemesResponse,
   CriticalSchemesQueryParams,
   CriticalSchemesResponse,
   DashboardData,
@@ -1016,6 +1018,8 @@ export const dashboardApi = {
         tenant_id: params.tenantId,
         lgd_id: params.lgdId,
         department_id: params.departmentId,
+        start_date: params.startDate,
+        end_date: params.endDate,
         list: params.list ?? false,
         page: params.page,
         limit: params.limit,
@@ -1028,6 +1032,37 @@ export const dashboardApi = {
         list: params.list ?? false,
         page: params.page ?? null,
         limit: params.limit ?? null,
+        schemes: null,
+      }
+    )
+  },
+  getContinuousSchemes: async (
+    params: ContinuousSchemesQueryParams
+  ): Promise<ContinuousSchemesResponse> => {
+    const response = await apiClient.get<
+      ContinuousSchemesResponse | WrappedAnalyticsResponse<ContinuousSchemesResponse>
+    >('/api/v1/analytics/continuous-schemes', {
+      params: {
+        tenant_id: params.tenantId,
+        lgd_id: params.lgdId,
+        department_id: params.departmentId,
+        start_date: params.startDate,
+        end_date: params.endDate,
+        list: params.list ?? false,
+        page: params.page,
+        limit: params.limit,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data, 'continuous schemes analytics') ?? {
+        continuousSchemeCount: 0,
+        list: params.list ?? false,
+        page: params.page ?? null,
+        limit: params.limit ?? null,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        daysInRange: 0,
         schemes: null,
       }
     )
