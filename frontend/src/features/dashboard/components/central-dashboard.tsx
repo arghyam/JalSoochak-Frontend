@@ -13,6 +13,7 @@ import { useLocationHierarchyQuery } from '../services/query/use-location-hierar
 import { useLocationSearchQuery } from '../services/query/use-location-search-query'
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
+import { useCriticalSchemesQuery } from '../services/query/use-critical-schemes-query'
 import { useNationalDashboardQuery } from '../services/query/use-national-dashboard-query'
 import { useNationalDashboardBoundariesQuery } from '../services/query/use-national-dashboard-boundaries-query'
 import { useNationalSchemeRegularityPeriodicQuery } from '../services/query/use-national-scheme-regularity-periodic-query'
@@ -1508,6 +1509,20 @@ export function CentralDashboard({
             pageNumber: schemePerformancePage,
             limit: SCHEME_PERFORMANCE_PAGE_SIZE,
           }
+  const criticalSchemesAnalyticsParams =
+    !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            tenantId: selectedTenant.tenantId,
+            lgdId: analyticsParentId,
+            list: false,
+          }
+        : {
+            tenantId: selectedTenant.tenantId,
+            departmentId: analyticsParentId,
+            list: false,
+          }
   const submissionStatusAnalyticsParams =
     !hasCentralLandingFilters || !selectedTenant?.tenantId || !hasValidSubmissionStatusParentId
       ? null
@@ -1709,6 +1724,10 @@ export function CentralDashboard({
   const { data: schemePerformanceData } = useSchemePerformanceQuery({
     params: schemePerformanceAnalyticsParams,
     enabled: Boolean(schemePerformanceAnalyticsParams),
+  })
+  const { data: criticalSchemesData } = useCriticalSchemesQuery({
+    params: criticalSchemesAnalyticsParams,
+    enabled: Boolean(criticalSchemesAnalyticsParams),
   })
   const totalSchemePages = Math.ceil(
     (schemePerformanceData?.totalCount ?? 0) / SCHEME_PERFORMANCE_PAGE_SIZE
@@ -3111,7 +3130,7 @@ export function CentralDashboard({
     },
     {
       label: t('kpi.labels.criticalSchemes', { defaultValue: 'Critical Schemes' }),
-      value: formatNumber(0),
+      value: formatNumber(criticalSchemesData?.criticalSchemeCount ?? 0),
       trend: {
         direction: 'neutral' as const,
         text: `0% vs previous ${comparisonDays} days`,

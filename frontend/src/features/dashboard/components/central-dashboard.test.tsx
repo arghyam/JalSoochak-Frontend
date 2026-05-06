@@ -10,6 +10,7 @@ import { useDistrictSchemeBlockLookupQuery } from '../services/query/use-distric
 import { useLocationHierarchyQuery } from '../services/query/use-location-hierarchy-query'
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
+import { useCriticalSchemesQuery } from '../services/query/use-critical-schemes-query'
 import { useNationalDashboardQuery } from '../services/query/use-national-dashboard-query'
 import { useNationalDashboardBoundariesQuery } from '../services/query/use-national-dashboard-boundaries-query'
 import { useNationalSchemeRegularityPeriodicQuery } from '../services/query/use-national-scheme-regularity-periodic-query'
@@ -89,6 +90,10 @@ jest.mock('../services/query/use-average-water-supply-per-region-query', () => (
 
 jest.mock('../services/query/use-average-scheme-regularity-query', () => ({
   useAverageSchemeRegularityQuery: jest.fn(),
+}))
+
+jest.mock('../services/query/use-critical-schemes-query', () => ({
+  useCriticalSchemesQuery: jest.fn(),
 }))
 
 jest.mock('../services/query/use-national-dashboard-query', () => ({
@@ -237,6 +242,7 @@ describe('CentralDashboard', () => {
     ;(useLocationHierarchyQuery as jest.Mock).mockReset()
     ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReset()
     ;(useAverageSchemeRegularityQuery as jest.Mock).mockReset()
+    ;(useCriticalSchemesQuery as jest.Mock).mockReset()
     ;(useNationalDashboardQuery as jest.Mock).mockReset()
     ;(useNationalDashboardBoundariesQuery as jest.Mock).mockReset()
     ;(useNationalSchemeRegularityPeriodicQuery as jest.Mock).mockReset()
@@ -261,6 +267,7 @@ describe('CentralDashboard', () => {
     ;(useLocationHierarchyQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useCriticalSchemesQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useNationalDashboardQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useNationalDashboardBoundariesQuery as jest.Mock).mockReturnValue({
       data: undefined,
@@ -2269,6 +2276,15 @@ describe('CentralDashboard', () => {
     ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
       data: {
         data: [{ id: 10, title: 'Telangana' }],
+      },
+    })
+    ;(useCriticalSchemesQuery as jest.Mock).mockReturnValue({
+      data: {
+        criticalSchemeCount: 215,
+        list: false,
+        page: null,
+        limit: null,
+        schemes: null,
       },
     })
     ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({
@@ -4723,6 +4739,15 @@ describe('CentralDashboard', () => {
     expect(kpiProps[3]?.value).toBe('0.0%')
     expect(kpiProps[3]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
     expect(kpiProps[4]?.title).toBe('Critical Schemes')
+    expect(kpiProps[4]?.value).toBe('215')
+    expect(useCriticalSchemesQuery).toHaveBeenCalledWith({
+      params: {
+        tenantId: 16,
+        lgdId: 10,
+        list: false,
+      },
+      enabled: true,
+    })
 
     const waterSupplyQueryCalls = (useAverageWaterSupplyPerRegionQuery as jest.Mock).mock.calls
       .slice(initialWaterSupplyQueryCallCount)

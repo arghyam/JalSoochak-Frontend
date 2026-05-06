@@ -11,6 +11,8 @@ import type {
   NationalDashboardBoundaryResponse,
   AverageWaterSupplyPerRegionQueryParams,
   AverageWaterSupplyPerRegionResponse,
+  CriticalSchemesQueryParams,
+  CriticalSchemesResponse,
   DashboardData,
   DashboardLevel,
   OutageReasonsQueryParams,
@@ -1001,6 +1003,32 @@ export const dashboardApi = {
         totalCount: 0,
         topSchemeCount: 0,
         topSchemes: [],
+      }
+    )
+  },
+  getCriticalSchemes: async (
+    params: CriticalSchemesQueryParams
+  ): Promise<CriticalSchemesResponse> => {
+    const response = await apiClient.get<
+      CriticalSchemesResponse | WrappedAnalyticsResponse<CriticalSchemesResponse>
+    >('/api/v1/analytics/critical-schemes', {
+      params: {
+        tenant_id: params.tenantId,
+        lgd_id: params.lgdId,
+        department_id: params.departmentId,
+        list: params.list ?? false,
+        page: params.page,
+        limit: params.limit,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data, 'critical schemes analytics') ?? {
+        criticalSchemeCount: 0,
+        list: params.list ?? false,
+        page: params.page ?? null,
+        limit: params.limit ?? null,
+        schemes: null,
       }
     )
   },

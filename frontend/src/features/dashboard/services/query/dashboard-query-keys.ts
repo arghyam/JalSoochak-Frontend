@@ -1,6 +1,7 @@
 import type {
   AverageSchemeRegularityQueryParams,
   AverageWaterSupplyPerRegionQueryParams,
+  CriticalSchemesQueryParams,
   DashboardLevel,
   NationalSchemeRegularityPeriodicQueryParams,
   NationalDashboardQueryParams,
@@ -139,12 +140,25 @@ export const dashboardQueryKeys = {
       'dashboard',
       'analytics',
       'scheme-performance',
+      params?.tenantId,
       params?.parentLgdId,
       params?.parentDepartmentId,
       params?.startDate,
       params?.endDate,
       params?.pageNumber ?? 1,
       params?.limit ?? 15,
+    ] as const,
+  criticalSchemes: (params: CriticalSchemesQueryParams | null) =>
+    [
+      'dashboard',
+      'analytics',
+      'critical-schemes',
+      params?.tenantId,
+      params?.lgdId,
+      params?.departmentId,
+      params?.list ?? false,
+      params?.page,
+      params?.limit,
     ] as const,
   pumpOperatorsByScheme: (params: PumpOperatorsBySchemeQueryParams | null) =>
     ['dashboard', 'pump-operator', 'by-scheme', params?.tenant_code, params?.scheme_id] as const,

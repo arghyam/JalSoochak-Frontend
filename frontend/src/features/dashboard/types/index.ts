@@ -552,6 +552,23 @@ export interface SchemePerformanceQueryParams {
   limit?: number
 }
 
+export interface CriticalSchemesQueryParams {
+  tenantId: number
+  lgdId?: number
+  departmentId?: number
+  list?: boolean
+  page?: number
+  limit?: number
+}
+
+export interface CriticalSchemesResponse {
+  criticalSchemeCount: number
+  list: boolean
+  page: number | null
+  limit: number | null
+  schemes: unknown[] | null
+}
+
 export interface PumpOperatorDetailsQueryParams {
   pumpOperatorId: number
   tenant_code: string
