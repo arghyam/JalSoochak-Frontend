@@ -5228,6 +5228,35 @@ describe('CentralDashboard', () => {
     })
   })
 
+  it('clears the route state when departmental root chip is cleared', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 1,
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardFilterProps = getLatestDashboardFilterProps<{
+      onDepartmentStateChange: (value: string) => void
+    }>()
+    act(() => {
+      dashboardFilterProps.onDepartmentStateChange('')
+    })
+
+    expect(mockNavigate).toHaveBeenCalledWith({
+      pathname: '/',
+      search: '',
+    })
+  })
+
   it('guards URL-keyed lookups against prototype-chain keys', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -6384,6 +6413,51 @@ describe('CentralDashboard', () => {
       expect(useTenantPublicConfigQuery).toHaveBeenCalledWith({
         tenantId: singleTenantOverride.tenantId,
         enabled: true,
+      })
+    })
+
+    it('keeps single-tenant departmental state locked when a root clear is requested', () => {
+      mockUseParams.mockReturnValue({})
+      ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+        data: {
+          totalStatesCount: 1,
+          states: [{ value: 'maharashtra', label: 'Maharashtra', tenantId: 1, tenantCode: 'MH' }],
+        },
+        isLoading: false,
+        isError: false,
+      })
+      ;(useDashboardData as jest.Mock).mockReturnValue({
+        data: null,
+        isLoading: false,
+        isError: false,
+      })
+      ;(useTenantPublicConfigQuery as jest.Mock).mockReturnValue({
+        data: null,
+        isLoading: false,
+        isError: false,
+      })
+
+      const singleTenantOverride = {
+        value: 'maharashtra',
+        label: 'Maharashtra',
+        tenantId: 1,
+        tenantCode: 'MH',
+      }
+
+      renderWithProviders(<CentralDashboard singleTenantOverride={singleTenantOverride} />)
+
+      const filterProps = getLatestDashboardFilterProps<{
+        selectedState: string
+        onDepartmentStateChange: (value: string) => void
+      }>()
+      act(() => {
+        filterProps.onDepartmentStateChange('')
+      })
+
+      expect(filterProps.selectedState).toBe('maharashtra')
+      expect(mockNavigate).toHaveBeenCalledWith({
+        pathname: '/',
+        search: '',
       })
     })
 

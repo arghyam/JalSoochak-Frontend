@@ -2469,7 +2469,7 @@ export function CentralDashboard({
     setSelectedDepartmentVillage('')
     setSelectedScheme('')
     updateFilterUrl({
-      state: value || selectedState,
+      state: value,
       departmentZone: '',
       departmentCircle: '',
       departmentDivision: '',
