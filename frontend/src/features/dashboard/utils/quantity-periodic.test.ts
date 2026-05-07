@@ -40,7 +40,7 @@ describe('quantity-periodic utils', () => {
     ).toEqual([{ period: '01/03/2026', value: 42 }])
   })
 
-  it('skips water quantity periodic points when totalWaterQuantity is missing', () => {
+  it('uses averageWaterQuantity when totalWaterQuantity is missing', () => {
     expect(
       mapWaterQuantityPeriodicToTrendPoints({
         lgdId: 1,
@@ -60,10 +60,10 @@ describe('quantity-periodic utils', () => {
           },
         ],
       })
-    ).toEqual([])
+    ).toEqual([{ period: '17/03/2026', value: 139299 }])
   })
 
-  it('uses totalWaterQuantity for water quantity periodic trend points', () => {
+  it('prefers totalWaterQuantity for water quantity periodic trend points', () => {
     expect(
       mapWaterQuantityPeriodicToTrendPoints({
         lgdId: 1,
@@ -85,6 +85,7 @@ describe('quantity-periodic utils', () => {
             periodStartDate: '2026-03-17',
             periodEndDate: '2026-03-17',
             totalWaterQuantity: 2425420120,
+            averageWaterQuantity: 139299,
             householdCount: 100,
             achievedFhtcCount: 80,
             plannedFhtcCount: 100,

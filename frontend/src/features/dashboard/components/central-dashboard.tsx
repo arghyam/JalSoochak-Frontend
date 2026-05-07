@@ -96,8 +96,8 @@ import {
   mapNationalQuantityTrendPoints,
   mapNationalRegularityTrendPoints,
   mapOutageReasonsPeriodicToTrendPoints,
-  mapSchemeRegularityQuantityToTrendPoints,
   mapSchemeRegularityPeriodicToTrendPoints,
+  mapWaterQuantityPeriodicToTrendPoints,
   resolveWaterQuantityPeriodicScale,
 } from '../utils/quantity-periodic'
 import type { HierarchyType, TenantChildLocation } from '../services/api/dashboard-api'
@@ -1348,24 +1348,6 @@ export function CentralDashboard({
             endDate: analyticsDateRange.endDate,
             scale: selectedRegularityApiScale,
           }
-  const quantityTrendPeriodicAnalyticsParams =
-    !selectedTenant?.tenantId || !hasValidAnalyticsParentId
-      ? null
-      : hierarchyType === 'LGD'
-        ? {
-            tenantId: selectedTenant.tenantId,
-            lgdId: analyticsParentId,
-            startDate: analyticsDateRange.startDate,
-            endDate: analyticsDateRange.endDate,
-            scale: selectedQuantityApiScale,
-          }
-        : {
-            tenantId: selectedTenant.tenantId,
-            departmentId: analyticsParentId,
-            startDate: analyticsDateRange.startDate,
-            endDate: analyticsDateRange.endDate,
-            scale: selectedQuantityApiScale,
-          }
   const nationalDashboardParams = hasCentralLandingFilters
     ? null
     : {
@@ -1719,7 +1701,11 @@ export function CentralDashboard({
     params: nationalRegularityPeriodAnalyticsParams,
     enabled: Boolean(nationalRegularityPeriodAnalyticsParams),
   })
-  const { data: waterQuantityPeriodicData } = useWaterQuantityPeriodicQuery({
+  const {
+    data: waterQuantityPeriodicData,
+    isFetching: isWaterQuantityPeriodicFetching,
+    isAwaitingParams: isWaterQuantityPeriodicAwaitingParams,
+  } = useWaterQuantityPeriodicQuery({
     params: quantityPeriodicAnalyticsParams,
     enabled: Boolean(quantityPeriodicAnalyticsParams),
   })
@@ -1728,12 +1714,6 @@ export function CentralDashboard({
       params: regularityPeriodicAnalyticsParams,
       enabled: Boolean(regularityPeriodicAnalyticsParams),
     })
-  const { data: schemeQuantityPeriodicData, isFetching: isSchemeQuantityPeriodicFetching } =
-    useSchemeRegularityPeriodicQuery({
-      params: quantityTrendPeriodicAnalyticsParams,
-      enabled: Boolean(quantityTrendPeriodicAnalyticsParams),
-    })
-  const isSchemeQuantityPeriodicAwaitingParams = !quantityTrendPeriodicAnalyticsParams
   const { data: outageReasonsPeriodicData } = useOutageReasonsPeriodicQuery({
     params: outageReasonsPeriodicAnalyticsParams,
     enabled: Boolean(outageReasonsPeriodicAnalyticsParams),
@@ -2331,11 +2311,9 @@ export function CentralDashboard({
           (scheme) => scheme.schemeId === derivedVillageSchemeId
         )
       : undefined) ?? (isHierarchyLeafSelected ? schemePerformanceData?.topSchemes?.[0] : undefined)
-  const periodicQuantityTimeTrendData = mapSchemeRegularityQuantityToTrendPoints(
-    schemeQuantityPeriodicData,
-    screenDateFormat,
+  const periodicQuantityTimeTrendData = mapWaterQuantityPeriodicToTrendPoints(
     waterQuantityPeriodicData,
-    averagePersonsPerHousehold
+    screenDateFormat
   )
   const periodicRegularityTimeTrendData = mapSchemeRegularityPeriodicToTrendPoints(
     schemeRegularityPeriodicData,
@@ -2598,7 +2576,7 @@ export function CentralDashboard({
     setSelectedDepartmentVillage('')
     setSelectedScheme('')
     updateFilterUrl({
-      state: value || selectedState,
+      state: value,
       departmentZone: '',
       departmentCircle: '',
       departmentDivision: '',
@@ -3510,10 +3488,10 @@ export function CentralDashboard({
         isQuantityTimeTrendLoading={
           isCentralLandingView
             ? isNationalSchemeQuantityPeriodicFetching
-            : isSchemeQuantityPeriodicFetching
+            : isWaterQuantityPeriodicFetching
         }
         isQuantityTimeTrendAwaitingParams={
-          isCentralLandingView ? false : isSchemeQuantityPeriodicAwaitingParams
+          isCentralLandingView ? false : isWaterQuantityPeriodicAwaitingParams
         }
         regularityPerformanceData={regularityPerformanceData}
         regularityTimeTrendData={regularityTimeTrendData}

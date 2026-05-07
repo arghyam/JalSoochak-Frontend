@@ -264,6 +264,7 @@ describe('CentralDashboard', () => {
     ;(useWaterQuantityRegionWiseQuery as jest.Mock).mockReset()
     ;(useTenantBoundariesQuery as jest.Mock).mockReset()
     ;(useTenantBoundaryGeoJsonQuery as jest.Mock).mockReset()
+    schemeQuantityPeriodicData = undefined
     mockUseParams.mockReturnValue({})
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()])
     mockUseLocation.mockReturnValue({ pathname: '/', search: '', hash: '', state: null })
@@ -1519,7 +1520,7 @@ describe('CentralDashboard', () => {
     ])
   })
 
-  it('passes quantity trend data from scheme-regularity periodic metrics to dashboard body', () => {
+  it('passes quantity trend data from water quantity periodic metrics to dashboard body', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
@@ -1625,7 +1626,10 @@ describe('CentralDashboard', () => {
       isQuantityTimeTrendLoading: boolean
     }>()
 
-    expect(dashboardBodyProps.quantityTimeTrendData).toEqual([])
+    expect(dashboardBodyProps.quantityTimeTrendData).toEqual([
+      { period: '12/03/2026', value: 87 },
+      { period: '13/03/2026', value: 91 },
+    ])
     expect(dashboardBodyProps.isQuantityTimeTrendLoading).toBe(false)
   })
 
@@ -1672,7 +1676,7 @@ describe('CentralDashboard', () => {
     })
   })
 
-  it('passes isQuantityTimeTrendLoading=true to dashboard body while scheme-regularity periodic query is loading', () => {
+  it('passes isQuantityTimeTrendLoading=true to dashboard body while water quantity periodic query is loading', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
@@ -1863,57 +1867,61 @@ describe('CentralDashboard', () => {
     })
     ;(useSchemeRegularityPeriodicQuery as jest.Mock).mockImplementation((options: unknown) => {
       const params = (options as { params?: { startDate?: string } } | undefined)?.params
+      const data =
+        params?.startDate === '2026-03-23'
+          ? {
+              lgdId: 19501,
+              departmentId: 0,
+              schemeCount: 1,
+              scale: 'day',
+              startDate: '2026-03-23',
+              endDate: '2026-03-24',
+              periodCount: 2,
+              metrics: [
+                {
+                  periodStartDate: '2026-03-23',
+                  periodEndDate: '2026-03-23',
+                  totalSupplyDays: 0,
+                  averageRegularity: 0,
+                },
+                {
+                  periodStartDate: '2026-03-24',
+                  periodEndDate: '2026-03-24',
+                  totalSupplyDays: 0,
+                  averageRegularity: 0,
+                },
+              ],
+            }
+          : {
+              lgdId: 19501,
+              departmentId: 0,
+              schemeCount: 1,
+              scale: 'day',
+              startDate: '2026-03-25',
+              endDate: '2026-03-26',
+              periodCount: 2,
+              metrics: [
+                {
+                  periodStartDate: '2026-03-25',
+                  periodEndDate: '2026-03-25',
+                  totalSupplyDays: 1,
+                  totalWaterQuantity: 41243,
+                  averageRegularity: 100,
+                },
+                {
+                  periodStartDate: '2026-03-26',
+                  periodEndDate: '2026-03-26',
+                  totalSupplyDays: 0,
+                  totalWaterQuantity: 50100,
+                  averageRegularity: 0,
+                },
+              ],
+            }
+      if (params?.startDate === '2026-03-25') {
+        schemeQuantityPeriodicData = data
+      }
       return {
-        data:
-          params?.startDate === '2026-03-23'
-            ? {
-                lgdId: 19501,
-                departmentId: 0,
-                schemeCount: 1,
-                scale: 'day',
-                startDate: '2026-03-23',
-                endDate: '2026-03-24',
-                periodCount: 2,
-                metrics: [
-                  {
-                    periodStartDate: '2026-03-23',
-                    periodEndDate: '2026-03-23',
-                    totalSupplyDays: 0,
-                    averageRegularity: 0,
-                  },
-                  {
-                    periodStartDate: '2026-03-24',
-                    periodEndDate: '2026-03-24',
-                    totalSupplyDays: 0,
-                    averageRegularity: 0,
-                  },
-                ],
-              }
-            : {
-                lgdId: 19501,
-                departmentId: 0,
-                schemeCount: 1,
-                scale: 'day',
-                startDate: '2026-03-25',
-                endDate: '2026-03-26',
-                periodCount: 2,
-                metrics: [
-                  {
-                    periodStartDate: '2026-03-25',
-                    periodEndDate: '2026-03-25',
-                    totalSupplyDays: 1,
-                    totalWaterQuantity: 41243,
-                    averageRegularity: 100,
-                  },
-                  {
-                    periodStartDate: '2026-03-26',
-                    periodEndDate: '2026-03-26',
-                    totalSupplyDays: 0,
-                    totalWaterQuantity: 50100,
-                    averageRegularity: 0,
-                  },
-                ],
-              },
+        data,
         isFetching: false,
       }
     })
@@ -5503,6 +5511,35 @@ describe('CentralDashboard', () => {
     })
   })
 
+  it('clears the route state when departmental root chip is cleared', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'assam' })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        filterTabIndex: 1,
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    const dashboardFilterProps = getLatestDashboardFilterProps<{
+      onDepartmentStateChange: (value: string) => void
+    }>()
+    act(() => {
+      dashboardFilterProps.onDepartmentStateChange('')
+    })
+
+    expect(mockNavigate).toHaveBeenCalledWith({
+      pathname: '/',
+      search: '',
+    })
+  })
+
   it('guards URL-keyed lookups against prototype-chain keys', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
@@ -6659,6 +6696,51 @@ describe('CentralDashboard', () => {
       expect(useTenantPublicConfigQuery).toHaveBeenCalledWith({
         tenantId: singleTenantOverride.tenantId,
         enabled: true,
+      })
+    })
+
+    it('keeps single-tenant departmental state locked when a root clear is requested', () => {
+      mockUseParams.mockReturnValue({})
+      ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+        data: {
+          totalStatesCount: 1,
+          states: [{ value: 'maharashtra', label: 'Maharashtra', tenantId: 1, tenantCode: 'MH' }],
+        },
+        isLoading: false,
+        isError: false,
+      })
+      ;(useDashboardData as jest.Mock).mockReturnValue({
+        data: null,
+        isLoading: false,
+        isError: false,
+      })
+      ;(useTenantPublicConfigQuery as jest.Mock).mockReturnValue({
+        data: null,
+        isLoading: false,
+        isError: false,
+      })
+
+      const singleTenantOverride = {
+        value: 'maharashtra',
+        label: 'Maharashtra',
+        tenantId: 1,
+        tenantCode: 'MH',
+      }
+
+      renderWithProviders(<CentralDashboard singleTenantOverride={singleTenantOverride} />)
+
+      const filterProps = getLatestDashboardFilterProps<{
+        selectedState: string
+        onDepartmentStateChange: (value: string) => void
+      }>()
+      act(() => {
+        filterProps.onDepartmentStateChange('')
+      })
+
+      expect(filterProps.selectedState).toBe('maharashtra')
+      expect(mockNavigate).toHaveBeenCalledWith({
+        pathname: '/',
+        search: '',
       })
     })
 
