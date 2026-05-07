@@ -213,6 +213,24 @@ describe('SchemePerformanceTable', () => {
     expect(screen.getByRole('button', { name: '3' })).toBeDefined()
   })
 
+  it('hides pagination and the custom horizontal scrollbar while loading', () => {
+    renderWithProviders(
+      <SchemePerformanceTable
+        title="Scheme Performance"
+        data={tableData}
+        isLoading
+        currentPage={2}
+        totalPages={5}
+        onPageChange={jest.fn()}
+      />
+    )
+
+    expect(screen.getByText('Loading...')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: '2' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Next' })).toBeNull()
+    expect(screen.queryByTestId('scheme-performance-horizontal-scrollbar')).toBeNull()
+  })
+
   it('renders ellipsis and the last page for large page counts', () => {
     const many = Array.from({ length: 20 }, (_, i) => ({
       id: `scheme-${i}`,

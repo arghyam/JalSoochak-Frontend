@@ -564,40 +564,43 @@ export function SchemePerformanceTable({
           </Box>
         </Box>
       )}
-      <Box
-        mt="6px"
-        display={enableHorizontalScroller ? 'block' : 'none'}
-        opacity={enableHorizontalScroller && hasHorizontalOverflow ? 1 : 0}
-        pointerEvents={enableHorizontalScroller && hasHorizontalOverflow ? 'auto' : 'none'}
-      >
+      {!isLoading ? (
         <Box
-          ref={scrollbarTrackRef}
-          height="4px"
-          bg="neutral.200"
-          borderRadius="999px"
-          position="relative"
+          data-testid="scheme-performance-horizontal-scrollbar"
+          mt="6px"
+          display={enableHorizontalScroller ? 'block' : 'none'}
+          opacity={enableHorizontalScroller && hasHorizontalOverflow ? 1 : 0}
+          pointerEvents={enableHorizontalScroller && hasHorizontalOverflow ? 'auto' : 'none'}
         >
           <Box
-            ref={scrollbarThumbRef}
-            role="presentation"
-            position="absolute"
-            top={0}
-            left={0}
+            ref={scrollbarTrackRef}
             height="4px"
-            width="0px"
-            maxW="100%"
-            bg="primary.300"
+            bg="neutral.200"
             borderRadius="999px"
-            cursor={hasHorizontalOverflow ? (isThumbDragging ? 'grabbing' : 'grab') : 'default'}
-            onPointerDown={handleThumbPointerDown}
-            onPointerMove={handleThumbPointerMove}
-            onPointerUp={handleThumbPointerUp}
-            onPointerLeave={handleThumbPointerUp}
-            onPointerCancel={handleThumbPointerCancel}
-          />
+            position="relative"
+          >
+            <Box
+              ref={scrollbarThumbRef}
+              role="presentation"
+              position="absolute"
+              top={0}
+              left={0}
+              height="4px"
+              width="0px"
+              maxW="100%"
+              bg="primary.300"
+              borderRadius="999px"
+              cursor={hasHorizontalOverflow ? (isThumbDragging ? 'grabbing' : 'grab') : 'default'}
+              onPointerDown={handleThumbPointerDown}
+              onPointerMove={handleThumbPointerMove}
+              onPointerUp={handleThumbPointerUp}
+              onPointerLeave={handleThumbPointerUp}
+              onPointerCancel={handleThumbPointerCancel}
+            />
+          </Box>
         </Box>
-      </Box>
-      {showPagination ? (
+      ) : null}
+      {!isLoading && showPagination ? (
         <Flex
           mt={4}
           align="center"
