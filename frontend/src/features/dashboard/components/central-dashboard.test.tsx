@@ -1413,7 +1413,7 @@ describe('CentralDashboard', () => {
     ])
   })
 
-  it('passes quantity trend data from scheme-regularity periodic metrics to dashboard body', () => {
+  it('passes quantity trend data from water quantity periodic metrics to dashboard body', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
@@ -1519,7 +1519,10 @@ describe('CentralDashboard', () => {
       isQuantityTimeTrendLoading: boolean
     }>()
 
-    expect(dashboardBodyProps.quantityTimeTrendData).toEqual([])
+    expect(dashboardBodyProps.quantityTimeTrendData).toEqual([
+      { period: '12/03/2026', value: 87 },
+      { period: '13/03/2026', value: 91 },
+    ])
     expect(dashboardBodyProps.isQuantityTimeTrendLoading).toBe(false)
   })
 
@@ -1566,7 +1569,7 @@ describe('CentralDashboard', () => {
     })
   })
 
-  it('passes isQuantityTimeTrendLoading=true to dashboard body while scheme-regularity periodic query is loading', () => {
+  it('passes isQuantityTimeTrendLoading=true to dashboard body while water quantity periodic query is loading', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
