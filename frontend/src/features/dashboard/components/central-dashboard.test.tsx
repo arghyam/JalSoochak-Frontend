@@ -264,6 +264,7 @@ describe('CentralDashboard', () => {
     ;(useWaterQuantityRegionWiseQuery as jest.Mock).mockReset()
     ;(useTenantBoundariesQuery as jest.Mock).mockReset()
     ;(useTenantBoundaryGeoJsonQuery as jest.Mock).mockReset()
+    schemeQuantityPeriodicData = undefined
     mockUseParams.mockReturnValue({})
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()])
     mockUseLocation.mockReturnValue({ pathname: '/', search: '', hash: '', state: null })
@@ -1866,57 +1867,61 @@ describe('CentralDashboard', () => {
     })
     ;(useSchemeRegularityPeriodicQuery as jest.Mock).mockImplementation((options: unknown) => {
       const params = (options as { params?: { startDate?: string } } | undefined)?.params
+      const data =
+        params?.startDate === '2026-03-23'
+          ? {
+              lgdId: 19501,
+              departmentId: 0,
+              schemeCount: 1,
+              scale: 'day',
+              startDate: '2026-03-23',
+              endDate: '2026-03-24',
+              periodCount: 2,
+              metrics: [
+                {
+                  periodStartDate: '2026-03-23',
+                  periodEndDate: '2026-03-23',
+                  totalSupplyDays: 0,
+                  averageRegularity: 0,
+                },
+                {
+                  periodStartDate: '2026-03-24',
+                  periodEndDate: '2026-03-24',
+                  totalSupplyDays: 0,
+                  averageRegularity: 0,
+                },
+              ],
+            }
+          : {
+              lgdId: 19501,
+              departmentId: 0,
+              schemeCount: 1,
+              scale: 'day',
+              startDate: '2026-03-25',
+              endDate: '2026-03-26',
+              periodCount: 2,
+              metrics: [
+                {
+                  periodStartDate: '2026-03-25',
+                  periodEndDate: '2026-03-25',
+                  totalSupplyDays: 1,
+                  totalWaterQuantity: 41243,
+                  averageRegularity: 100,
+                },
+                {
+                  periodStartDate: '2026-03-26',
+                  periodEndDate: '2026-03-26',
+                  totalSupplyDays: 0,
+                  totalWaterQuantity: 50100,
+                  averageRegularity: 0,
+                },
+              ],
+            }
+      if (params?.startDate === '2026-03-25') {
+        schemeQuantityPeriodicData = data
+      }
       return {
-        data:
-          params?.startDate === '2026-03-23'
-            ? {
-                lgdId: 19501,
-                departmentId: 0,
-                schemeCount: 1,
-                scale: 'day',
-                startDate: '2026-03-23',
-                endDate: '2026-03-24',
-                periodCount: 2,
-                metrics: [
-                  {
-                    periodStartDate: '2026-03-23',
-                    periodEndDate: '2026-03-23',
-                    totalSupplyDays: 0,
-                    averageRegularity: 0,
-                  },
-                  {
-                    periodStartDate: '2026-03-24',
-                    periodEndDate: '2026-03-24',
-                    totalSupplyDays: 0,
-                    averageRegularity: 0,
-                  },
-                ],
-              }
-            : {
-                lgdId: 19501,
-                departmentId: 0,
-                schemeCount: 1,
-                scale: 'day',
-                startDate: '2026-03-25',
-                endDate: '2026-03-26',
-                periodCount: 2,
-                metrics: [
-                  {
-                    periodStartDate: '2026-03-25',
-                    periodEndDate: '2026-03-25',
-                    totalSupplyDays: 1,
-                    totalWaterQuantity: 41243,
-                    averageRegularity: 100,
-                  },
-                  {
-                    periodStartDate: '2026-03-26',
-                    periodEndDate: '2026-03-26',
-                    totalSupplyDays: 0,
-                    totalWaterQuantity: 50100,
-                    averageRegularity: 0,
-                  },
-                ],
-              },
+        data,
         isFetching: false,
       }
     })

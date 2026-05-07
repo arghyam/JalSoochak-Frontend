@@ -17,6 +17,10 @@ if (typeof globalThis.TextDecoder === 'undefined') {
   globalThis.TextDecoder = TextDecoder as typeof globalThis.TextDecoder
 }
 
+;(
+  globalThis as typeof globalThis & { schemeQuantityPeriodicData?: unknown }
+).schemeQuantityPeriodicData = undefined
+
 Object.defineProperty(globalThis.URL, 'createObjectURL', {
   writable: true,
   value: () => 'blob:mock-url',
