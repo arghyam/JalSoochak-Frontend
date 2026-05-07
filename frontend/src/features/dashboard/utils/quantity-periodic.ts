@@ -117,17 +117,16 @@ export const mapWaterQuantityPeriodicToTrendPoints = (
       return []
     }
 
-    if (
-      typeof metric.totalWaterQuantity !== 'number' ||
-      !Number.isFinite(metric.totalWaterQuantity)
-    ) {
+    const waterQuantity = metric.totalWaterQuantity ?? metric.averageWaterQuantity
+
+    if (typeof waterQuantity !== 'number' || !Number.isFinite(waterQuantity)) {
       return []
     }
 
     return [
       {
         period: formatMetricLabel(response.scale, metric, dateFormat),
-        value: metric.totalWaterQuantity,
+        value: waterQuantity,
       },
     ]
   })
