@@ -17,7 +17,7 @@ import {
 import { SchemePerformanceTable } from '../tables'
 import { PerformanceChartCard } from './performance-chart-card'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
-import { ChartEmptyState, ViewBySelect } from '@/shared/components/common'
+import { ChartEmptyState, LoadingSpinner, ViewBySelect } from '@/shared/components/common'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { useOutageDistributionState } from './use-outage-distribution-state'
 import { getOutageTimeScaleXAxisLabel, OutageTimeScaleToggle } from './outage-time-scale-toggle'
@@ -27,6 +27,7 @@ type DistrictDashboardScreenProps = {
   waterSupplyOutagesData?: WaterSupplyOutageData[]
   waterSupplyOutageDistributionData?: WaterSupplyOutageData[]
   quantityPerformanceData: EntityPerformance[]
+  isQuantityPerformanceLoading?: boolean
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
   isQuantityTimeTrendAwaitingParams?: boolean
@@ -39,6 +40,7 @@ type DistrictDashboardScreenProps = {
     value: 'day' | 'week' | 'month' | 'quarter' | 'year'
   ) => void
   regularityPerformanceData: EntityPerformance[]
+  isRegularityPerformanceLoading?: boolean
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading?: boolean
   blockTableData: EntityPerformance[]
@@ -46,6 +48,12 @@ type DistrictDashboardScreenProps = {
   supplySubmissionRateLabel: string
   operatorsPerformanceTable: PumpOperatorPerformanceData[]
   pumpOperatorsTotal: number
+  isOutageReasonsLoading?: boolean
+  isOutageDistributionLoading?: boolean
+  isReadingSubmissionRateLoading?: boolean
+  isReadingSubmissionStatusLoading?: boolean
+  isSchemePerformanceLoading?: boolean
+  isActiveSchemesLoading?: boolean
   childEntityLabel?: string
   schemePerformancePage?: number
   totalSchemePages?: number
@@ -61,6 +69,7 @@ export function DistrictDashboardScreen({
   waterSupplyOutagesData = data.waterSupplyOutages,
   waterSupplyOutageDistributionData = data.waterSupplyOutages,
   quantityPerformanceData,
+  isQuantityPerformanceLoading = false,
   quantityTimeTrendData,
   isQuantityTimeTrendLoading = false,
   isQuantityTimeTrendAwaitingParams = false,
@@ -71,12 +80,19 @@ export function DistrictDashboardScreen({
   outageDistributionTimeScaleTab,
   onOutageDistributionTimeScaleTabChange,
   regularityPerformanceData,
+  isRegularityPerformanceLoading = false,
   regularityTimeTrendData,
   isRegularityTimeTrendLoading = false,
   supplySubmissionRateData,
   supplySubmissionRateLabel,
   operatorsPerformanceTable,
   pumpOperatorsTotal,
+  isOutageReasonsLoading = false,
+  isOutageDistributionLoading = false,
+  isReadingSubmissionRateLoading = false,
+  isReadingSubmissionStatusLoading = false,
+  isSchemePerformanceLoading = false,
+  isActiveSchemesLoading = false,
   childEntityLabel = supplySubmissionRateLabel,
   schemePerformancePage,
   totalSchemePages,
@@ -118,6 +134,7 @@ export function DistrictDashboardScreen({
           viewBy={regularityViewBy}
           onViewByChange={setRegularityViewBy}
           data={regularityPerformanceData}
+          isGeographyLoading={isRegularityPerformanceLoading}
           metric="regularity"
           timeTrendData={regularityTimeTrendData}
           isTimeTrendLoading={isRegularityTimeTrendLoading}
@@ -145,6 +162,7 @@ export function DistrictDashboardScreen({
           viewBy={quantityViewBy}
           onViewByChange={setQuantityViewBy}
           data={quantityPerformanceData}
+          isGeographyLoading={isQuantityPerformanceLoading}
           metric="quantity"
           timeTrendData={quantityTimeTrendData}
           isTimeTrendLoading={isQuantityTimeTrendLoading}
@@ -185,7 +203,13 @@ export function DistrictDashboardScreen({
               defaultValue: 'Supply Outage Reasons',
             })}
           </Text>
-          <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
+          {isOutageReasonsLoading ? (
+            <Flex align="center" justify="center" h="400px">
+              <LoadingSpinner />
+            </Flex>
+          ) : (
+            <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
+          )}
         </Box>
         <Box
           bg="white"
@@ -247,7 +271,11 @@ export function DistrictDashboardScreen({
               />
             </Flex>
           </Flex>
-          {!hasOutageReasonsData ? (
+          {isOutageDistributionLoading ? (
+            <Flex align="center" justify="center" h="400px">
+              <LoadingSpinner />
+            </Flex>
+          ) : !hasOutageReasonsData ? (
             <ChartEmptyState minHeight="400px" />
           ) : outageDistributionViewBy === 'geography' ? (
             hasGeographyData ? (
@@ -279,7 +307,11 @@ export function DistrictDashboardScreen({
 
       {/* Reading Submission Status + Reading Submission Rate */}
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-        <ReadingSubmissionStatusCard data={data.readingSubmissionStatus} chartHeight="336px" />
+        <ReadingSubmissionStatusCard
+          data={data.readingSubmissionStatus}
+          isLoading={isReadingSubmissionStatusLoading}
+          chartHeight="336px"
+        />
         <Box
           bg="white"
           borderWidth="0.5px"
@@ -299,7 +331,11 @@ export function DistrictDashboardScreen({
             })}
           </Text>
           <Box flex="1" minH={0}>
-            {supplySubmissionRateData.length > 0 ? (
+            {isReadingSubmissionRateLoading ? (
+              <Flex align="center" justify="center" h="100%">
+                <LoadingSpinner />
+              </Flex>
+            ) : supplySubmissionRateData.length > 0 ? (
               <ReadingSubmissionRateChart
                 data={supplySubmissionRateData}
                 height="100%"
@@ -333,7 +369,13 @@ export function DistrictDashboardScreen({
               {t('pumpOperators.totalLabel', { defaultValue: 'Total' })}: {pumpOperatorsTotal}
             </Text>
           </Flex>
-          <ActiveSchemesChart data={data.pumpOperators} height="360px" />
+          {isActiveSchemesLoading ? (
+            <Flex align="center" justify="center" h="360px">
+              <LoadingSpinner />
+            </Flex>
+          ) : (
+            <ActiveSchemesChart data={data.pumpOperators} height="360px" />
+          )}
         </Box>
         <Box
           bg="white"
@@ -350,6 +392,7 @@ export function DistrictDashboardScreen({
               defaultValue: 'Scheme Performance',
             })}
             data={operatorsPerformanceTable}
+            isLoading={isSchemePerformanceLoading}
             fillHeight
             showVillageColumn={false}
             blockColumnLabel={childEntityLabel}

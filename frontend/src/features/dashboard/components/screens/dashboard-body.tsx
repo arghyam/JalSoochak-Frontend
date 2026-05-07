@@ -19,7 +19,7 @@ import { DistrictDashboardScreen } from './district-dashboard'
 import { GramPanchayatDashboardScreen } from './gram-panchayat-dashboard'
 import { PerformanceChartCard } from './performance-chart-card'
 import { StateUtDashboardScreen } from './state-ut-dashboard'
-import { ChartEmptyState, ViewBySelect } from '@/shared/components/common'
+import { ChartEmptyState, LoadingSpinner, ViewBySelect } from '@/shared/components/common'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { VillageDashboardScreen } from './village-dashboard'
 import { getOutageTimeScaleXAxisLabel } from './outage-time-scale-toggle'
@@ -47,10 +47,12 @@ type DashboardBodyProps = {
   outageDistributionTimeScaleTab?: OutageTimeScale
   onOutageDistributionTimeScaleTabChange?: (value: OutageTimeScale) => void
   quantityPerformanceData: EntityPerformance[]
+  isQuantityPerformanceLoading?: boolean
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
   isQuantityTimeTrendAwaitingParams?: boolean
   regularityPerformanceData: EntityPerformance[]
+  isRegularityPerformanceLoading?: boolean
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading?: boolean
   districtTableData: EntityPerformance[]
@@ -61,6 +63,12 @@ type DashboardBodyProps = {
   supplySubmissionRateLabel: string
   waterSupplyOutagesData: WaterSupplyOutageData[]
   waterSupplyOutageDistributionData: WaterSupplyOutageData[]
+  isOutageReasonsLoading?: boolean
+  isOutageDistributionLoading?: boolean
+  isReadingSubmissionRateLoading?: boolean
+  isReadingSubmissionStatusLoading?: boolean
+  isSchemePerformanceLoading?: boolean
+  isActiveSchemesLoading?: boolean
   pumpOperatorsTotal: number
   operatorsPerformanceTable: PumpOperatorPerformanceData[]
   villagePhotoEvidenceRows: DashboardData['readingCompliance']
@@ -97,10 +105,12 @@ export function DashboardBody({
   outageDistributionTimeScaleTab,
   onOutageDistributionTimeScaleTabChange,
   quantityPerformanceData,
+  isQuantityPerformanceLoading = false,
   quantityTimeTrendData,
   isQuantityTimeTrendLoading = false,
   isQuantityTimeTrendAwaitingParams = false,
   regularityPerformanceData,
+  isRegularityPerformanceLoading = false,
   regularityTimeTrendData,
   isRegularityTimeTrendLoading = false,
   blockTableData,
@@ -110,6 +120,12 @@ export function DashboardBody({
   supplySubmissionRateLabel,
   waterSupplyOutagesData,
   waterSupplyOutageDistributionData,
+  isOutageReasonsLoading = false,
+  isOutageDistributionLoading = false,
+  isReadingSubmissionRateLoading = false,
+  isReadingSubmissionStatusLoading = false,
+  isSchemePerformanceLoading = false,
+  isActiveSchemesLoading = false,
   pumpOperatorsTotal,
   operatorsPerformanceTable,
   villagePhotoEvidenceRows,
@@ -186,6 +202,7 @@ export function DashboardBody({
         <PerformanceChartsSection
           key={performanceScreenKey ?? 'hidden-performance-screen'}
           quantityPerformanceData={quantityPerformanceData}
+          isQuantityPerformanceLoading={isQuantityPerformanceLoading}
           quantityTimeTrendData={quantityTimeTrendData}
           isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
           isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
@@ -194,6 +211,7 @@ export function DashboardBody({
           regularityTimeScaleTab={regularityTimeScaleTab}
           onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
           regularityPerformanceData={regularityPerformanceData}
+          isRegularityPerformanceLoading={isRegularityPerformanceLoading}
           regularityTimeTrendData={regularityTimeTrendData}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
           geographyEntityLabel={geographyEntityLabel}
@@ -209,6 +227,7 @@ export function DashboardBody({
           waterSupplyOutagesData={waterSupplyOutagesData}
           waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
           quantityPerformanceData={quantityPerformanceData}
+          isQuantityPerformanceLoading={isQuantityPerformanceLoading}
           quantityTimeTrendData={quantityTimeTrendData}
           isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
           isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
@@ -219,6 +238,7 @@ export function DashboardBody({
           outageDistributionTimeScaleTab={outageDistributionTimeScaleTab}
           onOutageDistributionTimeScaleTabChange={onOutageDistributionTimeScaleTabChange}
           regularityPerformanceData={regularityPerformanceData}
+          isRegularityPerformanceLoading={isRegularityPerformanceLoading}
           regularityTimeTrendData={regularityTimeTrendData}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
           blockTableData={blockTableData}
@@ -227,6 +247,12 @@ export function DashboardBody({
           childEntityLabel={supplySubmissionRateLabel}
           operatorsPerformanceTable={operatorsPerformanceTable}
           pumpOperatorsTotal={pumpOperatorsTotal}
+          isOutageReasonsLoading={isOutageReasonsLoading}
+          isOutageDistributionLoading={isOutageDistributionLoading}
+          isReadingSubmissionRateLoading={isReadingSubmissionRateLoading}
+          isReadingSubmissionStatusLoading={isReadingSubmissionStatusLoading}
+          isSchemePerformanceLoading={isSchemePerformanceLoading}
+          isActiveSchemesLoading={isActiveSchemesLoading}
           schemePerformancePage={schemePerformancePage}
           totalSchemePages={totalSchemePages}
           onSchemePageChange={onSchemePageChange}
@@ -240,6 +266,7 @@ export function DashboardBody({
           waterSupplyOutagesData={waterSupplyOutagesData}
           waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
           quantityPerformanceData={quantityPerformanceData}
+          isQuantityPerformanceLoading={isQuantityPerformanceLoading}
           quantityTimeTrendData={quantityTimeTrendData}
           isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
           isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
@@ -250,6 +277,7 @@ export function DashboardBody({
           outageDistributionTimeScaleTab={outageDistributionTimeScaleTab}
           onOutageDistributionTimeScaleTabChange={onOutageDistributionTimeScaleTabChange}
           regularityPerformanceData={regularityPerformanceData}
+          isRegularityPerformanceLoading={isRegularityPerformanceLoading}
           regularityTimeTrendData={regularityTimeTrendData}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
           gramPanchayatTableData={gramPanchayatTableData}
@@ -258,6 +286,12 @@ export function DashboardBody({
           childEntityLabel={supplySubmissionRateLabel}
           pumpOperatorsTotal={pumpOperatorsTotal}
           operatorsPerformanceTable={operatorsPerformanceTable}
+          isOutageReasonsLoading={isOutageReasonsLoading}
+          isOutageDistributionLoading={isOutageDistributionLoading}
+          isReadingSubmissionRateLoading={isReadingSubmissionRateLoading}
+          isReadingSubmissionStatusLoading={isReadingSubmissionStatusLoading}
+          isSchemePerformanceLoading={isSchemePerformanceLoading}
+          isActiveSchemesLoading={isActiveSchemesLoading}
           showSupplyOutageReasons
           showReadingSubmissionRate
           showReadingSubmissionSection
@@ -274,6 +308,7 @@ export function DashboardBody({
           waterSupplyOutagesData={waterSupplyOutagesData}
           waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
           quantityPerformanceData={quantityPerformanceData}
+          isQuantityPerformanceLoading={isQuantityPerformanceLoading}
           quantityTimeTrendData={quantityTimeTrendData}
           isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
           isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
@@ -284,6 +319,7 @@ export function DashboardBody({
           outageDistributionTimeScaleTab={outageDistributionTimeScaleTab}
           onOutageDistributionTimeScaleTabChange={onOutageDistributionTimeScaleTabChange}
           regularityPerformanceData={regularityPerformanceData}
+          isRegularityPerformanceLoading={isRegularityPerformanceLoading}
           regularityTimeTrendData={regularityTimeTrendData}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
           villageTableData={villageTableData}
@@ -292,6 +328,12 @@ export function DashboardBody({
           childEntityLabel={supplySubmissionRateLabel}
           pumpOperatorsTotal={pumpOperatorsTotal}
           operatorsPerformanceTable={operatorsPerformanceTable}
+          isOutageReasonsLoading={isOutageReasonsLoading}
+          isOutageDistributionLoading={isOutageDistributionLoading}
+          isReadingSubmissionRateLoading={isReadingSubmissionRateLoading}
+          isReadingSubmissionStatusLoading={isReadingSubmissionStatusLoading}
+          isSchemePerformanceLoading={isSchemePerformanceLoading}
+          isActiveSchemesLoading={isActiveSchemesLoading}
           schemePerformancePage={schemePerformancePage}
           totalSchemePages={totalSchemePages}
           onSchemePageChange={onSchemePageChange}
@@ -349,7 +391,13 @@ export function DashboardBody({
                 defaultValue: 'Supply Outage Reasons',
               })}
             </Text>
-            <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="336px" />
+            {isOutageReasonsLoading ? (
+              <Flex align="center" justify="center" h="336px">
+                <LoadingSpinner />
+              </Flex>
+            ) : (
+              <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="336px" />
+            )}
           </Box>
           <Box
             bg="white"
@@ -468,7 +516,11 @@ export function DashboardBody({
                   </Flex>
                 </Flex>
                 <Box flex="1" minH={0}>
-                  {!hasOutageReasonsData ? (
+                  {isOutageDistributionLoading ? (
+                    <Flex align="center" justify="center" h="100%">
+                      <LoadingSpinner />
+                    </Flex>
+                  ) : !hasOutageReasonsData ? (
                     <ChartEmptyState minHeight="100%" />
                   ) : outageDistributionViewBy === 'geography' ? (
                     hasGeographyData ? (
@@ -507,7 +559,11 @@ export function DashboardBody({
                   })}
                 </Text>
                 <Box flex="1" minH={0}>
-                  {supplySubmissionRateData.length > 0 ? (
+                  {isReadingSubmissionRateLoading ? (
+                    <Flex align="center" justify="center" h="100%">
+                      <LoadingSpinner />
+                    </Flex>
+                  ) : supplySubmissionRateData.length > 0 ? (
                     <ReadingSubmissionRateChart
                       data={supplySubmissionRateData}
                       height="100%"
@@ -529,6 +585,8 @@ export function DashboardBody({
           data={data}
           supplySubmissionRateData={supplySubmissionRateData}
           supplySubmissionRateLabel={supplySubmissionRateLabel}
+          isReadingSubmissionRateLoading={isReadingSubmissionRateLoading}
+          isReadingSubmissionStatusLoading={isReadingSubmissionStatusLoading}
           screenDateFormat={screenDateFormat}
         />
       ) : null}
@@ -538,6 +596,7 @@ export function DashboardBody({
 
 type PerformanceChartsSectionProps = {
   quantityPerformanceData: EntityPerformance[]
+  isQuantityPerformanceLoading: boolean
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading: boolean
   isQuantityTimeTrendAwaitingParams: boolean
@@ -546,6 +605,7 @@ type PerformanceChartsSectionProps = {
   regularityTimeScaleTab?: 'day' | 'week' | 'month' | 'quarter' | 'year'
   onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month' | 'quarter' | 'year') => void
   regularityPerformanceData: EntityPerformance[]
+  isRegularityPerformanceLoading: boolean
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading: boolean
   geographyEntityLabel: string
@@ -556,6 +616,7 @@ type PerformanceChartsSectionProps = {
 
 function PerformanceChartsSection({
   quantityPerformanceData,
+  isQuantityPerformanceLoading,
   quantityTimeTrendData,
   isQuantityTimeTrendLoading,
   isQuantityTimeTrendAwaitingParams,
@@ -564,6 +625,7 @@ function PerformanceChartsSection({
   regularityTimeScaleTab,
   onRegularityTimeScaleTabChange,
   regularityPerformanceData,
+  isRegularityPerformanceLoading,
   regularityTimeTrendData,
   isRegularityTimeTrendLoading,
   geographyEntityLabel,
@@ -587,6 +649,7 @@ function PerformanceChartsSection({
         viewBy={regularityViewBy}
         onViewByChange={setRegularityViewBy}
         data={regularityPerformanceData}
+        isGeographyLoading={isRegularityPerformanceLoading}
         metric="regularity"
         timeTrendData={regularityTimeTrendData}
         isTimeTrendLoading={isRegularityTimeTrendLoading}
@@ -613,6 +676,7 @@ function PerformanceChartsSection({
         viewBy={quantityViewBy}
         onViewByChange={setQuantityViewBy}
         data={quantityPerformanceData}
+        isGeographyLoading={isQuantityPerformanceLoading}
         metric="quantity"
         timeTrendData={quantityTimeTrendData}
         isTimeTrendLoading={isQuantityTimeTrendLoading}

@@ -1657,7 +1657,11 @@ export function CentralDashboard({
           ...regularityAnalyticsParams,
           scope: 'current' as const,
         }
-  const { data: averageWaterSupplyData } = useAverageWaterSupplyPerRegionQuery({
+  const {
+    data: averageWaterSupplyData,
+    isLoading: isAverageWaterSupplyLoading = false,
+    isFetching: isAverageWaterSupplyFetching = false,
+  } = useAverageWaterSupplyPerRegionQuery({
     params: analyticsParams,
     enabled: Boolean(analyticsParams),
   })
@@ -1677,13 +1681,18 @@ export function CentralDashboard({
     params: tenantBoundaryGeoJsonParams,
     enabled: shouldFetchTenantBoundaryGeoJson && Boolean(tenantBoundaryGeoJsonParams),
   })
-  const { data: nationalDashboardData } = useNationalDashboardQuery({
+  const {
+    data: nationalDashboardData,
+    isLoading: isNationalDashboardLoading = false,
+    isFetching: isNationalDashboardFetching = false,
+  } = useNationalDashboardQuery({
     params: nationalDashboardParams,
     enabled: Boolean(nationalDashboardParams),
   })
   const {
     data: nationalDashboardBoundariesData,
     isLoading: isNationalDashboardBoundariesLoading = false,
+    isFetching: isNationalDashboardBoundariesFetching = false,
   } = useNationalDashboardBoundariesQuery({
     enabled: !hasCentralLandingFilters,
   })
@@ -1714,7 +1723,11 @@ export function CentralDashboard({
       params: regularityPeriodicAnalyticsParams,
       enabled: Boolean(regularityPeriodicAnalyticsParams),
     })
-  const { data: outageReasonsPeriodicData } = useOutageReasonsPeriodicQuery({
+  const {
+    data: outageReasonsPeriodicData,
+    isLoading: isOutageReasonsPeriodicLoading = false,
+    isFetching: isOutageReasonsPeriodicFetching = false,
+  } = useOutageReasonsPeriodicQuery({
     params: outageReasonsPeriodicAnalyticsParams,
     enabled: Boolean(outageReasonsPeriodicAnalyticsParams),
   })
@@ -1745,19 +1758,35 @@ export function CentralDashboard({
     params: previousWaterSupplyAnalyticsParams,
     enabled: Boolean(previousWaterSupplyAnalyticsParams),
   })
-  const { data: averageSchemeRegularityData } = useAverageSchemeRegularityQuery({
+  const {
+    data: averageSchemeRegularityData,
+    isLoading: isAverageSchemeRegularityLoading = false,
+    isFetching: isAverageSchemeRegularityFetching = false,
+  } = useAverageSchemeRegularityQuery({
     params: regularityAnalyticsParams,
     enabled: Boolean(regularityAnalyticsParams),
   })
-  const { data: waterQuantityRegionWiseData } = useWaterQuantityRegionWiseQuery({
+  const {
+    data: waterQuantityRegionWiseData,
+    isLoading: isWaterQuantityRegionWiseLoading = false,
+    isFetching: isWaterQuantityRegionWiseFetching = false,
+  } = useWaterQuantityRegionWiseQuery({
     params: quantityRegionWiseAnalyticsParams,
     enabled: Boolean(quantityRegionWiseAnalyticsParams),
   })
-  const { data: readingSubmissionRateData } = useReadingSubmissionRateQuery({
+  const {
+    data: readingSubmissionRateData,
+    isLoading: isReadingSubmissionRateLoading = false,
+    isFetching: isReadingSubmissionRateFetching = false,
+  } = useReadingSubmissionRateQuery({
     params: readingSubmissionRateAnalyticsParams,
     enabled: Boolean(readingSubmissionRateAnalyticsParams),
   })
-  const { data: schemePerformanceData } = useSchemePerformanceQuery({
+  const {
+    data: schemePerformanceData,
+    isLoading: isSchemePerformanceLoading = false,
+    isFetching: isSchemePerformanceFetching = false,
+  } = useSchemePerformanceQuery({
     params: schemePerformanceAnalyticsParams,
     enabled: Boolean(schemePerformanceAnalyticsParams),
   })
@@ -1780,11 +1809,19 @@ export function CentralDashboard({
   const totalSchemePages = Math.ceil(
     (schemePerformanceData?.totalCount ?? 0) / SCHEME_PERFORMANCE_PAGE_SIZE
   )
-  const { data: submissionStatusData } = useSubmissionStatusQuery({
+  const {
+    data: submissionStatusData,
+    isLoading: isSubmissionStatusLoading = false,
+    isFetching: isSubmissionStatusFetching = false,
+  } = useSubmissionStatusQuery({
     params: submissionStatusAnalyticsParams,
     enabled: Boolean(submissionStatusAnalyticsParams),
   })
-  const { data: outageReasonsData } = useOutageReasonsQuery({
+  const {
+    data: outageReasonsData,
+    isLoading: isOutageReasonsLoading = false,
+    isFetching: isOutageReasonsFetching = false,
+  } = useOutageReasonsQuery({
     params: outageReasonsAnalyticsParams,
     enabled: Boolean(outageReasonsAnalyticsParams),
   })
@@ -1893,6 +1930,78 @@ export function CentralDashboard({
       enabled: isCentralLandingView,
     })),
   })
+  const isQueryPending = (enabled: boolean, isLoading: boolean, isFetching: boolean) =>
+    enabled && (isLoading || isFetching)
+  const isNationalDashboardPending = isQueryPending(
+    Boolean(nationalDashboardParams),
+    isNationalDashboardLoading,
+    isNationalDashboardFetching
+  )
+  const isNationalDashboardBoundariesPending = isQueryPending(
+    !hasCentralLandingFilters,
+    isNationalDashboardBoundariesLoading,
+    isNationalDashboardBoundariesFetching
+  )
+  const isNationalTenantPublicConfigPending = nationalTenantPublicConfigQueries.some(
+    (query) => query.isLoading || query.isFetching
+  )
+  const isAverageWaterSupplyPending = isQueryPending(
+    Boolean(analyticsParams),
+    isAverageWaterSupplyLoading,
+    isAverageWaterSupplyFetching
+  )
+  const isAverageSchemeRegularityPending = isQueryPending(
+    Boolean(regularityAnalyticsParams),
+    isAverageSchemeRegularityLoading,
+    isAverageSchemeRegularityFetching
+  )
+  const isWaterQuantityRegionWisePending = isQueryPending(
+    Boolean(quantityRegionWiseAnalyticsParams),
+    isWaterQuantityRegionWiseLoading,
+    isWaterQuantityRegionWiseFetching
+  )
+  const isReadingSubmissionRatePending = isQueryPending(
+    Boolean(readingSubmissionRateAnalyticsParams),
+    isReadingSubmissionRateLoading,
+    isReadingSubmissionRateFetching
+  )
+  const isSchemePerformancePending = isQueryPending(
+    Boolean(schemePerformanceAnalyticsParams),
+    isSchemePerformanceLoading,
+    isSchemePerformanceFetching
+  )
+  const isSubmissionStatusPending = isQueryPending(
+    Boolean(submissionStatusAnalyticsParams),
+    isSubmissionStatusLoading,
+    isSubmissionStatusFetching
+  )
+  const isOutageReasonsPending = isQueryPending(
+    Boolean(outageReasonsAnalyticsParams),
+    isOutageReasonsLoading,
+    isOutageReasonsFetching
+  )
+  const isOutageReasonsPeriodicPending = isQueryPending(
+    Boolean(outageReasonsPeriodicAnalyticsParams),
+    isOutageReasonsPeriodicLoading,
+    isOutageReasonsPeriodicFetching
+  )
+  const isOverallPerformanceLoading = isCentralLandingView
+    ? isNationalDashboardPending
+    : isAverageWaterSupplyPending || isAverageSchemeRegularityPending
+  const isQuantityPerformanceLoading = isCentralLandingView
+    ? isNationalDashboardPending || isNationalTenantPublicConfigPending
+    : isAverageWaterSupplyPending || isWaterQuantityRegionWisePending
+  const isRegularityPerformanceLoading = isCentralLandingView
+    ? isNationalDashboardPending
+    : isAverageSchemeRegularityPending
+  const isReadingSubmissionRateWidgetLoading = isCentralLandingView
+    ? isNationalDashboardPending
+    : isReadingSubmissionRatePending
+  const isOutageReasonsWidgetLoading = isCentralLandingView
+    ? isNationalDashboardPending
+    : isOutageReasonsPending
+  const isOutageDistributionWidgetLoading =
+    isOutageReasonsWidgetLoading || isOutageReasonsPeriodicPending
   const nationalDemandInputsByTenantId = nationalQuantityTenantIds.reduce<
     Map<number, { averagePersonsPerHousehold: number; litersPerPersonPerDay: number }>
   >((acc, tenantId, index) => {
@@ -2157,7 +2266,7 @@ export function CentralDashboard({
         averageWaterSupplyData
       )
   const isMapDataLoading = isCentralLandingView
-    ? !nationalDashboardBoundariesData && isNationalDashboardBoundariesLoading
+    ? !nationalDashboardBoundariesData && isNationalDashboardBoundariesPending
     : Boolean(tenantBoundaryAnalyticsParams) &&
       (!tenantBoundaryData || !tenantBoundaryGeoJsonData) &&
       (isTenantBoundariesLoading ||
@@ -2210,7 +2319,12 @@ export function CentralDashboard({
     })
   })
   const hasAnyDistrictData = districtBoundaryQueries.some((q) => Boolean(q.data))
-  const isDistrictMapLoading = isMapDistrictView && isCentralLandingView && !hasAnyDistrictData
+  const isDistrictMapLoading =
+    isMapDistrictView &&
+    isCentralLandingView &&
+    !hasAnyDistrictData &&
+    (isNationalDashboardBoundariesPending ||
+      districtBoundaryQueries.some((query) => query.isLoading || query.isFetching))
 
   const districtToStateMap = new Map<string, NationalDashboardBoundaryState>()
   districtBoundaryQueries.forEach((query, index) => {
@@ -3422,6 +3536,7 @@ export function CentralDashboard({
             </Text>
             <OverallPerformanceTable
               data={overallPerformanceTableData}
+              isLoading={isOverallPerformanceLoading}
               entityLabel={overallPerformanceEntityLabel}
               scrollMaxHeight={overallPerformanceScrollHeight}
               autoHeightWithinMax={!shouldShowMapAlongsidePerformance}
@@ -3484,6 +3599,7 @@ export function CentralDashboard({
         outageDistributionTimeScaleTab={outageDistributionTimeScaleTab}
         onOutageDistributionTimeScaleTabChange={(value) => setOutageDistributionTimeScaleTab(value)}
         quantityPerformanceData={quantityPerformanceData}
+        isQuantityPerformanceLoading={isQuantityPerformanceLoading}
         quantityTimeTrendData={quantityTimeTrendData}
         isQuantityTimeTrendLoading={
           isCentralLandingView
@@ -3494,6 +3610,7 @@ export function CentralDashboard({
           isCentralLandingView ? false : isWaterQuantityPeriodicAwaitingParams
         }
         regularityPerformanceData={regularityPerformanceData}
+        isRegularityPerformanceLoading={isRegularityPerformanceLoading}
         regularityTimeTrendData={regularityTimeTrendData}
         isRegularityTimeTrendLoading={
           isCentralLandingView
@@ -3508,6 +3625,12 @@ export function CentralDashboard({
         supplySubmissionRateLabel={supplySubmissionRateLabel}
         waterSupplyOutagesData={waterSupplyOutagesData}
         waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
+        isOutageReasonsLoading={isOutageReasonsWidgetLoading}
+        isOutageDistributionLoading={isOutageDistributionWidgetLoading}
+        isReadingSubmissionRateLoading={isReadingSubmissionRateWidgetLoading}
+        isReadingSubmissionStatusLoading={isSubmissionStatusPending}
+        isSchemePerformanceLoading={isSchemePerformancePending}
+        isActiveSchemesLoading={isSchemePerformancePending}
         pumpOperatorsTotal={pumpOperatorsTotal}
         operatorsPerformanceTable={operatorsPerformanceTable}
         villagePhotoEvidenceRows={villagePhotoEvidenceRows}
