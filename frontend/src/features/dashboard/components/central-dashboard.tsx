@@ -23,6 +23,8 @@ import { useLocationHierarchyQuery } from '../services/query/use-location-hierar
 import { useLocationSearchQuery } from '../services/query/use-location-search-query'
 import { useAverageWaterSupplyPerRegionQuery } from '../services/query/use-average-water-supply-per-region-query'
 import { useAverageSchemeRegularityQuery } from '../services/query/use-average-scheme-regularity-query'
+import { useContinuousSchemesQuery } from '../services/query/use-continuous-schemes-query'
+import { useCriticalSchemesQuery } from '../services/query/use-critical-schemes-query'
 import { useNationalDashboardQuery } from '../services/query/use-national-dashboard-query'
 import { useNationalDashboardBoundariesQuery } from '../services/query/use-national-dashboard-boundaries-query'
 import { useNationalSchemeRegularityPeriodicQuery } from '../services/query/use-national-scheme-regularity-periodic-query'
@@ -110,6 +112,7 @@ import { getRuntimeConfig } from '@/config/runtime-config'
 
 const storageKey = 'central-dashboard-filters'
 const SCHEME_PERFORMANCE_PAGE_SIZE = 15
+const DASHBOARD_DURATION_DATE_FORMAT = 'DD/MM/YYYY'
 
 const EMPTY_DASHBOARD_DATA: DashboardData = {
   level: 'central',
@@ -441,7 +444,7 @@ const getInitialStoredDuration = (
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  if (endDate > today) {
+  if (endDate >= today) {
     return null
   }
 
@@ -591,8 +594,8 @@ const formulaTooltipTextStyle = {
 } as const
 
 const renderFormulaTooltip = (formula: ReactNode, definitions: ReactNode[]) => (
-  <Box w="296px" minH="80px">
-    <Text sx={formulaTooltipTextStyle} mb="8px">
+  <Box w="296px">
+    <Text sx={formulaTooltipTextStyle} mb={definitions.length > 0 ? '8px' : '0'}>
       {formula}
     </Text>
     {definitions.map((definition, index) => (
@@ -1029,6 +1032,9 @@ export function CentralDashboard({
     runtimeConfig.DEFAULT_WATER_NORM_LITERS_PER_PERSON_PER_DAY,
     55
   )
+  const criticalSchemeStatusAfterDays = Math.round(
+    resolvePositiveNumber(runtimeConfig.ANALYTICS_SCHEME_STATUS_CRITICAL_AFTER_DAYS, 5)
+  )
   const nationalDefaultAverageMembersPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD
   const nationalDefaultWaterNormLitersPerPersonPerDay = defaultWaterNormLitersPerPersonPerDay
   const averagePersonsPerHousehold = resolvePositiveNumber(
@@ -1042,7 +1048,7 @@ export function CentralDashboard({
   const screenDateFormat = normalizeDateFormat(
     tenantPublicConfig?.dateFormatScreen?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
   )
-  const durationDateFormat = screenDateFormat
+  const durationDateFormat = DASHBOARD_DURATION_DATE_FORMAT
   const tableDateFormat = normalizeDateFormat(
     tenantPublicConfig?.dateFormatTable?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
   )
@@ -1503,6 +1509,42 @@ export function CentralDashboard({
             pageNumber: schemePerformancePage,
             limit: SCHEME_PERFORMANCE_PAGE_SIZE,
           }
+  const criticalSchemesAnalyticsParams =
+    !hasCentralLandingFilters || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            tenantId: selectedTenant.tenantId,
+            lgdId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            list: false,
+          }
+        : {
+            tenantId: selectedTenant.tenantId,
+            departmentId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            list: false,
+          }
+  const continuousSchemesAnalyticsParams =
+    !hasCentralLandingFilters || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            tenantId: selectedTenant.tenantId,
+            lgdId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            list: false,
+          }
+        : {
+            tenantId: selectedTenant.tenantId,
+            departmentId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            list: false,
+          }
   const submissionStatusAnalyticsParams =
     !hasCentralLandingFilters || !selectedTenant?.tenantId || !hasValidSubmissionStatusParentId
       ? null
@@ -1573,6 +1615,22 @@ export function CentralDashboard({
       ? null
       : {
           ...analyticsParams,
+          startDate: previousAnalyticsRange.startDate,
+          endDate: previousAnalyticsRange.endDate,
+        }
+  const previousCriticalSchemesAnalyticsParams =
+    criticalSchemesAnalyticsParams === null
+      ? null
+      : {
+          ...criticalSchemesAnalyticsParams,
+          startDate: previousAnalyticsRange.startDate,
+          endDate: previousAnalyticsRange.endDate,
+        }
+  const previousContinuousSchemesAnalyticsParams =
+    continuousSchemesAnalyticsParams === null
+      ? null
+      : {
+          ...continuousSchemesAnalyticsParams,
           startDate: previousAnalyticsRange.startDate,
           endDate: previousAnalyticsRange.endDate,
         }
@@ -1703,6 +1761,22 @@ export function CentralDashboard({
     params: schemePerformanceAnalyticsParams,
     enabled: Boolean(schemePerformanceAnalyticsParams),
   })
+  const { data: criticalSchemesData } = useCriticalSchemesQuery({
+    params: criticalSchemesAnalyticsParams,
+    enabled: Boolean(criticalSchemesAnalyticsParams),
+  })
+  const { data: continuousSchemesData } = useContinuousSchemesQuery({
+    params: continuousSchemesAnalyticsParams,
+    enabled: Boolean(continuousSchemesAnalyticsParams),
+  })
+  const { data: previousCriticalSchemesData } = useCriticalSchemesQuery({
+    params: previousCriticalSchemesAnalyticsParams,
+    enabled: Boolean(previousCriticalSchemesAnalyticsParams),
+  })
+  const { data: previousContinuousSchemesData } = useContinuousSchemesQuery({
+    params: previousContinuousSchemesAnalyticsParams,
+    enabled: Boolean(previousContinuousSchemesAnalyticsParams),
+  })
   const totalSchemePages = Math.ceil(
     (schemePerformanceData?.totalCount ?? 0) / SCHEME_PERFORMANCE_PAGE_SIZE
   )
@@ -1775,6 +1849,34 @@ export function CentralDashboard({
   const { data: previousSchemeRegularityPeriodicData } = useSchemeRegularityPeriodicQuery({
     params: previousRegularityPeriodicAnalyticsParams,
     enabled: Boolean(previousRegularityPeriodicAnalyticsParams),
+  })
+  const previousQuantityTrendPeriodicAnalyticsParams =
+    !isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            tenantId: selectedTenant.tenantId,
+            lgdId: analyticsParentId,
+            startDate: previousAnalyticsRange.startDate,
+            endDate: previousAnalyticsRange.endDate,
+            scale: resolveWaterQuantityPeriodicScale(
+              previousAnalyticsRange.startDate,
+              previousAnalyticsRange.endDate
+            ),
+          }
+        : {
+            tenantId: selectedTenant.tenantId,
+            departmentId: analyticsParentId,
+            startDate: previousAnalyticsRange.startDate,
+            endDate: previousAnalyticsRange.endDate,
+            scale: resolveWaterQuantityPeriodicScale(
+              previousAnalyticsRange.startDate,
+              previousAnalyticsRange.endDate
+            ),
+          }
+  const { data: previousSchemeQuantityPeriodicData } = useSchemeRegularityPeriodicQuery({
+    params: previousQuantityTrendPeriodicAnalyticsParams,
+    enabled: Boolean(previousQuantityTrendPeriodicAnalyticsParams),
   })
   const isCentralLandingView = !hasCentralLandingFilters
   const nationalQuantityTenantIds = Array.from(
@@ -2241,7 +2343,11 @@ export function CentralDashboard({
         nationalDefaultAverageMembersPerHousehold
       )
     : isHierarchyLeafSelected
-      ? getWaterSupplyKpisFromPeriodic(waterQuantityPeriodicData, averagePersonsPerHousehold)
+      ? getWaterSupplyKpisFromPeriodic(
+          schemeQuantityPeriodicData,
+          waterQuantityPeriodicData,
+          averagePersonsPerHousehold
+        )
       : getWaterSupplyKpis(
           hasWaterSupplyData(currentWaterSupplyKpiData)
             ? currentWaterSupplyKpiData
@@ -2255,6 +2361,7 @@ export function CentralDashboard({
       )
     : isHierarchyLeafSelected
       ? getWaterSupplyKpisFromPeriodic(
+          previousSchemeQuantityPeriodicData,
           previousWaterQuantityPeriodicData,
           averagePersonsPerHousehold
         )
@@ -2906,6 +3013,10 @@ export function CentralDashboard({
     currentWaterSupplyKpis.quantityMld,
     previousWaterSupplyKpis.quantityMld
   )
+  const continuousSchemesCount = continuousSchemesData?.continuousSchemeCount ?? 0
+  const previousContinuousSchemesCount = previousContinuousSchemesData?.continuousSchemeCount ?? 0
+  const criticalSchemesCount = criticalSchemesData?.criticalSchemeCount ?? 0
+  const previousCriticalSchemesCount = previousCriticalSchemesData?.criticalSchemeCount ?? 0
   const quantityLpcdChange = calculateAbsoluteChange(
     currentWaterSupplyKpis.quantityLpcd,
     previousWaterSupplyKpis.quantityLpcd
@@ -2948,8 +3059,40 @@ export function CentralDashboard({
       text: formatter(changeValue),
     }
   }
+  const getCountPercentChange = (currentValue: number, previousValue: number) => {
+    if (currentValue > 0 && previousValue < 0) {
+      return 100
+    }
+
+    return calculatePercentChange(currentValue, previousValue)
+  }
+  const buildCountPercentTrend = (currentValue: number, previousValue: number) => {
+    const changeValue = getCountPercentChange(currentValue, previousValue)
+
+    return {
+      direction:
+        currentValue === 0 && previousValue === 0
+          ? ('neutral' as const)
+          : toTrendDirection(changeValue),
+      text: `${formatSignedValue(changeValue, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 1,
+      })}% vs previous ${comparisonDays} days`,
+    }
+  }
 
   const coreMetrics = [
+    {
+      label: t('kpi.labels.schemesSupplyingWater', {
+        defaultValue: 'Schemes Supplying Water',
+      }),
+      value: formatNumber(continuousSchemesCount),
+      trend: buildCountPercentTrend(continuousSchemesCount, previousContinuousSchemesCount),
+      tooltipContent: t('kpi.tooltips.schemesSupplyingWater.description', {
+        defaultValue:
+          'Count of schemes that supplied water for the selected date range consistently.',
+      }),
+    },
     {
       label: t('kpi.labels.quantityInMld', { defaultValue: 'Quantity in MLD' }),
       value: formatQuantityMld(currentWaterSupplyKpis.quantityMld),
@@ -3104,7 +3247,17 @@ export function CentralDashboard({
         ]
       ),
     },
+    {
+      label: t('kpi.labels.criticalSchemes', { defaultValue: 'Critical Schemes' }),
+      value: formatNumber(criticalSchemesCount),
+      trend: buildCountPercentTrend(criticalSchemesCount, previousCriticalSchemesCount),
+      tooltipContent: t('kpi.tooltips.criticalSchemes.description', {
+        days: criticalSchemeStatusAfterDays,
+        defaultValue: 'Schemes identified as failing to supply water, based on {{days}} days.',
+      }),
+    },
   ] as const
+  const visibleCoreMetrics = isCentralLandingView ? coreMetrics.slice(1, 4) : coreMetrics
   const pumpOperatorsTotal = resolvedDashboardData.pumpOperators.reduce(
     (total, item) => total + item.value,
     0
@@ -3217,16 +3370,20 @@ export function CentralDashboard({
 
       {/* KPI Cards */}
       <Grid
-        templateColumns={{ base: '1fr', md: 'repeat(auto-fit, minmax(240px, 1fr))' }}
+        templateColumns={{
+          base: '1fr',
+          sm: 'repeat(2, minmax(0, 1fr))',
+          lg: `repeat(${visibleCoreMetrics.length}, minmax(0, 1fr))`,
+        }}
         gap={4}
         mb={6}
       >
-        {coreMetrics.map((metric) => (
+        {visibleCoreMetrics.map((metric) => (
           <KPICard
             key={metric.label}
             title={metric.label}
             value={metric.value}
-            icon={metric.icon}
+            icon={isCentralLandingView && 'icon' in metric ? metric.icon : undefined}
             trend={metric.trend}
             tooltipContent={metric.tooltipContent}
           />

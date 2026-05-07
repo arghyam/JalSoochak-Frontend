@@ -1,5 +1,5 @@
 import { fireEvent, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { useState } from 'react'
 import type { ComponentProps } from 'react'
 import type { SearchableSelectOption } from '@/shared/components/common'
@@ -82,6 +82,10 @@ describe('DashboardFilters', () => {
     mockUseLocationChildrenQuery.mockReturnValue({ data: undefined })
   })
 
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
   it('keeps duration control enabled even when advanced filters are disabled', () => {
     renderDashboardFilters({
       filterTabIndex: 1,
@@ -102,6 +106,24 @@ describe('DashboardFilters', () => {
     expect(screen.getByRole('button', { name: 'Clear all filters' }).getAttribute('disabled')).toBe(
       null
     )
+  })
+
+  it('shows dashboard duration with a full DD/MM/YYYY year range', () => {
+    renderDashboardFilters({
+      selectedDuration: { startDate: '2026-03-11', endDate: '2026-03-12' },
+      durationDateFormat: 'DD/MM/YYYY',
+    })
+
+    expect(screen.getByText('11/03/2026-12/03/2026')).toBeTruthy()
+  })
+
+  it('shows the default dashboard duration ending yesterday', () => {
+    jest.useFakeTimers()
+    jest.setSystemTime(new Date('2026-05-06T09:00:00'))
+
+    renderDashboardFilters({ durationDateFormat: 'DD/MM/YYYY' })
+
+    expect(screen.getByText('06/04/2026-05/05/2026')).toBeTruthy()
   })
 
   it('clears search input text when clear all filters is clicked', () => {

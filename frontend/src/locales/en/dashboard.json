@@ -91,11 +91,19 @@
   },
   "kpi": {
     "labels": {
+      "schemesSupplyingWater": "Schemes Supplying Water",
       "quantityInMld": "Quantity in MLD",
       "quantityInLpcd": "Quantity in LPCD",
-      "regularity": "Regularity"
+      "regularity": "Regularity",
+      "criticalSchemes": "Critical Schemes"
     },
     "tooltips": {
+      "schemesSupplyingWater": {
+        "description": "Count of schemes that supplied water for the selected date range consistently."
+      },
+      "criticalSchemes": {
+        "description": "Schemes identified as failing to supply water, based on {{days}} days."
+      },
       "quantityMld": {
         "formulaLabel": "Quantity (MLD)",
         "definitions": {
