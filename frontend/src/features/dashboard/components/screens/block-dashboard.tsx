@@ -17,7 +17,7 @@ import {
 import { SchemePerformanceTable } from '../tables'
 import { PerformanceChartCard } from './performance-chart-card'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
-import { ChartEmptyState, ViewBySelect } from '@/shared/components/common'
+import { ChartEmptyState, LoadingSpinner, ViewBySelect } from '@/shared/components/common'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { useOutageDistributionState } from './use-outage-distribution-state'
 import { getOutageTimeScaleXAxisLabel, OutageTimeScaleToggle } from './outage-time-scale-toggle'
@@ -27,6 +27,7 @@ type BlockDashboardScreenProps = {
   waterSupplyOutagesData?: WaterSupplyOutageData[]
   waterSupplyOutageDistributionData?: WaterSupplyOutageData[]
   quantityPerformanceData: EntityPerformance[]
+  isQuantityPerformanceLoading?: boolean
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
   isQuantityTimeTrendAwaitingParams?: boolean
@@ -39,6 +40,7 @@ type BlockDashboardScreenProps = {
     value: 'day' | 'week' | 'month' | 'quarter' | 'year'
   ) => void
   regularityPerformanceData: EntityPerformance[]
+  isRegularityPerformanceLoading?: boolean
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading?: boolean
   gramPanchayatTableData: EntityPerformance[]
@@ -46,6 +48,12 @@ type BlockDashboardScreenProps = {
   supplySubmissionRateLabel: string
   pumpOperatorsTotal: number
   operatorsPerformanceTable: PumpOperatorPerformanceData[]
+  isOutageReasonsLoading?: boolean
+  isOutageDistributionLoading?: boolean
+  isReadingSubmissionRateLoading?: boolean
+  isReadingSubmissionStatusLoading?: boolean
+  isSchemePerformanceLoading?: boolean
+  isActiveSchemesLoading?: boolean
   childEntityLabel?: string
   showSupplyOutageReasons?: boolean
   showReadingSubmissionRate?: boolean
@@ -64,6 +72,7 @@ export function BlockDashboardScreen({
   waterSupplyOutagesData = data.waterSupplyOutages,
   waterSupplyOutageDistributionData = data.waterSupplyOutages,
   quantityPerformanceData,
+  isQuantityPerformanceLoading = false,
   quantityTimeTrendData,
   isQuantityTimeTrendLoading = false,
   isQuantityTimeTrendAwaitingParams = false,
@@ -74,12 +83,19 @@ export function BlockDashboardScreen({
   outageDistributionTimeScaleTab,
   onOutageDistributionTimeScaleTabChange,
   regularityPerformanceData,
+  isRegularityPerformanceLoading = false,
   regularityTimeTrendData,
   isRegularityTimeTrendLoading = false,
   supplySubmissionRateData,
   supplySubmissionRateLabel,
   pumpOperatorsTotal,
   operatorsPerformanceTable,
+  isOutageReasonsLoading = false,
+  isOutageDistributionLoading = false,
+  isReadingSubmissionRateLoading = false,
+  isReadingSubmissionStatusLoading = false,
+  isSchemePerformanceLoading = false,
+  isActiveSchemesLoading = false,
   childEntityLabel = supplySubmissionRateLabel,
   showSupplyOutageReasons = true,
   showReadingSubmissionRate = true,
@@ -125,6 +141,7 @@ export function BlockDashboardScreen({
           viewBy={regularityViewBy}
           onViewByChange={setRegularityViewBy}
           data={regularityPerformanceData}
+          isGeographyLoading={isRegularityPerformanceLoading}
           metric="regularity"
           timeTrendData={regularityTimeTrendData}
           isTimeTrendLoading={isRegularityTimeTrendLoading}
@@ -152,6 +169,7 @@ export function BlockDashboardScreen({
           viewBy={quantityViewBy}
           onViewByChange={setQuantityViewBy}
           data={quantityPerformanceData}
+          isGeographyLoading={isQuantityPerformanceLoading}
           metric="quantity"
           timeTrendData={quantityTimeTrendData}
           isTimeTrendLoading={isQuantityTimeTrendLoading}
@@ -200,7 +218,13 @@ export function BlockDashboardScreen({
                 defaultValue: 'Supply Outage Reasons',
               })}
             </Text>
-            <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
+            {isOutageReasonsLoading ? (
+              <Flex align="center" justify="center" h="400px">
+                <LoadingSpinner />
+              </Flex>
+            ) : (
+              <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
+            )}
           </Box>
         ) : null}
         <Box
@@ -263,7 +287,11 @@ export function BlockDashboardScreen({
               />
             </Flex>
           </Flex>
-          {!hasOutageReasonsData ? (
+          {isOutageDistributionLoading ? (
+            <Flex align="center" justify="center" h="400px">
+              <LoadingSpinner />
+            </Flex>
+          ) : !hasOutageReasonsData ? (
             <ChartEmptyState minHeight="400px" />
           ) : outageDistributionViewBy === 'geography' ? (
             hasGeographyData ? (
@@ -315,7 +343,13 @@ export function BlockDashboardScreen({
               {t('pumpOperators.totalLabel', { defaultValue: 'Total' })}: {pumpOperatorsTotal}
             </Text>
           </Flex>
-          <ActiveSchemesChart data={data.pumpOperators} height="360px" />
+          {isActiveSchemesLoading ? (
+            <Flex align="center" justify="center" h="360px">
+              <LoadingSpinner />
+            </Flex>
+          ) : (
+            <ActiveSchemesChart data={data.pumpOperators} height="360px" />
+          )}
         </Box>
         <Box
           bg="white"
@@ -335,6 +369,7 @@ export function BlockDashboardScreen({
               defaultValue: 'Scheme Performance',
             })}
             data={operatorsPerformanceTable}
+            isLoading={isSchemePerformanceLoading}
             fillHeight
             secondaryColumnLabel={childEntityLabel}
             showBlockColumn={false}
@@ -355,7 +390,11 @@ export function BlockDashboardScreen({
           gap={6}
           mb={6}
         >
-          <ReadingSubmissionStatusCard data={data.readingSubmissionStatus} chartHeight="336px" />
+          <ReadingSubmissionStatusCard
+            data={data.readingSubmissionStatus}
+            isLoading={isReadingSubmissionStatusLoading}
+            chartHeight="336px"
+          />
           {showReadingSubmissionRate ? (
             <Box
               bg="white"
@@ -376,7 +415,11 @@ export function BlockDashboardScreen({
                 })}
               </Text>
               <Box flex="1" minH={0}>
-                {supplySubmissionRateData.length > 0 ? (
+                {isReadingSubmissionRateLoading ? (
+                  <Flex align="center" justify="center" h="100%">
+                    <LoadingSpinner />
+                  </Flex>
+                ) : supplySubmissionRateData.length > 0 ? (
                   <ReadingSubmissionRateChart
                     data={supplySubmissionRateData}
                     height="100%"

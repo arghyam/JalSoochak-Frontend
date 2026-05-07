@@ -14,6 +14,7 @@ type PerformanceChartCardProps = {
   viewBy: ViewByValue
   onViewByChange: (value: ViewByValue) => void
   data: EntityPerformance[]
+  isGeographyLoading?: boolean
   metric: PerformanceMetric
   timeTrendData: MonthlyTrendPoint[]
   isTimeTrendLoading?: boolean
@@ -44,6 +45,7 @@ export function PerformanceChartCard({
   viewBy,
   onViewByChange,
   data,
+  isGeographyLoading = false,
   metric,
   timeTrendData,
   isTimeTrendLoading = false,
@@ -202,7 +204,11 @@ export function PerformanceChartCard({
         </Flex>
       </Flex>
       <Box flex="1" minH={0}>
-        {viewBy === 'geography' ? (
+        {viewBy === 'geography' && isGeographyLoading ? (
+          <Flex align="center" justify="center" h="100%">
+            <LoadingSpinner />
+          </Flex>
+        ) : viewBy === 'geography' ? (
           data.length > 0 ? (
             <MetricPerformanceChart
               data={data}
