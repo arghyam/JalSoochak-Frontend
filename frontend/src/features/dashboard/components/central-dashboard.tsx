@@ -2344,7 +2344,7 @@ export function CentralDashboard({
       )
     : isHierarchyLeafSelected
       ? getWaterSupplyKpisFromPeriodic(
-          schemeQuantityPeriodicData,
+          schemeRegularityPeriodicData,
           waterQuantityPeriodicData,
           averagePersonsPerHousehold
         )
