@@ -24,9 +24,11 @@ import {
 import { useTranslation } from 'react-i18next'
 import { LuArrowLeft, LuArrowRight, LuChevronsLeft, LuChevronsRight } from 'react-icons/lu'
 import type { PumpOperatorPerformanceData } from '../../types'
+import { LoadingSpinner } from '@/shared/components/common'
 
 interface SchemePerformanceTableProps {
   data: PumpOperatorPerformanceData[]
+  isLoading?: boolean
   title: string
   maxItems?: number
   maxTableHeight?: string | number
@@ -121,6 +123,7 @@ function useResizeObserver(ref: RefObject<HTMLDivElement | null>, callback: () =
 
 export function SchemePerformanceTable({
   data,
+  isLoading = false,
   title,
   maxItems,
   maxTableHeight = '330px',
@@ -323,7 +326,18 @@ export function SchemePerformanceTable({
       <Box textStyle="bodyText3" fontWeight="400" mb="16px">
         {title}
       </Box>
-      {isEmpty ? (
+      {isLoading ? (
+        <Box
+          flex={fillHeight ? 1 : undefined}
+          minH={fillHeight ? 0 : '200px'}
+          h={fillHeight ? '100%' : '200px'}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <LoadingSpinner />
+        </Box>
+      ) : isEmpty ? (
         <Box
           flex={fillHeight ? 1 : undefined}
           minH={fillHeight ? 0 : '200px'}

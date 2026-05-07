@@ -3,9 +3,11 @@ import { Box, Icon, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import type { KeyboardEvent } from 'react'
 import type { EntityPerformance } from '../../types'
+import { LoadingSpinner } from '@/shared/components/common'
 
 interface OverallPerformanceTableProps {
   data: EntityPerformance[]
+  isLoading?: boolean
   maxItems?: number
   scrollMaxHeight?: string
   autoHeightWithinMax?: boolean
@@ -45,6 +47,7 @@ function SortIndicator({
 
 export function OverallPerformanceTable({
   data,
+  isLoading = false,
   maxItems,
   scrollMaxHeight = '416px',
   autoHeightWithinMax = false,
@@ -120,7 +123,11 @@ export function OverallPerformanceTable({
         }}
       >
         <Box w="full" minW={0}>
-          {!isEmpty ? (
+          {isLoading ? (
+            <Box minH={scrollMaxHeight} display="flex" alignItems="center" justifyContent="center">
+              <LoadingSpinner />
+            </Box>
+          ) : !isEmpty ? (
             <Table size="sm" w="max-content" minW="100%" sx={{ tableLayout: 'auto' }}>
               <Thead
                 sx={{

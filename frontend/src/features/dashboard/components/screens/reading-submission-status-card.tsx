@@ -3,9 +3,11 @@ import type { BoxProps } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { ReadingSubmissionStatusChart } from '../charts'
 import type { ReadingSubmissionStatusData } from '../../types'
+import { LoadingSpinner } from '@/shared/components/common'
 
 type ReadingSubmissionStatusCardProps = {
   data: ReadingSubmissionStatusData[]
+  isLoading?: boolean
   chartHeight?: string | number
   cardHeight?: string | number
   boxProps?: BoxProps
@@ -13,6 +15,7 @@ type ReadingSubmissionStatusCardProps = {
 
 export function ReadingSubmissionStatusCard({
   data,
+  isLoading = false,
   chartHeight = '336px',
   cardHeight = '510px',
   boxProps,
@@ -40,7 +43,13 @@ export function ReadingSubmissionStatusCard({
           defaultValue: 'Reading Submission Status',
         })}
       </Text>
-      <ReadingSubmissionStatusChart data={data} height={resolvedChartHeight} />
+      {isLoading ? (
+        <Box h={resolvedChartHeight} display="flex" alignItems="center" justifyContent="center">
+          <LoadingSpinner />
+        </Box>
+      ) : (
+        <ReadingSubmissionStatusChart data={data} height={resolvedChartHeight} />
+      )}
     </Box>
   )
 }
