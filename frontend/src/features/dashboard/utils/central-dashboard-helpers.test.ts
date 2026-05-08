@@ -84,6 +84,12 @@ describe('central dashboard helpers', () => {
         locationId: 101,
         analyticsId: 9001,
       },
+      {
+        value: '0:0:ignored',
+        label: 'Ignored',
+        locationId: 0,
+        analyticsId: 0,
+      },
     ])
     expect(parseLocationId('101:9001:north-block')).toBe(101)
     expect(findLocationOption(options, '101:9001:north-block')).toBe(options[0])

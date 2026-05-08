@@ -83,9 +83,9 @@ describe('DashboardMapPerformanceSection', () => {
       />
     )
 
-    expect(screen.getByTestId('inline-map')).toHaveTextContent('district:1')
+    expect(screen.getByTestId('inline-map').textContent).toBe('district:1')
     expect(screen.getByText('Performance Summary')).toBeTruthy()
-    expect(screen.getByTestId('performance-table')).toHaveTextContent('fixed:1')
+    expect(screen.getByTestId('performance-table').textContent).toBe('fixed:1')
   })
 
   it('hides the section for leaf selections and closes fullscreen from the overlay', () => {
@@ -111,7 +111,8 @@ describe('DashboardMapPerformanceSection', () => {
 
     expect(screen.queryByTestId('performance-table')).toBeNull()
     fireEvent.click(
-      screen.getByTestId('fullscreen-map').parentElement?.parentElement as HTMLElement
+      screen.getByTestId('fullscreen-map').parentElement?.parentElement
+        ?.parentElement as HTMLElement
     )
     expect(onMapFullscreenClose).toHaveBeenCalledTimes(1)
   })
