@@ -1,15 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  Box,
-  Flex,
-  Text,
-  Heading,
-  Grid,
-  Icon,
-  Image,
-  Portal,
-  useBreakpointValue,
-} from '@chakra-ui/react'
+import { Box, Flex, Text, Heading, Icon, Image, useBreakpointValue } from '@chakra-ui/react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQueries } from '@tanstack/react-query'
@@ -20,9 +10,9 @@ import { useLocationHierarchyQuery } from '../services/query/use-location-hierar
 import { useLocationSearchQuery } from '../services/query/use-location-search-query'
 import { useTenantPublicConfigQuery } from '../services/query/use-tenant-public-config-query'
 import { dashboardQueryKeys } from '../services/query/dashboard-query-keys'
-import { KPICard } from './kpi-card'
+import { DashboardKpiGrid } from './central-dashboard/dashboard-kpi-grid'
+import { DashboardMapPerformanceSection } from './central-dashboard/dashboard-map-performance-section'
 import { DashboardBody } from './screens/dashboard-body'
-import { IndiaMapChart } from './charts'
 import { MdOutlineWaterDrop } from 'react-icons/md'
 import waterTapIcon from '@/assets/media/water-tap_1822589 1.svg'
 import wallClockIcon from '@/assets/media/wall-clock.svg'
@@ -35,7 +25,6 @@ import type {
   VillagePumpOperatorDetails,
 } from '../types'
 import { DashboardFilters } from './filters/dashboard-filters'
-import { OverallPerformanceTable } from './tables'
 import { slugify, toCapitalizedWords } from '../utils/format-location-label'
 import { parseStableLocationValue, toStableLocationValue } from '../utils/stable-location-value'
 import {
@@ -1671,59 +1660,6 @@ export function CentralDashboard({
     ? operatorsPerformanceAnalyticsTable
     : [...leadingPumpOperators, ...bottomPumpOperators]
   const villagePhotoEvidenceRows = dashboardData.readingCompliance ?? []
-  const renderMapCard = (height: string | Record<string, string>, fullscreen = false) => (
-    <Box
-      bg="white"
-      borderWidth="0.5px"
-      borderRadius={fullscreen ? '16px' : '12px'}
-      borderColor="#E4E4E7"
-      pt="24px"
-      pb="10px"
-      pl="16px"
-      pr="16px"
-      w="full"
-      h={height}
-      minW={0}
-      position="relative"
-      boxShadow={fullscreen ? '0 24px 64px rgba(15, 23, 42, 0.16)' : 'none'}
-    >
-      <IndiaMapChart
-        data={isMapDistrictView && isCentralLandingView ? districtMapChartData : mapChartData}
-        tooltipData={overallPerformanceTableData}
-        nationalBoundaryGeoJson={
-          isCentralLandingView ? filteredNationalDashboardBoundaries.nationalBoundary : undefined
-        }
-        parentBoundaryGeoJson={
-          isCentralLandingView
-            ? undefined
-            : (tenantBoundaryGeoJsonData?.parsedParentBoundaryGeoJson ?? undefined)
-        }
-        isLoading={
-          isMapDistrictView && isCentralLandingView ? isDistrictMapLoading : isMapDataLoading
-        }
-        mapName={
-          isMapDistrictView && isCentralLandingView
-            ? 'india-district-view'
-            : isCentralLandingView
-              ? 'india'
-              : `tenant-boundary-${hierarchyType.toLowerCase()}-${analyticsParentId}`
-        }
-        quantityViewUnit="percent"
-        onStateClick={handleMapRegionClick}
-        onStateHover={handleStateHover}
-        isFullscreen={fullscreen}
-        onFullscreenToggle={() => setIsMapFullscreen((previous) => !previous)}
-        isRegularityView={isMapRegularityView}
-        onRegularityViewChange={setIsMapRegularityView}
-        hoveredRegion={effectiveHoveredOverallPerformanceRow}
-        showViewTabs={isCentralLandingView}
-        mapViewMode={isMapDistrictView ? 'district' : 'state'}
-        onMapViewModeChange={(mode) => setIsMapDistrictView(mode === 'district')}
-        stateBorderData={isMapDistrictView && isCentralLandingView ? mapChartData : undefined}
-        height="100%"
-      />
-    </Box>
-  )
   const inSingleTenantMode = isSingleTenantMode()
 
   return (
@@ -1771,94 +1707,52 @@ export function CentralDashboard({
         isSingleTenantMode={inSingleTenantMode}
       />
 
-      {/* KPI Cards */}
-      <Grid
-        templateColumns={{
-          base: '1fr',
-          sm: 'repeat(2, minmax(0, 1fr))',
-          lg: `repeat(${visibleCoreMetrics.length}, minmax(0, 1fr))`,
-        }}
-        gap={4}
-        mb={6}
-      >
-        {visibleCoreMetrics.map((metric) => (
-          <KPICard
-            key={metric.label}
-            title={metric.label}
-            value={metric.value}
-            icon={isCentralLandingView && 'icon' in metric ? metric.icon : undefined}
-            trend={metric.trend}
-            tooltipContent={metric.tooltipContent}
-          />
-        ))}
-      </Grid>
+      <DashboardKpiGrid metrics={visibleCoreMetrics} showIcons={isCentralLandingView} />
 
-      {/* Map and Overall Performance */}
-      {!activeLeafSelection ? (
-        <Grid
-          templateColumns={{
-            base: '1fr',
-            lg: shouldShowMapAlongsidePerformance ? 'repeat(2, minmax(0, 1fr))' : '1fr',
-          }}
-          gap={6}
-          mb={6}
-        >
-          {shouldShowMapAlongsidePerformance
-            ? renderMapCard({ base: '420px', sm: '520px', lg: '710px' })
-            : null}
-          <Box
-            bg="white"
-            borderWidth="0.5px"
-            borderRadius="12px"
-            borderColor="#E4E4E7"
-            pt="24px"
-            pb="24px"
-            pl="16px"
-            pr="16px"
-            w="full"
-            h={shouldShowMapAlongsidePerformance ? performanceSummaryCardMaxHeight : 'auto'}
-            maxH={performanceSummaryCardMaxHeight}
-            minW={0}
-          >
-            <Text textStyle="bodyText3" fontWeight="400" mb={4}>
-              {t('overallPerformance.title', { defaultValue: 'Performance Summary' })}
-            </Text>
-            <OverallPerformanceTable
-              data={overallPerformanceTableData}
-              isLoading={isOverallPerformanceLoading}
-              entityLabel={overallPerformanceEntityLabel}
-              scrollMaxHeight={overallPerformanceScrollHeight}
-              autoHeightWithinMax={!shouldShowMapAlongsidePerformance}
-              onRowClick={handleOverallPerformanceRowClick}
-              onRowHover={setHoveredOverallPerformanceRow}
-            />
-          </Box>
-        </Grid>
-      ) : null}
-      {shouldShowMapAlongsidePerformance && isMapFullscreen ? (
-        <Portal>
-          <Box
-            position="fixed"
-            inset={0}
-            zIndex={1400}
-            bg="rgba(15, 23, 42, 0.2)"
-            p={{ base: 3, md: 6 }}
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            onClick={() => setIsMapFullscreen(false)}
-          >
-            <Box
-              w="full"
-              maxW={{ base: '100%', lg: '1200px', xl: '1320px' }}
-              h={{ base: '100%', md: '92vh' }}
-              onClick={(event) => event.stopPropagation()}
-            >
-              {renderMapCard('100%', true)}
-            </Box>
-          </Box>
-        </Portal>
-      ) : null}
+      <DashboardMapPerformanceSection
+        activeLeafSelection={activeLeafSelection}
+        shouldShowMapAlongsidePerformance={shouldShowMapAlongsidePerformance}
+        isMapFullscreen={isMapFullscreen}
+        onMapFullscreenClose={() => setIsMapFullscreen(false)}
+        performanceSummaryCardMaxHeight={performanceSummaryCardMaxHeight}
+        performanceSummaryTitle={t('overallPerformance.title', {
+          defaultValue: 'Performance Summary',
+        })}
+        overallPerformanceTableData={overallPerformanceTableData}
+        isOverallPerformanceLoading={isOverallPerformanceLoading}
+        overallPerformanceEntityLabel={overallPerformanceEntityLabel}
+        overallPerformanceScrollHeight={overallPerformanceScrollHeight}
+        onOverallPerformanceRowClick={handleOverallPerformanceRowClick}
+        onOverallPerformanceRowHover={setHoveredOverallPerformanceRow}
+        mapProps={{
+          data: isMapDistrictView && isCentralLandingView ? districtMapChartData : mapChartData,
+          tooltipData: overallPerformanceTableData,
+          nationalBoundaryGeoJson: isCentralLandingView
+            ? filteredNationalDashboardBoundaries.nationalBoundary
+            : undefined,
+          parentBoundaryGeoJson: isCentralLandingView
+            ? undefined
+            : (tenantBoundaryGeoJsonData?.parsedParentBoundaryGeoJson ?? undefined),
+          isLoading:
+            isMapDistrictView && isCentralLandingView ? isDistrictMapLoading : isMapDataLoading,
+          mapName:
+            isMapDistrictView && isCentralLandingView
+              ? 'india-district-view'
+              : isCentralLandingView
+                ? 'india'
+                : `tenant-boundary-${hierarchyType.toLowerCase()}-${analyticsParentId}`,
+          onStateClick: handleMapRegionClick,
+          onStateHover: handleStateHover,
+          onFullscreenToggle: () => setIsMapFullscreen((previous) => !previous),
+          isRegularityView: isMapRegularityView,
+          onRegularityViewChange: setIsMapRegularityView,
+          hoveredRegion: effectiveHoveredOverallPerformanceRow,
+          showViewTabs: isCentralLandingView,
+          mapViewMode: isMapDistrictView ? 'district' : 'state',
+          onMapViewModeChange: (mode) => setIsMapDistrictView(mode === 'district'),
+          stateBorderData: isMapDistrictView && isCentralLandingView ? mapChartData : undefined,
+        }}
+      />
       <DashboardBody
         data={resolvedDashboardData}
         performanceScreenKey={
