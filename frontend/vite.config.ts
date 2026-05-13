@@ -19,13 +19,11 @@ export default defineConfig(() => {
       rollupOptions: {
         output: {
           manualChunks(id: string) {
-            // Isolate echarts + its internal renderer (zrender) into a single
-            // async chunk (~1.1 MB). This is the largest dep and only loads
-            // when a chart-bearing page mounts — the highest-value split here.
+            // Isolate echarts (zrender is bundled inside it) into a single
+            // async chunk (~1.1 MB). Only loads when a chart-bearing page mounts.
             if (
               id.includes('/node_modules/echarts/') ||
-              id.includes('/node_modules/echarts-for-react/') ||
-              id.includes('/node_modules/zrender/')
+              id.includes('/node_modules/echarts-for-react/')
             )
               return 'vendor-charts'
 
