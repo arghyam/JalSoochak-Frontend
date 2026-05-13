@@ -1618,14 +1618,6 @@ export function CentralDashboard({
           startDate: previousAnalyticsRange.startDate,
           endDate: previousAnalyticsRange.endDate,
         }
-  const previousCriticalSchemesAnalyticsParams =
-    criticalSchemesAnalyticsParams === null
-      ? null
-      : {
-          ...criticalSchemesAnalyticsParams,
-          startDate: previousAnalyticsRange.startDate,
-          endDate: previousAnalyticsRange.endDate,
-        }
   const previousContinuousSchemesAnalyticsParams =
     continuousSchemesAnalyticsParams === null
       ? null
@@ -1797,10 +1789,6 @@ export function CentralDashboard({
   const { data: continuousSchemesData } = useContinuousSchemesQuery({
     params: continuousSchemesAnalyticsParams,
     enabled: Boolean(continuousSchemesAnalyticsParams),
-  })
-  const { data: previousCriticalSchemesData } = useCriticalSchemesQuery({
-    params: previousCriticalSchemesAnalyticsParams,
-    enabled: Boolean(previousCriticalSchemesAnalyticsParams),
   })
   const { data: previousContinuousSchemesData } = useContinuousSchemesQuery({
     params: previousContinuousSchemesAnalyticsParams,
@@ -3130,7 +3118,6 @@ export function CentralDashboard({
   const continuousSchemesCount = continuousSchemesData?.continuousSchemeCount ?? 0
   const previousContinuousSchemesCount = previousContinuousSchemesData?.continuousSchemeCount ?? 0
   const criticalSchemesCount = criticalSchemesData?.criticalSchemeCount ?? 0
-  const previousCriticalSchemesCount = previousCriticalSchemesData?.criticalSchemeCount ?? 0
   const quantityLpcdChange = calculateAbsoluteChange(
     currentWaterSupplyKpis.quantityLpcd,
     previousWaterSupplyKpis.quantityLpcd
@@ -3364,10 +3351,10 @@ export function CentralDashboard({
     {
       label: t('kpi.labels.criticalSchemes', { defaultValue: 'Critical Schemes' }),
       value: formatNumber(criticalSchemesCount),
-      trend: buildCountPercentTrend(criticalSchemesCount, previousCriticalSchemesCount),
+      trend: undefined,
       tooltipContent: t('kpi.tooltips.criticalSchemes.description', {
         days: criticalSchemeStatusAfterDays,
-        defaultValue: 'Schemes identified as failing to supply water, based on {{days}} days.',
+        defaultValue: 'Schemes identified as failing to supply water, for last {{days}} days.',
       }),
     },
   ] as const

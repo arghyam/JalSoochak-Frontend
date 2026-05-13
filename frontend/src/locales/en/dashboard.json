@@ -102,7 +102,7 @@
         "description": "Count of schemes that supplied water for the selected date range consistently."
       },
       "criticalSchemes": {
-        "description": "Schemes identified as failing to supply water, based on {{days}} days."
+        "description": "Schemes identified as failing to supply water for last {{days}} days."
       },
       "quantityMld": {
         "formulaLabel": "Quantity (MLD)",
