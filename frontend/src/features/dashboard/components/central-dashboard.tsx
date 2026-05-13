@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import { useQueries } from '@tanstack/react-query'
 import { useDashboardData } from '../hooks/use-dashboard-data'
 import { dashboardApi } from '../services/api/dashboard-api'
-import { useLocationChildrenQuery } from '../services/query/use-location-children-query'
 import { useLocationHierarchyQuery } from '../services/query/use-location-hierarchy-query'
 import { useLocationSearchQuery } from '../services/query/use-location-search-query'
 import { dashboardQueryKeys } from '../services/query/dashboard-query-keys'
@@ -21,6 +20,7 @@ import type {
 } from '../types'
 import { DashboardFilters } from './filters/dashboard-filters'
 import { buildCentralDashboardKpiMetrics } from '../hooks/use-central-dashboard-kpi-metrics'
+import { useCentralDashboardLocationOptions } from '../hooks/use-central-dashboard-location-options'
 import { useCentralDashboardTenantConfig } from '../hooks/use-central-dashboard-tenant-config'
 import { slugify, toCapitalizedWords } from '../utils/format-location-label'
 import { toStableLocationValue } from '../utils/stable-location-value'
@@ -28,13 +28,8 @@ import {
   type LocationOption,
   type OutageTimeScaleTab,
   type PerformanceTimeScaleTab,
-  findLocationOption,
   getDefaultAnalyticsDateRange,
-  getStateLgdCode,
-  mapLocationOptions,
   mapNationalBoundariesToPerformance,
-  parseLocationId,
-  resolveLgdAnalyticsParentId,
   sortByMetricDescending,
   sortOutageDistributionByTotalDescending,
   toIsoDate,
@@ -340,112 +335,40 @@ export function CentralDashboard({
   const blockOptions = emptyOptions
   const gramPanchayatOptions = emptyOptions
   const villageOptions = emptyOptions
-  const { data: rootLocationsData } = useLocationChildrenQuery({
-    tenantId: selectedTenant?.tenantId,
-    hierarchyType,
-    tenantCode: selectedTenant?.tenantCode,
-    enabled: Boolean(selectedTenant?.tenantId),
-  })
-  const rootLocationOptions = mapLocationOptions(rootLocationsData?.data)
-  const selectedRootOption = findLocationOption(rootLocationOptions, activeHierarchySelectedState)
-  const selectedStateLgdCode = getStateLgdCode(selectedTenant?.label, selectedTenant?.tenantCode)
-  const selectedRootAnalyticsId =
-    selectedRootOption === undefined
-      ? activeHierarchySelectedState && rootLocationOptions.length > 0
-        ? selectedStateLgdCode
-        : undefined
-      : (selectedRootOption.locationId ?? selectedStateLgdCode ?? selectedRootOption.analyticsId)
-  const isRootStateLevel = Boolean(activeHierarchySelectedState) && Boolean(selectedRootOption)
-  const districtParentId =
-    isRootStateLevel && isDepartmentTabActive
-      ? (parseLocationId(activeHierarchySelectedState) ?? selectedRootOption?.locationId)
-      : isRootStateLevel
-        ? selectedRootOption?.locationId
-        : undefined
-  const { data: districtLocationsData } = useLocationChildrenQuery({
-    tenantId: selectedTenant?.tenantId,
-    hierarchyType,
-    parentId: districtParentId,
-    tenantCode: selectedTenant?.tenantCode,
-    enabled: Boolean(selectedTenant?.tenantId && districtParentId),
-  })
-  const districtApiOptions = isRootStateLevel
-    ? mapLocationOptions(districtLocationsData?.data)
-    : rootLocationOptions
-  const selectedDistrictOption = findLocationOption(
+  const {
+    analyticsParentId,
+    blockApiOptions,
+    departmentAnalyticsParentId,
     districtApiOptions,
-    activeHierarchySelectedDistrict
-  )
-  const selectedDistrictId =
-    parseLocationId(activeHierarchySelectedDistrict) ?? selectedDistrictOption?.locationId
-  const { data: blockLocationsData } = useLocationChildrenQuery({
-    tenantId: selectedTenant?.tenantId,
-    hierarchyType,
-    parentId: selectedDistrictId,
-    tenantCode: selectedTenant?.tenantCode,
-    enabled: Boolean(selectedTenant?.tenantId && selectedDistrictId),
-  })
-  const blockApiOptions = mapLocationOptions(blockLocationsData?.data)
-  const selectedBlockOption = findLocationOption(blockApiOptions, activeHierarchySelectedBlock)
-  const selectedBlockId =
-    parseLocationId(activeHierarchySelectedBlock) ?? selectedBlockOption?.locationId
-  const { data: gramPanchayatLocationsData } = useLocationChildrenQuery({
-    tenantId: selectedTenant?.tenantId,
-    hierarchyType,
-    parentId: selectedBlockId,
-    tenantCode: selectedTenant?.tenantCode,
-    enabled: Boolean(selectedTenant?.tenantId && selectedBlockId),
-  })
-  const gramPanchayatApiOptions = mapLocationOptions(gramPanchayatLocationsData?.data)
-  const selectedGramPanchayatOption = findLocationOption(
     gramPanchayatApiOptions,
-    activeHierarchySelectedGramPanchayat
-  )
-  const selectedGramPanchayatId =
-    parseLocationId(activeHierarchySelectedGramPanchayat) ?? selectedGramPanchayatOption?.locationId
-  const { data: villageLocationsData } = useLocationChildrenQuery({
-    tenantId: selectedTenant?.tenantId,
+    lgdAnalyticsParentId,
+    tenantBoundaryLocationOptions,
+    villageApiOptions,
+  } = useCentralDashboardLocationOptions({
+    selectedTenant,
     hierarchyType,
-    parentId: selectedGramPanchayatId,
-    tenantCode: selectedTenant?.tenantCode,
-    enabled: Boolean(selectedTenant?.tenantId && selectedGramPanchayatId),
+    activeHierarchySelectedState,
+    activeHierarchySelectedDistrict,
+    activeHierarchySelectedBlock,
+    activeHierarchySelectedGramPanchayat,
+    effectiveSelectedDistrict,
+    effectiveSelectedBlock,
+    effectiveSelectedGramPanchayat,
+    effectiveSelectedVillage,
+    selectedDepartmentVillage,
+    selectedDepartmentSubdivision,
+    selectedDepartmentDivision,
+    selectedDepartmentCircle,
+    selectedDepartmentZone,
+    effectiveSelectedDepartmentState,
+    isDepartmentTabActive,
+    isDepartmentStateSelected,
+    isDepartmentZoneSelected,
+    isDepartmentCircleSelected,
+    isDepartmentDivisionSelected,
   })
-  const villageApiOptions = mapLocationOptions(villageLocationsData?.data)
-  const lgdAnalyticsParentId = resolveLgdAnalyticsParentId({
-    selectedVillage: effectiveSelectedVillage,
-    selectedGramPanchayat: effectiveSelectedGramPanchayat,
-    selectedBlock: effectiveSelectedBlock,
-    selectedDistrict: effectiveSelectedDistrict,
-    villageOptions: villageApiOptions,
-    gramPanchayatOptions: gramPanchayatApiOptions,
-    blockOptions: blockApiOptions,
-    districtOptions: districtApiOptions,
-    rootAnalyticsId: selectedRootAnalyticsId,
-  })
-  const departmentAnalyticsParentId =
-    parseLocationId(selectedDepartmentVillage) ??
-    parseLocationId(selectedDepartmentSubdivision) ??
-    parseLocationId(selectedDepartmentDivision) ??
-    parseLocationId(selectedDepartmentCircle) ??
-    parseLocationId(selectedDepartmentZone) ??
-    parseLocationId(effectiveSelectedDepartmentState) ??
-    (isDepartmentTabActive ? selectedRootOption?.locationId : undefined) ??
-    0
-  const analyticsParentId =
-    hierarchyType === 'LGD' ? lgdAnalyticsParentId : departmentAnalyticsParentId
   const hasValidAnalyticsParentId = analyticsParentId > 0
   const hasValidDepartmentAnalyticsParentId = departmentAnalyticsParentId > 0
-  const tenantBoundaryLocationOptions = isDepartmentTabActive
-    ? isDepartmentDivisionSelected
-      ? villageApiOptions
-      : isDepartmentCircleSelected
-        ? gramPanchayatApiOptions
-        : isDepartmentZoneSelected
-          ? blockApiOptions
-          : isDepartmentStateSelected
-            ? districtApiOptions
-            : emptyOptions
-    : emptyOptions
   const submissionStatusParentId =
     hierarchyType === 'LGD' ? lgdAnalyticsParentId : departmentAnalyticsParentId
   const hasValidSubmissionStatusParentId =
