@@ -1959,10 +1959,7 @@ describe('CentralDashboard', () => {
     expect(kpiProps[4]?.title).toBe('Critical Schemes')
     expect(kpiProps[4]?.icon).toBeUndefined()
     expect(kpiProps[4]?.value).toBe('0')
-    expect(kpiProps[4]?.trend).toEqual({
-      direction: 'neutral',
-      text: '0% vs previous 2 days',
-    })
+    expect(kpiProps[4]?.trend).toBeUndefined()
   })
 
   it('uses national dashboard analytics for central landing KPI cards', () => {
@@ -4846,26 +4843,15 @@ describe('CentralDashboard', () => {
         }
       })()
     )
-    ;(useCriticalSchemesQuery as jest.Mock).mockImplementation(
-      (() => {
-        let callCount = 0
-
-        return () => {
-          const isCurrentPeriod = callCount % 2 === 0
-          callCount += 1
-
-          return {
-            data: {
-              criticalSchemeCount: isCurrentPeriod ? 215 : 250,
-              list: false,
-              page: null,
-              limit: null,
-              schemes: null,
-            },
-          }
-        }
-      })()
-    )
+    ;(useCriticalSchemesQuery as jest.Mock).mockReturnValue({
+      data: {
+        criticalSchemeCount: 215,
+        list: false,
+        page: null,
+        limit: null,
+        schemes: null,
+      },
+    })
 
     const initialWaterSupplyQueryCallCount = (useAverageWaterSupplyPerRegionQuery as jest.Mock).mock
       .calls.length
@@ -4898,7 +4884,7 @@ describe('CentralDashboard', () => {
     expect(kpiProps[3]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
     expect(kpiProps[4]?.title).toBe('Critical Schemes')
     expect(kpiProps[4]?.value).toBe('215')
-    expect(kpiProps[4]?.trend).toEqual({ direction: 'down', text: '-14% vs previous 30 days' })
+    expect(kpiProps[4]?.trend).toBeUndefined()
     expect(useCriticalSchemesQuery).toHaveBeenCalledWith({
       params: {
         tenantId: 16,
@@ -4994,26 +4980,15 @@ describe('CentralDashboard', () => {
         }
       })()
     )
-    ;(useCriticalSchemesQuery as jest.Mock).mockImplementation(
-      (() => {
-        let callCount = 0
-
-        return () => {
-          const isCurrentPeriod = callCount % 2 === 0
-          callCount += 1
-
-          return {
-            data: {
-              criticalSchemeCount: isCurrentPeriod ? 0 : 5,
-              list: false,
-              page: null,
-              limit: null,
-              schemes: null,
-            },
-          }
-        }
-      })()
-    )
+    ;(useCriticalSchemesQuery as jest.Mock).mockReturnValue({
+      data: {
+        criticalSchemeCount: 0,
+        list: false,
+        page: null,
+        limit: null,
+        schemes: null,
+      },
+    })
 
     renderWithProviders(<CentralDashboard />)
 
@@ -5034,10 +5009,7 @@ describe('CentralDashboard', () => {
     })
     expect(kpiProps[4]?.title).toBe('Critical Schemes')
     expect(kpiProps[4]?.value).toBe('0')
-    expect(kpiProps[4]?.trend).toEqual({
-      direction: 'down',
-      text: '-100% vs previous 30 days',
-    })
+    expect(kpiProps[4]?.trend).toBeUndefined()
   })
 
   it('passes neutral KPI trends when comparison values do not change', () => {
