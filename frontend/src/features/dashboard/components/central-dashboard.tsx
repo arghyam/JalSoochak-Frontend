@@ -3354,7 +3354,7 @@ export function CentralDashboard({
       trend: undefined,
       tooltipContent: t('kpi.tooltips.criticalSchemes.description', {
         days: criticalSchemeStatusAfterDays,
-        defaultValue: 'Schemes identified as failing to supply water, for last {{days}} days.',
+        defaultValue: 'Schemes identified as failing to supply water for the last {{days}} days.',
       }),
     },
   ] as const
