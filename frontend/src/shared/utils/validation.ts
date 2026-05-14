@@ -124,9 +124,10 @@ export function descriptiveNameToReasonId(name: string): string {
   const trimmed = name.trim()
   if (!trimmed) return ''
   return trimmed
-    .replace(/\s+/g, '_')
-    .replace(/[^A-Za-z0-9_]/g, '')
-    .replace(/_+/g, '_')
+    .replaceAll('-', '_')
+    .replaceAll(/\s+/, '_')
+    .replaceAll(/\W/, '')
+    .replaceAll(/_+/, '_')
     .replace(/^_|_$/g, '')
     .toUpperCase()
 }

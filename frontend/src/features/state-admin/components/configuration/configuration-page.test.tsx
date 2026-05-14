@@ -285,24 +285,26 @@ describe('ConfigurationPage', () => {
       writable: true,
       value: scrollIntoView,
     })
-    mockUseConfigurationQuery.mockReturnValue({
-      data: unconfiguredConfig,
-      isLoading: false,
-      isError: false,
-    })
-    renderWithProviders(<ConfigurationPage />)
+    try {
+      mockUseConfigurationQuery.mockReturnValue({
+        data: unconfiguredConfig,
+        isLoading: false,
+        isError: false,
+      })
+      renderWithProviders(<ConfigurationPage />)
 
-    fireEvent.click(screen.getByRole('button', { name: /save & next/i }))
+      fireEvent.click(screen.getByRole('button', { name: /save & next/i }))
 
-    await waitFor(() => {
-      expect(scrollIntoView).toHaveBeenCalled()
-    })
-
-    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
-      configurable: true,
-      writable: true,
-      value: orig,
-    })
+      await waitFor(() => {
+        expect(scrollIntoView).toHaveBeenCalled()
+      })
+    } finally {
+      Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+        configurable: true,
+        writable: true,
+        value: orig,
+      })
+    }
   })
 
   it('adds a new meter change reason', () => {
