@@ -125,9 +125,9 @@ export function descriptiveNameToReasonId(name: string): string {
   if (!trimmed) return ''
   return trimmed
     .replaceAll('-', '_')
-    .replaceAll(/\s+/, '_')
-    .replaceAll(/\W/, '')
-    .replaceAll(/_+/, '_')
+    .replace(/\s+/g, '_')
+    .replace(/\W/g, '')
+    .replace(/_+/g, '_')
     .replace(/^_|_$/g, '')
     .toUpperCase()
 }
