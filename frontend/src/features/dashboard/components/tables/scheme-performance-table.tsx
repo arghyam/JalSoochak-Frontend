@@ -354,6 +354,7 @@ export function SchemePerformanceTable({
         <Box
           ref={scrollContainerRef}
           data-testid="scheme-performance-scroll-area"
+          h={fillHeight ? undefined : maxTableHeight}
           maxH={fillHeight ? undefined : maxTableHeight}
           flex={fillHeight ? 1 : undefined}
           minH={fillHeight ? 0 : undefined}
@@ -367,14 +368,11 @@ export function SchemePerformanceTable({
           onScroll={updateScrollbarThumb}
           sx={{
             WebkitOverflowScrolling: 'touch',
-            scrollbarWidth: 'none',
+            scrollbarGutter: 'stable',
             '&::-webkit-scrollbar': { width: '4px', height: '0px' },
+            '&::-webkit-scrollbar-button': { display: 'none' },
             '&::-webkit-scrollbar-track': { bg: 'neutral.100', borderRadius: '999px' },
-            '&::-webkit-scrollbar-thumb': {
-              bg: 'primary.300',
-              borderRadius: '999px',
-              minHeight: '165px',
-            },
+            '&::-webkit-scrollbar-thumb': { bg: 'neutral.300', borderRadius: '999px' },
             '&::-webkit-scrollbar-thumb:vertical': { bg: 'primary.300' },
             '&::-webkit-scrollbar-thumb:horizontal': { bg: 'primary.300' },
           }}
