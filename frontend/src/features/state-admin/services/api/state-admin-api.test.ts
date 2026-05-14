@@ -27,7 +27,6 @@ const minimalSaveConfigurationPayload: SaveConfigurationPayload = {
   meterChangeReasons: DEFAULT_METER_CHANGE_REASONS,
   supplyOutageReasons: DEFAULT_SUPPLY_OUTAGE_REASONS,
   locationCheckRequired: false,
-  displayDepartmentMaps: false,
   displayMapLgdLevels: [],
   displayDepartmentMapLevels: [],
   dataConsolidationTime: '09:00',
@@ -138,7 +137,6 @@ describe('stateAdminApi', () => {
           configs: expect.objectContaining({
             TENANT_SUPPORTED_CHANNELS: { channels: ['BFM'] },
             LOCATION_CHECK_REQUIRED: { value: 'NO' },
-            DISPLAY_DEPARTMENT_MAPS: { value: 'NO' },
           }),
         })
       )

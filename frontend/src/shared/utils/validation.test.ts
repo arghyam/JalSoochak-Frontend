@@ -7,6 +7,8 @@ import {
   hasDuplicates,
   validateTextField,
   validateDescriptiveField,
+  descriptiveNameToReasonId,
+  isClientGeneratedConfigurationReasonId,
 } from './validation'
 
 describe('isEmptyOrWhitespace', () => {
@@ -66,8 +68,12 @@ describe('isAlphanumericWithSpaces', () => {
     expect(isAlphanumericWithSpaces('123')).toBe(true)
   })
 
+  it('returns true for hyphenated alphanumeric text', () => {
+    expect(isAlphanumericWithSpaces('hello-world')).toBe(true)
+    expect(isAlphanumericWithSpaces('Sub-District 1')).toBe(true)
+  })
+
   it('returns false for special characters', () => {
-    expect(isAlphanumericWithSpaces('hello-world')).toBe(false)
     expect(isAlphanumericWithSpaces('test@email')).toBe(false)
     expect(isAlphanumericWithSpaces('value!')).toBe(false)
     expect(isAlphanumericWithSpaces('a,b')).toBe(false)
@@ -154,8 +160,38 @@ describe('validateDescriptiveField', () => {
     expect(validateDescriptiveField("test'; DROP TABLE")).toBe('containsSqlInjection')
   })
 
-  it('returns alphanumericOnly for special characters', () => {
-    expect(validateDescriptiveField('hello-world')).toBe('alphanumericOnly')
+  it('returns null for hyphenated descriptive text', () => {
+    expect(validateDescriptiveField('hello-world')).toBeNull()
+    expect(validateDescriptiveField('Level-2 Name')).toBeNull()
+  })
+
+  it('returns alphanumericOnly for disallowed special characters', () => {
     expect(validateDescriptiveField('test@value')).toBe('alphanumericOnly')
+  })
+})
+
+describe('descriptiveNameToReasonId', () => {
+  it('converts title-style names to SCREAMING_SNAKE_CASE', () => {
+    expect(descriptiveNameToReasonId('Electricity Supply Disconnected')).toBe(
+      'ELECTRICITY_SUPPLY_DISCONNECTED'
+    )
+    expect(descriptiveNameToReasonId('New Reason')).toBe('NEW_REASON')
+  })
+
+  it('returns empty string for blank input', () => {
+    expect(descriptiveNameToReasonId('')).toBe('')
+    expect(descriptiveNameToReasonId('   ')).toBe('')
+  })
+})
+
+describe('isClientGeneratedConfigurationReasonId', () => {
+  it('returns true for UI-generated timestamp ids', () => {
+    expect(isClientGeneratedConfigurationReasonId('1734567890123-abc12xy')).toBe(true)
+  })
+
+  it('returns false for API or default ids', () => {
+    expect(isClientGeneratedConfigurationReasonId('r1')).toBe(false)
+    expect(isClientGeneratedConfigurationReasonId('ELECTRICITY_SUPPLY_DISCONNECTED')).toBe(false)
+    expect(isClientGeneratedConfigurationReasonId('123-')).toBe(false)
   })
 })
