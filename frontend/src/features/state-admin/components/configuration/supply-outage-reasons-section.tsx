@@ -67,7 +67,7 @@ export function SupplyOutageReasonsSection({
   }
 
   return (
-    <Box>
+    <Box id="config-section-supply-outage-reasons">
       <Flex align="center" gap={1} mb={3}>
         <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" color="neutral.950">
           {title}
@@ -95,6 +95,7 @@ export function SupplyOutageReasonsSection({
             <FormControl key={reason.id} isInvalid={!!fieldError}>
               <Flex gap={2} align="center">
                 <Input
+                  id={`config-field-supply-outage-${reason.id}`}
                   value={reason.name}
                   onChange={(e) =>
                     reason.editable ? handleChange(reason.id, e.target.value) : undefined

@@ -102,7 +102,7 @@ describe('HierarchyPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
 
     await waitFor(() => {
-      expect(screen.getByText(/Only letters, numbers, and spaces/i)).toBeTruthy()
+      expect(screen.getByText(/Only letters, numbers, spaces, and hyphens/i)).toBeTruthy()
     })
     expect(mockSaveLgd).not.toHaveBeenCalled()
   })

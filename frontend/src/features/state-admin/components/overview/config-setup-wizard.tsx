@@ -21,7 +21,6 @@ const WIZARD_STEPS: WizardStep[] = [
       'TENANT_LOGO',
       'DATE_FORMAT_SCREEN',
       'DATE_FORMAT_TABLE',
-      'DISPLAY_DEPARTMENT_MAPS',
       'SUPPLY_OUTAGE_REASONS',
     ],
   },

@@ -41,7 +41,6 @@ describe('mapApiConfigToConfigurationData', () => {
         ],
       },
       LOCATION_CHECK_REQUIRED: { value: 'YES' },
-      DISPLAY_DEPARTMENT_MAPS: { value: 'NO' },
       DATA_CONSOLIDATION_TIME: { schedule: { hour: 14, minute: 0 }, description: null },
       PUMP_OPERATOR_REMINDER_NUDGE_TIME: { nudge: { schedule: { hour: 9, minute: 30 } } },
       DATE_FORMAT_SCREEN: {
@@ -64,7 +63,6 @@ describe('mapApiConfigToConfigurationData', () => {
       { id: 'PUMP_FAILURE', name: 'Pump Failure', isDefault: true, editable: true },
     ])
     expect(result.locationCheckRequired).toBe(true)
-    expect(result.displayDepartmentMaps).toBe(false)
     expect(result.dataConsolidationTime).toBe('14:00')
     expect(result.pumpOperatorReminderNudgeTime).toBe('09:30')
     expect(result.dateFormatScreen).toEqual({
@@ -130,7 +128,6 @@ describe('mapConfigurationDataToApiConfig', () => {
         { id: 'PUMP_FAILURE', name: 'Pump Failure', isDefault: true, editable: true },
       ],
       locationCheckRequired: false,
-      displayDepartmentMaps: true,
       displayMapLgdLevels: [true, true, true, true, true, true],
       displayDepartmentMapLevels: [true, true, true, true, true, true],
       dataConsolidationTime: '18:00',
@@ -167,7 +164,6 @@ describe('mapConfigurationDataToApiConfig', () => {
         },
       ],
     })
-    expect(result.DISPLAY_DEPARTMENT_MAPS).toEqual({ value: 'YES' })
     expect(result.DATE_FORMAT_SCREEN).toEqual({
       dateFormat: 'DD/MM/YYYY',
       timeFormat: 'HH:mm',
@@ -201,7 +197,6 @@ describe('mapConfigurationDataToApiConfig', () => {
         ],
       },
       LOCATION_CHECK_REQUIRED: { value: 'YES' },
-      DISPLAY_DEPARTMENT_MAPS: { value: 'NO' },
       DATA_CONSOLIDATION_TIME: { schedule: { hour: 22, minute: 0 }, description: null },
       PUMP_OPERATOR_REMINDER_NUDGE_TIME: { nudge: { schedule: { hour: 7, minute: 0 } } },
       DATE_FORMAT_SCREEN: {
@@ -218,7 +213,6 @@ describe('mapConfigurationDataToApiConfig', () => {
 
     expect(backToApi.TENANT_SUPPORTED_CHANNELS).toEqual({ channels: ['BFM', 'MAN'] })
     expect(backToApi.LOCATION_CHECK_REQUIRED).toEqual({ value: 'YES' })
-    expect(backToApi.DISPLAY_DEPARTMENT_MAPS).toEqual({ value: 'NO' })
     expect(backToApi.DATA_CONSOLIDATION_TIME).toEqual({
       schedule: { hour: 22, minute: 0 },
       description: null,
@@ -286,7 +280,6 @@ describe('mapConfigurationDataToApiConfig', () => {
       meterChangeReasons: [],
       supplyOutageReasons: [],
       locationCheckRequired: false,
-      displayDepartmentMaps: true,
       displayMapLgdLevels: [true, false, true, true, false, false],
       displayDepartmentMapLevels: [true, true, false, true, false, true],
       dataConsolidationTime: '00:00',
@@ -331,7 +324,6 @@ describe('mapConfigurationDataToApiConfig', () => {
       METER_CHANGE_REASONS: { reasons: [] },
       SUPPLY_OUTAGE_REASONS: { reasons: [] },
       LOCATION_CHECK_REQUIRED: { value: 'NO' },
-      DISPLAY_DEPARTMENT_MAPS: { value: 'YES' },
       DATA_CONSOLIDATION_TIME: { schedule: { hour: 0, minute: 0 }, description: null },
       PUMP_OPERATOR_REMINDER_NUDGE_TIME: { nudge: { schedule: { hour: 0, minute: 0 } } },
       DATE_FORMAT_SCREEN: { dateFormat: null, timeFormat: null, timezone: null },

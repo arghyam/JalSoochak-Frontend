@@ -57,7 +57,6 @@ export interface TenantConfigMap {
     }[]
   }
   LOCATION_CHECK_REQUIRED?: { value: 'YES' | 'NO' }
-  DISPLAY_DEPARTMENT_MAPS?: { value: 'YES' | 'NO' }
   DISPLAY_MAP_LGD_LEVEL_1?: { value: 'TRUE' | 'FALSE' }
   DISPLAY_MAP_LGD_LEVEL_2?: { value: 'TRUE' | 'FALSE' }
   DISPLAY_MAP_LGD_LEVEL_3?: { value: 'TRUE' | 'FALSE' }
@@ -186,7 +185,6 @@ export function mapApiConfigToConfigurationData(
     meterChangeReasons: meterReasons,
     supplyOutageReasons,
     locationCheckRequired: configs.LOCATION_CHECK_REQUIRED?.value === 'YES',
-    displayDepartmentMaps: configs.DISPLAY_DEPARTMENT_MAPS?.value === 'YES',
     displayMapLgdLevels: extractMapLevelConfig(configs, 'DISPLAY_MAP_LGD', 6),
     displayDepartmentMapLevels: extractMapLevelConfig(configs, 'DISPLAY_DEPARTMENT_MAP', 6),
     dataConsolidationTime: consolidationSchedule
@@ -240,7 +238,6 @@ export function mapConfigurationDataToApiConfig(
       })),
     },
     LOCATION_CHECK_REQUIRED: { value: payload.locationCheckRequired ? 'YES' : 'NO' },
-    DISPLAY_DEPARTMENT_MAPS: { value: payload.displayDepartmentMaps ? 'YES' : 'NO' },
     ...mapLevelConfigs,
     DATA_CONSOLIDATION_TIME: {
       schedule: { hour: consolidation.hour, minute: consolidation.minute },

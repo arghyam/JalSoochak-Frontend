@@ -481,11 +481,6 @@
         "yes": "Yes",
         "no": "No"
       },
-      "displayDepartmentMaps": {
-        "title": "Display Departmental Maps",
-        "yes": "Yes",
-        "no": "No"
-      },
       "lgdMapLevels": {
         "title": "LGD Map Levels",
         "displayLevelLabel": "Display Level {{level}}"
@@ -523,7 +518,6 @@
       "meterChangeReasons": "Reasons field operators can select when logging a meter replacement event.",
       "supplyOutageReasons": "Reasons field operators can select when reporting a water supply disruption.",
       "locationCheckRequired": "When enabled, field operators must share their GPS location when submitting readings.",
-      "displayDepartmentMaps": "When enabled, departmental map views are shown on the dashboard.",
       "dataConsolidationTime": "Daily time at which field data is compiled and consolidated for reporting.",
       "pumpOperatorReminderNudgeTime": "Daily time at which automated reminders are sent to pump operators who have not yet submitted readings.",
       "lgdMapLevels": "Controls which LGD administrative levels are visible on the map.",
@@ -662,7 +656,7 @@
     "emptyOrWhitespace": "This field cannot be empty or contain only spaces",
     "containsHtmlTags": "HTML tags are not allowed",
     "containsSqlInjection": "Invalid characters detected",
-    "alphanumericOnly": "Only letters, numbers, and spaces are allowed",
+    "alphanumericOnly": "Only letters, numbers, spaces, and hyphens (-) are allowed",
     "invalidUrl": "Please enter a valid URL starting with https://",
     "noSpaces": "Spaces are not allowed",
     "maxLength": "Must not exceed {{max}} characters",

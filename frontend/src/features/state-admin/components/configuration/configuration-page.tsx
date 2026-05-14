@@ -60,8 +60,11 @@ import {
   validateDescriptiveField,
   hasDuplicates,
   exceedsMaxLength,
+  descriptiveNameToReasonId,
+  isClientGeneratedConfigurationReasonId,
 } from '@/shared/utils/validation'
 import { ROUTES } from '@/shared/constants/routes'
+import type { TFunction } from 'i18next'
 
 const MAX_METER_REASON_LENGTH = 100
 const MAX_AVG_MEMBERS = 20
@@ -73,7 +76,6 @@ interface ConfigDraft {
   meterChangeReasons: MeterChangeReason[]
   supplyOutageReasons: SupplyOutageReason[]
   locationCheckRequired: boolean
-  displayDepartmentMaps: boolean
   displayMapLgdLevels: boolean[]
   displayDepartmentMapLevels: boolean[]
   dataConsolidationTime: string
@@ -97,7 +99,6 @@ function buildInitialDraft(
     meterChangeReasons: MeterChangeReason[]
     supplyOutageReasons: SupplyOutageReason[]
     locationCheckRequired: boolean
-    displayDepartmentMaps: boolean
     displayMapLgdLevels: boolean[]
     displayDepartmentMapLevels: boolean[]
     dataConsolidationTime: string
@@ -119,7 +120,6 @@ function buildInitialDraft(
       ? config.supplyOutageReasons.map((r) => ({ ...r }))
       : DEFAULT_SUPPLY_OUTAGE_REASONS.map((r) => ({ ...r })),
     locationCheckRequired: config?.locationCheckRequired ?? false,
-    displayDepartmentMaps: config?.displayDepartmentMaps ?? false,
     displayMapLgdLevels: padArrayToLength(config?.displayMapLgdLevels ?? [], 6, true),
     displayDepartmentMapLevels: padArrayToLength(config?.displayDepartmentMapLevels ?? [], 6, true),
     dataConsolidationTime: config?.dataConsolidationTime ?? '',
@@ -141,6 +141,172 @@ function applyLevelCascade(levels: boolean[], changedIndex: number, value: boole
     for (let i = changedIndex + 1; i < next.length; i++) next[i] = false
   }
   return next
+}
+
+function mapMeterChangeReasonIdsForPayload(reasons: MeterChangeReason[]): MeterChangeReason[] {
+  return reasons.map((r) =>
+    isClientGeneratedConfigurationReasonId(r.id)
+      ? { ...r, id: descriptiveNameToReasonId(r.name) }
+      : r
+  )
+}
+
+function mapSupplyOutageReasonIdsForPayload(reasons: SupplyOutageReason[]): SupplyOutageReason[] {
+  return reasons.map((r) =>
+    isClientGeneratedConfigurationReasonId(r.id)
+      ? { ...r, id: descriptiveNameToReasonId(r.name) }
+      : r
+  )
+}
+
+function buildConfigurationValidationErrors(
+  current: ConfigDraft,
+  isMandatory: (key: ConfigKey) => boolean,
+  t: TFunction<['state-admin', 'common']>
+): Record<string, string> {
+  const newErrors: Record<string, string> = {}
+
+  if (isMandatory('TENANT_SUPPORTED_CHANNELS') && current.supportedChannels.length === 0) {
+    newErrors.supportedChannels = t('state-admin:validation.selectAtLeastOne')
+  }
+
+  if (isMandatory('METER_CHANGE_REASONS') && current.meterChangeReasons.length === 0) {
+    newErrors.meterChangeReasons = t('state-admin:validation.selectAtLeastOne')
+  }
+
+  const nonEmptyReasonNames: string[] = []
+  current.meterChangeReasons.forEach((reason) => {
+    const error = validateDescriptiveField(reason.name)
+    if (error) {
+      newErrors[`meterReason.${reason.id}`] = t(`state-admin:validation.${error}`)
+    } else if (exceedsMaxLength(reason.name, MAX_METER_REASON_LENGTH)) {
+      newErrors[`meterReason.${reason.id}`] = t('state-admin:validation.maxLength', {
+        max: MAX_METER_REASON_LENGTH,
+      })
+    } else {
+      nonEmptyReasonNames.push(reason.name)
+    }
+  })
+  if (hasDuplicates(nonEmptyReasonNames)) {
+    const seen = new Set<string>()
+    current.meterChangeReasons.forEach((reason) => {
+      const normalized = reason.name.trim().toLowerCase()
+      if (!normalized) return
+      if (seen.has(normalized) && !newErrors[`meterReason.${reason.id}`]) {
+        newErrors[`meterReason.${reason.id}`] = t('state-admin:validation.duplicateValue')
+      }
+      seen.add(normalized)
+    })
+  }
+
+  if (isMandatory('SUPPLY_OUTAGE_REASONS') && current.supplyOutageReasons.length === 0) {
+    newErrors.supplyOutageReasons = t('state-admin:validation.selectAtLeastOne')
+  }
+
+  const nonEmptyOutageNames: string[] = []
+  current.supplyOutageReasons.forEach((reason) => {
+    const error = validateDescriptiveField(reason.name)
+    if (error) {
+      newErrors[`supplyOutageReason.${reason.id}`] = t(`state-admin:validation.${error}`)
+    } else if (exceedsMaxLength(reason.name, MAX_METER_REASON_LENGTH)) {
+      newErrors[`supplyOutageReason.${reason.id}`] = t('state-admin:validation.maxLength', {
+        max: MAX_METER_REASON_LENGTH,
+      })
+    } else {
+      nonEmptyOutageNames.push(reason.name)
+    }
+  })
+  if (hasDuplicates(nonEmptyOutageNames)) {
+    const seen = new Set<string>()
+    current.supplyOutageReasons.forEach((reason) => {
+      const normalized = reason.name.trim().toLowerCase()
+      if (!normalized) return
+      if (seen.has(normalized) && !newErrors[`supplyOutageReason.${reason.id}`]) {
+        newErrors[`supplyOutageReason.${reason.id}`] = t('state-admin:validation.duplicateValue')
+      }
+      seen.add(normalized)
+    })
+  }
+
+  if (isMandatory('TENANT_LOGO') && !current.logoUrl && !current.logoFile) {
+    newErrors.logo = t('configuration.messages.validation.logoRequired')
+  }
+
+  if (isMandatory('DATE_FORMAT_SCREEN') && !current.dateFormatScreen.dateFormat) {
+    newErrors.dateFormatScreen = t('configuration.messages.validation.dateFormatScreenRequired')
+  }
+
+  if (isMandatory('DATE_FORMAT_TABLE') && !current.dateFormatTable.dateFormat) {
+    newErrors.dateFormatTable = t('configuration.messages.validation.dateFormatTableRequired')
+  }
+
+  if (isMandatory('DATA_CONSOLIDATION_TIME') && !current.dataConsolidationTime) {
+    newErrors.dataConsolidationTime = t('state-admin:validation.timeRequired')
+  }
+  if (isMandatory('PUMP_OPERATOR_REMINDER_NUDGE_TIME') && !current.pumpOperatorReminderNudgeTime) {
+    newErrors.pumpOperatorReminderNudgeTime = t('state-admin:validation.timeRequired')
+  }
+
+  if (isMandatory('AVERAGE_MEMBERS_PER_HOUSEHOLD')) {
+    if (!current.averageMembersPerHousehold || current.averageMembersPerHousehold <= 0) {
+      newErrors.averageMembersPerHousehold = t('state-admin:validation.mustBePositive')
+    } else if (current.averageMembersPerHousehold > MAX_AVG_MEMBERS) {
+      newErrors.averageMembersPerHousehold = t('state-admin:validation.mustBeInRange', {
+        min: 1,
+        max: MAX_AVG_MEMBERS,
+      })
+    }
+  } else if (current.averageMembersPerHousehold > MAX_AVG_MEMBERS) {
+    newErrors.averageMembersPerHousehold = t('state-admin:validation.mustBeInRange', {
+      min: 1,
+      max: MAX_AVG_MEMBERS,
+    })
+  }
+
+  return newErrors
+}
+
+function getFirstConfigurationErrorFieldId(
+  newErrors: Record<string, string>,
+  current: ConfigDraft
+): string | null {
+  if (newErrors.supportedChannels) return 'config-field-supported-channels'
+  for (const r of current.meterChangeReasons) {
+    if (newErrors[`meterReason.${r.id}`]) return `config-field-meter-reason-${r.id}`
+  }
+  if (newErrors.meterChangeReasons) return 'config-section-meter-change-reasons'
+  for (const r of current.supplyOutageReasons) {
+    if (newErrors[`supplyOutageReason.${r.id}`]) return `config-field-supply-outage-${r.id}`
+  }
+  if (newErrors.supplyOutageReasons) return 'config-section-supply-outage-reasons'
+  if (newErrors.logo) return 'config-field-logo'
+  if (newErrors.dateFormatScreen) return 'config-field-date-format-screen'
+  if (newErrors.dateFormatTable) return 'config-field-date-format-table'
+  if (newErrors.dataConsolidationTime) return 'data-consolidation-time'
+  if (newErrors.pumpOperatorReminderNudgeTime) return 'pump-operator-nudge-time'
+  if (newErrors.averageMembersPerHousehold) return 'avg-members'
+  return null
+}
+
+function scrollToFirstConfigurationError(
+  newErrors: Record<string, string>,
+  current: ConfigDraft
+): void {
+  const targetId = getFirstConfigurationErrorFieldId(newErrors, current)
+  if (!targetId) return
+  queueMicrotask(() => {
+    const el = document.getElementById(targetId)
+    if (el && typeof el.scrollIntoView === 'function') {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+    if (
+      el instanceof HTMLInputElement ||
+      el instanceof HTMLSelectElement ||
+      el instanceof HTMLTextAreaElement
+    ) {
+      el.focus({ preventScroll: true })
+    }
+  })
 }
 
 export function ConfigurationPage() {
@@ -219,7 +385,6 @@ export function ConfigurationPage() {
       channelsChanged ||
       draft.logoFile !== null ||
       draft.locationCheckRequired !== config.locationCheckRequired ||
-      draft.displayDepartmentMaps !== config.displayDepartmentMaps ||
       mapLgdLevelsChanged ||
       mapDeptLevelsChanged ||
       draft.dataConsolidationTime !== config.dataConsolidationTime ||
@@ -269,129 +434,15 @@ export function ConfigurationPage() {
     setErrors({})
   }
 
-  const validateForm = (current: ConfigDraft): boolean => {
-    const newErrors: Record<string, string> = {}
-
-    // Supported channels
-    if (isMandatory('TENANT_SUPPORTED_CHANNELS') && current.supportedChannels.length === 0) {
-      newErrors.supportedChannels = t('state-admin:validation.selectAtLeastOne')
-    }
-
-    // Meter change reasons
-    if (isMandatory('METER_CHANGE_REASONS') && current.meterChangeReasons.length === 0) {
-      newErrors.meterChangeReasons = t('state-admin:validation.selectAtLeastOne')
-    }
-
-    const nonEmptyReasonNames: string[] = []
-    current.meterChangeReasons.forEach((reason) => {
-      const error = validateDescriptiveField(reason.name)
-      if (error) {
-        newErrors[`meterReason.${reason.id}`] = t(`state-admin:validation.${error}`)
-      } else if (exceedsMaxLength(reason.name, MAX_METER_REASON_LENGTH)) {
-        newErrors[`meterReason.${reason.id}`] = t('state-admin:validation.maxLength', {
-          max: MAX_METER_REASON_LENGTH,
-        })
-      } else {
-        nonEmptyReasonNames.push(reason.name)
-      }
-    })
-    if (hasDuplicates(nonEmptyReasonNames)) {
-      const seen = new Set<string>()
-      current.meterChangeReasons.forEach((reason) => {
-        const normalized = reason.name.trim().toLowerCase()
-        if (!normalized) return
-        if (seen.has(normalized) && !newErrors[`meterReason.${reason.id}`]) {
-          newErrors[`meterReason.${reason.id}`] = t('state-admin:validation.duplicateValue')
-        }
-        seen.add(normalized)
-      })
-    }
-
-    // Supply outage reasons
-    if (isMandatory('SUPPLY_OUTAGE_REASONS') && current.supplyOutageReasons.length === 0) {
-      newErrors.supplyOutageReasons = t('state-admin:validation.selectAtLeastOne')
-    }
-
-    const nonEmptyOutageNames: string[] = []
-    current.supplyOutageReasons.forEach((reason) => {
-      const error = validateDescriptiveField(reason.name)
-      if (error) {
-        newErrors[`supplyOutageReason.${reason.id}`] = t(`state-admin:validation.${error}`)
-      } else if (exceedsMaxLength(reason.name, MAX_METER_REASON_LENGTH)) {
-        newErrors[`supplyOutageReason.${reason.id}`] = t('state-admin:validation.maxLength', {
-          max: MAX_METER_REASON_LENGTH,
-        })
-      } else {
-        nonEmptyOutageNames.push(reason.name)
-      }
-    })
-    if (hasDuplicates(nonEmptyOutageNames)) {
-      const seen = new Set<string>()
-      current.supplyOutageReasons.forEach((reason) => {
-        const normalized = reason.name.trim().toLowerCase()
-        if (!normalized) return
-        if (seen.has(normalized) && !newErrors[`supplyOutageReason.${reason.id}`]) {
-          newErrors[`supplyOutageReason.${reason.id}`] = t('state-admin:validation.duplicateValue')
-        }
-        seen.add(normalized)
-      })
-    }
-
-    // Logo
-    if (isMandatory('TENANT_LOGO') && !current.logoUrl && !current.logoFile) {
-      newErrors.logo = t('configuration.messages.validation.logoRequired')
-    }
-
-    // Date format screen
-    if (isMandatory('DATE_FORMAT_SCREEN') && !current.dateFormatScreen.dateFormat) {
-      // Kept for future integration if needed:
-      // || !current.dateFormatScreen.timeFormat || !current.dateFormatScreen.timezone
-      newErrors.dateFormatScreen = t('configuration.messages.validation.dateFormatScreenRequired')
-    }
-
-    // Date format table
-    if (isMandatory('DATE_FORMAT_TABLE') && !current.dateFormatTable.dateFormat) {
-      // Kept for future integration if needed:
-      // || !current.dateFormatTable.timeFormat || !current.dateFormatTable.timezone
-      newErrors.dateFormatTable = t('configuration.messages.validation.dateFormatTableRequired')
-    }
-
-    // Time fields
-    if (isMandatory('DATA_CONSOLIDATION_TIME') && !current.dataConsolidationTime) {
-      newErrors.dataConsolidationTime = t('state-admin:validation.timeRequired')
-    }
-    if (
-      isMandatory('PUMP_OPERATOR_REMINDER_NUDGE_TIME') &&
-      !current.pumpOperatorReminderNudgeTime
-    ) {
-      newErrors.pumpOperatorReminderNudgeTime = t('state-admin:validation.timeRequired')
-    }
-
-    // Average members
-    if (isMandatory('AVERAGE_MEMBERS_PER_HOUSEHOLD')) {
-      if (!current.averageMembersPerHousehold || current.averageMembersPerHousehold <= 0) {
-        newErrors.averageMembersPerHousehold = t('state-admin:validation.mustBePositive')
-      } else if (current.averageMembersPerHousehold > MAX_AVG_MEMBERS) {
-        newErrors.averageMembersPerHousehold = t('state-admin:validation.mustBeInRange', {
-          min: 1,
-          max: MAX_AVG_MEMBERS,
-        })
-      }
-    } else if (current.averageMembersPerHousehold > MAX_AVG_MEMBERS) {
-      newErrors.averageMembersPerHousehold = t('state-admin:validation.mustBeInRange', {
-        min: 1,
-        max: MAX_AVG_MEMBERS,
-      })
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
   const handleSave = async (andNavigate = false) => {
     const current = draft ?? buildInitialDraft(config ?? undefined, logoObjectUrl ?? undefined)
 
-    if (!validateForm(current)) return
+    const newErrors = buildConfigurationValidationErrors(current, isMandatory, t)
+    setErrors(newErrors)
+    if (Object.keys(newErrors).length > 0) {
+      scrollToFirstConfigurationError(newErrors, current)
+      return
+    }
 
     try {
       if (current.logoFile) {
@@ -400,10 +451,9 @@ export function ConfigurationPage() {
 
       await saveMutation.mutateAsync({
         supportedChannels: current.supportedChannels,
-        meterChangeReasons: current.meterChangeReasons,
-        supplyOutageReasons: current.supplyOutageReasons,
+        meterChangeReasons: mapMeterChangeReasonIdsForPayload(current.meterChangeReasons),
+        supplyOutageReasons: mapSupplyOutageReasonIdsForPayload(current.supplyOutageReasons),
         locationCheckRequired: current.locationCheckRequired,
-        displayDepartmentMaps: current.displayDepartmentMaps,
         displayMapLgdLevels: current.displayMapLgdLevels,
         displayDepartmentMapLevels: current.displayDepartmentMapLevels,
         dataConsolidationTime:
@@ -612,7 +662,10 @@ export function ConfigurationPage() {
             >
               <VStack spacing={6} align="stretch">
                 {/* Supported Channels — 2-column vertical flow */}
-                <FormControl isInvalid={!!errors.supportedChannels}>
+                <FormControl
+                  id="config-field-supported-channels"
+                  isInvalid={!!errors.supportedChannels}
+                >
                   <Flex align="center" gap={1} mb={3}>
                     <Text
                       fontSize={{ base: 'xs', md: 'sm' }}
@@ -750,141 +803,44 @@ export function ConfigurationPage() {
                   }
                 />
 
-                {/* 6. Record Location + Display Department Maps side by side */}
-                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                  {/* Record Location */}
-                  <Box>
-                    <Flex align="center" gap={1} mb={3}>
-                      <Text
-                        fontSize={{ base: 'xs', md: 'sm' }}
-                        fontWeight="medium"
-                        color="neutral.950"
-                      >
-                        {t('configuration.sections.locationCheckRequired.title')}
-                        <RequiredIndicator required={isMandatory('LOCATION_CHECK_REQUIRED')} />
-                      </Text>
-                      <FieldInfoIcon tooltip={t('configuration.infoText.locationCheckRequired')} />
-                    </Flex>
-                    <RadioGroup
-                      value={activeDraft.locationCheckRequired ? 'yes' : 'no'}
-                      onChange={(val) =>
-                        setDraft((prev) => ({
-                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
-                          locationCheckRequired: val === 'yes',
-                        }))
-                      }
+                {/* 6. Record Location */}
+                <Box>
+                  <Flex align="center" gap={1} mb={3}>
+                    <Text
+                      fontSize={{ base: 'xs', md: 'sm' }}
+                      fontWeight="medium"
+                      color="neutral.950"
                     >
-                      <HStack spacing={6}>
-                        <Radio value="yes">
-                          <Text fontSize="sm" color="neutral.950">
-                            {t('configuration.sections.locationCheckRequired.yes')}
-                          </Text>
-                        </Radio>
-                        <Radio value="no">
-                          <Text fontSize="sm" color="neutral.950">
-                            {t('configuration.sections.locationCheckRequired.no')}
-                          </Text>
-                        </Radio>
-                      </HStack>
-                    </RadioGroup>
-                  </Box>
+                      {t('configuration.sections.locationCheckRequired.title')}
+                      <RequiredIndicator required={isMandatory('LOCATION_CHECK_REQUIRED')} />
+                    </Text>
+                    <FieldInfoIcon tooltip={t('configuration.infoText.locationCheckRequired')} />
+                  </Flex>
+                  <RadioGroup
+                    value={activeDraft.locationCheckRequired ? 'yes' : 'no'}
+                    onChange={(val) =>
+                      setDraft((prev) => ({
+                        ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                        locationCheckRequired: val === 'yes',
+                      }))
+                    }
+                  >
+                    <HStack spacing={6}>
+                      <Radio value="yes">
+                        <Text fontSize="sm" color="neutral.950">
+                          {t('configuration.sections.locationCheckRequired.yes')}
+                        </Text>
+                      </Radio>
+                      <Radio value="no">
+                        <Text fontSize="sm" color="neutral.950">
+                          {t('configuration.sections.locationCheckRequired.no')}
+                        </Text>
+                      </Radio>
+                    </HStack>
+                  </RadioGroup>
+                </Box>
 
-                  {/* Display Department Maps */}
-                  <Box>
-                    <Flex align="center" gap={1} mb={3}>
-                      <Text
-                        fontSize={{ base: 'xs', md: 'sm' }}
-                        fontWeight="medium"
-                        color="neutral.950"
-                      >
-                        {t('configuration.sections.displayDepartmentMaps.title')}
-                        <RequiredIndicator required={isMandatory('DISPLAY_DEPARTMENT_MAPS')} />
-                      </Text>
-                      <FieldInfoIcon tooltip={t('configuration.infoText.displayDepartmentMaps')} />
-                    </Flex>
-                    <RadioGroup
-                      value={activeDraft.displayDepartmentMaps ? 'yes' : 'no'}
-                      onChange={(val) =>
-                        setDraft((prev) => ({
-                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
-                          displayDepartmentMaps: val === 'yes',
-                        }))
-                      }
-                    >
-                      <HStack spacing={6}>
-                        <Radio value="yes">
-                          <Text fontSize="sm" color="neutral.950">
-                            {t('configuration.sections.displayDepartmentMaps.yes')}
-                          </Text>
-                        </Radio>
-                        <Radio value="no">
-                          <Text fontSize="sm" color="neutral.950">
-                            {t('configuration.sections.displayDepartmentMaps.no')}
-                          </Text>
-                        </Radio>
-                      </HStack>
-                    </RadioGroup>
-                  </Box>
-                </SimpleGrid>
-
-                {/* 6a. Department Map Levels (only if displayDepartmentMaps is true and deptLevelCount > 0) */}
-                {activeDraft.displayDepartmentMaps && deptLevelCount > 0 && (
-                  <Box>
-                    <Flex align="center" gap={1} mb={3}>
-                      <Text fontSize="sm" fontWeight="600" color="neutral.950">
-                        {t('configuration.sections.departmentMapLevels.title')}
-                      </Text>
-                      <FieldInfoIcon tooltip={t('configuration.infoText.departmentMapLevels')} />
-                    </Flex>
-                    <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                      {Array.from({ length: deptLevelCount }).map((_, i) => (
-                        <Box key={`dept-level-${i + 1}`}>
-                          <Flex align="center" gap={1} mb={2}>
-                            <Text
-                              fontSize={{ base: 'xs', md: 'sm' }}
-                              fontWeight="medium"
-                              color="neutral.950"
-                            >
-                              {t('configuration.sections.departmentMapLevels.displayLevelLabel', {
-                                level: i + 1,
-                              })}
-                            </Text>
-                          </Flex>
-                          <RadioGroup
-                            value={activeDraft.displayDepartmentMapLevels[i] ? 'yes' : 'no'}
-                            onChange={(val) =>
-                              setDraft((prev) => ({
-                                ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
-                                displayDepartmentMapLevels: applyLevelCascade(
-                                  prev?.displayDepartmentMapLevels ??
-                                    activeDraft.displayDepartmentMapLevels,
-                                  i,
-                                  val === 'yes'
-                                ),
-                              }))
-                            }
-                            isDisabled={i > 0 && !activeDraft.displayDepartmentMapLevels[i - 1]}
-                          >
-                            <HStack spacing={6}>
-                              <Radio value="yes">
-                                <Text fontSize="sm" color="neutral.950">
-                                  {t('common:yes')}
-                                </Text>
-                              </Radio>
-                              <Radio value="no">
-                                <Text fontSize="sm" color="neutral.950">
-                                  {t('common:no')}
-                                </Text>
-                              </Radio>
-                            </HStack>
-                          </RadioGroup>
-                        </Box>
-                      ))}
-                    </SimpleGrid>
-                  </Box>
-                )}
-
-                {/* 6b. LGD Map Levels (if lgdLevelCount > 0) */}
+                {/* 6a. LGD Map Levels (if lgdLevelCount > 0) */}
                 {lgdLevelCount > 0 && (
                   <Box>
                     <Flex align="center" gap={1} mb={3}>
@@ -920,6 +876,63 @@ export function ConfigurationPage() {
                               }))
                             }
                             isDisabled={i > 0 && !activeDraft.displayMapLgdLevels[i - 1]}
+                          >
+                            <HStack spacing={6}>
+                              <Radio value="yes">
+                                <Text fontSize="sm" color="neutral.950">
+                                  {t('common:yes')}
+                                </Text>
+                              </Radio>
+                              <Radio value="no">
+                                <Text fontSize="sm" color="neutral.950">
+                                  {t('common:no')}
+                                </Text>
+                              </Radio>
+                            </HStack>
+                          </RadioGroup>
+                        </Box>
+                      ))}
+                    </SimpleGrid>
+                  </Box>
+                )}
+
+                {/* 6b. Department Map Levels (if deptLevelCount > 0) */}
+                {deptLevelCount > 0 && (
+                  <Box>
+                    <Flex align="center" gap={1} mb={3}>
+                      <Text fontSize="sm" fontWeight="600" color="neutral.950">
+                        {t('configuration.sections.departmentMapLevels.title')}
+                      </Text>
+                      <FieldInfoIcon tooltip={t('configuration.infoText.departmentMapLevels')} />
+                    </Flex>
+                    <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+                      {Array.from({ length: deptLevelCount }).map((_, i) => (
+                        <Box key={`dept-level-${i + 1}`}>
+                          <Flex align="center" gap={1} mb={2}>
+                            <Text
+                              fontSize={{ base: 'xs', md: 'sm' }}
+                              fontWeight="medium"
+                              color="neutral.950"
+                            >
+                              {t('configuration.sections.departmentMapLevels.displayLevelLabel', {
+                                level: i + 1,
+                              })}
+                            </Text>
+                          </Flex>
+                          <RadioGroup
+                            value={activeDraft.displayDepartmentMapLevels[i] ? 'yes' : 'no'}
+                            onChange={(val) =>
+                              setDraft((prev) => ({
+                                ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                                displayDepartmentMapLevels: applyLevelCascade(
+                                  prev?.displayDepartmentMapLevels ??
+                                    activeDraft.displayDepartmentMapLevels,
+                                  i,
+                                  val === 'yes'
+                                ),
+                              }))
+                            }
+                            isDisabled={i > 0 && !activeDraft.displayDepartmentMapLevels[i - 1]}
                           >
                             <HStack spacing={6}>
                               <Radio value="yes">
@@ -1010,7 +1023,10 @@ export function ConfigurationPage() {
 
                 {/* 8. Screen Date Format + Table Date Format */}
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                  <FormControl isInvalid={!!errors.dateFormatScreen}>
+                  <FormControl
+                    id="config-field-date-format-screen"
+                    isInvalid={!!errors.dateFormatScreen}
+                  >
                     <DateFormatSection
                       title={t('configuration.sections.dateFormatScreen.title')}
                       infoTooltip={t('configuration.infoText.dateFormatScreen')}
@@ -1026,7 +1042,10 @@ export function ConfigurationPage() {
                     />
                     <FormErrorMessage>{errors.dateFormatScreen}</FormErrorMessage>
                   </FormControl>
-                  <FormControl isInvalid={!!errors.dateFormatTable}>
+                  <FormControl
+                    id="config-field-date-format-table"
+                    isInvalid={!!errors.dateFormatTable}
+                  >
                     <DateFormatSection
                       title={t('configuration.sections.dateFormatTable.title')}
                       infoTooltip={t('configuration.infoText.dateFormatTable')}
@@ -1104,7 +1123,7 @@ export function ConfigurationPage() {
                 </SimpleGrid>
 
                 {/* 10. Logo (last) */}
-                <FormControl isInvalid={!!errors.logo}>
+                <FormControl id="config-field-logo" isInvalid={!!errors.logo}>
                   <Flex align="center" gap={1} mb={3}>
                     <Text
                       fontSize={{ base: 'xs', md: 'sm' }}
@@ -1317,52 +1336,16 @@ function ViewMode({
         )}
       </ViewSection>
 
-      {/* Record Location + Display Department Maps side by side */}
-      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-        <ViewField
-          label={t('configuration.sections.locationCheckRequired.title')}
-          value={
-            config.locationCheckRequired
-              ? t('configuration.sections.locationCheckRequired.yes')
-              : t('configuration.sections.locationCheckRequired.no')
-          }
-          color="neutral.950"
-        />
-        <ViewField
-          label={t('configuration.sections.displayDepartmentMaps.title')}
-          value={
-            config.displayDepartmentMaps
-              ? t('configuration.sections.displayDepartmentMaps.yes')
-              : t('configuration.sections.displayDepartmentMaps.no')
-          }
-          color="neutral.950"
-        />
-      </SimpleGrid>
-
-      {/* Department Map Levels (only if Display Department Maps is enabled) */}
-      {config.displayDepartmentMaps && deptLevelCount > 0 && (
-        <Box>
-          <Text fontSize="sm" fontWeight="600" color="neutral.950" mb={3}>
-            {t('configuration.sections.departmentMapLevels.title')}
-          </Text>
-          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-            {Array.from({ length: deptLevelCount }).map((_, i) => (
-              <ViewField
-                key={`view-dept-level-${i + 1}`}
-                label={t('configuration.sections.departmentMapLevels.displayLevelLabel', {
-                  level: i + 1,
-                })}
-                value={
-                  config.displayDepartmentMapLevels[i]
-                    ? t('yes', { ns: 'common' })
-                    : t('no', { ns: 'common' })
-                }
-                color="neutral.950"
-              />
-            ))}
-          </SimpleGrid>
-        </Box>
-      )}
+      {/* Record Location */}
+      <ViewField
+        label={t('configuration.sections.locationCheckRequired.title')}
+        value={
+          config.locationCheckRequired
+            ? t('configuration.sections.locationCheckRequired.yes')
+            : t('configuration.sections.locationCheckRequired.no')
+        }
+        color="neutral.950"
+      />
 
       {/* LGD Map Levels */}
       {lgdLevelCount > 0 && (
@@ -1377,6 +1360,31 @@ function ViewMode({
                 label={t('configuration.sections.lgdMapLevels.displayLevelLabel', { level: i + 1 })}
                 value={
                   config.displayMapLgdLevels[i]
+                    ? t('yes', { ns: 'common' })
+                    : t('no', { ns: 'common' })
+                }
+                color="neutral.950"
+              />
+            ))}
+          </SimpleGrid>
+        </Box>
+      )}
+
+      {/* Department Map Levels */}
+      {deptLevelCount > 0 && (
+        <Box>
+          <Text fontSize="sm" fontWeight="600" color="neutral.950" mb={3}>
+            {t('configuration.sections.departmentMapLevels.title')}
+          </Text>
+          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+            {Array.from({ length: deptLevelCount }).map((_, i) => (
+              <ViewField
+                key={`view-dept-level-${i + 1}`}
+                label={t('configuration.sections.departmentMapLevels.displayLevelLabel', {
+                  level: i + 1,
+                })}
+                value={
+                  config.displayDepartmentMapLevels[i]
                     ? t('yes', { ns: 'common' })
                     : t('no', { ns: 'common' })
                 }
