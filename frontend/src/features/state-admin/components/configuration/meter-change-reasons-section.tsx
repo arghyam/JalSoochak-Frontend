@@ -64,7 +64,7 @@ export function MeterChangeReasonsSection({
   }
 
   return (
-    <Box>
+    <Box id="config-section-meter-change-reasons">
       <Flex align="center" gap={1} mb={3}>
         <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" color="neutral.950">
           {title}
@@ -92,6 +92,7 @@ export function MeterChangeReasonsSection({
             <FormControl key={reason.id} isInvalid={!!fieldError}>
               <Flex gap={2} align="center">
                 <Input
+                  id={`config-field-meter-reason-${reason.id}`}
                   value={reason.name}
                   onChange={(e) => handleChange(reason.id, e.target.value)}
                   placeholder={t('configuration.sections.meterChangeReasons.placeholder')}

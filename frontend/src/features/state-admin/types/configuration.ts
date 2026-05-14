@@ -76,7 +76,6 @@ export interface ConfigurationData {
   meterChangeReasons: MeterChangeReason[]
   supplyOutageReasons: SupplyOutageReason[]
   locationCheckRequired: boolean
-  displayDepartmentMaps: boolean
   displayMapLgdLevels: boolean[]
   displayDepartmentMapLevels: boolean[]
   dataConsolidationTime: string

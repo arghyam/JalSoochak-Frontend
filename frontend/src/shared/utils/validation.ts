@@ -28,10 +28,10 @@ export function containsSqlInjection(value: string): boolean {
 }
 
 /**
- * Returns true if the value contains only alphanumeric characters and spaces.
+ * Returns true if the value contains only alphanumeric characters, spaces, and ASCII hyphens (-).
  */
 export function isAlphanumericWithSpaces(value: string): boolean {
-  return /^[a-zA-Z0-9\s]+$/.test(value)
+  return /^[a-zA-Z0-9\s-]+$/.test(value)
 }
 
 /**
@@ -83,7 +83,7 @@ export function validateTextField(value: string): string | null {
 
 /**
  * Validates a descriptive text field (meter reasons, hierarchy names).
- * Checks: empty, HTML, SQL, alphanumeric+spaces.
+ * Checks: empty, HTML, SQL, alphanumeric+spaces+hyphens.
  * Returns the first validation error key or null if valid.
  */
 export function validateDescriptiveField(value: string): string | null {
@@ -114,4 +114,26 @@ export function isValidPassword(value: string): boolean {
     /\d/.test(value) &&
     /[^A-Za-z0-9]/.test(value)
   )
+}
+
+/**
+ * Converts a descriptive reason name to a SCREAMING_SNAKE_CASE id (e.g. for API payloads).
+ * Expect alphanumeric + spaces + hyphens in the name (see {@link validateDescriptiveField}).
+ */
+export function descriptiveNameToReasonId(name: string): string {
+  const trimmed = name.trim()
+  if (!trimmed) return ''
+  return trimmed
+    .replace(/\s+/g, '_')
+    .replace(/[^A-Za-z0-9_]/g, '')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '')
+    .toUpperCase()
+}
+
+/** Matches ids assigned to newly added meter/supply reason rows in the UI (timestamp + random segment). */
+const CLIENT_CONFIGURATION_REASON_ID_RE = /^\d{10,}-[a-z0-9]+$/i
+
+export function isClientGeneratedConfigurationReasonId(id: string): boolean {
+  return CLIENT_CONFIGURATION_REASON_ID_RE.test(id)
 }

@@ -90,7 +90,6 @@ const configuredConfig = {
   ],
   supplyOutageReasons: defaultSupplyOutageReasons,
   locationCheckRequired: true,
-  displayDepartmentMaps: false,
   displayMapLgdLevels: [true, true, false, false, false, false],
   displayDepartmentMapLevels: [true, true, true, false, false, false],
   dataConsolidationTime: '08:00',
@@ -112,7 +111,6 @@ const unconfiguredConfig = {
   ],
   supplyOutageReasons: defaultSupplyOutageReasons,
   locationCheckRequired: false,
-  displayDepartmentMaps: false,
   displayMapLgdLevels: [true, true, true, true, true, true],
   displayDepartmentMapLevels: [true, true, true, true, true, true],
   dataConsolidationTime: '',
@@ -172,7 +170,8 @@ describe('ConfigurationPage', () => {
     expect(screen.getByText('IOT, Manual')).toBeTruthy()
     expect(screen.getByText('Meter Replaced')).toBeTruthy()
     expect(screen.getByText('Meter Not Working')).toBeTruthy()
-    expect(screen.getAllByText('Yes')).toHaveLength(3) // locationCheckRequired + 2 lgd levels
+    // locationCheckRequired + LGD levels (2 true) + department map levels (3 true)
+    expect(screen.getAllByText('Yes')).toHaveLength(6)
     expect(screen.getByText('08:00')).toBeTruthy()
   })
 
@@ -250,6 +249,59 @@ describe('ConfigurationPage', () => {
           isConfigured: true,
         })
       )
+    })
+  })
+
+  it('sends SCREAMING_SNAKE id for newly added meter change reasons on save', async () => {
+    mockMutateAsync.mockResolvedValue({ ...configuredConfig })
+    renderWithProviders(<ConfigurationPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
+
+    fireEvent.click(screen.getAllByRole('button', { name: /add new reason/i })[0])
+
+    const inputs = screen.getAllByPlaceholderText(/enter reason/i)
+    const newInput = inputs.find((el) => (el as HTMLInputElement).value === '')!
+    fireEvent.change(newInput, { target: { value: 'Fresh Reason' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }))
+
+    await waitFor(() => {
+      expect(mockMutateAsync).toHaveBeenCalledWith(
+        expect.objectContaining({
+          meterChangeReasons: expect.arrayContaining([
+            expect.objectContaining({ id: 'FRESH_REASON', name: 'Fresh Reason' }),
+          ]),
+        })
+      )
+    })
+  })
+
+  it('scrolls the first invalid field into view when save fails validation', async () => {
+    const scrollIntoView = jest.fn()
+    const orig = HTMLElement.prototype.scrollIntoView
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+      configurable: true,
+      writable: true,
+      value: scrollIntoView,
+    })
+    mockUseConfigurationQuery.mockReturnValue({
+      data: unconfiguredConfig,
+      isLoading: false,
+      isError: false,
+    })
+    renderWithProviders(<ConfigurationPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: /save & next/i }))
+
+    await waitFor(() => {
+      expect(scrollIntoView).toHaveBeenCalled()
+    })
+
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+      configurable: true,
+      writable: true,
+      value: orig,
     })
   })
 
@@ -482,34 +534,21 @@ describe('ConfigurationPage', () => {
     renderWithProviders(<ConfigurationPage />)
     fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
 
-    // With 4 LGD levels from hierarchy, should show 4 level rows
-    expect(screen.getByText('Display Level 1')).toBeTruthy()
-    expect(screen.getByText('Display Level 2')).toBeTruthy()
-    expect(screen.getByText('Display Level 3')).toBeTruthy()
+    expect(screen.getByText('LGD Map Levels')).toBeTruthy()
+    // Level 4 is unique to LGD in this mock (department hierarchy has 3 levels).
     expect(screen.getByText('Display Level 4')).toBeTruthy()
+    // Levels 1–3 labels also appear under Department Map Levels.
+    expect(screen.getAllByText('Display Level 1').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Display Level 2').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Display Level 3').length).toBeGreaterThanOrEqual(1)
   })
 
-  it('hides department map levels when displayDepartmentMaps is false', () => {
+  it('shows department map levels when deptLevelCount > 0', () => {
     renderWithProviders(<ConfigurationPage />)
     fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
 
-    // Department maps are disabled in configuredConfig, so dept level section should not appear
-    expect(screen.queryByText('Department Map Levels')).toBeNull()
-  })
-
-  it('shows department map levels when displayDepartmentMaps is true', () => {
-    const configWithDeptMaps = { ...configuredConfig, displayDepartmentMaps: true }
-    mockUseConfigurationQuery.mockReturnValue({
-      data: configWithDeptMaps,
-      isLoading: false,
-      isError: false,
-    })
-    renderWithProviders(<ConfigurationPage />)
-    fireEvent.click(screen.getByRole('button', { name: /edit configuration/i }))
-
-    // With 3 dept levels from hierarchy and displayDepartmentMaps true, should show 3 dept level rows
-    const deptSection = screen.getByText('Department Map Levels')
-    expect(deptSection).toBeTruthy()
+    // With 3 dept levels from hierarchy, should show the Department Map Levels section
+    expect(screen.getByText('Department Map Levels')).toBeTruthy()
   })
 
   it('renders LGD map level section when in edit mode with lgdLevelCount > 0', () => {
