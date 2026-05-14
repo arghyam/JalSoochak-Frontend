@@ -7,20 +7,7 @@ import {
   type PointerEvent,
   type RefObject,
 } from 'react'
-import {
-  Box,
-  Button,
-  Flex,
-  Icon,
-  Table,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
-  useMediaQuery,
-} from '@chakra-ui/react'
+import { Box, Button, Flex, Icon, Table, Tbody, Td, Text, Th, Thead, Tr } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { LuArrowLeft, LuArrowRight, LuChevronsLeft, LuChevronsRight } from 'react-icons/lu'
 import type { PumpOperatorPerformanceData } from '../../types'
@@ -137,7 +124,6 @@ export function SchemePerformanceTable({
   onPageChange,
 }: SchemePerformanceTableProps) {
   const { t } = useTranslation('dashboard')
-  const [enableHorizontalScroller] = useMediaQuery('(max-width: 1599px)')
   const [sortColumn, setSortColumn] = useState<SortColumn>('reportingRate')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
@@ -151,7 +137,9 @@ export function SchemePerformanceTable({
   const [isThumbDragging, setIsThumbDragging] = useState(false)
   const safeMaxItems =
     typeof maxItems === 'number' && Number.isFinite(maxItems) ? Math.max(0, maxItems) : undefined
-  const responsiveTableMinWidth = enableHorizontalScroller ? 'max-content' : '100%'
+  const areaColumnCount = (showVillageColumn ? 1 : 0) + (showBlockColumn ? 1 : 0)
+  const nameColumnWidth = '40%'
+  const areaColumnWidth = areaColumnCount > 0 ? `${20 / areaColumnCount}%` : undefined
   const sortedRows =
     sortColumn && sortDirection
       ? [...data].sort((a, b) => {
@@ -359,17 +347,17 @@ export function SchemePerformanceTable({
           flex={fillHeight ? 1 : undefined}
           minH={fillHeight ? 0 : undefined}
           overflowY="auto"
-          overflowX={enableHorizontalScroller ? 'auto' : 'hidden'}
+          overflowX="auto"
           w="full"
           maxW="100%"
           minW={0}
-          pr={2}
+          pr={0}
           pb={2}
           onScroll={updateScrollbarThumb}
           sx={{
             WebkitOverflowScrolling: 'touch',
             scrollbarGutter: 'stable',
-            '&::-webkit-scrollbar': { width: '4px', height: '0px' },
+            '&::-webkit-scrollbar': { width: '4px', height: '4px' },
             '&::-webkit-scrollbar-button': { display: 'none' },
             '&::-webkit-scrollbar-track': { bg: 'neutral.100', borderRadius: '999px' },
             '&::-webkit-scrollbar-thumb': { bg: 'neutral.300', borderRadius: '999px' },
@@ -377,8 +365,15 @@ export function SchemePerformanceTable({
             '&::-webkit-scrollbar-thumb:horizontal': { bg: 'primary.300' },
           }}
         >
-          <Box w="full" minW={responsiveTableMinWidth}>
-            <Table size="sm" w="full" minW={responsiveTableMinWidth} sx={{ tableLayout: 'auto' }}>
+          <Box w="max-content" minW="100%">
+            <Table size="sm" w="max-content" minW="100%" sx={{ tableLayout: 'auto' }}>
+              <colgroup>
+                <col style={{ width: nameColumnWidth }} />
+                {showVillageColumn ? <col style={{ width: areaColumnWidth }} /> : null}
+                {showBlockColumn ? <col style={{ width: areaColumnWidth }} /> : null}
+                <col style={{ width: '20%' }} />
+                <col style={{ width: '20%' }} />
+              </colgroup>
               <Thead
                 sx={{
                   position: 'sticky',
@@ -389,18 +384,18 @@ export function SchemePerformanceTable({
                     textStyle: 'bodyText7',
                     textTransform: 'none',
                     fontWeight: '500',
-                    px: 3,
+                    px: '10px',
                     py: 4,
                     whiteSpace: 'nowrap',
                   },
                 }}
               >
                 <Tr>
-                  <Th w="260px" minW="260px" maxW="260px">
+                  <Th>
                     {t('pumpOperators.performanceTable.columns.name', { defaultValue: 'Name' })}
                   </Th>
                   {showVillageColumn ? (
-                    <Th minW={enableHorizontalScroller ? '140px' : 'auto'}>
+                    <Th>
                       {secondaryColumnLabel ??
                         t('pumpOperators.performanceTable.columns.village', {
                           defaultValue: 'Village',
@@ -408,7 +403,7 @@ export function SchemePerformanceTable({
                     </Th>
                   ) : null}
                   {showBlockColumn ? (
-                    <Th minW={enableHorizontalScroller ? '140px' : 'auto'}>
+                    <Th>
                       {blockColumnLabel ??
                         t('pumpOperators.performanceTable.columns.block', {
                           defaultValue: 'Block',
@@ -416,7 +411,6 @@ export function SchemePerformanceTable({
                     </Th>
                   ) : null}
                   <Th
-                    minW={enableHorizontalScroller ? '170px' : 'auto'}
                     aria-sort={
                       sortColumn === 'reportingRate'
                         ? sortDirection === 'asc'
@@ -434,7 +428,7 @@ export function SchemePerformanceTable({
                       gap={1}
                       cursor="pointer"
                       textAlign="left"
-                      width="100%"
+                      width="fit-content"
                       bg="none"
                       border="none"
                       p={0}
@@ -453,7 +447,6 @@ export function SchemePerformanceTable({
                     </Box>
                   </Th>
                   <Th
-                    minW={enableHorizontalScroller ? '150px' : 'auto'}
                     aria-sort={
                       sortColumn === 'waterSupplied'
                         ? sortDirection === 'asc'
@@ -471,7 +464,7 @@ export function SchemePerformanceTable({
                       gap={1}
                       cursor="pointer"
                       textAlign="left"
-                      width="100%"
+                      width="fit-content"
                       bg="none"
                       border="none"
                       p={0}
@@ -508,16 +501,9 @@ export function SchemePerformanceTable({
 
                   return (
                     <Tr key={operator.id} _odd={{ bg: 'primary.25' }}>
-                      <Td
-                        w="260px"
-                        minW="260px"
-                        maxW="260px"
-                        overflow="hidden"
-                        lineHeight="20px"
-                        verticalAlign="top"
-                      >
+                      <Td overflow="hidden" lineHeight="20px" verticalAlign="top">
                         <Box
-                          maxW="240px"
+                          maxW="100%"
                           overflow="hidden"
                           textOverflow="ellipsis"
                           whiteSpace="nowrap"
@@ -566,9 +552,9 @@ export function SchemePerformanceTable({
         <Box
           data-testid="scheme-performance-horizontal-scrollbar"
           mt="6px"
-          display={enableHorizontalScroller ? 'block' : 'none'}
-          opacity={enableHorizontalScroller && hasHorizontalOverflow ? 1 : 0}
-          pointerEvents={enableHorizontalScroller && hasHorizontalOverflow ? 'auto' : 'none'}
+          display="none"
+          opacity={hasHorizontalOverflow ? 1 : 0}
+          pointerEvents={hasHorizontalOverflow ? 'auto' : 'none'}
         >
           <Box
             ref={scrollbarTrackRef}
