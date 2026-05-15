@@ -274,6 +274,26 @@ describe('stateAdminApi', () => {
       const formData = mockedApiClient.post.mock.calls[0][1] as FormData
       expect(formData.get('file')).toBe(file)
     })
+
+    it('updateStaffStatus posts deactivate when status is INACTIVE', async () => {
+      mockedApiClient.post.mockResolvedValueOnce({} as never)
+      await stateAdminApi.updateStaffStatus(42, 'INACTIVE', 'TN')
+      expect(mockedApiClient.post).toHaveBeenCalledWith(
+        '/api/v1/tenant/user/staff/42/deactivate',
+        null,
+        { params: { tenantCode: 'TN' } }
+      )
+    })
+
+    it('updateStaffStatus posts activate when status is ACTIVE', async () => {
+      mockedApiClient.post.mockResolvedValueOnce({} as never)
+      await stateAdminApi.updateStaffStatus(42, 'ACTIVE', 'TN')
+      expect(mockedApiClient.post).toHaveBeenCalledWith(
+        '/api/v1/tenant/user/staff/42/activate',
+        null,
+        { params: { tenantCode: 'TN' } }
+      )
+    })
   })
 
   describe('schemes', () => {
