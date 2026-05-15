@@ -40,11 +40,12 @@ export interface ConfigStatusEntry {
 
 export type ConfigStatusMap = { [K in ConfigKey]?: ConfigStatusEntry }
 
-export type WizardStepId = 'configuration' | 'language' | 'waterNorms' | 'escalations'
+export type WizardStepId = 'hierarchy' | 'configuration' | 'language' | 'waterNorms' | 'escalations'
 
 export interface WizardStep {
   id: WizardStepId
   labelKey: string
   route: string
   keys: Array<keyof ConfigStatusMap>
+  alwaysConfigured?: boolean
 }

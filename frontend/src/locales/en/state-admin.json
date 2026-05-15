@@ -14,7 +14,8 @@
       "saveSuccess": "Hierarchy saved successfully",
       "saveFailed": "Failed to save hierarchy",
       "failedToLoad": "Failed to load hierarchy. Please try again later.",
-      "emptyLevelName": "All levels must have a name"
+      "emptyLevelName": "All levels must have a name",
+      "tenantCodeMismatch": "Could not resolve state for tenant code \"{{tenantCode}}\". Onboarding status may be unavailable until this is corrected."
     },
     "aria": {
       "editConfiguration": "Edit hierarchy configuration",
@@ -79,6 +80,7 @@
     },
     "setupWizard": {
       "title": "Setup Progress",
+      "hierarchy": "Hierarchy",
       "configuration": "Configuration",
       "language": "Language",
       "waterNorms": "Water Norms",
