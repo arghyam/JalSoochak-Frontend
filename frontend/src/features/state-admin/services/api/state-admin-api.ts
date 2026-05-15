@@ -21,7 +21,7 @@ import type {
   ApiHierarchyResponse,
 } from '../../types/hierarchy'
 import type { ConfigKey, ConfigKeyStatus, ConfigStatusMap } from '../../types/config-status'
-import type { TenantStatus } from '@/features/super-admin/types/states-uts'
+import type { TenantApiResponse, TenantStatus } from '@/features/super-admin/types/states-uts'
 import {
   mapApiHierarchyToLevels,
   mapLevelsToApiPayload,
@@ -622,8 +622,12 @@ export const stateAdminApi = {
   // --- Real HTTP: Tenant Status ---
   getTenantStatus: async (tenantName: string): Promise<TenantStatus | null> => {
     const response = await apiClient.get<{
-      data: { content: Array<{ status: TenantStatus }> }
+      data: { content: TenantApiResponse[] }
     }>('/api/v1/tenants', { params: { search: tenantName } })
-    return response.data.data.content[0]?.status ?? null
+    const normalizedName = tenantName.trim().toLowerCase()
+    const match = response.data.data.content.find(
+      (tenant) => tenant.name.trim().toLowerCase() === normalizedName
+    )
+    return match?.status ?? null
   },
 }

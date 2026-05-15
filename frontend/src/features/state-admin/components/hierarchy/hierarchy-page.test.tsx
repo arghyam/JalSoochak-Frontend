@@ -238,6 +238,7 @@ describe('HierarchyPage', () => {
 
       await waitFor(() => {
         expect(mockSaveLgd).toHaveBeenCalled()
+        expect(mockSaveDept).toHaveBeenCalled()
         expect(mockNavigate).toHaveBeenCalledWith('/state-admin/configuration')
       })
     })

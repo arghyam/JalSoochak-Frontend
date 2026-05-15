@@ -602,7 +602,7 @@ describe('stateAdminApi', () => {
   describe('getTenantStatus', () => {
     it('calls GET /api/v1/tenants with search param', async () => {
       mockedApiClient.get.mockResolvedValueOnce({
-        data: { data: { content: [{ status: 'ONBOARDED' }] } },
+        data: { data: { content: [{ name: 'Assam', status: 'ONBOARDED' }] } },
       } as never)
       const result = await stateAdminApi.getTenantStatus('Assam')
       expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/tenants', {
@@ -619,12 +619,19 @@ describe('stateAdminApi', () => {
       expect(result).toBeNull()
     })
 
-    it('returns the status from the first content item', async () => {
+    it('returns status from tenant matched by name, not the first result', async () => {
       mockedApiClient.get.mockResolvedValueOnce({
-        data: { data: { content: [{ status: 'ACTIVE' }, { status: 'ONBOARDED' }] } },
+        data: {
+          data: {
+            content: [
+              { name: 'Bihar', status: 'ACTIVE' },
+              { name: 'Assam', status: 'ONBOARDED' },
+            ],
+          },
+        },
       })
       const result = await stateAdminApi.getTenantStatus('Assam')
-      expect(result).toBe('ACTIVE')
+      expect(result).toBe('ONBOARDED')
     })
   })
 })

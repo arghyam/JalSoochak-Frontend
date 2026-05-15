@@ -111,7 +111,10 @@ describe('ConfigSetupWizard', () => {
 
     // 4 connectors (between 5 steps), all green
     for (let i = 0; i < 4; i++) {
-      expect(screen.getByTestId(`vertical-connector-${i}`)).toBeInTheDocument()
+      expect(screen.getByTestId(`vertical-connector-${i}`)).toHaveAttribute(
+        'data-configured',
+        'true'
+      )
     }
   })
 

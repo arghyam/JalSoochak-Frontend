@@ -56,8 +56,12 @@ export function HierarchyPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const { user } = useAuthStore()
-  const tenantName =
-    INDIA_STATES.find((s) => s.code.toLowerCase() === user?.tenantCode?.toLowerCase())?.name ?? ''
+  const tenantCode = user?.tenantCode ?? ''
+  const tenantName = useMemo(
+    () => INDIA_STATES.find((s) => s.code.toUpperCase() === tenantCode.toUpperCase())?.name ?? '',
+    [tenantCode]
+  )
+  const tenantCodeUnmatched = Boolean(tenantCode) && tenantName === ''
   const { data: tenantStatus } = useTenantStatusQuery(tenantName)
   const isOnboarded = tenantStatus === 'ONBOARDED'
 
@@ -93,6 +97,16 @@ export function HierarchyPage() {
   useEffect(() => {
     document.title = `${t('hierarchy.pageTitle')} | JalSoochak`
   }, [t])
+
+  useEffect(() => {
+    if (tenantCodeUnmatched) {
+      console.warn(
+        '[HierarchyPage] tenantCode did not match any INDIA_STATES entry:',
+        tenantCode,
+        '— validate backend tenantCode case consistency for state-admin entries'
+      )
+    }
+  }, [tenantCode, tenantCodeUnmatched])
 
   const handleEdit = () => {
     setDraftOverride(buildHierarchyDraft(lgdData, deptData))
@@ -280,6 +294,12 @@ export function HierarchyPage() {
           editLabel={t('hierarchy.breadcrumb.edit')}
         />
       </PageHeader>
+
+      {tenantCodeUnmatched && (
+        <Text color="warning.500" mb={4} role="alert">
+          {t('hierarchy.messages.tenantCodeMismatch', { tenantCode })}
+        </Text>
+      )}
 
       <Box
         as="section"
