@@ -326,13 +326,18 @@
     },
     "messages": {
       "noStaffFound": "No staff members found",
-      "failedToLoad": "Failed to load staff data"
+      "failedToLoad": "Failed to load staff data",
+      "activatedSuccess": "Staff member activated successfully",
+      "deactivatedSuccess": "Staff member deactivated successfully",
+      "failedToUpdateStatus": "Failed to update staff status"
     },
     "aria": {
       "statsSection": "Staff sync statistics",
       "searchStaff": "Search staff by name",
       "filterSection": "Filter staff members",
-      "uploadData": "Upload staff data"
+      "uploadData": "Upload staff data",
+      "activate": "Activate staff member",
+      "deactivate": "Deactivate staff member"
     },
     "broadcast": {
       "button": "Broadcast",

@@ -23,9 +23,10 @@ import {
   DataTable,
   SearchableSelect,
   StatCard,
-  StatusChip,
   PageHeader,
+  ToastContainer,
 } from '@/shared/components/common'
+import { useToast } from '@/shared/hooks/use-toast'
 import type { DataTableColumn } from '@/shared/components/common'
 import type { StaffMember, StaffRole, StaffStatus } from '../../types/staff-sync'
 import {
@@ -36,6 +37,7 @@ import { useAuthStore } from '@/app/store/auth-store'
 import { useDebounce } from '@/shared/hooks/use-debounce'
 import { UploadStaffModal } from './upload-staff-modal'
 import { BroadcastModal } from './broadcast-modal'
+import { StaffActivityToggle } from './staff-activity-toggle'
 
 const DEFAULT_ROLES: StaffRole[] = ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER']
 const PAGE_SIZE = 10
@@ -50,6 +52,7 @@ const ROLE_DISPLAY: Record<StaffRole, string> = {
 
 export function StaffSyncPage() {
   const { t } = useTranslation(['state-admin', 'common'])
+  const toast = useToast()
   const tenantCode = useAuthStore((s) => s.user?.tenantCode ?? '')
 
   const [searchQuery, setSearchQuery] = useState('')
@@ -125,8 +128,9 @@ export function StaffSyncPage() {
       key: 'title',
       header: t('staffSync.table.name'),
       sortable: false,
-      width: '20%',
+      width: '25%',
       minWidth: '200px',
+      headerMaxLines: 2,
       render: (row) => (
         <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
           {row.title}
@@ -139,6 +143,7 @@ export function StaffSyncPage() {
       sortable: false,
       width: '20%',
       minWidth: '200px',
+      headerMaxLines: 2,
       render: (row) => (
         <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
           {ROLE_DISPLAY[row.role] ?? row.role}
@@ -151,6 +156,7 @@ export function StaffSyncPage() {
       sortable: false,
       width: '20%',
       minWidth: '200px',
+      headerMaxLines: 2,
       render: (row) => (
         <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
           {row.phoneNumber}
@@ -161,8 +167,9 @@ export function StaffSyncPage() {
       key: 'schemes',
       header: t('staffSync.table.schemes'),
       sortable: false,
-      width: '20%',
+      width: '25%',
       minWidth: '200px',
+      headerMaxLines: 2,
       render: (row) => {
         if (!row.schemes.length) {
           return (
@@ -212,12 +219,16 @@ export function StaffSyncPage() {
       key: 'status',
       header: t('staffSync.table.activityStatus'),
       sortable: false,
-      width: '20%',
+      width: '10%',
       minWidth: '200px',
+      headerMaxLines: 2,
       render: (row) => (
-        <StatusChip
-          status={row.status === 'ACTIVE' ? 'active' : 'inactive'}
-          label={row.status === 'ACTIVE' ? t('common:status.active') : t('common:status.inactive')}
+        <StaffActivityToggle
+          staffId={row.id}
+          status={row.status}
+          tenantCode={tenantCode}
+          onSuccess={toast.success}
+          onError={toast.error}
         />
       ),
     },
@@ -419,6 +430,7 @@ export function StaffSyncPage() {
 
       <UploadStaffModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />
       <BroadcastModal isOpen={isBroadcastOpen} onClose={() => setIsBroadcastOpen(false)} />
+      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </Box>
   )
 }

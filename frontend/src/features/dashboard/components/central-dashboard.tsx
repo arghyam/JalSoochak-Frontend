@@ -1054,7 +1054,6 @@ export function CentralDashboard({
   )
   const hasResolvedTenantPublicConfig =
     !selectedTenant?.tenantId || (!isTenantPublicConfigLoading && !isTenantPublicConfigFetching)
-  const shouldShowDepartmentMaps = tenantPublicConfig?.displayDepartmentMaps !== false
   const lgdMapLevelVisibility = tenantPublicConfig?.displayMapLgdLevels ?? [
     true,
     true,
@@ -1091,7 +1090,7 @@ export function CentralDashboard({
   const isDepartmentMapEnabledForCurrentLevel =
     departmentMapLevelVisibility[currentDepartmentMapLevel - 1] !== false
   const shouldShowMapAlongsidePerformance = isDepartmentTabActive
-    ? shouldShowDepartmentMaps && isDepartmentMapEnabledForCurrentLevel
+    ? isDepartmentMapEnabledForCurrentLevel
     : isLgdMapEnabledForCurrentLevel
   const shouldFetchTenantBoundaryGeoJson =
     hasResolvedTenantPublicConfig && shouldShowMapAlongsidePerformance

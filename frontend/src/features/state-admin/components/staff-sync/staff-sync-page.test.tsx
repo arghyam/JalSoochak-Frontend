@@ -24,6 +24,10 @@ jest.mock('../../services/query/use-state-admin-queries', () => ({
   useStaffCountsQuery: () => mockUseStaffCountsQuery(),
   useUploadPumpOperatorsMutation: () => mockUseUploadMutation(),
   useBroadcastWelcomeMessageMutation: () => mockUseBroadcastMutation(),
+  useUpdateStaffStatusMutation: () => ({
+    mutateAsync: jest.fn(),
+    isPending: false,
+  }),
 }))
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -196,6 +200,15 @@ describe('StaffSyncPage', () => {
   it('renders dash for staff with no schemes', () => {
     renderWithProviders(<StaffSyncPage />)
     expect(screen.getByText('—')).toBeTruthy()
+  })
+
+  it('renders activity status toggles for each staff row', () => {
+    renderWithProviders(<StaffSyncPage />)
+    const toggles = screen.getAllByRole('checkbox')
+    expect(toggles).toHaveLength(3)
+    expect((toggles[0] as HTMLInputElement).checked).toBe(true)
+    expect((toggles[1] as HTMLInputElement).checked).toBe(false)
+    expect((toggles[2] as HTMLInputElement).checked).toBe(true)
   })
 
   // ── Toolbar ─────────────────────────────────────────────────────────────────

@@ -329,6 +329,17 @@ export const stateAdminApi = {
     })
   },
 
+  updateStaffStatus: async (
+    id: number,
+    status: 'ACTIVE' | 'INACTIVE',
+    tenantCode: string
+  ): Promise<void> => {
+    const action = status === 'INACTIVE' ? 'deactivate' : 'activate'
+    await apiClient.post(`/api/v1/tenant/user/staff/${id}/${action}`, null, {
+      params: { tenantCode },
+    })
+  },
+
   // --- Real HTTP: Scheme Counts ---
   getSchemeCounts: async (tenantCode: string): Promise<SchemeCounts> => {
     const response = await apiClient.get<SchemeCounts>('/api/v1/scheme/schemes/counts/by-status', {
