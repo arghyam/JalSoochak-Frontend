@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { Box, Text, Button, Flex, HStack, Heading, SimpleGrid, Spinner } from '@chakra-ui/react'
 import { EditIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { useToast } from '@/shared/hooks/use-toast'
 import { ToastContainer, EditableBreadcrumb, PageHeader } from '@/shared/components/common'
 import {
@@ -9,8 +10,9 @@ import {
   hasDuplicates,
   exceedsMaxLength,
 } from '@/shared/utils/validation'
-
-const MAX_LEVEL_NAME_LENGTH = 50
+import { useAuthStore } from '@/app/store/auth-store'
+import { INDIA_STATES } from '@/shared/constants/states'
+import { ROUTES } from '@/shared/constants/routes'
 import {
   useLgdHierarchyQuery,
   useDepartmentHierarchyQuery,
@@ -18,22 +20,46 @@ import {
   useDepartmentEditConstraintsQuery,
   useSaveLgdHierarchyMutation,
   useSaveDepartmentHierarchyMutation,
+  useTenantStatusQuery,
 } from '../../services/query/use-state-admin-queries'
 import type { HierarchyLevel } from '../../types/hierarchy'
 import { DEFAULT_LGD_HIERARCHY, DEFAULT_DEPARTMENT_HIERARCHY } from '../../types/hierarchy'
 import { HierarchySection } from './hierarchy-section'
+
+const MAX_LEVEL_NAME_LENGTH = 50
 
 interface HierarchyDraft {
   lgd: HierarchyLevel[]
   department: HierarchyLevel[]
 }
 
+type EditIntent = 'none' | 'editing' | 'dismissed'
+
+function buildHierarchyDraft(
+  lgdData: { levels: HierarchyLevel[] } | undefined,
+  deptData: { levels: HierarchyLevel[] } | undefined
+): HierarchyDraft {
+  return {
+    lgd: lgdData?.levels.map((l) => ({ ...l })) ?? DEFAULT_LGD_HIERARCHY.map((l) => ({ ...l })),
+    department:
+      deptData?.levels.map((l) => ({ ...l })) ??
+      DEFAULT_DEPARTMENT_HIERARCHY.map((l) => ({ ...l })),
+  }
+}
+
 export function HierarchyPage() {
   const { t } = useTranslation(['state-admin', 'common'])
+  const navigate = useNavigate()
   const toast = useToast()
-  const [isEditing, setIsEditing] = useState(false)
-  const [draft, setDraft] = useState<HierarchyDraft | null>(null)
+  const [editIntent, setEditIntent] = useState<EditIntent>('none')
+  const [draftOverride, setDraftOverride] = useState<HierarchyDraft | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const { user } = useAuthStore()
+  const tenantName =
+    INDIA_STATES.find((s) => s.code.toLowerCase() === user?.tenantCode?.toLowerCase())?.name ?? ''
+  const { data: tenantStatus } = useTenantStatusQuery(tenantName)
+  const isOnboarded = tenantStatus === 'ONBOARDED'
 
   const { data: lgdData, isLoading: lgdLoading, isError: lgdError } = useLgdHierarchyQuery()
   const {
@@ -58,18 +84,19 @@ export function HierarchyPage() {
   const isLoading = lgdLoading || deptLoading || lgdConstraintsLoading || deptConstraintsLoading
   const isError = lgdError || deptError || lgdConstraintsError || deptConstraintsError
 
+  const baseDraft = useMemo(() => buildHierarchyDraft(lgdData, deptData), [lgdData, deptData])
+
+  const autoEditEligible = !isLoading && isOnboarded
+  const isEditing = editIntent === 'editing' || (autoEditEligible && editIntent === 'none')
+  const draft = isEditing ? (draftOverride ?? baseDraft) : null
+
   useEffect(() => {
     document.title = `${t('hierarchy.pageTitle')} | JalSoochak`
   }, [t])
 
   const handleEdit = () => {
-    setDraft({
-      lgd: lgdData?.levels.map((l) => ({ ...l })) ?? DEFAULT_LGD_HIERARCHY.map((l) => ({ ...l })),
-      department:
-        deptData?.levels.map((l) => ({ ...l })) ??
-        DEFAULT_DEPARTMENT_HIERARCHY.map((l) => ({ ...l })),
-    })
-    setIsEditing(true)
+    setDraftOverride(buildHierarchyDraft(lgdData, deptData))
+    setEditIntent('editing')
   }
 
   const clearError = (field: string) => {
@@ -82,8 +109,8 @@ export function HierarchyPage() {
   }
 
   const handleCancel = () => {
-    setDraft(null)
-    setIsEditing(false)
+    setDraftOverride(null)
+    setEditIntent('dismissed')
     setErrors({})
   }
 
@@ -139,9 +166,45 @@ export function HierarchyPage() {
     const deptFailed = deptResult.status === 'rejected'
 
     if (!lgdFailed && !deptFailed) {
-      setDraft(null)
-      setIsEditing(false)
+      setDraftOverride(null)
+      setEditIntent('dismissed')
       toast.addToast(t('hierarchy.messages.saveSuccess'), 'success')
+    } else {
+      if (lgdFailed) {
+        toast.addToast(`${t('hierarchy.lgdTitle')}: ${t('hierarchy.messages.saveFailed')}`, 'error')
+      }
+      if (deptFailed) {
+        toast.addToast(
+          `${t('hierarchy.departmentTitle')}: ${t('hierarchy.messages.saveFailed')}`,
+          'error'
+        )
+      }
+    }
+  }
+
+  const handleSaveAndNext = async () => {
+    if (!draft) return
+
+    const newErrors: Record<string, string> = {}
+    validateHierarchy(draft.lgd, 'lgd', newErrors)
+    validateHierarchy(draft.department, 'dept', newErrors)
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+    setErrors({})
+
+    const [lgdResult, deptResult] = await Promise.allSettled([
+      saveLgdMutation.mutateAsync(draft.lgd),
+      saveDeptMutation.mutateAsync(draft.department),
+    ])
+
+    const lgdFailed = lgdResult.status === 'rejected'
+    const deptFailed = deptResult.status === 'rejected'
+
+    if (!lgdFailed && !deptFailed) {
+      navigate(ROUTES.STATE_ADMIN_CONFIGURATION)
     } else {
       if (lgdFailed) {
         toast.addToast(`${t('hierarchy.lgdTitle')}: ${t('hierarchy.messages.saveFailed')}`, 'error')
@@ -284,7 +347,7 @@ export function HierarchyPage() {
                   errors={errors}
                   onClearError={clearError}
                   onChange={(levels) =>
-                    setDraft((prev) => ({
+                    setDraftOverride((prev) => ({
                       ...(prev ?? { lgd: activeLgd, department: activeDept }),
                       lgd: levels,
                     }))
@@ -298,7 +361,7 @@ export function HierarchyPage() {
                   errors={errors}
                   onClearError={clearError}
                   onChange={(levels) =>
-                    setDraft((prev) => ({
+                    setDraftOverride((prev) => ({
                       ...(prev ?? { lgd: activeLgd, department: activeDept }),
                       department: levels,
                     }))
@@ -322,16 +385,15 @@ export function HierarchyPage() {
                 >
                   {t('common:button.cancel')}
                 </Button>
-                <Button
-                  variant="primary"
-                  size="md"
-                  width={{ base: 'full', sm: '174px' }}
-                  onClick={handleSave}
-                  isLoading={isSaving}
-                  isDisabled={!hasChanges || isSaving}
-                >
-                  {t('common:button.saveChanges')}
-                </Button>
+                <PrimaryActionButton
+                  isOnboarded={isOnboarded}
+                  hasChanges={hasChanges}
+                  isSaving={isSaving}
+                  onSaveAndNext={handleSaveAndNext}
+                  onNext={() => navigate(ROUTES.STATE_ADMIN_CONFIGURATION)}
+                  onSave={handleSave}
+                  t={t}
+                />
               </HStack>
             </Flex>
           )}
@@ -340,6 +402,68 @@ export function HierarchyPage() {
 
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </Box>
+  )
+}
+
+// ─── Primary Action Button ────────────────────────────────────────────────────
+
+interface PrimaryActionButtonProps {
+  isOnboarded: boolean
+  hasChanges: boolean
+  isSaving: boolean
+  onSaveAndNext: () => void
+  onNext: () => void
+  onSave: () => void
+  t: ReturnType<typeof useTranslation<['state-admin', 'common']>>['t']
+}
+
+function PrimaryActionButton({
+  isOnboarded,
+  hasChanges,
+  isSaving,
+  onSaveAndNext,
+  onNext,
+  onSave,
+  t,
+}: Readonly<PrimaryActionButtonProps>) {
+  if (isOnboarded && hasChanges) {
+    return (
+      <Button
+        variant="primary"
+        size="md"
+        width={{ base: 'full', sm: '174px' }}
+        onClick={onSaveAndNext}
+        isLoading={isSaving}
+        isDisabled={isSaving}
+      >
+        {t('common:button.saveAndNext')}
+      </Button>
+    )
+  }
+  if (isOnboarded) {
+    return (
+      <Button
+        variant="primary"
+        size="md"
+        width={{ base: 'full', sm: '174px' }}
+        onClick={onNext}
+        isDisabled={isSaving}
+      >
+        {t('common:button.next')}
+      </Button>
+    )
+  }
+  return (
+    <Button
+      variant="primary"
+      size="md"
+      width={{ base: 'full', sm: '174px' }}
+      onClick={onSave}
+      isLoading={isSaving}
+      isDisabled={!hasChanges || isSaving}
+    >
+      {t('common:button.saveChanges')}
+    </Button>
   )
 }
 

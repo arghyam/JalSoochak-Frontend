@@ -11,6 +11,17 @@ const mockLgdQuery = jest.fn()
 const mockDeptQuery = jest.fn()
 const mockLgdConstraints = jest.fn()
 const mockDeptConstraints = jest.fn()
+const mockTenantStatusQuery = jest.fn()
+const mockNavigate = jest.fn()
+
+jest.mock('react-router-dom', () => {
+  const actual = jest.requireActual<typeof import('react-router-dom')>('react-router-dom')
+  return { ...actual, useNavigate: () => mockNavigate }
+})
+
+jest.mock('@/app/store/auth-store', () => ({
+  useAuthStore: () => ({ user: { tenantCode: 'AS' } }),
+}))
 
 jest.mock('../../services/query/use-state-admin-queries', () => ({
   useLgdHierarchyQuery: () => mockLgdQuery(),
@@ -25,6 +36,7 @@ jest.mock('../../services/query/use-state-admin-queries', () => ({
     mutateAsync: mockSaveDept,
     isPending: false,
   }),
+  useTenantStatusQuery: () => mockTenantStatusQuery(),
 }))
 
 const lgdLevels = {
@@ -55,6 +67,8 @@ describe('HierarchyPage', () => {
     mockDeptQuery.mockReturnValue({ data: deptLevels, isLoading: false, isError: false })
     mockLgdConstraints.mockReturnValue({ data: constraints, isLoading: false, isError: false })
     mockDeptConstraints.mockReturnValue({ data: constraints, isLoading: false, isError: false })
+    // Default: not onboarded — existing tests should continue to work as-is
+    mockTenantStatusQuery.mockReturnValue({ data: 'ACTIVE' })
   })
 
   it('renders loading state', () => {
@@ -169,6 +183,63 @@ describe('HierarchyPage', () => {
     await waitFor(() => {
       expect(mockSaveLgd).toHaveBeenCalled()
       expect(mockSaveDept).toHaveBeenCalled()
+    })
+  })
+
+  describe('ONBOARDED tenant', () => {
+    beforeEach(() => {
+      mockTenantStatusQuery.mockReturnValue({ data: 'ONBOARDED' })
+    })
+
+    it('auto-enters edit mode on load', async () => {
+      renderWithProviders(<HierarchyPage />)
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /cancel/i })).toBeTruthy()
+      })
+    })
+
+    it('shows Next button when no changes have been made', async () => {
+      renderWithProviders(<HierarchyPage />)
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /^next$/i })).toBeTruthy()
+      })
+      expect(screen.queryByRole('button', { name: /save & next/i })).toBeNull()
+    })
+
+    it('shows Save & Next button when form has changes', async () => {
+      renderWithProviders(<HierarchyPage />)
+      await waitFor(() => screen.getByRole('button', { name: /^next$/i }))
+
+      const inputs = screen.getAllByRole('textbox')
+      fireEvent.change(inputs[0], { target: { value: 'NewStateName' } })
+
+      expect(screen.getByRole('button', { name: /save & next/i })).toBeTruthy()
+      expect(screen.queryByRole('button', { name: /^next$/i })).toBeNull()
+    })
+
+    it('navigates to Configuration on Next click', async () => {
+      renderWithProviders(<HierarchyPage />)
+      await waitFor(() => screen.getByRole('button', { name: /^next$/i }))
+
+      fireEvent.click(screen.getByRole('button', { name: /^next$/i }))
+      expect(mockNavigate).toHaveBeenCalledWith('/state-admin/configuration')
+    })
+
+    it('saves and navigates on Save & Next click', async () => {
+      mockSaveLgd.mockResolvedValue({})
+      mockSaveDept.mockResolvedValue({})
+      renderWithProviders(<HierarchyPage />)
+      await waitFor(() => screen.getByRole('button', { name: /^next$/i }))
+
+      const inputs = screen.getAllByRole('textbox')
+      fireEvent.change(inputs[0], { target: { value: 'NewStateName' } })
+
+      fireEvent.click(screen.getByRole('button', { name: /save & next/i }))
+
+      await waitFor(() => {
+        expect(mockSaveLgd).toHaveBeenCalled()
+        expect(mockNavigate).toHaveBeenCalledWith('/state-admin/configuration')
+      })
     })
   })
 })

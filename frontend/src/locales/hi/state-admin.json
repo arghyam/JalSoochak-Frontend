@@ -79,6 +79,7 @@
     },
     "setupWizard": {
       "title": "सेटअप प्रगति",
+      "hierarchy": "पदानुक्रम",
       "configuration": "कॉन्फ़िगरेशन",
       "language": "भाषा",
       "waterNorms": "जल मानदंड",

@@ -44,4 +44,6 @@ export const stateAdminQueryKeys = {
     schemeName?: string
     sortDir?: string
   }) => [...stateAdminQueryKeys.all, 'scheme-mappings-list', params] as const,
+  tenantStatus: (tenantName: string) =>
+    [...stateAdminQueryKeys.all, 'tenant-status', tenantName] as const,
 }

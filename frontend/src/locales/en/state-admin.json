@@ -79,6 +79,7 @@
     },
     "setupWizard": {
       "title": "Setup Progress",
+      "hierarchy": "Hierarchy",
       "configuration": "Configuration",
       "language": "Language",
       "waterNorms": "Water Norms",
