@@ -363,6 +363,14 @@ export function useUploadSchemeMappingsMutation() {
   })
 }
 
+export function useTenantStatusQuery(tenantName: string) {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.tenantStatus(tenantName),
+    queryFn: () => stateAdminApi.getTenantStatus(tenantName),
+    enabled: Boolean(tenantName),
+  })
+}
+
 export function useConfigStatusQuery() {
   return useQuery({
     queryKey: stateAdminQueryKeys.configStatus(),

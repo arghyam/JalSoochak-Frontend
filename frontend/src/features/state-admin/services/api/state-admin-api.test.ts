@@ -598,4 +598,40 @@ describe('stateAdminApi', () => {
       expect(res.WATER_NORM).toBeUndefined()
     })
   })
+
+  describe('getTenantStatus', () => {
+    it('calls GET /api/v1/tenants with search param', async () => {
+      mockedApiClient.get.mockResolvedValueOnce({
+        data: { data: { content: [{ name: 'Assam', status: 'ONBOARDED' }] } },
+      } as never)
+      const result = await stateAdminApi.getTenantStatus('Assam')
+      expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/tenants', {
+        params: { search: 'Assam' },
+      })
+      expect(result).toBe('ONBOARDED')
+    })
+
+    it('returns null when content is empty', async () => {
+      mockedApiClient.get.mockResolvedValueOnce({
+        data: { data: { content: [] } },
+      })
+      const result = await stateAdminApi.getTenantStatus('Unknown')
+      expect(result).toBeNull()
+    })
+
+    it('returns status from tenant matched by name, not the first result', async () => {
+      mockedApiClient.get.mockResolvedValueOnce({
+        data: {
+          data: {
+            content: [
+              { name: 'Bihar', status: 'ACTIVE' },
+              { name: 'Assam', status: 'ONBOARDED' },
+            ],
+          },
+        },
+      })
+      const result = await stateAdminApi.getTenantStatus('Assam')
+      expect(result).toBe('ONBOARDED')
+    })
+  })
 })

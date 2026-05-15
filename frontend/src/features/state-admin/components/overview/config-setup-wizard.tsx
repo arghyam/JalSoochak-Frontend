@@ -8,6 +8,13 @@ import type { ConfigStatusMap, WizardStep } from '../../types/config-status'
 
 const WIZARD_STEPS: WizardStep[] = [
   {
+    id: 'hierarchy',
+    labelKey: 'overview.setupWizard.hierarchy',
+    route: ROUTES.STATE_ADMIN_HIERARCHY,
+    keys: [],
+    alwaysConfigured: true,
+  },
+  {
     id: 'configuration',
     labelKey: 'overview.setupWizard.configuration',
     route: ROUTES.STATE_ADMIN_CONFIGURATION,
@@ -45,6 +52,7 @@ const WIZARD_STEPS: WizardStep[] = [
 ]
 
 function isStepConfigured(step: WizardStep, statuses: ConfigStatusMap): boolean {
+  if (step.alwaysConfigured) return true
   return step.keys.every((key) => {
     const entry = statuses[key]
     if (!entry) return false
