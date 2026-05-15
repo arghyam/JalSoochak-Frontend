@@ -109,6 +109,29 @@ export function useUploadPumpOperatorsMutation() {
   })
 }
 
+export function useUpdateStaffStatusMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      id,
+      status,
+      tenantCode,
+    }: {
+      id: number
+      status: 'ACTIVE' | 'INACTIVE'
+      tenantCode: string
+    }) => stateAdminApi.updateStaffStatus(id, status, tenantCode),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: [...stateAdminQueryKeys.all, 'staff-list'],
+      })
+      await queryClient.invalidateQueries({
+        queryKey: stateAdminQueryKeys.staffCounts(),
+      })
+    },
+  })
+}
+
 export function useConfigurationQuery() {
   return useQuery({
     queryKey: stateAdminQueryKeys.configuration(),

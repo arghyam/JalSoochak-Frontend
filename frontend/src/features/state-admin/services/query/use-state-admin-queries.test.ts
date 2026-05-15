@@ -14,6 +14,7 @@ import {
   useStateUTAdminsQuery,
   useUpdateLogoMutation,
   useUploadPumpOperatorsMutation,
+  useUpdateStaffStatusMutation,
   useUploadSchemesMutation,
   useUploadSchemeMappingsMutation,
   useWaterNormsConfigurationQuery,
@@ -359,6 +360,20 @@ describe('use-state-admin-queries', () => {
   it('useUploadPumpOperatorsMutation invalidates staff list and counts', async () => {
     renderHook(() => useUploadPumpOperatorsMutation())
     const { onSuccess } = mockedUseMutation.mock.calls[0][0] as { onSuccess: () => Promise<void> }
+    await onSuccess()
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: [...stateAdminQueryKeys.all, 'staff-list'],
+    })
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: stateAdminQueryKeys.staffCounts(),
+    })
+  })
+
+  it('useUpdateStaffStatusMutation invalidates staff list and counts', async () => {
+    renderHook(() => useUpdateStaffStatusMutation())
+    const { onSuccess } = mockedUseMutation.mock.calls.at(-1)?.[0] as {
+      onSuccess: () => Promise<void>
+    }
     await onSuccess()
     expect(invalidateQueries).toHaveBeenCalledWith({
       queryKey: [...stateAdminQueryKeys.all, 'staff-list'],
