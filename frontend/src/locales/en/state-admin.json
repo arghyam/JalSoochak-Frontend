@@ -396,13 +396,15 @@
     },
     "messages": {
       "noSchemesFound": "No schemes found",
-      "failedToLoad": "Failed to load scheme data"
+      "failedToLoad": "Failed to load scheme data",
+      "statusUpdateFailed": "Failed to update status. Please try again."
     },
     "aria": {
       "statsSection": "Scheme sync statistics",
       "searchSchemes": "Search schemes by name",
       "filterSection": "Filter schemes",
-      "uploadData": "Upload scheme data"
+      "uploadData": "Upload scheme data",
+      "changeStatus": "Change status"
     }
   },
 

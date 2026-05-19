@@ -25,6 +25,8 @@ import {
 import { useAuthStore } from '@/app/store/auth-store'
 import { useDebounce } from '@/shared/hooks/use-debounce'
 import { UploadSchemesModal } from './upload-schemes-modal'
+import { SchemeStatusChip } from './scheme-status-chip'
+import { WORK_STATUS_OPTIONS, OPERATING_STATUS_OPTIONS } from './scheme-status-constants'
 
 const PAGE_SIZE = 10
 const PAGE_SIZE_OPTIONS = [10, 25, 50]
@@ -78,23 +80,8 @@ export function SchemeSyncPage() {
   const { data, isLoading, isError, refetch } = useSchemeListQuery(schemeParams)
   const { data: counts, isLoading: countsLoading } = useSchemeCountsQuery(tenantCode)
 
-  const workStatusOptions = useMemo(
-    () =>
-      (counts?.workStatusCounts ?? []).map((s) => ({
-        value: s.status,
-        label: s.status,
-      })),
-    [counts]
-  )
-
-  const operatingStatusOptions = useMemo(
-    () =>
-      (counts?.operatingStatusCounts ?? []).map((s) => ({
-        value: s.status,
-        label: s.status,
-      })),
-    [counts]
-  )
+  const workStatusOptions = WORK_STATUS_OPTIONS.map((s) => ({ value: s, label: s }))
+  const operatingStatusOptions = OPERATING_STATUS_OPTIONS.map((s) => ({ value: s, label: s }))
 
   const hasActiveFilters = workStatusFilter || operatingStatusFilter || searchQuery
 
@@ -128,7 +115,7 @@ export function SchemeSyncPage() {
       key: 'schemeName',
       header: t('schemeSync.table.schemeName'),
       sortable: true,
-      width: '25%',
+      width: '20%',
       minWidth: '180px',
       headerMaxLines: 2,
       render: (row) => (
@@ -193,26 +180,32 @@ export function SchemeSyncPage() {
       key: 'workStatus',
       header: t('schemeSync.table.workStatus'),
       sortable: false,
-      width: '13%',
-      minWidth: '100px',
+      width: '15%',
+      minWidth: '170px',
       headerMaxLines: 2,
       render: (row) => (
-        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
-          {row.workStatus}
-        </Text>
+        <SchemeStatusChip
+          schemeId={row.id}
+          statusType="workStatus"
+          currentValue={row.workStatus}
+          tenantCode={tenantCode}
+        />
       ),
     },
     {
       key: 'operatingStatus',
       header: t('schemeSync.table.operatingStatus'),
       sortable: false,
-      width: '13%',
-      minWidth: '110px',
+      width: '16%',
+      minWidth: '180px',
       headerMaxLines: 2,
       render: (row) => (
-        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
-          {row.operatingStatus}
-        </Text>
+        <SchemeStatusChip
+          schemeId={row.id}
+          statusType="operatingStatus"
+          currentValue={row.operatingStatus}
+          tenantCode={tenantCode}
+        />
       ),
     },
   ]
@@ -377,7 +370,7 @@ export function SchemeSyncPage() {
         emptyMessage={t('schemeSync.messages.noSchemesFound')}
         isLoading={isLoading}
         tableLayout="fixed"
-        tableMinWidth="900px"
+        tableMinWidth="1100px"
         onSort={handleSort}
         pagination={{
           enabled: true,
