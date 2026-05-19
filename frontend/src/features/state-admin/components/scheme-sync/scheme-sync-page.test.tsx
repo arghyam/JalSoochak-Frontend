@@ -21,6 +21,19 @@ const mockUseSchemeCountsQuery = jest.fn()
 jest.mock('../../services/query/use-state-admin-queries', () => ({
   useSchemeListQuery: () => mockUseSchemeListQuery(),
   useSchemeCountsQuery: () => mockUseSchemeCountsQuery(),
+  useUpdateSchemeStatusMutation: () => ({ mutate: jest.fn(), isPending: false }),
+}))
+
+jest.mock('./scheme-status-chip', () => ({
+  SchemeStatusChip: ({
+    currentValue,
+    statusType,
+    schemeId,
+  }: {
+    currentValue: string
+    statusType: string
+    schemeId: number
+  }) => <span data-testid={`status-chip-${statusType}-${schemeId}`}>{currentValue}</span>,
 }))
 
 jest.mock('./upload-schemes-modal', () => ({

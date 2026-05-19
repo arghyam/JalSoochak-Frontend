@@ -25,6 +25,7 @@ import {
   StatCard,
   PageHeader,
   ToastContainer,
+  TruncatedCell,
 } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
 import type { DataTableColumn } from '@/shared/components/common'
@@ -131,11 +132,7 @@ export function StaffSyncPage() {
       width: '25%',
       minWidth: '200px',
       headerMaxLines: 2,
-      render: (row) => (
-        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
-          {row.title}
-        </Text>
-      ),
+      render: (row) => <TruncatedCell value={row.title} />,
     },
     {
       key: 'role',
@@ -144,11 +141,7 @@ export function StaffSyncPage() {
       width: '20%',
       minWidth: '200px',
       headerMaxLines: 2,
-      render: (row) => (
-        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
-          {ROLE_DISPLAY[row.role] ?? row.role}
-        </Text>
-      ),
+      render: (row) => <TruncatedCell value={ROLE_DISPLAY[row.role] ?? row.role} />,
     },
     {
       key: 'phoneNumber',
@@ -157,11 +150,7 @@ export function StaffSyncPage() {
       width: '20%',
       minWidth: '200px',
       headerMaxLines: 2,
-      render: (row) => (
-        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
-          {row.phoneNumber}
-        </Text>
-      ),
+      render: (row) => <TruncatedCell value={row.phoneNumber} />,
     },
     {
       key: 'schemes',
@@ -180,11 +169,7 @@ export function StaffSyncPage() {
         }
         const first = row.schemes[0].schemeName
         if (row.schemes.length === 1) {
-          return (
-            <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
-              {first}
-            </Text>
-          )
+          return <TruncatedCell value={first} />
         }
         return (
           <Popover trigger="hover" placement="top" isLazy openDelay={0} closeDelay={150}>

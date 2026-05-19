@@ -350,6 +350,26 @@ describe('stateAdminApi', () => {
       expect(formData.get('file')).toBe(file)
     })
 
+    it('updateSchemeStatus patches with schemeId, tenantCode param, and payload', async () => {
+      mockedApiClient.patch.mockResolvedValueOnce({})
+      await stateAdminApi.updateSchemeStatus(42, 'TN', { workStatus: 'Completed' })
+      expect(mockedApiClient.patch).toHaveBeenCalledWith(
+        '/api/v1/scheme/schemes/42/status',
+        { workStatus: 'Completed' },
+        { params: { tenantCode: 'TN' } }
+      )
+    })
+
+    it('updateSchemeStatus works with operatingStatus payload', async () => {
+      mockedApiClient.patch.mockResolvedValueOnce({})
+      await stateAdminApi.updateSchemeStatus(7, 'MH', { operatingStatus: 'Operative' })
+      expect(mockedApiClient.patch).toHaveBeenCalledWith(
+        '/api/v1/scheme/schemes/7/status',
+        { operatingStatus: 'Operative' },
+        { params: { tenantCode: 'MH' } }
+      )
+    })
+
     it('getSchemeMappingsList and uploadSchemeMappings', async () => {
       mockedApiClient.get.mockResolvedValueOnce({
         data: { content: [], totalElements: 0 },
