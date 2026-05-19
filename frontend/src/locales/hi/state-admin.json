@@ -385,7 +385,7 @@
       "searchSchemes": "नाम से योजनाएं खोजें",
       "filterSection": "योजनाओं को फ़िल्टर करें",
       "uploadData": "योजना डेटा अपलोड करें",
-      "changeStatus": "स्थिति बदलें"
+      "changeStatus": "{{status}} बदलें"
     }
   },
 

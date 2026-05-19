@@ -376,9 +376,12 @@ export function useUpdateSchemeStatusMutation() {
       tenantCode: string
       payload: UpdateSchemeStatusPayload
     }) => stateAdminApi.updateSchemeStatus(schemeId, tenantCode, payload),
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({
         queryKey: [...stateAdminQueryKeys.all, 'scheme-list'],
+      })
+      await queryClient.invalidateQueries({
+        queryKey: stateAdminQueryKeys.schemeCounts(variables.tenantCode),
       })
     },
   })

@@ -398,12 +398,20 @@ describe('use-state-admin-queries', () => {
     })
   })
 
-  it('useUpdateSchemeStatusMutation invalidates scheme list on success', async () => {
+  it('useUpdateSchemeStatusMutation invalidates scheme list and counts on success', async () => {
     renderHook(() => useUpdateSchemeStatusMutation())
-    const { onSuccess } = mockedUseMutation.mock.calls[0][0] as { onSuccess: () => Promise<void> }
-    await onSuccess()
+    const { onSuccess } = mockedUseMutation.mock.calls[0][0] as {
+      onSuccess: (
+        _data: unknown,
+        variables: { schemeId: number; tenantCode: string }
+      ) => Promise<void>
+    }
+    await onSuccess(undefined, { schemeId: 1, tenantCode: 'TN' })
     expect(invalidateQueries).toHaveBeenCalledWith({
       queryKey: [...stateAdminQueryKeys.all, 'scheme-list'],
+    })
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: stateAdminQueryKeys.schemeCounts('TN'),
     })
   })
 

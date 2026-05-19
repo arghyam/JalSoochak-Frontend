@@ -5,11 +5,12 @@ import { SchemeStatusChip } from './scheme-status-chip'
 import * as queryHooks from '../../services/query/use-state-admin-queries'
 
 jest.mock('../../services/query/use-state-admin-queries')
+const mockToastError = jest.fn()
 jest.mock('@/shared/hooks/use-toast', () => ({
   useToast: () => ({
     toasts: [],
     removeToast: jest.fn(),
-    error: jest.fn(),
+    error: mockToastError,
   }),
 }))
 jest.mock('@/shared/components/common', () => ({
@@ -110,6 +111,7 @@ describe('SchemeStatusChip', () => {
     await waitFor(() => {
       expect(screen.getByText('Ongoing')).toBeInTheDocument()
     })
+    expect(mockToastError).toHaveBeenCalledWith('Failed to update status. Please try again.')
   })
 
   it('shows operating status options for operatingStatus statusType', async () => {

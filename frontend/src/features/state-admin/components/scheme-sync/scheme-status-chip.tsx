@@ -40,6 +40,7 @@ export function SchemeStatusChip({
   }, [currentValue])
 
   const options = OPTIONS_MAP[statusType]
+  const statusLabel = t(`schemeSync.table.${statusType}`)
   const { bg, color } = getSchemeStatusColors(optimisticValue)
 
   const handleSelect = (newValue: string) => {
@@ -67,7 +68,7 @@ export function SchemeStatusChip({
           display="inline-flex"
           cursor={isPending ? 'wait' : 'pointer'}
           opacity={isPending ? 0.6 : 1}
-          aria-label={t('schemeSync.aria.changeStatus', { statusType })}
+          aria-label={t('schemeSync.aria.changeStatus', { status: statusLabel })}
           data-testid={`status-chip-${statusType}-${schemeId}`}
           _focusVisible={{
             outline: '2px solid',

@@ -404,7 +404,7 @@
       "searchSchemes": "Search schemes by name",
       "filterSection": "Filter schemes",
       "uploadData": "Upload scheme data",
-      "changeStatus": "Change status"
+      "changeStatus": "Change {{status}}"
     }
   },
 

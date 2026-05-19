@@ -12,7 +12,7 @@ import {
 import { SearchIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { FiUpload } from 'react-icons/fi'
-import { DataTable, PageHeader } from '@/shared/components/common'
+import { DataTable, PageHeader, TruncatedCell } from '@/shared/components/common'
 import type { DataTableColumn, SortDirection } from '@/shared/components/common'
 import type { SchemeMapping } from '../../types/scheme-mappings-sync'
 import { useSchemeMappingsListQuery } from '../../services/query/use-state-admin-queries'
@@ -83,11 +83,7 @@ export function SchemeMappingsSyncPage() {
       sortable: true,
       width: '30%',
       minWidth: '200px',
-      render: (row) => (
-        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
-          {row.schemeName}
-        </Text>
-      ),
+      render: (row) => <TruncatedCell value={row.schemeName} />,
     },
     {
       key: 'stateSchemeId',
@@ -95,11 +91,7 @@ export function SchemeMappingsSyncPage() {
       sortable: false,
       width: '20%',
       minWidth: '140px',
-      render: (row) => (
-        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
-          {row.stateSchemeId}
-        </Text>
-      ),
+      render: (row) => <TruncatedCell value={row.stateSchemeId} />,
     },
     {
       key: 'villageName',
@@ -107,11 +99,7 @@ export function SchemeMappingsSyncPage() {
       sortable: false,
       width: '25%',
       minWidth: '150px',
-      render: (row) => (
-        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
-          {row.villageName}
-        </Text>
-      ),
+      render: (row) => <TruncatedCell value={row.villageName} />,
     },
     {
       key: 'subDivisionName',
@@ -119,11 +107,7 @@ export function SchemeMappingsSyncPage() {
       sortable: false,
       width: '25%',
       minWidth: '160px',
-      render: (row) => (
-        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
-          {row.subDivisionName}
-        </Text>
-      ),
+      render: (row) => <TruncatedCell value={row.subDivisionName} />,
     },
   ]
 

@@ -15,7 +15,13 @@ import { useTranslation } from 'react-i18next'
 import { FiUpload } from 'react-icons/fi'
 import { BsDroplet, BsCheck2Circle } from 'react-icons/bs'
 import { IoCloseCircleOutline } from 'react-icons/io5'
-import { DataTable, SearchableSelect, StatCard, PageHeader } from '@/shared/components/common'
+import {
+  DataTable,
+  SearchableSelect,
+  StatCard,
+  PageHeader,
+  TruncatedCell,
+} from '@/shared/components/common'
 import type { DataTableColumn, SortDirection } from '@/shared/components/common'
 import type { Scheme } from '../../types/scheme-sync'
 import {
@@ -118,11 +124,7 @@ export function SchemeSyncPage() {
       width: '20%',
       minWidth: '180px',
       headerMaxLines: 2,
-      render: (row) => (
-        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
-          {row.schemeName}
-        </Text>
-      ),
+      render: (row) => <TruncatedCell value={row.schemeName} />,
     },
     {
       key: 'stateSchemeId',
@@ -131,11 +133,7 @@ export function SchemeSyncPage() {
       width: '19%',
       minWidth: '100px',
       headerMaxLines: 2,
-      render: (row) => (
-        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
-          {row.stateSchemeId}
-        </Text>
-      ),
+      render: (row) => <TruncatedCell value={row.stateSchemeId} />,
     },
     {
       key: 'plannedFhtc',
