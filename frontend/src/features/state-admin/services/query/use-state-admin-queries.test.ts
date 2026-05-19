@@ -25,6 +25,7 @@ import {
   useUpdateStateUTAdminMutation,
   useUpdateStateUTAdminStatusMutation,
   useReinviteStateUTAdminMutation,
+  useUpdateSchemeStatusMutation,
 } from './use-state-admin-queries'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { stateAdminApi } from '../api/state-admin-api'
@@ -394,6 +395,39 @@ describe('use-state-admin-queries', () => {
     })
     expect(invalidateQueries).toHaveBeenCalledWith({
       queryKey: stateAdminQueryKeys.schemeCounts('MH'),
+    })
+  })
+
+  it('useUpdateSchemeStatusMutation invalidates scheme list and counts on success', async () => {
+    renderHook(() => useUpdateSchemeStatusMutation())
+    const { onSuccess } = mockedUseMutation.mock.calls[0][0] as {
+      onSuccess: (
+        _data: unknown,
+        variables: { schemeId: number; tenantCode: string }
+      ) => Promise<void>
+    }
+    await onSuccess(undefined, { schemeId: 1, tenantCode: 'TN' })
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: [...stateAdminQueryKeys.all, 'scheme-list'],
+    })
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: stateAdminQueryKeys.schemeCounts('TN'),
+    })
+  })
+
+  it('useUpdateSchemeStatusMutation calls api with correct args', () => {
+    renderHook(() => useUpdateSchemeStatusMutation())
+    const { mutationFn } = mockedUseMutation.mock.calls[0][0] as {
+      mutationFn: (vars: {
+        schemeId: number
+        tenantCode: string
+        payload: { workStatus: string }
+      }) => Promise<void>
+    }
+    jest.spyOn(stateAdminApi, 'updateSchemeStatus').mockResolvedValueOnce(undefined)
+    void mutationFn({ schemeId: 5, tenantCode: 'TN', payload: { workStatus: 'Completed' } })
+    expect(stateAdminApi.updateSchemeStatus).toHaveBeenCalledWith(5, 'TN', {
+      workStatus: 'Completed',
     })
   })
 

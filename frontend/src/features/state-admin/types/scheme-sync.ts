@@ -42,3 +42,5 @@ export interface SchemeListResponse {
   items: Scheme[]
   totalElements: number
 }
+
+export type UpdateSchemeStatusPayload = { workStatus: string } | { operatingStatus: string }

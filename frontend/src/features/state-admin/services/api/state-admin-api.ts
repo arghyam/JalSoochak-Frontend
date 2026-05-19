@@ -8,7 +8,12 @@ import type { LanguageConfiguration } from '../../types/language'
 import type { StaffCountsData } from '../../types/overview'
 import type { StateUTAdmin, UpdateStateUTAdminInput } from '../../types/state-ut-admins'
 import type { StaffListParams, StaffListResponse } from '../../types/staff-sync'
-import type { SchemeCounts, SchemeListParams, SchemeListResponse } from '../../types/scheme-sync'
+import type {
+  SchemeCounts,
+  SchemeListParams,
+  SchemeListResponse,
+  UpdateSchemeStatusPayload,
+} from '../../types/scheme-sync'
 import type {
   SchemeMappingListParams,
   SchemeMappingListResponse,
@@ -380,6 +385,17 @@ export const stateAdminApi = {
         'Content-Type': 'multipart/form-data',
         'X-Tenant-Code': tenantCode,
       },
+    })
+  },
+
+  // --- Real HTTP: Update Scheme Status ---
+  updateSchemeStatus: async (
+    schemeId: number,
+    tenantCode: string,
+    payload: UpdateSchemeStatusPayload
+  ): Promise<void> => {
+    await apiClient.patch(`/api/v1/scheme/schemes/${schemeId}/status`, payload, {
+      params: { tenantCode },
     })
   },
 

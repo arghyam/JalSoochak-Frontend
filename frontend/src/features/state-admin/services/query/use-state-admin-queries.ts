@@ -12,6 +12,7 @@ import type { HierarchyLevel } from '../../types/hierarchy'
 import { stateAdminQueryKeys } from './state-admin-query-keys'
 import { useAuthStore } from '@/app/store/auth-store'
 import type { StateUTAdmin } from '../../types/state-ut-admins'
+import type { UpdateSchemeStatusPayload } from '../../types/scheme-sync'
 
 export function useStaffCountsQuery() {
   return useQuery({
@@ -352,6 +353,29 @@ export function useUploadSchemesMutation() {
   return useMutation({
     mutationFn: ({ file, tenantCode }: { file: File; tenantCode: string }) =>
       stateAdminApi.uploadSchemes(file, tenantCode),
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({
+        queryKey: [...stateAdminQueryKeys.all, 'scheme-list'],
+      })
+      await queryClient.invalidateQueries({
+        queryKey: stateAdminQueryKeys.schemeCounts(variables.tenantCode),
+      })
+    },
+  })
+}
+
+export function useUpdateSchemeStatusMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      schemeId,
+      tenantCode,
+      payload,
+    }: {
+      schemeId: number
+      tenantCode: string
+      payload: UpdateSchemeStatusPayload
+    }) => stateAdminApi.updateSchemeStatus(schemeId, tenantCode, payload),
     onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({
         queryKey: [...stateAdminQueryKeys.all, 'scheme-list'],
