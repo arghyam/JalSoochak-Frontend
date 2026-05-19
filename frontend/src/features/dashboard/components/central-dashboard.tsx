@@ -64,6 +64,7 @@ import { computeTrailIndices } from '../utils/trail-index'
 import { slugify, toCapitalizedWords } from '../utils/format-location-label'
 import { parseStableLocationValue, toStableLocationValue } from '../utils/stable-location-value'
 import { localizeDepartmentHierarchyLabel, normalizeHierarchyLabel } from '../utils/hierarchy-label'
+import { useDashboardDefaultDateRange } from '../utils/default-duration'
 import {
   calculateAbsoluteChange,
   calculateAverageRegularityPercent,
@@ -334,19 +335,6 @@ const toIsoDate = (date?: string | Date | null, dateFormat?: string): string | u
   }
 
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-}
-
-const getDefaultAnalyticsDateRange = () => {
-  const today = new Date()
-  const endDate = new Date(today)
-  endDate.setDate(today.getDate() - 1)
-  const startDate = new Date(endDate)
-  startDate.setDate(endDate.getDate() - 29)
-
-  return {
-    startDate: toIsoDate(startDate) ?? '',
-    endDate: toIsoDate(endDate) ?? '',
-  }
 }
 
 const getStateLgdCode = (stateName?: string, stateCode?: string): number | undefined => {
@@ -716,6 +704,7 @@ export function CentralDashboard({
   const [selectedDuration, setSelectedDuration] = useState<DateRange | null>(() =>
     getInitialStoredDuration(storedFilters)
   )
+  const dashboardDefaultDuration = useDashboardDefaultDateRange()
   const [isMapFullscreen, setIsMapFullscreen] = useState(false)
   const [isMapRegularityView, setIsMapRegularityView] = useState(true)
   const [isMapDistrictView, setIsMapDistrictView] = useState(false)
@@ -1291,7 +1280,7 @@ export function CentralDashboard({
     hierarchyType === 'LGD' ? lgdAnalyticsParentId : departmentAnalyticsParentId
   const hasValidSubmissionStatusParentId =
     hierarchyType === 'LGD' ? hasValidAnalyticsParentId : hasValidDepartmentAnalyticsParentId
-  const defaultAnalyticsRange = getDefaultAnalyticsDateRange()
+  const defaultAnalyticsRange = dashboardDefaultDuration
   const analyticsDateRange = {
     startDate:
       toIsoDate(effectiveSelectedDuration?.startDate, durationDateFormat) ??

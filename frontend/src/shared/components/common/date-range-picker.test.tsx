@@ -51,6 +51,19 @@ describe('DateRangePicker', () => {
     expect(endDateNativeInput?.getAttribute('max')).toBe('2026-02-28')
   })
 
+  it('shows a single date when the displayed range starts and ends on the same day', () => {
+    renderWithProviders(
+      <DateRangePicker
+        value={null}
+        onChange={jest.fn()}
+        isFilter={true}
+        defaultRange={{ startDate: '2026-02-28', endDate: '2026-02-28' }}
+      />
+    )
+
+    expect(screen.getByText('28/02/2026')).toBeTruthy()
+  })
+
   it('clamps a typed date to the provided max date', () => {
     renderWithProviders(<DateRangePicker value={null} onChange={jest.fn()} maxDate="2026-02-28" />)
 
