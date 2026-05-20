@@ -93,13 +93,21 @@ export function SchemeSyncPage() {
 
   const handleReport = () => {
     downloadReport(undefined, {
-      onSuccess: (link) => {
-        const a = document.createElement('a')
-        a.href = link
-        a.download = 'schemes-report.csv'
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
+      onSuccess: async (link) => {
+        try {
+          const res = await fetch(link)
+          const blob = await res.blob()
+          const blobUrl = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = blobUrl
+          a.download = 'schemes-report.csv'
+          document.body.appendChild(a)
+          a.click()
+          a.remove()
+          URL.revokeObjectURL(blobUrl)
+        } catch {
+          window.open(link, '_blank', 'noopener,noreferrer')
+        }
       },
       onError: () => toast.error(t('schemeSync.report.error')),
     })
