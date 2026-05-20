@@ -97,14 +97,23 @@ export function StaffSyncPage() {
         ...(statusFilter ? { status: statusFilter } : {}),
       },
       {
-        onSuccess: ({ downloadUrl }) => {
-          const a = document.createElement('a')
-          a.href = downloadUrl
-          const ts = new Date().toISOString().replace(/[-:]/g, '').replace('T', '_').slice(0, 15)
-          a.download = `staff-report_${ts}.csv`
-          document.body.appendChild(a)
-          a.click()
-          document.body.removeChild(a)
+        onSuccess: async ({ downloadUrl }) => {
+          // fetch → Blob URL so the download attribute is honoured on cross-origin URLs
+          try {
+            const res = await fetch(downloadUrl)
+            const blob = await res.blob()
+            const blobUrl = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = blobUrl
+            const ts = new Date().toISOString().replace(/[-:]/g, '').replace('T', '_').slice(0, 15)
+            a.download = `staff-report_${ts}.csv`
+            document.body.appendChild(a)
+            a.click()
+            a.remove()
+            URL.revokeObjectURL(blobUrl)
+          } catch {
+            window.open(downloadUrl, '_blank', 'noopener,noreferrer')
+          }
           toast.success(t('staffSync.report.success'))
         },
         onError: () => toast.error(t('staffSync.report.error')),

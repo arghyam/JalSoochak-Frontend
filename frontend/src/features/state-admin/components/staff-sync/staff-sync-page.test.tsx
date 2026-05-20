@@ -1,4 +1,4 @@
-import { screen, fireEvent, act } from '@testing-library/react'
+import { screen, fireEvent, act, waitFor } from '@testing-library/react'
 import { describe, expect, it, jest, beforeEach } from '@jest/globals'
 import { StaffSyncPage, DEBOUNCE_DELAY_MS } from './staff-sync-page'
 import { renderWithProviders } from '@/test/render-with-providers'
@@ -344,7 +344,19 @@ describe('StaffSyncPage', () => {
     expect(payload.status).toBe('ACTIVE')
   })
 
-  it('triggers file download on report success', () => {
+  it('triggers file download on report success', async () => {
+    ;(globalThis as { fetch: unknown }).fetch = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        blob: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve(new Blob(['csv'], { type: 'text/csv' }))),
+      })
+    )
+    ;(URL as { createObjectURL: unknown }).createObjectURL = jest
+      .fn()
+      .mockReturnValue('blob:mock-report-url')
+    ;(URL as { revokeObjectURL: unknown }).revokeObjectURL = jest.fn()
+
     const mockMutate = jest.fn(
       (_, callbacks: { onSuccess: (d: { downloadUrl: string }) => void }) => {
         callbacks.onSuccess({ downloadUrl: 'https://example.com/report.csv' })
@@ -354,25 +366,23 @@ describe('StaffSyncPage', () => {
 
     const clickSpy = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
     const appendSpy = jest.spyOn(document.body, 'appendChild')
-    const removeSpy = jest.spyOn(document.body, 'removeChild')
 
     renderWithProviders(<StaffSyncPage />)
     fireEvent.click(screen.getByText('Reports'))
+
+    await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalled())
 
     const anchor = appendSpy.mock.calls
       .map((c) => c[0] as HTMLElement)
       .find((el) => el.tagName === 'A') as HTMLAnchorElement | undefined
 
     expect(anchor).toBeDefined()
-    expect(anchor!.tagName).toBe('A')
-    expect(anchor!.href).toContain('example.com/report.csv')
     expect(anchor!.download).toMatch(/^staff-report_\d{8}_\d{6}\.csv$/)
     expect(clickSpy).toHaveBeenCalled()
-    expect(removeSpy).toHaveBeenCalled()
+    expect(globalThis.fetch).toHaveBeenCalledWith('https://example.com/report.csv')
 
     clickSpy.mockRestore()
     appendSpy.mockRestore()
-    removeSpy.mockRestore()
   })
 
   it('shows Reports button in loading state while report is pending', () => {
