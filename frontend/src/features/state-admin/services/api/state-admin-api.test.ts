@@ -445,22 +445,38 @@ describe('stateAdminApi', () => {
       expect(formData.get('file')).toBe(file)
     })
 
-    it('downloadSchemesReport GETs correct URL and returns link', async () => {
+    it('downloadSchemesReport GETs correct URL with X-Tenant-Code header and returns link', async () => {
       mockedApiClient.get.mockResolvedValueOnce({
         data: { link: 'https://minio.example.com/schemes.csv' },
       } as never)
       const result = await stateAdminApi.downloadSchemesReport()
-      expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/scheme/schemes/download')
+      expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/scheme/schemes/download', {
+        headers: { 'X-Tenant-Code': 'TN' },
+      })
       expect(result).toBe('https://minio.example.com/schemes.csv')
     })
 
-    it('downloadSchemeMappingsReport GETs correct URL and returns link', async () => {
+    it('downloadSchemesReport throws when tenantCode is missing', async () => {
+      mockedGetState.mockReturnValueOnce({ user: { tenantId: '1', tenantCode: undefined } })
+      await expect(stateAdminApi.downloadSchemesReport()).rejects.toThrow('tenantCode unavailable')
+    })
+
+    it('downloadSchemeMappingsReport GETs correct URL with X-Tenant-Code header and returns link', async () => {
       mockedApiClient.get.mockResolvedValueOnce({
         data: { link: 'https://minio.example.com/mappings.csv' },
       } as never)
       const result = await stateAdminApi.downloadSchemeMappingsReport()
-      expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/scheme/schemes/mappings/download')
+      expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/scheme/schemes/mappings/download', {
+        headers: { 'X-Tenant-Code': 'TN' },
+      })
       expect(result).toBe('https://minio.example.com/mappings.csv')
+    })
+
+    it('downloadSchemeMappingsReport throws when tenantCode is missing', async () => {
+      mockedGetState.mockReturnValueOnce({ user: { tenantId: '1', tenantCode: undefined } })
+      await expect(stateAdminApi.downloadSchemeMappingsReport()).rejects.toThrow(
+        'tenantCode unavailable'
+      )
     })
   })
 

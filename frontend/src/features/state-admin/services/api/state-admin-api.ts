@@ -443,13 +443,20 @@ export const stateAdminApi = {
   },
 
   downloadSchemesReport: async (): Promise<string> => {
-    const response = await apiClient.get<{ link: string }>('/api/v1/scheme/schemes/download')
+    const tenantCode = useAuthStore.getState().user?.tenantCode
+    if (!tenantCode) throw new Error('tenantCode unavailable — user not authenticated')
+    const response = await apiClient.get<{ link: string }>('/api/v1/scheme/schemes/download', {
+      headers: { 'X-Tenant-Code': tenantCode },
+    })
     return response.data.link
   },
 
   downloadSchemeMappingsReport: async (): Promise<string> => {
+    const tenantCode = useAuthStore.getState().user?.tenantCode
+    if (!tenantCode) throw new Error('tenantCode unavailable — user not authenticated')
     const response = await apiClient.get<{ link: string }>(
-      '/api/v1/scheme/schemes/mappings/download'
+      '/api/v1/scheme/schemes/mappings/download',
+      { headers: { 'X-Tenant-Code': tenantCode } }
     )
     return response.data.link
   },
