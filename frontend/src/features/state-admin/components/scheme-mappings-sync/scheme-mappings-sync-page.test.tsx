@@ -24,6 +24,10 @@ describe('SchemeMappingsSyncPage', () => {
       isError: false,
       refetch: jest.fn(),
     } as never)
+    mockedQueries.useDownloadSchemeMappingsReportMutation.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: false,
+    } as never)
   })
 
   afterEach(() => {
@@ -58,5 +62,53 @@ describe('SchemeMappingsSyncPage', () => {
     expect(screen.getByRole('alert')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Retry' }))
     expect(refetch).toHaveBeenCalledTimes(1)
+  })
+
+  // ── Reports button ─────────────────────────────────────────────────────────
+
+  it('renders Reports button', () => {
+    renderWithProviders(<SchemeMappingsSyncPage />)
+    expect(screen.getByText('Reports')).toBeInTheDocument()
+  })
+
+  it('calls mutate when Reports button is clicked', async () => {
+    const mockMutate = jest.fn()
+    mockedQueries.useDownloadSchemeMappingsReportMutation.mockReturnValue({
+      mutate: mockMutate,
+      isPending: false,
+    } as never)
+    const user = userEvent.setup()
+    renderWithProviders(<SchemeMappingsSyncPage />)
+    await user.click(screen.getByText('Reports'))
+    expect(mockMutate).toHaveBeenCalledTimes(1)
+  })
+
+  it('triggers file download on report success', () => {
+    const mockMutate = jest.fn(
+      (_: unknown, { onSuccess }: { onSuccess: (link: string) => void }) => {
+        onSuccess('https://example.com/mappings.csv')
+      }
+    )
+    mockedQueries.useDownloadSchemeMappingsReportMutation.mockReturnValue({
+      mutate: mockMutate,
+      isPending: false,
+    } as never)
+    const appendSpy = jest.spyOn(document.body, 'appendChild')
+    const removeSpy = jest.spyOn(document.body, 'removeChild')
+    renderWithProviders(<SchemeMappingsSyncPage />)
+    screen.getByText('Reports').click()
+    expect(appendSpy).toHaveBeenCalled()
+    expect(removeSpy).toHaveBeenCalled()
+    appendSpy.mockRestore()
+    removeSpy.mockRestore()
+  })
+
+  it('renders Reports button in loading state while pending', () => {
+    mockedQueries.useDownloadSchemeMappingsReportMutation.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: true,
+    } as never)
+    renderWithProviders(<SchemeMappingsSyncPage />)
+    expect(screen.getByLabelText('Download scheme mappings report')).toBeInTheDocument()
   })
 })

@@ -17,11 +17,13 @@ jest.mock('@/app/store/auth-store', () => ({
 
 const mockUseSchemeListQuery = jest.fn()
 const mockUseSchemeCountsQuery = jest.fn()
+const mockUseDownloadSchemesReportMutation = jest.fn()
 
 jest.mock('../../services/query/use-state-admin-queries', () => ({
   useSchemeListQuery: () => mockUseSchemeListQuery(),
   useSchemeCountsQuery: () => mockUseSchemeCountsQuery(),
   useUpdateSchemeStatusMutation: () => ({ mutate: jest.fn(), isPending: false }),
+  useDownloadSchemesReportMutation: () => mockUseDownloadSchemesReportMutation(),
 }))
 
 jest.mock('./scheme-status-chip', () => ({
@@ -107,6 +109,7 @@ describe('SchemeSyncPage', () => {
       isError: false,
       refetch: jest.fn(),
     })
+    mockUseDownloadSchemesReportMutation.mockReturnValue({ mutate: jest.fn(), isPending: false })
     mockUseSchemeCountsQuery.mockReturnValue({
       data: mockCounts,
       isLoading: false,
@@ -260,6 +263,45 @@ describe('SchemeSyncPage', () => {
     renderWithProviders(<SchemeSyncPage />)
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument()
+  })
+
+  // ── Reports button ───────────────────────────────────────────────────────────
+
+  it('renders Reports button', () => {
+    renderWithProviders(<SchemeSyncPage />)
+    expect(screen.getByText('Reports')).toBeInTheDocument()
+  })
+
+  it('calls mutate when Reports button is clicked', async () => {
+    const mockMutate = jest.fn()
+    mockUseDownloadSchemesReportMutation.mockReturnValue({ mutate: mockMutate, isPending: false })
+    const user = userEvent.setup()
+    renderWithProviders(<SchemeSyncPage />)
+    await user.click(screen.getByText('Reports'))
+    expect(mockMutate).toHaveBeenCalledTimes(1)
+  })
+
+  it('triggers file download on report success', () => {
+    const mockMutate = jest.fn(
+      (_: unknown, { onSuccess }: { onSuccess: (link: string) => void }) => {
+        onSuccess('https://example.com/schemes.csv')
+      }
+    )
+    mockUseDownloadSchemesReportMutation.mockReturnValue({ mutate: mockMutate, isPending: false })
+    const appendSpy = jest.spyOn(document.body, 'appendChild')
+    const removeSpy = jest.spyOn(document.body, 'removeChild')
+    renderWithProviders(<SchemeSyncPage />)
+    screen.getByText('Reports').click()
+    expect(appendSpy).toHaveBeenCalled()
+    expect(removeSpy).toHaveBeenCalled()
+    appendSpy.mockRestore()
+    removeSpy.mockRestore()
+  })
+
+  it('renders Reports button in loading state while pending', () => {
+    mockUseDownloadSchemesReportMutation.mockReturnValue({ mutate: jest.fn(), isPending: true })
+    renderWithProviders(<SchemeSyncPage />)
+    expect(screen.getByLabelText('Download schemes report')).toBeInTheDocument()
   })
 
   it('should display all new columns data correctly', async () => {

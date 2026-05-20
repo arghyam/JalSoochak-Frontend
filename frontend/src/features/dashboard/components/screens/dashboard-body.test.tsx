@@ -68,6 +68,7 @@ jest.mock(
         color,
         borderColor,
         disabled,
+        isTimeOptionDisabled,
       }: {
         value: 'geography' | 'time'
         onChange: (value: 'geography' | 'time') => void
@@ -75,6 +76,7 @@ jest.mock(
         color?: string
         borderColor?: string
         disabled?: boolean
+        isTimeOptionDisabled?: boolean
       }) => {
         const { useState } = jest.requireActual<typeof import('react')>('react')
         const [isOpen, setIsOpen] = useState(false)
@@ -110,7 +112,11 @@ jest.mock(
                 <button
                   role="menuitem"
                   type="button"
+                  disabled={isTimeOptionDisabled}
                   onClick={() => {
+                    if (isTimeOptionDisabled) {
+                      return
+                    }
                     onChange('time')
                     setIsOpen(false)
                   }}
@@ -346,6 +352,39 @@ describe('DashboardBody', () => {
       .reverse()
       .find((call) => call[0].seriesName === 'Regularity')
     expect(regularityTimeCall?.[0].isPercent).toBe(true)
+  })
+
+  it('keeps time views disabled when the selected duration is one day', () => {
+    renderDashboardBody({
+      isTimeViewEnabled: false,
+      isStateSelected: true,
+      data: {
+        ...mockDashboardData,
+        supplyOutageTrend: [{ period: 'FY25', value: 7 }],
+      },
+    })
+
+    const quantitySelect = screen.getByRole('button', { name: 'Quantity performance view by' })
+    fireEvent.click(quantitySelect)
+
+    const timeOption = screen.getByRole('menuitem', { name: 'Time' })
+    expect((timeOption as HTMLButtonElement).disabled).toBe(true)
+
+    fireEvent.click(timeOption)
+
+    expect(quantitySelect.textContent).toContain('Geography')
+    expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
+
+    fireEvent.click(quantitySelect)
+
+    const outageSelect = screen.getByRole('button', {
+      name: 'State supply outage distribution view by',
+    })
+    fireEvent.click(outageSelect)
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
+
+    expect(outageSelect.textContent).toContain('Geography')
+    expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
   })
 
   it('resets central quantity and regularity selectors back to geography after returning from a deeper level', () => {

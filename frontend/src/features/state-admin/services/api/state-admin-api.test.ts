@@ -294,6 +294,57 @@ describe('stateAdminApi', () => {
         { params: { tenantCode: 'TN' } }
       )
     })
+
+    it('generateStaffReport POSTs with tenantCode query param and returns data', async () => {
+      const reportData = {
+        reportId: 'abc-123',
+        format: 'CSV',
+        generatedAt: '2026-05-20T00:00:00.000Z',
+        dataVersion: 1,
+        downloadUrl: 'https://minio.example.com/report.csv',
+        urlExpiresAt: '2026-05-20T01:00:00.000Z',
+        cached: false,
+      }
+      mockedApiClient.post.mockResolvedValueOnce({ data: { data: reportData } } as never)
+      const result = await stateAdminApi.generateStaffReport({
+        roles: ['PUMP_OPERATOR'],
+        status: 'ACTIVE',
+      })
+      expect(mockedApiClient.post).toHaveBeenCalledWith(
+        '/api/v1/tenant/user/staff/reports',
+        { roles: ['PUMP_OPERATOR'], status: 'ACTIVE' },
+        { params: { tenantCode: 'TN' } }
+      )
+      expect(result).toEqual(reportData)
+    })
+
+    it('generateStaffReport omits status when not provided', async () => {
+      const reportData = {
+        reportId: 'def-456',
+        format: 'CSV',
+        generatedAt: '2026-05-20T00:00:00.000Z',
+        dataVersion: 1,
+        downloadUrl: 'https://minio.example.com/report2.csv',
+        urlExpiresAt: '2026-05-20T01:00:00.000Z',
+        cached: true,
+      }
+      mockedApiClient.post.mockResolvedValueOnce({ data: { data: reportData } } as never)
+      await stateAdminApi.generateStaffReport({
+        roles: ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER'],
+      })
+      expect(mockedApiClient.post).toHaveBeenCalledWith(
+        '/api/v1/tenant/user/staff/reports',
+        { roles: ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER'] },
+        { params: { tenantCode: 'TN' } }
+      )
+    })
+
+    it('generateStaffReport throws when tenantCode is missing', async () => {
+      mockedGetState.mockReturnValueOnce({ user: { tenantId: '1', tenantCode: undefined } })
+      await expect(stateAdminApi.generateStaffReport({ roles: ['PUMP_OPERATOR'] })).rejects.toThrow(
+        'tenantCode unavailable'
+      )
+    })
   })
 
   describe('schemes', () => {
@@ -392,6 +443,24 @@ describe('stateAdminApi', () => {
       )
       const formData = mockedApiClient.post.mock.calls[0][1] as FormData
       expect(formData.get('file')).toBe(file)
+    })
+
+    it('downloadSchemesReport GETs correct URL and returns link', async () => {
+      mockedApiClient.get.mockResolvedValueOnce({
+        data: { link: 'https://minio.example.com/schemes.csv' },
+      } as never)
+      const result = await stateAdminApi.downloadSchemesReport()
+      expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/scheme/schemes/download')
+      expect(result).toBe('https://minio.example.com/schemes.csv')
+    })
+
+    it('downloadSchemeMappingsReport GETs correct URL and returns link', async () => {
+      mockedApiClient.get.mockResolvedValueOnce({
+        data: { link: 'https://minio.example.com/mappings.csv' },
+      } as never)
+      const result = await stateAdminApi.downloadSchemeMappingsReport()
+      expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/scheme/schemes/mappings/download')
+      expect(result).toBe('https://minio.example.com/mappings.csv')
     })
   })
 
@@ -596,13 +665,14 @@ describe('stateAdminApi', () => {
         onboardedBefore: '2026-02-01',
       })
       expect(mockedApiClient.post).toHaveBeenCalledWith(
-        '/api/v1/tenant/user/welcome?tenantCode=TN',
+        '/api/v1/tenant/user/welcome',
         expect.objectContaining({
           roles: ['PUMP_OPERATOR'],
           type: 'EMAIL',
           onboardedAfter: '2026-01-01',
           onboardedBefore: '2026-02-01',
-        })
+        }),
+        { params: { tenantCode: 'TN' } }
       )
     })
 

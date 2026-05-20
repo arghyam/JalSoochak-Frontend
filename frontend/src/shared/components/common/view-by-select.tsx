@@ -11,6 +11,7 @@ type ViewBySelectProps = {
   color?: string
   borderColor?: string
   disabled?: boolean
+  isTimeOptionDisabled?: boolean
 }
 
 export function ViewBySelect({
@@ -20,6 +21,7 @@ export function ViewBySelect({
   color = 'primary.500',
   borderColor = 'primary.500',
   disabled = false,
+  isTimeOptionDisabled = false,
 }: ViewBySelectProps) {
   const { t } = useTranslation('dashboard')
   const geographyLabel = t('performanceCharts.viewBy.geography', { defaultValue: 'Geography' })
@@ -72,13 +74,19 @@ export function ViewBySelect({
           {geographyLabel}
         </MenuItem>
         <MenuItem
-          onClick={() => onChange('time')}
+          onClick={() => {
+            if (!isTimeOptionDisabled) {
+              onChange('time')
+            }
+          }}
+          isDisabled={isTimeOptionDisabled}
           textStyle="bodyText5"
           bg="white"
-          color="neutral.900"
+          color={isTimeOptionDisabled ? 'neutral.400' : 'neutral.900'}
           fontWeight="500"
           _hover={{ bg: 'neutral.100' }}
           _focus={{ bg: 'neutral.100' }}
+          _disabled={{ opacity: 1, cursor: 'not-allowed', color: 'neutral.400' }}
         >
           {timeLabel}
         </MenuItem>

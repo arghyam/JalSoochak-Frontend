@@ -64,6 +64,7 @@ import { computeTrailIndices } from '../utils/trail-index'
 import { slugify, toCapitalizedWords } from '../utils/format-location-label'
 import { parseStableLocationValue, toStableLocationValue } from '../utils/stable-location-value'
 import { localizeDepartmentHierarchyLabel, normalizeHierarchyLabel } from '../utils/hierarchy-label'
+import { useDashboardDefaultDateRange } from '../utils/default-duration'
 import {
   calculateAbsoluteChange,
   calculateAverageRegularityPercent,
@@ -334,19 +335,6 @@ const toIsoDate = (date?: string | Date | null, dateFormat?: string): string | u
   }
 
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-}
-
-const getDefaultAnalyticsDateRange = () => {
-  const today = new Date()
-  const endDate = new Date(today)
-  endDate.setDate(today.getDate() - 1)
-  const startDate = new Date(endDate)
-  startDate.setDate(endDate.getDate() - 29)
-
-  return {
-    startDate: toIsoDate(startDate) ?? '',
-    endDate: toIsoDate(endDate) ?? '',
-  }
 }
 
 const getStateLgdCode = (stateName?: string, stateCode?: string): number | undefined => {
@@ -716,6 +704,7 @@ export function CentralDashboard({
   const [selectedDuration, setSelectedDuration] = useState<DateRange | null>(() =>
     getInitialStoredDuration(storedFilters)
   )
+  const dashboardDefaultDuration = useDashboardDefaultDateRange()
   const [isMapFullscreen, setIsMapFullscreen] = useState(false)
   const [isMapRegularityView, setIsMapRegularityView] = useState(true)
   const [isMapDistrictView, setIsMapDistrictView] = useState(false)
@@ -1291,7 +1280,7 @@ export function CentralDashboard({
     hierarchyType === 'LGD' ? lgdAnalyticsParentId : departmentAnalyticsParentId
   const hasValidSubmissionStatusParentId =
     hierarchyType === 'LGD' ? hasValidAnalyticsParentId : hasValidDepartmentAnalyticsParentId
-  const defaultAnalyticsRange = getDefaultAnalyticsDateRange()
+  const defaultAnalyticsRange = dashboardDefaultDuration
   const analyticsDateRange = {
     startDate:
       toIsoDate(effectiveSelectedDuration?.startDate, durationDateFormat) ??
@@ -1300,6 +1289,8 @@ export function CentralDashboard({
       toIsoDate(effectiveSelectedDuration?.endDate, durationDateFormat) ??
       defaultAnalyticsRange.endDate,
   }
+  const isTimeViewEnabled =
+    resolveDaysInRange(undefined, analyticsDateRange.startDate, analyticsDateRange.endDate) > 1
   const schemePerformanceResetKey = `${analyticsParentId}|${analyticsDateRange.startDate}|${analyticsDateRange.endDate}`
   const schemePerformancePage =
     schemePerformancePagination.key === schemePerformanceResetKey
@@ -1330,7 +1321,7 @@ export function CentralDashboard({
           scale: selectedQuantityApiScale,
         }
   const regularityPeriodicAnalyticsParams =
-    !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+    !isTimeViewEnabled || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
@@ -1360,13 +1351,14 @@ export function CentralDashboard({
         endDate: analyticsDateRange.endDate,
         scale: selectedQuantityApiScale,
       }
-  const nationalRegularityPeriodAnalyticsParams = hasCentralLandingFilters
-    ? null
-    : {
-        startDate: analyticsDateRange.startDate,
-        endDate: analyticsDateRange.endDate,
-        scale: selectedRegularityApiScale,
-      }
+  const nationalRegularityPeriodAnalyticsParams =
+    hasCentralLandingFilters || !isTimeViewEnabled
+      ? null
+      : {
+          startDate: analyticsDateRange.startDate,
+          endDate: analyticsDateRange.endDate,
+          scale: selectedRegularityApiScale,
+        }
   const analyticsParams =
     isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
@@ -1577,7 +1569,10 @@ export function CentralDashboard({
             parentDepartmentId: analyticsParentId,
           }
   const outageReasonsPeriodicAnalyticsParams =
-    isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+    !isTimeViewEnabled ||
+    isHierarchyLeafSelected ||
+    !selectedTenant?.tenantId ||
+    !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
@@ -3629,6 +3624,7 @@ export function CentralDashboard({
         screenDateFormat={screenDateFormat}
         tableDateFormat={tableDateFormat}
         enableExtendedTimeScales
+        isTimeViewEnabled={isTimeViewEnabled}
       />
     </Box>
   )

@@ -7,6 +7,7 @@ import {
   type SaveLanguageConfigurationPayload,
   type SaveWaterNormsConfigurationPayload,
 } from '../api/state-admin-api'
+import type { StaffReportPayload } from '../../types/staff-sync'
 import type { SaveEscalationRulesPayload } from '../../types/escalation-rules'
 import type { HierarchyLevel } from '../../types/hierarchy'
 import { stateAdminQueryKeys } from './state-admin-query-keys'
@@ -410,6 +411,14 @@ export function useUploadSchemeMappingsMutation() {
   })
 }
 
+export function useDownloadSchemesReportMutation() {
+  return useMutation({ mutationFn: () => stateAdminApi.downloadSchemesReport() })
+}
+
+export function useDownloadSchemeMappingsReportMutation() {
+  return useMutation({ mutationFn: () => stateAdminApi.downloadSchemeMappingsReport() })
+}
+
 export function useTenantStatusQuery(tenantName: string) {
   return useQuery({
     queryKey: stateAdminQueryKeys.tenantStatus(tenantName),
@@ -455,6 +464,12 @@ export function useBroadcastWelcomeMessageMutation() {
   return useMutation({
     mutationFn: (payload: BroadcastWelcomePayload) =>
       stateAdminApi.broadcastWelcomeMessage(payload),
+  })
+}
+
+export function useGenerateStaffReportMutation() {
+  return useMutation({
+    mutationFn: (payload: StaffReportPayload) => stateAdminApi.generateStaffReport(payload),
   })
 }
 

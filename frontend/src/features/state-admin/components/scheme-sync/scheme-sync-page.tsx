@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
-import { FiUpload } from 'react-icons/fi'
+import { FiDownload, FiUpload } from 'react-icons/fi'
 import { BsDroplet, BsCheck2Circle } from 'react-icons/bs'
 import { IoCloseCircleOutline } from 'react-icons/io5'
 import {
@@ -21,15 +21,18 @@ import {
   StatCard,
   PageHeader,
   TruncatedCell,
+  ToastContainer,
 } from '@/shared/components/common'
 import type { DataTableColumn, SortDirection } from '@/shared/components/common'
 import type { Scheme } from '../../types/scheme-sync'
 import {
   useSchemeCountsQuery,
   useSchemeListQuery,
+  useDownloadSchemesReportMutation,
 } from '../../services/query/use-state-admin-queries'
 import { useAuthStore } from '@/app/store/auth-store'
 import { useDebounce } from '@/shared/hooks/use-debounce'
+import { useToast } from '@/shared/hooks/use-toast'
 import { UploadSchemesModal } from './upload-schemes-modal'
 import { SchemeStatusChip } from './scheme-status-chip'
 import { WORK_STATUS_OPTIONS, OPERATING_STATUS_OPTIONS } from './scheme-status-constants'
@@ -85,6 +88,22 @@ export function SchemeSyncPage() {
 
   const { data, isLoading, isError, refetch } = useSchemeListQuery(schemeParams)
   const { data: counts, isLoading: countsLoading } = useSchemeCountsQuery(tenantCode)
+  const toast = useToast()
+  const { mutate: downloadReport, isPending: isReportPending } = useDownloadSchemesReportMutation()
+
+  const handleReport = () => {
+    downloadReport(undefined, {
+      onSuccess: (link) => {
+        const a = document.createElement('a')
+        a.href = link
+        a.download = 'schemes-report.csv'
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+      },
+      onError: () => toast.error(t('schemeSync.report.error')),
+    })
+  }
 
   const workStatusOptions = WORK_STATUS_OPTIONS.map((s) => ({ value: s, label: s }))
   const operatingStatusOptions = OPERATING_STATUS_OPTIONS.map((s) => ({ value: s, label: s }))
@@ -314,19 +333,39 @@ export function SchemeSyncPage() {
           )}
         </Flex>
 
-        {/* Right: upload */}
-        <Button
-          variant="secondary"
-          size="sm"
-          fontWeight="600"
-          flexShrink={0}
-          aria-label={t('schemeSync.aria.uploadData')}
-          w={{ base: 'full', sm: '147px' }}
-          onClick={() => setIsUploadOpen(true)}
-        >
-          <FiUpload aria-hidden="true" size={16} style={{ marginRight: '4px', flexShrink: 0 }} />
-          {t('schemeSync.uploadData')}
-        </Button>
+        {/* Right: reports + upload */}
+        <Flex gap={2} flexShrink={0} w={{ base: 'full', sm: 'auto' }}>
+          <Button
+            variant="secondary"
+            size="sm"
+            fontWeight="600"
+            flex={{ base: 1, sm: 'none' }}
+            w={{ base: 'auto', sm: '147px' }}
+            aria-label={t('schemeSync.report.aria.download')}
+            onClick={handleReport}
+            isLoading={isReportPending}
+            loadingText={t('schemeSync.report.button')}
+          >
+            <FiDownload
+              aria-hidden="true"
+              size={16}
+              style={{ marginRight: '4px', flexShrink: 0 }}
+            />
+            {t('schemeSync.report.button')}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            fontWeight="600"
+            flex={{ base: 1, sm: 'none' }}
+            w={{ base: 'auto', sm: '147px' }}
+            aria-label={t('schemeSync.aria.uploadData')}
+            onClick={() => setIsUploadOpen(true)}
+          >
+            <FiUpload aria-hidden="true" size={16} style={{ marginRight: '4px', flexShrink: 0 }} />
+            {t('schemeSync.uploadData')}
+          </Button>
+        </Flex>
       </Flex>
 
       {/* Stats Cards */}
@@ -385,6 +424,7 @@ export function SchemeSyncPage() {
       />
 
       <UploadSchemesModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />
+      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </Box>
   )
 }
