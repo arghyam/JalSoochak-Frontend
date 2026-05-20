@@ -355,7 +355,14 @@ describe('DashboardBody', () => {
   })
 
   it('keeps time views disabled when the selected duration is one day', () => {
-    renderDashboardBody({ isTimeViewEnabled: false })
+    renderDashboardBody({
+      isTimeViewEnabled: false,
+      isStateSelected: true,
+      data: {
+        ...mockDashboardData,
+        supplyOutageTrend: [{ period: 'FY25', value: 7 }],
+      },
+    })
 
     const quantitySelect = screen.getByRole('button', { name: 'Quantity performance view by' })
     fireEvent.click(quantitySelect)
@@ -366,6 +373,17 @@ describe('DashboardBody', () => {
     fireEvent.click(timeOption)
 
     expect(quantitySelect.textContent).toContain('Geography')
+    expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
+
+    fireEvent.click(quantitySelect)
+
+    const outageSelect = screen.getByRole('button', {
+      name: 'State supply outage distribution view by',
+    })
+    fireEvent.click(outageSelect)
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
+
+    expect(outageSelect.textContent).toContain('Geography')
     expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
   })
 

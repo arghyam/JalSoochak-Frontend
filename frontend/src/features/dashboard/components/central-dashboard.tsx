@@ -1321,7 +1321,7 @@ export function CentralDashboard({
           scale: selectedQuantityApiScale,
         }
   const regularityPeriodicAnalyticsParams =
-    !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+    !isTimeViewEnabled || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
@@ -1351,13 +1351,14 @@ export function CentralDashboard({
         endDate: analyticsDateRange.endDate,
         scale: selectedQuantityApiScale,
       }
-  const nationalRegularityPeriodAnalyticsParams = hasCentralLandingFilters
-    ? null
-    : {
-        startDate: analyticsDateRange.startDate,
-        endDate: analyticsDateRange.endDate,
-        scale: selectedRegularityApiScale,
-      }
+  const nationalRegularityPeriodAnalyticsParams =
+    hasCentralLandingFilters || !isTimeViewEnabled
+      ? null
+      : {
+          startDate: analyticsDateRange.startDate,
+          endDate: analyticsDateRange.endDate,
+          scale: selectedRegularityApiScale,
+        }
   const analyticsParams =
     isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
@@ -1568,7 +1569,10 @@ export function CentralDashboard({
             parentDepartmentId: analyticsParentId,
           }
   const outageReasonsPeriodicAnalyticsParams =
-    isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+    !isTimeViewEnabled ||
+    isHierarchyLeafSelected ||
+    !selectedTenant?.tenantId ||
+    !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
