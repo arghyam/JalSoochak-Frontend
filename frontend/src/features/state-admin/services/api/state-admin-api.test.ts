@@ -294,6 +294,55 @@ describe('stateAdminApi', () => {
         { params: { tenantCode: 'TN' } }
       )
     })
+
+    it('generateStaffReport POSTs with tenantCode query param and returns data', async () => {
+      const reportData = {
+        reportId: 'abc-123',
+        format: 'CSV',
+        generatedAt: '2026-05-20T00:00:00.000Z',
+        dataVersion: 1,
+        downloadUrl: 'https://minio.example.com/report.csv',
+        urlExpiresAt: '2026-05-20T01:00:00.000Z',
+        cached: false,
+      }
+      mockedApiClient.post.mockResolvedValueOnce({ data: { data: reportData } } as never)
+      const result = await stateAdminApi.generateStaffReport({
+        roles: ['PUMP_OPERATOR'],
+        status: 'ACTIVE',
+      })
+      expect(mockedApiClient.post).toHaveBeenCalledWith(
+        '/api/v1/tenant/user/staff/reports?tenantCode=TN',
+        { roles: ['PUMP_OPERATOR'], status: 'ACTIVE' }
+      )
+      expect(result).toEqual(reportData)
+    })
+
+    it('generateStaffReport omits status when not provided', async () => {
+      const reportData = {
+        reportId: 'def-456',
+        format: 'CSV',
+        generatedAt: '2026-05-20T00:00:00.000Z',
+        dataVersion: 1,
+        downloadUrl: 'https://minio.example.com/report2.csv',
+        urlExpiresAt: '2026-05-20T01:00:00.000Z',
+        cached: true,
+      }
+      mockedApiClient.post.mockResolvedValueOnce({ data: { data: reportData } } as never)
+      await stateAdminApi.generateStaffReport({
+        roles: ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER'],
+      })
+      expect(mockedApiClient.post).toHaveBeenCalledWith(
+        '/api/v1/tenant/user/staff/reports?tenantCode=TN',
+        { roles: ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER'] }
+      )
+    })
+
+    it('generateStaffReport throws when tenantCode is missing', async () => {
+      mockedGetState.mockReturnValueOnce({ user: { tenantId: '1', tenantCode: undefined } })
+      await expect(stateAdminApi.generateStaffReport({ roles: ['PUMP_OPERATOR'] })).rejects.toThrow(
+        'tenantCode unavailable'
+      )
+    })
   })
 
   describe('schemes', () => {

@@ -357,6 +357,14 @@
       "aria": {
         "broadcast": "Broadcast message to staff"
       }
+    },
+    "report": {
+      "button": "Reports",
+      "success": "Report downloaded successfully",
+      "error": "Failed to generate report. Please try again.",
+      "aria": {
+        "download": "Download staff report"
+      }
     }
   },
 

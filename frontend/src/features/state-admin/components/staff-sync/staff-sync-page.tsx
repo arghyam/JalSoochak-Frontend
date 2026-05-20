@@ -16,7 +16,7 @@ import {
 } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
-import { FiUpload } from 'react-icons/fi'
+import { FiDownload, FiUpload } from 'react-icons/fi'
 import { TbBroadcast } from 'react-icons/tb'
 import { TotalStaffIcon, PumpOperatorIcon, TotalAdminsIcon } from '../overview/overview-icons'
 import {
@@ -33,6 +33,7 @@ import type { StaffMember, StaffRole, StaffStatus } from '../../types/staff-sync
 import {
   useStaffListQuery,
   useStaffCountsQuery,
+  useGenerateStaffReportMutation,
 } from '../../services/query/use-state-admin-queries'
 import { useAuthStore } from '@/app/store/auth-store'
 import { useDebounce } from '@/shared/hooks/use-debounce'
@@ -87,6 +88,28 @@ export function StaffSyncPage() {
 
   const { data, isLoading, isError, refetch } = useStaffListQuery(staffParams)
   const { data: counts, isLoading: countsLoading } = useStaffCountsQuery()
+  const { mutate: generateReport, isPending: isReportPending } = useGenerateStaffReportMutation()
+
+  const handleReport = () => {
+    generateReport(
+      {
+        roles: roleFilter ? [roleFilter] : DEFAULT_ROLES,
+        ...(statusFilter ? { status: statusFilter } : {}),
+      },
+      {
+        onSuccess: ({ downloadUrl }) => {
+          const a = document.createElement('a')
+          a.href = downloadUrl
+          a.download = 'staff-report.csv'
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+          toast.success(t('staffSync.report.success'))
+        },
+        onError: () => toast.error(t('staffSync.report.error')),
+      }
+    )
+  }
 
   const roleOptions = useMemo(
     () => [
@@ -326,8 +349,26 @@ export function StaffSyncPage() {
           )}
         </Flex>
 
-        {/* Right: broadcast + upload */}
+        {/* Right: reports + broadcast + upload */}
         <Flex gap={2} flexShrink={0} w={{ base: 'full', sm: 'auto' }}>
+          <Button
+            variant="secondary"
+            size="sm"
+            fontWeight="600"
+            flex={{ base: 1, sm: 'none' }}
+            w={{ base: 'auto', sm: '147px' }}
+            aria-label={t('staffSync.report.aria.download')}
+            onClick={handleReport}
+            isLoading={isReportPending}
+            loadingText={t('staffSync.report.button')}
+          >
+            <FiDownload
+              aria-hidden="true"
+              size={16}
+              style={{ marginRight: '4px', flexShrink: 0 }}
+            />
+            {t('staffSync.report.button')}
+          </Button>
           <Button
             variant="secondary"
             size="sm"

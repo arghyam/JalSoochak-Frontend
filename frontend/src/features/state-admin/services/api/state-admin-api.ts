@@ -7,7 +7,12 @@ import type { IntegrationConfiguration } from '../../types/integration'
 import type { LanguageConfiguration } from '../../types/language'
 import type { StaffCountsData } from '../../types/overview'
 import type { StateUTAdmin, UpdateStateUTAdminInput } from '../../types/state-ut-admins'
-import type { StaffListParams, StaffListResponse } from '../../types/staff-sync'
+import type {
+  StaffListParams,
+  StaffListResponse,
+  StaffReportPayload,
+  StaffReportData,
+} from '../../types/staff-sync'
 import type {
   SchemeCounts,
   SchemeListParams,
@@ -577,6 +582,17 @@ export const stateAdminApi = {
       hierarchyType: 'DEPARTMENT',
       levels: mapApiHierarchyToLevels(response.data.data.levels, DEFAULT_DEPARTMENT_HIERARCHY),
     }
+  },
+
+  // --- Real HTTP: Staff Report ---
+  generateStaffReport: async (payload: StaffReportPayload): Promise<StaffReportData> => {
+    const tenantCode = useAuthStore.getState().user?.tenantCode
+    if (!tenantCode) throw new Error('tenantCode unavailable — user not authenticated')
+    const response = await apiClient.post<ApiEnvelope<StaffReportData>>(
+      `/api/v1/tenant/user/staff/reports?tenantCode=${tenantCode}`,
+      payload
+    )
+    return response.data.data
   },
 
   // --- Real HTTP: Broadcast Welcome Message ---

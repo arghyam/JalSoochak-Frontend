@@ -18,12 +18,14 @@ const mockUseStaffListQuery = jest.fn()
 const mockUseStaffCountsQuery = jest.fn()
 const mockUseUploadMutation = jest.fn()
 const mockUseBroadcastMutation = jest.fn()
+const mockUseReportMutation = jest.fn()
 
 jest.mock('../../services/query/use-state-admin-queries', () => ({
   useStaffListQuery: () => mockUseStaffListQuery(),
   useStaffCountsQuery: () => mockUseStaffCountsQuery(),
   useUploadPumpOperatorsMutation: () => mockUseUploadMutation(),
   useBroadcastWelcomeMessageMutation: () => mockUseBroadcastMutation(),
+  useGenerateStaffReportMutation: () => mockUseReportMutation(),
   useUpdateStaffStatusMutation: () => ({
     mutateAsync: jest.fn(),
     isPending: false,
@@ -115,6 +117,10 @@ describe('StaffSyncPage', () => {
       isPending: false,
     })
     mockUseBroadcastMutation.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: false,
+    })
+    mockUseReportMutation.mockReturnValue({
       mutate: jest.fn(),
       isPending: false,
     })
@@ -297,5 +303,72 @@ describe('StaffSyncPage', () => {
     renderWithProviders(<StaffSyncPage />)
     fireEvent.click(screen.getByText('Upload Data'))
     expect(screen.getByRole('dialog')).toBeTruthy()
+  })
+
+  // ── Reports button ───────────────────────────────────────────────────────────
+
+  it('renders Reports button', () => {
+    renderWithProviders(<StaffSyncPage />)
+    expect(screen.getByText('Reports')).toBeTruthy()
+  })
+
+  it('calls generateReport with all default roles and no status when no filters are active', () => {
+    const mockMutate = jest.fn()
+    mockUseReportMutation.mockReturnValue({ mutate: mockMutate, isPending: false })
+    renderWithProviders(<StaffSyncPage />)
+    fireEvent.click(screen.getByText('Reports'))
+    expect(mockMutate).toHaveBeenCalledWith(
+      { roles: ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER'] },
+      expect.any(Object)
+    )
+  })
+
+  it('calls generateReport with single role when role filter is set', async () => {
+    const mockMutate = jest.fn()
+    mockUseReportMutation.mockReturnValue({ mutate: mockMutate, isPending: false })
+    renderWithProviders(<StaffSyncPage />)
+    fireEvent.click(screen.getByText('Reports'))
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        roles: ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER'],
+      }),
+      expect.any(Object)
+    )
+  })
+
+  it('calls generateReport with status when status filter is set', () => {
+    const mockMutate = jest.fn()
+    mockUseReportMutation.mockReturnValue({ mutate: mockMutate, isPending: false })
+    renderWithProviders(<StaffSyncPage />)
+    fireEvent.click(screen.getByText('Reports'))
+    const [payload] = mockMutate.mock.calls[0] as [{ status?: string }]
+    expect(payload.status).toBeUndefined()
+  })
+
+  it('triggers file download on report success', () => {
+    const mockMutate = jest.fn(
+      (_, callbacks: { onSuccess: (d: { downloadUrl: string }) => void }) => {
+        callbacks.onSuccess({ downloadUrl: 'https://example.com/report.csv' })
+      }
+    )
+    mockUseReportMutation.mockReturnValue({ mutate: mockMutate, isPending: false })
+
+    const appendSpy = jest.spyOn(document.body, 'appendChild')
+    const removeSpy = jest.spyOn(document.body, 'removeChild')
+
+    renderWithProviders(<StaffSyncPage />)
+    fireEvent.click(screen.getByText('Reports'))
+
+    expect(appendSpy).toHaveBeenCalled()
+    expect(removeSpy).toHaveBeenCalled()
+
+    appendSpy.mockRestore()
+    removeSpy.mockRestore()
+  })
+
+  it('shows Reports button in loading state while report is pending', () => {
+    mockUseReportMutation.mockReturnValue({ mutate: jest.fn(), isPending: true })
+    renderWithProviders(<StaffSyncPage />)
+    expect(screen.getByLabelText('Download staff report')).toBeTruthy()
   })
 })
