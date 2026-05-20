@@ -281,21 +281,45 @@ describe('SchemeSyncPage', () => {
     expect(mockMutate).toHaveBeenCalledTimes(1)
   })
 
-  it('triggers file download on report success', () => {
+  it('triggers file download on report success', async () => {
+    ;(globalThis as { fetch: unknown }).fetch = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        blob: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve(new Blob(['csv'], { type: 'text/csv' }))),
+      })
+    )
+    ;(URL as { createObjectURL: unknown }).createObjectURL = jest
+      .fn()
+      .mockReturnValue('blob:mock-schemes-url')
+    ;(URL as { revokeObjectURL: unknown }).revokeObjectURL = jest.fn()
+
     const mockMutate = jest.fn(
       (_: unknown, { onSuccess }: { onSuccess: (link: string) => void }) => {
         onSuccess('https://example.com/schemes.csv')
       }
     )
     mockUseDownloadSchemesReportMutation.mockReturnValue({ mutate: mockMutate, isPending: false })
+
+    const clickSpy = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
     const appendSpy = jest.spyOn(document.body, 'appendChild')
-    const removeSpy = jest.spyOn(document.body, 'removeChild')
+
     renderWithProviders(<SchemeSyncPage />)
     screen.getByText('Reports').click()
-    expect(appendSpy).toHaveBeenCalled()
-    expect(removeSpy).toHaveBeenCalled()
+
+    await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalled())
+
+    const anchor = appendSpy.mock.calls
+      .map((c) => c[0] as HTMLElement)
+      .find((el) => el.tagName === 'A') as HTMLAnchorElement | undefined
+
+    expect(anchor).toBeDefined()
+    expect(anchor!.download).toBe('schemes-report.csv')
+    expect(clickSpy).toHaveBeenCalled()
+    expect(globalThis.fetch).toHaveBeenCalledWith('https://example.com/schemes.csv')
+
+    clickSpy.mockRestore()
     appendSpy.mockRestore()
-    removeSpy.mockRestore()
   })
 
   it('renders Reports button in loading state while pending', () => {
