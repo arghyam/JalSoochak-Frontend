@@ -442,6 +442,18 @@ export const stateAdminApi = {
     })
   },
 
+  downloadSchemesReport: async (): Promise<string> => {
+    const response = await apiClient.get<{ link: string }>('/api/v1/scheme/schemes/download')
+    return response.data.link
+  },
+
+  downloadSchemeMappingsReport: async (): Promise<string> => {
+    const response = await apiClient.get<{ link: string }>(
+      '/api/v1/scheme/schemes/mappings/download'
+    )
+    return response.data.link
+  },
+
   // --- Real HTTP: State/UT Admins ---
   getStateUTAdmins: async (
     tenantCode: string,
@@ -589,8 +601,9 @@ export const stateAdminApi = {
     const tenantCode = useAuthStore.getState().user?.tenantCode
     if (!tenantCode) throw new Error('tenantCode unavailable — user not authenticated')
     const response = await apiClient.post<ApiEnvelope<StaffReportData>>(
-      `/api/v1/tenant/user/staff/reports?tenantCode=${tenantCode}`,
-      payload
+      `/api/v1/tenant/user/staff/reports`,
+      payload,
+      { params: { tenantCode } }
     )
     return response.data.data
   },
@@ -599,7 +612,7 @@ export const stateAdminApi = {
   broadcastWelcomeMessage: async (payload: BroadcastWelcomePayload): Promise<void> => {
     const tenantCode = useAuthStore.getState().user?.tenantCode
     if (!tenantCode) throw new Error('tenantCode unavailable — user not authenticated')
-    await apiClient.post(`/api/v1/tenant/user/welcome?tenantCode=${tenantCode}`, payload)
+    await apiClient.post(`/api/v1/tenant/user/welcome`, payload, { params: { tenantCode } })
   },
 
   // --- Real HTTP: API Token ---

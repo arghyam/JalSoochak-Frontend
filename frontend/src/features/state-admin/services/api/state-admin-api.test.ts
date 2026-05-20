@@ -311,8 +311,9 @@ describe('stateAdminApi', () => {
         status: 'ACTIVE',
       })
       expect(mockedApiClient.post).toHaveBeenCalledWith(
-        '/api/v1/tenant/user/staff/reports?tenantCode=TN',
-        { roles: ['PUMP_OPERATOR'], status: 'ACTIVE' }
+        '/api/v1/tenant/user/staff/reports',
+        { roles: ['PUMP_OPERATOR'], status: 'ACTIVE' },
+        { params: { tenantCode: 'TN' } }
       )
       expect(result).toEqual(reportData)
     })
@@ -332,8 +333,9 @@ describe('stateAdminApi', () => {
         roles: ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER'],
       })
       expect(mockedApiClient.post).toHaveBeenCalledWith(
-        '/api/v1/tenant/user/staff/reports?tenantCode=TN',
-        { roles: ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER'] }
+        '/api/v1/tenant/user/staff/reports',
+        { roles: ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER'] },
+        { params: { tenantCode: 'TN' } }
       )
     })
 
@@ -441,6 +443,24 @@ describe('stateAdminApi', () => {
       )
       const formData = mockedApiClient.post.mock.calls[0][1] as FormData
       expect(formData.get('file')).toBe(file)
+    })
+
+    it('downloadSchemesReport GETs correct URL and returns link', async () => {
+      mockedApiClient.get.mockResolvedValueOnce({
+        data: { link: 'https://minio.example.com/schemes.csv' },
+      } as never)
+      const result = await stateAdminApi.downloadSchemesReport()
+      expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/scheme/schemes/download')
+      expect(result).toBe('https://minio.example.com/schemes.csv')
+    })
+
+    it('downloadSchemeMappingsReport GETs correct URL and returns link', async () => {
+      mockedApiClient.get.mockResolvedValueOnce({
+        data: { link: 'https://minio.example.com/mappings.csv' },
+      } as never)
+      const result = await stateAdminApi.downloadSchemeMappingsReport()
+      expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/scheme/schemes/mappings/download')
+      expect(result).toBe('https://minio.example.com/mappings.csv')
     })
   })
 
@@ -645,13 +665,14 @@ describe('stateAdminApi', () => {
         onboardedBefore: '2026-02-01',
       })
       expect(mockedApiClient.post).toHaveBeenCalledWith(
-        '/api/v1/tenant/user/welcome?tenantCode=TN',
+        '/api/v1/tenant/user/welcome',
         expect.objectContaining({
           roles: ['PUMP_OPERATOR'],
           type: 'EMAIL',
           onboardedAfter: '2026-01-01',
           onboardedBefore: '2026-02-01',
-        })
+        }),
+        { params: { tenantCode: 'TN' } }
       )
     })
 

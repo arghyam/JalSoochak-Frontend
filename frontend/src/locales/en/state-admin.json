@@ -413,6 +413,13 @@
       "filterSection": "Filter schemes",
       "uploadData": "Upload scheme data",
       "changeStatus": "Change {{status}}"
+    },
+    "report": {
+      "button": "Reports",
+      "error": "Failed to generate report. Please try again.",
+      "aria": {
+        "download": "Download schemes report"
+      }
     }
   },
 
@@ -448,6 +455,13 @@
       "searchMappings": "Search scheme mappings by scheme name",
       "filterSection": "Filter scheme mappings",
       "uploadData": "Upload scheme mappings data"
+    },
+    "report": {
+      "button": "Reports",
+      "error": "Failed to generate report. Please try again.",
+      "aria": {
+        "download": "Download scheme mappings report"
+      }
     }
   },
 

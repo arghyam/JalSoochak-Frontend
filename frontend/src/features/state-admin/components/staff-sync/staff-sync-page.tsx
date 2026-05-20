@@ -100,7 +100,8 @@ export function StaffSyncPage() {
         onSuccess: ({ downloadUrl }) => {
           const a = document.createElement('a')
           a.href = downloadUrl
-          a.download = 'staff-report.csv'
+          const ts = new Date().toISOString().replace(/[-:]/g, '').replace('T', '_').slice(0, 15)
+          a.download = `staff-report_${ts}.csv`
           document.body.appendChild(a)
           a.click()
           document.body.removeChild(a)

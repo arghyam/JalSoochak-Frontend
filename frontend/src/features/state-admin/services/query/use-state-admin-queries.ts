@@ -411,6 +411,14 @@ export function useUploadSchemeMappingsMutation() {
   })
 }
 
+export function useDownloadSchemesReportMutation() {
+  return useMutation({ mutationFn: () => stateAdminApi.downloadSchemesReport() })
+}
+
+export function useDownloadSchemeMappingsReportMutation() {
+  return useMutation({ mutationFn: () => stateAdminApi.downloadSchemeMappingsReport() })
+}
+
 export function useTenantStatusQuery(tenantName: string) {
   return useQuery({
     queryKey: stateAdminQueryKeys.tenantStatus(tenantName),

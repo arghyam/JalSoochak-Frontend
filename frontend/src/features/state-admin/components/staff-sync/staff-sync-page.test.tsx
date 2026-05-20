@@ -323,26 +323,25 @@ describe('StaffSyncPage', () => {
     )
   })
 
-  it('calls generateReport with single role when role filter is set', async () => {
+  it('calls generateReport with single role when role filter is set', () => {
     const mockMutate = jest.fn()
     mockUseReportMutation.mockReturnValue({ mutate: mockMutate, isPending: false })
     renderWithProviders(<StaffSyncPage />)
+    fireEvent.click(screen.getByRole('combobox', { name: 'Role' }))
+    fireEvent.click(screen.getByRole('option', { name: 'Pump Operator' }))
     fireEvent.click(screen.getByText('Reports'))
-    expect(mockMutate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        roles: ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER'],
-      }),
-      expect.any(Object)
-    )
+    expect(mockMutate).toHaveBeenCalledWith({ roles: ['PUMP_OPERATOR'] }, expect.any(Object))
   })
 
   it('calls generateReport with status when status filter is set', () => {
     const mockMutate = jest.fn()
     mockUseReportMutation.mockReturnValue({ mutate: mockMutate, isPending: false })
     renderWithProviders(<StaffSyncPage />)
+    fireEvent.click(screen.getByRole('combobox', { name: 'Status' }))
+    fireEvent.click(screen.getByRole('option', { name: 'Active' }))
     fireEvent.click(screen.getByText('Reports'))
     const [payload] = mockMutate.mock.calls[0] as [{ status?: string }]
-    expect(payload.status).toBeUndefined()
+    expect(payload.status).toBe('ACTIVE')
   })
 
   it('triggers file download on report success', () => {
@@ -353,15 +352,25 @@ describe('StaffSyncPage', () => {
     )
     mockUseReportMutation.mockReturnValue({ mutate: mockMutate, isPending: false })
 
+    const clickSpy = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
     const appendSpy = jest.spyOn(document.body, 'appendChild')
     const removeSpy = jest.spyOn(document.body, 'removeChild')
 
     renderWithProviders(<StaffSyncPage />)
     fireEvent.click(screen.getByText('Reports'))
 
-    expect(appendSpy).toHaveBeenCalled()
+    const anchor = appendSpy.mock.calls
+      .map((c) => c[0] as HTMLElement)
+      .find((el) => el.tagName === 'A') as HTMLAnchorElement | undefined
+
+    expect(anchor).toBeDefined()
+    expect(anchor!.tagName).toBe('A')
+    expect(anchor!.href).toContain('example.com/report.csv')
+    expect(anchor!.download).toMatch(/^staff-report_\d{8}_\d{6}\.csv$/)
+    expect(clickSpy).toHaveBeenCalled()
     expect(removeSpy).toHaveBeenCalled()
 
+    clickSpy.mockRestore()
     appendSpy.mockRestore()
     removeSpy.mockRestore()
   })
