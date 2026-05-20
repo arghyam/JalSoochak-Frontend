@@ -11,13 +11,17 @@ import {
 } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
-import { FiUpload } from 'react-icons/fi'
-import { DataTable, PageHeader, TruncatedCell } from '@/shared/components/common'
+import { FiDownload, FiUpload } from 'react-icons/fi'
+import { DataTable, PageHeader, TruncatedCell, ToastContainer } from '@/shared/components/common'
 import type { DataTableColumn, SortDirection } from '@/shared/components/common'
 import type { SchemeMapping } from '../../types/scheme-mappings-sync'
-import { useSchemeMappingsListQuery } from '../../services/query/use-state-admin-queries'
+import {
+  useSchemeMappingsListQuery,
+  useDownloadSchemeMappingsReportMutation,
+} from '../../services/query/use-state-admin-queries'
 import { useAuthStore } from '@/app/store/auth-store'
 import { useDebounce } from '@/shared/hooks/use-debounce'
+import { useToast } from '@/shared/hooks/use-toast'
 import { UploadSchemeMappingsModal } from './upload-scheme-mappings-modal'
 
 const PAGE_SIZE = 10
@@ -58,6 +62,23 @@ export function SchemeMappingsSyncPage() {
   )
 
   const { data, isLoading, isError, refetch } = useSchemeMappingsListQuery(mappingParams)
+  const toast = useToast()
+  const { mutate: downloadReport, isPending: isReportPending } =
+    useDownloadSchemeMappingsReportMutation()
+
+  const handleReport = () => {
+    downloadReport(undefined, {
+      onSuccess: (link) => {
+        const a = document.createElement('a')
+        a.href = link
+        a.download = 'scheme-mappings-report.csv'
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+      },
+      onError: () => toast.error(t('schemeMappingsSync.report.error')),
+    })
+  }
 
   const hasActiveFilters = Boolean(searchQuery)
 
@@ -190,19 +211,40 @@ export function SchemeMappingsSyncPage() {
           )}
         </Flex>
 
-        {/* Right: upload */}
-        <Button
-          variant="secondary"
-          size="sm"
-          fontWeight="600"
-          width="147px"
-          flexShrink={0}
-          aria-label={t('schemeMappingsSync.aria.uploadData')}
-          onClick={() => setIsUploadOpen(true)}
-        >
-          <FiUpload aria-hidden="true" size={16} style={{ marginRight: '4px', flexShrink: 0 }} />
-          {t('schemeMappingsSync.uploadData')}
-        </Button>
+        {/* Right: reports + upload */}
+        <Flex gap={2} flexShrink={0} w={{ base: 'full', md: 'auto' }}>
+          <Button
+            variant="secondary"
+            size="sm"
+            fontWeight="600"
+            flex={{ base: 1, md: 'none' }}
+            w={{ base: 'auto', md: '147px' }}
+            aria-label={t('schemeMappingsSync.report.aria.download')}
+            onClick={handleReport}
+            isLoading={isReportPending}
+            loadingText={t('schemeMappingsSync.report.button')}
+          >
+            <FiDownload
+              aria-hidden="true"
+              size={16}
+              style={{ marginRight: '4px', flexShrink: 0 }}
+            />
+            {t('schemeMappingsSync.report.button')}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            fontWeight="600"
+            flex={{ base: 1, md: 'none' }}
+            w={{ base: 'auto', md: '147px' }}
+            flexShrink={0}
+            aria-label={t('schemeMappingsSync.aria.uploadData')}
+            onClick={() => setIsUploadOpen(true)}
+          >
+            <FiUpload aria-hidden="true" size={16} style={{ marginRight: '4px', flexShrink: 0 }} />
+            {t('schemeMappingsSync.uploadData')}
+          </Button>
+        </Flex>
       </Flex>
 
       {/* Data Table */}
@@ -230,6 +272,7 @@ export function SchemeMappingsSyncPage() {
       />
 
       <UploadSchemeMappingsModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />
+      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </Box>
   )
 }
