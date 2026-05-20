@@ -117,13 +117,22 @@ describe('DashboardFilters', () => {
     expect(screen.getByText('11/03/2026-12/03/2026')).toBeTruthy()
   })
 
-  it('shows the default dashboard duration ending yesterday', () => {
+  it('shows the default dashboard duration as one day before 7 PM', () => {
     jest.useFakeTimers()
-    jest.setSystemTime(new Date('2026-05-06T09:00:00'))
+    jest.setSystemTime(new Date('2026-05-19T09:00:00'))
 
     renderDashboardFilters({ durationDateFormat: 'DD/MM/YYYY' })
 
-    expect(screen.getByText('06/04/2026-05/05/2026')).toBeTruthy()
+    expect(screen.getByText('18/05/2026')).toBeTruthy()
+  })
+
+  it('shows today as the default dashboard duration after 7 PM', () => {
+    jest.useFakeTimers()
+    jest.setSystemTime(new Date('2026-05-19T19:00:00'))
+
+    renderDashboardFilters({ durationDateFormat: 'DD/MM/YYYY' })
+
+    expect(screen.getByText('19/05/2026')).toBeTruthy()
   })
 
   it('clears search input text when clear all filters is clicked', () => {

@@ -60,6 +60,7 @@ type DistrictDashboardScreenProps = {
   onSchemePageChange?: (page: number) => void
   screenDateFormat?: string
   tableDateFormat?: string
+  isTimeViewEnabled?: boolean
 }
 
 type ViewBy = 'geography' | 'time'
@@ -99,11 +100,15 @@ export function DistrictDashboardScreen({
   onSchemePageChange,
   screenDateFormat,
   tableDateFormat,
+  isTimeViewEnabled = true,
 }: DistrictDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
   const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
+  const effectiveOutageDistributionViewBy = isTimeViewEnabled
+    ? outageDistributionViewBy
+    : 'geography'
   const outageDistributionTimeTrendData = useMemo(
     () => data.supplyOutageTrend ?? [],
     [data.supplyOutageTrend]
@@ -115,7 +120,7 @@ export function DistrictDashboardScreen({
     isOutageDistributionSelectDisabled,
   } = useOutageDistributionState({
     waterSupplyOutagesData,
-    outageDistributionViewBy,
+    outageDistributionViewBy: effectiveOutageDistributionViewBy,
     waterSupplyOutageDistributionData,
     outageDistributionTimeTrendData,
   })
@@ -153,6 +158,7 @@ export function DistrictDashboardScreen({
           selectColor="primary.500"
           selectBorderColor="primary.500"
           dateFormat={screenDateFormat ?? tableDateFormat}
+          isTimeViewEnabled={isTimeViewEnabled}
         />
         <PerformanceChartCard
           title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
@@ -181,6 +187,7 @@ export function DistrictDashboardScreen({
           quantityTimeScaleTab={quantityTimeScaleTab}
           onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
           dateFormat={screenDateFormat ?? tableDateFormat}
+          isTimeViewEnabled={isTimeViewEnabled}
         />
       </Grid>
 
@@ -239,7 +246,8 @@ export function DistrictDashboardScreen({
                 },
               }}
             >
-              {outageDistributionViewBy === 'time' &&
+              {effectiveOutageDistributionViewBy === 'time' &&
+              isTimeViewEnabled &&
               outageDistributionTimeScaleTab &&
               onOutageDistributionTimeScaleTabChange ? (
                 <OutageTimeScaleToggle
@@ -254,8 +262,11 @@ export function DistrictDashboardScreen({
                 ariaLabel={t('outageAndSubmissionCharts.ariaViewByDistrict', {
                   defaultValue: 'District supply outage distribution view by',
                 })}
-                value={outageDistributionViewBy}
+                value={effectiveOutageDistributionViewBy}
                 onChange={(value) => {
+                  if (value === 'time' && !isTimeViewEnabled) {
+                    return
+                  }
                   if (
                     value === 'time' &&
                     onOutageDistributionTimeScaleTabChange &&
@@ -268,6 +279,7 @@ export function DistrictDashboardScreen({
                 color="primary.500"
                 borderColor="primary.500"
                 disabled={isOutageDistributionSelectDisabled}
+                isTimeOptionDisabled={!isTimeViewEnabled}
               />
             </Flex>
           </Flex>
@@ -277,7 +289,7 @@ export function DistrictDashboardScreen({
             </Flex>
           ) : !hasOutageReasonsData ? (
             <ChartEmptyState minHeight="400px" />
-          ) : outageDistributionViewBy === 'geography' ? (
+          ) : effectiveOutageDistributionViewBy === 'geography' ? (
             hasGeographyData ? (
               <SupplyOutageDistributionChart
                 data={waterSupplyOutageDistributionData}

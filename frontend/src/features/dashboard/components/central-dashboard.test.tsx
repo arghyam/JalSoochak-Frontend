@@ -349,9 +349,9 @@ describe('CentralDashboard', () => {
     })
   })
 
-  it('defaults national analytics to the 30 days ending yesterday', () => {
+  it('defaults national analytics to yesterday before the 7 PM data rollover', () => {
     jest.useFakeTimers()
-    jest.setSystemTime(new Date('2026-05-06T09:00:00'))
+    jest.setSystemTime(new Date('2026-05-19T09:00:00'))
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
@@ -362,8 +362,30 @@ describe('CentralDashboard', () => {
 
     expect(useNationalDashboardQuery).toHaveBeenCalledWith({
       params: {
-        startDate: '2026-04-06',
-        endDate: '2026-05-05',
+        startDate: '2026-05-18',
+        endDate: '2026-05-18',
+      },
+      enabled: true,
+    })
+
+    jest.useRealTimers()
+  })
+
+  it('defaults national analytics to today after the 7 PM data rollover', () => {
+    jest.useFakeTimers()
+    jest.setSystemTime(new Date('2026-05-19T19:00:00'))
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useNationalDashboardQuery).toHaveBeenCalledWith({
+      params: {
+        startDate: '2026-05-19',
+        endDate: '2026-05-19',
       },
       enabled: true,
     })
@@ -967,7 +989,7 @@ describe('CentralDashboard', () => {
 
     expect(useNationalDashboardQuery).toHaveBeenCalledWith({
       params: {
-        startDate: '2025-01-22',
+        startDate: '2025-02-20',
         endDate: '2025-02-20',
       },
       enabled: true,
@@ -998,7 +1020,7 @@ describe('CentralDashboard', () => {
 
     expect(useNationalDashboardQuery).toHaveBeenCalledWith({
       params: {
-        startDate: '2026-04-06',
+        startDate: '2026-05-05',
         endDate: '2026-05-05',
       },
       enabled: true,
@@ -2083,15 +2105,15 @@ describe('CentralDashboard', () => {
     expect(kpiProps).toHaveLength(3)
     expect(kpiProps[0]?.title).toBe('Quantity in MLD')
     expect(kpiProps[0]?.value).toBe('5')
-    expect(kpiProps[0]?.trend).toEqual({ direction: 'down', text: '-16.7% vs previous 30 days' })
+    expect(kpiProps[0]?.trend).toEqual({ direction: 'down', text: '-16.7% vs previous 1 days' })
 
     expect(kpiProps[1]?.title).toBe('Quantity in LPCD')
     expect(kpiProps[1]?.value).toBe('1,000')
-    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-200 LPCD vs previous 30 days' })
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-200 LPCD vs previous 1 days' })
 
     expect(kpiProps[2]?.title).toBe('Regularity')
     expect(kpiProps[2]?.value).toBe('0.0%')
-    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 1 days' })
   })
 
   it('hydrates location filters from path and query params', () => {
@@ -4870,18 +4892,18 @@ describe('CentralDashboard', () => {
     expect(kpiProps).toHaveLength(5)
     expect(kpiProps[0]?.title).toBe('Schemes Supplying Water')
     expect(kpiProps[0]?.value).toBe('5,714')
-    expect(kpiProps[0]?.trend).toEqual({ direction: 'up', text: '+14.3% vs previous 30 days' })
+    expect(kpiProps[0]?.trend).toEqual({ direction: 'up', text: '+14.3% vs previous 1 days' })
     expect(kpiProps[1]?.title).toBe('Quantity in MLD')
     expect(kpiProps[1]?.value).toBe('5')
-    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-16.7% vs previous 30 days' })
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'down', text: '-16.7% vs previous 1 days' })
 
     expect(kpiProps[2]?.title).toBe('Quantity in LPCD')
     expect(kpiProps[2]?.value).toBe('500')
-    expect(kpiProps[2]?.trend).toEqual({ direction: 'down', text: '-100 LPCD vs previous 30 days' })
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'down', text: '-100 LPCD vs previous 1 days' })
 
     expect(kpiProps[3]?.title).toBe('Regularity')
     expect(kpiProps[3]?.value).toBe('0.0%')
-    expect(kpiProps[3]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
+    expect(kpiProps[3]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 1 days' })
     expect(kpiProps[4]?.title).toBe('Critical Schemes')
     expect(kpiProps[4]?.value).toBe('215')
     expect(kpiProps[4]?.trend).toBeUndefined()
@@ -5005,7 +5027,7 @@ describe('CentralDashboard', () => {
     expect(kpiProps[0]?.value).toBe('0')
     expect(kpiProps[0]?.trend).toEqual({
       direction: 'down',
-      text: '-100% vs previous 30 days',
+      text: '-100% vs previous 1 days',
     })
     expect(kpiProps[4]?.title).toBe('Critical Schemes')
     expect(kpiProps[4]?.value).toBe('0')
@@ -5194,9 +5216,9 @@ describe('CentralDashboard', () => {
     )
 
     expect(kpiProps).toHaveLength(5)
-    expect(kpiProps[1]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
-    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0 LPCD vs previous 30 days' })
-    expect(kpiProps[3]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 1 days' })
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0 LPCD vs previous 1 days' })
+    expect(kpiProps[3]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 1 days' })
   })
 
   it('hides map and overall performance panel when a village is selected', () => {
@@ -5272,9 +5294,9 @@ describe('CentralDashboard', () => {
         }
     )
 
-    expect(kpiProps[0]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
-    expect(kpiProps[1]?.trend).toEqual({ direction: 'neutral', text: '0 LPCD vs previous 30 days' })
-    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 30 days' })
+    expect(kpiProps[0]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 1 days' })
+    expect(kpiProps[1]?.trend).toEqual({ direction: 'neutral', text: '0 LPCD vs previous 1 days' })
+    expect(kpiProps[2]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 1 days' })
   })
 
   it('uses the selected village LGD id for scheme performance analytics', () => {
