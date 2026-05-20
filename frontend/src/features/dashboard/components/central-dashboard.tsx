@@ -1289,6 +1289,8 @@ export function CentralDashboard({
       toIsoDate(effectiveSelectedDuration?.endDate, durationDateFormat) ??
       defaultAnalyticsRange.endDate,
   }
+  const isTimeViewEnabled =
+    resolveDaysInRange(undefined, analyticsDateRange.startDate, analyticsDateRange.endDate) > 1
   const schemePerformanceResetKey = `${analyticsParentId}|${analyticsDateRange.startDate}|${analyticsDateRange.endDate}`
   const schemePerformancePage =
     schemePerformancePagination.key === schemePerformanceResetKey
@@ -3618,6 +3620,7 @@ export function CentralDashboard({
         screenDateFormat={screenDateFormat}
         tableDateFormat={tableDateFormat}
         enableExtendedTimeScales
+        isTimeViewEnabled={isTimeViewEnabled}
       />
     </Box>
   )

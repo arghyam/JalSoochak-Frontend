@@ -63,6 +63,7 @@ type BlockDashboardScreenProps = {
   onSchemePageChange?: (page: number) => void
   screenDateFormat?: string
   tableDateFormat?: string
+  isTimeViewEnabled?: boolean
 }
 
 type ViewBy = 'geography' | 'time'
@@ -105,11 +106,15 @@ export function BlockDashboardScreen({
   onSchemePageChange,
   screenDateFormat,
   tableDateFormat,
+  isTimeViewEnabled = true,
 }: BlockDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
   const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
+  const effectiveOutageDistributionViewBy = isTimeViewEnabled
+    ? outageDistributionViewBy
+    : 'geography'
   const outageDistributionTimeTrendData = useMemo(
     () => data.supplyOutageTrend ?? [],
     [data.supplyOutageTrend]
@@ -121,7 +126,7 @@ export function BlockDashboardScreen({
     isOutageDistributionSelectDisabled,
   } = useOutageDistributionState({
     waterSupplyOutagesData,
-    outageDistributionViewBy,
+    outageDistributionViewBy: effectiveOutageDistributionViewBy,
     waterSupplyOutageDistributionData,
     outageDistributionTimeTrendData,
   })
@@ -160,6 +165,7 @@ export function BlockDashboardScreen({
           selectColor="primary.500"
           selectBorderColor="primary.500"
           dateFormat={screenDateFormat ?? tableDateFormat}
+          isTimeViewEnabled={isTimeViewEnabled}
         />
         <PerformanceChartCard
           title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
@@ -188,6 +194,7 @@ export function BlockDashboardScreen({
           quantityTimeScaleTab={quantityTimeScaleTab}
           onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
           dateFormat={screenDateFormat ?? tableDateFormat}
+          isTimeViewEnabled={isTimeViewEnabled}
         />
       </Grid>
 
@@ -255,7 +262,8 @@ export function BlockDashboardScreen({
                 },
               }}
             >
-              {outageDistributionViewBy === 'time' &&
+              {effectiveOutageDistributionViewBy === 'time' &&
+              isTimeViewEnabled &&
               outageDistributionTimeScaleTab &&
               onOutageDistributionTimeScaleTabChange ? (
                 <OutageTimeScaleToggle
@@ -270,8 +278,11 @@ export function BlockDashboardScreen({
                 ariaLabel={t('outageAndSubmissionCharts.ariaViewByBlock', {
                   defaultValue: 'Block supply outage distribution view by',
                 })}
-                value={outageDistributionViewBy}
+                value={effectiveOutageDistributionViewBy}
                 onChange={(value) => {
+                  if (value === 'time' && !isTimeViewEnabled) {
+                    return
+                  }
                   if (
                     value === 'time' &&
                     onOutageDistributionTimeScaleTabChange &&
@@ -284,6 +295,7 @@ export function BlockDashboardScreen({
                 color="primary.500"
                 borderColor="primary.500"
                 disabled={isOutageDistributionSelectDisabled}
+                isTimeOptionDisabled={!isTimeViewEnabled}
               />
             </Flex>
           </Flex>
@@ -293,7 +305,7 @@ export function BlockDashboardScreen({
             </Flex>
           ) : !hasOutageReasonsData ? (
             <ChartEmptyState minHeight="400px" />
-          ) : outageDistributionViewBy === 'geography' ? (
+          ) : effectiveOutageDistributionViewBy === 'geography' ? (
             hasGeographyData ? (
               <SupplyOutageDistributionChart
                 data={waterSupplyOutageDistributionData}
