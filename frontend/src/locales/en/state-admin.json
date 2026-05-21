@@ -123,7 +123,9 @@
       "editConfiguration": "Edit language configuration",
       "selectPrimaryLanguage": "Select primary language",
       "selectSecondaryLanguage": "Select secondary language",
-      "selectTertiaryLanguage": "Select tertiary language"
+      "selectTertiaryLanguage": "Select tertiary language",
+      "clearSecondaryLanguage": "Clear secondary language",
+      "clearTertiaryLanguage": "Clear tertiary language"
     }
   },
 
@@ -405,7 +407,8 @@
     "messages": {
       "noSchemesFound": "No schemes found",
       "failedToLoad": "Failed to load scheme data",
-      "statusUpdateFailed": "Failed to update status. Please try again."
+      "statusUpdateFailed": "Failed to update status. Please try again.",
+      "statusUpdateSuccess": "Status updated successfully."
     },
     "aria": {
       "statsSection": "Scheme sync statistics",
