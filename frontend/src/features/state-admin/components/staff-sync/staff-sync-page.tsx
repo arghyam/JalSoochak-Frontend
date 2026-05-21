@@ -288,7 +288,7 @@ export function StaffSyncPage() {
         py={3}
         px={{ base: 3, md: 6 }}
         gap={{ base: 3, md: 4 }}
-        flexDirection={{ base: 'column', sm: 'row' }}
+        flexDirection={{ base: 'column', xl: 'row' }}
         borderWidth="0.5px"
         borderColor="neutral.200"
         borderRadius="12px"
@@ -360,13 +360,17 @@ export function StaffSyncPage() {
         </Flex>
 
         {/* Right: reports + broadcast + upload */}
-        <Flex gap={2} flexShrink={0} w={{ base: 'full', sm: 'auto' }}>
+        <Flex
+          gap={2}
+          flexShrink={0}
+          w={{ base: 'full', xl: 'auto' }}
+          flexDirection={{ base: 'column', sm: 'row' }}
+        >
           <Button
             variant="secondary"
             size="sm"
             fontWeight="600"
-            flex={{ base: 1, sm: 'none' }}
-            w={{ base: 'auto', sm: '147px' }}
+            w={{ base: 'full', sm: 'auto' }}
             aria-label={t('staffSync.report.aria.download')}
             onClick={handleReport}
             isLoading={isReportPending}
@@ -383,8 +387,7 @@ export function StaffSyncPage() {
             variant="secondary"
             size="sm"
             fontWeight="600"
-            flex={{ base: 1, sm: 'none' }}
-            w={{ base: 'auto', sm: '147px' }}
+            w={{ base: 'full', sm: 'auto' }}
             aria-label={t('staffSync.broadcast.aria.broadcast')}
             onClick={() => setIsBroadcastOpen(true)}
           >
@@ -399,8 +402,7 @@ export function StaffSyncPage() {
             variant="secondary"
             size="sm"
             fontWeight="600"
-            flex={{ base: 1, sm: 'none' }}
-            w={{ base: 'auto', sm: '147px' }}
+            w={{ base: 'full', sm: 'auto' }}
             aria-label={t('staffSync.aria.uploadData')}
             onClick={() => setIsUploadOpen(true)}
           >

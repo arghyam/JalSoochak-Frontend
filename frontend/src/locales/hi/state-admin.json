@@ -123,7 +123,9 @@
       "editConfiguration": "भाषा कॉन्फ़िगरेशन संपादित करें",
       "selectPrimaryLanguage": "प्राथमिक भाषा चुनें",
       "selectSecondaryLanguage": "द्वितीयक भाषा चुनें",
-      "selectTertiaryLanguage": "तृतीयक भाषा चुनें"
+      "selectTertiaryLanguage": "तृतीयक भाषा चुनें",
+      "clearSecondaryLanguage": "द्वितीयक भाषा हटाएं",
+      "clearTertiaryLanguage": "तृतीयक भाषा हटाएं"
     }
   },
 
@@ -386,7 +388,8 @@
     "messages": {
       "noSchemesFound": "कोई योजना नहीं मिली",
       "failedToLoad": "योजना डेटा लोड करने में विफल",
-      "statusUpdateFailed": "स्थिति अपडेट करने में विफल। कृपया पुनः प्रयास करें।"
+      "statusUpdateFailed": "स्थिति अपडेट करने में विफल। कृपया पुनः प्रयास करें।",
+      "statusUpdateSuccess": "स्थिति सफलतापूर्वक अपडेट की गई।"
     },
     "aria": {
       "statsSection": "योजना सिंक सांख्यिकी",

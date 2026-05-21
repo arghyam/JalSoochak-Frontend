@@ -52,6 +52,9 @@ export function SchemeStatusChip({
     mutate(
       { schemeId, tenantCode, payload },
       {
+        onSuccess: () => {
+          toast.success(t('schemeSync.messages.statusUpdateSuccess'))
+        },
         onError: () => {
           setOptimisticValue(prevValue)
           toast.error(t('schemeSync.messages.statusUpdateFailed'))
