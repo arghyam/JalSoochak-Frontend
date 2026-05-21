@@ -105,8 +105,10 @@ export function SchemeSyncPage() {
           a.click()
           a.remove()
           URL.revokeObjectURL(blobUrl)
+          toast.success(t('schemeSync.report.success'))
         } catch {
           window.open(link, '_blank', 'noopener,noreferrer')
+          toast.success(t('schemeSync.report.success'))
         }
       },
       onError: () => toast.error(t('schemeSync.report.error')),

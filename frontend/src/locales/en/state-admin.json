@@ -419,6 +419,7 @@
     },
     "report": {
       "button": "Reports",
+      "success": "Report downloaded successfully.",
       "error": "Failed to generate report. Please try again.",
       "aria": {
         "download": "Download schemes report"
@@ -461,6 +462,7 @@
     },
     "report": {
       "button": "Reports",
+      "success": "Report downloaded successfully.",
       "error": "Failed to generate report. Please try again.",
       "aria": {
         "download": "Download scheme mappings report"

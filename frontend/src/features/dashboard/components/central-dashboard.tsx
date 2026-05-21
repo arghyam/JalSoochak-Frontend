@@ -1291,6 +1291,7 @@ export function CentralDashboard({
   }
   const isTimeViewEnabled =
     resolveDaysInRange(undefined, analyticsDateRange.startDate, analyticsDateRange.endDate) > 1
+  const shouldFetchPerformanceTimeAnalytics = isTimeViewEnabled || isHierarchyLeafSelected
   const schemePerformanceResetKey = `${analyticsParentId}|${analyticsDateRange.startDate}|${analyticsDateRange.endDate}`
   const schemePerformancePage =
     schemePerformancePagination.key === schemePerformanceResetKey
@@ -1321,7 +1322,7 @@ export function CentralDashboard({
           scale: selectedQuantityApiScale,
         }
   const regularityPeriodicAnalyticsParams =
-    !isTimeViewEnabled || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+    !shouldFetchPerformanceTimeAnalytics || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
