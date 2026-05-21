@@ -6744,7 +6744,10 @@ describe('CentralDashboard', () => {
         pathname: '/',
         search: '?district=11%3A111%3Apune&block=22%3A222%3Amulshi&tab=administrative',
       })
-      expect(window.localStorage.getItem('central-dashboard-filters')).toContain('22:222:mulshi')
+      const storedFilters = JSON.parse(
+        window.localStorage.getItem('central-dashboard-filters') ?? '{}'
+      ) as { selectedBlock?: string }
+      expect(storedFilters.selectedBlock).toEqual('22:222:mulshi')
     })
 
     it('keeps single-tenant departmental state locked when a root clear is requested', () => {
