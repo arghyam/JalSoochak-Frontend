@@ -1655,7 +1655,7 @@ describe('CentralDashboard', () => {
     expect(dashboardBodyProps.isQuantityTimeTrendLoading).toBe(false)
   })
 
-  it('uses the analytics id from village filter values for village periodic charts', () => {
+  it('uses the analytics id from village filter values for village periodic charts on one-day duration', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
@@ -1668,6 +1668,15 @@ describe('CentralDashboard', () => {
       ),
       jest.fn(),
     ])
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedDuration: {
+          startDate: '03/02/2026',
+          endDate: '03/02/2026',
+        },
+      })
+    )
     ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
       data: {
         totalStatesCount: 1,
@@ -1680,8 +1689,8 @@ describe('CentralDashboard', () => {
     expect(useWaterQuantityPeriodicQuery).toHaveBeenCalledWith({
       params: {
         lgdId: 544,
-        startDate: expect.any(String),
-        endDate: expect.any(String),
+        startDate: '2026-02-03',
+        endDate: '2026-02-03',
         scale: expect.any(String),
       },
       enabled: true,
@@ -1690,8 +1699,8 @@ describe('CentralDashboard', () => {
       params: {
         tenantId: 16,
         lgdId: 544,
-        startDate: expect.any(String),
-        endDate: expect.any(String),
+        startDate: '2026-02-03',
+        endDate: '2026-02-03',
         scale: expect.any(String),
       },
       enabled: true,
