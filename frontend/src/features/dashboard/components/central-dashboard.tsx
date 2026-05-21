@@ -688,6 +688,12 @@ export function CentralDashboard({
     storedFilters.selectedGramPanchayat ||
     storedFilters.selectedVillage
   )
+  const hasStoredLgdChildFilters = Boolean(
+    storedFilters.selectedDistrict ||
+    storedFilters.selectedBlock ||
+    storedFilters.selectedGramPanchayat ||
+    storedFilters.selectedVillage
+  )
   const hasStoredDepartmentFilters = Boolean(
     storedFilters.selectedDepartmentState ||
     storedFilters.selectedDepartmentZone ||
@@ -695,12 +701,15 @@ export function CentralDashboard({
     storedFilters.selectedDepartmentDivision ||
     storedFilters.selectedDepartmentSubdivision
   )
+  const hasRestorableStoredFilters = singleTenantOverride
+    ? hasStoredLgdChildFilters || hasStoredDepartmentFilters
+    : hasStoredLgdFilters || hasStoredDepartmentFilters
   const shouldHydrateFromStoredFilters =
-    !selectedState &&
+    (!selectedState || Boolean(singleTenantOverride)) &&
     !hasLgdParamsInUrl &&
     !hasDepartmentParamsInUrl &&
     !isAdministrativeTabFromUrl &&
-    (hasStoredLgdFilters || hasStoredDepartmentFilters)
+    hasRestorableStoredFilters
   const [selectedDuration, setSelectedDuration] = useState<DateRange | null>(() =>
     getInitialStoredDuration(storedFilters)
   )

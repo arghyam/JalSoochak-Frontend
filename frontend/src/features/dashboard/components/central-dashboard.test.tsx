@@ -6702,6 +6702,54 @@ describe('CentralDashboard', () => {
       })
     })
 
+    it('restores saved child filters into the URL when single-tenant dashboard opens at root', () => {
+      mockUseParams.mockReturnValue({})
+      window.localStorage.setItem(
+        'central-dashboard-filters',
+        JSON.stringify({
+          selectedState: 'maharashtra',
+          selectedDistrict: '11:111:pune',
+          selectedBlock: '22:222:mulshi',
+        })
+      )
+      ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+        data: {
+          totalStatesCount: 1,
+          states: [{ value: 'maharashtra', label: 'Maharashtra', tenantId: 1, tenantCode: 'MH' }],
+        },
+        isLoading: false,
+        isError: false,
+      })
+      ;(useDashboardData as jest.Mock).mockReturnValue({
+        data: null,
+        isLoading: false,
+        isError: false,
+      })
+      ;(useTenantPublicConfigQuery as jest.Mock).mockReturnValue({
+        data: null,
+        isLoading: false,
+        isError: false,
+      })
+
+      const singleTenantOverride = {
+        value: 'maharashtra',
+        label: 'Maharashtra',
+        tenantId: 1,
+        tenantCode: 'MH',
+      }
+
+      renderWithProviders(<CentralDashboard singleTenantOverride={singleTenantOverride} />)
+
+      expect(mockNavigate).toHaveBeenCalledWith({
+        pathname: '/',
+        search: '?district=11%3A111%3Apune&block=22%3A222%3Amulshi&tab=administrative',
+      })
+      const storedFilters = JSON.parse(
+        window.localStorage.getItem('central-dashboard-filters') ?? '{}'
+      ) as { selectedBlock?: string }
+      expect(storedFilters.selectedBlock).toEqual('22:222:mulshi')
+    })
+
     it('keeps single-tenant departmental state locked when a root clear is requested', () => {
       mockUseParams.mockReturnValue({})
       ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
