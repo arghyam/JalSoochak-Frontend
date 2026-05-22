@@ -478,20 +478,22 @@
         "currentLogo": "वर्तमान लोगो"
       },
       "meterChangeReasons": {
-        "title": "मीटर परिवर्तन के कारण",
+        "title": "रीडिंग सबमिशन न होने के कारण",
         "placeholder": "कारण दर्ज करें",
         "addButton": "जोड़ें",
         "addNewButton": "+ नया कारण जोड़ें",
         "empty": "अभी तक कोई कारण नहीं जोड़ा गया",
         "editAriaLabel": "कारण {{name}} संपादित करें",
-        "deleteAriaLabel": "कारण {{name}} हटाएं"
+        "deleteAriaLabel": "कारण {{name}} हटाएं",
+        "othersToggleLabel": "अन्य"
       },
       "supplyOutageReasons": {
-        "title": "आपूर्ति बाधा कारण",
+        "title": "पानी की आपूर्ति न होने के कारण",
         "placeholder": "कारण दर्ज करें",
         "addNewButton": "+ नया कारण जोड़ें",
         "editAriaLabel": "कारण {{name}} संपादित करें",
-        "deleteAriaLabel": "कारण {{name}} हटाएं"
+        "deleteAriaLabel": "कारण {{name}} हटाएं",
+        "othersToggleLabel": "अन्य"
       },
       "locationCheckRequired": {
         "title": "स्थान रिकॉर्ड करें",
