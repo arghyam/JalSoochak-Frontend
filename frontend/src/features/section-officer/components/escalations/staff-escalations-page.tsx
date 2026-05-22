@@ -266,7 +266,7 @@ export function StaffEscalationsPage() {
             setPage(1)
           }}
           placeholder={t('pages.escalations.filterDuration')}
-          width="206px"
+          width="180px"
           height="32px"
           borderRadius="4px"
           fontSize="sm"
