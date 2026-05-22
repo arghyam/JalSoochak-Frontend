@@ -107,7 +107,11 @@ export function MeterChangeReasonsSection({
               <Flex gap={2} align="center">
                 <Input
                   id={`config-field-meter-reason-${reason.id}`}
-                  value={reason.name}
+                  value={
+                    isOthers
+                      ? t('configuration.sections.meterChangeReasons.othersToggleLabel')
+                      : reason.name
+                  }
                   onChange={(e) => (isOthers ? undefined : handleChange(reason.id, e.target.value))}
                   isReadOnly={isOthers}
                   placeholder={t('configuration.sections.meterChangeReasons.placeholder')}

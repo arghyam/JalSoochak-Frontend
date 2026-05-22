@@ -160,7 +160,7 @@ describe('ConfigurationPage', () => {
     renderWithProviders(<ConfigurationPage />)
 
     expect(screen.getByText('Supported Channels')).toBeTruthy()
-    expect(screen.getByText('Meter Change Reasons')).toBeTruthy()
+    expect(screen.getByText('No Reading Submission Reasons')).toBeTruthy()
     expect(screen.getByText('Record Location')).toBeTruthy()
   })
 
