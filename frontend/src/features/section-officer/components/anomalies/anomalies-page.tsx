@@ -260,7 +260,7 @@ export function AnomaliesPage() {
             setPage(1)
           }}
           placeholder={t('pages.anomalies.filterDuration')}
-          width="206px"
+          width="180px"
           height="32px"
           borderRadius="4px"
           fontSize="sm"

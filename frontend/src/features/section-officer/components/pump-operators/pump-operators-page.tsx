@@ -350,7 +350,7 @@ export function PumpOperatorsPage() {
             setPage(1)
           }}
           placeholder={t('pages.pumpOperators.filterDuration')}
-          width="206px"
+          width="180px"
           height="32px"
           borderRadius="4px"
           fontSize="sm"
