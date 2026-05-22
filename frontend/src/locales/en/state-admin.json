@@ -497,20 +497,22 @@
         "currentLogo": "Current logo"
       },
       "meterChangeReasons": {
-        "title": "Meter Change Reasons",
+        "title": "No Reading Submission Reasons",
         "placeholder": "Enter reason",
         "addButton": "Add",
         "addNewButton": "+ Add New Reason",
         "empty": "No reasons added yet",
         "editAriaLabel": "Edit reason {{name}}",
-        "deleteAriaLabel": "Delete reason {{name}}"
+        "deleteAriaLabel": "Delete reason {{name}}",
+        "othersToggleLabel": "Others"
       },
       "supplyOutageReasons": {
-        "title": "Supply Outage Reasons",
+        "title": "No Water Supply Reasons",
         "placeholder": "Enter reason",
         "addNewButton": "+ Add New Reason",
         "editAriaLabel": "Edit reason {{name}}",
-        "deleteAriaLabel": "Delete reason {{name}}"
+        "deleteAriaLabel": "Delete reason {{name}}",
+        "othersToggleLabel": "Others"
       },
       "locationCheckRequired": {
         "title": "Record Location",

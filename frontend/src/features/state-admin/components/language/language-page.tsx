@@ -342,17 +342,19 @@ export function LanguagePage() {
                   >
                     {t('language.secondaryLanguage')}
                   </Text>
-                  <Box position="relative">
-                    <SearchableSelect
-                      options={secondaryOptions}
-                      value={secondaryLanguage}
-                      onChange={(value) =>
-                        setLanguageDraft((prev) => ({ ...prev, secondaryLanguage: value }))
-                      }
-                      placeholder={t('common:select')}
-                      width="100%"
-                      ariaLabel={t('language.aria.selectSecondaryLanguage')}
-                    />
+                  <Flex align="center" gap={2}>
+                    <Box flex={1} minW={0}>
+                      <SearchableSelect
+                        options={secondaryOptions}
+                        value={secondaryLanguage}
+                        onChange={(value) =>
+                          setLanguageDraft((prev) => ({ ...prev, secondaryLanguage: value }))
+                        }
+                        placeholder={t('common:select')}
+                        width="100%"
+                        ariaLabel={t('language.aria.selectSecondaryLanguage')}
+                      />
+                    </Box>
                     {secondaryLanguage && (
                       <IconButton
                         aria-label={t('language.aria.clearSecondaryLanguage')}
@@ -361,16 +363,13 @@ export function LanguagePage() {
                         variant="ghost"
                         color="neutral.500"
                         _hover={{ bg: 'error.50', color: 'error.500' }}
-                        position="absolute"
-                        left="calc(100% + 8px)"
-                        top="50%"
-                        transform="translateY(-50%)"
+                        flexShrink={0}
                         onClick={() =>
                           setLanguageDraft((prev) => ({ ...prev, secondaryLanguage: '' }))
                         }
                       />
                     )}
-                  </Box>
+                  </Flex>
                 </Box>
                 <Box w={{ base: 'full', xl: '486px' }}>
                   <Text
@@ -384,17 +383,19 @@ export function LanguagePage() {
                   >
                     {t('language.tertiaryLanguage')}
                   </Text>
-                  <Box position="relative">
-                    <SearchableSelect
-                      options={tertiaryOptions}
-                      value={tertiaryLanguage}
-                      onChange={(value) =>
-                        setLanguageDraft((prev) => ({ ...prev, tertiaryLanguage: value }))
-                      }
-                      placeholder={t('common:select')}
-                      width="100%"
-                      ariaLabel={t('language.aria.selectTertiaryLanguage')}
-                    />
+                  <Flex align="center" gap={2}>
+                    <Box flex={1} minW={0}>
+                      <SearchableSelect
+                        options={tertiaryOptions}
+                        value={tertiaryLanguage}
+                        onChange={(value) =>
+                          setLanguageDraft((prev) => ({ ...prev, tertiaryLanguage: value }))
+                        }
+                        placeholder={t('common:select')}
+                        width="100%"
+                        ariaLabel={t('language.aria.selectTertiaryLanguage')}
+                      />
+                    </Box>
                     {tertiaryLanguage && (
                       <IconButton
                         aria-label={t('language.aria.clearTertiaryLanguage')}
@@ -403,16 +404,13 @@ export function LanguagePage() {
                         variant="ghost"
                         color="neutral.500"
                         _hover={{ bg: 'error.50', color: 'error.500' }}
-                        position="absolute"
-                        left="calc(100% + 8px)"
-                        top="50%"
-                        transform="translateY(-50%)"
+                        flexShrink={0}
                         onClick={() =>
                           setLanguageDraft((prev) => ({ ...prev, tertiaryLanguage: '' }))
                         }
                       />
                     )}
-                  </Box>
+                  </Flex>
                 </Box>
               </SimpleGrid>
 
