@@ -32,6 +32,7 @@ import { SearchableSelect } from '@/shared/components/common'
 import jalsoochakLogo from '@/assets/media/logo.svg'
 import { BiArrowBack } from 'react-icons/bi'
 import { useAuthStore } from '@/app/store'
+import { isSingleTenantMode } from '@/config/server-config'
 import { getCookie, setCookie } from '@/shared/utils/cookies'
 import {
   usePublicTenantsQuery,
@@ -89,12 +90,15 @@ export function StaffLoginPage() {
 
   const fullPhoneNumber = `${COUNTRY_CODE}${phoneDigits}`
 
-  // Save tenant code to cookie whenever it changes
+  // In single-tenant mode the tenant comes exclusively from tenants[0]; never fall back to the cookie
+  const resolvedTenantCode = isSingleTenantMode() ? (tenants[0]?.stateCode ?? '') : tenantCode
+
+  // Save resolved tenant code to cookie whenever it changes
   useEffect(() => {
-    if (tenantCode) {
-      setCookie(TENANT_CODE_COOKIE, tenantCode)
+    if (resolvedTenantCode) {
+      setCookie(TENANT_CODE_COOKIE, resolvedTenantCode)
     }
-  }, [tenantCode])
+  }, [resolvedTenantCode])
 
   const startCooldown = useCallback(() => {
     setResendCooldown(OTP_RESEND_COOLDOWN_SECONDS)
@@ -150,7 +154,7 @@ export function StaffLoginPage() {
       setPhoneError(t('login.phoneStep.phoneDigitsOnlyError'))
       return
     }
-    if (!tenantCode) {
+    if (!isSingleTenantMode() && !tenantCode) {
       setTenantError(t('login.phoneStep.stateError'))
       return
     }
@@ -158,7 +162,7 @@ export function StaffLoginPage() {
     try {
       const result = await requestOtpMutation.mutateAsync({
         phoneNumber: fullPhoneNumber,
-        tenantCode,
+        tenantCode: resolvedTenantCode,
       })
       const rawLength = result.otpLength ?? OTP_FALLBACK_LENGTH
       const validatedLength =
@@ -181,7 +185,7 @@ export function StaffLoginPage() {
     try {
       const result = await requestOtpMutation.mutateAsync({
         phoneNumber: fullPhoneNumber,
-        tenantCode,
+        tenantCode: resolvedTenantCode,
       })
       const rawLength = result.otpLength ?? OTP_FALLBACK_LENGTH
       const length =
@@ -247,7 +251,7 @@ export function StaffLoginPage() {
     try {
       const response = await verifyOtpMutation.mutateAsync({
         phoneNumber: fullPhoneNumber,
-        tenantCode,
+        tenantCode: resolvedTenantCode,
         otp,
       })
       const redirectPath = setFromActivation(response)
@@ -293,7 +297,7 @@ export function StaffLoginPage() {
                   phoneDigits={phoneDigits}
                   onPhoneChange={setPhoneDigits}
                   phoneError={phoneError}
-                  tenantCode={tenantCode}
+                  tenantCode={resolvedTenantCode}
                   onTenantChange={setTenantCode}
                   tenantError={tenantError}
                   tenantOptions={tenantOptions}
@@ -301,6 +305,7 @@ export function StaffLoginPage() {
                   tenantsError={tenantsError}
                   isLoading={requestOtpMutation.isPending}
                   onSubmit={handleSendOtp}
+                  isSingleTenant={isSingleTenantMode()}
                 />
               ) : (
                 <OtpStep
@@ -345,6 +350,7 @@ interface PhoneStepProps {
   tenantsError: boolean
   isLoading: boolean
   onSubmit: () => void
+  isSingleTenant: boolean
 }
 
 function PhoneStep({
@@ -360,6 +366,7 @@ function PhoneStep({
   tenantsError,
   isLoading,
   onSubmit,
+  isSingleTenant,
 }: PhoneStepProps) {
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Enter') onSubmit()
@@ -425,44 +432,49 @@ function PhoneStep({
           {phoneError && <FormErrorMessage>{phoneError}</FormErrorMessage>}
         </FormControl>
 
-        <FormControl isInvalid={!!tenantError || !!tenantsError}>
-          <FormLabel>
-            <Text textStyle="bodyText6" mb="4px">
-              {t('login.phoneStep.stateLabel')}
-              <Text as="span" color="error.500">
-                {' '}
-                *
-              </Text>
-            </Text>
-          </FormLabel>
-          <SearchableSelect
-            options={tenantOptions}
-            value={tenantCode}
-            onChange={onTenantChange}
-            placeholder={
-              tenantsLoading
-                ? t('login.phoneStep.stateLoading')
-                : t('login.phoneStep.statePlaceholder')
-            }
-            disabled={tenantsLoading || isLoading || tenantsError}
-            width="100%"
-            height="36px"
-            borderRadius="4px"
-            ariaLabel={t('login.phoneStep.stateLabel')}
-            data-testid="tenant-select"
-          />
-          {tenantsError && (
+        {tenantsError && (
+          <FormControl isInvalid>
             <FormErrorMessage>{t('login.phoneStep.stateLoadFailed')}</FormErrorMessage>
-          )}
-          {!tenantsError && tenantError && <FormErrorMessage>{tenantError}</FormErrorMessage>}
-        </FormControl>
+          </FormControl>
+        )}
+
+        {!isSingleTenant && (
+          <FormControl isInvalid={!!tenantError || !!tenantsError}>
+            <FormLabel>
+              <Text textStyle="bodyText6" mb="4px">
+                {t('login.phoneStep.stateLabel')}
+                <Text as="span" color="error.500">
+                  {' '}
+                  *
+                </Text>
+              </Text>
+            </FormLabel>
+            <SearchableSelect
+              options={tenantOptions}
+              value={tenantCode}
+              onChange={onTenantChange}
+              placeholder={
+                tenantsLoading
+                  ? t('login.phoneStep.stateLoading')
+                  : t('login.phoneStep.statePlaceholder')
+              }
+              disabled={tenantsLoading || isLoading || tenantsError}
+              width="100%"
+              height="36px"
+              borderRadius="4px"
+              ariaLabel={t('login.phoneStep.stateLabel')}
+              data-testid="tenant-select"
+            />
+            {!tenantsError && tenantError && <FormErrorMessage>{tenantError}</FormErrorMessage>}
+          </FormControl>
+        )}
 
         <Button
           w="full"
           fontSize="16px"
           fontWeight="600"
           isLoading={isLoading}
-          isDisabled={tenantsError}
+          isDisabled={tenantsError || (isSingleTenant && !tenantCode)}
           loadingText={t('login.phoneStep.sendingOtp')}
           _loading={{ bg: 'primary.500', color: 'white' }}
           onClick={onSubmit}
