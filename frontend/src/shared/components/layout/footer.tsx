@@ -3,7 +3,7 @@ import { Link as RouterLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { ReactNode } from 'react'
 import { ROUTES } from '@/shared/constants/routes'
-import jjmLogo from '@/assets/media/jjm_new_logo.svg'
+import logoWithText from '@/assets/media/logo-with-text.svg'
 import { RiMailLine, RiTwitterXLine } from 'react-icons/ri'
 import { BiLogoLinkedin } from 'react-icons/bi'
 
@@ -60,9 +60,9 @@ export function Footer() {
           >
             {/* Column 1: Logo & Description */}
             <Stack spacing="16px">
-              <Box w="109px" h="122px">
+              <Box w="156px" h="80px">
                 <img
-                  src={jjmLogo}
+                  src={logoWithText}
                   alt={t('footer.logoAlt')}
                   style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                 />
