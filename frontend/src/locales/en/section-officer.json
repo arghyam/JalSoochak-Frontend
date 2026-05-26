@@ -13,6 +13,7 @@
       "phoneError": "Enter a valid 10-digit mobile number.",
       "phoneDigitsOnlyError": "Phone number must contain only digits.",
       "stateError": "Please select a State/UT.",
+      "stateLoadFailed": "Failed to load State/UT list. Please refresh and try again.",
       "sendOtpFailed": "Failed to send OTP. Please try again."
     },
     "otpStep": {

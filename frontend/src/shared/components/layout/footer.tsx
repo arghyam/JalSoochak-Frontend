@@ -31,19 +31,19 @@ export function Footer() {
 
   const socialLinks: SocialLink[] = [
     {
-      href: 'https://x.com/arghyamindia',
+      href: 'https://x.com/JJM_Assam',
       ariaLabel: t('footer.social.x'),
       icon: <RiTwitterXLine size={20} color="#64748b" />,
       isExternal: true,
     },
     {
-      href: 'https://www.linkedin.com/company/arghyam/',
+      href: 'https://www.linkedin.com/company/jjmassam/',
       ariaLabel: t('footer.social.linkedin'),
       icon: <BiLogoLinkedin size={20} color="#64748b" />,
       isExternal: true,
     },
     {
-      href: 'mailto:info@arghyam.org',
+      href: 'mailto:md@jjmassam.in',
       ariaLabel: t('footer.social.email'),
       icon: <RiMailLine size={20} color="#64748b" />,
     },
@@ -139,6 +139,24 @@ export function Footer() {
               >
                 {t('footer.jalsoochakWebsite')}
               </Link>
+              <Link
+                href="https://jjmassam.in/"
+                isExternal
+                color="primary.500"
+                fontSize="sm"
+                _hover={{ textDecoration: 'underline' }}
+              >
+                {t('footer.phedAssamWebsite')}
+              </Link>
+              <Link
+                href="https://jjmbrain.in/"
+                isExternal
+                color="primary.500"
+                fontSize="sm"
+                _hover={{ textDecoration: 'underline' }}
+              >
+                {t('footer.jjmAssamWebsite')}
+              </Link>
             </VStack>
 
             {/* Column 3: Contact Us */}
@@ -158,7 +176,7 @@ export function Footer() {
               <Text fontSize="sm" color="neutral.500">
                 {t('footer.phone')}
               </Text>
-              <Text fontSize="sm" color="neutral.500" lineHeight="1.6">
+              <Text fontSize="sm" color="neutral.500" lineHeight="1.6" whiteSpace="pre-line">
                 {t('footer.address')}
               </Text>
             </VStack>
@@ -174,7 +192,17 @@ export function Footer() {
         <Box w="full" maxW="1440px" mx="auto">
           <Flex justify="center">
             <Text fontSize="sm" color="neutral.500" textAlign="center">
-              {t('footer.copyright', { year: new Date().getFullYear() })}{' '}
+              {t('footer.copyright', { year: new Date().getFullYear() })}
+              <Link
+                href="https://jjmassam.in/"
+                isExternal
+                fontWeight="600"
+                color="primary.500"
+                _hover={{ textDecoration: 'underline' }}
+              >
+                {t('footer.phedAssam')}
+              </Link>
+              {t('footer.developedBy')}
               <Link
                 href="https://arghyam.org/"
                 isExternal
