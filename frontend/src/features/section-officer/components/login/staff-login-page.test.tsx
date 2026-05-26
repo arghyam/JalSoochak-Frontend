@@ -470,4 +470,35 @@ describe('StaffLoginPage — Single-Tenant Mode', () => {
       expect(mockSetCookie).toHaveBeenCalledWith('staff_login_tenant_code', 'NL')
     })
   })
+
+  it('disables Send OTP button and does not call requestOtp when tenants loaded but list is empty', async () => {
+    staffAuthQueries.usePublicTenantsQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: false,
+    })
+    render(<StaffLoginPage />, { wrapper: createWrapper() })
+
+    await userEvent.type(screen.getByTestId('phone-input'), '8179020960')
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('send-otp-button'))
+    })
+
+    expect((screen.getByTestId('send-otp-button') as HTMLButtonElement).disabled).toBe(true)
+    expect(mockRequestOtpMutate).not.toHaveBeenCalled()
+  })
+
+  it('shows stateLoadFailed error and keeps Send OTP button disabled when tenant query errors', async () => {
+    staffAuthQueries.usePublicTenantsQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: true,
+    })
+    render(<StaffLoginPage />, { wrapper: createWrapper() })
+
+    expect(screen.getByText(enSectionOfficer.login.phoneStep.stateLoadFailed)).toBeTruthy()
+    expect((screen.getByTestId('send-otp-button') as HTMLButtonElement).disabled).toBe(true)
+    expect(mockRequestOtpMutate).not.toHaveBeenCalled()
+  })
 })

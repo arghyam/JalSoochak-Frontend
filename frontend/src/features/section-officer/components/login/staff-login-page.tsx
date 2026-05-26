@@ -90,9 +90,8 @@ export function StaffLoginPage() {
 
   const fullPhoneNumber = `${COUNTRY_CODE}${phoneDigits}`
 
-  // In single-tenant mode the tenant is fixed
-  const resolvedTenantCode =
-    isSingleTenantMode() && tenants.length > 0 ? tenants[0].stateCode : tenantCode
+  // In single-tenant mode the tenant comes exclusively from tenants[0]; never fall back to the cookie
+  const resolvedTenantCode = isSingleTenantMode() ? (tenants[0]?.stateCode ?? '') : tenantCode
 
   // Save resolved tenant code to cookie whenever it changes
   useEffect(() => {
@@ -433,6 +432,12 @@ function PhoneStep({
           {phoneError && <FormErrorMessage>{phoneError}</FormErrorMessage>}
         </FormControl>
 
+        {tenantsError && (
+          <FormControl isInvalid>
+            <FormErrorMessage>{t('login.phoneStep.stateLoadFailed')}</FormErrorMessage>
+          </FormControl>
+        )}
+
         {!isSingleTenant && (
           <FormControl isInvalid={!!tenantError || !!tenantsError}>
             <FormLabel>
@@ -460,9 +465,6 @@ function PhoneStep({
               ariaLabel={t('login.phoneStep.stateLabel')}
               data-testid="tenant-select"
             />
-            {tenantsError && (
-              <FormErrorMessage>{t('login.phoneStep.stateLoadFailed')}</FormErrorMessage>
-            )}
             {!tenantsError && tenantError && <FormErrorMessage>{tenantError}</FormErrorMessage>}
           </FormControl>
         )}
@@ -472,7 +474,7 @@ function PhoneStep({
           fontSize="16px"
           fontWeight="600"
           isLoading={isLoading}
-          isDisabled={tenantsError || (isSingleTenant && tenantsLoading)}
+          isDisabled={tenantsError || (isSingleTenant && !tenantCode)}
           loadingText={t('login.phoneStep.sendingOtp')}
           _loading={{ bg: 'primary.500', color: 'white' }}
           onClick={onSubmit}
