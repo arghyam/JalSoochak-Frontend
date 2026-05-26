@@ -71,6 +71,10 @@ jest.mock('@/features/section-officer/services/query/use-staff-auth-queries', ()
   })),
 }))
 
+jest.mock('@/config/server-config', () => ({
+  isSingleTenantMode: jest.fn(() => false),
+}))
+
 jest.mock('@/features/auth/components/signup/auth-side-image', () => ({
   AuthSideImage: () => null,
 }))
@@ -377,6 +381,93 @@ describe('StaffLoginPage — Tenant Code Cookie Persistence', () => {
     // Since SearchableSelect uses a custom combobox, we verify getCookie was called on mount
     await waitFor(() => {
       expect(mockGetCookie).toHaveBeenCalledWith('staff_login_tenant_code')
+    })
+  })
+})
+
+describe('StaffLoginPage — Single-Tenant Mode', () => {
+  const staffAuthQueries = jest.requireMock(
+    '@/features/section-officer/services/query/use-staff-auth-queries'
+  ) as {
+    usePublicTenantsQuery: jest.Mock
+    useRequestOtpMutation: jest.Mock
+    useVerifyOtpMutation: jest.Mock
+  }
+  const serverConfig = jest.requireMock('@/config/server-config') as {
+    isSingleTenantMode: jest.Mock
+  }
+
+  beforeEach(() => {
+    serverConfig.isSingleTenantMode.mockReturnValue(true)
+    staffAuthQueries.usePublicTenantsQuery.mockReturnValue({
+      data: [{ id: 1, stateCode: 'NL', name: 'Nagaland', status: 'ACTIVE' }],
+      isLoading: false,
+      isError: false,
+    })
+    staffAuthQueries.useRequestOtpMutation.mockReturnValue({
+      mutateAsync: mockRequestOtpMutate,
+      isPending: false,
+    })
+    staffAuthQueries.useVerifyOtpMutation.mockReturnValue({
+      mutateAsync: mockVerifyOtpMutate,
+      isPending: false,
+    })
+  })
+
+  afterEach(() => {
+    serverConfig.isSingleTenantMode.mockReturnValue(false)
+  })
+
+  it('does not render the state/UT dropdown', () => {
+    render(<StaffLoginPage />, { wrapper: createWrapper() })
+    expect(screen.queryByTestId('tenant-select')).toBeNull()
+    expect(screen.queryByRole('combobox')).toBeNull()
+  })
+
+  it('still renders the phone input and Send OTP button', () => {
+    render(<StaffLoginPage />, { wrapper: createWrapper() })
+    expect(screen.getByTestId('phone-input')).toBeTruthy()
+    expect(screen.getByTestId('send-otp-button')).toBeTruthy()
+  })
+
+  it('disables the Send OTP button while tenants are loading', () => {
+    staffAuthQueries.usePublicTenantsQuery.mockReturnValue({
+      data: [],
+      isLoading: true,
+      isError: false,
+    })
+    render(<StaffLoginPage />, { wrapper: createWrapper() })
+    expect((screen.getByTestId('send-otp-button') as HTMLButtonElement).disabled).toBe(true)
+  })
+
+  it('enables the Send OTP button once tenants have loaded', () => {
+    render(<StaffLoginPage />, { wrapper: createWrapper() })
+    expect((screen.getByTestId('send-otp-button') as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  it('calls requestOtp with tenants[0].stateCode without any dropdown interaction', async () => {
+    mockRequestOtpMutate.mockResolvedValueOnce({ status: 200, message: 'OTP sent', otpLength: 6 })
+    render(<StaffLoginPage />, { wrapper: createWrapper() })
+
+    await userEvent.type(screen.getByTestId('phone-input'), '8179020960')
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('send-otp-button'))
+    })
+
+    await waitFor(() => {
+      expect(mockRequestOtpMutate).toHaveBeenCalledWith({
+        phoneNumber: '918179020960',
+        tenantCode: 'NL',
+      })
+    })
+  })
+
+  it('saves the auto-set tenantCode to cookie', async () => {
+    render(<StaffLoginPage />, { wrapper: createWrapper() })
+
+    await waitFor(() => {
+      expect(mockSetCookie).toHaveBeenCalledWith('staff_login_tenant_code', 'NL')
     })
   })
 })
