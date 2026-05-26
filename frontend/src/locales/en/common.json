@@ -172,6 +172,10 @@
     "phedAssam": "PHED Assam",
     "developedBy": " | Developed by ",
     "arghyam": "Arghyam",
+    "multiTenantEmail": "info@arghyam.org",
+    "multiTenantPhone": "+91-80 4169 8941",
+    "multiTenantAddress": "#599, ROHINI, 12th Main Rd, 7th Cross, HAL 2nd Stage, Indiranagar, Bengaluru, Karnataka 560068",
+    "multiTenantCopyright": "© {{year}} JalSoochak · An initiative by",
     "social": {
       "x": "X (Twitter)",
       "linkedin": "LinkedIn",
