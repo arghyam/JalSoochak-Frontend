@@ -23,6 +23,10 @@ import {
   useSubmissionStatusQuery,
 } from '../../services/query/use-overview-queries'
 import { IoCloseCircleOutline } from 'react-icons/io5'
+import {
+  shouldShowStaffOverviewNonSubmissionCharts,
+  shouldShowStaffOverviewSupplyOutageCharts,
+} from '@/config/server-config'
 
 function getDefaultDateRange(): DateRange {
   const now = new Date()
@@ -39,6 +43,8 @@ const PIE_SIZE = 260
 export function StaffOverviewPage() {
   const { t } = useTranslation('section-officer')
   const navigate = useNavigate()
+  const showStaffOverviewSupplyOutageCharts = shouldShowStaffOverviewSupplyOutageCharts()
+  const showStaffOverviewNonSubmissionCharts = shouldShowStaffOverviewNonSubmissionCharts()
   const [dateRange, setDateRange] = useState<DateRange>(() => getDefaultDateRange())
   const tenantId = useAuthStore((state) => state.user?.tenantId ?? '')
   const parsedTenantId = Number.parseInt(tenantId, 10)
@@ -196,69 +202,79 @@ export function StaffOverviewPage() {
 
         {/* Charts Grid */}
         <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={{ base: 4, md: 6 }}>
-          {/* Outage Reasons - Pie Chart */}
-          <ChartBoxWithTitle title={t('pages.overview.charts.outageReasons.pieTitle')}>
-            <ChartCell
-              isLoading={isOutageReasonsLoading}
-              isError={isOutageReasonsError}
-              errorMessage={t('pages.overview.charts.failedToLoadData')}
-            >
-              <SupplyOutageReasonsChart
-                data={outageReasonsData?.pieData ?? []}
-                height={CHART_HEIGHT}
-                pieSize={PIE_SIZE}
-              />
-            </ChartCell>
-          </ChartBoxWithTitle>
+          {/* SO/SDO supply outage charts temporarily hidden by runtime config. */}
+          {showStaffOverviewSupplyOutageCharts ? (
+            <>
+              {/* Outage Reasons - Pie Chart */}
+              <ChartBoxWithTitle title={t('pages.overview.charts.outageReasons.pieTitle')}>
+                <ChartCell
+                  isLoading={isOutageReasonsLoading}
+                  isError={isOutageReasonsError}
+                  errorMessage={t('pages.overview.charts.failedToLoadData')}
+                >
+                  <SupplyOutageReasonsChart
+                    data={outageReasonsData?.pieData ?? []}
+                    height={CHART_HEIGHT}
+                    pieSize={PIE_SIZE}
+                  />
+                </ChartCell>
+              </ChartBoxWithTitle>
 
-          {/* Outage Reasons - Distribution Chart */}
-          <ChartBoxWithTitle title={t('pages.overview.charts.outageReasons.distributionTitle')}>
-            <ChartCell
-              isLoading={isOutageReasonsLoading}
-              isError={isOutageReasonsError}
-              errorMessage={t('pages.overview.charts.failedToLoadData')}
-            >
-              <SupplyOutageDistributionChart
-                data={outageReasonsData?.histogramData ?? []}
-                height={CHART_HEIGHT}
-                xAxisLabel={t('pages.overview.charts.outageReasons.xAxisLabel')}
-                dateFormat={screenChartDateFormat}
-              />
-            </ChartCell>
-          </ChartBoxWithTitle>
+              {/* Outage Reasons - Distribution Chart */}
+              <ChartBoxWithTitle title={t('pages.overview.charts.outageReasons.distributionTitle')}>
+                <ChartCell
+                  isLoading={isOutageReasonsLoading}
+                  isError={isOutageReasonsError}
+                  errorMessage={t('pages.overview.charts.failedToLoadData')}
+                >
+                  <SupplyOutageDistributionChart
+                    data={outageReasonsData?.histogramData ?? []}
+                    height={CHART_HEIGHT}
+                    xAxisLabel={t('pages.overview.charts.outageReasons.xAxisLabel')}
+                    dateFormat={screenChartDateFormat}
+                  />
+                </ChartCell>
+              </ChartBoxWithTitle>
+            </>
+          ) : null}
 
-          {/* Non-Submission Reasons - Pie Chart */}
-          <ChartBoxWithTitle title={t('pages.overview.charts.nonSubmissionReasons.pieTitle')}>
-            <ChartCell
-              isLoading={isNonSubmissionLoading}
-              isError={isNonSubmissionError}
-              errorMessage={t('pages.overview.charts.failedToLoadData')}
-            >
-              <SupplyOutageReasonsChart
-                data={nonSubmissionData?.pieData ?? []}
-                height={CHART_HEIGHT}
-                pieSize={PIE_SIZE}
-              />
-            </ChartCell>
-          </ChartBoxWithTitle>
+          {/* SO/SDO non-submission charts temporarily hidden by runtime config. */}
+          {showStaffOverviewNonSubmissionCharts ? (
+            <>
+              {/* Non-Submission Reasons - Pie Chart */}
+              <ChartBoxWithTitle title={t('pages.overview.charts.nonSubmissionReasons.pieTitle')}>
+                <ChartCell
+                  isLoading={isNonSubmissionLoading}
+                  isError={isNonSubmissionError}
+                  errorMessage={t('pages.overview.charts.failedToLoadData')}
+                >
+                  <SupplyOutageReasonsChart
+                    data={nonSubmissionData?.pieData ?? []}
+                    height={CHART_HEIGHT}
+                    pieSize={PIE_SIZE}
+                  />
+                </ChartCell>
+              </ChartBoxWithTitle>
 
-          {/* Non-Submission Reasons - Distribution Chart */}
-          <ChartBoxWithTitle
-            title={t('pages.overview.charts.nonSubmissionReasons.distributionTitle')}
-          >
-            <ChartCell
-              isLoading={isNonSubmissionLoading}
-              isError={isNonSubmissionError}
-              errorMessage={t('pages.overview.charts.failedToLoadData')}
-            >
-              <SupplyOutageDistributionChart
-                data={nonSubmissionData?.histogramData ?? []}
-                height={CHART_HEIGHT}
-                xAxisLabel={t('pages.overview.charts.nonSubmissionReasons.xAxisLabel')}
-                dateFormat={screenChartDateFormat}
-              />
-            </ChartCell>
-          </ChartBoxWithTitle>
+              {/* Non-Submission Reasons - Distribution Chart */}
+              <ChartBoxWithTitle
+                title={t('pages.overview.charts.nonSubmissionReasons.distributionTitle')}
+              >
+                <ChartCell
+                  isLoading={isNonSubmissionLoading}
+                  isError={isNonSubmissionError}
+                  errorMessage={t('pages.overview.charts.failedToLoadData')}
+                >
+                  <SupplyOutageDistributionChart
+                    data={nonSubmissionData?.histogramData ?? []}
+                    height={CHART_HEIGHT}
+                    xAxisLabel={t('pages.overview.charts.nonSubmissionReasons.xAxisLabel')}
+                    dateFormat={screenChartDateFormat}
+                  />
+                </ChartCell>
+              </ChartBoxWithTitle>
+            </>
+          ) : null}
 
           {/* Submission Status - Pie Chart */}
           <ChartBoxWithTitle title={t('pages.overview.charts.submissionStatus.pieTitle')}>
