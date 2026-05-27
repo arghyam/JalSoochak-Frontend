@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next'
 import type { ReactNode } from 'react'
 import { ROUTES } from '@/shared/constants/routes'
 import logoWithText from '@/assets/media/logo-with-text.svg'
-import jjmLogo from '@/assets/media/jjm_new_logo.svg'
 import { RiMailLine, RiTwitterXLine } from 'react-icons/ri'
 import { BiLogoLinkedin } from 'react-icons/bi'
 import { isSingleTenantMode } from '@/config/server-config'
@@ -65,7 +64,7 @@ function SingleTenantFooter() {
             <Stack spacing="16px">
               <Box w="156px" h="80px">
                 <img
-                  src={jjmLogo}
+                  src={logoWithText}
                   alt={t('footer.logoAlt')}
                   style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                 />
