@@ -82,6 +82,7 @@
     "schemes": "Schemes",
     "pumpOperators": "Pump Operators",
     "anomalies": "Anomalies",
+    "fixReadings": "Fix Readings",
     "profile": "Profile",
     "changePassword": "Change Password",
     "logout": "Logout",

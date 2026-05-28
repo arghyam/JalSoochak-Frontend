@@ -110,6 +110,8 @@ export const sectionOfficerQueryKeys = {
       startDate,
       endDate,
     ] as const,
+  yesterdayFinalReadings: (tenantCode: string, schemeName: string) =>
+    [...sectionOfficerQueryKeys.all, 'yesterday-final-readings', tenantCode, schemeName] as const,
   escalationsList: (
     userId: string,
     tenantId: string,
