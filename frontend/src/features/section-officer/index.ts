@@ -6,3 +6,4 @@ export { PumpOperatorsPage } from './components/pump-operators/pump-operators-pa
 export { PumpOperatorViewPage } from './components/pump-operators/pump-operator-view-page'
 export { AnomaliesPage } from './components/anomalies/anomalies-page'
 export { StaffEscalationsPage } from './components/escalations/staff-escalations-page'
+export { FixReadingsPage } from './components/fix-readings/fix-readings-page'

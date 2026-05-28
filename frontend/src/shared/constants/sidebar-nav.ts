@@ -169,4 +169,11 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
     roles: STAFF_ROLES,
     icon: 'MdOutlineMoving',
   },
+  {
+    type: 'simple',
+    path: ROUTES.STAFF_FIX_READINGS,
+    labelKey: 'sidebar.fixReadings',
+    roles: STAFF_ROLES,
+    icon: 'MdOutlineEditNote',
+  },
 ]
