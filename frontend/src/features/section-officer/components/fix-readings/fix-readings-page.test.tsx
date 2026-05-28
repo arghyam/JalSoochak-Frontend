@@ -1,5 +1,5 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { createElement } from 'react'
 import type { ReactNode } from 'react'
@@ -233,8 +233,8 @@ describe('FixReadingsPage', () => {
     await userEvent.type(input, 'S26')
     fireEvent.click(screen.getByText('S2604141918'))
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /update/i })).toBeTruthy()
-    })
+    const updateBtn = screen.getByRole('button', { name: /update/i })
+    expect((updateBtn as HTMLButtonElement).disabled).toBe(true)
+    expect(updateBtn.dataset.loading).not.toBeUndefined()
   })
 })

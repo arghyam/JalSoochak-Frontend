@@ -6,10 +6,11 @@ import type { UpdateFinalReadingPayload } from '../../types/fix-readings'
 
 export function useYesterdayFinalReadingsQuery(schemeName: string) {
   const tenantCode = useAuthStore((state) => state.user?.tenantCode ?? '')
+  const normalized = schemeName.trim()
   return useQuery({
-    queryKey: sectionOfficerQueryKeys.yesterdayFinalReadings(tenantCode, schemeName),
-    queryFn: () => fixReadingsApi.searchSchemes(schemeName, tenantCode),
-    enabled: schemeName.length >= 1 && tenantCode.length > 0,
+    queryKey: sectionOfficerQueryKeys.yesterdayFinalReadings(tenantCode, normalized),
+    queryFn: () => fixReadingsApi.searchSchemes(normalized, tenantCode),
+    enabled: normalized.length >= 1 && tenantCode.length > 0,
   })
 }
 

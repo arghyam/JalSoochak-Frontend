@@ -5,6 +5,7 @@ import {
   Heading,
   Text,
   Flex,
+  HStack,
   Input,
   InputGroup,
   InputLeftElement,
@@ -12,8 +13,6 @@ import {
   IconButton,
   NumberInput,
   NumberInputField,
-  FormControl,
-  FormLabel,
   Button,
   Spinner,
   SimpleGrid,
@@ -45,14 +44,19 @@ export function FixReadingsPage() {
     handler: () => setIsDropdownOpen(false),
   })
 
-  const { data, isLoading: isSearching } = useYesterdayFinalReadingsQuery(
-    selectedScheme ? '' : debouncedSearch
-  )
+  const {
+    data,
+    isLoading: isSearching,
+    isError,
+  } = useYesterdayFinalReadingsQuery(selectedScheme ? '' : debouncedSearch)
 
   const { mutate: updateFinalReading, isPending } = useUpdateFinalReadingMutation()
 
   const results = data?.content ?? []
-  const showDropdown = isDropdownOpen && !selectedScheme && debouncedSearch.length >= 1
+  const hasResults = (data?.content?.length ?? 0) > 0
+  const showDropdown = isDropdownOpen && !selectedScheme && debouncedSearch.length >= 1 && !isError
+  const showSearchError =
+    isDropdownOpen && !selectedScheme && debouncedSearch.length >= 1 && isError
 
   function handleInputChange(value: string) {
     setSearchQuery(value)
@@ -107,39 +111,44 @@ export function FixReadingsPage() {
   return (
     <Box>
       <PageHeader>
-        <Heading as="h1" size="lg" fontWeight="semibold">
+        <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
           {t('pages.fixReadings.title')}
         </Heading>
       </PageHeader>
 
       {/* Search area */}
-      <Box
-        bg="white"
-        borderRadius="12px"
-        py={4}
-        px={{ base: 3, md: 6 }}
+      <Flex
+        as="section"
+        aria-label={t('pages.fixReadings.searchPlaceholder')}
+        justify="flex-start"
+        align="center"
         mb={6}
-        h="64px"
+        py={3}
+        px={{ base: 3, md: 6 }}
+        h={{ base: 'auto', md: 16 }}
+        gap={{ base: 3, md: 4 }}
+        flexDirection={{ base: 'column', md: 'row' }}
         borderWidth="0.5px"
         borderColor="neutral.200"
+        borderRadius="12px"
+        bg="white"
       >
-        <Box position="relative" w={{ base: 'full', md: '320px' }} ref={dropdownRef}>
+        <Box position="relative" w={{ base: 'full', md: '260px' }} flexShrink={0} ref={dropdownRef}>
           <InputGroup>
             <InputLeftElement pointerEvents="none" h={8}>
-              <SearchIcon color="neutral.400" boxSize={3.5} />
+              <SearchIcon color="neutral.300" aria-hidden="true" />
             </InputLeftElement>
             <Input
               h={8}
-              pl={8}
-              pr={selectedScheme ? 8 : 4}
               value={searchQuery}
               onChange={(e) => handleInputChange(e.target.value)}
               placeholder={t('pages.fixReadings.searchPlaceholder')}
+              borderWidth="1px"
               borderRadius="4px"
               borderColor="neutral.300"
+              _placeholder={{ color: 'neutral.300' }}
               _hover={{ borderColor: 'neutral.400' }}
               _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
-              fontSize="sm"
               isReadOnly={!!selectedScheme}
               aria-label={t('pages.fixReadings.searchPlaceholder')}
               aria-expanded={showDropdown}
@@ -181,11 +190,7 @@ export function FixReadingsPage() {
                 <Flex justify="center" align="center" p={4}>
                   <Spinner size="sm" color="primary.500" role="status" />
                 </Flex>
-              ) : results.length === 0 ? (
-                <Text px={4} py={3} fontSize="sm" color="neutral.500">
-                  {t('pages.fixReadings.noResults')}
-                </Text>
-              ) : (
+              ) : hasResults ? (
                 results.map((scheme) => (
                   <Box
                     key={scheme.schemeId}
@@ -194,74 +199,166 @@ export function FixReadingsPage() {
                     fontSize="sm"
                     cursor="pointer"
                     role="option"
+                    tabIndex={0}
+                    aria-selected={false}
                     _hover={{ bg: 'primary.50', color: 'primary.700' }}
+                    _focus={{
+                      bg: 'primary.50',
+                      color: 'primary.700',
+                      outline: '2px solid',
+                      outlineColor: 'primary.500',
+                    }}
                     onClick={() => handleSelectScheme(scheme)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        handleSelectScheme(scheme)
+                      }
+                    }}
                   >
                     {scheme.schemeName}
                   </Box>
                 ))
+              ) : (
+                <Text px={4} py={3} fontSize="sm" color="neutral.500">
+                  {t('pages.fixReadings.noResults')}
+                </Text>
               )}
             </Box>
           ) : null}
+
+          {showSearchError ? (
+            <Box
+              position="absolute"
+              top="calc(100% + 4px)"
+              left={0}
+              w="full"
+              bg="white"
+              border="1px solid"
+              borderColor="red.200"
+              borderRadius="8px"
+              boxShadow="md"
+              zIndex={10}
+              px={4}
+              py={3}
+              role="alert"
+            >
+              <Text fontSize="sm" color="red.600">
+                {t('pages.fixReadings.searchError', {
+                  defaultValue: 'Failed to search schemes. Please try again.',
+                })}
+              </Text>
+            </Box>
+          ) : null}
         </Box>
-      </Box>
+      </Flex>
 
       {/* Selected scheme details */}
       {selectedScheme ? (
-        <Box bg="white" borderRadius="12px" p={6}>
-          <Text fontSize="lg" fontWeight="semibold" color="neutral.800" mb={5}>
-            {selectedScheme.schemeName}
-          </Text>
-
-          <SimpleGrid columns={{ base: 1, md: 2 }} gap={4} maxW="600px" mb={6}>
-            <FormControl>
-              <FormLabel fontSize="sm" mb={1} color="neutral.700">
-                {t('pages.fixReadings.yesterdayReading')}
-              </FormLabel>
-              <Input
-                h="36px"
-                value={selectedScheme.yesterdayFinalReading}
-                isReadOnly
-                borderColor="neutral.300"
-                _hover={{ borderColor: 'neutral.300' }}
-                bg="neutral.50"
-                fontSize="sm"
-                aria-label={t('pages.fixReadings.yesterdayReading')}
-              />
-            </FormControl>
-
-            <FormControl>
-              <FormLabel fontSize="sm" mb={1} color="neutral.700">
-                {t('pages.fixReadings.updateReading')}
-              </FormLabel>
-              <NumberInput
-                h="36px"
-                value={updateReading}
-                onChange={(valueString) => setUpdateReading(valueString)}
-                min={0}
-              >
-                <NumberInputField
-                  h="36px"
-                  borderColor="neutral.300"
-                  _hover={{ borderColor: 'neutral.400' }}
-                  _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
-                  fontSize="sm"
-                  placeholder="0"
-                  aria-label={t('pages.fixReadings.updateReading')}
-                />
-              </NumberInput>
-            </FormControl>
-          </SimpleGrid>
-
-          <Button
-            variant="primary"
-            onClick={handleUpdate}
-            isLoading={isPending}
-            isDisabled={!isReadingValid || isPending}
-            size="md"
+        <Box
+          as="section"
+          bg="white"
+          borderWidth="0.5px"
+          borderColor="neutral.100"
+          borderRadius={{ base: 'lg', md: 'xl' }}
+          w="full"
+          minH={{ base: 'auto', lg: 'calc(100vh - 250px)' }}
+          py={{ base: 4, md: 6 }}
+          px={4}
+        >
+          <Flex
+            direction="column"
+            w="full"
+            h="full"
+            justify="space-between"
+            minH={{ base: 'auto', lg: 'calc(100vh - 300px)' }}
+            gap={{ base: 6, lg: 0 }}
           >
-            {t('pages.fixReadings.updateButton')}
-          </Button>
+            <Box>
+              <Flex justify="space-between" align="center" mb={4}>
+                <Heading
+                  as="h2"
+                  size="h3"
+                  textStyle="h8"
+                  fontWeight="400"
+                  fontSize={{ base: 'md', md: 'xl' }}
+                >
+                  {selectedScheme.schemeName}
+                </Heading>
+              </Flex>
+
+              <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
+                <Box w={{ base: 'full', xl: '486px' }}>
+                  <Text
+                    as="label"
+                    fontSize={{ base: 'xs', md: 'sm' }}
+                    fontWeight="medium"
+                    color="neutral.950"
+                    mb={1}
+                    display="block"
+                  >
+                    {t('pages.fixReadings.yesterdayReading')}
+                  </Text>
+                  <Input
+                    h="36px"
+                    value={selectedScheme.yesterdayFinalReading}
+                    isReadOnly
+                    borderColor="neutral.300"
+                    _hover={{ borderColor: 'neutral.300' }}
+                    bg="neutral.50"
+                    fontSize="sm"
+                    aria-label={t('pages.fixReadings.yesterdayReading')}
+                  />
+                </Box>
+
+                <Box w={{ base: 'full', xl: '486px' }}>
+                  <Text
+                    as="label"
+                    fontSize={{ base: 'xs', md: 'sm' }}
+                    fontWeight="medium"
+                    color="neutral.950"
+                    mb={1}
+                    display="block"
+                  >
+                    {t('pages.fixReadings.updateReading')}
+                  </Text>
+                  <NumberInput
+                    value={updateReading}
+                    onChange={(valueString) => setUpdateReading(valueString)}
+                    min={0}
+                  >
+                    <NumberInputField
+                      h="36px"
+                      borderColor="neutral.300"
+                      _hover={{ borderColor: 'neutral.400' }}
+                      _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
+                      fontSize="sm"
+                      placeholder="0"
+                      aria-label={t('pages.fixReadings.updateReading')}
+                    />
+                  </NumberInput>
+                </Box>
+              </SimpleGrid>
+            </Box>
+
+            <HStack
+              spacing={3}
+              justify={{ base: 'stretch', sm: 'flex-end' }}
+              flexDirection={{ base: 'column-reverse', sm: 'row' }}
+              mt={{ base: 4, lg: 0 }}
+            >
+              <Button
+                variant="primary"
+                onClick={handleUpdate}
+                isLoading={isPending}
+                isDisabled={!isReadingValid || isPending}
+                size="md"
+                width={{ base: 'full', sm: '174px' }}
+              >
+                {t('pages.fixReadings.updateButton')}
+              </Button>
+            </HStack>
+          </Flex>
         </Box>
       ) : null}
 
