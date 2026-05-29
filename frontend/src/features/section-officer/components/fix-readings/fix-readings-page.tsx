@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import {
   Box,
@@ -51,6 +52,7 @@ export function FixReadingsPage() {
   } = useYesterdayFinalReadingsQuery(selectedScheme ? '' : debouncedSearch)
 
   const { mutate: updateFinalReading, isPending } = useUpdateFinalReadingMutation()
+  const queryClient = useQueryClient()
 
   const results = data?.content ?? []
   const hasResults = (data?.content?.length ?? 0) > 0
@@ -97,7 +99,13 @@ export function FixReadingsPage() {
       {
         onSuccess: () => {
           toast.success(t('pages.fixReadings.successMessage'))
-          handleClearSearch()
+          setUpdateReading('')
+          setSelectedScheme((prev) =>
+            prev ? { ...prev, yesterdayFinalReading: parsedReading } : prev
+          )
+          queryClient.invalidateQueries({
+            queryKey: ['section-officer', 'yesterday-final-readings'],
+          })
         },
         onError: () => {
           toast.error(
