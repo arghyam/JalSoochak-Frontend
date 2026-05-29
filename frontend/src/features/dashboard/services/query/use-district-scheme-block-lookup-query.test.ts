@@ -7,6 +7,7 @@ import { dashboardApi } from '../api/dashboard-api'
 import type { TenantChildLocationsResponse } from '../api/dashboard-api'
 
 jest.mock('@tanstack/react-query', () => ({
+  ...(jest.requireActual('@tanstack/react-query') as Record<string, unknown>),
   useQuery: jest.fn(),
 }))
 

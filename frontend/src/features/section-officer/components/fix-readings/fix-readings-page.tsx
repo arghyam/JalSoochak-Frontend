@@ -27,6 +27,7 @@ import {
   useYesterdayFinalReadingsQuery,
   useUpdateFinalReadingMutation,
 } from '../../services/query/use-fix-readings-queries'
+import { sectionOfficerQueryKeys } from '../../services/query/section-officer-query-keys'
 import type { YesterdayFinalReadingItem } from '../../types/fix-readings'
 
 export function FixReadingsPage() {
@@ -104,7 +105,7 @@ export function FixReadingsPage() {
             prev ? { ...prev, yesterdayFinalReading: parsedReading } : prev
           )
           queryClient.invalidateQueries({
-            queryKey: ['section-officer', 'yesterday-final-readings'],
+            queryKey: [...sectionOfficerQueryKeys.all, 'yesterday-final-readings'],
           })
         },
         onError: () => {
