@@ -187,6 +187,16 @@
       "filterStatus": "Status",
       "filterDuration": "Duration",
       "clearAllFilters": "clear all filters"
+    },
+    "fixReadings": {
+      "title": "Fix Readings",
+      "searchPlaceholder": "Search by scheme name",
+      "noResults": "No schemes found",
+      "yesterdayReading": "Yesterday's Reading",
+      "updateReading": "Update Reading",
+      "updateButton": "Update",
+      "successMessage": "Reading updated successfully",
+      "clearSearch": "Clear search"
     }
   },
   "common": {
