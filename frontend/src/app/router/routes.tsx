@@ -3,7 +3,6 @@ import { createBrowserRouter } from 'react-router-dom'
 import { ROUTES } from '@/shared/constants/routes'
 import { MainLayout } from '@/shared/components/layout'
 import { SingleTenantGate } from './single-tenant-gate'
-import { FixReadingsPage } from '@/features/section-officer'
 import { ProtectedRoute, RedirectIfAuthenticated } from '@/shared/components/routing/ProtectedRoute'
 import { AUTH_ROLES } from '@/shared/constants/auth'
 import { NotFoundPage, LoadingSpinner } from '@/shared/components/common'
@@ -210,6 +209,11 @@ const AnomaliesPage = lazy(() =>
 const StaffEscalationsPage = lazy(() =>
   import('@/features/section-officer/components/escalations/staff-escalations-page').then((m) => ({
     default: m.StaffEscalationsPage,
+  }))
+)
+const FixReadingsPage = lazy(() =>
+  import('@/features/section-officer/components/fix-readings/fix-readings-page').then((m) => ({
+    default: m.FixReadingsPage,
   }))
 )
 
