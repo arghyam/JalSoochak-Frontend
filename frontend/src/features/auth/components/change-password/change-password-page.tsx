@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Box,
   Heading,
@@ -20,6 +21,8 @@ import { useChangeMyPasswordMutation } from '@/features/auth/services/query/use-
 import { useToast } from '@/shared/hooks/use-toast'
 import { ToastContainer, PageHeader } from '@/shared/components/common'
 import { isValidPassword } from '@/shared/utils/validation'
+import { useAuthStore } from '@/app/store'
+import { ROUTES } from '@/shared/constants/routes'
 
 interface ChangePasswordForm {
   currentPassword: string
@@ -33,6 +36,8 @@ export function ChangePasswordPage() {
   const { t } = useTranslation('common')
   const changePasswordMutation = useChangeMyPasswordMutation()
   const toast = useToast()
+  const { logout } = useAuthStore()
+  const navigate = useNavigate()
 
   const [form, setForm] = useState<ChangePasswordForm>({
     currentPassword: '',
@@ -108,13 +113,16 @@ export function ChangePasswordPage() {
     setTouched({ currentPassword: true, newPassword: true, confirmPassword: true })
     if (!isFormValid || changePasswordMutation.isPending) return
 
+    const handleSuccess = async () => {
+      await logout()
+      navigate(ROUTES.LOGIN, { state: { passwordChanged: true }, replace: true })
+    }
+
     changePasswordMutation.mutate(
       { currentPassword: form.currentPassword, newPassword: form.newPassword },
       {
         onSuccess: () => {
-          toast.addToast(t('changePassword.success'), 'success')
-          setForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
-          setTouched({ currentPassword: false, newPassword: false, confirmPassword: false })
+          void handleSuccess()
         },
         onError: (err) => {
           const message = err instanceof Error ? err.message : t('changePassword.failed')

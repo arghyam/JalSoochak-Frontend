@@ -53,17 +53,17 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
   },
   {
     type: 'simple',
-    path: ROUTES.STATE_ADMIN_CONFIGURATION,
-    labelKey: 'sidebar.configuration',
-    roles: [AUTH_ROLES.STATE_ADMIN, AUTH_ROLES.SUPER_STATE_ADMIN],
-    icon: 'IoSettingsOutline',
-  },
-  {
-    type: 'simple',
     path: ROUTES.STATE_ADMIN_HIERARCHY,
     labelKey: 'sidebar.hierarchy',
     roles: [AUTH_ROLES.STATE_ADMIN, AUTH_ROLES.SUPER_STATE_ADMIN],
     icon: 'PiTreeStructure',
+  },
+  {
+    type: 'simple',
+    path: ROUTES.STATE_ADMIN_CONFIGURATION,
+    labelKey: 'sidebar.configuration',
+    roles: [AUTH_ROLES.STATE_ADMIN, AUTH_ROLES.SUPER_STATE_ADMIN],
+    icon: 'IoSettingsOutline',
   },
   {
     type: 'simple',
@@ -168,5 +168,12 @@ export const SIDEBAR_NAV_ITEMS: SidebarNavItem[] = [
     labelKey: 'sidebar.escalations',
     roles: STAFF_ROLES,
     icon: 'MdOutlineMoving',
+  },
+  {
+    type: 'simple',
+    path: ROUTES.STAFF_FIX_READINGS,
+    labelKey: 'sidebar.fixReadings',
+    roles: STAFF_ROLES,
+    icon: 'MdOutlineEditNote',
   },
 ]

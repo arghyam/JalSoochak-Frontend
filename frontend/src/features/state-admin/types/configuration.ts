@@ -58,7 +58,6 @@ export const DEFAULT_SUPPLY_OUTAGE_REASONS: SupplyOutageReason[] = [
   { id: 'WATER_QUALITY_ISSUES', name: 'Water Quality Issues', isDefault: true, editable: true },
   { id: 'SOURCE_DRYING', name: 'Source Drying', isDefault: true, editable: true },
   { id: 'NATURAL_CALAMITY', name: 'Natural Calamity', isDefault: true, editable: true },
-  { id: 'OTHERS', name: 'Others', isDefault: true, editable: false },
 ]
 
 export const DEFAULT_DATE_FORMAT_CONFIG: DateFormatConfig = {
@@ -76,7 +75,6 @@ export interface ConfigurationData {
   meterChangeReasons: MeterChangeReason[]
   supplyOutageReasons: SupplyOutageReason[]
   locationCheckRequired: boolean
-  displayDepartmentMaps: boolean
   displayMapLgdLevels: boolean[]
   displayDepartmentMapLevels: boolean[]
   dataConsolidationTime: string

@@ -24,6 +24,7 @@ import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { VillageDashboardScreen } from './village-dashboard'
 import { getOutageTimeScaleXAxisLabel } from './outage-time-scale-toggle'
 import { useOutageDistributionState } from './use-outage-distribution-state'
+import { shouldShowSupplyOutageCharts } from '@/config/server-config'
 
 type PerformanceTimeScale = 'day' | 'week' | 'month' | 'quarter' | 'year'
 type OutageTimeScale = 'day' | 'week' | 'month' | 'quarter' | 'year'
@@ -82,6 +83,7 @@ type DashboardBodyProps = {
   screenDateFormat?: string
   tableDateFormat?: string
   enableExtendedTimeScales?: boolean
+  isTimeViewEnabled?: boolean
 }
 
 type ViewBy = 'geography' | 'time'
@@ -139,9 +141,15 @@ export function DashboardBody({
   screenDateFormat,
   tableDateFormat,
   enableExtendedTimeScales = false,
+  isTimeViewEnabled = true,
 }: DashboardBodyProps) {
   const { t } = useTranslation('dashboard')
+  const showSupplyOutageCharts = shouldShowSupplyOutageCharts()
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
+  const effectiveOutageDistributionViewBy = isTimeViewEnabled
+    ? outageDistributionViewBy
+    : 'geography'
+
   const isAdministrativeStateScreen =
     isStateSelected &&
     !isDistrictSelected &&
@@ -187,7 +195,7 @@ export function DashboardBody({
     isOutageDistributionSelectDisabled,
   } = useOutageDistributionState({
     waterSupplyOutagesData,
-    outageDistributionViewBy,
+    outageDistributionViewBy: effectiveOutageDistributionViewBy,
     waterSupplyOutageDistributionData,
     outageDistributionTimeTrendData,
   })
@@ -218,6 +226,7 @@ export function DashboardBody({
           screenDateFormat={screenDateFormat}
           tableDateFormat={tableDateFormat}
           enableExtendedTimeScales={enableExtendedTimeScales}
+          isTimeViewEnabled={isTimeViewEnabled}
         />
       ) : null}
 
@@ -258,6 +267,7 @@ export function DashboardBody({
           onSchemePageChange={onSchemePageChange}
           screenDateFormat={screenDateFormat}
           tableDateFormat={tableDateFormat}
+          isTimeViewEnabled={isTimeViewEnabled}
         />
       ) : null}
       {isBlockScreen ? (
@@ -300,6 +310,7 @@ export function DashboardBody({
           onSchemePageChange={onSchemePageChange}
           screenDateFormat={screenDateFormat}
           tableDateFormat={tableDateFormat}
+          isTimeViewEnabled={isTimeViewEnabled}
         />
       ) : null}
       {isGramPanchayatScreen ? (
@@ -339,6 +350,7 @@ export function DashboardBody({
           onSchemePageChange={onSchemePageChange}
           screenDateFormat={screenDateFormat}
           tableDateFormat={tableDateFormat}
+          isTimeViewEnabled={isTimeViewEnabled}
         />
       ) : null}
 
@@ -366,8 +378,9 @@ export function DashboardBody({
         />
       ) : null}
 
-      {/* Supply outage reasons + distribution/submission */}
-      {!selectedVillage &&
+      {/* Supply outage charts temporarily hidden; set SHOW_SUPPLY_OUTAGE_CHARTS to true to restore. */}
+      {showSupplyOutageCharts &&
+      !selectedVillage &&
       !isDistrictScreen &&
       !isBlockSelected &&
       !isGramPanchayatScreen &&
@@ -429,7 +442,8 @@ export function DashboardBody({
                       },
                     }}
                   >
-                    {outageDistributionViewBy === 'time' &&
+                    {effectiveOutageDistributionViewBy === 'time' &&
+                    isTimeViewEnabled &&
                     outageDistributionTimeScaleTab &&
                     onOutageDistributionTimeScaleTabChange ? (
                       <Flex
@@ -500,8 +514,11 @@ export function DashboardBody({
                       ariaLabel={t('outageAndSubmissionCharts.ariaViewByState', {
                         defaultValue: 'State supply outage distribution view by',
                       })}
-                      value={outageDistributionViewBy}
+                      value={effectiveOutageDistributionViewBy}
                       onChange={(value) => {
+                        if (value === 'time' && !isTimeViewEnabled) {
+                          return
+                        }
                         if (
                           value === 'time' &&
                           onOutageDistributionTimeScaleTabChange &&
@@ -512,6 +529,7 @@ export function DashboardBody({
                         setOutageDistributionViewBy(value)
                       }}
                       disabled={isOutageDistributionSelectDisabled}
+                      isTimeOptionDisabled={!isTimeViewEnabled}
                     />
                   </Flex>
                 </Flex>
@@ -522,7 +540,7 @@ export function DashboardBody({
                     </Flex>
                   ) : !hasOutageReasonsData ? (
                     <ChartEmptyState minHeight="100%" />
-                  ) : outageDistributionViewBy === 'geography' ? (
+                  ) : effectiveOutageDistributionViewBy === 'geography' ? (
                     hasGeographyData ? (
                       <SupplyOutageDistributionChart
                         data={waterSupplyOutageDistributionData}
@@ -612,6 +630,7 @@ type PerformanceChartsSectionProps = {
   screenDateFormat?: string
   tableDateFormat?: string
   enableExtendedTimeScales?: boolean
+  isTimeViewEnabled?: boolean
 }
 
 function PerformanceChartsSection({
@@ -632,6 +651,7 @@ function PerformanceChartsSection({
   screenDateFormat,
   tableDateFormat,
   enableExtendedTimeScales = false,
+  isTimeViewEnabled = true,
 }: PerformanceChartsSectionProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
@@ -667,6 +687,7 @@ function PerformanceChartsSection({
         onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
         dateFormat={screenDateFormat ?? tableDateFormat}
         enableExtendedTimeScales={enableExtendedTimeScales}
+        isTimeViewEnabled={isTimeViewEnabled}
       />
       <PerformanceChartCard
         title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
@@ -698,6 +719,7 @@ function PerformanceChartsSection({
         onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
         dateFormat={screenDateFormat ?? tableDateFormat}
         enableExtendedTimeScales={enableExtendedTimeScales}
+        isTimeViewEnabled={isTimeViewEnabled}
       />
     </Grid>
   )

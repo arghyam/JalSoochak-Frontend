@@ -13,6 +13,7 @@
       "phoneError": "Enter a valid 10-digit mobile number.",
       "phoneDigitsOnlyError": "Phone number must contain only digits.",
       "stateError": "Please select a State/UT.",
+      "stateLoadFailed": "Failed to load State/UT list. Please refresh and try again.",
       "sendOtpFailed": "Failed to send OTP. Please try again."
     },
     "otpStep": {
@@ -186,6 +187,16 @@
       "filterStatus": "Status",
       "filterDuration": "Duration",
       "clearAllFilters": "clear all filters"
+    },
+    "fixReadings": {
+      "title": "Fix Readings",
+      "searchPlaceholder": "Search by scheme name",
+      "noResults": "No schemes found",
+      "yesterdayReading": "Yesterday's Reading",
+      "updateReading": "Update Reading",
+      "updateButton": "Update",
+      "successMessage": "Reading updated successfully",
+      "clearSearch": "Clear search"
     }
   },
   "common": {

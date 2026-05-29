@@ -14,7 +14,7 @@ import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useTranslation } from 'react-i18next'
 import type { SupplyOutageReason } from '../../types/configuration'
 import { isEmptyOrWhitespace } from '@/shared/utils/validation'
-import { ActionTooltip, RequiredIndicator } from '@/shared/components/common'
+import { ActionTooltip, RequiredIndicator, Toggle } from '@/shared/components/common'
 
 interface SupplyOutageReasonsSectionProps {
   title: string
@@ -34,8 +34,10 @@ export function SupplyOutageReasonsSection({
   onChange,
   errors,
   onClearError,
-}: SupplyOutageReasonsSectionProps) {
+}: Readonly<SupplyOutageReasonsSectionProps>) {
   const { t } = useTranslation(['state-admin', 'common'])
+
+  const othersEnabled = reasons.some((r) => r.id === 'OTHERS')
 
   const handleChange = (id: string, value: string) => {
     const reason = reasons.find((r) => r.id === id)
@@ -47,27 +49,42 @@ export function SupplyOutageReasonsSection({
   const handleDelete = (id: string) => {
     const reason = reasons.find((r) => r.id === id)
     if (!reason?.editable) return
-    // Prevent deletion of the last item if the field is required
-    if (required && reasons.length === 1) {
-      return
-    }
+    const nonOthersCount = reasons.filter((r) => r.id !== 'OTHERS').length
+    if (required && nonOthersCount === 1) return
     onChange(reasons.filter((r) => r.id !== id))
     onClearError?.(`supplyOutageReason.${id}`)
   }
 
   const handleAdd = () => {
-    if (reasons.length > 0) {
-      const lastReason = reasons[reasons.length - 1]
-      if (isEmptyOrWhitespace(lastReason.name)) {
-        return
-      }
+    const nonOthersReasons = reasons.filter((r) => r.id !== 'OTHERS')
+    if (nonOthersReasons.length > 0) {
+      const lastNonOthers = nonOthersReasons.at(-1)
+      if (lastNonOthers && isEmptyOrWhitespace(lastNonOthers.name)) return
     }
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
-    onChange([...reasons, { id, name: '', isDefault: false, editable: true }])
+    const newReason: SupplyOutageReason = { id, name: '', isDefault: false, editable: true }
+    const othersReason = reasons.find((r) => r.id === 'OTHERS')
+    if (othersReason) {
+      onChange([...nonOthersReasons, newReason, othersReason])
+    } else {
+      onChange([...reasons, newReason])
+    }
+  }
+
+  const handleOthersToggle = () => {
+    if (othersEnabled) {
+      onChange(reasons.filter((r) => r.id !== 'OTHERS'))
+    } else {
+      const nonOthersReasons = reasons.filter((r) => r.id !== 'OTHERS')
+      onChange([
+        ...nonOthersReasons,
+        { id: 'OTHERS', name: 'Others', isDefault: true, editable: false },
+      ])
+    }
   }
 
   return (
-    <Box>
+    <Box id="config-section-supply-outage-reasons">
       <Flex align="center" gap={1} mb={3}>
         <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" color="neutral.950">
           {title}
@@ -95,6 +112,7 @@ export function SupplyOutageReasonsSection({
             <FormControl key={reason.id} isInvalid={!!fieldError}>
               <Flex gap={2} align="center">
                 <Input
+                  id={`config-field-supply-outage-${reason.id}`}
                   value={reason.name}
                   onChange={(e) =>
                     reason.editable ? handleChange(reason.id, e.target.value) : undefined
@@ -106,8 +124,11 @@ export function SupplyOutageReasonsSection({
                   fontSize="sm"
                   borderColor="neutral.300"
                   borderRadius="6px"
-                  _hover={{ borderColor: 'neutral.400' }}
-                  _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
+                  _hover={{ borderColor: reason.editable ? 'neutral.400' : 'neutral.300' }}
+                  _focus={{
+                    borderColor: reason.editable ? 'primary.500' : 'neutral.300',
+                    boxShadow: 'none',
+                  }}
                   aria-label={t('configuration.sections.supplyOutageReasons.editAriaLabel', {
                     name:
                       reason.name || t('configuration.sections.supplyOutageReasons.placeholder'),
@@ -123,7 +144,7 @@ export function SupplyOutageReasonsSection({
                     size="sm"
                     color="neutral.400"
                     onClick={() => handleDelete(reason.id)}
-                    isDisabled={required && reasons.length === 1}
+                    isDisabled={required && reasons.filter((r) => r.id !== 'OTHERS').length === 1}
                     h="36px"
                     minW="36px"
                     _hover={{ bg: 'error.50', color: 'error.500' }}
@@ -137,9 +158,21 @@ export function SupplyOutageReasonsSection({
         })}
       </SimpleGrid>
 
-      <Button variant="secondary" size="sm" onClick={handleAdd} w={{ base: 'full', sm: 'auto' }}>
-        {t('configuration.sections.supplyOutageReasons.addNewButton')}
-      </Button>
+      <Flex align="center" gap={4} flexWrap="wrap">
+        <Button variant="secondary" size="sm" onClick={handleAdd} w={{ base: 'full', sm: 'auto' }}>
+          {t('configuration.sections.supplyOutageReasons.addNewButton')}
+        </Button>
+        <Flex align="center" gap={2}>
+          <Text fontSize="sm" color="neutral.950">
+            {t('configuration.sections.supplyOutageReasons.othersToggleLabel')}
+          </Text>
+          <Toggle
+            isChecked={othersEnabled}
+            onChange={handleOthersToggle}
+            aria-label={t('configuration.sections.supplyOutageReasons.othersToggleLabel')}
+          />
+        </Flex>
+      </Flex>
     </Box>
   )
 }

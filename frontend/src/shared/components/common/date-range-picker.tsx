@@ -56,6 +56,7 @@ export interface DateRangePickerProps {
   onChange: (value: DateRange | null) => void
   dateFormat?: string
   maxDate?: string
+  defaultRange?: DateRange
   placeholder?: string
   disabled?: boolean
   width?: ResponsiveValue<Property.Width>
@@ -80,7 +81,9 @@ const formatISODate = (date: Date) => {
 }
 
 const toCompactDisplayRange = (startDate: string, endDate: string, format: string) =>
-  `${formatIsoDateForDisplay(startDate, format)}-${formatIsoDateForDisplay(endDate, format)}`
+  startDate === endDate
+    ? formatIsoDateForDisplay(startDate, format)
+    : `${formatIsoDateForDisplay(startDate, format)}-${formatIsoDateForDisplay(endDate, format)}`
 
 const startOfWeek = (date: Date) => {
   const day = date.getDay()
@@ -122,6 +125,7 @@ export function DateRangePicker({
   onChange,
   dateFormat = DEFAULT_SCREEN_DATE_FORMAT,
   maxDate,
+  defaultRange,
   placeholder = 'Duration',
   disabled = false,
   width = '162px',
@@ -145,7 +149,7 @@ export function DateRangePicker({
   const maxDateIso = maxDate
     ? parseDisplayDateToIso(maxDate, resolvedDateFormat) || todayIso
     : todayIso
-  const defaultRangeIso = getDefaultRangeIso(maxDateIso)
+  const defaultRangeIso = defaultRange ?? getDefaultRangeIso(maxDateIso)
   const showDefaultRange = isFilter && !value
   const displayRange = value ?? (showDefaultRange ? defaultRangeIso : null)
   const [isOpen, setIsOpen] = useState(false)

@@ -1,8 +1,18 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Box, Text, Button, Flex, HStack, Heading, Spinner, SimpleGrid } from '@chakra-ui/react'
+import {
+  Box,
+  Text,
+  Button,
+  Flex,
+  HStack,
+  Heading,
+  Spinner,
+  SimpleGrid,
+  IconButton,
+} from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { EditIcon } from '@chakra-ui/icons'
+import { EditIcon, CloseIcon } from '@chakra-ui/icons'
 import { APP_LANGUAGES } from '@/shared/constants/languages'
 import { ROUTES } from '@/shared/constants/routes'
 import { useToast } from '@/shared/hooks/use-toast'
@@ -332,16 +342,34 @@ export function LanguagePage() {
                   >
                     {t('language.secondaryLanguage')}
                   </Text>
-                  <SearchableSelect
-                    options={secondaryOptions}
-                    value={secondaryLanguage}
-                    onChange={(value) =>
-                      setLanguageDraft((prev) => ({ ...prev, secondaryLanguage: value }))
-                    }
-                    placeholder={t('common:select')}
-                    width="100%"
-                    ariaLabel={t('language.aria.selectSecondaryLanguage')}
-                  />
+                  <Flex align="center" gap={2}>
+                    <Box flex={1} minW={0}>
+                      <SearchableSelect
+                        options={secondaryOptions}
+                        value={secondaryLanguage}
+                        onChange={(value) =>
+                          setLanguageDraft((prev) => ({ ...prev, secondaryLanguage: value }))
+                        }
+                        placeholder={t('common:select')}
+                        width="100%"
+                        ariaLabel={t('language.aria.selectSecondaryLanguage')}
+                      />
+                    </Box>
+                    {secondaryLanguage && (
+                      <IconButton
+                        aria-label={t('language.aria.clearSecondaryLanguage')}
+                        icon={<CloseIcon boxSize={2.5} />}
+                        size="sm"
+                        variant="ghost"
+                        color="neutral.500"
+                        _hover={{ bg: 'error.50', color: 'error.500' }}
+                        flexShrink={0}
+                        onClick={() =>
+                          setLanguageDraft((prev) => ({ ...prev, secondaryLanguage: '' }))
+                        }
+                      />
+                    )}
+                  </Flex>
                 </Box>
                 <Box w={{ base: 'full', xl: '486px' }}>
                   <Text
@@ -355,16 +383,34 @@ export function LanguagePage() {
                   >
                     {t('language.tertiaryLanguage')}
                   </Text>
-                  <SearchableSelect
-                    options={tertiaryOptions}
-                    value={tertiaryLanguage}
-                    onChange={(value) =>
-                      setLanguageDraft((prev) => ({ ...prev, tertiaryLanguage: value }))
-                    }
-                    placeholder={t('common:select')}
-                    width="100%"
-                    ariaLabel={t('language.aria.selectTertiaryLanguage')}
-                  />
+                  <Flex align="center" gap={2}>
+                    <Box flex={1} minW={0}>
+                      <SearchableSelect
+                        options={tertiaryOptions}
+                        value={tertiaryLanguage}
+                        onChange={(value) =>
+                          setLanguageDraft((prev) => ({ ...prev, tertiaryLanguage: value }))
+                        }
+                        placeholder={t('common:select')}
+                        width="100%"
+                        ariaLabel={t('language.aria.selectTertiaryLanguage')}
+                      />
+                    </Box>
+                    {tertiaryLanguage && (
+                      <IconButton
+                        aria-label={t('language.aria.clearTertiaryLanguage')}
+                        icon={<CloseIcon boxSize={2.5} />}
+                        size="sm"
+                        variant="ghost"
+                        color="neutral.500"
+                        _hover={{ bg: 'error.50', color: 'error.500' }}
+                        flexShrink={0}
+                        onClick={() =>
+                          setLanguageDraft((prev) => ({ ...prev, tertiaryLanguage: '' }))
+                        }
+                      />
+                    )}
+                  </Flex>
                 </Box>
               </SimpleGrid>
 

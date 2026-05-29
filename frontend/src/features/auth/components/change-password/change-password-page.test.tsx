@@ -3,8 +3,11 @@ import { describe, expect, it, jest, beforeEach } from '@jest/globals'
 import '@/app/i18n'
 import { ChangePasswordPage } from './change-password-page'
 import { renderWithProviders } from '@/test/render-with-providers'
+import { ROUTES } from '@/shared/constants/routes'
 
 const mockMutate = jest.fn()
+const mockLogout = jest.fn().mockImplementation(() => Promise.resolve())
+const mockNavigate = jest.fn()
 
 // Test credential values — not real passwords
 const CURRENT_CRED = 'Current-test-1'
@@ -15,6 +18,15 @@ const DIFF_CRED = 'Diff-test-4'
 jest.mock('@/features/auth/services/query/use-auth-queries', () => ({
   useChangeMyPasswordMutation: jest.fn(),
 }))
+
+jest.mock('@/app/store', () => ({
+  useAuthStore: () => ({ logout: mockLogout }),
+}))
+
+jest.mock('react-router-dom', () => {
+  const actual = jest.requireActual<typeof import('react-router-dom')>('react-router-dom')
+  return { ...actual, useNavigate: () => mockNavigate }
+})
 
 import { useChangeMyPasswordMutation } from '@/features/auth/services/query/use-auth-queries'
 
@@ -127,7 +139,7 @@ describe('ChangePasswordPage', () => {
     expect(screen.getByRole('button', { name: /hide password/i })).toBeTruthy()
   })
 
-  it('clears form fields after successful submit via onSuccess callback', async () => {
+  it('calls logout and navigates to login with passwordChanged state on success', async () => {
     mockMutate.mockImplementation((_payload: unknown, opts: unknown) => {
       ;(opts as { onSuccess?: () => void })?.onSuccess?.()
     })
@@ -141,7 +153,30 @@ describe('ChangePasswordPage', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: /update password/i }))
     await waitFor(() => {
-      expect((screen.getByLabelText(/current password/i) as HTMLInputElement).value).toBe('')
+      expect(mockLogout).toHaveBeenCalledTimes(1)
+      expect(mockNavigate).toHaveBeenCalledWith(ROUTES.LOGIN, {
+        state: { passwordChanged: true },
+        replace: true,
+      })
+    })
+  })
+
+  it('does not navigate on failed password change', async () => {
+    mockMutate.mockImplementation((_payload: unknown, opts: unknown) => {
+      ;(opts as { onError?: (err: Error) => void })?.onError?.(new Error('Wrong password'))
+    })
+    renderWithProviders(<ChangePasswordPage />)
+    fireEvent.change(screen.getByLabelText(/current password/i), {
+      target: { value: CURRENT_CRED },
+    })
+    fireEvent.change(screen.getByLabelText(/^new password/i), { target: { value: NEW_CRED } })
+    fireEvent.change(screen.getByLabelText(/confirm new password/i), {
+      target: { value: NEW_CRED },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /update password/i }))
+    await waitFor(() => {
+      expect(mockLogout).not.toHaveBeenCalled()
+      expect(mockNavigate).not.toHaveBeenCalled()
     })
   })
 })

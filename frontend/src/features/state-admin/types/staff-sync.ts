@@ -33,3 +33,18 @@ export interface StaffListResponse {
   items: StaffMember[]
   totalElements: number
 }
+
+export interface StaffReportPayload {
+  roles: StaffRole[]
+  status?: StaffStatus
+}
+
+export interface StaffReportData {
+  reportId: string
+  format: string
+  generatedAt: string
+  dataVersion: number
+  downloadUrl: string
+  urlExpiresAt: string
+  cached: boolean
+}

@@ -12,19 +12,30 @@ import {
 } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
-import { FiUpload } from 'react-icons/fi'
+import { FiDownload, FiUpload } from 'react-icons/fi'
 import { BsDroplet, BsCheck2Circle } from 'react-icons/bs'
 import { IoCloseCircleOutline } from 'react-icons/io5'
-import { DataTable, SearchableSelect, StatCard, PageHeader } from '@/shared/components/common'
+import {
+  DataTable,
+  SearchableSelect,
+  StatCard,
+  PageHeader,
+  TruncatedCell,
+  ToastContainer,
+} from '@/shared/components/common'
 import type { DataTableColumn, SortDirection } from '@/shared/components/common'
 import type { Scheme } from '../../types/scheme-sync'
 import {
   useSchemeCountsQuery,
   useSchemeListQuery,
+  useDownloadSchemesReportMutation,
 } from '../../services/query/use-state-admin-queries'
 import { useAuthStore } from '@/app/store/auth-store'
 import { useDebounce } from '@/shared/hooks/use-debounce'
+import { useToast } from '@/shared/hooks/use-toast'
 import { UploadSchemesModal } from './upload-schemes-modal'
+import { SchemeStatusChip } from './scheme-status-chip'
+import { WORK_STATUS_OPTIONS, OPERATING_STATUS_OPTIONS } from './scheme-status-constants'
 
 const PAGE_SIZE = 10
 const PAGE_SIZE_OPTIONS = [10, 25, 50]
@@ -77,24 +88,35 @@ export function SchemeSyncPage() {
 
   const { data, isLoading, isError, refetch } = useSchemeListQuery(schemeParams)
   const { data: counts, isLoading: countsLoading } = useSchemeCountsQuery(tenantCode)
+  const toast = useToast()
+  const { mutate: downloadReport, isPending: isReportPending } = useDownloadSchemesReportMutation()
 
-  const workStatusOptions = useMemo(
-    () =>
-      (counts?.workStatusCounts ?? []).map((s) => ({
-        value: s.status,
-        label: s.status,
-      })),
-    [counts]
-  )
+  const handleReport = () => {
+    downloadReport(undefined, {
+      onSuccess: async (link) => {
+        try {
+          const res = await fetch(link)
+          const blob = await res.blob()
+          const blobUrl = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = blobUrl
+          a.download = 'schemes-report.csv'
+          document.body.appendChild(a)
+          a.click()
+          a.remove()
+          URL.revokeObjectURL(blobUrl)
+          toast.success(t('schemeSync.report.success'))
+        } catch {
+          window.open(link, '_blank', 'noopener,noreferrer')
+          toast.success(t('schemeSync.report.success'))
+        }
+      },
+      onError: () => toast.error(t('schemeSync.report.error')),
+    })
+  }
 
-  const operatingStatusOptions = useMemo(
-    () =>
-      (counts?.operatingStatusCounts ?? []).map((s) => ({
-        value: s.status,
-        label: s.status,
-      })),
-    [counts]
-  )
+  const workStatusOptions = WORK_STATUS_OPTIONS.map((s) => ({ value: s, label: s }))
+  const operatingStatusOptions = OPERATING_STATUS_OPTIONS.map((s) => ({ value: s, label: s }))
 
   const hasActiveFilters = workStatusFilter || operatingStatusFilter || searchQuery
 
@@ -128,32 +150,27 @@ export function SchemeSyncPage() {
       key: 'schemeName',
       header: t('schemeSync.table.schemeName'),
       sortable: true,
-      width: '25%',
+      width: '20%',
       minWidth: '180px',
-      render: (row) => (
-        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
-          {row.schemeName}
-        </Text>
-      ),
+      headerMaxLines: 2,
+      render: (row) => <TruncatedCell value={row.schemeName} />,
     },
     {
       key: 'stateSchemeId',
       header: t('schemeSync.table.stateSchemeId'),
       sortable: false,
-      width: '12%',
+      width: '19%',
       minWidth: '100px',
-      render: (row) => (
-        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
-          {row.stateSchemeId}
-        </Text>
-      ),
+      headerMaxLines: 2,
+      render: (row) => <TruncatedCell value={row.stateSchemeId} />,
     },
     {
       key: 'plannedFhtc',
       header: t('schemeSync.table.plannedFhtc'),
       sortable: false,
-      width: '12%',
+      width: '10%',
       minWidth: '100px',
+      headerMaxLines: 2,
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.plannedFhtc}
@@ -164,8 +181,9 @@ export function SchemeSyncPage() {
       key: 'fhtcCount',
       header: t('schemeSync.table.achievedFhtc'),
       sortable: false,
-      width: '12%',
+      width: '10%',
       minWidth: '100px',
+      headerMaxLines: 2,
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.fhtcCount}
@@ -176,8 +194,9 @@ export function SchemeSyncPage() {
       key: 'houseHoldCount',
       header: t('schemeSync.table.houseHoldCount'),
       sortable: false,
-      width: '13%',
+      width: '10%',
       minWidth: '120px',
+      headerMaxLines: 2,
       render: (row) => (
         <Text textStyle="h10" fontWeight="400">
           {row.houseHoldCount}
@@ -188,24 +207,32 @@ export function SchemeSyncPage() {
       key: 'workStatus',
       header: t('schemeSync.table.workStatus'),
       sortable: false,
-      width: '13%',
-      minWidth: '100px',
+      width: '15%',
+      minWidth: '170px',
+      headerMaxLines: 2,
       render: (row) => (
-        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
-          {row.workStatus}
-        </Text>
+        <SchemeStatusChip
+          schemeId={row.id}
+          statusType="workStatus"
+          currentValue={row.workStatus}
+          tenantCode={tenantCode}
+        />
       ),
     },
     {
       key: 'operatingStatus',
       header: t('schemeSync.table.operatingStatus'),
       sortable: false,
-      width: '13%',
-      minWidth: '110px',
+      width: '16%',
+      minWidth: '180px',
+      headerMaxLines: 2,
       render: (row) => (
-        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
-          {row.operatingStatus}
-        </Text>
+        <SchemeStatusChip
+          schemeId={row.id}
+          statusType="operatingStatus"
+          currentValue={row.operatingStatus}
+          tenantCode={tenantCode}
+        />
       ),
     },
   ]
@@ -316,19 +343,39 @@ export function SchemeSyncPage() {
           )}
         </Flex>
 
-        {/* Right: upload */}
-        <Button
-          variant="secondary"
-          size="sm"
-          fontWeight="600"
-          flexShrink={0}
-          aria-label={t('schemeSync.aria.uploadData')}
-          w={{ base: 'full', sm: '147px' }}
-          onClick={() => setIsUploadOpen(true)}
-        >
-          <FiUpload aria-hidden="true" size={16} style={{ marginRight: '4px', flexShrink: 0 }} />
-          {t('schemeSync.uploadData')}
-        </Button>
+        {/* Right: reports + upload */}
+        <Flex gap={2} flexShrink={0} w={{ base: 'full', sm: 'auto' }}>
+          <Button
+            variant="secondary"
+            size="sm"
+            fontWeight="600"
+            flex={{ base: 1, sm: 'none' }}
+            w={{ base: 'auto', sm: '147px' }}
+            aria-label={t('schemeSync.report.aria.download')}
+            onClick={handleReport}
+            isLoading={isReportPending}
+            loadingText={t('schemeSync.report.button')}
+          >
+            <FiDownload
+              aria-hidden="true"
+              size={16}
+              style={{ marginRight: '4px', flexShrink: 0 }}
+            />
+            {t('schemeSync.report.button')}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            fontWeight="600"
+            flex={{ base: 1, sm: 'none' }}
+            w={{ base: 'auto', sm: '147px' }}
+            aria-label={t('schemeSync.aria.uploadData')}
+            onClick={() => setIsUploadOpen(true)}
+          >
+            <FiUpload aria-hidden="true" size={16} style={{ marginRight: '4px', flexShrink: 0 }} />
+            {t('schemeSync.uploadData')}
+          </Button>
+        </Flex>
       </Flex>
 
       {/* Stats Cards */}
@@ -370,7 +417,7 @@ export function SchemeSyncPage() {
         emptyMessage={t('schemeSync.messages.noSchemesFound')}
         isLoading={isLoading}
         tableLayout="fixed"
-        tableMinWidth="900px"
+        tableMinWidth="1100px"
         onSort={handleSort}
         pagination={{
           enabled: true,
@@ -387,6 +434,7 @@ export function SchemeSyncPage() {
       />
 
       <UploadSchemesModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />
+      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </Box>
   )
 }

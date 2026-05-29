@@ -43,6 +43,7 @@ import {
   PumpOperatorViewPage,
   AnomaliesPage,
   StaffEscalationsPage,
+  FixReadingsPage,
 } from '@/features/section-officer'
 import { ProtectedRoute, RedirectIfAuthenticated } from '@/shared/components/routing/ProtectedRoute'
 import { AUTH_ROLES } from '@/shared/constants/auth'
@@ -278,6 +279,10 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.STAFF_ESCALATIONS,
         element: <StaffEscalationsPage />,
+      },
+      {
+        path: ROUTES.STAFF_FIX_READINGS,
+        element: <FixReadingsPage />,
       },
     ],
   },

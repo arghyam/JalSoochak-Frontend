@@ -26,7 +26,6 @@ import {
   type LocationOption,
   type OutageTimeScaleTab,
   type PerformanceTimeScaleTab,
-  getDefaultAnalyticsDateRange,
   sortByMetricDescending,
   sortOutageDistributionByTotalDescending,
   toIsoDate,
@@ -38,6 +37,7 @@ import { useCentralDashboardFilters } from '../hooks/use-central-dashboard-filte
 import { useCentralDashboardKpis } from '../hooks/use-central-dashboard-kpis'
 import { useCentralDashboardQueries } from '../hooks/use-central-dashboard-queries'
 import { localizeDepartmentHierarchyLabel, normalizeHierarchyLabel } from '../utils/hierarchy-label'
+import { useDashboardDefaultDateRange } from '../utils/default-duration'
 import {
   DEFAULT_PERSONS_PER_HOUSEHOLD,
   mapOutageReasonsFromNationalDashboard,
@@ -45,6 +45,7 @@ import {
   mapReadingSubmissionRateFromNationalDashboard,
   mapReadingSubmissionRateFromAnalytics,
   mapReadingSubmissionStatusFromAnalytics,
+  resolveDaysInRange,
   mapRegularityPerformanceFromNationalDashboard,
   mapSchemePerformanceToTable,
   mapSchemePerformanceToPumpOperators,
@@ -87,6 +88,7 @@ export function CentralDashboard({
   singleTenantOverride,
 }: { singleTenantOverride?: StateUtOption } = {}) {
   const { t, i18n } = useTranslation('dashboard')
+  const dashboardDefaultDuration = useDashboardDefaultDateRange()
   const overallPerformanceScrollHeight =
     useBreakpointValue({ base: '320px', sm: '420px', lg: '620px' }) ?? '620px'
   const { data } = useDashboardData('central')
@@ -365,7 +367,7 @@ export function CentralDashboard({
     hierarchyType === 'LGD' ? lgdAnalyticsParentId : departmentAnalyticsParentId
   const hasValidSubmissionStatusParentId =
     hierarchyType === 'LGD' ? hasValidAnalyticsParentId : hasValidDepartmentAnalyticsParentId
-  const defaultAnalyticsRange = getDefaultAnalyticsDateRange()
+  const defaultAnalyticsRange = dashboardDefaultDuration
   const analyticsDateRange = {
     startDate:
       toIsoDate(effectiveSelectedDuration?.startDate, durationDateFormat) ??
@@ -374,6 +376,8 @@ export function CentralDashboard({
       toIsoDate(effectiveSelectedDuration?.endDate, durationDateFormat) ??
       defaultAnalyticsRange.endDate,
   }
+  const isTimeViewEnabled =
+    resolveDaysInRange(undefined, analyticsDateRange.startDate, analyticsDateRange.endDate) > 1
   const schemePerformanceResetKey = `${analyticsParentId}|${analyticsDateRange.startDate}|${analyticsDateRange.endDate}`
   const schemePerformancePage =
     schemePerformancePagination.key === schemePerformanceResetKey
@@ -1129,6 +1133,7 @@ export function CentralDashboard({
         screenDateFormat={screenDateFormat}
         tableDateFormat={tableDateFormat}
         enableExtendedTimeScales
+        isTimeViewEnabled={isTimeViewEnabled}
       />
     </Box>
   )

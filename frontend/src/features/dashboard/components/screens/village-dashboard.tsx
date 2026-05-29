@@ -22,6 +22,7 @@ import { ReadingComplianceTable } from '../tables'
 import { PerformanceChartCard } from './performance-chart-card'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
 import { toCapitalizedWords } from '../../utils/format-location-label'
+import { shouldShowSupplyOutageCharts } from '@/config/server-config'
 
 type PerformanceTimeScale = 'day' | 'week' | 'month' | 'quarter' | 'year'
 
@@ -1002,6 +1003,7 @@ export function VillageDashboardScreen({
   enableExtendedTimeScales = true,
 }: VillageDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
+  const showSupplyOutageCharts = shouldShowSupplyOutageCharts()
   const effectiveSchemeId = schemeId ?? villagePumpOperatorDetails.schemeId
 
   const readingComplianceScopeKey = `${tenantCode ?? 'no-tenant'}:${effectiveSchemeId ?? 'no-scheme'}`
@@ -1065,27 +1067,34 @@ export function VillageDashboardScreen({
           hideViewBySelect
         />
       </Grid>
-      <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
-        <Box
-          bg="white"
-          borderWidth="0.5px"
-          borderRadius="12px"
-          borderColor="#E4E4E7"
-          pt="24px"
-          pb="24px"
-          pl="16px"
-          pr="16px"
-          h="492px"
-          w="full"
-          minW={0}
-        >
-          <Text textStyle="bodyText3" fontWeight="400" mb="40px">
-            {t('outageAndSubmissionCharts.titles.supplyOutageReasons', {
-              defaultValue: 'Supply Outage Reasons',
-            })}
-          </Text>
-          <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
-        </Box>
+      <Grid
+        templateColumns={showSupplyOutageCharts ? { base: '1fr', lg: 'repeat(2, 1fr)' } : '1fr'}
+        gap={6}
+        mb={6}
+      >
+        {/* Supply outage charts temporarily hidden; set SHOW_SUPPLY_OUTAGE_CHARTS to true to restore. */}
+        {showSupplyOutageCharts ? (
+          <Box
+            bg="white"
+            borderWidth="0.5px"
+            borderRadius="12px"
+            borderColor="#E4E4E7"
+            pt="24px"
+            pb="24px"
+            pl="16px"
+            pr="16px"
+            h="492px"
+            w="full"
+            minW={0}
+          >
+            <Text textStyle="bodyText3" fontWeight="400" mb="40px">
+              {t('outageAndSubmissionCharts.titles.supplyOutageReasons', {
+                defaultValue: 'Supply Outage Reasons',
+              })}
+            </Text>
+            <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
+          </Box>
+        ) : null}
         <ReadingSubmissionStatusCard
           data={data.readingSubmissionStatus}
           chartHeight="406px"

@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import {
   Box,
   Flex,
@@ -16,6 +16,9 @@ import {
   useDisclosure,
   useMediaQuery,
   VStack,
+  Alert,
+  AlertIcon,
+  AlertDescription,
 } from '@chakra-ui/react'
 import { AuthSideImage } from '@/features/auth/components/signup/auth-side-image'
 import jalsoochakLogo from '@/assets/media/logo.svg'
@@ -23,8 +26,11 @@ import { useAuthStore } from '@/app/store'
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai'
 import { ForgotPasswordModal } from '@/features/auth/components/login/forgot-password-modal'
 
+type LoginLocationState = { passwordChanged?: boolean } | null
+
 export function LoginPage() {
   const navigate = useNavigate()
+  const locationState = useLocation().state as LoginLocationState
   const { login, loading, error } = useAuthStore()
   const { isOpen: isForgotPasswordOpen, onOpen, onClose } = useDisclosure()
   const [showBannerImage] = useMediaQuery('(min-width: 992px)')
@@ -90,6 +96,15 @@ export function LoginPage() {
               <Text textStyle="bodyText5" fontWeight="400" mb="1.25rem">
                 Welcome ! Please enter your details.
               </Text>
+
+              {locationState?.passwordChanged && (
+                <Alert status="success" borderRadius="4px" mb="1rem">
+                  <AlertIcon />
+                  <AlertDescription fontSize="sm">
+                    Password updated successfully. Please log in again.
+                  </AlertDescription>
+                </Alert>
+              )}
 
               <Box as="form" onSubmit={handleSubmit}>
                 <VStack align="stretch" spacing="1rem">

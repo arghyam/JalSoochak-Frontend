@@ -21,6 +21,7 @@ import { ChartEmptyState, LoadingSpinner, ViewBySelect } from '@/shared/componen
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { useOutageDistributionState } from './use-outage-distribution-state'
 import { getOutageTimeScaleXAxisLabel, OutageTimeScaleToggle } from './outage-time-scale-toggle'
+import { shouldShowSupplyOutageCharts } from '@/config/server-config'
 
 type DistrictDashboardScreenProps = {
   data: DashboardData
@@ -60,6 +61,7 @@ type DistrictDashboardScreenProps = {
   onSchemePageChange?: (page: number) => void
   screenDateFormat?: string
   tableDateFormat?: string
+  isTimeViewEnabled?: boolean
 }
 
 type ViewBy = 'geography' | 'time'
@@ -99,11 +101,16 @@ export function DistrictDashboardScreen({
   onSchemePageChange,
   screenDateFormat,
   tableDateFormat,
+  isTimeViewEnabled = true,
 }: DistrictDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
+  const showSupplyOutageCharts = shouldShowSupplyOutageCharts()
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
   const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
+  const effectiveOutageDistributionViewBy = isTimeViewEnabled
+    ? outageDistributionViewBy
+    : 'geography'
   const outageDistributionTimeTrendData = useMemo(
     () => data.supplyOutageTrend ?? [],
     [data.supplyOutageTrend]
@@ -115,7 +122,7 @@ export function DistrictDashboardScreen({
     isOutageDistributionSelectDisabled,
   } = useOutageDistributionState({
     waterSupplyOutagesData,
-    outageDistributionViewBy,
+    outageDistributionViewBy: effectiveOutageDistributionViewBy,
     waterSupplyOutageDistributionData,
     outageDistributionTimeTrendData,
   })
@@ -153,6 +160,7 @@ export function DistrictDashboardScreen({
           selectColor="primary.500"
           selectBorderColor="primary.500"
           dateFormat={screenDateFormat ?? tableDateFormat}
+          isTimeViewEnabled={isTimeViewEnabled}
         />
         <PerformanceChartCard
           title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
@@ -181,129 +189,137 @@ export function DistrictDashboardScreen({
           quantityTimeScaleTab={quantityTimeScaleTab}
           onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
           dateFormat={screenDateFormat ?? tableDateFormat}
+          isTimeViewEnabled={isTimeViewEnabled}
         />
       </Grid>
 
-      {/* Supply Outage Reasons + Distribution */}
-      <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
-        <Box
-          bg="white"
-          borderWidth="0.5px"
-          borderRadius="12px"
-          borderColor="#E4E4E7"
-          pt="24px"
-          pb="24px"
-          pl="16px"
-          pr="16px"
-          h="510px"
-          minW={0}
-        >
-          <Text textStyle="bodyText3" fontWeight="400" mb="40px">
-            {t('outageAndSubmissionCharts.titles.supplyOutageReasons', {
-              defaultValue: 'Supply Outage Reasons',
-            })}
-          </Text>
-          {isOutageReasonsLoading ? (
-            <Flex align="center" justify="center" h="400px">
-              <LoadingSpinner />
-            </Flex>
-          ) : (
-            <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
-          )}
-        </Box>
-        <Box
-          bg="white"
-          borderWidth="0.5px"
-          borderRadius="12px"
-          borderColor="#E4E4E7"
-          px="16px"
-          pt="24px"
-          pb="24px"
-          h="510px"
-          minW={0}
-        >
-          <Flex align="center" justify="space-between">
-            <Text textStyle="bodyText3" fontWeight="400">
-              {t('outageAndSubmissionCharts.titles.supplyOutageDistribution', {
-                defaultValue: 'Supply Outage Distribution',
+      {/* Supply outage charts temporarily hidden; set SHOW_SUPPLY_OUTAGE_CHARTS to true to restore. */}
+      {showSupplyOutageCharts ? (
+        <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>
+          <Box
+            bg="white"
+            borderWidth="0.5px"
+            borderRadius="12px"
+            borderColor="#E4E4E7"
+            pt="24px"
+            pb="24px"
+            pl="16px"
+            pr="16px"
+            h="510px"
+            minW={0}
+          >
+            <Text textStyle="bodyText3" fontWeight="400" mb="40px">
+              {t('outageAndSubmissionCharts.titles.supplyOutageReasons', {
+                defaultValue: 'Supply Outage Reasons',
               })}
             </Text>
-            <Flex
-              align="center"
-              gap="8px"
-              sx={{
-                '@media (max-width: 1279px)': {
-                  flexDirection: 'column-reverse',
-                  alignItems: 'flex-end',
-                  gap: '6px',
-                },
-              }}
-            >
-              {outageDistributionViewBy === 'time' &&
-              outageDistributionTimeScaleTab &&
-              onOutageDistributionTimeScaleTabChange ? (
-                <OutageTimeScaleToggle
-                  value={outageDistributionTimeScaleTab}
-                  onChange={onOutageDistributionTimeScaleTabChange}
-                  ariaLabel={t('outageAndSubmissionCharts.ariaOutageTimeScale', {
-                    defaultValue: 'Outage time scale',
-                  })}
-                />
-              ) : null}
-              <ViewBySelect
-                ariaLabel={t('outageAndSubmissionCharts.ariaViewByDistrict', {
-                  defaultValue: 'District supply outage distribution view by',
+            {isOutageReasonsLoading ? (
+              <Flex align="center" justify="center" h="400px">
+                <LoadingSpinner />
+              </Flex>
+            ) : (
+              <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
+            )}
+          </Box>
+          <Box
+            bg="white"
+            borderWidth="0.5px"
+            borderRadius="12px"
+            borderColor="#E4E4E7"
+            px="16px"
+            pt="24px"
+            pb="24px"
+            h="510px"
+            minW={0}
+          >
+            <Flex align="center" justify="space-between">
+              <Text textStyle="bodyText3" fontWeight="400">
+                {t('outageAndSubmissionCharts.titles.supplyOutageDistribution', {
+                  defaultValue: 'Supply Outage Distribution',
                 })}
-                value={outageDistributionViewBy}
-                onChange={(value) => {
-                  if (
-                    value === 'time' &&
-                    onOutageDistributionTimeScaleTabChange &&
-                    !outageDistributionTimeScaleTab
-                  ) {
-                    onOutageDistributionTimeScaleTabChange('day')
-                  }
-                  setOutageDistributionViewBy(value)
+              </Text>
+              <Flex
+                align="center"
+                gap="8px"
+                sx={{
+                  '@media (max-width: 1279px)': {
+                    flexDirection: 'column-reverse',
+                    alignItems: 'flex-end',
+                    gap: '6px',
+                  },
                 }}
-                color="primary.500"
-                borderColor="primary.500"
-                disabled={isOutageDistributionSelectDisabled}
-              />
+              >
+                {effectiveOutageDistributionViewBy === 'time' &&
+                isTimeViewEnabled &&
+                outageDistributionTimeScaleTab &&
+                onOutageDistributionTimeScaleTabChange ? (
+                  <OutageTimeScaleToggle
+                    value={outageDistributionTimeScaleTab}
+                    onChange={onOutageDistributionTimeScaleTabChange}
+                    ariaLabel={t('outageAndSubmissionCharts.ariaOutageTimeScale', {
+                      defaultValue: 'Outage time scale',
+                    })}
+                  />
+                ) : null}
+                <ViewBySelect
+                  ariaLabel={t('outageAndSubmissionCharts.ariaViewByDistrict', {
+                    defaultValue: 'District supply outage distribution view by',
+                  })}
+                  value={effectiveOutageDistributionViewBy}
+                  onChange={(value) => {
+                    if (value === 'time' && !isTimeViewEnabled) {
+                      return
+                    }
+                    if (
+                      value === 'time' &&
+                      onOutageDistributionTimeScaleTabChange &&
+                      !outageDistributionTimeScaleTab
+                    ) {
+                      onOutageDistributionTimeScaleTabChange('day')
+                    }
+                    setOutageDistributionViewBy(value)
+                  }}
+                  color="primary.500"
+                  borderColor="primary.500"
+                  disabled={isOutageDistributionSelectDisabled}
+                  isTimeOptionDisabled={!isTimeViewEnabled}
+                />
+              </Flex>
             </Flex>
-          </Flex>
-          {isOutageDistributionLoading ? (
-            <Flex align="center" justify="center" h="400px">
-              <LoadingSpinner />
-            </Flex>
-          ) : !hasOutageReasonsData ? (
-            <ChartEmptyState minHeight="400px" />
-          ) : outageDistributionViewBy === 'geography' ? (
-            hasGeographyData ? (
-              <SupplyOutageDistributionChart
-                data={waterSupplyOutageDistributionData}
+            {isOutageDistributionLoading ? (
+              <Flex align="center" justify="center" h="400px">
+                <LoadingSpinner />
+              </Flex>
+            ) : !hasOutageReasonsData ? (
+              <ChartEmptyState minHeight="400px" />
+            ) : effectiveOutageDistributionViewBy === 'geography' ? (
+              hasGeographyData ? (
+                <SupplyOutageDistributionChart
+                  data={waterSupplyOutageDistributionData}
+                  height="400px"
+                  xAxisLabel={childEntityLabel}
+                  dateFormat={screenDateFormat ?? tableDateFormat}
+                />
+              ) : (
+                <ChartEmptyState minHeight="400px" />
+              )
+            ) : hasTimeTrendData ? (
+              <MonthlyTrendChart
+                data={outageDistributionTimeTrendData}
                 height="400px"
-                xAxisLabel={childEntityLabel}
+                xAxisLabel={outageTimeXAxisLabel}
+                yAxisLabel={t('outageAndSubmissionCharts.axis.noOfReasons', {
+                  defaultValue: 'No. of days',
+                })}
+                seriesName="Supply outage"
                 dateFormat={screenDateFormat ?? tableDateFormat}
               />
             ) : (
               <ChartEmptyState minHeight="400px" />
-            )
-          ) : hasTimeTrendData ? (
-            <MonthlyTrendChart
-              data={outageDistributionTimeTrendData}
-              height="400px"
-              xAxisLabel={outageTimeXAxisLabel}
-              yAxisLabel={t('outageAndSubmissionCharts.axis.noOfReasons', {
-                defaultValue: 'No. of days',
-              })}
-              seriesName="Supply outage"
-              dateFormat={screenDateFormat ?? tableDateFormat}
-            />
-          ) : (
-            <ChartEmptyState minHeight="400px" />
-          )}
-        </Box>
-      </Grid>
+            )}
+          </Box>
+        </Grid>
+      ) : null}
 
       {/* Reading Submission Status + Reading Submission Rate */}
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, minmax(0, 1fr))' }} gap={6} mb={6}>

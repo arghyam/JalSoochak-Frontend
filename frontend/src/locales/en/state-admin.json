@@ -14,7 +14,8 @@
       "saveSuccess": "Hierarchy saved successfully",
       "saveFailed": "Failed to save hierarchy",
       "failedToLoad": "Failed to load hierarchy. Please try again later.",
-      "emptyLevelName": "All levels must have a name"
+      "emptyLevelName": "All levels must have a name",
+      "tenantCodeMismatch": "Could not resolve state for tenant code \"{{tenantCode}}\". Onboarding status may be unavailable until this is corrected."
     },
     "aria": {
       "editConfiguration": "Edit hierarchy configuration",
@@ -79,6 +80,7 @@
     },
     "setupWizard": {
       "title": "Setup Progress",
+      "hierarchy": "Hierarchy",
       "configuration": "Configuration",
       "language": "Language",
       "waterNorms": "Water Norms",
@@ -121,7 +123,9 @@
       "editConfiguration": "Edit language configuration",
       "selectPrimaryLanguage": "Select primary language",
       "selectSecondaryLanguage": "Select secondary language",
-      "selectTertiaryLanguage": "Select tertiary language"
+      "selectTertiaryLanguage": "Select tertiary language",
+      "clearSecondaryLanguage": "Clear secondary language",
+      "clearTertiaryLanguage": "Clear tertiary language"
     }
   },
 
@@ -324,13 +328,18 @@
     },
     "messages": {
       "noStaffFound": "No staff members found",
-      "failedToLoad": "Failed to load staff data"
+      "failedToLoad": "Failed to load staff data",
+      "activatedSuccess": "Staff member activated successfully",
+      "deactivatedSuccess": "Staff member deactivated successfully",
+      "failedToUpdateStatus": "Failed to update staff status"
     },
     "aria": {
       "statsSection": "Staff sync statistics",
       "searchStaff": "Search staff by name",
       "filterSection": "Filter staff members",
-      "uploadData": "Upload staff data"
+      "uploadData": "Upload staff data",
+      "activate": "Activate staff member",
+      "deactivate": "Deactivate staff member"
     },
     "broadcast": {
       "button": "Broadcast",
@@ -349,6 +358,14 @@
       },
       "aria": {
         "broadcast": "Broadcast message to staff"
+      }
+    },
+    "report": {
+      "button": "Reports",
+      "success": "Report downloaded successfully",
+      "error": "Failed to generate report. Please try again.",
+      "aria": {
+        "download": "Download staff report"
       }
     }
   },
@@ -389,13 +406,24 @@
     },
     "messages": {
       "noSchemesFound": "No schemes found",
-      "failedToLoad": "Failed to load scheme data"
+      "failedToLoad": "Failed to load scheme data",
+      "statusUpdateFailed": "Failed to update status. Please try again.",
+      "statusUpdateSuccess": "Status updated successfully."
     },
     "aria": {
       "statsSection": "Scheme sync statistics",
       "searchSchemes": "Search schemes by name",
       "filterSection": "Filter schemes",
-      "uploadData": "Upload scheme data"
+      "uploadData": "Upload scheme data",
+      "changeStatus": "Change {{status}}"
+    },
+    "report": {
+      "button": "Reports",
+      "success": "Report downloaded successfully.",
+      "error": "Failed to generate report. Please try again.",
+      "aria": {
+        "download": "Download schemes report"
+      }
     }
   },
 
@@ -431,6 +459,14 @@
       "searchMappings": "Search scheme mappings by scheme name",
       "filterSection": "Filter scheme mappings",
       "uploadData": "Upload scheme mappings data"
+    },
+    "report": {
+      "button": "Reports",
+      "success": "Report downloaded successfully.",
+      "error": "Failed to generate report. Please try again.",
+      "aria": {
+        "download": "Download scheme mappings report"
+      }
     }
   },
 
@@ -461,28 +497,25 @@
         "currentLogo": "Current logo"
       },
       "meterChangeReasons": {
-        "title": "Meter Change Reasons",
+        "title": "No Reading Submission Reasons",
         "placeholder": "Enter reason",
         "addButton": "Add",
         "addNewButton": "+ Add New Reason",
         "empty": "No reasons added yet",
         "editAriaLabel": "Edit reason {{name}}",
-        "deleteAriaLabel": "Delete reason {{name}}"
+        "deleteAriaLabel": "Delete reason {{name}}",
+        "othersToggleLabel": "Others"
       },
       "supplyOutageReasons": {
-        "title": "Supply Outage Reasons",
+        "title": "No Water Supply Reasons",
         "placeholder": "Enter reason",
         "addNewButton": "+ Add New Reason",
         "editAriaLabel": "Edit reason {{name}}",
-        "deleteAriaLabel": "Delete reason {{name}}"
+        "deleteAriaLabel": "Delete reason {{name}}",
+        "othersToggleLabel": "Others"
       },
       "locationCheckRequired": {
         "title": "Record Location",
-        "yes": "Yes",
-        "no": "No"
-      },
-      "displayDepartmentMaps": {
-        "title": "Display Departmental Maps",
         "yes": "Yes",
         "no": "No"
       },
@@ -523,7 +556,6 @@
       "meterChangeReasons": "Reasons field operators can select when logging a meter replacement event.",
       "supplyOutageReasons": "Reasons field operators can select when reporting a water supply disruption.",
       "locationCheckRequired": "When enabled, field operators must share their GPS location when submitting readings.",
-      "displayDepartmentMaps": "When enabled, departmental map views are shown on the dashboard.",
       "dataConsolidationTime": "Daily time at which field data is compiled and consolidated for reporting.",
       "pumpOperatorReminderNudgeTime": "Daily time at which automated reminders are sent to pump operators who have not yet submitted readings.",
       "lgdMapLevels": "Controls which LGD administrative levels are visible on the map.",
@@ -662,7 +694,7 @@
     "emptyOrWhitespace": "This field cannot be empty or contain only spaces",
     "containsHtmlTags": "HTML tags are not allowed",
     "containsSqlInjection": "Invalid characters detected",
-    "alphanumericOnly": "Only letters, numbers, and spaces are allowed",
+    "alphanumericOnly": "Only letters, numbers, spaces, and hyphens (-) are allowed",
     "invalidUrl": "Please enter a valid URL starting with https://",
     "noSpaces": "Spaces are not allowed",
     "maxLength": "Must not exceed {{max}} characters",
