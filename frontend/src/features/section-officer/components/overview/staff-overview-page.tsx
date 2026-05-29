@@ -55,6 +55,9 @@ export function StaffOverviewPage() {
   const screenChartDateFormat = normalizeDateFormat(
     tenantPublicConfig?.dateFormatScreen?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
   )
+  const hasDateRange = Boolean(dateRange.startDate) && Boolean(dateRange.endDate)
+  const outageReasonsEnabled = showStaffOverviewSupplyOutageCharts && hasDateRange
+  const nonSubmissionReasonsEnabled = showStaffOverviewNonSubmissionCharts && hasDateRange
 
   const { data: schemesCountData, isLoading: isSchemesCountLoading } = useSchemesCountQuery()
   const { data: dashboardStatsData, isLoading: isDashboardStatsLoading } = useDashboardStatsQuery(
@@ -66,13 +69,17 @@ export function StaffOverviewPage() {
     data: outageReasonsData,
     isLoading: isOutageReasonsLoading,
     isError: isOutageReasonsError,
-  } = useOutageReasonsQuery(dateRange.startDate, dateRange.endDate)
+  } = useOutageReasonsQuery(dateRange.startDate, dateRange.endDate, outageReasonsEnabled)
 
   const {
     data: nonSubmissionData,
     isLoading: isNonSubmissionLoading,
     isError: isNonSubmissionError,
-  } = useNonSubmissionReasonsQuery(dateRange.startDate, dateRange.endDate)
+  } = useNonSubmissionReasonsQuery(
+    dateRange.startDate,
+    dateRange.endDate,
+    nonSubmissionReasonsEnabled
+  )
 
   const {
     data: submissionStatusData,
