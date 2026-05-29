@@ -7,10 +7,10 @@ import {
   type KeyboardEvent,
   type PointerEvent,
 } from 'react'
-import { Box, Center, Spinner, Text, useTheme } from '@chakra-ui/react'
+import { Box, Center, Spinner, useTheme } from '@chakra-ui/react'
 import * as echarts from 'echarts'
 import type { EChartsOption } from 'echarts'
-import { EChartsWrapper } from '@/shared/components/common'
+import { ChartEmptyState, EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
 import { formatIsoDateToDayFirst } from '@/shared/components/charts/axis-label-format'
 
@@ -550,13 +550,7 @@ export function MonthlyTrendChart({
   }
 
   if (data.length === 0) {
-    return (
-      <Center h={containerHeight}>
-        <Text color="gray.500" fontSize="sm">
-          No data available
-        </Text>
-      </Center>
-    )
+    return <ChartEmptyState minHeight={containerHeight} />
   }
 
   return (

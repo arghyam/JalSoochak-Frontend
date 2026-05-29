@@ -54,6 +54,28 @@ export function ChannelsSection({
     onClearError('supportedChannels')
   }
 
+  function renderChannel(code: SupportedChannel) {
+    const isRemoved = degraded && removedChannels.includes(code)
+    return (
+      <HStack key={code} spacing={1} align="center">
+        <Checkbox value={code} isDisabled={isRemoved}>
+          <Text fontSize="sm" color={isRemoved ? 'neutral.400' : 'neutral.950'}>
+            {CHANNEL_CODE_TO_NAME[code as KnownSupportedChannel] ?? code}
+          </Text>
+        </Checkbox>
+        {isRemoved && (
+          <ActionTooltip label={t('configuration.sections.supportedChannels.degradedTooltip')}>
+            <WarningTwoIcon
+              color="error.500"
+              boxSize={3}
+              aria-label={t('configuration.sections.supportedChannels.degradedTooltip')}
+            />
+          </ActionTooltip>
+        )}
+      </HStack>
+    )
+  }
+
   return (
     <FormControl id="config-field-supported-channels" isInvalid={!!errors.supportedChannels}>
       <Flex align="center" gap={1} mb={3}>
@@ -80,58 +102,10 @@ export function ChannelsSection({
           <CheckboxGroup value={selectedChannels} onChange={handleChange}>
             <SimpleGrid columns={2} spacing={3} w={{ base: 'full', md: '400px' }}>
               <VStack align="start" spacing={3}>
-                {allDisplayChannels.slice(0, halfChannels).map((code) => {
-                  const isRemoved = degraded && removedChannels.includes(code)
-                  return (
-                    <HStack key={code} spacing={1} align="center">
-                      <Checkbox value={code} isDisabled={isRemoved}>
-                        <Text fontSize="sm" color={isRemoved ? 'neutral.400' : 'neutral.950'}>
-                          {CHANNEL_CODE_TO_NAME[code as KnownSupportedChannel] ?? code}
-                        </Text>
-                      </Checkbox>
-                      {isRemoved && (
-                        <ActionTooltip
-                          label={t('configuration.sections.supportedChannels.degradedTooltip')}
-                        >
-                          <WarningTwoIcon
-                            color="error.500"
-                            boxSize={3}
-                            aria-label={t(
-                              'configuration.sections.supportedChannels.degradedTooltip'
-                            )}
-                          />
-                        </ActionTooltip>
-                      )}
-                    </HStack>
-                  )
-                })}
+                {allDisplayChannels.slice(0, halfChannels).map(renderChannel)}
               </VStack>
               <VStack align="start" spacing={3}>
-                {allDisplayChannels.slice(halfChannels).map((code) => {
-                  const isRemoved = degraded && removedChannels.includes(code)
-                  return (
-                    <HStack key={code} spacing={1} align="center">
-                      <Checkbox value={code} isDisabled={isRemoved}>
-                        <Text fontSize="sm" color={isRemoved ? 'neutral.400' : 'neutral.950'}>
-                          {CHANNEL_CODE_TO_NAME[code as KnownSupportedChannel] ?? code}
-                        </Text>
-                      </Checkbox>
-                      {isRemoved && (
-                        <ActionTooltip
-                          label={t('configuration.sections.supportedChannels.degradedTooltip')}
-                        >
-                          <WarningTwoIcon
-                            color="error.500"
-                            boxSize={3}
-                            aria-label={t(
-                              'configuration.sections.supportedChannels.degradedTooltip'
-                            )}
-                          />
-                        </ActionTooltip>
-                      )}
-                    </HStack>
-                  )
-                })}
+                {allDisplayChannels.slice(halfChannels).map(renderChannel)}
               </VStack>
             </SimpleGrid>
           </CheckboxGroup>

@@ -20,6 +20,7 @@ import {
   useOutsideClick,
 } from '@chakra-ui/react'
 import { SearchIcon, CloseIcon } from '@chakra-ui/icons'
+import { useAuthStore } from '@/app/store/auth-store'
 import { useDebounce } from '@/shared/hooks/use-debounce'
 import { useToast } from '@/shared/hooks/use-toast'
 import { PageHeader, ToastContainer } from '@/shared/components/common'
@@ -52,6 +53,7 @@ export function FixReadingsPage() {
     isError,
   } = useYesterdayFinalReadingsQuery(selectedScheme ? '' : debouncedSearch)
 
+  const tenantCode = useAuthStore((state) => state.user?.tenantCode ?? '')
   const { mutate: updateFinalReading, isPending } = useUpdateFinalReadingMutation()
   const queryClient = useQueryClient()
 
@@ -105,7 +107,10 @@ export function FixReadingsPage() {
             prev ? { ...prev, yesterdayFinalReading: parsedReading } : prev
           )
           queryClient.invalidateQueries({
-            queryKey: [...sectionOfficerQueryKeys.all, 'yesterday-final-readings'],
+            queryKey: sectionOfficerQueryKeys.yesterdayFinalReadings(
+              tenantCode,
+              debouncedSearch.trim()
+            ),
           })
         },
         onError: () => {

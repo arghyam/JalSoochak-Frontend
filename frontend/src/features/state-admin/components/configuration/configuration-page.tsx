@@ -649,7 +649,10 @@ export function ConfigurationPage() {
                   degraded={config?.degraded ?? false}
                   removedChannels={config?.removedChannels ?? []}
                   onChange={(channels) =>
-                    setDraft((d) => (d ? { ...d, supportedChannels: channels } : d))
+                    setDraft((d) => ({
+                      ...(d ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                      supportedChannels: channels,
+                    }))
                   }
                   onClearError={clearError}
                 />

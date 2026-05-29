@@ -243,7 +243,7 @@ export function ViewMode({
           <Spinner size="sm" color="primary.500" aria-label="Loading logo" />
         ) : isLogoError && !notFound ? (
           <Text fontSize="sm" color="error.500">
-            {t('common:toast.failedToLoad')}
+            {t('toast.failedToLoad', { ns: 'common' })}
           </Text>
         ) : logoUrl ? (
           <Box
