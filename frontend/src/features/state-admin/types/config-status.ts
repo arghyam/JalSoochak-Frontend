@@ -19,7 +19,6 @@ export type ConfigKey =
   | 'STATE_IT_SYSTEM_CONNECTION'
   | 'STATE_DATA_RECONCILIATION_TIME'
   | 'EMAIL_TEMPLATE_JSON'
-  | 'DISPLAY_DEPARTMENT_MAPS'
   | 'SUPPLY_OUTAGE_REASONS'
   | 'DISPLAY_MAP_LGD_LEVEL_1'
   | 'DISPLAY_MAP_LGD_LEVEL_2'
@@ -41,11 +40,12 @@ export interface ConfigStatusEntry {
 
 export type ConfigStatusMap = { [K in ConfigKey]?: ConfigStatusEntry }
 
-export type WizardStepId = 'configuration' | 'language' | 'waterNorms' | 'escalations'
+export type WizardStepId = 'hierarchy' | 'configuration' | 'language' | 'waterNorms' | 'escalations'
 
 export interface WizardStep {
   id: WizardStepId
   labelKey: string
   route: string
   keys: Array<keyof ConfigStatusMap>
+  alwaysConfigured?: boolean
 }

@@ -16,26 +16,30 @@ import {
 } from '@chakra-ui/react'
 import { SearchIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
-import { FiUpload } from 'react-icons/fi'
+import { FiDownload, FiUpload } from 'react-icons/fi'
 import { TbBroadcast } from 'react-icons/tb'
 import { TotalStaffIcon, PumpOperatorIcon, TotalAdminsIcon } from '../overview/overview-icons'
 import {
   DataTable,
   SearchableSelect,
   StatCard,
-  StatusChip,
   PageHeader,
+  ToastContainer,
+  TruncatedCell,
 } from '@/shared/components/common'
+import { useToast } from '@/shared/hooks/use-toast'
 import type { DataTableColumn } from '@/shared/components/common'
 import type { StaffMember, StaffRole, StaffStatus } from '../../types/staff-sync'
 import {
   useStaffListQuery,
   useStaffCountsQuery,
+  useGenerateStaffReportMutation,
 } from '../../services/query/use-state-admin-queries'
 import { useAuthStore } from '@/app/store/auth-store'
 import { useDebounce } from '@/shared/hooks/use-debounce'
 import { UploadStaffModal } from './upload-staff-modal'
 import { BroadcastModal } from './broadcast-modal'
+import { StaffActivityToggle } from './staff-activity-toggle'
 
 const DEFAULT_ROLES: StaffRole[] = ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER']
 const PAGE_SIZE = 10
@@ -50,6 +54,7 @@ const ROLE_DISPLAY: Record<StaffRole, string> = {
 
 export function StaffSyncPage() {
   const { t } = useTranslation(['state-admin', 'common'])
+  const toast = useToast()
   const tenantCode = useAuthStore((s) => s.user?.tenantCode ?? '')
 
   const [searchQuery, setSearchQuery] = useState('')
@@ -83,6 +88,38 @@ export function StaffSyncPage() {
 
   const { data, isLoading, isError, refetch } = useStaffListQuery(staffParams)
   const { data: counts, isLoading: countsLoading } = useStaffCountsQuery()
+  const { mutate: generateReport, isPending: isReportPending } = useGenerateStaffReportMutation()
+
+  const handleReport = () => {
+    generateReport(
+      {
+        roles: roleFilter ? [roleFilter] : DEFAULT_ROLES,
+        ...(statusFilter ? { status: statusFilter } : {}),
+      },
+      {
+        onSuccess: async ({ downloadUrl }) => {
+          // fetch → Blob URL so the download attribute is honoured on cross-origin URLs
+          try {
+            const res = await fetch(downloadUrl)
+            const blob = await res.blob()
+            const blobUrl = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = blobUrl
+            const ts = new Date().toISOString().replace(/[-:]/g, '').replace('T', '_').slice(0, 15)
+            a.download = `staff-report_${ts}.csv`
+            document.body.appendChild(a)
+            a.click()
+            a.remove()
+            URL.revokeObjectURL(blobUrl)
+          } catch {
+            window.open(downloadUrl, '_blank', 'noopener,noreferrer')
+          }
+          toast.success(t('staffSync.report.success'))
+        },
+        onError: () => toast.error(t('staffSync.report.error')),
+      }
+    )
+  }
 
   const roleOptions = useMemo(
     () => [
@@ -125,13 +162,10 @@ export function StaffSyncPage() {
       key: 'title',
       header: t('staffSync.table.name'),
       sortable: false,
-      width: '20%',
+      width: '25%',
       minWidth: '200px',
-      render: (row) => (
-        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
-          {row.title}
-        </Text>
-      ),
+      headerMaxLines: 2,
+      render: (row) => <TruncatedCell value={row.title} />,
     },
     {
       key: 'role',
@@ -139,11 +173,8 @@ export function StaffSyncPage() {
       sortable: false,
       width: '20%',
       minWidth: '200px',
-      render: (row) => (
-        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
-          {ROLE_DISPLAY[row.role] ?? row.role}
-        </Text>
-      ),
+      headerMaxLines: 2,
+      render: (row) => <TruncatedCell value={ROLE_DISPLAY[row.role] ?? row.role} />,
     },
     {
       key: 'phoneNumber',
@@ -151,18 +182,16 @@ export function StaffSyncPage() {
       sortable: false,
       width: '20%',
       minWidth: '200px',
-      render: (row) => (
-        <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
-          {row.phoneNumber}
-        </Text>
-      ),
+      headerMaxLines: 2,
+      render: (row) => <TruncatedCell value={row.phoneNumber} />,
     },
     {
       key: 'schemes',
       header: t('staffSync.table.schemes'),
       sortable: false,
-      width: '20%',
+      width: '25%',
       minWidth: '200px',
+      headerMaxLines: 2,
       render: (row) => {
         if (!row.schemes.length) {
           return (
@@ -173,11 +202,7 @@ export function StaffSyncPage() {
         }
         const first = row.schemes[0].schemeName
         if (row.schemes.length === 1) {
-          return (
-            <Text textStyle="h10" fontWeight="400" overflow="hidden" textOverflow="ellipsis">
-              {first}
-            </Text>
-          )
+          return <TruncatedCell value={first} />
         }
         return (
           <Popover trigger="hover" placement="top" isLazy openDelay={0} closeDelay={150}>
@@ -212,12 +237,16 @@ export function StaffSyncPage() {
       key: 'status',
       header: t('staffSync.table.activityStatus'),
       sortable: false,
-      width: '20%',
+      width: '10%',
       minWidth: '200px',
+      headerMaxLines: 2,
       render: (row) => (
-        <StatusChip
-          status={row.status === 'ACTIVE' ? 'active' : 'inactive'}
-          label={row.status === 'ACTIVE' ? t('common:status.active') : t('common:status.inactive')}
+        <StaffActivityToggle
+          staffId={row.id}
+          status={row.status}
+          tenantCode={tenantCode}
+          onSuccess={toast.success}
+          onError={toast.error}
         />
       ),
     },
@@ -259,7 +288,7 @@ export function StaffSyncPage() {
         py={3}
         px={{ base: 3, md: 6 }}
         gap={{ base: 3, md: 4 }}
-        flexDirection={{ base: 'column', sm: 'row' }}
+        flexDirection={{ base: 'column', xl: 'row' }}
         borderWidth="0.5px"
         borderColor="neutral.200"
         borderRadius="12px"
@@ -330,14 +359,35 @@ export function StaffSyncPage() {
           )}
         </Flex>
 
-        {/* Right: broadcast + upload */}
-        <Flex gap={2} flexShrink={0} w={{ base: 'full', sm: 'auto' }}>
+        {/* Right: reports + broadcast + upload */}
+        <Flex
+          gap={2}
+          flexShrink={0}
+          w={{ base: 'full', xl: 'auto' }}
+          flexDirection={{ base: 'column', sm: 'row' }}
+        >
           <Button
             variant="secondary"
             size="sm"
             fontWeight="600"
-            flex={{ base: 1, sm: 'none' }}
-            w={{ base: 'auto', sm: '147px' }}
+            w={{ base: 'full', sm: 'auto' }}
+            aria-label={t('staffSync.report.aria.download')}
+            onClick={handleReport}
+            isLoading={isReportPending}
+            loadingText={t('staffSync.report.button')}
+          >
+            <FiDownload
+              aria-hidden="true"
+              size={16}
+              style={{ marginRight: '4px', flexShrink: 0 }}
+            />
+            {t('staffSync.report.button')}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            fontWeight="600"
+            w={{ base: 'full', sm: 'auto' }}
             aria-label={t('staffSync.broadcast.aria.broadcast')}
             onClick={() => setIsBroadcastOpen(true)}
           >
@@ -352,8 +402,7 @@ export function StaffSyncPage() {
             variant="secondary"
             size="sm"
             fontWeight="600"
-            flex={{ base: 1, sm: 'none' }}
-            w={{ base: 'auto', sm: '147px' }}
+            w={{ base: 'full', sm: 'auto' }}
             aria-label={t('staffSync.aria.uploadData')}
             onClick={() => setIsUploadOpen(true)}
           >
@@ -419,6 +468,7 @@ export function StaffSyncPage() {
 
       <UploadStaffModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />
       <BroadcastModal isOpen={isBroadcastOpen} onClose={() => setIsBroadcastOpen(false)} />
+      <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </Box>
   )
 }

@@ -27,7 +27,6 @@ const minimalSaveConfigurationPayload: SaveConfigurationPayload = {
   meterChangeReasons: DEFAULT_METER_CHANGE_REASONS,
   supplyOutageReasons: DEFAULT_SUPPLY_OUTAGE_REASONS,
   locationCheckRequired: false,
-  displayDepartmentMaps: false,
   displayMapLgdLevels: [],
   displayDepartmentMapLevels: [],
   dataConsolidationTime: '09:00',
@@ -138,7 +137,6 @@ describe('stateAdminApi', () => {
           configs: expect.objectContaining({
             TENANT_SUPPORTED_CHANNELS: { channels: ['BFM'] },
             LOCATION_CHECK_REQUIRED: { value: 'NO' },
-            DISPLAY_DEPARTMENT_MAPS: { value: 'NO' },
           }),
         })
       )
@@ -276,6 +274,77 @@ describe('stateAdminApi', () => {
       const formData = mockedApiClient.post.mock.calls[0][1] as FormData
       expect(formData.get('file')).toBe(file)
     })
+
+    it('updateStaffStatus posts deactivate when status is INACTIVE', async () => {
+      mockedApiClient.post.mockResolvedValueOnce({} as never)
+      await stateAdminApi.updateStaffStatus(42, 'INACTIVE', 'TN')
+      expect(mockedApiClient.post).toHaveBeenCalledWith(
+        '/api/v1/tenant/user/staff/42/deactivate',
+        null,
+        { params: { tenantCode: 'TN' } }
+      )
+    })
+
+    it('updateStaffStatus posts activate when status is ACTIVE', async () => {
+      mockedApiClient.post.mockResolvedValueOnce({} as never)
+      await stateAdminApi.updateStaffStatus(42, 'ACTIVE', 'TN')
+      expect(mockedApiClient.post).toHaveBeenCalledWith(
+        '/api/v1/tenant/user/staff/42/activate',
+        null,
+        { params: { tenantCode: 'TN' } }
+      )
+    })
+
+    it('generateStaffReport POSTs with tenantCode query param and returns data', async () => {
+      const reportData = {
+        reportId: 'abc-123',
+        format: 'CSV',
+        generatedAt: '2026-05-20T00:00:00.000Z',
+        dataVersion: 1,
+        downloadUrl: 'https://minio.example.com/report.csv',
+        urlExpiresAt: '2026-05-20T01:00:00.000Z',
+        cached: false,
+      }
+      mockedApiClient.post.mockResolvedValueOnce({ data: { data: reportData } } as never)
+      const result = await stateAdminApi.generateStaffReport({
+        roles: ['PUMP_OPERATOR'],
+        status: 'ACTIVE',
+      })
+      expect(mockedApiClient.post).toHaveBeenCalledWith(
+        '/api/v1/tenant/user/staff/reports',
+        { roles: ['PUMP_OPERATOR'], status: 'ACTIVE' },
+        { params: { tenantCode: 'TN' } }
+      )
+      expect(result).toEqual(reportData)
+    })
+
+    it('generateStaffReport omits status when not provided', async () => {
+      const reportData = {
+        reportId: 'def-456',
+        format: 'CSV',
+        generatedAt: '2026-05-20T00:00:00.000Z',
+        dataVersion: 1,
+        downloadUrl: 'https://minio.example.com/report2.csv',
+        urlExpiresAt: '2026-05-20T01:00:00.000Z',
+        cached: true,
+      }
+      mockedApiClient.post.mockResolvedValueOnce({ data: { data: reportData } } as never)
+      await stateAdminApi.generateStaffReport({
+        roles: ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER'],
+      })
+      expect(mockedApiClient.post).toHaveBeenCalledWith(
+        '/api/v1/tenant/user/staff/reports',
+        { roles: ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER'] },
+        { params: { tenantCode: 'TN' } }
+      )
+    })
+
+    it('generateStaffReport throws when tenantCode is missing', async () => {
+      mockedGetState.mockReturnValueOnce({ user: { tenantId: '1', tenantCode: undefined } })
+      await expect(stateAdminApi.generateStaffReport({ roles: ['PUMP_OPERATOR'] })).rejects.toThrow(
+        'tenantCode unavailable'
+      )
+    })
   })
 
   describe('schemes', () => {
@@ -332,6 +401,26 @@ describe('stateAdminApi', () => {
       expect(formData.get('file')).toBe(file)
     })
 
+    it('updateSchemeStatus patches with schemeId, tenantCode param, and payload', async () => {
+      mockedApiClient.patch.mockResolvedValueOnce({})
+      await stateAdminApi.updateSchemeStatus(42, 'TN', { workStatus: 'Completed' })
+      expect(mockedApiClient.patch).toHaveBeenCalledWith(
+        '/api/v1/scheme/schemes/42/status',
+        { workStatus: 'Completed' },
+        { params: { tenantCode: 'TN' } }
+      )
+    })
+
+    it('updateSchemeStatus works with operatingStatus payload', async () => {
+      mockedApiClient.patch.mockResolvedValueOnce({})
+      await stateAdminApi.updateSchemeStatus(7, 'MH', { operatingStatus: 'Operative' })
+      expect(mockedApiClient.patch).toHaveBeenCalledWith(
+        '/api/v1/scheme/schemes/7/status',
+        { operatingStatus: 'Operative' },
+        { params: { tenantCode: 'MH' } }
+      )
+    })
+
     it('getSchemeMappingsList and uploadSchemeMappings', async () => {
       mockedApiClient.get.mockResolvedValueOnce({
         data: { content: [], totalElements: 0 },
@@ -354,6 +443,40 @@ describe('stateAdminApi', () => {
       )
       const formData = mockedApiClient.post.mock.calls[0][1] as FormData
       expect(formData.get('file')).toBe(file)
+    })
+
+    it('downloadSchemesReport GETs correct URL with X-Tenant-Code header and returns link', async () => {
+      mockedApiClient.get.mockResolvedValueOnce({
+        data: { link: 'https://minio.example.com/schemes.csv' },
+      } as never)
+      const result = await stateAdminApi.downloadSchemesReport()
+      expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/scheme/schemes/download', {
+        headers: { 'X-Tenant-Code': 'TN' },
+      })
+      expect(result).toBe('https://minio.example.com/schemes.csv')
+    })
+
+    it('downloadSchemesReport throws when tenantCode is missing', async () => {
+      mockedGetState.mockReturnValueOnce({ user: { tenantId: '1', tenantCode: undefined } })
+      await expect(stateAdminApi.downloadSchemesReport()).rejects.toThrow('tenantCode unavailable')
+    })
+
+    it('downloadSchemeMappingsReport GETs correct URL with X-Tenant-Code header and returns link', async () => {
+      mockedApiClient.get.mockResolvedValueOnce({
+        data: { link: 'https://minio.example.com/mappings.csv' },
+      } as never)
+      const result = await stateAdminApi.downloadSchemeMappingsReport()
+      expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/scheme/schemes/mappings/download', {
+        headers: { 'X-Tenant-Code': 'TN' },
+      })
+      expect(result).toBe('https://minio.example.com/mappings.csv')
+    })
+
+    it('downloadSchemeMappingsReport throws when tenantCode is missing', async () => {
+      mockedGetState.mockReturnValueOnce({ user: { tenantId: '1', tenantCode: undefined } })
+      await expect(stateAdminApi.downloadSchemeMappingsReport()).rejects.toThrow(
+        'tenantCode unavailable'
+      )
     })
   })
 
@@ -558,13 +681,14 @@ describe('stateAdminApi', () => {
         onboardedBefore: '2026-02-01',
       })
       expect(mockedApiClient.post).toHaveBeenCalledWith(
-        '/api/v1/tenant/user/welcome?tenantCode=TN',
+        '/api/v1/tenant/user/welcome',
         expect.objectContaining({
           roles: ['PUMP_OPERATOR'],
           type: 'EMAIL',
           onboardedAfter: '2026-01-01',
           onboardedBefore: '2026-02-01',
-        })
+        }),
+        { params: { tenantCode: 'TN' } }
       )
     })
 
@@ -598,6 +722,42 @@ describe('stateAdminApi', () => {
       expect(res.TENANT_LOGO).toEqual({ status: 'CONFIGURED', mandatory: false })
       expect('NOT_A_REAL_KEY' in res).toBe(false)
       expect(res.WATER_NORM).toBeUndefined()
+    })
+  })
+
+  describe('getTenantStatus', () => {
+    it('calls GET /api/v1/tenants with search param', async () => {
+      mockedApiClient.get.mockResolvedValueOnce({
+        data: { data: { content: [{ name: 'Assam', status: 'ONBOARDED' }] } },
+      } as never)
+      const result = await stateAdminApi.getTenantStatus('Assam')
+      expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/tenants', {
+        params: { search: 'Assam' },
+      })
+      expect(result).toBe('ONBOARDED')
+    })
+
+    it('returns null when content is empty', async () => {
+      mockedApiClient.get.mockResolvedValueOnce({
+        data: { data: { content: [] } },
+      })
+      const result = await stateAdminApi.getTenantStatus('Unknown')
+      expect(result).toBeNull()
+    })
+
+    it('returns status from tenant matched by name, not the first result', async () => {
+      mockedApiClient.get.mockResolvedValueOnce({
+        data: {
+          data: {
+            content: [
+              { name: 'Bihar', status: 'ACTIVE' },
+              { name: 'Assam', status: 'ONBOARDED' },
+            ],
+          },
+        },
+      })
+      const result = await stateAdminApi.getTenantStatus('Assam')
+      expect(result).toBe('ONBOARDED')
     })
   })
 })

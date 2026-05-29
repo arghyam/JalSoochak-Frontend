@@ -3,6 +3,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import { ROUTES } from '@/shared/constants/routes'
 import { MainLayout } from '@/shared/components/layout'
 import { SingleTenantGate } from './single-tenant-gate'
+import { FixReadingsPage } from '@/features/section-officer'
 import { ProtectedRoute, RedirectIfAuthenticated } from '@/shared/components/routing/ProtectedRoute'
 import { AUTH_ROLES } from '@/shared/constants/auth'
 import { NotFoundPage, LoadingSpinner } from '@/shared/components/common'
@@ -461,6 +462,10 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.STAFF_ESCALATIONS,
         element: <StaffEscalationsPage />,
+      },
+      {
+        path: ROUTES.STAFF_FIX_READINGS,
+        element: <FixReadingsPage />,
       },
     ],
   },

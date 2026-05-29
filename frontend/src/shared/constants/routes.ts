@@ -44,6 +44,7 @@ export const ROUTES = {
   STAFF_PUMP_OPERATORS_VIEW: '/staff/pump-operators/:operatorId',
   STAFF_ANOMALIES: '/staff/anomalies',
   STAFF_ESCALATIONS: '/staff/escalations',
+  STAFF_FIX_READINGS: '/staff/fix-readings',
   // Auth routes
   LOGIN: '/login',
   LOGOUT: '/logout',

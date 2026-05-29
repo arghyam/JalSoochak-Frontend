@@ -60,6 +60,7 @@ type GramPanchayatDashboardScreenProps = {
   onSchemePageChange?: (page: number) => void
   screenDateFormat?: string
   tableDateFormat?: string
+  isTimeViewEnabled?: boolean
 }
 
 type ViewBy = 'geography' | 'time'
@@ -99,11 +100,15 @@ export function GramPanchayatDashboardScreen({
   onSchemePageChange,
   screenDateFormat,
   tableDateFormat,
+  isTimeViewEnabled = true,
 }: GramPanchayatDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
   const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
+  const effectiveOutageDistributionViewBy = isTimeViewEnabled
+    ? outageDistributionViewBy
+    : 'geography'
   const outageDistributionTimeTrendData = useMemo(
     () => data.supplyOutageTrend ?? [],
     [data.supplyOutageTrend]
@@ -115,7 +120,7 @@ export function GramPanchayatDashboardScreen({
     isOutageDistributionSelectDisabled,
   } = useOutageDistributionState({
     waterSupplyOutagesData,
-    outageDistributionViewBy,
+    outageDistributionViewBy: effectiveOutageDistributionViewBy,
     waterSupplyOutageDistributionData,
     outageDistributionTimeTrendData,
   })
@@ -154,6 +159,7 @@ export function GramPanchayatDashboardScreen({
           selectColor="primary.500"
           selectBorderColor="primary.500"
           dateFormat={screenDateFormat ?? tableDateFormat}
+          isTimeViewEnabled={isTimeViewEnabled}
         />
         <PerformanceChartCard
           title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
@@ -182,6 +188,7 @@ export function GramPanchayatDashboardScreen({
           quantityTimeScaleTab={quantityTimeScaleTab}
           onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
           dateFormat={screenDateFormat ?? tableDateFormat}
+          isTimeViewEnabled={isTimeViewEnabled}
         />
       </Grid>
 
@@ -240,7 +247,8 @@ export function GramPanchayatDashboardScreen({
                 },
               }}
             >
-              {outageDistributionViewBy === 'time' &&
+              {effectiveOutageDistributionViewBy === 'time' &&
+              isTimeViewEnabled &&
               outageDistributionTimeScaleTab &&
               onOutageDistributionTimeScaleTabChange ? (
                 <OutageTimeScaleToggle
@@ -255,8 +263,11 @@ export function GramPanchayatDashboardScreen({
                 ariaLabel={t('outageAndSubmissionCharts.ariaViewByGramPanchayat', {
                   defaultValue: 'Gram panchayat supply outage distribution view by',
                 })}
-                value={outageDistributionViewBy}
+                value={effectiveOutageDistributionViewBy}
                 onChange={(value) => {
+                  if (value === 'time' && !isTimeViewEnabled) {
+                    return
+                  }
                   if (
                     value === 'time' &&
                     onOutageDistributionTimeScaleTabChange &&
@@ -269,6 +280,7 @@ export function GramPanchayatDashboardScreen({
                 color="primary.500"
                 borderColor="primary.500"
                 disabled={isOutageDistributionSelectDisabled}
+                isTimeOptionDisabled={!isTimeViewEnabled}
               />
             </Flex>
           </Flex>
@@ -278,7 +290,7 @@ export function GramPanchayatDashboardScreen({
             </Flex>
           ) : !hasOutageReasonsData ? (
             <ChartEmptyState minHeight="400px" />
-          ) : outageDistributionViewBy === 'geography' ? (
+          ) : effectiveOutageDistributionViewBy === 'geography' ? (
             hasGeographyData ? (
               <SupplyOutageDistributionChart
                 data={waterSupplyOutageDistributionData}

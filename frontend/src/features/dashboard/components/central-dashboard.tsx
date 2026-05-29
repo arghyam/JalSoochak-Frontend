@@ -64,6 +64,7 @@ import { computeTrailIndices } from '../utils/trail-index'
 import { slugify, toCapitalizedWords } from '../utils/format-location-label'
 import { parseStableLocationValue, toStableLocationValue } from '../utils/stable-location-value'
 import { localizeDepartmentHierarchyLabel, normalizeHierarchyLabel } from '../utils/hierarchy-label'
+import { useDashboardDefaultDateRange } from '../utils/default-duration'
 import {
   calculateAbsoluteChange,
   calculateAverageRegularityPercent,
@@ -334,19 +335,6 @@ const toIsoDate = (date?: string | Date | null, dateFormat?: string): string | u
   }
 
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-}
-
-const getDefaultAnalyticsDateRange = () => {
-  const today = new Date()
-  const endDate = new Date(today)
-  endDate.setDate(today.getDate() - 1)
-  const startDate = new Date(endDate)
-  startDate.setDate(endDate.getDate() - 29)
-
-  return {
-    startDate: toIsoDate(startDate) ?? '',
-    endDate: toIsoDate(endDate) ?? '',
-  }
 }
 
 const getStateLgdCode = (stateName?: string, stateCode?: string): number | undefined => {
@@ -700,6 +688,12 @@ export function CentralDashboard({
     storedFilters.selectedGramPanchayat ||
     storedFilters.selectedVillage
   )
+  const hasStoredLgdChildFilters = Boolean(
+    storedFilters.selectedDistrict ||
+    storedFilters.selectedBlock ||
+    storedFilters.selectedGramPanchayat ||
+    storedFilters.selectedVillage
+  )
   const hasStoredDepartmentFilters = Boolean(
     storedFilters.selectedDepartmentState ||
     storedFilters.selectedDepartmentZone ||
@@ -707,15 +701,19 @@ export function CentralDashboard({
     storedFilters.selectedDepartmentDivision ||
     storedFilters.selectedDepartmentSubdivision
   )
+  const hasRestorableStoredFilters = singleTenantOverride
+    ? hasStoredLgdChildFilters || hasStoredDepartmentFilters
+    : hasStoredLgdFilters || hasStoredDepartmentFilters
   const shouldHydrateFromStoredFilters =
-    !selectedState &&
+    (!selectedState || Boolean(singleTenantOverride)) &&
     !hasLgdParamsInUrl &&
     !hasDepartmentParamsInUrl &&
     !isAdministrativeTabFromUrl &&
-    (hasStoredLgdFilters || hasStoredDepartmentFilters)
+    hasRestorableStoredFilters
   const [selectedDuration, setSelectedDuration] = useState<DateRange | null>(() =>
     getInitialStoredDuration(storedFilters)
   )
+  const dashboardDefaultDuration = useDashboardDefaultDateRange()
   const [isMapFullscreen, setIsMapFullscreen] = useState(false)
   const [isMapRegularityView, setIsMapRegularityView] = useState(true)
   const [isMapDistrictView, setIsMapDistrictView] = useState(false)
@@ -1054,7 +1052,6 @@ export function CentralDashboard({
   )
   const hasResolvedTenantPublicConfig =
     !selectedTenant?.tenantId || (!isTenantPublicConfigLoading && !isTenantPublicConfigFetching)
-  const shouldShowDepartmentMaps = tenantPublicConfig?.displayDepartmentMaps !== false
   const lgdMapLevelVisibility = tenantPublicConfig?.displayMapLgdLevels ?? [
     true,
     true,
@@ -1091,7 +1088,7 @@ export function CentralDashboard({
   const isDepartmentMapEnabledForCurrentLevel =
     departmentMapLevelVisibility[currentDepartmentMapLevel - 1] !== false
   const shouldShowMapAlongsidePerformance = isDepartmentTabActive
-    ? shouldShowDepartmentMaps && isDepartmentMapEnabledForCurrentLevel
+    ? isDepartmentMapEnabledForCurrentLevel
     : isLgdMapEnabledForCurrentLevel
   const shouldFetchTenantBoundaryGeoJson =
     hasResolvedTenantPublicConfig && shouldShowMapAlongsidePerformance
@@ -1292,7 +1289,7 @@ export function CentralDashboard({
     hierarchyType === 'LGD' ? lgdAnalyticsParentId : departmentAnalyticsParentId
   const hasValidSubmissionStatusParentId =
     hierarchyType === 'LGD' ? hasValidAnalyticsParentId : hasValidDepartmentAnalyticsParentId
-  const defaultAnalyticsRange = getDefaultAnalyticsDateRange()
+  const defaultAnalyticsRange = dashboardDefaultDuration
   const analyticsDateRange = {
     startDate:
       toIsoDate(effectiveSelectedDuration?.startDate, durationDateFormat) ??
@@ -1301,6 +1298,9 @@ export function CentralDashboard({
       toIsoDate(effectiveSelectedDuration?.endDate, durationDateFormat) ??
       defaultAnalyticsRange.endDate,
   }
+  const isTimeViewEnabled =
+    resolveDaysInRange(undefined, analyticsDateRange.startDate, analyticsDateRange.endDate) > 1
+  const shouldFetchPerformanceTimeAnalytics = isTimeViewEnabled || isHierarchyLeafSelected
   const schemePerformanceResetKey = `${analyticsParentId}|${analyticsDateRange.startDate}|${analyticsDateRange.endDate}`
   const schemePerformancePage =
     schemePerformancePagination.key === schemePerformanceResetKey
@@ -1331,7 +1331,7 @@ export function CentralDashboard({
           scale: selectedQuantityApiScale,
         }
   const regularityPeriodicAnalyticsParams =
-    !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+    !shouldFetchPerformanceTimeAnalytics || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
@@ -1361,13 +1361,14 @@ export function CentralDashboard({
         endDate: analyticsDateRange.endDate,
         scale: selectedQuantityApiScale,
       }
-  const nationalRegularityPeriodAnalyticsParams = hasCentralLandingFilters
-    ? null
-    : {
-        startDate: analyticsDateRange.startDate,
-        endDate: analyticsDateRange.endDate,
-        scale: selectedRegularityApiScale,
-      }
+  const nationalRegularityPeriodAnalyticsParams =
+    hasCentralLandingFilters || !isTimeViewEnabled
+      ? null
+      : {
+          startDate: analyticsDateRange.startDate,
+          endDate: analyticsDateRange.endDate,
+          scale: selectedRegularityApiScale,
+        }
   const analyticsParams =
     isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
@@ -1578,7 +1579,10 @@ export function CentralDashboard({
             parentDepartmentId: analyticsParentId,
           }
   const outageReasonsPeriodicAnalyticsParams =
-    isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+    !isTimeViewEnabled ||
+    isHierarchyLeafSelected ||
+    !selectedTenant?.tenantId ||
+    !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
@@ -1615,14 +1619,6 @@ export function CentralDashboard({
       ? null
       : {
           ...analyticsParams,
-          startDate: previousAnalyticsRange.startDate,
-          endDate: previousAnalyticsRange.endDate,
-        }
-  const previousCriticalSchemesAnalyticsParams =
-    criticalSchemesAnalyticsParams === null
-      ? null
-      : {
-          ...criticalSchemesAnalyticsParams,
           startDate: previousAnalyticsRange.startDate,
           endDate: previousAnalyticsRange.endDate,
         }
@@ -1797,10 +1793,6 @@ export function CentralDashboard({
   const { data: continuousSchemesData } = useContinuousSchemesQuery({
     params: continuousSchemesAnalyticsParams,
     enabled: Boolean(continuousSchemesAnalyticsParams),
-  })
-  const { data: previousCriticalSchemesData } = useCriticalSchemesQuery({
-    params: previousCriticalSchemesAnalyticsParams,
-    enabled: Boolean(previousCriticalSchemesAnalyticsParams),
   })
   const { data: previousContinuousSchemesData } = useContinuousSchemesQuery({
     params: previousContinuousSchemesAnalyticsParams,
@@ -3130,7 +3122,6 @@ export function CentralDashboard({
   const continuousSchemesCount = continuousSchemesData?.continuousSchemeCount ?? 0
   const previousContinuousSchemesCount = previousContinuousSchemesData?.continuousSchemeCount ?? 0
   const criticalSchemesCount = criticalSchemesData?.criticalSchemeCount ?? 0
-  const previousCriticalSchemesCount = previousCriticalSchemesData?.criticalSchemeCount ?? 0
   const quantityLpcdChange = calculateAbsoluteChange(
     currentWaterSupplyKpis.quantityLpcd,
     previousWaterSupplyKpis.quantityLpcd
@@ -3364,10 +3355,10 @@ export function CentralDashboard({
     {
       label: t('kpi.labels.criticalSchemes', { defaultValue: 'Critical Schemes' }),
       value: formatNumber(criticalSchemesCount),
-      trend: buildCountPercentTrend(criticalSchemesCount, previousCriticalSchemesCount),
+      trend: undefined,
       tooltipContent: t('kpi.tooltips.criticalSchemes.description', {
         days: criticalSchemeStatusAfterDays,
-        defaultValue: 'Schemes identified as failing to supply water, based on {{days}} days.',
+        defaultValue: 'Schemes identified as failing to supply water for the last {{days}} days.',
       }),
     },
   ] as const
@@ -3643,6 +3634,7 @@ export function CentralDashboard({
         screenDateFormat={screenDateFormat}
         tableDateFormat={tableDateFormat}
         enableExtendedTimeScales
+        isTimeViewEnabled={isTimeViewEnabled}
       />
     </Box>
   )

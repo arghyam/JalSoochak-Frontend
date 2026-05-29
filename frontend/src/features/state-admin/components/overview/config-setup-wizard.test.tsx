@@ -31,7 +31,6 @@ function buildConfiguredMap(): ConfigStatusMap {
     TENANT_LOGO: { status: 'CONFIGURED', mandatory: false },
     DATE_FORMAT_SCREEN: { status: 'CONFIGURED', mandatory: true },
     DATE_FORMAT_TABLE: { status: 'CONFIGURED', mandatory: true },
-    DISPLAY_DEPARTMENT_MAPS: { status: 'CONFIGURED', mandatory: true },
     SUPPLY_OUTAGE_REASONS: { status: 'CONFIGURED', mandatory: true },
     SUPPORTED_LANGUAGES: { status: 'CONFIGURED', mandatory: true },
     WATER_NORM: { status: 'CONFIGURED', mandatory: true },
@@ -65,6 +64,21 @@ describe('ConfigSetupWizard', () => {
     expect(screen.getByText(/failed to load/i)).toBeInTheDocument()
   })
 
+  it('renders hierarchy node as first step and always configured (green)', async () => {
+    mockUseConfigStatusQuery.mockReturnValue({
+      data: {},
+      isLoading: false,
+      isError: false,
+    })
+    renderWithProviders(<ConfigSetupWizard />)
+    // Hierarchy is step 1 (index 0) and always configured regardless of config map
+    const hierarchyBtn = await screen.findByRole('button', { name: /hierarchy/i })
+    expect(hierarchyBtn).toBeInTheDocument()
+    // connector-0 follows hierarchy (always configured) -> green
+    const connector0 = screen.getByTestId('vertical-connector-0')
+    expect(connector0).toHaveAttribute('data-configured', 'true')
+  })
+
   it('renders steps and navigates when a step is activated', async () => {
     mockUseConfigStatusQuery.mockReturnValue({
       data: buildConfiguredMap(),
@@ -80,7 +94,7 @@ describe('ConfigSetupWizard', () => {
     expect(mockNavigate).toHaveBeenCalledWith(ROUTES.STATE_ADMIN_CONFIGURATION)
   })
 
-  it('renders green connectors when previous step is configured', () => {
+  it('renders green connectors when all steps are configured', () => {
     mockUseConfigStatusQuery.mockReturnValue({
       data: buildConfiguredMap(),
       isLoading: false,
@@ -88,25 +102,24 @@ describe('ConfigSetupWizard', () => {
     })
     renderWithProviders(<ConfigSetupWizard />)
 
-    // Verify all steps render when all are configured
+    // All 5 steps render
+    expect(screen.getByRole('button', { name: /hierarchy/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /configuration/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /language/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /water norms/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /escalations/i })).toBeInTheDocument()
 
-    // Verify vertical connectors are rendered (visible on mobile)
-    // When all steps are configured, all connectors should pass configured=true
-    const verticalConnector0 = screen.getByTestId('vertical-connector-0')
-    const verticalConnector1 = screen.getByTestId('vertical-connector-1')
-    const verticalConnector2 = screen.getByTestId('vertical-connector-2')
-
-    expect(verticalConnector0).toBeInTheDocument()
-    expect(verticalConnector1).toBeInTheDocument()
-    expect(verticalConnector2).toBeInTheDocument()
+    // 4 connectors (between 5 steps), all green
+    for (let i = 0; i < 4; i++) {
+      expect(screen.getByTestId(`vertical-connector-${i}`)).toHaveAttribute(
+        'data-configured',
+        'true'
+      )
+    }
   })
 
   it('renders gray connectors when previous step is not configured', () => {
-    // Only Configuration step fully configured; rest are pending
+    // Hierarchy (always configured) + Configuration configured; rest pending
     const partialConfig: ConfigStatusMap = {
       TENANT_SUPPORTED_CHANNELS: { status: 'CONFIGURED', mandatory: true },
       METER_CHANGE_REASONS: { status: 'CONFIGURED', mandatory: true },
@@ -117,7 +130,6 @@ describe('ConfigSetupWizard', () => {
       TENANT_LOGO: { status: 'CONFIGURED', mandatory: false },
       DATE_FORMAT_SCREEN: { status: 'CONFIGURED', mandatory: true },
       DATE_FORMAT_TABLE: { status: 'CONFIGURED', mandatory: true },
-      DISPLAY_DEPARTMENT_MAPS: { status: 'CONFIGURED', mandatory: true },
       SUPPLY_OUTAGE_REASONS: { status: 'CONFIGURED', mandatory: true },
       SUPPORTED_LANGUAGES: { status: 'PENDING', mandatory: true },
       WATER_NORM: { status: 'PENDING', mandatory: true },
@@ -132,27 +144,19 @@ describe('ConfigSetupWizard', () => {
     })
 
     renderWithProviders(<ConfigSetupWizard />)
-    expect(screen.getByRole('button', { name: /configuration/i })).toBeInTheDocument()
 
-    // Vertical connector `i` is rendered after step `i`
-    // (it visually connects step `i` to step `i + 1`), so its color reflects
-    // whether step `i` is configured.
-    //
-    // Here, only Configuration is configured.
-    const verticalConnector0 = screen.getByTestId('vertical-connector-0')
-    expect(verticalConnector0).toHaveAttribute('data-configured', 'true')
-
-    // After Language (pending) -> gray
-    const verticalConnector1 = screen.getByTestId('vertical-connector-1')
-    expect(verticalConnector1).toHaveAttribute('data-configured', 'false')
-
-    // After Water Norms (pending) -> gray
-    const verticalConnector2 = screen.getByTestId('vertical-connector-2')
-    expect(verticalConnector2).toHaveAttribute('data-configured', 'false')
+    // connector-0: after Hierarchy (always configured) -> green
+    expect(screen.getByTestId('vertical-connector-0')).toHaveAttribute('data-configured', 'true')
+    // connector-1: after Configuration (configured) -> green
+    expect(screen.getByTestId('vertical-connector-1')).toHaveAttribute('data-configured', 'true')
+    // connector-2: after Language (pending) -> gray
+    expect(screen.getByTestId('vertical-connector-2')).toHaveAttribute('data-configured', 'false')
+    // connector-3: after Water Norms (pending) -> gray
+    expect(screen.getByTestId('vertical-connector-3')).toHaveAttribute('data-configured', 'false')
   })
 
-  it('connector turns green only when previous step is configured, not when current step is', () => {
-    // Configuration and Language configured, but not Water Norms or Escalations
+  it('connector turns green only when previous step is configured', () => {
+    // Hierarchy + Configuration + Language configured; Water Norms + Escalations pending
     const partialConfig: ConfigStatusMap = {
       TENANT_SUPPORTED_CHANNELS: { status: 'CONFIGURED', mandatory: true },
       METER_CHANGE_REASONS: { status: 'CONFIGURED', mandatory: true },
@@ -163,7 +167,6 @@ describe('ConfigSetupWizard', () => {
       TENANT_LOGO: { status: 'CONFIGURED', mandatory: false },
       DATE_FORMAT_SCREEN: { status: 'CONFIGURED', mandatory: true },
       DATE_FORMAT_TABLE: { status: 'CONFIGURED', mandatory: true },
-      DISPLAY_DEPARTMENT_MAPS: { status: 'CONFIGURED', mandatory: true },
       SUPPLY_OUTAGE_REASONS: { status: 'CONFIGURED', mandatory: true },
       SUPPORTED_LANGUAGES: { status: 'CONFIGURED', mandatory: true },
       WATER_NORM: { status: 'PENDING', mandatory: true },
@@ -179,23 +182,13 @@ describe('ConfigSetupWizard', () => {
 
     renderWithProviders(<ConfigSetupWizard />)
 
-    // Verify all steps render
-    expect(screen.getByRole('button', { name: /configuration/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /language/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /water norms/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /escalations/i })).toBeInTheDocument()
-
-    // Verify connector state: connector `i` reflects step `i` (the step it follows)
-    // vertical-connector-0: after Configuration (configured) -> green
-    const verticalConnector0 = screen.getByTestId('vertical-connector-0')
-    expect(verticalConnector0).toHaveAttribute('data-configured', 'true')
-
-    // vertical-connector-1: after Language (configured) -> green
-    const verticalConnector1 = screen.getByTestId('vertical-connector-1')
-    expect(verticalConnector1).toHaveAttribute('data-configured', 'true')
-
-    // vertical-connector-2: after Water Norms (pending) -> gray
-    const verticalConnector2 = screen.getByTestId('vertical-connector-2')
-    expect(verticalConnector2).toHaveAttribute('data-configured', 'false')
+    // connector-0: after Hierarchy (always configured) -> green
+    expect(screen.getByTestId('vertical-connector-0')).toHaveAttribute('data-configured', 'true')
+    // connector-1: after Configuration (configured) -> green
+    expect(screen.getByTestId('vertical-connector-1')).toHaveAttribute('data-configured', 'true')
+    // connector-2: after Language (configured) -> green
+    expect(screen.getByTestId('vertical-connector-2')).toHaveAttribute('data-configured', 'true')
+    // connector-3: after Water Norms (pending) -> gray
+    expect(screen.getByTestId('vertical-connector-3')).toHaveAttribute('data-configured', 'false')
   })
 })

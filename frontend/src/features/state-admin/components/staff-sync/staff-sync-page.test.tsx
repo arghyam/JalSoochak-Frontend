@@ -1,4 +1,4 @@
-import { screen, fireEvent, act } from '@testing-library/react'
+import { screen, fireEvent, act, waitFor } from '@testing-library/react'
 import { describe, expect, it, jest, beforeEach } from '@jest/globals'
 import { StaffSyncPage, DEBOUNCE_DELAY_MS } from './staff-sync-page'
 import { renderWithProviders } from '@/test/render-with-providers'
@@ -18,12 +18,18 @@ const mockUseStaffListQuery = jest.fn()
 const mockUseStaffCountsQuery = jest.fn()
 const mockUseUploadMutation = jest.fn()
 const mockUseBroadcastMutation = jest.fn()
+const mockUseReportMutation = jest.fn()
 
 jest.mock('../../services/query/use-state-admin-queries', () => ({
   useStaffListQuery: () => mockUseStaffListQuery(),
   useStaffCountsQuery: () => mockUseStaffCountsQuery(),
   useUploadPumpOperatorsMutation: () => mockUseUploadMutation(),
   useBroadcastWelcomeMessageMutation: () => mockUseBroadcastMutation(),
+  useGenerateStaffReportMutation: () => mockUseReportMutation(),
+  useUpdateStaffStatusMutation: () => ({
+    mutateAsync: jest.fn(),
+    isPending: false,
+  }),
 }))
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -114,6 +120,10 @@ describe('StaffSyncPage', () => {
       mutate: jest.fn(),
       isPending: false,
     })
+    mockUseReportMutation.mockReturnValue({
+      mutate: jest.fn(),
+      isPending: false,
+    })
   })
 
   // ── Basic render ────────────────────────────────────────────────────────────
@@ -196,6 +206,15 @@ describe('StaffSyncPage', () => {
   it('renders dash for staff with no schemes', () => {
     renderWithProviders(<StaffSyncPage />)
     expect(screen.getByText('—')).toBeTruthy()
+  })
+
+  it('renders activity status toggles for each staff row', () => {
+    renderWithProviders(<StaffSyncPage />)
+    const toggles = screen.getAllByRole('checkbox')
+    expect(toggles).toHaveLength(3)
+    expect((toggles[0] as HTMLInputElement).checked).toBe(true)
+    expect((toggles[1] as HTMLInputElement).checked).toBe(false)
+    expect((toggles[2] as HTMLInputElement).checked).toBe(true)
   })
 
   // ── Toolbar ─────────────────────────────────────────────────────────────────
@@ -284,5 +303,91 @@ describe('StaffSyncPage', () => {
     renderWithProviders(<StaffSyncPage />)
     fireEvent.click(screen.getByText('Upload Data'))
     expect(screen.getByRole('dialog')).toBeTruthy()
+  })
+
+  // ── Reports button ───────────────────────────────────────────────────────────
+
+  it('renders Reports button', () => {
+    renderWithProviders(<StaffSyncPage />)
+    expect(screen.getByText('Reports')).toBeTruthy()
+  })
+
+  it('calls generateReport with all default roles and no status when no filters are active', () => {
+    const mockMutate = jest.fn()
+    mockUseReportMutation.mockReturnValue({ mutate: mockMutate, isPending: false })
+    renderWithProviders(<StaffSyncPage />)
+    fireEvent.click(screen.getByText('Reports'))
+    expect(mockMutate).toHaveBeenCalledWith(
+      { roles: ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER'] },
+      expect.any(Object)
+    )
+  })
+
+  it('calls generateReport with single role when role filter is set', () => {
+    const mockMutate = jest.fn()
+    mockUseReportMutation.mockReturnValue({ mutate: mockMutate, isPending: false })
+    renderWithProviders(<StaffSyncPage />)
+    fireEvent.click(screen.getByRole('combobox', { name: 'Role' }))
+    fireEvent.click(screen.getByRole('option', { name: 'Pump Operator' }))
+    fireEvent.click(screen.getByText('Reports'))
+    expect(mockMutate).toHaveBeenCalledWith({ roles: ['PUMP_OPERATOR'] }, expect.any(Object))
+  })
+
+  it('calls generateReport with status when status filter is set', () => {
+    const mockMutate = jest.fn()
+    mockUseReportMutation.mockReturnValue({ mutate: mockMutate, isPending: false })
+    renderWithProviders(<StaffSyncPage />)
+    fireEvent.click(screen.getByRole('combobox', { name: 'Status' }))
+    fireEvent.click(screen.getByRole('option', { name: 'Active' }))
+    fireEvent.click(screen.getByText('Reports'))
+    const [payload] = mockMutate.mock.calls[0] as [{ status?: string }]
+    expect(payload.status).toBe('ACTIVE')
+  })
+
+  it('triggers file download on report success', async () => {
+    ;(globalThis as { fetch: unknown }).fetch = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        blob: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve(new Blob(['csv'], { type: 'text/csv' }))),
+      })
+    )
+    ;(URL as { createObjectURL: unknown }).createObjectURL = jest
+      .fn()
+      .mockReturnValue('blob:mock-report-url')
+    ;(URL as { revokeObjectURL: unknown }).revokeObjectURL = jest.fn()
+
+    const mockMutate = jest.fn(
+      (_, callbacks: { onSuccess: (d: { downloadUrl: string }) => void }) => {
+        callbacks.onSuccess({ downloadUrl: 'https://example.com/report.csv' })
+      }
+    )
+    mockUseReportMutation.mockReturnValue({ mutate: mockMutate, isPending: false })
+
+    const clickSpy = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    const appendSpy = jest.spyOn(document.body, 'appendChild')
+
+    renderWithProviders(<StaffSyncPage />)
+    fireEvent.click(screen.getByText('Reports'))
+
+    await waitFor(() => expect(URL.createObjectURL).toHaveBeenCalled())
+
+    const anchor = appendSpy.mock.calls
+      .map((c) => c[0] as HTMLElement)
+      .find((el) => el.tagName === 'A') as HTMLAnchorElement | undefined
+
+    expect(anchor).toBeDefined()
+    expect(anchor!.download).toMatch(/^staff-report_\d{8}_\d{6}\.csv$/)
+    expect(clickSpy).toHaveBeenCalled()
+    expect(globalThis.fetch).toHaveBeenCalledWith('https://example.com/report.csv')
+
+    clickSpy.mockRestore()
+    appendSpy.mockRestore()
+  })
+
+  it('shows Reports button in loading state while report is pending', () => {
+    mockUseReportMutation.mockReturnValue({ mutate: jest.fn(), isPending: true })
+    renderWithProviders(<StaffSyncPage />)
+    expect(screen.getByLabelText('Download staff report')).toBeTruthy()
   })
 })

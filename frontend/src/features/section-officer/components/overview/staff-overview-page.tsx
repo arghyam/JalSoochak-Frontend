@@ -137,6 +137,7 @@ export function StaffOverviewPage() {
             isFilter
             popoverPlacement="bottom-end"
             value={dateRange}
+            width="180px"
             onChange={(next) => {
               if (next) setDateRange(next)
             }}

@@ -7,11 +7,13 @@ import {
   type SaveLanguageConfigurationPayload,
   type SaveWaterNormsConfigurationPayload,
 } from '../api/state-admin-api'
+import type { StaffReportPayload } from '../../types/staff-sync'
 import type { SaveEscalationRulesPayload } from '../../types/escalation-rules'
 import type { HierarchyLevel } from '../../types/hierarchy'
 import { stateAdminQueryKeys } from './state-admin-query-keys'
 import { useAuthStore } from '@/app/store/auth-store'
 import type { StateUTAdmin } from '../../types/state-ut-admins'
+import type { UpdateSchemeStatusPayload } from '../../types/scheme-sync'
 
 export function useStaffCountsQuery() {
   return useQuery({
@@ -98,6 +100,29 @@ export function useUploadPumpOperatorsMutation() {
   return useMutation({
     mutationFn: ({ file, tenantCode }: { file: File; tenantCode: string }) =>
       stateAdminApi.uploadPumpOperators(file, tenantCode),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: [...stateAdminQueryKeys.all, 'staff-list'],
+      })
+      await queryClient.invalidateQueries({
+        queryKey: stateAdminQueryKeys.staffCounts(),
+      })
+    },
+  })
+}
+
+export function useUpdateStaffStatusMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      id,
+      status,
+      tenantCode,
+    }: {
+      id: number
+      status: 'ACTIVE' | 'INACTIVE'
+      tenantCode: string
+    }) => stateAdminApi.updateStaffStatus(id, status, tenantCode),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: [...stateAdminQueryKeys.all, 'staff-list'],
@@ -340,6 +365,29 @@ export function useUploadSchemesMutation() {
   })
 }
 
+export function useUpdateSchemeStatusMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      schemeId,
+      tenantCode,
+      payload,
+    }: {
+      schemeId: number
+      tenantCode: string
+      payload: UpdateSchemeStatusPayload
+    }) => stateAdminApi.updateSchemeStatus(schemeId, tenantCode, payload),
+    onSuccess: async (_data, variables) => {
+      await queryClient.invalidateQueries({
+        queryKey: [...stateAdminQueryKeys.all, 'scheme-list'],
+      })
+      await queryClient.invalidateQueries({
+        queryKey: stateAdminQueryKeys.schemeCounts(variables.tenantCode),
+      })
+    },
+  })
+}
+
 export function useSchemeMappingsListQuery(
   params: Parameters<typeof stateAdminApi.getSchemeMappingsList>[0]
 ) {
@@ -360,6 +408,22 @@ export function useUploadSchemeMappingsMutation() {
         queryKey: [...stateAdminQueryKeys.all, 'scheme-mappings-list'],
       })
     },
+  })
+}
+
+export function useDownloadSchemesReportMutation() {
+  return useMutation({ mutationFn: () => stateAdminApi.downloadSchemesReport() })
+}
+
+export function useDownloadSchemeMappingsReportMutation() {
+  return useMutation({ mutationFn: () => stateAdminApi.downloadSchemeMappingsReport() })
+}
+
+export function useTenantStatusQuery(tenantName: string) {
+  return useQuery({
+    queryKey: stateAdminQueryKeys.tenantStatus(tenantName),
+    queryFn: () => stateAdminApi.getTenantStatus(tenantName),
+    enabled: Boolean(tenantName),
   })
 }
 
@@ -400,6 +464,12 @@ export function useBroadcastWelcomeMessageMutation() {
   return useMutation({
     mutationFn: (payload: BroadcastWelcomePayload) =>
       stateAdminApi.broadcastWelcomeMessage(payload),
+  })
+}
+
+export function useGenerateStaffReportMutation() {
+  return useMutation({
+    mutationFn: (payload: StaffReportPayload) => stateAdminApi.generateStaffReport(payload),
   })
 }
 

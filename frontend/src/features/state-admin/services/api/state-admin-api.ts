@@ -7,8 +7,18 @@ import type { IntegrationConfiguration } from '../../types/integration'
 import type { LanguageConfiguration } from '../../types/language'
 import type { StaffCountsData } from '../../types/overview'
 import type { StateUTAdmin, UpdateStateUTAdminInput } from '../../types/state-ut-admins'
-import type { StaffListParams, StaffListResponse } from '../../types/staff-sync'
-import type { SchemeCounts, SchemeListParams, SchemeListResponse } from '../../types/scheme-sync'
+import type {
+  StaffListParams,
+  StaffListResponse,
+  StaffReportPayload,
+  StaffReportData,
+} from '../../types/staff-sync'
+import type {
+  SchemeCounts,
+  SchemeListParams,
+  SchemeListResponse,
+  UpdateSchemeStatusPayload,
+} from '../../types/scheme-sync'
 import type {
   SchemeMappingListParams,
   SchemeMappingListResponse,
@@ -21,6 +31,7 @@ import type {
   ApiHierarchyResponse,
 } from '../../types/hierarchy'
 import type { ConfigKey, ConfigKeyStatus, ConfigStatusMap } from '../../types/config-status'
+import type { TenantApiResponse, TenantStatus } from '@/features/super-admin/types/states-uts'
 import {
   mapApiHierarchyToLevels,
   mapLevelsToApiPayload,
@@ -107,7 +118,6 @@ const CONFIGURATION_KEYS = [
   'METER_CHANGE_REASONS',
   'SUPPLY_OUTAGE_REASONS',
   'LOCATION_CHECK_REQUIRED',
-  'DISPLAY_DEPARTMENT_MAPS',
   'DISPLAY_MAP_LGD_LEVEL_1',
   'DISPLAY_MAP_LGD_LEVEL_2',
   'DISPLAY_MAP_LGD_LEVEL_3',
@@ -329,6 +339,17 @@ export const stateAdminApi = {
     })
   },
 
+  updateStaffStatus: async (
+    id: number,
+    status: 'ACTIVE' | 'INACTIVE',
+    tenantCode: string
+  ): Promise<void> => {
+    const action = status === 'INACTIVE' ? 'deactivate' : 'activate'
+    await apiClient.post(`/api/v1/tenant/user/staff/${id}/${action}`, null, {
+      params: { tenantCode },
+    })
+  },
+
   // --- Real HTTP: Scheme Counts ---
   getSchemeCounts: async (tenantCode: string): Promise<SchemeCounts> => {
     const response = await apiClient.get<SchemeCounts>('/api/v1/scheme/schemes/counts/by-status', {
@@ -372,6 +393,17 @@ export const stateAdminApi = {
     })
   },
 
+  // --- Real HTTP: Update Scheme Status ---
+  updateSchemeStatus: async (
+    schemeId: number,
+    tenantCode: string,
+    payload: UpdateSchemeStatusPayload
+  ): Promise<void> => {
+    await apiClient.patch(`/api/v1/scheme/schemes/${schemeId}/status`, payload, {
+      params: { tenantCode },
+    })
+  },
+
   // --- Real HTTP: Scheme Mappings List ---
   getSchemeMappingsList: async (
     params: SchemeMappingListParams
@@ -408,6 +440,25 @@ export const stateAdminApi = {
         'X-Tenant-Code': tenantCode,
       },
     })
+  },
+
+  downloadSchemesReport: async (): Promise<string> => {
+    const tenantCode = useAuthStore.getState().user?.tenantCode
+    if (!tenantCode) throw new Error('tenantCode unavailable — user not authenticated')
+    const response = await apiClient.get<{ link: string }>('/api/v1/scheme/schemes/download', {
+      headers: { 'X-Tenant-Code': tenantCode },
+    })
+    return response.data.link
+  },
+
+  downloadSchemeMappingsReport: async (): Promise<string> => {
+    const tenantCode = useAuthStore.getState().user?.tenantCode
+    if (!tenantCode) throw new Error('tenantCode unavailable — user not authenticated')
+    const response = await apiClient.get<{ link: string }>(
+      '/api/v1/scheme/schemes/mappings/download',
+      { headers: { 'X-Tenant-Code': tenantCode } }
+    )
+    return response.data.link
   },
 
   // --- Real HTTP: State/UT Admins ---
@@ -552,11 +603,23 @@ export const stateAdminApi = {
     }
   },
 
+  // --- Real HTTP: Staff Report ---
+  generateStaffReport: async (payload: StaffReportPayload): Promise<StaffReportData> => {
+    const tenantCode = useAuthStore.getState().user?.tenantCode
+    if (!tenantCode) throw new Error('tenantCode unavailable — user not authenticated')
+    const response = await apiClient.post<ApiEnvelope<StaffReportData>>(
+      `/api/v1/tenant/user/staff/reports`,
+      payload,
+      { params: { tenantCode } }
+    )
+    return response.data.data
+  },
+
   // --- Real HTTP: Broadcast Welcome Message ---
   broadcastWelcomeMessage: async (payload: BroadcastWelcomePayload): Promise<void> => {
     const tenantCode = useAuthStore.getState().user?.tenantCode
     if (!tenantCode) throw new Error('tenantCode unavailable — user not authenticated')
-    await apiClient.post(`/api/v1/tenant/user/welcome?tenantCode=${tenantCode}`, payload)
+    await apiClient.post(`/api/v1/tenant/user/welcome`, payload, { params: { tenantCode } })
   },
 
   // --- Real HTTP: API Token ---
@@ -593,7 +656,6 @@ export const stateAdminApi = {
       'STATE_IT_SYSTEM_CONNECTION',
       'STATE_DATA_RECONCILIATION_TIME',
       'EMAIL_TEMPLATE_JSON',
-      'DISPLAY_DEPARTMENT_MAPS',
       'DISPLAY_MAP_LGD_LEVEL_1',
       'DISPLAY_MAP_LGD_LEVEL_2',
       'DISPLAY_MAP_LGD_LEVEL_3',
@@ -618,5 +680,17 @@ export const stateAdminApi = {
       }
     }
     return result
+  },
+
+  // --- Real HTTP: Tenant Status ---
+  getTenantStatus: async (tenantName: string): Promise<TenantStatus | null> => {
+    const response = await apiClient.get<{
+      data: { content: TenantApiResponse[] }
+    }>('/api/v1/tenants', { params: { search: tenantName } })
+    const normalizedName = tenantName.trim().toLowerCase()
+    const match = response.data.data.content.find(
+      (tenant) => tenant.name.trim().toLowerCase() === normalizedName
+    )
+    return match?.status ?? null
   },
 }
