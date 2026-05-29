@@ -14,19 +14,19 @@ export function useSchemesCountQuery() {
   })
 }
 
-export function useOutageReasonsQuery(startDate: string, endDate: string) {
+export function useOutageReasonsQuery(startDate: string, endDate: string, enabled = true) {
   return useQuery({
     queryKey: sectionOfficerQueryKeys.outageReasons(startDate, endDate),
     queryFn: () => overviewApi.getOutageReasons(startDate, endDate),
-    enabled: Boolean(startDate) && Boolean(endDate),
+    enabled: enabled && Boolean(startDate) && Boolean(endDate),
   })
 }
 
-export function useNonSubmissionReasonsQuery(startDate: string, endDate: string) {
+export function useNonSubmissionReasonsQuery(startDate: string, endDate: string, enabled = true) {
   return useQuery({
     queryKey: sectionOfficerQueryKeys.nonSubmissionReasons(startDate, endDate),
     queryFn: () => overviewApi.getNonSubmissionReasons(startDate, endDate),
-    enabled: Boolean(startDate) && Boolean(endDate),
+    enabled: enabled && Boolean(startDate) && Boolean(endDate),
   })
 }
 

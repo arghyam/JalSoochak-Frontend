@@ -9,6 +9,14 @@ jest.mock('@zag-js/focus-visible', () => ({
 import '@testing-library/jest-dom'
 import { TextDecoder, TextEncoder } from 'node:util'
 
+window.APP_CONFIG = {
+  API_BASE_URL: '',
+  SINGLE_TENANT_MODE: false,
+  SHOW_SUPPLY_OUTAGE_CHARTS: true,
+  SHOW_STAFF_OVERVIEW_SUPPLY_OUTAGE_CHARTS: true,
+  SHOW_STAFF_OVERVIEW_NON_SUBMISSION_CHARTS: true,
+}
+
 if (typeof globalThis.TextEncoder === 'undefined') {
   globalThis.TextEncoder = TextEncoder
 }

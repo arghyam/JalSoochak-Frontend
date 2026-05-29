@@ -191,6 +191,14 @@ describe('useOutageReasonsQuery', () => {
     expect(result.current.fetchStatus).toBe('idle')
     expect(overviewApi.getOutageReasons).not.toHaveBeenCalled()
   })
+
+  it('is disabled when enabled is false', async () => {
+    const { result } = renderHook(() => useOutageReasonsQuery('2026-01-01', '2026-01-31', false), {
+      wrapper: createWrapper(),
+    })
+    expect(result.current.fetchStatus).toBe('idle')
+    expect(overviewApi.getOutageReasons).not.toHaveBeenCalled()
+  })
 })
 
 // ── useNonSubmissionReasonsQuery ───────────────────────────────────────────────
@@ -215,6 +223,17 @@ describe('useNonSubmissionReasonsQuery', () => {
     const { result } = renderHook(() => useNonSubmissionReasonsQuery('', ''), {
       wrapper: createWrapper(),
     })
+    expect(result.current.fetchStatus).toBe('idle')
+    expect(overviewApi.getNonSubmissionReasons).not.toHaveBeenCalled()
+  })
+
+  it('is disabled when enabled is false', async () => {
+    const { result } = renderHook(
+      () => useNonSubmissionReasonsQuery('2026-01-01', '2026-01-31', false),
+      {
+        wrapper: createWrapper(),
+      }
+    )
     expect(result.current.fetchStatus).toBe('idle')
     expect(overviewApi.getNonSubmissionReasons).not.toHaveBeenCalled()
   })

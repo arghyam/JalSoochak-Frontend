@@ -11,6 +11,12 @@ import {
   useNonSubmissionReasonsQuery,
   useSubmissionStatusQuery,
 } from '../../services/query/use-overview-queries'
+import {
+  isSingleTenantMode,
+  shouldShowSupplyOutageCharts,
+  shouldShowStaffOverviewNonSubmissionCharts,
+  shouldShowStaffOverviewSupplyOutageCharts,
+} from '@/config/server-config'
 
 function createMockQueryResult<T>(
   data: T | undefined,
@@ -45,6 +51,13 @@ jest.mock('react-router-dom', () => ({
 
 jest.mock('../../services/query/use-overview-queries')
 
+jest.mock('@/config/server-config', () => ({
+  isSingleTenantMode: jest.fn(() => false),
+  shouldShowSupplyOutageCharts: jest.fn(() => true),
+  shouldShowStaffOverviewSupplyOutageCharts: jest.fn(() => true),
+  shouldShowStaffOverviewNonSubmissionCharts: jest.fn(() => true),
+}))
+
 jest.mock('@/features/dashboard/components/charts', () => ({
   SupplyOutageReasonsChart: () => <div data-testid="supply-outage-reasons-chart" />,
   ReadingSubmissionRateChart: () => <div data-testid="reading-submission-rate-chart" />,
@@ -66,6 +79,21 @@ const mockHooks = {
   useSubmissionStatusQuery: useSubmissionStatusQuery as jest.MockedFunction<
     typeof useSubmissionStatusQuery
   >,
+}
+
+const mockServerConfig = {
+  isSingleTenantMode: isSingleTenantMode as jest.MockedFunction<typeof isSingleTenantMode>,
+  shouldShowSupplyOutageCharts: shouldShowSupplyOutageCharts as jest.MockedFunction<
+    typeof shouldShowSupplyOutageCharts
+  >,
+  shouldShowStaffOverviewSupplyOutageCharts:
+    shouldShowStaffOverviewSupplyOutageCharts as jest.MockedFunction<
+      typeof shouldShowStaffOverviewSupplyOutageCharts
+    >,
+  shouldShowStaffOverviewNonSubmissionCharts:
+    shouldShowStaffOverviewNonSubmissionCharts as jest.MockedFunction<
+      typeof shouldShowStaffOverviewNonSubmissionCharts
+    >,
 }
 
 const mockSchemesCountData = {
@@ -221,6 +249,10 @@ describe('StaffOverviewPage', () => {
   beforeEach(() => {
     setupMocks()
     jest.clearAllMocks()
+    mockServerConfig.isSingleTenantMode.mockReturnValue(false)
+    mockServerConfig.shouldShowSupplyOutageCharts.mockReturnValue(true)
+    mockServerConfig.shouldShowStaffOverviewSupplyOutageCharts.mockReturnValue(true)
+    mockServerConfig.shouldShowStaffOverviewNonSubmissionCharts.mockReturnValue(true)
   })
 
   it('renders the page heading', () => {
@@ -373,15 +405,41 @@ describe('StaffOverviewPage', () => {
     )
     expect(mockHooks.useOutageReasonsQuery).toHaveBeenCalledWith(
       expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
-      expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/)
+      expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+      true
     )
     expect(mockHooks.useNonSubmissionReasonsQuery).toHaveBeenCalledWith(
       expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
-      expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/)
+      expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+      true
     )
     expect(mockHooks.useSubmissionStatusQuery).toHaveBeenCalledWith(
       expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
       expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/)
+    )
+  })
+
+  it('disables outage reasons query when outage charts are hidden', () => {
+    mockServerConfig.shouldShowStaffOverviewSupplyOutageCharts.mockReturnValue(false)
+
+    renderWithProviders(<StaffOverviewPage />)
+
+    expect(mockHooks.useOutageReasonsQuery).toHaveBeenCalledWith(
+      expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+      expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+      false
+    )
+  })
+
+  it('disables non-submission reasons query when non-submission charts are hidden', () => {
+    mockServerConfig.shouldShowStaffOverviewNonSubmissionCharts.mockReturnValue(false)
+
+    renderWithProviders(<StaffOverviewPage />)
+
+    expect(mockHooks.useNonSubmissionReasonsQuery).toHaveBeenCalledWith(
+      expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+      expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+      false
     )
   })
 

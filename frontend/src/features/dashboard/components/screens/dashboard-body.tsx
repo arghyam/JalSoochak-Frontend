@@ -24,6 +24,7 @@ import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { VillageDashboardScreen } from './village-dashboard'
 import { getOutageTimeScaleXAxisLabel } from './outage-time-scale-toggle'
 import { useOutageDistributionState } from './use-outage-distribution-state'
+import { shouldShowSupplyOutageCharts } from '@/config/server-config'
 
 type PerformanceTimeScale = 'day' | 'week' | 'month' | 'quarter' | 'year'
 type OutageTimeScale = 'day' | 'week' | 'month' | 'quarter' | 'year'
@@ -143,6 +144,7 @@ export function DashboardBody({
   isTimeViewEnabled = true,
 }: DashboardBodyProps) {
   const { t } = useTranslation('dashboard')
+  const showSupplyOutageCharts = shouldShowSupplyOutageCharts()
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
   const effectiveOutageDistributionViewBy = isTimeViewEnabled
     ? outageDistributionViewBy
@@ -376,8 +378,9 @@ export function DashboardBody({
         />
       ) : null}
 
-      {/* Supply outage reasons + distribution/submission */}
-      {!selectedVillage &&
+      {/* Supply outage charts temporarily hidden; set SHOW_SUPPLY_OUTAGE_CHARTS to true to restore. */}
+      {showSupplyOutageCharts &&
+      !selectedVillage &&
       !isDistrictScreen &&
       !isBlockSelected &&
       !isGramPanchayatScreen &&
