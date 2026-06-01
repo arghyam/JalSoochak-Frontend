@@ -14,6 +14,7 @@ import {
   Box,
 } from '@chakra-ui/react'
 import { HiOutlineMail } from 'react-icons/hi'
+import { useTranslation } from 'react-i18next'
 import { useForgotPasswordMutation } from '@/features/auth/services/query/use-auth-queries'
 
 type ForgotPasswordModalProps = {
@@ -22,6 +23,7 @@ type ForgotPasswordModalProps = {
 }
 
 export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProps) {
+  const { t } = useTranslation('auth')
   const [email, setEmail] = useState('')
   const [emailError, setEmailError] = useState('')
   const [isSuccess, setIsSuccess] = useState(false)
@@ -39,12 +41,12 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
     const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)
 
     if (!trimmedEmail) {
-      setEmailError('Email is required.')
+      setEmailError(t('forgotPassword.emailRequired'))
       return
     }
 
     if (!isEmailValid) {
-      setEmailError('Enter a valid email address.')
+      setEmailError(t('forgotPassword.invalidEmail'))
       return
     }
 
@@ -53,7 +55,7 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
         setIsSuccess(true)
       },
       onError: (err) => {
-        const message = err instanceof Error ? err.message : 'Failed to send reset link.'
+        const message = err instanceof Error ? err.message : t('forgotPassword.sendFailed')
         setEmailError(message)
       },
     })
@@ -80,12 +82,10 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
                 <HiOutlineMail size="24px" color="var(--chakra-colors-primary-500)" />
               </Box>
               <Text textAlign="center" textStyle="bodyText3">
-                If this email is registered, a reset link has been sent.
-                <br />
-                Please check your inbox.
+                {t('forgotPassword.successMessage')}
               </Text>
               <Button variant="primary" w="full" onClick={handleClose}>
-                Back to Login
+                {t('forgotPassword.backToLogin')}
               </Button>
             </Flex>
           ) : (
@@ -105,22 +105,20 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
                   <HiOutlineMail size="24px" color="var(--chakra-colors-primary-500)" />
                 </Box>
                 <Text textAlign="center" textStyle="bodyText3">
-                  Please enter your email id associated
-                  <br />
-                  with this account
+                  {t('forgotPassword.instruction')}
                 </Text>
               </Flex>
 
               <FormControl mt="20px" isInvalid={!!emailError}>
                 <FormLabel textStyle="bodyText6" mb="4px">
-                  Email{' '}
+                  {t('forgotPassword.emailLabel')}{' '}
                   <Text as="span" color="error.500">
                     *
                   </Text>
                 </FormLabel>
                 <Input
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder={t('forgotPassword.emailPlaceholder')}
                   autoComplete="email"
                   value={email}
                   onChange={(event) => {
@@ -146,7 +144,7 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
                   onClick={handleClose}
                   isDisabled={forgotPasswordMutation.isPending}
                 >
-                  Cancel
+                  {t('forgotPassword.cancel')}
                 </Button>
                 <Button
                   variant="primary"
@@ -155,7 +153,7 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
                   isLoading={forgotPasswordMutation.isPending}
                   onClick={handleSendResetLink}
                 >
-                  Send Reset Link
+                  {t('forgotPassword.sendResetLink')}
                 </Button>
               </Flex>
             </>

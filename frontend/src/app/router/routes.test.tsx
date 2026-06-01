@@ -17,59 +17,8 @@ jest.mock('@/shared/components/layout', () => ({
   MainLayout: stub('main-layout'),
 }))
 
-jest.mock('@/features/super-admin', () => ({
-  OverviewPage: stub('super-overview'),
-  StatesUTsPage: stub('states-uts'),
-  AddStateUTPage: stub('add-state-ut'),
-  ViewStateUTPage: stub('view-state-ut'),
-  EditStateUTPage: stub('edit-state-ut'),
-  ManageStateAdminsPage: stub('manage-state-admins'),
-  SuperUsersPage: stub('super-users'),
-  SuperUserFormPage: stub('super-user-form'),
-  InviteSuperUserPage: stub('invite-super-user'),
-  ViewSuperUserPage: stub('view-super-user'),
-  SystemConfigPage: stub('system-config'),
-}))
-
-jest.mock('@/features/state-admin', () => ({
-  OverviewPage: stub('state-overview'),
-  ConfigurationPage: stub('state-configuration'),
-  HierarchyPage: stub('hierarchy'),
-  LanguagePage: stub('language'),
-  IntegrationPage: stub('integration'),
-  WaterNormsPage: stub('water-norms'),
-  EscalationsFormPage: stub('escalations'),
-  MessageTemplatesPage: stub('templates'),
-  StaffSyncPage: stub('staff-sync'),
-  SchemeSyncPage: stub('scheme-sync'),
-  SchemeMappingsSyncPage: stub('scheme-mappings-sync'),
-  StateUTAdminsPage: stub('state-ut-admins'),
-  StateUTAdminFormPage: stub('state-ut-admin-form'),
-  InviteStateUTAdminPage: stub('invite-state-ut-admin'),
-  ViewStateUTAdminPage: stub('view-state-ut-admin'),
-}))
-
-jest.mock('@/features/auth', () => ({
-  LoginPage: stub('login'),
-  ResetPasswordPage: stub('reset-password'),
-  ProfilePage: stub('profile'),
-  ChangePasswordPage: stub('change-password'),
-}))
-
-jest.mock('@/features/auth/components/activate-account/activate-account-page', () => ({
-  AccountActivationPage: stub('activate-account'),
-}))
-
-jest.mock('@/features/section-officer', () => ({
-  StaffLoginPage: stub('staff-login'),
-  StaffOverviewPage: stub('staff-overview'),
-  SchemesPage: stub('schemes'),
-  SchemeViewPage: stub('scheme-view'),
-  PumpOperatorsPage: stub('pump-operators'),
-  PumpOperatorViewPage: stub('pump-operator-view'),
-  AnomaliesPage: stub('anomalies'),
-  StaffEscalationsPage: stub('staff-escalations'),
-}))
+// Feature page mocks are not needed — React.lazy factories only fire on render,
+// and this test never renders any route components (it only walks the config tree).
 
 jest.mock('@/shared/components/common', () => {
   const actual = jest.requireActual<typeof import('@/shared/components/common')>(

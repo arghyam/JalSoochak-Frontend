@@ -5,6 +5,7 @@ import { locationSearchQueryKeys } from './location-search-query-keys'
 import { useLocationHierarchyQuery } from './use-location-hierarchy-query'
 
 jest.mock('@tanstack/react-query', () => ({
+  ...(jest.requireActual('@tanstack/react-query') as Record<string, unknown>),
   useQuery: jest.fn(),
 }))
 

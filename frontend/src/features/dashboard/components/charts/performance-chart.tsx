@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
-import { Box, useBreakpointValue, useTheme } from '@chakra-ui/react'
+import { Box, Center, Spinner, Text, useBreakpointValue, useTheme } from '@chakra-ui/react'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
@@ -11,6 +11,7 @@ interface AllStatesPerformanceChartProps {
   height?: string | number
   maxItems?: number
   entityLabel?: string
+  isLoading?: boolean
 }
 
 export function AllStatesPerformanceChart({
@@ -19,6 +20,7 @@ export function AllStatesPerformanceChart({
   height = '536px',
   maxItems = 5,
   entityLabel = 'States/UTs',
+  isLoading = false,
 }: AllStatesPerformanceChartProps) {
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
@@ -335,6 +337,24 @@ export function AllStatesPerformanceChart({
   useEffect(() => {
     updateThumbFromScroll()
   }, [data.length, containerWidth, updateThumbFromScroll])
+
+  if (isLoading) {
+    return (
+      <Center h={containerHeight}>
+        <Spinner />
+      </Center>
+    )
+  }
+
+  if (data.length === 0) {
+    return (
+      <Center h={containerHeight}>
+        <Text color="gray.500" fontSize="sm">
+          No data available
+        </Text>
+      </Center>
+    )
+  }
 
   return (
     <div

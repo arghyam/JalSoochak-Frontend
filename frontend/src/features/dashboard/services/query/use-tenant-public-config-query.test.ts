@@ -5,6 +5,7 @@ import { dashboardQueryKeys } from './dashboard-query-keys'
 import { useTenantPublicConfigQuery } from './use-tenant-public-config-query'
 
 jest.mock('@tanstack/react-query', () => ({
+  ...(jest.requireActual('@tanstack/react-query') as Record<string, unknown>),
   useQuery: jest.fn(),
 }))
 
