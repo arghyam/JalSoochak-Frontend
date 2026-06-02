@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { apiClient } from '@/shared/lib/axios'
 import type {
   YesterdayFinalReadingResponse,
@@ -22,14 +23,22 @@ export const fixReadingsApi = {
     payload: UpdateFinalReadingPayload,
     tenantCode: string
   ): Promise<UpdateFinalReadingResponse> => {
-    const response = await apiClient.patch<UpdateFinalReadingResponse>(
-      `/api/v1/telemetry/schemes/${schemeId}/yesterday-final-reading`,
-      payload,
-      { headers: { 'X-Tenant-Code': tenantCode } }
-    )
-    if (!response.data.success) {
-      throw new Error(response.data.message)
+    try {
+      const response = await apiClient.patch<UpdateFinalReadingResponse>(
+        `/api/v1/telemetry/schemes/${schemeId}/yesterday-final-reading`,
+        payload,
+        { headers: { 'X-Tenant-Code': tenantCode } }
+      )
+      if (!response.data.success) {
+        throw new Error(response.data.message)
+      }
+      return response.data
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        const message = (err.response?.data as UpdateFinalReadingResponse)?.message
+        throw new Error(message ?? err.message)
+      }
+      throw err
     }
-    return response.data
   },
 }
