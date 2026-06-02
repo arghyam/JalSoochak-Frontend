@@ -41,7 +41,6 @@ type BuildCentralDashboardKpiMetricsParams = {
   currentWaterSupplyKpis: WaterSupplyKpis
   isCentralLandingView: boolean
   numberLocale: string
-  previousCriticalSchemesCount: number
   previousContinuousSchemesCount: number
   previousRegularityKpi: number
   previousWaterSupplyKpis: WaterSupplyKpis
@@ -57,7 +56,6 @@ export function buildCentralDashboardKpiMetrics({
   currentWaterSupplyKpis,
   isCentralLandingView,
   numberLocale,
-  previousCriticalSchemesCount,
   previousContinuousSchemesCount,
   previousRegularityKpi,
   previousWaterSupplyKpis,
@@ -321,7 +319,6 @@ export function buildCentralDashboardKpiMetrics({
     {
       label: t('kpi.labels.criticalSchemes', { defaultValue: 'Critical Schemes' }),
       value: formatNumber(criticalSchemesCount),
-      trend: buildCountPercentTrend(criticalSchemesCount, previousCriticalSchemesCount),
       tooltipContent: t('kpi.tooltips.criticalSchemes.description', {
         days: criticalSchemeStatusAfterDays,
         defaultValue: 'Schemes identified as failing to supply water, based on {{days}} days.',

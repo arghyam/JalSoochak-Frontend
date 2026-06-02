@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, jest } from '@jest/globals'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { EntityPerformance } from '../../types'
@@ -115,5 +115,59 @@ describe('DashboardMapPerformanceSection', () => {
         ?.parentElement as HTMLElement
     )
     expect(onMapFullscreenClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('focuses fullscreen map, closes on Escape, and restores focus when closed', async () => {
+    const onMapFullscreenClose = jest.fn()
+    const previousFocusTarget = document.createElement('button')
+    document.body.appendChild(previousFocusTarget)
+    previousFocusTarget.focus()
+
+    const fullscreenProps = (
+      <DashboardMapPerformanceSection
+        activeLeafSelection=""
+        shouldShowMapAlongsidePerformance
+        isMapFullscreen
+        onMapFullscreenClose={onMapFullscreenClose}
+        performanceSummaryCardMaxHeight={{ base: '420px', sm: '520px', lg: '710px' }}
+        performanceSummaryTitle="Performance Summary"
+        overallPerformanceTableData={rows}
+        isOverallPerformanceLoading={false}
+        overallPerformanceEntityLabel="State/UT"
+        overallPerformanceScrollHeight="620px"
+        onOverallPerformanceRowClick={jest.fn()}
+        onOverallPerformanceRowHover={jest.fn()}
+        mapProps={mapProps}
+      />
+    )
+
+    const { rerender, unmount } = renderWithProviders(fullscreenProps)
+    const dialog = screen.getByRole('dialog')
+
+    await waitFor(() => expect(document.activeElement).toBe(dialog))
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(onMapFullscreenClose).toHaveBeenCalledTimes(1)
+
+    rerender(
+      <DashboardMapPerformanceSection
+        activeLeafSelection=""
+        shouldShowMapAlongsidePerformance
+        isMapFullscreen={false}
+        onMapFullscreenClose={onMapFullscreenClose}
+        performanceSummaryCardMaxHeight={{ base: '420px', sm: '520px', lg: '710px' }}
+        performanceSummaryTitle="Performance Summary"
+        overallPerformanceTableData={rows}
+        isOverallPerformanceLoading={false}
+        overallPerformanceEntityLabel="State/UT"
+        overallPerformanceScrollHeight="620px"
+        onOverallPerformanceRowClick={jest.fn()}
+        onOverallPerformanceRowHover={jest.fn()}
+        mapProps={mapProps}
+      />
+    )
+
+    expect(document.activeElement).toBe(previousFocusTarget)
+    unmount()
+    previousFocusTarget.remove()
   })
 })

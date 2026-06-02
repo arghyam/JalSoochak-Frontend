@@ -426,7 +426,6 @@ export function CentralDashboard({
     outageReasonsPeriodicData,
     previousAnalyticsRange,
     previousContinuousSchemesData,
-    previousCriticalSchemesData,
     previousRegularityKpiData,
     previousSchemeQuantityPeriodicData,
     previousSchemeRegularityPeriodicData,
@@ -941,7 +940,6 @@ export function CentralDashboard({
   const continuousSchemesCount = continuousSchemesData?.continuousSchemeCount ?? 0
   const previousContinuousSchemesCount = previousContinuousSchemesData?.continuousSchemeCount ?? 0
   const criticalSchemesCount = criticalSchemesData?.criticalSchemeCount ?? 0
-  const previousCriticalSchemesCount = previousCriticalSchemesData?.criticalSchemeCount ?? 0
   const visibleCoreMetrics = buildCentralDashboardKpiMetrics({
     comparisonDays,
     continuousSchemesCount,
@@ -952,7 +950,6 @@ export function CentralDashboard({
     isCentralLandingView,
     numberLocale: i18n.resolvedLanguage === 'hi' ? 'hi-IN' : 'en-IN',
     previousContinuousSchemesCount,
-    previousCriticalSchemesCount,
     previousRegularityKpi,
     previousWaterSupplyKpis,
     t,

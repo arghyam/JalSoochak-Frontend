@@ -24,7 +24,7 @@ export function DashboardKpiGrid({ metrics, showIcons }: DashboardKpiGridProps) 
       templateColumns={{
         base: '1fr',
         sm: 'repeat(2, minmax(0, 1fr))',
-        lg: `repeat(${metrics.length}, minmax(0, 1fr))`,
+        lg: metrics.length > 0 ? `repeat(${metrics.length}, minmax(0, 1fr))` : '1fr',
       }}
       gap={4}
       mb={6}

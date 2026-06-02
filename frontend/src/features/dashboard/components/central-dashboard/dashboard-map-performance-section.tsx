@@ -1,5 +1,5 @@
 import { Box, Grid, Portal, Text } from '@chakra-ui/react'
-import type { ComponentProps } from 'react'
+import { useEffect, useRef, type ComponentProps } from 'react'
 import { IndiaMapChart } from '../charts'
 import { OverallPerformanceTable } from '../tables'
 import type { EntityPerformance } from '../../types'
@@ -122,6 +122,44 @@ export function DashboardMapPerformanceSection({
   onOverallPerformanceRowHover,
   mapProps,
 }: DashboardMapPerformanceSectionProps) {
+  const fullscreenMapContainerRef = useRef<HTMLDivElement>(null)
+  const previousFocusedElementRef = useRef<HTMLElement | null>(null)
+  const isFullscreenOverlayOpen = shouldShowMapAlongsidePerformance && isMapFullscreen
+
+  useEffect(() => {
+    if (!isFullscreenOverlayOpen) {
+      return
+    }
+
+    previousFocusedElementRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onMapFullscreenClose()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    const focusTimerId = window.setTimeout(() => {
+      fullscreenMapContainerRef.current?.focus()
+    }, 0)
+
+    return () => {
+      window.clearTimeout(focusTimerId)
+      document.removeEventListener('keydown', handleKeyDown)
+
+      if (
+        previousFocusedElementRef.current &&
+        document.contains(previousFocusedElementRef.current)
+      ) {
+        previousFocusedElementRef.current.focus()
+      }
+
+      previousFocusedElementRef.current = null
+    }
+  }, [isFullscreenOverlayOpen, onMapFullscreenClose])
+
   return (
     <>
       {!activeLeafSelection ? (
@@ -179,6 +217,10 @@ export function DashboardMapPerformanceSection({
             onClick={onMapFullscreenClose}
           >
             <Box
+              ref={fullscreenMapContainerRef}
+              role="dialog"
+              aria-modal="true"
+              tabIndex={-1}
               w="full"
               maxW={{ base: '100%', lg: '1200px', xl: '1320px' }}
               h={{ base: '100%', md: '92vh' }}

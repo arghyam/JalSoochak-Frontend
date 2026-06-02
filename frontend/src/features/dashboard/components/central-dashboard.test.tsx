@@ -2098,10 +2098,7 @@ describe('CentralDashboard', () => {
     expect(kpiProps[4]?.title).toBe('Critical Schemes')
     expect(kpiProps[4]?.icon).toBeUndefined()
     expect(kpiProps[4]?.value).toBe('0')
-    expect(kpiProps[4]?.trend).toEqual({
-      direction: 'neutral',
-      text: '0% vs previous 2 days',
-    })
+    expect(kpiProps[4]?.trend).toBeUndefined()
   })
 
   it('uses national dashboard analytics for central landing KPI cards', () => {
@@ -5026,7 +5023,7 @@ describe('CentralDashboard', () => {
     expect(kpiProps[3]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 1 days' })
     expect(kpiProps[4]?.title).toBe('Critical Schemes')
     expect(kpiProps[4]?.value).toBe('215')
-    expect(kpiProps[4]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 1 days' })
+    expect(kpiProps[4]?.trend).toBeUndefined()
     expect(useCriticalSchemesQuery).toHaveBeenCalledWith({
       params: {
         tenantId: 16,
@@ -5151,7 +5148,7 @@ describe('CentralDashboard', () => {
     })
     expect(kpiProps[4]?.title).toBe('Critical Schemes')
     expect(kpiProps[4]?.value).toBe('0')
-    expect(kpiProps[4]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 1 days' })
+    expect(kpiProps[4]?.trend).toBeUndefined()
   })
 
   it('passes neutral KPI trends when comparison values do not change', () => {
