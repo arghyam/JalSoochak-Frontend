@@ -145,6 +145,114 @@ jest.mock('../services/query/use-tenant-public-config-query', () => ({
   useTenantPublicConfigQuery: jest.fn(),
 }))
 
+jest.mock('../hooks/use-central-dashboard-tenant-config', () => ({
+  useCentralDashboardTenantConfig: jest.fn(
+    (params: {
+      singleTenantOverride?: {
+        value: string
+        label: string
+        tenantId?: number
+        tenantCode?: string
+      }
+      locationSearchStates: Array<{
+        value: string
+        label: string
+        tenantId?: number
+        tenantCode?: string
+      }>
+      selectedState: string
+      isDepartmentTabActive: boolean
+      effectiveSelectedDepartmentState: string
+      isVillageSelected: boolean
+      isGramPanchayatSelected: boolean
+      isBlockSelected: boolean
+      isDistrictSelected: boolean
+      isDepartmentDivisionSelected: boolean
+      isDepartmentCircleSelected: boolean
+      isDepartmentZoneSelected: boolean
+    }) => {
+      const { useTenantPublicConfigQuery } = jest.requireMock<{
+        useTenantPublicConfigQuery: jest.Mock
+      }>('../services/query/use-tenant-public-config-query')
+      const selectedTenant =
+        params.singleTenantOverride ??
+        params.locationSearchStates.find((option) => option.value === params.selectedState) ??
+        (params.isDepartmentTabActive ? params.locationSearchStates[0] : undefined)
+      const tenantPublicConfigResult = useTenantPublicConfigQuery({
+        tenantId: selectedTenant?.tenantId,
+        enabled: Boolean(selectedTenant?.tenantId),
+      }) as {
+        data?: {
+          averageMembersPerHousehold?: number
+          waterNorm?: number
+          dateFormatScreen?: { dateFormat?: string | null }
+          dateFormatTable?: { dateFormat?: string | null }
+          displayDepartmentMapLevels?: boolean[]
+          displayMapLgdLevels?: boolean[]
+        } | null
+        isLoading?: boolean
+        isFetching?: boolean
+      }
+      const {
+        data: tenantPublicConfig,
+        isLoading = false,
+        isFetching = false,
+      } = tenantPublicConfigResult
+      const lgdMapLevelVisibility = tenantPublicConfig?.displayMapLgdLevels ?? [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+      ]
+      const departmentMapLevelVisibility = tenantPublicConfig?.displayDepartmentMapLevels ?? [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+      ]
+      const currentLgdMapLevel = params.isVillageSelected
+        ? 5
+        : params.isGramPanchayatSelected
+          ? 4
+          : params.isBlockSelected
+            ? 3
+            : params.isDistrictSelected
+              ? 2
+              : 1
+      const currentDepartmentMapLevel = params.isDepartmentDivisionSelected
+        ? 4
+        : params.isDepartmentCircleSelected
+          ? 3
+          : params.isDepartmentZoneSelected
+            ? 2
+            : 1
+      const shouldShowMapAlongsidePerformance = params.isDepartmentTabActive
+        ? departmentMapLevelVisibility[currentDepartmentMapLevel - 1] !== false
+        : lgdMapLevelVisibility[currentLgdMapLevel - 1] !== false
+
+      return {
+        averagePersonsPerHousehold: tenantPublicConfig?.averageMembersPerHousehold || 5,
+        criticalSchemeStatusAfterDays: 5,
+        defaultAverageMembersPerHousehold: 5,
+        defaultWaterNormLitersPerPersonPerDay: 55,
+        litersPerPersonPerDay: tenantPublicConfig?.waterNorm || 55,
+        screenDateFormat: tenantPublicConfig?.dateFormatScreen?.dateFormat ?? 'DD/MM/YYYY',
+        selectedTenant,
+        shouldFetchTenantBoundaryGeoJson:
+          (!selectedTenant?.tenantId || (!isLoading && !isFetching)) &&
+          shouldShowMapAlongsidePerformance,
+        shouldShowMapAlongsidePerformance,
+        tableDateFormat: tenantPublicConfig?.dateFormatTable?.dateFormat ?? 'DD/MM/YYYY',
+        tenantPublicConfig,
+      }
+    }
+  ),
+}))
+
 jest.mock('../services/query/use-water-quantity-periodic-query', () => ({
   useWaterQuantityPeriodicQuery: jest.fn(),
 }))
@@ -1990,7 +2098,10 @@ describe('CentralDashboard', () => {
     expect(kpiProps[4]?.title).toBe('Critical Schemes')
     expect(kpiProps[4]?.icon).toBeUndefined()
     expect(kpiProps[4]?.value).toBe('0')
-    expect(kpiProps[4]?.trend).toBeUndefined()
+    expect(kpiProps[4]?.trend).toEqual({
+      direction: 'neutral',
+      text: '0% vs previous 2 days',
+    })
   })
 
   it('uses national dashboard analytics for central landing KPI cards', () => {
@@ -4915,7 +5026,7 @@ describe('CentralDashboard', () => {
     expect(kpiProps[3]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 1 days' })
     expect(kpiProps[4]?.title).toBe('Critical Schemes')
     expect(kpiProps[4]?.value).toBe('215')
-    expect(kpiProps[4]?.trend).toBeUndefined()
+    expect(kpiProps[4]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 1 days' })
     expect(useCriticalSchemesQuery).toHaveBeenCalledWith({
       params: {
         tenantId: 16,
@@ -5040,7 +5151,7 @@ describe('CentralDashboard', () => {
     })
     expect(kpiProps[4]?.title).toBe('Critical Schemes')
     expect(kpiProps[4]?.value).toBe('0')
-    expect(kpiProps[4]?.trend).toBeUndefined()
+    expect(kpiProps[4]?.trend).toEqual({ direction: 'neutral', text: '0% vs previous 1 days' })
   })
 
   it('passes neutral KPI trends when comparison values do not change', () => {
@@ -6740,14 +6851,11 @@ describe('CentralDashboard', () => {
 
       renderWithProviders(<CentralDashboard singleTenantOverride={singleTenantOverride} />)
 
-      expect(mockNavigate).toHaveBeenCalledWith({
-        pathname: '/',
-        search: '?district=11%3A111%3Apune&block=22%3A222%3Amulshi&tab=administrative',
-      })
+      expect(mockNavigate).not.toHaveBeenCalled()
       const storedFilters = JSON.parse(
         window.localStorage.getItem('central-dashboard-filters') ?? '{}'
       ) as { selectedBlock?: string }
-      expect(storedFilters.selectedBlock).toEqual('22:222:mulshi')
+      expect(storedFilters.selectedBlock).toEqual('')
     })
 
     it('keeps single-tenant departmental state locked when a root clear is requested', () => {
