@@ -113,10 +113,12 @@ export function FixReadingsPage() {
             ),
           })
         },
-        onError: () => {
-          toast.error(
-            t('common.errorMessage', { defaultValue: 'Something went wrong. Please try again.' })
-          )
+        onError: (error) => {
+          const fallback = t('common.errorMessage', {
+            defaultValue: 'Something went wrong. Please try again.',
+          })
+          const message = error instanceof Error && error.message.trim() ? error.message : fallback
+          toast.error(message)
         },
       }
     )

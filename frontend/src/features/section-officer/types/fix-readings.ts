@@ -17,3 +17,11 @@ export interface UpdateFinalReadingPayload {
   phoneNumber: string
   reading: number
 }
+
+export interface UpdateFinalReadingResponse {
+  success: boolean
+  schemeId: number
+  readingDate: string | null
+  finalReading: number
+  message: string
+}
