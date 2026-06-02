@@ -187,6 +187,7 @@ jest.mock('../hooks/use-central-dashboard-tenant-config', () => ({
           waterNorm?: number
           dateFormatScreen?: { dateFormat?: string | null }
           dateFormatTable?: { dateFormat?: string | null }
+          displayDepartmentMaps?: boolean
           displayDepartmentMapLevels?: boolean[]
           displayMapLgdLevels?: boolean[]
         } | null
@@ -198,6 +199,7 @@ jest.mock('../hooks/use-central-dashboard-tenant-config', () => ({
         isLoading = false,
         isFetching = false,
       } = tenantPublicConfigResult
+      const shouldShowDepartmentMaps = tenantPublicConfig?.displayDepartmentMaps !== false
       const lgdMapLevelVisibility = tenantPublicConfig?.displayMapLgdLevels ?? [
         true,
         true,
@@ -230,9 +232,11 @@ jest.mock('../hooks/use-central-dashboard-tenant-config', () => ({
           : params.isDepartmentZoneSelected
             ? 2
             : 1
-      const shouldShowMapAlongsidePerformance = params.isDepartmentTabActive
-        ? departmentMapLevelVisibility[currentDepartmentMapLevel - 1] !== false
-        : lgdMapLevelVisibility[currentLgdMapLevel - 1] !== false
+      const shouldShowMapAlongsidePerformance =
+        shouldShowDepartmentMaps &&
+        (params.isDepartmentTabActive
+          ? departmentMapLevelVisibility[currentDepartmentMapLevel - 1] !== false
+          : lgdMapLevelVisibility[currentLgdMapLevel - 1] !== false)
 
       return {
         averagePersonsPerHousehold: tenantPublicConfig?.averageMembersPerHousehold || 5,
@@ -244,6 +248,7 @@ jest.mock('../hooks/use-central-dashboard-tenant-config', () => ({
         selectedTenant,
         shouldFetchTenantBoundaryGeoJson:
           (!selectedTenant?.tenantId || (!isLoading && !isFetching)) &&
+          shouldShowDepartmentMaps &&
           shouldShowMapAlongsidePerformance,
         shouldShowMapAlongsidePerformance,
         tableDateFormat: tenantPublicConfig?.dateFormatTable?.dateFormat ?? 'DD/MM/YYYY',

@@ -103,6 +103,7 @@ export function useCentralDashboardTenantConfig({
   )
   const hasResolvedTenantPublicConfig =
     !selectedTenant?.tenantId || (!isTenantPublicConfigLoading && !isTenantPublicConfigFetching)
+  const shouldShowDepartmentMaps = tenantPublicConfig?.displayDepartmentMaps !== false
   const lgdMapLevelVisibility = tenantPublicConfig?.displayMapLgdLevels ?? [
     true,
     true,
@@ -138,11 +139,11 @@ export function useCentralDashboardTenantConfig({
         : 1
   const isDepartmentMapEnabledForCurrentLevel =
     departmentMapLevelVisibility[currentDepartmentMapLevel - 1] !== false
-  const shouldShowMapAlongsidePerformance = isDepartmentTabActive
-    ? isDepartmentMapEnabledForCurrentLevel
-    : isLgdMapEnabledForCurrentLevel
+  const shouldShowMapAlongsidePerformance =
+    shouldShowDepartmentMaps &&
+    (isDepartmentTabActive ? isDepartmentMapEnabledForCurrentLevel : isLgdMapEnabledForCurrentLevel)
   const shouldFetchTenantBoundaryGeoJson =
-    hasResolvedTenantPublicConfig && shouldShowMapAlongsidePerformance
+    hasResolvedTenantPublicConfig && shouldShowDepartmentMaps && shouldShowMapAlongsidePerformance
 
   return {
     averagePersonsPerHousehold,
