@@ -20,6 +20,7 @@ import {
   useOutsideClick,
 } from '@chakra-ui/react'
 import { SearchIcon, CloseIcon } from '@chakra-ui/icons'
+import { useAuthStore } from '@/app/store/auth-store'
 import { useDebounce } from '@/shared/hooks/use-debounce'
 import { useToast } from '@/shared/hooks/use-toast'
 import { PageHeader, ToastContainer } from '@/shared/components/common'
@@ -27,6 +28,7 @@ import {
   useYesterdayFinalReadingsQuery,
   useUpdateFinalReadingMutation,
 } from '../../services/query/use-fix-readings-queries'
+import { sectionOfficerQueryKeys } from '../../services/query/section-officer-query-keys'
 import type { YesterdayFinalReadingItem } from '../../types/fix-readings'
 
 export function FixReadingsPage() {
@@ -51,6 +53,7 @@ export function FixReadingsPage() {
     isError,
   } = useYesterdayFinalReadingsQuery(selectedScheme ? '' : debouncedSearch)
 
+  const tenantCode = useAuthStore((state) => state.user?.tenantCode ?? '')
   const { mutate: updateFinalReading, isPending } = useUpdateFinalReadingMutation()
   const queryClient = useQueryClient()
 
@@ -104,13 +107,18 @@ export function FixReadingsPage() {
             prev ? { ...prev, yesterdayFinalReading: parsedReading } : prev
           )
           queryClient.invalidateQueries({
-            queryKey: ['section-officer', 'yesterday-final-readings'],
+            queryKey: sectionOfficerQueryKeys.yesterdayFinalReadings(
+              tenantCode,
+              debouncedSearch.trim()
+            ),
           })
         },
-        onError: () => {
-          toast.error(
-            t('common.errorMessage', { defaultValue: 'Something went wrong. Please try again.' })
-          )
+        onError: (error) => {
+          const fallback = t('common.errorMessage', {
+            defaultValue: 'Something went wrong. Please try again.',
+          })
+          const message = error instanceof Error && error.message.trim() ? error.message : fallback
+          toast.error(message)
         },
       }
     )

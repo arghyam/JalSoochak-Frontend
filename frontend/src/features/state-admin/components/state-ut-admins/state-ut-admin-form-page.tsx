@@ -1,11 +1,11 @@
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import {
-  UserAdminFormPage,
-  type UserAdminRoutes,
-  type UserAdminFormPageLabels,
-  type UserAdminCreateMutation,
+import { UserAdminFormPage } from '@/shared/components/common/user-admin/user-admin-form-page'
+import type {
+  UserAdminRoutes,
+  UserAdminFormPageLabels,
+  UserAdminCreateMutation,
 } from '@/shared/components/common'
 import { ROUTES } from '@/shared/constants/routes'
 import {

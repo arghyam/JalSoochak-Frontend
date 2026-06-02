@@ -1,11 +1,8 @@
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import {
-  UserAdminViewPage,
-  type UserAdminRoutes,
-  type UserAdminViewLabels,
-} from '@/shared/components/common'
+import { UserAdminViewPage } from '@/shared/components/common/user-admin/user-admin-view-page'
+import type { UserAdminRoutes, UserAdminViewLabels } from '@/shared/components/common'
 import { ROUTES } from '@/shared/constants/routes'
 import { useStateUTAdminByIdQuery } from '../../services/query/use-state-admin-queries'
 

@@ -6,6 +6,7 @@ import { locationSearchQueryKeys } from './location-search-query-keys'
 import { locationSearchApi } from '../api/location-search-api'
 
 jest.mock('@tanstack/react-query', () => ({
+  ...(jest.requireActual('@tanstack/react-query') as Record<string, unknown>),
   useQuery: jest.fn(),
 }))
 

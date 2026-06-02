@@ -1,53 +1,221 @@
+import { lazy, Suspense } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
 import { ROUTES } from '@/shared/constants/routes'
 import { MainLayout } from '@/shared/components/layout'
 import { SingleTenantLayout } from './single-tenant-layout'
-import {
-  OverviewPage as SuperAdminOverviewPage,
-  StatesUTsPage,
-  AddStateUTPage,
-  ViewStateUTPage,
-  EditStateUTPage,
-  ManageStateAdminsPage,
-  SuperUsersPage,
-  SuperUserFormPage,
-  InviteSuperUserPage,
-  ViewSuperUserPage,
-  SystemConfigPage,
-} from '@/features/super-admin'
-import {
-  OverviewPage,
-  ConfigurationPage,
-  HierarchyPage,
-  LanguagePage,
-  IntegrationPage,
-  WaterNormsPage,
-  EscalationsFormPage,
-  MessageTemplatesPage,
-  StaffSyncPage,
-  SchemeSyncPage,
-  SchemeMappingsSyncPage,
-  StateUTAdminsPage,
-  StateUTAdminFormPage,
-  InviteStateUTAdminPage,
-  ViewStateUTAdminPage,
-} from '@/features/state-admin'
-import { LoginPage, ResetPasswordPage, ProfilePage, ChangePasswordPage } from '@/features/auth'
-import { AccountActivationPage } from '@/features/auth/components/activate-account/activate-account-page'
-import {
-  StaffLoginPage,
-  StaffOverviewPage,
-  SchemesPage,
-  SchemeViewPage,
-  PumpOperatorsPage,
-  PumpOperatorViewPage,
-  AnomaliesPage,
-  StaffEscalationsPage,
-  FixReadingsPage,
-} from '@/features/section-officer'
 import { ProtectedRoute, RedirectIfAuthenticated } from '@/shared/components/routing/ProtectedRoute'
 import { AUTH_ROLES } from '@/shared/constants/auth'
-import { NotFoundPage } from '@/shared/components/common'
+import { NotFoundPage, LoadingSpinner } from '@/shared/components/common'
+
+// — super-admin pages —
+const SuperAdminOverviewPage = lazy(() =>
+  import('@/features/super-admin/components/overview/overview-page').then((m) => ({
+    default: m.OverviewPage,
+  }))
+)
+const StatesUTsPage = lazy(() =>
+  import('@/features/super-admin/components/states-uts/states-uts-page').then((m) => ({
+    default: m.StatesUTsPage,
+  }))
+)
+const AddStateUTPage = lazy(() =>
+  import('@/features/super-admin/components/states-uts/add-state-ut-page').then((m) => ({
+    default: m.AddStateUTPage,
+  }))
+)
+const ViewStateUTPage = lazy(() =>
+  import('@/features/super-admin/components/states-uts/view-state-ut-page').then((m) => ({
+    default: m.ViewStateUTPage,
+  }))
+)
+const EditStateUTPage = lazy(() =>
+  import('@/features/super-admin/components/states-uts/edit-state-ut-page').then((m) => ({
+    default: m.EditStateUTPage,
+  }))
+)
+const ManageStateAdminsPage = lazy(() =>
+  import('@/features/super-admin/components/state-admins/manage-state-admins-page').then((m) => ({
+    default: m.ManageStateAdminsPage,
+  }))
+)
+const SuperUsersPage = lazy(() =>
+  import('@/features/super-admin/components/super-users/super-users-page').then((m) => ({
+    default: m.SuperUsersPage,
+  }))
+)
+const SuperUserFormPage = lazy(() =>
+  import('@/features/super-admin/components/super-users/super-user-form-page').then((m) => ({
+    default: m.SuperUserFormPage,
+  }))
+)
+const InviteSuperUserPage = lazy(() =>
+  import('@/features/super-admin/components/super-users/invite-super-user-page').then((m) => ({
+    default: m.InviteSuperUserPage,
+  }))
+)
+const ViewSuperUserPage = lazy(() =>
+  import('@/features/super-admin/components/super-users/view-super-user-page').then((m) => ({
+    default: m.ViewSuperUserPage,
+  }))
+)
+const SystemConfigPage = lazy(() =>
+  import('@/features/super-admin/components/configuration/system-config-page').then((m) => ({
+    default: m.SystemConfigPage,
+  }))
+)
+
+// — state-admin pages —
+const OverviewPage = lazy(() =>
+  import('@/features/state-admin/components/overview/overview-page').then((m) => ({
+    default: m.OverviewPage,
+  }))
+)
+const ConfigurationPage = lazy(() =>
+  import('@/features/state-admin/components/configuration/configuration-page').then((m) => ({
+    default: m.ConfigurationPage,
+  }))
+)
+const HierarchyPage = lazy(() =>
+  import('@/features/state-admin/components/hierarchy/hierarchy-page').then((m) => ({
+    default: m.HierarchyPage,
+  }))
+)
+const LanguagePage = lazy(() =>
+  import('@/features/state-admin/components/language/language-page').then((m) => ({
+    default: m.LanguagePage,
+  }))
+)
+const IntegrationPage = lazy(() =>
+  import('@/features/state-admin/components/integration/integration-page').then((m) => ({
+    default: m.IntegrationPage,
+  }))
+)
+const WaterNormsPage = lazy(() =>
+  import('@/features/state-admin/components/water-norms/water-norms-page').then((m) => ({
+    default: m.WaterNormsPage,
+  }))
+)
+const EscalationsFormPage = lazy(() =>
+  import('@/features/state-admin/components/escalations/escalations-form-page').then((m) => ({
+    default: m.EscalationsFormPage,
+  }))
+)
+const MessageTemplatesPage = lazy(() =>
+  import('@/features/state-admin/components/nudges-template/message-templates-page').then((m) => ({
+    default: m.MessageTemplatesPage,
+  }))
+)
+const StaffSyncPage = lazy(() =>
+  import('@/features/state-admin/components/staff-sync/staff-sync-page').then((m) => ({
+    default: m.StaffSyncPage,
+  }))
+)
+const SchemeSyncPage = lazy(() =>
+  import('@/features/state-admin/components/scheme-sync/scheme-sync-page').then((m) => ({
+    default: m.SchemeSyncPage,
+  }))
+)
+const SchemeMappingsSyncPage = lazy(() =>
+  import('@/features/state-admin/components/scheme-mappings-sync/scheme-mappings-sync-page').then(
+    (m) => ({ default: m.SchemeMappingsSyncPage })
+  )
+)
+const StateUTAdminsPage = lazy(() =>
+  import('@/features/state-admin/components/state-ut-admins/state-ut-admins-page').then((m) => ({
+    default: m.StateUTAdminsPage,
+  }))
+)
+const StateUTAdminFormPage = lazy(() =>
+  import('@/features/state-admin/components/state-ut-admins/state-ut-admin-form-page').then(
+    (m) => ({
+      default: m.StateUTAdminFormPage,
+    })
+  )
+)
+const InviteStateUTAdminPage = lazy(() =>
+  import('@/features/state-admin/components/state-ut-admins/invite-state-ut-admin-page').then(
+    (m) => ({ default: m.InviteStateUTAdminPage })
+  )
+)
+const ViewStateUTAdminPage = lazy(() =>
+  import('@/features/state-admin/components/state-ut-admins/view-state-ut-admin-page').then(
+    (m) => ({
+      default: m.ViewStateUTAdminPage,
+    })
+  )
+)
+
+// — auth pages —
+const LoginPage = lazy(() =>
+  import('@/features/auth/components/login/login-page').then((m) => ({ default: m.LoginPage }))
+)
+const ResetPasswordPage = lazy(() =>
+  import('@/features/auth/components/login/reset-password-page').then((m) => ({
+    default: m.ResetPasswordPage,
+  }))
+)
+const ProfilePage = lazy(() =>
+  import('@/features/auth/components/profile/profile-page').then((m) => ({
+    default: m.ProfilePage,
+  }))
+)
+const ChangePasswordPage = lazy(() =>
+  import('@/features/auth/components/change-password/change-password-page').then((m) => ({
+    default: m.ChangePasswordPage,
+  }))
+)
+const AccountActivationPage = lazy(() =>
+  import('@/features/auth/components/activate-account/activate-account-page').then((m) => ({
+    default: m.AccountActivationPage,
+  }))
+)
+
+// — section-officer pages —
+const StaffLoginPage = lazy(() =>
+  import('@/features/section-officer/components/login/staff-login-page').then((m) => ({
+    default: m.StaffLoginPage,
+  }))
+)
+const StaffOverviewPage = lazy(() =>
+  import('@/features/section-officer/components/overview/staff-overview-page').then((m) => ({
+    default: m.StaffOverviewPage,
+  }))
+)
+const SchemesPage = lazy(() =>
+  import('@/features/section-officer/components/schemes/schemes-page').then((m) => ({
+    default: m.SchemesPage,
+  }))
+)
+const SchemeViewPage = lazy(() =>
+  import('@/features/section-officer/components/schemes/scheme-view-page').then((m) => ({
+    default: m.SchemeViewPage,
+  }))
+)
+const PumpOperatorsPage = lazy(() =>
+  import('@/features/section-officer/components/pump-operators/pump-operators-page').then((m) => ({
+    default: m.PumpOperatorsPage,
+  }))
+)
+const PumpOperatorViewPage = lazy(() =>
+  import('@/features/section-officer/components/pump-operators/pump-operator-view-page').then(
+    (m) => ({ default: m.PumpOperatorViewPage })
+  )
+)
+const AnomaliesPage = lazy(() =>
+  import('@/features/section-officer/components/anomalies/anomalies-page').then((m) => ({
+    default: m.AnomaliesPage,
+  }))
+)
+const StaffEscalationsPage = lazy(() =>
+  import('@/features/section-officer/components/escalations/staff-escalations-page').then((m) => ({
+    default: m.StaffEscalationsPage,
+  }))
+)
+const FixReadingsPage = lazy(() =>
+  import('@/features/section-officer/components/fix-readings/fix-readings-page').then((m) => ({
+    default: m.FixReadingsPage,
+  }))
+)
 
 export const router = createBrowserRouter([
   // Public dashboards (single-tenant aware)
@@ -61,7 +229,9 @@ export const router = createBrowserRouter([
     path: '/',
     element: (
       <ProtectedRoute>
-        <MainLayout />
+        <Suspense fallback={<LoadingSpinner />}>
+          <MainLayout />
+        </Suspense>
       </ProtectedRoute>
     ),
     children: [
@@ -86,29 +256,40 @@ export const router = createBrowserRouter([
     path: ROUTES.LOGIN,
     element: (
       <RedirectIfAuthenticated>
-        <LoginPage />
+        <Suspense fallback={<LoadingSpinner />}>
+          <LoginPage />
+        </Suspense>
       </RedirectIfAuthenticated>
     ),
   },
 
   {
     path: ROUTES.CREATE_PASSWORD,
-    element: <AccountActivationPage />,
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        <AccountActivationPage />
+      </Suspense>
+    ),
   },
   {
     path: ROUTES.RESET_PASSWORD,
     element: (
       <RedirectIfAuthenticated>
-        <ResetPasswordPage />
+        <Suspense fallback={<LoadingSpinner />}>
+          <ResetPasswordPage />
+        </Suspense>
       </RedirectIfAuthenticated>
     ),
   },
+
   // Super Admin routes
   {
     path: ROUTES.SUPER_ADMIN,
     element: (
       <ProtectedRoute allowedRoles={[AUTH_ROLES.SUPER_ADMIN, AUTH_ROLES.SUPER_STATE_ADMIN]}>
-        <MainLayout />
+        <Suspense fallback={<LoadingSpinner />}>
+          <MainLayout />
+        </Suspense>
       </ProtectedRoute>
     ),
     children: [
@@ -164,7 +345,9 @@ export const router = createBrowserRouter([
     path: ROUTES.STATE_ADMIN,
     element: (
       <ProtectedRoute allowedRoles={[AUTH_ROLES.STATE_ADMIN, AUTH_ROLES.SUPER_STATE_ADMIN]}>
-        <MainLayout />
+        <Suspense fallback={<LoadingSpinner />}>
+          <MainLayout />
+        </Suspense>
       </ProtectedRoute>
     ),
     children: [
@@ -236,7 +419,9 @@ export const router = createBrowserRouter([
     path: ROUTES.STAFF_LOGIN,
     element: (
       <RedirectIfAuthenticated>
-        <StaffLoginPage />
+        <Suspense fallback={<LoadingSpinner />}>
+          <StaffLoginPage />
+        </Suspense>
       </RedirectIfAuthenticated>
     ),
   },
@@ -248,7 +433,9 @@ export const router = createBrowserRouter([
       <ProtectedRoute
         allowedRoles={[AUTH_ROLES.SECTION_OFFICER, AUTH_ROLES.SUB_DIVISIONAL_OFFICER]}
       >
-        <MainLayout />
+        <Suspense fallback={<LoadingSpinner />}>
+          <MainLayout />
+        </Suspense>
       </ProtectedRoute>
     ),
     children: [
