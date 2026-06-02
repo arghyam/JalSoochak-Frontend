@@ -1,3 +1,7 @@
+jest.mock('./central-dashboard', () => ({
+  CentralDashboard: 'CentralDashboard',
+}))
+
 import * as dashboardComponents from './index'
 import { CentralDashboard } from './central-dashboard'
 import { KPICard } from './kpi-card/kpi-card'
