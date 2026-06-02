@@ -82,6 +82,7 @@ export type TenantPublicConfig = {
   waterNorm: number
   dateFormatScreen: TenantPublicDateFormatConfig
   dateFormatTable: TenantPublicDateFormatConfig
+  displayDepartmentMaps?: boolean
   displayDepartmentMapLevels?: boolean[]
   displayMapLgdLevels?: boolean[]
 }
@@ -124,6 +125,7 @@ type TenantPublicConfigMap = {
   DATE_FORMAT_TABLE?: TenantPublicDateFormatConfig
   AVERAGE_MEMBERS_PER_HOUSEHOLD?: { value?: string | null }
   WATER_NORM?: { value?: string | null }
+  DISPLAY_DEPARTMENT_MAP?: { value?: string | null }
   DISPLAY_DEPARTMENT_MAP_LEVEL_1?: { value?: string | null }
   DISPLAY_DEPARTMENT_MAP_LEVEL_2?: { value?: string | null }
   DISPLAY_DEPARTMENT_MAP_LEVEL_3?: { value?: string | null }
@@ -718,6 +720,7 @@ export const dashboardApi = {
         const parsedWaterNorm = Number(configs?.WATER_NORM?.value)
         return Number.isFinite(parsedWaterNorm) && parsedWaterNorm > 0 ? parsedWaterNorm : 0
       })(),
+      displayDepartmentMaps: readBooleanConfigValue(configs?.DISPLAY_DEPARTMENT_MAP?.value, true),
       displayDepartmentMapLevels: readDepartmentMapLevelsWithCascade(configs),
       displayMapLgdLevels: readLgdMapLevelsWithCascade(configs),
       dateFormatScreen: configs?.DATE_FORMAT_SCREEN ?? {
