@@ -116,6 +116,27 @@ describe('fixReadingsApi.updateFinalReading', () => {
     ).rejects.toThrow('reading must be greater than last confirmed reading (2026-05-31)')
   })
 
+  it('throws with response body message on HTTP 400', async () => {
+    const axiosError = Object.assign(new Error('Request failed with status code 400'), {
+      isAxiosError: true,
+      response: {
+        status: 400,
+        data: {
+          success: false,
+          schemeId: 28442,
+          readingDate: null,
+          finalReading: 200,
+          message: 'reading must be greater than last confirmed reading (2026-05-31)',
+        },
+      },
+    })
+    mockPatch.mockRejectedValueOnce(axiosError)
+
+    await expect(
+      fixReadingsApi.updateFinalReading(28442, { phoneNumber: '917050624278', reading: 200 }, 'AS')
+    ).rejects.toThrow('reading must be greater than last confirmed reading (2026-05-31)')
+  })
+
   it('propagates network errors from the API', async () => {
     const apiError = new Error('Network error')
     mockPatch.mockRejectedValueOnce(apiError)
