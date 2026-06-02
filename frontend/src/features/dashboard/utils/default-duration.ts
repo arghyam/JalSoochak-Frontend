@@ -1,10 +1,34 @@
 import { useEffect, useState } from 'react'
 import type { DateRange } from '@/shared/components/common'
+import { getRuntimeConfig } from '@/config/runtime-config'
 
 export const DASHBOARD_DATA_ROLLOVER_HOUR = 19
+const DEFAULT_DASHBOARD_DURATION_DAYS = 1
+const DEFAULT_ALLOWED_DASHBOARD_DURATION_DAYS = [1, 7, 30]
 
 const formatIsoDate = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+
+const resolveDashboardDefaultDurationDays = () => {
+  const durationConfig = getRuntimeConfig().DEFAULT_DASHBOARD_DURATION
+  const configuredDuration = durationConfig?.DAYS
+  const allowedDurations = durationConfig?.ALLOWED_DAYS
+  const validAllowedDurations = allowedDurations?.filter((days) =>
+    DEFAULT_ALLOWED_DASHBOARD_DURATION_DAYS.includes(days)
+  )
+
+  if (
+    typeof configuredDuration === 'number' &&
+    (validAllowedDurations?.length
+      ? validAllowedDurations
+      : DEFAULT_ALLOWED_DASHBOARD_DURATION_DAYS
+    ).includes(configuredDuration)
+  ) {
+    return configuredDuration
+  }
+
+  return DEFAULT_DASHBOARD_DURATION_DAYS
+}
 
 export const getDashboardDefaultDateRange = (baseDate = new Date()): DateRange => {
   const effectiveDate = new Date(baseDate)
@@ -13,10 +37,13 @@ export const getDashboardDefaultDateRange = (baseDate = new Date()): DateRange =
     effectiveDate.setDate(effectiveDate.getDate() - 1)
   }
 
-  const date = formatIsoDate(effectiveDate)
+  const endDate = formatIsoDate(effectiveDate)
+  const startDate = new Date(effectiveDate)
+  startDate.setDate(effectiveDate.getDate() - resolveDashboardDefaultDurationDays() + 1)
+
   return {
-    startDate: date,
-    endDate: date,
+    startDate: formatIsoDate(startDate),
+    endDate,
   }
 }
 
