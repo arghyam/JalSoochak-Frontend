@@ -124,7 +124,12 @@ export function DashboardMapPerformanceSection({
 }: DashboardMapPerformanceSectionProps) {
   const fullscreenMapContainerRef = useRef<HTMLDivElement>(null)
   const previousFocusedElementRef = useRef<HTMLElement | null>(null)
+  const closeHandlerRef = useRef(onMapFullscreenClose)
   const isFullscreenOverlayOpen = shouldShowMapAlongsidePerformance && isMapFullscreen
+
+  useEffect(() => {
+    closeHandlerRef.current = onMapFullscreenClose
+  }, [onMapFullscreenClose])
 
   useEffect(() => {
     if (!isFullscreenOverlayOpen) {
@@ -136,7 +141,7 @@ export function DashboardMapPerformanceSection({
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        onMapFullscreenClose()
+        closeHandlerRef.current()
       }
     }
 
@@ -158,7 +163,7 @@ export function DashboardMapPerformanceSection({
 
       previousFocusedElementRef.current = null
     }
-  }, [isFullscreenOverlayOpen, onMapFullscreenClose])
+  }, [isFullscreenOverlayOpen])
 
   return (
     <>
@@ -220,6 +225,7 @@ export function DashboardMapPerformanceSection({
               ref={fullscreenMapContainerRef}
               role="dialog"
               aria-modal="true"
+              aria-label="Fullscreen map"
               tabIndex={-1}
               w="full"
               maxW={{ base: '100%', lg: '1200px', xl: '1320px' }}
