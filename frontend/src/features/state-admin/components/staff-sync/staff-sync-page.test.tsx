@@ -347,6 +347,8 @@ describe('StaffSyncPage', () => {
   it('triggers file download on report success', async () => {
     ;(globalThis as { fetch: unknown }).fetch = jest.fn().mockImplementation(() =>
       Promise.resolve({
+        ok: true,
+        headers: { get: jest.fn().mockReturnValue('text/csv') },
         blob: jest
           .fn()
           .mockImplementation(() => Promise.resolve(new Blob(['csv'], { type: 'text/csv' }))),
@@ -379,7 +381,10 @@ describe('StaffSyncPage', () => {
     expect(anchor).toBeDefined()
     expect(anchor!.download).toMatch(/^staff-report_\d{8}_\d{6}\.csv$/)
     expect(clickSpy).toHaveBeenCalled()
-    expect(globalThis.fetch).toHaveBeenCalledWith('https://example.com/report.csv')
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      'https://example.com/report.csv',
+      expect.any(Object)
+    )
 
     clickSpy.mockRestore()
     appendSpy.mockRestore()

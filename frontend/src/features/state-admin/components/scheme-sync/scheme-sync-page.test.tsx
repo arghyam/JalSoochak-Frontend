@@ -284,6 +284,8 @@ describe('SchemeSyncPage', () => {
   it('triggers file download on report success', async () => {
     ;(globalThis as { fetch: unknown }).fetch = jest.fn().mockImplementation(() =>
       Promise.resolve({
+        ok: true,
+        headers: { get: jest.fn().mockReturnValue('text/csv') },
         blob: jest
           .fn()
           .mockImplementation(() => Promise.resolve(new Blob(['csv'], { type: 'text/csv' }))),
@@ -316,7 +318,10 @@ describe('SchemeSyncPage', () => {
     expect(anchor).toBeDefined()
     expect(anchor!.download).toBe('schemes-report.csv')
     expect(clickSpy).toHaveBeenCalled()
-    expect(globalThis.fetch).toHaveBeenCalledWith('https://example.com/schemes.csv')
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      'https://example.com/schemes.csv',
+      expect.any(Object)
+    )
 
     clickSpy.mockRestore()
     appendSpy.mockRestore()
