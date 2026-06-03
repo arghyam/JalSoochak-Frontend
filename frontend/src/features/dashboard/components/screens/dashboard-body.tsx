@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Box, Flex, Grid, Text } from '@chakra-ui/react'
+import { Alert, AlertDescription, AlertIcon, Box, Flex, Grid, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import type {
   DashboardData,
@@ -66,10 +66,17 @@ type DashboardBodyProps = {
   waterSupplyOutageDistributionData: WaterSupplyOutageData[]
   isOutageReasonsLoading?: boolean
   isOutageDistributionLoading?: boolean
+  isOutageReasonsError?: boolean
   isReadingSubmissionRateLoading?: boolean
+  isReadingSubmissionRateError?: boolean
   isReadingSubmissionStatusLoading?: boolean
+  isReadingSubmissionStatusError?: boolean
   isSchemePerformanceLoading?: boolean
+  isSchemePerformanceError?: boolean
   isActiveSchemesLoading?: boolean
+  isActiveSchemesError?: boolean
+  isQuantityPerformanceError?: boolean
+  isRegularityPerformanceError?: boolean
   pumpOperatorsTotal: number
   operatorsPerformanceTable: PumpOperatorPerformanceData[]
   villagePhotoEvidenceRows: DashboardData['readingCompliance']
@@ -124,10 +131,17 @@ export function DashboardBody({
   waterSupplyOutageDistributionData,
   isOutageReasonsLoading = false,
   isOutageDistributionLoading = false,
+  isOutageReasonsError = false,
   isReadingSubmissionRateLoading = false,
+  isReadingSubmissionRateError = false,
   isReadingSubmissionStatusLoading = false,
+  isReadingSubmissionStatusError = false,
   isSchemePerformanceLoading = false,
+  isSchemePerformanceError = false,
   isActiveSchemesLoading = false,
+  isActiveSchemesError = false,
+  isQuantityPerformanceError = false,
+  isRegularityPerformanceError = false,
   pumpOperatorsTotal,
   operatorsPerformanceTable,
   villagePhotoEvidenceRows,
@@ -211,6 +225,7 @@ export function DashboardBody({
           key={performanceScreenKey ?? 'hidden-performance-screen'}
           quantityPerformanceData={quantityPerformanceData}
           isQuantityPerformanceLoading={isQuantityPerformanceLoading}
+          isQuantityPerformanceError={isQuantityPerformanceError}
           quantityTimeTrendData={quantityTimeTrendData}
           isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
           isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
@@ -220,6 +235,7 @@ export function DashboardBody({
           onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
           regularityPerformanceData={regularityPerformanceData}
           isRegularityPerformanceLoading={isRegularityPerformanceLoading}
+          isRegularityPerformanceError={isRegularityPerformanceError}
           regularityTimeTrendData={regularityTimeTrendData}
           isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
           geographyEntityLabel={geographyEntityLabel}
@@ -231,127 +247,157 @@ export function DashboardBody({
       ) : null}
 
       {isDistrictScreen ? (
-        <DistrictDashboardScreen
-          data={data}
-          waterSupplyOutagesData={waterSupplyOutagesData}
-          waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
-          quantityPerformanceData={quantityPerformanceData}
-          isQuantityPerformanceLoading={isQuantityPerformanceLoading}
-          quantityTimeTrendData={quantityTimeTrendData}
-          isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
-          isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
-          quantityTimeScaleTab={quantityTimeScaleTab}
-          onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
-          regularityTimeScaleTab={regularityTimeScaleTab}
-          onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
-          outageDistributionTimeScaleTab={outageDistributionTimeScaleTab}
-          onOutageDistributionTimeScaleTabChange={onOutageDistributionTimeScaleTabChange}
-          regularityPerformanceData={regularityPerformanceData}
-          isRegularityPerformanceLoading={isRegularityPerformanceLoading}
-          regularityTimeTrendData={regularityTimeTrendData}
-          isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
-          blockTableData={blockTableData}
-          supplySubmissionRateData={supplySubmissionRateData}
-          supplySubmissionRateLabel={supplySubmissionRateLabel}
-          childEntityLabel={supplySubmissionRateLabel}
-          operatorsPerformanceTable={operatorsPerformanceTable}
-          pumpOperatorsTotal={pumpOperatorsTotal}
-          isOutageReasonsLoading={isOutageReasonsLoading}
-          isOutageDistributionLoading={isOutageDistributionLoading}
-          isReadingSubmissionRateLoading={isReadingSubmissionRateLoading}
-          isReadingSubmissionStatusLoading={isReadingSubmissionStatusLoading}
-          isSchemePerformanceLoading={isSchemePerformanceLoading}
-          isActiveSchemesLoading={isActiveSchemesLoading}
-          schemePerformancePage={schemePerformancePage}
-          totalSchemePages={totalSchemePages}
-          onSchemePageChange={onSchemePageChange}
-          screenDateFormat={screenDateFormat}
-          tableDateFormat={tableDateFormat}
-          isTimeViewEnabled={isTimeViewEnabled}
-        />
+        <>
+          {(isSchemePerformanceError || isActiveSchemesError) &&
+          !isSchemePerformanceLoading &&
+          !isActiveSchemesLoading ? (
+            <Alert status="error" borderRadius="md" mb={4}>
+              <AlertIcon />
+              <AlertDescription>Failed to load data. Please try again.</AlertDescription>
+            </Alert>
+          ) : null}
+          <DistrictDashboardScreen
+            data={data}
+            waterSupplyOutagesData={waterSupplyOutagesData}
+            waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
+            quantityPerformanceData={quantityPerformanceData}
+            isQuantityPerformanceLoading={isQuantityPerformanceLoading}
+            quantityTimeTrendData={quantityTimeTrendData}
+            isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
+            isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
+            quantityTimeScaleTab={quantityTimeScaleTab}
+            onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
+            regularityTimeScaleTab={regularityTimeScaleTab}
+            onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
+            outageDistributionTimeScaleTab={outageDistributionTimeScaleTab}
+            onOutageDistributionTimeScaleTabChange={onOutageDistributionTimeScaleTabChange}
+            regularityPerformanceData={regularityPerformanceData}
+            isRegularityPerformanceLoading={isRegularityPerformanceLoading}
+            regularityTimeTrendData={regularityTimeTrendData}
+            isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
+            blockTableData={blockTableData}
+            supplySubmissionRateData={supplySubmissionRateData}
+            supplySubmissionRateLabel={supplySubmissionRateLabel}
+            childEntityLabel={supplySubmissionRateLabel}
+            operatorsPerformanceTable={operatorsPerformanceTable}
+            pumpOperatorsTotal={pumpOperatorsTotal}
+            isOutageReasonsLoading={isOutageReasonsLoading}
+            isOutageDistributionLoading={isOutageDistributionLoading}
+            isReadingSubmissionRateLoading={isReadingSubmissionRateLoading}
+            isReadingSubmissionStatusLoading={isReadingSubmissionStatusLoading}
+            isSchemePerformanceLoading={isSchemePerformanceLoading}
+            isActiveSchemesLoading={isActiveSchemesLoading}
+            schemePerformancePage={schemePerformancePage}
+            totalSchemePages={totalSchemePages}
+            onSchemePageChange={onSchemePageChange}
+            screenDateFormat={screenDateFormat}
+            tableDateFormat={tableDateFormat}
+            isTimeViewEnabled={isTimeViewEnabled}
+          />
+        </>
       ) : null}
       {isBlockScreen ? (
-        <BlockDashboardScreen
-          data={data}
-          waterSupplyOutagesData={waterSupplyOutagesData}
-          waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
-          quantityPerformanceData={quantityPerformanceData}
-          isQuantityPerformanceLoading={isQuantityPerformanceLoading}
-          quantityTimeTrendData={quantityTimeTrendData}
-          isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
-          isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
-          quantityTimeScaleTab={quantityTimeScaleTab}
-          onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
-          regularityTimeScaleTab={regularityTimeScaleTab}
-          onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
-          outageDistributionTimeScaleTab={outageDistributionTimeScaleTab}
-          onOutageDistributionTimeScaleTabChange={onOutageDistributionTimeScaleTabChange}
-          regularityPerformanceData={regularityPerformanceData}
-          isRegularityPerformanceLoading={isRegularityPerformanceLoading}
-          regularityTimeTrendData={regularityTimeTrendData}
-          isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
-          gramPanchayatTableData={gramPanchayatTableData}
-          supplySubmissionRateData={supplySubmissionRateData}
-          supplySubmissionRateLabel={supplySubmissionRateLabel}
-          childEntityLabel={supplySubmissionRateLabel}
-          pumpOperatorsTotal={pumpOperatorsTotal}
-          operatorsPerformanceTable={operatorsPerformanceTable}
-          isOutageReasonsLoading={isOutageReasonsLoading}
-          isOutageDistributionLoading={isOutageDistributionLoading}
-          isReadingSubmissionRateLoading={isReadingSubmissionRateLoading}
-          isReadingSubmissionStatusLoading={isReadingSubmissionStatusLoading}
-          isSchemePerformanceLoading={isSchemePerformanceLoading}
-          isActiveSchemesLoading={isActiveSchemesLoading}
-          showSupplyOutageReasons
-          showReadingSubmissionRate
-          showReadingSubmissionSection
-          schemePerformancePage={schemePerformancePage}
-          totalSchemePages={totalSchemePages}
-          onSchemePageChange={onSchemePageChange}
-          screenDateFormat={screenDateFormat}
-          tableDateFormat={tableDateFormat}
-          isTimeViewEnabled={isTimeViewEnabled}
-        />
+        <>
+          {(isSchemePerformanceError || isActiveSchemesError) &&
+          !isSchemePerformanceLoading &&
+          !isActiveSchemesLoading ? (
+            <Alert status="error" borderRadius="md" mb={4}>
+              <AlertIcon />
+              <AlertDescription>Failed to load data. Please try again.</AlertDescription>
+            </Alert>
+          ) : null}
+          <BlockDashboardScreen
+            data={data}
+            waterSupplyOutagesData={waterSupplyOutagesData}
+            waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
+            quantityPerformanceData={quantityPerformanceData}
+            isQuantityPerformanceLoading={isQuantityPerformanceLoading}
+            quantityTimeTrendData={quantityTimeTrendData}
+            isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
+            isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
+            quantityTimeScaleTab={quantityTimeScaleTab}
+            onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
+            regularityTimeScaleTab={regularityTimeScaleTab}
+            onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
+            outageDistributionTimeScaleTab={outageDistributionTimeScaleTab}
+            onOutageDistributionTimeScaleTabChange={onOutageDistributionTimeScaleTabChange}
+            regularityPerformanceData={regularityPerformanceData}
+            isRegularityPerformanceLoading={isRegularityPerformanceLoading}
+            regularityTimeTrendData={regularityTimeTrendData}
+            isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
+            gramPanchayatTableData={gramPanchayatTableData}
+            supplySubmissionRateData={supplySubmissionRateData}
+            supplySubmissionRateLabel={supplySubmissionRateLabel}
+            childEntityLabel={supplySubmissionRateLabel}
+            pumpOperatorsTotal={pumpOperatorsTotal}
+            operatorsPerformanceTable={operatorsPerformanceTable}
+            isOutageReasonsLoading={isOutageReasonsLoading}
+            isOutageDistributionLoading={isOutageDistributionLoading}
+            isReadingSubmissionRateLoading={isReadingSubmissionRateLoading}
+            isReadingSubmissionStatusLoading={isReadingSubmissionStatusLoading}
+            isSchemePerformanceLoading={isSchemePerformanceLoading}
+            isActiveSchemesLoading={isActiveSchemesLoading}
+            showSupplyOutageReasons
+            showReadingSubmissionRate
+            showReadingSubmissionSection
+            schemePerformancePage={schemePerformancePage}
+            totalSchemePages={totalSchemePages}
+            onSchemePageChange={onSchemePageChange}
+            screenDateFormat={screenDateFormat}
+            tableDateFormat={tableDateFormat}
+            isTimeViewEnabled={isTimeViewEnabled}
+          />
+        </>
       ) : null}
       {isGramPanchayatScreen ? (
-        <GramPanchayatDashboardScreen
-          data={data}
-          waterSupplyOutagesData={waterSupplyOutagesData}
-          waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
-          quantityPerformanceData={quantityPerformanceData}
-          isQuantityPerformanceLoading={isQuantityPerformanceLoading}
-          quantityTimeTrendData={quantityTimeTrendData}
-          isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
-          isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
-          quantityTimeScaleTab={quantityTimeScaleTab}
-          onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
-          regularityTimeScaleTab={regularityTimeScaleTab}
-          onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
-          outageDistributionTimeScaleTab={outageDistributionTimeScaleTab}
-          onOutageDistributionTimeScaleTabChange={onOutageDistributionTimeScaleTabChange}
-          regularityPerformanceData={regularityPerformanceData}
-          isRegularityPerformanceLoading={isRegularityPerformanceLoading}
-          regularityTimeTrendData={regularityTimeTrendData}
-          isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
-          villageTableData={villageTableData}
-          supplySubmissionRateData={supplySubmissionRateData}
-          supplySubmissionRateLabel={supplySubmissionRateLabel}
-          childEntityLabel={supplySubmissionRateLabel}
-          pumpOperatorsTotal={pumpOperatorsTotal}
-          operatorsPerformanceTable={operatorsPerformanceTable}
-          isOutageReasonsLoading={isOutageReasonsLoading}
-          isOutageDistributionLoading={isOutageDistributionLoading}
-          isReadingSubmissionRateLoading={isReadingSubmissionRateLoading}
-          isReadingSubmissionStatusLoading={isReadingSubmissionStatusLoading}
-          isSchemePerformanceLoading={isSchemePerformanceLoading}
-          isActiveSchemesLoading={isActiveSchemesLoading}
-          schemePerformancePage={schemePerformancePage}
-          totalSchemePages={totalSchemePages}
-          onSchemePageChange={onSchemePageChange}
-          screenDateFormat={screenDateFormat}
-          tableDateFormat={tableDateFormat}
-          isTimeViewEnabled={isTimeViewEnabled}
-        />
+        <>
+          {(isSchemePerformanceError || isActiveSchemesError) &&
+          !isSchemePerformanceLoading &&
+          !isActiveSchemesLoading ? (
+            <Alert status="error" borderRadius="md" mb={4}>
+              <AlertIcon />
+              <AlertDescription>Failed to load data. Please try again.</AlertDescription>
+            </Alert>
+          ) : null}
+          <GramPanchayatDashboardScreen
+            data={data}
+            waterSupplyOutagesData={waterSupplyOutagesData}
+            waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
+            quantityPerformanceData={quantityPerformanceData}
+            isQuantityPerformanceLoading={isQuantityPerformanceLoading}
+            quantityTimeTrendData={quantityTimeTrendData}
+            isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
+            isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
+            quantityTimeScaleTab={quantityTimeScaleTab}
+            onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
+            regularityTimeScaleTab={regularityTimeScaleTab}
+            onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
+            outageDistributionTimeScaleTab={outageDistributionTimeScaleTab}
+            onOutageDistributionTimeScaleTabChange={onOutageDistributionTimeScaleTabChange}
+            regularityPerformanceData={regularityPerformanceData}
+            isRegularityPerformanceLoading={isRegularityPerformanceLoading}
+            regularityTimeTrendData={regularityTimeTrendData}
+            isRegularityTimeTrendLoading={isRegularityTimeTrendLoading}
+            villageTableData={villageTableData}
+            supplySubmissionRateData={supplySubmissionRateData}
+            supplySubmissionRateLabel={supplySubmissionRateLabel}
+            childEntityLabel={supplySubmissionRateLabel}
+            pumpOperatorsTotal={pumpOperatorsTotal}
+            operatorsPerformanceTable={operatorsPerformanceTable}
+            isOutageReasonsLoading={isOutageReasonsLoading}
+            isOutageDistributionLoading={isOutageDistributionLoading}
+            isReadingSubmissionRateLoading={isReadingSubmissionRateLoading}
+            isReadingSubmissionStatusLoading={isReadingSubmissionStatusLoading}
+            isSchemePerformanceLoading={isSchemePerformanceLoading}
+            isActiveSchemesLoading={isActiveSchemesLoading}
+            schemePerformancePage={schemePerformancePage}
+            totalSchemePages={totalSchemePages}
+            onSchemePageChange={onSchemePageChange}
+            screenDateFormat={screenDateFormat}
+            tableDateFormat={tableDateFormat}
+            isTimeViewEnabled={isTimeViewEnabled}
+          />
+        </>
       ) : null}
 
       {selectedVillage && villagePumpOperatorDetails ? (
@@ -408,6 +454,11 @@ export function DashboardBody({
               <Flex align="center" justify="center" h="336px">
                 <LoadingSpinner />
               </Flex>
+            ) : isOutageReasonsError ? (
+              <Alert status="error" borderRadius="md" mt={2}>
+                <AlertIcon />
+                <AlertDescription>Failed to load data. Please try again.</AlertDescription>
+              </Alert>
             ) : (
               <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="336px" />
             )}
@@ -538,6 +589,11 @@ export function DashboardBody({
                     <Flex align="center" justify="center" h="100%">
                       <LoadingSpinner />
                     </Flex>
+                  ) : isOutageReasonsError ? (
+                    <Alert status="error" borderRadius="md" mt={2}>
+                      <AlertIcon />
+                      <AlertDescription>Failed to load data. Please try again.</AlertDescription>
+                    </Alert>
                   ) : !hasOutageReasonsData ? (
                     <ChartEmptyState minHeight="100%" />
                   ) : effectiveOutageDistributionViewBy === 'geography' ? (
@@ -581,6 +637,11 @@ export function DashboardBody({
                     <Flex align="center" justify="center" h="100%">
                       <LoadingSpinner />
                     </Flex>
+                  ) : isReadingSubmissionRateError ? (
+                    <Alert status="error" borderRadius="md" mt={2}>
+                      <AlertIcon />
+                      <AlertDescription>Failed to load data. Please try again.</AlertDescription>
+                    </Alert>
                   ) : supplySubmissionRateData.length > 0 ? (
                     <ReadingSubmissionRateChart
                       data={supplySubmissionRateData}
@@ -599,14 +660,22 @@ export function DashboardBody({
       ) : null}
 
       {isStateScreen ? (
-        <StateUtDashboardScreen
-          data={data}
-          supplySubmissionRateData={supplySubmissionRateData}
-          supplySubmissionRateLabel={supplySubmissionRateLabel}
-          isReadingSubmissionRateLoading={isReadingSubmissionRateLoading}
-          isReadingSubmissionStatusLoading={isReadingSubmissionStatusLoading}
-          screenDateFormat={screenDateFormat}
-        />
+        <>
+          {isReadingSubmissionStatusError && !isReadingSubmissionStatusLoading ? (
+            <Alert status="error" borderRadius="md" mb={4}>
+              <AlertIcon />
+              <AlertDescription>Failed to load data. Please try again.</AlertDescription>
+            </Alert>
+          ) : null}
+          <StateUtDashboardScreen
+            data={data}
+            supplySubmissionRateData={supplySubmissionRateData}
+            supplySubmissionRateLabel={supplySubmissionRateLabel}
+            isReadingSubmissionRateLoading={isReadingSubmissionRateLoading}
+            isReadingSubmissionStatusLoading={isReadingSubmissionStatusLoading}
+            screenDateFormat={screenDateFormat}
+          />
+        </>
       ) : null}
     </>
   )
@@ -615,6 +684,7 @@ export function DashboardBody({
 type PerformanceChartsSectionProps = {
   quantityPerformanceData: EntityPerformance[]
   isQuantityPerformanceLoading: boolean
+  isQuantityPerformanceError?: boolean
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading: boolean
   isQuantityTimeTrendAwaitingParams: boolean
@@ -624,6 +694,7 @@ type PerformanceChartsSectionProps = {
   onRegularityTimeScaleTabChange?: (value: 'day' | 'week' | 'month' | 'quarter' | 'year') => void
   regularityPerformanceData: EntityPerformance[]
   isRegularityPerformanceLoading: boolean
+  isRegularityPerformanceError?: boolean
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading: boolean
   geographyEntityLabel: string
@@ -636,6 +707,7 @@ type PerformanceChartsSectionProps = {
 function PerformanceChartsSection({
   quantityPerformanceData,
   isQuantityPerformanceLoading,
+  isQuantityPerformanceError = false,
   quantityTimeTrendData,
   isQuantityTimeTrendLoading,
   isQuantityTimeTrendAwaitingParams,
@@ -645,6 +717,7 @@ function PerformanceChartsSection({
   onRegularityTimeScaleTabChange,
   regularityPerformanceData,
   isRegularityPerformanceLoading,
+  isRegularityPerformanceError = false,
   regularityTimeTrendData,
   isRegularityTimeTrendLoading,
   geographyEntityLabel,
@@ -659,68 +732,111 @@ function PerformanceChartsSection({
 
   return (
     <Grid templateColumns="1fr" gap={6} mb={6}>
-      <PerformanceChartCard
-        title={t('performanceCharts.regularity.title', {
-          defaultValue: 'Regularity Performance',
-        })}
-        viewByAriaLabel={t('performanceCharts.regularity.ariaViewBy', {
-          defaultValue: 'Regularity performance view by',
-        })}
-        viewBy={regularityViewBy}
-        onViewByChange={setRegularityViewBy}
-        data={regularityPerformanceData}
-        isGeographyLoading={isRegularityPerformanceLoading}
-        metric="regularity"
-        timeTrendData={regularityTimeTrendData}
-        isTimeTrendLoading={isRegularityTimeTrendLoading}
-        entityLabel={geographyEntityLabel}
-        yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
-          defaultValue: 'Regularity',
-        })}
-        seriesName={t('performanceCharts.regularity.seriesName', {
-          defaultValue: 'Regularity',
-        })}
-        cardHeight="536px"
-        timeXAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
-        isTimeTrendPercent
-        regularityTimeScaleTab={regularityTimeScaleTab}
-        onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
-        dateFormat={screenDateFormat ?? tableDateFormat}
-        enableExtendedTimeScales={enableExtendedTimeScales}
-        isTimeViewEnabled={isTimeViewEnabled}
-      />
-      <PerformanceChartCard
-        title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
-        viewByAriaLabel={t('performanceCharts.quantity.ariaViewBy', {
-          defaultValue: 'Quantity performance view by',
-        })}
-        viewBy={quantityViewBy}
-        onViewByChange={setQuantityViewBy}
-        data={quantityPerformanceData}
-        isGeographyLoading={isQuantityPerformanceLoading}
-        metric="quantity"
-        timeTrendData={quantityTimeTrendData}
-        isTimeTrendLoading={isQuantityTimeTrendLoading}
-        isTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
-        entityLabel={geographyEntityLabel}
-        yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
-          defaultValue: 'Quantity',
-        })}
-        seriesName={t('performanceCharts.quantity.seriesName', {
-          defaultValue: 'Quantity',
-        })}
-        cardHeight="536px"
-        showAreaLine
-        areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
-          defaultValue: 'Demand',
-        })}
-        timeXAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
-        quantityTimeScaleTab={quantityTimeScaleTab}
-        onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
-        dateFormat={screenDateFormat ?? tableDateFormat}
-        enableExtendedTimeScales={enableExtendedTimeScales}
-        isTimeViewEnabled={isTimeViewEnabled}
-      />
+      {isRegularityPerformanceError && !isRegularityPerformanceLoading ? (
+        <Box
+          bg="white"
+          borderWidth="0.5px"
+          borderRadius="12px"
+          borderColor="#E4E4E7"
+          px="16px"
+          pt="24px"
+          pb="24px"
+        >
+          <Text textStyle="bodyText3" fontWeight="400" mb={4}>
+            {t('performanceCharts.regularity.title', {
+              defaultValue: 'Regularity Performance',
+            })}
+          </Text>
+          <Alert status="error" borderRadius="md">
+            <AlertIcon />
+            <AlertDescription>Failed to load data. Please try again.</AlertDescription>
+          </Alert>
+        </Box>
+      ) : (
+        <PerformanceChartCard
+          title={t('performanceCharts.regularity.title', {
+            defaultValue: 'Regularity Performance',
+          })}
+          viewByAriaLabel={t('performanceCharts.regularity.ariaViewBy', {
+            defaultValue: 'Regularity performance view by',
+          })}
+          viewBy={regularityViewBy}
+          onViewByChange={setRegularityViewBy}
+          data={regularityPerformanceData}
+          isGeographyLoading={isRegularityPerformanceLoading}
+          metric="regularity"
+          timeTrendData={regularityTimeTrendData}
+          isTimeTrendLoading={isRegularityTimeTrendLoading}
+          entityLabel={geographyEntityLabel}
+          yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
+            defaultValue: 'Regularity',
+          })}
+          seriesName={t('performanceCharts.regularity.seriesName', {
+            defaultValue: 'Regularity',
+          })}
+          cardHeight="536px"
+          timeXAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+          isTimeTrendPercent
+          regularityTimeScaleTab={regularityTimeScaleTab}
+          onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
+          dateFormat={screenDateFormat ?? tableDateFormat}
+          enableExtendedTimeScales={enableExtendedTimeScales}
+          isTimeViewEnabled={isTimeViewEnabled}
+        />
+      )}
+      {isQuantityPerformanceError && !isQuantityPerformanceLoading ? (
+        <Box
+          bg="white"
+          borderWidth="0.5px"
+          borderRadius="12px"
+          borderColor="#E4E4E7"
+          px="16px"
+          pt="24px"
+          pb="24px"
+        >
+          <Text textStyle="bodyText3" fontWeight="400" mb={4}>
+            {t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
+          </Text>
+          <Alert status="error" borderRadius="md">
+            <AlertIcon />
+            <AlertDescription>Failed to load data. Please try again.</AlertDescription>
+          </Alert>
+        </Box>
+      ) : null}
+      {!isQuantityPerformanceError ? (
+        <PerformanceChartCard
+          title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
+          viewByAriaLabel={t('performanceCharts.quantity.ariaViewBy', {
+            defaultValue: 'Quantity performance view by',
+          })}
+          viewBy={quantityViewBy}
+          onViewByChange={setQuantityViewBy}
+          data={quantityPerformanceData}
+          isGeographyLoading={isQuantityPerformanceLoading}
+          metric="quantity"
+          timeTrendData={quantityTimeTrendData}
+          isTimeTrendLoading={isQuantityTimeTrendLoading}
+          isTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
+          entityLabel={geographyEntityLabel}
+          yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
+            defaultValue: 'Quantity',
+          })}
+          seriesName={t('performanceCharts.quantity.seriesName', {
+            defaultValue: 'Quantity',
+          })}
+          cardHeight="536px"
+          showAreaLine
+          areaSeriesName={t('performanceCharts.quantity.areaSeriesName', {
+            defaultValue: 'Demand',
+          })}
+          timeXAxisLabel={t('performanceCharts.viewBy.time', { defaultValue: 'Time' })}
+          quantityTimeScaleTab={quantityTimeScaleTab}
+          onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
+          dateFormat={screenDateFormat ?? tableDateFormat}
+          enableExtendedTimeScales={enableExtendedTimeScales}
+          isTimeViewEnabled={isTimeViewEnabled}
+        />
+      ) : null}
     </Grid>
   )
 }

@@ -435,6 +435,7 @@ export function useCentralDashboardQueries({
     data: averageWaterSupplyData,
     isLoading: isAverageWaterSupplyLoading = false,
     isFetching: isAverageWaterSupplyFetching = false,
+    isError: isAverageWaterSupplyError = false,
   } = useAverageWaterSupplyPerRegionQuery({
     params: analyticsParams,
     enabled: Boolean(analyticsParams),
@@ -459,6 +460,7 @@ export function useCentralDashboardQueries({
     data: nationalDashboardData,
     isLoading: isNationalDashboardLoading = false,
     isFetching: isNationalDashboardFetching = false,
+    isError: isNationalDashboardError = false,
   } = useNationalDashboardQuery({
     params: nationalDashboardParams,
     enabled: Boolean(nationalDashboardParams),
@@ -536,6 +538,7 @@ export function useCentralDashboardQueries({
     data: averageSchemeRegularityData,
     isLoading: isAverageSchemeRegularityLoading = false,
     isFetching: isAverageSchemeRegularityFetching = false,
+    isError: isAverageSchemeRegularityError = false,
   } = useAverageSchemeRegularityQuery({
     params: regularityAnalyticsParams,
     enabled: Boolean(regularityAnalyticsParams),
@@ -544,6 +547,7 @@ export function useCentralDashboardQueries({
     data: waterQuantityRegionWiseData,
     isLoading: isWaterQuantityRegionWiseLoading = false,
     isFetching: isWaterQuantityRegionWiseFetching = false,
+    isError: isWaterQuantityRegionWiseError = false,
   } = useWaterQuantityRegionWiseQuery({
     params: quantityRegionWiseAnalyticsParams,
     enabled: Boolean(quantityRegionWiseAnalyticsParams),
@@ -552,6 +556,7 @@ export function useCentralDashboardQueries({
     data: readingSubmissionRateData,
     isLoading: isReadingSubmissionRateLoading = false,
     isFetching: isReadingSubmissionRateFetching = false,
+    isError: isReadingSubmissionRateError = false,
   } = useReadingSubmissionRateQuery({
     params: readingSubmissionRateAnalyticsParams,
     enabled: Boolean(readingSubmissionRateAnalyticsParams),
@@ -560,6 +565,7 @@ export function useCentralDashboardQueries({
     data: schemePerformanceData,
     isLoading: isSchemePerformanceLoading = false,
     isFetching: isSchemePerformanceFetching = false,
+    isError: isSchemePerformanceErrorRaw = false,
   } = useSchemePerformanceQuery({
     params: schemePerformanceAnalyticsParams,
     enabled: Boolean(schemePerformanceAnalyticsParams),
@@ -587,6 +593,7 @@ export function useCentralDashboardQueries({
     data: submissionStatusData,
     isLoading: isSubmissionStatusLoading = false,
     isFetching: isSubmissionStatusFetching = false,
+    isError: isSubmissionStatusErrorRaw = false,
   } = useSubmissionStatusQuery({
     params: submissionStatusAnalyticsParams,
     enabled: Boolean(submissionStatusAnalyticsParams),
@@ -595,6 +602,7 @@ export function useCentralDashboardQueries({
     data: outageReasonsData,
     isLoading: isOutageReasonsLoading = false,
     isFetching: isOutageReasonsFetching = false,
+    isError: isOutageReasonsError = false,
   } = useOutageReasonsQuery({
     params: outageReasonsAnalyticsParams,
     enabled: Boolean(outageReasonsAnalyticsParams),
@@ -774,6 +782,25 @@ export function useCentralDashboardQueries({
     : isOutageReasonsPending
   const isOutageDistributionWidgetLoading =
     isOutageReasonsWidgetLoading || isOutageReasonsPeriodicPending
+
+  const isOverallPerformanceError = isCentralLandingView
+    ? isNationalDashboardError
+    : isAverageWaterSupplyError || isAverageSchemeRegularityError
+  const isQuantityPerformanceError = isCentralLandingView
+    ? isNationalDashboardError
+    : isAverageWaterSupplyError || isWaterQuantityRegionWiseError
+  const isRegularityPerformanceError = isCentralLandingView
+    ? isNationalDashboardError
+    : isAverageSchemeRegularityError
+  const isReadingSubmissionRateWidgetError = isCentralLandingView
+    ? isNationalDashboardError
+    : isReadingSubmissionRateError
+  const isOutageReasonsWidgetError = isCentralLandingView
+    ? isNationalDashboardError
+    : isOutageReasonsError
+  const isSchemePerformanceError = isSchemePerformanceErrorRaw
+  const isSubmissionStatusError = isSubmissionStatusErrorRaw
+
   const nationalDemandInputsByTenantId = nationalQuantityTenantIds.reduce<
     Map<number, { averagePersonsPerHousehold: number; litersPerPersonPerDay: number }>
   >((acc, tenantId, index) => {
@@ -807,13 +834,20 @@ export function useCentralDashboardQueries({
     isCentralLandingView,
     isNationalDashboardBoundariesPending,
     isNationalDashboardPending,
+    isOverallPerformanceError,
     isOverallPerformanceLoading,
     isOutageDistributionWidgetLoading,
+    isOutageReasonsWidgetError,
     isOutageReasonsWidgetLoading,
+    isQuantityPerformanceError,
     isQuantityPerformanceLoading,
+    isReadingSubmissionRateWidgetError,
     isReadingSubmissionRateWidgetLoading,
+    isRegularityPerformanceError,
     isRegularityPerformanceLoading,
+    isSchemePerformanceError,
     isSchemePerformancePending,
+    isSubmissionStatusError,
     isSubmissionStatusPending,
     isTenantBoundariesFetching,
     isTenantBoundariesLoading,
