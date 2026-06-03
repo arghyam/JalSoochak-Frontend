@@ -40,7 +40,7 @@ export interface PaginationConfig {
   /** Initial or controlled page size. */
   pageSize?: number
   /** Page size options for the selector. */
-  pageSizeOptions?: number[]
+  pageSizeOptions?: readonly number[]
   /**
    * When provided, the table operates in controlled/server-side mode:
    * - `page`, `pageSize`, `totalItems`, `onPageChange`, `onPageSizeChange`

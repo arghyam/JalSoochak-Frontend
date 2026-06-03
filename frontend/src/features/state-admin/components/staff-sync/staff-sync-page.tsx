@@ -37,13 +37,12 @@ import {
 } from '../../services/query/use-state-admin-queries'
 import { useAuthStore } from '@/app/store/auth-store'
 import { useDebounce } from '@/shared/hooks/use-debounce'
+import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '@/shared/constants/pagination'
 import { UploadStaffModal } from './upload-staff-modal'
 import { BroadcastModal } from './broadcast-modal'
 import { StaffActivityToggle } from './staff-activity-toggle'
 
 const DEFAULT_ROLES: StaffRole[] = ['PUMP_OPERATOR', 'SECTION_OFFICER', 'SUB_DIVISIONAL_OFFICER']
-const PAGE_SIZE = 10
-const PAGE_SIZE_OPTIONS = [10, 25, 50]
 export const DEBOUNCE_DELAY_MS = 400
 
 const ROLE_DISPLAY: Record<StaffRole, string> = {
@@ -61,7 +60,7 @@ export function StaffSyncPage() {
   const [roleFilter, setRoleFilter] = useState<StaffRole | ''>('')
   const [statusFilter, setStatusFilter] = useState<StaffStatus | ''>('')
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(PAGE_SIZE)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [isBroadcastOpen, setIsBroadcastOpen] = useState(false)
   const debouncedSearch = useDebounce(searchQuery, DEBOUNCE_DELAY_MS)
@@ -100,8 +99,16 @@ export function StaffSyncPage() {
         onSuccess: async ({ downloadUrl }) => {
           // fetch → Blob URL so the download attribute is honoured on cross-origin URLs
           try {
-            const res = await fetch(downloadUrl)
+            const res = await fetch(downloadUrl, { signal: AbortSignal.timeout(30_000) })
+            if (!res.ok) throw new Error(`Download failed: ${res.status}`)
+            const contentType = res.headers.get('content-type') ?? ''
+            const isValidType = ['text/csv', 'application/csv', 'application/octet-stream'].some(
+              (type) => contentType.includes(type)
+            )
+            if (!isValidType) throw new Error(`Unexpected file type: ${contentType}`)
             const blob = await res.blob()
+            const MAX_SIZE = 50 * 1024 * 1024
+            if (blob.size > MAX_SIZE) throw new Error('File exceeds 50 MB limit')
             const blobUrl = URL.createObjectURL(blob)
             const a = document.createElement('a')
             a.href = blobUrl
@@ -111,32 +118,26 @@ export function StaffSyncPage() {
             a.click()
             a.remove()
             URL.revokeObjectURL(blobUrl)
+            toast.success(t('staffSync.report.success'))
           } catch {
-            window.open(downloadUrl, '_blank', 'noopener,noreferrer')
+            toast.error(t('staffSync.report.error'))
           }
-          toast.success(t('staffSync.report.success'))
         },
         onError: () => toast.error(t('staffSync.report.error')),
       }
     )
   }
 
-  const roleOptions = useMemo(
-    () => [
-      { value: 'PUMP_OPERATOR', label: t('staffSync.roles.pumpOperator') },
-      { value: 'SUB_DIVISIONAL_OFFICER', label: t('staffSync.roles.subDivisionOfficer') },
-      { value: 'SECTION_OFFICER', label: t('staffSync.roles.sectionOfficer') },
-    ],
-    [t]
-  )
+  const roleOptions = [
+    { value: 'PUMP_OPERATOR', label: t('staffSync.roles.pumpOperator') },
+    { value: 'SUB_DIVISIONAL_OFFICER', label: t('staffSync.roles.subDivisionOfficer') },
+    { value: 'SECTION_OFFICER', label: t('staffSync.roles.sectionOfficer') },
+  ]
 
-  const statusOptions = useMemo(
-    () => [
-      { value: 'ACTIVE', label: t('common:status.active') },
-      { value: 'INACTIVE', label: t('common:status.inactive') },
-    ],
-    [t]
-  )
+  const statusOptions = [
+    { value: 'ACTIVE', label: t('common:status.active') },
+    { value: 'INACTIVE', label: t('common:status.inactive') },
+  ]
 
   const hasActiveFilters = roleFilter || statusFilter || searchQuery
 

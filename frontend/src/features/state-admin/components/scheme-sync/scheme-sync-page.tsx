@@ -33,12 +33,10 @@ import {
 import { useAuthStore } from '@/app/store/auth-store'
 import { useDebounce } from '@/shared/hooks/use-debounce'
 import { useToast } from '@/shared/hooks/use-toast'
+import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '@/shared/constants/pagination'
 import { UploadSchemesModal } from './upload-schemes-modal'
 import { SchemeStatusChip } from './scheme-status-chip'
 import { WORK_STATUS_OPTIONS, OPERATING_STATUS_OPTIONS } from './scheme-status-constants'
-
-const PAGE_SIZE = 10
-const PAGE_SIZE_OPTIONS = [10, 25, 50]
 
 export function SchemeSyncPage() {
   const { t } = useTranslation('state-admin')
@@ -48,7 +46,7 @@ export function SchemeSyncPage() {
   const [workStatusFilter, setWorkStatusFilter] = useState('')
   const [operatingStatusFilter, setOperatingStatusFilter] = useState('')
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(PAGE_SIZE)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [sortDir, setSortDir] = useState<string>('')
   const debouncedSearch = useDebounce(searchQuery, 400)
@@ -95,8 +93,16 @@ export function SchemeSyncPage() {
     downloadReport(undefined, {
       onSuccess: async (link) => {
         try {
-          const res = await fetch(link)
+          const res = await fetch(link, { signal: AbortSignal.timeout(30_000) })
+          if (!res.ok) throw new Error(`Download failed: ${res.status}`)
+          const contentType = res.headers.get('content-type') ?? ''
+          const isValidType = ['text/csv', 'application/csv', 'application/octet-stream'].some(
+            (type) => contentType.includes(type)
+          )
+          if (!isValidType) throw new Error(`Unexpected file type: ${contentType}`)
           const blob = await res.blob()
+          const MAX_SIZE = 50 * 1024 * 1024
+          if (blob.size > MAX_SIZE) throw new Error('File exceeds 50 MB limit')
           const blobUrl = URL.createObjectURL(blob)
           const a = document.createElement('a')
           a.href = blobUrl
@@ -107,8 +113,7 @@ export function SchemeSyncPage() {
           URL.revokeObjectURL(blobUrl)
           toast.success(t('schemeSync.report.success'))
         } catch {
-          window.open(link, '_blank', 'noopener,noreferrer')
-          toast.success(t('schemeSync.report.success'))
+          toast.error(t('schemeSync.report.error'))
         }
       },
       onError: () => toast.error(t('schemeSync.report.error')),

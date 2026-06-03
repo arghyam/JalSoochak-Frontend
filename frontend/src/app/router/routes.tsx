@@ -5,7 +5,8 @@ import { MainLayout } from '@/shared/components/layout'
 import { SingleTenantLayout } from './single-tenant-layout'
 import { ProtectedRoute, RedirectIfAuthenticated } from '@/shared/components/routing/ProtectedRoute'
 import { AUTH_ROLES } from '@/shared/constants/auth'
-import { NotFoundPage, LoadingSpinner } from '@/shared/components/common'
+import { NotFoundPage, LoadingSpinner, ErrorBoundary } from '@/shared/components/common'
+import { PageErrorState } from '@/shared/components/common/page-error-state'
 
 // — super-admin pages —
 const SuperAdminOverviewPage = lazy(() =>
@@ -221,7 +222,11 @@ export const router = createBrowserRouter([
   // Public dashboards (single-tenant aware)
   {
     path: ROUTES.DASHBOARD,
-    element: <SingleTenantLayout />,
+    element: (
+      <ErrorBoundary fallback={<PageErrorState message="Something went wrong" />}>
+        <SingleTenantLayout />
+      </ErrorBoundary>
+    ),
   },
 
   // Shared routes — all authenticated roles
@@ -286,11 +291,13 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.SUPER_ADMIN,
     element: (
-      <ProtectedRoute allowedRoles={[AUTH_ROLES.SUPER_ADMIN, AUTH_ROLES.SUPER_STATE_ADMIN]}>
-        <Suspense fallback={<LoadingSpinner />}>
-          <MainLayout />
-        </Suspense>
-      </ProtectedRoute>
+      <ErrorBoundary fallback={<PageErrorState message="Something went wrong" />}>
+        <ProtectedRoute allowedRoles={[AUTH_ROLES.SUPER_ADMIN, AUTH_ROLES.SUPER_STATE_ADMIN]}>
+          <Suspense fallback={<LoadingSpinner />}>
+            <MainLayout />
+          </Suspense>
+        </ProtectedRoute>
+      </ErrorBoundary>
     ),
     children: [
       {
@@ -344,11 +351,13 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.STATE_ADMIN,
     element: (
-      <ProtectedRoute allowedRoles={[AUTH_ROLES.STATE_ADMIN, AUTH_ROLES.SUPER_STATE_ADMIN]}>
-        <Suspense fallback={<LoadingSpinner />}>
-          <MainLayout />
-        </Suspense>
-      </ProtectedRoute>
+      <ErrorBoundary fallback={<PageErrorState message="Something went wrong" />}>
+        <ProtectedRoute allowedRoles={[AUTH_ROLES.STATE_ADMIN, AUTH_ROLES.SUPER_STATE_ADMIN]}>
+          <Suspense fallback={<LoadingSpinner />}>
+            <MainLayout />
+          </Suspense>
+        </ProtectedRoute>
+      </ErrorBoundary>
     ),
     children: [
       {
@@ -430,13 +439,15 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.STAFF,
     element: (
-      <ProtectedRoute
-        allowedRoles={[AUTH_ROLES.SECTION_OFFICER, AUTH_ROLES.SUB_DIVISIONAL_OFFICER]}
-      >
-        <Suspense fallback={<LoadingSpinner />}>
-          <MainLayout />
-        </Suspense>
-      </ProtectedRoute>
+      <ErrorBoundary fallback={<PageErrorState message="Something went wrong" />}>
+        <ProtectedRoute
+          allowedRoles={[AUTH_ROLES.SECTION_OFFICER, AUTH_ROLES.SUB_DIVISIONAL_OFFICER]}
+        >
+          <Suspense fallback={<LoadingSpinner />}>
+            <MainLayout />
+          </Suspense>
+        </ProtectedRoute>
+      </ErrorBoundary>
     ),
     children: [
       {

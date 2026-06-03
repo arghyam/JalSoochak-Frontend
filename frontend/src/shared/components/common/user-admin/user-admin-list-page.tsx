@@ -168,17 +168,7 @@ export function UserAdminListPage({
       key: 'status',
       header: labels.table.status,
       sortable: false,
-      render: (row) => {
-        let statusLabel: string
-        if (row.status === 'active') {
-          statusLabel = t('status.active')
-        } else if (row.status === 'pending') {
-          statusLabel = t('status.pending')
-        } else {
-          statusLabel = t('status.inactive')
-        }
-        return <StatusChip status={row.status} label={statusLabel} />
-      },
+      render: (row) => <StatusChip status={row.status} />,
     },
     {
       key: 'id',

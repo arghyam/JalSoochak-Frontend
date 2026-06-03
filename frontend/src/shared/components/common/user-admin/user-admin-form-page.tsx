@@ -362,7 +362,6 @@ function FormContent({
                       : (e) => setForm((prev) => ({ ...prev, email: e.target.value }))
                   }
                   onBlur={isEditMode ? undefined : () => handleBlur('email')}
-                  isReadOnly={isEditMode}
                   isDisabled={isEditMode}
                   bg={isEditMode ? 'neutral.50' : undefined}
                   color={isEditMode ? 'neutral.400' : undefined}
