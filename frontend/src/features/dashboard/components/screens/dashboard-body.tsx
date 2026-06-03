@@ -158,6 +158,7 @@ export function DashboardBody({
   isTimeViewEnabled = true,
 }: DashboardBodyProps) {
   const { t } = useTranslation('dashboard')
+  const errorMsg = t('failedToLoadData')
   const showSupplyOutageCharts = shouldShowSupplyOutageCharts()
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
   const effectiveOutageDistributionViewBy = isTimeViewEnabled
@@ -253,7 +254,7 @@ export function DashboardBody({
           !isActiveSchemesLoading ? (
             <Alert status="error" borderRadius="md" mb={4}>
               <AlertIcon />
-              <AlertDescription>Failed to load data. Please try again.</AlertDescription>
+              <AlertDescription>{errorMsg}</AlertDescription>
             </Alert>
           ) : null}
           <DistrictDashboardScreen
@@ -303,7 +304,7 @@ export function DashboardBody({
           !isActiveSchemesLoading ? (
             <Alert status="error" borderRadius="md" mb={4}>
               <AlertIcon />
-              <AlertDescription>Failed to load data. Please try again.</AlertDescription>
+              <AlertDescription>{errorMsg}</AlertDescription>
             </Alert>
           ) : null}
           <BlockDashboardScreen
@@ -356,7 +357,7 @@ export function DashboardBody({
           !isActiveSchemesLoading ? (
             <Alert status="error" borderRadius="md" mb={4}>
               <AlertIcon />
-              <AlertDescription>Failed to load data. Please try again.</AlertDescription>
+              <AlertDescription>{errorMsg}</AlertDescription>
             </Alert>
           ) : null}
           <GramPanchayatDashboardScreen
@@ -457,7 +458,7 @@ export function DashboardBody({
             ) : isOutageReasonsError ? (
               <Alert status="error" borderRadius="md" mt={2}>
                 <AlertIcon />
-                <AlertDescription>Failed to load data. Please try again.</AlertDescription>
+                <AlertDescription>{errorMsg}</AlertDescription>
               </Alert>
             ) : (
               <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="336px" />
@@ -592,7 +593,7 @@ export function DashboardBody({
                   ) : isOutageReasonsError ? (
                     <Alert status="error" borderRadius="md" mt={2}>
                       <AlertIcon />
-                      <AlertDescription>Failed to load data. Please try again.</AlertDescription>
+                      <AlertDescription>{errorMsg}</AlertDescription>
                     </Alert>
                   ) : !hasOutageReasonsData ? (
                     <ChartEmptyState minHeight="100%" />
@@ -640,7 +641,7 @@ export function DashboardBody({
                   ) : isReadingSubmissionRateError ? (
                     <Alert status="error" borderRadius="md" mt={2}>
                       <AlertIcon />
-                      <AlertDescription>Failed to load data. Please try again.</AlertDescription>
+                      <AlertDescription>{errorMsg}</AlertDescription>
                     </Alert>
                   ) : supplySubmissionRateData.length > 0 ? (
                     <ReadingSubmissionRateChart
@@ -664,7 +665,7 @@ export function DashboardBody({
           {isReadingSubmissionStatusError && !isReadingSubmissionStatusLoading ? (
             <Alert status="error" borderRadius="md" mb={4}>
               <AlertIcon />
-              <AlertDescription>Failed to load data. Please try again.</AlertDescription>
+              <AlertDescription>{errorMsg}</AlertDescription>
             </Alert>
           ) : null}
           <StateUtDashboardScreen
@@ -727,6 +728,7 @@ function PerformanceChartsSection({
   isTimeViewEnabled = true,
 }: PerformanceChartsSectionProps) {
   const { t } = useTranslation('dashboard')
+  const errorMsg = t('failedToLoadData')
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
   const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
 
@@ -749,7 +751,7 @@ function PerformanceChartsSection({
           </Text>
           <Alert status="error" borderRadius="md">
             <AlertIcon />
-            <AlertDescription>Failed to load data. Please try again.</AlertDescription>
+            <AlertDescription>{errorMsg}</AlertDescription>
           </Alert>
         </Box>
       ) : (
@@ -784,7 +786,7 @@ function PerformanceChartsSection({
           isTimeViewEnabled={isTimeViewEnabled}
         />
       )}
-      {isQuantityPerformanceError && !isQuantityPerformanceLoading ? (
+      {isQuantityPerformanceError ? (
         <Box
           bg="white"
           borderWidth="0.5px"
@@ -799,11 +801,11 @@ function PerformanceChartsSection({
           </Text>
           <Alert status="error" borderRadius="md">
             <AlertIcon />
-            <AlertDescription>Failed to load data. Please try again.</AlertDescription>
+            <AlertDescription>{errorMsg}</AlertDescription>
           </Alert>
         </Box>
       ) : null}
-      {!isQuantityPerformanceError ? (
+      {!(isQuantityPerformanceError && !isQuantityPerformanceLoading) ? (
         <PerformanceChartCard
           title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
           viewByAriaLabel={t('performanceCharts.quantity.ariaViewBy', {
