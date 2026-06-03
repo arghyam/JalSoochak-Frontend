@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { Box, Flex, Text, Heading, useBreakpointValue } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { useDashboardData } from '../hooks/use-dashboard-data'
@@ -24,8 +23,6 @@ import { slugify, toCapitalizedWords } from '../utils/format-location-label'
 import { toStableLocationValue } from '../utils/stable-location-value'
 import {
   type LocationOption,
-  type OutageTimeScaleTab,
-  type PerformanceTimeScaleTab,
   sortByMetricDescending,
   sortOutageDistributionByTotalDescending,
   toIsoDate,
@@ -36,7 +33,10 @@ import {
 import { useCentralDashboardFilters } from '../hooks/use-central-dashboard-filters'
 import { useCentralDashboardKpis } from '../hooks/use-central-dashboard-kpis'
 import { useCentralDashboardQueries } from '../hooks/use-central-dashboard-queries'
-import { localizeDepartmentHierarchyLabel, normalizeHierarchyLabel } from '../utils/hierarchy-label'
+import { useCentralDashboardLabels } from '../hooks/use-central-dashboard-labels'
+import { useCentralDashboardMapUiState } from '../hooks/use-central-dashboard-map-ui-state'
+import { useCentralDashboardTimeScaleState } from '../hooks/use-central-dashboard-time-scale-state'
+import { useSchemePerformancePagination } from '../hooks/use-scheme-performance-pagination'
 import { useDashboardDefaultDateRange } from '../utils/default-duration'
 import {
   DEFAULT_PERSONS_PER_HOUSEHOLD,
@@ -160,55 +160,24 @@ export function CentralDashboard({
     durationDateFormat: DASHBOARD_DURATION_DATE_FORMAT,
     singleTenantOverride,
   })
-  const [isMapFullscreen, setIsMapFullscreen] = useState(false)
-  const [isMapRegularityView, setIsMapRegularityView] = useState(true)
-  const [isMapDistrictView, setIsMapDistrictView] = useState(false)
-  const [hoveredOverallPerformanceRow, setHoveredOverallPerformanceRow] =
-    useState<EntityPerformance | null>(null)
-  const [schemePerformancePagination, setSchemePerformancePagination] = useState<{
-    key: string
-    page: number
-  }>({
-    key: '',
-    page: 1,
-  })
-
-  useEffect(() => {
-    if (!isMapFullscreen) {
-      return
-    }
-
-    const originalOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-
-    return () => {
-      document.body.style.overflow = originalOverflow
-    }
-  }, [isMapFullscreen])
-
-  useEffect(() => {
-    if (!isMapFullscreen) {
-      return
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsMapFullscreen(false)
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [isMapFullscreen])
-
-  const [quantityTimeScaleTab, setQuantityTimeScaleTab] = useState<PerformanceTimeScaleTab>('day')
-  const [regularityTimeScaleTab, setRegularityTimeScaleTab] =
-    useState<PerformanceTimeScaleTab>('day')
-  const [outageDistributionTimeScaleTab, setOutageDistributionTimeScaleTab] =
-    useState<OutageTimeScaleTab>('day')
+  const {
+    hoveredOverallPerformanceRow,
+    isMapDistrictView,
+    isMapFullscreen,
+    isMapRegularityView,
+    setHoveredOverallPerformanceRow,
+    setIsMapDistrictView,
+    setIsMapFullscreen,
+    setIsMapRegularityView,
+  } = useCentralDashboardMapUiState()
+  const {
+    outageDistributionTimeScaleTab,
+    quantityTimeScaleTab,
+    regularityTimeScaleTab,
+    setOutageDistributionTimeScaleTab,
+    setQuantityTimeScaleTab,
+    setRegularityTimeScaleTab,
+  } = useCentralDashboardTimeScaleState()
   const dashboardData = data ?? EMPTY_DASHBOARD_DATA
   const emptyOptions: SearchableSelectOption[] = []
   const emptyEntityPerformance: EntityPerformance[] = []
@@ -259,72 +228,20 @@ export function CentralDashboard({
     tenantCode: selectedTenant?.tenantCode,
     enabled: Boolean(selectedTenant?.tenantId),
   })
-  const hierarchyLabelByLevel = (locationHierarchyData?.data?.levels ?? []).reduce<
-    Record<number, string>
-  >((acc, item) => {
-    const levelNumber = typeof item.level === 'number' ? item.level : undefined
-    const levelTitleRaw = toCapitalizedWords(item.levelName?.[0]?.title?.trim() ?? '')
-    if (!levelNumber || !levelTitleRaw) {
-      return acc
-    }
-    acc[levelNumber] = localizeDepartmentHierarchyLabel(levelTitleRaw, 'singular', i18n, t)
-    return acc
-  }, {})
-  const toPluralHierarchyLabel = (value: string): string => {
-    const localized = localizeDepartmentHierarchyLabel(value, 'plural', i18n, t)
-    if (localized !== value) {
-      return localized
-    }
-    const normalized = normalizeHierarchyLabel(value)
-    if (normalized === 'state') return 'States'
-    if (normalized === 'district') return 'Districts'
-    if (normalized === 'block') return 'Blocks'
-    if (normalized === 'panchayat') return 'Panchayats'
-    if (normalized === 'village') return 'Villages'
-    if (normalized === 'sub division' || normalized === 'subdivision') return 'Sub Divisions'
-    if (value.endsWith('s')) return value
-    return `${value}s`
-  }
-  const departmentOverallPerformanceEntityLabel = isDepartmentDivisionSelected
-    ? (hierarchyLabelByLevel[5] ?? 'Sub Division')
-    : isDepartmentCircleSelected
-      ? (hierarchyLabelByLevel[4] ?? 'Division')
-      : isDepartmentZoneSelected
-        ? (hierarchyLabelByLevel[3] ?? 'Circle')
-        : isDepartmentStateSelected
-          ? (hierarchyLabelByLevel[2] ?? 'Zone')
-          : t('overallPerformance.entities.stateUt', { defaultValue: 'State/UT' })
-  const departmentPerformanceEntityLabel = isDepartmentDivisionSelected
-    ? toPluralHierarchyLabel(hierarchyLabelByLevel[5] ?? 'Sub Division')
-    : isDepartmentCircleSelected
-      ? toPluralHierarchyLabel(hierarchyLabelByLevel[4] ?? 'Division')
-      : isDepartmentZoneSelected
-        ? toPluralHierarchyLabel(hierarchyLabelByLevel[3] ?? 'Circle')
-        : isDepartmentStateSelected
-          ? toPluralHierarchyLabel(hierarchyLabelByLevel[2] ?? 'Zone')
-          : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
-  const supplySubmissionRateLabel = isDepartmentTabActive
-    ? departmentPerformanceEntityLabel
-    : isHierarchyFourthLevelSelected
-      ? t('performanceCharts.viewBy.villages', { defaultValue: 'Villages' })
-      : isHierarchyThirdLevelSelected
-        ? t('performanceCharts.viewBy.gramPanchayats', { defaultValue: 'Gram Panchayats' })
-        : isHierarchySecondLevelSelected
-          ? t('performanceCharts.viewBy.blocks', { defaultValue: 'Blocks' })
-          : isHierarchyStateSelected
-            ? t('performanceCharts.viewBy.districts', { defaultValue: 'Districts' })
-            : t('performanceCharts.viewBy.statesUTs', { defaultValue: 'States/UTs' })
-  const overallPerformanceEntityLabel = isDepartmentTabActive
-    ? departmentOverallPerformanceEntityLabel
-    : isHierarchyFourthLevelSelected
-      ? t('overallPerformance.entities.village', { defaultValue: 'Village' })
-      : isHierarchyThirdLevelSelected
-        ? t('overallPerformance.entities.gramPanchayat', { defaultValue: 'Gram Panchayat' })
-        : isHierarchySecondLevelSelected
-          ? t('overallPerformance.entities.block', { defaultValue: 'Block' })
-          : isHierarchyStateSelected
-            ? t('overallPerformance.entities.district', { defaultValue: 'District' })
-            : t('overallPerformance.entities.stateUt', { defaultValue: 'State/UT' })
+  const { overallPerformanceEntityLabel, supplySubmissionRateLabel } = useCentralDashboardLabels({
+    i18n,
+    isDepartmentCircleSelected,
+    isDepartmentDivisionSelected,
+    isDepartmentStateSelected,
+    isDepartmentTabActive,
+    isDepartmentZoneSelected,
+    isHierarchyFourthLevelSelected,
+    isHierarchySecondLevelSelected,
+    isHierarchyStateSelected,
+    isHierarchyThirdLevelSelected,
+    locationHierarchyData,
+    t,
+  })
   const districtOptions = emptyOptions
   const blockOptions = emptyOptions
   const gramPanchayatOptions = emptyOptions
@@ -378,17 +295,11 @@ export function CentralDashboard({
   }
   const isTimeViewEnabled =
     resolveDaysInRange(undefined, analyticsDateRange.startDate, analyticsDateRange.endDate) > 1
-  const schemePerformanceResetKey = `${analyticsParentId}|${analyticsDateRange.startDate}|${analyticsDateRange.endDate}`
-  const schemePerformancePage =
-    schemePerformancePagination.key === schemePerformanceResetKey
-      ? schemePerformancePagination.page
-      : 1
-  const handleSchemePageChange = (page: number) => {
-    setSchemePerformancePagination({
-      key: schemePerformanceResetKey,
-      page,
-    })
-  }
+  const { handleSchemePageChange, schemePerformancePage } = useSchemePerformancePagination({
+    analyticsParentId,
+    endDate: analyticsDateRange.endDate,
+    startDate: analyticsDateRange.startDate,
+  })
   const {
     averageSchemeRegularityData,
     averageWaterSupplyData,
