@@ -404,10 +404,16 @@ export function CentralDashboard({
     isNationalDashboardBoundariesPending,
     isOutageDistributionWidgetLoading,
     isOutageReasonsWidgetLoading,
+    isOutageReasonsWidgetError,
+    isQuantityPerformanceError,
     isQuantityPerformanceLoading,
+    isReadingSubmissionRateWidgetError,
     isReadingSubmissionRateWidgetLoading,
+    isRegularityPerformanceError,
     isRegularityPerformanceLoading,
+    isSchemePerformanceError,
     isSchemePerformancePending,
+    isSubmissionStatusError,
     isSubmissionStatusPending,
     isTenantBoundariesFetching,
     isTenantBoundariesLoading,
@@ -1087,6 +1093,7 @@ export function CentralDashboard({
         onOutageDistributionTimeScaleTabChange={(value) => setOutageDistributionTimeScaleTab(value)}
         quantityPerformanceData={quantityPerformanceData}
         isQuantityPerformanceLoading={isQuantityPerformanceLoading}
+        isQuantityPerformanceError={isQuantityPerformanceError}
         quantityTimeTrendData={quantityTimeTrendData}
         isQuantityTimeTrendLoading={
           isCentralLandingView
@@ -1098,6 +1105,7 @@ export function CentralDashboard({
         }
         regularityPerformanceData={regularityPerformanceData}
         isRegularityPerformanceLoading={isRegularityPerformanceLoading}
+        isRegularityPerformanceError={isRegularityPerformanceError}
         regularityTimeTrendData={regularityTimeTrendData}
         isRegularityTimeTrendLoading={
           isCentralLandingView
@@ -1114,10 +1122,15 @@ export function CentralDashboard({
         waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
         isOutageReasonsLoading={isOutageReasonsWidgetLoading}
         isOutageDistributionLoading={isOutageDistributionWidgetLoading}
+        isOutageReasonsError={isOutageReasonsWidgetError}
         isReadingSubmissionRateLoading={isReadingSubmissionRateWidgetLoading}
+        isReadingSubmissionRateError={isReadingSubmissionRateWidgetError}
         isReadingSubmissionStatusLoading={isSubmissionStatusPending}
+        isReadingSubmissionStatusError={isSubmissionStatusError}
         isSchemePerformanceLoading={isSchemePerformancePending}
+        isSchemePerformanceError={isSchemePerformanceError}
         isActiveSchemesLoading={isSchemePerformancePending}
+        isActiveSchemesError={isSchemePerformanceError}
         pumpOperatorsTotal={pumpOperatorsTotal}
         operatorsPerformanceTable={operatorsPerformanceTable}
         villagePhotoEvidenceRows={villagePhotoEvidenceRows}
