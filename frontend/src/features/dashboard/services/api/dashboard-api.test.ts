@@ -1421,6 +1421,49 @@ describe('dashboardApi additional normalization branches', () => {
     )
   })
 
+  it('parses stringified GeoJSON national dashboard boundaries', async () => {
+    const nationalBoundary = { type: 'Polygon', coordinates: [] }
+    const stateBoundary = { type: 'MultiPolygon', coordinates: [] }
+
+    mockGet.mockResolvedValueOnce({
+      data: {
+        nationalBoundary: JSON.stringify(nationalBoundary),
+        stateWiseBoundaries: [{ stateCode: 'AS', boundary: JSON.stringify(stateBoundary) }],
+      },
+    } as never)
+
+    const { dashboardApi } = await import('./dashboard-api')
+    const response = await dashboardApi.getNationalDashboardBoundaries()
+
+    expect(response.nationalBoundary).toEqual(nationalBoundary)
+    expect(response.stateWiseBoundaries[0]).toEqual(
+      expect.objectContaining({ stateCode: 'AS', boundary: stateBoundary })
+    )
+  })
+
+  it('parses stringified GeoJSON from wrapped national dashboard boundary payloads', async () => {
+    const nationalBoundary = { type: 'Polygon', coordinates: [] }
+    const stateBoundary = { type: 'MultiPolygon', coordinates: [] }
+
+    mockGet.mockResolvedValueOnce({
+      data: {
+        success: true,
+        data: {
+          nationalBoundary: JSON.stringify(nationalBoundary),
+          stateWiseBoundaries: [{ stateCode: 'AS', boundary: JSON.stringify(stateBoundary) }],
+        },
+      },
+    } as never)
+
+    const { dashboardApi } = await import('./dashboard-api')
+    const response = await dashboardApi.getNationalDashboardBoundaries()
+
+    expect(response.nationalBoundary).toEqual(nationalBoundary)
+    expect(response.stateWiseBoundaries[0]).toEqual(
+      expect.objectContaining({ stateCode: 'AS', boundary: stateBoundary })
+    )
+  })
+
   it('normalizes numeric and null missedSubmissionDays values', async () => {
     mockGet
       .mockResolvedValueOnce({
