@@ -210,8 +210,10 @@ export function useCentralDashboardNavigation({
 
     if (isMapDistrictView && isCentralLandingView && !isDepartmentTabActive) {
       const parentState = districtToStateMap.get(regionId)
-      if (parentState) handleDistrictViewClick(regionId, regionName, parentState)
-      return
+      if (parentState) {
+        handleDistrictViewClick(regionId, regionName, parentState)
+        return
+      }
     }
 
     if (isCentralLandingView && !isDepartmentTabActive) {

@@ -178,6 +178,22 @@ const isGeoJsonGeometry = (value: unknown): value is GeoJsonGeometry =>
   typeof value === 'object' &&
   typeof (value as { type?: unknown }).type === 'string'
 
+const normalizeGeoJsonGeometry = (value: unknown): GeoJsonGeometry | null => {
+  const candidate = (() => {
+    if (typeof value !== 'string') {
+      return value
+    }
+
+    try {
+      return JSON.parse(value) as unknown
+    } catch {
+      return null
+    }
+  })()
+
+  return isGeoJsonGeometry(candidate) ? candidate : null
+}
+
 export const normalizeMissedSubmissionDays = (
   value: RawPumpOperatorDetailsResponse['data']['missedSubmissionDays']
 ) => {
@@ -227,7 +243,7 @@ const normalizeStateWiseBoundaries = (
 
     return {
       ...boundary,
-      boundary: isGeoJsonGeometry(boundary.boundary) ? boundary.boundary : null,
+      boundary: normalizeGeoJsonGeometry(boundary.boundary),
     }
   })
 }
@@ -241,9 +257,7 @@ export const normalizeNationalDashboardBoundaryResponse = (
 
   if ('stateWiseBoundaries' in response) {
     return {
-      nationalBoundary: isGeoJsonGeometry(response.nationalBoundary)
-        ? response.nationalBoundary
-        : null,
+      nationalBoundary: normalizeGeoJsonGeometry(response.nationalBoundary),
       stateWiseBoundaries: normalizeStateWiseBoundaries(response.stateWiseBoundaries),
     }
   }
@@ -260,7 +274,7 @@ export const normalizeNationalDashboardBoundaryResponse = (
   }
 
   return {
-    nationalBoundary: isGeoJsonGeometry(payload.nationalBoundary) ? payload.nationalBoundary : null,
+    nationalBoundary: normalizeGeoJsonGeometry(payload.nationalBoundary),
     stateWiseBoundaries: normalizeStateWiseBoundaries(payload.stateWiseBoundaries),
   }
 }

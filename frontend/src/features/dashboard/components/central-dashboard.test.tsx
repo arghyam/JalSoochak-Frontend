@@ -5709,6 +5709,43 @@ describe('CentralDashboard', () => {
     })
   })
 
+  it('keeps unmatched district map regions interactive', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    let mapProps = getLatestIndiaMapChartProps<{
+      mapViewMode: 'state' | 'district'
+      onMapViewModeChange: (mode: 'state' | 'district') => void
+      onStateClick: (stateId: string, stateName: string) => void
+    }>()
+
+    act(() => {
+      mapProps.onMapViewModeChange('district')
+    })
+
+    mapProps = getLatestIndiaMapChartProps<{
+      mapViewMode: 'state' | 'district'
+      onMapViewModeChange: (mode: 'state' | 'district') => void
+      onStateClick: (stateId: string, stateName: string) => void
+    }>()
+
+    expect(mapProps.mapViewMode).toBe('district')
+
+    act(() => {
+      mapProps.onStateClick('999', 'Missing District')
+    })
+
+    expect(mockNavigate).toHaveBeenCalledWith({
+      pathname: '/missing-district',
+      search: '?tab=administrative',
+    })
+  })
+
   it('drills down administrative regions when a filtered map region is clicked', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
