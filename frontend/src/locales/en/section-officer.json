@@ -192,7 +192,7 @@
       "title": "Fix Readings",
       "searchPlaceholder": "Search by scheme name",
       "noResults": "No schemes found",
-      "yesterdayReading": "Yesterday's Reading",
+      "yesterdayReading": "Last Confirmed Reading",
       "updateReading": "Update Reading",
       "updateButton": "Update",
       "successMessage": "Reading updated successfully",
