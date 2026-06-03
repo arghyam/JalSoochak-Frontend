@@ -7,49 +7,25 @@ import { DashboardKpiGrid } from './central-dashboard/dashboard-kpi-grid'
 import { DashboardMapPerformanceSection } from './central-dashboard/dashboard-map-performance-section'
 import { DashboardBody } from './screens/dashboard-body'
 import type { SearchableSelectOption } from '@/shared/components/common'
-import type {
-  DashboardData,
-  EntityPerformance,
-  StateUtOption,
-  VillagePumpOperatorDetails,
-} from '../types'
+import type { DashboardData, EntityPerformance, StateUtOption } from '../types'
 import { DashboardFilters } from './filters/dashboard-filters'
 import { buildCentralDashboardKpiMetrics } from '../hooks/use-central-dashboard-kpi-metrics'
 import { useCentralDashboardLocationOptions } from '../hooks/use-central-dashboard-location-options'
 import { useCentralDashboardMapPerformance } from '../hooks/use-central-dashboard-map-performance'
 import { useCentralDashboardTenantConfig } from '../hooks/use-central-dashboard-tenant-config'
-import { toCapitalizedWords } from '../utils/format-location-label'
-import { sortByMetricDescending, toIsoDate } from '../utils/central-dashboard-helpers'
+import { toIsoDate } from '../utils/central-dashboard-helpers'
 import { useCentralDashboardFilters } from '../hooks/use-central-dashboard-filters'
 import { useCentralDashboardKpis } from '../hooks/use-central-dashboard-kpis'
 import { useCentralDashboardQueries } from '../hooks/use-central-dashboard-queries'
 import { useCentralDashboardLabels } from '../hooks/use-central-dashboard-labels'
 import { useCentralDashboardMapUiState } from '../hooks/use-central-dashboard-map-ui-state'
 import { useCentralDashboardNavigation } from '../hooks/use-central-dashboard-navigation'
+import { buildCentralDashboardPerformanceData } from '../hooks/use-central-dashboard-performance-data'
 import { buildCentralDashboardResolvedData } from '../hooks/use-central-dashboard-resolved-data'
 import { useCentralDashboardTimeScaleState } from '../hooks/use-central-dashboard-time-scale-state'
 import { useSchemePerformancePagination } from '../hooks/use-scheme-performance-pagination'
 import { useDashboardDefaultDateRange } from '../utils/default-duration'
-import {
-  DEFAULT_PERSONS_PER_HOUSEHOLD,
-  mapQuantityPerformanceFromNationalDashboard,
-  mapReadingSubmissionRateFromNationalDashboard,
-  mapReadingSubmissionRateFromAnalytics,
-  mapReadingSubmissionStatusFromAnalytics,
-  resolveDaysInRange,
-  mapRegularityPerformanceFromNationalDashboard,
-  mapSchemePerformanceToTable,
-  mapSchemePerformanceToPumpOperators,
-  mapQuantityPerformanceFromAnalytics,
-  mapRegularityPerformanceFromAnalytics,
-} from '../utils/formulas'
-import {
-  mapNationalQuantityTrendPoints,
-  mapNationalRegularityTrendPoints,
-  mapOutageReasonsPeriodicToTrendPoints,
-  mapSchemeRegularityPeriodicToTrendPoints,
-  mapWaterQuantityPeriodicToTrendPoints,
-} from '../utils/quantity-periodic'
+import { DEFAULT_PERSONS_PER_HOUSEHOLD, resolveDaysInRange } from '../utils/formulas'
 import { isSingleTenantMode } from '@/config/server-config'
 
 const DASHBOARD_DURATION_DATE_FORMAT = 'DD/MM/YYYY'
@@ -438,122 +414,45 @@ export function CentralDashboard({
     tenantBoundaryLocationOptions,
     waterQuantityRegionWiseData,
   })
-  const quantityPerformanceData = sortByMetricDescending(
-    isCentralLandingView
-      ? mapQuantityPerformanceFromNationalDashboard(
-          filteredNationalDashboardData,
-          emptyEntityPerformance,
-          nationalDefaultAverageMembersPerHousehold,
-          nationalDefaultWaterNormLitersPerPersonPerDay,
-          (state) => nationalDemandInputsByTenantId.get(state.tenantId)
-        )
-      : mapQuantityPerformanceFromAnalytics(
-          averageWaterSupplyData,
-          emptyEntityPerformance,
-          averagePersonsPerHousehold,
-          litersPerPersonPerDay
-        ),
-    'quantity'
-  )
-  const regularityPerformanceData = sortByMetricDescending(
-    isCentralLandingView
-      ? mapRegularityPerformanceFromNationalDashboard(
-          filteredNationalDashboardData,
-          emptyEntityPerformance
-        )
-      : mapRegularityPerformanceFromAnalytics(averageSchemeRegularityData, emptyEntityPerformance),
-    'regularity'
-  )
-  const supplySubmissionRateData = sortByMetricDescending(
-    isCentralLandingView
-      ? mapReadingSubmissionRateFromNationalDashboard(filteredNationalDashboardData, [])
-      : mapReadingSubmissionRateFromAnalytics(readingSubmissionRateData, []),
-    'regularity'
-  )
-  const readingSubmissionStatusData = mapReadingSubmissionStatusFromAnalytics(
-    submissionStatusData,
-    []
-  )
-  const pumpOperatorsData = mapSchemePerformanceToPumpOperators(
-    schemePerformanceData,
-    shouldFetchSchemePerformanceAnalytics ? [] : (dashboardData?.pumpOperators ?? [])
-  )
-  const tenantBoundaryBlockLookup = (tenantBoundaryData?.childRegions ?? []).reduce(
-    (lookup, region) => {
-      const normalizedTitle = (
-        region.title ??
-        region.childLgdTitle ??
-        region.childDepartmentTitle ??
-        ''
-      ).trim()
-      if (!normalizedTitle) {
-        return lookup
-      }
-
-      const lgdId = region.childLgdId ?? region.lgdId
-      const departmentId = region.childDepartmentId ?? region.departmentId
-
-      if (typeof lgdId === 'number' && lgdId > 0) {
-        lookup.idLookup[lgdId] = normalizedTitle
-        lookup.lgdLookup[lgdId] = normalizedTitle
-      }
-
-      if (typeof departmentId === 'number' && departmentId > 0) {
-        lookup.idLookup[departmentId] = normalizedTitle
-        lookup.lgdLookup[departmentId] = normalizedTitle
-      }
-
-      return lookup
-    },
-    { idLookup: {}, lgdLookup: {} } as {
-      idLookup: Record<number, string>
-      lgdLookup: Record<number, string>
-    }
-  )
-  const operatorsPerformanceAnalyticsTable = mapSchemePerformanceToTable(
-    schemePerformanceData,
-    [],
-    {
-      blockTitleByParentId: tenantBoundaryBlockLookup,
-      parentLgdTitleById: hierarchyType === 'LGD' ? undefined : tenantBoundaryBlockLookup,
-      useDepartmentHierarchyTitles: hierarchyType !== 'LGD',
-    }
-  )
-  const derivedVillageSchemeId = isHierarchyLeafSelected
-    ? (selectedSchemeId ?? schemePerformanceData?.topSchemes?.[0]?.schemeId)
-    : undefined
-  const derivedVillageScheme =
-    (typeof derivedVillageSchemeId === 'number'
-      ? schemePerformanceData?.topSchemes?.find(
-          (scheme) => scheme.schemeId === derivedVillageSchemeId
-        )
-      : undefined) ?? (isHierarchyLeafSelected ? schemePerformanceData?.topSchemes?.[0] : undefined)
-  const periodicQuantityTimeTrendData = mapWaterQuantityPeriodicToTrendPoints(
-    waterQuantityPeriodicData,
-    screenDateFormat
-  )
-  const periodicRegularityTimeTrendData = mapSchemeRegularityPeriodicToTrendPoints(
-    schemeRegularityPeriodicData,
-    screenDateFormat
-  )
-  const quantityTimeTrendData = isCentralLandingView
-    ? mapNationalQuantityTrendPoints(
-        nationalSchemeQuantityPeriodicData,
-        screenDateFormat,
-        nationalDefaultAverageMembersPerHousehold
-      )
-    : periodicQuantityTimeTrendData.length > 0
-      ? periodicQuantityTimeTrendData
-      : []
-  const regularityTimeTrendData = isCentralLandingView
-    ? mapNationalRegularityTrendPoints(nationalSchemeRegularityPeriodicData, screenDateFormat)
-    : periodicRegularityTimeTrendData.length > 0
-      ? periodicRegularityTimeTrendData
-      : []
-  const outageReasonsTimeTrendData = mapOutageReasonsPeriodicToTrendPoints(
+  const {
+    derivedVillageSchemeId,
+    operatorsPerformanceAnalyticsTable,
+    outageReasonsTimeTrendData,
+    pumpOperatorsData,
+    quantityPerformanceData,
+    quantityTimeTrendData,
+    readingSubmissionStatusData,
+    regularityPerformanceData,
+    regularityTimeTrendData,
+    supplySubmissionRateData,
+    villagePumpOperatorDetails,
+  } = buildCentralDashboardPerformanceData({
+    averagePersonsPerHousehold,
+    averageSchemeRegularityData,
+    averageWaterSupplyData,
+    dashboardData,
+    emptyEntityPerformance,
+    filteredNationalDashboardData,
+    hierarchyType,
+    isCentralLandingView,
+    isHierarchyLeafSelected,
+    litersPerPersonPerDay,
+    nationalDefaultAverageMembersPerHousehold,
+    nationalDefaultWaterNormLitersPerPersonPerDay,
+    nationalDemandInputsByTenantId,
+    nationalSchemeQuantityPeriodicData,
+    nationalSchemeRegularityPeriodicData,
     outageReasonsPeriodicData,
-    screenDateFormat
-  )
+    readingSubmissionRateData,
+    schemePerformanceData,
+    schemeRegularityPeriodicData,
+    screenDateFormat,
+    selectedSchemeId,
+    shouldFetchSchemePerformanceAnalytics,
+    submissionStatusData,
+    tenantBoundaryRegions: tenantBoundaryData?.childRegions,
+    waterQuantityPeriodicData,
+  })
   const {
     comparisonDays,
     currentRegularityKpi,
@@ -615,23 +514,6 @@ export function CentralDashboard({
       setSelectedScheme,
       updateFilterUrl,
     })
-
-  const villagePumpOperatorDetails: VillagePumpOperatorDetails = {
-    schemeId: derivedVillageSchemeId,
-    schemeName: derivedVillageScheme?.schemeName
-      ? toCapitalizedWords(derivedVillageScheme.schemeName)
-      : undefined,
-    name: 'N/A',
-    scheme:
-      derivedVillageScheme?.schemeName && derivedVillageSchemeId
-        ? `${toCapitalizedWords(derivedVillageScheme.schemeName)} / ${derivedVillageSchemeId}`
-        : 'N/A',
-    stationLocation: 'N/A',
-    lastSubmission: 'N/A',
-    reportingRate: 'N/A',
-    missingSubmissionCount: 'N/A',
-    inactiveDays: 'N/A',
-  }
 
   if (
     !dashboardData.kpis ||
