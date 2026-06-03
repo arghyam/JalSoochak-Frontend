@@ -100,8 +100,11 @@ export function SchemeSyncPage() {
             (type) => contentType.includes(type)
           )
           if (!isValidType) throw new Error(`Unexpected file type: ${contentType}`)
-          const blob = await res.blob()
           const MAX_SIZE = 50 * 1024 * 1024
+          const contentLength = parseInt(res.headers.get('content-length') ?? '', 10)
+          if (!isNaN(contentLength) && contentLength > MAX_SIZE)
+            throw new Error('File exceeds 50 MB limit')
+          const blob = await res.blob()
           if (blob.size > MAX_SIZE) throw new Error('File exceeds 50 MB limit')
           const blobUrl = URL.createObjectURL(blob)
           const a = document.createElement('a')

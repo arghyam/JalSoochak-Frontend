@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { ROUTES } from '@/shared/constants/routes'
 import { MainLayout } from '@/shared/components/layout'
 import { SingleTenantLayout } from './single-tenant-layout'
@@ -218,12 +219,17 @@ const FixReadingsPage = lazy(() =>
   }))
 )
 
+function LocalizedErrorFallback() {
+  const { t } = useTranslation()
+  return <PageErrorState message={t('error.somethingWentWrong')} />
+}
+
 export const router = createBrowserRouter([
   // Public dashboards (single-tenant aware)
   {
     path: ROUTES.DASHBOARD,
     element: (
-      <ErrorBoundary fallback={<PageErrorState message="Something went wrong" />}>
+      <ErrorBoundary fallback={<LocalizedErrorFallback />}>
         <SingleTenantLayout />
       </ErrorBoundary>
     ),
@@ -253,7 +259,11 @@ export const router = createBrowserRouter([
 
   {
     path: '/:stateSlug',
-    element: <SingleTenantLayout />,
+    element: (
+      <ErrorBoundary fallback={<LocalizedErrorFallback />}>
+        <SingleTenantLayout />
+      </ErrorBoundary>
+    ),
   },
 
   // Auth
@@ -291,7 +301,7 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.SUPER_ADMIN,
     element: (
-      <ErrorBoundary fallback={<PageErrorState message="Something went wrong" />}>
+      <ErrorBoundary fallback={<LocalizedErrorFallback />}>
         <ProtectedRoute allowedRoles={[AUTH_ROLES.SUPER_ADMIN, AUTH_ROLES.SUPER_STATE_ADMIN]}>
           <Suspense fallback={<LoadingSpinner />}>
             <MainLayout />
@@ -351,7 +361,7 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.STATE_ADMIN,
     element: (
-      <ErrorBoundary fallback={<PageErrorState message="Something went wrong" />}>
+      <ErrorBoundary fallback={<LocalizedErrorFallback />}>
         <ProtectedRoute allowedRoles={[AUTH_ROLES.STATE_ADMIN, AUTH_ROLES.SUPER_STATE_ADMIN]}>
           <Suspense fallback={<LoadingSpinner />}>
             <MainLayout />
@@ -439,7 +449,7 @@ export const router = createBrowserRouter([
   {
     path: ROUTES.STAFF,
     element: (
-      <ErrorBoundary fallback={<PageErrorState message="Something went wrong" />}>
+      <ErrorBoundary fallback={<LocalizedErrorFallback />}>
         <ProtectedRoute
           allowedRoles={[AUTH_ROLES.SECTION_OFFICER, AUTH_ROLES.SUB_DIVISIONAL_OFFICER]}
         >
