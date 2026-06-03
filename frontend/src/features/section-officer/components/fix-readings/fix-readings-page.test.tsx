@@ -152,7 +152,7 @@ describe('FixReadingsPage', () => {
 
     expect(screen.queryByRole('listbox')).toBeNull()
     expect(screen.getByText('S2604141918')).toBeTruthy()
-    expect(screen.getByLabelText('Last confirm Reading')).toBeTruthy()
+    expect(screen.getByLabelText('Last Confirmed Reading')).toBeTruthy()
     expect(screen.getByLabelText('Update Reading')).toBeTruthy()
   })
 
@@ -217,7 +217,7 @@ describe('FixReadingsPage', () => {
     const clearBtn = screen.getByRole('button', { name: 'Clear search' })
     fireEvent.click(clearBtn)
 
-    expect(screen.queryByLabelText('Last confirm Reading')).toBeNull()
+    expect(screen.queryByLabelText('Last Confirmed Reading')).toBeNull()
     expect((input as HTMLInputElement).value).toBe('')
   })
 
