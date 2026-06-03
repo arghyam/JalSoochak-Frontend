@@ -3,12 +3,9 @@ import { useTranslation } from 'react-i18next'
 import { useDashboardData } from '../hooks/use-dashboard-data'
 import { useLocationHierarchyQuery } from '../services/query/use-location-hierarchy-query'
 import { useLocationSearchQuery } from '../services/query/use-location-search-query'
-import { DashboardKpiGrid } from './central-dashboard/dashboard-kpi-grid'
-import { DashboardMapPerformanceSection } from './central-dashboard/dashboard-map-performance-section'
-import { DashboardBody } from './screens/dashboard-body'
+import { CentralDashboardContent } from './central-dashboard/central-dashboard-content'
 import type { SearchableSelectOption } from '@/shared/components/common'
 import type { DashboardData, EntityPerformance, StateUtOption } from '../types'
-import { DashboardFilters } from './filters/dashboard-filters'
 import { buildCentralDashboardKpiMetrics } from '../hooks/use-central-dashboard-kpi-metrics'
 import { useCentralDashboardLocationOptions } from '../hooks/use-central-dashboard-location-options'
 import { useCentralDashboardMapPerformance } from '../hooks/use-central-dashboard-map-performance'
@@ -21,6 +18,7 @@ import { useCentralDashboardLabels } from '../hooks/use-central-dashboard-labels
 import { useCentralDashboardMapUiState } from '../hooks/use-central-dashboard-map-ui-state'
 import { useCentralDashboardNavigation } from '../hooks/use-central-dashboard-navigation'
 import { buildCentralDashboardPerformanceData } from '../hooks/use-central-dashboard-performance-data'
+import { buildCentralDashboardRenderProps } from '../hooks/use-central-dashboard-render-props'
 import { buildCentralDashboardResolvedData } from '../hooks/use-central-dashboard-resolved-data'
 import { useCentralDashboardTimeScaleState } from '../hooks/use-central-dashboard-time-scale-state'
 import { useSchemePerformancePagination } from '../hooks/use-scheme-performance-pagination'
@@ -579,180 +577,139 @@ export function CentralDashboard({
     t,
   })
   const inSingleTenantMode = isSingleTenantMode()
+  const renderProps = buildCentralDashboardRenderProps({
+    activeLeafSelection,
+    activeTrailIndex: effectiveTrailIndex,
+    analyticsParentId,
+    blockOptions,
+    blockTableData,
+    districtMapChartData,
+    districtOptions,
+    districtTableData,
+    durationDateFormat,
+    effectiveHoveredOverallPerformanceRow,
+    effectiveSelectedState,
+    emptyOptions,
+    filterTabIndex,
+    filteredNationalDashboardBoundary: filteredNationalDashboardBoundaries.nationalBoundary,
+    gramPanchayatOptions,
+    gramPanchayatTableData,
+    handleMapRegionClick,
+    handleOverallPerformanceRowClick,
+    handleStateHover,
+    hierarchyType,
+    isActiveSchemesError: isSchemePerformanceError,
+    isActiveSchemesLoading: isSchemePerformancePending,
+    isAdvancedEnabled,
+    isBlockSelected,
+    isCentralLandingView,
+    isDepartmentCircleSelected,
+    isDepartmentDivisionSelected,
+    isDepartmentStateSelected,
+    isDepartmentZoneSelected,
+    isDistrictMapLoading,
+    isDistrictSelected,
+    isGramPanchayatSelected,
+    isMapDataLoading,
+    isMapDistrictView,
+    isMapFullscreen,
+    isMapRegularityView,
+    isNationalSchemeQuantityPeriodicFetching,
+    isNationalSchemeRegularityPeriodicFetching,
+    isOutageDistributionLoading: isOutageDistributionWidgetLoading,
+    isOutageReasonsError: isOutageReasonsWidgetError,
+    isOutageReasonsLoading: isOutageReasonsWidgetLoading,
+    isOverallPerformanceLoading,
+    isQuantityPerformanceError,
+    isQuantityPerformanceLoading,
+    isReadingSubmissionRateError: isReadingSubmissionRateWidgetError,
+    isReadingSubmissionRateLoading: isReadingSubmissionRateWidgetLoading,
+    isReadingSubmissionStatusError: isSubmissionStatusError,
+    isReadingSubmissionStatusLoading: isSubmissionStatusPending,
+    isRegularityPerformanceError,
+    isRegularityPerformanceLoading,
+    isSchemePerformanceError,
+    isSchemePerformanceLoading: isSchemePerformancePending,
+    isSchemeRegularityPeriodicFetching,
+    isSingleTenantMode: inSingleTenantMode,
+    isStateSelected,
+    isTimeViewEnabled,
+    isWaterQuantityPeriodicAwaitingParams,
+    isWaterQuantityPeriodicFetching,
+    mapChartData,
+    onActiveTrailChange: setActiveTrailIndex,
+    onBlockChange: handleBlockChange,
+    onClear: handleClearFilters,
+    onDepartmentCircleChange: handleDepartmentCircleChange,
+    onDepartmentDivisionChange: handleDepartmentDivisionChange,
+    onDepartmentStateChange: handleDepartmentStateChange,
+    onDepartmentSubdivisionChange: handleDepartmentSubdivisionChange,
+    onDepartmentVillageChange: handleDepartmentVillageChange,
+    onDepartmentZoneChange: handleDepartmentZoneChange,
+    onDistrictChange: handleDistrictChange,
+    onGramPanchayatChange: handleGramPanchayatChange,
+    onOutageDistributionTimeScaleTabChange: setOutageDistributionTimeScaleTab,
+    onQuantityTimeScaleTabChange: setQuantityTimeScaleTab,
+    onRegularityTimeScaleTabChange: setRegularityTimeScaleTab,
+    onSchemePageChange: handleSchemePageChange,
+    onStateChange: handleStateChange,
+    onTabChange: handleFilterTabChange,
+    operatorsPerformanceTable,
+    outageDistributionTimeScaleTab,
+    overallPerformanceEntityLabel,
+    overallPerformanceScrollHeight,
+    overallPerformanceTableData,
+    performanceSummaryCardMaxHeight,
+    performanceSummaryTitle: t('overallPerformance.title', {
+      defaultValue: 'Performance Summary',
+    }),
+    pumpOperatorsTotal,
+    quantityPerformanceData,
+    quantityTimeScaleTab,
+    quantityTimeTrendData,
+    regularityPerformanceData,
+    regularityTimeScaleTab,
+    regularityTimeTrendData,
+    resolvedDashboardData,
+    schemePerformancePage,
+    screenDateFormat,
+    selectedBlock,
+    selectedDepartmentCircle,
+    selectedDepartmentDivision,
+    selectedDepartmentState,
+    selectedDepartmentSubdivision,
+    selectedDepartmentVillage,
+    selectedDepartmentZone,
+    selectedDistrict,
+    selectedDuration: effectiveSelectedDuration,
+    selectedGramPanchayat,
+    selectedScheme,
+    selectedState,
+    selectedVillage,
+    setHoveredOverallPerformanceRow,
+    setIsMapDistrictView,
+    setIsMapFullscreen,
+    setIsMapRegularityView,
+    setSelectedDuration: handleSelectedDurationChange,
+    setSelectedScheme,
+    setSelectedVillage: handleVillageChange,
+    shouldShowMapAlongsidePerformance,
+    supplySubmissionRateData,
+    supplySubmissionRateLabel,
+    tableDateFormat,
+    tenantBoundaryParentGeoJson:
+      tenantBoundaryGeoJsonData?.parsedParentBoundaryGeoJson ?? undefined,
+    tenantCode: selectedTenant?.tenantCode,
+    totalSchemePages,
+    villageOptions,
+    villagePhotoEvidenceRows,
+    villagePumpOperatorDetails,
+    villageTableData,
+    visibleCoreMetrics,
+    waterSupplyOutageDistributionData,
+    waterSupplyOutagesData,
+    derivedVillageSchemeId,
+  })
 
-  return (
-    <Box>
-      <DashboardFilters
-        filterTabIndex={filterTabIndex}
-        onTabChange={handleFilterTabChange}
-        onClear={handleClearFilters}
-        isAdvancedEnabled={isAdvancedEnabled}
-        isDepartmentStateSelected={isDepartmentStateSelected}
-        emptyOptions={emptyOptions}
-        selectedState={selectedState}
-        selectedDistrict={selectedDistrict}
-        selectedBlock={selectedBlock}
-        selectedGramPanchayat={selectedGramPanchayat}
-        selectedVillage={selectedVillage}
-        selectedScheme={selectedScheme}
-        selectedDuration={effectiveSelectedDuration}
-        durationDateFormat={durationDateFormat}
-        selectedDepartmentState={selectedDepartmentState}
-        selectedDepartmentZone={selectedDepartmentZone}
-        selectedDepartmentCircle={selectedDepartmentCircle}
-        selectedDepartmentDivision={selectedDepartmentDivision}
-        selectedDepartmentSubdivision={selectedDepartmentSubdivision}
-        selectedDepartmentVillage={selectedDepartmentVillage}
-        activeTrailIndex={effectiveTrailIndex}
-        districtOptions={districtOptions}
-        blockOptions={blockOptions}
-        gramPanchayatOptions={gramPanchayatOptions}
-        villageOptions={villageOptions}
-        onStateChange={handleStateChange}
-        onDistrictChange={handleDistrictChange}
-        onBlockChange={handleBlockChange}
-        onGramPanchayatChange={handleGramPanchayatChange}
-        setSelectedVillage={handleVillageChange}
-        setSelectedScheme={setSelectedScheme}
-        setSelectedDuration={handleSelectedDurationChange}
-        onDepartmentStateChange={handleDepartmentStateChange}
-        onDepartmentZoneChange={handleDepartmentZoneChange}
-        onDepartmentCircleChange={handleDepartmentCircleChange}
-        onDepartmentDivisionChange={handleDepartmentDivisionChange}
-        onDepartmentSubdivisionChange={handleDepartmentSubdivisionChange}
-        onDepartmentVillageChange={handleDepartmentVillageChange}
-        onActiveTrailChange={setActiveTrailIndex}
-        isSingleTenantMode={inSingleTenantMode}
-      />
-
-      <DashboardKpiGrid metrics={visibleCoreMetrics} showIcons={isCentralLandingView} />
-
-      <DashboardMapPerformanceSection
-        activeLeafSelection={activeLeafSelection}
-        shouldShowMapAlongsidePerformance={shouldShowMapAlongsidePerformance}
-        isMapFullscreen={isMapFullscreen}
-        onMapFullscreenClose={() => setIsMapFullscreen(false)}
-        performanceSummaryCardMaxHeight={performanceSummaryCardMaxHeight}
-        performanceSummaryTitle={t('overallPerformance.title', {
-          defaultValue: 'Performance Summary',
-        })}
-        overallPerformanceTableData={overallPerformanceTableData}
-        isOverallPerformanceLoading={isOverallPerformanceLoading}
-        overallPerformanceEntityLabel={overallPerformanceEntityLabel}
-        overallPerformanceScrollHeight={overallPerformanceScrollHeight}
-        onOverallPerformanceRowClick={handleOverallPerformanceRowClick}
-        onOverallPerformanceRowHover={setHoveredOverallPerformanceRow}
-        mapProps={{
-          data: isMapDistrictView && isCentralLandingView ? districtMapChartData : mapChartData,
-          tooltipData: overallPerformanceTableData,
-          nationalBoundaryGeoJson: isCentralLandingView
-            ? filteredNationalDashboardBoundaries.nationalBoundary
-            : undefined,
-          parentBoundaryGeoJson: isCentralLandingView
-            ? undefined
-            : (tenantBoundaryGeoJsonData?.parsedParentBoundaryGeoJson ?? undefined),
-          isLoading:
-            isMapDistrictView && isCentralLandingView ? isDistrictMapLoading : isMapDataLoading,
-          mapName:
-            isMapDistrictView && isCentralLandingView
-              ? 'india-district-view'
-              : isCentralLandingView
-                ? 'india'
-                : `tenant-boundary-${hierarchyType.toLowerCase()}-${analyticsParentId}`,
-          onStateClick: handleMapRegionClick,
-          onStateHover: handleStateHover,
-          onFullscreenToggle: () => setIsMapFullscreen((previous) => !previous),
-          isRegularityView: isMapRegularityView,
-          onRegularityViewChange: setIsMapRegularityView,
-          hoveredRegion: effectiveHoveredOverallPerformanceRow,
-          showViewTabs: isCentralLandingView,
-          mapViewMode: isMapDistrictView ? 'district' : 'state',
-          onMapViewModeChange: (mode) => setIsMapDistrictView(mode === 'district'),
-          stateBorderData: isMapDistrictView && isCentralLandingView ? mapChartData : undefined,
-        }}
-      />
-      <DashboardBody
-        data={resolvedDashboardData}
-        performanceScreenKey={
-          isStateSelected && !isDistrictSelected && !isBlockSelected && !isGramPanchayatSelected
-            ? `state:${effectiveSelectedState}`
-            : !isStateSelected &&
-                !isDistrictSelected &&
-                !isBlockSelected &&
-                !isGramPanchayatSelected &&
-                !activeLeafSelection
-              ? 'central'
-              : null
-        }
-        isStateSelected={isStateSelected}
-        isDepartmentStateSelected={isDepartmentStateSelected}
-        isDistrictSelected={isDistrictSelected}
-        isBlockSelected={isBlockSelected}
-        isGramPanchayatSelected={isGramPanchayatSelected}
-        isDepartmentZoneSelected={isDepartmentZoneSelected}
-        isDepartmentCircleSelected={isDepartmentCircleSelected}
-        isDepartmentDivisionSelected={isDepartmentDivisionSelected}
-        selectedVillage={activeLeafSelection}
-        quantityTimeScaleTab={quantityTimeScaleTab}
-        onQuantityTimeScaleTabChange={(value) => setQuantityTimeScaleTab(value)}
-        regularityTimeScaleTab={regularityTimeScaleTab}
-        onRegularityTimeScaleTabChange={(value) => setRegularityTimeScaleTab(value)}
-        outageDistributionTimeScaleTab={outageDistributionTimeScaleTab}
-        onOutageDistributionTimeScaleTabChange={(value) => setOutageDistributionTimeScaleTab(value)}
-        quantityPerformanceData={quantityPerformanceData}
-        isQuantityPerformanceLoading={isQuantityPerformanceLoading}
-        isQuantityPerformanceError={isQuantityPerformanceError}
-        quantityTimeTrendData={quantityTimeTrendData}
-        isQuantityTimeTrendLoading={
-          isCentralLandingView
-            ? isNationalSchemeQuantityPeriodicFetching
-            : isWaterQuantityPeriodicFetching
-        }
-        isQuantityTimeTrendAwaitingParams={
-          isCentralLandingView ? false : isWaterQuantityPeriodicAwaitingParams
-        }
-        regularityPerformanceData={regularityPerformanceData}
-        isRegularityPerformanceLoading={isRegularityPerformanceLoading}
-        isRegularityPerformanceError={isRegularityPerformanceError}
-        regularityTimeTrendData={regularityTimeTrendData}
-        isRegularityTimeTrendLoading={
-          isCentralLandingView
-            ? isNationalSchemeRegularityPeriodicFetching
-            : isSchemeRegularityPeriodicFetching
-        }
-        districtTableData={districtTableData}
-        blockTableData={blockTableData}
-        gramPanchayatTableData={gramPanchayatTableData}
-        villageTableData={villageTableData}
-        supplySubmissionRateData={supplySubmissionRateData}
-        supplySubmissionRateLabel={supplySubmissionRateLabel}
-        waterSupplyOutagesData={waterSupplyOutagesData}
-        waterSupplyOutageDistributionData={waterSupplyOutageDistributionData}
-        isOutageReasonsLoading={isOutageReasonsWidgetLoading}
-        isOutageDistributionLoading={isOutageDistributionWidgetLoading}
-        isOutageReasonsError={isOutageReasonsWidgetError}
-        isReadingSubmissionRateLoading={isReadingSubmissionRateWidgetLoading}
-        isReadingSubmissionRateError={isReadingSubmissionRateWidgetError}
-        isReadingSubmissionStatusLoading={isSubmissionStatusPending}
-        isReadingSubmissionStatusError={isSubmissionStatusError}
-        isSchemePerformanceLoading={isSchemePerformancePending}
-        isSchemePerformanceError={isSchemePerformanceError}
-        isActiveSchemesLoading={isSchemePerformancePending}
-        isActiveSchemesError={isSchemePerformanceError}
-        pumpOperatorsTotal={pumpOperatorsTotal}
-        operatorsPerformanceTable={operatorsPerformanceTable}
-        villagePhotoEvidenceRows={villagePhotoEvidenceRows}
-        villagePumpOperatorDetails={villagePumpOperatorDetails}
-        tenantCode={selectedTenant?.tenantCode}
-        schemeId={derivedVillageSchemeId}
-        schemePerformancePage={schemePerformancePage}
-        totalSchemePages={totalSchemePages}
-        onSchemePageChange={handleSchemePageChange}
-        screenDateFormat={screenDateFormat}
-        tableDateFormat={tableDateFormat}
-        enableExtendedTimeScales
-        isTimeViewEnabled={isTimeViewEnabled}
-      />
-    </Box>
-  )
+  return <CentralDashboardContent {...renderProps} />
 }
