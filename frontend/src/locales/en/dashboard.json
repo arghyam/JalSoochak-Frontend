@@ -1,5 +1,6 @@
 {
   "failedToLoadData": "Failed to load data. Please try again.",
+  "failedToLoadDataReload": "Failed to load data. Please reload the page.",
   "header": {
     "title": "JalSoochak",
     "subtitle": "National Rural Drinking Water Supply Dashboard",

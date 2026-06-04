@@ -1,5 +1,6 @@
 import { Box, Grid, Portal, Text } from '@chakra-ui/react'
 import { useEffect, useRef, type ComponentProps } from 'react'
+import { useTranslation } from 'react-i18next'
 import { IndiaMapChart } from '../charts'
 import { OverallPerformanceTable } from '../tables'
 import type { EntityPerformance } from '../../types'
@@ -124,6 +125,7 @@ export function DashboardMapPerformanceSection({
   onOverallPerformanceRowHover,
   mapProps,
 }: DashboardMapPerformanceSectionProps) {
+  const { t } = useTranslation('dashboard')
   const fullscreenMapContainerRef = useRef<HTMLDivElement>(null)
   const previousFocusedElementRef = useRef<HTMLElement | null>(null)
   const closeHandlerRef = useRef(onMapFullscreenClose)
@@ -203,7 +205,9 @@ export function DashboardMapPerformanceSection({
               isLoading={isOverallPerformanceLoading}
               errorMessage={
                 isOverallPerformanceError
-                  ? 'Failed to load data. Please reload the page.'
+                  ? t('failedToLoadDataReload', {
+                      defaultValue: 'Failed to load data. Please reload the page.',
+                    })
                   : undefined
               }
               entityLabel={overallPerformanceEntityLabel}
