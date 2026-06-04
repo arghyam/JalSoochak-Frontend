@@ -11,6 +11,7 @@ import type {
   UserAdminUpdateMutation,
   UserAdminStatusMutation,
 } from './types'
+import type { UserAdminFormConfig, UserAdminFormActions } from './user-admin-form-page'
 
 const mockAdmin: UserAdminData = {
   id: 'u-1',
@@ -95,6 +96,24 @@ function makeStatusMutation(
   }
 }
 
+function makeConfig(overrides: Partial<UserAdminFormConfig> = {}): UserAdminFormConfig {
+  return {
+    isEditMode: false,
+    original: null,
+    isLoadingOriginal: false,
+    ...overrides,
+  }
+}
+
+function makeActions(overrides: Partial<UserAdminFormActions> = {}): UserAdminFormActions {
+  return {
+    createMutation: makeCreateMutation(),
+    updateMutation: makeUpdateMutation(),
+    statusMutation: makeStatusMutation(),
+    ...overrides,
+  }
+}
+
 describe('UserAdminFormPage — Add Mode', () => {
   beforeEach(() => {
     mockNavigate.mockReset()
@@ -103,14 +122,10 @@ describe('UserAdminFormPage — Add Mode', () => {
   it('renders add title', () => {
     renderWithProviders(
       <UserAdminFormPage
-        isEditMode={false}
-        original={null}
-        isLoadingOriginal={false}
+        config={makeConfig()}
+        actions={makeActions()}
         routes={mockRoutes}
         labels={mockLabels}
-        createMutation={makeCreateMutation()}
-        updateMutation={makeUpdateMutation()}
-        statusMutation={makeStatusMutation()}
       />
     )
     expect(screen.getByRole('heading', { name: /add test user/i })).toBeTruthy()
@@ -119,14 +134,10 @@ describe('UserAdminFormPage — Add Mode', () => {
   it('renders all four required fields', () => {
     renderWithProviders(
       <UserAdminFormPage
-        isEditMode={false}
-        original={null}
-        isLoadingOriginal={false}
+        config={makeConfig()}
+        actions={makeActions()}
         routes={mockRoutes}
         labels={mockLabels}
-        createMutation={makeCreateMutation()}
-        updateMutation={makeUpdateMutation()}
-        statusMutation={makeStatusMutation()}
       />
     )
     expect(screen.getByLabelText(/first name/i)).toBeTruthy()
@@ -135,17 +146,28 @@ describe('UserAdminFormPage — Add Mode', () => {
     expect(screen.getByLabelText(/phone number/i)).toBeTruthy()
   })
 
+  it('renders all fields in create mode with empty defaults', () => {
+    renderWithProviders(
+      <UserAdminFormPage
+        config={makeConfig({ isEditMode: false, original: null })}
+        actions={makeActions()}
+        routes={mockRoutes}
+        labels={mockLabels}
+      />
+    )
+    expect((screen.getByLabelText(/first name/i) as HTMLInputElement).value).toBe('')
+    expect((screen.getByLabelText(/last name/i) as HTMLInputElement).value).toBe('')
+    expect((screen.getByLabelText(/email address/i) as HTMLInputElement).value).toBe('')
+    expect((screen.getByLabelText(/phone number/i) as HTMLInputElement).value).toBe('')
+  })
+
   it('submit button is disabled when form is empty', () => {
     renderWithProviders(
       <UserAdminFormPage
-        isEditMode={false}
-        original={null}
-        isLoadingOriginal={false}
+        config={makeConfig()}
+        actions={makeActions()}
         routes={mockRoutes}
         labels={mockLabels}
-        createMutation={makeCreateMutation()}
-        updateMutation={makeUpdateMutation()}
-        statusMutation={makeStatusMutation()}
       />
     )
     const submitBtn = screen.getByRole('button', {
@@ -157,14 +179,10 @@ describe('UserAdminFormPage — Add Mode', () => {
   it('submit button is enabled when form is valid', () => {
     renderWithProviders(
       <UserAdminFormPage
-        isEditMode={false}
-        original={null}
-        isLoadingOriginal={false}
+        config={makeConfig()}
+        actions={makeActions()}
         routes={mockRoutes}
         labels={mockLabels}
-        createMutation={makeCreateMutation()}
-        updateMutation={makeUpdateMutation()}
-        statusMutation={makeStatusMutation()}
       />
     )
     fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Vijay' } })
@@ -179,17 +197,31 @@ describe('UserAdminFormPage — Add Mode', () => {
     expect((submitBtn as HTMLButtonElement).disabled).toBe(false)
   })
 
+  it('shows required field validation errors after submit attempt with empty form', async () => {
+    renderWithProviders(
+      <UserAdminFormPage
+        config={makeConfig()}
+        actions={makeActions()}
+        routes={mockRoutes}
+        labels={mockLabels}
+      />
+    )
+    await act(async () => {
+      const form = document.querySelector('form') as HTMLFormElement
+      fireEvent.submit(form)
+    })
+    // At least one "This field is required" error must appear
+    const errorMessages = screen.getAllByText('This field is required')
+    expect(errorMessages.length).toBeGreaterThan(0)
+  })
+
   it('does not show status toggle in add mode', () => {
     renderWithProviders(
       <UserAdminFormPage
-        isEditMode={false}
-        original={null}
-        isLoadingOriginal={false}
+        config={makeConfig()}
+        actions={makeActions()}
         routes={mockRoutes}
         labels={mockLabels}
-        createMutation={makeCreateMutation()}
-        updateMutation={makeUpdateMutation()}
-        statusMutation={makeStatusMutation()}
       />
     )
     expect(screen.queryByText('Activated')).toBeNull()
@@ -198,14 +230,10 @@ describe('UserAdminFormPage — Add Mode', () => {
   it('navigates to list on Cancel click', () => {
     renderWithProviders(
       <UserAdminFormPage
-        isEditMode={false}
-        original={null}
-        isLoadingOriginal={false}
+        config={makeConfig()}
+        actions={makeActions()}
         routes={mockRoutes}
         labels={mockLabels}
-        createMutation={makeCreateMutation()}
-        updateMutation={makeUpdateMutation()}
-        statusMutation={makeStatusMutation()}
       />
     )
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
@@ -216,14 +244,10 @@ describe('UserAdminFormPage — Add Mode', () => {
     const createMutation = makeCreateMutation()
     renderWithProviders(
       <UserAdminFormPage
-        isEditMode={false}
-        original={null}
-        isLoadingOriginal={false}
+        config={makeConfig()}
+        actions={makeActions({ createMutation })}
         routes={mockRoutes}
         labels={mockLabels}
-        createMutation={createMutation}
-        updateMutation={makeUpdateMutation()}
-        statusMutation={makeStatusMutation()}
       />
     )
     fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Vijay' } })
@@ -252,15 +276,10 @@ describe('UserAdminFormPage — Edit Mode', () => {
   it('renders edit title', () => {
     renderWithProviders(
       <UserAdminFormPage
-        id="u-1"
-        isEditMode={true}
-        original={mockAdmin}
-        isLoadingOriginal={false}
+        config={makeConfig({ id: 'u-1', isEditMode: true, original: mockAdmin })}
+        actions={makeActions()}
         routes={mockRoutes}
         labels={mockLabels}
-        createMutation={makeCreateMutation()}
-        updateMutation={makeUpdateMutation()}
-        statusMutation={makeStatusMutation()}
       />
     )
     expect(screen.getByRole('heading', { name: /edit test user/i })).toBeTruthy()
@@ -269,15 +288,15 @@ describe('UserAdminFormPage — Edit Mode', () => {
   it('renders loading state when isLoadingOriginal is true', () => {
     renderWithProviders(
       <UserAdminFormPage
-        id="u-1"
-        isEditMode={true}
-        original={null}
-        isLoadingOriginal={true}
+        config={makeConfig({
+          id: 'u-1',
+          isEditMode: true,
+          original: null,
+          isLoadingOriginal: true,
+        })}
+        actions={makeActions()}
         routes={mockRoutes}
         labels={mockLabels}
-        createMutation={makeCreateMutation()}
-        updateMutation={makeUpdateMutation()}
-        statusMutation={makeStatusMutation()}
       />
     )
     expect(screen.getByRole('status')).toBeTruthy()
@@ -286,32 +305,35 @@ describe('UserAdminFormPage — Edit Mode', () => {
   it('renders not found when original is null and not loading', () => {
     renderWithProviders(
       <UserAdminFormPage
-        id="u-1"
-        isEditMode={true}
-        original={null}
-        isLoadingOriginal={false}
+        config={makeConfig({ id: 'u-1', isEditMode: true, original: null })}
+        actions={makeActions()}
         routes={mockRoutes}
         labels={mockLabels}
-        createMutation={makeCreateMutation()}
-        updateMutation={makeUpdateMutation()}
-        statusMutation={makeStatusMutation()}
       />
     )
     expect(screen.getByText('User not found')).toBeTruthy()
   })
 
+  it('email input has disabled attribute in edit mode', () => {
+    renderWithProviders(
+      <UserAdminFormPage
+        config={makeConfig({ id: 'u-1', isEditMode: true, original: mockAdmin })}
+        actions={makeActions()}
+        routes={mockRoutes}
+        labels={mockLabels}
+      />
+    )
+    const emailInput = screen.getByLabelText(/email address/i) as HTMLInputElement
+    expect(emailInput.disabled).toBe(true)
+  })
+
   it('email field is read-only in edit mode', async () => {
     renderWithProviders(
       <UserAdminFormPage
-        id="u-1"
-        isEditMode={true}
-        original={mockAdmin}
-        isLoadingOriginal={false}
+        config={makeConfig({ id: 'u-1', isEditMode: true, original: mockAdmin })}
+        actions={makeActions()}
         routes={mockRoutes}
         labels={mockLabels}
-        createMutation={makeCreateMutation()}
-        updateMutation={makeUpdateMutation()}
-        statusMutation={makeStatusMutation()}
       />
     )
     const emailInput = screen.getByLabelText(/email address/i) as HTMLInputElement
@@ -322,15 +344,10 @@ describe('UserAdminFormPage — Edit Mode', () => {
   it('shows status toggle in edit mode', () => {
     renderWithProviders(
       <UserAdminFormPage
-        id="u-1"
-        isEditMode={true}
-        original={mockAdmin}
-        isLoadingOriginal={false}
+        config={makeConfig({ id: 'u-1', isEditMode: true, original: mockAdmin })}
+        actions={makeActions()}
         routes={mockRoutes}
         labels={mockLabels}
-        createMutation={makeCreateMutation()}
-        updateMutation={makeUpdateMutation()}
-        statusMutation={makeStatusMutation()}
       />
     )
     expect(screen.getByText('Activated')).toBeTruthy()
@@ -339,15 +356,10 @@ describe('UserAdminFormPage — Edit Mode', () => {
   it('shows Save Changes button in edit mode', () => {
     renderWithProviders(
       <UserAdminFormPage
-        id="u-1"
-        isEditMode={true}
-        original={mockAdmin}
-        isLoadingOriginal={false}
+        config={makeConfig({ id: 'u-1', isEditMode: true, original: mockAdmin })}
+        actions={makeActions()}
         routes={mockRoutes}
         labels={mockLabels}
-        createMutation={makeCreateMutation()}
-        updateMutation={makeUpdateMutation()}
-        statusMutation={makeStatusMutation()}
       />
     )
     expect(screen.getByRole('button', { name: /save changes/i })).toBeTruthy()
@@ -356,15 +368,10 @@ describe('UserAdminFormPage — Edit Mode', () => {
   it('navigates to view page on Cancel click in edit mode', () => {
     renderWithProviders(
       <UserAdminFormPage
-        id="u-1"
-        isEditMode={true}
-        original={mockAdmin}
-        isLoadingOriginal={false}
+        config={makeConfig({ id: 'u-1', isEditMode: true, original: mockAdmin })}
+        actions={makeActions()}
         routes={mockRoutes}
         labels={mockLabels}
-        createMutation={makeCreateMutation()}
-        updateMutation={makeUpdateMutation()}
-        statusMutation={makeStatusMutation()}
       />
     )
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
@@ -375,15 +382,10 @@ describe('UserAdminFormPage — Edit Mode', () => {
     const updateMutation = makeUpdateMutation()
     renderWithProviders(
       <UserAdminFormPage
-        id="u-1"
-        isEditMode={true}
-        original={mockAdmin}
-        isLoadingOriginal={false}
+        config={makeConfig({ id: 'u-1', isEditMode: true, original: mockAdmin })}
+        actions={makeActions({ updateMutation })}
         routes={mockRoutes}
         labels={mockLabels}
-        createMutation={makeCreateMutation()}
-        updateMutation={updateMutation}
-        statusMutation={makeStatusMutation()}
       />
     )
     fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Updated' } })
@@ -400,15 +402,10 @@ describe('UserAdminFormPage — Edit Mode', () => {
     const updateMutation = makeUpdateMutation()
     renderWithProviders(
       <UserAdminFormPage
-        id="u-1"
-        isEditMode={true}
-        original={mockAdmin}
-        isLoadingOriginal={false}
+        config={makeConfig({ id: 'u-1', isEditMode: true, original: mockAdmin })}
+        actions={makeActions({ updateMutation })}
         routes={mockRoutes}
         labels={mockLabels}
-        createMutation={makeCreateMutation()}
-        updateMutation={updateMutation}
-        statusMutation={makeStatusMutation()}
       />
     )
     fireEvent.change(screen.getByLabelText(/first name/i), { target: { value: 'Updated' } })
@@ -424,15 +421,10 @@ describe('UserAdminFormPage — Edit Mode', () => {
     const statusMutation = makeStatusMutation()
     renderWithProviders(
       <UserAdminFormPage
-        id="u-1"
-        isEditMode={true}
-        original={mockAdmin}
-        isLoadingOriginal={false}
+        config={makeConfig({ id: 'u-1', isEditMode: true, original: mockAdmin })}
+        actions={makeActions({ statusMutation })}
         routes={mockRoutes}
         labels={mockLabels}
-        createMutation={makeCreateMutation()}
-        updateMutation={makeUpdateMutation()}
-        statusMutation={statusMutation}
       />
     )
     await act(async () => {

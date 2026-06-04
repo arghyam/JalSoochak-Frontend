@@ -20,6 +20,7 @@
     "@chakra-ui/react": "^2.10.9",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@hookform/resolvers": "^5.4.0",
     "@tanstack/react-query": "^5.90.11",
     "axios": "^1.13.2",
     "clsx": "^2.1.1",
@@ -31,9 +32,11 @@
     "papaparse": "^5.5.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-hook-form": "^7.77.0",
     "react-i18next": "^16.5.3",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.9.6",
+    "zod": "^4.4.3",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

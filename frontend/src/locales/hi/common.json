@@ -1,4 +1,7 @@
 {
+  "error": {
+    "somethingWentWrong": "कुछ गलत हो गया"
+  },
   "loading": "लोड हो रहा है...",
   "optional": "(वैकल्पिक)",
   "noDataAvailable": "कोई डेटा उपलब्ध नहीं है",

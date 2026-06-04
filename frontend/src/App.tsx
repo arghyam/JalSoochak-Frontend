@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { RouterProvider } from 'react-router-dom'
 import { QueryProvider } from '@/app/providers/query-provider'
 import { ErrorBoundary } from '@/shared/components/common/error-boundary'
+import { PageErrorState } from '@/shared/components/common/page-error-state'
 import { router } from '@/app/router'
 import { useAuthStore } from '@/app/store'
 import { useIdleTimeout } from '@/shared/hooks/use-idle-timeout'
@@ -23,11 +24,11 @@ function App() {
   })
 
   return (
-    <ErrorBoundary>
-      <QueryProvider>
+    <QueryProvider>
+      <ErrorBoundary fallback={<PageErrorState message="Something went wrong" />}>
         <RouterProvider router={router} />
-      </QueryProvider>
-    </ErrorBoundary>
+      </ErrorBoundary>
+    </QueryProvider>
   )
 }
 

@@ -1,13 +1,9 @@
-import { useState } from 'react'
-import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { ToastContainer, UploadFileModal } from '@/shared/components/common'
 import schemeTemplateUrl from '@/assets/templates/scheme-upload-template.xlsx?url'
-import type { ValidationFieldError } from '@/shared/components/common'
-import { useToast } from '@/shared/hooks/use-toast'
 import { useUploadSchemesMutation } from '../../services/query/use-state-admin-queries'
 import { useAuthStore } from '@/app/store/auth-store'
-import { extractUploadValidationErrors } from '../../utils/extract-upload-validation-errors'
+import { useUploadWithValidation } from '../../hooks/use-upload-with-validation'
 
 interface UploadSchemesModalProps {
   isOpen: boolean
@@ -16,38 +12,28 @@ interface UploadSchemesModalProps {
 
 export function UploadSchemesModal({ isOpen, onClose }: UploadSchemesModalProps) {
   const { t } = useTranslation('state-admin')
-  const toast = useToast()
   const tenantCode = useAuthStore((s) => s.user?.tenantCode ?? '')
-  const { mutate: upload, isPending } = useUploadSchemesMutation()
-  const [validationErrors, setValidationErrors] = useState<ValidationFieldError[]>([])
+  const uploadMutation = useUploadSchemesMutation()
+
+  const { validationErrors, handleUpload, clearErrors, toast } = useUploadWithValidation<{
+    file: File
+    tenantCode: string
+  }>({
+    mutation: uploadMutation,
+    onSuccess: onClose,
+    successMessage: t('schemeSync.upload.success'),
+    errorMessage: t('schemeSync.upload.error'),
+  })
 
   const handleClose = () => {
-    setValidationErrors([])
+    clearErrors()
     onClose()
   }
 
   const handleSubmit = (file: File) => {
     if (!file || !tenantCode) return
-    setValidationErrors([])
-    upload(
-      { file, tenantCode },
-      {
-        onSuccess: () => {
-          toast.success(t('schemeSync.upload.success'))
-          handleClose()
-        },
-        onError: (error: unknown) => {
-          if (axios.isAxiosError(error)) {
-            const errors = extractUploadValidationErrors(error.response?.data)
-            if (errors.length > 0) {
-              setValidationErrors(errors)
-              return
-            }
-          }
-          toast.error(t('schemeSync.upload.error'))
-        },
-      }
-    )
+    clearErrors()
+    handleUpload({ file, tenantCode })
   }
 
   return (
@@ -57,7 +43,7 @@ export function UploadSchemesModal({ isOpen, onClose }: UploadSchemesModalProps)
         onClose={handleClose}
         title={t('schemeSync.upload.title')}
         description={t('schemeSync.upload.description')}
-        isPending={isPending}
+        isPending={uploadMutation.isPending}
         onSubmit={handleSubmit}
         submitLabel={t('schemeSync.upload.submit')}
         selectFileLabel={t('schemeSync.upload.clickToSelect')}

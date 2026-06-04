@@ -88,15 +88,19 @@ export function SuperUserFormPage() {
 
   return (
     <UserAdminFormPage
-      id={id}
-      isEditMode={isEditMode}
-      original={userQuery.data ?? null}
-      isLoadingOriginal={userQuery.isLoading}
+      config={{
+        id,
+        isEditMode,
+        original: userQuery.data ?? null,
+        isLoadingOriginal: userQuery.isLoading,
+      }}
+      actions={{
+        createMutation: neverCreate,
+        updateMutation,
+        statusMutation,
+      }}
       routes={routes}
       labels={labels}
-      createMutation={neverCreate}
-      updateMutation={updateMutation}
-      statusMutation={statusMutation}
     />
   )
 }
