@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Box,
   Button,
@@ -22,6 +22,7 @@ import {
 import { useAuthStore } from '@/app/store/auth-store'
 import { useDebounce } from '@/shared/hooks/use-debounce'
 import { useToast } from '@/shared/hooks/use-toast'
+import { usePageTitle } from '@/shared/hooks'
 import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '@/shared/constants/pagination'
 import { UploadSchemeMappingsModal } from './upload-scheme-mappings-modal'
 
@@ -44,9 +45,7 @@ export function SchemeMappingsSyncPage() {
     setPage(1)
   }
 
-  useEffect(() => {
-    document.title = `${t('schemeMappingsSync.title')} | JalSoochak`
-  }, [t])
+  usePageTitle('schemeMappingsSync.title', 'state-admin')
 
   const mappingParams = useMemo(
     () => ({

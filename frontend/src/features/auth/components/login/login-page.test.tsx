@@ -31,7 +31,7 @@ describe('LoginPage', () => {
     const user = userEvent.setup()
     renderWithProviders(<LoginPage />)
     await user.click(screen.getByRole('button', { name: 'Log in' }))
-    expect(screen.getByText('Email is required.')).toBeInTheDocument()
+    expect(await screen.findByText('Email is required.')).toBeInTheDocument()
   })
 
   it('submits valid credentials and navigates', async () => {
@@ -61,5 +61,67 @@ describe('LoginPage', () => {
     expect(
       screen.queryByText('Password updated successfully. Please log in again.')
     ).not.toBeInTheDocument()
+  })
+
+  it('stale server error clears on re-submit', async () => {
+    // Arrange: first call fails, second call succeeds
+    mockLogin
+      .mockRejectedValueOnce(new Error('invalid credentials'))
+      .mockResolvedValueOnce('/dashboard')
+    const user = userEvent.setup()
+    renderWithProviders(<LoginPage />)
+    await user.type(screen.getByPlaceholderText('Enter your email'), 'user@test.com')
+    await user.type(screen.getByPlaceholderText('Enter your password'), 'wrongpass')
+
+    // Act: first submit — should show error
+    await user.click(screen.getByRole('button', { name: 'Log in' }))
+    await waitFor(() => {
+      expect(screen.getByText('Unable to login. Please try again.')).toBeInTheDocument()
+    })
+
+    // Act: second submit (valid) — error should disappear while submitting
+    await user.click(screen.getByRole('button', { name: 'Log in' }))
+    await waitFor(() => {
+      expect(screen.queryByText('Unable to login. Please try again.')).not.toBeInTheDocument()
+    })
+  })
+
+  it('Zod validation fires client-side without API call on empty email', async () => {
+    // Arrange
+    const user = userEvent.setup()
+    renderWithProviders(<LoginPage />)
+    // Only fill password, leave email empty
+    await user.type(screen.getByPlaceholderText('Enter your password'), 'somepass')
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Log in' }))
+
+    // Assert: client-side error shown, no API call made
+    await waitFor(() => {
+      expect(screen.getByText('Email is required.')).toBeInTheDocument()
+    })
+    expect(mockLogin).not.toHaveBeenCalled()
+  })
+
+  it('password visibility toggle switches input type between password and text', async () => {
+    // Arrange
+    const user = userEvent.setup()
+    renderWithProviders(<LoginPage />)
+    const passwordInput = screen.getByPlaceholderText('Enter your password')
+
+    // Assert initial state: type is password
+    expect(passwordInput).toHaveAttribute('type', 'password')
+
+    // Act: click show password
+    await user.click(screen.getByRole('button', { name: 'Show password' }))
+
+    // Assert: type is now text
+    expect(passwordInput).toHaveAttribute('type', 'text')
+
+    // Act: click hide password
+    await user.click(screen.getByRole('button', { name: 'Hide password' }))
+
+    // Assert: type is back to password
+    expect(passwordInput).toHaveAttribute('type', 'password')
   })
 })

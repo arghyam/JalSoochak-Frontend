@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { Box, Flex, SimpleGrid, Text, Stack, Heading, Spinner } from '@chakra-ui/react'
 
 import { useTranslation } from 'react-i18next'
@@ -7,14 +6,13 @@ import { BsCheck2Circle } from 'react-icons/bs'
 import { IoCloseCircleOutline } from 'react-icons/io5'
 import { useTenantsSummaryQuery } from '../../services/query/use-super-admin-queries'
 import { StatCard, PageHeader } from '@/shared/components/common'
+import { usePageTitle } from '@/shared/hooks'
 
 export function OverviewPage() {
   const { t } = useTranslation(['super-admin', 'common'])
   const { data: summaryData, isLoading, isError } = useTenantsSummaryQuery()
 
-  useEffect(() => {
-    document.title = `${t('overview.title')} | JalSoochak`
-  }, [t])
+  usePageTitle('overview.title', 'super-admin')
 
   if (isLoading) {
     return (

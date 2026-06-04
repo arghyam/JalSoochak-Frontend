@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   Box,
@@ -26,6 +26,7 @@ import {
 } from '../../services/query/use-super-admin-queries'
 import { useToast } from '@/shared/hooks/use-toast'
 import type { UserAdminData } from '@/shared/components/common'
+import { usePageTitle } from '@/shared/hooks'
 
 export function ViewStateUTPage() {
   const { t } = useTranslation(['super-admin', 'common'])
@@ -50,9 +51,7 @@ export function ViewStateUTPage() {
     email: false,
   })
 
-  useEffect(() => {
-    document.title = `${t('statesUts.viewTitle')} | JalSoochak`
-  }, [t])
+  usePageTitle('statesUts.viewTitle', 'super-admin')
 
   const MAX_NAME_LENGTH = 25
   const MAX_EMAIL_LENGTH = 60

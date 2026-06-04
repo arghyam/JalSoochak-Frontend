@@ -75,4 +75,10 @@ export const stateAdminQueryKeys = {
     ] as const,
   tenantStatus: (tenantName: string) =>
     [...stateAdminQueryKeys.all, 'tenant-status', tenantName] as const,
+
+  // Prefix helpers for bulk invalidation
+  staffListPrefix: () => [...stateAdminQueryKeys.all, 'staff-list'] as const,
+  stateUtAdminsPrefix: () => [...stateAdminQueryKeys.all, 'state-ut-admins'] as const,
+  schemeListPrefix: () => [...stateAdminQueryKeys.all, 'scheme-list'] as const,
+  schemeMappingsListPrefix: () => [...stateAdminQueryKeys.all, 'scheme-mappings-list'] as const,
 }

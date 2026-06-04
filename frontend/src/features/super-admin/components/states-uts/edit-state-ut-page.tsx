@@ -25,6 +25,7 @@ import {
 } from '@/shared/components/common'
 import { TENANT_STATUSES, type TenantStatus } from '../../types/states-uts'
 import { useToast } from '@/shared/hooks/use-toast'
+import { usePageTitle } from '@/shared/hooks'
 import { ROUTES } from '@/shared/constants/routes'
 import { isAlphabeticWithSpaces, exceedsMaxLength } from '@/shared/utils/validation'
 import {
@@ -88,14 +89,15 @@ export function EditStateUTPage() {
   const [isSaving, setIsSaving] = useState(false)
   const navigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  usePageTitle('statesUts.editTitle', 'super-admin')
+
   useEffect(() => {
-    document.title = `${t('statesUts.editTitle')} | JalSoochak`
     return () => {
       if (navigateTimerRef.current !== null) {
         clearTimeout(navigateTimerRef.current)
       }
     }
-  }, [t])
+  }, [])
 
   const changedAdmins = useMemo(
     () =>

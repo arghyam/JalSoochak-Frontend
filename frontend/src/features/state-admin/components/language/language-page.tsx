@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -16,6 +16,7 @@ import { EditIcon, CloseIcon } from '@chakra-ui/icons'
 import { APP_LANGUAGES } from '@/shared/constants/languages'
 import { ROUTES } from '@/shared/constants/routes'
 import { useToast } from '@/shared/hooks/use-toast'
+import { usePageTitle } from '@/shared/hooks'
 import {
   ToastContainer,
   SearchableSelect,
@@ -44,9 +45,7 @@ export function LanguagePage() {
   }>({})
   const toast = useToast()
 
-  useEffect(() => {
-    document.title = `${t('language.title')} | JalSoochak`
-  }, [t])
+  usePageTitle('language.title', 'state-admin')
 
   const effectiveIsEditing = isEditing || Boolean(config && !config.isConfigured)
   const primaryLanguage = languageDraft.primaryLanguage ?? config?.primaryLanguage ?? ''

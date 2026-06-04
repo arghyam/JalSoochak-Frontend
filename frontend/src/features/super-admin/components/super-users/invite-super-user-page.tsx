@@ -16,6 +16,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { ToastContainer, PageHeader } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
+import { usePageTitle } from '@/shared/hooks'
 import { ROUTES } from '@/shared/constants/routes'
 import { isAlphabeticWithSpaces, exceedsMaxLength } from '@/shared/utils/validation'
 import { useInviteUserMutation } from '../../services/query/use-super-admin-queries'
@@ -44,9 +45,7 @@ export function InviteSuperUserPage() {
   })
   const navigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  useEffect(() => {
-    document.title = `${t('superUsers.addTitle')} | JalSoochak`
-  }, [t])
+  usePageTitle('superUsers.addTitle', 'super-admin')
 
   useEffect(() => {
     return () => {

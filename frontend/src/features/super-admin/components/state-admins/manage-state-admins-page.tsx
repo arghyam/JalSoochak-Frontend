@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -26,6 +26,7 @@ import {
 } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
 import { useDebounce } from '@/shared/hooks/use-debounce'
+import { usePageTitle } from '@/shared/hooks'
 import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '@/shared/constants/pagination'
 import type { StateAdmin } from '../../types/state-admins'
 import { ROUTES } from '@/shared/constants/routes'
@@ -61,9 +62,7 @@ export function ManageStateAdminsPage() {
     })
   }
 
-  useEffect(() => {
-    document.title = `${t('manageStateAdmins.title')} | JalSoochak`
-  }, [t])
+  usePageTitle('manageStateAdmins.title', 'super-admin')
 
   if (isError) {
     return (
