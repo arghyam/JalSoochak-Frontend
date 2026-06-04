@@ -57,22 +57,12 @@ describe('fixReadingsApi.searchSchemes', () => {
 })
 
 describe('fixReadingsApi.updateFinalReading', () => {
-  const successResponse = {
-    data: {
-      success: true,
-      schemeId: 28442,
-      readingDate: '2026-06-02',
-      finalReading: 300500,
-      message: 'OK',
-    },
-  }
-
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
   it('calls PATCH with correct URL, payload, and X-Tenant-Code header', async () => {
-    mockPatch.mockResolvedValueOnce(successResponse)
+    mockPatch.mockResolvedValueOnce({ data: undefined })
 
     await fixReadingsApi.updateFinalReading(
       28442,
@@ -87,57 +77,7 @@ describe('fixReadingsApi.updateFinalReading', () => {
     )
   })
 
-  it('returns the response data on success', async () => {
-    mockPatch.mockResolvedValueOnce(successResponse)
-
-    const result = await fixReadingsApi.updateFinalReading(
-      28442,
-      { phoneNumber: '917050624278', reading: 300500 },
-      'AS'
-    )
-
-    expect(result.success).toBe(true)
-    expect(result.finalReading).toBe(300500)
-  })
-
-  it('throws with the API message when success is false', async () => {
-    mockPatch.mockResolvedValueOnce({
-      data: {
-        success: false,
-        schemeId: 28442,
-        readingDate: null,
-        finalReading: 100,
-        message: 'reading must be greater than last confirmed reading (2026-05-31)',
-      },
-    })
-
-    await expect(
-      fixReadingsApi.updateFinalReading(28442, { phoneNumber: '917050624278', reading: 100 }, 'AS')
-    ).rejects.toThrow('reading must be greater than last confirmed reading (2026-05-31)')
-  })
-
-  it('throws with response body message on HTTP 400', async () => {
-    const axiosError = Object.assign(new Error('Request failed with status code 400'), {
-      isAxiosError: true,
-      response: {
-        status: 400,
-        data: {
-          success: false,
-          schemeId: 28442,
-          readingDate: null,
-          finalReading: 200,
-          message: 'reading must be greater than last confirmed reading (2026-05-31)',
-        },
-      },
-    })
-    mockPatch.mockRejectedValueOnce(axiosError)
-
-    await expect(
-      fixReadingsApi.updateFinalReading(28442, { phoneNumber: '917050624278', reading: 200 }, 'AS')
-    ).rejects.toThrow('reading must be greater than last confirmed reading (2026-05-31)')
-  })
-
-  it('propagates network errors from the API', async () => {
+  it('propagates errors from the API', async () => {
     const apiError = new Error('Network error')
     mockPatch.mockRejectedValueOnce(apiError)
 

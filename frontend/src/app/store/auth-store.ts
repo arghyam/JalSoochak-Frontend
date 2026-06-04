@@ -3,7 +3,6 @@ import type { AuthUser, LoginRequest, LoginResponse } from '@/features/auth/serv
 import { authApi } from '@/features/auth/services/auth-api'
 import { AUTH_ROLES, STAFF_ROLES } from '@/shared/constants/auth'
 import { ROUTES } from '@/shared/constants/routes'
-import { queryClient } from '@/shared/lib/query-client'
 
 export interface AuthState {
   accessToken: string | null
@@ -69,11 +68,10 @@ export const useAuthStore = create<AuthState>()((set) => ({
   logout: async () => {
     try {
       await authApi.logout()
-    } catch (error) {
-      console.warn('Logout API call failed; clearing local session anyway.', error)
+    } catch {
+      // Ignore logout errors
     }
 
-    queryClient.clear()
     document.title = 'JalSoochak'
     set({
       accessToken: null,
@@ -106,7 +104,6 @@ export const useAuthStore = create<AuthState>()((set) => ({
   },
 
   setSessionExpired: () => {
-    queryClient.clear()
     document.title = 'JalSoochak'
     set({
       accessToken: null,

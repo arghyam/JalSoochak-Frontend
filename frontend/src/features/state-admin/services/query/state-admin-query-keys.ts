@@ -11,16 +11,7 @@ export const stateAdminQueryKeys = {
     page: number
     limit: number
     tenantCode: string
-  }) =>
-    [
-      ...stateAdminQueryKeys.all,
-      'staff-list',
-      params.roles,
-      params.status,
-      params.page,
-      params.limit,
-      params.tenantCode,
-    ] as const,
+  }) => [...stateAdminQueryKeys.all, 'staff-list', params] as const,
   configuration: () => [...stateAdminQueryKeys.all, 'configuration'] as const,
   stateUtAdmins: (page: number, size: number, name: string, status: string) =>
     [...stateAdminQueryKeys.all, 'state-ut-admins', page, size, name, status] as const,
@@ -33,7 +24,7 @@ export const stateAdminQueryKeys = {
     [...stateAdminQueryKeys.all, 'department-edit-constraints'] as const,
   configStatus: () => [...stateAdminQueryKeys.all, 'config-status'] as const,
   logo: () => [...stateAdminQueryKeys.all, 'logo'] as const,
-  systemChannels: () => [...stateAdminQueryKeys.all, 'system-channels'] as const,
+  systemChannels: () => ['system', 'channels'] as const,
   staffCounts: () => [...stateAdminQueryKeys.all, 'staff-counts'] as const,
   schemeCounts: (tenantCode: string) =>
     [...stateAdminQueryKeys.all, 'scheme-counts', tenantCode] as const,
@@ -45,34 +36,14 @@ export const stateAdminQueryKeys = {
     operatingStatus?: string
     schemeName?: string
     sortDir?: string
-  }) =>
-    [
-      ...stateAdminQueryKeys.all,
-      'scheme-list',
-      params.tenantCode,
-      params.page,
-      params.limit,
-      params.workStatus,
-      params.operatingStatus,
-      params.schemeName,
-      params.sortDir,
-    ] as const,
+  }) => [...stateAdminQueryKeys.all, 'scheme-list', params] as const,
   schemeMappingsList: (params: {
     tenantCode: string
     page: number
     limit: number
     schemeName?: string
     sortDir?: string
-  }) =>
-    [
-      ...stateAdminQueryKeys.all,
-      'scheme-mappings-list',
-      params.tenantCode,
-      params.page,
-      params.limit,
-      params.schemeName,
-      params.sortDir,
-    ] as const,
+  }) => [...stateAdminQueryKeys.all, 'scheme-mappings-list', params] as const,
   tenantStatus: (tenantName: string) =>
     [...stateAdminQueryKeys.all, 'tenant-status', tenantName] as const,
 }

@@ -319,7 +319,7 @@ export function SearchLayout({
                 <Flex
                   h="26px"
                   minW="66px"
-                  w={isBelowXsLayout ? '140px' : 'auto'}
+                  w={isBelowXsLayout ? '240px' : 'auto'}
                   maxW="100%"
                   px="8px"
                   py="4px"
