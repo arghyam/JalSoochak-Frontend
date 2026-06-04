@@ -5,7 +5,6 @@ import { dashboardQueryKeys } from './dashboard-query-keys'
 import { useReadingSubmissionRateQuery } from './use-reading-submission-rate-query'
 
 jest.mock('@tanstack/react-query', () => ({
-  ...(jest.requireActual('@tanstack/react-query') as Record<string, unknown>),
   useQuery: jest.fn(),
 }))
 

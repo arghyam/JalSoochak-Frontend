@@ -5,7 +5,6 @@ import { dashboardQueryKeys } from './dashboard-query-keys'
 import { useNationalDashboardBoundariesQuery } from './use-national-dashboard-boundaries-query'
 
 jest.mock('@tanstack/react-query', () => ({
-  ...(jest.requireActual('@tanstack/react-query') as Record<string, unknown>),
   useQuery: jest.fn(),
 }))
 

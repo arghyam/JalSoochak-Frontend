@@ -5,7 +5,6 @@ import { dashboardQueryKeys } from './dashboard-query-keys'
 import { useSchemeRegularityPeriodicQuery } from './use-scheme-regularity-periodic-query'
 
 jest.mock('@tanstack/react-query', () => ({
-  ...(jest.requireActual('@tanstack/react-query') as Record<string, unknown>),
   useQuery: jest.fn(),
 }))
 

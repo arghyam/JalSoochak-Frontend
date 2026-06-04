@@ -1,7 +1,3 @@
-jest.mock('./components/central-dashboard', () => ({
-  CentralDashboard: 'CentralDashboard',
-}))
-
 import * as dashboardIndex from './index'
 import { CentralDashboard } from './components/central-dashboard'
 
