@@ -29,8 +29,10 @@ type GramPanchayatDashboardScreenProps = {
   waterSupplyOutageDistributionData?: WaterSupplyOutageData[]
   quantityPerformanceData: EntityPerformance[]
   isQuantityPerformanceLoading?: boolean
+  isQuantityPerformanceError?: boolean
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
+  isQuantityTimeTrendError?: boolean
   isQuantityTimeTrendAwaitingParams?: boolean
   quantityTimeScaleTab?: 'day' | 'week' | 'month' | 'quarter' | 'year'
   onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month' | 'quarter' | 'year') => void
@@ -42,8 +44,10 @@ type GramPanchayatDashboardScreenProps = {
   ) => void
   regularityPerformanceData: EntityPerformance[]
   isRegularityPerformanceLoading?: boolean
+  isRegularityPerformanceError?: boolean
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading?: boolean
+  isRegularityTimeTrendError?: boolean
   villageTableData: EntityPerformance[]
   supplySubmissionRateData: EntityPerformance[]
   supplySubmissionRateLabel: string
@@ -55,7 +59,12 @@ type GramPanchayatDashboardScreenProps = {
   isReadingSubmissionStatusLoading?: boolean
   isSchemePerformanceLoading?: boolean
   isActiveSchemesLoading?: boolean
+  isReadingSubmissionRateError?: boolean
+  isReadingSubmissionStatusError?: boolean
+  isSchemePerformanceError?: boolean
+  isActiveSchemesError?: boolean
   childEntityLabel?: string
+  errorMessage?: string
   schemePerformancePage?: number
   totalSchemePages?: number
   onSchemePageChange?: (page: number) => void
@@ -72,8 +81,10 @@ export function GramPanchayatDashboardScreen({
   waterSupplyOutageDistributionData = data.waterSupplyOutages,
   quantityPerformanceData,
   isQuantityPerformanceLoading = false,
+  isQuantityPerformanceError = false,
   quantityTimeTrendData,
   isQuantityTimeTrendLoading = false,
+  isQuantityTimeTrendError = false,
   isQuantityTimeTrendAwaitingParams = false,
   quantityTimeScaleTab,
   onQuantityTimeScaleTabChange,
@@ -83,8 +94,10 @@ export function GramPanchayatDashboardScreen({
   onOutageDistributionTimeScaleTabChange,
   regularityPerformanceData,
   isRegularityPerformanceLoading = false,
+  isRegularityPerformanceError = false,
   regularityTimeTrendData,
   isRegularityTimeTrendLoading = false,
+  isRegularityTimeTrendError = false,
   supplySubmissionRateData,
   supplySubmissionRateLabel,
   pumpOperatorsTotal,
@@ -95,7 +108,12 @@ export function GramPanchayatDashboardScreen({
   isReadingSubmissionStatusLoading = false,
   isSchemePerformanceLoading = false,
   isActiveSchemesLoading = false,
+  isReadingSubmissionRateError = false,
+  isReadingSubmissionStatusError = false,
+  isSchemePerformanceError = false,
+  isActiveSchemesError = false,
   childEntityLabel = supplySubmissionRateLabel,
+  errorMessage = 'Failed to load data. Please reload the page.',
   schemePerformancePage,
   totalSchemePages,
   onSchemePageChange,
@@ -143,9 +161,11 @@ export function GramPanchayatDashboardScreen({
           onViewByChange={setRegularityViewBy}
           data={regularityPerformanceData}
           isGeographyLoading={isRegularityPerformanceLoading}
+          isGeographyError={isRegularityPerformanceError}
           metric="regularity"
           timeTrendData={regularityTimeTrendData}
           isTimeTrendLoading={isRegularityTimeTrendLoading}
+          isTimeTrendError={isRegularityTimeTrendError}
           entityLabel={childEntityLabel}
           yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
             defaultValue: 'Regularity',
@@ -162,6 +182,7 @@ export function GramPanchayatDashboardScreen({
           selectBorderColor="primary.500"
           dateFormat={screenDateFormat ?? tableDateFormat}
           isTimeViewEnabled={isTimeViewEnabled}
+          errorMessage={errorMessage}
         />
         <PerformanceChartCard
           title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
@@ -172,9 +193,11 @@ export function GramPanchayatDashboardScreen({
           onViewByChange={setQuantityViewBy}
           data={quantityPerformanceData}
           isGeographyLoading={isQuantityPerformanceLoading}
+          isGeographyError={isQuantityPerformanceError}
           metric="quantity"
           timeTrendData={quantityTimeTrendData}
           isTimeTrendLoading={isQuantityTimeTrendLoading}
+          isTimeTrendError={isQuantityTimeTrendError}
           isTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
           entityLabel={childEntityLabel}
           yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
@@ -191,6 +214,7 @@ export function GramPanchayatDashboardScreen({
           onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
           dateFormat={screenDateFormat ?? tableDateFormat}
           isTimeViewEnabled={isTimeViewEnabled}
+          errorMessage={errorMessage}
         />
       </Grid>
 
@@ -348,6 +372,8 @@ export function GramPanchayatDashboardScreen({
             <Flex align="center" justify="center" h="360px">
               <LoadingSpinner />
             </Flex>
+          ) : isActiveSchemesError ? (
+            <ChartEmptyState minHeight="360px" message={errorMessage} />
           ) : (
             <ActiveSchemesChart data={data.pumpOperators} height="360px" />
           )}
@@ -371,6 +397,7 @@ export function GramPanchayatDashboardScreen({
             })}
             data={operatorsPerformanceTable}
             isLoading={isSchemePerformanceLoading}
+            errorMessage={isSchemePerformanceError ? errorMessage : undefined}
             fillHeight
             secondaryColumnLabel={childEntityLabel}
             showBlockColumn={false}
@@ -386,6 +413,7 @@ export function GramPanchayatDashboardScreen({
         <ReadingSubmissionStatusCard
           data={data.readingSubmissionStatus}
           isLoading={isReadingSubmissionStatusLoading}
+          errorMessage={isReadingSubmissionStatusError ? errorMessage : undefined}
           chartHeight="336px"
         />
         <Box
@@ -411,6 +439,8 @@ export function GramPanchayatDashboardScreen({
               <Flex align="center" justify="center" h="100%">
                 <LoadingSpinner />
               </Flex>
+            ) : isReadingSubmissionRateError ? (
+              <ChartEmptyState minHeight="100%" message={errorMessage} />
             ) : supplySubmissionRateData.length > 0 ? (
               <ReadingSubmissionRateChart
                 data={supplySubmissionRateData}

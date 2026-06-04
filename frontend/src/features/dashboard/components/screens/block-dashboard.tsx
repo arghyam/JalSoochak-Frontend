@@ -29,8 +29,10 @@ type BlockDashboardScreenProps = {
   waterSupplyOutageDistributionData?: WaterSupplyOutageData[]
   quantityPerformanceData: EntityPerformance[]
   isQuantityPerformanceLoading?: boolean
+  isQuantityPerformanceError?: boolean
   quantityTimeTrendData: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
+  isQuantityTimeTrendError?: boolean
   isQuantityTimeTrendAwaitingParams?: boolean
   quantityTimeScaleTab?: 'day' | 'week' | 'month' | 'quarter' | 'year'
   onQuantityTimeScaleTabChange?: (value: 'day' | 'week' | 'month' | 'quarter' | 'year') => void
@@ -42,8 +44,10 @@ type BlockDashboardScreenProps = {
   ) => void
   regularityPerformanceData: EntityPerformance[]
   isRegularityPerformanceLoading?: boolean
+  isRegularityPerformanceError?: boolean
   regularityTimeTrendData: MonthlyTrendPoint[]
   isRegularityTimeTrendLoading?: boolean
+  isRegularityTimeTrendError?: boolean
   gramPanchayatTableData: EntityPerformance[]
   supplySubmissionRateData: EntityPerformance[]
   supplySubmissionRateLabel: string
@@ -55,7 +59,12 @@ type BlockDashboardScreenProps = {
   isReadingSubmissionStatusLoading?: boolean
   isSchemePerformanceLoading?: boolean
   isActiveSchemesLoading?: boolean
+  isReadingSubmissionRateError?: boolean
+  isReadingSubmissionStatusError?: boolean
+  isSchemePerformanceError?: boolean
+  isActiveSchemesError?: boolean
   childEntityLabel?: string
+  errorMessage?: string
   showSupplyOutageReasons?: boolean
   showReadingSubmissionRate?: boolean
   showReadingSubmissionSection?: boolean
@@ -75,8 +84,10 @@ export function BlockDashboardScreen({
   waterSupplyOutageDistributionData = data.waterSupplyOutages,
   quantityPerformanceData,
   isQuantityPerformanceLoading = false,
+  isQuantityPerformanceError = false,
   quantityTimeTrendData,
   isQuantityTimeTrendLoading = false,
+  isQuantityTimeTrendError = false,
   isQuantityTimeTrendAwaitingParams = false,
   quantityTimeScaleTab,
   onQuantityTimeScaleTabChange,
@@ -86,8 +97,10 @@ export function BlockDashboardScreen({
   onOutageDistributionTimeScaleTabChange,
   regularityPerformanceData,
   isRegularityPerformanceLoading = false,
+  isRegularityPerformanceError = false,
   regularityTimeTrendData,
   isRegularityTimeTrendLoading = false,
+  isRegularityTimeTrendError = false,
   supplySubmissionRateData,
   supplySubmissionRateLabel,
   pumpOperatorsTotal,
@@ -98,7 +111,12 @@ export function BlockDashboardScreen({
   isReadingSubmissionStatusLoading = false,
   isSchemePerformanceLoading = false,
   isActiveSchemesLoading = false,
+  isReadingSubmissionRateError = false,
+  isReadingSubmissionStatusError = false,
+  isSchemePerformanceError = false,
+  isActiveSchemesError = false,
   childEntityLabel = supplySubmissionRateLabel,
+  errorMessage = 'Failed to load data. Please reload the page.',
   showSupplyOutageReasons = true,
   showReadingSubmissionRate = true,
   showReadingSubmissionSection = true,
@@ -149,9 +167,11 @@ export function BlockDashboardScreen({
           onViewByChange={setRegularityViewBy}
           data={regularityPerformanceData}
           isGeographyLoading={isRegularityPerformanceLoading}
+          isGeographyError={isRegularityPerformanceError}
           metric="regularity"
           timeTrendData={regularityTimeTrendData}
           isTimeTrendLoading={isRegularityTimeTrendLoading}
+          isTimeTrendError={isRegularityTimeTrendError}
           entityLabel={childEntityLabel}
           yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
             defaultValue: 'Regularity',
@@ -168,6 +188,7 @@ export function BlockDashboardScreen({
           selectBorderColor="primary.500"
           dateFormat={screenDateFormat ?? tableDateFormat}
           isTimeViewEnabled={isTimeViewEnabled}
+          errorMessage={errorMessage}
         />
         <PerformanceChartCard
           title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
@@ -178,9 +199,11 @@ export function BlockDashboardScreen({
           onViewByChange={setQuantityViewBy}
           data={quantityPerformanceData}
           isGeographyLoading={isQuantityPerformanceLoading}
+          isGeographyError={isQuantityPerformanceError}
           metric="quantity"
           timeTrendData={quantityTimeTrendData}
           isTimeTrendLoading={isQuantityTimeTrendLoading}
+          isTimeTrendError={isQuantityTimeTrendError}
           isTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
           entityLabel={childEntityLabel}
           yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
@@ -197,6 +220,7 @@ export function BlockDashboardScreen({
           onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
           dateFormat={screenDateFormat ?? tableDateFormat}
           isTimeViewEnabled={isTimeViewEnabled}
+          errorMessage={errorMessage}
         />
       </Grid>
 
@@ -363,6 +387,8 @@ export function BlockDashboardScreen({
             <Flex align="center" justify="center" h="360px">
               <LoadingSpinner />
             </Flex>
+          ) : isActiveSchemesError ? (
+            <ChartEmptyState minHeight="360px" message={errorMessage} />
           ) : (
             <ActiveSchemesChart data={data.pumpOperators} height="360px" />
           )}
@@ -386,6 +412,7 @@ export function BlockDashboardScreen({
             })}
             data={operatorsPerformanceTable}
             isLoading={isSchemePerformanceLoading}
+            errorMessage={isSchemePerformanceError ? errorMessage : undefined}
             fillHeight
             secondaryColumnLabel={childEntityLabel}
             showBlockColumn={false}
@@ -409,6 +436,7 @@ export function BlockDashboardScreen({
           <ReadingSubmissionStatusCard
             data={data.readingSubmissionStatus}
             isLoading={isReadingSubmissionStatusLoading}
+            errorMessage={isReadingSubmissionStatusError ? errorMessage : undefined}
             chartHeight="336px"
           />
           {showReadingSubmissionRate ? (
@@ -435,6 +463,8 @@ export function BlockDashboardScreen({
                   <Flex align="center" justify="center" h="100%">
                     <LoadingSpinner />
                   </Flex>
+                ) : isReadingSubmissionRateError ? (
+                  <ChartEmptyState minHeight="100%" message={errorMessage} />
                 ) : supplySubmissionRateData.length > 0 ? (
                   <ReadingSubmissionRateChart
                     data={supplySubmissionRateData}

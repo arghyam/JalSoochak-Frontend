@@ -29,12 +29,14 @@ type BuildCentralDashboardRenderPropsParams = DashboardFiltersProps &
     | 'isOutageReasonsLoading'
     | 'isQuantityPerformanceError'
     | 'isQuantityPerformanceLoading'
+    | 'isQuantityTimeTrendError'
     | 'isReadingSubmissionRateError'
     | 'isReadingSubmissionRateLoading'
     | 'isReadingSubmissionStatusError'
     | 'isReadingSubmissionStatusLoading'
     | 'isRegularityPerformanceError'
     | 'isRegularityPerformanceLoading'
+    | 'isRegularityTimeTrendError'
     | 'isSchemePerformanceError'
     | 'isSchemePerformanceLoading'
     | 'isStateSelected'
@@ -89,6 +91,7 @@ type BuildCentralDashboardRenderPropsParams = DashboardFiltersProps &
     isWaterQuantityPeriodicFetching: boolean
     mapChartData: DashboardMapPerformanceSectionProps['mapProps']['data']
     overallPerformanceEntityLabel: string
+    isOverallPerformanceError: boolean
     isOverallPerformanceLoading: boolean
     overallPerformanceScrollHeight: string
     overallPerformanceTableData: DashboardMapPerformanceSectionProps['overallPerformanceTableData']
@@ -141,12 +144,14 @@ export function buildCentralDashboardRenderProps({
   isOutageReasonsLoading,
   isQuantityPerformanceError,
   isQuantityPerformanceLoading,
+  isQuantityTimeTrendError,
   isReadingSubmissionRateError,
   isReadingSubmissionRateLoading,
   isReadingSubmissionStatusError,
   isReadingSubmissionStatusLoading,
   isRegularityPerformanceError,
   isRegularityPerformanceLoading,
+  isRegularityTimeTrendError,
   isSchemePerformanceError,
   isSchemePerformanceLoading,
   isSchemeRegularityPeriodicFetching,
@@ -162,6 +167,7 @@ export function buildCentralDashboardRenderProps({
   operatorsPerformanceTable,
   outageDistributionTimeScaleTab,
   overallPerformanceEntityLabel,
+  isOverallPerformanceError,
   isOverallPerformanceLoading,
   overallPerformanceScrollHeight,
   overallPerformanceTableData,
@@ -237,6 +243,7 @@ export function buildCentralDashboardRenderProps({
       isQuantityPerformanceError,
       quantityTimeTrendData,
       isQuantityTimeTrendLoading,
+      isQuantityTimeTrendError,
       isQuantityTimeTrendAwaitingParams: isCentralLandingView
         ? false
         : isWaterQuantityPeriodicAwaitingParams,
@@ -245,6 +252,7 @@ export function buildCentralDashboardRenderProps({
       isRegularityPerformanceError,
       regularityTimeTrendData,
       isRegularityTimeTrendLoading,
+      isRegularityTimeTrendError,
       districtTableData,
       blockTableData,
       gramPanchayatTableData,
@@ -295,6 +303,7 @@ export function buildCentralDashboardRenderProps({
       performanceSummaryTitle,
       overallPerformanceTableData,
       isOverallPerformanceLoading,
+      isOverallPerformanceError,
       overallPerformanceEntityLabel,
       overallPerformanceScrollHeight,
       onOverallPerformanceRowClick: handleOverallPerformanceRowClick,

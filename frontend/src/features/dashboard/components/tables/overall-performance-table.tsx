@@ -8,6 +8,7 @@ import { LoadingSpinner } from '@/shared/components/common'
 interface OverallPerformanceTableProps {
   data: EntityPerformance[]
   isLoading?: boolean
+  errorMessage?: string
   maxItems?: number
   scrollMaxHeight?: string
   autoHeightWithinMax?: boolean
@@ -48,6 +49,7 @@ function SortIndicator({
 export function OverallPerformanceTable({
   data,
   isLoading = false,
+  errorMessage,
   maxItems,
   scrollMaxHeight = '416px',
   autoHeightWithinMax = false,
@@ -101,7 +103,7 @@ export function OverallPerformanceTable({
       <Box
         h={autoHeightWithinMax ? 'auto' : scrollMaxHeight}
         maxH={scrollMaxHeight}
-        overflowY={isEmpty ? 'hidden' : 'auto'}
+        overflowY={isEmpty || errorMessage ? 'hidden' : 'auto'}
         overflowX="auto"
         w="full"
         maxW="100%"
@@ -127,7 +129,7 @@ export function OverallPerformanceTable({
             <Box minH={scrollMaxHeight} display="flex" alignItems="center" justifyContent="center">
               <LoadingSpinner />
             </Box>
-          ) : !isEmpty ? (
+          ) : !isEmpty && !errorMessage ? (
             <Table size="sm" w="max-content" minW="100%" sx={{ tableLayout: 'auto' }}>
               <Thead
                 sx={{
@@ -358,7 +360,8 @@ export function OverallPerformanceTable({
               textAlign="center"
               color="neutral.600"
             >
-              {t('overallPerformance.noData', { defaultValue: 'No data available' })}
+              {errorMessage ??
+                t('overallPerformance.noData', { defaultValue: 'No data available' })}
             </Box>
           )}
         </Box>

@@ -38,6 +38,9 @@ type VillageDashboardScreenProps = {
   regularityTimeTrendData?: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
   isRegularityTimeTrendLoading?: boolean
+  isQuantityTimeTrendError?: boolean
+  isRegularityTimeTrendError?: boolean
+  isReadingSubmissionStatusError?: boolean
   quantityTimeScaleTab?: PerformanceTimeScale
   onQuantityTimeScaleTabChange?: (value: PerformanceTimeScale) => void
   regularityTimeScaleTab?: PerformanceTimeScale
@@ -45,6 +48,7 @@ type VillageDashboardScreenProps = {
   screenDateFormat?: string
   tableDateFormat?: string
   enableExtendedTimeScales?: boolean
+  errorMessage?: string
 }
 
 const READING_COMPLIANCE_PAGE_SIZE = 50
@@ -994,6 +998,9 @@ export function VillageDashboardScreen({
   regularityTimeTrendData = [],
   isQuantityTimeTrendLoading = false,
   isRegularityTimeTrendLoading = false,
+  isQuantityTimeTrendError = false,
+  isRegularityTimeTrendError = false,
+  isReadingSubmissionStatusError = false,
   quantityTimeScaleTab,
   onQuantityTimeScaleTabChange,
   regularityTimeScaleTab,
@@ -1001,6 +1008,7 @@ export function VillageDashboardScreen({
   screenDateFormat,
   tableDateFormat,
   enableExtendedTimeScales = true,
+  errorMessage = 'Failed to load data. Please reload the page.',
 }: VillageDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const showSupplyOutageCharts = shouldShowSupplyOutageCharts()
@@ -1024,6 +1032,7 @@ export function VillageDashboardScreen({
           metric="regularity"
           timeTrendData={regularityTimeTrendData}
           isTimeTrendLoading={isRegularityTimeTrendLoading}
+          isTimeTrendError={isRegularityTimeTrendError}
           entityLabel={t('performanceCharts.viewBy.villages', { defaultValue: 'Villages' })}
           yAxisLabel={t('performanceCharts.regularity.yAxisLabel', {
             defaultValue: 'Regularity',
@@ -1039,6 +1048,7 @@ export function VillageDashboardScreen({
           dateFormat={screenDateFormat ?? tableDateFormat}
           enableExtendedTimeScales={enableExtendedTimeScales}
           hideViewBySelect
+          errorMessage={errorMessage}
         />
         <PerformanceChartCard
           title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
@@ -1051,6 +1061,7 @@ export function VillageDashboardScreen({
           metric="quantity"
           timeTrendData={quantityTimeTrendData}
           isTimeTrendLoading={isQuantityTimeTrendLoading}
+          isTimeTrendError={isQuantityTimeTrendError}
           entityLabel={t('performanceCharts.viewBy.villages', { defaultValue: 'Villages' })}
           yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
           seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
@@ -1065,6 +1076,7 @@ export function VillageDashboardScreen({
           dateFormat={screenDateFormat ?? tableDateFormat}
           enableExtendedTimeScales={enableExtendedTimeScales}
           hideViewBySelect
+          errorMessage={errorMessage}
         />
       </Grid>
       <Grid
@@ -1097,6 +1109,7 @@ export function VillageDashboardScreen({
         ) : null}
         <ReadingSubmissionStatusCard
           data={data.readingSubmissionStatus}
+          errorMessage={isReadingSubmissionStatusError ? errorMessage : undefined}
           chartHeight="406px"
           cardHeight="492px"
           boxProps={{ w: 'full' }}
