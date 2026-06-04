@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Flex,
@@ -29,6 +30,7 @@ import { ForgotPasswordModal } from '@/features/auth/components/login/forgot-pas
 type LoginLocationState = { passwordChanged?: boolean } | null
 
 export function LoginPage() {
+  const { t } = useTranslation('auth')
   const navigate = useNavigate()
   const locationState = useLocation().state as LoginLocationState
   const { login, loading, error } = useAuthStore()
@@ -40,7 +42,7 @@ export function LoginPage() {
   const [localError, setLocalError] = useState<string | null>(null)
 
   const isEmailError =
-    localError === 'Email is required.' || localError === 'Enter a valid email address.'
+    localError === t('login.emailRequired') || localError === t('login.invalidEmail')
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -48,12 +50,12 @@ export function LoginPage() {
 
     const trimmedEmail = email.trim()
     if (!trimmedEmail) {
-      setLocalError('Email is required.')
+      setLocalError(t('login.emailRequired'))
       return
     }
     const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)
     if (!isEmailValid) {
-      setLocalError('Enter a valid email address.')
+      setLocalError(t('login.invalidEmail'))
       return
     }
 
@@ -62,7 +64,7 @@ export function LoginPage() {
       navigate(redirectPath, { replace: true })
     } catch (err) {
       console.error(err)
-      setLocalError('Unable to login. Please try again.')
+      setLocalError(t('login.loginFailed'))
     }
   }
 
@@ -91,17 +93,17 @@ export function LoginPage() {
           <Flex flex="1" align="center" justify="center">
             <Box w="360px" h="360px">
               <Text textStyle="h5" fontWeight="600" mb="0.25rem">
-                Welcome
+                {t('login.title')}
               </Text>
               <Text textStyle="bodyText5" fontWeight="400" mb="1.25rem">
-                Welcome ! Please enter your details.
+                {t('login.subtitle')}
               </Text>
 
               {locationState?.passwordChanged && (
                 <Alert status="success" borderRadius="4px" mb="1rem">
                   <AlertIcon />
                   <AlertDescription fontSize="sm">
-                    Password updated successfully. Please log in again.
+                    {t('login.passwordUpdatedAlert')}
                   </AlertDescription>
                 </Alert>
               )}
@@ -111,7 +113,7 @@ export function LoginPage() {
                   <FormControl isInvalid={isEmailError}>
                     <FormLabel>
                       <Text textStyle="bodyText6" mb="4px">
-                        Email
+                        {t('login.emailLabel')}
                         <Text as="span" color="error.500">
                           {' '}
                           *
@@ -120,7 +122,7 @@ export function LoginPage() {
                     </FormLabel>
                     <Input
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder={t('login.emailPlaceholder')}
                       autoComplete="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -139,7 +141,7 @@ export function LoginPage() {
                   <FormControl>
                     <FormLabel>
                       <Text textStyle="bodyText6" mb="4px">
-                        Password
+                        {t('login.passwordLabel')}
                         <Text as="span" color="error.500">
                           {' '}
                           *
@@ -149,7 +151,7 @@ export function LoginPage() {
                     <InputGroup>
                       <Input
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="Enter your password"
+                        placeholder={t('login.passwordPlaceholder')}
                         autoComplete="current-password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -172,7 +174,9 @@ export function LoginPage() {
                           alignItems="center"
                           justifyContent="center"
                           onClick={() => setShowPassword((prev) => !prev)}
-                          aria-label={showPassword ? 'Hide password' : 'Show password'}
+                          aria-label={
+                            showPassword ? t('login.hidePassword') : t('login.showPassword')
+                          }
                           _hover={{ bg: 'transparent' }}
                           _active={{ bg: 'transparent' }}
                         >
@@ -195,7 +199,7 @@ export function LoginPage() {
                       color="primary.500"
                       onClick={onOpen}
                     >
-                      Forgot password
+                      {t('login.forgotPassword')}
                     </Link>
                   </Flex>
 
@@ -205,10 +209,10 @@ export function LoginPage() {
                     fontSize="16px"
                     fontWeight="600"
                     isLoading={loading}
-                    loadingText="Logging in..."
+                    loadingText={t('login.loadingText')}
                     _loading={{ bg: 'primary.500', color: 'white' }}
                   >
-                    Log in
+                    {t('login.submitButton')}
                   </Button>
                   {(error || (localError && !isEmailError)) && (
                     <FormControl isInvalid>

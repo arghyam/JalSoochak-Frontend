@@ -7,10 +7,10 @@ import {
   type KeyboardEvent,
   type PointerEvent,
 } from 'react'
-import { Box, useTheme } from '@chakra-ui/react'
+import { Box, Center, Spinner, useTheme } from '@chakra-ui/react'
 import * as echarts from 'echarts'
 import type { EChartsOption } from 'echarts'
-import { EChartsWrapper } from '@/shared/components/common'
+import { ChartEmptyState, EChartsWrapper } from '@/shared/components/common'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
 import { formatIsoDateToDayFirst } from '@/shared/components/charts/axis-label-format'
 
@@ -30,6 +30,7 @@ interface MonthlyTrendChartProps {
   yAxisLabel?: string
   seriesName?: string
   dateFormat?: string
+  isLoading?: boolean
 }
 
 const trimTrailingZeros = (value: string) => value.replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1')
@@ -67,6 +68,7 @@ export function MonthlyTrendChart({
   yAxisLabel = 'Value',
   seriesName = 'Trend',
   dateFormat,
+  isLoading = false,
 }: MonthlyTrendChartProps) {
   const theme = useTheme()
   const bodyText7 = getBodyText7Style(theme)
@@ -538,6 +540,18 @@ export function MonthlyTrendChart({
   }, [containerWidth, data.length, updateThumbFromScroll])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
+
+  if (isLoading) {
+    return (
+      <Center h={containerHeight}>
+        <Spinner />
+      </Center>
+    )
+  }
+
+  if (data.length === 0) {
+    return <ChartEmptyState minHeight={containerHeight} />
+  }
 
   return (
     <div

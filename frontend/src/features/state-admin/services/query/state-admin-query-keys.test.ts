@@ -2,14 +2,22 @@ import { describe, expect, it } from '@jest/globals'
 import { stateAdminQueryKeys } from './state-admin-query-keys'
 
 describe('stateAdminQueryKeys', () => {
-  it('builds stable staff list keys including params object', () => {
+  it('builds stable staff list keys as flat primitives', () => {
     const params = {
       roles: ['X'],
       page: 1,
       limit: 20,
       tenantCode: 'TN',
     }
-    expect(stateAdminQueryKeys.staffList(params)).toEqual(['state-admin', 'staff-list', params])
+    expect(stateAdminQueryKeys.staffList(params)).toEqual([
+      'state-admin',
+      'staff-list',
+      ['X'],
+      undefined,
+      1,
+      20,
+      'TN',
+    ])
   })
 
   it('builds stable staff list keys with optional status parameter', () => {
@@ -20,7 +28,15 @@ describe('stateAdminQueryKeys', () => {
       limit: 20,
       tenantCode: 'TN',
     }
-    expect(stateAdminQueryKeys.staffList(params)).toEqual(['state-admin', 'staff-list', params])
+    expect(stateAdminQueryKeys.staffList(params)).toEqual([
+      'state-admin',
+      'staff-list',
+      ['X'],
+      'active',
+      1,
+      20,
+      'TN',
+    ])
   })
 
   it('includes tenant code in scheme counts key', () => {
@@ -59,7 +75,7 @@ describe('stateAdminQueryKeys', () => {
     ])
     expect(stateAdminQueryKeys.configStatus()).toEqual(['state-admin', 'config-status'])
     expect(stateAdminQueryKeys.logo()).toEqual(['state-admin', 'logo'])
-    expect(stateAdminQueryKeys.systemChannels()).toEqual(['system', 'channels'])
+    expect(stateAdminQueryKeys.systemChannels()).toEqual(['state-admin', 'system-channels'])
     expect(stateAdminQueryKeys.staffCounts()).toEqual(['state-admin', 'staff-counts'])
   })
 
@@ -79,7 +95,7 @@ describe('stateAdminQueryKeys', () => {
     ])
   })
 
-  it('builds stable scheme list and scheme mappings keys from params', () => {
+  it('builds stable scheme list and scheme mappings keys as flat primitives', () => {
     const schemeListParams = {
       tenantCode: 'MH',
       page: 1,
@@ -89,7 +105,13 @@ describe('stateAdminQueryKeys', () => {
     expect(stateAdminQueryKeys.schemeList(schemeListParams)).toEqual([
       'state-admin',
       'scheme-list',
-      schemeListParams,
+      'MH',
+      1,
+      10,
+      undefined,
+      undefined,
+      'alpha',
+      undefined,
     ])
 
     const schemeMappingsParams = {
@@ -101,7 +123,11 @@ describe('stateAdminQueryKeys', () => {
     expect(stateAdminQueryKeys.schemeMappingsList(schemeMappingsParams)).toEqual([
       'state-admin',
       'scheme-mappings-list',
-      schemeMappingsParams,
+      'MH',
+      1,
+      10,
+      undefined,
+      'asc',
     ])
   })
 })
