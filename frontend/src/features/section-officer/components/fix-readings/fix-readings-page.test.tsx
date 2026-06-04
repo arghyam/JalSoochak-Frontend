@@ -11,7 +11,7 @@ const translations: Record<string, string> = {
   'pages.fixReadings.title': 'Fix Readings',
   'pages.fixReadings.searchPlaceholder': 'Search by scheme name',
   'pages.fixReadings.noResults': 'No schemes found',
-  'pages.fixReadings.yesterdayReading': "Yesterday's Reading",
+  'pages.fixReadings.yesterdayReading': 'Last Confirmed Reading',
   'pages.fixReadings.updateReading': 'Update Reading',
   'pages.fixReadings.updateButton': 'Update',
   'pages.fixReadings.successMessage': 'Reading updated successfully',
@@ -152,7 +152,7 @@ describe('FixReadingsPage', () => {
 
     expect(screen.queryByRole('listbox')).toBeNull()
     expect(screen.getByText('S2604141918')).toBeTruthy()
-    expect(screen.getByLabelText("Yesterday's Reading")).toBeTruthy()
+    expect(screen.getByLabelText('Last Confirmed Reading')).toBeTruthy()
     expect(screen.getByLabelText('Update Reading')).toBeTruthy()
   })
 
@@ -217,7 +217,7 @@ describe('FixReadingsPage', () => {
     const clearBtn = screen.getByRole('button', { name: 'Clear search' })
     fireEvent.click(clearBtn)
 
-    expect(screen.queryByLabelText("Yesterday's Reading")).toBeNull()
+    expect(screen.queryByLabelText('Last Confirmed Reading')).toBeNull()
     expect((input as HTMLInputElement).value).toBe('')
   })
 
