@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useFileDownload } from '../../hooks/use-file-download'
+import { SyncPageLayout } from '../common/sync-page-layout'
 import {
   Box,
   Button,
@@ -87,46 +89,29 @@ export function StaffSyncPage() {
 
   const { data, isLoading, isError, refetch } = useStaffListQuery(staffParams)
   const { data: counts, isLoading: countsLoading } = useStaffCountsQuery()
-  const { mutate: generateReport, isPending: isReportPending } = useGenerateStaffReportMutation()
+  const { mutate: generateReport } = useGenerateStaffReportMutation()
 
-  const handleReport = () => {
-    generateReport(
-      {
-        roles: roleFilter ? [roleFilter] : DEFAULT_ROLES,
-        ...(statusFilter ? { status: statusFilter } : {}),
-      },
-      {
-        onSuccess: async ({ downloadUrl }) => {
-          // fetch → Blob URL so the download attribute is honoured on cross-origin URLs
-          try {
-            const res = await fetch(downloadUrl, { signal: AbortSignal.timeout(30_000) })
-            if (!res.ok) throw new Error(`Download failed: ${res.status}`)
-            const contentType = res.headers.get('content-type') ?? ''
-            const isValidType = ['text/csv', 'application/csv', 'application/octet-stream'].some(
-              (type) => contentType.includes(type)
-            )
-            if (!isValidType) throw new Error(`Unexpected file type: ${contentType}`)
-            const blob = await res.blob()
-            const MAX_SIZE = 50 * 1024 * 1024
-            if (blob.size > MAX_SIZE) throw new Error('File exceeds 50 MB limit')
-            const blobUrl = URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = blobUrl
-            const ts = new Date().toISOString().replace(/[-:]/g, '').replace('T', '_').slice(0, 15)
-            a.download = `staff-report_${ts}.csv`
-            document.body.appendChild(a)
-            a.click()
-            a.remove()
-            URL.revokeObjectURL(blobUrl)
-            toast.success(t('staffSync.report.success'))
-          } catch {
-            toast.error(t('staffSync.report.error'))
+  const { download: handleReport, isDownloading: isReportPending } = useFileDownload({
+    getDownloadUrl: () =>
+      new Promise<string>((resolve, reject) => {
+        generateReport(
+          {
+            roles: roleFilter ? [roleFilter] : DEFAULT_ROLES,
+            ...(statusFilter ? { status: statusFilter } : {}),
+          },
+          {
+            onSuccess: ({ downloadUrl }) => resolve(downloadUrl),
+            onError: (err) => reject(err),
           }
-        },
-        onError: () => toast.error(t('staffSync.report.error')),
-      }
-    )
-  }
+        )
+      }),
+    filename: () => {
+      const ts = new Date().toISOString().replace(/[-:]/g, '').replace('T', '_').slice(0, 15)
+      return `staff-report_${ts}.csv`
+    },
+    onSuccess: () => toast.success(t('staffSync.report.success')),
+    onError: () => toast.error(t('staffSync.report.error')),
+  })
 
   const roleOptions = [
     { value: 'PUMP_OPERATOR', label: t('staffSync.roles.pumpOperator') },
@@ -279,192 +264,199 @@ export function StaffSyncPage() {
         </Heading>
       </PageHeader>
 
-      {/* Toolbar: search + filters + upload */}
-      <Flex
-        as="section"
-        aria-label={t('staffSync.aria.filterSection')}
-        justify="space-between"
-        align="flex-start"
-        mb={6}
-        py={3}
-        px={{ base: 3, md: 6 }}
-        gap={{ base: 3, md: 4 }}
-        flexDirection={{ base: 'column', xl: 'row' }}
-        borderWidth="0.5px"
-        borderColor="neutral.200"
-        borderRadius="12px"
-        bg="white"
-      >
-        {/* Left: search + filters (wraps internally at medium widths) */}
-        <Flex align="center" gap={3} flex={1} w="full" flexWrap="wrap">
-          <InputGroup w={{ base: 'full', sm: '260px' }} flexShrink={0}>
-            <InputLeftElement pointerEvents="none" h={8}>
-              <SearchIcon color="neutral.300" aria-hidden="true" />
-            </InputLeftElement>
-            <Input
-              placeholder={t('staffSync.searchPlaceholder')}
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value)
-                setPage(1)
-              }}
-              aria-label={t('staffSync.aria.searchStaff')}
-              bg="white"
-              h={8}
-              borderWidth="1px"
-              borderRadius="4px"
-              borderColor="neutral.300"
-              _placeholder={{ color: 'neutral.300' }}
-            />
-          </InputGroup>
+      <SyncPageLayout
+        toolbar={
+          <Flex
+            as="section"
+            aria-label={t('staffSync.aria.filterSection')}
+            justify="space-between"
+            align="flex-start"
+            mb={6}
+            py={3}
+            px={{ base: 3, md: 6 }}
+            gap={{ base: 3, md: 4 }}
+            flexDirection={{ base: 'column', xl: 'row' }}
+            borderWidth="0.5px"
+            borderColor="neutral.200"
+            borderRadius="12px"
+            bg="white"
+          >
+            {/* Left: search + filters (wraps internally at medium widths) */}
+            <Flex align="center" gap={3} flex={1} w="full" flexWrap="wrap">
+              <InputGroup w={{ base: 'full', sm: '260px' }} flexShrink={0}>
+                <InputLeftElement pointerEvents="none" h={8}>
+                  <SearchIcon color="neutral.300" aria-hidden="true" />
+                </InputLeftElement>
+                <Input
+                  placeholder={t('staffSync.searchPlaceholder')}
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value)
+                    setPage(1)
+                  }}
+                  aria-label={t('staffSync.aria.searchStaff')}
+                  bg="white"
+                  h={8}
+                  borderWidth="1px"
+                  borderRadius="4px"
+                  borderColor="neutral.300"
+                  _placeholder={{ color: 'neutral.300' }}
+                />
+              </InputGroup>
 
-          <SearchableSelect
-            options={roleOptions}
-            value={roleFilter}
-            onChange={handleRoleChange}
-            placeholder={t('staffSync.filters.role')}
-            width="180px"
-            height="32px"
-            borderRadius="4px"
-            fontSize="sm"
-            isFilter
-            ariaLabel={t('staffSync.filters.role')}
-            searchable={false}
-          />
+              <SearchableSelect
+                options={roleOptions}
+                value={roleFilter}
+                onChange={handleRoleChange}
+                placeholder={t('staffSync.filters.role')}
+                width="180px"
+                height="32px"
+                borderRadius="4px"
+                fontSize="sm"
+                isFilter
+                ariaLabel={t('staffSync.filters.role')}
+                searchable={false}
+              />
 
-          <SearchableSelect
-            options={statusOptions}
-            value={statusFilter}
-            onChange={handleStatusChange}
-            placeholder={t('staffSync.filters.status')}
-            width="130px"
-            height="32px"
-            borderRadius="4px"
-            fontSize="sm"
-            isFilter
-            ariaLabel={t('staffSync.filters.status')}
-            searchable={false}
-          />
+              <SearchableSelect
+                options={statusOptions}
+                value={statusFilter}
+                onChange={handleStatusChange}
+                placeholder={t('staffSync.filters.status')}
+                width="130px"
+                height="32px"
+                borderRadius="4px"
+                fontSize="sm"
+                isFilter
+                ariaLabel={t('staffSync.filters.status')}
+                searchable={false}
+              />
 
-          {hasActiveFilters && (
-            <Button
-              variant="link"
-              size="sm"
-              color="neutral.500"
-              fontWeight="400"
-              onClick={handleClearFilters}
-              _hover={{ color: 'primary.500' }}
+              {hasActiveFilters && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  color="neutral.500"
+                  fontWeight="400"
+                  onClick={handleClearFilters}
+                  _hover={{ color: 'primary.500' }}
+                >
+                  {t('staffSync.filters.clearAll')}
+                </Button>
+              )}
+            </Flex>
+
+            {/* Right: reports + broadcast + upload */}
+            <Flex
+              gap={2}
+              flexShrink={0}
+              w={{ base: 'full', xl: 'auto' }}
+              flexDirection={{ base: 'column', sm: 'row' }}
             >
-              {t('staffSync.filters.clearAll')}
-            </Button>
-          )}
-        </Flex>
-
-        {/* Right: reports + broadcast + upload */}
-        <Flex
-          gap={2}
-          flexShrink={0}
-          w={{ base: 'full', xl: 'auto' }}
-          flexDirection={{ base: 'column', sm: 'row' }}
-        >
-          <Button
-            variant="secondary"
-            size="sm"
-            fontWeight="600"
-            w={{ base: 'full', sm: 'auto' }}
-            aria-label={t('staffSync.report.aria.download')}
-            onClick={handleReport}
-            isLoading={isReportPending}
-            loadingText={t('staffSync.report.button')}
+              <Button
+                variant="secondary"
+                size="sm"
+                fontWeight="600"
+                w={{ base: 'full', sm: 'auto' }}
+                aria-label={t('staffSync.report.aria.download')}
+                onClick={() => void handleReport()}
+                isLoading={isReportPending}
+                loadingText={t('staffSync.report.button')}
+              >
+                <FiDownload
+                  aria-hidden="true"
+                  size={16}
+                  style={{ marginRight: '4px', flexShrink: 0 }}
+                />
+                {t('staffSync.report.button')}
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                fontWeight="600"
+                w={{ base: 'full', sm: 'auto' }}
+                aria-label={t('staffSync.broadcast.aria.broadcast')}
+                onClick={() => setIsBroadcastOpen(true)}
+              >
+                <TbBroadcast
+                  aria-hidden="true"
+                  size={16}
+                  style={{ marginRight: '4px', flexShrink: 0 }}
+                />
+                {t('staffSync.broadcast.button')}
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                fontWeight="600"
+                w={{ base: 'full', sm: 'auto' }}
+                aria-label={t('staffSync.aria.uploadData')}
+                onClick={() => setIsUploadOpen(true)}
+              >
+                <FiUpload
+                  aria-hidden="true"
+                  size={16}
+                  style={{ marginRight: '4px', flexShrink: 0 }}
+                />
+                {t('staffSync.uploadData')}
+              </Button>
+            </Flex>
+          </Flex>
+        }
+        stats={
+          <SimpleGrid
+            as="section"
+            aria-label={t('staffSync.aria.statsSection')}
+            columns={{ base: 1, sm: 3 }}
+            spacing={{ base: 4, md: 6 }}
+            mb={6}
           >
-            <FiDownload
-              aria-hidden="true"
-              size={16}
-              style={{ marginRight: '4px', flexShrink: 0 }}
+            <StatCard
+              title={t('staffSync.stats.totalPumpOperators')}
+              value={countsLoading ? '—' : (counts?.pumpOperators ?? 0)}
+              icon={TotalStaffIcon}
+              iconBg="#EBF4FA"
+              iconColor="#3291D1"
             />
-            {t('staffSync.report.button')}
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            fontWeight="600"
-            w={{ base: 'full', sm: 'auto' }}
-            aria-label={t('staffSync.broadcast.aria.broadcast')}
-            onClick={() => setIsBroadcastOpen(true)}
-          >
-            <TbBroadcast
-              aria-hidden="true"
-              size={16}
-              style={{ marginRight: '4px', flexShrink: 0 }}
+            <StatCard
+              title={t('staffSync.stats.totalSubDivisionOfficers')}
+              value={countsLoading ? '—' : (counts?.subDivisionOfficers ?? 0)}
+              icon={PumpOperatorIcon}
+              iconBg="#F1EEFF"
+              iconColor="#584C93"
             />
-            {t('staffSync.broadcast.button')}
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            fontWeight="600"
-            w={{ base: 'full', sm: 'auto' }}
-            aria-label={t('staffSync.aria.uploadData')}
-            onClick={() => setIsUploadOpen(true)}
-          >
-            <FiUpload aria-hidden="true" size={16} style={{ marginRight: '4px', flexShrink: 0 }} />
-            {t('staffSync.uploadData')}
-          </Button>
-        </Flex>
-      </Flex>
-
-      {/* Stats Cards */}
-      <SimpleGrid
-        as="section"
-        aria-label={t('staffSync.aria.statsSection')}
-        columns={{ base: 1, sm: 3 }}
-        spacing={{ base: 4, md: 6 }}
-        mb={6}
-      >
-        <StatCard
-          title={t('staffSync.stats.totalPumpOperators')}
-          value={countsLoading ? '—' : (counts?.pumpOperators ?? 0)}
-          icon={TotalStaffIcon}
-          iconBg="#EBF4FA"
-          iconColor="#3291D1"
-        />
-        <StatCard
-          title={t('staffSync.stats.totalSubDivisionOfficers')}
-          value={countsLoading ? '—' : (counts?.subDivisionOfficers ?? 0)}
-          icon={PumpOperatorIcon}
-          iconBg="#F1EEFF"
-          iconColor="#584C93"
-        />
-        <StatCard
-          title={t('staffSync.stats.totalSectionOfficers')}
-          value={countsLoading ? '—' : (counts?.sectionOfficers ?? 0)}
-          icon={TotalAdminsIcon}
-          iconBg="#FBEAFF"
-          iconColor="#DC72F2"
-        />
-      </SimpleGrid>
-
-      {/* Data Table */}
-      <DataTable<StaffMember>
-        columns={columns}
-        data={data?.items ?? []}
-        getRowKey={(row) => row.id}
-        emptyMessage={t('staffSync.messages.noStaffFound')}
-        isLoading={isLoading}
-        tableLayout="fixed"
-        tableMinWidth="1000px"
-        pagination={{
-          enabled: true,
-          page,
-          pageSize,
-          pageSizeOptions: PAGE_SIZE_OPTIONS,
-          totalItems: data?.totalElements ?? 0,
-          onPageChange: setPage,
-          onPageSizeChange: (size) => {
-            setPageSize(size)
-            setPage(1)
-          },
-        }}
+            <StatCard
+              title={t('staffSync.stats.totalSectionOfficers')}
+              value={countsLoading ? '—' : (counts?.sectionOfficers ?? 0)}
+              icon={TotalAdminsIcon}
+              iconBg="#FBEAFF"
+              iconColor="#DC72F2"
+            />
+          </SimpleGrid>
+        }
+        table={
+          <DataTable<StaffMember>
+            columns={columns}
+            data={data?.items ?? []}
+            getRowKey={(row) => row.id}
+            emptyMessage={t('staffSync.messages.noStaffFound')}
+            isLoading={isLoading}
+            tableLayout="fixed"
+            tableMinWidth="1000px"
+            pagination={{
+              enabled: true,
+              page,
+              pageSize,
+              pageSizeOptions: PAGE_SIZE_OPTIONS,
+              totalItems: data?.totalElements ?? 0,
+              onPageChange: setPage,
+              onPageSizeChange: (size) => {
+                setPageSize(size)
+                setPage(1)
+              },
+            }}
+          />
+        }
       />
 
       <UploadStaffModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />

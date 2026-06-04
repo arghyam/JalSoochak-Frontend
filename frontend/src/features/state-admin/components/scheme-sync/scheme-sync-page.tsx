@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useFileDownload } from '../../hooks/use-file-download'
+import { SyncPageLayout } from '../common/sync-page-layout'
 import {
   Box,
   Button,
@@ -87,41 +89,20 @@ export function SchemeSyncPage() {
   const { data, isLoading, isError, refetch } = useSchemeListQuery(schemeParams)
   const { data: counts, isLoading: countsLoading } = useSchemeCountsQuery(tenantCode)
   const toast = useToast()
-  const { mutate: downloadReport, isPending: isReportPending } = useDownloadSchemesReportMutation()
+  const { mutate: scheduleSchemeReport } = useDownloadSchemesReportMutation()
 
-  const handleReport = () => {
-    downloadReport(undefined, {
-      onSuccess: async (link) => {
-        try {
-          const res = await fetch(link, { signal: AbortSignal.timeout(30_000) })
-          if (!res.ok) throw new Error(`Download failed: ${res.status}`)
-          const contentType = res.headers.get('content-type') ?? ''
-          const isValidType = ['text/csv', 'application/csv', 'application/octet-stream'].some(
-            (type) => contentType.includes(type)
-          )
-          if (!isValidType) throw new Error(`Unexpected file type: ${contentType}`)
-          const MAX_SIZE = 50 * 1024 * 1024
-          const contentLength = parseInt(res.headers.get('content-length') ?? '', 10)
-          if (!isNaN(contentLength) && contentLength > MAX_SIZE)
-            throw new Error('File exceeds 50 MB limit')
-          const blob = await res.blob()
-          if (blob.size > MAX_SIZE) throw new Error('File exceeds 50 MB limit')
-          const blobUrl = URL.createObjectURL(blob)
-          const a = document.createElement('a')
-          a.href = blobUrl
-          a.download = 'schemes-report.csv'
-          document.body.appendChild(a)
-          a.click()
-          a.remove()
-          URL.revokeObjectURL(blobUrl)
-          toast.success(t('schemeSync.report.success'))
-        } catch {
-          toast.error(t('schemeSync.report.error'))
-        }
-      },
-      onError: () => toast.error(t('schemeSync.report.error')),
-    })
-  }
+  const { download: handleReport, isDownloading: isReportPending } = useFileDownload({
+    getDownloadUrl: () =>
+      new Promise<string>((resolve, reject) => {
+        scheduleSchemeReport(undefined, {
+          onSuccess: (link) => resolve(link),
+          onError: (err) => reject(err),
+        })
+      }),
+    filename: 'schemes-report.csv',
+    onSuccess: () => toast.success(t('schemeSync.report.success')),
+    onError: () => toast.error(t('schemeSync.report.error')),
+  })
 
   const workStatusOptions = WORK_STATUS_OPTIONS.map((s) => ({ value: s, label: s }))
   const operatingStatusOptions = OPERATING_STATUS_OPTIONS.map((s) => ({ value: s, label: s }))
@@ -271,174 +252,181 @@ export function SchemeSyncPage() {
         </Heading>
       </PageHeader>
 
-      {/* Toolbar: search + filters + upload */}
-      <Flex
-        as="section"
-        aria-label={t('schemeSync.aria.filterSection')}
-        justify="space-between"
-        align="flex-start"
-        mb={6}
-        py={3}
-        px={{ base: 3, md: 6 }}
-        gap={{ base: 3, md: 4 }}
-        flexDirection={{ base: 'column', sm: 'row' }}
-        borderWidth="0.5px"
-        borderColor="neutral.200"
-        borderRadius="12px"
-        bg="white"
-      >
-        {/* Left: search + filters (wraps internally at medium widths) */}
-        <Flex align="center" gap={3} flex={1} w="full" flexWrap="wrap">
-          <InputGroup w={{ base: 'full', sm: '260px' }} flexShrink={0}>
-            <InputLeftElement pointerEvents="none" h={8}>
-              <SearchIcon color="neutral.300" aria-hidden="true" />
-            </InputLeftElement>
-            <Input
-              placeholder={t('schemeSync.searchPlaceholder')}
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value)
-              }}
-              aria-label={t('schemeSync.aria.searchSchemes')}
-              bg="white"
-              h={8}
-              borderWidth="1px"
-              borderRadius="4px"
-              borderColor="neutral.300"
-              _placeholder={{ color: 'neutral.300' }}
-            />
-          </InputGroup>
-
-          <SearchableSelect
-            options={workStatusOptions}
-            value={workStatusFilter}
-            onChange={handleWorkStatusChange}
-            placeholder={t('schemeSync.filters.workStatus')}
-            width="160px"
-            height="32px"
-            borderRadius="4px"
-            fontSize="sm"
-            isFilter
-            ariaLabel={t('schemeSync.filters.workStatus')}
-            searchable={false}
-          />
-
-          <SearchableSelect
-            options={operatingStatusOptions}
-            value={operatingStatusFilter}
-            onChange={handleOperatingStatusChange}
-            placeholder={t('schemeSync.filters.operatingStatus')}
-            width="175px"
-            height="32px"
-            borderRadius="4px"
-            fontSize="sm"
-            isFilter
-            ariaLabel={t('schemeSync.filters.operatingStatus')}
-            searchable={false}
-          />
-
-          {hasActiveFilters && (
-            <Button
-              variant="link"
-              size="sm"
-              color="neutral.500"
-              fontWeight="400"
-              onClick={handleClearFilters}
-              _hover={{ color: 'primary.500' }}
-            >
-              {t('schemeSync.filters.clearAll')}
-            </Button>
-          )}
-        </Flex>
-
-        {/* Right: reports + upload */}
-        <Flex gap={2} flexShrink={0} w={{ base: 'full', sm: 'auto' }}>
-          <Button
-            variant="secondary"
-            size="sm"
-            fontWeight="600"
-            flex={{ base: 1, sm: 'none' }}
-            w={{ base: 'auto', sm: '147px' }}
-            aria-label={t('schemeSync.report.aria.download')}
-            onClick={handleReport}
-            isLoading={isReportPending}
-            loadingText={t('schemeSync.report.button')}
+      <SyncPageLayout
+        toolbar={
+          <Flex
+            as="section"
+            aria-label={t('schemeSync.aria.filterSection')}
+            justify="space-between"
+            align="flex-start"
+            mb={6}
+            py={3}
+            px={{ base: 3, md: 6 }}
+            gap={{ base: 3, md: 4 }}
+            flexDirection={{ base: 'column', sm: 'row' }}
+            borderWidth="0.5px"
+            borderColor="neutral.200"
+            borderRadius="12px"
+            bg="white"
           >
-            <FiDownload
-              aria-hidden="true"
-              size={16}
-              style={{ marginRight: '4px', flexShrink: 0 }}
-            />
-            {t('schemeSync.report.button')}
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            fontWeight="600"
-            flex={{ base: 1, sm: 'none' }}
-            w={{ base: 'auto', sm: '147px' }}
-            aria-label={t('schemeSync.aria.uploadData')}
-            onClick={() => setIsUploadOpen(true)}
+            {/* Left: search + filters (wraps internally at medium widths) */}
+            <Flex align="center" gap={3} flex={1} w="full" flexWrap="wrap">
+              <InputGroup w={{ base: 'full', sm: '260px' }} flexShrink={0}>
+                <InputLeftElement pointerEvents="none" h={8}>
+                  <SearchIcon color="neutral.300" aria-hidden="true" />
+                </InputLeftElement>
+                <Input
+                  placeholder={t('schemeSync.searchPlaceholder')}
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value)
+                  }}
+                  aria-label={t('schemeSync.aria.searchSchemes')}
+                  bg="white"
+                  h={8}
+                  borderWidth="1px"
+                  borderRadius="4px"
+                  borderColor="neutral.300"
+                  _placeholder={{ color: 'neutral.300' }}
+                />
+              </InputGroup>
+
+              <SearchableSelect
+                options={workStatusOptions}
+                value={workStatusFilter}
+                onChange={handleWorkStatusChange}
+                placeholder={t('schemeSync.filters.workStatus')}
+                width="160px"
+                height="32px"
+                borderRadius="4px"
+                fontSize="sm"
+                isFilter
+                ariaLabel={t('schemeSync.filters.workStatus')}
+                searchable={false}
+              />
+
+              <SearchableSelect
+                options={operatingStatusOptions}
+                value={operatingStatusFilter}
+                onChange={handleOperatingStatusChange}
+                placeholder={t('schemeSync.filters.operatingStatus')}
+                width="175px"
+                height="32px"
+                borderRadius="4px"
+                fontSize="sm"
+                isFilter
+                ariaLabel={t('schemeSync.filters.operatingStatus')}
+                searchable={false}
+              />
+
+              {hasActiveFilters && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  color="neutral.500"
+                  fontWeight="400"
+                  onClick={handleClearFilters}
+                  _hover={{ color: 'primary.500' }}
+                >
+                  {t('schemeSync.filters.clearAll')}
+                </Button>
+              )}
+            </Flex>
+
+            {/* Right: reports + upload */}
+            <Flex gap={2} flexShrink={0} w={{ base: 'full', sm: 'auto' }}>
+              <Button
+                variant="secondary"
+                size="sm"
+                fontWeight="600"
+                flex={{ base: 1, sm: 'none' }}
+                w={{ base: 'auto', sm: '147px' }}
+                aria-label={t('schemeSync.report.aria.download')}
+                onClick={() => void handleReport()}
+                isLoading={isReportPending}
+                loadingText={t('schemeSync.report.button')}
+              >
+                <FiDownload
+                  aria-hidden="true"
+                  size={16}
+                  style={{ marginRight: '4px', flexShrink: 0 }}
+                />
+                {t('schemeSync.report.button')}
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                fontWeight="600"
+                flex={{ base: 1, sm: 'none' }}
+                w={{ base: 'auto', sm: '147px' }}
+                aria-label={t('schemeSync.aria.uploadData')}
+                onClick={() => setIsUploadOpen(true)}
+              >
+                <FiUpload
+                  aria-hidden="true"
+                  size={16}
+                  style={{ marginRight: '4px', flexShrink: 0 }}
+                />
+                {t('schemeSync.uploadData')}
+              </Button>
+            </Flex>
+          </Flex>
+        }
+        stats={
+          <SimpleGrid
+            as="section"
+            aria-label={t('schemeSync.aria.statsSection')}
+            columns={{ base: 1, sm: 3 }}
+            spacing={{ base: 4, md: 6 }}
+            mb={6}
           >
-            <FiUpload aria-hidden="true" size={16} style={{ marginRight: '4px', flexShrink: 0 }} />
-            {t('schemeSync.uploadData')}
-          </Button>
-        </Flex>
-      </Flex>
-
-      {/* Stats Cards */}
-      <SimpleGrid
-        as="section"
-        aria-label={t('schemeSync.aria.statsSection')}
-        columns={{ base: 1, sm: 3 }}
-        spacing={{ base: 4, md: 6 }}
-        mb={6}
-      >
-        <StatCard
-          title={t('schemeSync.stats.totalSchemes')}
-          value={countsLoading ? '—' : (counts?.totalSchemes ?? 0)}
-          icon={BsDroplet}
-          iconBg="#EBF4FA"
-          iconColor="#3291D1"
-        />
-        <StatCard
-          title={t('schemeSync.stats.activeSchemes')}
-          value={countsLoading ? '—' : (counts?.activeSchemes ?? 0)}
-          icon={BsCheck2Circle}
-          iconBg="#E6F9F0"
-          iconColor="#27AE60"
-        />
-        <StatCard
-          title={t('schemeSync.stats.inactiveSchemes')}
-          value={countsLoading ? '—' : (counts?.inactiveSchemes ?? 0)}
-          icon={IoCloseCircleOutline}
-          iconBg="#FEF3F2"
-          iconColor="#D94B3E"
-        />
-      </SimpleGrid>
-
-      {/* Data Table */}
-      <DataTable<Scheme>
-        columns={columns}
-        data={data?.items ?? []}
-        getRowKey={(row) => row.id}
-        emptyMessage={t('schemeSync.messages.noSchemesFound')}
-        isLoading={isLoading}
-        tableLayout="fixed"
-        tableMinWidth="1100px"
-        onSort={handleSort}
-        pagination={{
-          enabled: true,
-          page,
-          pageSize,
-          pageSizeOptions: PAGE_SIZE_OPTIONS,
-          totalItems: data?.totalElements ?? 0,
-          onPageChange: setPage,
-          onPageSizeChange: (size) => {
-            setPageSize(size)
-            setPage(1)
-          },
-        }}
+            <StatCard
+              title={t('schemeSync.stats.totalSchemes')}
+              value={countsLoading ? '—' : (counts?.totalSchemes ?? 0)}
+              icon={BsDroplet}
+              iconBg="#EBF4FA"
+              iconColor="#3291D1"
+            />
+            <StatCard
+              title={t('schemeSync.stats.activeSchemes')}
+              value={countsLoading ? '—' : (counts?.activeSchemes ?? 0)}
+              icon={BsCheck2Circle}
+              iconBg="#E6F9F0"
+              iconColor="#27AE60"
+            />
+            <StatCard
+              title={t('schemeSync.stats.inactiveSchemes')}
+              value={countsLoading ? '—' : (counts?.inactiveSchemes ?? 0)}
+              icon={IoCloseCircleOutline}
+              iconBg="#FEF3F2"
+              iconColor="#D94B3E"
+            />
+          </SimpleGrid>
+        }
+        table={
+          <DataTable<Scheme>
+            columns={columns}
+            data={data?.items ?? []}
+            getRowKey={(row) => row.id}
+            emptyMessage={t('schemeSync.messages.noSchemesFound')}
+            isLoading={isLoading}
+            tableLayout="fixed"
+            tableMinWidth="1100px"
+            onSort={handleSort}
+            pagination={{
+              enabled: true,
+              page,
+              pageSize,
+              pageSizeOptions: PAGE_SIZE_OPTIONS,
+              totalItems: data?.totalElements ?? 0,
+              onPageChange: setPage,
+              onPageSizeChange: (size) => {
+                setPageSize(size)
+                setPage(1)
+              },
+            }}
+          />
+        }
       />
 
       <UploadSchemesModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} />
