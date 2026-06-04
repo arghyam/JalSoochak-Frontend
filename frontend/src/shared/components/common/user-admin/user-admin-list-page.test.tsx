@@ -322,4 +322,31 @@ describe('UserAdminListPage', () => {
     )
     expect(screen.getByText('Pending')).toBeTruthy()
   })
+
+  it('calls onStatusFilterChange with selected value when a status option is chosen', () => {
+    const onStatusFilterChange = jest.fn()
+    renderWithProviders(
+      <UserAdminListPage
+        data={mockData}
+        isLoading={false}
+        isError={false}
+        onRefetch={jest.fn()}
+        routes={mockRoutes}
+        labels={mockLabels}
+        statusFilter="all"
+        onStatusFilterChange={onStatusFilterChange}
+      />
+    )
+
+    // Open the status filter dropdown and select "Active"
+    fireEvent.click(screen.getByRole('combobox'))
+    // Use getAllByRole to handle multiple option matches and pick the exact "Active" label
+    const activeOption = screen
+      .getAllByRole('option')
+      .find((el) => el.textContent?.trim() === 'Active')
+    if (!activeOption) throw new Error('Active option not found in status filter dropdown')
+    fireEvent.click(activeOption)
+
+    expect(onStatusFilterChange).toHaveBeenCalledWith('active')
+  })
 })

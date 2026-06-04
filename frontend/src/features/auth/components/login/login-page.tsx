@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -26,45 +26,41 @@ import jalsoochakLogo from '@/assets/media/logo.svg'
 import { useAuthStore } from '@/app/store'
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai'
 import { ForgotPasswordModal } from '@/features/auth/components/login/forgot-password-modal'
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 
 type LoginLocationState = { passwordChanged?: boolean } | null
+
+const loginSchema = z.object({
+  email: z.string().min(1, 'Email is required.').email('Enter a valid email address.'),
+  password: z.string().min(1, 'Password is required.'),
+})
+
+type LoginFormValues = z.infer<typeof loginSchema>
 
 export function LoginPage() {
   const { t } = useTranslation('auth')
   const navigate = useNavigate()
   const locationState = useLocation().state as LoginLocationState
-  const { login, loading, error } = useAuthStore()
+  const { login } = useAuthStore()
   const { isOpen: isForgotPasswordOpen, onOpen, onClose } = useDisclosure()
   const [showBannerImage] = useMediaQuery('(min-width: 992px)')
   const [showPassword, setShowPassword] = useState(false)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [localError, setLocalError] = useState<string | null>(null)
 
-  const isEmailError =
-    localError === t('login.emailRequired') || localError === t('login.invalidEmail')
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormValues>({ resolver: zodResolver(loginSchema) })
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    setLocalError(null)
-
-    const trimmedEmail = email.trim()
-    if (!trimmedEmail) {
-      setLocalError(t('login.emailRequired'))
-      return
-    }
-    const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)
-    if (!isEmailValid) {
-      setLocalError(t('login.invalidEmail'))
-      return
-    }
-
+  const onSubmit = async (values: LoginFormValues) => {
     try {
-      const redirectPath = await login({ email: trimmedEmail, password })
+      const redirectPath = await login(values)
       navigate(redirectPath, { replace: true })
-    } catch (err) {
-      console.error(err)
-      setLocalError(t('login.loginFailed'))
+    } catch {
+      setError('root', { message: t('login.loginFailed') })
     }
   }
 
@@ -108,9 +104,9 @@ export function LoginPage() {
                 </Alert>
               )}
 
-              <Box as="form" onSubmit={handleSubmit}>
+              <Box as="form" onSubmit={handleSubmit(onSubmit)}>
                 <VStack align="stretch" spacing="1rem">
-                  <FormControl isInvalid={isEmailError}>
+                  <FormControl isInvalid={!!errors.email}>
                     <FormLabel>
                       <Text textStyle="bodyText6" mb="4px">
                         {t('login.emailLabel')}
@@ -124,8 +120,6 @@ export function LoginPage() {
                       type="email"
                       placeholder={t('login.emailPlaceholder')}
                       autoComplete="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
                       h="36px"
                       px="12px"
                       py="8px"
@@ -134,11 +128,12 @@ export function LoginPage() {
                       _placeholder={{ color: 'neutral.300' }}
                       fontSize="sm"
                       focusBorderColor="primary.500"
+                      {...register('email')}
                     />
-                    <FormErrorMessage>{localError}</FormErrorMessage>
+                    <FormErrorMessage>{errors.email?.message}</FormErrorMessage>
                   </FormControl>
 
-                  <FormControl>
+                  <FormControl isInvalid={!!errors.password}>
                     <FormLabel>
                       <Text textStyle="bodyText6" mb="4px">
                         {t('login.passwordLabel')}
@@ -153,8 +148,6 @@ export function LoginPage() {
                         type={showPassword ? 'text' : 'password'}
                         placeholder={t('login.passwordPlaceholder')}
                         autoComplete="current-password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
                         h="36px"
                         px="12px"
                         py="8px"
@@ -164,6 +157,7 @@ export function LoginPage() {
                         fontSize="sm"
                         focusBorderColor="primary.500"
                         pr="36px"
+                        {...register('password')}
                       />
                       <InputRightElement h="36px">
                         <Button
@@ -188,6 +182,7 @@ export function LoginPage() {
                         </Button>
                       </InputRightElement>
                     </InputGroup>
+                    <FormErrorMessage>{errors.password?.message}</FormErrorMessage>
                   </FormControl>
 
                   <Flex justify="flex-start" mt="-4px" mb="4px">
@@ -208,15 +203,16 @@ export function LoginPage() {
                     w="full"
                     fontSize="16px"
                     fontWeight="600"
-                    isLoading={loading}
+                    isLoading={isSubmitting}
                     loadingText={t('login.loadingText')}
                     _loading={{ bg: 'primary.500', color: 'white' }}
                   >
                     {t('login.submitButton')}
                   </Button>
-                  {(error || (localError && !isEmailError)) && (
+
+                  {errors.root?.message && (
                     <FormControl isInvalid>
-                      <FormErrorMessage>{localError || error}</FormErrorMessage>
+                      <FormErrorMessage>{errors.root.message}</FormErrorMessage>
                     </FormControl>
                   )}
                 </VStack>

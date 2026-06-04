@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useFileDownload } from '../../hooks/use-file-download'
 import { SyncPageLayout } from '../common/sync-page-layout'
 import {
@@ -35,6 +35,7 @@ import {
 import { useAuthStore } from '@/app/store/auth-store'
 import { useDebounce } from '@/shared/hooks/use-debounce'
 import { useToast } from '@/shared/hooks/use-toast'
+import { usePageTitle } from '@/shared/hooks'
 import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '@/shared/constants/pagination'
 import { UploadSchemesModal } from './upload-schemes-modal'
 import { SchemeStatusChip } from './scheme-status-chip'
@@ -69,9 +70,7 @@ export function SchemeSyncPage() {
     setPage(1)
   }
 
-  useEffect(() => {
-    document.title = `${t('schemeSync.title')} | JalSoochak`
-  }, [t])
+  usePageTitle('schemeSync.title', 'state-admin')
 
   const schemeParams = useMemo(
     () => ({

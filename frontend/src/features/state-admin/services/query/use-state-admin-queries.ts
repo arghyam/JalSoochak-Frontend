@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   stateAdminApi,
+  mapApiUserToAdmin,
   type BroadcastWelcomePayload,
   type SaveConfigurationPayload,
   type SaveIntegrationConfigurationPayload,
@@ -12,7 +13,6 @@ import type { SaveEscalationRulesPayload } from '../../types/escalation-rules'
 import type { HierarchyLevel } from '../../types/hierarchy'
 import { stateAdminQueryKeys } from './state-admin-query-keys'
 import { useAuthStore } from '@/app/store/auth-store'
-import type { StateUTAdmin } from '../../types/state-ut-admins'
 import type { UpdateSchemeStatusPayload } from '../../types/scheme-sync'
 
 export function useStaffCountsQuery() {
@@ -102,7 +102,7 @@ export function useUploadPumpOperatorsMutation() {
       stateAdminApi.uploadPumpOperators(file, tenantCode),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: [...stateAdminQueryKeys.all, 'staff-list'],
+        queryKey: stateAdminQueryKeys.staffListPrefix(),
       })
       await queryClient.invalidateQueries({
         queryKey: stateAdminQueryKeys.staffCounts(),
@@ -125,7 +125,7 @@ export function useUpdateStaffStatusMutation() {
     }) => stateAdminApi.updateStaffStatus(id, status, tenantCode),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: [...stateAdminQueryKeys.all, 'staff-list'],
+        queryKey: stateAdminQueryKeys.staffListPrefix(),
       })
       await queryClient.invalidateQueries({
         queryKey: stateAdminQueryKeys.staffCounts(),
@@ -168,24 +168,7 @@ export function useStateUTAdminsQuery(
         name: name || undefined,
         status: status && status !== 'all' ? status : undefined,
       })
-      const items: StateUTAdmin[] = apiPage.content.map((u) => {
-        let status: StateUTAdmin['status']
-        if (u.status === 'ACTIVE') {
-          status = 'active'
-        } else if (u.status === 'PENDING') {
-          status = 'pending'
-        } else {
-          status = 'inactive'
-        }
-        return {
-          id: String(u.id),
-          firstName: u.firstName ?? '',
-          lastName: u.lastName ?? '',
-          email: u.email,
-          phone: u.phoneNumber,
-          status,
-        }
-      })
+      const items = apiPage.content.map(mapApiUserToAdmin)
       return { items, total: apiPage.totalElements }
     },
     enabled: Boolean(tenantCode),
@@ -212,7 +195,7 @@ export function useInviteStateUTAdminMutation() {
     }) => stateAdminApi.inviteStateUTAdmin(payload),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: [...stateAdminQueryKeys.all, 'state-ut-admins'],
+        queryKey: stateAdminQueryKeys.stateUtAdminsPrefix(),
       })
     },
   })
@@ -230,7 +213,7 @@ export function useUpdateStateUTAdminMutation() {
     }) => stateAdminApi.updateStateUTAdmin(id, input),
     onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({
-        queryKey: [...stateAdminQueryKeys.all, 'state-ut-admins'],
+        queryKey: stateAdminQueryKeys.stateUtAdminsPrefix(),
       })
       queryClient.removeQueries({ queryKey: stateAdminQueryKeys.stateUtAdminById(variables.id) })
     },
@@ -244,7 +227,7 @@ export function useUpdateStateUTAdminStatusMutation() {
       stateAdminApi.updateStateUTAdminStatus(id, status),
     onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({
-        queryKey: [...stateAdminQueryKeys.all, 'state-ut-admins'],
+        queryKey: stateAdminQueryKeys.stateUtAdminsPrefix(),
       })
       await queryClient.invalidateQueries({
         queryKey: stateAdminQueryKeys.stateUtAdminById(variables.id),
@@ -259,7 +242,7 @@ export function useReinviteStateUTAdminMutation() {
     mutationFn: (id: string) => stateAdminApi.reinviteStateUTAdmin(id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: [...stateAdminQueryKeys.all, 'state-ut-admins'],
+        queryKey: stateAdminQueryKeys.stateUtAdminsPrefix(),
       })
     },
   })
@@ -356,7 +339,7 @@ export function useUploadSchemesMutation() {
       stateAdminApi.uploadSchemes(file, tenantCode),
     onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({
-        queryKey: [...stateAdminQueryKeys.all, 'scheme-list'],
+        queryKey: stateAdminQueryKeys.schemeListPrefix(),
       })
       await queryClient.invalidateQueries({
         queryKey: stateAdminQueryKeys.schemeCounts(variables.tenantCode),
@@ -379,7 +362,7 @@ export function useUpdateSchemeStatusMutation() {
     }) => stateAdminApi.updateSchemeStatus(schemeId, tenantCode, payload),
     onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({
-        queryKey: [...stateAdminQueryKeys.all, 'scheme-list'],
+        queryKey: stateAdminQueryKeys.schemeListPrefix(),
       })
       await queryClient.invalidateQueries({
         queryKey: stateAdminQueryKeys.schemeCounts(variables.tenantCode),
@@ -405,7 +388,7 @@ export function useUploadSchemeMappingsMutation() {
       stateAdminApi.uploadSchemeMappings(file, tenantCode),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: [...stateAdminQueryKeys.all, 'scheme-mappings-list'],
+        queryKey: stateAdminQueryKeys.schemeMappingsListPrefix(),
       })
     },
   })

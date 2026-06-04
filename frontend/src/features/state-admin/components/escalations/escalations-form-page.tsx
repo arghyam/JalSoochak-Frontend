@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import {
   Box,
   Text,
@@ -17,6 +17,7 @@ import {
 import { EditIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/shared/hooks/use-toast'
+import { usePageTitle } from '@/shared/hooks'
 import { TimePicker, ToastContainer, PageHeader } from '@/shared/components/common'
 
 const MAX_ESCALATION_DAYS = 365
@@ -77,9 +78,7 @@ export function EscalationsFormPage() {
   const [levelsDraft, setLevelsDraft] = useState<LevelDraft[] | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  useEffect(() => {
-    document.title = `${t('escalations.title')} | JalSoochak`
-  }, [t])
+  usePageTitle('escalations.title', 'state-admin')
 
   const isConfigured = Boolean(config && config.levels.length > 0)
   const effectiveIsEditing = isEditing || (config !== undefined && !isConfigured)

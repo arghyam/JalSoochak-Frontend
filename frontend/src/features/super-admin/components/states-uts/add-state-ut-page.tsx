@@ -16,6 +16,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { SearchableSelect, ToastContainer, PageHeader } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
+import { usePageTitle } from '@/shared/hooks'
 import { ROUTES } from '@/shared/constants/routes'
 import { INDIA_STATES } from '@/shared/constants/states'
 import { isAlphabeticWithSpaces, exceedsMaxLength } from '@/shared/utils/validation'
@@ -33,9 +34,7 @@ export function AddStateUTPage() {
   const navigate = useNavigate()
   const toast = useToast()
 
-  useEffect(() => {
-    document.title = `${t('statesUts.addTitle')} | JalSoochak`
-  }, [t])
+  usePageTitle('statesUts.addTitle', 'super-admin')
 
   const createTenantMutation = useCreateTenantMutation()
   const inviteUserMutation = useInviteUserMutation()

@@ -239,11 +239,13 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: (
-      <ProtectedRoute>
-        <Suspense fallback={<LoadingSpinner />}>
-          <MainLayout />
-        </Suspense>
-      </ProtectedRoute>
+      <ErrorBoundary fallback={<LocalizedErrorFallback />}>
+        <ProtectedRoute>
+          <Suspense fallback={<LoadingSpinner />}>
+            <MainLayout />
+          </Suspense>
+        </ProtectedRoute>
+      </ErrorBoundary>
     ),
     children: [
       {

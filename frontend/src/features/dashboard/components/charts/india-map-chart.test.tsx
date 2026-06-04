@@ -261,8 +261,8 @@ describe('IndiaMapChart', () => {
     expect(screen.getByText('>=0%')).toBeTruthy()
   })
 
-  it('shows percent legend labels even when quantity view unit is configured as MLD', () => {
-    renderWithProviders(<IndiaMapChart data={chartData} quantityViewUnit="mld" />)
+  it('shows percent legend labels for quantity metric', () => {
+    renderWithProviders(<IndiaMapChart data={chartData} />)
 
     const toggle = screen.getByRole('checkbox')
     fireEvent.click(toggle)
@@ -574,7 +574,6 @@ describe('IndiaMapChart', () => {
             quantity: 8.5,
           },
         ]}
-        quantityViewUnit="mld"
         isRegularityView={false}
         onRegularityViewChange={jest.fn()}
       />

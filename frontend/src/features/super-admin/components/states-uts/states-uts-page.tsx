@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -28,6 +28,7 @@ import { useDebounce } from '@/shared/hooks/use-debounce'
 import { ROUTES } from '@/shared/constants/routes'
 import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '@/shared/constants/pagination'
 import { useStatesUTsPagedQuery } from '../../services/query/use-super-admin-queries'
+import { usePageTitle } from '@/shared/hooks'
 
 function tenantStatusChipKey(status: TenantStatus): string {
   return status.toLowerCase()
@@ -61,9 +62,7 @@ export function StatesUTsPage() {
     statusFilter
   )
 
-  useEffect(() => {
-    document.title = `${t('statesUts.title')} | JalSoochak`
-  }, [t])
+  usePageTitle('statesUts.title', 'super-admin')
 
   if (isError) {
     return (

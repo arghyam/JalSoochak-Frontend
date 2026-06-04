@@ -89,7 +89,6 @@ function DashboardMapCard({
         parentBoundaryGeoJson={parentBoundaryGeoJson}
         isLoading={isLoading}
         mapName={mapName}
-        quantityViewUnit="percent"
         onStateClick={onStateClick}
         onStateHover={onStateHover}
         isFullscreen={fullscreen}

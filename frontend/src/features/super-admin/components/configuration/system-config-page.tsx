@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import {
   Box,
   Text,
@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next'
 import { EditIcon } from '@chakra-ui/icons'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useToast } from '@/shared/hooks/use-toast'
+import { usePageTitle } from '@/shared/hooks'
 import {
   ToastContainer,
   EditableBreadcrumb,
@@ -61,9 +62,7 @@ export function SystemConfigPage() {
   const [draft, setDraft] = useState<ConfigDraft | null>(null)
   const toast = useToast()
 
-  useEffect(() => {
-    document.title = `${t('configuration.pageTitle')} | JalSoochak`
-  }, [t])
+  usePageTitle('configuration.pageTitle', 'super-admin')
 
   const handleEdit = () => {
     setDraft(buildDraft(config))
