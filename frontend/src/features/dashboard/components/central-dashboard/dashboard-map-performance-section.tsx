@@ -39,6 +39,7 @@ interface DashboardMapPerformanceSectionProps {
   performanceSummaryTitle: string
   overallPerformanceTableData: EntityPerformance[]
   isOverallPerformanceLoading: boolean
+  isOverallPerformanceError?: boolean
   overallPerformanceEntityLabel: string
   overallPerformanceScrollHeight: string
   onOverallPerformanceRowClick: (row: EntityPerformance) => void
@@ -116,6 +117,7 @@ export function DashboardMapPerformanceSection({
   performanceSummaryTitle,
   overallPerformanceTableData,
   isOverallPerformanceLoading,
+  isOverallPerformanceError = false,
   overallPerformanceEntityLabel,
   overallPerformanceScrollHeight,
   onOverallPerformanceRowClick,
@@ -199,6 +201,11 @@ export function DashboardMapPerformanceSection({
             <OverallPerformanceTable
               data={overallPerformanceTableData}
               isLoading={isOverallPerformanceLoading}
+              errorMessage={
+                isOverallPerformanceError
+                  ? 'Failed to load data. Please reload the page.'
+                  : undefined
+              }
               entityLabel={overallPerformanceEntityLabel}
               scrollMaxHeight={overallPerformanceScrollHeight}
               autoHeightWithinMax={!shouldShowMapAlongsidePerformance}

@@ -24,12 +24,15 @@ jest.mock('../tables', () => ({
   OverallPerformanceTable: ({
     data,
     autoHeightWithinMax,
+    errorMessage,
   }: {
     data: EntityPerformance[]
     autoHeightWithinMax?: boolean
+    errorMessage?: string
   }) => (
     <div data-testid="performance-table">
       {autoHeightWithinMax ? 'auto' : 'fixed'}:{data.length}
+      {errorMessage ? `:${errorMessage}` : ''}
     </div>
   ),
 }))
@@ -86,6 +89,31 @@ describe('DashboardMapPerformanceSection', () => {
     expect(screen.getByTestId('inline-map').textContent).toBe('district:1')
     expect(screen.getByText('Performance Summary')).toBeTruthy()
     expect(screen.getByTestId('performance-table').textContent).toBe('fixed:1')
+  })
+
+  it('passes a neutral reload message to the performance table on API failure', () => {
+    renderWithProviders(
+      <DashboardMapPerformanceSection
+        activeLeafSelection=""
+        shouldShowMapAlongsidePerformance
+        isMapFullscreen={false}
+        onMapFullscreenClose={jest.fn()}
+        performanceSummaryCardMaxHeight={{ base: '420px', sm: '520px', lg: '710px' }}
+        performanceSummaryTitle="Performance Summary"
+        overallPerformanceTableData={[]}
+        isOverallPerformanceLoading={false}
+        isOverallPerformanceError
+        overallPerformanceEntityLabel="State/UT"
+        overallPerformanceScrollHeight="620px"
+        onOverallPerformanceRowClick={jest.fn()}
+        onOverallPerformanceRowHover={jest.fn()}
+        mapProps={mapProps}
+      />
+    )
+
+    expect(screen.getByTestId('performance-table').textContent).toContain(
+      'Failed to load data. Please reload the page.'
+    )
   })
 
   it('hides the section for leaf selections and closes fullscreen from the overlay', () => {

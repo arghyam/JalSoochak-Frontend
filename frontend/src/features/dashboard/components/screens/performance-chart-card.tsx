@@ -15,10 +15,13 @@ type PerformanceChartCardProps = {
   onViewByChange: (value: ViewByValue) => void
   data: EntityPerformance[]
   isGeographyLoading?: boolean
+  isGeographyError?: boolean
   metric: PerformanceMetric
   timeTrendData: MonthlyTrendPoint[]
   isTimeTrendLoading?: boolean
+  isTimeTrendError?: boolean
   isTimeTrendAwaitingParams?: boolean
+  errorMessage?: string
   entityLabel: string
   yAxisLabel: string
   seriesName: string
@@ -47,10 +50,13 @@ export function PerformanceChartCard({
   onViewByChange,
   data,
   isGeographyLoading = false,
+  isGeographyError = false,
   metric,
   timeTrendData,
   isTimeTrendLoading = false,
+  isTimeTrendError = false,
   isTimeTrendAwaitingParams = false,
+  errorMessage,
   entityLabel,
   yAxisLabel,
   seriesName,
@@ -217,6 +223,8 @@ export function PerformanceChartCard({
           <Flex align="center" justify="center" h="100%">
             <LoadingSpinner />
           </Flex>
+        ) : effectiveViewBy === 'geography' && isGeographyError ? (
+          <ChartEmptyState minHeight="100%" message={errorMessage} />
         ) : effectiveViewBy === 'geography' ? (
           data.length > 0 ? (
             <MetricPerformanceChart
@@ -240,6 +248,8 @@ export function PerformanceChartCard({
           <Flex align="center" justify="center" h="100%">
             <LoadingSpinner />
           </Flex>
+        ) : isTimeTrendError ? (
+          <ChartEmptyState minHeight="100%" message={errorMessage} />
         ) : timeTrendData.length > 0 ? (
           <MonthlyTrendChart
             data={timeTrendData}
