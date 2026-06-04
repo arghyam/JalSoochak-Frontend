@@ -104,7 +104,7 @@ export function LoginPage() {
                 </Alert>
               )}
 
-              <Box as="form" onSubmit={handleSubmit(onSubmit)}>
+              <Box as="form" noValidate onSubmit={handleSubmit(onSubmit)}>
                 <VStack align="stretch" spacing="1rem">
                   <FormControl isInvalid={!!errors.email}>
                     <FormLabel>

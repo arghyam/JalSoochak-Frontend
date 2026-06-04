@@ -732,8 +732,7 @@ export function IndiaMapChart({
                     bg={isActive ? 'primary.25' : 'transparent'}
                     _hover={{ bg: isActive ? 'primary.50' : 'neutral.100' }}
                     onClick={() => onMapViewModeChange?.(mode)}
-                    role="tab"
-                    aria-selected={isActive}
+                    aria-pressed={isActive}
                   >
                     {label}
                   </ChakraButton>

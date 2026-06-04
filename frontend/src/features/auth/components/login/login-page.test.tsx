@@ -31,7 +31,7 @@ describe('LoginPage', () => {
     const user = userEvent.setup()
     renderWithProviders(<LoginPage />)
     await user.click(screen.getByRole('button', { name: 'Log in' }))
-    expect(screen.getByText('Email is required.')).toBeInTheDocument()
+    expect(await screen.findByText('Email is required.')).toBeInTheDocument()
   })
 
   it('submits valid credentials and navigates', async () => {

@@ -261,11 +261,8 @@ describe('IndiaMapChart', () => {
     expect(screen.getByText('>=0%')).toBeTruthy()
   })
 
-  it('shows percent legend labels for quantity metric', () => {
+  it('shows percent legend labels in the default regularity view without toggling', () => {
     renderWithProviders(<IndiaMapChart data={chartData} />)
-
-    const toggle = screen.getByRole('checkbox')
-    fireEvent.click(toggle)
 
     expect(screen.getByText('>=90%')).toBeTruthy()
     expect(screen.getByText('>=70%')).toBeTruthy()
