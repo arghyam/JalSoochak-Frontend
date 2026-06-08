@@ -123,6 +123,72 @@ describe('DateRangePicker', () => {
     expect((screen.getByText('Apply').closest('button') as HTMLButtonElement).disabled).toBe(false)
   })
 
+  it('hides today before the dashboard data rollover hour', () => {
+    jest.setSystemTime(new Date('2026-06-09T18:59:00'))
+
+    renderWithProviders(
+      <DateRangePicker value={null} onChange={jest.fn()} useDashboardRolloverQuickRanges={true} />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Duration' }))
+
+    expect(screen.queryByText('Today')).toBeNull()
+    expect(screen.getByText('Yesterday')).toBeTruthy()
+    expect(screen.getByText('This week')).toBeTruthy()
+    expect(screen.getByText('This month')).toBeTruthy()
+  })
+
+  it('hides today and this month on a Sunday month start when max date is still yesterday', () => {
+    jest.setSystemTime(new Date('2026-03-01T18:34:00'))
+
+    renderWithProviders(
+      <DateRangePicker
+        value={null}
+        onChange={jest.fn()}
+        maxDate="2026-02-28"
+        useDashboardRolloverQuickRanges={true}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Duration' }))
+
+    expect(screen.queryByText('Today')).toBeNull()
+    expect(screen.queryByText('This month')).toBeNull()
+    expect(screen.getByText('This week')).toBeTruthy()
+    expect(screen.getByText('Yesterday')).toBeTruthy()
+  })
+
+  it('shows today from 7 PM until midnight for dashboard quick ranges', () => {
+    jest.setSystemTime(new Date('2026-06-09T19:00:00'))
+
+    renderWithProviders(
+      <DateRangePicker value={null} onChange={jest.fn()} useDashboardRolloverQuickRanges={true} />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Duration' }))
+
+    expect(screen.getByText('Today')).toBeTruthy()
+    expect(screen.getByText('This week')).toBeTruthy()
+    expect(screen.getByText('This month')).toBeTruthy()
+  })
+
+  it('hides today, this week, and this month before 7 PM when the day is Monday and month start', () => {
+    jest.setSystemTime(new Date('2026-06-01T09:00:00'))
+
+    renderWithProviders(
+      <DateRangePicker value={null} onChange={jest.fn()} useDashboardRolloverQuickRanges={true} />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Duration' }))
+
+    expect(screen.queryByText('Today')).toBeNull()
+    expect(screen.queryByText('This week')).toBeNull()
+    expect(screen.queryByText('This month')).toBeNull()
+    expect(screen.getByText('Yesterday')).toBeTruthy()
+    expect(screen.getByText('Last week')).toBeTruthy()
+    expect(screen.getByText('Last month')).toBeTruthy()
+  })
+
   it('uses the provided date format for manual input', () => {
     renderWithProviders(
       <DateRangePicker value={null} onChange={jest.fn()} dateFormat="MM-DD-YYYY" />
