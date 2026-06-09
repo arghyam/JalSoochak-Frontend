@@ -326,11 +326,11 @@ export const getRegularityKpi = (response: AverageSchemeRegularityResponse | und
       return 0
     }
     const sum = valid.reduce((acc, r) => acc + r.averageRegularity, 0)
-    return Number(clamp((sum / valid.length) * 100, 0, 100).toFixed(1))
+    return clamp((sum / valid.length) * 100, 0, 100)
   }
 
   if (Number.isFinite(response.averageRegularity)) {
-    return Number(clamp(response.averageRegularity * 100, 0, 100).toFixed(1))
+    return clamp(response.averageRegularity * 100, 0, 100)
   }
 
   return 0
@@ -351,7 +351,7 @@ export const getRegularityKpiFromNationalDashboard = (
   }
 
   const sum = validStates.reduce((acc, state) => acc + state.averageRegularity, 0)
-  return Number(clamp((sum / validStates.length) * 100, 0, 100).toFixed(1))
+  return clamp((sum / validStates.length) * 100, 0, 100)
 }
 
 export const getWaterSupplyKpisFromPeriodic = (
@@ -435,7 +435,7 @@ export const getRegularityKpiFromPeriodic = (
   // Periodic payloads can arrive as either a ratio (0..1) or a percent (0..100).
   const normalizedPercent = averageRegularity <= 1 ? averageRegularity * 100 : averageRegularity
 
-  return Number(clamp(normalizedPercent, 0, 100).toFixed(1))
+  return clamp(normalizedPercent, 0, 100)
 }
 
 export const calculatePercentChange = (currentValue: number, previousValue: number) => {
