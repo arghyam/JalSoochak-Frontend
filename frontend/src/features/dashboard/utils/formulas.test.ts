@@ -14,9 +14,11 @@ import type {
 import {
   calculateAverageRegularityPercent,
   calculateDemandMld,
+  calculatePercentChange,
   calculateReadingSubmissionRatePercent,
   calculateQuantityMld,
   calculateQuantityLpcd,
+  getRegularityKpi,
   getWaterSupplyKpis,
   getWaterSupplyKpisFromPeriodic,
   getRegularityKpiFromPeriodic,
@@ -424,6 +426,32 @@ describe('dashboard formulas', () => {
 
   it('calculates average regularity percent from supply days, schemes, and day range', () => {
     expect(calculateAverageRegularityPercent(45, 3, 30)).toBe(50)
+  })
+
+  it('preserves regularity precision when calculating percentage change', () => {
+    const createRegularityResponse = (
+      averageRegularity: number
+    ): AverageSchemeRegularityResponse => ({
+      lgdId: 1,
+      parentDepartmentId: 0,
+      parentLgdLevel: 0,
+      parentDepartmentLevel: 0,
+      scope: 'current',
+      startDate: '2026-01-01',
+      endDate: '2026-01-31',
+      daysInRange: 31,
+      schemeCount: 17394,
+      totalSupplyDays: 0,
+      averageRegularity,
+      childRegionCount: 0,
+      childRegions: [],
+    })
+    const previousRegularity = getRegularityKpi(createRegularityResponse(0.0022))
+    const currentRegularity = getRegularityKpi(createRegularityResponse(0.0456))
+
+    expect(previousRegularity).toBeCloseTo(0.22)
+    expect(currentRegularity).toBeCloseTo(4.56)
+    expect(calculatePercentChange(currentRegularity, previousRegularity)).toBe(1972.7)
   })
 
   it('calculates reading submission rate percent from submission days, schemes, and day range', () => {
