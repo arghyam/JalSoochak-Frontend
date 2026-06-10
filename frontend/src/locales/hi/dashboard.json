@@ -134,6 +134,8 @@
       }
     },
     "trends": {
+      "percentVsPreviousDays": "पिछले {{days}} दिनों की तुलना में {{change}}%",
+      "lpcdVsPreviousDays": "पिछले {{days}} दिनों की तुलना में {{change}} एलपीसीडी",
       "percentDownLastDays": "पिछले {{days}} दिनों की तुलना में -{{change}}%",
       "lpcdUpLastMonth": "पिछले महीने की तुलना में +{{change}} LPCD",
       "percentDownLastMonth": "पिछले महीने की तुलना में -{{change}}%"
