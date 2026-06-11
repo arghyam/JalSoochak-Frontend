@@ -14,6 +14,7 @@ describe('stateAdminQueryKeys', () => {
       'staff-list',
       ['X'],
       undefined,
+      undefined,
       1,
       20,
       'TN',
@@ -33,6 +34,27 @@ describe('stateAdminQueryKeys', () => {
       'staff-list',
       ['X'],
       'active',
+      undefined,
+      1,
+      20,
+      'TN',
+    ])
+  })
+
+  it('builds stable staff list keys with name search parameter', () => {
+    const params = {
+      roles: ['X'],
+      name: 'john',
+      page: 1,
+      limit: 20,
+      tenantCode: 'TN',
+    }
+    expect(stateAdminQueryKeys.staffList(params)).toEqual([
+      'state-admin',
+      'staff-list',
+      ['X'],
+      undefined,
+      'john',
       1,
       20,
       'TN',
