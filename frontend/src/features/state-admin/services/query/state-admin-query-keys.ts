@@ -8,6 +8,7 @@ export const stateAdminQueryKeys = {
   staffList: (params: {
     roles: string[]
     status?: string
+    name?: string
     page: number
     limit: number
     tenantCode: string
@@ -17,6 +18,7 @@ export const stateAdminQueryKeys = {
       'staff-list',
       params.roles,
       params.status,
+      params.name,
       params.page,
       params.limit,
       params.tenantCode,
