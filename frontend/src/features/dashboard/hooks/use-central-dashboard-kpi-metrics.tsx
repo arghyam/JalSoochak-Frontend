@@ -134,6 +134,7 @@ export function buildCentralDashboardKpiMetrics({
         maximumFractionDigits: 1,
       }),
       days: comparisonDays,
+      count: comparisonDays,
       defaultValue: '{{change}}% vs previous {{days}} days',
     })
 
@@ -144,6 +145,7 @@ export function buildCentralDashboardKpiMetrics({
         maximumFractionDigits: 1,
       }),
       days: comparisonDays,
+      count: comparisonDays,
       defaultValue: '{{change}} LPCD vs previous {{days}} days',
     })
 
