@@ -160,6 +160,7 @@ function renderVillageDashboard(
       name: 'Vikash',
       village: 'Asaihpura',
       lastSubmission: '09-08-2025, 3:00pm',
+      readingAt: '09-08-2025, 3:00pm',
       readingValue: '017848',
     },
     {
@@ -167,6 +168,7 @@ function renderVillageDashboard(
       name: 'Arjun',
       village: 'Bhedoura',
       lastSubmission: '11-02-2025, 1:00pm',
+      readingAt: '11-02-2025, 1:00pm',
       readingValue: '026537',
     },
     {
@@ -174,6 +176,7 @@ function renderVillageDashboard(
       name: 'Shashwat',
       village: 'Bispur',
       lastSubmission: '03-19-2025, 9:00am',
+      readingAt: '03-19-2025, 9:00am',
       readingValue: '034982',
     },
   ],
@@ -263,11 +266,11 @@ describe('VillageDashboardScreen', () => {
 
     const complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
       dateFormat?: string
-      data: Array<{ lastSubmission: string }>
+      data: Array<{ readingAt: string }>
     }
 
     expect(complianceProps.dateFormat).toBe('MM/DD/YYYY')
-    expect(complianceProps.data[0]?.lastSubmission).toBe('03/17/2026, 3:06pm')
+    expect(complianceProps.data[0]?.readingAt).toBe('2026-03-17T15:06:10.896445')
     expect(screen.getByText('03/17/2026, 3:06pm')).toBeTruthy()
   })
 
@@ -406,6 +409,7 @@ describe('VillageDashboardScreen', () => {
         name: 'Ajay Yadav',
         village: 'N/A',
         lastSubmission: '11-02-24, 1:00pm',
+        readingAt: '11-02-24, 1:00pm',
         readingValue: 'N/A',
       },
     ])
@@ -427,6 +431,7 @@ describe('VillageDashboardScreen', () => {
         name: 'Vikram Singh',
         village: 'N/A',
         lastSubmission: '13-02-24, 10:30am',
+        readingAt: '13-02-24, 10:30am',
         readingValue: 'N/A',
       },
     ])
@@ -448,6 +453,7 @@ describe('VillageDashboardScreen', () => {
           name: 'Vikash',
           village: 'Asaihpura',
           lastSubmission: '09-08-2025, 3:00pm',
+          readingAt: '09-08-2025, 3:00pm',
           readingValue: '017848',
         },
       ],
@@ -661,6 +667,7 @@ describe('VillageDashboardScreen', () => {
         name: 'Ajay Yadav',
         village: 'N/A',
         lastSubmission: '17/03/26, 3:06pm',
+        readingAt: '2026-03-17T15:06:10.896445',
         readingValue: '104958.72',
       },
     ])
@@ -676,6 +683,7 @@ describe('VillageDashboardScreen', () => {
         name: 'Vikram Singh',
         village: 'N/A',
         lastSubmission: '19/03/26, 10:00am',
+        readingAt: '2026-03-19T10:00:00.000000',
         readingValue: '103400',
       },
       {
@@ -683,6 +691,7 @@ describe('VillageDashboardScreen', () => {
         name: 'Vikram Singh',
         village: 'N/A',
         lastSubmission: '18/03/26, 10:00am',
+        readingAt: '2026-03-18T10:00:00.000000',
         readingValue: '103361.57',
       },
     ])
@@ -837,6 +846,7 @@ describe('VillageDashboardScreen', () => {
         name: 'Vikram Singh',
         village: 'N/A',
         lastSubmission: '19/03/26, 10:00am',
+        readingAt: '2026-03-19T10:00:00.000000',
         readingValue: '103400',
       },
       {
@@ -844,6 +854,7 @@ describe('VillageDashboardScreen', () => {
         name: 'Vikram Singh',
         village: 'N/A',
         lastSubmission: '18/03/26, 10:00am',
+        readingAt: '2026-03-18T10:00:00.000000',
         readingValue: '103361.57',
       },
     ])
@@ -921,6 +932,7 @@ describe('VillageDashboardScreen', () => {
         name: 'Ajay Yadav',
         village: 'N/A',
         lastSubmission: '17/03/26, 3:06pm',
+        readingAt: '2026-03-17T15:06:20.896445',
         readingValue: '104602.8',
       },
     ])
@@ -946,6 +958,7 @@ describe('VillageDashboardScreen', () => {
         name: 'Sanjay Roy',
         village: 'N/A',
         lastSubmission: '17/03/26, 3:06pm',
+        readingAt: '2026-03-17T15:06:10.896445',
         readingValue: '103985.13',
       },
     ])
@@ -1214,6 +1227,7 @@ describe('VillageDashboardScreen', () => {
         name: 'Sanjay Das',
         village: 'N/A',
         lastSubmission: '17/03/26, 3:06pm',
+        readingAt: '2026-03-17T15:06:10.896445',
         readingValue: '104958.72',
       },
       {
@@ -1221,6 +1235,7 @@ describe('VillageDashboardScreen', () => {
         name: 'Sanjay Das',
         village: 'N/A',
         lastSubmission: '17/03/26, 3:05pm',
+        readingAt: '2026-03-17T15:05:10.896445',
         readingValue: '101419.13',
       },
     ])
@@ -1236,6 +1251,7 @@ describe('VillageDashboardScreen', () => {
         name: 'Anil Roy',
         village: 'N/A',
         lastSubmission: '17/03/26, 3:06pm',
+        readingAt: '2026-03-17T15:06:10.896445',
         readingValue: '104602.8',
       },
     ])
@@ -1353,6 +1369,7 @@ describe('VillageDashboardScreen', () => {
           name: 'Sanjay Das',
           village: 'N/A',
           lastSubmission: '17/03/26, 3:06pm',
+          readingAt: '2026-03-17T15:06:10.896445',
           readingValue: '104958.72',
         },
         {
@@ -1360,6 +1377,7 @@ describe('VillageDashboardScreen', () => {
           name: 'Sanjay Das',
           village: 'N/A',
           lastSubmission: '17/03/26, 3:05pm',
+          readingAt: '2026-03-17T15:05:10.896445',
           readingValue: '101419.13',
         },
       ])
@@ -1539,10 +1557,10 @@ describe('VillageDashboardScreen', () => {
     })
 
     const complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
-      data: Array<{ lastSubmission: string }>
+      data: Array<{ readingAt: string }>
     }
     expect(complianceProps.data).toHaveLength(51)
-    expect(complianceProps.data.at(-1)?.lastSubmission).toBe('17/03/26, 3:04pm')
+    expect(complianceProps.data.at(-1)?.readingAt).toBe('2026-03-17T15:04:10.896445')
   })
 
   it('passes fillHeight to reading compliance so the empty state stays centered', () => {

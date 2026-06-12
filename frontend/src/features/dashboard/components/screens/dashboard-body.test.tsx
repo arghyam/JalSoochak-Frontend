@@ -170,6 +170,7 @@ const mockDashboardData: DashboardData = {
       name: 'Operator 1',
       village: 'Village 1',
       lastSubmission: '2026-02-20',
+      readingAt: '2026-02-20',
       readingValue: '120',
     },
   ],

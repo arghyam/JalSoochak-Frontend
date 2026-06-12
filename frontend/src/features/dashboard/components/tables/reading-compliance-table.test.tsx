@@ -10,6 +10,7 @@ const rows: ReadingComplianceData[] = [
     name: 'PO A',
     village: 'V1',
     lastSubmission: '2026-01-01',
+    readingAt: '2026-01-01',
     readingValue: '12',
   },
 ]
@@ -46,6 +47,7 @@ describe('ReadingComplianceTable', () => {
         name: 'PO ISO',
         village: 'V-ISO',
         lastSubmission: '2026-03-17T15:06:10.896445',
+        readingAt: '2026-03-17T15:06:10.896445',
         readingValue: '42',
       },
     ]
@@ -89,6 +91,7 @@ describe('ReadingComplianceTable', () => {
       name: `N${i}`,
       village: `V${i}`,
       lastSubmission: 't',
+      readingAt: 't',
       readingValue: '1',
     }))
 
