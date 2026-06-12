@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { Center, Spinner, Text } from '@chakra-ui/react'
 import * as echarts from 'echarts'
 import { EChartsWrapper } from '@/shared/components/common'
 import type { EntityPerformance } from '../../types'
@@ -9,9 +10,17 @@ interface BarChartProps {
   title: string
   className?: string
   height?: string | number
+  isLoading?: boolean
 }
 
-export function BarChart({ data, metric, title, className, height = '400px' }: BarChartProps) {
+export function BarChart({
+  data,
+  metric,
+  title,
+  className,
+  height = '400px',
+  isLoading = false,
+}: BarChartProps) {
   const option = useMemo<echarts.EChartsOption>(() => {
     const sortedData = [...data].sort((a, b) => b[metric] - a[metric])
 
@@ -102,6 +111,26 @@ export function BarChart({ data, metric, title, className, height = '400px' }: B
       ],
     }
   }, [data, metric, title])
+
+  const containerHeight = typeof height === 'number' ? `${height}px` : height
+
+  if (isLoading) {
+    return (
+      <Center h={containerHeight}>
+        <Spinner />
+      </Center>
+    )
+  }
+
+  if (data.length === 0) {
+    return (
+      <Center h={containerHeight}>
+        <Text color="gray.500" fontSize="sm">
+          No data available
+        </Text>
+      </Center>
+    )
+  }
 
   return <EChartsWrapper option={option} className={className} height={height} />
 }

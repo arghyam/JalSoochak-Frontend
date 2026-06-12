@@ -9,8 +9,6 @@ import {
   VStack,
   Heading,
   Spinner,
-  Checkbox,
-  CheckboxGroup,
   RadioGroup,
   Radio,
   Input,
@@ -19,17 +17,10 @@ import {
   FormErrorMessage,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { EditIcon, WarningTwoIcon } from '@chakra-ui/icons'
+import { EditIcon } from '@chakra-ui/icons'
 import { FiUpload } from 'react-icons/fi'
-import { AiOutlineInfoCircle } from 'react-icons/ai'
 import { useToast } from '@/shared/hooks/use-toast'
-import {
-  ActionTooltip,
-  TimePicker,
-  ToastContainer,
-  PageHeader,
-  RequiredIndicator,
-} from '@/shared/components/common'
+import { ToastContainer, PageHeader, RequiredIndicator } from '@/shared/components/common'
 import {
   useConfigStatusQuery,
   useConfigurationQuery,
@@ -42,13 +33,11 @@ import {
 } from '../../services/query/use-state-admin-queries'
 import type { ConfigKey } from '../../types/config-status'
 import {
-  CHANNEL_CODE_TO_NAME,
   FALLBACK_SYSTEM_CHANNELS,
   DEFAULT_DATE_FORMAT_CONFIG,
   DEFAULT_METER_CHANGE_REASONS,
   DEFAULT_SUPPLY_OUTAGE_REASONS,
   type DateFormatConfig,
-  type KnownSupportedChannel,
   type MeterChangeReason,
   type SupplyOutageReason,
   type SupportedChannel,
@@ -56,6 +45,10 @@ import {
 import { MeterChangeReasonsSection } from './meter-change-reasons-section'
 import { SupplyOutageReasonsSection } from './supply-outage-reasons-section'
 import { DateFormatSection } from './date-format-section'
+import { ViewMode, FieldInfoIcon } from './configuration-view-mode'
+import { ChannelsSection } from './channels-section'
+import { MapLevelsSection } from './map-levels-section'
+import { NudgeTimeSection } from './nudge-time-section'
 import {
   validateDescriptiveField,
   hasDuplicates,
@@ -132,15 +125,6 @@ function buildInitialDraft(
       : { ...DEFAULT_DATE_FORMAT_CONFIG },
     averageMembersPerHousehold: config?.averageMembersPerHousehold ?? 0,
   }
-}
-
-function applyLevelCascade(levels: boolean[], changedIndex: number, value: boolean): boolean[] {
-  const next = [...levels]
-  next[changedIndex] = value
-  if (!value) {
-    for (let i = changedIndex + 1; i < next.length; i++) next[i] = false
-  }
-  return next
 }
 
 function mapMeterChangeReasonIdsForPayload(reasons: MeterChangeReason[]): MeterChangeReason[] {
@@ -483,14 +467,6 @@ export function ConfigurationPage() {
     }
   }
 
-  const handleChannelChange = (values: string[]) => {
-    setDraft((prev) => ({
-      ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
-      supportedChannels: values as SupportedChannel[],
-    }))
-    clearError('supportedChannels')
-  }
-
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -662,114 +638,24 @@ export function ConfigurationPage() {
             >
               <VStack spacing={6} align="stretch">
                 {/* Supported Channels — 2-column vertical flow */}
-                <FormControl
-                  id="config-field-supported-channels"
-                  isInvalid={!!errors.supportedChannels}
-                >
-                  <Flex align="center" gap={1} mb={3}>
-                    <Text
-                      fontSize={{ base: 'xs', md: 'sm' }}
-                      fontWeight="medium"
-                      color="neutral.950"
-                    >
-                      {t('configuration.sections.supportedChannels.title')}
-                      <RequiredIndicator required={isMandatory('TENANT_SUPPORTED_CHANNELS')} />
-                    </Text>
-                    <FieldInfoIcon tooltip={t('configuration.infoText.supportedChannels')} />
-                  </Flex>
-                  {isSystemChannelsLoading ? (
-                    <Flex align="center" gap={2}>
-                      <Spinner size="sm" color="primary.500" />
-                      <Text fontSize="sm" color="neutral.600">
-                        {t('common:loading')}
-                      </Text>
-                    </Flex>
-                  ) : (
-                    <>
-                      {isSystemChannelsError && (
-                        <Text fontSize="sm" color="error.500" mb={2}>
-                          {t('common:toast.failedToLoad')}
-                        </Text>
-                      )}
-                      <CheckboxGroup
-                        value={activeDraft.supportedChannels}
-                        onChange={handleChannelChange}
-                      >
-                        <SimpleGrid columns={2} spacing={3} w={{ base: 'full', md: '400px' }}>
-                          <VStack align="start" spacing={3}>
-                            {allDisplayChannels.slice(0, halfChannels).map((code) => {
-                              const isRemoved =
-                                config?.degraded &&
-                                (config.removedChannels ?? []).includes(code as SupportedChannel)
-                              return (
-                                <HStack key={code} spacing={1} align="center">
-                                  <Checkbox value={code} isDisabled={!!isRemoved}>
-                                    <Text
-                                      fontSize="sm"
-                                      color={isRemoved ? 'neutral.400' : 'neutral.950'}
-                                    >
-                                      {CHANNEL_CODE_TO_NAME[code as KnownSupportedChannel] ?? code}
-                                    </Text>
-                                  </Checkbox>
-                                  {isRemoved && (
-                                    <ActionTooltip
-                                      label={t(
-                                        'configuration.sections.supportedChannels.degradedTooltip'
-                                      )}
-                                    >
-                                      <WarningTwoIcon
-                                        color="error.500"
-                                        boxSize={3}
-                                        aria-label={t(
-                                          'configuration.sections.supportedChannels.degradedTooltip'
-                                        )}
-                                      />
-                                    </ActionTooltip>
-                                  )}
-                                </HStack>
-                              )
-                            })}
-                          </VStack>
-                          <VStack align="start" spacing={3}>
-                            {allDisplayChannels.slice(halfChannels).map((code) => {
-                              const isRemoved =
-                                config?.degraded &&
-                                (config.removedChannels ?? []).includes(code as SupportedChannel)
-                              return (
-                                <HStack key={code} spacing={1} align="center">
-                                  <Checkbox value={code} isDisabled={!!isRemoved}>
-                                    <Text
-                                      fontSize="sm"
-                                      color={isRemoved ? 'neutral.400' : 'neutral.950'}
-                                    >
-                                      {CHANNEL_CODE_TO_NAME[code as KnownSupportedChannel] ?? code}
-                                    </Text>
-                                  </Checkbox>
-                                  {isRemoved && (
-                                    <ActionTooltip
-                                      label={t(
-                                        'configuration.sections.supportedChannels.degradedTooltip'
-                                      )}
-                                    >
-                                      <WarningTwoIcon
-                                        color="error.500"
-                                        boxSize={3}
-                                        aria-label={t(
-                                          'configuration.sections.supportedChannels.degradedTooltip'
-                                        )}
-                                      />
-                                    </ActionTooltip>
-                                  )}
-                                </HStack>
-                              )
-                            })}
-                          </VStack>
-                        </SimpleGrid>
-                      </CheckboxGroup>
-                    </>
-                  )}
-                  <FormErrorMessage>{errors.supportedChannels}</FormErrorMessage>
-                </FormControl>
+                <ChannelsSection
+                  allDisplayChannels={allDisplayChannels}
+                  halfChannels={halfChannels}
+                  selectedChannels={activeDraft.supportedChannels}
+                  errors={errors}
+                  required={isMandatory('TENANT_SUPPORTED_CHANNELS')}
+                  isLoading={isSystemChannelsLoading}
+                  isError={isSystemChannelsError}
+                  degraded={config?.degraded ?? false}
+                  removedChannels={config?.removedChannels ?? []}
+                  onChange={(channels) =>
+                    setDraft((d) => ({
+                      ...(d ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                      supportedChannels: channels,
+                    }))
+                  }
+                  onClearError={clearError}
+                />
 
                 {/* 4. Meter Change Reasons */}
                 <MeterChangeReasonsSection
@@ -842,183 +728,72 @@ export function ConfigurationPage() {
 
                 {/* 6a. LGD Map Levels (if lgdLevelCount > 0) */}
                 {lgdLevelCount > 0 && (
-                  <Box>
-                    <Flex align="center" gap={1} mb={3}>
-                      <Text fontSize="sm" fontWeight="600" color="neutral.950">
-                        {t('configuration.sections.lgdMapLevels.title')}
-                      </Text>
-                      <FieldInfoIcon tooltip={t('configuration.infoText.lgdMapLevels')} />
-                    </Flex>
-                    <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                      {Array.from({ length: lgdLevelCount }).map((_, i) => (
-                        <Box key={`lgd-level-${i + 1}`}>
-                          <Flex align="center" gap={1} mb={2}>
-                            <Text
-                              fontSize={{ base: 'xs', md: 'sm' }}
-                              fontWeight="medium"
-                              color="neutral.950"
-                            >
-                              {t('configuration.sections.lgdMapLevels.displayLevelLabel', {
-                                level: i + 1,
-                              })}
-                            </Text>
-                          </Flex>
-                          <RadioGroup
-                            value={activeDraft.displayMapLgdLevels[i] ? 'yes' : 'no'}
-                            onChange={(val) =>
-                              setDraft((prev) => ({
-                                ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
-                                displayMapLgdLevels: applyLevelCascade(
-                                  prev?.displayMapLgdLevels ?? activeDraft.displayMapLgdLevels,
-                                  i,
-                                  val === 'yes'
-                                ),
-                              }))
-                            }
-                            isDisabled={i > 0 && !activeDraft.displayMapLgdLevels[i - 1]}
-                          >
-                            <HStack spacing={6}>
-                              <Radio value="yes">
-                                <Text fontSize="sm" color="neutral.950">
-                                  {t('common:yes')}
-                                </Text>
-                              </Radio>
-                              <Radio value="no">
-                                <Text fontSize="sm" color="neutral.950">
-                                  {t('common:no')}
-                                </Text>
-                              </Radio>
-                            </HStack>
-                          </RadioGroup>
-                        </Box>
-                      ))}
-                    </SimpleGrid>
-                  </Box>
+                  <MapLevelsSection
+                    title={t('configuration.sections.lgdMapLevels.title')}
+                    infoTooltip={t('configuration.infoText.lgdMapLevels')}
+                    levelCount={lgdLevelCount}
+                    levelLabelKey="configuration.sections.lgdMapLevels.displayLevelLabel"
+                    value={activeDraft.displayMapLgdLevels}
+                    onChange={(newLevels) =>
+                      setDraft((prev) => ({
+                        ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                        displayMapLgdLevels: newLevels,
+                      }))
+                    }
+                  />
                 )}
 
                 {/* 6b. Department Map Levels (if deptLevelCount > 0) */}
                 {deptLevelCount > 0 && (
-                  <Box>
-                    <Flex align="center" gap={1} mb={3}>
-                      <Text fontSize="sm" fontWeight="600" color="neutral.950">
-                        {t('configuration.sections.departmentMapLevels.title')}
-                      </Text>
-                      <FieldInfoIcon tooltip={t('configuration.infoText.departmentMapLevels')} />
-                    </Flex>
-                    <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                      {Array.from({ length: deptLevelCount }).map((_, i) => (
-                        <Box key={`dept-level-${i + 1}`}>
-                          <Flex align="center" gap={1} mb={2}>
-                            <Text
-                              fontSize={{ base: 'xs', md: 'sm' }}
-                              fontWeight="medium"
-                              color="neutral.950"
-                            >
-                              {t('configuration.sections.departmentMapLevels.displayLevelLabel', {
-                                level: i + 1,
-                              })}
-                            </Text>
-                          </Flex>
-                          <RadioGroup
-                            value={activeDraft.displayDepartmentMapLevels[i] ? 'yes' : 'no'}
-                            onChange={(val) =>
-                              setDraft((prev) => ({
-                                ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
-                                displayDepartmentMapLevels: applyLevelCascade(
-                                  prev?.displayDepartmentMapLevels ??
-                                    activeDraft.displayDepartmentMapLevels,
-                                  i,
-                                  val === 'yes'
-                                ),
-                              }))
-                            }
-                            isDisabled={i > 0 && !activeDraft.displayDepartmentMapLevels[i - 1]}
-                          >
-                            <HStack spacing={6}>
-                              <Radio value="yes">
-                                <Text fontSize="sm" color="neutral.950">
-                                  {t('common:yes')}
-                                </Text>
-                              </Radio>
-                              <Radio value="no">
-                                <Text fontSize="sm" color="neutral.950">
-                                  {t('common:no')}
-                                </Text>
-                              </Radio>
-                            </HStack>
-                          </RadioGroup>
-                        </Box>
-                      ))}
-                    </SimpleGrid>
-                  </Box>
+                  <MapLevelsSection
+                    title={t('configuration.sections.departmentMapLevels.title')}
+                    infoTooltip={t('configuration.infoText.departmentMapLevels')}
+                    levelCount={deptLevelCount}
+                    levelLabelKey="configuration.sections.departmentMapLevels.displayLevelLabel"
+                    value={activeDraft.displayDepartmentMapLevels}
+                    onChange={(newLevels) =>
+                      setDraft((prev) => ({
+                        ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                        displayDepartmentMapLevels: newLevels,
+                      }))
+                    }
+                  />
                 )}
 
                 {/* 7. Data Consolidation Time + Pump Operator Reminder Nudge Time */}
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-                  <FormControl isInvalid={!!errors.dataConsolidationTime}>
-                    <Flex align="center" gap={1} mb={1}>
-                      <Text
-                        as="label"
-                        htmlFor="data-consolidation-time"
-                        fontSize={{ base: 'xs', md: 'sm' }}
-                        fontWeight="medium"
-                        color="neutral.950"
-                        display="block"
-                      >
-                        {t('configuration.sections.dataConsolidationTime.title')}
-                        <RequiredIndicator required={isMandatory('DATA_CONSOLIDATION_TIME')} />
-                      </Text>
-                      <FieldInfoIcon tooltip={t('configuration.infoText.dataConsolidationTime')} />
-                    </Flex>
-                    <TimePicker
-                      id="data-consolidation-time"
-                      value={activeDraft.dataConsolidationTime}
-                      onChange={(val) => {
-                        setDraft((prev) => ({
-                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
-                          dataConsolidationTime: val,
-                        }))
-                        clearError('dataConsolidationTime')
-                      }}
-                      isInvalid={!!errors.dataConsolidationTime}
-                      w={{ base: 'full', xl: '486px' }}
-                    />
-                    <FormErrorMessage>{errors.dataConsolidationTime}</FormErrorMessage>
-                  </FormControl>
-                  <FormControl isInvalid={!!errors.pumpOperatorReminderNudgeTime}>
-                    <Flex align="center" gap={1} mb={1}>
-                      <Text
-                        as="label"
-                        htmlFor="pump-operator-nudge-time"
-                        fontSize={{ base: 'xs', md: 'sm' }}
-                        fontWeight="medium"
-                        color="neutral.950"
-                        display="block"
-                      >
-                        {t('configuration.sections.pumpOperatorReminderNudgeTime.title')}
-                        <RequiredIndicator
-                          required={isMandatory('PUMP_OPERATOR_REMINDER_NUDGE_TIME')}
-                        />
-                      </Text>
-                      <FieldInfoIcon
-                        tooltip={t('configuration.infoText.pumpOperatorReminderNudgeTime')}
-                      />
-                    </Flex>
-                    <TimePicker
-                      id="pump-operator-nudge-time"
-                      value={activeDraft.pumpOperatorReminderNudgeTime}
-                      onChange={(val) => {
-                        setDraft((prev) => ({
-                          ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
-                          pumpOperatorReminderNudgeTime: val,
-                        }))
-                        clearError('pumpOperatorReminderNudgeTime')
-                      }}
-                      isInvalid={!!errors.pumpOperatorReminderNudgeTime}
-                      w={{ base: 'full', xl: '486px' }}
-                    />
-                    <FormErrorMessage>{errors.pumpOperatorReminderNudgeTime}</FormErrorMessage>
-                  </FormControl>
+                  <NudgeTimeSection
+                    title={t('configuration.sections.dataConsolidationTime.title')}
+                    infoTooltip={t('configuration.infoText.dataConsolidationTime')}
+                    required={isMandatory('DATA_CONSOLIDATION_TIME')}
+                    value={activeDraft.dataConsolidationTime}
+                    fieldId="data-consolidation-time"
+                    errorKey="dataConsolidationTime"
+                    error={errors.dataConsolidationTime}
+                    onChange={(val) =>
+                      setDraft((prev) => ({
+                        ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                        dataConsolidationTime: val,
+                      }))
+                    }
+                    onClearError={clearError}
+                  />
+                  <NudgeTimeSection
+                    title={t('configuration.sections.pumpOperatorReminderNudgeTime.title')}
+                    infoTooltip={t('configuration.infoText.pumpOperatorReminderNudgeTime')}
+                    required={isMandatory('PUMP_OPERATOR_REMINDER_NUDGE_TIME')}
+                    value={activeDraft.pumpOperatorReminderNudgeTime}
+                    fieldId="pump-operator-nudge-time"
+                    errorKey="pumpOperatorReminderNudgeTime"
+                    error={errors.pumpOperatorReminderNudgeTime}
+                    onChange={(val) =>
+                      setDraft((prev) => ({
+                        ...(prev ?? buildInitialDraft(config, logoObjectUrl ?? undefined)),
+                        pumpOperatorReminderNudgeTime: val,
+                      }))
+                    }
+                    onClearError={clearError}
+                  />
                 </SimpleGrid>
 
                 {/* 8. Screen Date Format + Table Date Format */}
@@ -1220,260 +995,5 @@ export function ConfigurationPage() {
 
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </Box>
-  )
-}
-
-// ─── View Mode ────────────────────────────────────────────────────────────────
-
-function FieldInfoIcon({ tooltip }: { tooltip: string }) {
-  return (
-    <ActionTooltip label={tooltip}>
-      <Flex
-        as="span"
-        align="center"
-        color="neutral.400"
-        cursor="default"
-        _hover={{ color: 'primary.500' }}
-      >
-        <AiOutlineInfoCircle size={16} aria-label={tooltip} />
-      </Flex>
-    </ActionTooltip>
-  )
-}
-
-function ViewField({ label, value, color }: { label: string; value: string; color?: string }) {
-  return (
-    <Box>
-      <Text
-        fontSize={{ base: 'xs', md: 'sm' }}
-        fontWeight="medium"
-        color={color ?? 'neutral.950'}
-        mb={1}
-      >
-        {label}
-      </Text>
-      <Text fontSize={{ base: 'xs', md: 'sm' }} color="neutral.950">
-        {value || '-'}
-      </Text>
-    </Box>
-  )
-}
-
-function ViewSection({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <Box>
-      <Text fontSize={{ base: 'xs', md: 'sm' }} fontWeight="medium" color="neutral.950" mb={3}>
-        {title}
-      </Text>
-      {children}
-    </Box>
-  )
-}
-
-function ViewMode({
-  config,
-  logoUrl,
-  isLogoLoading,
-  isLogoError,
-  notFound,
-  t,
-  lgdLevelCount,
-  deptLevelCount,
-}: {
-  config: NonNullable<ReturnType<typeof useConfigurationQuery>['data']>
-  logoUrl: string | undefined
-  isLogoLoading: boolean
-  isLogoError: boolean
-  notFound: boolean
-  t: ReturnType<typeof useTranslation<['state-admin', 'common']>>['t']
-  lgdLevelCount: number
-  deptLevelCount: number
-}) {
-  return (
-    <VStack spacing={6} align="stretch">
-      {/* Supported Channels */}
-      <ViewSection title={t('configuration.sections.supportedChannels.title')}>
-        <Text fontSize="sm" color="neutral.950">
-          {config.supportedChannels.length > 0
-            ? config.supportedChannels
-                .map((c) => CHANNEL_CODE_TO_NAME[c as KnownSupportedChannel] ?? c)
-                .join(', ')
-            : '-'}
-        </Text>
-      </ViewSection>
-
-      {/* Meter Change Reasons — 2-column grid */}
-      <ViewSection title={t('configuration.sections.meterChangeReasons.title')}>
-        {config.meterChangeReasons.length > 0 ? (
-          <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={2}>
-            {config.meterChangeReasons.map((r) => (
-              <Text key={r.id} fontSize="sm" color="neutral.950">
-                {r.name}
-              </Text>
-            ))}
-          </SimpleGrid>
-        ) : (
-          <Text fontSize="sm" color="neutral.500">
-            -
-          </Text>
-        )}
-      </ViewSection>
-
-      {/* Supply Outage Reasons — 2-column grid */}
-      <ViewSection title={t('configuration.sections.supplyOutageReasons.title')}>
-        {config.supplyOutageReasons.length > 0 ? (
-          <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={2}>
-            {config.supplyOutageReasons.map((r) => (
-              <Text key={r.id} fontSize="sm" color="neutral.950">
-                {r.name}
-              </Text>
-            ))}
-          </SimpleGrid>
-        ) : (
-          <Text fontSize="sm" color="neutral.500">
-            -
-          </Text>
-        )}
-      </ViewSection>
-
-      {/* Record Location */}
-      <ViewField
-        label={t('configuration.sections.locationCheckRequired.title')}
-        value={
-          config.locationCheckRequired
-            ? t('configuration.sections.locationCheckRequired.yes')
-            : t('configuration.sections.locationCheckRequired.no')
-        }
-        color="neutral.950"
-      />
-
-      {/* LGD Map Levels */}
-      {lgdLevelCount > 0 && (
-        <Box>
-          <Text fontSize="sm" fontWeight="600" color="neutral.950" mb={3}>
-            {t('configuration.sections.lgdMapLevels.title')}
-          </Text>
-          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-            {Array.from({ length: lgdLevelCount }).map((_, i) => (
-              <ViewField
-                key={`view-lgd-level-${i + 1}`}
-                label={t('configuration.sections.lgdMapLevels.displayLevelLabel', { level: i + 1 })}
-                value={
-                  config.displayMapLgdLevels[i]
-                    ? t('yes', { ns: 'common' })
-                    : t('no', { ns: 'common' })
-                }
-                color="neutral.950"
-              />
-            ))}
-          </SimpleGrid>
-        </Box>
-      )}
-
-      {/* Department Map Levels */}
-      {deptLevelCount > 0 && (
-        <Box>
-          <Text fontSize="sm" fontWeight="600" color="neutral.950" mb={3}>
-            {t('configuration.sections.departmentMapLevels.title')}
-          </Text>
-          <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-            {Array.from({ length: deptLevelCount }).map((_, i) => (
-              <ViewField
-                key={`view-dept-level-${i + 1}`}
-                label={t('configuration.sections.departmentMapLevels.displayLevelLabel', {
-                  level: i + 1,
-                })}
-                value={
-                  config.displayDepartmentMapLevels[i]
-                    ? t('yes', { ns: 'common' })
-                    : t('no', { ns: 'common' })
-                }
-                color="neutral.950"
-              />
-            ))}
-          </SimpleGrid>
-        </Box>
-      )}
-
-      {/* Data Consolidation Time + Pump Operator Reminder Nudge Time */}
-      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-        <ViewField
-          label={t('configuration.sections.dataConsolidationTime.title')}
-          value={config.dataConsolidationTime}
-          color="neutral.950"
-        />
-        <ViewField
-          label={t('configuration.sections.pumpOperatorReminderNudgeTime.title')}
-          value={config.pumpOperatorReminderNudgeTime}
-          color="neutral.950"
-        />
-      </SimpleGrid>
-
-      {/* Screen Date Format + Table Date Format */}
-      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-        <ViewSection title={t('configuration.sections.dateFormatScreen.title')}>
-          <Text fontSize="sm" color="neutral.950">
-            {config.dateFormatScreen.dateFormat ?? '-'}
-          </Text>
-          {/* Kept for future integration if needed */}
-          {/* <Text fontSize="sm" color="neutral.950">
-            {t('configuration.sections.dateFormat.timeFormat')}:{' '}
-            {config.dateFormatScreen.timeFormat ?? '-'}
-          </Text>
-          <Text fontSize="sm" color="neutral.950">
-            {t('configuration.sections.dateFormat.timezone')}:{' '}
-            {config.dateFormatScreen.timezone ?? '-'}
-          </Text> */}
-        </ViewSection>
-        <ViewSection title={t('configuration.sections.dateFormatTable.title')}>
-          <Text fontSize="sm" color="neutral.950">
-            {config.dateFormatTable.dateFormat ?? '-'}
-          </Text>
-          {/* Kept for future integration if needed */}
-          {/* <Text fontSize="sm" color="neutral.950">
-            {t('configuration.sections.dateFormat.timeFormat')}:{' '}
-            {config.dateFormatTable.timeFormat ?? '-'}
-          </Text>
-          <Text fontSize="sm" color="neutral.950">
-            {t('configuration.sections.dateFormat.timezone')}:{' '}
-            {config.dateFormatTable.timezone ?? '-'}
-          </Text> */}
-        </ViewSection>
-      </SimpleGrid>
-
-      {/* Average Members Per Household */}
-      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-        <ViewField
-          label={t('configuration.sections.averageMembersPerHousehold.title')}
-          value={
-            config.averageMembersPerHousehold > 0 ? String(config.averageMembersPerHousehold) : '-'
-          }
-          color="neutral.950"
-        />
-      </SimpleGrid>
-
-      {/* Logo (last) */}
-      <ViewSection title={t('configuration.sections.logo.title')}>
-        {isLogoLoading ? (
-          <Spinner size="sm" color="primary.500" aria-label="Loading logo" />
-        ) : isLogoError && !notFound ? (
-          <Text fontSize="sm" color="error.500">
-            {t('common:toast.failedToLoad')}
-          </Text>
-        ) : logoUrl ? (
-          <Box
-            as="img"
-            src={logoUrl}
-            alt={t('configuration.sections.logo.currentLogo')}
-            h="48px"
-            objectFit="contain"
-          />
-        ) : (
-          <Text fontSize="sm" color="neutral.500">
-            -
-          </Text>
-        )}
-      </ViewSection>
-    </VStack>
   )
 }

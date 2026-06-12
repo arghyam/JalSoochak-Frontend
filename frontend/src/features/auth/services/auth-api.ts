@@ -231,20 +231,6 @@ export const authApi = {
     await apiClient.post('/api/v1/auth/register', payload)
   },
 
-  /** Fetch user email by invite/token ID (e.g. from reset/create-password link). Mock for now. */
-  getUserByInviteId: async (id: string): Promise<InviteUserResponse> => {
-    await new Promise((r) => setTimeout(r, 400))
-    const INVITE_MOCK: Record<string, string> = {
-      'invite-123': 'test@test.com',
-      'invite-456': 'stateadmin@test.com',
-    }
-    const email = INVITE_MOCK[id]
-    if (!email) {
-      throw new Error('Invalid or expired invite link.')
-    }
-    return { email }
-  },
-
   /** POST /api/v2/user/set-password — set system user password. */
   createPassword: async (params: SetPasswordRequest): Promise<void> => {
     const headers: Record<string, string> = {}

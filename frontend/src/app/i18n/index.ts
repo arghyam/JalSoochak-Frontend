@@ -8,11 +8,13 @@ import enDashboard from '@/locales/en/dashboard.json'
 import enSuperAdmin from '@/locales/en/super-admin.json'
 import enStateAdmin from '@/locales/en/state-admin.json'
 import enSectionOfficer from '@/locales/en/section-officer.json'
+import enAuth from '@/locales/en/auth.json'
 import hiCommon from '@/locales/hi/common.json'
 import hiDashboard from '@/locales/hi/dashboard.json'
 import hiSuperAdmin from '@/locales/hi/super-admin.json'
 import hiStateAdmin from '@/locales/hi/state-admin.json'
 import hiSectionOfficer from '@/locales/hi/section-officer.json'
+import hiAuth from '@/locales/hi/auth.json'
 
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English', nativeName: 'English' },
@@ -30,6 +32,7 @@ const resources = {
     'super-admin': enSuperAdmin,
     'state-admin': enStateAdmin,
     'section-officer': enSectionOfficer,
+    auth: enAuth,
   },
   hi: {
     common: hiCommon,
@@ -37,6 +40,7 @@ const resources = {
     'super-admin': hiSuperAdmin,
     'state-admin': hiStateAdmin,
     'section-officer': hiSectionOfficer,
+    auth: hiAuth,
   },
 }
 
@@ -51,7 +55,7 @@ i18n.use(initReactI18next).init({
   fallbackLng: DEFAULT_LANGUAGE,
   lng: isTestEnv ? DEFAULT_LANGUAGE : undefined,
   defaultNS: 'common',
-  ns: ['common', 'dashboard', 'super-admin', 'state-admin', 'section-officer'],
+  ns: ['common', 'dashboard', 'super-admin', 'state-admin', 'section-officer', 'auth'],
 
   detection: isTestEnv
     ? undefined
