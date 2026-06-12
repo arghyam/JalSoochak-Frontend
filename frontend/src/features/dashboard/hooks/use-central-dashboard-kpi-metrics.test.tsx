@@ -3,6 +3,36 @@ import i18n from '@/app/i18n'
 import { buildCentralDashboardKpiMetrics } from './use-central-dashboard-kpi-metrics'
 
 describe('buildCentralDashboardKpiMetrics', () => {
+  it('uses singular day labels for a one-day comparison', () => {
+    const metrics = buildCentralDashboardKpiMetrics({
+      comparisonDays: 1,
+      criticalSchemeStatusAfterDays: 3,
+      currentRegularityKpi: 10,
+      currentWaterSupplyKpis: {
+        quantityMld: 10,
+        quantityLpcd: 10,
+      },
+      isCentralLandingView: false,
+      numberLocale: 'en-IN',
+      previousContinuousSchemesCount: 10,
+      previousRegularityKpi: 10,
+      previousWaterSupplyKpis: {
+        quantityMld: 10,
+        quantityLpcd: 10,
+      },
+      t: i18n.getFixedT('en', 'dashboard'),
+      continuousSchemesCount: 10,
+      criticalSchemesCount: 0,
+    })
+
+    const trendTexts = metrics.flatMap((metric) => ('trend' in metric ? [metric.trend.text] : []))
+
+    trendTexts.forEach((trendText) => {
+      expect(trendText).toContain('previous 1 day')
+      expect(trendText).not.toContain('previous 1 days')
+    })
+  })
+
   it('localizes KPI comparison trends in Hindi', () => {
     const metrics = buildCentralDashboardKpiMetrics({
       comparisonDays: 129,
