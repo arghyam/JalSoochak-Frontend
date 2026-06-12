@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   UserAdminListPage,
@@ -12,6 +12,7 @@ import {
   useSuperUsersQuery,
   useReinviteSuperUserMutation,
 } from '../../services/query/use-super-admin-queries'
+import { usePageTitle } from '@/shared/hooks'
 
 type StatusFilter = 'all' | 'active' | 'inactive' | 'pending'
 
@@ -33,9 +34,7 @@ export function SuperUsersPage() {
   const reinviteMutation = useReinviteSuperUserMutation()
   const toast = useToast()
 
-  useEffect(() => {
-    document.title = `${t('superUsers.title')} | JalSoochak`
-  }, [t])
+  usePageTitle('superUsers.title', 'super-admin')
 
   const handleReinvite = (id: string) => {
     if (reinviteMutation.isPending) return

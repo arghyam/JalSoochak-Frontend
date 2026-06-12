@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Box,
   Text,
@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next'
 import { SearchableSelect, PageHeader } from '@/shared/components/common'
 import { getLocaleByLabel } from '@/shared/constants/languages'
 import { useMessageTemplatesQuery } from '../../services/query/use-state-admin-queries'
+import { usePageTitle } from '@/shared/hooks'
 import type { LanguageCode, ScreenName } from '../../types/message-templates'
 import { SCREEN_NAMES } from '../../types/message-templates'
 
@@ -25,9 +26,7 @@ export function MessageTemplatesPage() {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('')
   const [selectedScreen, setSelectedScreen] = useState<ScreenName | ''>('')
 
-  useEffect(() => {
-    document.title = `${t('messageTemplates.title')} | JalSoochak`
-  }, [t])
+  usePageTitle('messageTemplates.title', 'state-admin')
 
   // Reset screen selection when language changes
   const handleLanguageChange = (value: string) => {

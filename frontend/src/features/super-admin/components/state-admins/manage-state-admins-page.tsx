@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -26,6 +26,8 @@ import {
 } from '@/shared/components/common'
 import { useToast } from '@/shared/hooks/use-toast'
 import { useDebounce } from '@/shared/hooks/use-debounce'
+import { usePageTitle } from '@/shared/hooks'
+import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '@/shared/constants/pagination'
 import type { StateAdmin } from '../../types/state-admins'
 import { ROUTES } from '@/shared/constants/routes'
 import {
@@ -39,7 +41,7 @@ export function ManageStateAdminsPage() {
   const { t } = useTranslation(['super-admin', 'common'])
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<AdminStatusFilter>('all')
   const debouncedSearch = useDebounce(searchQuery, 400)
@@ -60,9 +62,7 @@ export function ManageStateAdminsPage() {
     })
   }
 
-  useEffect(() => {
-    document.title = `${t('manageStateAdmins.title')} | JalSoochak`
-  }, [t])
+  usePageTitle('manageStateAdmins.title', 'super-admin')
 
   if (isError) {
     return (
@@ -146,17 +146,7 @@ export function ManageStateAdminsPage() {
       key: 'status',
       header: t('common:statusLabel', 'Status'),
       sortable: false,
-      render: (row) => {
-        let statusLabel: string
-        if (row.status === 'active') {
-          statusLabel = t('common:status.active')
-        } else if (row.status === 'inactive') {
-          statusLabel = t('common:status.inactive')
-        } else {
-          statusLabel = t('common:status.pending')
-        }
-        return <StatusChip status={row.status} label={statusLabel} />
-      },
+      render: (row) => <StatusChip status={row.status} />,
     },
     {
       key: 'actions',
@@ -290,7 +280,7 @@ export function ManageStateAdminsPage() {
             setPageSize(size)
             setPage(1)
           },
-          pageSizeOptions: [10, 25, 50],
+          pageSizeOptions: PAGE_SIZE_OPTIONS,
         }}
       />
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />

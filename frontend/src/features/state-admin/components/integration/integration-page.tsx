@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -16,6 +16,7 @@ import {
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/shared/hooks/use-toast'
+import { usePageTitle } from '@/shared/hooks'
 import { ToastContainer, PageHeader } from '@/shared/components/common'
 import {
   useIntegrationConfigurationQuery,
@@ -85,9 +86,7 @@ export function IntegrationPage() {
   const toast = useToast()
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  useEffect(() => {
-    document.title = `${t('integration.title')} | JalSoochak`
-  }, [t])
+  usePageTitle('integration.title', 'state-admin')
 
   const apiUrl = formValues.apiUrl ?? config?.apiUrl ?? ''
   const apiKey = formValues.newApiKey ?? config?.apiKey ?? ''

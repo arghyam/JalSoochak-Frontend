@@ -4,6 +4,7 @@ import type { ViewByValue } from '@/shared/components/common/view-by-select'
 import { MetricPerformanceChart, MonthlyTrendChart } from '../charts'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import type { EntityPerformance } from '../../types'
+import { useTranslation } from 'react-i18next'
 
 type PerformanceMetric = 'quantity' | 'regularity'
 type PerformanceTimeScale = 'day' | 'week' | 'month' | 'quarter' | 'year'
@@ -15,10 +16,13 @@ type PerformanceChartCardProps = {
   onViewByChange: (value: ViewByValue) => void
   data: EntityPerformance[]
   isGeographyLoading?: boolean
+  isGeographyError?: boolean
   metric: PerformanceMetric
   timeTrendData: MonthlyTrendPoint[]
   isTimeTrendLoading?: boolean
+  isTimeTrendError?: boolean
   isTimeTrendAwaitingParams?: boolean
+  errorMessage?: string
   entityLabel: string
   yAxisLabel: string
   seriesName: string
@@ -47,10 +51,13 @@ export function PerformanceChartCard({
   onViewByChange,
   data,
   isGeographyLoading = false,
+  isGeographyError = false,
   metric,
   timeTrendData,
   isTimeTrendLoading = false,
+  isTimeTrendError = false,
   isTimeTrendAwaitingParams = false,
+  errorMessage,
   entityLabel,
   yAxisLabel,
   seriesName,
@@ -71,6 +78,7 @@ export function PerformanceChartCard({
   hideViewBySelect = false,
   isTimeViewEnabled = true,
 }: PerformanceChartCardProps) {
+  const { t } = useTranslation('dashboard')
   const effectiveViewBy = isTimeViewEnabled ? viewBy : 'geography'
   const hasGeographyData = data.length > 0
   const hasTimeData = timeTrendData.length > 0
@@ -82,30 +90,33 @@ export function PerformanceChartCard({
   const onTimeScaleTabChange =
     metric === 'quantity' ? onQuantityTimeScaleTabChange : onRegularityTimeScaleTabChange
   const hasTimeScaleControl = Boolean(timeScaleTab && onTimeScaleTabChange)
-  const metricTimeXAxisLabel =
-    timeScaleTab === 'day'
-      ? 'Day'
-      : timeScaleTab === 'week'
-        ? 'Week'
-        : timeScaleTab === 'month'
-          ? 'Month'
-          : timeScaleTab === 'quarter'
-            ? 'Quarter'
-            : 'Year'
-  const timeScaleItems: Array<{ key: PerformanceTimeScale; label: string }> =
-    enableExtendedTimeScales
-      ? [
-          { key: 'day', label: 'D' },
-          { key: 'week', label: 'W' },
-          { key: 'month', label: 'M' },
-          { key: 'quarter', label: 'Q' },
-          { key: 'year', label: 'Y' },
-        ]
-      : [
-          { key: 'day', label: 'D' },
-          { key: 'week', label: 'W' },
-          { key: 'month', label: 'M' },
-        ]
+  const getTimeScaleLabel = (key: PerformanceTimeScale) =>
+    t(`outageAndSubmissionCharts.timeScale.${key}`, {
+      defaultValue:
+        key === 'day'
+          ? 'Day'
+          : key === 'week'
+            ? 'Week'
+            : key === 'month'
+              ? 'Month'
+              : key === 'quarter'
+                ? 'Quarter'
+                : 'Year',
+    })
+  const getTimeScaleShortLabel = (key: PerformanceTimeScale) =>
+    key === 'day'
+      ? 'D'
+      : key === 'week'
+        ? 'W'
+        : key === 'month'
+          ? 'M'
+          : key === 'quarter'
+            ? 'Q'
+            : 'Y'
+  const metricTimeXAxisLabel = getTimeScaleLabel(timeScaleTab ?? 'year')
+  const timeScaleItems: PerformanceTimeScale[] = enableExtendedTimeScales
+    ? ['day', 'week', 'month', 'quarter', 'year']
+    : ['day', 'week', 'month']
   const resolvedTimeXAxisLabel =
     (metric === 'quantity' || metric === 'regularity') &&
     effectiveViewBy === 'time' &&
@@ -160,12 +171,13 @@ export function PerformanceChartCard({
               }}
             >
               {timeScaleItems.map((item) => {
-                const isActive = timeScaleTab === item.key
+                const isActive = timeScaleTab === item
                 return (
                   <Box
                     as="button"
-                    key={item.key}
+                    key={item}
                     type="button"
+                    aria-label={getTimeScaleLabel(item)}
                     h="32px"
                     minW="44px"
                     px="12px"
@@ -174,7 +186,7 @@ export function PerformanceChartCard({
                     color="neutral.900"
                     textStyle="bodyText5"
                     fontWeight={isActive ? '600' : '500'}
-                    onClick={() => onTimeScaleTabChange?.(item.key)}
+                    onClick={() => onTimeScaleTabChange?.(item)}
                     sx={{
                       '@media (max-width: 767px)': {
                         h: '26px',
@@ -185,7 +197,7 @@ export function PerformanceChartCard({
                       },
                     }}
                   >
-                    {item.label}
+                    {getTimeScaleShortLabel(item)}
                   </Box>
                 )
               })}
@@ -217,6 +229,8 @@ export function PerformanceChartCard({
           <Flex align="center" justify="center" h="100%">
             <LoadingSpinner />
           </Flex>
+        ) : effectiveViewBy === 'geography' && isGeographyError ? (
+          <ChartEmptyState minHeight="100%" message={errorMessage} />
         ) : effectiveViewBy === 'geography' ? (
           data.length > 0 ? (
             <MetricPerformanceChart
@@ -240,6 +254,8 @@ export function PerformanceChartCard({
           <Flex align="center" justify="center" h="100%">
             <LoadingSpinner />
           </Flex>
+        ) : isTimeTrendError ? (
+          <ChartEmptyState minHeight="100%" message={errorMessage} />
         ) : timeTrendData.length > 0 ? (
           <MonthlyTrendChart
             data={timeTrendData}

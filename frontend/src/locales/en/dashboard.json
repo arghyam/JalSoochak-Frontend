@@ -1,5 +1,6 @@
 {
   "failedToLoadData": "Failed to load data. Please try again.",
+  "failedToLoadDataReload": "Failed to load data. Please reload the page.",
   "header": {
     "title": "JalSoochak",
     "subtitle": "National Rural Drinking Water Supply Dashboard",
@@ -133,6 +134,10 @@
       }
     },
     "trends": {
+      "percentVsPreviousDays_one": "{{change}}% vs previous {{days}} day",
+      "percentVsPreviousDays_other": "{{change}}% vs previous {{days}} days",
+      "lpcdVsPreviousDays_one": "{{change}} LPCD vs previous {{days}} day",
+      "lpcdVsPreviousDays_other": "{{change}} LPCD vs previous {{days}} days",
       "percentDownLastDays": "-{{change}}% vs last {{days}} days",
       "lpcdUpLastMonth": "+{{change}} LPCD vs last month",
       "percentDownLastMonth": "-{{change}}% vs last month"

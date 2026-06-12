@@ -46,7 +46,11 @@ export { UserAdminListPage } from './user-admin/user-admin-list-page'
 export { UserAdminFormPage } from './user-admin/user-admin-form-page'
 export { UserAdminViewPage } from './user-admin/user-admin-view-page'
 export type { UserAdminListPageProps } from './user-admin/user-admin-list-page'
-export type { UserAdminFormPageProps } from './user-admin/user-admin-form-page'
+export type {
+  UserAdminFormPageProps,
+  UserAdminFormConfig,
+  UserAdminFormActions,
+} from './user-admin/user-admin-form-page'
 export type { UserAdminViewPageProps } from './user-admin/user-admin-view-page'
 export type {
   UserAdminData,

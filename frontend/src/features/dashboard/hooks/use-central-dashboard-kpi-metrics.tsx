@@ -127,16 +127,35 @@ export function buildCentralDashboardKpiMetrics({
     return calculatePercentChange(currentValue, previousValue)
   }
 
+  const formatPercentTrend = (changeValue: number) =>
+    t('kpi.trends.percentVsPreviousDays', {
+      change: formatSignedValue(changeValue, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 1,
+      }),
+      days: comparisonDays,
+      count: comparisonDays,
+      defaultValue: '{{change}}% vs previous {{days}} days',
+    })
+
+  const formatLpcdTrend = (changeValue: number) =>
+    t('kpi.trends.lpcdVsPreviousDays', {
+      change: formatSignedValue(changeValue, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 1,
+      }),
+      days: comparisonDays,
+      count: comparisonDays,
+      defaultValue: '{{change}} LPCD vs previous {{days}} days',
+    })
+
   const buildCountPercentTrend = (currentValue: number, previousValue: number): Trend => {
     const changeValue = getCountPercentChange(currentValue, previousValue)
 
     return {
       direction:
         currentValue === 0 && previousValue === 0 ? 'neutral' : toTrendDirection(changeValue),
-      text: `${formatSignedValue(changeValue, {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 1,
-      })}% vs previous ${comparisonDays} days`,
+      text: formatPercentTrend(changeValue),
     }
   }
 
@@ -168,11 +187,7 @@ export function buildCentralDashboardKpiMetrics({
       trend: buildNeutralAwareTrend(
         currentWaterSupplyKpis.quantityMld,
         quantityMldChange,
-        (trendValue) =>
-          `${formatSignedValue(trendValue, {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 1,
-          })}% vs previous ${comparisonDays} days`
+        formatPercentTrend
       ),
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
@@ -223,11 +238,7 @@ export function buildCentralDashboardKpiMetrics({
       trend: buildNeutralAwareTrend(
         currentWaterSupplyKpis.quantityLpcd,
         quantityLpcdChange,
-        (trendValue) =>
-          `${formatSignedValue(trendValue, {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 1,
-          })} LPCD vs previous ${comparisonDays} days`
+        formatLpcdTrend
       ),
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
@@ -281,15 +292,7 @@ export function buildCentralDashboardKpiMetrics({
         minimumFractionDigits: 1,
         maximumFractionDigits: 1,
       })}%`,
-      trend: buildNeutralAwareTrend(
-        currentRegularityKpi,
-        regularityChange,
-        (trendValue) =>
-          `${formatSignedValue(trendValue, {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 1,
-          })}% vs previous ${comparisonDays} days`
-      ),
+      trend: buildNeutralAwareTrend(currentRegularityKpi, regularityChange, formatPercentTrend),
       icon: (
         <Flex w="48px" h="48px" borderRadius="100px" bg="#EAF2FA" align="center" justify="center">
           <Image src={wallClockIcon} alt="" w="24px" h="24px" />

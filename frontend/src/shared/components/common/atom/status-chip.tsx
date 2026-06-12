@@ -1,4 +1,5 @@
 import { Badge } from '@chakra-ui/react'
+import { useTranslation } from 'react-i18next'
 
 const STATUS_COLOR_MAP: Record<string, { bg: string; color: string }> = {
   active: { bg: 'success.50', color: 'success.500' },
@@ -26,11 +27,13 @@ const DEFAULT_COLORS = { bg: 'neutral.100', color: 'neutral.600' }
 
 export interface StatusChipProps {
   status: string
-  label: string
+  label?: string
 }
 
 export function StatusChip({ status, label }: StatusChipProps) {
+  const { t } = useTranslation('common')
   const { bg, color } = STATUS_COLOR_MAP[status] ?? DEFAULT_COLORS
+  const resolvedLabel = label ?? t(`status.${status}`, { defaultValue: status })
 
   return (
     <Badge
@@ -47,7 +50,7 @@ export function StatusChip({ status, label }: StatusChipProps) {
       alignItems="center"
       justifyContent="center"
     >
-      {label}
+      {resolvedLabel}
     </Badge>
   )
 }

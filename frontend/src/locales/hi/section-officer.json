@@ -191,6 +191,7 @@
       "title": "रीडिंग सुधारें",
       "searchPlaceholder": "योजना के नाम से खोजें",
       "noResults": "कोई योजना नहीं मिली",
+      "selectSchemePrompt": "रीडिंग देखने और ठीक करने के लिए सूची से एक योजना चुनें",
       "yesterdayReading": "अंतिम पुष्ट रीडिंग",
       "updateReading": "अपडेट रीडिंग",
       "updateButton": "अपडेट करें",

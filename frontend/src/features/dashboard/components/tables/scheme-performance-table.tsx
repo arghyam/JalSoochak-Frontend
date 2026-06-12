@@ -16,6 +16,7 @@ import { LoadingSpinner } from '@/shared/components/common'
 interface SchemePerformanceTableProps {
   data: PumpOperatorPerformanceData[]
   isLoading?: boolean
+  errorMessage?: string
   title: string
   maxItems?: number
   maxTableHeight?: string | number
@@ -111,6 +112,7 @@ function useResizeObserver(ref: RefObject<HTMLDivElement | null>, callback: () =
 export function SchemePerformanceTable({
   data,
   isLoading = false,
+  errorMessage,
   title,
   maxItems,
   maxTableHeight = '330px',
@@ -325,7 +327,7 @@ export function SchemePerformanceTable({
         >
           <LoadingSpinner />
         </Box>
-      ) : isEmpty ? (
+      ) : errorMessage || isEmpty ? (
         <Box
           flex={fillHeight ? 1 : undefined}
           minH={fillHeight ? 0 : '200px'}
@@ -336,7 +338,9 @@ export function SchemePerformanceTable({
           textAlign="center"
           color="neutral.600"
         >
-          <Text>{t('common:noDataAvailable', { defaultValue: 'No data available' })}</Text>
+          <Text>
+            {errorMessage ?? t('common:noDataAvailable', { defaultValue: 'No data available' })}
+          </Text>
         </Box>
       ) : (
         <Box

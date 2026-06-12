@@ -39,7 +39,13 @@ declare global {
  */
 export const getRuntimeConfig = (): AppConfig => {
   return {
-    API_BASE_URL: window.APP_CONFIG?.API_BASE_URL || 'https://jalsoochak.beehyv.com',
+    API_BASE_URL: (() => {
+      const url = window.APP_CONFIG?.API_BASE_URL
+      if (!url && typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
+        console.warn('[Config] APP_CONFIG.API_BASE_URL is not set. API calls will fail.')
+      }
+      return url ?? ''
+    })(),
     SINGLE_TENANT_MODE: window.APP_CONFIG?.SINGLE_TENANT_MODE ?? false,
     DEFAULT_AVERAGE_MEMBERS_PER_HOUSEHOLD: window.APP_CONFIG?.DEFAULT_AVERAGE_MEMBERS_PER_HOUSEHOLD,
     DEFAULT_WATER_NORM_LITERS_PER_PERSON_PER_DAY:

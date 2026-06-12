@@ -475,6 +475,7 @@ export function useCentralDashboardQueries({
   const {
     data: nationalSchemeQuantityPeriodicData,
     isFetching: isNationalSchemeQuantityPeriodicFetching,
+    isError: isNationalSchemeQuantityPeriodicError = false,
   } = useNationalSchemeRegularityPeriodicQuery({
     params: nationalQuantityPeriodAnalyticsParams,
     enabled: Boolean(nationalQuantityPeriodAnalyticsParams),
@@ -482,6 +483,7 @@ export function useCentralDashboardQueries({
   const {
     data: nationalSchemeRegularityPeriodicData,
     isFetching: isNationalSchemeRegularityPeriodicFetching,
+    isError: isNationalSchemeRegularityPeriodicError = false,
   } = useNationalSchemeRegularityPeriodicQuery({
     params: nationalRegularityPeriodAnalyticsParams,
     enabled: Boolean(nationalRegularityPeriodAnalyticsParams),
@@ -489,16 +491,20 @@ export function useCentralDashboardQueries({
   const {
     data: waterQuantityPeriodicData,
     isFetching: isWaterQuantityPeriodicFetching,
+    isError: isWaterQuantityPeriodicError = false,
     isAwaitingParams: isWaterQuantityPeriodicAwaitingParams,
   } = useWaterQuantityPeriodicQuery({
     params: quantityPeriodicAnalyticsParams,
     enabled: Boolean(quantityPeriodicAnalyticsParams),
   })
-  const { data: schemeRegularityPeriodicData, isFetching: isSchemeRegularityPeriodicFetching } =
-    useSchemeRegularityPeriodicQuery({
-      params: regularityPeriodicAnalyticsParams,
-      enabled: Boolean(regularityPeriodicAnalyticsParams),
-    })
+  const {
+    data: schemeRegularityPeriodicData,
+    isFetching: isSchemeRegularityPeriodicFetching,
+    isError: isSchemeRegularityPeriodicError = false,
+  } = useSchemeRegularityPeriodicQuery({
+    params: regularityPeriodicAnalyticsParams,
+    enabled: Boolean(regularityPeriodicAnalyticsParams),
+  })
   const {
     data: outageReasonsPeriodicData,
     isLoading: isOutageReasonsPeriodicLoading = false,
@@ -792,6 +798,12 @@ export function useCentralDashboardQueries({
   const isRegularityPerformanceError = isCentralLandingView
     ? isNationalDashboardError
     : isAverageSchemeRegularityError
+  const isQuantityTimeTrendError = isCentralLandingView
+    ? isNationalSchemeQuantityPeriodicError
+    : isWaterQuantityPeriodicError
+  const isRegularityTimeTrendError = isCentralLandingView
+    ? isNationalSchemeRegularityPeriodicError
+    : isSchemeRegularityPeriodicError
   const isReadingSubmissionRateWidgetError = isCentralLandingView
     ? isNationalDashboardError
     : isReadingSubmissionRateError
@@ -841,10 +853,12 @@ export function useCentralDashboardQueries({
     isOutageReasonsWidgetLoading,
     isQuantityPerformanceError,
     isQuantityPerformanceLoading,
+    isQuantityTimeTrendError,
     isReadingSubmissionRateWidgetError,
     isReadingSubmissionRateWidgetLoading,
     isRegularityPerformanceError,
     isRegularityPerformanceLoading,
+    isRegularityTimeTrendError,
     isSchemePerformanceError,
     isSchemePerformancePending,
     isSubmissionStatusError,

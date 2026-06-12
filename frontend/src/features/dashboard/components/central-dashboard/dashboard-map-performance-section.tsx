@@ -1,5 +1,6 @@
 import { Box, Grid, Portal, Text } from '@chakra-ui/react'
 import { useEffect, useRef, type ComponentProps } from 'react'
+import { useTranslation } from 'react-i18next'
 import { IndiaMapChart } from '../charts'
 import { OverallPerformanceTable } from '../tables'
 import type { EntityPerformance } from '../../types'
@@ -39,6 +40,7 @@ interface DashboardMapPerformanceSectionProps {
   performanceSummaryTitle: string
   overallPerformanceTableData: EntityPerformance[]
   isOverallPerformanceLoading: boolean
+  isOverallPerformanceError?: boolean
   overallPerformanceEntityLabel: string
   overallPerformanceScrollHeight: string
   onOverallPerformanceRowClick: (row: EntityPerformance) => void
@@ -89,7 +91,6 @@ function DashboardMapCard({
         parentBoundaryGeoJson={parentBoundaryGeoJson}
         isLoading={isLoading}
         mapName={mapName}
-        quantityViewUnit="percent"
         onStateClick={onStateClick}
         onStateHover={onStateHover}
         isFullscreen={fullscreen}
@@ -116,12 +117,14 @@ export function DashboardMapPerformanceSection({
   performanceSummaryTitle,
   overallPerformanceTableData,
   isOverallPerformanceLoading,
+  isOverallPerformanceError = false,
   overallPerformanceEntityLabel,
   overallPerformanceScrollHeight,
   onOverallPerformanceRowClick,
   onOverallPerformanceRowHover,
   mapProps,
 }: DashboardMapPerformanceSectionProps) {
+  const { t } = useTranslation('dashboard')
   const fullscreenMapContainerRef = useRef<HTMLDivElement>(null)
   const previousFocusedElementRef = useRef<HTMLElement | null>(null)
   const closeHandlerRef = useRef(onMapFullscreenClose)
@@ -199,6 +202,13 @@ export function DashboardMapPerformanceSection({
             <OverallPerformanceTable
               data={overallPerformanceTableData}
               isLoading={isOverallPerformanceLoading}
+              errorMessage={
+                isOverallPerformanceError
+                  ? t('failedToLoadDataReload', {
+                      defaultValue: 'Failed to load data. Please reload the page.',
+                    })
+                  : undefined
+              }
               entityLabel={overallPerformanceEntityLabel}
               scrollMaxHeight={overallPerformanceScrollHeight}
               autoHeightWithinMax={!shouldShowMapAlongsidePerformance}

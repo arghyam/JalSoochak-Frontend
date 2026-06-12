@@ -11,7 +11,10 @@ type StateUtDashboardScreenProps = {
   supplySubmissionRateLabel: string
   isReadingSubmissionRateLoading?: boolean
   isReadingSubmissionStatusLoading?: boolean
+  isReadingSubmissionRateError?: boolean
+  isReadingSubmissionStatusError?: boolean
   screenDateFormat?: string
+  errorMessage?: string
 }
 
 export function StateUtDashboardScreen({
@@ -20,7 +23,10 @@ export function StateUtDashboardScreen({
   supplySubmissionRateLabel,
   isReadingSubmissionRateLoading = false,
   isReadingSubmissionStatusLoading = false,
+  isReadingSubmissionRateError = false,
+  isReadingSubmissionStatusError = false,
   screenDateFormat,
+  errorMessage = 'Failed to load data. Please reload the page.',
 }: StateUtDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
 
@@ -31,6 +37,7 @@ export function StateUtDashboardScreen({
         <ReadingSubmissionStatusCard
           data={data.readingSubmissionStatus}
           isLoading={isReadingSubmissionStatusLoading}
+          errorMessage={isReadingSubmissionStatusError ? errorMessage : undefined}
           chartHeight="336px"
           boxProps={{ borderWidth: '1px', borderRadius: 'lg', px: 4, py: 6 }}
         />
@@ -55,6 +62,8 @@ export function StateUtDashboardScreen({
               <Flex align="center" justify="center" h="100%">
                 <LoadingSpinner />
               </Flex>
+            ) : isReadingSubmissionRateError ? (
+              <ChartEmptyState minHeight="100%" message={errorMessage} />
             ) : supplySubmissionRateData.length > 0 ? (
               <ReadingSubmissionRateChart
                 data={supplySubmissionRateData}

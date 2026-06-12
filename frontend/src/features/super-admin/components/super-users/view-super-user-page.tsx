@@ -1,19 +1,17 @@
-import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { UserAdminViewPage } from '@/shared/components/common/user-admin/user-admin-view-page'
 import type { UserAdminRoutes, UserAdminViewLabels } from '@/shared/components/common'
 import { ROUTES } from '@/shared/constants/routes'
 import { useSuperUserByIdQuery } from '../../services/query/use-super-admin-queries'
+import { usePageTitle } from '@/shared/hooks'
 
 export function ViewSuperUserPage() {
   const { t } = useTranslation(['super-admin', 'common'])
   const { id } = useParams<{ id: string }>()
   const userQuery = useSuperUserByIdQuery(id)
 
-  useEffect(() => {
-    document.title = `${t('superUsers.viewTitle')} | JalSoochak`
-  }, [t])
+  usePageTitle('superUsers.viewTitle', 'super-admin')
 
   const routes: UserAdminRoutes = {
     list: ROUTES.SUPER_ADMIN_SUPER_USERS,

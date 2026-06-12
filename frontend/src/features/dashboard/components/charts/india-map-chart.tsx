@@ -1,5 +1,6 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
+  Button as ChakraButton,
   Center,
   IconButton,
   Spinner,
@@ -32,7 +33,6 @@ interface IndiaMapChartProps {
   isLoading?: boolean
   onStateClick?: (stateId: string, stateName: string) => void
   onStateHover?: (stateId: string, stateName: string, metrics: EntityPerformance) => void
-  quantityViewUnit?: 'percent' | 'mld'
   className?: string
   height?: string | number
   mapName?: string
@@ -57,7 +57,6 @@ export function IndiaMapChart({
   isLoading = false,
   onStateClick,
   onStateHover,
-  quantityViewUnit = 'percent',
   className,
   height = '600px',
   mapName = 'india',
@@ -88,8 +87,6 @@ export function IndiaMapChart({
   const [internalIsRegularityView, setInternalIsRegularityView] = useState(true)
   const isRegularityView = controlledIsRegularityView ?? internalIsRegularityView
   const metricKey: 'quantity' | 'regularity' = isRegularityView ? 'regularity' : 'quantity'
-  // Retained for API compatibility; map hover tooltip now always displays Quantity in LPCD.
-  void quantityViewUnit
   const shouldShowNoMapAvailable = !isLoading && !dynamicGeoJson
   const effectiveMapName = mapName
   const isRegisteredMapAvailable =
@@ -722,33 +719,23 @@ export function IndiaMapChart({
                 const isActive = mapViewMode === mode
                 const label = mode === 'state' ? stateViewLabel : districtViewLabel
                 return (
-                  <button
+                  <ChakraButton
                     key={mode}
-                    type="button"
-                    role="tab"
-                    aria-selected={isActive}
+                    size="sm"
+                    variant={isActive ? 'solid' : 'ghost'}
+                    colorScheme="primary"
+                    borderRadius="full"
+                    fontWeight="500"
+                    fontSize="14px"
+                    lineHeight="21px"
+                    color={isActive ? 'primary.500' : 'neutral.400'}
+                    bg={isActive ? 'primary.25' : 'transparent'}
+                    _hover={{ bg: isActive ? 'primary.50' : 'neutral.100' }}
                     onClick={() => onMapViewModeChange?.(mode)}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: '999px',
-                      border: 'none',
-                      outline: 'none',
-                      cursor: 'pointer',
-                      padding: '4px 16px',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                      lineHeight: '21px',
-                      fontFamily: 'Geist',
-                      color: isActive ? '#3291D1' : '#A0A0AB',
-                      backgroundColor: isActive ? '#EBF4FA' : 'transparent',
-                      transition: 'background-color 0.2s ease, color 0.2s ease',
-                      whiteSpace: 'nowrap',
-                    }}
+                    aria-pressed={isActive}
                   >
                     {label}
-                  </button>
+                  </ChakraButton>
                 )
               })}
             </div>
@@ -761,18 +748,15 @@ export function IndiaMapChart({
             gap: '8px',
           }}
         >
-          <span
-            style={{
-              fontSize: isBelowSm ? '12px' : bodyText6.fontSize,
-              lineHeight: isBelowSm ? '16px' : `${bodyText6.lineHeight}px`,
-              fontWeight: bodyText6.fontWeight,
-              color: bodyText6.color,
-              opacity: isRegularityView ? 0.45 : 1,
-              transition: 'opacity 0.2s ease',
-            }}
+          <Text
+            textStyle="bodyText6"
+            opacity={isRegularityView ? 0.45 : 1}
+            transition="opacity 0.2s ease"
+            fontSize={isBelowSm ? '12px' : undefined}
+            lineHeight={isBelowSm ? '16px' : undefined}
           >
             {quantityLabel}
-          </span>
+          </Text>
           <div
             style={isBelowSm ? { transform: 'scale(0.85)', transformOrigin: 'center' } : undefined}
           >
@@ -792,18 +776,15 @@ export function IndiaMapChart({
               }}
             />
           </div>
-          <span
-            style={{
-              fontSize: isBelowSm ? '12px' : bodyText6.fontSize,
-              lineHeight: isBelowSm ? '16px' : `${bodyText6.lineHeight}px`,
-              fontWeight: bodyText6.fontWeight,
-              color: bodyText6.color,
-              opacity: isRegularityView ? 1 : 0.45,
-              transition: 'opacity 0.2s ease',
-            }}
+          <Text
+            textStyle="bodyText6"
+            opacity={isRegularityView ? 1 : 0.45}
+            transition="opacity 0.2s ease"
+            fontSize={isBelowSm ? '12px' : undefined}
+            lineHeight={isBelowSm ? '16px' : undefined}
           >
             {regularityLabel}
-          </span>
+          </Text>
         </div>
       </div>
 

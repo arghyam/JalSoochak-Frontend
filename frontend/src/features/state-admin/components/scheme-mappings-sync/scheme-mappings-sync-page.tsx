@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Box,
   Button,
@@ -22,10 +22,9 @@ import {
 import { useAuthStore } from '@/app/store/auth-store'
 import { useDebounce } from '@/shared/hooks/use-debounce'
 import { useToast } from '@/shared/hooks/use-toast'
+import { usePageTitle } from '@/shared/hooks'
+import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '@/shared/constants/pagination'
 import { UploadSchemeMappingsModal } from './upload-scheme-mappings-modal'
-
-const PAGE_SIZE = 10
-const PAGE_SIZE_OPTIONS = [10, 25, 50]
 
 export function SchemeMappingsSyncPage() {
   const { t } = useTranslation('state-admin')
@@ -33,7 +32,7 @@ export function SchemeMappingsSyncPage() {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(PAGE_SIZE)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
   const [sortDir, setSortDir] = useState<string>('')
   const debouncedSearch = useDebounce(searchQuery, 400)
@@ -46,9 +45,7 @@ export function SchemeMappingsSyncPage() {
     setPage(1)
   }
 
-  useEffect(() => {
-    document.title = `${t('schemeMappingsSync.title')} | JalSoochak`
-  }, [t])
+  usePageTitle('schemeMappingsSync.title', 'state-admin')
 
   const mappingParams = useMemo(
     () => ({

@@ -72,15 +72,19 @@ export function StateUTAdminFormPage() {
 
   return (
     <UserAdminFormPage
-      id={id}
-      isEditMode={isEditMode}
-      original={adminQuery.data ?? null}
-      isLoadingOriginal={adminQuery.isLoading}
+      config={{
+        id,
+        isEditMode,
+        original: adminQuery.data ?? null,
+        isLoadingOriginal: adminQuery.isLoading,
+      }}
+      actions={{
+        createMutation: neverCreate,
+        updateMutation,
+        statusMutation,
+      }}
       routes={routes}
       labels={labels}
-      createMutation={neverCreate}
-      updateMutation={updateMutation}
-      statusMutation={statusMutation}
     />
   )
 }

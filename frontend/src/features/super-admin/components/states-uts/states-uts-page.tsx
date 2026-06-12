@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -26,7 +26,9 @@ import {
 import type { Tenant, TenantStatus } from '../../types/states-uts'
 import { useDebounce } from '@/shared/hooks/use-debounce'
 import { ROUTES } from '@/shared/constants/routes'
+import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '@/shared/constants/pagination'
 import { useStatesUTsPagedQuery } from '../../services/query/use-super-admin-queries'
+import { usePageTitle } from '@/shared/hooks'
 
 function tenantStatusChipKey(status: TenantStatus): string {
   return status.toLowerCase()
@@ -48,7 +50,7 @@ export function StatesUTsPage() {
   const { t } = useTranslation(['super-admin', 'common'])
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<TenantFilterStatus>('all')
   const debouncedSearch = useDebounce(searchQuery, 400)
@@ -60,9 +62,7 @@ export function StatesUTsPage() {
     statusFilter
   )
 
-  useEffect(() => {
-    document.title = `${t('statesUts.title')} | JalSoochak`
-  }, [t])
+  usePageTitle('statesUts.title', 'super-admin')
 
   if (isError) {
     return (
@@ -266,7 +266,7 @@ export function StatesUTsPage() {
             setPageSize(size)
             setPage(1)
           },
-          pageSizeOptions: [10, 25, 50],
+          pageSizeOptions: PAGE_SIZE_OPTIONS,
         }}
       />
     </Box>

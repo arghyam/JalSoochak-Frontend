@@ -376,7 +376,25 @@ export function FixReadingsPage() {
             </HStack>
           </Flex>
         </Box>
-      ) : null}
+      ) : (
+        <Box
+          as="section"
+          bg="white"
+          borderWidth="0.5px"
+          borderColor="neutral.100"
+          borderRadius={{ base: 'lg', md: 'xl' }}
+          w="full"
+          minH={{ base: 'auto', lg: 'calc(100vh - 250px)' }}
+          py={{ base: 4, md: 6 }}
+          px={4}
+        >
+          <Flex align="center" justify="center" minH={{ base: '200px', lg: 'calc(100vh - 300px)' }}>
+            <Text color="neutral.600" textAlign="center">
+              {t('pages.fixReadings.selectSchemePrompt')}
+            </Text>
+          </Flex>
+        </Box>
+      )}
 
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
     </Box>

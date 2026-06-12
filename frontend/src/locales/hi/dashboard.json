@@ -1,5 +1,6 @@
 {
   "failedToLoadData": "डेटा लोड करने में विफल। कृपया पुनः प्रयास करें।",
+  "failedToLoadDataReload": "डेटा लोड करने में विफल। कृपया पेज पुनः लोड करें।",
   "header": {
     "title": "जलसूचक",
     "subtitle": "जल आपूर्ति योजनाओं की परिचालन स्थिति",
@@ -133,6 +134,10 @@
       }
     },
     "trends": {
+      "percentVsPreviousDays_one": "पिछले {{days}} दिन की तुलना में {{change}}%",
+      "percentVsPreviousDays_other": "पिछले {{days}} दिनों की तुलना में {{change}}%",
+      "lpcdVsPreviousDays_one": "पिछले {{days}} दिन की तुलना में {{change}} एलपीसीडी",
+      "lpcdVsPreviousDays_other": "पिछले {{days}} दिनों की तुलना में {{change}} एलपीसीडी",
       "percentDownLastDays": "पिछले {{days}} दिनों की तुलना में -{{change}}%",
       "lpcdUpLastMonth": "पिछले महीने की तुलना में +{{change}} LPCD",
       "percentDownLastMonth": "पिछले महीने की तुलना में -{{change}}%"
