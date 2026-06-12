@@ -371,6 +371,7 @@ describe('dashboardApi.getDashboardData', () => {
         name: 'Operator 2',
         village: 'Village 2',
         lastSubmission: '2026-01-02',
+        readingAt: '2026-01-02',
         readingValue: '456',
       },
     ]
@@ -413,6 +414,7 @@ describe('dashboardApi.getDashboardData', () => {
         name: 'Operator 1',
         village: 'Village 1',
         lastSubmission: '2026-01-01',
+        readingAt: '2026-01-01',
         readingValue: '123',
       },
     ]

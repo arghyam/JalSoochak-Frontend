@@ -63,6 +63,7 @@ export interface ReadingComplianceData {
   name: string
   village: string
   lastSubmission: string
+  readingAt: string
   readingValue: string
 }
 

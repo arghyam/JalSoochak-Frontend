@@ -235,7 +235,7 @@ export function ReadingComplianceTable({
                   <Tr key={row.id} _odd={{ bg: 'primary.25' }}>
                     <Td>{row.name}</Td>
                     {showVillageColumn ? <Td>{row.village}</Td> : null}
-                    <Td>{formatSubmissionTimestamp(row.lastSubmission, dateFormat)}</Td>
+                    <Td>{formatSubmissionTimestamp(row.readingAt, dateFormat)}</Td>
                     <Td>{row.readingValue}</Td>
                   </Tr>
                 ))}

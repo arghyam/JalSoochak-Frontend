@@ -85,6 +85,8 @@ const getReadingComplianceTimestampValue = (item: {
   readingDate?: string | null
 }) => item.lastSubmissionAt ?? item.readingAt ?? item.readingDate ?? null
 
+const getReadingAtValue = (item: { readingAt?: string | null }) => item.readingAt ?? ''
+
 const formatPercent = (value?: number | null) => {
   if (typeof value !== 'number' || Number.isNaN(value)) {
     return 'N/A'
@@ -643,6 +645,7 @@ function ReadingComplianceSection({
         getReadingComplianceTimestampValue(item),
         tableDateFormat
       ),
+      readingAt: getReadingAtValue(item),
       readingValue:
         item.confirmedReading === null || item.confirmedReading === undefined
           ? 'N/A'
@@ -665,6 +668,10 @@ function ReadingComplianceSection({
         name: resolvedActivePumpOperator.name,
         village: 'N/A',
         lastSubmission: resolvedActivePumpOperator.lastSubmission,
+        readingAt:
+          resolvedActivePumpOperator.lastSubmissionAt ??
+          resolvedActivePumpOperator.lastSubmission ??
+          '',
         readingValue: 'N/A',
       },
     ]
@@ -695,6 +702,7 @@ function ReadingComplianceSection({
           !isMissingDisplayValue(row.name) ||
           !isMissingDisplayValue(row.village) ||
           !isMissingDisplayValue(row.lastSubmission) ||
+          !isMissingDisplayValue(row.readingAt) ||
           !isMissingDisplayValue(row.readingValue)
       ),
     [readingComplianceRows]
