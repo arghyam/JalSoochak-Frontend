@@ -165,7 +165,7 @@ export function MetricPerformanceChart({
           show: true,
           position: 'top',
           fontSize: bodyText7.fontSize,
-          fontWeight: bodyText7.fontWeight,
+          fontWeight: bodyText7.fontWeight as 'normal' | 'bold' | 'bolder' | 'lighter' | number,
           color: bodyText7.color,
           formatter: (params: { value?: unknown }) => {
             const v = Number(params.value)

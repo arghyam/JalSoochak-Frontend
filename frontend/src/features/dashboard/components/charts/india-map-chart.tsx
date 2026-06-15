@@ -126,6 +126,7 @@ export function IndiaMapChart({
     []
   )
   const primaryMapColor = resolveThemeColor('primary.500')
+  const labelTextColor = resolveThemeColor('neutral.950')
   const quantityLabel = t('map.metric.quantity', { defaultValue: 'Quantity' })
   const quantityLpcdLabel = t('overallPerformance.columns.quantityLpcd', {
     defaultValue: 'Quantity (LPCD)',
@@ -461,9 +462,7 @@ export function IndiaMapChart({
           label: {
             show: true,
             fontSize: 9,
-            color: '#333333',
-            textBorderColor: '#FFFFFF',
-            textBorderWidth: 2,
+            color: labelTextColor,
             opacity: 1,
             formatter: (params: { name?: string }) => {
               const name = params.name ?? ''
@@ -486,7 +485,7 @@ export function IndiaMapChart({
                 disabled: true,
                 label: {
                   show: true,
-                  color: '#333333',
+                  color: labelTextColor,
                   opacity: 1,
                 },
               }
@@ -501,7 +500,7 @@ export function IndiaMapChart({
                   show: true,
                   fontSize: 10,
                   fontWeight: 'bold',
-                  color: '#333333',
+                  color: labelTextColor,
                   opacity: 1,
                 },
               },
@@ -515,7 +514,7 @@ export function IndiaMapChart({
               show: true,
               fontSize: 10,
               fontWeight: 'bold',
-              color: '#333333',
+              color: labelTextColor,
               opacity: 1,
             },
           },
@@ -525,7 +524,7 @@ export function IndiaMapChart({
             },
             label: {
               opacity: 1,
-              color: '#51525c',
+              color: labelTextColor,
             },
           },
         },
@@ -538,6 +537,7 @@ export function IndiaMapChart({
     effectiveMapName,
     mapName,
     primaryMapColor,
+    labelTextColor,
     mapColors,
     getHoverRangeColor,
     nationalBoundaryGeoJson,
