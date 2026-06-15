@@ -130,7 +130,7 @@ export function MetricPerformanceChart({
   }, [demandValues, metric, showAreaLine, yValues])
 
   const formattedYAxisMaxLabel = useMemo(() => formatYAxisTick(yAxisScale.max), [yAxisScale.max])
-  const chartGridTop = 24
+  const chartGridTop = 40
   const chartGridBottom = 88
   const yAxisTitleGutter = 24
   const yAxisTickMargin = -12
@@ -159,6 +159,18 @@ export function MetricPerformanceChart({
         emphasis: {
           itemStyle: {
             color: '#84BDE3',
+          },
+        },
+        label: {
+          show: true,
+          position: 'top',
+          fontSize: bodyText7.fontSize,
+          fontWeight: bodyText7.fontWeight as 'normal' | 'bold' | 'bolder' | 'lighter' | number,
+          color: bodyText7.color,
+          formatter: (params: { value?: unknown }) => {
+            const v = Number(params.value)
+            if (!Number.isFinite(v)) return ''
+            return metric === 'regularity' ? `${v.toFixed(1)}%` : `${v.toFixed(1)}`
           },
         },
       },

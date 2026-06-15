@@ -64,7 +64,7 @@ export function ReadingSubmissionRateChart({
   const defaultItemWidth = 90
   const minItemWidth = 70
   const xAxisLabelMargin = 14
-  const chartGridTop = 24
+  const chartGridTop = 40
   const chartGridBottom = 88
   const yAxisTitleGutter = 24
   const yAxisTickMargin = -12
@@ -218,6 +218,17 @@ export function ReadingSubmissionRateChart({
           emphasis: {
             itemStyle: {
               color: '#84BDE3',
+            },
+          },
+          label: {
+            show: true,
+            position: 'top',
+            fontSize: bodyText7.fontSize,
+            fontWeight: bodyText7.fontWeight,
+            color: bodyText7.color,
+            formatter: (params: { value?: unknown }) => {
+              const v = Number(params.value)
+              return Number.isFinite(v) ? `${v.toFixed(1)}%` : ''
             },
           },
         },
