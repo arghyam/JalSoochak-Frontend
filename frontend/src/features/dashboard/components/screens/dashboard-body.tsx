@@ -86,6 +86,9 @@ type DashboardBodyProps = {
   villagePumpOperators?: VillagePumpOperatorDetails[]
   tenantCode?: string
   schemeId?: number
+  allSchemeIds?: number[]
+  startDate?: string
+  endDate?: string
   schemePerformancePage?: number
   totalSchemePages?: number
   onSchemePageChange?: (page: number) => void
@@ -153,6 +156,9 @@ export function DashboardBody({
   villagePumpOperators,
   tenantCode,
   schemeId,
+  allSchemeIds,
+  startDate,
+  endDate,
   schemePerformancePage,
   totalSchemePages,
   onSchemePageChange,
@@ -416,6 +422,9 @@ export function DashboardBody({
           villagePumpOperators={villagePumpOperators}
           tenantCode={tenantCode}
           schemeId={schemeId}
+          allSchemeIds={allSchemeIds}
+          startDate={startDate}
+          endDate={endDate}
           quantityTimeTrendData={quantityTimeTrendData}
           regularityTimeTrendData={regularityTimeTrendData}
           isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}

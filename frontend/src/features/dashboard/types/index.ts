@@ -504,6 +504,9 @@ export interface ReadingSubmissionRateQueryParams {
 export interface ReadingComplianceQueryParams {
   tenant_code: string
   scheme_id?: number
+  pump_operator_id?: number
+  startDate?: string
+  endDate?: string
   page?: number
   size?: number
 }
@@ -597,6 +600,9 @@ export interface ContinuousSchemesResponse {
 export interface PumpOperatorDetailsQueryParams {
   pumpOperatorId: number
   tenant_code: string
+  scheme_id: number
+  startDate: string
+  endDate: string
 }
 
 export interface PumpOperatorsBySchemeQueryParams {
