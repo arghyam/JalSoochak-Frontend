@@ -459,14 +459,19 @@ export function IndiaMapChart({
             max: 4,
           },
           label: {
-            show: false,
-            fontSize: 10,
-            color: '#51525c',
+            show: true,
+            fontSize: 9,
+            color: '#333333',
+            textBorderColor: '#FFFFFF',
+            textBorderWidth: 2,
             opacity: 1,
+            formatter: (params: { name?: string }) => {
+              const name = params.name ?? ''
+              return name.includes('::') ? name.split('::')[0] : name
+            },
           },
           labelLayout: {
-            hideOverlap: false,
-            moveOverlap: 'shiftY',
+            hideOverlap: true,
           },
           data: seriesData,
           itemStyle: {
@@ -480,8 +485,8 @@ export function IndiaMapChart({
             ? {
                 disabled: true,
                 label: {
-                  show: false,
-                  color: '#51525c',
+                  show: true,
+                  color: '#333333',
                   opacity: 1,
                 },
               }
@@ -493,10 +498,10 @@ export function IndiaMapChart({
                   opacity: 1,
                 },
                 label: {
-                  show: false,
-                  fontSize: 12,
+                  show: true,
+                  fontSize: 10,
                   fontWeight: 'bold',
-                  color: '#51525c',
+                  color: '#333333',
                   opacity: 1,
                 },
               },
@@ -507,10 +512,10 @@ export function IndiaMapChart({
               opacity: 1,
             },
             label: {
-              show: false,
-              fontSize: 12,
+              show: true,
+              fontSize: 10,
               fontWeight: 'bold',
-              color: '#51525c',
+              color: '#333333',
               opacity: 1,
             },
           },
