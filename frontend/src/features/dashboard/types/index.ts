@@ -600,9 +600,9 @@ export interface ContinuousSchemesResponse {
 export interface PumpOperatorDetailsQueryParams {
   pumpOperatorId: number
   tenant_code: string
-  scheme_id: number
-  startDate: string
-  endDate: string
+  scheme_id?: number
+  startDate?: string
+  endDate?: string
 }
 
 export interface PumpOperatorsBySchemeQueryParams {
