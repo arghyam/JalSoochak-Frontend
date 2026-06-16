@@ -64,7 +64,9 @@ export function StateUtDashboardScreen({
             </Text>
             <ChartInfoTooltip
               tooltipContent={glossary.readingSubmissionRate}
-              ariaLabel="Reading submission rate info"
+              ariaLabel={t('outageAndSubmissionCharts.ariaReadingSubmissionRate', {
+                defaultValue: 'Reading submission rate info',
+              })}
             />
           </Flex>
           <Box flex="1" minH={0}>

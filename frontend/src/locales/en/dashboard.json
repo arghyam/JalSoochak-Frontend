@@ -198,10 +198,16 @@
       "subDivisions": "Sub Divisions"
     }
   },
+  "aria": {
+    "chartInfo": "{{title}} info"
+  },
   "outageAndSubmissionCharts": {
     "ariaViewByBlock": "Block supply outage distribution view by",
     "ariaViewByGramPanchayat": "Gram panchayat supply outage distribution view by",
     "ariaOutageTimeScale": "Outage time scale",
+    "ariaSupplyOutageDistribution": "Supply outage distribution info",
+    "ariaActiveSchemes": "Active schemes info",
+    "ariaReadingSubmissionRate": "Reading submission rate info",
     "supplyOutageReasons": {
       "tooltip": "Counts are based on unique schemes. A scheme may appear in multiple regions, so region totals may be higher.",
       "ariaLabel": "Supply outage reasons info"
@@ -266,6 +272,10 @@
     "note": "Note: Schemes active for at least 30 days in a month.",
     "details": {
       "title": "Pump Operator Details",
+      "ariaPumpOperatorDetails": "Pump operator details info",
+      "ariaLastSubmission": "Last submission info",
+      "ariaReportingRate": "Reporting rate info",
+      "ariaMissingSubmissionCount": "Missing submission count info",
       "fields": {
         "schemeId": "Scheme ID",
         "schemeName": "Scheme name",

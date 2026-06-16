@@ -158,6 +158,10 @@
     "showPassword": "Show password"
   },
 
+  "aria": {
+    "moreInfo": "More info"
+  },
+
   "footer": {
     "logoAlt": "JalSoochak logo with text",
     "description": "AI-enabled water supply monitoring for India's Rural Water Supply. Empowering frontline workers with reliable, auditable data — from field to governance.",

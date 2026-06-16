@@ -198,10 +198,16 @@
       "subDivisions": "उप-विभाग"
     }
   },
+  "aria": {
+    "chartInfo": "{{title}} की जानकारी"
+  },
   "outageAndSubmissionCharts": {
     "ariaViewByBlock": "ब्लॉक जल आपूर्ति बाधा वितरण दृश्य प्रकार",
     "ariaViewByGramPanchayat": "ग्राम पंचायत जल आपूर्ति बाधा वितरण दृश्य प्रकार",
     "ariaOutageTimeScale": "जल आपूर्ति बाधा समय माप",
+    "ariaSupplyOutageDistribution": "जल आपूर्ति बाधा वितरण की जानकारी",
+    "ariaActiveSchemes": "सक्रिय योजनाओं की जानकारी",
+    "ariaReadingSubmissionRate": "रीडिंग सबमिशन दर की जानकारी",
     "supplyOutageReasons": {
       "tooltip": "गिनती अलग-अलग योजनाओं पर आधारित है। कोई योजना कई क्षेत्रों में दिखाई दे सकती है, इसलिए क्षेत्रीय कुल अधिक हो सकते हैं।",
       "ariaLabel": "जल आपूर्ति बाधा के कारणों की जानकारी"
@@ -266,6 +272,10 @@
     "note": "नोट: सक्रिय पंप ऑपरेटर्स महीने में कम से कम 30 दिन रीडिंग सबमिट करते हैं।",
     "details": {
       "title": "पंप ऑपरेटर विवरण",
+      "ariaPumpOperatorDetails": "पंप ऑपरेटर विवरण की जानकारी",
+      "ariaLastSubmission": "अंतिम सबमिशन की जानकारी",
+      "ariaReportingRate": "रिपोर्टिंग दर की जानकारी",
+      "ariaMissingSubmissionCount": "अनुपस्थित सबमिशन गिनती की जानकारी",
       "fields": {
         "schemeId": "योजना आईडी",
         "schemeName": "योजना का नाम",

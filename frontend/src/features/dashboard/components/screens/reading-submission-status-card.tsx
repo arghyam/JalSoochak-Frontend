@@ -51,7 +51,10 @@ export function ReadingSubmissionStatusCard({
           {title}
         </Text>
         {tooltipContent ? (
-          <ChartInfoTooltip tooltipContent={tooltipContent} ariaLabel={`${title} info`} />
+          <ChartInfoTooltip
+            tooltipContent={tooltipContent}
+            ariaLabel={t('aria.chartInfo', { title, defaultValue: '{{title}} info' })}
+          />
         ) : null}
       </Flex>
       {isLoading ? (

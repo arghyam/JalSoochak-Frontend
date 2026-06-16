@@ -294,7 +294,9 @@ export function BlockDashboardScreen({
                 </Text>
                 <ChartInfoTooltip
                   tooltipContent={glossary.supplyOutageDistribution}
-                  ariaLabel="Supply outage distribution info"
+                  ariaLabel={t('outageAndSubmissionCharts.ariaSupplyOutageDistribution', {
+                    defaultValue: 'Supply outage distribution info',
+                  })}
                 />
               </Flex>
               <Flex
@@ -401,7 +403,9 @@ export function BlockDashboardScreen({
               </Text>
               <ChartInfoTooltip
                 tooltipContent={glossary.activeSchemes}
-                ariaLabel="Active schemes info"
+                ariaLabel={t('outageAndSubmissionCharts.ariaActiveSchemes', {
+                  defaultValue: 'Active schemes info',
+                })}
               />
             </Flex>
             <Text textStyle="bodyText3" fontWeight="400">
@@ -488,7 +492,9 @@ export function BlockDashboardScreen({
                 </Text>
                 <ChartInfoTooltip
                   tooltipContent={glossary.readingSubmissionRate}
-                  ariaLabel="Reading submission rate info"
+                  ariaLabel={t('outageAndSubmissionCharts.ariaReadingSubmissionRate', {
+                    defaultValue: 'Reading submission rate info',
+                  })}
                 />
               </Flex>
               <Box flex="1" minH={0}>

@@ -1,16 +1,16 @@
 import type { ReactNode } from 'react'
 import { IconButton, Tooltip } from '@chakra-ui/react'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
+import { useTranslation } from 'react-i18next'
 
 interface ChartInfoTooltipProps {
   tooltipContent: ReactNode
   ariaLabel?: string
 }
 
-export function ChartInfoTooltip({
-  tooltipContent,
-  ariaLabel = 'More info',
-}: ChartInfoTooltipProps) {
+export function ChartInfoTooltip({ tooltipContent, ariaLabel }: ChartInfoTooltipProps) {
+  const { t } = useTranslation('common')
+  const resolvedAriaLabel = ariaLabel ?? t('aria.moreInfo', { defaultValue: 'More info' })
   return (
     <Tooltip
       label={tooltipContent}
@@ -26,7 +26,7 @@ export function ChartInfoTooltip({
       maxW="340px"
     >
       <IconButton
-        aria-label={ariaLabel}
+        aria-label={resolvedAriaLabel}
         icon={<AiOutlineInfoCircle />}
         variant="ghost"
         color="neutral.400"

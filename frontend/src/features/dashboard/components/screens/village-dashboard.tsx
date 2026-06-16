@@ -744,7 +744,9 @@ function ReadingComplianceSection({
             </Text>
             <ChartInfoTooltip
               tooltipContent={glossary.pumpOperatorDetails}
-              ariaLabel="Pump operator details info"
+              ariaLabel={t('pumpOperators.details.ariaPumpOperatorDetails', {
+                defaultValue: 'Pump operator details info',
+              })}
             />
           </Flex>
           {isPumpOperatorDetailsEmpty ? (
@@ -805,7 +807,9 @@ function ReadingComplianceSection({
                   </Text>
                   <ChartInfoTooltip
                     tooltipContent={glossary.pumpOperatorLastSubmission}
-                    ariaLabel="Last submission info"
+                    ariaLabel={t('pumpOperators.details.ariaLastSubmission', {
+                      defaultValue: 'Last submission info',
+                    })}
                   />
                 </Flex>
                 <Text
@@ -824,7 +828,9 @@ function ReadingComplianceSection({
                   </Text>
                   <ChartInfoTooltip
                     tooltipContent={glossary.pumpOperatorReportingRate}
-                    ariaLabel="Reporting rate info"
+                    ariaLabel={t('pumpOperators.details.ariaReportingRate', {
+                      defaultValue: 'Reporting rate info',
+                    })}
                   />
                 </Flex>
                 <Text
@@ -843,7 +849,9 @@ function ReadingComplianceSection({
                   </Text>
                   <ChartInfoTooltip
                     tooltipContent={glossary.pumpOperatorMissingSubmissions}
-                    ariaLabel="Missing submission count info"
+                    ariaLabel={t('pumpOperators.details.ariaMissingSubmissionCount', {
+                      defaultValue: 'Missing submission count info',
+                    })}
                   />
                 </Flex>
                 <Text

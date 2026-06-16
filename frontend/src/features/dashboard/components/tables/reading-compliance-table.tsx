@@ -132,7 +132,13 @@ export function ReadingComplianceTable({
           {resolvedTitle}
         </Text>
         {tooltipContent ? (
-          <ChartInfoTooltip tooltipContent={tooltipContent} ariaLabel={`${resolvedTitle} info`} />
+          <ChartInfoTooltip
+            tooltipContent={tooltipContent}
+            ariaLabel={t('aria.chartInfo', {
+              title: resolvedTitle,
+              defaultValue: '{{title}} info',
+            })}
+          />
         ) : null}
       </Flex>
       {isEmpty ? (
