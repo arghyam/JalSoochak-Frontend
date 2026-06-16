@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react'
-import type { UIEvent } from 'react'
-import { Box, Table, Tbody, Td, Text, Th, Thead, Tr } from '@chakra-ui/react'
+import type { ReactNode, UIEvent } from 'react'
+import { Box, Flex, Table, Tbody, Td, Text, Th, Thead, Tr } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { formatIsoDateForDisplay, normalizeDateFormat } from '@/shared/utils/date-format'
 import type { ReadingComplianceData } from '../../types'
+import { ChartInfoTooltip } from '@/shared/components/common'
 
 interface ReadingComplianceTableProps {
   data: ReadingComplianceData[]
@@ -14,6 +15,7 @@ interface ReadingComplianceTableProps {
   onReachEnd?: () => void
   fillHeight?: boolean
   dateFormat?: string
+  tooltipContent?: ReactNode
 }
 
 const ISO_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T/
@@ -57,6 +59,7 @@ export function ReadingComplianceTable({
   onReachEnd,
   fillHeight = false,
   dateFormat,
+  tooltipContent,
 }: ReadingComplianceTableProps) {
   const { t } = useTranslation('dashboard')
   const hasReachedEndRef = useRef(false)
@@ -124,9 +127,20 @@ export function ReadingComplianceTable({
       display="flex"
       flexDirection="column"
     >
-      <Box textStyle="bodyText3" fontWeight="400" mb="16px">
-        {resolvedTitle}
-      </Box>
+      <Flex align="center" gap="6px" mb="16px">
+        <Text textStyle="bodyText3" fontWeight="400">
+          {resolvedTitle}
+        </Text>
+        {tooltipContent ? (
+          <ChartInfoTooltip
+            tooltipContent={tooltipContent}
+            ariaLabel={t('aria.chartInfo', {
+              title: resolvedTitle,
+              defaultValue: '{{title}} info',
+            })}
+          />
+        ) : null}
+      </Flex>
       {isEmpty ? (
         <Box
           h={fillHeight ? undefined : '200px'}

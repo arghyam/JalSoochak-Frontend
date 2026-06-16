@@ -3,7 +3,8 @@ import { useQueries } from '@tanstack/react-query'
 import { Avatar, Box, Button, Flex, Grid, Icon, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { LuArrowLeft, LuArrowRight } from 'react-icons/lu'
-import { ChartEmptyState } from '@/shared/components/common'
+import { ChartEmptyState, ChartInfoTooltip } from '@/shared/components/common'
+import { buildDashboardGlossary } from '../../utils/dashboard-glossary'
 import { formatIsoDateForDisplay, normalizeDateFormat } from '@/shared/utils/date-format'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import type {
@@ -389,6 +390,7 @@ function ReadingComplianceSection({
   tableDateFormat,
 }: ReadingComplianceSectionProps) {
   const { t } = useTranslation('dashboard')
+  const glossary = useMemo(() => buildDashboardGlossary(t), [t])
   const [pumpOperatorPage, setPumpOperatorPage] = useState(1)
   const [readingCompliancePage, setReadingCompliancePage] = useState(0)
   const [loadedReadingCompliancePages, setLoadedReadingCompliancePages] = useState<
@@ -734,11 +736,19 @@ function ReadingComplianceSection({
         overflow="hidden"
       >
         <Flex direction="column" h="full">
-          <Text textStyle="bodyText3" fontWeight="400" mb={4}>
-            {t('pumpOperators.details.title', {
-              defaultValue: 'Pump Operator Details',
-            })}
-          </Text>
+          <Flex align="center" gap="6px" mb={4}>
+            <Text textStyle="bodyText3" fontWeight="400">
+              {t('pumpOperators.details.title', {
+                defaultValue: 'Pump Operator Details',
+              })}
+            </Text>
+            <ChartInfoTooltip
+              tooltipContent={glossary.pumpOperatorDetails}
+              ariaLabel={t('pumpOperators.details.ariaPumpOperatorDetails', {
+                defaultValue: 'Pump operator details info',
+              })}
+            />
+          </Flex>
           {isPumpOperatorDetailsEmpty ? (
             <Box flex={1} minH={0} display="flex">
               <ChartEmptyState minHeight="100%" />
@@ -789,11 +799,19 @@ function ReadingComplianceSection({
                     resolvedActivePumpOperator.scheme ||
                     'N/A'}
                 </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.lastSubmission', {
-                    defaultValue: 'Last submission',
-                  })}
-                </Text>
+                <Flex align="center" gap="4px">
+                  <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                    {t('pumpOperators.details.fields.lastSubmission', {
+                      defaultValue: 'Last submission',
+                    })}
+                  </Text>
+                  <ChartInfoTooltip
+                    tooltipContent={glossary.pumpOperatorLastSubmission}
+                    ariaLabel={t('pumpOperators.details.ariaLastSubmission', {
+                      defaultValue: 'Last submission info',
+                    })}
+                  />
+                </Flex>
                 <Text
                   textStyle="bodyText4"
                   fontWeight="400"
@@ -802,11 +820,19 @@ function ReadingComplianceSection({
                 >
                   {resolvedActivePumpOperator.lastSubmission}
                 </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.reportingRate', {
-                    defaultValue: 'Reporting rate',
-                  })}
-                </Text>
+                <Flex align="center" gap="4px">
+                  <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                    {t('pumpOperators.details.fields.reportingRate', {
+                      defaultValue: 'Reporting rate',
+                    })}
+                  </Text>
+                  <ChartInfoTooltip
+                    tooltipContent={glossary.pumpOperatorReportingRate}
+                    ariaLabel={t('pumpOperators.details.ariaReportingRate', {
+                      defaultValue: 'Reporting rate info',
+                    })}
+                  />
+                </Flex>
                 <Text
                   textStyle="bodyText4"
                   fontWeight="400"
@@ -815,11 +841,19 @@ function ReadingComplianceSection({
                 >
                   {resolvedActivePumpOperator.reportingRate}
                 </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.missingSubmissionCount', {
-                    defaultValue: 'Missing submission count',
-                  })}
-                </Text>
+                <Flex align="center" gap="4px">
+                  <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                    {t('pumpOperators.details.fields.missingSubmissionCount', {
+                      defaultValue: 'Missing submission count',
+                    })}
+                  </Text>
+                  <ChartInfoTooltip
+                    tooltipContent={glossary.pumpOperatorMissingSubmissions}
+                    ariaLabel={t('pumpOperators.details.ariaMissingSubmissionCount', {
+                      defaultValue: 'Missing submission count info',
+                    })}
+                  />
+                </Flex>
                 <Text
                   textStyle="bodyText4"
                   fontWeight="400"
@@ -940,6 +974,7 @@ function ReadingComplianceSection({
           title={t('outageAndSubmissionCharts.titles.readingCompliance', {
             defaultValue: 'Reading Compliance',
           })}
+          tooltipContent={glossary.readingCompliance}
         />
       </Box>
     </Grid>
@@ -973,6 +1008,7 @@ export function VillageDashboardScreen({
   errorMessage = 'Failed to load data. Please reload the page.',
 }: VillageDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
+  const glossary = useMemo(() => buildDashboardGlossary(t), [t])
   const showSupplyOutageCharts = shouldShowSupplyOutageCharts()
   const effectiveAllSchemeIds =
     allSchemeIds && allSchemeIds.length > 0
@@ -1018,6 +1054,7 @@ export function VillageDashboardScreen({
           enableExtendedTimeScales={enableExtendedTimeScales}
           hideViewBySelect
           errorMessage={errorMessage}
+          tooltipContent={glossary.regularityPerformance}
         />
         <PerformanceChartCard
           title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
@@ -1046,6 +1083,7 @@ export function VillageDashboardScreen({
           enableExtendedTimeScales={enableExtendedTimeScales}
           hideViewBySelect
           errorMessage={errorMessage}
+          tooltipContent={glossary.quantityPerformance}
         />
       </Grid>
       <Grid
@@ -1073,7 +1111,11 @@ export function VillageDashboardScreen({
                 defaultValue: 'Supply Outage Reasons',
               })}
             </Text>
-            <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
+            <SupplyOutageReasonsChart
+              data={waterSupplyOutagesData}
+              height="400px"
+              tooltipContent={glossary.supplyOutageReasons}
+            />
           </Box>
         ) : null}
         <ReadingSubmissionStatusCard
@@ -1082,6 +1124,7 @@ export function VillageDashboardScreen({
           chartHeight="406px"
           cardHeight="492px"
           boxProps={{ w: 'full' }}
+          tooltipContent={glossary.readingSubmissionStatus}
         />
       </Grid>
       <ReadingComplianceSection

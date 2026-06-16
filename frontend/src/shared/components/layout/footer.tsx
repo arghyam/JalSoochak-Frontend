@@ -159,6 +159,15 @@ function SingleTenantFooter() {
               >
                 {t('footer.jjmAssamWebsite')}
               </Link>
+              <Link
+                as={RouterLink}
+                to={ROUTES.GLOSSARY}
+                color="primary.500"
+                fontSize="sm"
+                _hover={{ textDecoration: 'underline' }}
+              >
+                {t('footer.glossary')}
+              </Link>
             </VStack>
 
             {/* Column 3: Contact Us */}
@@ -335,6 +344,15 @@ function MultiTenantFooter() {
                 _hover={{ textDecoration: 'underline' }}
               >
                 {t('footer.jalsoochakWebsite')}
+              </Link>
+              <Link
+                as={RouterLink}
+                to={ROUTES.GLOSSARY}
+                color="primary.500"
+                fontSize="sm"
+                _hover={{ textDecoration: 'underline' }}
+              >
+                {t('footer.glossary')}
               </Link>
             </VStack>
 

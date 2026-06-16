@@ -5,19 +5,21 @@ import {
   useRef,
   useState,
   type PointerEvent,
+  type ReactNode,
   type RefObject,
 } from 'react'
 import { Box, Button, Flex, Icon, Table, Tbody, Td, Text, Th, Thead, Tr } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { LuArrowLeft, LuArrowRight, LuChevronsLeft, LuChevronsRight } from 'react-icons/lu'
 import type { PumpOperatorPerformanceData } from '../../types'
-import { LoadingSpinner } from '@/shared/components/common'
+import { ChartInfoTooltip, LoadingSpinner } from '@/shared/components/common'
 
 interface SchemePerformanceTableProps {
   data: PumpOperatorPerformanceData[]
   isLoading?: boolean
   errorMessage?: string
   title: string
+  tooltipContent?: ReactNode
   maxItems?: number
   maxTableHeight?: string | number
   fillHeight?: boolean
@@ -114,6 +116,7 @@ export function SchemePerformanceTable({
   isLoading = false,
   errorMessage,
   title,
+  tooltipContent,
   maxItems,
   maxTableHeight = '330px',
   fillHeight = false,
@@ -313,9 +316,17 @@ export function SchemePerformanceTable({
       display="flex"
       flexDirection="column"
     >
-      <Box textStyle="bodyText3" fontWeight="400" mb="16px">
-        {title}
-      </Box>
+      <Flex align="center" gap="6px" mb="16px">
+        <Box textStyle="bodyText3" fontWeight="400">
+          {title}
+        </Box>
+        {tooltipContent ? (
+          <ChartInfoTooltip
+            tooltipContent={tooltipContent}
+            ariaLabel={t('aria.chartInfo', { title, defaultValue: '{{title}} info' })}
+          />
+        ) : null}
+      </Flex>
       {isLoading ? (
         <Box
           flex={fillHeight ? 1 : undefined}

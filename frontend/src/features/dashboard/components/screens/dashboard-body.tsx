@@ -20,6 +20,7 @@ import { GramPanchayatDashboardScreen } from './gram-panchayat-dashboard'
 import { PerformanceChartCard } from './performance-chart-card'
 import { StateUtDashboardScreen } from './state-ut-dashboard'
 import { ChartEmptyState, LoadingSpinner, ViewBySelect } from '@/shared/components/common'
+import { buildDashboardGlossary } from '../../utils/dashboard-glossary'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { VillageDashboardScreen } from './village-dashboard'
 import { getOutageTimeScaleXAxisLabel } from './outage-time-scale-toggle'
@@ -736,6 +737,7 @@ function PerformanceChartsSection({
   isTimeViewEnabled = true,
 }: PerformanceChartsSectionProps) {
   const { t } = useTranslation('dashboard')
+  const glossary = useMemo(() => buildDashboardGlossary(t), [t])
   const errorMsg = t('failedToLoadDataReload', {
     defaultValue: 'Failed to load data. Please reload the page.',
   })
@@ -776,6 +778,7 @@ function PerformanceChartsSection({
         enableExtendedTimeScales={enableExtendedTimeScales}
         isTimeViewEnabled={isTimeViewEnabled}
         errorMessage={errorMsg}
+        tooltipContent={glossary.regularityPerformance}
       />
       <PerformanceChartCard
         title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
@@ -811,6 +814,7 @@ function PerformanceChartsSection({
         enableExtendedTimeScales={enableExtendedTimeScales}
         isTimeViewEnabled={isTimeViewEnabled}
         errorMessage={errorMsg}
+        tooltipContent={glossary.quantityPerformance}
       />
     </Grid>
   )
