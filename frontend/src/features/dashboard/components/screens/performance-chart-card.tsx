@@ -1,5 +1,11 @@
+import type { ReactNode } from 'react'
 import { Box, Flex, Text } from '@chakra-ui/react'
-import { ChartEmptyState, LoadingSpinner, ViewBySelect } from '@/shared/components/common'
+import {
+  ChartEmptyState,
+  ChartInfoTooltip,
+  LoadingSpinner,
+  ViewBySelect,
+} from '@/shared/components/common'
 import type { ViewByValue } from '@/shared/components/common/view-by-select'
 import { MetricPerformanceChart, MonthlyTrendChart } from '../charts'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
@@ -11,6 +17,7 @@ type PerformanceTimeScale = 'day' | 'week' | 'month' | 'quarter' | 'year'
 
 type PerformanceChartCardProps = {
   title: string
+  tooltipContent?: ReactNode
   viewByAriaLabel: string
   viewBy: ViewByValue
   onViewByChange: (value: ViewByValue) => void
@@ -46,6 +53,7 @@ type PerformanceChartCardProps = {
 
 export function PerformanceChartCard({
   title,
+  tooltipContent,
   viewByAriaLabel,
   viewBy,
   onViewByChange,
@@ -139,9 +147,14 @@ export function PerformanceChartCard({
       flexDirection="column"
     >
       <Flex align="center" justify="space-between" mb="16px">
-        <Text textStyle="bodyText3" fontWeight="400">
-          {title}
-        </Text>
+        <Flex align="center" gap="6px">
+          <Text textStyle="bodyText3" fontWeight="400">
+            {title}
+          </Text>
+          {tooltipContent ? (
+            <ChartInfoTooltip tooltipContent={tooltipContent} ariaLabel={`${title} info`} />
+          ) : null}
+        </Flex>
         <Flex
           align="center"
           gap="8px"

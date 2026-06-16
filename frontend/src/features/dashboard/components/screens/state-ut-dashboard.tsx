@@ -1,9 +1,11 @@
+import { useMemo } from 'react'
 import { Box, Flex, Grid, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import type { DashboardData, EntityPerformance } from '../../types'
 import { ReadingSubmissionRateChart } from '../charts'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
-import { ChartEmptyState, LoadingSpinner } from '@/shared/components/common'
+import { ChartEmptyState, ChartInfoTooltip, LoadingSpinner } from '@/shared/components/common'
+import { buildDashboardGlossary } from '../../utils/dashboard-glossary'
 
 type StateUtDashboardScreenProps = {
   data: DashboardData
@@ -29,6 +31,7 @@ export function StateUtDashboardScreen({
   errorMessage = 'Failed to load data. Please reload the page.',
 }: StateUtDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
+  const glossary = useMemo(() => buildDashboardGlossary(t), [t])
 
   return (
     <>
@@ -40,6 +43,7 @@ export function StateUtDashboardScreen({
           errorMessage={isReadingSubmissionStatusError ? errorMessage : undefined}
           chartHeight="336px"
           boxProps={{ borderWidth: '1px', borderRadius: 'lg', px: 4, py: 6 }}
+          tooltipContent={glossary.readingSubmissionStatus}
         />
         <Box
           bg="white"
@@ -52,11 +56,17 @@ export function StateUtDashboardScreen({
           display="flex"
           flexDirection="column"
         >
-          <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-            {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
-              defaultValue: 'Reading Submission Rate',
-            })}
-          </Text>
+          <Flex align="center" gap="6px" mb={2}>
+            <Text textStyle="bodyText3" fontWeight="400">
+              {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
+                defaultValue: 'Reading Submission Rate',
+              })}
+            </Text>
+            <ChartInfoTooltip
+              tooltipContent={glossary.readingSubmissionRate}
+              ariaLabel="Reading submission rate info"
+            />
+          </Flex>
           <Box flex="1" minH={0}>
             {isReadingSubmissionRateLoading ? (
               <Flex align="center" justify="center" h="100%">

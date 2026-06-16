@@ -17,7 +17,13 @@ import {
 import { SchemePerformanceTable } from '../tables'
 import { PerformanceChartCard } from './performance-chart-card'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
-import { ChartEmptyState, LoadingSpinner, ViewBySelect } from '@/shared/components/common'
+import {
+  ChartEmptyState,
+  ChartInfoTooltip,
+  LoadingSpinner,
+  ViewBySelect,
+} from '@/shared/components/common'
+import { buildDashboardGlossary } from '../../utils/dashboard-glossary'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { useOutageDistributionState } from './use-outage-distribution-state'
 import { getOutageTimeScaleXAxisLabel, OutageTimeScaleToggle } from './outage-time-scale-toggle'
@@ -128,6 +134,7 @@ export function BlockDashboardScreen({
   isTimeViewEnabled = true,
 }: BlockDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
+  const glossary = useMemo(() => buildDashboardGlossary(t), [t])
   const showSupplyOutageCharts = shouldShowSupplyOutageCharts()
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
   const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
@@ -160,6 +167,7 @@ export function BlockDashboardScreen({
           title={t('performanceCharts.regularity.title', {
             defaultValue: 'Regularity Performance',
           })}
+          tooltipContent={glossary.regularityPerformance}
           viewByAriaLabel={t('performanceCharts.regularity.ariaViewByBlock', {
             defaultValue: 'Block regularity performance view by',
           })}
@@ -192,6 +200,7 @@ export function BlockDashboardScreen({
         />
         <PerformanceChartCard
           title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
+          tooltipContent={glossary.quantityPerformance}
           viewByAriaLabel={t('performanceCharts.quantity.ariaViewByBlock', {
             defaultValue: 'Block quantity performance view by',
           })}
@@ -257,7 +266,11 @@ export function BlockDashboardScreen({
                   <LoadingSpinner />
                 </Flex>
               ) : (
-                <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
+                <SupplyOutageReasonsChart
+                  data={waterSupplyOutagesData}
+                  height="400px"
+                  tooltipContent={glossary.supplyOutageReasons}
+                />
               )}
             </Box>
           ) : null}
@@ -273,11 +286,17 @@ export function BlockDashboardScreen({
             minW={0}
           >
             <Flex align="center" justify="space-between">
-              <Text textStyle="bodyText3" fontWeight="400">
-                {t('outageAndSubmissionCharts.titles.supplyOutageDistribution', {
-                  defaultValue: 'Supply Outage Distribution',
-                })}
-              </Text>
+              <Flex align="center" gap="6px">
+                <Text textStyle="bodyText3" fontWeight="400">
+                  {t('outageAndSubmissionCharts.titles.supplyOutageDistribution', {
+                    defaultValue: 'Supply Outage Distribution',
+                  })}
+                </Text>
+                <ChartInfoTooltip
+                  tooltipContent={glossary.supplyOutageDistribution}
+                  ariaLabel="Supply outage distribution info"
+                />
+              </Flex>
               <Flex
                 align="center"
                 gap="8px"
@@ -376,9 +395,15 @@ export function BlockDashboardScreen({
           minW={0}
         >
           <Flex align="center" justify="space-between" mb="40px">
-            <Text textStyle="bodyText3" fontWeight="400">
-              {t('pumpOperators.title', { defaultValue: 'Active Schemes' })}
-            </Text>
+            <Flex align="center" gap="6px">
+              <Text textStyle="bodyText3" fontWeight="400">
+                {t('pumpOperators.title', { defaultValue: 'Active Schemes' })}
+              </Text>
+              <ChartInfoTooltip
+                tooltipContent={glossary.activeSchemes}
+                ariaLabel="Active schemes info"
+              />
+            </Flex>
             <Text textStyle="bodyText3" fontWeight="400">
               {t('pumpOperators.totalLabel', { defaultValue: 'Total' })}: {pumpOperatorsTotal}
             </Text>
@@ -419,6 +444,7 @@ export function BlockDashboardScreen({
             currentPage={schemePerformancePage}
             totalPages={totalSchemePages}
             onPageChange={onSchemePageChange}
+            tooltipContent={glossary.schemePerformance}
           />
         </Box>
       </Grid>
@@ -438,6 +464,7 @@ export function BlockDashboardScreen({
             isLoading={isReadingSubmissionStatusLoading}
             errorMessage={isReadingSubmissionStatusError ? errorMessage : undefined}
             chartHeight="336px"
+            tooltipContent={glossary.readingSubmissionStatus}
           />
           {showReadingSubmissionRate ? (
             <Box
@@ -453,11 +480,17 @@ export function BlockDashboardScreen({
               display="flex"
               flexDirection="column"
             >
-              <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-                {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
-                  defaultValue: 'Reading Submission Rate',
-                })}
-              </Text>
+              <Flex align="center" gap="6px" mb={2}>
+                <Text textStyle="bodyText3" fontWeight="400">
+                  {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
+                    defaultValue: 'Reading Submission Rate',
+                  })}
+                </Text>
+                <ChartInfoTooltip
+                  tooltipContent={glossary.readingSubmissionRate}
+                  ariaLabel="Reading submission rate info"
+                />
+              </Flex>
               <Box flex="1" minH={0}>
                 {isReadingSubmissionRateLoading ? (
                   <Flex align="center" justify="center" h="100%">

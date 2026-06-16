@@ -17,7 +17,13 @@ import {
 import { SchemePerformanceTable } from '../tables'
 import { PerformanceChartCard } from './performance-chart-card'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
-import { ChartEmptyState, LoadingSpinner, ViewBySelect } from '@/shared/components/common'
+import {
+  ChartEmptyState,
+  ChartInfoTooltip,
+  LoadingSpinner,
+  ViewBySelect,
+} from '@/shared/components/common'
+import { buildDashboardGlossary } from '../../utils/dashboard-glossary'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { useOutageDistributionState } from './use-outage-distribution-state'
 import { getOutageTimeScaleXAxisLabel, OutageTimeScaleToggle } from './outage-time-scale-toggle'
@@ -122,6 +128,7 @@ export function DistrictDashboardScreen({
   isTimeViewEnabled = true,
 }: DistrictDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
+  const glossary = useMemo(() => buildDashboardGlossary(t), [t])
   const showSupplyOutageCharts = shouldShowSupplyOutageCharts()
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
   const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
@@ -153,6 +160,7 @@ export function DistrictDashboardScreen({
           title={t('performanceCharts.regularity.title', {
             defaultValue: 'Regularity Performance',
           })}
+          tooltipContent={glossary.regularityPerformance}
           viewByAriaLabel={t('performanceCharts.regularity.ariaViewByDistrict', {
             defaultValue: 'District regularity performance view by',
           })}
@@ -185,6 +193,7 @@ export function DistrictDashboardScreen({
         />
         <PerformanceChartCard
           title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
+          tooltipContent={glossary.quantityPerformance}
           viewByAriaLabel={t('performanceCharts.quantity.ariaViewByDistrict', {
             defaultValue: 'District quantity performance view by',
           })}
@@ -242,7 +251,11 @@ export function DistrictDashboardScreen({
                 <LoadingSpinner />
               </Flex>
             ) : (
-              <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
+              <SupplyOutageReasonsChart
+                data={waterSupplyOutagesData}
+                height="400px"
+                tooltipContent={glossary.supplyOutageReasons}
+              />
             )}
           </Box>
           <Box
@@ -257,11 +270,17 @@ export function DistrictDashboardScreen({
             minW={0}
           >
             <Flex align="center" justify="space-between">
-              <Text textStyle="bodyText3" fontWeight="400">
-                {t('outageAndSubmissionCharts.titles.supplyOutageDistribution', {
-                  defaultValue: 'Supply Outage Distribution',
-                })}
-              </Text>
+              <Flex align="center" gap="6px">
+                <Text textStyle="bodyText3" fontWeight="400">
+                  {t('outageAndSubmissionCharts.titles.supplyOutageDistribution', {
+                    defaultValue: 'Supply Outage Distribution',
+                  })}
+                </Text>
+                <ChartInfoTooltip
+                  tooltipContent={glossary.supplyOutageDistribution}
+                  ariaLabel="Supply outage distribution info"
+                />
+              </Flex>
               <Flex
                 align="center"
                 gap="8px"
@@ -352,6 +371,7 @@ export function DistrictDashboardScreen({
           isLoading={isReadingSubmissionStatusLoading}
           errorMessage={isReadingSubmissionStatusError ? errorMessage : undefined}
           chartHeight="336px"
+          tooltipContent={glossary.readingSubmissionStatus}
         />
         <Box
           bg="white"
@@ -366,11 +386,17 @@ export function DistrictDashboardScreen({
           display="flex"
           flexDirection="column"
         >
-          <Text textStyle="bodyText3" fontWeight="400">
-            {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
-              defaultValue: 'Reading Submission Rate',
-            })}
-          </Text>
+          <Flex align="center" gap="6px" mb="0">
+            <Text textStyle="bodyText3" fontWeight="400">
+              {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
+                defaultValue: 'Reading Submission Rate',
+              })}
+            </Text>
+            <ChartInfoTooltip
+              tooltipContent={glossary.readingSubmissionRate}
+              ariaLabel="Reading submission rate info"
+            />
+          </Flex>
           <Box flex="1" minH={0}>
             {isReadingSubmissionRateLoading ? (
               <Flex align="center" justify="center" h="100%">
@@ -405,9 +431,15 @@ export function DistrictDashboardScreen({
           minW={0}
         >
           <Flex align="center" justify="space-between" mb="40px">
-            <Text textStyle="bodyText3" fontWeight="400">
-              {t('pumpOperators.title', { defaultValue: 'Active Schemes' })}
-            </Text>
+            <Flex align="center" gap="6px">
+              <Text textStyle="bodyText3" fontWeight="400">
+                {t('pumpOperators.title', { defaultValue: 'Active Schemes' })}
+              </Text>
+              <ChartInfoTooltip
+                tooltipContent={glossary.activeSchemes}
+                ariaLabel="Active schemes info"
+              />
+            </Flex>
             <Text textStyle="bodyText3" fontWeight="400">
               {t('pumpOperators.totalLabel', { defaultValue: 'Total' })}: {pumpOperatorsTotal}
             </Text>
@@ -436,6 +468,7 @@ export function DistrictDashboardScreen({
             title={t('pumpOperators.performanceTable.title', {
               defaultValue: 'Scheme Performance',
             })}
+            tooltipContent={glossary.schemePerformance}
             data={operatorsPerformanceTable}
             isLoading={isSchemePerformanceLoading}
             errorMessage={isSchemePerformanceError ? errorMessage : undefined}

@@ -1,9 +1,10 @@
 import { useMemo } from 'react'
+import type { ReactNode } from 'react'
 import { IconButton, Tooltip, useMediaQuery, useTheme } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { AiOutlineInfoCircle } from 'react-icons/ai'
 import * as echarts from 'echarts'
-import { EChartsWrapper } from '@/shared/components/common'
+import { ChartInfoTooltip, EChartsWrapper } from '@/shared/components/common'
 import { ChartEmptyState } from '@/shared/components/common/chart-empty-state'
 import { getBodyText7Style } from '@/shared/components/charts/chart-text-style'
 import type { WaterSupplyOutageData } from '../../types'
@@ -14,6 +15,7 @@ interface SupplyOutageReasonsChartProps {
   className?: string
   height?: string | number
   pieSize?: number
+  tooltipContent?: ReactNode
 }
 
 const outageColors = [
@@ -46,6 +48,7 @@ export function SupplyOutageReasonsChart({
   className,
   height = '300px',
   pieSize = 300,
+  tooltipContent,
 }: SupplyOutageReasonsChartProps) {
   const { t: tCommon } = useTranslation('common')
   const { t } = useTranslation('dashboard')
@@ -157,7 +160,12 @@ export function SupplyOutageReasonsChart({
   const containerHeight = typeof height === 'number' ? `${height}px` : height
   const resolvedPieSize = isBelowXs ? Math.min(pieSize, 240) : pieSize
   const legendItems = chartItems.map(({ key, label, color }) => ({ key, label, color }))
-  const infoTooltip = (
+  const ariaLabel = t('outageAndSubmissionCharts.supplyOutageReasons.ariaLabel', {
+    defaultValue: 'Supply outage reasons info',
+  })
+  const infoTooltip = tooltipContent ? (
+    <ChartInfoTooltip tooltipContent={tooltipContent} ariaLabel={ariaLabel} />
+  ) : (
     <Tooltip
       label={t('outageAndSubmissionCharts.supplyOutageReasons.tooltip')}
       hasArrow
@@ -172,7 +180,7 @@ export function SupplyOutageReasonsChart({
       maxW="320px"
     >
       <IconButton
-        aria-label={t('outageAndSubmissionCharts.supplyOutageReasons.ariaLabel')}
+        aria-label={ariaLabel}
         icon={<AiOutlineInfoCircle />}
         variant="ghost"
         color="neutral.400"
