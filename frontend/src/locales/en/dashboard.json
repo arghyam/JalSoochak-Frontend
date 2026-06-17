@@ -276,8 +276,11 @@
       "ariaLastSubmission": "Last submission info",
       "ariaReportingRate": "Reporting rate info",
       "ariaMissingSubmissionCount": "Missing submission count info",
+      "ariaSchemeSelect": "Select scheme",
       "fields": {
         "schemeId": "Scheme ID",
+        "stateSchemeId": "State Scheme ID",
+        "centerSchemeId": "Center Scheme ID",
         "schemeName": "Scheme name",
         "schemeNameSchemeId": "Scheme name/ Scheme ID",
         "stationLocation": "Station location",

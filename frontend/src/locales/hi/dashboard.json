@@ -276,8 +276,11 @@
       "ariaLastSubmission": "अंतिम सबमिशन की जानकारी",
       "ariaReportingRate": "रिपोर्टिंग दर की जानकारी",
       "ariaMissingSubmissionCount": "अनुपस्थित सबमिशन गिनती की जानकारी",
+      "ariaSchemeSelect": "योजना चुनें",
       "fields": {
         "schemeId": "योजना आईडी",
+        "stateSchemeId": "राज्य योजना आईडी",
+        "centerSchemeId": "केंद्र योजना आईडी",
         "schemeName": "योजना का नाम",
         "schemeNameSchemeId": "योजना का नाम/ योजना आईडी",
         "stationLocation": "स्टेशन स्थान",

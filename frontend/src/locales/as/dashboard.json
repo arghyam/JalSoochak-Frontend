@@ -276,15 +276,16 @@
       "ariaLastSubmission": "শেষ জমাদানৰ তথ্য",
       "ariaReportingRate": "প্ৰতিবেদনৰ হাৰৰ তথ্য",
       "ariaMissingSubmissionCount": "অনুপস্থিত জমাদানৰ সংখ্যাৰ তথ্য",
+      "ariaSchemeSelect": "আঁচনি বাছক",
       "fields": {
-        "schemeId": "আঁচনি ID",
+        "stateSchemeId": "ৰাজ্য আঁচনি ID",
+        "centerSchemeId": "কেন্দ্ৰীয় আঁচনি ID",
         "schemeName": "আঁচনিৰ নাম",
         "schemeNameSchemeId": "আঁচনিৰ নাম / আঁচনি ID",
         "stationLocation": "ষ্টেচনৰ অৱস্থান",
         "lastSubmission": "শেষ জমাদান",
         "reportingRate": "প্ৰতিবেদনৰ হাৰ",
-        "missingSubmissionCount": "অনুপস্থিত জমাদানৰ সংখ্যা",
-        "inactiveDays": "নিষ্ক্ৰিয় দিন"
+        "missingSubmissionCount": "অনুপস্থিত জমাদানৰ সংখ্যা"
       },
       "pagination": {
         "previous": "পূৰ্বৱৰ্তী",
@@ -400,7 +401,7 @@
     "readingCompliance": {
       "title": "পঢ়া মানদণ্ড পালন",
       "category": "টেবুল",
-      "description": "নিৰ্বাচিত আঁচনিৰ বাবে এই পাম্প অপাৰেটৰে জমা দিয়া পানী যোগান মিটাৰৰ পঢ়াৰ দৈনিক লগ। তাৰিখ আৰু প্ৰতিবেদিত পঢ়াৰ মান দেখুৱাই।"
+      "description": "নিৰ্বাচিত আঁচনিৰ বাবে পানী যোগান মিটাৰৰ পঢ়াৰ দৈনিক লগ আৰু মানদণ্ড পালনৰ তথ্য। তাৰিখ আৰু প্ৰতিবেদিত পঢ়াৰ মান দেখুৱাই।"
     },
     "pumpOperatorDetails": {
       "title": "পাম্প অপাৰেটৰৰ বিৱৰণ",

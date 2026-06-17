@@ -761,9 +761,7 @@ function ReadingComplianceSection({
           _hover={{ borderColor: 'primary.500', bg: 'white' }}
           _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
           _active={{ bg: 'white' }}
-          aria-label={t('pumpOperators.details.ariaSchemeSelect', {
-            defaultValue: 'Select scheme',
-          })}
+          aria-label={t('pumpOperators.details.ariaSchemeSelect')}
         >
           {activeSchemeLabel}
         </MenuButton>
@@ -834,9 +832,7 @@ function ReadingComplianceSection({
                 alignItems="center"
               >
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.stateSchemeId', {
-                    defaultValue: 'State Scheme ID',
-                  })}
+                  {t('pumpOperators.details.fields.stateSchemeId')}
                 </Text>
                 <Text
                   textStyle="bodyText4"
@@ -848,9 +844,7 @@ function ReadingComplianceSection({
                   {resolvedActivePumpOperator.stateSchemeId ?? 'N/A'}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.centerSchemeId', {
-                    defaultValue: 'Center Scheme ID',
-                  })}
+                  {t('pumpOperators.details.fields.centerSchemeId')}
                 </Text>
                 <Text
                   textStyle="bodyText4"
