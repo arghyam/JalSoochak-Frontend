@@ -1,8 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQueries } from '@tanstack/react-query'
-import { Avatar, Box, Button, Flex, Grid, Icon, Text } from '@chakra-ui/react'
+import {
+  Avatar,
+  Box,
+  Button,
+  Flex,
+  Grid,
+  Icon,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Text,
+} from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { LuArrowLeft, LuArrowRight } from 'react-icons/lu'
+import { LuArrowLeft, LuArrowRight, LuChevronDown } from 'react-icons/lu'
 import { ChartEmptyState, ChartInfoTooltip } from '@/shared/components/common'
 import { buildDashboardGlossary } from '../../utils/dashboard-glossary'
 import { formatIsoDateForDisplay, normalizeDateFormat } from '@/shared/utils/date-format'
@@ -240,10 +252,6 @@ const mapReadingComplianceItemToVillageDetails = (
       missingSubmissionCount != null
         ? formatCount(missingSubmissionCount)
         : matchingFallback?.missingSubmissionCount || 'N/A',
-    inactiveDays:
-      item.inactiveDays != null
-        ? formatCount(item.inactiveDays)
-        : matchingFallback?.inactiveDays || 'N/A',
   }
 }
 
@@ -278,7 +286,6 @@ const mapPumpOperatorSummaryToVillageDetails = (
     lastSubmission: fallback?.lastSubmission || 'N/A',
     reportingRate: fallback?.reportingRate || 'N/A',
     missingSubmissionCount: fallback?.missingSubmissionCount || 'N/A',
-    inactiveDays: fallback?.inactiveDays || 'N/A',
   }
 }
 
@@ -289,8 +296,10 @@ const mapPumpOperatorDetailsToVillageDetails = (
     name: string
     email: string
     phoneNumber: string
-    status: number
+    status: number | string
     schemeId: number
+    stateSchemeId?: string | null
+    centerSchemeId?: string | null
     schemeName: string
     schemeLatitude: number | null
     schemeLongitude: number | null
@@ -317,6 +326,8 @@ const mapPumpOperatorDetailsToVillageDetails = (
     phoneNumber: item.phoneNumber,
     status: item.status,
     schemeId: item.schemeId,
+    stateSchemeId: item.stateSchemeId ?? null,
+    centerSchemeId: item.centerSchemeId ?? null,
     schemeName: normalizedSchemeName,
     scheme:
       normalizedSchemeName && item.schemeId
@@ -347,8 +358,6 @@ const mapPumpOperatorDetailsToVillageDetails = (
       missedSubmissionCount != null
         ? formatCount(missedSubmissionCount)
         : fallback?.missingSubmissionCount || 'N/A',
-    inactiveDays:
-      item.inactiveDays != null ? formatCount(item.inactiveDays) : fallback?.inactiveDays || 'N/A',
   }
 }
 
@@ -396,6 +405,7 @@ function ReadingComplianceSection({
   const [loadedReadingCompliancePages, setLoadedReadingCompliancePages] = useState<
     Record<number, ReadingComplianceItem[]>
   >({})
+  const [selectedSchemeId, setSelectedSchemeId] = useState<number | undefined>(allSchemeIds[0])
 
   // Fetch pump operators for every scheme in parallel
   const schemeQueries = useQueries({
@@ -415,6 +425,18 @@ function ReadingComplianceSection({
     [schemeQueries]
   )
 
+  const schemeOptions = useMemo(
+    () =>
+      allSchemeIds.map((schemeId) => {
+        const found = allPumpOperatorsByScheme.find((item) => item.schemeId === schemeId)
+        return {
+          value: schemeId,
+          label: found?.schemeName ? toCapitalizedWords(found.schemeName) : `Scheme ${schemeId}`,
+        }
+      }),
+    [allSchemeIds, allPumpOperatorsByScheme]
+  )
+
   const fallbackPumpOperatorPages = useMemo(
     () => (villagePumpOperators.length > 0 ? villagePumpOperators : [villagePumpOperatorDetails]),
     [villagePumpOperatorDetails, villagePumpOperators]
@@ -422,19 +444,23 @@ function ReadingComplianceSection({
 
   const pumpOperatorApiPages = useMemo(
     () =>
-      allPumpOperatorsByScheme.flatMap((schemeGroup) =>
-        schemeGroup.pumpOperators.map((operator) =>
-          mapPumpOperatorSummaryToVillageDetails(
-            operator,
-            schemeGroup.schemeId,
-            schemeGroup.schemeName,
-            fallbackPumpOperatorPages.find((fallbackOperator) =>
-              isSameOperator(operator, fallbackOperator)
+      allPumpOperatorsByScheme
+        .filter(
+          (schemeGroup) => selectedSchemeId == null || schemeGroup.schemeId === selectedSchemeId
+        )
+        .flatMap((schemeGroup) =>
+          schemeGroup.pumpOperators.map((operator) =>
+            mapPumpOperatorSummaryToVillageDetails(
+              operator,
+              schemeGroup.schemeId,
+              schemeGroup.schemeName,
+              fallbackPumpOperatorPages.find((fallbackOperator) =>
+                isSameOperator(operator, fallbackOperator)
+              )
             )
           )
-        )
-      ),
-    [allPumpOperatorsByScheme, fallbackPumpOperatorPages]
+        ),
+    [allPumpOperatorsByScheme, fallbackPumpOperatorPages, selectedSchemeId]
   )
 
   const pumpOperatorPages = useMemo(
@@ -451,16 +477,17 @@ function ReadingComplianceSection({
   const activePumpOperatorId = activePumpOperator.id
   const activePumpOperatorSchemeId = activePumpOperator.schemeId
 
-  // Reset reading compliance state whenever the selected operator changes
-  const prevOperatorKeyRef = useRef(activePumpOperatorKey)
+  // Reset all paging when the selected scheme changes
+  const prevSelectedSchemeRef = useRef(selectedSchemeId)
   useEffect(() => {
-    if (prevOperatorKeyRef.current !== activePumpOperatorKey) {
-      prevOperatorKeyRef.current = activePumpOperatorKey
+    if (prevSelectedSchemeRef.current !== selectedSchemeId) {
+      prevSelectedSchemeRef.current = selectedSchemeId
       // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPumpOperatorPage(1)
       setReadingCompliancePage(0)
       setLoadedReadingCompliancePages({})
     }
-  }, [activePumpOperatorKey])
+  }, [selectedSchemeId])
 
   const activePumpOperatorDetailsParams = useMemo(
     () =>
@@ -482,27 +509,17 @@ function ReadingComplianceSection({
 
   const readingComplianceParams = useMemo(
     () =>
-      tenantCode &&
-      typeof activePumpOperatorId === 'number' &&
-      typeof activePumpOperatorSchemeId === 'number'
+      tenantCode && typeof selectedSchemeId === 'number'
         ? {
             tenant_code: tenantCode,
-            scheme_id: activePumpOperatorSchemeId,
-            pump_operator_id: activePumpOperatorId,
+            scheme_id: selectedSchemeId,
             startDate,
             endDate,
             page: readingCompliancePage,
             size: READING_COMPLIANCE_PAGE_SIZE,
           }
         : null,
-    [
-      activePumpOperatorId,
-      activePumpOperatorSchemeId,
-      endDate,
-      readingCompliancePage,
-      startDate,
-      tenantCode,
-    ]
+    [selectedSchemeId, endDate, readingCompliancePage, startDate, tenantCode]
   )
 
   const { data: pumpOperatorDetailsApiData } = usePumpOperatorDetailsQuery({
@@ -613,11 +630,11 @@ function ReadingComplianceSection({
     tableDateFormat,
   ])
 
-  // The API now filters by pumpOperatorId, so all items belong to the active operator.
+  // Reading compliance is fetched per scheme; rows belong to the selected scheme.
   const readingComplianceRows = useMemo(() => {
     const apiRows: ReadingComplianceData[] = readingComplianceItems.map((item, index) => ({
       id: [
-        item.schemeId ?? activePumpOperatorSchemeId ?? 'scheme',
+        item.schemeId ?? selectedSchemeId ?? 'scheme',
         item.id,
         item.readingAt ?? item.lastSubmissionAt ?? 'no-timestamp',
         item.confirmedReading ?? 'no-reading',
@@ -661,7 +678,7 @@ function ReadingComplianceSection({
     ]
   }, [
     activePumpOperatorKey,
-    activePumpOperatorSchemeId,
+    selectedSchemeId,
     readingComplianceItems,
     resolvedActivePumpOperator,
     tableDateFormat,
@@ -676,7 +693,6 @@ function ReadingComplianceSection({
         resolvedActivePumpOperator.lastSubmission,
         resolvedActivePumpOperator.reportingRate,
         resolvedActivePumpOperator.missingSubmissionCount,
-        resolvedActivePumpOperator.inactiveDays,
       ].every((value) => isMissingDisplayValue(value)),
     [resolvedActivePumpOperator]
   )
@@ -719,6 +735,54 @@ function ReadingComplianceSection({
 
     return [activePumpOperatorPage - 1, activePumpOperatorPage, activePumpOperatorPage + 1]
   }, [activePumpOperatorPage, totalPumpOperatorPages])
+
+  const activeSchemeLabel =
+    schemeOptions.find((opt) => opt.value === selectedSchemeId)?.label ??
+    (selectedSchemeId != null ? `Scheme ${selectedSchemeId}` : '')
+
+  const schemeDropdown =
+    allSchemeIds.length > 1 ? (
+      <Menu>
+        <MenuButton
+          as={Button}
+          rightIcon={<LuChevronDown size={16} />}
+          h="32px"
+          px="12px"
+          fontSize="16px"
+          fontWeight="500"
+          justifyContent="space-between"
+          textAlign="left"
+          marginRight="2px"
+          borderRadius="4px"
+          borderColor="primary.500"
+          borderWidth="1px"
+          bg="white"
+          color="primary.500"
+          _hover={{ borderColor: 'primary.500', bg: 'white' }}
+          _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
+          _active={{ bg: 'white' }}
+          aria-label={t('pumpOperators.details.ariaSchemeSelect')}
+        >
+          {activeSchemeLabel}
+        </MenuButton>
+        <MenuList minW="180px" py={1}>
+          {schemeOptions.map((option) => (
+            <MenuItem
+              key={option.value}
+              onClick={() => setSelectedSchemeId(option.value)}
+              fontSize="16px"
+              bg="white"
+              color="neutral.900"
+              fontWeight="500"
+              _hover={{ bg: 'neutral.100' }}
+              _focus={{ bg: 'neutral.100' }}
+            >
+              {option.label}
+            </MenuItem>
+          ))}
+        </MenuList>
+      </Menu>
+    ) : null
 
   return (
     <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
@@ -768,9 +832,7 @@ function ReadingComplianceSection({
                 alignItems="center"
               >
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.schemeId', {
-                    defaultValue: 'Scheme ID',
-                  })}
+                  {t('pumpOperators.details.fields.stateSchemeId')}
                 </Text>
                 <Text
                   textStyle="bodyText4"
@@ -779,9 +841,19 @@ function ReadingComplianceSection({
                   textAlign={{ base: 'left', sm: 'right' }}
                   wordBreak="break-word"
                 >
-                  {typeof resolvedActivePumpOperator.schemeId === 'number'
-                    ? String(resolvedActivePumpOperator.schemeId)
-                    : 'N/A'}
+                  {resolvedActivePumpOperator.stateSchemeId ?? 'N/A'}
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                  {t('pumpOperators.details.fields.centerSchemeId')}
+                </Text>
+                <Text
+                  textStyle="bodyText4"
+                  fontWeight="400"
+                  color="neutral.950"
+                  textAlign={{ base: 'left', sm: 'right' }}
+                  wordBreak="break-word"
+                >
+                  {resolvedActivePumpOperator.centerSchemeId ?? 'N/A'}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
                   {t('pumpOperators.details.fields.schemeName', {
@@ -861,19 +933,6 @@ function ReadingComplianceSection({
                   textAlign={{ base: 'left', sm: 'right' }}
                 >
                   {resolvedActivePumpOperator.missingSubmissionCount}
-                </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.inactiveDays', {
-                    defaultValue: 'Inactive days',
-                  })}
-                </Text>
-                <Text
-                  textStyle="bodyText4"
-                  fontWeight="400"
-                  color="neutral.950"
-                  textAlign={{ base: 'left', sm: 'right' }}
-                >
-                  {resolvedActivePumpOperator.inactiveDays}
                 </Text>
               </Grid>
             </Box>
@@ -975,6 +1034,7 @@ function ReadingComplianceSection({
             defaultValue: 'Reading Compliance',
           })}
           tooltipContent={glossary.readingCompliance}
+          headerRight={schemeDropdown}
         />
       </Box>
     </Grid>

@@ -231,7 +231,7 @@ export function buildDashboardGlossary(t: TFunction<'dashboard'>): DashboardGlos
     readingCompliance: renderDescriptionTooltip(
       t('glossary.readingCompliance.description', {
         defaultValue:
-          'Daily log of water supply meter readings submitted by this pump operator for the selected scheme. Shows the date and reported reading value.',
+          'Daily log of water supply meter readings submitted for the selected scheme. Shows the submission date and reported meter reading value.',
       })
     ),
 
@@ -239,7 +239,8 @@ export function buildDashboardGlossary(t: TFunction<'dashboard'>): DashboardGlos
       t('glossary.pumpOperatorDetails.description', {
         defaultValue:
           "Summary of a pump operator's activity for the selected scheme within the chosen period — including their reporting frequency and when they last submitted a reading.",
-      })
+      }),
+      []
     ),
 
     pumpOperatorReportingRate: renderDescriptionTooltip(

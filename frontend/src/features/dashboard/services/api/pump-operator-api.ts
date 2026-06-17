@@ -65,7 +65,6 @@ export const pumpOperatorApi = {
       params: {
         tenantCode: params.tenant_code,
         schemeId: params.scheme_id,
-        pumpOperatorId: params.pump_operator_id,
         startDate: params.startDate,
         endDate: params.endDate,
         page: params.page ?? 0,

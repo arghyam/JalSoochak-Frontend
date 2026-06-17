@@ -276,8 +276,11 @@
       "ariaLastSubmission": "Last submission info",
       "ariaReportingRate": "Reporting rate info",
       "ariaMissingSubmissionCount": "Missing submission count info",
+      "ariaSchemeSelect": "Select scheme",
       "fields": {
         "schemeId": "Scheme ID",
+        "stateSchemeId": "State Scheme ID",
+        "centerSchemeId": "Center Scheme ID",
         "schemeName": "Scheme name",
         "schemeNameSchemeId": "Scheme name/ Scheme ID",
         "stationLocation": "Station location",
@@ -400,7 +403,7 @@
     "readingCompliance": {
       "title": "Reading Compliance",
       "category": "Table",
-      "description": "Daily log of water supply meter readings submitted by this pump operator for the selected scheme. Shows the date and reported reading value."
+      "description": "Daily log of water supply meter readings submitted for the selected scheme. Shows the date and reported reading value."
     },
     "pumpOperatorDetails": {
       "title": "Pump Operator Details",

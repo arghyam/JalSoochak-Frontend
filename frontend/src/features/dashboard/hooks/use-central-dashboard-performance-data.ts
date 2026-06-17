@@ -232,7 +232,6 @@ export function buildCentralDashboardPerformanceData({
     lastSubmission: 'N/A',
     reportingRate: 'N/A',
     missingSubmissionCount: 'N/A',
-    inactiveDays: 'N/A',
   }
 
   return {

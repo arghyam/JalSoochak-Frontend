@@ -1,0 +1,434 @@
+{
+  "failedToLoadData": "ডেটা লোড কৰিব পৰা নগল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।",
+  "failedToLoadDataReload": "ডেটা লোড কৰিব পৰা নগল। অনুগ্ৰহ কৰি পৃষ্ঠাটো পুনৰ লোড কৰক।",
+  "header": {
+    "title": "JalSoochak",
+    "subtitle": "জাতীয় গ্ৰামীণ পানীয় জল যোগান ডেচবৰ্ড",
+    "subtitleSingleTenant": "{{tenantName}} গ্ৰামীণ পানীয় জল যোগান ডেচবৰ্ড"
+  },
+  "searchLayout": {
+    "placeholder": "ৰাজ্য/কেন্দ্ৰশাসিত অঞ্চল, জিলা, ব্লক, Gram Panchayat, গাঁৱৰ নামেৰে অনুসন্ধান কৰক",
+    "downloadReport": "প্ৰতিবেদন ডাউনলোড কৰক",
+    "allStatesUTs": "সকলো ৰাজ্য/কেন্দ্ৰশাসিত অঞ্চল",
+    "noOptionsFound": "কোনো {{label}} পোৱা নগল",
+    "tabs": {
+      "administrative": "প্ৰশাসনিক",
+      "departmental": "বিভাগীয়"
+    },
+    "options": {
+      "states": "ৰাজ্য"
+    },
+    "aria": {
+      "breadcrumb": "ব্ৰেডক্ৰাম্ব: {{item}}",
+      "closeDropdown": "অনুসন্ধান ড্ৰপডাউন বন্ধ কৰক"
+    }
+  },
+  "filters": {
+    "duration": "সময়কাল",
+    "clearAll": "সকলো ফিল্টাৰ মচক",
+    "dateRangePicker": {
+      "quickRanges": "দ্ৰুত পৰিসৰ",
+      "startDate": "আৰম্ভণিৰ তাৰিখ",
+      "endDate": "শেষৰ তাৰিখ",
+      "dateInputPlaceholder": "দিন/মাহ/বছৰ",
+      "clear": "মচক",
+      "apply": "প্ৰয়োগ কৰক",
+      "presets": {
+        "today": "আজি",
+        "yesterday": "গতিকালি",
+        "thisWeek": "এই সপ্তাহ",
+        "lastWeek": "যোৱা সপ্তাহ",
+        "thisMonth": "এই মাহ",
+        "lastMonth": "যোৱা মাহ"
+      }
+    },
+    "options": {
+      "states": "ৰাজ্য",
+      "districts": "জিলা",
+      "blocks": "ব্লক",
+      "gramPanchayats": "Gram Panchayats",
+      "villages": "গাঁও"
+    },
+    "searchBy": {
+      "label": "{{label}}ৰে অনুসন্ধান কৰক",
+      "stateUt": "ৰাজ্য/কেন্দ্ৰশাসিত অঞ্চল",
+      "district": "জিলা",
+      "block": "ব্লক",
+      "gramPanchayat": "Gram Panchayat",
+      "village": "গাঁও",
+      "zone": "অঞ্চল",
+      "circle": "চাৰ্কেল",
+      "division": "বিভাজন",
+      "subDivision": "উপ-বিভাজন"
+    },
+    "noOptions": {
+      "states": "কোনো ৰাজ্য পোৱা নগল",
+      "districts": "কোনো জিলা পোৱা নগল",
+      "blocks": "কোনো ব্লক পোৱা নগল",
+      "gramPanchayats": "কোনো Gram Panchayat পোৱা নগল",
+      "villages": "কোনো গাঁও পোৱা নগল"
+    }
+  },
+  "map": {
+    "metric": {
+      "quantity": "পৰিমাণ",
+      "regularity": "নিয়মিততা"
+    },
+    "viewTabs": {
+      "stateView": "ৰাজ্য দৰ্শন",
+      "districtView": "জিলা দৰ্শন"
+    },
+    "noMapAvailable": "মানচিত্ৰ বৰ্তমান উপলব্ধ নাই",
+    "loading": "মানচিত্ৰ লোড হৈ আছে...",
+    "loadError": "মানচিত্ৰ এতিয়া লোড কৰিব পৰা নগল।",
+    "legend": {
+      "ariaLabel": "মানচিত্ৰৰ মানৰ পৰিসৰ",
+      "gte90": ">={{value}}%",
+      "gte70": ">={{value}}%",
+      "gte50": ">={{value}}%",
+      "gte30": ">={{value}}%",
+      "gte0": ">={{value}}%",
+      "noData": "কোনো তথ্য নাই"
+    }
+  },
+  "kpi": {
+    "labels": {
+      "schemesSupplyingWater": "পানী যোগান দিয়া আঁচনি",
+      "quantityInMld": "MLD-ত পৰিমাণ",
+      "quantityInLpcd": "LPCD-ত পৰিমাণ",
+      "regularity": "নিয়মিততা",
+      "criticalSchemes": "সমালোচনামূলক আঁচনি"
+    },
+    "tooltips": {
+      "schemesSupplyingWater": {
+        "description": "নিৰ্বাচিত তাৰিখ পৰিসৰত ধাৰাবাহিকভাৱে পানী যোগান দিয়া আঁচনিৰ সংখ্যা।"
+      },
+      "criticalSchemes": {
+        "description": "শেষ {{days}} দিনত পানী যোগান দিওঁতে বিফল হোৱা আঁচনি চিহ্নিত কৰা হৈছে।"
+      },
+      "quantityMld": {
+        "formulaLabel": "পৰিমাণ (MLD)",
+        "definitions": {
+          "mldFullForm": "প্ৰতিদিনে মিলিয়ন লিটাৰ",
+          "waterQuantitySupplied": "k-তম দিনত যোগান দিয়া পানীৰ পৰিমাণ",
+          "totalWaterSupplied": "সকলো দিনত মুঠ পানী যোগান",
+          "totalNumberOfDays": "নিৰ্বাচিত সময়কালত মুঠ দিনৰ সংখ্যা"
+        }
+      },
+      "quantityLpcd": {
+        "formulaLabel": "পৰিমাণ (LPCD)",
+        "definitions": {
+          "lpcdFullForm": "প্ৰতিদিনে প্ৰতি জনমূৰে লিটাৰ",
+          "waterQuantitySupplied": "k-তম দিনত যোগান দিয়া পানীৰ পৰিমাণ",
+          "functionalHouseholdTapConnections": "আঁচনি i-ৰ কাৰ্যকৰী গৃহস্থালি নল সংযোগ",
+          "averagePersonsPerHousehold": "প্ৰতি পৰিয়ালত গড় ব্যক্তিৰ সংখ্যা",
+          "numberOfDays": "নিৰ্বাচিত সময়কালত মুঠ দিনৰ সংখ্যা"
+        }
+      },
+      "regularity": {
+        "formulaLabel": "আঁচনিৰ নিয়মিততা",
+        "definitions": {
+          "numberOfSupplyDays": "আঁচনিৰ ধাৰাবাহিক যোগান-দিনৰ সংখ্যা",
+          "totalNumberOfDaysInSelectedPeriod": "নিৰ্বাচিত সময়কালত মুঠ দিনৰ সংখ্যা"
+        }
+      }
+    },
+    "trends": {
+      "percentVsPreviousDays_one": "পূৰ্বৱৰ্তী {{days}} দিনতকৈ {{change}}%",
+      "percentVsPreviousDays_other": "পূৰ্বৱৰ্তী {{days}} দিনতকৈ {{change}}%",
+      "lpcdVsPreviousDays_one": "পূৰ্বৱৰ্তী {{days}} দিনতকৈ {{change}} LPCD",
+      "lpcdVsPreviousDays_other": "পূৰ্বৱৰ্তী {{days}} দিনতকৈ {{change}} LPCD",
+      "percentDownLastDays": "শেষ {{days}} দিনতকৈ -{{change}}%",
+      "lpcdUpLastMonth": "যোৱা মাহতকৈ +{{change}} LPCD",
+      "percentDownLastMonth": "যোৱা মাহতকৈ -{{change}}%"
+    }
+  },
+  "overallPerformance": {
+    "title": "কাৰ্যক্ষমতাৰ সাৰাংশ",
+    "noData": "কোনো তথ্য উপলব্ধ নাই",
+    "columns": {
+      "entity": "ৰাজ্য/কেন্দ্ৰশাসিত অঞ্চল",
+      "quantityMld": "পৰিমাণ (MLD)",
+      "quantityLpcd": "পৰিমাণ (LPCD)",
+      "regularity": "নিয়মিততা (%)"
+    },
+    "entities": {
+      "stateUt": "ৰাজ্য/কেন্দ্ৰশাসিত অঞ্চল",
+      "district": "জিলা",
+      "block": "ব্লক",
+      "gramPanchayat": "Gram Panchayat",
+      "village": "গাঁও"
+    }
+  },
+  "performanceCharts": {
+    "quantity": {
+      "title": "পৰিমাণ কাৰ্যক্ষমতা",
+      "ariaViewBy": "পৰিমাণ কাৰ্যক্ষমতা দৰ্শন",
+      "ariaViewByDistrict": "জিলা পৰিমাণ কাৰ্যক্ষমতা দৰ্শন",
+      "ariaViewByGramPanchayat": "Gram Panchayat পৰিমাণ কাৰ্যক্ষমতা দৰ্শন",
+      "yAxisLabel": "পৰিমাণ (LPCD)",
+      "seriesName": "পৰিমাণ",
+      "areaSeriesName": "চাহিদা"
+    },
+    "regularity": {
+      "title": "নিয়মিততা কাৰ্যক্ষমতা",
+      "ariaViewBy": "নিয়মিততা কাৰ্যক্ষমতা দৰ্শন",
+      "ariaViewByDistrict": "জিলা নিয়মিততা কাৰ্যক্ষমতা দৰ্শন",
+      "ariaViewByGramPanchayat": "Gram Panchayat নিয়মিততা কাৰ্যক্ষমতা দৰ্শন",
+      "yAxisLabel": "নিয়মিততা (%)",
+      "seriesName": "নিয়মিততা"
+    },
+    "viewBy": {
+      "select": "বাছনি কৰক",
+      "geography": "ভূগোল",
+      "time": "সময়",
+      "month": "মাহ",
+      "blocks": "ব্লক",
+      "districts": "জিলা",
+      "statesUTs": "ৰাজ্য/কেন্দ্ৰশাসিত অঞ্চল",
+      "gramPanchayats": "Gram Panchayats",
+      "villages": "গাঁও",
+      "zone": "অঞ্চল",
+      "circle": "চাৰ্কেল",
+      "division": "বিভাজন",
+      "subDivision": "উপ-বিভাজন",
+      "zones": "অঞ্চলসমূহ",
+      "circles": "চাৰ্কেলসমূহ",
+      "divisions": "বিভাজনসমূহ",
+      "subDivisions": "উপ-বিভাজনসমূহ"
+    }
+  },
+  "aria": {
+    "chartInfo": "{{title}} তথ্য"
+  },
+  "outageAndSubmissionCharts": {
+    "ariaViewByBlock": "ব্লক পানী যোগান বিভ্ৰাট বিতৰণ দৰ্শন",
+    "ariaViewByGramPanchayat": "Gram Panchayat পানী যোগান বিভ্ৰাট বিতৰণ দৰ্শন",
+    "ariaOutageTimeScale": "বিভ্ৰাটৰ সময় মাপকাঠি",
+    "ariaSupplyOutageDistribution": "পানী যোগান বিভ্ৰাটৰ বিতৰণ তথ্য",
+    "ariaActiveSchemes": "সক্ৰিয় আঁচনিৰ তথ্য",
+    "ariaReadingSubmissionRate": "পঢ়া জমাদানৰ হাৰৰ তথ্য",
+    "supplyOutageReasons": {
+      "tooltip": "গণনা অনন্য আঁচনিৰ ওপৰত আধাৰিত। এটা আঁচনি একাধিক অঞ্চলত থাকিব পাৰে, সেয়েহে অঞ্চলৰ মুঠ বেছি হ'ব পাৰে।",
+      "ariaLabel": "পানী যোগান বিভ্ৰাটৰ কাৰণসমূহৰ তথ্য"
+    },
+    "titles": {
+      "supplyOutageReasons": "পানী যোগান বিভ্ৰাটৰ কাৰণ",
+      "supplyOutageDistribution": "পানী যোগান বিভ্ৰাটৰ বিতৰণ",
+      "readingSubmissionRate": "পঢ়া জমাদানৰ হাৰ",
+      "readingSubmissionStatus": "পঢ়া জমাদানৰ স্থিতি",
+      "readingCompliance": "পঢ়া মানদণ্ড পালন",
+      "photoEvidenceCompliance": "ফটো প্ৰমাণৰ মানদণ্ড পালন",
+      "issueTypeBreakdown": "সমস্যাৰ ধৰণ বিশ্লেষণ"
+    },
+    "axis": {
+      "percentage": "শতাংশ",
+      "noOfReasons": "কাৰণৰ সংখ্যা"
+    },
+    "series": {
+      "submissionRate": "জমাদানৰ হাৰ",
+      "readingSubmission": "পঢ়া জমাদান",
+      "supplyOutage": "পানী যোগান বিভ্ৰাট"
+    },
+    "timeScale": {
+      "day": "দিন",
+      "week": "সপ্তাহ",
+      "month": "মাহ",
+      "quarter": "তিনিমাহ",
+      "year": "বছৰ"
+    },
+    "timeScaleShort": {
+      "day": "দি",
+      "week": "স",
+      "month": "মা",
+      "quarter": "তি",
+      "year": "ব"
+    },
+    "legend": {
+      "electricalFailure": "বিদ্যুৎ বিভ্ৰাট",
+      "pipelineBreak": "পাইপলাইন ভঙা",
+      "pumpFailure": "পাম্প বিভ্ৰাট",
+      "valveIssue": "ভালভৰ সমস্যা",
+      "sourceDrying": "উৎস শুকাই যোৱা",
+      "complaintSubmission": "অভিযোগ জমাদান",
+      "automatedSubmission": "অসামঞ্জস্যপূৰ্ণ জমাদান",
+      "compliantSubmission": "মানদণ্ড পালনকাৰী জমাদান",
+      "anomalousSubmission": "অসামঞ্জস্যপূৰ্ণ জমাদান"
+    },
+    "tables": {
+      "readingCompliance": {
+        "columns": {
+          "name": "নাম",
+          "village": "গাঁও",
+          "lastSubmission": "জমাদানৰ তাৰিখ আৰু সময়",
+          "readingValue": "পঢ়াৰ মান"
+        }
+      }
+    }
+  },
+  "pumpOperators": {
+    "title": "আঁচনি",
+    "totalLabel": "মুঠ",
+    "note": "টোকা: মাহত কমেও ৩০ দিন সক্ৰিয় থকা আঁচনি।",
+    "details": {
+      "title": "পাম্প অপাৰেটৰৰ বিৱৰণ",
+      "ariaPumpOperatorDetails": "পাম্প অপাৰেটৰৰ বিৱৰণ তথ্য",
+      "ariaLastSubmission": "শেষ জমাদানৰ তথ্য",
+      "ariaReportingRate": "প্ৰতিবেদনৰ হাৰৰ তথ্য",
+      "ariaMissingSubmissionCount": "অনুপস্থিত জমাদানৰ সংখ্যাৰ তথ্য",
+      "ariaSchemeSelect": "আঁচনি বাছক",
+      "fields": {
+        "stateSchemeId": "ৰাজ্য আঁচনি ID",
+        "centerSchemeId": "কেন্দ্ৰীয় আঁচনি ID",
+        "schemeName": "আঁচনিৰ নাম",
+        "schemeNameSchemeId": "আঁচনিৰ নাম / আঁচনি ID",
+        "stationLocation": "ষ্টেচনৰ অৱস্থান",
+        "lastSubmission": "শেষ জমাদান",
+        "reportingRate": "প্ৰতিবেদনৰ হাৰ",
+        "missingSubmissionCount": "অনুপস্থিত জমাদানৰ সংখ্যা"
+      },
+      "pagination": {
+        "previous": "পূৰ্বৱৰ্তী",
+        "next": "পৰৱৰ্তী"
+      }
+    },
+    "legend": {
+      "active": "সক্ৰিয় আঁচনি",
+      "inactive": "অ-সক্ৰিয় আঁচনি"
+    },
+    "performanceTable": {
+      "title": "আঁচনিৰ কাৰ্যক্ষমতা",
+      "columns": {
+        "name": "নাম",
+        "village": "গাঁও",
+        "block": "ব্লক",
+        "reportingRate": "প্ৰতিবেদনৰ হাৰ (%)",
+        "waterSupplied": "যোগান দিয়া পানী"
+      }
+    }
+  },
+  "blockDashboard": {
+    "titles": {
+      "allGramPanchayatsPerformance": "সকলো Gram Panchayat-ৰ কাৰ্যক্ষমতা",
+      "demandVsSupply": "চাহিদা বনাম যোগান",
+      "allGramPanchayats": "সকলো Gram Panchayat"
+    }
+  },
+  "states": {
+    "dataUnavailable": {
+      "title": "ডেচবৰ্ড ডেটা উপলব্ধ নাই",
+      "description": "কোনো ডেচবৰ্ড ডেটা ঘূৰাই দিয়া হোৱা নাই।"
+    }
+  },
+  "glossary": {
+    "regularityPerformance": {
+      "title": "নিয়মিততা কাৰ্যক্ষমতা",
+      "category": "মেট্ৰিক",
+      "description": "নিৰ্বাচিত সময়কালৰ ভিতৰত আঁচনিসমূহে ধাৰাবাহিকভাৱে পানী যোগান দিয়া দিনৰ শতাংশ।",
+      "formulaLabel": "আঁচনিৰ নিয়মিততা",
+      "definitions": {
+        "xi": "আঁচনি i-ৰ ধাৰাবাহিক যোগান-দিনৰ সংখ্যা",
+        "n": "নিৰ্বাচিত সময়কালত মুঠ দিনৰ সংখ্যা"
+      }
+    },
+    "quantityPerformance": {
+      "title": "পৰিমাণ কাৰ্যক্ষমতা",
+      "category": "মেট্ৰিক",
+      "description": "কাৰ্যকৰী গৃহস্থালি নল সংযোগত প্ৰতিদিনে প্ৰতি জনমূৰে যোগান দিয়া পানীৰ গড় আয়তন, LPCD-ত পৰিমাপ কৰা হৈছে।",
+      "formulaLabel": "পৰিমাণ (LPCD: প্ৰতিদিনে প্ৰতি জনমূৰে লিটাৰ)",
+      "definitions": {
+        "wk": "k-তম দিনত যোগান দিয়া পানীৰ পৰিমাণ (লিটাৰত)",
+        "fhtci": "আঁচনি i-ৰ কাৰ্যকৰী গৃহস্থালি নল সংযোগ",
+        "p": "প্ৰতি পৰিয়ালত গড় ব্যক্তিৰ সংখ্যা",
+        "n": "নিৰ্বাচিত সময়কালত মুঠ দিনৰ সংখ্যা",
+        "demandLine": "চাহিদা ৰেখাই গৃহস্থালি নল সংযোগৰ ওপৰত আধাৰিত প্ৰয়োজনীয় LPCD থ্ৰেচহোল্ড ({{lpcd}} L) দেখুৱাই"
+      }
+    },
+    "readingSubmissionRate": {
+      "title": "পঢ়া জমাদানৰ হাৰ",
+      "category": "মেট্ৰিক",
+      "description": "নিৰ্বাচিত সময়কালত পাম্প অপাৰেটৰে তেওঁলোকৰ আঁচনিৰ বাবে পানী প্ৰবাহমাপক যন্ত্ৰৰ পঢ়া জমা দিয়া দিনৰ শতাংশ।",
+      "formulaLabel": "আঁচনিৰ পঢ়া জমাদানৰ হাৰ",
+      "definitions": {
+        "si": "আঁচনি i-ৰ বাবে পাম্প অপাৰেটৰে পঢ়া জমা দিয়া দিনৰ সংখ্যা",
+        "n": "নিৰ্বাচিত সময়কালত মুঠ দিনৰ সংখ্যা"
+      }
+    },
+    "readingSubmissionStatus": {
+      "title": "পঢ়া জমাদানৰ স্থিতি",
+      "category": "স্থিতি",
+      "description": "নিৰ্বাচিত সময়কালত সকলো আঁচনিত মানদণ্ড পালনৰ স্থিতি অনুসৰে জমা দিয়া পঢ়াৰ বিশ্লেষণ।",
+      "compliantLabel": "মানদণ্ড পালনকাৰী জমাদান",
+      "compliantDescription": "গ্ৰহণযোগ্য থ্ৰেচহোল্ডৰ ভিতৰত জমা দিয়া পঢ়া যি ডেটা গুণমানৰ মানদণ্ড পূৰণ কৰে।",
+      "anomalousLabel": "অসামঞ্জস্যপূৰ্ণ জমাদান",
+      "anomalousDescription": "স্বয়ংক্ৰিয় গুণমান পৰীক্ষাৰ ওপৰত আধাৰিত সম্ভাৱিতভাৱে অশুদ্ধ হিচাপে চিহ্নিত পঢ়া (যেনে হঠাৎ বৃদ্ধি বা একেই মান বাৰম্বাৰ)।"
+    },
+    "supplyOutageReasons": {
+      "title": "পানী যোগান বিভ্ৰাটৰ কাৰণ",
+      "category": "চাৰ্ট",
+      "description": "মূল কাৰণ অনুসৰি প্ৰতিবেদিত যোগান ব্যাঘাতৰ ঘটনাৰ বিতৰণ। গণনা অনন্য আঁচনিৰ ওপৰত আধাৰিত — এটা আঁচনি একাধিক অঞ্চলত থাকিব পাৰে, সেয়েহে আঞ্চলিক মুঠ সামগ্ৰিক সংখ্যাতকৈ বেছি হ'ব পাৰে।",
+      "definitions": {
+        "electricalFailure": "পাম্প ষ্টেচনত বিদ্যুৎ যোগানৰ বাধা",
+        "pipelineBreak": "পানী বিতৰণ পাইপলাইনত লিক বা ফাট",
+        "pumpFailure": "পাম্প সঁজুলিৰ যান্ত্ৰিক বিভ্ৰাট",
+        "valveIssue": "নিয়ন্ত্ৰণ ভালভৰ অকাৰ্যকৰীতা বা ক্ষতি",
+        "sourceDrying": "উৎসত অপৰ্যাপ্ত পানী (নলকূপ, ভূ-পৃষ্ঠৰ পানী, ইত্যাদি)"
+      }
+    },
+    "supplyOutageDistribution": {
+      "title": "পানী যোগান বিভ্ৰাটৰ বিতৰণ",
+      "category": "চাৰ্ট",
+      "description": "নিৰ্বাচিত এলেকা আৰু সময়কালৰ ভিতৰত শিশু অঞ্চলসমূহত পানী যোগান বিভ্ৰাটৰ ঘটনাৰ ভৌগোলিক বিস্তাৰ। অধিক ঘন ঘন বিভ্ৰাট থকা অঞ্চলসমূহ চাৰ্টত বেছি মানেৰে দেখুওৱা হৈছে।"
+    },
+    "activeSchemes": {
+      "title": "সক্ৰিয় আঁচনি",
+      "category": "চাৰ্ট",
+      "description": "নিৰ্বাচিত সময়কালত পানী যোগান প্ৰতিবেদনৰ ওপৰত আধাৰিত পৰিচালনামূলক স্থিতি অনুসৰে আঁচনিৰ সংখ্যা।",
+      "activeLabel": "সক্ৰিয় আঁচনি",
+      "activeDescription": "নিৰ্বাচিত সময়কালত কমেও এটা পানী যোগান পঢ়া প্ৰতিবেদন কৰা আঁচনি।",
+      "nonActiveLabel": "অ-সক্ৰিয় আঁচনি",
+      "nonActiveDescription": "নিৰ্বাচিত সময়কালত কোনো পানী যোগান পঢ়া প্ৰতিবেদন নকৰা আঁচনি।"
+    },
+    "schemePerformance": {
+      "title": "আঁচনিৰ কাৰ্যক্ষমতা",
+      "category": "টেবুল",
+      "description": "নিৰ্বাচিত অঞ্চলৰ ভিতৰত আঁচনিৰ শ্ৰেণীবদ্ধ তালিকা, প্ৰতিবেদনৰ মানদণ্ড পালন আৰু মুঠ পানী যোগান দেখুৱাই।",
+      "definitions": {
+        "reportingRate": "পাম্প অপাৰেটৰে পঢ়া জমা দিয়া দিনৰ শতাংশ (জমাদানৰ দিন ÷ মুঠ দিন × ১০০)",
+        "waterSupplied": "নিৰ্বাচিত সময়কালত আঁচনিৰ দ্বাৰা যোগান দিয়া পানীৰ মুঠ আয়তন (লিটাৰত)"
+      }
+    },
+    "readingCompliance": {
+      "title": "পঢ়া মানদণ্ড পালন",
+      "category": "টেবুল",
+      "description": "নিৰ্বাচিত আঁচনিৰ বাবে পানী যোগান মিটাৰৰ পঢ়াৰ দৈনিক লগ আৰু মানদণ্ড পালনৰ তথ্য। তাৰিখ আৰু প্ৰতিবেদিত পঢ়াৰ মান দেখুৱাই।"
+    },
+    "pumpOperatorDetails": {
+      "title": "পাম্প অপাৰেটৰৰ বিৱৰণ",
+      "category": "প্যানেল",
+      "description": "নিৰ্বাচিত আঁচনিৰ বাবে নিৰ্বাচিত সময়কালত পাম্প অপাৰেটৰৰ কাৰ্যকলাপৰ সাৰাংশ — তেওঁলোকৰ প্ৰতিবেদনৰ কম্পাঙ্ক আৰু শেষবাৰ পঢ়া জমা দিয়াৰ সময় অন্তৰ্ভুক্ত।"
+    },
+    "pumpOperatorReportingRate": {
+      "description": "এই আঁচনিৰ বাবে এই পাম্প অপাৰেটৰে পঢ়া জমা দিয়া নিৰ্বাচিত সময়কালৰ দিনৰ শতাংশ। গণনা: জমাদানৰ দিন ÷ মুঠ দিন × ১০০।"
+    },
+    "pumpOperatorLastSubmission": {
+      "description": "এই আঁচনিৰ বাবে এই পাম্প অপাৰেটৰে শেষবাৰ মিটাৰৰ পঢ়া জমা দিয়াৰ তাৰিখ আৰু সময়।"
+    },
+    "pumpOperatorMissingSubmissions": {
+      "description": "এই আঁচনিৰ বাবে এই পাম্প অপাৰেটৰে নিৰ্বাচিত সময়কালত কোনো পঢ়া জমা নিদিয়া দিনৰ সংখ্যা।"
+    }
+  },
+  "glossaryPage": {
+    "title": "ডেচবৰ্ড শব্দকোষ",
+    "subtitle": "এই ডেচবৰ্ডত ব্যৱহৃত সকলো মেট্ৰিক, চাৰ্ট, আৰু সূচকৰ সংজ্ঞা আৰু সূত্ৰ।",
+    "formulaSection": "সূত্ৰ",
+    "variablesSection": "চলৰাশি",
+    "statusSection": "স্থিতিৰ ধৰণ",
+    "outageReasonsSection": "বিভ্ৰাটৰ কাৰণৰ সংজ্ঞা",
+    "categoryMetric": "মেট্ৰিক",
+    "categoryChart": "চাৰ্ট",
+    "categoryStatus": "স্থিতি",
+    "categoryTable": "টেবুল",
+    "categoryPanel": "প্যানেল"
+  }
+}

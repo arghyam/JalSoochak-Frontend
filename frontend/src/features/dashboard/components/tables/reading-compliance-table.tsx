@@ -16,6 +16,7 @@ interface ReadingComplianceTableProps {
   fillHeight?: boolean
   dateFormat?: string
   tooltipContent?: ReactNode
+  headerRight?: ReactNode
 }
 
 const ISO_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T/
@@ -60,6 +61,7 @@ export function ReadingComplianceTable({
   fillHeight = false,
   dateFormat,
   tooltipContent,
+  headerRight,
 }: ReadingComplianceTableProps) {
   const { t } = useTranslation('dashboard')
   const hasReachedEndRef = useRef(false)
@@ -127,19 +129,22 @@ export function ReadingComplianceTable({
       display="flex"
       flexDirection="column"
     >
-      <Flex align="center" gap="6px" mb="16px">
-        <Text textStyle="bodyText3" fontWeight="400">
-          {resolvedTitle}
-        </Text>
-        {tooltipContent ? (
-          <ChartInfoTooltip
-            tooltipContent={tooltipContent}
-            ariaLabel={t('aria.chartInfo', {
-              title: resolvedTitle,
-              defaultValue: '{{title}} info',
-            })}
-          />
-        ) : null}
+      <Flex align="center" justify="space-between" mb="16px">
+        <Flex align="center" gap="6px">
+          <Text textStyle="bodyText3" fontWeight="400">
+            {resolvedTitle}
+          </Text>
+          {tooltipContent ? (
+            <ChartInfoTooltip
+              tooltipContent={tooltipContent}
+              ariaLabel={t('aria.chartInfo', {
+                title: resolvedTitle,
+                defaultValue: '{{title}} info',
+              })}
+            />
+          ) : null}
+        </Flex>
+        {headerRight ?? null}
       </Flex>
       {isEmpty ? (
         <Box
