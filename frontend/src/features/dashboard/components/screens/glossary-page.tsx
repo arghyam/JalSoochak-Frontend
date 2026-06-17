@@ -122,9 +122,9 @@ export function GlossaryPage() {
               defaultValue: 'Regularity Performance',
             })}
             category={categoryMetric}
-            description={t('glossaryPage.regularityDescription', {
+            description={t('glossary.regularityPerformance.description', {
               defaultValue:
-                'Measures how consistently a scheme supplied water over the selected period, expressed as a percentage of days with continuous supply.',
+                'Percentage of days within the selected period that schemes supplied water consistently.',
             })}
             formula={
               <>
@@ -153,9 +153,9 @@ export function GlossaryPage() {
           <GlossaryCard
             title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
             category={categoryMetric}
-            description={t('glossaryPage.quantityDescription', {
+            description={t('glossary.quantityPerformance.description', {
               defaultValue:
-                'Measures the average volume of water supplied per person per day (LPCD) across schemes in the selected period, relative to the functional tap connections.',
+                'Average volume of water supplied per person per day, measured in Litres per Capita per Day (LPCD), across functional household tap connections.',
             })}
             formula={
               <>
@@ -198,9 +198,9 @@ export function GlossaryPage() {
               defaultValue: 'Reading Submission Rate',
             })}
             category={categoryMetric}
-            description={t('glossaryPage.readingSubmissionRateDescription', {
+            description={t('glossary.readingSubmissionRate.description', {
               defaultValue:
-                'Percentage of days in the selected period for which a pump operator submitted a reading, indicating data coverage.',
+                'Percentage of days that pump operators submitted water flow meter readings for their schemes in the selected period.',
             })}
             formula={
               <>
@@ -346,7 +346,7 @@ export function GlossaryPage() {
             category={categoryTable}
             description={t('glossary.readingCompliance.description', {
               defaultValue:
-                'Daily log of water supply meter readings submitted by this pump operator for the selected scheme. Shows the date and reported reading value.',
+                'Daily log of water supply meter readings submitted for the selected scheme. Shows the submission date and reported meter reading value.',
             })}
           />
 

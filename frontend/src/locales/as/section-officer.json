@@ -1,0 +1,208 @@
+{
+  "login": {
+    "heading": "স্বাগতম",
+    "phoneStep": {
+      "subtitle": "আগবাঢ়িবলৈ আপোনাৰ ফোন নম্বৰ দিয়ক।",
+      "phoneLabel": "ফোন নম্বৰ",
+      "phonePlaceholder": "১০ সংখ্যাৰ নম্বৰ দিয়ক",
+      "stateLabel": "ৰাজ্য / কেন্দ্ৰশাসিত অঞ্চল",
+      "statePlaceholder": "ৰাজ্য / কেন্দ্ৰশাসিত অঞ্চল বাছনি কৰক",
+      "stateLoading": "লোড হৈ আছে...",
+      "sendOtp": "OTP পঠাওক",
+      "sendingOtp": "OTP পঠোৱা হৈ আছে...",
+      "phoneError": "এটা বৈধ ১০ সংখ্যাৰ ম'বাইল নম্বৰ দিয়ক।",
+      "phoneDigitsOnlyError": "ফোন নম্বৰত কেৱল সংখ্যা থাকিব লাগিব।",
+      "stateError": "অনুগ্ৰহ কৰি এটা ৰাজ্য/কেন্দ্ৰশাসিত অঞ্চল বাছনি কৰক।",
+      "stateLoadFailed": "ৰাজ্য/কেন্দ্ৰশাসিত অঞ্চলৰ তালিকা লোড কৰিব পৰা নগল। অনুগ্ৰহ কৰি পুনৰ লোড কৰক।",
+      "sendOtpFailed": "OTP পঠাওঁতে বিফল হ'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।"
+    },
+    "otpStep": {
+      "subtitle": "{{maskedPhone}}ত পঠোৱা {{otpLength}} সংখ্যাৰ কোড দিয়ক।",
+      "otpLabel": "OTP দিয়ক",
+      "didNotReceive": "কোড পোৱা নাই?",
+      "resendIn": "{{seconds}} ছেকেণ্ডত পুনৰায় পঠাওক",
+      "resend": "পুনৰায় পঠাওক",
+      "sending": "পঠোৱা হৈ আছে...",
+      "login": "লগ ইন",
+      "loggingIn": "লগ ইন হৈ আছে...",
+      "back": "উভতি যাওক",
+      "incompleteOtp": "অনুগ্ৰহ কৰি সম্পূৰ্ণ {{otpLength}} সংখ্যাৰ OTP দিয়ক।",
+      "invalidOtp": "অবৈধ OTP। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।",
+      "resendFailed": "OTP পুনৰায় পঠাওঁতে বিফল হ'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।"
+    }
+  },
+  "pages": {
+    "overview": {
+      "heading": "অৱলোকন",
+      "comingSoon": "শীঘ্ৰেই আহিব",
+      "subtitle": "অৱলোকন পৃষ্ঠা নিৰ্মাণৰ অধীনত আছে।",
+      "stats": {
+        "totalSchemes": "মুঠ আঁচনিৰ সংখ্যা",
+        "quantityMld": "যোগান দিয়া পৰিমাণ (MLD)",
+        "anomaliesFlagged": "চিহ্নিত অসামঞ্জস্যতা",
+        "escalations": "এস্কেলেচন"
+      },
+      "charts": {
+        "outageReasons": {
+          "title": "বিভ্ৰাটৰ কাৰণ",
+          "pieTitle": "পানী যোগান বিভ্ৰাটৰ কাৰণ",
+          "distributionTitle": "পানী যোগান বিভ্ৰাটৰ বিতৰণ",
+          "xAxisLabel": "তাৰিখ"
+        },
+        "nonSubmissionReasons": {
+          "title": "জমা নিদিয়াৰ কাৰণ",
+          "pieTitle": "জমা নিদিয়াৰ কাৰণ",
+          "distributionTitle": "জমা নিদিয়াৰ বিতৰণ",
+          "xAxisLabel": "তাৰিখ"
+        },
+        "submissionStatus": {
+          "title": "জমাদানৰ স্থিতি",
+          "pieTitle": "পঢ়া জমাদানৰ স্থিতি",
+          "barTitle": "পঢ়া জমাদানৰ হাৰ",
+          "xAxisLabel": "তাৰিখ"
+        },
+        "failedToLoadData": "ডেটা লোড কৰিব পৰা নগল"
+      }
+    },
+    "schemes": {
+      "heading": "সকলো আঁচনি",
+      "comingSoon": "শীঘ্ৰেই আহিব",
+      "subtitle": "আঁচনি পৃষ্ঠা নিৰ্মাণৰ অধীনত আছে।",
+      "breadcrumb": "সকলো আঁচনি",
+      "viewScheme": "আঁচনি চাওক",
+      "schemeDetails": "আঁচনিৰ বিৱৰণ",
+      "columns": {
+        "schemeName": "আঁচনিৰ নাম",
+        "stateSchemeId": "ৰাজ্য আঁচনি ID",
+        "pumpOperators": "পাম্প অপাৰেটৰ",
+        "lastReading": "শেষ পঢ়া",
+        "yesterdayReading": "গতিকালিৰ পঢ়া",
+        "lastWaterSupplied": "শেষবাৰ পানী যোগান",
+        "lastSubmission": "শেষ জমাদান",
+        "pumpOperator": "পাম্প অপাৰেটৰ",
+        "submissionDateTime": "জমাদানৰ তাৰিখ আৰু সময়",
+        "waterSupplied": "যোগান দিয়া পানী",
+        "readingValue": "পঢ়াৰ মান",
+        "actions": "কাৰ্য"
+      },
+      "loading": "আঁচনিৰ বিৱৰণ লোড হৈ আছে…",
+      "loadingSubmissions": "জমাদান লোড হৈ আছে…",
+      "error": "আঁচনিৰ বিৱৰণ লোড কৰিব পৰা নগল।",
+      "errorSubmissions": "পঢ়া জমাদান লোড কৰিব পৰা নগল।",
+      "noSubmissionsFound": "কোনো জমাদান পোৱা নগল।",
+      "noSchemesFound": "কোনো আঁচনি পোৱা নগল।",
+      "searchPlaceholder": "আঁচনিৰ নামেৰে অনুসন্ধান কৰক",
+      "detailFields": {
+        "schemeName": "আঁচনিৰ নাম",
+        "stateSchemeId": "ৰাজ্য আঁচনি ID",
+        "lastSubmission": "শেষ জমাদান",
+        "reportingRate": "প্ৰতিবেদনৰ হাৰ"
+      }
+    },
+    "pumpOperators": {
+      "heading": "পাম্প অপাৰেটৰ",
+      "comingSoon": "শীঘ্ৰেই আহিব",
+      "subtitle": "পাম্প অপাৰেটৰ পৃষ্ঠা নিৰ্মাণৰ অধীনত আছে।",
+      "breadcrumb": "পাম্প অপাৰেটৰ",
+      "viewPumpOperator": "পাম্প অপাৰেটৰ চাওক",
+      "pumpOperatorDetails": "পাম্প অপাৰেটৰৰ বিৱৰণ",
+      "columns": {
+        "name": "নাম",
+        "schemes": "আঁচনি",
+        "reportingRate": "প্ৰতিবেদনৰ হাৰ (%)",
+        "lastSubmission": "শেষ জমাদান",
+        "activityStatus": "কাৰ্যকলাপৰ স্থিতি",
+        "actions": "কাৰ্য",
+        "schemeName": "আঁচনিৰ নাম",
+        "stateSchemeId": "ৰাজ্য আঁচনি ID",
+        "submissionDateTime": "জমাদানৰ তাৰিখ আৰু সময়",
+        "waterSupplied": "যোগান দিয়া পানী",
+        "readingValue": "পঢ়াৰ মান"
+      },
+      "loading": "লোড হৈ আছে…",
+      "loadingDetails": "পাম্প অপাৰেটৰৰ বিৱৰণ লোড হৈ আছে…",
+      "loadingReadings": "পঢ়া লোড হৈ আছে…",
+      "error": "পাম্প অপাৰেটৰ লোড কৰিব পৰা নগল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।",
+      "errorDetails": "পাম্প অপাৰেটৰৰ বিৱৰণ লোড কৰিব পৰা নগল।",
+      "errorReadings": "পঢ়া লোড কৰিব পৰা নগল।",
+      "noReadingsFound": "কোনো পঢ়া পোৱা নগল।",
+      "noPumpOperatorsFound": "কোনো পাম্প অপাৰেটৰ পোৱা নগল।",
+      "searchPlaceholder": "নামেৰে অনুসন্ধান কৰক",
+      "searchReadingsPlaceholder": "আঁচনিৰ নামেৰে অনুসন্ধান কৰক",
+      "filterStatus": "স্থিতি",
+      "filterDuration": "সময়কাল",
+      "clearAllFilters": "সকলো ফিল্টাৰ মচক",
+      "today": "আজি",
+      "yesterday": "গতিকালি",
+      "detailFields": {
+        "name": "নাম",
+        "phoneNumber": "ফোন নম্বৰ",
+        "reportingRate": "প্ৰতিবেদনৰ হাৰ",
+        "lastSubmission": "শেষ জমাদান"
+      },
+      "viewTooltip": "পাম্প অপাৰেটৰ চাওক",
+      "downloadAttendance": "উপস্থিতি",
+      "attendanceModal": {
+        "title": "উপস্থিতি ডাউনলোড কৰক",
+        "dateRangeLabel": "সময়কাল বাছনি কৰক",
+        "dateRangePlaceholder": "সময়কাল বাছনি কৰক",
+        "cancel": "বাতিল কৰক",
+        "download": "ডাউনলোড কৰক"
+      }
+    },
+    "anomalies": {
+      "heading": "অসামঞ্জস্যতা",
+      "comingSoon": "শীঘ্ৰেই আহিব",
+      "subtitle": "অসামঞ্জস্যতা পৃষ্ঠা নিৰ্মাণৰ অধীনত আছে।",
+      "columns": {
+        "schemeName": "আঁচনিৰ নাম",
+        "dateTime": "তাৰিখ আৰু সময়",
+        "anomalyType": "অসামঞ্জস্যতাৰ ধৰণ",
+        "details": "বিৱৰণ",
+        "status": "স্থিতি"
+      },
+      "loading": "লোড হৈ আছে…",
+      "error": "অসামঞ্জস্যতা লোড কৰিব পৰা নগল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।",
+      "noAnomaliesFound": "কোনো অসামঞ্জস্যতা পোৱা নগল।",
+      "searchPlaceholder": "আঁচনিৰ নামেৰে অনুসন্ধান কৰক",
+      "filterStatus": "স্থিতি",
+      "filterDuration": "সময়কাল",
+      "clearAllFilters": "সকলো ফিল্টাৰ মচক"
+    },
+    "escalations": {
+      "heading": "এস্কেলেচন",
+      "comingSoon": "শীঘ্ৰেই আহিব",
+      "subtitle": "এস্কেলেচন পৃষ্ঠা নিৰ্মাণৰ অধীনত আছে।",
+      "columns": {
+        "schemeName": "আঁচনিৰ নাম",
+        "dateTime": "তাৰিখ আৰু সময়",
+        "escalationType": "এস্কেলেচনৰ ধৰণ",
+        "details": "বিৱৰণ",
+        "status": "স্থিতি"
+      },
+      "loading": "লোড হৈ আছে…",
+      "error": "এস্কেলেচন লোড কৰিব পৰা নগল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।",
+      "noEscalationsFound": "কোনো এস্কেলেচন পোৱা নগল।",
+      "searchPlaceholder": "আঁচনিৰ নামেৰে অনুসন্ধান কৰক",
+      "filterStatus": "স্থিতি",
+      "filterDuration": "সময়কাল",
+      "clearAllFilters": "সকলো ফিল্টাৰ মচক"
+    },
+    "fixReadings": {
+      "title": "পঢ়া সংশোধন কৰক",
+      "searchPlaceholder": "আঁচনিৰ নামেৰে অনুসন্ধান কৰক",
+      "noResults": "কোনো আঁচনি পোৱা নগল",
+      "selectSchemePrompt": "পঢ়া চাবলৈ আৰু সংশোধন কৰিবলৈ তালিকাৰ পৰা এটা আঁচনি বাছনি কৰক",
+      "yesterdayReading": "শেষ নিশ্চিত পঢ়া",
+      "updateReading": "পঢ়া আপডেট কৰক",
+      "updateButton": "আপডেট",
+      "successMessage": "পঢ়া সফলভাৱে আপডেট হৈছে",
+      "clearSearch": "অনুসন্ধান মচক"
+    }
+  },
+  "common": {
+    "retry": "পুনৰ চেষ্টা কৰক",
+    "viewScheme": "আঁচনি চাওক",
+    "documentTitle": "| JalSoochak"
+  }
+}

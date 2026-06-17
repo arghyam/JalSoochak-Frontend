@@ -15,10 +15,17 @@ import hiSuperAdmin from '@/locales/hi/super-admin.json'
 import hiStateAdmin from '@/locales/hi/state-admin.json'
 import hiSectionOfficer from '@/locales/hi/section-officer.json'
 import hiAuth from '@/locales/hi/auth.json'
+import asCommon from '@/locales/as/common.json'
+import asDashboard from '@/locales/as/dashboard.json'
+import asSuperAdmin from '@/locales/as/super-admin.json'
+import asStateAdmin from '@/locales/as/state-admin.json'
+import asSectionOfficer from '@/locales/as/section-officer.json'
+import asAuth from '@/locales/as/auth.json'
 
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English', nativeName: 'English' },
   { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी' },
+  { code: 'as', name: 'Assamese', nativeName: 'অসমীয়া' },
 ] as const
 
 export type LanguageCode = (typeof SUPPORTED_LANGUAGES)[number]['code']
@@ -41,6 +48,14 @@ const resources = {
     'state-admin': hiStateAdmin,
     'section-officer': hiSectionOfficer,
     auth: hiAuth,
+  },
+  as: {
+    common: asCommon,
+    dashboard: asDashboard,
+    'super-admin': asSuperAdmin,
+    'state-admin': asStateAdmin,
+    'section-officer': asSectionOfficer,
+    auth: asAuth,
   },
 }
 
