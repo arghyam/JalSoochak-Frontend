@@ -44,7 +44,12 @@ type BuildCentralDashboardRenderPropsParams = DashboardFiltersProps &
     | 'onOutageDistributionTimeScaleTabChange'
     | 'onQuantityTimeScaleTabChange'
     | 'onRegularityTimeScaleTabChange'
+    | 'isSchemeDownloading'
+    | 'onSchemeDownload'
     | 'onSchemePageChange'
+    | 'onSchemeSortChange'
+    | 'schemeSortBy'
+    | 'schemeSortDir'
     | 'operatorsPerformanceTable'
     | 'outageDistributionTimeScaleTab'
     | 'pumpOperatorsTotal'
@@ -163,10 +168,15 @@ export function buildCentralDashboardRenderProps({
   isWaterQuantityPeriodicAwaitingParams,
   isWaterQuantityPeriodicFetching,
   mapChartData,
+  isSchemeDownloading,
   onOutageDistributionTimeScaleTabChange,
   onQuantityTimeScaleTabChange,
   onRegularityTimeScaleTabChange,
+  onSchemeDownload,
   onSchemePageChange,
+  onSchemeSortChange,
+  schemeSortBy,
+  schemeSortDir,
   operatorsPerformanceTable,
   outageDistributionTimeScaleTab,
   overallPerformanceEntityLabel,
@@ -287,9 +297,14 @@ export function buildCentralDashboardRenderProps({
       allSchemeIds,
       startDate,
       endDate,
-      schemePerformancePage,
-      totalSchemePages,
+      isSchemeDownloading,
+      onSchemeDownload,
       onSchemePageChange,
+      onSchemeSortChange,
+      schemePerformancePage,
+      schemeSortBy,
+      schemeSortDir,
+      totalSchemePages,
       screenDateFormat,
       tableDateFormat,
       enableExtendedTimeScales: true,

@@ -1220,6 +1220,8 @@ describe('dashboardApi.getSchemePerformance', () => {
         end_date: 'e',
         page_number: 2,
         limit: 15,
+        sort_by: 'reportingRate',
+        sort_dir: 'desc',
       },
     })
     expect(res.activeSchemeCount).toBe(2)

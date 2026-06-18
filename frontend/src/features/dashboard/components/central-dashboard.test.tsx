@@ -20,7 +20,10 @@ import { useOutageReasonsQuery } from '../services/query/use-outage-reasons-quer
 import { useReadingComplianceQuery } from '../services/query/use-reading-compliance-query'
 import { useReadingSubmissionRateQuery } from '../services/query/use-reading-submission-rate-query'
 import { useSchemeRegularityPeriodicQuery } from '../services/query/use-scheme-regularity-periodic-query'
-import { useSchemePerformanceQuery } from '../services/query/use-scheme-performance-query'
+import {
+  useSchemePerformanceQuery,
+  useSchemePerformanceDownloadMutation,
+} from '../services/query/use-scheme-performance-query'
 import { useSubmissionStatusQuery } from '../services/query/use-submission-status-query'
 import { useTenantPublicConfigQuery } from '../services/query/use-tenant-public-config-query'
 import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
@@ -135,6 +138,7 @@ jest.mock('../services/query/use-scheme-regularity-periodic-query', () => ({
 
 jest.mock('../services/query/use-scheme-performance-query', () => ({
   useSchemePerformanceQuery: jest.fn(),
+  useSchemePerformanceDownloadMutation: jest.fn(),
 }))
 
 jest.mock('../services/query/use-submission-status-query', () => ({
@@ -372,6 +376,7 @@ describe('CentralDashboard', () => {
     ;(useReadingSubmissionRateQuery as jest.Mock).mockReset()
     ;(useSchemeRegularityPeriodicQuery as jest.Mock).mockReset()
     ;(useSchemePerformanceQuery as jest.Mock).mockReset()
+    ;(useSchemePerformanceDownloadMutation as jest.Mock).mockReset()
     ;(useSubmissionStatusQuery as jest.Mock).mockReset()
     ;(useTenantPublicConfigQuery as jest.Mock).mockReset()
     ;(useWaterQuantityPeriodicQuery as jest.Mock).mockReset()
@@ -408,6 +413,10 @@ describe('CentralDashboard', () => {
       isFetching: false,
     })
     ;(useSchemePerformanceQuery as jest.Mock).mockReturnValue({ data: undefined })
+    ;(useSchemePerformanceDownloadMutation as jest.Mock).mockReturnValue({
+      mutate: jest.fn(),
+      isPending: false,
+    })
     ;(useSubmissionStatusQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useTenantPublicConfigQuery as jest.Mock).mockReturnValue({ data: undefined })
     ;(useWaterQuantityPeriodicQuery as jest.Mock).mockReturnValue({
@@ -930,6 +939,8 @@ describe('CentralDashboard', () => {
         endDate: '2026-03-26',
         pageNumber: 1,
         limit: 15,
+        sortBy: 'reportingRate',
+        sortDir: 'desc',
       },
       enabled: true,
     })
@@ -1013,6 +1024,8 @@ describe('CentralDashboard', () => {
         endDate: '2026-03-26',
         pageNumber: 1,
         limit: 15,
+        sortBy: 'reportingRate',
+        sortDir: 'desc',
       },
       enabled: true,
     })
@@ -1076,6 +1089,8 @@ describe('CentralDashboard', () => {
         endDate: '2026-03-26',
         pageNumber: 1,
         limit: 15,
+        sortBy: 'reportingRate',
+        sortDir: 'desc',
       },
       enabled: true,
     })
@@ -4030,6 +4045,8 @@ describe('CentralDashboard', () => {
         endDate: '2026-03-26',
         pageNumber: 1,
         limit: 15,
+        sortBy: 'reportingRate',
+        sortDir: 'desc',
       },
       enabled: true,
     })

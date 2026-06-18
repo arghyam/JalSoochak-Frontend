@@ -1,7 +1,6 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
   type PointerEvent,
@@ -11,8 +10,11 @@ import {
 import { Box, Button, Flex, Icon, Table, Tbody, Td, Text, Th, Thead, Tr } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { LuArrowLeft, LuArrowRight, LuChevronsLeft, LuChevronsRight } from 'react-icons/lu'
-import type { PumpOperatorPerformanceData } from '../../types'
-import { ChartInfoTooltip, LoadingSpinner } from '@/shared/components/common'
+import { FiDownload } from 'react-icons/fi'
+import type { PumpOperatorPerformanceData, SchemePerformanceSortBy } from '../../types'
+import { ActionTooltip, ChartInfoTooltip, LoadingSpinner } from '@/shared/components/common'
+
+const MAX_SCHEME_NAME_CHARS = 20
 
 interface SchemePerformanceTableProps {
   data: PumpOperatorPerformanceData[]
@@ -30,18 +32,14 @@ interface SchemePerformanceTableProps {
   currentPage?: number
   totalPages?: number
   onPageChange?: (page: number) => void
+  sortBy?: SchemePerformanceSortBy
+  sortDir?: 'asc' | 'desc'
+  onSortChange?: (sortBy: SchemePerformanceSortBy, sortDir: 'asc' | 'desc') => void
+  onDownload?: () => void
+  isDownloading?: boolean
 }
 
-type SortColumn = 'reportingRate' | 'waterSupplied' | null
-type SortDirection = 'asc' | 'desc' | null
-
-function SortIndicator({
-  isActive,
-  direction,
-}: {
-  isActive: boolean
-  direction: Exclude<SortDirection, null>
-}) {
+function SortIndicator({ isActive, direction }: { isActive: boolean; direction: 'asc' | 'desc' }) {
   const activeColor = 'var(--chakra-colors-primary-500)'
   const inactiveColor = 'var(--chakra-colors-neutral-500)'
   const topArrowFill = isActive && direction === 'asc' ? activeColor : inactiveColor
@@ -61,50 +59,30 @@ function SortIndicator({
   )
 }
 
-const compareNullableNumbers = (
-  left: number | null | undefined,
-  right: number | null | undefined,
-  direction: Exclude<SortDirection, null>
-) => {
-  const leftValue = typeof left === 'number' && Number.isFinite(left) ? left : null
-  const rightValue = typeof right === 'number' && Number.isFinite(right) ? right : null
-
-  if (leftValue === null && rightValue === null) {
-    return 0
-  }
-
-  if (leftValue === null) {
-    return 1
-  }
-
-  if (rightValue === null) {
-    return -1
-  }
-
-  return direction === 'asc' ? leftValue - rightValue : rightValue - leftValue
-}
-
 const formatCellValue = (value: string | null | undefined) => value?.trim() || '-'
-
-const formatMetricValue = (value: number | null | undefined, suffix = '') =>
-  typeof value === 'number' && Number.isFinite(value) ? `${value}${suffix}` : '-'
 
 const formatReportingRateValue = (value: number | null | undefined) =>
   typeof value === 'number' && Number.isFinite(value) ? `${Number(value.toFixed(2))}` : '-'
 
+const formatWaterSupplied = (value: number | null | undefined) =>
+  typeof value === 'number' && Number.isFinite(value)
+    ? `${new Intl.NumberFormat('en-IN').format(Math.round(value))} L`
+    : '-'
+
+function truncateSchemeName(name: string): { display: string; isTruncated: boolean } {
+  if (name.length <= MAX_SCHEME_NAME_CHARS) return { display: name, isTruncated: false }
+  return { display: name.slice(0, MAX_SCHEME_NAME_CHARS - 3) + '...', isTruncated: true }
+}
+
 function useResizeObserver(ref: RefObject<HTMLDivElement | null>, callback: () => void) {
   useEffect(() => {
     const node = ref.current
-    if (!node || typeof ResizeObserver === 'undefined') {
-      return
-    }
+    if (!node || typeof ResizeObserver === 'undefined') return
 
     const resizeObserver = new ResizeObserver(() => {
       callback()
     })
-
     resizeObserver.observe(node)
-
     return () => {
       resizeObserver.disconnect()
     }
@@ -127,10 +105,13 @@ export function SchemePerformanceTable({
   currentPage = 1,
   totalPages = 0,
   onPageChange,
+  sortBy = 'reportingRate',
+  sortDir = 'desc',
+  onSortChange,
+  onDownload,
+  isDownloading = false,
 }: SchemePerformanceTableProps) {
   const { t } = useTranslation('dashboard')
-  const [sortColumn, setSortColumn] = useState<SortColumn>('reportingRate')
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
   const scrollbarTrackRef = useRef<HTMLDivElement | null>(null)
   const scrollbarThumbRef = useRef<HTMLDivElement | null>(null)
@@ -140,18 +121,13 @@ export function SchemePerformanceTable({
   const thumbLeftRef = useRef(0)
   const [hasHorizontalOverflow, setHasHorizontalOverflow] = useState(false)
   const [isThumbDragging, setIsThumbDragging] = useState(false)
+
   const safeMaxItems =
     typeof maxItems === 'number' && Number.isFinite(maxItems) ? Math.max(0, maxItems) : undefined
   const areaColumnCount = (showVillageColumn ? 1 : 0) + (showBlockColumn ? 1 : 0)
-  const nameColumnWidth = '40%'
+  const nameColumnWidth = '30%'
   const areaColumnWidth = areaColumnCount > 0 ? `${20 / areaColumnCount}%` : undefined
-  const sortedRows =
-    sortColumn && sortDirection
-      ? [...data].sort((a, b) => {
-          return compareNullableNumbers(a[sortColumn], b[sortColumn], sortDirection)
-        })
-      : data
-  const rows = typeof safeMaxItems === 'number' ? sortedRows.slice(0, safeMaxItems) : sortedRows
+  const rows = typeof safeMaxItems === 'number' ? data.slice(0, safeMaxItems) : data
   const isEmpty = rows.length === 0
 
   const safeTotalPages = typeof totalPages === 'number' && totalPages > 0 ? totalPages : 0
@@ -159,40 +135,37 @@ export function SchemePerformanceTable({
     safeTotalPages > 0 ? Math.min(Math.max(1, currentPage), safeTotalPages) : 1
   const showPagination = safeTotalPages > 1
 
-  const visiblePageNumbers = useMemo((): (number | 'ellipsis')[] => {
-    if (safeTotalPages <= 3) {
-      return Array.from({ length: safeTotalPages }, (_, index) => index + 1)
+  const handleSort = (column: SchemePerformanceSortBy) => {
+    if (!onSortChange) return
+    if (sortBy !== column) {
+      onSortChange(column, 'desc')
+      return
     }
+    onSortChange(column, sortDir === 'desc' ? 'asc' : 'desc')
+  }
 
+  const visiblePageNumbers = (() => {
+    if (safeTotalPages <= 3) {
+      return Array.from({ length: safeTotalPages }, (_, index) => index + 1) as (
+        | number
+        | 'ellipsis'
+      )[]
+    }
     const pages: (number | 'ellipsis')[] = []
     const startPage = Math.min(Math.max(1, safeCurrentPage), safeTotalPages - 1)
     const secondPage = startPage + 1
-
     pages.push(startPage, secondPage)
-
     if (secondPage < safeTotalPages) {
       pages.push('ellipsis', safeTotalPages)
     }
-
     return pages
-  }, [safeCurrentPage, safeTotalPages])
+  })()
 
   const handlePageChange = (page: number) => {
-    if (!onPageChange) {
-      return
-    }
+    if (!onPageChange) return
     const clampedPage = Math.min(Math.max(1, page), safeTotalPages)
     onPageChange(clampedPage)
     scrollContainerRef.current?.scrollTo({ top: 0 })
-  }
-
-  const handleSort = (column: Exclude<SortColumn, null>) => {
-    if (sortColumn !== column) {
-      setSortColumn(column)
-      setSortDirection('desc')
-      return
-    }
-    setSortDirection((current) => (current === 'desc' ? 'asc' : 'desc'))
   }
 
   const getTrackWidth = () => scrollbarTrackRef.current?.getBoundingClientRect().width ?? 0
@@ -201,9 +174,7 @@ export function SchemePerformanceTable({
     const node = scrollContainerRef.current
     const thumb = scrollbarThumbRef.current
 
-    if (!node) {
-      return
-    }
+    if (!node) return
 
     const maxScroll = node.scrollWidth - node.clientWidth
     const trackWidth = getTrackWidth()
@@ -216,9 +187,7 @@ export function SchemePerformanceTable({
         thumb.style.width = '0px'
         thumb.style.left = '0px'
       }
-      if (!nextHasOverflow) {
-        thumbLeftRef.current = 0
-      }
+      if (!nextHasOverflow) thumbLeftRef.current = 0
       return
     }
 
@@ -240,10 +209,7 @@ export function SchemePerformanceTable({
   }, [rows.length, showVillageColumn, showBlockColumn, hasHorizontalOverflow, updateScrollbarThumb])
 
   const handleThumbPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (!hasHorizontalOverflow) {
-      return
-    }
-
+    if (!hasHorizontalOverflow) return
     isDraggingThumb.current = true
     setIsThumbDragging(true)
     dragStartX.current = event.clientX
@@ -252,59 +218,59 @@ export function SchemePerformanceTable({
   }
 
   const handleThumbPointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    if (!isDraggingThumb.current) {
-      return
-    }
-
+    if (!isDraggingThumb.current) return
     const node = scrollContainerRef.current
-    if (!node) {
-      return
-    }
-
+    if (!node) return
     const trackWidth = getTrackWidth()
-    if (trackWidth === 0) {
-      return
-    }
-
+    if (trackWidth === 0) return
     const thumb = scrollbarThumbRef.current
     const thumbWidth = thumb?.getBoundingClientRect().width ?? 0
     const maxThumbTravel = Math.max(0, trackWidth - thumbWidth)
-
-    if (maxThumbTravel === 0) {
-      return
-    }
-
+    if (maxThumbTravel === 0) return
     const delta = event.clientX - dragStartX.current
     const nextLeft = Math.min(Math.max(dragStartLeft.current + delta, 0), maxThumbTravel)
     const maxScroll = node.scrollWidth - node.clientWidth
-
-    if (thumb) {
-      thumb.style.left = `${nextLeft}px`
-    }
-
+    if (thumb) thumb.style.left = `${nextLeft}px`
     thumbLeftRef.current = nextLeft
     node.scrollLeft = (nextLeft / maxThumbTravel) * maxScroll
   }
 
   const handleThumbPointerUp = (event: PointerEvent<HTMLDivElement>) => {
-    if (!isDraggingThumb.current) {
-      return
-    }
-
+    if (!isDraggingThumb.current) return
     isDraggingThumb.current = false
     setIsThumbDragging(false)
     event.currentTarget.releasePointerCapture(event.pointerId)
   }
 
   const handleThumbPointerCancel = (event: PointerEvent<HTMLDivElement>) => {
-    if (!isDraggingThumb.current) {
-      return
-    }
-
+    if (!isDraggingThumb.current) return
     isDraggingThumb.current = false
     setIsThumbDragging(false)
     event.currentTarget.releasePointerCapture(event.pointerId)
   }
+
+  const sortableHeaderButton = (column: SchemePerformanceSortBy, label: string) => (
+    <Box
+      as="button"
+      type="button"
+      onClick={() => handleSort(column)}
+      display="inline-flex"
+      alignItems="center"
+      gap={1}
+      cursor="pointer"
+      textAlign="left"
+      width="fit-content"
+      bg="none"
+      border="none"
+      p={0}
+    >
+      <Box as="span">{label}</Box>
+      <SortIndicator
+        isActive={sortBy === column}
+        direction={sortBy === column ? (sortDir ?? 'desc') : 'desc'}
+      />
+    </Box>
+  )
 
   return (
     <Box
@@ -316,17 +282,43 @@ export function SchemePerformanceTable({
       display="flex"
       flexDirection="column"
     >
-      <Flex align="center" gap="6px" mb="16px">
-        <Box textStyle="bodyText3" fontWeight="400">
-          {title}
-        </Box>
-        {tooltipContent ? (
-          <ChartInfoTooltip
-            tooltipContent={tooltipContent}
-            ariaLabel={t('aria.chartInfo', { title, defaultValue: '{{title}} info' })}
-          />
+      <Flex align="center" justify="space-between" gap="6px" mb="16px">
+        <Flex align="center" gap="6px" flex={1} minW={0}>
+          <Box textStyle="bodyText3" fontWeight="400">
+            {title}
+          </Box>
+          {tooltipContent ? (
+            <ChartInfoTooltip
+              tooltipContent={tooltipContent}
+              ariaLabel={t('aria.chartInfo', { title, defaultValue: '{{title}} info' })}
+            />
+          ) : null}
+        </Flex>
+        {onDownload ? (
+          <Button
+            variant="secondary"
+            size="sm"
+            fontWeight="600"
+            flexShrink={0}
+            aria-label={t('pumpOperators.performanceTable.downloadAria', {
+              defaultValue: 'Download schemes performance',
+            })}
+            onClick={onDownload}
+            isLoading={isDownloading}
+            loadingText={t('pumpOperators.performanceTable.downloading', {
+              defaultValue: 'Downloading...',
+            })}
+          >
+            <FiDownload
+              aria-hidden="true"
+              size={16}
+              style={{ marginRight: '4px', flexShrink: 0 }}
+            />
+            {t('pumpOperators.performanceTable.download', { defaultValue: 'Download' })}
+          </Button>
         ) : null}
       </Flex>
+
       {isLoading ? (
         <Box
           flex={fillHeight ? 1 : undefined}
@@ -401,101 +393,88 @@ export function SchemePerformanceTable({
                     fontWeight: '500',
                     px: '10px',
                     py: 4,
-                    whiteSpace: 'nowrap',
                   },
                 }}
               >
                 <Tr>
-                  <Th>
-                    {t('pumpOperators.performanceTable.columns.name', { defaultValue: 'Name' })}
+                  {/* Scheme Name — left-aligned, sortable */}
+                  <Th
+                    textAlign="left"
+                    whiteSpace="nowrap"
+                    aria-sort={
+                      sortBy === 'schemeName'
+                        ? sortDir === 'asc'
+                          ? 'ascending'
+                          : 'descending'
+                        : undefined
+                    }
+                  >
+                    {sortableHeaderButton(
+                      'schemeName',
+                      t('pumpOperators.performanceTable.columns.name', {
+                        defaultValue: 'Scheme Name',
+                      })
+                    )}
                   </Th>
+
+                  {/* Village / secondary area — left-aligned */}
                   {showVillageColumn ? (
-                    <Th>
+                    <Th textAlign="left" whiteSpace="nowrap">
                       {secondaryColumnLabel ??
                         t('pumpOperators.performanceTable.columns.village', {
                           defaultValue: 'Village',
                         })}
                     </Th>
                   ) : null}
+
+                  {/* Block — left-aligned */}
                   {showBlockColumn ? (
-                    <Th>
+                    <Th textAlign="left" whiteSpace="nowrap">
                       {blockColumnLabel ??
                         t('pumpOperators.performanceTable.columns.block', {
                           defaultValue: 'Block',
                         })}
                     </Th>
                   ) : null}
+
+                  {/* Reporting Rate — center-aligned, sortable, wrappable */}
                   <Th
+                    textAlign="center"
+                    whiteSpace="normal"
                     aria-sort={
-                      sortColumn === 'reportingRate'
-                        ? sortDirection === 'asc'
+                      sortBy === 'reportingRate'
+                        ? sortDir === 'asc'
                           ? 'ascending'
                           : 'descending'
                         : undefined
                     }
                   >
-                    <Box
-                      as="button"
-                      type="button"
-                      onClick={() => handleSort('reportingRate')}
-                      display="inline-flex"
-                      alignItems="center"
-                      gap={1}
-                      cursor="pointer"
-                      textAlign="left"
-                      width="fit-content"
-                      bg="none"
-                      border="none"
-                      p={0}
-                    >
-                      <Box as="span">
-                        {t('pumpOperators.performanceTable.columns.reportingRate', {
-                          defaultValue: 'Reporting Rate (%)',
-                        })}
-                      </Box>
-                      <SortIndicator
-                        isActive={sortColumn === 'reportingRate'}
-                        direction={
-                          sortColumn === 'reportingRate' && sortDirection ? sortDirection : 'desc'
-                        }
-                      />
-                    </Box>
+                    {sortableHeaderButton(
+                      'reportingRate',
+                      t('pumpOperators.performanceTable.columns.reportingRate', {
+                        defaultValue: 'Reporting Rate (%)',
+                      })
+                    )}
                   </Th>
+
+                  {/* Water Supplied — center-aligned, sortable, wrappable */}
                   <Th
+                    textAlign="center"
+                    whiteSpace="normal"
                     aria-sort={
-                      sortColumn === 'waterSupplied'
-                        ? sortDirection === 'asc'
+                      sortBy === 'totalWaterSupplied'
+                        ? sortDir === 'asc'
                           ? 'ascending'
                           : 'descending'
                         : undefined
                     }
                   >
-                    <Box
-                      as="button"
-                      type="button"
-                      onClick={() => handleSort('waterSupplied')}
-                      display="inline-flex"
-                      alignItems="center"
-                      gap={1}
-                      cursor="pointer"
-                      textAlign="left"
-                      width="fit-content"
-                      bg="none"
-                      border="none"
-                      p={0}
-                    >
-                      <Box as="span">
-                        {t('pumpOperators.performanceTable.columns.waterSupplied', {
-                          defaultValue: 'Water Supplied',
-                        })}
-                      </Box>
-                      <SortIndicator
-                        isActive={sortColumn === 'waterSupplied'}
-                        direction={
-                          sortColumn === 'waterSupplied' && sortDirection ? sortDirection : 'desc'
-                        }
-                      />
-                    </Box>
+                    {sortableHeaderButton(
+                      'totalWaterSupplied',
+                      t('pumpOperators.performanceTable.columns.waterSupplied', {
+                        defaultValue: 'Water Supplied',
+                      })
+                    )}
                   </Th>
                 </Tr>
               </Thead>
@@ -506,29 +485,44 @@ export function SchemePerformanceTable({
                     fontWeight: '400',
                     px: 3,
                     py: 3,
-                    whiteSpace: 'nowrap',
                   },
                 }}
               >
                 {rows.map((operator) => {
                   const villageValue = formatCellValue(operator.village)
                   const blockValue = formatCellValue(operator.block)
+                  const { display: nameDisplay, isTruncated } = truncateSchemeName(operator.name)
 
                   return (
                     <Tr key={operator.id} _odd={{ bg: 'primary.25' }}>
-                      <Td overflow="hidden" lineHeight="20px" verticalAlign="top">
-                        <Box
-                          maxW="100%"
-                          overflow="hidden"
-                          textOverflow="ellipsis"
-                          whiteSpace="nowrap"
-                          title={operator.name}
-                        >
-                          {operator.name}
-                        </Box>
+                      {/* Scheme Name — left-aligned with char-limit truncation + tooltip */}
+                      <Td textAlign="left" overflow="hidden" lineHeight="20px" verticalAlign="top">
+                        {isTruncated ? (
+                          <ActionTooltip label={operator.name} openDelay={300}>
+                            <Text
+                              textStyle="bodyText7"
+                              fontWeight="400"
+                              whiteSpace="nowrap"
+                              cursor="default"
+                            >
+                              {nameDisplay}
+                            </Text>
+                          </ActionTooltip>
+                        ) : (
+                          <Text textStyle="bodyText7" fontWeight="400" whiteSpace="nowrap">
+                            {nameDisplay}
+                          </Text>
+                        )}
                       </Td>
+
+                      {/* Village */}
                       {showVillageColumn ? (
-                        <Td overflow="hidden" lineHeight="20px" verticalAlign="top">
+                        <Td
+                          textAlign="left"
+                          overflow="hidden"
+                          lineHeight="20px"
+                          verticalAlign="top"
+                        >
                           <Box
                             maxW="100%"
                             overflow="hidden"
@@ -540,8 +534,15 @@ export function SchemePerformanceTable({
                           </Box>
                         </Td>
                       ) : null}
+
+                      {/* Block */}
                       {showBlockColumn ? (
-                        <Td overflow="hidden" lineHeight="20px" verticalAlign="top">
+                        <Td
+                          textAlign="left"
+                          overflow="hidden"
+                          lineHeight="20px"
+                          verticalAlign="top"
+                        >
                           <Box
                             maxW="100%"
                             overflow="hidden"
@@ -553,8 +554,12 @@ export function SchemePerformanceTable({
                           </Box>
                         </Td>
                       ) : null}
-                      <Td>{formatReportingRateValue(operator.reportingRate)}</Td>
-                      <Td>{formatMetricValue(operator.waterSupplied)}</Td>
+
+                      {/* Reporting Rate — center-aligned */}
+                      <Td textAlign="center">{formatReportingRateValue(operator.reportingRate)}</Td>
+
+                      {/* Water Supplied — center-aligned with Indian formatting + unit */}
+                      <Td textAlign="center">{formatWaterSupplied(operator.waterSupplied)}</Td>
                     </Tr>
                   )
                 })}
@@ -563,6 +568,7 @@ export function SchemePerformanceTable({
           </Box>
         </Box>
       )}
+
       {!isLoading ? (
         <Box
           data-testid="scheme-performance-horizontal-scrollbar"
@@ -599,6 +605,7 @@ export function SchemePerformanceTable({
           </Box>
         </Box>
       ) : null}
+
       {!isLoading && showPagination ? (
         <Flex
           mt={4}

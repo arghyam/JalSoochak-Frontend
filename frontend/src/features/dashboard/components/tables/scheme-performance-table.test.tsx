@@ -124,25 +124,33 @@ describe('SchemePerformanceTable', () => {
   })
 
   it('sorts reporting rate ascending on click after default descending order', () => {
-    const { container } = renderWithProviders(
-      <SchemePerformanceTable title="Scheme Performance" data={tableData} />
+    const onSortChange = jest.fn()
+    renderWithProviders(
+      <SchemePerformanceTable
+        title="Scheme Performance"
+        data={tableData}
+        onSortChange={onSortChange}
+      />
     )
     const reportingButton = screen.getByRole('button', { name: 'Reporting Rate (%)' })
 
     fireEvent.click(reportingButton)
-    expect(getNameOrder(container)).toEqual(['Nitish', 'Navdeep', 'Vikash'])
-    expect(reportingButton.closest('th')?.getAttribute('aria-sort')).toBe('ascending')
+    expect(onSortChange).toHaveBeenCalledWith('reportingRate', 'asc')
   })
 
   it('sorts water supplied when water column is clicked', () => {
-    const { container } = renderWithProviders(
-      <SchemePerformanceTable title="Scheme Performance" data={tableData} />
+    const onSortChange = jest.fn()
+    renderWithProviders(
+      <SchemePerformanceTable
+        title="Scheme Performance"
+        data={tableData}
+        onSortChange={onSortChange}
+      />
     )
     const waterButton = screen.getByRole('button', { name: 'Water Supplied' })
 
     fireEvent.click(waterButton)
-    expect(getNameOrder(container)).toEqual(['Nitish', 'Vikash', 'Navdeep'])
-    expect(waterButton.closest('th')?.getAttribute('aria-sort')).toBe('descending')
+    expect(onSortChange).toHaveBeenCalledWith('totalWaterSupplied', 'desc')
   })
 
   it('renders missing analytics fields as dashes', () => {

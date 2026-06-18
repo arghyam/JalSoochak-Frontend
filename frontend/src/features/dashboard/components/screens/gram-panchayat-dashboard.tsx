@@ -5,6 +5,7 @@ import type {
   DashboardData,
   EntityPerformance,
   PumpOperatorPerformanceData,
+  SchemePerformanceSortBy,
   WaterSupplyOutageData,
 } from '../../types'
 import {
@@ -71,9 +72,14 @@ type GramPanchayatDashboardScreenProps = {
   isActiveSchemesError?: boolean
   childEntityLabel?: string
   errorMessage?: string
-  schemePerformancePage?: number
-  totalSchemePages?: number
+  isSchemeDownloading?: boolean
+  onSchemeDownload?: () => void
   onSchemePageChange?: (page: number) => void
+  onSchemeSortChange?: (sortBy: SchemePerformanceSortBy, sortDir: 'asc' | 'desc') => void
+  schemePerformancePage?: number
+  schemeSortBy?: SchemePerformanceSortBy
+  schemeSortDir?: 'asc' | 'desc'
+  totalSchemePages?: number
   screenDateFormat?: string
   tableDateFormat?: string
   isTimeViewEnabled?: boolean
@@ -120,9 +126,14 @@ export function GramPanchayatDashboardScreen({
   isActiveSchemesError = false,
   childEntityLabel = supplySubmissionRateLabel,
   errorMessage = 'Failed to load data. Please reload the page.',
-  schemePerformancePage,
-  totalSchemePages,
+  isSchemeDownloading,
+  onSchemeDownload,
   onSchemePageChange,
+  onSchemeSortChange,
+  schemePerformancePage,
+  schemeSortBy,
+  schemeSortDir,
+  totalSchemePages,
   screenDateFormat,
   tableDateFormat,
   isTimeViewEnabled = true,
@@ -422,7 +433,7 @@ export function GramPanchayatDashboardScreen({
         >
           <SchemePerformanceTable
             title={t('pumpOperators.performanceTable.title', {
-              defaultValue: 'Scheme Performance',
+              defaultValue: 'Schemes Performance',
             })}
             data={operatorsPerformanceTable}
             isLoading={isSchemePerformanceLoading}
@@ -434,6 +445,11 @@ export function GramPanchayatDashboardScreen({
             totalPages={totalSchemePages}
             onPageChange={onSchemePageChange}
             tooltipContent={glossary.schemePerformance}
+            sortBy={schemeSortBy}
+            sortDir={schemeSortDir}
+            onSortChange={onSchemeSortChange}
+            onDownload={onSchemeDownload}
+            isDownloading={isSchemeDownloading}
           />
         </Box>
       </Grid>

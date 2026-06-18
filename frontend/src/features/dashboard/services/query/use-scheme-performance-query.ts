@@ -1,6 +1,10 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { dashboardApi } from '../api/dashboard-api'
-import type { SchemePerformanceQueryParams, SchemePerformanceResponse } from '../../types'
+import type {
+  SchemePerformanceDownloadParams,
+  SchemePerformanceQueryParams,
+  SchemePerformanceResponse,
+} from '../../types'
 import { dashboardQueryKeys } from './dashboard-query-keys'
 
 type UseSchemePerformanceQueryOptions = {
@@ -23,5 +27,12 @@ export function useSchemePerformanceQuery(options: UseSchemePerformanceQueryOpti
     enabled: enabled && Boolean(params),
     retry: false,
     placeholderData: (previousData) => previousData,
+  })
+}
+
+export function useSchemePerformanceDownloadMutation() {
+  return useMutation({
+    mutationFn: (params: SchemePerformanceDownloadParams) =>
+      dashboardApi.downloadSchemePerformance(params),
   })
 }

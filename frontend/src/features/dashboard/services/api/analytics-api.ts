@@ -19,6 +19,7 @@ import type {
   OutageReasonsResponse,
   ReadingSubmissionRateQueryParams,
   ReadingSubmissionRateResponse,
+  SchemePerformanceDownloadParams,
   SchemePerformanceQueryParams,
   SchemePerformanceResponse,
   SchemeRegularityPeriodicQueryParams,
@@ -357,6 +358,8 @@ export const analyticsApi = {
         end_date: params.endDate,
         page_number: params.pageNumber ?? 1,
         limit: params.limit ?? 15,
+        sort_by: params.sortBy ?? 'reportingRate',
+        sort_dir: params.sortDir ?? 'desc',
       },
     })
 
@@ -378,6 +381,24 @@ export const analyticsApi = {
         topSchemes: [],
       }
     )
+  },
+  downloadSchemePerformance: async (params: SchemePerformanceDownloadParams): Promise<string> => {
+    const response = await publicApiClient.get<Blob>(
+      '/api/v1/analytics/schemes/dashboard/download',
+      {
+        params: {
+          tenant_id: params.tenantId,
+          parent_lgd_id: params.parentLgdId,
+          parent_department_id: params.parentDepartmentId,
+          start_date: params.startDate,
+          end_date: params.endDate,
+          sort_by: params.sortBy ?? 'reportingRate',
+          sort_dir: params.sortDir ?? 'desc',
+        },
+        responseType: 'blob',
+      }
+    )
+    return URL.createObjectURL(response.data)
   },
   getCriticalSchemes: async (
     params: CriticalSchemesQueryParams

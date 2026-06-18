@@ -18,7 +18,7 @@ import { useTenantBoundariesQuery } from '../services/query/use-tenant-boundarie
 import { useTenantBoundaryGeoJsonQuery } from '../services/query/use-tenant-boundary-geojson-query'
 import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
 import { useWaterQuantityRegionWiseQuery } from '../services/query/use-water-quantity-region-wise-query'
-import type { StateUtOption } from '../types'
+import type { SchemePerformanceSortBy, StateUtOption } from '../types'
 import {
   type OutageTimeScaleTab,
   type PerformanceTimeScaleTab,
@@ -52,6 +52,8 @@ type UseCentralDashboardQueriesParams = {
   isHierarchyStateSelected: boolean
   isHierarchyThirdLevelSelected: boolean
   schemePerformancePage: number
+  schemeSortBy: SchemePerformanceSortBy
+  schemeSortDir: 'asc' | 'desc'
   selectedOutageApiScale: OutageTimeScaleTab
   selectedQuantityApiScale: PerformanceTimeScaleTab
   selectedRegularityApiScale: PerformanceTimeScaleTab
@@ -80,6 +82,8 @@ export function useCentralDashboardQueries({
   isHierarchyStateSelected,
   isHierarchyThirdLevelSelected,
   schemePerformancePage,
+  schemeSortBy,
+  schemeSortDir,
   selectedOutageApiScale,
   selectedQuantityApiScale,
   selectedRegularityApiScale,
@@ -273,6 +277,8 @@ export function useCentralDashboardQueries({
             endDate: analyticsDateRange.endDate,
             pageNumber: schemePerformancePage,
             limit: SCHEME_PERFORMANCE_PAGE_SIZE,
+            sortBy: schemeSortBy,
+            sortDir: schemeSortDir,
           }
         : {
             tenantId: selectedTenant.tenantId,
@@ -281,6 +287,8 @@ export function useCentralDashboardQueries({
             endDate: analyticsDateRange.endDate,
             pageNumber: schemePerformancePage,
             limit: SCHEME_PERFORMANCE_PAGE_SIZE,
+            sortBy: schemeSortBy,
+            sortDir: schemeSortDir,
           }
   const criticalSchemesAnalyticsParams =
     !hasCentralLandingFilters || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
@@ -887,6 +895,7 @@ export function useCentralDashboardQueries({
     previousWaterQuantityPeriodicData,
     previousWaterSupplyKpiData,
     readingSubmissionRateData,
+    schemePerformanceAnalyticsParams,
     schemePerformanceData,
     schemeRegularityPeriodicData,
     selectedSchemeId,

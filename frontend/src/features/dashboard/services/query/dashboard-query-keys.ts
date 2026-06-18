@@ -148,6 +148,8 @@ export const dashboardQueryKeys = {
       params?.endDate,
       params?.pageNumber ?? 1,
       params?.limit ?? 15,
+      params?.sortBy ?? 'reportingRate',
+      params?.sortDir ?? 'desc',
     ] as const,
   criticalSchemes: (params: CriticalSchemesQueryParams | null) =>
     [
