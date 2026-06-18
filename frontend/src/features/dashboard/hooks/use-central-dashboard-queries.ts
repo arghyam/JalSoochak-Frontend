@@ -18,7 +18,7 @@ import { useTenantBoundariesQuery } from '../services/query/use-tenant-boundarie
 import { useTenantBoundaryGeoJsonQuery } from '../services/query/use-tenant-boundary-geojson-query'
 import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
 import { useWaterQuantityRegionWiseQuery } from '../services/query/use-water-quantity-region-wise-query'
-import type { StateUtOption } from '../types'
+import type { SchemePerformanceSortBy, StateUtOption } from '../types'
 import {
   type OutageTimeScaleTab,
   type PerformanceTimeScaleTab,
@@ -52,7 +52,7 @@ type UseCentralDashboardQueriesParams = {
   isHierarchyStateSelected: boolean
   isHierarchyThirdLevelSelected: boolean
   schemePerformancePage: number
-  schemeSortBy: string
+  schemeSortBy: SchemePerformanceSortBy
   schemeSortDir: 'asc' | 'desc'
   selectedOutageApiScale: OutageTimeScaleTab
   selectedQuantityApiScale: PerformanceTimeScaleTab

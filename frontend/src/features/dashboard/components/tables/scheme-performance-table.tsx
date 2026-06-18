@@ -11,7 +11,7 @@ import { Box, Button, Flex, Icon, Table, Tbody, Td, Text, Th, Thead, Tr } from '
 import { useTranslation } from 'react-i18next'
 import { LuArrowLeft, LuArrowRight, LuChevronsLeft, LuChevronsRight } from 'react-icons/lu'
 import { FiDownload } from 'react-icons/fi'
-import type { PumpOperatorPerformanceData } from '../../types'
+import type { PumpOperatorPerformanceData, SchemePerformanceSortBy } from '../../types'
 import { ActionTooltip, ChartInfoTooltip, LoadingSpinner } from '@/shared/components/common'
 
 const MAX_SCHEME_NAME_CHARS = 20
@@ -32,9 +32,9 @@ interface SchemePerformanceTableProps {
   currentPage?: number
   totalPages?: number
   onPageChange?: (page: number) => void
-  sortBy?: string
+  sortBy?: SchemePerformanceSortBy
   sortDir?: 'asc' | 'desc'
-  onSortChange?: (sortBy: string, sortDir: 'asc' | 'desc') => void
+  onSortChange?: (sortBy: SchemePerformanceSortBy, sortDir: 'asc' | 'desc') => void
   onDownload?: () => void
   isDownloading?: boolean
 }
@@ -135,7 +135,7 @@ export function SchemePerformanceTable({
     safeTotalPages > 0 ? Math.min(Math.max(1, currentPage), safeTotalPages) : 1
   const showPagination = safeTotalPages > 1
 
-  const handleSort = (column: string) => {
+  const handleSort = (column: SchemePerformanceSortBy) => {
     if (!onSortChange) return
     if (sortBy !== column) {
       onSortChange(column, 'desc')
@@ -249,7 +249,7 @@ export function SchemePerformanceTable({
     event.currentTarget.releasePointerCapture(event.pointerId)
   }
 
-  const sortableHeaderButton = (column: string, label: string) => (
+  const sortableHeaderButton = (column: SchemePerformanceSortBy, label: string) => (
     <Box
       as="button"
       type="button"

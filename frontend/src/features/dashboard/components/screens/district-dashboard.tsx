@@ -5,6 +5,7 @@ import type {
   DashboardData,
   EntityPerformance,
   PumpOperatorPerformanceData,
+  SchemePerformanceSortBy,
   WaterSupplyOutageData,
 } from '../../types'
 import {
@@ -74,9 +75,9 @@ type DistrictDashboardScreenProps = {
   isSchemeDownloading?: boolean
   onSchemeDownload?: () => void
   onSchemePageChange?: (page: number) => void
-  onSchemeSortChange?: (sortBy: string, sortDir: 'asc' | 'desc') => void
+  onSchemeSortChange?: (sortBy: SchemePerformanceSortBy, sortDir: 'asc' | 'desc') => void
   schemePerformancePage?: number
-  schemeSortBy?: string
+  schemeSortBy?: SchemePerformanceSortBy
   schemeSortDir?: 'asc' | 'desc'
   totalSchemePages?: number
   screenDateFormat?: string

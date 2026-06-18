@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { SchemePerformanceSortBy } from '../types'
 
 type UseSchemePerformancePaginationParams = {
   analyticsParentId: number
@@ -6,7 +7,7 @@ type UseSchemePerformancePaginationParams = {
   startDate: string
 }
 
-type SchemeSort = { by: string; dir: 'asc' | 'desc' }
+type SchemeSort = { by: SchemePerformanceSortBy; dir: 'asc' | 'desc' }
 
 const DEFAULT_SCHEME_SORT: SchemeSort = { by: 'reportingRate', dir: 'desc' }
 
@@ -37,7 +38,7 @@ export function useSchemePerformancePagination({
     })
   }
 
-  const handleSchemeSortChange = (sortBy: string, sortDir: 'asc' | 'desc') => {
+  const handleSchemeSortChange = (sortBy: SchemePerformanceSortBy, sortDir: 'asc' | 'desc') => {
     setSchemeSort({ by: sortBy, dir: sortDir })
     setSchemePerformancePagination({ key: schemePerformanceResetKey, page: 1 })
   }

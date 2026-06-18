@@ -548,6 +548,8 @@ export interface ReadingComplianceResponse {
   }
 }
 
+export type SchemePerformanceSortBy = 'schemeName' | 'reportingRate' | 'totalWaterSupplied'
+
 export interface SchemePerformanceQueryParams {
   tenantId: number
   parentLgdId?: number
@@ -556,7 +558,7 @@ export interface SchemePerformanceQueryParams {
   endDate: string
   pageNumber?: number
   limit?: number
-  sortBy?: string
+  sortBy?: SchemePerformanceSortBy
   sortDir?: 'asc' | 'desc'
 }
 
