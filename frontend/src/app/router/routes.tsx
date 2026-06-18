@@ -9,6 +9,13 @@ import { AUTH_ROLES } from '@/shared/constants/auth'
 import { NotFoundPage, LoadingSpinner, ErrorBoundary } from '@/shared/components/common'
 import { PageErrorState } from '@/shared/components/common/page-error-state'
 
+// — public pages —
+const GlossaryPage = lazy(() =>
+  import('@/features/dashboard/components/screens/glossary-page').then((m) => ({
+    default: m.GlossaryPage,
+  }))
+)
+
 // — super-admin pages —
 const SuperAdminOverviewPage = lazy(() =>
   import('@/features/super-admin/components/overview/overview-page').then((m) => ({
@@ -265,6 +272,16 @@ export const router = createBrowserRouter([
       <ErrorBoundary fallback={<LocalizedErrorFallback />}>
         <SingleTenantLayout />
       </ErrorBoundary>
+    ),
+  },
+
+  // Public info pages
+  {
+    path: ROUTES.GLOSSARY,
+    element: (
+      <Suspense fallback={<LoadingSpinner />}>
+        <GlossaryPage />
+      </Suspense>
     ),
   },
 

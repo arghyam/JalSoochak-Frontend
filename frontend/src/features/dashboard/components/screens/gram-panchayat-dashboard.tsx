@@ -17,7 +17,13 @@ import {
 import { SchemePerformanceTable } from '../tables'
 import { PerformanceChartCard } from './performance-chart-card'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
-import { ChartEmptyState, LoadingSpinner, ViewBySelect } from '@/shared/components/common'
+import {
+  ChartEmptyState,
+  ChartInfoTooltip,
+  LoadingSpinner,
+  ViewBySelect,
+} from '@/shared/components/common'
+import { buildDashboardGlossary } from '../../utils/dashboard-glossary'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { useOutageDistributionState } from './use-outage-distribution-state'
 import { getOutageTimeScaleXAxisLabel, OutageTimeScaleToggle } from './outage-time-scale-toggle'
@@ -122,6 +128,7 @@ export function GramPanchayatDashboardScreen({
   isTimeViewEnabled = true,
 }: GramPanchayatDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
+  const glossary = useMemo(() => buildDashboardGlossary(t), [t])
   const showSupplyOutageCharts = shouldShowSupplyOutageCharts()
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
   const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
@@ -183,6 +190,7 @@ export function GramPanchayatDashboardScreen({
           dateFormat={screenDateFormat ?? tableDateFormat}
           isTimeViewEnabled={isTimeViewEnabled}
           errorMessage={errorMessage}
+          tooltipContent={glossary.regularityPerformance}
         />
         <PerformanceChartCard
           title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
@@ -215,6 +223,7 @@ export function GramPanchayatDashboardScreen({
           dateFormat={screenDateFormat ?? tableDateFormat}
           isTimeViewEnabled={isTimeViewEnabled}
           errorMessage={errorMessage}
+          tooltipContent={glossary.quantityPerformance}
         />
       </Grid>
 
@@ -243,7 +252,11 @@ export function GramPanchayatDashboardScreen({
                 <LoadingSpinner />
               </Flex>
             ) : (
-              <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
+              <SupplyOutageReasonsChart
+                data={waterSupplyOutagesData}
+                height="400px"
+                tooltipContent={glossary.supplyOutageReasons}
+              />
             )}
           </Box>
           <Box
@@ -258,11 +271,19 @@ export function GramPanchayatDashboardScreen({
             minW={0}
           >
             <Flex align="center" justify="space-between">
-              <Text textStyle="bodyText3" fontWeight="400">
-                {t('outageAndSubmissionCharts.titles.supplyOutageDistribution', {
-                  defaultValue: 'Supply Outage Distribution',
-                })}
-              </Text>
+              <Flex align="center" gap="6px">
+                <Text textStyle="bodyText3" fontWeight="400">
+                  {t('outageAndSubmissionCharts.titles.supplyOutageDistribution', {
+                    defaultValue: 'Supply Outage Distribution',
+                  })}
+                </Text>
+                <ChartInfoTooltip
+                  tooltipContent={glossary.supplyOutageDistribution}
+                  ariaLabel={t('outageAndSubmissionCharts.ariaSupplyOutageDistribution', {
+                    defaultValue: 'Supply outage distribution info',
+                  })}
+                />
+              </Flex>
               <Flex
                 align="center"
                 gap="8px"
@@ -361,9 +382,17 @@ export function GramPanchayatDashboardScreen({
           minW={0}
         >
           <Flex align="center" justify="space-between" mb="40px">
-            <Text textStyle="bodyText3" fontWeight="400">
-              {t('pumpOperators.title', { defaultValue: 'Active Schemes' })}
-            </Text>
+            <Flex align="center" gap="6px">
+              <Text textStyle="bodyText3" fontWeight="400">
+                {t('pumpOperators.title', { defaultValue: 'Active Schemes' })}
+              </Text>
+              <ChartInfoTooltip
+                tooltipContent={glossary.activeSchemes}
+                ariaLabel={t('outageAndSubmissionCharts.ariaActiveSchemes', {
+                  defaultValue: 'Active schemes info',
+                })}
+              />
+            </Flex>
             <Text textStyle="bodyText3" fontWeight="400">
               {t('pumpOperators.totalLabel', { defaultValue: 'Total' })}: {pumpOperatorsTotal}
             </Text>
@@ -404,6 +433,7 @@ export function GramPanchayatDashboardScreen({
             currentPage={schemePerformancePage}
             totalPages={totalSchemePages}
             onPageChange={onSchemePageChange}
+            tooltipContent={glossary.schemePerformance}
           />
         </Box>
       </Grid>
@@ -415,6 +445,7 @@ export function GramPanchayatDashboardScreen({
           isLoading={isReadingSubmissionStatusLoading}
           errorMessage={isReadingSubmissionStatusError ? errorMessage : undefined}
           chartHeight="336px"
+          tooltipContent={glossary.readingSubmissionStatus}
         />
         <Box
           bg="white"
@@ -429,11 +460,19 @@ export function GramPanchayatDashboardScreen({
           display="flex"
           flexDirection="column"
         >
-          <Text textStyle="bodyText3" fontWeight="400" mb={2}>
-            {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
-              defaultValue: 'Reading Submission Rate',
-            })}
-          </Text>
+          <Flex align="center" gap="6px" mb={2}>
+            <Text textStyle="bodyText3" fontWeight="400">
+              {t('outageAndSubmissionCharts.titles.readingSubmissionRate', {
+                defaultValue: 'Reading Submission Rate',
+              })}
+            </Text>
+            <ChartInfoTooltip
+              tooltipContent={glossary.readingSubmissionRate}
+              ariaLabel={t('outageAndSubmissionCharts.ariaReadingSubmissionRate', {
+                defaultValue: 'Reading submission rate info',
+              })}
+            />
+          </Flex>
           <Box flex="1" minH={0}>
             {isReadingSubmissionRateLoading ? (
               <Flex align="center" justify="center" h="100%">

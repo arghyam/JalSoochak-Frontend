@@ -1,3 +1,4 @@
+import React from 'react'
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
@@ -14,8 +15,14 @@ const mockReadingSubmissionStatusChart = jest.fn((_props: unknown) => (
   <div data-testid="reading-submission-status-chart" />
 ))
 const mockReadingComplianceTable = jest.fn(
-  (props: { onReachEnd?: () => void; data?: Array<unknown>; dateFormat?: string }) => (
+  (props: {
+    onReachEnd?: () => void
+    data?: Array<unknown>
+    dateFormat?: string
+    headerRight?: React.ReactNode
+  }) => (
     <div>
+      {props.headerRight ?? null}
       {props.data?.length ? (
         <div data-testid="reading-compliance-table" />
       ) : (
@@ -29,9 +36,7 @@ const mockReadingComplianceTable = jest.fn(
     </div>
   )
 )
-const mockUsePumpOperatorsBySchemeQuery = jest.fn<(options: unknown) => { data: unknown }>(
-  (_options: unknown) => ({ data: undefined })
-)
+let mockUseQueriesData: Array<{ data: unknown }> = []
 const mockUsePumpOperatorDetailsQuery = jest.fn<(options: unknown) => { data: unknown }>(
   (_options: unknown) => ({ data: undefined })
 )
@@ -48,12 +53,18 @@ jest.mock('../charts', () => ({
 jest.mock('../tables', () => ({
   ReadingComplianceTable: (props: unknown) =>
     mockReadingComplianceTable(
-      props as { onReachEnd?: () => void; data?: Array<unknown>; dateFormat?: string }
+      props as {
+        onReachEnd?: () => void
+        data?: Array<unknown>
+        dateFormat?: string
+        headerRight?: React.ReactNode
+      }
     ),
 }))
 
-jest.mock('../../services/query/use-pump-operators-by-scheme-query', () => ({
-  usePumpOperatorsBySchemeQuery: (options: unknown) => mockUsePumpOperatorsBySchemeQuery(options),
+jest.mock('@tanstack/react-query', () => ({
+  ...(jest.requireActual('@tanstack/react-query') as object),
+  useQueries: () => mockUseQueriesData,
 }))
 
 jest.mock('../../services/query/use-pump-operator-details-query', () => ({
@@ -200,6 +211,7 @@ function renderVillageDashboard(
       villagePumpOperators={operatorPages}
       tenantCode="as"
       schemeId={3}
+      allSchemeIds={[3]}
       quantityTimeTrendData={quantityTimeTrendData}
       regularityTimeTrendData={regularityTimeTrendData}
       isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
@@ -215,10 +227,9 @@ describe('VillageDashboardScreen', () => {
     mockSupplyOutageReasonsChart.mockClear()
     mockReadingSubmissionStatusChart.mockClear()
     mockReadingComplianceTable.mockClear()
-    mockUsePumpOperatorsBySchemeQuery.mockReset()
+    mockUseQueriesData = []
     mockUsePumpOperatorDetailsQuery.mockReset()
     mockUseReadingComplianceQuery.mockReset()
-    mockUsePumpOperatorsBySchemeQuery.mockReturnValue({ data: undefined })
     mockUsePumpOperatorDetailsQuery.mockReturnValue({ data: undefined })
     mockUseReadingComplianceQuery.mockReturnValue({ data: undefined, isFetching: false })
   })
@@ -504,15 +515,17 @@ describe('VillageDashboardScreen', () => {
     expect(screen.queryByRole('button', { name: 'Next' })).toBeNull()
   })
 
-  it('renders separate scheme id and scheme name rows without station location', () => {
+  it('renders state scheme id and center scheme id rows without station location', () => {
     renderVillageDashboard()
 
-    expect(screen.getByText('Scheme ID')).toBeTruthy()
-    expect(screen.getAllByText('3').length).toBeGreaterThan(0)
+    expect(screen.getByText('State Scheme ID')).toBeTruthy()
+    expect(screen.getByText('Center Scheme ID')).toBeTruthy()
+    expect(screen.queryByText('Scheme ID')).toBeNull()
     expect(screen.getByText('Scheme name')).toBeTruthy()
     expect(screen.getByText('Rural Water Supply 001')).toBeTruthy()
     expect(screen.queryByText('Station location')).toBeNull()
     expect(screen.queryByText('Central Pumping Station')).toBeNull()
+    expect(screen.queryByText('Inactive days')).toBeNull()
   })
 
   it('renders all scheme submission rows from the reading compliance api', () => {
@@ -540,15 +553,6 @@ describe('VillageDashboardScreen', () => {
               lastSubmissionAt: '2026-03-17T15:06:20.896445',
               confirmedReading: 104602.8,
             },
-            {
-              id: 9001,
-              uuid: 'uuid-9001',
-              name: 'Someone Else',
-              schemeId: 3,
-              readingAt: '2026-03-17T15:06:30.896445',
-              lastSubmissionAt: '2026-03-17T15:06:30.896445',
-              confirmedReading: 101419.13,
-            },
           ],
         },
       },
@@ -572,92 +576,75 @@ describe('VillageDashboardScreen', () => {
     expect(complianceProps.data).toHaveLength(2)
     expect(complianceProps.data.map((row) => row.name)).toEqual(['Ajay Yadav', 'Ajay Yadav'])
     expect(new Set(complianceProps.data.map((row) => row.id)).size).toBe(2)
-    expect(complianceProps.data[0]?.readingValue).toBe('104602.8')
+    expect(complianceProps.data[0]?.readingValue).toBe('104958.72')
   })
 
-  it('switches reading compliance rows when the selected operator page changes', () => {
-    mockUsePumpOperatorsBySchemeQuery.mockReturnValue({
-      data: {
-        status: 200,
-        message: 'Pump operators retrieved',
-        data: [
-          {
-            schemeId: 3,
-            schemeName: 'Rural Water Supply 001',
-            pumpOperators: [
-              {
-                id: 4,
-                uuid: 'uuid-1',
-                name: 'Ajay Yadav',
-                email: 'ajay@example.com',
-                phoneNumber: '910000000001',
-                status: 1,
-              },
-              {
-                id: 5,
-                uuid: 'uuid-2',
-                name: 'Vikram Singh',
-                email: 'vikram@example.com',
-                phoneNumber: '910000000002',
-                status: 1,
-              },
-            ],
-          },
-        ],
-      },
-    })
-    mockUseReadingComplianceQuery.mockReturnValue({
-      data: {
-        status: 200,
-        message: 'Pump operators retrieved',
+  it('keeps scheme-level compliance unchanged when switching between operator pages', () => {
+    mockUseQueriesData = [
+      {
         data: {
-          content: [
+          status: 200,
+          message: 'Pump operators retrieved',
+          data: [
             {
-              id: 4,
-              uuid: 'uuid-1',
-              name: 'Ajay Yadav',
               schemeId: 3,
               schemeName: 'Rural Water Supply 001',
-              reportingRatePercent: 85,
-              missingSubmissionCount: 3,
-              inactiveDays: 2,
-              readingAt: '2026-03-17T15:06:10.896445',
-              lastSubmissionAt: '2026-03-17T15:06:10.896445',
-              confirmedReading: 104958.72,
-            },
-            {
-              id: 5,
-              uuid: 'uuid-2',
-              name: 'Vikram Singh',
-              schemeId: 3,
-              schemeName: 'Rural Water Supply 001',
-              reportingRatePercent: 92,
-              missingSubmissionCount: 1,
-              inactiveDays: 0,
-              readingAt: '2026-03-18T10:00:00.000000',
-              lastSubmissionAt: '2026-03-18T10:00:00.000000',
-              confirmedReading: 103361.57,
-            },
-            {
-              id: 5,
-              uuid: 'uuid-2',
-              name: 'Vikram Singh',
-              schemeId: 3,
-              schemeName: 'Rural Water Supply 001',
-              reportingRatePercent: 92,
-              missingSubmissionCount: 1,
-              inactiveDays: 0,
-              readingAt: '2026-03-19T10:00:00.000000',
-              lastSubmissionAt: '2026-03-19T10:00:00.000000',
-              confirmedReading: 103400,
+              pumpOperators: [
+                {
+                  id: 4,
+                  uuid: 'uuid-1',
+                  name: 'Ajay Yadav',
+                  email: 'ajay@example.com',
+                  phoneNumber: '910000000001',
+                  status: 1,
+                },
+                {
+                  id: 5,
+                  uuid: 'uuid-2',
+                  name: 'Vikram Singh',
+                  email: 'vikram@example.com',
+                  phoneNumber: '910000000002',
+                  status: 1,
+                },
+              ],
             },
           ],
         },
       },
+    ]
+    // Compliance is now scheme-level — same rows regardless of which operator is shown
+    mockUseReadingComplianceQuery.mockImplementation((options) => {
+      const params = (options as { params?: { scheme_id?: number } | null }).params
+
+      if (params?.scheme_id === 3) {
+        return {
+          data: {
+            status: 200,
+            message: 'Pump operators retrieved',
+            data: {
+              content: [
+                {
+                  id: 4,
+                  uuid: 'uuid-1',
+                  name: 'Ajay Yadav',
+                  schemeId: 3,
+                  schemeName: 'Rural Water Supply 001',
+                  readingAt: '2026-03-17T15:06:10.896445',
+                  lastSubmissionAt: '2026-03-17T15:06:10.896445',
+                  confirmedReading: 104958.72,
+                },
+              ],
+            },
+          },
+        }
+      }
+
+      return { data: undefined }
     })
 
     renderVillageDashboard([], [villagePumpOperatorDetails])
 
+    // Verify initial state: scheme-level compliance rows shown
     let complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
       data: Array<{ name: string; readingValue: string }>
     }
@@ -672,6 +659,7 @@ describe('VillageDashboardScreen', () => {
       },
     ])
 
+    // Switch to page 2 — compliance table remains unchanged (scheme-level, not operator-level)
     fireEvent.click(screen.getByRole('button', { name: '2' }))
 
     complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
@@ -679,20 +667,12 @@ describe('VillageDashboardScreen', () => {
     }
     expect(complianceProps.data).toEqual([
       {
-        id: '3-5-2026-03-19T10:00:00.000000-103400-0',
-        name: 'Vikram Singh',
+        id: '3-4-2026-03-17T15:06:10.896445-104958.72-0',
+        name: 'Ajay Yadav',
         village: 'N/A',
-        lastSubmission: '19/03/26, 10:00am',
-        readingAt: '2026-03-19T10:00:00.000000',
-        readingValue: '103400',
-      },
-      {
-        id: '3-5-2026-03-18T10:00:00.000000-103361.57-1',
-        name: 'Vikram Singh',
-        village: 'N/A',
-        lastSubmission: '18/03/26, 10:00am',
-        readingAt: '2026-03-18T10:00:00.000000',
-        readingValue: '103361.57',
+        lastSubmission: '17/03/26, 3:06pm',
+        readingAt: '2026-03-17T15:06:10.896445',
+        readingValue: '104958.72',
       },
     ])
   })
@@ -737,104 +717,101 @@ describe('VillageDashboardScreen', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getAllByText('1461').length).toBeGreaterThan(0)
       expect(screen.getByText('Bampara Pwss')).toBeTruthy()
     })
   })
 
-  it('uses by-scheme operator identities to avoid combining history across paginated operators', () => {
-    mockUsePumpOperatorsBySchemeQuery.mockReturnValue({
-      data: {
-        status: 200,
-        message: 'Pump operators retrieved',
-        data: [
-          {
-            schemeId: 3,
-            schemeName: 'Rural Water Supply 001',
-            pumpOperators: [
-              {
-                id: 4,
-                uuid: 'uuid-1',
-                name: 'Ajay Yadav',
-                email: 'ajay@example.com',
-                phoneNumber: '910000000001',
-                status: 1,
-              },
-              {
-                id: 5,
-                uuid: 'uuid-2',
-                name: 'Vikram Singh',
-                email: 'vikram@example.com',
-                phoneNumber: '910000000002',
-                status: 1,
-              },
-            ],
-          },
-        ],
-      },
-    })
-    mockUseReadingComplianceQuery.mockReturnValue({
-      data: {
-        status: 200,
-        message: 'Pump operators retrieved',
+  it('fetches reading compliance by scheme_id and not by pump_operator_id', () => {
+    mockUseQueriesData = [
+      {
         data: {
-          content: [
+          status: 200,
+          message: 'Pump operators retrieved',
+          data: [
             {
-              id: 4,
-              uuid: 'uuid-1',
-              name: 'Ajay Yadav',
               schemeId: 3,
               schemeName: 'Rural Water Supply 001',
-              readingAt: '2026-03-17T15:06:10.896445',
-              lastSubmissionAt: '2026-03-17T15:06:10.896445',
-              confirmedReading: 104958.72,
-            },
-            {
-              id: 4,
-              uuid: 'uuid-1',
-              name: 'Ajay Yadav',
-              schemeId: 3,
-              schemeName: 'Rural Water Supply 001',
-              readingAt: '2026-03-17T15:05:10.896445',
-              lastSubmissionAt: '2026-03-17T15:05:10.896445',
-              confirmedReading: 104602.8,
-            },
-            {
-              id: 5,
-              uuid: 'uuid-2',
-              name: 'Vikram Singh',
-              schemeId: 3,
-              schemeName: 'Rural Water Supply 001',
-              readingAt: '2026-03-18T10:00:00.000000',
-              lastSubmissionAt: '2026-03-18T10:00:00.000000',
-              confirmedReading: 103361.57,
-            },
-            {
-              id: 5,
-              uuid: 'uuid-2',
-              name: 'Vikram Singh',
-              schemeId: 3,
-              schemeName: 'Rural Water Supply 001',
-              readingAt: '2026-03-19T10:00:00.000000',
-              lastSubmissionAt: '2026-03-19T10:00:00.000000',
-              confirmedReading: 103400,
+              pumpOperators: [
+                {
+                  id: 4,
+                  uuid: 'uuid-1',
+                  name: 'Ajay Yadav',
+                  email: 'ajay@example.com',
+                  phoneNumber: '910000000001',
+                  status: 1,
+                },
+                {
+                  id: 5,
+                  uuid: 'uuid-2',
+                  name: 'Vikram Singh',
+                  email: 'vikram@example.com',
+                  phoneNumber: '910000000002',
+                  status: 1,
+                },
+              ],
             },
           ],
         },
       },
+    ]
+    mockUseReadingComplianceQuery.mockImplementation((options) => {
+      const params = (options as { params?: { scheme_id?: number } | null }).params
+
+      if (params?.scheme_id === 3) {
+        return {
+          data: {
+            status: 200,
+            message: 'Pump operators retrieved',
+            data: {
+              content: [
+                {
+                  id: 4,
+                  uuid: 'uuid-1',
+                  name: 'Ajay Yadav',
+                  schemeId: 3,
+                  schemeName: 'Rural Water Supply 001',
+                  readingAt: '2026-03-17T15:06:10.896445',
+                  lastSubmissionAt: '2026-03-17T15:06:10.896445',
+                  confirmedReading: 104958.72,
+                },
+                {
+                  id: 4,
+                  uuid: 'uuid-1',
+                  name: 'Ajay Yadav',
+                  schemeId: 3,
+                  schemeName: 'Rural Water Supply 001',
+                  readingAt: '2026-03-17T15:05:10.896445',
+                  lastSubmissionAt: '2026-03-17T15:05:10.896445',
+                  confirmedReading: 104602.8,
+                },
+              ],
+            },
+          },
+        }
+      }
+
+      return { data: undefined }
     })
 
-    renderVillageDashboard(
-      [],
-      [
-        villagePumpOperatorDetails,
-        {
-          ...villagePumpOperatorDetails,
-          name: 'Vikram Singh',
-        },
-      ]
+    renderVillageDashboard([], [villagePumpOperatorDetails])
+
+    // Compliance is fetched with scheme_id only — no pump_operator_id
+    expect(mockUseReadingComplianceQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: expect.objectContaining({
+          scheme_id: 3,
+        }),
+      })
+    )
+    expect(mockUseReadingComplianceQuery).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: expect.objectContaining({
+          pump_operator_id: expect.anything(),
+        }),
+      })
     )
 
+    // Switching operators does not change compliance rows
     fireEvent.click(screen.getByRole('button', { name: '2' }))
 
     const complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
@@ -842,20 +819,20 @@ describe('VillageDashboardScreen', () => {
     }
     expect(complianceProps.data).toEqual([
       {
-        id: '3-5-2026-03-19T10:00:00.000000-103400-0',
-        name: 'Vikram Singh',
+        id: '3-4-2026-03-17T15:06:10.896445-104958.72-0',
+        name: 'Ajay Yadav',
         village: 'N/A',
-        lastSubmission: '19/03/26, 10:00am',
-        readingAt: '2026-03-19T10:00:00.000000',
-        readingValue: '103400',
+        lastSubmission: '17/03/26, 3:06pm',
+        readingAt: '2026-03-17T15:06:10.896445',
+        readingValue: '104958.72',
       },
       {
-        id: '3-5-2026-03-18T10:00:00.000000-103361.57-1',
-        name: 'Vikram Singh',
+        id: '3-4-2026-03-17T15:05:10.896445-104602.8-1',
+        name: 'Ajay Yadav',
         village: 'N/A',
-        lastSubmission: '18/03/26, 10:00am',
-        readingAt: '2026-03-18T10:00:00.000000',
-        readingValue: '103361.57',
+        lastSubmission: '17/03/26, 3:05pm',
+        readingAt: '2026-03-17T15:05:10.896445',
+        readingValue: '104602.8',
       },
     ])
   })
@@ -965,47 +942,70 @@ describe('VillageDashboardScreen', () => {
   })
 
   it('uses live operators from the by-scheme api without copying fallback details to other operators', () => {
-    mockUseReadingComplianceQuery.mockReturnValue({
-      data: {
-        status: 200,
-        message: 'Pump operators retrieved',
+    mockUseQueriesData = [
+      {
         data: {
-          content: [
+          status: 200,
+          message: 'Pump operators retrieved',
+          data: [
             {
-              id: 4,
-              uuid: 'uuid-1',
-              name: 'Ajay Yadav',
-              email: 'ajay@example.com',
-              phoneNumber: '910000000001',
-              status: 'ACTIVE',
               schemeId: 3,
               schemeName: 'CORRAMORE PWSS (Point-III) 18294',
-              reportingRatePercent: 77.5,
-              missingSubmissionCount: 2,
-              inactiveDays: 0,
-              readingAt: '2026-03-17T15:06:10.896445',
-              lastSubmissionAt: '2026-03-17T15:06:10.896445',
-              confirmedReading: 104958.72,
-            },
-            {
-              id: 5,
-              uuid: 'uuid-2',
-              name: 'Anil Gogi',
-              email: 'anil@example.com',
-              phoneNumber: '910000000004',
-              status: 'INACTIVE',
-              schemeId: 3,
-              schemeName: 'CORRAMORE PWSS (Point-III) 18294',
-              reportingRatePercent: 66.67,
-              missingSubmissionCount: 5,
-              inactiveDays: 4,
-              readingAt: '2026-03-18T10:00:00.000000',
-              lastSubmissionAt: '2026-03-18T10:00:00.000000',
-              confirmedReading: 103361.57,
+              pumpOperators: [
+                {
+                  id: 4,
+                  uuid: 'uuid-1',
+                  name: 'Ajay Yadav',
+                  email: 'ajay@example.com',
+                  phoneNumber: '910000000001',
+                  status: 'ACTIVE',
+                },
+                {
+                  id: 5,
+                  uuid: 'uuid-2',
+                  name: 'Anil Gogi',
+                  email: 'anil@example.com',
+                  phoneNumber: '910000000004',
+                  status: 'INACTIVE',
+                },
+              ],
             },
           ],
         },
       },
+    ]
+    mockUseReadingComplianceQuery.mockImplementation((options) => {
+      const params = (options as { params?: { scheme_id?: number } | null }).params
+
+      if (params?.scheme_id === 3) {
+        return {
+          data: {
+            status: 200,
+            message: 'Pump operators retrieved',
+            data: {
+              content: [
+                {
+                  id: 4,
+                  uuid: 'uuid-1',
+                  name: 'Ajay Yadav',
+                  email: 'ajay@example.com',
+                  phoneNumber: '910000000001',
+                  status: 'ACTIVE',
+                  schemeId: 3,
+                  schemeName: 'CORRAMORE PWSS (Point-III) 18294',
+                  reportingRatePercent: 77.5,
+                  missingSubmissionCount: 2,
+                  readingAt: '2026-03-17T15:06:10.896445',
+                  lastSubmissionAt: '2026-03-17T15:06:10.896445',
+                  confirmedReading: 104958.72,
+                },
+              ],
+            },
+          },
+        }
+      }
+
+      return { data: undefined }
     })
 
     renderWithProviders(
@@ -1015,9 +1015,11 @@ describe('VillageDashboardScreen', () => {
         waterSupplyOutagesData={waterSupplyOutagesData}
         villagePumpOperatorDetails={villagePumpOperatorDetails}
         tenantCode="as"
+        allSchemeIds={[3]}
       />
     )
 
+    // Compliance params must use scheme_id only — no pump_operator_id
     expect(mockUseReadingComplianceQuery).toHaveBeenCalledWith({
       params: {
         tenant_code: 'as',
@@ -1028,60 +1030,114 @@ describe('VillageDashboardScreen', () => {
       enabled: true,
     })
 
+    // State Scheme ID and Center Scheme ID labels should be present; Scheme ID numeric display is gone
+    expect(screen.getByText('State Scheme ID')).toBeTruthy()
+    expect(screen.getByText('Center Scheme ID')).toBeTruthy()
+    expect(screen.queryByText('Scheme ID')).toBeNull()
+    expect(screen.getByText('Corramore Pwss (Point-Iii) 18294')).toBeTruthy()
+    // Left panel is driven by the first compliance row (Ajay), not by the paginated operator
     expect(screen.getByText('Ajay Yadav')).toBeTruthy()
-    expect(screen.getByText('Scheme ID')).toBeTruthy()
-    expect(screen.getAllByText('3').length).toBeGreaterThan(0)
-    expect(screen.getByText('Corramore Pwss (Point-Iii) 18294')).toBeTruthy()
-
-    fireEvent.click(screen.getByRole('button', { name: '2' }))
-
-    expect(screen.getByText('Anil Gogi')).toBeTruthy()
-    expect(screen.getByText('Corramore Pwss (Point-Iii) 18294')).toBeTruthy()
-    expect(screen.getAllByText('3').length).toBeGreaterThan(0)
   })
 
-  it('keeps scheme-specific pagination when the same operator is mapped to multiple schemes', () => {
-    mockUseReadingComplianceQuery.mockReturnValue({
-      data: {
-        status: 200,
-        message: 'Pump operators retrieved',
+  it('switches compliance to the selected scheme when the scheme dropdown is used', () => {
+    mockUseQueriesData = [
+      {
         data: {
-          content: [
+          status: 200,
+          message: 'Pump operators retrieved',
+          data: [
             {
-              id: 4,
-              uuid: 'uuid-1',
-              name: 'Ajay Yadav',
-              email: 'ajay@example.com',
-              phoneNumber: '910000000001',
-              status: 'ACTIVE',
               schemeId: 3,
               schemeName: 'CORRAMORE PWSS (Point-III) 18294',
-              reportingRatePercent: 88,
-              missedSubmissionDays: 1,
-              inactiveDays: 0,
-              lastSubmissionAt: '2024-02-11T13:00:00Z',
-              readingAt: '2024-02-11T13:00:00Z',
-              confirmedReading: 100,
-            },
-            {
-              id: 4,
-              uuid: 'uuid-1',
-              name: 'Ajay Yadav',
-              email: 'ajay@example.com',
-              phoneNumber: '910000000001',
-              status: 'ACTIVE',
-              schemeId: 8,
-              schemeName: 'GELABIL PWSS',
-              reportingRatePercent: 91,
-              missedSubmissionDays: 0,
-              inactiveDays: 0,
-              lastSubmissionAt: '2024-02-12T13:00:00Z',
-              readingAt: '2024-02-12T13:00:00Z',
-              confirmedReading: 101,
+              pumpOperators: [
+                {
+                  id: 4,
+                  uuid: 'uuid-1',
+                  name: 'Ajay Yadav',
+                  email: 'ajay@example.com',
+                  phoneNumber: '910000000001',
+                  status: 'ACTIVE',
+                },
+              ],
             },
           ],
         },
       },
+      {
+        data: {
+          status: 200,
+          message: 'Pump operators retrieved',
+          data: [
+            {
+              schemeId: 8,
+              schemeName: 'GELABIL PWSS',
+              pumpOperators: [
+                {
+                  id: 4,
+                  uuid: 'uuid-1',
+                  name: 'Ajay Yadav',
+                  email: 'ajay@example.com',
+                  phoneNumber: '910000000001',
+                  status: 'ACTIVE',
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ]
+    mockUseReadingComplianceQuery.mockImplementation((options) => {
+      const params = (options as { params?: { scheme_id?: number } | null }).params
+
+      if (params?.scheme_id === 3) {
+        return {
+          data: {
+            status: 200,
+            message: 'Pump operators retrieved',
+            data: {
+              content: [
+                {
+                  id: 4,
+                  uuid: 'uuid-1',
+                  name: 'Ajay Yadav',
+                  schemeId: 3,
+                  schemeName: 'CORRAMORE PWSS (Point-III) 18294',
+                  reportingRatePercent: 88,
+                  lastSubmissionAt: '2024-02-11T13:00:00Z',
+                  readingAt: '2024-02-11T13:00:00Z',
+                  confirmedReading: 100,
+                },
+              ],
+            },
+          },
+        }
+      }
+
+      if (params?.scheme_id === 8) {
+        return {
+          data: {
+            status: 200,
+            message: 'Pump operators retrieved',
+            data: {
+              content: [
+                {
+                  id: 4,
+                  uuid: 'uuid-1',
+                  name: 'Ajay Yadav',
+                  schemeId: 8,
+                  schemeName: 'GELABIL PWSS',
+                  reportingRatePercent: 91,
+                  lastSubmissionAt: '2024-02-12T13:00:00Z',
+                  readingAt: '2024-02-12T13:00:00Z',
+                  confirmedReading: 101,
+                },
+              ],
+            },
+          },
+        }
+      }
+
+      return { data: undefined }
     })
 
     renderWithProviders(
@@ -1092,21 +1148,26 @@ describe('VillageDashboardScreen', () => {
         villagePumpOperatorDetails={villagePumpOperatorDetails}
         tenantCode="as"
         schemeId={3}
+        allSchemeIds={[3, 8]}
       />
     )
 
-    expect(screen.getAllByText('3').length).toBeGreaterThan(0)
-    expect(screen.getByText('Corramore Pwss (Point-Iii) 18294')).toBeTruthy()
-
-    const complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
+    // Default: scheme 3 shown
+    expect(screen.getAllByText('Corramore Pwss (Point-Iii) 18294').length).toBeGreaterThan(0)
+    let complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
       data: Array<{ id: string }>
     }
     expect(complianceProps.data[0]?.id).toBe('3-4-2024-02-11T13:00:00Z-100-0')
 
-    fireEvent.click(screen.getByRole('button', { name: '2' }))
+    // Switch to scheme 8 via dropdown
+    fireEvent.click(screen.getByRole('button', { name: 'Select scheme' }))
+    fireEvent.click(screen.getByText('Gelabil Pwss'))
 
-    expect(screen.getAllByText('8').length).toBeGreaterThan(0)
-    expect(screen.getByText('Gelabil Pwss')).toBeTruthy()
+    expect(screen.getAllByText('Gelabil Pwss').length).toBeGreaterThan(0)
+    complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
+      data: Array<{ id: string }>
+    }
+    expect(complianceProps.data[0]?.id).toBe('8-4-2024-02-12T13:00:00Z-101-0')
     expect(screen.queryByText('Central Pumping Station')).toBeNull()
   })
 
@@ -1152,58 +1213,68 @@ describe('VillageDashboardScreen', () => {
     expect(screen.getByText('9')).toBeTruthy()
   })
 
-  it('shows only the selected pump operator history in reading compliance', () => {
-    mockUseReadingComplianceQuery.mockReturnValue({
-      data: {
-        status: 200,
-        message: 'Pump operators retrieved',
+  it('shows scheme-level reading compliance rows for all operators in the scheme', () => {
+    mockUseQueriesData = [
+      {
         data: {
-          content: [
+          status: 200,
+          message: 'Pump operators retrieved',
+          data: [
             {
-              id: 6040,
-              uuid: 'uuid-sanjay',
-              name: 'Sanjay Das',
-              status: 'INACTIVE',
               schemeId: 4500,
               schemeName: 'CHARBARI STATION WEST PWSS',
-              reportingRatePercent: 14.29,
-              missingSubmissionCount: 6,
-              inactiveDays: 6,
-              readingAt: '2026-03-17T15:06:10.896445',
-              lastSubmissionAt: '2026-03-17T15:06:10.896445',
-              confirmedReading: 104958.72,
-            },
-            {
-              id: 6040,
-              uuid: 'uuid-sanjay',
-              name: 'Sanjay Das',
-              status: 'INACTIVE',
-              schemeId: 4500,
-              schemeName: 'CHARBARI STATION WEST PWSS',
-              reportingRatePercent: 14.29,
-              missingSubmissionCount: 6,
-              inactiveDays: 6,
-              readingAt: '2026-03-17T15:05:10.896445',
-              lastSubmissionAt: '2026-03-17T15:05:10.896445',
-              confirmedReading: 101419.13,
-            },
-            {
-              id: 8877,
-              uuid: 'uuid-anil',
-              name: 'Anil Roy',
-              status: 'INACTIVE',
-              schemeId: 4500,
-              schemeName: 'CHARBARI STATION WEST PWSS',
-              reportingRatePercent: 14.29,
-              missingSubmissionCount: 6,
-              inactiveDays: 6,
-              readingAt: '2026-03-17T15:06:10.896445',
-              lastSubmissionAt: '2026-03-17T15:06:10.896445',
-              confirmedReading: 104602.8,
+              pumpOperators: [
+                { id: 6040, uuid: 'uuid-sanjay', name: 'Sanjay Das', status: 'INACTIVE' },
+                { id: 8877, uuid: 'uuid-anil', name: 'Anil Roy', status: 'INACTIVE' },
+              ],
             },
           ],
         },
       },
+    ]
+    mockUseReadingComplianceQuery.mockImplementation((options) => {
+      const params = (options as { params?: { scheme_id?: number } | null }).params
+
+      if (params?.scheme_id === 4500) {
+        return {
+          data: {
+            status: 200,
+            message: 'Pump operators retrieved',
+            data: {
+              content: [
+                {
+                  id: 6040,
+                  uuid: 'uuid-sanjay',
+                  name: 'Sanjay Das',
+                  status: 'INACTIVE',
+                  schemeId: 4500,
+                  schemeName: 'CHARBARI STATION WEST PWSS',
+                  reportingRatePercent: 14.29,
+                  missingSubmissionCount: 6,
+                  readingAt: '2026-03-17T15:06:10.896445',
+                  lastSubmissionAt: '2026-03-17T15:06:10.896445',
+                  confirmedReading: 104958.72,
+                },
+                {
+                  id: 6040,
+                  uuid: 'uuid-sanjay',
+                  name: 'Sanjay Das',
+                  status: 'INACTIVE',
+                  schemeId: 4500,
+                  schemeName: 'CHARBARI STATION WEST PWSS',
+                  reportingRatePercent: 14.29,
+                  missingSubmissionCount: 6,
+                  readingAt: '2026-03-17T15:05:10.896445',
+                  lastSubmissionAt: '2026-03-17T15:05:10.896445',
+                  confirmedReading: 101419.13,
+                },
+              ],
+            },
+          },
+        }
+      }
+
+      return { data: undefined }
     })
 
     renderWithProviders(
@@ -1212,9 +1283,9 @@ describe('VillageDashboardScreen', () => {
         villagePhotoEvidenceRows={[]}
         waterSupplyOutagesData={waterSupplyOutagesData}
         villagePumpOperatorDetails={villagePumpOperatorDetails}
-        villagePumpOperators={[villagePumpOperatorDetails]}
         tenantCode="as"
         schemeId={4500}
+        allSchemeIds={[4500]}
       />
     )
 
@@ -1240,6 +1311,7 @@ describe('VillageDashboardScreen', () => {
       },
     ])
 
+    // Switching to page 2 does not change compliance (scheme-level, not operator-level)
     fireEvent.click(screen.getByRole('button', { name: '2' }))
 
     complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
@@ -1247,243 +1319,22 @@ describe('VillageDashboardScreen', () => {
     }
     expect(complianceProps.data).toEqual([
       {
-        id: '4500-8877-2026-03-17T15:06:10.896445-104602.8-0',
-        name: 'Anil Roy',
+        id: '4500-6040-2026-03-17T15:06:10.896445-104958.72-0',
+        name: 'Sanjay Das',
         village: 'N/A',
         lastSubmission: '17/03/26, 3:06pm',
         readingAt: '2026-03-17T15:06:10.896445',
-        readingValue: '104602.8',
+        readingValue: '104958.72',
+      },
+      {
+        id: '4500-6040-2026-03-17T15:05:10.896445-101419.13-1',
+        name: 'Sanjay Das',
+        village: 'N/A',
+        lastSubmission: '17/03/26, 3:05pm',
+        readingAt: '2026-03-17T15:05:10.896445',
+        readingValue: '101419.13',
       },
     ])
-  })
-
-  it('auto-loads older compliance pages until the selected operator history is available', async () => {
-    mockUseReadingComplianceQuery.mockImplementation((options) => {
-      const params = (options as { params?: { page?: number } | null }).params
-
-      if (params?.page === 1) {
-        return {
-          data: {
-            status: 200,
-            message: 'Pump operators retrieved',
-            data: {
-              content: [
-                {
-                  id: 6040,
-                  uuid: 'uuid-sanjay',
-                  name: 'Sanjay Das',
-                  status: 'INACTIVE',
-                  schemeId: 4500,
-                  schemeName: 'CHARBARI STATION WEST PWSS',
-                  reportingRatePercent: 14.29,
-                  missingSubmissionCount: 6,
-                  inactiveDays: 6,
-                  readingAt: '2026-03-17T15:05:10.896445',
-                  lastSubmissionAt: '2026-03-17T15:05:10.896445',
-                  confirmedReading: 101419.13,
-                },
-              ],
-              totalPages: 2,
-              number: 1,
-            },
-          },
-          isFetching: false,
-        }
-      }
-
-      return {
-        data: {
-          status: 200,
-          message: 'Pump operators retrieved',
-          data: {
-            content: [
-              {
-                id: 6040,
-                uuid: 'uuid-sanjay',
-                name: 'Sanjay Das',
-                status: 'INACTIVE',
-                schemeId: 4500,
-                schemeName: 'CHARBARI STATION WEST PWSS',
-                reportingRatePercent: 14.29,
-                missingSubmissionCount: 6,
-                inactiveDays: 6,
-                readingAt: '2026-03-17T15:06:10.896445',
-                lastSubmissionAt: '2026-03-17T15:06:10.896445',
-                confirmedReading: 104958.72,
-              },
-              {
-                id: 8877,
-                uuid: 'uuid-anil',
-                name: 'Anil Roy',
-                status: 'INACTIVE',
-                schemeId: 4500,
-                schemeName: 'CHARBARI STATION WEST PWSS',
-                reportingRatePercent: 14.29,
-                missingSubmissionCount: 6,
-                inactiveDays: 6,
-                readingAt: '2026-03-17T15:06:00.896445',
-                lastSubmissionAt: '2026-03-17T15:06:00.896445',
-                confirmedReading: 104602.8,
-              },
-            ],
-            totalPages: 2,
-            number: 0,
-          },
-        },
-        isFetching: false,
-      }
-    })
-
-    renderWithProviders(
-      <VillageDashboardScreen
-        data={data}
-        villagePhotoEvidenceRows={[]}
-        waterSupplyOutagesData={waterSupplyOutagesData}
-        villagePumpOperatorDetails={villagePumpOperatorDetails}
-        villagePumpOperators={[villagePumpOperatorDetails]}
-        tenantCode="as"
-        schemeId={4500}
-      />
-    )
-
-    await waitFor(() =>
-      expect(mockUseReadingComplianceQuery).toHaveBeenCalledWith({
-        params: {
-          tenant_code: 'as',
-          scheme_id: 4500,
-          page: 1,
-          size: 50,
-        },
-        enabled: true,
-      })
-    )
-
-    await waitFor(() => {
-      const complianceProps = mockReadingComplianceTable.mock.calls.at(-1)?.[0] as {
-        data: Array<{ name: string; readingValue: string }>
-      }
-
-      expect(complianceProps.data).toEqual([
-        {
-          id: '4500-6040-2026-03-17T15:06:10.896445-104958.72-0',
-          name: 'Sanjay Das',
-          village: 'N/A',
-          lastSubmission: '17/03/26, 3:06pm',
-          readingAt: '2026-03-17T15:06:10.896445',
-          readingValue: '104958.72',
-        },
-        {
-          id: '4500-6040-2026-03-17T15:05:10.896445-101419.13-1',
-          name: 'Sanjay Das',
-          village: 'N/A',
-          lastSubmission: '17/03/26, 3:05pm',
-          readingAt: '2026-03-17T15:05:10.896445',
-          readingValue: '101419.13',
-        },
-      ])
-    })
-  })
-
-  it('stops auto-loading when the next page does not contain the selected operator', async () => {
-    mockUseReadingComplianceQuery.mockImplementation((options) => {
-      const params = (options as { params?: { page?: number } | null }).params
-
-      if (params?.page === 1) {
-        return {
-          data: {
-            status: 200,
-            message: 'Pump operators retrieved',
-            data: {
-              content: [
-                {
-                  id: 8877,
-                  uuid: 'uuid-anil',
-                  name: 'Anil Roy',
-                  status: 'INACTIVE',
-                  schemeId: 4500,
-                  schemeName: 'CHARBARI STATION WEST PWSS',
-                  reportingRatePercent: 14.29,
-                  missingSubmissionCount: 6,
-                  inactiveDays: 6,
-                  readingAt: '2026-03-17T15:05:10.896445',
-                  lastSubmissionAt: '2026-03-17T15:05:10.896445',
-                  confirmedReading: 101419.13,
-                },
-              ],
-              totalPages: 5,
-              number: 1,
-            },
-          },
-          isFetching: false,
-        }
-      }
-
-      if ((params?.page ?? 0) > 1) {
-        throw new Error(`unexpected auto-load for page ${params?.page}`)
-      }
-
-      return {
-        data: {
-          status: 200,
-          message: 'Pump operators retrieved',
-          data: {
-            content: [
-              {
-                id: 6040,
-                uuid: 'uuid-sanjay',
-                name: 'Sanjay Das',
-                status: 'INACTIVE',
-                schemeId: 4500,
-                schemeName: 'CHARBARI STATION WEST PWSS',
-                reportingRatePercent: 14.29,
-                missingSubmissionCount: 6,
-                inactiveDays: 6,
-                readingAt: '2026-03-17T15:06:10.896445',
-                lastSubmissionAt: '2026-03-17T15:06:10.896445',
-                confirmedReading: 104958.72,
-              },
-            ],
-            totalPages: 5,
-            number: 0,
-          },
-        },
-        isFetching: false,
-      }
-    })
-
-    renderWithProviders(
-      <VillageDashboardScreen
-        data={data}
-        villagePhotoEvidenceRows={[]}
-        waterSupplyOutagesData={waterSupplyOutagesData}
-        villagePumpOperatorDetails={villagePumpOperatorDetails}
-        villagePumpOperators={[villagePumpOperatorDetails]}
-        tenantCode="as"
-        schemeId={4500}
-      />
-    )
-
-    await waitFor(() =>
-      expect(mockUseReadingComplianceQuery).toHaveBeenCalledWith({
-        params: {
-          tenant_code: 'as',
-          scheme_id: 4500,
-          page: 1,
-          size: 50,
-        },
-        enabled: true,
-      })
-    )
-
-    expect(mockUseReadingComplianceQuery).not.toHaveBeenCalledWith({
-      params: {
-        tenant_code: 'as',
-        scheme_id: 4500,
-        page: 2,
-        size: 50,
-      },
-      enabled: true,
-    })
   })
 
   it('loads the next scheme compliance page when the table reaches the bottom', () => {
@@ -1550,6 +1401,8 @@ describe('VillageDashboardScreen', () => {
       params: {
         tenant_code: 'as',
         scheme_id: 3,
+        startDate: undefined,
+        endDate: undefined,
         page: 1,
         size: 50,
       },
@@ -1671,6 +1524,8 @@ describe('VillageDashboardScreen', () => {
       params: {
         tenant_code: 'as',
         scheme_id: 3,
+        startDate: undefined,
+        endDate: undefined,
         page: 2,
         size: 50,
       },

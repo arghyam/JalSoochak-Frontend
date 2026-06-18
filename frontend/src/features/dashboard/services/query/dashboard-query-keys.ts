@@ -180,7 +180,16 @@ export const dashboardQueryKeys = {
   pumpOperatorsByScheme: (params: PumpOperatorsBySchemeQueryParams | null) =>
     ['dashboard', 'pump-operator', 'by-scheme', params?.tenant_code, params?.scheme_id] as const,
   pumpOperatorDetails: (params: PumpOperatorDetailsQueryParams | null) =>
-    ['dashboard', 'pump-operator', 'details', params?.pumpOperatorId, params?.tenant_code] as const,
+    [
+      'dashboard',
+      'pump-operator',
+      'details',
+      params?.pumpOperatorId,
+      params?.tenant_code,
+      params?.scheme_id,
+      params?.startDate,
+      params?.endDate,
+    ] as const,
   readingCompliance: (params: ReadingComplianceQueryParams | null) =>
     [
       'dashboard',
@@ -188,6 +197,9 @@ export const dashboardQueryKeys = {
       'reading-compliance',
       params?.tenant_code,
       params?.scheme_id,
+      params?.pump_operator_id,
+      params?.startDate,
+      params?.endDate,
       params?.page,
       params?.size,
     ] as const,

@@ -126,6 +126,7 @@ export function IndiaMapChart({
     []
   )
   const primaryMapColor = resolveThemeColor('primary.500')
+  const labelTextColor = resolveThemeColor('neutral.950')
   const quantityLabel = t('map.metric.quantity', { defaultValue: 'Quantity' })
   const quantityLpcdLabel = t('overallPerformance.columns.quantityLpcd', {
     defaultValue: 'Quantity (LPCD)',
@@ -459,14 +460,17 @@ export function IndiaMapChart({
             max: 4,
           },
           label: {
-            show: false,
-            fontSize: 10,
-            color: '#51525c',
+            show: true,
+            fontSize: 9,
+            color: labelTextColor,
             opacity: 1,
+            formatter: (params: { name?: string }) => {
+              const name = params.name ?? ''
+              return name.includes('::') ? name.split('::')[0] : name
+            },
           },
           labelLayout: {
-            hideOverlap: false,
-            moveOverlap: 'shiftY',
+            hideOverlap: true,
           },
           data: seriesData,
           itemStyle: {
@@ -480,8 +484,8 @@ export function IndiaMapChart({
             ? {
                 disabled: true,
                 label: {
-                  show: false,
-                  color: '#51525c',
+                  show: true,
+                  color: labelTextColor,
                   opacity: 1,
                 },
               }
@@ -493,10 +497,10 @@ export function IndiaMapChart({
                   opacity: 1,
                 },
                 label: {
-                  show: false,
-                  fontSize: 12,
+                  show: true,
+                  fontSize: 10,
                   fontWeight: 'bold',
-                  color: '#51525c',
+                  color: labelTextColor,
                   opacity: 1,
                 },
               },
@@ -507,10 +511,10 @@ export function IndiaMapChart({
               opacity: 1,
             },
             label: {
-              show: false,
-              fontSize: 12,
+              show: true,
+              fontSize: 10,
               fontWeight: 'bold',
-              color: '#51525c',
+              color: labelTextColor,
               opacity: 1,
             },
           },
@@ -520,7 +524,7 @@ export function IndiaMapChart({
             },
             label: {
               opacity: 1,
-              color: '#51525c',
+              color: labelTextColor,
             },
           },
         },
@@ -533,6 +537,7 @@ export function IndiaMapChart({
     effectiveMapName,
     mapName,
     primaryMapColor,
+    labelTextColor,
     mapColors,
     getHoverRangeColor,
     nationalBoundaryGeoJson,

@@ -45,6 +45,8 @@ export const ROUTES = {
   STAFF_ANOMALIES: '/staff/anomalies',
   STAFF_ESCALATIONS: '/staff/escalations',
   STAFF_FIX_READINGS: '/staff/fix-readings',
+  // Public info pages
+  GLOSSARY: '/glossary',
   // Auth routes
   LOGIN: '/login',
   LOGOUT: '/logout',

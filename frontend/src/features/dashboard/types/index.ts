@@ -86,6 +86,8 @@ export interface VillagePumpOperatorDetails {
   phoneNumber?: string
   status?: number | string
   schemeId?: number
+  stateSchemeId?: string | null
+  centerSchemeId?: string | null
   schemeName?: string
   schemeLatitude?: number | null
   schemeLongitude?: number | null
@@ -100,7 +102,7 @@ export interface VillagePumpOperatorDetails {
   lastSubmission: string
   reportingRate: string
   missingSubmissionCount: string
-  inactiveDays: string
+  inactiveDays?: string
 }
 
 export interface WaterSupplyOutageData {
@@ -504,6 +506,9 @@ export interface ReadingSubmissionRateQueryParams {
 export interface ReadingComplianceQueryParams {
   tenant_code: string
   scheme_id?: number
+  pump_operator_id?: number
+  startDate?: string
+  endDate?: string
   page?: number
   size?: number
 }
@@ -597,6 +602,9 @@ export interface ContinuousSchemesResponse {
 export interface PumpOperatorDetailsQueryParams {
   pumpOperatorId: number
   tenant_code: string
+  scheme_id?: number
+  startDate?: string
+  endDate?: string
 }
 
 export interface PumpOperatorsBySchemeQueryParams {
@@ -632,8 +640,10 @@ export interface PumpOperatorDetailsResponse {
     name: string
     email: string
     phoneNumber: string
-    status: number
+    status: number | string
     schemeId: number
+    stateSchemeId?: string | null
+    centerSchemeId?: string | null
     schemeName: string
     schemeLatitude: number | null
     schemeLongitude: number | null

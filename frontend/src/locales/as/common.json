@@ -1,0 +1,194 @@
+{
+  "error": {
+    "somethingWentWrong": "কিবা এটা ভুল হৈছে"
+  },
+  "loading": "লোড হৈ আছে...",
+  "optional": "(ঐচ্ছিক)",
+  "noDataAvailable": "কোনো তথ্য উপলব্ধ নাই",
+  "search": "অনুসন্ধান",
+  "select": "বাছনি কৰক",
+  "enter": "দিয়ক",
+  "statusLabel": "স্থিতি",
+  "actions": "কাৰ্য",
+  "filters": "ফিল্টাৰ",
+  "retry": "পুনৰ চেষ্টা কৰক",
+  "na": "N/A",
+  "yes": "হয়",
+  "no": "নহয়",
+
+  "button": {
+    "save": "সংৰক্ষণ কৰক",
+    "saveChanges": "পৰিবৰ্তন সংৰক্ষণ কৰক",
+    "saveAndNext": "সংৰক্ষণ কৰক আৰু পৰৱৰ্তী",
+    "next": "পৰৱৰ্তী",
+    "cancel": "বাতিল কৰক",
+    "edit": "সম্পাদনা কৰক",
+    "delete": "মচি পেলাওক",
+    "add": "যোগ কৰক",
+    "exportData": "ডেটা ৰপ্তানি কৰক",
+    "testSend": "পৰীক্ষামূলক পঠাওক"
+  },
+
+  "status": {
+    "active": "সক্ৰিয়",
+    "inactive": "নিষ্ক্ৰিয়",
+    "pending": "অপেক্ষাৰত",
+    "successful": "সফল",
+    "failed": "বিফল",
+    "warning": "সতৰ্কবাৰ্তা",
+    "success": "সফলতা"
+  },
+
+  "toast": {
+    "changesSaved": "পৰিবৰ্তন সফলভাৱে সংৰক্ষণ হৈছে",
+    "changesSavedShort": "পৰিবৰ্তন সংৰক্ষণ হৈছে",
+    "failedToSave": "পৰিবৰ্তন সংৰক্ষণ কৰিব পৰা নগল",
+    "failedToLoad": "কনফিগাৰেচন লোড কৰিব পৰা নগল",
+    "fillAllFields": "অনুগ্ৰহ কৰি সকলো প্ৰয়োজনীয় ক্ষেত্ৰ পূৰণ কৰক",
+    "fillAllFieldsCorrectly": "অনুগ্ৰহ কৰি সকলো প্ৰয়োজনীয় ক্ষেত্ৰ শুদ্ধকৈ পূৰণ কৰক",
+    "passwordCreated": "পাছৱৰ্ড তৈয়াৰ কৰা হৈছে।",
+    "passwordCreateFailed": "পাছৱৰ্ড তৈয়াৰ কৰিব পৰা নগল।",
+    "profileUpdated": "প্ৰ'ফাইল সফলভাৱে আপডেট হৈছে।",
+    "profileLoadFailed": "প্ৰ'ফাইল লোড কৰিব পৰা নগল।",
+    "profileUpdateFailed": "প্ৰ'ফাইল আপডেট কৰিব পৰা নগল।",
+    "sessionExpired": "ছেছন শেষ হৈছে। অনুগ্ৰহ কৰি আমন্ত্ৰণ লিংক পুনৰ ব্যৱহাৰ কৰক।",
+    "reinviteSent": "আমন্ত্ৰণ পুনৰায় সফলভাৱে পঠোৱা হৈছে",
+    "reinviteFailed": "আমন্ত্ৰণ পুনৰায় পঠাওঁতে বিফল হ'ল"
+  },
+
+  "sidebar": {
+    "overview": "অৱলোকন",
+    "systemRules": "ব্যৱস্থা নিয়মাৱলী",
+    "statesUts": "ৰাজ্য/কেন্দ্ৰশাসিত অঞ্চল",
+    "manageStatesUts": "ৰাজ্য/কেন্দ্ৰশাসিত অঞ্চল পৰিচালনা",
+    "manageAdmins": "প্ৰশাসক পৰিচালনা",
+    "apiCredentials": "API শংসাপত্ৰ",
+    "ingestionMonitor": "ইনজেচন মনিটৰ",
+    "language": "ভাষা",
+    "waterNorms": "জলৰ মান",
+    "integration": "সংহতি",
+    "escalations": "এস্কেলেচন",
+    "thresholds": "থ্ৰেচহোল্ড",
+    "nudgesTemplate": "নাজ টেমপ্লেট",
+    "templates": "টেমপ্লেট",
+    "apiIngestion": "API ইনজেচন",
+    "operatorSync": "অপাৰেটৰ চিংক",
+    "dataSync": "ডেটা ব্যৱস্থাপনা",
+    "staffSync": "কৰ্মচাৰী",
+    "schemeSync": "আঁচনি",
+    "schemeMappingsSync": "আঁচনি মেপিং",
+    "configuration": "কনফিগাৰেচন",
+    "hierarchy": "স্তৰানুক্ৰম",
+    "activity": "কাৰ্যকলাপ",
+    "stateUtAdmins": "ৰাজ্য/কেন্দ্ৰশাসিত অঞ্চলৰ প্ৰশাসক",
+    "superUsers": "চুপাৰ ব্যৱহাৰকাৰী",
+    "schemes": "আঁচনি",
+    "pumpOperators": "পাম্প অপাৰেটৰ",
+    "anomalies": "অসামঞ্জস্যতা",
+    "fixReadings": "পঢ়া সংশোধন কৰক",
+    "profile": "প্ৰ'ফাইল",
+    "changePassword": "পাছৱৰ্ড সলনি কৰক",
+    "logout": "লগ আউট",
+    "skipToMain": "মূল বিষয়বস্তুলৈ যাওক",
+    "openMenu": "মেনু খোলক",
+    "closeMenu": "মেনু বন্ধ কৰক",
+    "logoAlt": "JalSoochak লোগো",
+    "mainNavigation": "মূল নেভিগেচন"
+  },
+
+  "validation": {
+    "required": "এই ক্ষেত্ৰটো প্ৰয়োজনীয়",
+    "invalidEmail": "অনুগ্ৰহ কৰি এটা বৈধ ইমেইল ঠিকনা দিয়ক",
+    "invalidPhone": "অনুগ্ৰহ কৰি এটা বৈধ ১০ সংখ্যাৰ ফোন নম্বৰ দিয়ক",
+    "alphabeticOnly": "কেৱল আখৰ আৰু স্থান অনুমোদিত",
+    "maxLength": "{{max}} আখৰতকৈ বেছি হ'ব নোৱাৰিব",
+    "maxValue": "মান {{max}}তকৈ বেছি হ'ব নোৱাৰিব",
+    "passwordComplexity": "পাছৱৰ্ড কমেও ৮ আখৰৰ হ'ব লাগিব আৰু কমেও এটা ডাঙৰ আখৰ, এটা সৰু আখৰ, এটা সংখ্যা, আৰু এটা বিশেষ আখৰ থাকিব লাগিব"
+  },
+
+  "time": {
+    "am": "পূৱা",
+    "pm": "বিয়লি"
+  },
+
+  "table": {
+    "itemsPerPage": "প্ৰতি পৃষ্ঠাত আইটেম",
+    "previous": "পূৰ্বৱৰ্তী",
+    "next": "পৰৱৰ্তী",
+    "noResults": "কোনো ফলাফল পোৱা নগল",
+    "goToPage": "পৃষ্ঠা {{page}}লৈ যাওক"
+  },
+
+  "searchableSelect": {
+    "search": "অনুসন্ধান",
+    "noResults": "কোনো ফলাফল পোৱা নগল"
+  },
+
+  "upload": {
+    "validationSummary_one": "{{count}}টা বৈধতা ত্ৰুটি পোৱা গৈছে — সংশোধন কৰি পুনৰ আপলোড কৰক",
+    "validationSummary_other": "{{count}}টা বৈধতা ত্ৰুটি পোৱা গৈছে — সংশোধন কৰি পুনৰ আপলোড কৰক",
+    "columnRow": "শাৰী",
+    "columnField": "ক্ষেত্ৰ",
+    "columnError": "ত্ৰুটি",
+    "downloadTemplate": "টেমপ্লেট",
+    "downloadTemplateAria": "আপলোড টেমপ্লেট ডাউনলোড কৰক"
+  },
+
+  "profile": {
+    "title": "প্ৰ'ফাইল",
+    "details": "প্ৰ'ফাইলৰ বিৱৰণ",
+    "firstName": "প্ৰথম নাম",
+    "lastName": "শেষ নাম",
+    "email": "ইমেইল ঠিকনা",
+    "phone": "ফোন নম্বৰ",
+    "editProfile": "প্ৰ'ফাইল সম্পাদনা কৰক"
+  },
+
+  "changePassword": {
+    "title": "পাছৱৰ্ড সলনি কৰক",
+    "currentPassword": "বৰ্তমানৰ পাছৱৰ্ড",
+    "newPassword": "নতুন পাছৱৰ্ড",
+    "confirmPassword": "নতুন পাছৱৰ্ড নিশ্চিত কৰক",
+    "submit": "পাছৱৰ্ড আপডেট কৰক",
+    "mismatch": "পাছৱৰ্ড মিলা নাই",
+    "sameAsCurrent": "নতুন পাছৱৰ্ড বৰ্তমানৰ পাছৱৰ্ডতকৈ পৃথক হ'ব লাগিব",
+    "success": "পাছৱৰ্ড সফলভাৱে আপডেট হৈছে",
+    "failed": "পাছৱৰ্ড আপডেট কৰিব পৰা নগল",
+    "hidePassword": "পাছৱৰ্ড লুকাওক",
+    "showPassword": "পাছৱৰ্ড দেখুৱাওক"
+  },
+
+  "aria": {
+    "moreInfo": "অধিক তথ্য"
+  },
+
+  "footer": {
+    "logoAlt": "JalSoochak ল'গো আৰু লিখনি",
+    "description": "ভাৰতৰ গ্ৰামীণ জলসেচৰ বাবে AI-সক্ষম পানী যোগান পৰীক্ষণ। ক্ষেত্ৰৰ পৰা শাসনলৈ বিশ্বসনীয়, নিৰীক্ষণযোগ্য তথ্যৰ সৈতে প্ৰথম শাৰীৰ কৰ্মীসকলক শক্তিশালী কৰি তোলা।",
+    "quickLinks": "দ্ৰুত লিংক",
+    "subDivisionalOfficerLogin": "উপ-বিভাগীয় বিষয়াৰ লগইন",
+    "sectionOfficerLogin": "অধ্যাদেশ বিষয়াৰ লগইন",
+    "systemUsersLogin": "ছিষ্টেম ব্যৱহাৰকাৰীৰ লগইন",
+    "jalsoochakWebsite": "JalSoochak ৱেবছাইট",
+    "phedAssamWebsite": "PHED Assam",
+    "jjmAssamWebsite": "JJM Assam",
+    "glossary": "ডেচবৰ্ড শব্দকোষ",
+    "contactUs": "আমাৰ সৈতে যোগাযোগ কৰক",
+    "email": "md@jjmassam.in",
+    "phone": "1800-889-3047",
+    "address": "Jal Jeevan Mission Assam\nPHED Assam, Guwahati",
+    "copyright": "© {{year}} JalSoochak · ",
+    "phedAssam": "PHED Assam",
+    "developedBy": " | নিৰ্মাতা ",
+    "arghyam": "Arghyam",
+    "multiTenantEmail": "info@arghyam.org",
+    "multiTenantPhone": "+91-80 4169 8941",
+    "multiTenantAddress": "#599, ROHINI, 12th Main Rd, 7th Cross, HAL 2nd Stage, Indiranagar, Bengaluru, Karnataka 560068",
+    "multiTenantCopyright": "© {{year}} JalSoochak · এটি উদ্যোগ",
+    "social": {
+      "x": "X (Twitter)",
+      "linkedin": "LinkedIn",
+      "email": "ইমেইল"
+    }
+  }
+}

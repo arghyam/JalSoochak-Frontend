@@ -61,6 +61,9 @@ type BuildCentralDashboardRenderPropsParams = DashboardFiltersProps &
     | 'tableDateFormat'
     | 'tenantCode'
     | 'totalSchemePages'
+    | 'allSchemeIds'
+    | 'startDate'
+    | 'endDate'
     | 'villagePhotoEvidenceRows'
     | 'villagePumpOperatorDetails'
     | 'villageTableData'
@@ -194,6 +197,9 @@ export function buildCentralDashboardRenderProps({
   tenantBoundaryParentGeoJson,
   tenantCode,
   totalSchemePages,
+  allSchemeIds,
+  startDate,
+  endDate,
   villagePhotoEvidenceRows,
   villagePumpOperatorDetails,
   villageTableData,
@@ -278,6 +284,9 @@ export function buildCentralDashboardRenderProps({
       villagePumpOperatorDetails,
       tenantCode,
       schemeId: derivedVillageSchemeId,
+      allSchemeIds,
+      startDate,
+      endDate,
       schemePerformancePage,
       totalSchemePages,
       onSchemePageChange,

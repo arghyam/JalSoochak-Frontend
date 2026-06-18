@@ -1,8 +1,22 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Avatar, Box, Button, Flex, Grid, Icon, Text } from '@chakra-ui/react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useQueries } from '@tanstack/react-query'
+import {
+  Avatar,
+  Box,
+  Button,
+  Flex,
+  Grid,
+  Icon,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  Text,
+} from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
-import { LuArrowLeft, LuArrowRight } from 'react-icons/lu'
-import { ChartEmptyState } from '@/shared/components/common'
+import { LuArrowLeft, LuArrowRight, LuChevronDown } from 'react-icons/lu'
+import { ChartEmptyState, ChartInfoTooltip } from '@/shared/components/common'
+import { buildDashboardGlossary } from '../../utils/dashboard-glossary'
 import { formatIsoDateForDisplay, normalizeDateFormat } from '@/shared/utils/date-format'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import type {
@@ -14,8 +28,9 @@ import type {
   VillagePumpOperatorDetails,
   WaterSupplyOutageData,
 } from '../../types'
+import { dashboardApi } from '../../services/api/dashboard-api'
+import { dashboardQueryKeys } from '../../services/query/dashboard-query-keys'
 import { usePumpOperatorDetailsQuery } from '../../services/query/use-pump-operator-details-query'
-import { usePumpOperatorsBySchemeQuery } from '../../services/query/use-pump-operators-by-scheme-query'
 import { useReadingComplianceQuery } from '../../services/query/use-reading-compliance-query'
 import { SupplyOutageReasonsChart } from '../charts'
 import { ReadingComplianceTable } from '../tables'
@@ -34,6 +49,9 @@ type VillageDashboardScreenProps = {
   villagePumpOperators?: VillagePumpOperatorDetails[]
   tenantCode?: string
   schemeId?: number
+  allSchemeIds?: number[]
+  startDate?: string
+  endDate?: string
   quantityTimeTrendData?: MonthlyTrendPoint[]
   regularityTimeTrendData?: MonthlyTrendPoint[]
   isQuantityTimeTrendLoading?: boolean
@@ -234,10 +252,6 @@ const mapReadingComplianceItemToVillageDetails = (
       missingSubmissionCount != null
         ? formatCount(missingSubmissionCount)
         : matchingFallback?.missingSubmissionCount || 'N/A',
-    inactiveDays:
-      item.inactiveDays != null
-        ? formatCount(item.inactiveDays)
-        : matchingFallback?.inactiveDays || 'N/A',
   }
 }
 
@@ -272,7 +286,6 @@ const mapPumpOperatorSummaryToVillageDetails = (
     lastSubmission: fallback?.lastSubmission || 'N/A',
     reportingRate: fallback?.reportingRate || 'N/A',
     missingSubmissionCount: fallback?.missingSubmissionCount || 'N/A',
-    inactiveDays: fallback?.inactiveDays || 'N/A',
   }
 }
 
@@ -283,8 +296,10 @@ const mapPumpOperatorDetailsToVillageDetails = (
     name: string
     email: string
     phoneNumber: string
-    status: number
+    status: number | string
     schemeId: number
+    stateSchemeId?: string | null
+    centerSchemeId?: string | null
     schemeName: string
     schemeLatitude: number | null
     schemeLongitude: number | null
@@ -311,6 +326,8 @@ const mapPumpOperatorDetailsToVillageDetails = (
     phoneNumber: item.phoneNumber,
     status: item.status,
     schemeId: item.schemeId,
+    stateSchemeId: item.stateSchemeId ?? null,
+    centerSchemeId: item.centerSchemeId ?? null,
     schemeName: normalizedSchemeName,
     scheme:
       normalizedSchemeName && item.schemeId
@@ -341,20 +358,7 @@ const mapPumpOperatorDetailsToVillageDetails = (
       missedSubmissionCount != null
         ? formatCount(missedSubmissionCount)
         : fallback?.missingSubmissionCount || 'N/A',
-    inactiveDays:
-      item.inactiveDays != null ? formatCount(item.inactiveDays) : fallback?.inactiveDays || 'N/A',
   }
-}
-
-const getSubmissionTime = (item: ReadingComplianceItem) => {
-  const value = getReadingComplianceTimestampValue(item)
-
-  if (!value) {
-    return 0
-  }
-
-  const parsedDate = new Date(value)
-  return Number.isNaN(parsedDate.getTime()) ? 0 : parsedDate.getTime()
 }
 
 const getReadingComplianceItemKey = (
@@ -379,7 +383,9 @@ type ReadingComplianceSectionProps = {
   villagePumpOperatorDetails: VillagePumpOperatorDetails
   villagePumpOperators: VillagePumpOperatorDetails[]
   tenantCode?: string
-  effectiveSchemeId?: number
+  allSchemeIds?: number[]
+  startDate?: string
+  endDate?: string
   tableDateFormat?: string
 }
 
@@ -387,46 +393,145 @@ function ReadingComplianceSection({
   villagePumpOperatorDetails,
   villagePumpOperators,
   tenantCode,
-  effectiveSchemeId,
+  allSchemeIds = [],
+  startDate,
+  endDate,
   tableDateFormat,
 }: ReadingComplianceSectionProps) {
   const { t } = useTranslation('dashboard')
+  const glossary = useMemo(() => buildDashboardGlossary(t), [t])
   const [pumpOperatorPage, setPumpOperatorPage] = useState(1)
   const [readingCompliancePage, setReadingCompliancePage] = useState(0)
   const [loadedReadingCompliancePages, setLoadedReadingCompliancePages] = useState<
     Record<number, ReadingComplianceItem[]>
   >({})
-  const readingComplianceParams = useMemo(
+  const [selectedSchemeId, setSelectedSchemeId] = useState<number | undefined>(allSchemeIds[0])
+
+  // Fetch pump operators for every scheme in parallel
+  const schemeQueries = useQueries({
+    queries: allSchemeIds.map((schemeId) => ({
+      queryKey: dashboardQueryKeys.pumpOperatorsByScheme(
+        tenantCode ? { tenant_code: tenantCode, scheme_id: schemeId } : null
+      ),
+      queryFn: () =>
+        dashboardApi.getPumpOperatorsByScheme({ tenant_code: tenantCode!, scheme_id: schemeId }),
+      enabled: Boolean(tenantCode),
+      retry: false,
+    })),
+  })
+
+  const allPumpOperatorsByScheme = useMemo(
+    () => schemeQueries.filter((q) => q.data != null).flatMap((q) => q.data!.data),
+    [schemeQueries]
+  )
+
+  const schemeOptions = useMemo(
     () =>
-      tenantCode && typeof effectiveSchemeId === 'number'
+      allSchemeIds.map((schemeId) => {
+        const found = allPumpOperatorsByScheme.find((item) => item.schemeId === schemeId)
+        return {
+          value: schemeId,
+          label: found?.schemeName ? toCapitalizedWords(found.schemeName) : `Scheme ${schemeId}`,
+        }
+      }),
+    [allSchemeIds, allPumpOperatorsByScheme]
+  )
+
+  const fallbackPumpOperatorPages = useMemo(
+    () => (villagePumpOperators.length > 0 ? villagePumpOperators : [villagePumpOperatorDetails]),
+    [villagePumpOperatorDetails, villagePumpOperators]
+  )
+
+  const pumpOperatorApiPages = useMemo(
+    () =>
+      allPumpOperatorsByScheme
+        .filter(
+          (schemeGroup) => selectedSchemeId == null || schemeGroup.schemeId === selectedSchemeId
+        )
+        .flatMap((schemeGroup) =>
+          schemeGroup.pumpOperators.map((operator) =>
+            mapPumpOperatorSummaryToVillageDetails(
+              operator,
+              schemeGroup.schemeId,
+              schemeGroup.schemeName,
+              fallbackPumpOperatorPages.find((fallbackOperator) =>
+                isSameOperator(operator, fallbackOperator)
+              )
+            )
+          )
+        ),
+    [allPumpOperatorsByScheme, fallbackPumpOperatorPages, selectedSchemeId]
+  )
+
+  const pumpOperatorPages = useMemo(
+    () => (pumpOperatorApiPages.length > 0 ? pumpOperatorApiPages : fallbackPumpOperatorPages),
+    [fallbackPumpOperatorPages, pumpOperatorApiPages]
+  )
+
+  const totalPumpOperatorPages = Math.max(1, pumpOperatorPages.length)
+  const activePumpOperatorPage = Math.min(pumpOperatorPage, totalPumpOperatorPages)
+  const activePumpOperator =
+    pumpOperatorPages[activePumpOperatorPage - 1] ?? villagePumpOperatorDetails
+  const activePumpOperatorKey =
+    activePumpOperator.mappingKey ?? getOperatorMappingKey(activePumpOperator)
+  const activePumpOperatorId = activePumpOperator.id
+  const activePumpOperatorSchemeId = activePumpOperator.schemeId
+
+  // Reset all paging when the selected scheme changes
+  const prevSelectedSchemeRef = useRef(selectedSchemeId)
+  useEffect(() => {
+    if (prevSelectedSchemeRef.current !== selectedSchemeId) {
+      prevSelectedSchemeRef.current = selectedSchemeId
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPumpOperatorPage(1)
+      setReadingCompliancePage(0)
+      setLoadedReadingCompliancePages({})
+    }
+  }, [selectedSchemeId])
+
+  const activePumpOperatorDetailsParams = useMemo(
+    () =>
+      tenantCode &&
+      typeof activePumpOperatorId === 'number' &&
+      typeof activePumpOperatorSchemeId === 'number' &&
+      startDate &&
+      endDate
         ? {
             tenant_code: tenantCode,
-            scheme_id: effectiveSchemeId,
+            pumpOperatorId: activePumpOperatorId,
+            scheme_id: activePumpOperatorSchemeId,
+            startDate,
+            endDate,
+          }
+        : null,
+    [activePumpOperatorId, activePumpOperatorSchemeId, endDate, startDate, tenantCode]
+  )
+
+  const readingComplianceParams = useMemo(
+    () =>
+      tenantCode && typeof selectedSchemeId === 'number'
+        ? {
+            tenant_code: tenantCode,
+            scheme_id: selectedSchemeId,
+            startDate,
+            endDate,
             page: readingCompliancePage,
             size: READING_COMPLIANCE_PAGE_SIZE,
           }
         : null,
-    [effectiveSchemeId, readingCompliancePage, tenantCode]
+    [selectedSchemeId, endDate, readingCompliancePage, startDate, tenantCode]
   )
-  const pumpOperatorsBySchemeParams = useMemo(
-    () =>
-      tenantCode && typeof effectiveSchemeId === 'number'
-        ? {
-            tenant_code: tenantCode,
-            scheme_id: effectiveSchemeId,
-          }
-        : null,
-    [effectiveSchemeId, tenantCode]
-  )
-  const { data: pumpOperatorsBySchemeData } = usePumpOperatorsBySchemeQuery({
-    params: pumpOperatorsBySchemeParams,
-    enabled: Boolean(pumpOperatorsBySchemeParams),
+
+  const { data: pumpOperatorDetailsApiData } = usePumpOperatorDetailsQuery({
+    params: activePumpOperatorDetailsParams,
+    enabled: Boolean(activePumpOperatorDetailsParams),
   })
   const { data: readingComplianceApiData, isFetching: isReadingComplianceFetching } =
     useReadingComplianceQuery({
       params: readingComplianceParams,
       enabled: Boolean(readingComplianceParams),
     })
+
   const currentPageItems = useMemo(
     () => readingComplianceApiData?.data.content ?? [],
     [readingComplianceApiData?.data.content]
@@ -441,8 +546,8 @@ function ReadingComplianceSection({
   )
 
   useEffect(() => {
-    // This effect intentionally snapshots fetched pages into local state so
-    // older history remains available while newer pages are loaded.
+    // Snapshots fetched pages into local state so older history remains
+    // available while newer pages are loading (infinite scroll accumulation).
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadedReadingCompliancePages((currentPages) => {
       const existingPageItems = currentPages[currentResponsePage] ?? []
@@ -489,105 +594,13 @@ function ReadingComplianceSection({
 
     return mergedItems
   }, [loadedReadingCompliancePages, readingComplianceParams])
+
   const totalPages = readingComplianceApiData?.data.totalPages
   const hasMoreReadingCompliancePages =
     typeof totalPages === 'number'
       ? currentResponsePage + 1 < totalPages
       : currentPageItems.length === READING_COMPLIANCE_PAGE_SIZE
-  const fallbackPumpOperatorPages = useMemo(
-    () => (villagePumpOperators.length > 0 ? villagePumpOperators : [villagePumpOperatorDetails]),
-    [villagePumpOperatorDetails, villagePumpOperators]
-  )
-  const pumpOperatorApiPages = useMemo(() => {
-    const schemeGroups = pumpOperatorsBySchemeData?.data ?? []
-    const matchingSchemeGroup =
-      schemeGroups.find((group) => group.schemeId === effectiveSchemeId) ?? schemeGroups[0]
 
-    if (!matchingSchemeGroup) {
-      return []
-    }
-
-    return matchingSchemeGroup.pumpOperators.map((operator) =>
-      mapPumpOperatorSummaryToVillageDetails(
-        operator,
-        matchingSchemeGroup.schemeId,
-        matchingSchemeGroup.schemeName,
-        fallbackPumpOperatorPages.find((fallbackOperator) =>
-          isSameOperator(operator, fallbackOperator)
-        )
-      )
-    )
-  }, [effectiveSchemeId, fallbackPumpOperatorPages, pumpOperatorsBySchemeData?.data])
-  const readingComplianceDataByOperator = useMemo(() => {
-    const rowsByOperatorKey = new Map<string, ReadingComplianceItem[]>()
-    const latestEntryByOperatorKey = new Map<string, ReadingComplianceItem>()
-
-    for (const item of readingComplianceItems) {
-      const operatorKey = getOperatorMappingKey(item)
-      const rows = rowsByOperatorKey.get(operatorKey)
-
-      if (rows) {
-        rows.push(item)
-      } else {
-        rowsByOperatorKey.set(operatorKey, [item])
-      }
-    }
-
-    rowsByOperatorKey.forEach((rows, operatorKey) => {
-      rows.sort((left, right) => getSubmissionTime(right) - getSubmissionTime(left))
-      const latestRow = rows[0]
-      if (latestRow) {
-        latestEntryByOperatorKey.set(operatorKey, latestRow)
-      }
-    })
-
-    return {
-      rowsByOperatorKey,
-      latestEntryByOperatorKey,
-    }
-  }, [readingComplianceItems])
-  const pumpOperatorPages = useMemo(() => {
-    if (pumpOperatorApiPages.length > 0) {
-      return pumpOperatorApiPages
-    }
-
-    const complianceDerivedOperators = Array.from(
-      readingComplianceDataByOperator.latestEntryByOperatorKey.values()
-    ).map((item) =>
-      mapReadingComplianceItemToVillageDetails(item, villagePumpOperatorDetails, tableDateFormat)
-    )
-
-    return complianceDerivedOperators.length > 0
-      ? complianceDerivedOperators
-      : fallbackPumpOperatorPages
-  }, [
-    fallbackPumpOperatorPages,
-    pumpOperatorApiPages,
-    readingComplianceDataByOperator,
-    tableDateFormat,
-    villagePumpOperatorDetails,
-  ])
-  const totalPumpOperatorPages = Math.max(1, pumpOperatorPages.length)
-  const activePumpOperatorPage = Math.min(pumpOperatorPage, totalPumpOperatorPages)
-  const activePumpOperator =
-    pumpOperatorPages[activePumpOperatorPage - 1] ?? villagePumpOperatorDetails
-  const activePumpOperatorKey =
-    activePumpOperator.mappingKey ?? getOperatorMappingKey(activePumpOperator)
-  const activePumpOperatorId = activePumpOperator.id
-  const activePumpOperatorDetailsParams = useMemo(
-    () =>
-      tenantCode && typeof activePumpOperatorId === 'number'
-        ? {
-            tenant_code: tenantCode,
-            pumpOperatorId: activePumpOperatorId,
-          }
-        : null,
-    [activePumpOperatorId, tenantCode]
-  )
-  const { data: pumpOperatorDetailsApiData } = usePumpOperatorDetailsQuery({
-    params: activePumpOperatorDetailsParams,
-    enabled: Boolean(activePumpOperatorDetailsParams),
-  })
   const resolvedActivePumpOperator = useMemo(() => {
     const detailsPayload = pumpOperatorDetailsApiData?.data
 
@@ -599,9 +612,8 @@ function ReadingComplianceSection({
       )
     }
 
-    const latestComplianceItem =
-      readingComplianceDataByOperator.latestEntryByOperatorKey.get(activePumpOperatorKey)
-
+    // Fall back to the latest compliance row for display purposes
+    const latestComplianceItem = readingComplianceItems[0]
     if (latestComplianceItem) {
       return mapReadingComplianceItemToVillageDetails(
         latestComplianceItem,
@@ -613,31 +625,16 @@ function ReadingComplianceSection({
     return activePumpOperator
   }, [
     activePumpOperator,
-    activePumpOperatorKey,
     pumpOperatorDetailsApiData?.data,
-    readingComplianceDataByOperator.latestEntryByOperatorKey,
+    readingComplianceItems,
     tableDateFormat,
   ])
-  const selectedOperatorHistoryCount =
-    readingComplianceDataByOperator.rowsByOperatorKey.get(activePumpOperatorKey)?.length ?? 0
-  const currentPageIncludesActiveOperator = useMemo(
-    () => currentPageItems.some((item) => getOperatorMappingKey(item) === activePumpOperatorKey),
-    [activePumpOperatorKey, currentPageItems]
-  )
-  const currentPageActiveOperatorCount = useMemo(
-    () =>
-      currentPageItems.reduce(
-        (count, item) => count + (getOperatorMappingKey(item) === activePumpOperatorKey ? 1 : 0),
-        0
-      ),
-    [activePumpOperatorKey, currentPageItems]
-  )
+
+  // Reading compliance is fetched per scheme; rows belong to the selected scheme.
   const readingComplianceRows = useMemo(() => {
-    const selectedOperatorRows =
-      readingComplianceDataByOperator.rowsByOperatorKey.get(activePumpOperatorKey) ?? []
-    const apiRows: ReadingComplianceData[] = selectedOperatorRows.map((item, index) => ({
+    const apiRows: ReadingComplianceData[] = readingComplianceItems.map((item, index) => ({
       id: [
-        item.schemeId ?? effectiveSchemeId ?? 'scheme',
+        item.schemeId ?? selectedSchemeId ?? 'scheme',
         item.id,
         item.readingAt ?? item.lastSubmissionAt ?? 'no-timestamp',
         item.confirmedReading ?? 'no-reading',
@@ -681,11 +678,12 @@ function ReadingComplianceSection({
     ]
   }, [
     activePumpOperatorKey,
-    effectiveSchemeId,
-    readingComplianceDataByOperator,
+    selectedSchemeId,
+    readingComplianceItems,
     resolvedActivePumpOperator,
     tableDateFormat,
   ])
+
   const isPumpOperatorDetailsEmpty = useMemo(
     () =>
       [
@@ -695,7 +693,6 @@ function ReadingComplianceSection({
         resolvedActivePumpOperator.lastSubmission,
         resolvedActivePumpOperator.reportingRate,
         resolvedActivePumpOperator.missingSubmissionCount,
-        resolvedActivePumpOperator.inactiveDays,
       ].every((value) => isMissingDisplayValue(value)),
     [resolvedActivePumpOperator]
   )
@@ -711,34 +708,6 @@ function ReadingComplianceSection({
       ),
     [readingComplianceRows]
   )
-
-  useEffect(() => {
-    if (!readingComplianceParams || isReadingComplianceFetching || !hasMoreReadingCompliancePages) {
-      return
-    }
-
-    if (
-      currentPageItems.length === 0 ||
-      selectedOperatorHistoryCount > 1 ||
-      currentPageActiveOperatorCount >= 2 ||
-      !currentPageIncludesActiveOperator
-    ) {
-      return
-    }
-
-    // This effect intentionally advances through contiguous history pages for
-    // the selected operator until an older submission is found.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setReadingCompliancePage((currentPage) => currentPage + 1)
-  }, [
-    currentPageActiveOperatorCount,
-    currentPageIncludesActiveOperator,
-    currentPageItems.length,
-    hasMoreReadingCompliancePages,
-    isReadingComplianceFetching,
-    readingComplianceParams,
-    selectedOperatorHistoryCount,
-  ])
 
   const handleReachReadingComplianceEnd = () => {
     if (!hasMoreReadingCompliancePages || isReadingComplianceFetching) {
@@ -767,6 +736,54 @@ function ReadingComplianceSection({
     return [activePumpOperatorPage - 1, activePumpOperatorPage, activePumpOperatorPage + 1]
   }, [activePumpOperatorPage, totalPumpOperatorPages])
 
+  const activeSchemeLabel =
+    schemeOptions.find((opt) => opt.value === selectedSchemeId)?.label ??
+    (selectedSchemeId != null ? `Scheme ${selectedSchemeId}` : '')
+
+  const schemeDropdown =
+    allSchemeIds.length > 1 ? (
+      <Menu>
+        <MenuButton
+          as={Button}
+          rightIcon={<LuChevronDown size={16} />}
+          h="32px"
+          px="12px"
+          fontSize="16px"
+          fontWeight="500"
+          justifyContent="space-between"
+          textAlign="left"
+          marginRight="2px"
+          borderRadius="4px"
+          borderColor="primary.500"
+          borderWidth="1px"
+          bg="white"
+          color="primary.500"
+          _hover={{ borderColor: 'primary.500', bg: 'white' }}
+          _focus={{ borderColor: 'primary.500', boxShadow: 'none' }}
+          _active={{ bg: 'white' }}
+          aria-label={t('pumpOperators.details.ariaSchemeSelect')}
+        >
+          {activeSchemeLabel}
+        </MenuButton>
+        <MenuList minW="180px" py={1}>
+          {schemeOptions.map((option) => (
+            <MenuItem
+              key={option.value}
+              onClick={() => setSelectedSchemeId(option.value)}
+              fontSize="16px"
+              bg="white"
+              color="neutral.900"
+              fontWeight="500"
+              _hover={{ bg: 'neutral.100' }}
+              _focus={{ bg: 'neutral.100' }}
+            >
+              {option.label}
+            </MenuItem>
+          ))}
+        </MenuList>
+      </Menu>
+    ) : null
+
   return (
     <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
       <Box
@@ -783,11 +800,19 @@ function ReadingComplianceSection({
         overflow="hidden"
       >
         <Flex direction="column" h="full">
-          <Text textStyle="bodyText3" fontWeight="400" mb={4}>
-            {t('pumpOperators.details.title', {
-              defaultValue: 'Pump Operator Details',
-            })}
-          </Text>
+          <Flex align="center" gap="6px" mb={4}>
+            <Text textStyle="bodyText3" fontWeight="400">
+              {t('pumpOperators.details.title', {
+                defaultValue: 'Pump Operator Details',
+              })}
+            </Text>
+            <ChartInfoTooltip
+              tooltipContent={glossary.pumpOperatorDetails}
+              ariaLabel={t('pumpOperators.details.ariaPumpOperatorDetails', {
+                defaultValue: 'Pump operator details info',
+              })}
+            />
+          </Flex>
           {isPumpOperatorDetailsEmpty ? (
             <Box flex={1} minH={0} display="flex">
               <ChartEmptyState minHeight="100%" />
@@ -807,9 +832,7 @@ function ReadingComplianceSection({
                 alignItems="center"
               >
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.schemeId', {
-                    defaultValue: 'Scheme ID',
-                  })}
+                  {t('pumpOperators.details.fields.stateSchemeId')}
                 </Text>
                 <Text
                   textStyle="bodyText4"
@@ -818,9 +841,19 @@ function ReadingComplianceSection({
                   textAlign={{ base: 'left', sm: 'right' }}
                   wordBreak="break-word"
                 >
-                  {typeof resolvedActivePumpOperator.schemeId === 'number'
-                    ? String(resolvedActivePumpOperator.schemeId)
-                    : 'N/A'}
+                  {resolvedActivePumpOperator.stateSchemeId ?? 'N/A'}
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                  {t('pumpOperators.details.fields.centerSchemeId')}
+                </Text>
+                <Text
+                  textStyle="bodyText4"
+                  fontWeight="400"
+                  color="neutral.950"
+                  textAlign={{ base: 'left', sm: 'right' }}
+                  wordBreak="break-word"
+                >
+                  {resolvedActivePumpOperator.centerSchemeId ?? 'N/A'}
                 </Text>
                 <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
                   {t('pumpOperators.details.fields.schemeName', {
@@ -838,11 +871,19 @@ function ReadingComplianceSection({
                     resolvedActivePumpOperator.scheme ||
                     'N/A'}
                 </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.lastSubmission', {
-                    defaultValue: 'Last submission',
-                  })}
-                </Text>
+                <Flex align="center" gap="4px">
+                  <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                    {t('pumpOperators.details.fields.lastSubmission', {
+                      defaultValue: 'Last submission',
+                    })}
+                  </Text>
+                  <ChartInfoTooltip
+                    tooltipContent={glossary.pumpOperatorLastSubmission}
+                    ariaLabel={t('pumpOperators.details.ariaLastSubmission', {
+                      defaultValue: 'Last submission info',
+                    })}
+                  />
+                </Flex>
                 <Text
                   textStyle="bodyText4"
                   fontWeight="400"
@@ -851,11 +892,19 @@ function ReadingComplianceSection({
                 >
                   {resolvedActivePumpOperator.lastSubmission}
                 </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.reportingRate', {
-                    defaultValue: 'Reporting rate',
-                  })}
-                </Text>
+                <Flex align="center" gap="4px">
+                  <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                    {t('pumpOperators.details.fields.reportingRate', {
+                      defaultValue: 'Reporting rate',
+                    })}
+                  </Text>
+                  <ChartInfoTooltip
+                    tooltipContent={glossary.pumpOperatorReportingRate}
+                    ariaLabel={t('pumpOperators.details.ariaReportingRate', {
+                      defaultValue: 'Reporting rate info',
+                    })}
+                  />
+                </Flex>
                 <Text
                   textStyle="bodyText4"
                   fontWeight="400"
@@ -864,11 +913,19 @@ function ReadingComplianceSection({
                 >
                   {resolvedActivePumpOperator.reportingRate}
                 </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.missingSubmissionCount', {
-                    defaultValue: 'Missing submission count',
-                  })}
-                </Text>
+                <Flex align="center" gap="4px">
+                  <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                    {t('pumpOperators.details.fields.missingSubmissionCount', {
+                      defaultValue: 'Missing submission count',
+                    })}
+                  </Text>
+                  <ChartInfoTooltip
+                    tooltipContent={glossary.pumpOperatorMissingSubmissions}
+                    ariaLabel={t('pumpOperators.details.ariaMissingSubmissionCount', {
+                      defaultValue: 'Missing submission count info',
+                    })}
+                  />
+                </Flex>
                 <Text
                   textStyle="bodyText4"
                   fontWeight="400"
@@ -876,19 +933,6 @@ function ReadingComplianceSection({
                   textAlign={{ base: 'left', sm: 'right' }}
                 >
                   {resolvedActivePumpOperator.missingSubmissionCount}
-                </Text>
-                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
-                  {t('pumpOperators.details.fields.inactiveDays', {
-                    defaultValue: 'Inactive days',
-                  })}
-                </Text>
-                <Text
-                  textStyle="bodyText4"
-                  fontWeight="400"
-                  color="neutral.950"
-                  textAlign={{ base: 'left', sm: 'right' }}
-                >
-                  {resolvedActivePumpOperator.inactiveDays}
                 </Text>
               </Grid>
             </Box>
@@ -989,6 +1033,8 @@ function ReadingComplianceSection({
           title={t('outageAndSubmissionCharts.titles.readingCompliance', {
             defaultValue: 'Reading Compliance',
           })}
+          tooltipContent={glossary.readingCompliance}
+          headerRight={schemeDropdown}
         />
       </Box>
     </Grid>
@@ -1002,6 +1048,9 @@ export function VillageDashboardScreen({
   villagePumpOperators = [],
   tenantCode,
   schemeId,
+  allSchemeIds,
+  startDate,
+  endDate,
   quantityTimeTrendData = [],
   regularityTimeTrendData = [],
   isQuantityTimeTrendLoading = false,
@@ -1019,10 +1068,18 @@ export function VillageDashboardScreen({
   errorMessage = 'Failed to load data. Please reload the page.',
 }: VillageDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
+  const glossary = useMemo(() => buildDashboardGlossary(t), [t])
   const showSupplyOutageCharts = shouldShowSupplyOutageCharts()
-  const effectiveSchemeId = schemeId ?? villagePumpOperatorDetails.schemeId
+  const effectiveAllSchemeIds =
+    allSchemeIds && allSchemeIds.length > 0
+      ? allSchemeIds
+      : schemeId != null
+        ? [schemeId]
+        : villagePumpOperatorDetails.schemeId != null
+          ? [villagePumpOperatorDetails.schemeId]
+          : []
 
-  const readingComplianceScopeKey = `${tenantCode ?? 'no-tenant'}:${effectiveSchemeId ?? 'no-scheme'}`
+  const readingComplianceScopeKey = `${tenantCode ?? 'no-tenant'}:${[...effectiveAllSchemeIds].sort().join(',')}`
 
   return (
     <>
@@ -1057,6 +1114,7 @@ export function VillageDashboardScreen({
           enableExtendedTimeScales={enableExtendedTimeScales}
           hideViewBySelect
           errorMessage={errorMessage}
+          tooltipContent={glossary.regularityPerformance}
         />
         <PerformanceChartCard
           title={t('performanceCharts.quantity.title', { defaultValue: 'Quantity Performance' })}
@@ -1085,6 +1143,7 @@ export function VillageDashboardScreen({
           enableExtendedTimeScales={enableExtendedTimeScales}
           hideViewBySelect
           errorMessage={errorMessage}
+          tooltipContent={glossary.quantityPerformance}
         />
       </Grid>
       <Grid
@@ -1112,7 +1171,11 @@ export function VillageDashboardScreen({
                 defaultValue: 'Supply Outage Reasons',
               })}
             </Text>
-            <SupplyOutageReasonsChart data={waterSupplyOutagesData} height="400px" />
+            <SupplyOutageReasonsChart
+              data={waterSupplyOutagesData}
+              height="400px"
+              tooltipContent={glossary.supplyOutageReasons}
+            />
           </Box>
         ) : null}
         <ReadingSubmissionStatusCard
@@ -1121,6 +1184,7 @@ export function VillageDashboardScreen({
           chartHeight="406px"
           cardHeight="492px"
           boxProps={{ w: 'full' }}
+          tooltipContent={glossary.readingSubmissionStatus}
         />
       </Grid>
       <ReadingComplianceSection
@@ -1128,7 +1192,9 @@ export function VillageDashboardScreen({
         villagePumpOperatorDetails={villagePumpOperatorDetails}
         villagePumpOperators={villagePumpOperators}
         tenantCode={tenantCode}
-        effectiveSchemeId={effectiveSchemeId}
+        allSchemeIds={effectiveAllSchemeIds}
+        startDate={startDate}
+        endDate={endDate}
         tableDateFormat={tableDateFormat}
       />
     </>
