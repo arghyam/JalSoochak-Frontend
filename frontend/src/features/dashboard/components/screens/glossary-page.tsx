@@ -320,7 +320,7 @@ export function GlossaryPage() {
 
           <GlossaryCard
             title={t('pumpOperators.performanceTable.title', {
-              defaultValue: 'Scheme Performance',
+              defaultValue: 'Schemes Performance',
             })}
             category={categoryTable}
             description={t('glossary.schemePerformance.description', {

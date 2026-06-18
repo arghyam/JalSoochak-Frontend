@@ -556,7 +556,14 @@ export interface SchemePerformanceQueryParams {
   endDate: string
   pageNumber?: number
   limit?: number
+  sortBy?: string
+  sortDir?: 'asc' | 'desc'
 }
+
+export type SchemePerformanceDownloadParams = Omit<
+  SchemePerformanceQueryParams,
+  'pageNumber' | 'limit'
+>
 
 export interface CriticalSchemesQueryParams {
   tenantId: number

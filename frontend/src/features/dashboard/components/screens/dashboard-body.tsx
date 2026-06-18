@@ -90,9 +90,14 @@ type DashboardBodyProps = {
   allSchemeIds?: number[]
   startDate?: string
   endDate?: string
-  schemePerformancePage?: number
-  totalSchemePages?: number
+  isSchemeDownloading?: boolean
+  onSchemeDownload?: () => void
   onSchemePageChange?: (page: number) => void
+  onSchemeSortChange?: (sortBy: string, sortDir: 'asc' | 'desc') => void
+  schemePerformancePage?: number
+  schemeSortBy?: string
+  schemeSortDir?: 'asc' | 'desc'
+  totalSchemePages?: number
   screenDateFormat?: string
   tableDateFormat?: string
   enableExtendedTimeScales?: boolean
@@ -160,9 +165,14 @@ export function DashboardBody({
   allSchemeIds,
   startDate,
   endDate,
-  schemePerformancePage,
-  totalSchemePages,
+  isSchemeDownloading,
+  onSchemeDownload,
   onSchemePageChange,
+  onSchemeSortChange,
+  schemePerformancePage,
+  schemeSortBy,
+  schemeSortDir,
+  totalSchemePages,
   screenDateFormat,
   tableDateFormat,
   enableExtendedTimeScales = false,
@@ -303,9 +313,14 @@ export function DashboardBody({
           isSchemePerformanceError={isSchemePerformanceError}
           isActiveSchemesError={isActiveSchemesError}
           errorMessage={errorMsg}
-          schemePerformancePage={schemePerformancePage}
-          totalSchemePages={totalSchemePages}
+          isSchemeDownloading={isSchemeDownloading}
+          onSchemeDownload={onSchemeDownload}
           onSchemePageChange={onSchemePageChange}
+          onSchemeSortChange={onSchemeSortChange}
+          schemePerformancePage={schemePerformancePage}
+          schemeSortBy={schemeSortBy}
+          schemeSortDir={schemeSortDir}
+          totalSchemePages={totalSchemePages}
           screenDateFormat={screenDateFormat}
           tableDateFormat={tableDateFormat}
           isTimeViewEnabled={isTimeViewEnabled}
@@ -355,9 +370,14 @@ export function DashboardBody({
           showSupplyOutageReasons
           showReadingSubmissionRate
           showReadingSubmissionSection
-          schemePerformancePage={schemePerformancePage}
-          totalSchemePages={totalSchemePages}
+          isSchemeDownloading={isSchemeDownloading}
+          onSchemeDownload={onSchemeDownload}
           onSchemePageChange={onSchemePageChange}
+          onSchemeSortChange={onSchemeSortChange}
+          schemePerformancePage={schemePerformancePage}
+          schemeSortBy={schemeSortBy}
+          schemeSortDir={schemeSortDir}
+          totalSchemePages={totalSchemePages}
           screenDateFormat={screenDateFormat}
           tableDateFormat={tableDateFormat}
           isTimeViewEnabled={isTimeViewEnabled}
@@ -404,9 +424,14 @@ export function DashboardBody({
           isSchemePerformanceError={isSchemePerformanceError}
           isActiveSchemesError={isActiveSchemesError}
           errorMessage={errorMsg}
-          schemePerformancePage={schemePerformancePage}
-          totalSchemePages={totalSchemePages}
+          isSchemeDownloading={isSchemeDownloading}
+          onSchemeDownload={onSchemeDownload}
           onSchemePageChange={onSchemePageChange}
+          onSchemeSortChange={onSchemeSortChange}
+          schemePerformancePage={schemePerformancePage}
+          schemeSortBy={schemeSortBy}
+          schemeSortDir={schemeSortDir}
+          totalSchemePages={totalSchemePages}
           screenDateFormat={screenDateFormat}
           tableDateFormat={tableDateFormat}
           isTimeViewEnabled={isTimeViewEnabled}

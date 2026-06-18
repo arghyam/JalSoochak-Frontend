@@ -74,9 +74,14 @@ type BlockDashboardScreenProps = {
   showSupplyOutageReasons?: boolean
   showReadingSubmissionRate?: boolean
   showReadingSubmissionSection?: boolean
-  schemePerformancePage?: number
-  totalSchemePages?: number
+  isSchemeDownloading?: boolean
+  onSchemeDownload?: () => void
   onSchemePageChange?: (page: number) => void
+  onSchemeSortChange?: (sortBy: string, sortDir: 'asc' | 'desc') => void
+  schemePerformancePage?: number
+  schemeSortBy?: string
+  schemeSortDir?: 'asc' | 'desc'
+  totalSchemePages?: number
   screenDateFormat?: string
   tableDateFormat?: string
   isTimeViewEnabled?: boolean
@@ -126,9 +131,14 @@ export function BlockDashboardScreen({
   showSupplyOutageReasons = true,
   showReadingSubmissionRate = true,
   showReadingSubmissionSection = true,
-  schemePerformancePage,
-  totalSchemePages,
+  isSchemeDownloading,
+  onSchemeDownload,
   onSchemePageChange,
+  onSchemeSortChange,
+  schemePerformancePage,
+  schemeSortBy,
+  schemeSortDir,
+  totalSchemePages,
   screenDateFormat,
   tableDateFormat,
   isTimeViewEnabled = true,
@@ -437,7 +447,7 @@ export function BlockDashboardScreen({
         >
           <SchemePerformanceTable
             title={t('pumpOperators.performanceTable.title', {
-              defaultValue: 'Scheme Performance',
+              defaultValue: 'Schemes Performance',
             })}
             data={operatorsPerformanceTable}
             isLoading={isSchemePerformanceLoading}
@@ -449,6 +459,11 @@ export function BlockDashboardScreen({
             totalPages={totalSchemePages}
             onPageChange={onSchemePageChange}
             tooltipContent={glossary.schemePerformance}
+            sortBy={schemeSortBy}
+            sortDir={schemeSortDir}
+            onSortChange={onSchemeSortChange}
+            onDownload={onSchemeDownload}
+            isDownloading={isSchemeDownloading}
           />
         </Box>
       </Grid>

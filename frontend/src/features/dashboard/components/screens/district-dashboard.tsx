@@ -71,9 +71,14 @@ type DistrictDashboardScreenProps = {
   isActiveSchemesError?: boolean
   childEntityLabel?: string
   errorMessage?: string
-  schemePerformancePage?: number
-  totalSchemePages?: number
+  isSchemeDownloading?: boolean
+  onSchemeDownload?: () => void
   onSchemePageChange?: (page: number) => void
+  onSchemeSortChange?: (sortBy: string, sortDir: 'asc' | 'desc') => void
+  schemePerformancePage?: number
+  schemeSortBy?: string
+  schemeSortDir?: 'asc' | 'desc'
+  totalSchemePages?: number
   screenDateFormat?: string
   tableDateFormat?: string
   isTimeViewEnabled?: boolean
@@ -120,9 +125,14 @@ export function DistrictDashboardScreen({
   isActiveSchemesError = false,
   childEntityLabel = supplySubmissionRateLabel,
   errorMessage = 'Failed to load data. Please reload the page.',
-  schemePerformancePage,
-  totalSchemePages,
+  isSchemeDownloading,
+  onSchemeDownload,
   onSchemePageChange,
+  onSchemeSortChange,
+  schemePerformancePage,
+  schemeSortBy,
+  schemeSortDir,
+  totalSchemePages,
   screenDateFormat,
   tableDateFormat,
   isTimeViewEnabled = true,
@@ -472,7 +482,7 @@ export function DistrictDashboardScreen({
         >
           <SchemePerformanceTable
             title={t('pumpOperators.performanceTable.title', {
-              defaultValue: 'Scheme Performance',
+              defaultValue: 'Schemes Performance',
             })}
             tooltipContent={glossary.schemePerformance}
             data={operatorsPerformanceTable}
@@ -480,10 +490,14 @@ export function DistrictDashboardScreen({
             errorMessage={isSchemePerformanceError ? errorMessage : undefined}
             fillHeight
             showVillageColumn={false}
-            blockColumnLabel={childEntityLabel}
             currentPage={schemePerformancePage}
             totalPages={totalSchemePages}
             onPageChange={onSchemePageChange}
+            sortBy={schemeSortBy}
+            sortDir={schemeSortDir}
+            onSortChange={onSchemeSortChange}
+            onDownload={onSchemeDownload}
+            isDownloading={isSchemeDownloading}
           />
         </Box>
       </Grid>

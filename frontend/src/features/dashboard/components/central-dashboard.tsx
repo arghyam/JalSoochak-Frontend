@@ -22,6 +22,7 @@ import { buildCentralDashboardRenderProps } from '../hooks/use-central-dashboard
 import { buildCentralDashboardResolvedData } from '../hooks/use-central-dashboard-resolved-data'
 import { useCentralDashboardTimeScaleState } from '../hooks/use-central-dashboard-time-scale-state'
 import { useSchemePerformancePagination } from '../hooks/use-scheme-performance-pagination'
+import { useSchemePerformanceDownloadMutation } from '../services/query/use-scheme-performance-query'
 import { useDashboardDefaultDateRange } from '../utils/default-duration'
 import { DEFAULT_PERSONS_PER_HOUSEHOLD, resolveDaysInRange } from '../utils/formulas'
 import { isSingleTenantMode } from '@/config/server-config'
@@ -260,11 +261,12 @@ export function CentralDashboard({
   }
   const isTimeViewEnabled =
     resolveDaysInRange(undefined, analyticsDateRange.startDate, analyticsDateRange.endDate) > 1
-  const { handleSchemePageChange, schemePerformancePage } = useSchemePerformancePagination({
-    analyticsParentId,
-    endDate: analyticsDateRange.endDate,
-    startDate: analyticsDateRange.startDate,
-  })
+  const { handleSchemePageChange, handleSchemeSortChange, schemePerformancePage, schemeSort } =
+    useSchemePerformancePagination({
+      analyticsParentId,
+      endDate: analyticsDateRange.endDate,
+      startDate: analyticsDateRange.startDate,
+    })
   const {
     averageSchemeRegularityData,
     averageWaterSupplyData,
@@ -317,6 +319,7 @@ export function CentralDashboard({
     previousWaterQuantityPeriodicData,
     previousWaterSupplyKpiData,
     readingSubmissionRateData,
+    schemePerformanceAnalyticsParams,
     schemePerformanceData,
     schemeRegularityPeriodicData,
     selectedSchemeId,
@@ -344,6 +347,8 @@ export function CentralDashboard({
     isHierarchyStateSelected,
     isHierarchyThirdLevelSelected,
     schemePerformancePage,
+    schemeSortBy: schemeSort.by,
+    schemeSortDir: schemeSort.dir,
     selectedOutageApiScale: outageDistributionTimeScaleTab,
     selectedQuantityApiScale: quantityTimeScaleTab,
     selectedRegularityApiScale: regularityTimeScaleTab,
@@ -516,6 +521,9 @@ export function CentralDashboard({
       updateFilterUrl,
     })
 
+  const { mutate: downloadSchemeReport, isPending: isSchemeDownloading } =
+    useSchemePerformanceDownloadMutation()
+
   if (
     !dashboardData.kpis ||
     !dashboardData.mapData ||
@@ -580,6 +588,24 @@ export function CentralDashboard({
     t,
   })
   const inSingleTenantMode = isSingleTenantMode()
+
+  const handleSchemeDownload = () => {
+    if (!schemePerformanceAnalyticsParams) return
+    const { pageNumber: _page, limit: _limit, ...downloadParams } = schemePerformanceAnalyticsParams
+    downloadSchemeReport(downloadParams, {
+      onSuccess: (blobUrl) => {
+        const ts = new Date().toISOString().replace(/[-:]/g, '').replace('T', '_').slice(0, 15)
+        const a = document.createElement('a')
+        a.href = blobUrl
+        a.download = `schemes-performance_${ts}.csv`
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        URL.revokeObjectURL(blobUrl)
+      },
+    })
+  }
+
   const renderProps = buildCentralDashboardRenderProps({
     activeLeafSelection,
     activeTrailIndex: effectiveTrailIndex,
@@ -657,7 +683,12 @@ export function CentralDashboard({
     onOutageDistributionTimeScaleTabChange: setOutageDistributionTimeScaleTab,
     onQuantityTimeScaleTabChange: setQuantityTimeScaleTab,
     onRegularityTimeScaleTabChange: setRegularityTimeScaleTab,
+    onSchemeDownload: handleSchemeDownload,
+    isSchemeDownloading,
     onSchemePageChange: handleSchemePageChange,
+    onSchemeSortChange: handleSchemeSortChange,
+    schemeSortBy: schemeSort.by,
+    schemeSortDir: schemeSort.dir,
     onStateChange: handleStateChange,
     onTabChange: handleFilterTabChange,
     operatorsPerformanceTable,

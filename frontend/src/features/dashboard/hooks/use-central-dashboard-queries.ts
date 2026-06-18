@@ -52,6 +52,8 @@ type UseCentralDashboardQueriesParams = {
   isHierarchyStateSelected: boolean
   isHierarchyThirdLevelSelected: boolean
   schemePerformancePage: number
+  schemeSortBy: string
+  schemeSortDir: 'asc' | 'desc'
   selectedOutageApiScale: OutageTimeScaleTab
   selectedQuantityApiScale: PerformanceTimeScaleTab
   selectedRegularityApiScale: PerformanceTimeScaleTab
@@ -80,6 +82,8 @@ export function useCentralDashboardQueries({
   isHierarchyStateSelected,
   isHierarchyThirdLevelSelected,
   schemePerformancePage,
+  schemeSortBy,
+  schemeSortDir,
   selectedOutageApiScale,
   selectedQuantityApiScale,
   selectedRegularityApiScale,
@@ -273,6 +277,8 @@ export function useCentralDashboardQueries({
             endDate: analyticsDateRange.endDate,
             pageNumber: schemePerformancePage,
             limit: SCHEME_PERFORMANCE_PAGE_SIZE,
+            sortBy: schemeSortBy,
+            sortDir: schemeSortDir,
           }
         : {
             tenantId: selectedTenant.tenantId,
@@ -281,6 +287,8 @@ export function useCentralDashboardQueries({
             endDate: analyticsDateRange.endDate,
             pageNumber: schemePerformancePage,
             limit: SCHEME_PERFORMANCE_PAGE_SIZE,
+            sortBy: schemeSortBy,
+            sortDir: schemeSortDir,
           }
   const criticalSchemesAnalyticsParams =
     !hasCentralLandingFilters || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
@@ -887,6 +895,7 @@ export function useCentralDashboardQueries({
     previousWaterQuantityPeriodicData,
     previousWaterSupplyKpiData,
     readingSubmissionRateData,
+    schemePerformanceAnalyticsParams,
     schemePerformanceData,
     schemeRegularityPeriodicData,
     selectedSchemeId,
