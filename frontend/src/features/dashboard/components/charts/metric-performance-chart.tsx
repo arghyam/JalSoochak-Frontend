@@ -116,10 +116,16 @@ export function MetricPerformanceChart({
       return { max: 100, interval: 25 as number | undefined }
     }
 
+    const QUANTITY_AXIS_CAP = 500
+
     const seriesValues = showAreaLine ? [...yValues, ...demandValues] : yValues
     const maxValue = seriesValues.length > 0 ? Math.max(...seriesValues) : 0
     if (maxValue <= 100) {
       return { max: 100, interval: undefined }
+    }
+
+    if (maxValue > QUANTITY_AXIS_CAP) {
+      return { max: QUANTITY_AXIS_CAP, interval: 100 }
     }
 
     const targetTickCount = 7
