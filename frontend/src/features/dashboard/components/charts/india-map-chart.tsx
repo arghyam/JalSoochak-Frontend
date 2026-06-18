@@ -11,7 +11,7 @@ import {
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import * as echarts from 'echarts'
-import { ActionTooltip, EChartsWrapper, Toggle } from '@/shared/components/common'
+import { ActionTooltip, ChartInfoTooltip, EChartsWrapper, Toggle } from '@/shared/components/common'
 import { FiMaximize2, FiMinimize2 } from 'react-icons/fi'
 import { getBodyText6Style } from '@/shared/components/charts/chart-text-style'
 import { getRuntimeConfig } from '@/config/runtime-config'
@@ -790,6 +790,7 @@ export function IndiaMapChart({
           >
             {regularityLabel}
           </Text>
+          <ChartInfoTooltip tooltipContent={t('map.metricsHelp')} />
         </div>
       </div>
 
