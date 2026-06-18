@@ -125,8 +125,8 @@ export function SchemePerformanceTable({
   const safeMaxItems =
     typeof maxItems === 'number' && Number.isFinite(maxItems) ? Math.max(0, maxItems) : undefined
   const areaColumnCount = (showVillageColumn ? 1 : 0) + (showBlockColumn ? 1 : 0)
-  const nameColumnWidth = '30%'
-  const areaColumnWidth = areaColumnCount > 0 ? `${20 / areaColumnCount}%` : undefined
+  const nameColumnWidth = '37.5%'
+  const areaColumnWidth = areaColumnCount > 0 ? `${25 / areaColumnCount}%` : undefined
   const rows = typeof safeMaxItems === 'number' ? data.slice(0, safeMaxItems) : data
   const isEmpty = rows.length === 0
 
@@ -372,14 +372,14 @@ export function SchemePerformanceTable({
             '&::-webkit-scrollbar-thumb:horizontal': { bg: 'primary.300' },
           }}
         >
-          <Box w="max-content" minW="100%">
-            <Table size="sm" w="max-content" minW="100%" sx={{ tableLayout: 'auto' }}>
+          <Box w="full" minW="400px">
+            <Table size="sm" w="full" minW="400px" sx={{ tableLayout: 'auto' }}>
               <colgroup>
                 <col style={{ width: nameColumnWidth }} />
                 {showVillageColumn ? <col style={{ width: areaColumnWidth }} /> : null}
                 {showBlockColumn ? <col style={{ width: areaColumnWidth }} /> : null}
-                <col style={{ width: '20%' }} />
-                <col style={{ width: '20%' }} />
+                <col style={{ width: '12.5%' }} />
+                <col style={{ width: '25%' }} />
               </colgroup>
               <Thead
                 sx={{
@@ -397,7 +397,7 @@ export function SchemePerformanceTable({
                 }}
               >
                 <Tr>
-                  {/* Scheme Name — left-aligned, sortable */}
+                  {/* Scheme Name */}
                   <Th
                     textAlign="left"
                     whiteSpace="nowrap"
@@ -417,7 +417,7 @@ export function SchemePerformanceTable({
                     )}
                   </Th>
 
-                  {/* Village / secondary area — left-aligned */}
+                  {/* Village / secondary area */}
                   {showVillageColumn ? (
                     <Th textAlign="left" whiteSpace="nowrap">
                       {secondaryColumnLabel ??
@@ -427,7 +427,7 @@ export function SchemePerformanceTable({
                     </Th>
                   ) : null}
 
-                  {/* Block — left-aligned */}
+                  {/* Block*/}
                   {showBlockColumn ? (
                     <Th textAlign="left" whiteSpace="nowrap">
                       {blockColumnLabel ??
@@ -437,7 +437,7 @@ export function SchemePerformanceTable({
                     </Th>
                   ) : null}
 
-                  {/* Reporting Rate — center-aligned, sortable, wrappable */}
+                  {/* Reporting Rate*/}
                   <Th
                     textAlign="center"
                     whiteSpace="normal"
@@ -457,7 +457,7 @@ export function SchemePerformanceTable({
                     )}
                   </Th>
 
-                  {/* Water Supplied — center-aligned, sortable, wrappable */}
+                  {/* Water Supplied*/}
                   <Th
                     textAlign="center"
                     whiteSpace="normal"
@@ -495,7 +495,7 @@ export function SchemePerformanceTable({
 
                   return (
                     <Tr key={operator.id} _odd={{ bg: 'primary.25' }}>
-                      {/* Scheme Name — left-aligned with char-limit truncation + tooltip */}
+                      {/* Scheme Name*/}
                       <Td textAlign="left" overflow="hidden" lineHeight="20px" verticalAlign="top">
                         {isTruncated ? (
                           <ActionTooltip label={operator.name} openDelay={300}>
