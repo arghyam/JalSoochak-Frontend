@@ -31,6 +31,8 @@ jest.mock('@/shared/components/common', () => ({
       onChange={(event) => props.onChange({ target: { checked: event.target.checked } })}
     />
   ),
+  ActionTooltip: ({ children }: { children?: unknown }) => <>{children}</>,
+  ChartInfoTooltip: () => null,
 }))
 
 beforeEach(() => {
