@@ -49,21 +49,6 @@ const formatYAxisTick = (value: number) => {
   return value.toFixed(1)
 }
 
-const getNiceInterval = (rawInterval: number) => {
-  if (!Number.isFinite(rawInterval) || rawInterval <= 0) {
-    return 1
-  }
-
-  const magnitude = 10 ** Math.floor(Math.log10(rawInterval))
-  const normalized = rawInterval / magnitude
-
-  if (normalized <= 1) return 1 * magnitude
-  if (normalized <= 2) return 2 * magnitude
-  if (normalized <= 3) return 3 * magnitude
-  if (normalized <= 5) return 5 * magnitude
-  return 10 * magnitude
-}
-
 export function MetricPerformanceChart({
   data,
   metric,
@@ -111,29 +96,11 @@ export function MetricPerformanceChart({
   const yValues = useMemo(() => data.map((item) => item[metric]), [data, metric])
   const demandValues = useMemo(() => data.map((item) => item.coverage), [data])
 
+  const outlierBarColor: string = theme.colors?.chart?.outlier ?? '#D92D20'
+
   const yAxisScale = useMemo(() => {
-    if (metric !== 'quantity') {
-      return { max: 100, interval: 25 as number | undefined }
-    }
-
-    const QUANTITY_AXIS_CAP = 500
-
-    const seriesValues = showAreaLine ? [...yValues, ...demandValues] : yValues
-    const maxValue = seriesValues.length > 0 ? Math.max(...seriesValues) : 0
-    if (maxValue <= 100) {
-      return { max: 100, interval: undefined }
-    }
-
-    if (maxValue > QUANTITY_AXIS_CAP) {
-      return { max: QUANTITY_AXIS_CAP, interval: 100 }
-    }
-
-    const targetTickCount = 7
-    const interval = getNiceInterval(maxValue / targetTickCount)
-    const max = Math.ceil(maxValue / interval) * interval
-
-    return { max, interval }
-  }, [demandValues, metric, showAreaLine, yValues])
+    return { max: 100, interval: 25 as number | undefined }
+  }, [])
 
   const formattedYAxisMaxLabel = useMemo(() => formatYAxisTick(yAxisScale.max), [yAxisScale.max])
   const chartGridTop = 40
@@ -159,7 +126,12 @@ export function MetricPerformanceChart({
         barWidth: dynamicBarWidth,
         barCategoryGap: '45%',
         itemStyle: {
-          color: '#3291D1',
+          color: ((params: { value?: unknown }) => {
+            const v = typeof params.value === 'number' ? params.value : Number(params.value)
+            return metric === 'quantity' && Number.isFinite(v) && v > 100
+              ? outlierBarColor
+              : '#3291D1'
+          }) as unknown as string,
           borderRadius: [barRadius, barRadius, barRadius, barRadius],
         },
         emphasis: {
@@ -304,6 +276,7 @@ export function MetricPerformanceChart({
     demandValues,
     dynamicBarWidth,
     metric,
+    outlierBarColor,
     showAreaLine,
     chartGridBottom,
     chartGridTop,
@@ -533,16 +506,21 @@ export function MetricPerformanceChart({
     updateThumbFromScroll()
   }, [data.length, containerWidth, updateThumbFromScroll])
 
-  const legendItems = showAreaLine
-    ? [
-        {
-          label: areaSeriesName,
-          color: theme.colors?.primary?.[25] ?? '#F5FAFF',
-          borderColor: theme.colors?.primary?.[500] ?? '#3763C8',
-        },
-        { label: barSeriesName, color: '#3291D1' },
-      ]
-    : [{ label: barSeriesName, color: '#3291D1' }]
+  const hasOutliers = metric === 'quantity' && yValues.some((v) => v > 100)
+
+  const legendItems = [
+    ...(showAreaLine
+      ? [
+          {
+            label: areaSeriesName,
+            color: theme.colors?.primary?.[25] ?? '#F5FAFF',
+            borderColor: theme.colors?.primary?.[500] ?? '#3763C8',
+          },
+        ]
+      : []),
+    { label: barSeriesName, color: '#3291D1' },
+    ...(hasOutliers ? [{ label: 'Outlier', color: outlierBarColor }] : []),
+  ]
 
   return (
     <div

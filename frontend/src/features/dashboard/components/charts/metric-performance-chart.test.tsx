@@ -186,7 +186,7 @@ describe('MetricPerformanceChart', () => {
     expect(screen.queryByText('Demand')).toBeNull()
   })
 
-  it('uses dynamic y-axis max in quantity mode', () => {
+  it('caps y-axis at 100 for quantity regardless of data values', () => {
     renderWithProviders(
       <MetricPerformanceChart
         data={[
@@ -211,7 +211,141 @@ describe('MetricPerformanceChart', () => {
       })
       .filter((max): max is number => typeof max === 'number')
 
-    expect(yAxisMaxes).toContain(210)
+    expect(yAxisMaxes.every((m) => m === 100)).toBe(true)
+  })
+
+  it('caps y-axis at 100 for regularity', () => {
+    renderWithProviders(
+      <MetricPerformanceChart
+        data={[
+          { ...chartData[0], regularity: 45 },
+          { ...chartData[1], regularity: 80 },
+        ]}
+        metric="regularity"
+      />
+    )
+
+    const yAxisMaxes = (
+      mockEChartsWrapper.mock.calls as Array<
+        [{ option?: { yAxis?: { max?: number } | Array<{ max?: number }> } }]
+      >
+    )
+      .map(([props]) => {
+        const option = props.option
+        if (!option) return undefined
+        const yAxis = option.yAxis
+        if (Array.isArray(yAxis)) return yAxis[0]?.max
+        return yAxis?.max
+      })
+      .filter((max): max is number => typeof max === 'number')
+
+    expect(yAxisMaxes.every((m) => m === 100)).toBe(true)
+  })
+
+  it('colors quantity bars above 100 with the outlier color', () => {
+    renderWithProviders(
+      <MetricPerformanceChart
+        data={[
+          { ...chartData[0], quantity: 45 },
+          { ...chartData[1], quantity: 150 },
+        ]}
+        metric="quantity"
+      />
+    )
+
+    const barOption = (
+      mockEChartsWrapper.mock.calls as Array<
+        [
+          {
+            option?: {
+              series?: Array<{ type?: string; itemStyle?: { color?: unknown } }>
+            }
+          },
+        ]
+      >
+    )
+      .map(([props]) => props.option)
+      .find(
+        (option) =>
+          Array.isArray(option?.series) &&
+          option.series.some((s) => s.type === 'bar' && typeof s.itemStyle?.color === 'function')
+      )
+
+    const barSeries = barOption?.series?.find(
+      (s) => s.type === 'bar' && typeof s.itemStyle?.color === 'function'
+    )
+    const colorFn = barSeries?.itemStyle?.color as (params: { value?: unknown }) => string
+
+    expect(colorFn({ value: 45 })).toBe('#3291D1')
+    expect(colorFn({ value: 150 })).toBe('#D92D20')
+    expect(colorFn({ value: 100 })).toBe('#3291D1')
+  })
+
+  it('does not color regularity bars with outlier color even when value exceeds 100', () => {
+    renderWithProviders(
+      <MetricPerformanceChart
+        data={[
+          { ...chartData[0], regularity: 45 },
+          { ...chartData[1], regularity: 120 },
+        ]}
+        metric="regularity"
+      />
+    )
+
+    const barOption = (
+      mockEChartsWrapper.mock.calls as Array<
+        [
+          {
+            option?: {
+              series?: Array<{ type?: string; itemStyle?: { color?: unknown } }>
+            }
+          },
+        ]
+      >
+    )
+      .map(([props]) => props.option)
+      .find(
+        (option) =>
+          Array.isArray(option?.series) &&
+          option.series.some((s) => s.type === 'bar' && typeof s.itemStyle?.color === 'function')
+      )
+
+    const barSeries = barOption?.series?.find(
+      (s) => s.type === 'bar' && typeof s.itemStyle?.color === 'function'
+    )
+    const colorFn = barSeries?.itemStyle?.color as (params: { value?: unknown }) => string
+
+    expect(colorFn({ value: 120 })).toBe('#3291D1')
+  })
+
+  it('shows Outlier legend entry when a quantity bar exceeds 100', () => {
+    renderWithProviders(
+      <MetricPerformanceChart
+        data={[
+          { ...chartData[0], quantity: 45 },
+          { ...chartData[1], quantity: 150 },
+        ]}
+        metric="quantity"
+        seriesName="Quantity"
+      />
+    )
+
+    expect(screen.getByText('Outlier')).toBeTruthy()
+  })
+
+  it('hides Outlier legend entry when all quantity bars are at or below 100', () => {
+    renderWithProviders(
+      <MetricPerformanceChart
+        data={[
+          { ...chartData[0], quantity: 45 },
+          { ...chartData[1], quantity: 100 },
+        ]}
+        metric="quantity"
+        seriesName="Quantity"
+      />
+    )
+
+    expect(screen.queryByText('Outlier')).toBeNull()
   })
 
   it('formats quantity y-axis labels without clipping-sensitive decimals', () => {
