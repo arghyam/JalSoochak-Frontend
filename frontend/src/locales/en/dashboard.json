@@ -90,7 +90,10 @@
       "gte0": ">={{value}}%",
       "noData": "No Data"
     },
-    "metricsHelp": "Quantity: Daily litres of water per person (LPCD). Regularity: Percentage of days water supply was available."
+    "metricsHelp": {
+      "regularly": "Regularly: % of schemes supplying the water regularly",
+      "quantity": "Quantity: % of schemes supplying the adequate water"
+    }
   },
   "kpi": {
     "labels": {

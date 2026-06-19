@@ -7,11 +7,31 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react'
-import { Box, Button, Flex, Icon, Table, Tbody, Td, Text, Th, Thead, Tr } from '@chakra-ui/react'
+import {
+  Box,
+  Button,
+  Flex,
+  Icon,
+  Popover,
+  PopoverBody,
+  PopoverContent,
+  PopoverTrigger,
+  Table,
+  Tbody,
+  Td,
+  Text,
+  Th,
+  Thead,
+  Tr,
+} from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { LuArrowLeft, LuArrowRight, LuChevronsLeft, LuChevronsRight } from 'react-icons/lu'
 import { FiDownload } from 'react-icons/fi'
-import type { PumpOperatorPerformanceData, SchemePerformanceSortBy } from '../../types'
+import type {
+  PumpOperatorPerformanceData,
+  SchemePerformanceSortBy,
+  SuppliedLgdLocation,
+} from '../../types'
 import { ActionTooltip, ChartInfoTooltip, LoadingSpinner } from '@/shared/components/common'
 
 const MAX_SCHEME_NAME_CHARS = 20
@@ -72,6 +92,51 @@ const formatWaterSupplied = (value: number | null | undefined) =>
 function truncateSchemeName(name: string): { display: string; isTruncated: boolean } {
   if (name.length <= MAX_SCHEME_NAME_CHARS) return { display: name, isTruncated: false }
   return { display: name.slice(0, MAX_SCHEME_NAME_CHARS - 3) + '...', isTruncated: true }
+}
+
+function renderLocationCell(
+  locations: SuppliedLgdLocation[] | undefined,
+  fallback: string
+): ReactNode {
+  if (!locations?.length) return fallback
+
+  const first = locations[0].title
+  if (locations.length === 1) {
+    return (
+      <Box maxW="100%" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap" title={first}>
+        {first}
+      </Box>
+    )
+  }
+
+  return (
+    <Popover trigger="hover" placement="top" isLazy openDelay={0} closeDelay={150}>
+      <PopoverTrigger>
+        <Text
+          textStyle="bodyText7"
+          fontWeight="400"
+          cursor="default"
+          overflow="hidden"
+          textOverflow="ellipsis"
+          whiteSpace="nowrap"
+        >
+          {first}{' '}
+          <Text as="span" color="primary.500" fontWeight="500">
+            +{locations.length - 1}
+          </Text>
+        </Text>
+      </PopoverTrigger>
+      <PopoverContent w="auto" minW="200px" maxW="320px" boxShadow="md">
+        <PopoverBody maxH="250px" overflowY="auto" p={2}>
+          {locations.map((loc) => (
+            <Text key={loc.lgdId} textStyle="bodyText7" py={1} px={1}>
+              {loc.title}
+            </Text>
+          ))}
+        </PopoverBody>
+      </PopoverContent>
+    </Popover>
+  )
 }
 
 function useResizeObserver(ref: RefObject<HTMLDivElement | null>, callback: () => void) {
@@ -419,21 +484,47 @@ export function SchemePerformanceTable({
 
                   {/* Village / secondary area */}
                   {showVillageColumn ? (
-                    <Th textAlign="left" whiteSpace="nowrap">
-                      {secondaryColumnLabel ??
-                        t('pumpOperators.performanceTable.columns.village', {
-                          defaultValue: 'Village',
-                        })}
+                    <Th
+                      textAlign="left"
+                      whiteSpace="nowrap"
+                      aria-sort={
+                        sortBy === 'location'
+                          ? sortDir === 'asc'
+                            ? 'ascending'
+                            : 'descending'
+                          : undefined
+                      }
+                    >
+                      {sortableHeaderButton(
+                        'location',
+                        secondaryColumnLabel ??
+                          t('pumpOperators.performanceTable.columns.village', {
+                            defaultValue: 'Village',
+                          })
+                      )}
                     </Th>
                   ) : null}
 
                   {/* Block*/}
                   {showBlockColumn ? (
-                    <Th textAlign="left" whiteSpace="nowrap">
-                      {blockColumnLabel ??
-                        t('pumpOperators.performanceTable.columns.block', {
-                          defaultValue: 'Block',
-                        })}
+                    <Th
+                      textAlign="left"
+                      whiteSpace="nowrap"
+                      aria-sort={
+                        sortBy === 'location'
+                          ? sortDir === 'asc'
+                            ? 'ascending'
+                            : 'descending'
+                          : undefined
+                      }
+                    >
+                      {sortableHeaderButton(
+                        'location',
+                        blockColumnLabel ??
+                          t('pumpOperators.performanceTable.columns.block', {
+                            defaultValue: 'Block',
+                          })
+                      )}
                     </Th>
                   ) : null}
 
@@ -523,15 +614,7 @@ export function SchemePerformanceTable({
                           lineHeight="20px"
                           verticalAlign="top"
                         >
-                          <Box
-                            maxW="100%"
-                            overflow="hidden"
-                            textOverflow="ellipsis"
-                            whiteSpace="nowrap"
-                            title={villageValue}
-                          >
-                            {villageValue}
-                          </Box>
+                          {renderLocationCell(operator.suppliedLocations, villageValue)}
                         </Td>
                       ) : null}
 
@@ -543,15 +626,7 @@ export function SchemePerformanceTable({
                           lineHeight="20px"
                           verticalAlign="top"
                         >
-                          <Box
-                            maxW="100%"
-                            overflow="hidden"
-                            textOverflow="ellipsis"
-                            whiteSpace="nowrap"
-                            title={blockValue}
-                          >
-                            {blockValue}
-                          </Box>
+                          {renderLocationCell(operator.suppliedLocations, blockValue)}
                         </Td>
                       ) : null}
 

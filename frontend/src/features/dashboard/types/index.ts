@@ -75,6 +75,7 @@ export interface PumpOperatorPerformanceData {
   reportingRate: number | null
   photoCompliance: number
   waterSupplied: number | null
+  suppliedLocations?: SuppliedLgdLocation[]
 }
 
 export interface VillagePumpOperatorDetails {
@@ -548,7 +549,11 @@ export interface ReadingComplianceResponse {
   }
 }
 
-export type SchemePerformanceSortBy = 'schemeName' | 'reportingRate' | 'totalWaterSupplied'
+export type SchemePerformanceSortBy =
+  | 'schemeName'
+  | 'reportingRate'
+  | 'totalWaterSupplied'
+  | 'location'
 
 export interface SchemePerformanceQueryParams {
   tenantId: number
@@ -675,6 +680,13 @@ export interface LgdLadder {
   level_6?: number | null
 }
 
+export interface SuppliedLgdLocation {
+  lgdId: number
+  lgdCName: string
+  title: string
+  lgdLevel: number
+}
+
 export interface SchemePerformanceItem {
   schemeId: number
   schemeName: string
@@ -693,6 +705,7 @@ export interface SchemePerformanceItem {
   immediateParentDepartmentLevel?: number | null
   lgdLadder?: LgdLadder | null
   departmentLadder?: LgdLadder | null
+  suppliedLgdLocations?: SuppliedLgdLocation[] | null
 }
 
 export interface SchemePerformanceResponse {

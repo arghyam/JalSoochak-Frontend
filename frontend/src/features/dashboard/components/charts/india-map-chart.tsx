@@ -790,7 +790,15 @@ export function IndiaMapChart({
           >
             {regularityLabel}
           </Text>
-          <ChartInfoTooltip tooltipContent={t('map.metricsHelp')} />
+          <ChartInfoTooltip
+            tooltipContent={
+              <>
+                {t('map.metricsHelp.regularly')}
+                <br />
+                {t('map.metricsHelp.quantity')}
+              </>
+            }
+          />
         </div>
       </div>
 
