@@ -167,6 +167,9 @@ const theme = extendTheme({
       600: '#B42318',
       700: '#912018',
     },
+    chart: {
+      outlier: '#D92D20',
+    },
   },
   shadows: {
     default: '0px 1px 2px 0px rgba(16, 24, 40, 0.05)',
