@@ -1171,6 +1171,9 @@ export const mapSchemePerformanceToTable = (
         typeof scheme.totalWaterSupplied === 'number' && Number.isFinite(scheme.totalWaterSupplied)
           ? scheme.totalWaterSupplied
           : null,
+      suppliedLocations: scheme.suppliedLgdLocations?.length
+        ? scheme.suppliedLgdLocations
+        : undefined,
     }
   })
 }

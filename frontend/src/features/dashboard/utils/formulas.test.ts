@@ -1831,6 +1831,92 @@ describe('dashboard formulas', () => {
     ])
   })
 
+  it('passes suppliedLgdLocations through to suppliedLocations on each row', () => {
+    const result = mapSchemePerformanceToTable(
+      {
+        parentLgdId: 1,
+        parentDepartmentId: 0,
+        parentLgdCName: 'district',
+        parentDepartmentCName: '',
+        parentLgdTitle: 'Assam',
+        parentDepartmentTitle: '',
+        startDate: '2026-03-14',
+        endDate: '2026-03-14',
+        daysInRange: 1,
+        activeSchemeCount: 1,
+        inactiveSchemeCount: 0,
+        totalCount: 1,
+        topSchemeCount: 1,
+        topSchemes: [
+          {
+            schemeId: 301,
+            schemeName: 'Multi Location Scheme',
+            statusCode: 1,
+            status: 'active',
+            submissionDays: 30,
+            reportingRate: 0.75,
+            totalWaterSupplied: 5000,
+            immediateParentLgdId: 118,
+            immediateParentLgdCName: 'Block',
+            immediateParentLgdTitle: 'Tengakhat',
+            immediateParentDepartmentId: 0,
+            immediateParentDepartmentCName: '',
+            immediateParentDepartmentTitle: '',
+            suppliedLgdLocations: [
+              { lgdId: 118, lgdCName: 'Block', title: 'Tengakhat', lgdLevel: 3 },
+              { lgdId: 119, lgdCName: 'Block', title: 'Doomdooma', lgdLevel: 3 },
+            ],
+          },
+        ],
+      },
+      []
+    )
+    expect(result[0].suppliedLocations).toEqual([
+      { lgdId: 118, lgdCName: 'Block', title: 'Tengakhat', lgdLevel: 3 },
+      { lgdId: 119, lgdCName: 'Block', title: 'Doomdooma', lgdLevel: 3 },
+    ])
+  })
+
+  it('sets suppliedLocations to undefined when suppliedLgdLocations is absent or empty', () => {
+    const result = mapSchemePerformanceToTable(
+      {
+        parentLgdId: 1,
+        parentDepartmentId: 0,
+        parentLgdCName: 'district',
+        parentDepartmentCName: '',
+        parentLgdTitle: 'Assam',
+        parentDepartmentTitle: '',
+        startDate: '2026-03-14',
+        endDate: '2026-03-14',
+        daysInRange: 1,
+        activeSchemeCount: 1,
+        inactiveSchemeCount: 0,
+        totalCount: 1,
+        topSchemeCount: 1,
+        topSchemes: [
+          {
+            schemeId: 302,
+            schemeName: 'No Location Scheme',
+            statusCode: 1,
+            status: 'active',
+            submissionDays: 20,
+            reportingRate: 0.5,
+            totalWaterSupplied: 2000,
+            immediateParentLgdId: 10,
+            immediateParentLgdCName: 'Block',
+            immediateParentLgdTitle: 'Someblock',
+            immediateParentDepartmentId: 0,
+            immediateParentDepartmentCName: '',
+            immediateParentDepartmentTitle: '',
+            suppliedLgdLocations: [],
+          },
+        ],
+      },
+      []
+    )
+    expect(result[0].suppliedLocations).toBeUndefined()
+  })
+
   it('maps reading submission rate analytics response into chart data with fallback metadata', () => {
     const fallbackData: EntityPerformance[] = [
       {

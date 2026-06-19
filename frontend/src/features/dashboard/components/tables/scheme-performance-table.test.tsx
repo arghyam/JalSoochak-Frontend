@@ -138,6 +138,36 @@ describe('SchemePerformanceTable', () => {
     expect(onSortChange).toHaveBeenCalledWith('reportingRate', 'asc')
   })
 
+  it('triggers location sort when the village column header is clicked', () => {
+    const onSortChange = jest.fn()
+    renderWithProviders(
+      <SchemePerformanceTable
+        title="Scheme Performance"
+        data={tableData}
+        showBlockColumn={false}
+        onSortChange={onSortChange}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Village' }))
+    expect(onSortChange).toHaveBeenCalledWith('location', 'desc')
+  })
+
+  it('triggers location sort when the block column header is clicked', () => {
+    const onSortChange = jest.fn()
+    renderWithProviders(
+      <SchemePerformanceTable
+        title="Scheme Performance"
+        data={tableData}
+        showVillageColumn={false}
+        onSortChange={onSortChange}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Block' }))
+    expect(onSortChange).toHaveBeenCalledWith('location', 'desc')
+  })
+
   it('sorts water supplied when water column is clicked', () => {
     const onSortChange = jest.fn()
     renderWithProviders(
@@ -309,5 +339,80 @@ describe('SchemePerformanceTable', () => {
 
     fireEvent.click(reportingButton)
     expect(getNameOrder(container).at(-1)).toBe('No Metrics')
+  })
+
+  it('renders a single suppliedLocation title in the village cell', () => {
+    renderWithProviders(
+      <SchemePerformanceTable
+        title="Scheme Performance"
+        data={[
+          {
+            id: 'scheme-loc-1',
+            name: 'Scheme With One Location',
+            village: 'Fallback Village',
+            block: 'Fallback Block',
+            reportingRate: 80,
+            photoCompliance: 0,
+            waterSupplied: 1000,
+            suppliedLocations: [{ lgdId: 118, lgdCName: 'Block', title: 'Tengakhat', lgdLevel: 3 }],
+          },
+        ]}
+        showBlockColumn={false}
+      />
+    )
+
+    expect(screen.getByText('Tengakhat')).toBeTruthy()
+    expect(screen.queryByText('Fallback Village')).toBeNull()
+  })
+
+  it('renders first location title and +N chip when multiple suppliedLocations exist', () => {
+    renderWithProviders(
+      <SchemePerformanceTable
+        title="Scheme Performance"
+        data={[
+          {
+            id: 'scheme-loc-2',
+            name: 'Scheme With Many Locations',
+            village: 'Fallback Village',
+            block: 'Fallback Block',
+            reportingRate: 70,
+            photoCompliance: 0,
+            waterSupplied: 2000,
+            suppliedLocations: [
+              { lgdId: 118, lgdCName: 'Block', title: 'Tengakhat', lgdLevel: 3 },
+              { lgdId: 119, lgdCName: 'Block', title: 'Doomdooma', lgdLevel: 3 },
+              { lgdId: 120, lgdCName: 'Block', title: 'Dibrugarh', lgdLevel: 3 },
+            ],
+          },
+        ]}
+        showBlockColumn={false}
+      />
+    )
+
+    expect(screen.getByText('Tengakhat')).toBeTruthy()
+    expect(screen.getByText('+2')).toBeTruthy()
+    expect(screen.queryByText('Fallback Village')).toBeNull()
+  })
+
+  it('falls back to village string value when suppliedLocations is absent', () => {
+    renderWithProviders(
+      <SchemePerformanceTable
+        title="Scheme Performance"
+        data={[
+          {
+            id: 'scheme-no-loc',
+            name: 'Scheme Without Locations',
+            village: 'Fallback Village',
+            block: 'Fallback Block',
+            reportingRate: 60,
+            photoCompliance: 0,
+            waterSupplied: 1500,
+          },
+        ]}
+        showBlockColumn={false}
+      />
+    )
+
+    expect(screen.getByText('Fallback Village')).toBeTruthy()
   })
 })
