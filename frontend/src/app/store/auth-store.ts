@@ -4,6 +4,7 @@ import { authApi } from '@/features/auth/services/auth-api'
 import { AUTH_ROLES, STAFF_ROLES } from '@/shared/constants/auth'
 import { ROUTES } from '@/shared/constants/routes'
 import { queryClient } from '@/shared/lib/query-client'
+import { clearSectionOfficerFilters } from '@/features/section-officer/store/section-officer-filters-store'
 
 export interface AuthState {
   accessToken: string | null
@@ -74,6 +75,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
     }
 
     queryClient.clear()
+    clearSectionOfficerFilters()
     document.title = 'JalSoochak'
     set({
       accessToken: null,
@@ -107,6 +109,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
 
   setSessionExpired: () => {
     queryClient.clear()
+    clearSectionOfficerFilters()
     document.title = 'JalSoochak'
     set({
       accessToken: null,
