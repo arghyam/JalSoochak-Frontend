@@ -124,6 +124,7 @@ export function OverviewPage() {
       icon: TotalStaffIcon,
       iconBg: '#EBF4FA',
       iconColor: '#3291D1',
+      tooltip: t('overview.tooltips.totalStaff'),
     },
     {
       title: t('overview.stats.pumpOperators'),
@@ -138,6 +139,7 @@ export function OverviewPage() {
       icon: TotalAdminsIcon,
       iconBg: '#FBEAFF',
       iconColor: '#DC72F2',
+      tooltip: t('overview.tooltips.totalAdmins'),
     },
     {
       title: t('overview.stats.activeSchemes'),
@@ -145,6 +147,7 @@ export function OverviewPage() {
       icon: BsDroplet,
       iconBg: '#EBF4FA',
       iconColor: '#3291D1',
+      tooltip: t('overview.tooltips.activeSchemes'),
     },
   ]
 
@@ -173,6 +176,7 @@ export function OverviewPage() {
               icon={stat.icon}
               iconBg={stat.iconBg}
               iconColor={stat.iconColor}
+              tooltip={stat.tooltip}
             />
           ))}
         </SimpleGrid>
