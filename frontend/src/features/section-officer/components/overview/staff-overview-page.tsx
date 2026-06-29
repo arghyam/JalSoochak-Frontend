@@ -1,4 +1,4 @@
-import { useEffect, useState, type ElementType } from 'react'
+import { useEffect, type ElementType } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Box, Flex, Heading, SimpleGrid, Spinner, Stack, Text } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
@@ -6,7 +6,6 @@ import { useAuthStore } from '@/app/store/auth-store'
 import TapIconComponent from '@/shared/components/layout/tap-icon'
 import { MdOutlineWaterDrop, MdOutlineTrendingUp } from 'react-icons/md'
 import { ChartEmptyState, DateRangePicker, PageHeader, StatCard } from '@/shared/components/common'
-import type { DateRange } from '@/shared/components/common'
 import { DEFAULT_SCREEN_DATE_FORMAT, normalizeDateFormat } from '@/shared/utils/date-format'
 import { ROUTES } from '@/shared/constants/routes'
 import {
@@ -27,15 +26,7 @@ import {
   shouldShowStaffOverviewNonSubmissionCharts,
   shouldShowStaffOverviewSupplyOutageCharts,
 } from '@/config/server-config'
-
-function getDefaultDateRange(): DateRange {
-  const now = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const toIso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-  const start = new Date(now)
-  start.setDate(now.getDate() - 29)
-  return { startDate: toIso(start), endDate: toIso(now) }
-}
+import { useSectionOfficerFiltersStore } from '../../store/section-officer-filters-store'
 
 const CHART_HEIGHT = '340px'
 const PIE_SIZE = 260
@@ -45,7 +36,8 @@ export function StaffOverviewPage() {
   const navigate = useNavigate()
   const showStaffOverviewSupplyOutageCharts = shouldShowStaffOverviewSupplyOutageCharts()
   const showStaffOverviewNonSubmissionCharts = shouldShowStaffOverviewNonSubmissionCharts()
-  const [dateRange, setDateRange] = useState<DateRange>(() => getDefaultDateRange())
+  const dateRange = useSectionOfficerFiltersStore((s) => s.dateRange)
+  const setDateRange = useSectionOfficerFiltersStore((s) => s.setDateRange)
   const tenantId = useAuthStore((state) => state.user?.tenantId ?? '')
   const parsedTenantId = Number.parseInt(tenantId, 10)
   const { data: tenantPublicConfig } = useTenantPublicConfigQuery({
@@ -55,37 +47,35 @@ export function StaffOverviewPage() {
   const screenChartDateFormat = normalizeDateFormat(
     tenantPublicConfig?.dateFormatScreen?.dateFormat ?? DEFAULT_SCREEN_DATE_FORMAT
   )
-  const hasDateRange = Boolean(dateRange.startDate) && Boolean(dateRange.endDate)
+  const startDate = dateRange?.startDate ?? ''
+  const endDate = dateRange?.endDate ?? ''
+  const hasDateRange = Boolean(startDate) && Boolean(endDate)
   const outageReasonsEnabled = showStaffOverviewSupplyOutageCharts && hasDateRange
   const nonSubmissionReasonsEnabled = showStaffOverviewNonSubmissionCharts && hasDateRange
 
   const { data: schemesCountData, isLoading: isSchemesCountLoading } = useSchemesCountQuery()
   const { data: dashboardStatsData, isLoading: isDashboardStatsLoading } = useDashboardStatsQuery(
-    dateRange.startDate,
-    dateRange.endDate
+    startDate,
+    endDate
   )
 
   const {
     data: outageReasonsData,
     isLoading: isOutageReasonsLoading,
     isError: isOutageReasonsError,
-  } = useOutageReasonsQuery(dateRange.startDate, dateRange.endDate, outageReasonsEnabled)
+  } = useOutageReasonsQuery(startDate, endDate, outageReasonsEnabled)
 
   const {
     data: nonSubmissionData,
     isLoading: isNonSubmissionLoading,
     isError: isNonSubmissionError,
-  } = useNonSubmissionReasonsQuery(
-    dateRange.startDate,
-    dateRange.endDate,
-    nonSubmissionReasonsEnabled
-  )
+  } = useNonSubmissionReasonsQuery(startDate, endDate, nonSubmissionReasonsEnabled)
 
   const {
     data: submissionStatusData,
     isLoading: isSubmissionStatusLoading,
     isError: isSubmissionStatusError,
-  } = useSubmissionStatusQuery(dateRange.startDate, dateRange.endDate)
+  } = useSubmissionStatusQuery(startDate, endDate)
 
   useEffect(() => {
     document.title = `${t('pages.overview.heading')} | JalSoochak`

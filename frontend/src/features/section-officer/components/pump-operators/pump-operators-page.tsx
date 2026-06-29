@@ -30,31 +30,33 @@ import {
   DateRangePicker,
   StatusChip,
 } from '@/shared/components/common'
-import type { DataTableColumn, DateRange } from '@/shared/components/common'
+import type { DataTableColumn } from '@/shared/components/common'
 import { DEFAULT_SCREEN_DATE_FORMAT, normalizeDateFormat } from '@/shared/utils/date-format'
 import { ROUTES } from '@/shared/constants/routes'
 import { useTenantPublicConfigQuery } from '@/features/dashboard/services/query/use-tenant-public-config-query'
 import { usePumpOperatorsListQuery } from '../../services/query/use-pump-operators-queries'
 import { formatTimestamp } from '../../services/api/schemes-api'
 import type { PumpOperatorListItem } from '../../types/pump-operators'
+import {
+  SECTION_OFFICER_PAGE_KEYS,
+  getDefaultSectionOfficerDateRange,
+  useSectionOfficerFiltersStore,
+} from '../../store/section-officer-filters-store'
 
-function getDefaultDateRange(): DateRange {
-  const now = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const toIso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-  const start = new Date(now)
-  start.setDate(now.getDate() - 29)
-  return { startDate: toIso(start), endDate: toIso(now) }
-}
+const PAGE_KEY = SECTION_OFFICER_PAGE_KEYS.PUMP_OPERATORS
 
 export function PumpOperatorsPage() {
   const { t } = useTranslation('section-officer')
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState('')
-  const [dateRange, setDateRange] = useState<DateRange | null>(() => getDefaultDateRange())
+  const dateRange = useSectionOfficerFiltersStore((s) => s.dateRange)
+  const setDateRange = useSectionOfficerFiltersStore((s) => s.setDateRange)
+  const { searchQuery, statusFilter } = useSectionOfficerFiltersStore(
+    (s) => s.pageFilters[PAGE_KEY]
+  )
+  const setPageFilter = useSectionOfficerFiltersStore((s) => s.setPageFilter)
+  const clearPageFilter = useSectionOfficerFiltersStore((s) => s.clearPageFilter)
   const tenantId = useAuthStore((state) => state.user?.tenantId ?? '')
   const parsedTenantId = Number.parseInt(tenantId, 10)
   const { data: tenantPublicConfig } = useTenantPublicConfigQuery({
@@ -76,9 +78,8 @@ export function PumpOperatorsPage() {
   const hasActiveFilters = Boolean(searchQuery || statusFilter)
 
   function clearAllFilters() {
-    setSearchQuery('')
-    setStatusFilter('')
-    setDateRange(getDefaultDateRange())
+    clearPageFilter(PAGE_KEY)
+    setDateRange(getDefaultSectionOfficerDateRange())
     setPage(1)
   }
 
@@ -312,7 +313,7 @@ export function PumpOperatorsPage() {
             placeholder={t('pages.pumpOperators.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => {
-              setSearchQuery(e.target.value)
+              setPageFilter(PAGE_KEY, { searchQuery: e.target.value })
               setPage(1)
             }}
             aria-label={t('pages.pumpOperators.searchPlaceholder')}
@@ -329,7 +330,7 @@ export function PumpOperatorsPage() {
           options={statusOptions}
           value={statusFilter}
           onChange={(val) => {
-            setStatusFilter(val)
+            setPageFilter(PAGE_KEY, { statusFilter: val })
             setPage(1)
           }}
           placeholder={t('pages.pumpOperators.filterStatus')}

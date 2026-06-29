@@ -13,7 +13,14 @@ jest.mock('@/features/auth/services/auth-api', () => ({
   },
 }))
 
+jest.mock('@/features/section-officer/store/section-officer-filters-store', () => ({
+  clearSectionOfficerFilters: jest.fn(),
+}))
+
+import { clearSectionOfficerFilters } from '@/features/section-officer/store/section-officer-filters-store'
+
 const mockedAuth = jest.mocked(authApi)
+const mockedClearFilters = jest.mocked(clearSectionOfficerFilters)
 
 const stateAdminUser: AuthUser = {
   id: '1',
@@ -136,6 +143,7 @@ describe('useAuthStore', () => {
 
     expect(useAuthStore.getState().accessToken).toBeNull()
     expect(document.title).toBe('JalSoochak')
+    expect(mockedClearFilters).toHaveBeenCalled()
   })
 
   it('setSessionExpired clears tokens and flags session', () => {
@@ -152,6 +160,7 @@ describe('useAuthStore', () => {
     expect(useAuthStore.getState().isAuthenticated).toBe(false)
     expect(useAuthStore.getState().error).toMatch(/Session expired/i)
     expect(document.title).toBe('JalSoochak')
+    expect(mockedClearFilters).toHaveBeenCalled()
   })
 
   it('refreshAccessToken rethrows and clears auth on failure', async () => {

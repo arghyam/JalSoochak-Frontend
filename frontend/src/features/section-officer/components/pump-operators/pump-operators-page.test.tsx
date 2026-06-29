@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { createElement } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { PumpOperatorsPage } from './pump-operators-page'
+import { useSectionOfficerFiltersStore } from '../../store/section-officer-filters-store'
 
 const mockNavigate = jest.fn()
 jest.mock('react-router-dom', () => ({
@@ -152,6 +153,8 @@ function renderPage() {
 
 beforeEach(() => {
   jest.clearAllMocks()
+  sessionStorage.clear()
+  useSectionOfficerFiltersStore.getState().resetAll()
   mockUseTenantPublicConfigQuery.mockReturnValue({
     data: {
       dateFormatTable: {
