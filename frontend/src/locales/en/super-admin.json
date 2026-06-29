@@ -15,7 +15,6 @@
       "select": "Select"
     }
   },
-
   "systemRules": {
     "title": "System Rules",
     "configurationSettings": "Configuration Settings",
@@ -36,7 +35,6 @@
       "description": "Minimum percentage of days water must be supplied during the selected period to avoid a regularity alert."
     }
   },
-
   "statesUts": {
     "title": "Manage States/UTs",
     "addTitle": "Add State/UT",
@@ -128,7 +126,6 @@
     },
     "searchPlaceholder": "Search by State/UT name"
   },
-
   "manageStateAdmins": {
     "title": "Manage State/UTs Admins",
     "searchPlaceholder": "Search State/UT",
@@ -155,7 +152,6 @@
       "resendInvite": "Resend invite for admin"
     }
   },
-
   "apiCredentials": {
     "title": "API Credentials",
     "searchPlaceholder": "Search by State/UT name",
@@ -173,7 +169,6 @@
       "noCredentialsFound": "No credentials found matching your filters"
     }
   },
-
   "superUsers": {
     "title": "Super Users",
     "addTitle": "Add Super User",
@@ -215,7 +210,8 @@
       "failedToAdd": "Failed to add super user",
       "activatedSuccess": "Super user activated successfully",
       "deactivatedSuccess": "Super user deactivated successfully",
-      "failedToUpdateStatus": "Failed to update super user status"
+      "failedToUpdateStatus": "Failed to update super user status",
+      "pendingStatusTooltip": "Registration of this user is still pending."
     },
     "aria": {
       "search": "Search super users",
@@ -224,7 +220,6 @@
       "resendInvite": "Resend invite for super user"
     }
   },
-
   "configuration": {
     "pageTitle": "Configuration",
     "sectionTitle": "System Configuration",
@@ -270,7 +265,6 @@
       "form": "System configuration form"
     }
   },
-
   "ingestionMonitor": {
     "title": "Ingestion Monitor",
     "filters": {

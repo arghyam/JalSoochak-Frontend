@@ -64,6 +64,7 @@ export function StateUTAdminFormPage() {
       activatedSuccess: t('stateUtAdmins.messages.activatedSuccess'),
       deactivatedSuccess: t('stateUtAdmins.messages.deactivatedSuccess'),
       failedToUpdateStatus: t('stateUtAdmins.messages.failedToUpdateStatus'),
+      pendingStatusTooltip: t('stateUtAdmins.messages.pendingStatusTooltip'),
     },
     buttons: {
       addAndSendLink: t('stateUtAdmins.buttons.addAndSendLink'),

@@ -23,7 +23,6 @@
       "deleteLevel": "स्तर {{level}} हटाएं"
     }
   },
-
   "overview": {
     "title": "{{state}} का अवलोकन",
     "titleFallback": "राज्य का अवलोकन",
@@ -92,7 +91,6 @@
       }
     }
   },
-
   "activity": {
     "title": "गतिविधि",
     "table": {
@@ -108,7 +106,6 @@
       "tableSection": "गतिविधि लॉग तालिका"
     }
   },
-
   "language": {
     "title": "भाषा",
     "configuration": "भाषा कॉन्फ़िगरेशन",
@@ -128,7 +125,6 @@
       "clearTertiaryLanguage": "तृतीयक भाषा हटाएं"
     }
   },
-
   "integration": {
     "title": "एकीकरण",
     "messageBrokerDetails": "मैसेज ब्रोकर विवरण",
@@ -148,7 +144,6 @@
       "enterOrganizationId": "संगठन ID दर्ज करें"
     }
   },
-
   "waterNorms": {
     "title": "जल मानक",
     "stateUtWaterNorms": "राज्य/केंद्र शासित प्रदेश जल मानक",
@@ -194,7 +189,6 @@
       "enterOversupplyThreshold": "ओवरसप्लाई सीमा प्रतिशत दर्ज करें (0–1000)"
     }
   },
-
   "escalations": {
     "title": "वृद्धि",
     "allEscalations": "सभी वृद्धि",
@@ -250,7 +244,6 @@
       "escalateAfterDays": "{{role}} के लिए एस्केलेशन दिन"
     }
   },
-
   "thresholds": {
     "title": "अलर्ट सीमाएं",
     "configurationSettings": "कॉन्फ़िगरेशन सेटिंग्स",
@@ -286,7 +279,6 @@
       "enterRegularity": "नियमितता सीमा प्रतिशत दर्ज करें"
     }
   },
-
   "staffSync": {
     "title": "स्टाफ",
     "searchPlaceholder": "नाम से खोजें",
@@ -350,7 +342,6 @@
       }
     }
   },
-
   "schemeSync": {
     "title": "योजनाएं",
     "searchPlaceholder": "योजना नाम से खोजें",
@@ -407,7 +398,6 @@
       }
     }
   },
-
   "schemeMappingsSync": {
     "title": "योजना मैपिंग",
     "searchPlaceholder": "योजना नाम से खोजें",
@@ -450,7 +440,6 @@
       }
     }
   },
-
   "configuration": {
     "pageTitle": "कॉन्फ़िगरेशन",
     "sectionTitle": "राज्य/केंद्र शासित प्रदेश कॉन्फ़िगरेशन",
@@ -566,7 +555,6 @@
       }
     }
   },
-
   "stateUtAdmins": {
     "title": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक",
     "addTitle": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक जोड़ें",
@@ -608,7 +596,8 @@
       "failedToAdd": "राज्य/केंद्र शासित प्रदेश व्यवस्थापक जोड़ने में विफल",
       "activatedSuccess": "व्यवस्थापक सफलतापूर्वक सक्रिय किया गया",
       "deactivatedSuccess": "व्यवस्थापक सफलतापूर्वक निष्क्रिय किया गया",
-      "failedToUpdateStatus": "व्यवस्थापक की स्थिति अपडेट करने में विफल"
+      "failedToUpdateStatus": "व्यवस्थापक की स्थिति अपडेट करने में विफल",
+      "pendingStatusTooltip": "इस एडमिन का पंजीकरण अभी लंबित है।"
     },
     "aria": {
       "search": "व्यवस्थापक खोजें",
@@ -617,7 +606,6 @@
       "resendInvite": "व्यवस्थापक को पुनः आमंत्रण भेजें"
     }
   },
-
   "messageTemplates": {
     "title": "टेम्पलेट",
     "subtitle": "WhatsApp टेम्पलेट्स (केवल पढ़ें)",
@@ -647,7 +635,6 @@
       "selectTemplate": "टेम्पलेट चुनें"
     }
   },
-
   "nudges": {
     "title": "नज टेम्पलेट",
     "language": "भाषा",
@@ -669,7 +656,6 @@
       "enterMessage": "{{name}} टेम्पलेट के लिए संदेश दर्ज करें"
     }
   },
-
   "validation": {
     "required": "यह फ़ील्ड आवश्यक है",
     "emptyOrWhitespace": "यह फ़ील्ड खाली नहीं हो सकती या केवल रिक्त स्थान नहीं हो सकते",

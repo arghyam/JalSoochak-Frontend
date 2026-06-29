@@ -188,6 +188,21 @@ describe('UserAdminViewPage', () => {
     expect(screen.getByText('Inactive')).toBeTruthy()
   })
 
+  it('displays pending status chip with Pending label for pending user', () => {
+    renderWithProviders(
+      <UserAdminViewPage
+        id="u-1"
+        data={{ ...mockAdmin, status: 'pending' }}
+        isLoading={false}
+        isError={false}
+        onRefetch={jest.fn()}
+        routes={mockRoutes}
+        labels={mockLabels}
+      />
+    )
+    expect(screen.getByText('Pending')).toBeTruthy()
+  })
+
   it('renders breadcrumb with manage and view labels', () => {
     renderWithProviders(
       <UserAdminViewPage

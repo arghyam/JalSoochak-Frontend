@@ -432,4 +432,48 @@ describe('UserAdminFormPage — Edit Mode', () => {
     })
     expect(statusMutation.mutateAsync).toHaveBeenCalledWith({ id: 'u-1', status: 'inactive' })
   })
+
+  it('toggle is disabled and unchecked for a pending user', () => {
+    renderWithProviders(
+      <UserAdminFormPage
+        config={makeConfig({
+          id: 'u-1',
+          isEditMode: true,
+          original: { ...mockAdmin, status: 'pending' },
+        })}
+        actions={makeActions()}
+        routes={mockRoutes}
+        labels={{
+          ...mockLabels,
+          messages: { ...mockLabels.messages, pendingStatusTooltip: 'Registration is pending.' },
+        }}
+      />
+    )
+    const toggle = screen.getByRole('checkbox') as HTMLInputElement
+    expect(toggle.disabled).toBe(true)
+    expect(toggle.checked).toBe(false)
+  })
+
+  it('does not call statusMutation for a pending user when toggle area is clicked', async () => {
+    const statusMutation = makeStatusMutation()
+    renderWithProviders(
+      <UserAdminFormPage
+        config={makeConfig({
+          id: 'u-1',
+          isEditMode: true,
+          original: { ...mockAdmin, status: 'pending' },
+        })}
+        actions={makeActions({ statusMutation })}
+        routes={mockRoutes}
+        labels={{
+          ...mockLabels,
+          messages: { ...mockLabels.messages, pendingStatusTooltip: 'Registration is pending.' },
+        }}
+      />
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByRole('checkbox'))
+    })
+    expect(statusMutation.mutateAsync).not.toHaveBeenCalled()
+  })
 })

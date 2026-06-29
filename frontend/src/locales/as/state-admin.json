@@ -23,7 +23,6 @@
       "deleteLevel": "স্তৰ {{level}} মচি পেলাওক"
     }
   },
-
   "overview": {
     "title": "{{state}}ৰ অৱলোকন",
     "titleFallback": "ৰাজ্যৰ অৱলোকন",
@@ -92,7 +91,6 @@
       }
     }
   },
-
   "activity": {
     "title": "কাৰ্যকলাপ",
     "table": {
@@ -108,7 +106,6 @@
       "tableSection": "কাৰ্যকলাপ লগ টেবুল"
     }
   },
-
   "language": {
     "title": "ভাষা",
     "configuration": "ভাষা কনফিগাৰেচন",
@@ -128,7 +125,6 @@
       "clearTertiaryLanguage": "তৃতীয় ভাষা মচক"
     }
   },
-
   "integration": {
     "title": "সংহতি",
     "messageBrokerDetails": "মেছেজ ব্ৰ'কাৰৰ বিৱৰণ",
@@ -148,7 +144,6 @@
       "enterOrganizationId": "সংগঠন ID দিয়ক"
     }
   },
-
   "waterNorms": {
     "title": "জলৰ মান",
     "stateUtWaterNorms": "ৰাজ্য/কেন্দ্ৰশাসিত অঞ্চলৰ জলৰ মান",
@@ -194,7 +189,6 @@
       "enterOversupplyThreshold": "অতিৰিক্ত যোগানৰ থ্ৰেচহোল্ড শতাংশ দিয়ক (০–১০০০)"
     }
   },
-
   "escalations": {
     "title": "এস্কেলেচন",
     "allEscalations": "সকলো এস্কেলেচন",
@@ -250,7 +244,6 @@
       "escalateAfterDays": "{{role}}-ৰ বাবে দিনৰ পিছত এস্কেলেচন"
     }
   },
-
   "thresholds": {
     "title": "সতৰ্কবাৰ্তাৰ থ্ৰেচহোল্ড",
     "configurationSettings": "কনফিগাৰেচন ছেটিং",
@@ -286,7 +279,6 @@
       "enterRegularity": "নিয়মিততা থ্ৰেচহোল্ড শতাংশ দিয়ক"
     }
   },
-
   "staffSync": {
     "title": "কৰ্মচাৰী",
     "searchPlaceholder": "নামেৰে অনুসন্ধান কৰক",
@@ -369,7 +361,6 @@
       }
     }
   },
-
   "schemeSync": {
     "title": "আঁচনি",
     "searchPlaceholder": "আঁচনিৰ নামেৰে অনুসন্ধান কৰক",
@@ -426,7 +417,6 @@
       }
     }
   },
-
   "schemeMappingsSync": {
     "title": "আঁচনি মেপিং",
     "searchPlaceholder": "আঁচনিৰ নামেৰে অনুসন্ধান কৰক",
@@ -469,7 +459,6 @@
       }
     }
   },
-
   "configuration": {
     "pageTitle": "কনফিগাৰেচন",
     "sectionTitle": "ৰাজ্য/কেন্দ্ৰশাসিত অঞ্চলৰ কনফিগাৰেচন",
@@ -585,7 +574,6 @@
       }
     }
   },
-
   "stateUtAdmins": {
     "title": "ৰাজ্য/কেন্দ্ৰশাসিত অঞ্চলৰ প্ৰশাসক",
     "addTitle": "ৰাজ্য/কেন্দ্ৰশাসিত অঞ্চলৰ প্ৰশাসক যোগ কৰক",
@@ -627,7 +615,8 @@
       "failedToAdd": "ৰাজ্য/কেন্দ্ৰশাসিত অঞ্চলৰ প্ৰশাসক যোগ কৰিব পৰা নগল",
       "activatedSuccess": "প্ৰশাসক সফলভাৱে সক্ৰিয় হৈছে",
       "deactivatedSuccess": "প্ৰশাসক সফলভাৱে নিষ্ক্ৰিয় হৈছে",
-      "failedToUpdateStatus": "প্ৰশাসকৰ স্থিতি আপডেট কৰিব পৰা নগল"
+      "failedToUpdateStatus": "প্ৰশাসকৰ স্থিতি আপডেট কৰিব পৰা নগল",
+      "pendingStatusTooltip": "এই এডমিনৰ পঞ্জীকৰণ এতিয়াও অপেক্ষাৰত।"
     },
     "aria": {
       "search": "প্ৰশাসক অনুসন্ধান কৰক",
@@ -636,7 +625,6 @@
       "resendInvite": "প্ৰশাসকক আমন্ত্ৰণ পুনৰায় পঠাওক"
     }
   },
-
   "messageTemplates": {
     "title": "টেমপ্লেট",
     "subtitle": "WhatsApp টেমপ্লেট (কেৱল পঢ়াৰ বাবে)",
@@ -666,7 +654,6 @@
       "selectTemplate": "টেমপ্লেট বাছনি কৰক"
     }
   },
-
   "nudges": {
     "title": "নাজ টেমপ্লেট",
     "language": "ভাষা",
@@ -688,7 +675,6 @@
       "enterMessage": "{{name}} টেমপ্লেটৰ বাবে বাৰ্তা দিয়ক"
     }
   },
-
   "validation": {
     "required": "এই ক্ষেত্ৰটো প্ৰয়োজনীয়",
     "emptyOrWhitespace": "এই ক্ষেত্ৰটো খালি বা কেৱল স্থান থাকিব নোৱাৰে",
