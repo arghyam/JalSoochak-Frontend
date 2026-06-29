@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { StaffOverviewPage } from './staff-overview-page'
+import { useSectionOfficerFiltersStore } from '../../store/section-officer-filters-store'
 import { renderWithProviders } from '@/test/render-with-providers'
 import type { WaterSupplyOutageData, EntityPerformance } from '@/features/dashboard/types'
 import {
@@ -249,6 +250,8 @@ describe('StaffOverviewPage', () => {
   beforeEach(() => {
     setupMocks()
     jest.clearAllMocks()
+    sessionStorage.clear()
+    useSectionOfficerFiltersStore.getState().resetAll()
     mockServerConfig.isSingleTenantMode.mockReturnValue(false)
     mockServerConfig.shouldShowSupplyOutageCharts.mockReturnValue(true)
     mockServerConfig.shouldShowStaffOverviewSupplyOutageCharts.mockReturnValue(true)

@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { createElement } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AnomaliesPage } from './anomalies-page'
+import { useSectionOfficerFiltersStore } from '../../store/section-officer-filters-store'
 
 import type { ReactNode } from 'react'
 
@@ -169,6 +170,8 @@ function renderPage() {
 
 beforeEach(() => {
   jest.clearAllMocks()
+  sessionStorage.clear()
+  useSectionOfficerFiltersStore.getState().resetAll()
   mockUseAnomalyStatusesQuery.mockReturnValue({ data: MOCK_STATUSES })
   mockUseTenantPublicConfigQuery.mockReturnValue({
     data: {
