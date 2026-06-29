@@ -23,7 +23,6 @@
       "deleteLevel": "Delete level {{level}}"
     }
   },
-
   "overview": {
     "title": "Overview of {{state}}",
     "titleFallback": "Overview of State",
@@ -92,7 +91,6 @@
       }
     }
   },
-
   "activity": {
     "title": "Activity",
     "table": {
@@ -108,7 +106,6 @@
       "tableSection": "Activity log table"
     }
   },
-
   "language": {
     "title": "Language",
     "configuration": "Language Configuration",
@@ -128,7 +125,6 @@
       "clearTertiaryLanguage": "Clear tertiary language"
     }
   },
-
   "integration": {
     "title": "Integrations",
     "messageBrokerDetails": "Message Broker Details",
@@ -148,7 +144,6 @@
       "enterOrganizationId": "Enter Organization ID"
     }
   },
-
   "waterNorms": {
     "title": "Water Norms",
     "stateUtWaterNorms": "State/UT Water Norms",
@@ -194,7 +189,6 @@
       "enterOversupplyThreshold": "Enter oversupply threshold percentage (0–1000)"
     }
   },
-
   "escalations": {
     "title": "Escalations",
     "allEscalations": "All Escalations",
@@ -250,7 +244,6 @@
       "escalateAfterDays": "Escalate after days for {{role}}"
     }
   },
-
   "thresholds": {
     "title": "Alert Thresholds",
     "configurationSettings": "Configuration Settings",
@@ -286,7 +279,6 @@
       "enterRegularity": "Enter regularity threshold percentage"
     }
   },
-
   "staffSync": {
     "title": "Staff",
     "searchPlaceholder": "Search by name",
@@ -369,7 +361,6 @@
       }
     }
   },
-
   "schemeSync": {
     "title": "Schemes",
     "searchPlaceholder": "Search by scheme name",
@@ -426,7 +417,6 @@
       }
     }
   },
-
   "schemeMappingsSync": {
     "title": "Scheme Mappings",
     "searchPlaceholder": "Search by scheme name",
@@ -469,7 +459,6 @@
       }
     }
   },
-
   "configuration": {
     "pageTitle": "Configuration",
     "sectionTitle": "State/UT Configuration",
@@ -585,7 +574,6 @@
       }
     }
   },
-
   "stateUtAdmins": {
     "title": "State/UT Admins",
     "addTitle": "Add State/UT Admin",
@@ -627,7 +615,8 @@
       "failedToAdd": "Failed to add State/UT admin",
       "activatedSuccess": "Admin activated successfully",
       "deactivatedSuccess": "Admin deactivated successfully",
-      "failedToUpdateStatus": "Failed to update admin status"
+      "failedToUpdateStatus": "Failed to update admin status",
+      "pendingStatusTooltip": "Registration of this admin is still pending."
     },
     "aria": {
       "search": "Search admins",
@@ -636,7 +625,6 @@
       "resendInvite": "Resend invite for admin"
     }
   },
-
   "messageTemplates": {
     "title": "Templates",
     "subtitle": "Whatsapp Templates (Read Only)",
@@ -666,7 +654,6 @@
       "selectTemplate": "Select template"
     }
   },
-
   "nudges": {
     "title": "Nudges Template",
     "language": "Language",
@@ -688,7 +675,6 @@
       "enterMessage": "Enter message for {{name}} template"
     }
   },
-
   "validation": {
     "required": "This field is required",
     "emptyOrWhitespace": "This field cannot be empty or contain only spaces",

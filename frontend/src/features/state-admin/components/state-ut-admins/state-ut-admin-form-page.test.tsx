@@ -155,4 +155,15 @@ describe('StateUTAdminFormPage — Edit Mode', () => {
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
     expect(mockNavigate).toHaveBeenCalledWith('/state-admin/state-ut-admins/admin-1')
   })
+
+  it('shows disabled unchecked toggle for a pending admin', () => {
+    mockUseStateUTAdminByIdQuery.mockReturnValue({
+      data: { ...mockAdmin, status: 'pending' },
+      isLoading: false,
+    })
+    renderWithProviders(<StateUTAdminFormPage />)
+    const toggle = screen.getByRole('checkbox') as HTMLInputElement
+    expect(toggle.disabled).toBe(true)
+    expect(toggle.checked).toBe(false)
+  })
 })

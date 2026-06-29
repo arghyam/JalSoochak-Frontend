@@ -20,7 +20,7 @@ import { EditIcon } from '@chakra-ui/icons'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Toggle, ToastContainer } from '../index'
+import { Toggle, ToastContainer, ActionTooltip } from '../index'
 import { PageHeader } from '../page-header'
 import { useToast } from '@/shared/hooks/use-toast'
 import { isAlphabeticWithSpaces } from '@/shared/utils/validation'
@@ -122,8 +122,10 @@ function FormContent({ config, actions, routes, labels }: FormContentProps) {
     [t]
   )
 
+  const isPendingRegistration = original?.status === 'pending'
+
   const initialStatus: 'active' | 'inactive' =
-    original?.status === 'pending' || !original ? 'active' : original.status
+    !original || original.status === 'pending' ? 'active' : original.status
 
   const {
     register,
@@ -450,12 +452,28 @@ function FormContent({ config, actions, routes, labels }: FormContentProps) {
                   <Text textStyle="h10" id="activated-label">
                     {labels.form.activated}
                   </Text>
-                  <Toggle
-                    isChecked={wStatus === 'active'}
-                    onChange={() => void handleStatusToggle()}
-                    isDisabled={isSubmitting || isStatusBusy}
-                    aria-labelledby="activated-label"
-                  />
+                  {isPendingRegistration ? (
+                    <ActionTooltip
+                      label={labels.messages.pendingStatusTooltip ?? t('status.pending')}
+                      shouldWrapChildren
+                    >
+                      <Box as="span">
+                        <Toggle
+                          isChecked={false}
+                          onChange={() => {}}
+                          isDisabled
+                          aria-labelledby="activated-label"
+                        />
+                      </Box>
+                    </ActionTooltip>
+                  ) : (
+                    <Toggle
+                      isChecked={wStatus === 'active'}
+                      onChange={() => void handleStatusToggle()}
+                      isDisabled={isSubmitting || isStatusBusy}
+                      aria-labelledby="activated-label"
+                    />
+                  )}
                 </Flex>
               </Box>
             )}

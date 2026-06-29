@@ -207,7 +207,13 @@ export function UserAdminViewPage({
         </Heading>
         <StatusChip
           status={data.status}
-          label={data.status === 'active' ? t('status.active') : t('status.inactive')}
+          label={
+            data.status === 'active'
+              ? t('status.active')
+              : data.status === 'pending'
+                ? t('status.pending')
+                : t('status.inactive')
+          }
         />
       </Box>
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
