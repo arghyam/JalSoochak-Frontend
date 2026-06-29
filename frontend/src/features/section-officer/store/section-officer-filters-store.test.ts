@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from '@jest/globals'
+import { describe, expect, it, beforeEach, afterEach, jest } from '@jest/globals'
 import {
   SECTION_OFFICER_FILTERS_STORAGE_KEY,
   SECTION_OFFICER_PAGE_KEYS,
@@ -11,19 +11,32 @@ function getState() {
   return useSectionOfficerFiltersStore.getState()
 }
 
+const FIXED_NOW = new Date('2026-06-15T12:00:00.000Z')
+
 describe('section-officer-filters-store', () => {
   beforeEach(() => {
     sessionStorage.clear()
     getState().resetAll()
   })
 
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
   it('defaults the shared date range to the last 30 days', () => {
+    jest.useFakeTimers()
+    jest.setSystemTime(FIXED_NOW)
+    getState().resetAll()
+
     const expected = getDefaultSectionOfficerDateRange()
     expect(getState().dateRange).toEqual(expected)
+    expect(expected.endDate).toBe('2026-06-15')
+    expect(expected.startDate).toBe('2026-05-17')
     // 29 days back + today = 30-day inclusive window
-    const start = new Date(expected.startDate)
-    const end = new Date(expected.endDate)
-    const days = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+    const days = Math.round(
+      (new Date(expected.endDate).getTime() - new Date(expected.startDate).getTime()) /
+        (1000 * 60 * 60 * 24)
+    )
     expect(days).toBe(29)
   })
 
@@ -67,6 +80,9 @@ describe('section-officer-filters-store', () => {
   })
 
   it('resetAll restores default date range and clears all page filters', () => {
+    jest.useFakeTimers()
+    jest.setSystemTime(FIXED_NOW)
+
     getState().setDateRange({ startDate: '2020-01-01', endDate: '2020-01-02' })
     getState().setPageFilter(SECTION_OFFICER_PAGE_KEYS.ESCALATIONS, { statusFilter: 'OPEN' })
 
@@ -88,6 +104,9 @@ describe('section-officer-filters-store', () => {
   })
 
   it('clearSectionOfficerFilters resets state and clears the sessionStorage entry', () => {
+    jest.useFakeTimers()
+    jest.setSystemTime(FIXED_NOW)
+
     getState().setPageFilter(SECTION_OFFICER_PAGE_KEYS.ANOMALIES, { searchQuery: 'leak' })
     getState().setDateRange({ startDate: '2020-01-01', endDate: '2020-01-02' })
 
@@ -96,5 +115,27 @@ describe('section-officer-filters-store', () => {
     expect(getState().dateRange).toEqual(getDefaultSectionOfficerDateRange())
     expect(getState().pageFilters[SECTION_OFFICER_PAGE_KEYS.ANOMALIES].searchQuery).toBe('')
     expect(sessionStorage.getItem(SECTION_OFFICER_FILTERS_STORAGE_KEY)).toBeNull()
+  })
+
+  it('hydrates state from sessionStorage on initialization', () => {
+    const storedPayload = {
+      state: {
+        dateRange: { startDate: '2026-01-01', endDate: '2026-01-31' },
+        pageFilters: {
+          [SECTION_OFFICER_PAGE_KEYS.OVERVIEW]: { searchQuery: '', statusFilter: '' },
+          [SECTION_OFFICER_PAGE_KEYS.PUMP_OPERATORS]: { searchQuery: '', statusFilter: '' },
+          [SECTION_OFFICER_PAGE_KEYS.ANOMALIES]: { searchQuery: 'leak', statusFilter: '' },
+          [SECTION_OFFICER_PAGE_KEYS.ESCALATIONS]: { searchQuery: '', statusFilter: '' },
+        },
+      },
+      version: 1,
+    }
+    sessionStorage.setItem(SECTION_OFFICER_FILTERS_STORAGE_KEY, JSON.stringify(storedPayload))
+
+    useSectionOfficerFiltersStore.persist.rehydrate()
+
+    expect(getState().dateRange).toEqual({ startDate: '2026-01-01', endDate: '2026-01-31' })
+    expect(getState().pageFilters[SECTION_OFFICER_PAGE_KEYS.ANOMALIES].searchQuery).toBe('leak')
+    expect(getState().pageFilters[SECTION_OFFICER_PAGE_KEYS.OVERVIEW].searchQuery).toBe('')
   })
 })

@@ -98,6 +98,8 @@ export const useAuthStore = create<AuthState>()((set) => ({
         error: null,
       })
     } catch {
+      queryClient.clear()
+      clearSectionOfficerFilters()
       set({
         isBootstrapping: false,
         accessToken: null,
@@ -144,6 +146,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
       })
       return accessToken
     } catch (error) {
+      clearSectionOfficerFilters()
       set({
         accessToken: null,
         user: null,
