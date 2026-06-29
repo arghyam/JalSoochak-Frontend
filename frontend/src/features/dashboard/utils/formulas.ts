@@ -233,6 +233,16 @@ const sumWaterSupplyField = (
     return 0
   }
 
+  if (response.currentRegion) {
+    if (field === 'totalWaterSuppliedLiters') {
+      return response.currentRegion.totalWaterSuppliedLiters ?? 0
+    }
+    if (response.currentRegion.totalAchievedFhtcCount != null) {
+      return response.currentRegion.totalAchievedFhtcCount
+    }
+    // totalAchievedFhtcCount absent — fall through to childRegions/schemes aggregation
+  }
+
   if (response.childRegions?.length) {
     if (field === 'totalWaterSuppliedLiters') {
       return response.childRegions.reduce(

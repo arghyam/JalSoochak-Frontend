@@ -86,6 +86,62 @@ describe('dashboard formulas', () => {
     })
   })
 
+  it('uses currentRegion directly for KPI totals when present, ignoring childRegions sum', () => {
+    const response: AverageWaterSupplyPerRegionResponse = {
+      tenantId: 17,
+      stateCode: 'AS',
+      parentLgdLevel: 2,
+      parentDepartmentLevel: 0,
+      startDate: '2026-01-01',
+      endDate: '2026-06-28',
+      daysInRange: 179,
+      schemeCount: 312,
+      childRegionCount: 2,
+      currentRegion: {
+        lgdId: 4,
+        departmentId: null,
+        title: null,
+        totalHouseholdCount: 124500,
+        totalAchievedFhtcCount: 118200,
+        totalWaterSuppliedLiters: 1_062_300_000,
+        totalPlannedFhtcCount: 130000,
+        schemeCount: 312,
+        avgWaterSupplyPerScheme: 3_404_166.67,
+      },
+      schemes: [],
+      childRegions: [
+        {
+          lgdId: 41,
+          departmentId: 0,
+          title: 'Block A',
+          totalHouseholdCount: 60000,
+          totalAchievedFhtcCount: 50000,
+          totalWaterSuppliedLiters: 400_000_000,
+          totalPlannedFhtcCount: 65000,
+          schemeCount: 150,
+          avgWaterSupplyPerScheme: 2_666_666,
+        },
+        {
+          lgdId: 42,
+          departmentId: 0,
+          title: 'Block B',
+          totalHouseholdCount: 64500,
+          totalAchievedFhtcCount: 68200,
+          totalWaterSuppliedLiters: 662_300_000,
+          totalPlannedFhtcCount: 65000,
+          schemeCount: 162,
+          avgWaterSupplyPerScheme: 4_088_271,
+        },
+      ],
+    }
+
+    // currentRegion values, not sum of childRegions
+    expect(getWaterSupplyKpis(response, 5)).toEqual({
+      quantityMld: Number((1_062_300_000 / 179 / 1_000_000).toFixed(2)),
+      quantityLpcd: Number((1_062_300_000 / (118200 * 5 * 179)).toFixed(1)),
+    })
+  })
+
   it('calculates demand in MLD from FHTC count, persons, and liters per person', () => {
     expect(calculateDemandMld(500, 5, 50)).toBe(0.13)
   })
