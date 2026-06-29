@@ -80,6 +80,7 @@ export function SuperUserFormPage() {
       activatedSuccess: t('superUsers.messages.activatedSuccess'),
       deactivatedSuccess: t('superUsers.messages.deactivatedSuccess'),
       failedToUpdateStatus: t('superUsers.messages.failedToUpdateStatus'),
+      pendingStatusTooltip: t('superUsers.messages.pendingStatusTooltip'),
     },
     buttons: {
       addAndSendLink: t('superUsers.buttons.addAndSendLink'),

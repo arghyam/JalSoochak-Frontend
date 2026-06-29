@@ -148,4 +148,15 @@ describe('SuperUserFormPage — Edit Mode', () => {
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
     expect(mockNavigate).toHaveBeenCalledWith('/super-user/super-users/user-1')
   })
+
+  it('shows disabled unchecked toggle for a pending user', () => {
+    mockUseSuperUserByIdQuery.mockReturnValue({
+      data: { ...mockUser, status: 'pending' },
+      isLoading: false,
+    })
+    renderWithProviders(<SuperUserFormPage />)
+    const toggle = screen.getByRole('checkbox') as HTMLInputElement
+    expect(toggle.disabled).toBe(true)
+    expect(toggle.checked).toBe(false)
+  })
 })

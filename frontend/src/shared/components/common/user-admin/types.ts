@@ -64,6 +64,7 @@ export interface UserAdminFormPageLabels {
     deactivatedSuccess: string
     failedToUpdateStatus: string
     linkSentFeedback?: string
+    pendingStatusTooltip?: string
   }
   buttons: {
     addAndSendLink: string
