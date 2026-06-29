@@ -169,17 +169,17 @@ describe('useCentralDashboardKpis', () => {
       daysInRange: 30,
       schemeCount: 1,
       childRegionCount: 0,
-      schemes: [
-        {
-          schemeId: 1,
-          schemeName: 'Scheme',
-          householdCount: 100,
-          totalAchievedFhtcCount: 500,
-          totalWaterSuppliedLiters: 90_000_000,
-          supplyDays: 30,
-          avgLitersPerHousehold: 0,
-        },
-      ],
+      currentRegion: {
+        lgdId: 4,
+        departmentId: null,
+        title: null,
+        totalHouseholdCount: 600,
+        totalAchievedFhtcCount: 500,
+        totalWaterSuppliedLiters: 90_000_000,
+        schemeCount: 1,
+        avgWaterSupplyPerScheme: 90_000_000,
+      },
+      schemes: [],
       childRegions: [],
     }
     const regularityData: AverageSchemeRegularityResponse = {
