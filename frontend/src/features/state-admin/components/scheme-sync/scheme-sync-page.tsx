@@ -392,6 +392,7 @@ export function SchemeSyncPage() {
               icon={BsCheck2Circle}
               iconBg="#E6F9F0"
               iconColor="#27AE60"
+              tooltip={t('schemeSync.tooltips.activeSchemes')}
             />
             <StatCard
               title={t('schemeSync.stats.inactiveSchemes')}
@@ -399,6 +400,7 @@ export function SchemeSyncPage() {
               icon={IoCloseCircleOutline}
               iconBg="#FEF3F2"
               iconColor="#D94B3E"
+              tooltip={t('schemeSync.tooltips.inactiveSchemes')}
             />
           </SimpleGrid>
         }

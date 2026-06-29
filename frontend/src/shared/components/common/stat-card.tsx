@@ -1,5 +1,6 @@
-import type { ElementType } from 'react'
+import type { ElementType, ReactNode } from 'react'
 import { Box, Flex, Icon, Text } from '@chakra-ui/react'
+import { ChartInfoTooltip } from './chart-info-tooltip'
 
 export interface StatCardProps {
   title: string
@@ -9,6 +10,7 @@ export interface StatCardProps {
   iconBg: string
   iconColor: string
   height?: string | number
+  tooltip?: ReactNode
 }
 
 export function StatCard({
@@ -19,6 +21,7 @@ export function StatCard({
   iconBg,
   iconColor,
   height,
+  tooltip,
 }: StatCardProps) {
   const StatIcon = icon
   return (
@@ -44,9 +47,12 @@ export function StatCard({
           <Icon as={StatIcon} boxSize={7} color={iconColor} />
         </Flex>
         <Flex direction="column" gap={1}>
-          <Text color="neutral.600" fontSize={{ base: 'sm', md: 'md' }}>
-            {title}
-          </Text>
+          <Flex align="center" gap="4px">
+            <Text color="neutral.600" fontSize={{ base: 'sm', md: 'md' }}>
+              {title}
+            </Text>
+            {tooltip !== undefined && <ChartInfoTooltip tooltipContent={tooltip} />}
+          </Flex>
           <Text
             textStyle="h9"
             fontSize={{ base: 'xl', md: '2xl' }}

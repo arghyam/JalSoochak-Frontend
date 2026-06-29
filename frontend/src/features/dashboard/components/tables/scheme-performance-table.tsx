@@ -86,7 +86,7 @@ const formatReportingRateValue = (value: number | null | undefined) =>
 
 const formatWaterSupplied = (value: number | null | undefined) =>
   typeof value === 'number' && Number.isFinite(value)
-    ? `${new Intl.NumberFormat('en-IN').format(Math.round(value))} L`
+    ? `${new Intl.NumberFormat('en-IN').format(Math.round(value / 1000))} KL`
     : '-'
 
 function truncateSchemeName(name: string): { display: string; isTruncated: boolean } {

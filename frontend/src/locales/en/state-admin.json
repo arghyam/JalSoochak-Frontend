@@ -32,6 +32,11 @@
       "totalAdmins": "Total Admins",
       "activeSchemes": "Active Schemes"
     },
+    "tooltips": {
+      "totalStaff": "Total number of staff members across all non-admin roles, including pump operators and other field staff",
+      "totalAdmins": "All state admins regardless of active or inactive status",
+      "activeSchemes": "Schemes with an Operative operating status"
+    },
     "charts": {
       "waterSupplyOutages": "Water Supply Outages",
       "demandVsSupply": "Demand vs Supply",
@@ -374,6 +379,10 @@
       "totalSchemes": "Total Schemes",
       "activeSchemes": "Active Schemes",
       "inactiveSchemes": "Inactive Schemes"
+    },
+    "tooltips": {
+      "activeSchemes": "Schemes with an Operative operating status",
+      "inactiveSchemes": "All schemes excluding those with an Operative operating status"
     },
     "table": {
       "schemeName": "Scheme Name",
