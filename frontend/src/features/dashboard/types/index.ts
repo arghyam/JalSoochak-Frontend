@@ -376,6 +376,18 @@ export interface AverageWaterSupplyChildRegion {
   avgWaterSupplyPerScheme: number
 }
 
+export interface AverageWaterSupplyCurrentRegion {
+  lgdId: number
+  departmentId: number | null
+  title: string | null
+  totalHouseholdCount: number
+  totalAchievedFhtcCount?: number
+  totalPlannedFhtcCount?: number
+  totalWaterSuppliedLiters: number
+  schemeCount: number
+  avgWaterSupplyPerScheme: number
+}
+
 export interface AverageWaterSupplyPerRegionResponse {
   tenantId: number
   stateCode: string
@@ -386,6 +398,7 @@ export interface AverageWaterSupplyPerRegionResponse {
   daysInRange: number
   schemeCount: number
   childRegionCount: number
+  currentRegion?: AverageWaterSupplyCurrentRegion
   schemes: AverageWaterSupplyScheme[]
   childRegions: AverageWaterSupplyChildRegion[]
 }
