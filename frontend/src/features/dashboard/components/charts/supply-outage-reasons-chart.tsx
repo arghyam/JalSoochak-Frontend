@@ -16,6 +16,7 @@ interface SupplyOutageReasonsChartProps {
   height?: string | number
   pieSize?: number
   tooltipContent?: ReactNode
+  showTooltip?: boolean
 }
 
 const outageColors = [
@@ -49,6 +50,7 @@ export function SupplyOutageReasonsChart({
   height = '300px',
   pieSize = 300,
   tooltipContent,
+  showTooltip = true,
 }: SupplyOutageReasonsChartProps) {
   const { t: tCommon } = useTranslation('common')
   const { t } = useTranslation('dashboard')
@@ -94,7 +96,7 @@ export function SupplyOutageReasonsChart({
 
     return {
       tooltip: {
-        show: true,
+        show: showTooltip,
         trigger: 'item',
         confine: true,
         position: (point, _params, _el, _rect, size) => {
@@ -155,7 +157,7 @@ export function SupplyOutageReasonsChart({
         },
       ],
     }
-  }, [chartItems])
+  }, [chartItems, showTooltip])
 
   const containerHeight = typeof height === 'number' ? `${height}px` : height
   const resolvedPieSize = isBelowXs ? Math.min(pieSize, 240) : pieSize
