@@ -9,7 +9,6 @@ import {
   InputLeftElement,
   Button,
   IconButton,
-  Spinner,
 } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import { SearchIcon, EditIcon } from '@chakra-ui/icons'
@@ -83,22 +82,6 @@ export function UserAdminListPage({
 
   const statusFilter = controlledStatus ?? 'all'
   const setStatusFilter = onStatusFilterChange ?? (() => {})
-
-  if (isLoading) {
-    return (
-      <Box w="full">
-        <PageHeader>
-          <Heading as="h1" size={{ base: 'h2', md: 'h1' }}>
-            {labels.pageTitle}
-          </Heading>
-        </PageHeader>
-        <Flex role="status" aria-live="polite" align="center" minH="200px" gap={3}>
-          <Spinner size="md" color="primary.500" />
-          <Text color="neutral.600">{t('loading')}</Text>
-        </Flex>
-      </Box>
-    )
-  }
 
   if (isError) {
     return (
@@ -299,7 +282,7 @@ export function UserAdminListPage({
         data={data}
         getRowKey={(row) => row.id}
         emptyMessage={labels.noItemsFound}
-        isLoading={false}
+        isLoading={isLoading}
         pagination={{
           enabled: true,
           page: page,
