@@ -284,6 +284,7 @@ export function StaffOverviewPage() {
                 data={submissionStatusData?.pieData ?? []}
                 height={CHART_HEIGHT}
                 pieSize={PIE_SIZE}
+                showInfoIcon={false}
               />
             </ChartCell>
           </ChartBoxWithTitle>

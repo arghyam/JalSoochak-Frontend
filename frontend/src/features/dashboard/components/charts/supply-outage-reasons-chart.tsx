@@ -16,6 +16,7 @@ interface SupplyOutageReasonsChartProps {
   height?: string | number
   pieSize?: number
   tooltipContent?: ReactNode
+  showInfoIcon?: boolean
 }
 
 const outageColors = [
@@ -49,6 +50,7 @@ export function SupplyOutageReasonsChart({
   height = '300px',
   pieSize = 300,
   tooltipContent,
+  showInfoIcon = true,
 }: SupplyOutageReasonsChartProps) {
   const { t: tCommon } = useTranslation('common')
   const { t } = useTranslation('dashboard')
@@ -163,36 +165,39 @@ export function SupplyOutageReasonsChart({
   const ariaLabel = t('outageAndSubmissionCharts.supplyOutageReasons.ariaLabel', {
     defaultValue: 'Supply outage reasons info',
   })
-  const infoTooltip = tooltipContent ? (
-    <ChartInfoTooltip tooltipContent={tooltipContent} ariaLabel={ariaLabel} />
-  ) : (
-    <Tooltip
-      label={t('outageAndSubmissionCharts.supplyOutageReasons.tooltip')}
-      hasArrow
-      placement="top-end"
-      bg="white"
-      color="neutral.700"
-      borderWidth="1px"
-      borderColor="neutral.200"
-      borderRadius="8px"
-      boxShadow="md"
-      p="12px"
-      maxW="320px"
-    >
-      <IconButton
-        aria-label={ariaLabel}
-        icon={<AiOutlineInfoCircle />}
-        variant="ghost"
-        color="neutral.400"
-        minW="auto"
-        h="16px"
-        w="16px"
-        p="0"
-        _hover={{ bg: 'transparent' }}
-        _active={{ bg: 'transparent' }}
-      />
-    </Tooltip>
-  )
+  let infoTooltip: ReactNode = null
+  if (showInfoIcon) {
+    infoTooltip = tooltipContent ? (
+      <ChartInfoTooltip tooltipContent={tooltipContent} ariaLabel={ariaLabel} />
+    ) : (
+      <Tooltip
+        label={t('outageAndSubmissionCharts.supplyOutageReasons.tooltip')}
+        hasArrow
+        placement="top-end"
+        bg="white"
+        color="neutral.700"
+        borderWidth="1px"
+        borderColor="neutral.200"
+        borderRadius="8px"
+        boxShadow="md"
+        p="12px"
+        maxW="320px"
+      >
+        <IconButton
+          aria-label={ariaLabel}
+          icon={<AiOutlineInfoCircle />}
+          variant="ghost"
+          color="neutral.400"
+          minW="auto"
+          h="16px"
+          w="16px"
+          p="0"
+          _hover={{ bg: 'transparent' }}
+          _active={{ bg: 'transparent' }}
+        />
+      </Tooltip>
+    )
+  }
 
   if (!hasRenderableData) {
     return (
