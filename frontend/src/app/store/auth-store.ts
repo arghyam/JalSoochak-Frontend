@@ -98,8 +98,12 @@ export const useAuthStore = create<AuthState>()((set) => ({
         error: null,
       })
     } catch {
-      queryClient.clear()
-      clearSectionOfficerFilters()
+      // A failed bootstrap just means "not logged in" — the default state on a
+      // fresh load, with nothing to purge. Clearing the query cache here races
+      // with in-flight page-gating queries (e.g. the single-tenant dashboard's
+      // tenants query) and can strand them mid-fetch, leaving the page on an
+      // infinite spinner. Cache/filter cleanup belongs only in real session
+      // transitions (logout, setSessionExpired, refresh failure).
       set({
         isBootstrapping: false,
         accessToken: null,
