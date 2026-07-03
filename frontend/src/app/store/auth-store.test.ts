@@ -3,6 +3,7 @@ import { authApi } from '@/features/auth/services/auth-api'
 import type { AuthUser } from '@/features/auth/services/auth-api'
 import { AUTH_ROLES } from '@/shared/constants/auth'
 import { ROUTES } from '@/shared/constants/routes'
+import { queryClient } from '@/shared/lib/query-client'
 import { useAuthStore } from './auth-store'
 
 jest.mock('@/features/auth/services/auth-api', () => ({
@@ -121,13 +122,35 @@ describe('useAuthStore', () => {
     expect(useAuthStore.getState().accessToken).toBe('refreshed')
   })
 
-  it('bootstrap clears session when refresh fails', async () => {
+  it('bootstrap clears session state when refresh fails', async () => {
     mockedAuth.refresh.mockRejectedValue(new Error('expired'))
 
     await useAuthStore.getState().bootstrap()
 
     expect(useAuthStore.getState().isBootstrapping).toBe(false)
     expect(useAuthStore.getState().isAuthenticated).toBe(false)
+  })
+
+  // Regression: a failed bootstrap must NOT purge the query cache or persisted
+  // filters. Doing so races with in-flight page-gating queries (e.g. the
+  // single-tenant dashboard's tenants query) and strands the page on an
+  // infinite spinner. See auth-store.ts bootstrap() catch.
+  it('bootstrap does not clear the query cache when refresh fails', async () => {
+    const clearSpy = jest.spyOn(queryClient, 'clear')
+    mockedAuth.refresh.mockRejectedValue(new Error('expired'))
+
+    await useAuthStore.getState().bootstrap()
+
+    expect(clearSpy).not.toHaveBeenCalled()
+    clearSpy.mockRestore()
+  })
+
+  it('bootstrap does not clear section officer filters when refresh fails', async () => {
+    mockedAuth.refresh.mockRejectedValue(new Error('expired'))
+
+    await useAuthStore.getState().bootstrap()
+
+    expect(mockedClearFilters).not.toHaveBeenCalled()
   })
 
   it('logout clears auth state and resets document title', async () => {
@@ -138,12 +161,15 @@ describe('useAuthStore', () => {
     })
     document.title = 'Other'
     mockedAuth.logout.mockResolvedValue(undefined)
+    const clearSpy = jest.spyOn(queryClient, 'clear')
 
     await useAuthStore.getState().logout()
 
     expect(useAuthStore.getState().accessToken).toBeNull()
     expect(document.title).toBe('JalSoochak')
     expect(mockedClearFilters).toHaveBeenCalled()
+    expect(clearSpy).toHaveBeenCalled()
+    clearSpy.mockRestore()
   })
 
   it('setSessionExpired clears tokens and flags session', () => {
