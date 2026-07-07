@@ -32,8 +32,8 @@ const mockUseLocationSearchQuery =
 const mockLocationSearchData: StateUtSearchResponse = {
   totalStatesCount: 2,
   states: [
-    { value: 'maharashtra', label: 'Maharashtra', tenantId: 1, tenantCode: 'MH' },
-    { value: 'karnataka', label: 'Karnataka', tenantId: 2, tenantCode: 'KA' },
+    { value: 'maharashtra', label: 'Maharashtra', tenantId: 1, tenantCode: 'MH', status: 'ACTIVE' },
+    { value: 'karnataka', label: 'Karnataka', tenantId: 2, tenantCode: 'KA', status: 'ACTIVE' },
   ],
 }
 
@@ -140,12 +140,36 @@ describe('SingleTenantGate', () => {
 
       renderWithRouter('/')
 
-      expect(screen.getByText(/No tenants found in single-tenant mode/i)).toBeInTheDocument()
+      expect(screen.getByText(/No active tenant found in single-tenant mode/i)).toBeInTheDocument()
+    })
+
+    it('should show error when tenants exist but none are ACTIVE', () => {
+      mockIsSingleTenantMode.mockReturnValue(true)
+      mockUseLocationSearchQuery.mockReturnValue({
+        data: {
+          totalStatesCount: 1,
+          states: [
+            {
+              value: 'karnataka',
+              label: 'Karnataka',
+              tenantId: 2,
+              tenantCode: 'KA',
+              status: 'INACTIVE',
+            },
+          ],
+        },
+        isLoading: false,
+        isError: false,
+      } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+
+      renderWithRouter('/')
+
+      expect(screen.getByText(/No active tenant found in single-tenant mode/i)).toBeInTheDocument()
     })
   })
 
   describe('single-tenant mode at root (/)', () => {
-    it('should render CentralDashboard with states[0] as override at /', () => {
+    it('should render CentralDashboard with the first ACTIVE tenant as override at /', () => {
       mockIsSingleTenantMode.mockReturnValue(true)
 
       renderWithRouter('/')
@@ -154,6 +178,38 @@ describe('SingleTenantGate', () => {
       expect(dashboard).toBeInTheDocument()
       // Verify the override was passed with the first tenant's value
       expect(dashboard).toHaveAttribute('data-override', 'maharashtra')
+    })
+
+    it('should skip a non-ACTIVE first tenant and use the first ACTIVE one', () => {
+      mockIsSingleTenantMode.mockReturnValue(true)
+      mockUseLocationSearchQuery.mockReturnValue({
+        data: {
+          totalStatesCount: 2,
+          states: [
+            {
+              value: 'maharashtra',
+              label: 'Maharashtra',
+              tenantId: 1,
+              tenantCode: 'MH',
+              status: 'INACTIVE',
+            },
+            {
+              value: 'karnataka',
+              label: 'Karnataka',
+              tenantId: 2,
+              tenantCode: 'KA',
+              status: 'ACTIVE',
+            },
+          ],
+        },
+        isLoading: false,
+        isError: false,
+      } as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+
+      renderWithRouter('/')
+
+      const dashboard = screen.getByTestId('central-dashboard')
+      expect(dashboard).toHaveAttribute('data-override', 'karnataka')
     })
   })
 

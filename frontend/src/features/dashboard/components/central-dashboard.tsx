@@ -10,7 +10,7 @@ import { buildCentralDashboardKpiMetrics } from '../hooks/use-central-dashboard-
 import { useCentralDashboardLocationOptions } from '../hooks/use-central-dashboard-location-options'
 import { useCentralDashboardMapPerformance } from '../hooks/use-central-dashboard-map-performance'
 import { useCentralDashboardTenantConfig } from '../hooks/use-central-dashboard-tenant-config'
-import { toIsoDate } from '../utils/central-dashboard-helpers'
+import { isActiveTenantStatus, toIsoDate } from '../utils/central-dashboard-helpers'
 import { useCentralDashboardFilters } from '../hooks/use-central-dashboard-filters'
 import { useCentralDashboardKpis } from '../hooks/use-central-dashboard-kpis'
 import { useCentralDashboardQueries } from '../hooks/use-central-dashboard-queries'
@@ -156,8 +156,19 @@ export function CentralDashboard({
   const hasCompleteTenantIds =
     locationSearchStates.length > 0 &&
     locationSearchStates.every((option) => typeof option.tenantId === 'number')
-  const activeTenantIds = hasCompleteTenantIds
+  // All known tenants (regardless of status) — used for map boundaries so non-ACTIVE
+  // tenants keep their geometry and render grayed rather than disappearing.
+  const knownTenantIds = hasCompleteTenantIds
     ? new Set(locationSearchStates.map((option) => option.tenantId as number))
+    : new Set<number>()
+  // Only ACTIVE tenants — used for metrics so non-ACTIVE tenants have no data (map value
+  // falls back to -1 → grayed + non-interactive, and they never appear in the table).
+  const activeTenantIds = hasCompleteTenantIds
+    ? new Set(
+        locationSearchStates
+          .filter((option) => isActiveTenantStatus(option.status))
+          .map((option) => option.tenantId as number)
+      )
     : new Set<number>()
   const {
     averagePersonsPerHousehold,
@@ -333,6 +344,7 @@ export function CentralDashboard({
     waterQuantityRegionWiseData,
   } = useCentralDashboardQueries({
     activeTenantIds,
+    knownTenantIds,
     analyticsDateRange,
     analyticsParentId,
     defaultAverageMembersPerHousehold,

@@ -463,6 +463,50 @@ describe('StaffLoginPage — Single-Tenant Mode', () => {
     })
   })
 
+  it('skips a non-ACTIVE first tenant and resolves the first ACTIVE tenant code', async () => {
+    staffAuthQueries.usePublicTenantsQuery.mockReturnValue({
+      data: [
+        { id: 1, stateCode: 'MH', name: 'Maharashtra', status: 'INACTIVE' },
+        { id: 2, stateCode: 'NL', name: 'Nagaland', status: 'ACTIVE' },
+      ],
+      isLoading: false,
+      isError: false,
+    })
+    mockRequestOtpMutate.mockResolvedValueOnce({ status: 200, message: 'OTP sent', otpLength: 6 })
+    render(<StaffLoginPage />, { wrapper: createWrapper() })
+
+    await userEvent.type(screen.getByTestId('phone-input'), '8179020960')
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('send-otp-button'))
+    })
+
+    await waitFor(() => {
+      expect(mockRequestOtpMutate).toHaveBeenCalledWith({
+        phoneNumber: '918179020960',
+        tenantCode: 'NL',
+      })
+    })
+  })
+
+  it('does not resolve a tenant code when no tenant is ACTIVE', async () => {
+    staffAuthQueries.usePublicTenantsQuery.mockReturnValue({
+      data: [{ id: 1, stateCode: 'MH', name: 'Maharashtra', status: 'INACTIVE' }],
+      isLoading: false,
+      isError: false,
+    })
+    render(<StaffLoginPage />, { wrapper: createWrapper() })
+
+    await userEvent.type(screen.getByTestId('phone-input'), '8179020960')
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('send-otp-button'))
+    })
+
+    expect((screen.getByTestId('send-otp-button') as HTMLButtonElement).disabled).toBe(true)
+    expect(mockRequestOtpMutate).not.toHaveBeenCalled()
+  })
+
   it('saves the auto-set tenantCode to cookie', async () => {
     render(<StaffLoginPage />, { wrapper: createWrapper() })
 

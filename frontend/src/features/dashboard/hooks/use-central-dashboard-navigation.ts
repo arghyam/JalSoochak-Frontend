@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react'
 import type { EntityPerformance, NationalDashboardBoundaryState, StateUtOption } from '../types'
 import type { FilterUrlUpdate, LocationOption } from '../utils/central-dashboard-helpers'
-import { toStateSlug } from '../utils/central-dashboard-helpers'
+import { isActiveTenantStatus, toStateSlug } from '../utils/central-dashboard-helpers'
 import { slugify } from '../utils/format-location-label'
 import { toStableLocationValue } from '../utils/stable-location-value'
 
@@ -77,12 +77,16 @@ export function useCentralDashboardNavigation({
   updateFilterUrl,
 }: UseCentralDashboardNavigationParams) {
   const handleStateClick = (_stateId: string, stateName: string) => {
-    setActiveTrailIndex(null)
-    setFilterTabIndex(0)
-    setSelectedScheme('')
     const stateOption = locationSearchStates.find(
       (option) => option.label.toLowerCase() === stateName.toLowerCase()
     )
+    // Block drilldown into a known non-ACTIVE tenant.
+    if (stateOption && !isActiveTenantStatus(stateOption.status)) {
+      return
+    }
+    setActiveTrailIndex(null)
+    setFilterTabIndex(0)
+    setSelectedScheme('')
     updateFilterUrl({
       state: stateOption?.value ?? toStateSlug(stateName),
       tab: 'administrative',
@@ -102,6 +106,10 @@ export function useCentralDashboardNavigation({
     const stateOption = locationSearchStates.find(
       (option) => option.label.toLowerCase() === parentState.stateTitle.toLowerCase()
     )
+    // Block drilldown into a known non-ACTIVE tenant's districts.
+    if (stateOption && !isActiveTenantStatus(stateOption.status)) {
+      return
+    }
     const stateValue = stateOption?.value ?? toStateSlug(parentState.stateTitle)
     const districtLgdId = Number.parseInt(districtId, 10)
     const districtValue = toStableLocationValue(

@@ -38,6 +38,7 @@ type AnalyticsDateRange = {
 
 type UseCentralDashboardQueriesParams = {
   activeTenantIds: Set<number>
+  knownTenantIds: Set<number>
   analyticsDateRange: AnalyticsDateRange
   analyticsParentId: number
   defaultAverageMembersPerHousehold: number
@@ -68,6 +69,7 @@ const isQueryPending = (enabled: boolean, isLoading: boolean, isFetching: boolea
 
 export function useCentralDashboardQueries({
   activeTenantIds,
+  knownTenantIds,
   analyticsDateRange,
   analyticsParentId,
   defaultAverageMembersPerHousehold,
@@ -535,7 +537,7 @@ export function useCentralDashboardQueries({
   )
   const filteredNationalDashboardBoundaries = filterNationalDashboardBoundariesByTenantIds(
     nationalDashboardBoundariesData,
-    activeTenantIds
+    knownTenantIds
   ) ?? {
     nationalBoundary: null,
     stateWiseBoundaries: [],

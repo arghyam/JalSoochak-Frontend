@@ -1343,7 +1343,15 @@ describe('CentralDashboard', () => {
     ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
       data: {
         totalStatesCount: 1,
-        states: [{ value: 'karnataka', label: 'Karnataka', tenantId: 1, tenantCode: 'KA' }],
+        states: [
+          {
+            value: 'karnataka',
+            label: 'Karnataka',
+            tenantId: 1,
+            tenantCode: 'KA',
+            status: 'ACTIVE',
+          },
+        ],
       },
     })
     ;(useNationalDashboardQuery as jest.Mock).mockReturnValue({

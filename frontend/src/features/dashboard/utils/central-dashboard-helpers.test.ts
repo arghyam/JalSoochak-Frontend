@@ -11,6 +11,7 @@ import {
   filterNationalDashboardByTenantIds,
   findLocationOption,
   getInitialStoredDuration,
+  isActiveTenantStatus,
   mapLocationOptions,
   mapNationalBoundariesToPerformance,
   navigateWithUpdatedFilters,
@@ -36,6 +37,15 @@ const fallbackPerformance: EntityPerformance = {
 }
 
 describe('central dashboard helpers', () => {
+  it('treats only ACTIVE as an active tenant status', () => {
+    expect(isActiveTenantStatus('ACTIVE')).toBe(true)
+    expect(isActiveTenantStatus('INACTIVE')).toBe(false)
+    expect(isActiveTenantStatus('SUSPENDED')).toBe(false)
+    expect(isActiveTenantStatus('ONBOARDED')).toBe(false)
+    expect(isActiveTenantStatus()).toBe(false)
+    expect(isActiveTenantStatus('')).toBe(false)
+  })
+
   it('keeps ISO dates and parses configured display dates', () => {
     expect(toIsoDate('2026-03-01')).toBe('2026-03-01')
     expect(toIsoDate('01/03/2026', 'DD/MM/YYYY')).toBe('2026-03-01')

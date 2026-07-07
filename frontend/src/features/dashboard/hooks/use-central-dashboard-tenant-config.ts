@@ -4,7 +4,7 @@ import { slugify } from '../utils/format-location-label'
 import { parseStableLocationValue } from '../utils/stable-location-value'
 import { DEFAULT_SCREEN_DATE_FORMAT, normalizeDateFormat } from '@/shared/utils/date-format'
 import { getRuntimeConfig } from '@/config/runtime-config'
-import { resolvePositiveNumber } from '../utils/central-dashboard-helpers'
+import { isActiveTenantStatus, resolvePositiveNumber } from '../utils/central-dashboard-helpers'
 
 type UseCentralDashboardTenantConfigParams = {
   singleTenantOverride?: StateUtOption
@@ -43,22 +43,28 @@ export function useCentralDashboardTenantConfig({
       return singleTenantOverride
     }
 
-    const byStateSlug = locationSearchStates.find((option) => option.value === selectedState)
+    // Only ACTIVE tenants are reachable. A non-ACTIVE (or unknown) slug resolves to no
+    // tenant → the dashboard stays on the national view.
+    const activeStates = locationSearchStates.filter((option) =>
+      isActiveTenantStatus(option.status)
+    )
+
+    const byStateSlug = activeStates.find((option) => option.value === selectedState)
     if (byStateSlug) {
       return byStateSlug
     }
 
-    if (isDepartmentTabActive && locationSearchStates.length > 0) {
-      if (locationSearchStates.length === 1) {
-        return locationSearchStates[0]
+    if (isDepartmentTabActive && activeStates.length > 0) {
+      if (activeStates.length === 1) {
+        return activeStates[0]
       }
 
       const departmentKey = parseStableLocationValue(effectiveSelectedDepartmentState).lastSegment
       if (departmentKey) {
         return (
-          locationSearchStates.find(
+          activeStates.find(
             (option) => option.value === departmentKey || slugify(option.label) === departmentKey
-          ) ?? locationSearchStates[0]
+          ) ?? activeStates[0]
         )
       }
     }
