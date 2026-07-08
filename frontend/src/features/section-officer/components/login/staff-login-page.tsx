@@ -90,8 +90,11 @@ export function StaffLoginPage() {
 
   const fullPhoneNumber = `${COUNTRY_CODE}${phoneDigits}`
 
-  // In single-tenant mode the tenant comes exclusively from tenants[0]; never fall back to the cookie
-  const resolvedTenantCode = isSingleTenantMode() ? (tenants[0]?.stateCode ?? '') : tenantCode
+  // In single-tenant mode the tenant comes exclusively from the first ACTIVE tenant;
+  // never fall back to the cookie and never resolve to a non-active tenant.
+  const resolvedTenantCode = isSingleTenantMode()
+    ? (tenants.find((t) => t.status === 'ACTIVE')?.stateCode ?? '')
+    : tenantCode
 
   // Save resolved tenant code to cookie whenever it changes
   useEffect(() => {

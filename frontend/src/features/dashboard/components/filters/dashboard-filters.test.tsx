@@ -75,7 +75,7 @@ describe('DashboardFilters', () => {
     mockUseLocationSearchQuery.mockReturnValue({
       data: {
         totalStatesCount: 36,
-        states: [{ value: 'telangana', label: 'Telangana' }],
+        states: [{ value: 'telangana', label: 'Telangana', status: 'ACTIVE' }],
       },
     })
     mockUseLocationHierarchyQuery.mockReturnValue({ data: undefined })
@@ -384,7 +384,7 @@ describe('DashboardFilters', () => {
     mockUseLocationSearchQuery.mockReturnValue({
       data: {
         totalStatesCount: 1,
-        states: [{ value: 'assam', label: 'Assam' }],
+        states: [{ value: 'assam', label: 'Assam', status: 'ACTIVE' }],
       },
     })
     mockUseLocationHierarchyQuery.mockReturnValue({
@@ -526,7 +526,7 @@ describe('DashboardFilters', () => {
     mockUseLocationSearchQuery.mockReturnValue({
       data: {
         totalStatesCount: 1,
-        states: [{ value: 'assam', label: 'Assam' }],
+        states: [{ value: 'assam', label: 'Assam', status: 'ACTIVE' }],
       },
     })
     mockUseLocationHierarchyQuery.mockReturnValue({
@@ -584,7 +584,7 @@ describe('DashboardFilters', () => {
     mockUseLocationSearchQuery.mockReturnValue({
       data: {
         totalStatesCount: 1,
-        states: [{ value: 'assam', label: 'Assam' }],
+        states: [{ value: 'assam', label: 'Assam', status: 'ACTIVE' }],
       },
     })
     mockUseLocationHierarchyQuery.mockReturnValue({
@@ -726,7 +726,7 @@ describe('DashboardFilters', () => {
     mockUseLocationSearchQuery.mockReturnValue({
       data: {
         totalStatesCount: 1,
-        states: [{ value: 'assam', label: 'Assam', tenantId: 10 }],
+        states: [{ value: 'assam', label: 'Assam', tenantId: 10, status: 'ACTIVE' }],
       },
     })
     mockUseLocationChildrenQuery.mockImplementation((options: unknown) => {
@@ -769,11 +769,33 @@ describe('DashboardFilters', () => {
     expect(screen.queryByText('<script>alert(1)</Script>s (1)')).toBeNull()
   })
 
+  it('excludes non-ACTIVE tenants from the breadcrumb state options', () => {
+    mockUseLocationSearchQuery.mockReturnValue({
+      data: {
+        totalStatesCount: 2,
+        states: [
+          { value: 'assam', label: 'Assam', tenantId: 17, status: 'ACTIVE' },
+          { value: 'bihar', label: 'Bihar', tenantId: 18, status: 'INACTIVE' },
+        ],
+      },
+    })
+
+    renderDashboardFilters()
+
+    const searchInput = screen.getByRole('textbox')
+    fireEvent.focus(searchInput)
+
+    expect(screen.getByText('Assam')).toBeTruthy()
+    expect(screen.queryByText('Bihar')).toBeNull()
+  })
+
   it('resolves the tenant from the slug when department state is hydrated as a stable value', () => {
     mockUseLocationSearchQuery.mockReturnValue({
       data: {
         totalStatesCount: 1,
-        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+        states: [
+          { value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS', status: 'ACTIVE' },
+        ],
       },
     })
 
@@ -798,7 +820,9 @@ describe('DashboardFilters', () => {
     mockUseLocationSearchQuery.mockReturnValue({
       data: {
         totalStatesCount: 1,
-        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+        states: [
+          { value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS', status: 'ACTIVE' },
+        ],
       },
     })
     mockUseLocationChildrenQuery.mockImplementation((args?: unknown) => {
@@ -854,7 +878,9 @@ describe('DashboardFilters', () => {
     mockUseLocationSearchQuery.mockReturnValue({
       data: {
         totalStatesCount: 1,
-        states: [{ value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS' }],
+        states: [
+          { value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS', status: 'ACTIVE' },
+        ],
       },
     })
     mockUseLocationHierarchyQuery.mockReturnValue({
@@ -1357,7 +1383,7 @@ describe('DashboardFilters', () => {
     mockUseLocationSearchQuery.mockReturnValue({
       data: {
         totalStatesCount: 1,
-        states: [{ value: 'assam', label: 'Assam' }],
+        states: [{ value: 'assam', label: 'Assam', status: 'ACTIVE' }],
       },
     })
 

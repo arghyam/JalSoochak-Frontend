@@ -152,6 +152,7 @@ export interface StateUtOption {
   label: string
   tenantId?: number
   tenantCode?: string
+  status?: string
 }
 
 export interface StateUtSearchResponse {
