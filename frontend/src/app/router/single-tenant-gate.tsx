@@ -3,6 +3,7 @@ import { useLocationSearchQuery } from '@/features/dashboard/services/query/use-
 import { DashboardLayout } from '@/shared/components/layout'
 import { CentralDashboard } from '@/features/dashboard/components/central-dashboard'
 import { isSingleTenantMode } from '@/config/server-config'
+import { isActiveTenantStatus } from '@/features/dashboard/utils/central-dashboard-helpers'
 import { LoadingSpinner } from '@/shared/components/common'
 import { Box, Text } from '@chakra-ui/react'
 
@@ -55,17 +56,20 @@ function SingleTenantContent() {
     )
   }
 
-  // In single-tenant mode, the configured tenant is always the first one from the API
-  // (single-tenant deployments only have one tenant in the backend)
-  const configuredTenant = locationSearchData.states[0]
+  // In single-tenant mode, the configured tenant is the first ACTIVE tenant from the API.
+  // (single-tenant deployments only have one tenant in the backend, but a non-ACTIVE
+  // tenant must never be surfaced.)
+  const configuredTenant = locationSearchData.states.find((state) =>
+    isActiveTenantStatus(state.status)
+  )
 
-  // No tenants configured
+  // No active tenant configured
   if (!configuredTenant) {
     return (
       <DashboardLayout>
         <Box p={6} textAlign="center">
           <Text color="red.500">
-            No tenants found in single-tenant mode. Please check your configuration.
+            No active tenant found in single-tenant mode. Please check your configuration.
           </Text>
         </Box>
       </DashboardLayout>

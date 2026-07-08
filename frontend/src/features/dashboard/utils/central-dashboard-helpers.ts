@@ -15,6 +15,12 @@ import { parseStableLocationValue, toStableLocationValue } from './stable-locati
 
 export const CENTRAL_DASHBOARD_FILTER_STORAGE_KEY = 'central-dashboard-filters'
 
+// A tenant is only accessible (drillable, selectable, shown with data) when its
+// backend status is ACTIVE. Any other status (INACTIVE, ONBOARDED, CONFIGURED,
+// SUSPENDED, DEGRADED, ARCHIVED) is treated as non-active: grayed on the national
+// map and blocked from drilldown/URL/filter access.
+export const isActiveTenantStatus = (status?: string): boolean => status === 'ACTIVE'
+
 export type StoredFilters = {
   selectedState?: string
   selectedDistrict?: string

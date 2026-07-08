@@ -33,8 +33,8 @@ describe('locationSearchApi', () => {
     expect(response).toEqual({
       totalStatesCount: 2,
       states: [
-        { value: 'andhra-pradesh', label: 'Andhra Pradesh' },
-        { value: 'telangana', label: 'Telangana' },
+        { value: 'andhra-pradesh', label: 'Andhra Pradesh', status: 'ACTIVE' },
+        { value: 'telangana', label: 'Telangana', status: 'ACTIVE' },
       ],
     })
   })
@@ -54,7 +54,7 @@ describe('locationSearchApi', () => {
 
     expect(response).toEqual({
       totalStatesCount: 1,
-      states: [{ value: 'telangana', label: 'Telangana' }],
+      states: [{ value: 'telangana', label: 'Telangana', status: 'ACTIVE' }],
     })
   })
 
@@ -72,7 +72,7 @@ describe('locationSearchApi', () => {
 
     expect(response).toEqual({
       totalStatesCount: 1,
-      states: [{ value: 'assam', label: 'Assam' }],
+      states: [{ value: 'assam', label: 'Assam', status: 'ACTIVE' }],
     })
   })
 
@@ -94,7 +94,7 @@ describe('locationSearchApi', () => {
 
     expect(response).toEqual({
       totalStatesCount: 1,
-      states: [{ value: 'telangana', label: 'Telangana', tenantId: 16 }],
+      states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, status: 'ACTIVE' }],
     })
   })
 
@@ -117,8 +117,40 @@ describe('locationSearchApi', () => {
     expect(response).toEqual({
       totalStatesCount: 2,
       states: [
-        { value: 'assam', label: 'Assam', tenantId: 17 },
-        { value: 'telangana', label: 'Telangana', tenantId: 16 },
+        { value: 'assam', label: 'Assam', tenantId: 17, status: 'ACTIVE' },
+        { value: 'telangana', label: 'Telangana', tenantId: 16, status: 'ACTIVE' },
+      ],
+    })
+  })
+
+  it('retains non-ACTIVE tenants and preserves their status', async () => {
+    const apiResponse = {
+      data: {
+        content: [
+          { id: 16, uuid: 'tenant-16', name: 'Telangana', stateCode: 'TG', status: 'ACTIVE' },
+          { id: 17, uuid: 'tenant-17', name: 'Assam', stateCode: 'AS', status: 'INACTIVE' },
+        ],
+        totalElements: 2,
+      },
+    }
+    mockGetTenants.mockImplementation(async () => apiResponse)
+
+    const { locationSearchApi } = await import('./location-search-api')
+    const response = await locationSearchApi.getStatesUts()
+
+    // Non-ACTIVE tenants are NOT dropped here — the national map needs their geometry
+    // to render them grayed; their status is carried through for downstream gating.
+    expect(response).toEqual({
+      totalStatesCount: 2,
+      states: [
+        { value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS', status: 'INACTIVE' },
+        {
+          value: 'telangana',
+          label: 'Telangana',
+          tenantId: 16,
+          tenantCode: 'TG',
+          status: 'ACTIVE',
+        },
       ],
     })
   })

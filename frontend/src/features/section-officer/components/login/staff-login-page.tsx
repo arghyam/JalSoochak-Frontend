@@ -33,6 +33,7 @@ import jalsoochakLogo from '@/assets/media/logo.svg'
 import { BiArrowBack } from 'react-icons/bi'
 import { useAuthStore } from '@/app/store'
 import { isSingleTenantMode } from '@/config/server-config'
+import { isActiveTenantStatus } from '@/features/dashboard/utils/central-dashboard-helpers'
 import { getCookie, setCookie } from '@/shared/utils/cookies'
 import {
   usePublicTenantsQuery,
@@ -90,8 +91,11 @@ export function StaffLoginPage() {
 
   const fullPhoneNumber = `${COUNTRY_CODE}${phoneDigits}`
 
-  // In single-tenant mode the tenant comes exclusively from tenants[0]; never fall back to the cookie
-  const resolvedTenantCode = isSingleTenantMode() ? (tenants[0]?.stateCode ?? '') : tenantCode
+  // In single-tenant mode the tenant comes exclusively from the first ACTIVE tenant;
+  // never fall back to the cookie and never resolve to a non-active tenant.
+  const resolvedTenantCode = isSingleTenantMode()
+    ? (tenants.find((t) => isActiveTenantStatus(t.status))?.stateCode ?? '')
+    : tenantCode
 
   // Save resolved tenant code to cookie whenever it changes
   useEffect(() => {
@@ -155,6 +159,10 @@ export function StaffLoginPage() {
       return
     }
     if (!isSingleTenantMode() && !tenantCode) {
+      setTenantError(t('login.phoneStep.stateError'))
+      return
+    }
+    if (!resolvedTenantCode) {
       setTenantError(t('login.phoneStep.stateError'))
       return
     }

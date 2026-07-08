@@ -20,6 +20,7 @@ import {
   normalizeHierarchyLabel,
 } from '../../utils/hierarchy-label'
 import { useDashboardDefaultDateRange } from '../../utils/default-duration'
+import { isActiveTenantStatus } from '../../utils/central-dashboard-helpers'
 import type { HierarchyType } from '../../services/api/dashboard-api'
 import type { TenantChildLocation } from '../../services/api/dashboard-api'
 
@@ -197,8 +198,11 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   const { data: locationSearchData } = useLocationSearchQuery({
     enabled: isBreadcrumbPanelOpen,
   })
-  const breadcrumbStateOptions = locationSearchData?.states ?? []
-  const totalStatesCount = locationSearchData?.totalStatesCount ?? 0
+  // Only ACTIVE tenants are selectable — non-ACTIVE tenants must not be reachable via filters.
+  const breadcrumbStateOptions = (locationSearchData?.states ?? []).filter((option) =>
+    isActiveTenantStatus(option.status)
+  )
+  const totalStatesCount = breadcrumbStateOptions.length
   const hierarchyType: HierarchyType = filterTabIndex === 0 ? 'LGD' : 'DEPARTMENT'
   const isDepartmentTab = hierarchyType === 'DEPARTMENT'
   const activeSelectedState =

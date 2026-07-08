@@ -45,6 +45,7 @@ export const locationSearchApi = {
         label: string
         tenantId?: number
         tenantCode?: string
+        status?: string
       }
 
       if (typeof tenant.id === 'number') {
@@ -52,6 +53,9 @@ export const locationSearchApi = {
       }
       if (tenant.stateCode) {
         option.tenantCode = tenant.stateCode
+      }
+      if (tenant.status) {
+        option.status = tenant.status
       }
 
       return option
