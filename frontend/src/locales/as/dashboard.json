@@ -130,10 +130,10 @@
         }
       },
       "regularity": {
-        "formulaLabel": "আঁচনিৰ নিয়মিততা",
+        "formulaLabel": "নিয়মিততা",
         "definitions": {
-          "numberOfSupplyDays": "আঁচনিৰ ধাৰাবাহিক যোগান-দিনৰ সংখ্যা",
-          "totalNumberOfDaysInSelectedPeriod": "নিৰ্বাচিত সময়কালত মুঠ দিনৰ সংখ্যা"
+          "regularSchemes": "নিয়মিতভাৱে পানী যোগান ধৰা আঁচনিৰ সংখ্যা",
+          "totalSchemes": "আঁচনিৰ মুঠ সংখ্যা"
         }
       }
     },
@@ -330,11 +330,11 @@
     "regularityPerformance": {
       "title": "নিয়মিততা কাৰ্যক্ষমতা",
       "category": "মেট্ৰিক",
-      "description": "আঁচনিবোৰে নিৰন্তৰভাৱে পানী যোগান ধৰা বাছনি কৰা সময়ৰ ভিতৰত দিনৰ শতাংশ।",
-      "formulaLabel": "আঁচনিৰ নিয়মিততা",
+      "description": "নিৰ্বাচিত সময়কালত নিয়মিতভাৱে পানী যোগান ধৰা আঁচনিৰ শতাংশ।",
+      "formulaLabel": "নিয়মিততা",
       "definitions": {
-        "xi": "আঁচনি i-ৰ ধাৰাবাহিক যোগান-দিনৰ সংখ্যা",
-        "n": "নিৰ্বাচিত সময়কালত মুঠ দিনৰ সংখ্যা"
+        "regularSchemes": "নিয়মিতভাৱে পানী যোগান ধৰা আঁচনিৰ সংখ্যা",
+        "totalSchemes": "আঁচনিৰ মুঠ সংখ্যা"
       }
     },
     "quantityPerformance": {

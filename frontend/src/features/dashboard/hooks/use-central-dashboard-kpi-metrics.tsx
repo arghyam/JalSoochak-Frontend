@@ -300,20 +300,19 @@ export function buildCentralDashboardKpiMetrics({
       ),
       tooltipContent: renderFormulaTooltip(
         <>
-          {t('kpi.tooltips.regularity.formulaLabel', { defaultValue: 'Regularity of scheme' })} = X
-          <sub>i</sub> / N * 100
+          {t('kpi.tooltips.regularity.formulaLabel', { defaultValue: 'Regularity' })} = R / S * 100
         </>,
         [
           <>
-            X<sub>i</sub> ={' '}
-            {t('kpi.tooltips.regularity.definitions.numberOfSupplyDays', {
-              defaultValue: 'Number of continuous supply-days of scheme',
+            R ={' '}
+            {t('kpi.tooltips.regularity.definitions.regularSchemes', {
+              defaultValue: 'number of schemes supplying water regularly',
             })}
           </>,
           <>
-            N ={' '}
-            {t('kpi.tooltips.regularity.definitions.totalNumberOfDaysInSelectedPeriod', {
-              defaultValue: 'total number of days in the selected time period',
+            S ={' '}
+            {t('kpi.tooltips.regularity.definitions.totalSchemes', {
+              defaultValue: 'total number of schemes',
             })}
           </>,
         ]

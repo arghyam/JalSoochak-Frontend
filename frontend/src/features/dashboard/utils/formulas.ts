@@ -190,21 +190,19 @@ export const calculateDemandMld = (
 }
 
 export const calculateAverageRegularityPercent = (
-  totalSupplyDays: number,
-  schemeCount: number,
-  daysInRange: number
+  regularSchemeCount: number,
+  schemeCount: number
 ): number => {
   if (
-    !isFiniteNumber(totalSupplyDays) ||
+    !isFiniteNumber(regularSchemeCount) ||
     !isFiniteNumber(schemeCount) ||
-    totalSupplyDays <= 0 ||
-    schemeCount <= 0 ||
-    daysInRange <= 0
+    regularSchemeCount <= 0 ||
+    schemeCount <= 0
   ) {
     return 0
   }
 
-  return Number(clamp((totalSupplyDays / (schemeCount * daysInRange)) * 100, 0, 100).toFixed(1))
+  return Number(clamp((regularSchemeCount / schemeCount) * 100, 0, 100).toFixed(1))
 }
 
 export const calculateReadingSubmissionRatePercent = (
@@ -542,24 +540,13 @@ export const mapTenantBoundariesToPerformance = (
   const schemeCountById = new Map<string, number>()
   const schemeCountByName = new Map<string, number>()
 
-  const regularityDaysInRange = resolveDaysInRange(
-    regularityAnalytics?.daysInRange,
-    regularityAnalytics?.startDate,
-    regularityAnalytics?.endDate
-  )
-
   ;(regularityAnalytics?.childRegions ?? []).forEach((region) => {
     const regularityPercent =
-      Number.isFinite(region.totalSupplyDays) &&
-      region.totalSupplyDays > 0 &&
+      Number.isFinite(region.regularSchemeCount) &&
+      region.regularSchemeCount > 0 &&
       Number.isFinite(region.schemeCount) &&
-      region.schemeCount > 0 &&
-      regularityDaysInRange > 0
-        ? calculateAverageRegularityPercent(
-            region.totalSupplyDays,
-            region.schemeCount,
-            regularityDaysInRange
-          )
+      region.schemeCount > 0
+        ? calculateAverageRegularityPercent(region.regularSchemeCount, region.schemeCount)
         : typeof region.averageRegularity === 'number' && Number.isFinite(region.averageRegularity)
           ? Number((region.averageRegularity * 100).toFixed(1))
           : 0
@@ -807,7 +794,6 @@ export const mapRegularityPerformanceFromAnalytics = (
 
   const childRegions = response.childRegions
   const fallbackByName = mapFallbackByName(fallbackData)
-  const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
 
   return childRegions.map((region, index) => {
     const fallbackMatch = fallbackByName.get(slugify(region.title)) ?? fallbackData[index]
@@ -818,11 +804,7 @@ export const mapRegularityPerformanceFromAnalytics = (
         `regularity-performance-${index}-${slugify(region.title || String(index))}`,
       name: formatEntityName(region.title, fallbackMatch?.name, `Region ${index + 1}`),
       coverage: fallbackMatch?.coverage ?? 0,
-      regularity: calculateAverageRegularityPercent(
-        region.totalSupplyDays,
-        region.schemeCount,
-        daysInRange
-      ),
+      regularity: calculateAverageRegularityPercent(region.regularSchemeCount, region.schemeCount),
       continuity: fallbackMatch?.continuity ?? 0,
       quantity: fallbackMatch?.quantity ?? 0,
       compositeScore: fallbackMatch?.compositeScore ?? 0,
@@ -937,8 +919,6 @@ export const mapRegularityPerformanceFromNationalDashboard = (
     return []
   }
 
-  const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
-
   return response.stateWiseRegularity.map((state, index) => {
     const fallbackMatch = mapNationalFallbackMatch(fallbackData, state.stateTitle, index)
 
@@ -946,11 +926,7 @@ export const mapRegularityPerformanceFromNationalDashboard = (
       id: fallbackMatch?.id ?? `national-regularity-${state.stateCode || index}`,
       name: formatEntityName(state.stateTitle, fallbackMatch?.name, `State ${index + 1}`),
       coverage: fallbackMatch?.coverage ?? 0,
-      regularity: calculateAverageRegularityPercent(
-        state.totalSupplyDays,
-        state.schemeCount,
-        daysInRange
-      ),
+      regularity: calculateAverageRegularityPercent(state.regularSchemeCount, state.schemeCount),
       continuity: fallbackMatch?.continuity ?? 0,
       quantity: fallbackMatch?.quantity ?? 0,
       compositeScore: fallbackMatch?.compositeScore ?? 0,
@@ -1209,11 +1185,6 @@ export const mapOverallPerformanceFromAnalytics = (
     waterSupplyResponse.startDate,
     waterSupplyResponse.endDate
   )
-  const regularityDaysInRange = resolveDaysInRange(
-    regularityResponse?.daysInRange,
-    regularityResponse?.startDate,
-    regularityResponse?.endDate
-  )
 
   return waterChildRegions.map((region, index) => {
     const matchingRegularity = regularityByName.get(slugify(region.title))
@@ -1230,9 +1201,8 @@ export const mapOverallPerformanceFromAnalytics = (
       coverage: calculateQuantityMld(region.totalWaterSuppliedLiters, waterDaysInRange),
       regularity: matchingRegularity
         ? calculateAverageRegularityPercent(
-            matchingRegularity.totalSupplyDays,
-            matchingRegularity.schemeCount,
-            regularityDaysInRange
+            matchingRegularity.regularSchemeCount,
+            matchingRegularity.schemeCount
           )
         : 0,
       continuity: 0,
@@ -1284,9 +1254,8 @@ export const mapOverallPerformanceFromNationalDashboard = (
       coverage: calculateQuantityMld(state.totalWaterSuppliedLiters, daysInRange),
       regularity: matchingRegularity
         ? calculateAverageRegularityPercent(
-            matchingRegularity.totalSupplyDays,
-            matchingRegularity.schemeCount,
-            daysInRange
+            matchingRegularity.regularSchemeCount,
+            matchingRegularity.schemeCount
           )
         : 0,
       continuity: 0,
