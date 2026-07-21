@@ -5,6 +5,14 @@ import { parseJWT } from '@/shared/utils/jwt'
 export interface LoginRequest {
   email: string
   password: string
+  /** reCAPTCHA v2 token; sent only when captcha is enabled. */
+  captchaToken?: string
+}
+
+export interface ForgotPasswordRequest {
+  email: string
+  /** reCAPTCHA v2 token; sent only when captcha is enabled. */
+  captchaToken?: string
 }
 
 export interface RegisterRequest {
@@ -200,6 +208,7 @@ export const authApi = {
     const response = await apiClient.post<ApiResponse<TokenResponse>>('/api/v1/auth/login', {
       email: payload.email,
       password: payload.password,
+      ...(payload.captchaToken ? { captchaToken: payload.captchaToken } : {}),
     })
     const tokenData = response.data.data
     if (!tokenData.access_token) {
@@ -441,9 +450,12 @@ export const authApi = {
   },
 
   /** POST /api/v1/auth/forgot-password — send reset link to email. */
-  forgotPassword: async (email: string): Promise<void> => {
+  forgotPassword: async ({ email, captchaToken }: ForgotPasswordRequest): Promise<void> => {
     try {
-      await apiClient.post('/api/v1/auth/forgot-password', { email })
+      await apiClient.post('/api/v1/auth/forgot-password', {
+        email,
+        ...(captchaToken ? { captchaToken } : {}),
+      })
     } catch (err: unknown) {
       let message = 'Failed to send reset link.'
       if (isAxiosError(err) && typeof err.response?.data?.message === 'string') {

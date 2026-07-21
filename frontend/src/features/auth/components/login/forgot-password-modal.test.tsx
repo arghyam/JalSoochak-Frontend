@@ -90,7 +90,7 @@ describe('ForgotPasswordModal — form view', () => {
       target: { value: '  test@example.com  ' },
     })
     fireEvent.click(screen.getByRole('button', { name: /send reset link/i }))
-    expect(mockMutate).toHaveBeenCalledWith('test@example.com', expect.any(Object))
+    expect(mockMutate).toHaveBeenCalledWith({ email: 'test@example.com' }, expect.any(Object))
   })
 
   it('calls onClose when Cancel is clicked', () => {
@@ -169,5 +169,48 @@ describe('ForgotPasswordModal — success view', () => {
     await waitFor(() => screen.getByRole('button', { name: /back to login/i }))
     fireEvent.click(screen.getByRole('button', { name: /back to login/i }))
     expect(mockOnClose).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('ForgotPasswordModal — captcha enabled', () => {
+  const originalConfig = window.APP_CONFIG
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    setupMutation()
+    window.APP_CONFIG = {
+      ...originalConfig,
+      API_BASE_URL: '',
+      SINGLE_TENANT_MODE: false,
+      CAPTCHA_ENABLED: true,
+      RECAPTCHA_SITE_KEY: 'test-site-key',
+    }
+  })
+
+  afterEach(() => {
+    window.APP_CONFIG = originalConfig
+  })
+
+  it('blocks submit and shows captcha error until solved', () => {
+    renderModal()
+    fireEvent.change(screen.getByPlaceholderText(/enter your email/i), {
+      target: { value: 'test@example.com' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /send reset link/i }))
+    expect(mockMutate).not.toHaveBeenCalled()
+    expect(screen.getByText('Please complete the captcha verification.')).toBeTruthy()
+  })
+
+  it('sends captchaToken once the captcha is solved', () => {
+    renderModal()
+    fireEvent.change(screen.getByPlaceholderText(/enter your email/i), {
+      target: { value: 'test@example.com' },
+    })
+    fireEvent.click(screen.getByTestId('recaptcha-widget'))
+    fireEvent.click(screen.getByRole('button', { name: /send reset link/i }))
+    expect(mockMutate).toHaveBeenCalledWith(
+      { email: 'test@example.com', captchaToken: 'test-captcha-token' },
+      expect.any(Object)
+    )
   })
 })

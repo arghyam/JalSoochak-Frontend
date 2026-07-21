@@ -403,7 +403,7 @@ describe('authApi', () => {
     const err = new AxiosError('x')
     err.response = { data: { message: 'Rate limit' }, status: 429 } as never
     mockedClient.post.mockRejectedValueOnce(err)
-    await expect(authApi.forgotPassword('a@b.com')).rejects.toThrow('Rate limit')
+    await expect(authApi.forgotPassword({ email: 'a@b.com' })).rejects.toThrow('Rate limit')
   })
 
   it('resetPassword posts payload', async () => {
@@ -426,9 +426,30 @@ describe('authApi', () => {
 
   it('forgotPassword completes when post succeeds', async () => {
     mockedClient.post.mockResolvedValueOnce({} as never)
-    await authApi.forgotPassword('a@b.com')
+    await authApi.forgotPassword({ email: 'a@b.com' })
     expect(mockedClient.post).toHaveBeenCalledWith('/api/v1/auth/forgot-password', {
       email: 'a@b.com',
+    })
+  })
+
+  it('forgotPassword includes captchaToken when provided', async () => {
+    mockedClient.post.mockResolvedValueOnce({} as never)
+    await authApi.forgotPassword({ email: 'a@b.com', captchaToken: 'tok' })
+    expect(mockedClient.post).toHaveBeenCalledWith('/api/v1/auth/forgot-password', {
+      email: 'a@b.com',
+      captchaToken: 'tok',
+    })
+  })
+
+  it('login includes captchaToken when provided', async () => {
+    mockedClient.post.mockResolvedValueOnce({
+      data: { data: { ...tokenPayload, phone_number: '9' } },
+    } as never)
+    await authApi.login({ email: 'a', password: 'b', captchaToken: 'tok' })
+    expect(mockedClient.post).toHaveBeenCalledWith('/api/v1/auth/login', {
+      email: 'a',
+      password: 'b',
+      captchaToken: 'tok',
     })
   })
 

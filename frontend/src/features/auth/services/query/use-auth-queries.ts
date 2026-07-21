@@ -5,6 +5,7 @@ import type {
   UpdateMyProfileRequest,
   ChangeMyPasswordRequest,
   ResetPasswordRequest,
+  ForgotPasswordRequest,
 } from '@/features/auth/services/auth-api'
 import { authQueryKeys } from './auth-query-keys'
 
@@ -43,7 +44,7 @@ export function useChangeMyPasswordMutation() {
 
 export function useForgotPasswordMutation() {
   return useMutation({
-    mutationFn: (email: string) => authApi.forgotPassword(email),
+    mutationFn: (payload: ForgotPasswordRequest) => authApi.forgotPassword(payload),
   })
 }
 
