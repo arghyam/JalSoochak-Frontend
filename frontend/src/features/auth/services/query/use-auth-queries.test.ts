@@ -182,14 +182,14 @@ describe('useForgotPasswordMutation', () => {
     jest.clearAllMocks()
   })
 
-  it('calls authApi.forgotPassword with the provided email', async () => {
+  it('calls authApi.forgotPassword with the provided payload', async () => {
     ;(
       authApi.forgotPassword as jest.MockedFunction<typeof authApi.forgotPassword>
     ).mockResolvedValue(undefined)
     const { result } = renderHook(() => useForgotPasswordMutation(), { wrapper: createWrapper() })
-    result.current.mutate('test@example.com')
+    result.current.mutate({ email: 'test@example.com' })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(authApi.forgotPassword).toHaveBeenCalledWith('test@example.com')
+    expect(authApi.forgotPassword).toHaveBeenCalledWith({ email: 'test@example.com' })
   })
 
   it('exposes isError when API call fails', async () => {
@@ -197,7 +197,7 @@ describe('useForgotPasswordMutation', () => {
       authApi.forgotPassword as jest.MockedFunction<typeof authApi.forgotPassword>
     ).mockRejectedValue(new Error('Server error'))
     const { result } = renderHook(() => useForgotPasswordMutation(), { wrapper: createWrapper() })
-    result.current.mutate('test@example.com')
+    result.current.mutate({ email: 'test@example.com' })
     await waitFor(() => expect(result.current.isError).toBe(true))
   })
 })

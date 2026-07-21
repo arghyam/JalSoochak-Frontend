@@ -26,6 +26,8 @@ import jalsoochakLogo from '@/assets/media/logo.svg'
 import { useAuthStore } from '@/app/store'
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai'
 import { ForgotPasswordModal } from '@/features/auth/components/login/forgot-password-modal'
+import { RecaptchaField } from '@/shared/components/common'
+import { useRecaptcha } from '@/shared/hooks'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -47,6 +49,16 @@ export function LoginPage() {
   const { isOpen: isForgotPasswordOpen, onOpen, onClose } = useDisclosure()
   const [showBannerImage] = useMediaQuery('(min-width: 992px)')
   const [showPassword, setShowPassword] = useState(false)
+  const {
+    recaptchaRef,
+    handleChange: handleCaptchaChange,
+    handleExpired: handleCaptchaExpired,
+    reset: resetCaptcha,
+    satisfied: captchaSatisfied,
+    token: captchaToken,
+    error: captchaError,
+    setError: setCaptchaError,
+  } = useRecaptcha()
 
   const {
     register,
@@ -56,10 +68,15 @@ export function LoginPage() {
   } = useForm<LoginFormValues>({ resolver: zodResolver(loginSchema) })
 
   const onSubmit = async (values: LoginFormValues) => {
+    if (!captchaSatisfied) {
+      setCaptchaError(t('login.captchaRequired'))
+      return
+    }
     try {
-      const redirectPath = await login(values)
+      const redirectPath = await login({ ...values, captchaToken: captchaToken ?? undefined })
       navigate(redirectPath, { replace: true })
     } catch {
+      resetCaptcha()
       setError('root', { message: t('login.loginFailed') })
     }
   }
@@ -197,6 +214,13 @@ export function LoginPage() {
                       {t('login.forgotPassword')}
                     </Link>
                   </Flex>
+
+                  <RecaptchaField
+                    ref={recaptchaRef}
+                    onChange={handleCaptchaChange}
+                    onExpired={handleCaptchaExpired}
+                    error={captchaError}
+                  />
 
                   <Button
                     type="submit"

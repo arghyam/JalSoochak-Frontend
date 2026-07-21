@@ -1,6 +1,8 @@
 export interface OtpRequestPayload {
   phoneNumber: string
   tenantCode: string
+  /** reCAPTCHA v2 token; sent only when captcha is enabled. */
+  captchaToken?: string
 }
 
 export interface OtpRequestResponse {
