@@ -73,6 +73,8 @@ jest.mock('@/features/section-officer/services/query/use-staff-auth-queries', ()
 
 jest.mock('@/config/server-config', () => ({
   isSingleTenantMode: jest.fn(() => false),
+  isCaptchaEnabled: jest.fn(() => false),
+  getRecaptchaSiteKey: jest.fn(() => ''),
 }))
 
 jest.mock('@/features/auth/components/signup/auth-side-image', () => ({
@@ -544,5 +546,90 @@ describe('StaffLoginPage — Single-Tenant Mode', () => {
     expect(screen.getByText(enSectionOfficer.login.phoneStep.stateLoadFailed)).toBeTruthy()
     expect((screen.getByTestId('send-otp-button') as HTMLButtonElement).disabled).toBe(true)
     expect(mockRequestOtpMutate).not.toHaveBeenCalled()
+  })
+})
+
+describe('StaffLoginPage — Captcha enabled', () => {
+  const staffAuthQueries = jest.requireMock(
+    '@/features/section-officer/services/query/use-staff-auth-queries'
+  ) as {
+    usePublicTenantsQuery: jest.Mock
+    useRequestOtpMutation: jest.Mock
+    useVerifyOtpMutation: jest.Mock
+  }
+  const serverConfig = jest.requireMock('@/config/server-config') as {
+    isSingleTenantMode: jest.Mock
+    isCaptchaEnabled: jest.Mock
+    getRecaptchaSiteKey: jest.Mock
+  }
+
+  beforeEach(() => {
+    serverConfig.isSingleTenantMode.mockReturnValue(false)
+    serverConfig.isCaptchaEnabled.mockReturnValue(true)
+    serverConfig.getRecaptchaSiteKey.mockReturnValue('test-site-key')
+    staffAuthQueries.usePublicTenantsQuery.mockReturnValue({
+      data: [
+        { id: 1, stateCode: 'NL', name: 'Nagaland', status: 'ACTIVE' },
+        { id: 2, stateCode: 'MH', name: 'Maharashtra', status: 'ACTIVE' },
+      ],
+      isLoading: false,
+      isError: false,
+    })
+    staffAuthQueries.useRequestOtpMutation.mockReturnValue({
+      mutateAsync: mockRequestOtpMutate,
+      isPending: false,
+    })
+    staffAuthQueries.useVerifyOtpMutation.mockReturnValue({
+      mutateAsync: mockVerifyOtpMutate,
+      isPending: false,
+    })
+  })
+
+  afterEach(() => {
+    serverConfig.isCaptchaEnabled.mockReturnValue(false)
+    serverConfig.getRecaptchaSiteKey.mockReturnValue('')
+  })
+
+  async function fillPhoneAndTenant() {
+    await userEvent.type(screen.getByTestId('phone-input'), '8179020960')
+    await act(async () => {
+      fireEvent.click(screen.getByRole('combobox'))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByText('Nagaland'))
+    })
+  }
+
+  it('blocks Send OTP and shows captcha error until solved', async () => {
+    render(<StaffLoginPage />, { wrapper: createWrapper() })
+    await fillPhoneAndTenant()
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('send-otp-button'))
+    })
+
+    expect(mockRequestOtpMutate).not.toHaveBeenCalled()
+    expect(screen.getByText(enSectionOfficer.login.phoneStep.captchaRequired)).toBeTruthy()
+  })
+
+  it('sends captchaToken with requestOtp once the captcha is solved', async () => {
+    mockRequestOtpMutate.mockResolvedValueOnce({ status: 200, message: 'OTP sent', otpLength: 6 })
+    render(<StaffLoginPage />, { wrapper: createWrapper() })
+    await fillPhoneAndTenant()
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('recaptcha-widget'))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('send-otp-button'))
+    })
+
+    await waitFor(() => {
+      expect(mockRequestOtpMutate).toHaveBeenCalledWith({
+        phoneNumber: '918179020960',
+        tenantCode: 'NL',
+        captchaToken: 'test-captcha-token',
+      })
+    })
   })
 })

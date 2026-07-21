@@ -28,9 +28,11 @@ import {
   useMediaQuery,
 } from '@chakra-ui/react'
 import { AuthSideImage } from '@/features/auth/components/signup/auth-side-image'
-import { SearchableSelect } from '@/shared/components/common'
+import { SearchableSelect, RecaptchaField } from '@/shared/components/common'
+import { useRecaptcha } from '@/shared/hooks'
 import jalsoochakLogo from '@/assets/media/logo.svg'
 import { BiArrowBack } from 'react-icons/bi'
+import type ReCAPTCHA from 'react-google-recaptcha'
 import { useAuthStore } from '@/app/store'
 import { isSingleTenantMode } from '@/config/server-config'
 import { isActiveTenantStatus } from '@/features/dashboard/utils/central-dashboard-helpers'
@@ -83,6 +85,16 @@ export function StaffLoginPage() {
   } = usePublicTenantsQuery()
   const requestOtpMutation = useRequestOtpMutation()
   const verifyOtpMutation = useVerifyOtpMutation()
+  const {
+    recaptchaRef,
+    handleChange: handleCaptchaChange,
+    handleExpired: handleCaptchaExpired,
+    reset: resetCaptcha,
+    satisfied: captchaSatisfied,
+    token: captchaToken,
+    error: captchaError,
+    setError: setCaptchaError,
+  } = useRecaptcha()
 
   const tenantOptions = tenants.map((t) => ({
     value: t.stateCode,
@@ -166,11 +178,16 @@ export function StaffLoginPage() {
       setTenantError(t('login.phoneStep.stateError'))
       return
     }
+    if (!captchaSatisfied) {
+      setCaptchaError(t('login.phoneStep.captchaRequired'))
+      return
+    }
 
     try {
       const result = await requestOtpMutation.mutateAsync({
         phoneNumber: fullPhoneNumber,
         tenantCode: resolvedTenantCode,
+        captchaToken: captchaToken ?? undefined,
       })
       const rawLength = result.otpLength ?? OTP_FALLBACK_LENGTH
       const validatedLength =
@@ -183,6 +200,7 @@ export function StaffLoginPage() {
       startCooldown()
       setStep('otp')
     } catch {
+      resetCaptcha()
       setPhoneError(t('login.phoneStep.sendOtpFailed'))
     }
   }
@@ -273,6 +291,7 @@ export function StaffLoginPage() {
     setStep('phone')
     setOtpValues(Array(otpLength).fill(''))
     setOtpError(null)
+    resetCaptcha()
   }
 
   return (
@@ -314,6 +333,10 @@ export function StaffLoginPage() {
                   isLoading={requestOtpMutation.isPending}
                   onSubmit={handleSendOtp}
                   isSingleTenant={isSingleTenantMode()}
+                  recaptchaRef={recaptchaRef}
+                  onCaptchaChange={handleCaptchaChange}
+                  onCaptchaExpired={handleCaptchaExpired}
+                  captchaError={captchaError}
                 />
               ) : (
                 <OtpStep
@@ -359,6 +382,10 @@ interface PhoneStepProps {
   isLoading: boolean
   onSubmit: () => void
   isSingleTenant: boolean
+  recaptchaRef: RefObject<ReCAPTCHA>
+  onCaptchaChange: (token: string | null) => void
+  onCaptchaExpired: () => void
+  captchaError: string | null
 }
 
 function PhoneStep({
@@ -375,6 +402,10 @@ function PhoneStep({
   isLoading,
   onSubmit,
   isSingleTenant,
+  recaptchaRef,
+  onCaptchaChange,
+  onCaptchaExpired,
+  captchaError,
 }: PhoneStepProps) {
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Enter') onSubmit()
@@ -476,6 +507,13 @@ function PhoneStep({
             {!tenantsError && tenantError && <FormErrorMessage>{tenantError}</FormErrorMessage>}
           </FormControl>
         )}
+
+        <RecaptchaField
+          ref={recaptchaRef}
+          onChange={onCaptchaChange}
+          onExpired={onCaptchaExpired}
+          error={captchaError}
+        />
 
         <Button
           w="full"

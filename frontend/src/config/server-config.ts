@@ -8,6 +8,14 @@ export function isSingleTenantMode(): boolean {
   return getRuntimeConfig().SINGLE_TENANT_MODE
 }
 
+export function isCaptchaEnabled(): boolean {
+  return getRuntimeConfig().CAPTCHA_ENABLED === true
+}
+
+export function getRecaptchaSiteKey(): string {
+  return getRuntimeConfig().RECAPTCHA_SITE_KEY ?? ''
+}
+
 export function shouldShowSupplyOutageCharts(): boolean {
   return getRuntimeConfig().SHOW_SUPPLY_OUTAGE_CHARTS === true
 }

@@ -16,6 +16,8 @@ import {
 import { HiOutlineMail } from 'react-icons/hi'
 import { useTranslation } from 'react-i18next'
 import { useForgotPasswordMutation } from '@/features/auth/services/query/use-auth-queries'
+import { RecaptchaField } from '@/shared/components/common'
+import { useRecaptcha } from '@/shared/hooks'
 
 type ForgotPasswordModalProps = {
   isOpen: boolean
@@ -28,11 +30,22 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
   const [emailError, setEmailError] = useState('')
   const [isSuccess, setIsSuccess] = useState(false)
   const forgotPasswordMutation = useForgotPasswordMutation()
+  const {
+    recaptchaRef,
+    handleChange: handleCaptchaChange,
+    handleExpired: handleCaptchaExpired,
+    reset: resetCaptcha,
+    satisfied: captchaSatisfied,
+    token: captchaToken,
+    error: captchaError,
+    setError: setCaptchaError,
+  } = useRecaptcha()
 
   const handleClose = () => {
     setEmail('')
     setEmailError('')
     setIsSuccess(false)
+    resetCaptcha()
     onClose()
   }
 
@@ -50,15 +63,24 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
       return
     }
 
-    forgotPasswordMutation.mutate(trimmedEmail, {
-      onSuccess: () => {
-        setIsSuccess(true)
-      },
-      onError: (err) => {
-        const message = err instanceof Error ? err.message : t('forgotPassword.sendFailed')
-        setEmailError(message)
-      },
-    })
+    if (!captchaSatisfied) {
+      setCaptchaError(t('forgotPassword.captchaRequired'))
+      return
+    }
+
+    forgotPasswordMutation.mutate(
+      { email: trimmedEmail, captchaToken: captchaToken ?? undefined },
+      {
+        onSuccess: () => {
+          setIsSuccess(true)
+        },
+        onError: (err) => {
+          resetCaptcha()
+          const message = err instanceof Error ? err.message : t('forgotPassword.sendFailed')
+          setEmailError(message)
+        },
+      }
+    )
   }
 
   return (
@@ -136,6 +158,13 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
                 />
                 <FormErrorMessage>{emailError}</FormErrorMessage>
               </FormControl>
+
+              <RecaptchaField
+                ref={recaptchaRef}
+                onChange={handleCaptchaChange}
+                onExpired={handleCaptchaExpired}
+                error={captchaError}
+              />
 
               <Flex mt={emailError ? '0' : '32px'} gap="20px" justify="space-between">
                 <Button

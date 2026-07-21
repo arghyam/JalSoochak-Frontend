@@ -125,3 +125,47 @@ describe('LoginPage', () => {
     expect(passwordInput).toHaveAttribute('type', 'password')
   })
 })
+
+describe('LoginPage — captcha enabled', () => {
+  const originalConfig = window.APP_CONFIG
+
+  beforeEach(() => {
+    window.APP_CONFIG = {
+      ...originalConfig,
+      API_BASE_URL: '',
+      SINGLE_TENANT_MODE: false,
+      CAPTCHA_ENABLED: true,
+      RECAPTCHA_SITE_KEY: 'test-site-key',
+    }
+  })
+
+  afterEach(() => {
+    window.APP_CONFIG = originalConfig
+    jest.clearAllMocks()
+  })
+
+  it('blocks submit and shows captcha error until solved', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<LoginPage />)
+    await user.type(screen.getByPlaceholderText('Enter your email'), 'user@test.com')
+    await user.type(screen.getByPlaceholderText('Enter your password'), 'pass')
+    await user.click(screen.getByRole('button', { name: 'Log in' }))
+    expect(mockLogin).not.toHaveBeenCalled()
+    expect(await screen.findByText('Please complete the captcha verification.')).toBeInTheDocument()
+  })
+
+  it('sends captchaToken once the captcha is solved', async () => {
+    mockLogin.mockResolvedValue('/next')
+    const user = userEvent.setup()
+    renderWithProviders(<LoginPage />)
+    await user.type(screen.getByPlaceholderText('Enter your email'), 'user@test.com')
+    await user.type(screen.getByPlaceholderText('Enter your password'), 'pass')
+    await user.click(screen.getByTestId('recaptcha-widget'))
+    await user.click(screen.getByRole('button', { name: 'Log in' }))
+    expect(mockLogin).toHaveBeenCalledWith({
+      email: 'user@test.com',
+      password: 'pass',
+      captchaToken: 'test-captcha-token',
+    })
+  })
+})
