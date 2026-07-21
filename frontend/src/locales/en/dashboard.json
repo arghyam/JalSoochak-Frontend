@@ -130,10 +130,10 @@
         }
       },
       "regularity": {
-        "formulaLabel": "Regularity of scheme",
+        "formulaLabel": "Regularity",
         "definitions": {
-          "numberOfSupplyDays": "Number of continuous supply-days of scheme",
-          "totalNumberOfDaysInSelectedPeriod": "total number of days in the selected time period"
+          "regularSchemes": "number of schemes supplying water regularly",
+          "totalSchemes": "total number of schemes"
         }
       }
     },
@@ -330,11 +330,11 @@
     "regularityPerformance": {
       "title": "Regularity Performance",
       "category": "Metric",
-      "description": "Percentage of days within the selected period that schemes supplied water consistently.",
-      "formulaLabel": "Regularity of scheme",
+      "description": "Percentage of schemes that supplied water regularly during the selected period.",
+      "formulaLabel": "Regularity",
       "definitions": {
-        "xi": "number of continuous supply-days of scheme i",
-        "n": "total number of days in the selected period"
+        "regularSchemes": "number of schemes supplying water regularly",
+        "totalSchemes": "total number of schemes"
       }
     },
     "quantityPerformance": {

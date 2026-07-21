@@ -124,27 +124,27 @@ export function GlossaryPage() {
             category={categoryMetric}
             description={t('glossary.regularityPerformance.description', {
               defaultValue:
-                'Percentage of days within the selected period that schemes supplied water consistently.',
+                'Percentage of schemes that supplied water regularly during the selected period.',
             })}
             formula={
               <>
                 {t('glossary.regularityPerformance.formulaLabel', {
-                  defaultValue: 'Regularity of scheme',
+                  defaultValue: 'Regularity',
                 })}{' '}
-                = X<sub>i</sub> / N × 100
+                = R / S × 100
               </>
             }
             variables={[
               <>
-                X<sub>i</sub> ={' '}
-                {t('glossary.regularityPerformance.definitions.xi', {
-                  defaultValue: 'number of continuous supply-days of scheme i',
+                R ={' '}
+                {t('glossary.regularityPerformance.definitions.regularSchemes', {
+                  defaultValue: 'number of schemes supplying water regularly',
                 })}
               </>,
               <>
-                N ={' '}
-                {t('glossary.regularityPerformance.definitions.n', {
-                  defaultValue: 'total number of days in the selected period',
+                S ={' '}
+                {t('glossary.regularityPerformance.definitions.totalSchemes', {
+                  defaultValue: 'total number of schemes',
                 })}
               </>,
             ]}

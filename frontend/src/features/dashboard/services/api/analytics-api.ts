@@ -195,6 +195,7 @@ export const analyticsApi = {
         daysInRange: 0,
         schemeCount: 0,
         totalSupplyDays: 0,
+        regularSchemeCount: 0,
         averageRegularity: 0,
         childRegionCount: 0,
         childRegions: [],

@@ -43,6 +43,7 @@ describe('useCentralDashboardKpis', () => {
           stateTitle: 'Assam',
           schemeCount: 1,
           totalSupplyDays: 30,
+          regularSchemeCount: 1,
           averageRegularity: 1,
         },
       ],

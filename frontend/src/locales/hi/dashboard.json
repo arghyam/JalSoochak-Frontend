@@ -130,10 +130,10 @@
         }
       },
       "regularity": {
-        "formulaLabel": "योजना की नियमितता",
+        "formulaLabel": "नियमितता",
         "definitions": {
-          "numberOfSupplyDays": "योजना के निरंतर आपूर्ति-दिनों की संख्या",
-          "totalNumberOfDaysInSelectedPeriod": "चयनित समयावधि में दिनों की कुल संख्या"
+          "regularSchemes": "नियमित रूप से जल आपूर्ति करने वाली योजनाओं की संख्या",
+          "totalSchemes": "योजनाओं की कुल संख्या"
         }
       }
     },
@@ -330,11 +330,11 @@
     "regularityPerformance": {
       "title": "नियमितता प्रदर्शन",
       "category": "मेट्रिक",
-      "description": "चयनित अवधि में वे दिनों का प्रतिशत जब योजनाओं ने लगातार जल आपूर्ति की।",
-      "formulaLabel": "योजना की नियमितता",
+      "description": "चयनित अवधि के दौरान नियमित रूप से जल आपूर्ति करने वाली योजनाओं का प्रतिशत।",
+      "formulaLabel": "नियमितता",
       "definitions": {
-        "xi": "योजना i के निरंतर आपूर्ति-दिनों की संख्या",
-        "n": "चयनित अवधि में दिनों की कुल संख्या"
+        "regularSchemes": "नियमित रूप से जल आपूर्ति करने वाली योजनाओं की संख्या",
+        "totalSchemes": "योजनाओं की कुल संख्या"
       }
     },
     "quantityPerformance": {

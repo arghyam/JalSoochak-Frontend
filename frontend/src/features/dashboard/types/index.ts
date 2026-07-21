@@ -255,6 +255,7 @@ export interface SchemeRegularityPeriodicMetric {
   periodStartDate: string
   periodEndDate: string
   totalSupplyDays: number
+  regularSchemeCount?: number
   totalWaterQuantity?: number
   averageRegularity: number
 }
@@ -273,7 +274,9 @@ export interface SchemeRegularityPeriodicResponse {
 export interface NationalSchemeRegularityPeriodicMetric {
   periodStartDate: string
   periodEndDate: string
+  schemeCount?: number
   totalSupplyDays?: number
+  regularSchemeCount?: number
   totalWaterQuantity?: number
   totalAchievedFhtcCount?: number
   averageRegularity: number
@@ -315,6 +318,7 @@ export interface NationalDashboardRegularityItem {
   stateTitle: string
   schemeCount: number
   totalSupplyDays: number
+  regularSchemeCount: number
   averageRegularity: number
 }
 
@@ -419,6 +423,7 @@ export interface AverageSchemeRegularityChildRegion {
   title: string
   schemeCount: number
   totalSupplyDays: number
+  regularSchemeCount: number
   averageRegularity: number
 }
 
@@ -433,6 +438,7 @@ export interface AverageSchemeRegularityResponse {
   daysInRange: number
   schemeCount: number
   totalSupplyDays: number
+  regularSchemeCount?: number
   averageRegularity: number
   childRegionCount: number
   childRegions: AverageSchemeRegularityChildRegion[]

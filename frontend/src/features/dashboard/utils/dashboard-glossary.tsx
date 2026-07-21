@@ -58,21 +58,21 @@ export function buildDashboardGlossary(t: TFunction<'dashboard'>): DashboardGlos
     regularityPerformance: renderFormulaTooltip(
       <>
         {t('glossary.regularityPerformance.formulaLabel', {
-          defaultValue: 'Regularity of scheme',
+          defaultValue: 'Regularity',
         })}{' '}
-        = X<sub>i</sub> / N × 100
+        = R / S × 100
       </>,
       [
         <>
-          X<sub>i</sub> ={' '}
-          {t('glossary.regularityPerformance.definitions.xi', {
-            defaultValue: 'number of continuous supply-days of scheme i',
+          R ={' '}
+          {t('glossary.regularityPerformance.definitions.regularSchemes', {
+            defaultValue: 'number of schemes supplying water regularly',
           })}
         </>,
         <>
-          N ={' '}
-          {t('glossary.regularityPerformance.definitions.n', {
-            defaultValue: 'total number of days in the selected period',
+          S ={' '}
+          {t('glossary.regularityPerformance.definitions.totalSchemes', {
+            defaultValue: 'total number of schemes',
           })}
         </>,
       ]
