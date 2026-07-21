@@ -245,7 +245,7 @@ export function useCentralDashboardMapPerformance({
   const nationalRegularityByTenantId = (
     filteredNationalDashboardData?.stateWiseRegularity ?? []
   ).reduce<Map<number, number>>((acc, state) => {
-    if (state.tenantId > 0 && state.schemeCount > 0 && state.regularSchemeCount > 0) {
+    if (state.tenantId > 0 && state.schemeCount > 0 && state.regularSchemeCount >= 0) {
       acc.set(
         state.tenantId,
         calculateAverageRegularityPercent(state.regularSchemeCount, state.schemeCount)

@@ -196,7 +196,7 @@ export const calculateAverageRegularityPercent = (
   if (
     !isFiniteNumber(regularSchemeCount) ||
     !isFiniteNumber(schemeCount) ||
-    regularSchemeCount <= 0 ||
+    regularSchemeCount < 0 ||
     schemeCount <= 0
   ) {
     return 0
@@ -543,7 +543,7 @@ export const mapTenantBoundariesToPerformance = (
   ;(regularityAnalytics?.childRegions ?? []).forEach((region) => {
     const regularityPercent =
       Number.isFinite(region.regularSchemeCount) &&
-      region.regularSchemeCount > 0 &&
+      region.regularSchemeCount >= 0 &&
       Number.isFinite(region.schemeCount) &&
       region.schemeCount > 0
         ? calculateAverageRegularityPercent(region.regularSchemeCount, region.schemeCount)

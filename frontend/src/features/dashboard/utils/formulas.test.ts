@@ -672,7 +672,7 @@ describe('dashboard formulas', () => {
     ])
   })
 
-  it('uses average scheme regularity analytics when mapping tenant boundary regions', () => {
+  it('preserves 0% regularity for zero regular schemes when mapping tenant boundary regions', () => {
     expect(
       mapTenantBoundariesToPerformance(
         {
@@ -731,7 +731,7 @@ describe('dashboard formulas', () => {
       expect.objectContaining({
         id: '10',
         name: 'Region Alpha',
-        regularity: 75,
+        regularity: 0,
       }),
     ])
   })
