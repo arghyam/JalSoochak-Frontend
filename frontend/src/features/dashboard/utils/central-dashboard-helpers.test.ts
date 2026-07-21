@@ -196,6 +196,7 @@ describe('central dashboard helpers', () => {
           stateTitle: 'Assam',
           schemeCount: 1,
           totalSupplyDays: 10,
+          regularSchemeCount: 1,
           averageRegularity: 10,
         },
         {
@@ -204,6 +205,7 @@ describe('central dashboard helpers', () => {
           stateTitle: 'Bihar',
           schemeCount: 1,
           totalSupplyDays: 20,
+          regularSchemeCount: 1,
           averageRegularity: 20,
         },
       ],

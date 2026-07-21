@@ -480,8 +480,11 @@ describe('dashboard formulas', () => {
     })
   })
 
-  it('calculates average regularity percent from supply days, schemes, and day range', () => {
-    expect(calculateAverageRegularityPercent(45, 3, 30)).toBe(50)
+  it('calculates average regularity percent from regular schemes and total schemes', () => {
+    expect(calculateAverageRegularityPercent(15, 30)).toBe(50)
+    expect(calculateAverageRegularityPercent(7, 10)).toBe(70)
+    expect(calculateAverageRegularityPercent(0, 10)).toBe(0)
+    expect(calculateAverageRegularityPercent(5, 0)).toBe(0)
   })
 
   it('preserves regularity precision when calculating percentage change', () => {
@@ -669,7 +672,7 @@ describe('dashboard formulas', () => {
     ])
   })
 
-  it('uses average scheme regularity analytics when mapping tenant boundary regions', () => {
+  it('preserves 0% regularity for zero regular schemes when mapping tenant boundary regions', () => {
     expect(
       mapTenantBoundariesToPerformance(
         {
@@ -718,6 +721,7 @@ describe('dashboard formulas', () => {
               title: 'Region Alpha',
               schemeCount: 1,
               totalSupplyDays: 0,
+              regularSchemeCount: 0,
               averageRegularity: 0.75,
             },
           ],
@@ -727,7 +731,7 @@ describe('dashboard formulas', () => {
       expect.objectContaining({
         id: '10',
         name: 'Region Alpha',
-        regularity: 75,
+        regularity: 0,
       }),
     ])
   })
@@ -1175,6 +1179,7 @@ describe('dashboard formulas', () => {
           title: 'REGION ALPHA',
           schemeCount: 3,
           totalSupplyDays: 45,
+          regularSchemeCount: 2,
           averageRegularity: 0,
         },
       ],
@@ -1184,7 +1189,7 @@ describe('dashboard formulas', () => {
       {
         ...fallbackData[0],
         name: 'Region Alpha',
-        regularity: 50,
+        regularity: 66.7,
       },
     ])
   })
@@ -1280,6 +1285,7 @@ describe('dashboard formulas', () => {
           title: 'Region Alpha',
           schemeCount: 3,
           totalSupplyDays: 45,
+          regularSchemeCount: 2,
           averageRegularity: 0,
         },
       ],
@@ -1293,7 +1299,7 @@ describe('dashboard formulas', () => {
         name: 'Region Alpha',
         coverage: 3,
         quantity: 1200,
-        regularity: 50,
+        regularity: 66.7,
         continuity: 0,
         compositeScore: 0,
         status: 'needs-attention',
@@ -1346,6 +1352,7 @@ describe('dashboard formulas', () => {
           title: 'CHARAIDEO',
           schemeCount: 1,
           totalSupplyDays: 15,
+          regularSchemeCount: 1,
           averageRegularity: 0,
         },
       ],

@@ -1390,6 +1390,7 @@ describe('CentralDashboard', () => {
             stateTitle: 'Karnataka',
             schemeCount: 3,
             totalSupplyDays: 45,
+            regularSchemeCount: 2,
             averageRegularity: 0,
           },
           {
@@ -1398,6 +1399,7 @@ describe('CentralDashboard', () => {
             stateTitle: 'Inactive State',
             schemeCount: 3,
             totalSupplyDays: 45,
+            regularSchemeCount: 2,
             averageRegularity: 0,
           },
         ],
@@ -1513,7 +1515,7 @@ describe('CentralDashboard', () => {
     expect(dashboardBodyProps.regularityPerformanceData[0]).toEqual(
       expect.objectContaining({
         name: 'Karnataka',
-        regularity: 50,
+        regularity: 66.7,
       })
     )
     expect(dashboardBodyProps.quantityTimeTrendData).toEqual([
@@ -1536,7 +1538,7 @@ describe('CentralDashboard', () => {
         name: 'Karnataka',
         coverage: 3,
         quantity: 1200,
-        regularity: 50,
+        regularity: 66.7,
       })
     )
     expect(
@@ -1611,6 +1613,7 @@ describe('CentralDashboard', () => {
             stateTitle: 'Karnataka',
             schemeCount: 3,
             totalSupplyDays: 45,
+            regularSchemeCount: 1,
             averageRegularity: 0.5,
           },
           {
@@ -1619,6 +1622,7 @@ describe('CentralDashboard', () => {
             stateTitle: 'Maharashtra',
             schemeCount: 3,
             totalSupplyDays: 54,
+            regularSchemeCount: 2,
             averageRegularity: 0.6,
           },
         ],
@@ -4467,6 +4471,7 @@ describe('CentralDashboard', () => {
             title: 'Alpha',
             schemeCount: 3,
             totalSupplyDays: 45,
+            regularSchemeCount: 2,
             averageRegularity: 0,
           },
         ],
@@ -4489,7 +4494,7 @@ describe('CentralDashboard', () => {
     expect(dashboardBodyProps.regularityPerformanceData[0]).toEqual(
       expect.objectContaining({
         name: 'Alpha',
-        regularity: 50,
+        regularity: 66.7,
       })
     )
   })
@@ -6761,6 +6766,7 @@ describe('CentralDashboard', () => {
             title: 'North Assam Zone',
             schemeCount: 1,
             totalSupplyDays: 4.5,
+            regularSchemeCount: 1,
             averageRegularity: 0,
           },
           {
@@ -6768,6 +6774,7 @@ describe('CentralDashboard', () => {
             title: 'Lower Assam Zone',
             schemeCount: 1,
             totalSupplyDays: 4.5,
+            regularSchemeCount: 1,
             averageRegularity: 0,
           },
         ],
@@ -6791,12 +6798,12 @@ describe('CentralDashboard', () => {
       expect.objectContaining({
         name: 'North Assam Zone',
         quantity: -1,
-        regularity: 15,
+        regularity: 100,
       }),
       expect.objectContaining({
         name: 'Lower Assam Zone',
         quantity: -1,
-        regularity: 15,
+        regularity: 100,
       }),
     ])
   })
