@@ -10,6 +10,7 @@ import {
   filterNationalDashboardBoundariesByTenantIds,
   filterNationalDashboardByTenantIds,
   findLocationOption,
+  getCurrentIsoDate,
   getInitialStoredDuration,
   isActiveTenantStatus,
   mapLocationOptions,
@@ -53,29 +54,51 @@ describe('central dashboard helpers', () => {
     expect(toIsoDate(new Date('2026-03-02T00:00:00'))).toBe('2026-03-02')
   })
 
-  it('returns stored duration only when both dates are valid past dates', () => {
+  it('returns the stored duration only when it was saved on the current calendar day', () => {
     const storedDuration = {
       startDate: '01/03/2026',
       endDate: '07/03/2026',
     }
 
-    expect(getInitialStoredDuration({ selectedDuration: storedDuration }, 'DD/MM/YYYY')).toBe(
-      storedDuration
-    )
+    // Saved today -> restored.
+    expect(
+      getInitialStoredDuration(
+        { selectedDuration: storedDuration, durationSavedOn: getCurrentIsoDate() },
+        'DD/MM/YYYY'
+      )
+    ).toBe(storedDuration)
+
+    // Saved on a previous day -> reset to current-date default.
+    expect(
+      getInitialStoredDuration(
+        { selectedDuration: storedDuration, durationSavedOn: '2020-01-01' },
+        'DD/MM/YYYY'
+      )
+    ).toBeNull()
+
+    // No saved-day stamp (legacy blob) -> reset.
+    expect(getInitialStoredDuration({ selectedDuration: storedDuration }, 'DD/MM/YYYY')).toBeNull()
+  })
+
+  it('returns null for structurally invalid stored durations even when saved today', () => {
+    const durationSavedOn = getCurrentIsoDate()
+
     expect(
       getInitialStoredDuration({
         selectedDuration: {
           startDate: '07/03/2026',
           endDate: '01/03/2026',
         },
+        durationSavedOn,
       })
     ).toBeNull()
     expect(
       getInitialStoredDuration({
         selectedDuration: {
-          startDate: '01/03/2026',
-          endDate: '08/05/2099',
+          startDate: 'not-a-date',
+          endDate: 'not-a-date',
         },
+        durationSavedOn,
       })
     ).toBeNull()
   })

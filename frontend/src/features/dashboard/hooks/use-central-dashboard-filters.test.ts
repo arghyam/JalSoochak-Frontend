@@ -138,4 +138,44 @@ describe('useCentralDashboardFilters', () => {
       filterTabIndex: 0,
     })
   })
+
+  it('keeps the duration save-day marker fixed when unrelated filters change across midnight', () => {
+    jest.useFakeTimers()
+    try {
+      // Day 1, just before midnight: the user opens the dashboard and picks a range.
+      jest.setSystemTime(new Date('2026-07-22T23:59:00'))
+
+      const { result } = renderHook(() =>
+        useCentralDashboardFilters({ durationDateFormat: 'DD/MM/YYYY' })
+      )
+
+      act(() => {
+        result.current.handleSelectedDurationChange({
+          startDate: '01/07/2026',
+          endDate: '22/07/2026',
+        })
+      })
+
+      expect(
+        JSON.parse(window.localStorage.getItem(CENTRAL_DASHBOARD_FILTER_STORAGE_KEY) ?? '{}')
+          .durationSavedOn
+      ).toBe('2026-07-22')
+
+      // The dashboard is left open; the day rolls over and an unrelated filter changes.
+      jest.setSystemTime(new Date('2026-07-23T00:01:00'))
+
+      act(() => {
+        result.current.setSelectedScheme('jal-jeevan-mission')
+      })
+
+      // The marker must still point at the day the range was chosen so the stale
+      // selection is reset on the next reload instead of being treated as fresh.
+      expect(
+        JSON.parse(window.localStorage.getItem(CENTRAL_DASHBOARD_FILTER_STORAGE_KEY) ?? '{}')
+          .durationSavedOn
+      ).toBe('2026-07-22')
+    } finally {
+      jest.useRealTimers()
+    }
+  })
 })
