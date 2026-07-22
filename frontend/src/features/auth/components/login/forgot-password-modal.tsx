@@ -159,12 +159,14 @@ export function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordModalProp
                 <FormErrorMessage>{emailError}</FormErrorMessage>
               </FormControl>
 
-              <RecaptchaField
-                ref={recaptchaRef}
-                onChange={handleCaptchaChange}
-                onExpired={handleCaptchaExpired}
-                error={captchaError}
-              />
+              <Box mt="20px">
+                <RecaptchaField
+                  ref={recaptchaRef}
+                  onChange={handleCaptchaChange}
+                  onExpired={handleCaptchaExpired}
+                  error={captchaError}
+                />
+              </Box>
 
               <Flex mt={emailError ? '0' : '32px'} gap="20px" justify="space-between">
                 <Button

@@ -10,6 +10,7 @@ import {
   CENTRAL_DASHBOARD_FILTER_STORAGE_KEY,
   type FilterUrlUpdate,
   type LocationScopedTrailIndex,
+  getCurrentIsoDate,
   getInitialStoredDuration,
   getStoredFilters,
   navigateWithUpdatedFilters,
@@ -76,6 +77,11 @@ export function useCentralDashboardFilters({
     getInitialStoredDuration(storedFilters)
   )
   const [isDurationCleared, setIsDurationCleared] = useState(false)
+  // Local calendar day the currently-selected duration was chosen. Stamped only when
+  // a concrete duration is picked so unrelated filter persists cannot refresh it.
+  const [durationSavedOn, setDurationSavedOn] = useState(
+    () => storedFilters.durationSavedOn ?? getCurrentIsoDate()
+  )
   const [selectedScheme, setSelectedScheme] = useState(storedFilters.selectedScheme ?? '')
   const [storedSelectedDepartmentState, setSelectedDepartmentState] = useState(
     storedFilters.selectedDepartmentState ?? ''
@@ -287,6 +293,12 @@ export function useCentralDashboardFilters({
     setSelectedDuration((previousDuration) => {
       const nextDuration = typeof value === 'function' ? value(previousDuration) : value
       setIsDurationCleared(nextDuration === null)
+      if (nextDuration !== null) {
+        // Refresh the save-day marker only when a concrete duration is chosen. Other
+        // filter changes reuse this stored value so a dashboard left open across
+        // midnight cannot silently keep a stale range alive.
+        setDurationSavedOn(getCurrentIsoDate())
+      }
       return nextDuration
     })
   }
@@ -600,6 +612,7 @@ export function useCentralDashboardFilters({
       selectedGramPanchayat,
       selectedVillage,
       selectedDuration: effectiveSelectedDuration,
+      durationSavedOn,
       selectedScheme,
       selectedDepartmentState,
       selectedDepartmentZone,
@@ -615,6 +628,7 @@ export function useCentralDashboardFilters({
       // Ignore storage errors (quota/private mode)
     }
   }, [
+    durationSavedOn,
     effectiveSelectedDuration,
     filterTabIndex,
     selectedBlock,
