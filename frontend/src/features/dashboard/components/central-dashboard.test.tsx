@@ -31,6 +31,7 @@ import { useWaterQuantityRegionWiseQuery } from '../services/query/use-water-qua
 import { useTenantBoundariesQuery } from '../services/query/use-tenant-boundaries-query'
 import { useTenantBoundaryGeoJsonQuery } from '../services/query/use-tenant-boundary-geojson-query'
 import { getPreviousPeriodRange } from '../utils/formulas'
+import { getCurrentIsoDate } from '../utils/central-dashboard-helpers'
 import { stateSlugToCode } from '@/shared/constants/states'
 
 const mockNavigate = jest.fn()
@@ -606,6 +607,7 @@ describe('CentralDashboard', () => {
           startDate: '2026-03-10',
           endDate: '2026-03-20',
         },
+        durationSavedOn: getCurrentIsoDate(),
       })
     )
 
@@ -643,6 +645,7 @@ describe('CentralDashboard', () => {
           startDate: '2026-03-10',
           endDate: '2026-03-20',
         },
+        durationSavedOn: getCurrentIsoDate(),
       })
     )
 
@@ -820,6 +823,7 @@ describe('CentralDashboard', () => {
           startDate: '25/03/2026',
           endDate: '26/03/2026',
         },
+        durationSavedOn: getCurrentIsoDate(),
       })
     )
     mockUseParams.mockReturnValue({ stateSlug: 'assam' })
@@ -879,6 +883,7 @@ describe('CentralDashboard', () => {
           startDate: '25/03/2026',
           endDate: '26/03/2026',
         },
+        durationSavedOn: getCurrentIsoDate(),
       })
     )
     mockUseParams.mockReturnValue({ stateSlug: 'assam' })
@@ -959,6 +964,7 @@ describe('CentralDashboard', () => {
           startDate: '25/03/2026',
           endDate: '26/03/2026',
         },
+        durationSavedOn: getCurrentIsoDate(),
       })
     )
     mockUseParams.mockReturnValue({ stateSlug: 'assam' })
@@ -1044,6 +1050,7 @@ describe('CentralDashboard', () => {
           startDate: '25/03/2026',
           endDate: '26/03/2026',
         },
+        durationSavedOn: getCurrentIsoDate(),
       })
     )
     mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
@@ -1096,7 +1103,7 @@ describe('CentralDashboard', () => {
     })
   })
 
-  it('ignores a future stored selected duration and falls back to the default analytics range', () => {
+  it('resets a stored selected duration saved on a previous day and falls back to the default analytics range', () => {
     jest.useFakeTimers()
     jest.setSystemTime(new Date('2025-02-21T09:00:00'))
     ;(useDashboardData as jest.Mock).mockReturnValue({
@@ -1111,6 +1118,7 @@ describe('CentralDashboard', () => {
           startDate: '2026-01-23',
           endDate: '2026-02-21',
         },
+        durationSavedOn: '2020-01-01',
       })
     )
 
@@ -1127,7 +1135,7 @@ describe('CentralDashboard', () => {
     jest.useRealTimers()
   })
 
-  it('ignores a stored selected duration ending today and falls back to yesterday', () => {
+  it('resets a stale stored selected duration and falls back to the current-date default', () => {
     jest.useFakeTimers()
     jest.setSystemTime(new Date('2026-05-06T09:00:00'))
     ;(useDashboardData as jest.Mock).mockReturnValue({
@@ -1142,6 +1150,7 @@ describe('CentralDashboard', () => {
           startDate: '2026-04-07',
           endDate: '2026-05-06',
         },
+        durationSavedOn: '2020-01-01',
       })
     )
 
@@ -1719,6 +1728,7 @@ describe('CentralDashboard', () => {
       'central-dashboard-filters',
       JSON.stringify({
         selectedDuration,
+        durationSavedOn: getCurrentIsoDate(),
       })
     )
     ;(useWaterQuantityPeriodicQuery as jest.Mock).mockReturnValue({
@@ -1816,6 +1826,7 @@ describe('CentralDashboard', () => {
           startDate: '03/02/2026',
           endDate: '03/02/2026',
         },
+        durationSavedOn: getCurrentIsoDate(),
       })
     )
     ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
@@ -1947,6 +1958,7 @@ describe('CentralDashboard', () => {
           startDate: '2026-03-25',
           endDate: '2026-03-26',
         },
+        durationSavedOn: getCurrentIsoDate(),
       })
     )
     ;(useDashboardData as jest.Mock).mockReturnValue({
@@ -3302,6 +3314,7 @@ describe('CentralDashboard', () => {
           startDate: '25/03/2026',
           endDate: '26/03/2026',
         },
+        durationSavedOn: getCurrentIsoDate(),
       })
     )
 
@@ -3372,6 +3385,7 @@ describe('CentralDashboard', () => {
           startDate: '25/03/2026',
           endDate: '26/03/2026',
         },
+        durationSavedOn: getCurrentIsoDate(),
       })
     )
 
@@ -3443,6 +3457,7 @@ describe('CentralDashboard', () => {
           startDate: '25/03/2026',
           endDate: '26/03/2026',
         },
+        durationSavedOn: getCurrentIsoDate(),
       })
     )
 
@@ -3712,6 +3727,7 @@ describe('CentralDashboard', () => {
           startDate: '25/03/2026',
           endDate: '26/03/2026',
         },
+        durationSavedOn: getCurrentIsoDate(),
       })
     )
 
@@ -4025,6 +4041,7 @@ describe('CentralDashboard', () => {
           startDate: '25/03/2026',
           endDate: '26/03/2026',
         },
+        durationSavedOn: getCurrentIsoDate(),
       })
     )
 

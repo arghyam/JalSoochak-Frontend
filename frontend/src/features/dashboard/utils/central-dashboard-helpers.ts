@@ -28,6 +28,9 @@ export type StoredFilters = {
   selectedGramPanchayat?: string
   selectedVillage?: string
   selectedDuration?: DateRange
+  // Local calendar day (YYYY-MM-DD) the filters were last persisted. Used to reset
+  // the date range to the current-date default once the day changes.
+  durationSavedOn?: string
   selectedScheme?: string
   selectedDepartmentState?: string
   selectedDepartmentZone?: string
@@ -307,6 +310,15 @@ export const parseStoredDateValue = (value: unknown, dateFormat?: string) => {
   return Number.isNaN(date.getTime()) ? null : date
 }
 
+// Local calendar day as YYYY-MM-DD. Kept in local time to match the user's notion
+// of "the day I opened the dashboard".
+export const getCurrentIsoDate = (baseDate: Date = new Date()): string => {
+  const year = baseDate.getFullYear()
+  const month = String(baseDate.getMonth() + 1).padStart(2, '0')
+  const day = String(baseDate.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export const getInitialStoredDuration = (
   storedFilters: StoredFilters,
   dateFormat?: string
@@ -327,9 +339,10 @@ export const getInitialStoredDuration = (
     return null
   }
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  if (endDate >= today) {
+  // Only restore a previously selected range when it was saved on the current
+  // calendar day. Once the day rolls over, ignore it so the dashboard falls back
+  // to the current-date default instead of a stale selection.
+  if (storedFilters.durationSavedOn !== getCurrentIsoDate()) {
     return null
   }
 
