@@ -11,8 +11,13 @@ const formulaTooltipTextStyle = {
   lineHeight: '18px',
 } as const
 
-const renderFormulaTooltip = (formula: ReactNode, definitions: ReactNode[]) => (
+const renderFormulaTooltip = (formula: ReactNode, definitions: ReactNode[], intro?: ReactNode) => (
   <Box w="296px">
+    {intro ? (
+      <Text sx={formulaTooltipTextStyle} mb="8px">
+        {intro}
+      </Text>
+    ) : null}
     <Text sx={formulaTooltipTextStyle} mb={definitions.length > 0 ? '8px' : '0'}>
       {formula}
     </Text>
@@ -36,7 +41,6 @@ type WaterSupplyKpis = {
 
 type BuildCentralDashboardKpiMetricsParams = {
   comparisonDays: number
-  criticalSchemeStatusAfterDays: number
   currentRegularityKpi: number
   currentWaterSupplyKpis: WaterSupplyKpis
   isCentralLandingView: boolean
@@ -51,7 +55,6 @@ type BuildCentralDashboardKpiMetricsParams = {
 
 export function buildCentralDashboardKpiMetrics({
   comparisonDays,
-  criticalSchemeStatusAfterDays,
   currentRegularityKpi,
   currentWaterSupplyKpis,
   isCentralLandingView,
@@ -178,7 +181,7 @@ export function buildCentralDashboardKpiMetrics({
       trend: buildCountPercentTrend(continuousSchemesCount, previousContinuousSchemesCount),
       tooltipContent: t('kpi.tooltips.schemesSupplyingWater.description', {
         defaultValue:
-          'Count of schemes that supplied water for the selected date range consistently.',
+          'Count of schemes (irrespective of work status) that supplied water for at least one day during the selected date range.',
       }),
     },
     {
@@ -315,15 +318,20 @@ export function buildCentralDashboardKpiMetrics({
               defaultValue: 'total number of schemes',
             })}
           </>,
-        ]
+        ],
+        t('kpi.tooltips.regularity.description', {
+          defaultValue:
+            'Schemes are considered regular if they supplied water for at least 90% of the days in the selected date range.',
+        })
       ),
     },
     {
       label: t('kpi.labels.criticalSchemes', { defaultValue: 'Critical Schemes' }),
       value: formatNumber(criticalSchemesCount),
       tooltipContent: t('kpi.tooltips.criticalSchemes.description', {
-        days: criticalSchemeStatusAfterDays,
-        defaultValue: 'Schemes identified as failing to supply water, based on {{days}} days.',
+        days: 30,
+        defaultValue:
+          "Count of schemes that have not supplied water in the last {{days}} days from today's date, irrespective of the selected date range.",
       }),
     },
   ] as const
