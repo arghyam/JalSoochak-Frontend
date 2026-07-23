@@ -11,6 +11,7 @@ import {
   Box,
   Text,
   Icon,
+  VStack,
   useOutsideClick,
   useBreakpointValue,
   useMediaQuery,
@@ -76,6 +77,8 @@ interface SearchLayoutProps {
   closedTrailSlot?: ReactNode
   breadcrumbPanelProps?: BreadcrumbPanelProps
   selectionTrail?: string[]
+  /** Singular hierarchy level name per trail entry, aligned by index with `selectionTrail`. */
+  selectionTrailLevels?: string[]
   activeTrailIndex?: number | null
   resetSearchTrigger?: string | number
   /** When true, hides the "All States/UTs" root breadcrumb button in the dropdown panel */
@@ -94,6 +97,7 @@ export function SearchLayout({
   closedTrailSlot,
   breadcrumbPanelProps,
   selectionTrail,
+  selectionTrailLevels,
   activeTrailIndex,
   resetSearchTrigger,
   hideRootBreadcrumb = false,
@@ -304,124 +308,151 @@ export function SearchLayout({
       >
         {closedSelectionTrail.map((item, index) => {
           const isActive = index === effectiveActiveTrailIndex
+          const levelLabel = selectionTrailLevels?.[index]
+          const levelCaption = levelLabel ? (
+            <Text
+              fontSize="12px"
+              lineHeight="1.2"
+              color="neutral.500"
+              fontWeight="400"
+              maxW="100%"
+              whiteSpace="nowrap"
+              overflow="hidden"
+              textOverflow="ellipsis"
+            >
+              {levelLabel}
+            </Text>
+          ) : null
 
           if (isActive) {
             return (
-              <Flex key={`${item}-${index}`} align="center" gap="8px" minW={0} maxW="100%">
+              <Flex key={`${item}-${index}`} align="flex-start" gap="8px" minW={0} maxW="100%">
                 {index > 0 ? (
+                  <Flex h="26px" align="center" flexShrink={0}>
+                    <Icon
+                      as={FiChevronDown}
+                      color="neutral.500"
+                      boxSize="14px"
+                      transform="rotate(-90deg)"
+                    />
+                  </Flex>
+                ) : null}
+                <VStack align="flex-start" spacing="2px" minW={0} maxW="100%">
+                  <Flex
+                    h="26px"
+                    minW="66px"
+                    w={isBelowXsLayout ? '140px' : 'auto'}
+                    maxW="100%"
+                    px="8px"
+                    py="4px"
+                    borderRadius="16px"
+                    borderColor="neutral.300"
+                    bg="primary.25"
+                    color="primary.600"
+                    fontSize="14px"
+                    fontWeight="400"
+                    align="center"
+                    gap="6px"
+                    overflow="hidden"
+                  >
+                    <Button
+                      variant="unstyled"
+                      h="full"
+                      minH="auto"
+                      minW="auto"
+                      display="inline-flex"
+                      alignItems="center"
+                      flex="1 1 auto"
+                      maxW="100%"
+                      overflow="hidden"
+                      fontSize="inherit"
+                      fontWeight="inherit"
+                      lineHeight="1"
+                      cursor="default"
+                      onClick={() => handleTrailSelect(index)}
+                      _hover={{}}
+                      _active={{ bg: 'transparent' }}
+                      aria-label={t('searchLayout.aria.breadcrumb', {
+                        item,
+                        defaultValue: `Breadcrumb: ${item}`,
+                      })}
+                      aria-current="page"
+                    >
+                      <Text
+                        as="span"
+                        lineHeight="1"
+                        display="block"
+                        maxW="100%"
+                        whiteSpace="nowrap"
+                        overflow="hidden"
+                        textOverflow="ellipsis"
+                      >
+                        {item}
+                      </Text>
+                    </Button>
+                    <IconButton
+                      aria-label={t('searchLayout.aria.clearBreadcrumb', {
+                        item,
+                        defaultValue: `Clear breadcrumb ${item}`,
+                      })}
+                      icon={<CloseIcon boxSize="8px" />}
+                      variant="unstyled"
+                      minW="14px"
+                      h="14px"
+                      borderRadius="full"
+                      color="inherit"
+                      display="inline-flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      cursor="default"
+                      _hover={{ bg: 'primary.100', cursor: 'pointer' }}
+                      _active={{ bg: 'primary.100' }}
+                      onClick={(event: MouseEvent<HTMLButtonElement>) => {
+                        event.stopPropagation()
+                        handleActiveTrailClear(index)
+                      }}
+                    />
+                  </Flex>
+                  {levelCaption}
+                </VStack>
+              </Flex>
+            )
+          }
+
+          return (
+            <Flex key={`${item}-${index}`} align="flex-start" gap="8px">
+              {index > 0 ? (
+                <Flex h="26px" align="center" flexShrink={0}>
                   <Icon
                     as={FiChevronDown}
                     color="neutral.500"
                     boxSize="14px"
                     transform="rotate(-90deg)"
                   />
-                ) : null}
-                <Flex
-                  h="26px"
-                  minW="66px"
-                  w={isBelowXsLayout ? '140px' : 'auto'}
-                  maxW="100%"
-                  px="8px"
-                  py="4px"
-                  borderRadius="16px"
-                  borderColor="neutral.300"
-                  bg="primary.25"
-                  color="primary.600"
-                  fontSize="14px"
-                  fontWeight="400"
-                  align="center"
-                  gap="6px"
-                  overflow="hidden"
-                >
+                </Flex>
+              ) : null}
+              <VStack align="flex-start" spacing="2px" minW={0} maxW="100%">
+                <Flex h="26px" align="center" maxW="100%">
                   <Button
                     variant="unstyled"
-                    h="full"
+                    h="auto"
                     minH="auto"
-                    minW="auto"
-                    display="inline-flex"
-                    alignItems="center"
-                    flex="1 1 auto"
-                    maxW="100%"
-                    overflow="hidden"
-                    fontSize="inherit"
-                    fontWeight="inherit"
-                    lineHeight="1"
-                    cursor="default"
+                    fontSize="14px"
+                    color="neutral.500"
+                    fontWeight="400"
                     onClick={() => handleTrailSelect(index)}
-                    _hover={{}}
-                    _active={{ bg: 'transparent' }}
+                    _hover={{ color: 'primary.500' }}
+                    _active={{ color: 'primary.500' }}
                     aria-label={t('searchLayout.aria.breadcrumb', {
                       item,
                       defaultValue: `Breadcrumb: ${item}`,
                     })}
-                    aria-current="page"
                   >
-                    <Text
-                      as="span"
-                      lineHeight="1"
-                      display="block"
-                      maxW="100%"
-                      whiteSpace="nowrap"
-                      overflow="hidden"
-                      textOverflow="ellipsis"
-                    >
-                      {item}
-                    </Text>
+                    {item}
                   </Button>
-                  <IconButton
-                    aria-label={t('searchLayout.aria.clearBreadcrumb', {
-                      item,
-                      defaultValue: `Clear breadcrumb ${item}`,
-                    })}
-                    icon={<CloseIcon boxSize="8px" />}
-                    variant="unstyled"
-                    minW="14px"
-                    h="14px"
-                    borderRadius="full"
-                    color="inherit"
-                    display="inline-flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    cursor="default"
-                    _hover={{ bg: 'primary.100', cursor: 'pointer' }}
-                    _active={{ bg: 'primary.100' }}
-                    onClick={(event: MouseEvent<HTMLButtonElement>) => {
-                      event.stopPropagation()
-                      handleActiveTrailClear(index)
-                    }}
-                  />
                 </Flex>
-              </Flex>
-            )
-          }
-
-          return (
-            <Flex key={`${item}-${index}`} align="center" gap="8px">
-              {index > 0 ? (
-                <Icon
-                  as={FiChevronDown}
-                  color="neutral.500"
-                  boxSize="14px"
-                  transform="rotate(-90deg)"
-                />
-              ) : null}
-              <Button
-                variant="unstyled"
-                h="auto"
-                minH="auto"
-                fontSize="14px"
-                color="neutral.500"
-                fontWeight="400"
-                onClick={() => handleTrailSelect(index)}
-                _hover={{ color: 'primary.500' }}
-                _active={{ color: 'primary.500' }}
-                aria-label={t('searchLayout.aria.breadcrumb', {
-                  item,
-                  defaultValue: `Breadcrumb: ${item}`,
-                })}
-              >
-                {item}
-              </Button>
+                {levelCaption}
+              </VStack>
             </Flex>
           )
         })}

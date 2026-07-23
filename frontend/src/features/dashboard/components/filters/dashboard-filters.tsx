@@ -361,6 +361,24 @@ export function DashboardFilters(props: DashboardFiltersProps) {
   const villageLabel = toPluralLabel(
     hierarchyLabelByLevel[5] ?? t('filters.options.villages', 'Villages')
   )
+  // Singular per-level names shown as a caption under each breadcrumb chip.
+  // Prefers tenant-specific hierarchy titles (API) and falls back to the shared
+  // `filters.searchBy.*` i18n keys, which exist in all three locales.
+  const singularLevelLabels = isDepartmentTab
+    ? [
+        hierarchyLabelByLevel[1] ?? t('filters.searchBy.stateUt', 'State/UT'),
+        hierarchyLabelByLevel[2] ?? t('filters.searchBy.zone', 'Zone'),
+        hierarchyLabelByLevel[3] ?? t('filters.searchBy.circle', 'Circle'),
+        hierarchyLabelByLevel[4] ?? t('filters.searchBy.division', 'Division'),
+        hierarchyLabelByLevel[5] ?? t('filters.searchBy.subDivision', 'Sub Division'),
+      ]
+    : [
+        hierarchyLabelByLevel[1] ?? t('filters.searchBy.stateUt', 'State/UT'),
+        hierarchyLabelByLevel[2] ?? t('filters.searchBy.district', 'District'),
+        hierarchyLabelByLevel[3] ?? t('filters.searchBy.block', 'Block'),
+        hierarchyLabelByLevel[4] ?? t('filters.searchBy.gramPanchayat', 'Gram Panchayat'),
+        hierarchyLabelByLevel[5] ?? t('filters.searchBy.village', 'Village'),
+      ]
   const findLabel = (value: string, options: SearchableSelectOption[]): string | null => {
     if (!value) return null
     const selectedId = parseLocationId(value)
@@ -379,18 +397,33 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     )
   }
   const fullSelectionTrail = [
-    findLabel(activeSelectedState, breadcrumbStateOptions),
-    findLabel(activeSelectedDistrict, resolvedDistrictOptions),
-    findLabel(activeSelectedBlock, resolvedBlockOptions),
-    findLabel(activeSelectedGramPanchayat, resolvedGramPanchayatOptions),
-    findLabel(activeSelectedVillage, resolvedVillageOptions),
+    {
+      label: findLabel(activeSelectedState, breadcrumbStateOptions),
+      level: singularLevelLabels[0],
+    },
+    {
+      label: findLabel(activeSelectedDistrict, resolvedDistrictOptions),
+      level: singularLevelLabels[1],
+    },
+    { label: findLabel(activeSelectedBlock, resolvedBlockOptions), level: singularLevelLabels[2] },
+    {
+      label: findLabel(activeSelectedGramPanchayat, resolvedGramPanchayatOptions),
+      level: singularLevelLabels[3],
+    },
+    {
+      label: findLabel(activeSelectedVillage, resolvedVillageOptions),
+      level: singularLevelLabels[4],
+    },
   ]
 
   // In single-tenant mode, drop the state entry (index 0) before filtering so a
   // temporarily-missing state label cannot cause the district chip to be removed.
-  const selectionTrail = (
+  // Labels and level captions are sliced/filtered together to keep indices aligned.
+  const visibleSelectionEntries = (
     isSingleTenantMode ? fullSelectionTrail.slice(1) : fullSelectionTrail
-  ).filter((item): item is string => Boolean(item))
+  ).filter((entry): entry is { label: string; level: string } => Boolean(entry.label))
+  const selectionTrail = visibleSelectionEntries.map((entry) => entry.label)
+  const selectionTrailLevels = visibleSelectionEntries.map((entry) => entry.level)
   const selectionResetKey = [
     filterTabIndex,
     activeSelectedState,
@@ -688,6 +721,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
       resetSearchTrigger={searchResetTrigger}
       hideActionButton={true}
       selectionTrail={selectionTrail}
+      selectionTrailLevels={selectionTrailLevels}
       activeTrailIndex={effectiveTrailIndex}
       hideRootBreadcrumb={isSingleTenantMode}
       breadcrumbPanelProps={{

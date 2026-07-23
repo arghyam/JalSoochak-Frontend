@@ -62,6 +62,28 @@ describe('SearchLayout', () => {
     expect(previousBreadcrumb.hasAttribute('aria-current')).toBe(false)
   })
 
+  it('renders the hierarchy level caption under each chip', () => {
+    renderWithProviders(
+      <SearchLayout
+        selectionTrail={['Telangana', 'Sangareddy']}
+        selectionTrailLevels={['State/UT', 'District']}
+      />
+    )
+
+    expect(screen.getByText('Telangana')).toBeTruthy()
+    expect(screen.getByText('Sangareddy')).toBeTruthy()
+    expect(screen.getByText('State/UT')).toBeTruthy()
+    expect(screen.getByText('District')).toBeTruthy()
+  })
+
+  it('omits level captions when selectionTrailLevels is not provided', () => {
+    renderWithProviders(<SearchLayout selectionTrail={['Telangana', 'Sangareddy']} />)
+
+    expect(screen.getByText('Sangareddy')).toBeTruthy()
+    expect(screen.queryByText('State/UT')).toBeNull()
+    expect(screen.queryByText('District')).toBeNull()
+  })
+
   it('does not render chip when external trail is empty', () => {
     renderWithProviders(
       <SearchLayout
