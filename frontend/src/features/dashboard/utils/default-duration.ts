@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import type { DateRange } from '@/shared/components/common'
 import { getRuntimeConfig } from '@/config/runtime-config'
 
-export const DASHBOARD_DATA_ROLLOVER_HOUR = 19
 const DEFAULT_DASHBOARD_DURATION_DAYS = 1
 const DEFAULT_ALLOWED_DASHBOARD_DURATION_DAYS = [1, 7, 30]
 
@@ -33,10 +32,6 @@ const resolveDashboardDefaultDurationDays = () => {
 export const getDashboardDefaultDateRange = (baseDate = new Date()): DateRange => {
   const effectiveDate = new Date(baseDate)
 
-  if (effectiveDate.getHours() < DASHBOARD_DATA_ROLLOVER_HOUR) {
-    effectiveDate.setDate(effectiveDate.getDate() - 1)
-  }
-
   const endDate = formatIsoDate(effectiveDate)
   const startDate = new Date(effectiveDate)
   startDate.setDate(effectiveDate.getDate() - resolveDashboardDefaultDurationDays() + 1)
@@ -47,15 +42,12 @@ export const getDashboardDefaultDateRange = (baseDate = new Date()): DateRange =
   }
 }
 
-const getNextDashboardRolloverDelay = (baseDate = new Date()) => {
-  const nextRollover = new Date(baseDate)
-  nextRollover.setHours(DASHBOARD_DATA_ROLLOVER_HOUR, 0, 0, 0)
+const getNextMidnightDelay = (baseDate = new Date()) => {
+  const nextMidnight = new Date(baseDate)
+  // setHours with 24 rolls over to 00:00 of the following calendar day.
+  nextMidnight.setHours(24, 0, 0, 0)
 
-  if (baseDate.getTime() >= nextRollover.getTime()) {
-    nextRollover.setDate(nextRollover.getDate() + 1)
-  }
-
-  return Math.max(0, nextRollover.getTime() - baseDate.getTime()) + 1000
+  return Math.max(0, nextMidnight.getTime() - baseDate.getTime()) + 1000
 }
 
 export const useDashboardDefaultDateRange = () => {
@@ -68,7 +60,7 @@ export const useDashboardDefaultDateRange = () => {
 
     const timeoutId = setTimeout(() => {
       setDefaultDateRange(getDashboardDefaultDateRange())
-    }, getNextDashboardRolloverDelay())
+    }, getNextMidnightDelay())
 
     if (typeof timeoutId === 'object' && 'unref' in timeoutId) {
       timeoutId.unref()

@@ -117,16 +117,16 @@ describe('DashboardFilters', () => {
     expect(screen.getByText('11/03/2026-12/03/2026')).toBeTruthy()
   })
 
-  it('shows the default dashboard duration as one day before 7 PM', () => {
+  it('shows the actual current day as the default dashboard duration earlier in the day', () => {
     jest.useFakeTimers()
     jest.setSystemTime(new Date('2026-05-19T09:00:00'))
 
     renderDashboardFilters({ durationDateFormat: 'DD/MM/YYYY' })
 
-    expect(screen.getByText('18/05/2026')).toBeTruthy()
+    expect(screen.getByText('19/05/2026')).toBeTruthy()
   })
 
-  it('shows today as the default dashboard duration after 7 PM', () => {
+  it('shows the actual current day as the default dashboard duration later in the day', () => {
     jest.useFakeTimers()
     jest.setSystemTime(new Date('2026-05-19T19:00:00'))
 
@@ -325,6 +325,85 @@ describe('DashboardFilters', () => {
     expect(screen.getByText('All States/UTs')).toBeTruthy()
     expect(screen.getAllByText('Telangana').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Sangareddy').length).toBeGreaterThan(0)
+  })
+
+  it('shows the hierarchy level name under each closed breadcrumb chip', () => {
+    const districtOptions: SearchableSelectOption[] = [
+      { value: 'sangareddy', label: 'Sangareddy' },
+      { value: 'rangareddy', label: 'Ranga Reddy' },
+    ]
+
+    renderDashboardFilters({
+      selectedState: 'telangana',
+      selectedDistrict: 'sangareddy',
+      districtOptions,
+      mockFilterStates: [{ value: 'telangana', label: 'Telangana' }],
+    })
+
+    // The search panel is closed on mount, so the collapsed chips render together
+    // with their level captions.
+    expect(screen.getByText('Telangana')).toBeTruthy()
+    expect(screen.getByText('Sangareddy')).toBeTruthy()
+    expect(screen.getByText('State/UT')).toBeTruthy()
+    expect(screen.getByText('District')).toBeTruthy()
+  })
+
+  it('prefers tenant-specific hierarchy titles for chip level captions', () => {
+    mockUseLocationHierarchyQuery.mockReturnValue({
+      data: {
+        data: {
+          levels: [
+            { level: 1, levelName: [{ title: 'State' }] },
+            { level: 2, levelName: [{ title: 'Mandal' }] },
+          ],
+        },
+      },
+    })
+
+    const districtOptions: SearchableSelectOption[] = [{ value: 'sangareddy', label: 'Sangareddy' }]
+
+    renderDashboardFilters({
+      selectedState: 'telangana',
+      selectedDistrict: 'sangareddy',
+      districtOptions,
+      mockFilterStates: [{ value: 'telangana', label: 'Telangana' }],
+    })
+
+    expect(screen.getByText('Mandal')).toBeTruthy()
+    expect(screen.queryByText('District')).toBeNull()
+  })
+
+  it('uses department level names for chip captions on the departmental tab', () => {
+    mockUseLocationSearchQuery.mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [
+          { value: 'assam', label: 'Assam', tenantId: 17, tenantCode: 'AS', status: 'ACTIVE' },
+        ],
+      },
+    })
+    mockUseLocationChildrenQuery.mockImplementation((args?: unknown) => {
+      const options = args as { parentId?: number } | undefined
+      if (options?.parentId === undefined) {
+        return { data: { data: [{ id: 101, title: 'Assam', lgdCode: 18 }] } }
+      }
+      if (options?.parentId === 101) {
+        return { data: { data: [{ id: 201, title: 'North Zone' }] } }
+      }
+      return { data: undefined }
+    })
+
+    renderDashboardFilters({
+      filterTabIndex: 1,
+      isDepartmentStateSelected: true,
+      selectedState: 'assam',
+      selectedDepartmentState: '101:18:assam',
+      selectedDepartmentZone: '201:201:north-zone',
+      mockFilterStates: [{ value: 'assam', label: 'Assam' }],
+    })
+
+    expect(screen.getByText('North Zone')).toBeTruthy()
+    expect(screen.getByText('Zone')).toBeTruthy()
   })
 
   it('loads department hierarchy labels when the departmental tab is active', () => {
