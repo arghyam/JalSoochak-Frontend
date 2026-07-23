@@ -20,15 +20,22 @@ describe('getDashboardDefaultDateRange', () => {
     w.APP_CONFIG = appConfigBefore
   })
 
-  it('uses yesterday before the 7 PM data rollover', () => {
+  it('uses the actual current day earlier in the day', () => {
     expect(getDashboardDefaultDateRange(new Date('2026-05-19T18:59:00'))).toEqual({
-      startDate: '2026-05-18',
-      endDate: '2026-05-18',
+      startDate: '2026-05-19',
+      endDate: '2026-05-19',
     })
   })
 
-  it('uses today once the 7 PM data rollover has passed', () => {
+  it('uses the actual current day later in the day', () => {
     expect(getDashboardDefaultDateRange(new Date('2026-05-19T19:00:00'))).toEqual({
+      startDate: '2026-05-19',
+      endDate: '2026-05-19',
+    })
+  })
+
+  it('uses the actual current day just after midnight', () => {
+    expect(getDashboardDefaultDateRange(new Date('2026-05-19T00:01:00'))).toEqual({
       startDate: '2026-05-19',
       endDate: '2026-05-19',
     })
