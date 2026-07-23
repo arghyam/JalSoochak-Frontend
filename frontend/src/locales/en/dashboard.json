@@ -105,10 +105,10 @@
     },
     "tooltips": {
       "schemesSupplyingWater": {
-        "description": "Count of schemes that supplied water for the selected date range consistently."
+        "description": "Count of schemes (irrespective of work status) that supplied water for at least one day during the selected date range."
       },
       "criticalSchemes": {
-        "description": "Schemes identified as failing to supply water for the last {{days}} days."
+        "description": "Count of schemes that have not supplied water in the last {{days}} days from today's date, irrespective of the selected date range."
       },
       "quantityMld": {
         "formulaLabel": "Quantity (MLD)",
@@ -130,6 +130,7 @@
         }
       },
       "regularity": {
+        "description": "Schemes are considered regular if they supplied water for at least 90% of the days in the selected date range.",
         "formulaLabel": "Regularity",
         "definitions": {
           "regularSchemes": "number of schemes supplying water regularly",

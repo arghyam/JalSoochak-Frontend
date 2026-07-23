@@ -172,7 +172,6 @@ export function CentralDashboard({
     : new Set<number>()
   const {
     averagePersonsPerHousehold,
-    criticalSchemeStatusAfterDays,
     defaultAverageMembersPerHousehold,
     defaultWaterNormLitersPerPersonPerDay,
     litersPerPersonPerDay,
@@ -589,7 +588,6 @@ export function CentralDashboard({
     comparisonDays,
     continuousSchemesCount,
     criticalSchemesCount,
-    criticalSchemeStatusAfterDays,
     currentRegularityKpi,
     currentWaterSupplyKpis,
     isCentralLandingView,

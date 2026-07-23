@@ -6,7 +6,6 @@ describe('buildCentralDashboardKpiMetrics', () => {
   it('uses singular day labels for a one-day comparison', () => {
     const metrics = buildCentralDashboardKpiMetrics({
       comparisonDays: 1,
-      criticalSchemeStatusAfterDays: 3,
       currentRegularityKpi: 10,
       currentWaterSupplyKpis: {
         quantityMld: 10,
@@ -36,7 +35,6 @@ describe('buildCentralDashboardKpiMetrics', () => {
   it('localizes KPI comparison trends in Hindi', () => {
     const metrics = buildCentralDashboardKpiMetrics({
       comparisonDays: 129,
-      criticalSchemeStatusAfterDays: 3,
       currentRegularityKpi: 10.6,
       currentWaterSupplyKpis: {
         quantityMld: 196.5,
