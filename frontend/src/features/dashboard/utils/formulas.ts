@@ -784,6 +784,29 @@ export const mapQuantityPerformanceFromAnalytics = (
   })
 }
 
+// Prefer the exact R/S*100 ratio; fall back to the API's averageRegularity (0..1)
+// when either scheme count is missing/invalid.
+const resolveChildRegionRegularityPercent = (
+  regularSchemeCount: number,
+  schemeCount: number,
+  averageRegularity: number
+): number => {
+  if (
+    Number.isFinite(regularSchemeCount) &&
+    regularSchemeCount >= 0 &&
+    Number.isFinite(schemeCount) &&
+    schemeCount > 0
+  ) {
+    return calculateAverageRegularityPercent(regularSchemeCount, schemeCount)
+  }
+
+  if (typeof averageRegularity === 'number' && Number.isFinite(averageRegularity)) {
+    return Number((averageRegularity * 100).toFixed(1))
+  }
+
+  return 0
+}
+
 export const mapRegularityPerformanceFromAnalytics = (
   response: AverageSchemeRegularityResponse | undefined,
   fallbackData: EntityPerformance[]
@@ -804,7 +827,11 @@ export const mapRegularityPerformanceFromAnalytics = (
         `regularity-performance-${index}-${slugify(region.title || String(index))}`,
       name: formatEntityName(region.title, fallbackMatch?.name, `Region ${index + 1}`),
       coverage: fallbackMatch?.coverage ?? 0,
-      regularity: calculateAverageRegularityPercent(region.regularSchemeCount, region.schemeCount),
+      regularity: resolveChildRegionRegularityPercent(
+        region.regularSchemeCount,
+        region.schemeCount,
+        region.averageRegularity
+      ),
       continuity: fallbackMatch?.continuity ?? 0,
       quantity: fallbackMatch?.quantity ?? 0,
       compositeScore: fallbackMatch?.compositeScore ?? 0,
