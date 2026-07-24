@@ -1194,6 +1194,55 @@ describe('dashboard formulas', () => {
     ])
   })
 
+  it('falls back to averageRegularity when a child region scheme count is null', () => {
+    const fallbackData: EntityPerformance[] = [
+      {
+        id: 'alpha',
+        name: 'Region Alpha',
+        coverage: 72,
+        regularity: 0,
+        continuity: 0,
+        quantity: 4,
+        compositeScore: 68,
+        status: 'good',
+      },
+    ]
+    const response: AverageSchemeRegularityResponse = {
+      lgdId: 100,
+      parentDepartmentId: 0,
+      parentLgdLevel: 1,
+      parentDepartmentLevel: 0,
+      scope: 'child',
+      startDate: '2026-03-01',
+      endDate: '2026-03-30',
+      daysInRange: 30,
+      schemeCount: 3,
+      totalSupplyDays: 45,
+      averageRegularity: 0,
+      childRegionCount: 1,
+      childRegions: [
+        {
+          lgdId: 100,
+          departmentId: 0,
+          title: 'REGION ALPHA',
+          // Invalid scheme count forces the averageRegularity fallback.
+          schemeCount: null as unknown as number,
+          totalSupplyDays: 45,
+          regularSchemeCount: 2,
+          averageRegularity: 0.8,
+        },
+      ],
+    }
+
+    expect(mapRegularityPerformanceFromAnalytics(response, fallbackData)).toEqual([
+      {
+        ...fallbackData[0],
+        name: 'Region Alpha',
+        regularity: 80,
+      },
+    ])
+  })
+
   it('returns an empty array for regularity analytics when child regions are unavailable', () => {
     const fallbackData: EntityPerformance[] = [
       {
