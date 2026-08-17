@@ -132,6 +132,13 @@ export const toLocalIsoDate = (value: Date = new Date()): string => {
 // Inverse of toLocalIsoDate: midnight local time on the given day.
 export const isoDateToLocalDate = (isoDate: string): Date => new Date(`${isoDate}T00:00:00`)
 
+// Trims an ISO day to a ceiling. Safe to compare lexicographically because YYYY-MM-DD
+// sorts chronologically.
+export const clampIsoDateToMax = (value: string, max: string) => {
+  if (!value) return value
+  return value > max ? max : value
+}
+
 export const formatDateForDisplay = (
   value: Date,
   format?: string | null,

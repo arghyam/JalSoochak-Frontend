@@ -4,7 +4,7 @@ import { useLocation, useNavigate, useParams, useSearchParams } from 'react-rout
 import type { DateRange } from '@/shared/components/common'
 import { isSingleTenantMode } from '@/config/server-config'
 import { useCurrentIsoDate } from '@/shared/hooks/use-current-iso-date'
-import { isoDateToLocalDate } from '@/shared/utils/date-format'
+import { clampIsoDateToMax, isoDateToLocalDate } from '@/shared/utils/date-format'
 import { resolveDatePresetRange } from '@/shared/utils/date-presets'
 import { stateCodeToSlug } from '@/shared/constants/states'
 import type { StateUtOption } from '../types'
@@ -328,8 +328,16 @@ export function useCentralDashboardFilters({
     const activePresetId = selectedDuration.presetId
     if (activePresetId) {
       // A preset is a rule, so re-resolve it: "Yesterday" must follow the new day.
+      const resolvedRange = resolveDatePresetRange(
+        activePresetId,
+        isoDateToLocalDate(currentIsoDate)
+      )
       setSelectedDuration({
-        ...resolveDatePresetRange(activePresetId, isoDateToLocalDate(currentIsoDate)),
+        ...resolvedRange,
+        // "This week"/"This month" run past today. The picker trims their tail to the
+        // ceiling when applied, so re-resolution must do the same or the range would
+        // silently start querying future dates.
+        endDate: clampIsoDateToMax(resolvedRange.endDate, currentIsoDate),
         presetId: activePresetId,
       })
       return

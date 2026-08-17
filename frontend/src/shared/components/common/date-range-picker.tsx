@@ -17,6 +17,7 @@ import type { Property } from 'csstype'
 import { useTranslation } from 'react-i18next'
 import { CalendarIcon } from './calendar-icon'
 import {
+  clampIsoDateToMax,
   DEFAULT_SCREEN_DATE_FORMAT,
   formatIsoDateForDisplay,
   getDateInputPlaceholder,
@@ -90,11 +91,6 @@ const toCompactDisplayRange = (startDate: string, endDate: string, format: strin
   startDate === endDate
     ? formatIsoDateForDisplay(startDate, format)
     : `${formatIsoDateForDisplay(startDate, format)}-${formatIsoDateForDisplay(endDate, format)}`
-
-const clampIsoDateToMax = (value: string, max: string) => {
-  if (!value) return value
-  return value > max ? max : value
-}
 
 const getDefaultRangeIso = (endDateIso: string): DateRange => {
   const endDate = isoDateToLocalDate(endDateIso)
