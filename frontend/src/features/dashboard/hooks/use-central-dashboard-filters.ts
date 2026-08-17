@@ -3,6 +3,9 @@ import type { Dispatch, SetStateAction } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import type { DateRange } from '@/shared/components/common'
 import { isSingleTenantMode } from '@/config/server-config'
+import { useCurrentIsoDate } from '@/shared/hooks/use-current-iso-date'
+import { clampIsoDateToMax, isoDateToLocalDate } from '@/shared/utils/date-format'
+import { resolveDatePresetRange } from '@/shared/utils/date-presets'
 import { stateCodeToSlug } from '@/shared/constants/states'
 import type { StateUtOption } from '../types'
 import { computeTrailIndices } from '../utils/trail-index'
@@ -73,6 +76,9 @@ export function useCentralDashboardFilters({
     !hasDepartmentParamsInUrl &&
     !isAdministrativeTabFromUrl &&
     (hasStoredLgdFilters || hasStoredDepartmentFilters)
+  // Live calendar day. Drives the day-rollover reset below, so a dashboard left open
+  // behaves exactly like one that was reloaded.
+  const currentIsoDate = useCurrentIsoDate()
   const [selectedDuration, setSelectedDuration] = useState<DateRange | null>(() =>
     getInitialStoredDuration(storedFilters)
   )
@@ -288,7 +294,9 @@ export function useCentralDashboardFilters({
   const isAdvancedEnabled = Boolean(selectedState && selectedDistrict)
   const effectiveSelectedDuration =
     selectedDuration ??
-    (isDurationCleared ? null : getInitialStoredDuration(storedFilters, durationDateFormat))
+    (isDurationCleared
+      ? null
+      : getInitialStoredDuration(storedFilters, durationDateFormat, currentIsoDate))
   const handleSelectedDurationChange: Dispatch<SetStateAction<DateRange | null>> = (value) => {
     setSelectedDuration((previousDuration) => {
       const nextDuration = typeof value === 'function' ? value(previousDuration) : value
@@ -297,11 +305,50 @@ export function useCentralDashboardFilters({
         // Refresh the save-day marker only when a concrete duration is chosen. Other
         // filter changes reuse this stored value so a dashboard left open across
         // midnight cannot silently keep a stale range alive.
-        setDurationSavedOn(getCurrentIsoDate())
+        setDurationSavedOn(currentIsoDate)
       }
       return nextDuration
     })
   }
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  // Day rollover in an already-open tab. Without this the reset below only ever ran at
+  // mount, so a long-lived tab kept serving the previous day's range indefinitely.
+  useEffect(() => {
+    if (durationSavedOn === currentIsoDate) {
+      return
+    }
+
+    setDurationSavedOn(currentIsoDate)
+
+    if (selectedDuration === null) {
+      return
+    }
+
+    const activePresetId = selectedDuration.presetId
+    if (activePresetId) {
+      // A preset is a rule, so re-resolve it: "Yesterday" must follow the new day.
+      const resolvedRange = resolveDatePresetRange(
+        activePresetId,
+        isoDateToLocalDate(currentIsoDate)
+      )
+      setSelectedDuration({
+        ...resolvedRange,
+        // "This week"/"This month" run past today. The picker trims their tail to the
+        // ceiling when applied, so re-resolution must do the same or the range would
+        // silently start querying future dates.
+        endDate: clampIsoDateToMax(resolvedRange.endDate, currentIsoDate),
+        presetId: activePresetId,
+      })
+      return
+    }
+
+    // An explicitly typed range has no rule to re-resolve, so it expires the same way a
+    // reload would expire it and the dashboard falls back to the current-day default.
+    setSelectedDuration(null)
+    setIsDurationCleared(true)
+  }, [currentIsoDate, durationSavedOn, selectedDuration])
+  /* eslint-enable react-hooks/set-state-in-effect */
   const updateFilterUrl = (filters: FilterUrlUpdate) => {
     navigateWithUpdatedFilters({
       filters,

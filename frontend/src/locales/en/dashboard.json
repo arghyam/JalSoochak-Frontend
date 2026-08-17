@@ -33,6 +33,7 @@
       "dateInputPlaceholder": "dd/mm/yyyy",
       "clear": "Clear",
       "apply": "Apply",
+      "presetUnavailable": "Not available within the allowed date range",
       "presets": {
         "today": "Today",
         "yesterday": "Yesterday",

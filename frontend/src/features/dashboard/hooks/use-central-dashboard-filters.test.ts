@@ -178,4 +178,180 @@ describe('useCentralDashboardFilters', () => {
       jest.useRealTimers()
     }
   })
+
+  it('re-resolves a preset-derived duration when the day changes in an already-open tab', () => {
+    jest.useFakeTimers()
+    try {
+      jest.setSystemTime(new Date('2026-08-08T10:00:00'))
+
+      const { result } = renderHook(() =>
+        useCentralDashboardFilters({ durationDateFormat: 'DD/MM/YYYY' })
+      )
+
+      // 8 Aug: "Yesterday" resolves to 7 Aug.
+      act(() => {
+        result.current.handleSelectedDurationChange({
+          startDate: '2026-08-07',
+          endDate: '2026-08-07',
+          presetId: 'yesterday',
+        })
+      })
+
+      expect(result.current.effectiveSelectedDuration).toEqual({
+        startDate: '2026-08-07',
+        endDate: '2026-08-07',
+        presetId: 'yesterday',
+      })
+
+      // The tab is never reloaded; the clock moves to 10 Aug.
+      jest.setSystemTime(new Date('2026-08-10T10:00:00'))
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'))
+      })
+
+      // A preset is a rule, so it must now mean 9 Aug rather than staying on 7 Aug.
+      expect(result.current.effectiveSelectedDuration).toEqual({
+        startDate: '2026-08-09',
+        endDate: '2026-08-09',
+        presetId: 'yesterday',
+      })
+      expect(
+        JSON.parse(window.localStorage.getItem(CENTRAL_DASHBOARD_FILTER_STORAGE_KEY) ?? '{}')
+          .durationSavedOn
+      ).toBe('2026-08-10')
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('clamps a re-resolved this-week duration to today instead of running into the future', () => {
+    jest.useFakeTimers()
+    try {
+      // Saturday 8 Aug. "This week" is Mon 3 - Sun 9, trimmed to today when applied.
+      jest.setSystemTime(new Date('2026-08-08T10:00:00'))
+
+      const { result } = renderHook(() =>
+        useCentralDashboardFilters({ durationDateFormat: 'DD/MM/YYYY' })
+      )
+
+      act(() => {
+        result.current.handleSelectedDurationChange({
+          startDate: '2026-08-03',
+          endDate: '2026-08-08',
+          presetId: 'this-week',
+        })
+      })
+
+      // Wednesday 12 Aug: the week is now Mon 10 - Sun 16, whose end is four days ahead.
+      jest.setSystemTime(new Date('2026-08-12T10:00:00'))
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'))
+      })
+
+      expect(result.current.effectiveSelectedDuration).toEqual({
+        startDate: '2026-08-10',
+        endDate: '2026-08-12',
+        presetId: 'this-week',
+      })
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('clamps a re-resolved this-month duration to today instead of running into the future', () => {
+    jest.useFakeTimers()
+    try {
+      jest.setSystemTime(new Date('2026-08-08T10:00:00'))
+
+      const { result } = renderHook(() =>
+        useCentralDashboardFilters({ durationDateFormat: 'DD/MM/YYYY' })
+      )
+
+      act(() => {
+        result.current.handleSelectedDurationChange({
+          startDate: '2026-08-01',
+          endDate: '2026-08-08',
+          presetId: 'this-month',
+        })
+      })
+
+      // The month still ends 31 Aug, so re-resolution must trim it back to today.
+      jest.setSystemTime(new Date('2026-08-12T10:00:00'))
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'))
+      })
+
+      expect(result.current.effectiveSelectedDuration).toEqual({
+        startDate: '2026-08-01',
+        endDate: '2026-08-12',
+        presetId: 'this-month',
+      })
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('expires a manually chosen duration when the day changes in an already-open tab', () => {
+    jest.useFakeTimers()
+    try {
+      jest.setSystemTime(new Date('2026-08-08T10:00:00'))
+
+      const { result } = renderHook(() =>
+        useCentralDashboardFilters({ durationDateFormat: 'DD/MM/YYYY' })
+      )
+
+      act(() => {
+        result.current.handleSelectedDurationChange({
+          startDate: '2026-08-01',
+          endDate: '2026-08-07',
+        })
+      })
+
+      expect(result.current.effectiveSelectedDuration).not.toBeNull()
+
+      jest.setSystemTime(new Date('2026-08-10T10:00:00'))
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'))
+      })
+
+      // A typed range has no rule to re-resolve, so it expires exactly as a reload would
+      // expire it and the dashboard falls back to the current-day default.
+      expect(result.current.effectiveSelectedDuration).toBeNull()
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('leaves the duration untouched while the day is unchanged', () => {
+    jest.useFakeTimers()
+    try {
+      jest.setSystemTime(new Date('2026-08-08T10:00:00'))
+
+      const { result } = renderHook(() =>
+        useCentralDashboardFilters({ durationDateFormat: 'DD/MM/YYYY' })
+      )
+
+      act(() => {
+        result.current.handleSelectedDurationChange({
+          startDate: '2026-08-07',
+          endDate: '2026-08-07',
+          presetId: 'yesterday',
+        })
+      })
+
+      // Same day, so revisiting the tab must not disturb the selection.
+      jest.setSystemTime(new Date('2026-08-08T12:00:00'))
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'))
+      })
+
+      expect(result.current.effectiveSelectedDuration).toEqual({
+        startDate: '2026-08-07',
+        endDate: '2026-08-07',
+        presetId: 'yesterday',
+      })
+    } finally {
+      jest.useRealTimers()
+    }
+  })
 })

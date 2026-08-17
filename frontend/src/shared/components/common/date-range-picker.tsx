@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import {
   Box,
   Button,
@@ -17,24 +17,38 @@ import type { Property } from 'csstype'
 import { useTranslation } from 'react-i18next'
 import { CalendarIcon } from './calendar-icon'
 import {
+  clampIsoDateToMax,
   DEFAULT_SCREEN_DATE_FORMAT,
   formatIsoDateForDisplay,
   getDateInputPlaceholder,
+  isoDateToLocalDate,
   isValidDisplayDate,
   normalizeDateFormat,
   parseDisplayDateToIso,
+  toLocalIsoDate,
 } from '@/shared/utils/date-format'
+import {
+  DATE_PRESET_IDS,
+  DATE_PRESET_LABELS,
+  resolveDatePresetRange,
+  type DatePresetId,
+} from '@/shared/utils/date-presets'
+import { syncCurrentIsoDate, useCurrentIsoDate } from '@/shared/hooks/use-current-iso-date'
 
 export type DateRange = {
   startDate: string
   endDate: string
-  preset?: string
+  // Stable preset identity. The visible label is derived from this at render time so it
+  // follows the active language and so a preset can be re-resolved when the day changes.
+  presetId?: DatePresetId
 }
 
-type PresetDefinition = {
-  id: string
+type PresetOption = {
+  id: DatePresetId
   label: string
-  getRange: (baseDate: Date) => { startDate: string; endDate: string }
+  range: { startDate: string; endDate: string }
+  // True when the whole range sits beyond maxDate, so it can never be applied.
+  isUnavailable: boolean
 }
 
 type PopoverPlacement =
@@ -73,50 +87,19 @@ export interface DateRangePickerProps {
   popoverPlacement?: PopoverPlacement
 }
 
-const formatISODate = (date: Date) => {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
 const toCompactDisplayRange = (startDate: string, endDate: string, format: string) =>
   startDate === endDate
     ? formatIsoDateForDisplay(startDate, format)
     : `${formatIsoDateForDisplay(startDate, format)}-${formatIsoDateForDisplay(endDate, format)}`
 
-const startOfWeek = (date: Date) => {
-  const day = date.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  const start = new Date(date)
-  start.setDate(date.getDate() + diff)
-  return start
-}
-
-const endOfWeek = (date: Date) => {
-  const start = startOfWeek(date)
-  const end = new Date(start)
-  end.setDate(start.getDate() + 6)
-  return end
-}
-
-const startOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1)
-
-const endOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0)
-
-const clampIsoDateToMax = (value: string, max: string) => {
-  if (!value) return value
-  return value > max ? max : value
-}
-
 const getDefaultRangeIso = (endDateIso: string): DateRange => {
-  const endDate = new Date(`${endDateIso}T00:00:00`)
+  const endDate = isoDateToLocalDate(endDateIso)
   const startDate = new Date(endDate)
   startDate.setDate(endDate.getDate() - 29)
   return {
-    startDate: formatISODate(startDate),
+    startDate: toLocalIsoDate(startDate),
     endDate: endDateIso,
-    preset: undefined,
+    presetId: undefined,
   }
 }
 
@@ -145,10 +128,12 @@ export function DateRangePicker({
   const resolvedDateFormat = normalizeDateFormat(dateFormat)
   const dateInputPlaceholder = getDateInputPlaceholder(resolvedDateFormat)
   const [isTinyPicker] = useMediaQuery('(max-width: 599px)')
-  const todayIso = useMemo(() => formatISODate(new Date()), [])
+  // Live, not frozen at mount: a picker left open across a day rollover (or through a
+  // clock correction) must not keep yesterday's ceiling.
+  const currentIsoDate = useCurrentIsoDate()
   const maxDateIso = maxDate
-    ? parseDisplayDateToIso(maxDate, resolvedDateFormat) || todayIso
-    : todayIso
+    ? parseDisplayDateToIso(maxDate, resolvedDateFormat) || currentIsoDate
+    : currentIsoDate
   const defaultRangeIso = defaultRange ?? getDefaultRangeIso(maxDateIso)
   const showDefaultRange = isFilter && !value
   const displayRange = value ?? (showDefaultRange ? defaultRangeIso : null)
@@ -181,7 +166,7 @@ export function DateRangePicker({
               parseDisplayDateToIso(resolvedValue.endDate, resolvedDateFormat),
               resolvedDateFormat
             ),
-            preset: resolvedValue.preset,
+            presetId: resolvedValue.presetId,
           }
         : null
     )
@@ -195,73 +180,27 @@ export function DateRangePicker({
     )
   }
 
-  const presets = useMemo<PresetDefinition[]>(
-    () => [
-      {
-        id: 'today',
-        label: t('filters.dateRangePicker.presets.today', 'Today'),
-        getRange: (baseDate) => ({
-          startDate: formatISODate(baseDate),
-          endDate: formatISODate(baseDate),
-        }),
-      },
-      {
-        id: 'yesterday',
-        label: t('filters.dateRangePicker.presets.yesterday', 'Yesterday'),
-        getRange: (baseDate) => {
-          const yesterday = new Date(baseDate)
-          yesterday.setDate(baseDate.getDate() - 1)
-          return {
-            startDate: formatISODate(yesterday),
-            endDate: formatISODate(yesterday),
-          }
-        },
-      },
-      {
-        id: 'this-week',
-        label: t('filters.dateRangePicker.presets.thisWeek', 'This week'),
-        getRange: (baseDate) => ({
-          startDate: formatISODate(startOfWeek(baseDate)),
-          endDate: formatISODate(endOfWeek(baseDate)),
-        }),
-      },
-      {
-        id: 'last-week',
-        label: t('filters.dateRangePicker.presets.lastWeek', 'Last week'),
-        getRange: (baseDate) => {
-          const lastWeek = new Date(baseDate)
-          lastWeek.setDate(baseDate.getDate() - 7)
-          return {
-            startDate: formatISODate(startOfWeek(lastWeek)),
-            endDate: formatISODate(endOfWeek(lastWeek)),
-          }
-        },
-      },
-      {
-        id: 'this-month',
-        label: t('filters.dateRangePicker.presets.thisMonth', 'This month'),
-        getRange: (baseDate) => ({
-          startDate: formatISODate(startOfMonth(baseDate)),
-          endDate: formatISODate(endOfMonth(baseDate)),
-        }),
-      },
-      {
-        id: 'last-month',
-        label: t('filters.dateRangePicker.presets.lastMonth', 'Last month'),
-        getRange: (baseDate) => {
-          const lastMonth = new Date(baseDate.getFullYear(), baseDate.getMonth() - 1, 1)
-          return {
-            startDate: formatISODate(startOfMonth(lastMonth)),
-            endDate: formatISODate(endOfMonth(lastMonth)),
-          }
-        },
-      },
-    ],
-    [t]
-  )
+  // Resolved against the live calendar day, so "Yesterday" means yesterday relative to
+  // now — never relative to whenever this component happened to mount.
+  const presets: PresetOption[] = DATE_PRESET_IDS.map((id) => {
+    const range = resolveDatePresetRange(id, isoDateToLocalDate(currentIsoDate))
+    return {
+      id,
+      label: t(DATE_PRESET_LABELS[id].key, DATE_PRESET_LABELS[id].defaultLabel),
+      range,
+      // A range that starts after the ceiling has nothing left to show once clamped.
+      isUnavailable: range.startDate > maxDateIso,
+    }
+  })
 
+  const displayPresetLabel = displayRange?.presetId
+    ? t(
+        DATE_PRESET_LABELS[displayRange.presetId].key,
+        DATE_PRESET_LABELS[displayRange.presetId].defaultLabel
+      )
+    : ''
   const displayLabel = displayRange
-    ? displayRange.preset ||
+    ? displayPresetLabel ||
       toCompactDisplayRange(
         parseDisplayDateToIso(displayRange.startDate, resolvedDateFormat),
         parseDisplayDateToIso(displayRange.endDate, resolvedDateFormat),
@@ -296,6 +235,12 @@ export function DateRangePicker({
 
   const handleOpen = () => {
     if (!disabled) {
+      // Re-read the wall clock at the moment of use. Opening the picker and clicking a
+      // preset are separate interactions with a render between them, so this guarantees
+      // the ceiling and every preset are resolved against the real day on the popover's
+      // first paint — even if a background tab's midnight timer never fired.
+      syncCurrentIsoDate()
+
       if (isTinyPicker && triggerRef.current) {
         const dashboardContent = document.getElementById('main-content')
         if (dashboardContent instanceof HTMLElement) {
@@ -315,16 +260,22 @@ export function DateRangePicker({
     setIsOpen(false)
   }
 
-  const handlePreset = (preset: PresetDefinition) => {
-    const range = preset.getRange(new Date())
-    const clampedStartDate = clampIsoDateToMax(range.startDate, maxDateIso)
-    const clampedEndDate = clampIsoDateToMax(range.endDate, maxDateIso)
+  const handlePreset = (preset: PresetOption) => {
+    // Never silently substitute a different day: if the preset is entirely past the
+    // ceiling it is surfaced as disabled instead of resolving to a wrong date.
+    if (preset.isUnavailable) {
+      return
+    }
+
+    // Only the end may be clamped — "this week"/"this month" legitimately run into the
+    // future, and trimming their tail to the ceiling still yields the intended range.
+    const clampedEndDate = clampIsoDateToMax(preset.range.endDate, maxDateIso)
     setDraft({
-      startDate: formatIsoDateForDisplay(clampedStartDate, resolvedDateFormat),
+      startDate: formatIsoDateForDisplay(preset.range.startDate, resolvedDateFormat),
       endDate: formatIsoDateForDisplay(clampedEndDate, resolvedDateFormat),
-      preset: preset.label,
+      presetId: preset.id,
     })
-    setDraftIso({ startDate: clampedStartDate, endDate: clampedEndDate })
+    setDraftIso({ startDate: preset.range.startDate, endDate: clampedEndDate })
   }
 
   const handleApply = () => {
@@ -348,13 +299,13 @@ export function DateRangePicker({
       onChange({
         startDate: end,
         endDate: start,
-        preset: draft?.preset,
+        presetId: draft?.presetId,
       })
     } else {
       onChange({
         startDate: start,
         endDate: end,
-        preset: draft?.preset,
+        presetId: draft?.presetId,
       })
     }
     handleClose()
@@ -489,7 +440,7 @@ export function DateRangePicker({
                   {t('filters.dateRangePicker.quickRanges', 'Quick ranges')}
                 </Text>
                 {presets.map((preset) => {
-                  const isSelected = draft?.preset === preset.label
+                  const isSelected = draft?.presetId === preset.id
                   return (
                     <Button
                       key={preset.id}
@@ -498,6 +449,15 @@ export function DateRangePicker({
                       size="sm"
                       fontWeight={isSelected ? '600' : '500'}
                       color={isSelected ? 'primary.500' : 'neutral.600'}
+                      isDisabled={preset.isUnavailable}
+                      title={
+                        preset.isUnavailable
+                          ? t(
+                              'filters.dateRangePicker.presetUnavailable',
+                              'Not available within the allowed date range'
+                            )
+                          : undefined
+                      }
                       onClick={() => handlePreset(preset)}
                     >
                       {preset.label}
@@ -535,7 +495,7 @@ export function DateRangePicker({
                           return {
                             startDate: nextValue,
                             endDate: shouldAdjustEnd ? nextValue : currentEnd,
-                            preset: undefined,
+                            presetId: undefined,
                           }
                         })
                         setDraftIso((current) => {
@@ -583,7 +543,7 @@ export function DateRangePicker({
                           return {
                             startDate: formatIsoDateForDisplay(nextValue, resolvedDateFormat),
                             endDate: nextEnd,
-                            preset: undefined,
+                            presetId: undefined,
                           }
                         })
                       }}
@@ -616,7 +576,7 @@ export function DateRangePicker({
                             parseDisplayDateToIso(nextValue, resolvedDateFormat) > maxDateIso
                               ? formatIsoDateForDisplay(maxDateIso, resolvedDateFormat)
                               : nextValue,
-                          preset: undefined,
+                          presetId: undefined,
                         }))
                         setDraftIso((current) => ({
                           startDate: current?.startDate ?? '',
@@ -649,7 +609,7 @@ export function DateRangePicker({
                         setDraft((current) => ({
                           startDate: current?.startDate ?? '',
                           endDate: formatIsoDateForDisplay(nextValue, resolvedDateFormat),
-                          preset: undefined,
+                          presetId: undefined,
                         }))
                       }}
                       position="absolute"
