@@ -33,6 +33,7 @@
       "dateInputPlaceholder": "দিন/মাহ/বছৰ",
       "clear": "ক্লিয়াৰ কৰক",
       "apply": "প্ৰয়োগ কৰক",
+      "presetUnavailable": "অনুমোদিত তাৰিখ পৰিসৰত উপলব্ধ নহয়",
       "presets": {
         "today": "আজি",
         "yesterday": "যোৱা কালি",

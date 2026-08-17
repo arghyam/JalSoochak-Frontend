@@ -9,7 +9,12 @@ import type {
 import type { TenantChildLocation } from '../services/api/dashboard-api'
 import { ROUTES } from '@/shared/constants/routes'
 import { INDIA_STATES, stateSlugToCode } from '@/shared/constants/states'
-import { parseDisplayDateToIsoWithFallback } from '@/shared/utils/date-format'
+import {
+  isoDateToLocalDate,
+  parseDisplayDateToIsoWithFallback,
+  toLocalIsoDate,
+} from '@/shared/utils/date-format'
+import { isDatePresetId } from '@/shared/utils/date-presets'
 import { slugify, toCapitalizedWords } from './format-location-label'
 import { parseStableLocationValue, toStableLocationValue } from './stable-location-value'
 
@@ -221,20 +226,7 @@ export const toIsoDate = (date?: string | Date | null, dateFormat?: string): str
     return undefined
   }
 
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-}
-
-export const getDefaultAnalyticsDateRange = () => {
-  const today = new Date()
-  const endDate = new Date(today)
-  endDate.setDate(today.getDate() - 1)
-  const startDate = new Date(endDate)
-  startDate.setDate(endDate.getDate() - 29)
-
-  return {
-    startDate: toIsoDate(startDate) ?? '',
-    endDate: toIsoDate(endDate) ?? '',
-  }
+  return toLocalIsoDate(date)
 }
 
 export const getStateLgdCode = (stateName?: string, stateCode?: string): number | undefined => {
@@ -306,22 +298,20 @@ export const parseStoredDateValue = (value: unknown, dateFormat?: string) => {
     return null
   }
 
-  const date = new Date(`${isoDate}T00:00:00`)
+  const date = isoDateToLocalDate(isoDate)
   return Number.isNaN(date.getTime()) ? null : date
 }
 
 // Local calendar day as YYYY-MM-DD. Kept in local time to match the user's notion
 // of "the day I opened the dashboard".
-export const getCurrentIsoDate = (baseDate: Date = new Date()): string => {
-  const year = baseDate.getFullYear()
-  const month = String(baseDate.getMonth() + 1).padStart(2, '0')
-  const day = String(baseDate.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
+export const getCurrentIsoDate = (baseDate: Date = new Date()): string => toLocalIsoDate(baseDate)
 
 export const getInitialStoredDuration = (
   storedFilters: StoredFilters,
-  dateFormat?: string
+  dateFormat?: string,
+  // Injected by the caller so the guard can be re-evaluated against a live clock
+  // instead of only at module/mount time.
+  currentIsoDate: string = getCurrentIsoDate()
 ): DateRange | null => {
   const storedDuration = storedFilters.selectedDuration
   if (
@@ -342,8 +332,16 @@ export const getInitialStoredDuration = (
   // Only restore a previously selected range when it was saved on the current
   // calendar day. Once the day rolls over, ignore it so the dashboard falls back
   // to the current-date default instead of a stale selection.
-  if (storedFilters.durationSavedOn !== getCurrentIsoDate()) {
+  if (storedFilters.durationSavedOn !== currentIsoDate) {
     return null
+  }
+
+  // localStorage is untrusted: drop a preset id that is no longer a known preset so it
+  // can never be fed back into range resolution. Identity is preserved in the normal
+  // path — this value is an effect dependency, so a fresh object every call would
+  // re-trigger the filter persistence effect on every render.
+  if (storedDuration.presetId !== undefined && !isDatePresetId(storedDuration.presetId)) {
+    return { startDate: storedDuration.startDate, endDate: storedDuration.endDate }
   }
 
   return storedDuration

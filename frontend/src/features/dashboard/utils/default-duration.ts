@@ -1,12 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import type { DateRange } from '@/shared/components/common'
 import { getRuntimeConfig } from '@/config/runtime-config'
+import { useCurrentIsoDate } from '@/shared/hooks/use-current-iso-date'
+import { isoDateToLocalDate, toLocalIsoDate } from '@/shared/utils/date-format'
 
 const DEFAULT_DASHBOARD_DURATION_DAYS = 1
 const DEFAULT_ALLOWED_DASHBOARD_DURATION_DAYS = [1, 7, 30]
-
-const formatIsoDate = (date: Date) =>
-  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 
 const resolveDashboardDefaultDurationDays = () => {
   const durationConfig = getRuntimeConfig().DEFAULT_DASHBOARD_DURATION
@@ -29,45 +28,30 @@ const resolveDashboardDefaultDurationDays = () => {
   return DEFAULT_DASHBOARD_DURATION_DAYS
 }
 
+// The default range always *ends today* — today's data is the dashboard's landing view.
+// The window is inclusive, so DAYS: 7 yields today-6 … today.
 export const getDashboardDefaultDateRange = (baseDate = new Date()): DateRange => {
   const effectiveDate = new Date(baseDate)
 
-  const endDate = formatIsoDate(effectiveDate)
+  const endDate = toLocalIsoDate(effectiveDate)
   const startDate = new Date(effectiveDate)
   startDate.setDate(effectiveDate.getDate() - resolveDashboardDefaultDurationDays() + 1)
 
   return {
-    startDate: formatIsoDate(startDate),
+    startDate: toLocalIsoDate(startDate),
     endDate,
   }
 }
 
-const getNextMidnightDelay = (baseDate = new Date()) => {
-  const nextMidnight = new Date(baseDate)
-  // setHours with 24 rolls over to 00:00 of the following calendar day.
-  nextMidnight.setHours(24, 0, 0, 0)
+/**
+ * Derived purely from the current calendar day, so it can never be stale: there is no
+ * timer to miss a midnight. Recomputes only when the day actually changes.
+ */
+export const useDashboardDefaultDateRange = (): DateRange => {
+  const currentIsoDate = useCurrentIsoDate()
 
-  return Math.max(0, nextMidnight.getTime() - baseDate.getTime()) + 1000
-}
-
-export const useDashboardDefaultDateRange = () => {
-  const [defaultDateRange, setDefaultDateRange] = useState(() => getDashboardDefaultDateRange())
-
-  useEffect(() => {
-    if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'test') {
-      return undefined
-    }
-
-    const timeoutId = setTimeout(() => {
-      setDefaultDateRange(getDashboardDefaultDateRange())
-    }, getNextMidnightDelay())
-
-    if (typeof timeoutId === 'object' && 'unref' in timeoutId) {
-      timeoutId.unref()
-    }
-
-    return () => clearTimeout(timeoutId)
-  }, [defaultDateRange.endDate])
-
-  return defaultDateRange
+  return useMemo(
+    () => getDashboardDefaultDateRange(isoDateToLocalDate(currentIsoDate)),
+    [currentIsoDate]
+  )
 }

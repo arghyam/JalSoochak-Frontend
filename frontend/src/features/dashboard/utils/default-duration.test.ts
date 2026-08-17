@@ -1,5 +1,6 @@
-import { afterEach, describe, expect, it } from '@jest/globals'
-import { getDashboardDefaultDateRange } from './default-duration'
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals'
+import { act, renderHook } from '@testing-library/react'
+import { getDashboardDefaultDateRange, useDashboardDefaultDateRange } from './default-duration'
 
 type TestWindow = Window & {
   APP_CONFIG?: {
@@ -87,5 +88,56 @@ describe('getDashboardDefaultDateRange', () => {
       startDate: '2026-05-19',
       endDate: '2026-05-19',
     })
+  })
+})
+
+describe('useDashboardDefaultDateRange', () => {
+  beforeEach(() => {
+    jest.useFakeTimers()
+    jest.setSystemTime(new Date('2026-08-08T10:00:00'))
+  })
+
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
+  it('starts on the current day', () => {
+    const { result } = renderHook(() => useDashboardDefaultDateRange())
+
+    expect(result.current).toEqual({ startDate: '2026-08-08', endDate: '2026-08-08' })
+  })
+
+  it('advances when a suspended tab is revisited, without its midnight timer firing', () => {
+    const { result } = renderHook(() => useDashboardDefaultDateRange())
+
+    // Two days pass with the tab frozen: the midnight timer never ran. Revisiting the tab
+    // must re-read the clock, not carry the day the timer was originally armed for.
+    jest.setSystemTime(new Date('2026-08-10T10:00:00'))
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+
+    expect(result.current).toEqual({ startDate: '2026-08-10', endDate: '2026-08-10' })
+  })
+
+  it('advances on an ordinary midnight rollover', () => {
+    const { result } = renderHook(() => useDashboardDefaultDateRange())
+
+    act(() => {
+      jest.advanceTimersByTime(14 * 60 * 60 * 1000 + 2000)
+    })
+
+    expect(result.current).toEqual({ startDate: '2026-08-09', endDate: '2026-08-09' })
+  })
+
+  it('keeps a stable reference while the day is unchanged', () => {
+    const { result } = renderHook(() => useDashboardDefaultDateRange())
+    const firstRange = result.current
+
+    act(() => {
+      jest.advanceTimersByTime(60 * 60 * 1000)
+    })
+
+    expect(result.current).toBe(firstRange)
   })
 })
