@@ -116,16 +116,32 @@ export const formatIsoDateForDisplay = (
   return tokens.map((token) => values[token]).join(separator)
 }
 
+// Local calendar day as YYYY-MM-DD. Deliberately built from the local getters rather
+// than toISOString() so the result is the day the user is actually in, never a UTC day.
+export const toLocalIsoDate = (value: Date = new Date()): string => {
+  if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
+    return ''
+  }
+
+  const year = value.getFullYear()
+  const month = String(value.getMonth() + 1).padStart(2, '0')
+  const day = String(value.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+// Inverse of toLocalIsoDate: midnight local time on the given day.
+export const isoDateToLocalDate = (isoDate: string): Date => new Date(`${isoDate}T00:00:00`)
+
 export const formatDateForDisplay = (
   value: Date,
   format?: string | null,
   options: { shortYear?: boolean } = {}
 ) => {
-  if (!(value instanceof Date) || Number.isNaN(value.getTime())) {
+  const isoDate = toLocalIsoDate(value)
+  if (!isoDate) {
     return ''
   }
 
-  const isoDate = `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`
   return formatIsoDateForDisplay(isoDate, format, options)
 }
 

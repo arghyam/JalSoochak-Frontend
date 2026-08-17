@@ -33,6 +33,7 @@
       "dateInputPlaceholder": "dd/mm/yyyy",
       "clear": "साफ़ करें",
       "apply": "लागू करें",
+      "presetUnavailable": "अनुमत तिथि सीमा में उपलब्ध नहीं",
       "presets": {
         "today": "आज",
         "yesterday": "कल",
