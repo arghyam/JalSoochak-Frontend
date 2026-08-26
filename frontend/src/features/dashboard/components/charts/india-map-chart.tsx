@@ -105,8 +105,8 @@ export function IndiaMapChart({
     () => ({
       gte90: resolveThemeColor('#5DBA52'),
       gte70: resolveThemeColor('#89E57F'),
-      gte50: resolveThemeColor('#FFB433'),
-      gte30: resolveThemeColor('#FFD999'),
+      gte50: resolveThemeColor('#FFD999'),
+      gte30: resolveThemeColor('#FFB433'),
       gte0: resolveThemeColor('#F4614F'),
       noData: resolveThemeColor('#D1D1D6'),
     }),
@@ -118,8 +118,8 @@ export function IndiaMapChart({
       // Example: gte90: '#84BDE3'
       gte90: '#38962C',
       gte70: '#33BA11',
-      gte50: '#CC8100',
-      gte30: '#EB932D',
+      gte50: '#EB932D',
+      gte30: '#CC8100',
       gte0: '#C74331',
       noData: '#A0A0AB',
     }),
