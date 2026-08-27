@@ -355,9 +355,33 @@ describe('DashboardBody', () => {
     expect(regularityTimeCall?.[0].isPercent).toBe(true)
   })
 
-  it('keeps time views disabled when the selected duration is one day', () => {
+  it('keeps only the outage distribution time view disabled when the selected duration is one day', () => {
     renderDashboardBody({
-      isTimeViewEnabled: false,
+      isOutageTimeViewEnabled: false,
+      isStateSelected: true,
+      data: {
+        ...mockDashboardData,
+        supplyOutageTrend: [{ period: 'FY25', value: 7 }],
+      },
+    })
+
+    const outageSelect = screen.getByRole('button', {
+      name: 'State supply outage distribution view by',
+    })
+    fireEvent.click(outageSelect)
+
+    const outageTimeOption = screen.getByRole('menuitem', { name: 'Time' })
+    expect((outageTimeOption as HTMLButtonElement).disabled).toBe(true)
+
+    fireEvent.click(outageTimeOption)
+
+    expect(outageSelect.textContent).toContain('Geography')
+    expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
+  })
+
+  it('keeps the performance time views selectable on a one-day duration', () => {
+    renderDashboardBody({
+      isOutageTimeViewEnabled: false,
       isStateSelected: true,
       data: {
         ...mockDashboardData,
@@ -368,24 +392,26 @@ describe('DashboardBody', () => {
     const quantitySelect = screen.getByRole('button', { name: 'Quantity performance view by' })
     fireEvent.click(quantitySelect)
 
-    const timeOption = screen.getByRole('menuitem', { name: 'Time' })
-    expect((timeOption as HTMLButtonElement).disabled).toBe(true)
+    const quantityTimeOption = screen.getByRole('menuitem', { name: 'Time' })
+    expect((quantityTimeOption as HTMLButtonElement).disabled).toBe(false)
 
-    fireEvent.click(timeOption)
+    fireEvent.click(quantityTimeOption)
 
-    expect(quantitySelect.textContent).toContain('Geography')
-    expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
+    expect(quantitySelect.textContent).toContain('Time')
+    expect(mockMonthlyTrendChart.mock.calls.some((call) => call[0].seriesName === 'Quantity')).toBe(
+      true
+    )
 
-    fireEvent.click(quantitySelect)
-
-    const outageSelect = screen.getByRole('button', {
-      name: 'State supply outage distribution view by',
+    const regularitySelect = screen.getByRole('button', {
+      name: 'Regularity performance view by',
     })
-    fireEvent.click(outageSelect)
+    fireEvent.click(regularitySelect)
     fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
 
-    expect(outageSelect.textContent).toContain('Geography')
-    expect(mockMonthlyTrendChart).not.toHaveBeenCalled()
+    expect(regularitySelect.textContent).toContain('Time')
+    expect(
+      mockMonthlyTrendChart.mock.calls.some((call) => call[0].seriesName === 'Regularity')
+    ).toBe(true)
   })
 
   it('resets central quantity and regularity selectors back to geography after returning from a deeper level', () => {

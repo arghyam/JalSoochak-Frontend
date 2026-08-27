@@ -48,7 +48,6 @@ type PerformanceChartCardProps = {
   dateFormat?: string
   enableExtendedTimeScales?: boolean
   hideViewBySelect?: boolean
-  isTimeViewEnabled?: boolean
 }
 
 export function PerformanceChartCard({
@@ -84,14 +83,12 @@ export function PerformanceChartCard({
   dateFormat,
   enableExtendedTimeScales = true,
   hideViewBySelect = false,
-  isTimeViewEnabled = true,
 }: PerformanceChartCardProps) {
   const { t } = useTranslation('dashboard')
-  const effectiveViewBy = isTimeViewEnabled ? viewBy : 'geography'
   const hasGeographyData = data.length > 0
   const hasTimeData = timeTrendData.length > 0
   const isSelectDisabled =
-    effectiveViewBy === 'geography'
+    viewBy === 'geography'
       ? !hasGeographyData
       : !hasTimeData && !isTimeTrendLoading && !isTimeTrendAwaitingParams
   const timeScaleTab = metric === 'quantity' ? quantityTimeScaleTab : regularityTimeScaleTab
@@ -126,9 +123,7 @@ export function PerformanceChartCard({
     ? ['day', 'week', 'month', 'quarter', 'year']
     : ['day', 'week', 'month']
   const resolvedTimeXAxisLabel =
-    (metric === 'quantity' || metric === 'regularity') &&
-    effectiveViewBy === 'time' &&
-    hasTimeScaleControl
+    (metric === 'quantity' || metric === 'regularity') && viewBy === 'time' && hasTimeScaleControl
       ? metricTimeXAxisLabel
       : timeXAxisLabel
 
@@ -170,7 +165,7 @@ export function PerformanceChartCard({
           }}
         >
           {(metric === 'quantity' || metric === 'regularity') &&
-          effectiveViewBy === 'time' &&
+          viewBy === 'time' &&
           hasTimeScaleControl ? (
             <Flex
               align="center"
@@ -222,11 +217,8 @@ export function PerformanceChartCard({
           {hideViewBySelect ? null : (
             <ViewBySelect
               ariaLabel={viewByAriaLabel}
-              value={effectiveViewBy}
+              value={viewBy}
               onChange={(value) => {
-                if (value === 'time' && !isTimeViewEnabled) {
-                  return
-                }
                 if (value === 'time' && onTimeScaleTabChange) {
                   onTimeScaleTabChange('day')
                 }
@@ -235,19 +227,18 @@ export function PerformanceChartCard({
               color={selectColor}
               borderColor={selectBorderColor}
               disabled={isSelectDisabled}
-              isTimeOptionDisabled={!isTimeViewEnabled}
             />
           )}
         </Flex>
       </Flex>
       <Box flex="1" minH={0}>
-        {effectiveViewBy === 'geography' && isGeographyLoading ? (
+        {viewBy === 'geography' && isGeographyLoading ? (
           <Flex align="center" justify="center" h="100%">
             <LoadingSpinner />
           </Flex>
-        ) : effectiveViewBy === 'geography' && isGeographyError ? (
+        ) : viewBy === 'geography' && isGeographyError ? (
           <ChartEmptyState minHeight="100%" message={errorMessage} />
-        ) : effectiveViewBy === 'geography' ? (
+        ) : viewBy === 'geography' ? (
           data.length > 0 ? (
             <MetricPerformanceChart
               data={data}

@@ -1806,7 +1806,7 @@ describe('CentralDashboard', () => {
     expect(dashboardBodyProps.isQuantityTimeTrendLoading).toBe(false)
   })
 
-  it('uses the analytics id from village filter values for village periodic charts on one-day duration', () => {
+  it('keeps village periodic KPI queries on the selected day for a one-day duration', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
@@ -1852,6 +1852,207 @@ describe('CentralDashboard', () => {
         tenantId: 16,
         lgdId: 544,
         startDate: '2026-02-03',
+        endDate: '2026-02-03',
+        scale: expect.any(String),
+      },
+      enabled: true,
+    })
+  })
+
+  it('widens the village performance trend queries to a 30-day window on a one-day duration', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    mockUseSearchParams.mockReturnValue([
+      new URLSearchParams(
+        'district=11:211:sangareddy&block=22:322:patancheru&gramPanchayat=33:433:ismailkhanpet&village=44:544:rudraram'
+      ),
+      jest.fn(),
+    ])
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedDuration: {
+          startDate: '03/02/2026',
+          endDate: '03/02/2026',
+        },
+        durationSavedOn: getCurrentIsoDate(),
+      })
+    )
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useWaterQuantityPeriodicQuery).toHaveBeenCalledWith({
+      params: {
+        lgdId: 544,
+        startDate: '2026-01-05',
+        endDate: '2026-02-03',
+        scale: expect.any(String),
+      },
+      enabled: true,
+    })
+    expect(useSchemeRegularityPeriodicQuery).toHaveBeenCalledWith({
+      params: {
+        tenantId: 16,
+        lgdId: 544,
+        startDate: '2026-01-05',
+        endDate: '2026-02-03',
+        scale: expect.any(String),
+      },
+      enabled: true,
+    })
+  })
+
+  it('widens the state-level performance trend queries to a 30-day window on a one-day duration', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [{ id: 10, title: 'Telangana' }],
+      },
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedDuration: {
+          startDate: '03/02/2026',
+          endDate: '03/02/2026',
+        },
+        durationSavedOn: getCurrentIsoDate(),
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useWaterQuantityPeriodicQuery).toHaveBeenCalledWith({
+      params: {
+        lgdId: 10,
+        startDate: '2026-01-05',
+        endDate: '2026-02-03',
+        scale: expect.any(String),
+      },
+      enabled: true,
+    })
+    expect(useSchemeRegularityPeriodicQuery).toHaveBeenCalledWith({
+      params: {
+        tenantId: 16,
+        lgdId: 10,
+        startDate: '2026-01-05',
+        endDate: '2026-02-03',
+        scale: expect.any(String),
+      },
+      enabled: true,
+    })
+    // Non-leaf levels take their KPIs from the region-wise endpoints, so no duration-scoped
+    // periodic copy is requested.
+    expect(useWaterQuantityPeriodicQuery).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: expect.objectContaining({ startDate: '2026-02-03', endDate: '2026-02-03' }),
+      })
+    )
+  })
+
+  it('leaves the performance trend queries on the selected range for a multi-day duration', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockReturnValue({
+      data: {
+        data: [{ id: 10, title: 'Telangana' }],
+      },
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedDuration: {
+          startDate: '01/02/2026',
+          endDate: '03/02/2026',
+        },
+        durationSavedOn: getCurrentIsoDate(),
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    expect(useWaterQuantityPeriodicQuery).toHaveBeenCalledWith({
+      params: {
+        lgdId: 10,
+        startDate: '2026-02-01',
+        endDate: '2026-02-03',
+        scale: expect.any(String),
+      },
+      enabled: true,
+    })
+    expect(useSchemeRegularityPeriodicQuery).toHaveBeenCalledWith({
+      params: {
+        tenantId: 16,
+        lgdId: 10,
+        startDate: '2026-02-01',
+        endDate: '2026-02-03',
+        scale: expect.any(String),
+      },
+      enabled: true,
+    })
+  })
+
+  it('widens the national performance trend queries to a 30-day window on a one-day duration', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    window.localStorage.setItem(
+      'central-dashboard-filters',
+      JSON.stringify({
+        selectedDuration: {
+          startDate: '03/02/2026',
+          endDate: '03/02/2026',
+        },
+        durationSavedOn: getCurrentIsoDate(),
+      })
+    )
+
+    renderWithProviders(<CentralDashboard />)
+
+    // The national dashboard (KPIs, geography views) stays on the selected day.
+    expect(useNationalDashboardQuery).toHaveBeenCalledWith({
+      params: {
+        startDate: '2026-02-03',
+        endDate: '2026-02-03',
+      },
+      enabled: true,
+    })
+    expect(useNationalSchemeRegularityPeriodicQuery).toHaveBeenCalledWith({
+      params: {
+        startDate: '2026-01-05',
         endDate: '2026-02-03',
         scale: expect.any(String),
       },
