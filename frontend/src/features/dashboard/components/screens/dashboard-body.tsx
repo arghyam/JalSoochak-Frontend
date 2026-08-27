@@ -102,7 +102,12 @@ type DashboardBodyProps = {
   screenDateFormat?: string
   tableDateFormat?: string
   enableExtendedTimeScales?: boolean
-  isTimeViewEnabled?: boolean
+  /**
+   * Supply Outage Distribution has no single-day fallback, so its Time view stays disabled
+   * when the selected duration is one day. The Regularity / Quantity Performance cards are
+   * deliberately *not* gated by this — they widen their own trend window instead.
+   */
+  isOutageTimeViewEnabled?: boolean
 }
 
 type ViewBy = 'geography' | 'time'
@@ -177,7 +182,7 @@ export function DashboardBody({
   screenDateFormat,
   tableDateFormat,
   enableExtendedTimeScales = false,
-  isTimeViewEnabled = true,
+  isOutageTimeViewEnabled = true,
 }: DashboardBodyProps) {
   const { t } = useTranslation('dashboard')
   const errorMsg = t('failedToLoadDataReload', {
@@ -185,7 +190,7 @@ export function DashboardBody({
   })
   const showSupplyOutageCharts = shouldShowSupplyOutageCharts()
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
-  const effectiveOutageDistributionViewBy = isTimeViewEnabled
+  const effectiveOutageDistributionViewBy = isOutageTimeViewEnabled
     ? outageDistributionViewBy
     : 'geography'
 
@@ -269,7 +274,6 @@ export function DashboardBody({
           screenDateFormat={screenDateFormat}
           tableDateFormat={tableDateFormat}
           enableExtendedTimeScales={enableExtendedTimeScales}
-          isTimeViewEnabled={isTimeViewEnabled}
         />
       ) : null}
 
@@ -324,7 +328,7 @@ export function DashboardBody({
           totalSchemePages={totalSchemePages}
           screenDateFormat={screenDateFormat}
           tableDateFormat={tableDateFormat}
-          isTimeViewEnabled={isTimeViewEnabled}
+          isOutageTimeViewEnabled={isOutageTimeViewEnabled}
         />
       ) : null}
       {isBlockScreen ? (
@@ -381,7 +385,7 @@ export function DashboardBody({
           totalSchemePages={totalSchemePages}
           screenDateFormat={screenDateFormat}
           tableDateFormat={tableDateFormat}
-          isTimeViewEnabled={isTimeViewEnabled}
+          isOutageTimeViewEnabled={isOutageTimeViewEnabled}
         />
       ) : null}
       {isGramPanchayatScreen ? (
@@ -435,7 +439,7 @@ export function DashboardBody({
           totalSchemePages={totalSchemePages}
           screenDateFormat={screenDateFormat}
           tableDateFormat={tableDateFormat}
-          isTimeViewEnabled={isTimeViewEnabled}
+          isOutageTimeViewEnabled={isOutageTimeViewEnabled}
         />
       ) : null}
 
@@ -537,7 +541,7 @@ export function DashboardBody({
                     }}
                   >
                     {effectiveOutageDistributionViewBy === 'time' &&
-                    isTimeViewEnabled &&
+                    isOutageTimeViewEnabled &&
                     outageDistributionTimeScaleTab &&
                     onOutageDistributionTimeScaleTabChange ? (
                       <Flex
@@ -610,7 +614,7 @@ export function DashboardBody({
                       })}
                       value={effectiveOutageDistributionViewBy}
                       onChange={(value) => {
-                        if (value === 'time' && !isTimeViewEnabled) {
+                        if (value === 'time' && !isOutageTimeViewEnabled) {
                           return
                         }
                         if (
@@ -623,7 +627,7 @@ export function DashboardBody({
                         setOutageDistributionViewBy(value)
                       }}
                       disabled={isOutageDistributionSelectDisabled}
-                      isTimeOptionDisabled={!isTimeViewEnabled}
+                      isTimeOptionDisabled={!isOutageTimeViewEnabled}
                     />
                   </Flex>
                 </Flex>
@@ -735,7 +739,6 @@ type PerformanceChartsSectionProps = {
   screenDateFormat?: string
   tableDateFormat?: string
   enableExtendedTimeScales?: boolean
-  isTimeViewEnabled?: boolean
 }
 
 function PerformanceChartsSection({
@@ -760,7 +763,6 @@ function PerformanceChartsSection({
   screenDateFormat,
   tableDateFormat,
   enableExtendedTimeScales = false,
-  isTimeViewEnabled = true,
 }: PerformanceChartsSectionProps) {
   const { t } = useTranslation('dashboard')
   const glossary = useMemo(() => buildDashboardGlossary(t), [t])
@@ -802,7 +804,6 @@ function PerformanceChartsSection({
         onRegularityTimeScaleTabChange={onRegularityTimeScaleTabChange}
         dateFormat={screenDateFormat ?? tableDateFormat}
         enableExtendedTimeScales={enableExtendedTimeScales}
-        isTimeViewEnabled={isTimeViewEnabled}
         errorMessage={errorMsg}
         tooltipContent={glossary.regularityPerformance}
       />
@@ -838,7 +839,6 @@ function PerformanceChartsSection({
         onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
         dateFormat={screenDateFormat ?? tableDateFormat}
         enableExtendedTimeScales={enableExtendedTimeScales}
-        isTimeViewEnabled={isTimeViewEnabled}
         errorMessage={errorMsg}
         tooltipContent={glossary.quantityPerformance}
       />

@@ -52,6 +52,13 @@ type UseCentralDashboardQueriesParams = {
   isHierarchySecondLevelSelected: boolean
   isHierarchyStateSelected: boolean
   isHierarchyThirdLevelSelected: boolean
+  /**
+   * Range for the Regularity / Quantity Performance time charts only. Equals
+   * `analyticsDateRange` unless the selected duration is a single day, in which case it is
+   * widened to a 30-day look-back — see `resolvePerformanceTrendRange`. Never use it for
+   * KPI or geography queries.
+   */
+  performanceTrendDateRange: AnalyticsDateRange
   schemePerformancePage: number
   schemeSortBy: SchemePerformanceSortBy
   schemeSortDir: 'asc' | 'desc'
@@ -83,6 +90,7 @@ export function useCentralDashboardQueries({
   isHierarchySecondLevelSelected,
   isHierarchyStateSelected,
   isHierarchyThirdLevelSelected,
+  performanceTrendDateRange,
   schemePerformancePage,
   schemeSortBy,
   schemeSortDir,
@@ -94,23 +102,62 @@ export function useCentralDashboardQueries({
   shouldFetchTenantBoundaryGeoJson,
   submissionStatusParentId,
 }: UseCentralDashboardQueriesParams) {
-  const quantityPeriodicAnalyticsParams = !hasValidAnalyticsParentId
+  // Trend params follow the (possibly widened) trend range; the KPI params below stay on the
+  // selected duration. When the duration spans more than one day the two are identical, so
+  // React Query collapses them onto one request via the shared structural key.
+  const quantityTrendPeriodicAnalyticsParams = !hasValidAnalyticsParentId
     ? null
     : hierarchyType === 'LGD'
       ? {
           lgdId: analyticsParentId,
-          startDate: analyticsDateRange.startDate,
-          endDate: analyticsDateRange.endDate,
+          startDate: performanceTrendDateRange.startDate,
+          endDate: performanceTrendDateRange.endDate,
           scale: selectedQuantityApiScale,
         }
       : {
           departmentId: analyticsParentId,
-          startDate: analyticsDateRange.startDate,
-          endDate: analyticsDateRange.endDate,
+          startDate: performanceTrendDateRange.startDate,
+          endDate: performanceTrendDateRange.endDate,
           scale: selectedQuantityApiScale,
         }
-  const regularityPeriodicAnalyticsParams =
+  const regularityTrendPeriodicAnalyticsParams =
     !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            tenantId: selectedTenant.tenantId,
+            lgdId: analyticsParentId,
+            startDate: performanceTrendDateRange.startDate,
+            endDate: performanceTrendDateRange.endDate,
+            scale: selectedRegularityApiScale,
+          }
+        : {
+            tenantId: selectedTenant.tenantId,
+            departmentId: analyticsParentId,
+            startDate: performanceTrendDateRange.startDate,
+            endDate: performanceTrendDateRange.endDate,
+            scale: selectedRegularityApiScale,
+          }
+  // Only the leaf (village) screen derives its KPI tiles from the periodic payloads, so the
+  // duration-scoped copies are fetched there and nowhere else.
+  const quantityKpiPeriodicAnalyticsParams =
+    !isHierarchyLeafSelected || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            lgdId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            scale: selectedQuantityApiScale,
+          }
+        : {
+            departmentId: analyticsParentId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+            scale: selectedQuantityApiScale,
+          }
+  const regularityKpiPeriodicAnalyticsParams =
+    !isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
@@ -136,15 +183,15 @@ export function useCentralDashboardQueries({
   const nationalQuantityPeriodAnalyticsParams = hasCentralLandingFilters
     ? null
     : {
-        startDate: analyticsDateRange.startDate,
-        endDate: analyticsDateRange.endDate,
+        startDate: performanceTrendDateRange.startDate,
+        endDate: performanceTrendDateRange.endDate,
         scale: selectedQuantityApiScale,
       }
   const nationalRegularityPeriodAnalyticsParams = hasCentralLandingFilters
     ? null
     : {
-        startDate: analyticsDateRange.startDate,
-        endDate: analyticsDateRange.endDate,
+        startDate: performanceTrendDateRange.startDate,
+        endDate: performanceTrendDateRange.endDate,
         scale: selectedRegularityApiScale,
       }
   const analyticsParams =
@@ -504,16 +551,24 @@ export function useCentralDashboardQueries({
     isError: isWaterQuantityPeriodicError = false,
     isAwaitingParams: isWaterQuantityPeriodicAwaitingParams,
   } = useWaterQuantityPeriodicQuery({
-    params: quantityPeriodicAnalyticsParams,
-    enabled: Boolean(quantityPeriodicAnalyticsParams),
+    params: quantityTrendPeriodicAnalyticsParams,
+    enabled: Boolean(quantityTrendPeriodicAnalyticsParams),
   })
   const {
     data: schemeRegularityPeriodicData,
     isFetching: isSchemeRegularityPeriodicFetching,
     isError: isSchemeRegularityPeriodicError = false,
   } = useSchemeRegularityPeriodicQuery({
-    params: regularityPeriodicAnalyticsParams,
-    enabled: Boolean(regularityPeriodicAnalyticsParams),
+    params: regularityTrendPeriodicAnalyticsParams,
+    enabled: Boolean(regularityTrendPeriodicAnalyticsParams),
+  })
+  const { data: kpiWaterQuantityPeriodicData } = useWaterQuantityPeriodicQuery({
+    params: quantityKpiPeriodicAnalyticsParams,
+    enabled: Boolean(quantityKpiPeriodicAnalyticsParams),
+  })
+  const { data: kpiSchemeRegularityPeriodicData } = useSchemeRegularityPeriodicQuery({
+    params: regularityKpiPeriodicAnalyticsParams,
+    enabled: Boolean(regularityKpiPeriodicAnalyticsParams),
   })
   const {
     data: outageReasonsPeriodicData,
@@ -882,6 +937,8 @@ export function useCentralDashboardQueries({
     isNationalSchemeQuantityPeriodicFetching,
     isNationalSchemeRegularityPeriodicFetching,
     isSchemeRegularityPeriodicFetching,
+    kpiSchemeRegularityPeriodicData,
+    kpiWaterQuantityPeriodicData,
     nationalDemandInputsByTenantId,
     nationalDashboardBoundariesData,
     nationalSchemeQuantityPeriodicData,
