@@ -35,6 +35,7 @@ import {
   mapRegularityPerformanceFromAnalytics,
   mapRegularityPerformanceFromNationalDashboard,
   mapOverallPerformanceFromAnalytics,
+  mapOverallPerformanceFromNationalDashboard,
   resolveDaysInRange,
 } from './formulas'
 
@@ -1352,8 +1353,96 @@ describe('dashboard formulas', () => {
         continuity: 0,
         compositeScore: 0,
         status: 'needs-attention',
+        households: 500,
       },
     ])
+  })
+
+  it('falls back to a zero household count when the region omits totalAchievedFhtcCount', () => {
+    const waterResponse: AverageWaterSupplyPerRegionResponse = {
+      tenantId: 16,
+      stateCode: 'TG',
+      parentLgdLevel: 1,
+      parentDepartmentLevel: 0,
+      startDate: '2026-03-01',
+      endDate: '2026-03-30',
+      daysInRange: 30,
+      schemeCount: 1,
+      childRegionCount: 1,
+      schemes: [],
+      childRegions: [
+        {
+          lgdId: 100,
+          departmentId: 0,
+          title: 'Region Alpha',
+          totalHouseholdCount: 1000,
+          totalWaterSuppliedLiters: 90_000_000,
+          schemeCount: 1,
+          avgWaterSupplyPerScheme: 0,
+        },
+      ],
+    }
+
+    expect(mapOverallPerformanceFromAnalytics(waterResponse, undefined, [], 5)[0]?.households).toBe(
+      0
+    )
+  })
+
+  it('maps national overall performance households from totalAchievedFhtcCount', () => {
+    const response: NationalDashboardResponse = {
+      startDate: '2026-02-24',
+      endDate: '2026-03-25',
+      daysInRange: 30,
+      stateWiseQuantityPerformance: [
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          stateTitle: 'Assam',
+          schemeCount: 17412,
+          totalHouseholdCount: 0,
+          totalAchievedFhtcCount: 97_681,
+          totalPlannedFhtcCount: 98_358,
+          totalWaterSuppliedLiters: 15_706_406_504,
+          supplyDaysInEfficientRange: 0,
+          avgWaterSupplyPerScheme: 902044.9405,
+        },
+      ],
+      stateWiseRegularity: [],
+      stateWiseReadingSubmissionRate: [],
+      overallOutageReasonDistribution: {},
+    }
+
+    expect(mapOverallPerformanceFromNationalDashboard(response, [], 5)).toEqual([
+      expect.objectContaining({
+        name: 'Assam',
+        households: 97_681,
+      }),
+    ])
+  })
+
+  it('falls back to the national household count when achieved FHTC is missing', () => {
+    const response: NationalDashboardResponse = {
+      startDate: '2026-02-24',
+      endDate: '2026-03-25',
+      daysInRange: 30,
+      stateWiseQuantityPerformance: [
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          stateTitle: 'Assam',
+          schemeCount: 17412,
+          totalHouseholdCount: 12_500,
+          totalWaterSuppliedLiters: 15_706_406_504,
+          supplyDaysInEfficientRange: 0,
+          avgWaterSupplyPerScheme: 902044.9405,
+        },
+      ],
+      stateWiseRegularity: [],
+      stateWiseReadingSubmissionRate: [],
+      overallOutageReasonDistribution: {},
+    }
+
+    expect(mapOverallPerformanceFromNationalDashboard(response, [], 5)[0]?.households).toBe(12_500)
   })
 
   it('normalizes inconsistent API casing in overall performance names', () => {

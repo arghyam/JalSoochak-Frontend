@@ -28,6 +28,13 @@ export interface EntityPerformance {
   compositeScore: number
   status: EntityStatus
   boundaryGeoJson?: GeoJsonGeometry | null
+  /**
+   * Achieved functional household tap connections for the entity
+   * (API field `totalAchievedFhtcCount`). Rendered as the Household column of
+   * the Performance Summary table. Undefined for rows built from sources that
+   * do not carry the count (e.g. map-only boundary fallbacks).
+   */
+  households?: number
 }
 
 export type GeoJsonPosition = number[]

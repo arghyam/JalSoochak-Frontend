@@ -156,7 +156,8 @@
       "entity": "राज्य/केंद्रशासित प्रदेश",
       "quantityMld": "मात्रा (MLD)",
       "quantityLpcd": "मात्रा (LPCD)",
-      "regularity": "नियमितता (%)"
+      "regularity": "नियमितता (%)",
+      "households": "परिवार"
     },
     "entities": {
       "stateUt": "राज्य/केंद्रशासित प्रदेश",
