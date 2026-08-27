@@ -25,6 +25,7 @@ import { useSchemePerformancePagination } from '../hooks/use-scheme-performance-
 import { useSchemePerformanceDownloadMutation } from '../services/query/use-scheme-performance-query'
 import { useDashboardDefaultDateRange } from '../utils/default-duration'
 import { DEFAULT_PERSONS_PER_HOUSEHOLD, resolveDaysInRange } from '../utils/formulas'
+import { resolvePerformanceTrendRange } from '../utils/performance-trend-range'
 import { isSingleTenantMode } from '@/config/server-config'
 
 const DASHBOARD_DURATION_DATE_FORMAT = 'DD/MM/YYYY'
@@ -269,8 +270,12 @@ export function CentralDashboard({
       toIsoDate(effectiveSelectedDuration?.endDate, durationDateFormat) ??
       defaultAnalyticsRange.endDate,
   }
-  const isTimeViewEnabled =
+  // The Regularity / Quantity Performance trend charts fall back to a 30-day look-back when a
+  // single day is selected, so their Time view stays available regardless of the duration.
+  // Supply Outage Distribution has no such fallback and keeps the single-day restriction.
+  const isOutageTimeViewEnabled =
     resolveDaysInRange(undefined, analyticsDateRange.startDate, analyticsDateRange.endDate) > 1
+  const performanceTrendDateRange = resolvePerformanceTrendRange(analyticsDateRange)
   const { handleSchemePageChange, handleSchemeSortChange, schemePerformancePage, schemeSort } =
     useSchemePerformancePagination({
       analyticsParentId,
@@ -315,6 +320,8 @@ export function CentralDashboard({
     isNationalSchemeQuantityPeriodicFetching,
     isNationalSchemeRegularityPeriodicFetching,
     isSchemeRegularityPeriodicFetching,
+    kpiSchemeRegularityPeriodicData,
+    kpiWaterQuantityPeriodicData,
     nationalDemandInputsByTenantId,
     nationalSchemeQuantityPeriodicData,
     nationalSchemeRegularityPeriodicData,
@@ -357,6 +364,7 @@ export function CentralDashboard({
     isHierarchySecondLevelSelected,
     isHierarchyStateSelected,
     isHierarchyThirdLevelSelected,
+    performanceTrendDateRange,
     schemePerformancePage,
     schemeSortBy: schemeSort.by,
     schemeSortDir: schemeSort.dir,
@@ -492,8 +500,10 @@ export function CentralDashboard({
     previousSchemeRegularityPeriodicData,
     previousWaterQuantityPeriodicData,
     previousWaterSupplyKpiData,
-    schemeRegularityPeriodicData,
-    waterQuantityPeriodicData,
+    // Duration-scoped copies: the trend payloads may cover a widened 30-day window, which
+    // would silently change the village KPI tiles.
+    schemeRegularityPeriodicData: kpiSchemeRegularityPeriodicData,
+    waterQuantityPeriodicData: kpiWaterQuantityPeriodicData,
   })
   const { handleMapRegionClick, handleOverallPerformanceRowClick, handleStateHover } =
     useCentralDashboardNavigation({
@@ -675,7 +685,7 @@ export function CentralDashboard({
     isSchemeRegularityPeriodicFetching,
     isSingleTenantMode: inSingleTenantMode,
     isStateSelected,
-    isTimeViewEnabled,
+    isOutageTimeViewEnabled,
     isWaterQuantityPeriodicAwaitingParams,
     isWaterQuantityPeriodicFetching,
     mapChartData,

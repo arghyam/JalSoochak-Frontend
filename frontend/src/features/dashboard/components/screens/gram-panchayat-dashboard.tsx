@@ -82,7 +82,7 @@ type GramPanchayatDashboardScreenProps = {
   totalSchemePages?: number
   screenDateFormat?: string
   tableDateFormat?: string
-  isTimeViewEnabled?: boolean
+  isOutageTimeViewEnabled?: boolean
 }
 
 type ViewBy = 'geography' | 'time'
@@ -136,7 +136,7 @@ export function GramPanchayatDashboardScreen({
   totalSchemePages,
   screenDateFormat,
   tableDateFormat,
-  isTimeViewEnabled = true,
+  isOutageTimeViewEnabled = true,
 }: GramPanchayatDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const glossary = useMemo(() => buildDashboardGlossary(t), [t])
@@ -144,7 +144,7 @@ export function GramPanchayatDashboardScreen({
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
   const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
-  const effectiveOutageDistributionViewBy = isTimeViewEnabled
+  const effectiveOutageDistributionViewBy = isOutageTimeViewEnabled
     ? outageDistributionViewBy
     : 'geography'
   const outageDistributionTimeTrendData = useMemo(
@@ -199,7 +199,6 @@ export function GramPanchayatDashboardScreen({
           selectColor="primary.500"
           selectBorderColor="primary.500"
           dateFormat={screenDateFormat ?? tableDateFormat}
-          isTimeViewEnabled={isTimeViewEnabled}
           errorMessage={errorMessage}
           tooltipContent={glossary.regularityPerformance}
         />
@@ -232,7 +231,6 @@ export function GramPanchayatDashboardScreen({
           quantityTimeScaleTab={quantityTimeScaleTab}
           onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
           dateFormat={screenDateFormat ?? tableDateFormat}
-          isTimeViewEnabled={isTimeViewEnabled}
           errorMessage={errorMessage}
           tooltipContent={glossary.quantityPerformance}
         />
@@ -307,7 +305,7 @@ export function GramPanchayatDashboardScreen({
                 }}
               >
                 {effectiveOutageDistributionViewBy === 'time' &&
-                isTimeViewEnabled &&
+                isOutageTimeViewEnabled &&
                 outageDistributionTimeScaleTab &&
                 onOutageDistributionTimeScaleTabChange ? (
                   <OutageTimeScaleToggle
@@ -324,7 +322,7 @@ export function GramPanchayatDashboardScreen({
                   })}
                   value={effectiveOutageDistributionViewBy}
                   onChange={(value) => {
-                    if (value === 'time' && !isTimeViewEnabled) {
+                    if (value === 'time' && !isOutageTimeViewEnabled) {
                       return
                     }
                     if (
@@ -339,7 +337,7 @@ export function GramPanchayatDashboardScreen({
                   color="primary.500"
                   borderColor="primary.500"
                   disabled={isOutageDistributionSelectDisabled}
-                  isTimeOptionDisabled={!isTimeViewEnabled}
+                  isTimeOptionDisabled={!isOutageTimeViewEnabled}
                 />
               </Flex>
             </Flex>

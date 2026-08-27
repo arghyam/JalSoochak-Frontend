@@ -82,7 +82,7 @@ type DistrictDashboardScreenProps = {
   totalSchemePages?: number
   screenDateFormat?: string
   tableDateFormat?: string
-  isTimeViewEnabled?: boolean
+  isOutageTimeViewEnabled?: boolean
 }
 
 type ViewBy = 'geography' | 'time'
@@ -136,7 +136,7 @@ export function DistrictDashboardScreen({
   totalSchemePages,
   screenDateFormat,
   tableDateFormat,
-  isTimeViewEnabled = true,
+  isOutageTimeViewEnabled = true,
 }: DistrictDashboardScreenProps) {
   const { t } = useTranslation('dashboard')
   const glossary = useMemo(() => buildDashboardGlossary(t), [t])
@@ -144,7 +144,7 @@ export function DistrictDashboardScreen({
   const [quantityViewBy, setQuantityViewBy] = useState<ViewBy>('geography')
   const [regularityViewBy, setRegularityViewBy] = useState<ViewBy>('geography')
   const [outageDistributionViewBy, setOutageDistributionViewBy] = useState<ViewBy>('geography')
-  const effectiveOutageDistributionViewBy = isTimeViewEnabled
+  const effectiveOutageDistributionViewBy = isOutageTimeViewEnabled
     ? outageDistributionViewBy
     : 'geography'
   const outageDistributionTimeTrendData = useMemo(
@@ -199,7 +199,6 @@ export function DistrictDashboardScreen({
           selectColor="primary.500"
           selectBorderColor="primary.500"
           dateFormat={screenDateFormat ?? tableDateFormat}
-          isTimeViewEnabled={isTimeViewEnabled}
           errorMessage={errorMessage}
         />
         <PerformanceChartCard
@@ -232,7 +231,6 @@ export function DistrictDashboardScreen({
           quantityTimeScaleTab={quantityTimeScaleTab}
           onQuantityTimeScaleTabChange={onQuantityTimeScaleTabChange}
           dateFormat={screenDateFormat ?? tableDateFormat}
-          isTimeViewEnabled={isTimeViewEnabled}
           errorMessage={errorMessage}
         />
       </Grid>
@@ -306,7 +304,7 @@ export function DistrictDashboardScreen({
                 }}
               >
                 {effectiveOutageDistributionViewBy === 'time' &&
-                isTimeViewEnabled &&
+                isOutageTimeViewEnabled &&
                 outageDistributionTimeScaleTab &&
                 onOutageDistributionTimeScaleTabChange ? (
                   <OutageTimeScaleToggle
@@ -323,7 +321,7 @@ export function DistrictDashboardScreen({
                   })}
                   value={effectiveOutageDistributionViewBy}
                   onChange={(value) => {
-                    if (value === 'time' && !isTimeViewEnabled) {
+                    if (value === 'time' && !isOutageTimeViewEnabled) {
                       return
                     }
                     if (
@@ -338,7 +336,7 @@ export function DistrictDashboardScreen({
                   color="primary.500"
                   borderColor="primary.500"
                   disabled={isOutageDistributionSelectDisabled}
-                  isTimeOptionDisabled={!isTimeViewEnabled}
+                  isTimeOptionDisabled={!isOutageTimeViewEnabled}
                 />
               </Flex>
             </Flex>

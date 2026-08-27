@@ -40,7 +40,7 @@ type BuildCentralDashboardRenderPropsParams = DashboardFiltersProps &
     | 'isSchemePerformanceError'
     | 'isSchemePerformanceLoading'
     | 'isStateSelected'
-    | 'isTimeViewEnabled'
+    | 'isOutageTimeViewEnabled'
     | 'onOutageDistributionTimeScaleTabChange'
     | 'onQuantityTimeScaleTabChange'
     | 'onRegularityTimeScaleTabChange'
@@ -164,7 +164,7 @@ export function buildCentralDashboardRenderProps({
   isSchemePerformanceLoading,
   isSchemeRegularityPeriodicFetching,
   isStateSelected,
-  isTimeViewEnabled,
+  isOutageTimeViewEnabled,
   isWaterQuantityPeriodicAwaitingParams,
   isWaterQuantityPeriodicFetching,
   mapChartData,
@@ -308,7 +308,7 @@ export function buildCentralDashboardRenderProps({
       screenDateFormat,
       tableDateFormat,
       enableExtendedTimeScales: true,
-      isTimeViewEnabled,
+      isOutageTimeViewEnabled,
     } satisfies DashboardBodyProps,
     filterProps: {
       ...filterProps,
