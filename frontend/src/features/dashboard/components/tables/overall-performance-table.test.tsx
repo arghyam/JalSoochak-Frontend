@@ -14,6 +14,7 @@ const tableData: EntityPerformance[] = [
     quantity: 52,
     compositeScore: 62,
     status: 'needs-attention',
+    households: 97681,
   },
   {
     id: 's2',
@@ -24,6 +25,7 @@ const tableData: EntityPerformance[] = [
     quantity: 68,
     compositeScore: 79,
     status: 'good',
+    households: 1200,
   },
   {
     id: 's3',
@@ -34,6 +36,7 @@ const tableData: EntityPerformance[] = [
     quantity: 45,
     compositeScore: 59,
     status: 'critical',
+    households: 45000,
   },
 ]
 
@@ -51,19 +54,55 @@ describe('OverallPerformanceTable', () => {
     expect(screen.queryAllByRole('columnheader')).toHaveLength(0)
   })
 
-  it('renders only the 4 expected columns', () => {
+  it('renders only the 5 expected columns', () => {
     renderWithProviders(<OverallPerformanceTable data={tableData} />)
 
     expect(screen.getByText('State/UT')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Quantity (MLD)' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Quantity (LPCD)' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Regularity (%)' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Household' })).toBeTruthy()
     expect(screen.queryByText('Average (%)')).toBeNull()
 
     const headerOrder = screen
       .getAllByRole('columnheader')
       .map((header) => header.textContent?.replace(/\s+/g, ' ').trim())
-    expect(headerOrder).toEqual(['State/UT', 'Regularity (%)', 'Quantity (MLD)', 'Quantity (LPCD)'])
+    expect(headerOrder).toEqual([
+      'State/UT',
+      'Regularity (%)',
+      'Quantity (MLD)',
+      'Quantity (LPCD)',
+      'Household',
+    ])
+  })
+
+  it('sizes the table to its container and caps the entity name column', () => {
+    const { container } = renderWithProviders(<OverallPerformanceTable data={tableData} />)
+    const table = container.querySelector('table') as HTMLElement
+    const [nameHeader, ...metricHeaders] = screen.getAllByRole('columnheader')
+
+    // A max-content table can never shrink, which forces horizontal scroll even
+    // when the card is wide enough for the content.
+    expect(window.getComputedStyle(table).width).not.toBe('max-content')
+    expect(window.getComputedStyle(nameHeader).width).toBe('30%')
+    metricHeaders.forEach((header) => {
+      expect(window.getComputedStyle(header).width).toBe('')
+      expect(window.getComputedStyle(header).verticalAlign).toBe('top')
+    })
+  })
+
+  it('wraps metric column headers while keeping the sort indicator on the first line', () => {
+    renderWithProviders(<OverallPerformanceTable data={tableData} />)
+
+    const header = screen.getByRole('button', { name: 'Quantity (MLD)' })
+    const label = header.firstElementChild as HTMLElement
+
+    expect(window.getComputedStyle(label).whiteSpace).toBe('normal')
+    // The indicator is a sibling of the wrapping label, top-aligned, so it stays
+    // beside the first line rather than following the wrapped unit down.
+    expect(label.tagName).toBe('SPAN')
+    expect(header.lastElementChild?.tagName.toLowerCase()).toBe('svg')
+    expect(window.getComputedStyle(header).alignItems).toBe('flex-start')
   })
 
   it('defaults to sorting by Regularity in descending order', () => {
@@ -108,6 +147,47 @@ describe('OverallPerformanceTable', () => {
     expect(getStateOrder(container)).toEqual(['Gamma', 'Beta', 'Alpha'])
     expect(regularityButton.closest('th')?.getAttribute('aria-sort')).toBe('descending')
     expect(quantityLpcdButton.closest('th')?.getAttribute('aria-sort')).toBeNull()
+  })
+
+  it('renders the household count formatted with locale grouping', () => {
+    const { container } = renderWithProviders(<OverallPerformanceTable data={tableData} />)
+
+    const householdCells = Array.from(container.querySelectorAll('tbody tr td:last-child')).map(
+      (cell) => cell.textContent?.trim()
+    )
+
+    expect(householdCells).toEqual(['45,000', '1,200', '97,681'])
+  })
+
+  it('renders a dash when the household count is unavailable', () => {
+    const { container } = renderWithProviders(
+      <OverallPerformanceTable data={[{ ...tableData[0], households: undefined }]} />
+    )
+
+    expect(container.querySelector('tbody tr td:last-child')?.textContent?.trim()).toBe('-')
+  })
+
+  it('sorts by Household descending then ascending on repeated clicks', () => {
+    const { container } = renderWithProviders(<OverallPerformanceTable data={tableData} />)
+    const householdButton = screen.getByRole('button', { name: 'Household' })
+
+    fireEvent.click(householdButton)
+    expect(getStateOrder(container)).toEqual(['Alpha', 'Gamma', 'Beta'])
+    expect(householdButton.closest('th')?.getAttribute('aria-sort')).toBe('descending')
+
+    fireEvent.click(householdButton)
+    expect(getStateOrder(container)).toEqual(['Beta', 'Gamma', 'Alpha'])
+    expect(householdButton.closest('th')?.getAttribute('aria-sort')).toBe('ascending')
+  })
+
+  it('sorts rows without a household count last when sorting descending', () => {
+    const { container } = renderWithProviders(
+      <OverallPerformanceTable data={[{ ...tableData[0], households: undefined }, tableData[1]]} />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Household' }))
+
+    expect(getStateOrder(container)).toEqual(['Beta', 'Alpha'])
   })
 
   it('calls onRowClick when a row is clicked', () => {

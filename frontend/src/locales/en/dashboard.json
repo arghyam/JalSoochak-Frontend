@@ -156,7 +156,8 @@
       "entity": "State/UT",
       "quantityMld": "Quantity (MLD)",
       "quantityLpcd": "Quantity (LPCD)",
-      "regularity": "Regularity (%)"
+      "regularity": "Regularity (%)",
+      "households": "Household"
     },
     "entities": {
       "stateUt": "State/UT",

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Box, Icon, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react'
 import { useTranslation } from 'react-i18next'
 import type { KeyboardEvent } from 'react'
@@ -17,8 +17,22 @@ interface OverallPerformanceTableProps {
   onRowHover?: (row: EntityPerformance | null) => void
 }
 
-type SortColumn = 'name' | 'coverage' | 'quantity' | 'regularity' | null
+type SortColumn = 'name' | 'coverage' | 'quantity' | 'regularity' | 'households' | null
 type SortDirection = 'asc' | 'desc' | null
+
+const MISSING_METRIC_VALUE = -1
+
+const getMetricValue = (row: EntityPerformance, column: Exclude<SortColumn, 'name' | null>) => {
+  const value = row[column]
+  return typeof value === 'number' && Number.isFinite(value) ? value : MISSING_METRIC_VALUE
+}
+
+const resolveAriaSort = (isActive: boolean, direction: SortDirection) => {
+  if (!isActive) {
+    return undefined
+  }
+  return direction === 'asc' ? 'ascending' : 'descending'
+}
 
 function SortIndicator({
   isActive,
@@ -46,6 +60,55 @@ function SortIndicator({
   )
 }
 
+function MetricColumnHeader({
+  label,
+  column,
+  sortColumn,
+  sortDirection,
+  onSort,
+}: {
+  label: string
+  column: Exclude<SortColumn, 'name' | null>
+  sortColumn: SortColumn
+  sortDirection: SortDirection
+  onSort: (column: Exclude<SortColumn, 'name' | null>) => void
+}) {
+  const isActive = sortColumn === column
+  const ariaSort = resolveAriaSort(isActive, sortDirection)
+
+  return (
+    <Th aria-sort={ariaSort}>
+      {/* The label wraps inside its own box while the indicator stays a sibling
+          flex item, so a unit like "(MLD)" moves to a second line but the
+          indicator stays on the first line beside the column name. */}
+      <Box
+        as="button"
+        type="button"
+        onClick={() => onSort(column)}
+        display="flex"
+        alignItems="flex-start"
+        justifyContent="flex-start"
+        gap={1}
+        cursor="pointer"
+        textAlign="left"
+        width="100%"
+        minW={0}
+        bg="none"
+        border="none"
+        p={0}
+      >
+        <Box as="span" whiteSpace="normal" lineHeight="18px" minW={0}>
+          {label}
+        </Box>
+        <SortIndicator
+          isActive={isActive}
+          direction={isActive && sortDirection ? sortDirection : 'desc'}
+        />
+      </Box>
+    </Th>
+  )
+}
+
 export function OverallPerformanceTable({
   data,
   isLoading = false,
@@ -57,9 +120,18 @@ export function OverallPerformanceTable({
   onRowClick,
   onRowHover,
 }: OverallPerformanceTableProps) {
-  const { t } = useTranslation('dashboard')
+  const { t, i18n } = useTranslation('dashboard')
   const [sortColumn, setSortColumn] = useState<SortColumn>('regularity')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
+  const numberLocale = i18n.resolvedLanguage === 'hi' ? 'hi-IN' : 'en-IN'
+  const householdFormatter = useMemo(
+    () => new Intl.NumberFormat(numberLocale, { maximumFractionDigits: 0 }),
+    [numberLocale]
+  )
+  const formatHouseholds = (value: number | undefined) =>
+    typeof value === 'number' && Number.isFinite(value) && value >= 0
+      ? householdFormatter.format(value)
+      : '-'
   const resolvedEntityLabel =
     entityLabel ?? t('overallPerformance.columns.entity', { defaultValue: 'State/UT' })
   const safeMaxItems =
@@ -73,8 +145,8 @@ export function OverallPerformanceTable({
               : b.name.localeCompare(a.name)
           }
 
-          const aValue = a[sortColumn]
-          const bValue = b[sortColumn]
+          const aValue = getMetricValue(a, sortColumn)
+          const bValue = getMetricValue(b, sortColumn)
           return sortDirection === 'asc' ? aValue - bValue : bValue - aValue
         })
       : data
@@ -130,7 +202,7 @@ export function OverallPerformanceTable({
               <LoadingSpinner />
             </Box>
           ) : !isEmpty && !errorMessage ? (
-            <Table size="sm" w="max-content" minW="100%" sx={{ tableLayout: 'auto' }}>
+            <Table size="sm" w="full" minW="100%" sx={{ tableLayout: 'auto' }}>
               <Thead
                 sx={{
                   position: 'sticky',
@@ -142,21 +214,20 @@ export function OverallPerformanceTable({
                     fontSize: '14px',
                     textTransform: 'none',
                     fontWeight: '500',
-                    px: { base: 2, md: 3 },
-                    py: { base: 3, md: 5 },
-                    whiteSpace: 'nowrap',
+                    px: { base: 2, md: 2 },
+                    py: { base: 3, md: 4 },
+                    // Two-line headers must start at the top so single-line
+                    // labels line up with the first line of the wrapped ones.
+                    verticalAlign: 'top',
                   },
                 }}
               >
                 <Tr>
+                  {/* Capped so the name column takes a fixed share of the card
+                      instead of absorbing all the slack left by the metrics. */}
                   <Th
-                    aria-sort={
-                      sortColumn === 'name'
-                        ? sortDirection === 'asc'
-                          ? 'ascending'
-                          : 'descending'
-                        : undefined
-                    }
+                    width={{ base: '30%', lg: '26%' }}
+                    aria-sort={resolveAriaSort(sortColumn === 'name', sortDirection)}
                   >
                     <Box
                       as="button"
@@ -173,7 +244,16 @@ export function OverallPerformanceTable({
                       border="none"
                       p={0}
                     >
-                      <Box as="span" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap">
+                      {/* minW={0} lets a long localised label ellipsize instead of
+                          widening the column past the name values it labels. */}
+                      <Box
+                        as="span"
+                        title={resolvedEntityLabel}
+                        overflow="hidden"
+                        textOverflow="ellipsis"
+                        whiteSpace="nowrap"
+                        minW={0}
+                      >
                         {resolvedEntityLabel}
                       </Box>
                       <SortIndicator
@@ -182,120 +262,42 @@ export function OverallPerformanceTable({
                       />
                     </Box>
                   </Th>
-                  <Th
-                    aria-sort={
-                      sortColumn === 'regularity'
-                        ? sortDirection === 'asc'
-                          ? 'ascending'
-                          : 'descending'
-                        : undefined
-                    }
-                  >
-                    <Box
-                      as="button"
-                      type="button"
-                      onClick={() => handleSort('regularity')}
-                      display="flex"
-                      alignItems="center"
-                      justifyContent="flex-start"
-                      gap={1}
-                      cursor="pointer"
-                      textAlign="left"
-                      width="fit-content"
-                      minW={0}
-                      bg="none"
-                      border="none"
-                      p={0}
-                    >
-                      <Box as="span" whiteSpace="normal" lineHeight="18px">
-                        {t('overallPerformance.columns.regularity', {
-                          defaultValue: 'Regularity (%)',
-                        })}
-                      </Box>
-                      <SortIndicator
-                        isActive={sortColumn === 'regularity'}
-                        direction={
-                          sortColumn === 'regularity' && sortDirection ? sortDirection : 'desc'
-                        }
-                      />
-                    </Box>
-                  </Th>
-                  <Th
-                    aria-sort={
-                      sortColumn === 'coverage'
-                        ? sortDirection === 'asc'
-                          ? 'ascending'
-                          : 'descending'
-                        : undefined
-                    }
-                  >
-                    <Box
-                      as="button"
-                      type="button"
-                      onClick={() => handleSort('coverage')}
-                      display="flex"
-                      alignItems="flex-start"
-                      justifyContent="flex-start"
-                      gap={1}
-                      cursor="pointer"
-                      textAlign="left"
-                      width="fit-content"
-                      minW={0}
-                      bg="none"
-                      border="none"
-                      p={0}
-                    >
-                      <Box as="span" whiteSpace="normal" lineHeight="18px">
-                        {t('overallPerformance.columns.quantityMld', {
-                          defaultValue: 'Quantity (MLD)',
-                        })}
-                      </Box>
-                      <SortIndicator
-                        isActive={sortColumn === 'coverage'}
-                        direction={
-                          sortColumn === 'coverage' && sortDirection ? sortDirection : 'desc'
-                        }
-                      />
-                    </Box>
-                  </Th>
-                  <Th
-                    aria-sort={
-                      sortColumn === 'quantity'
-                        ? sortDirection === 'asc'
-                          ? 'ascending'
-                          : 'descending'
-                        : undefined
-                    }
-                  >
-                    <Box
-                      as="button"
-                      type="button"
-                      onClick={() => handleSort('quantity')}
-                      display="flex"
-                      alignItems="flex-start"
-                      justifyContent="flex-start"
-                      gap={1}
-                      cursor="pointer"
-                      textAlign="left"
-                      width="fit-content"
-                      minW={0}
-                      bg="none"
-                      border="none"
-                      p={0}
-                    >
-                      <Box as="span" whiteSpace="normal" lineHeight="18px">
-                        {t('overallPerformance.columns.quantityLpcd', {
-                          defaultValue: 'Quantity (LPCD)',
-                        })}
-                      </Box>
-                      <SortIndicator
-                        isActive={sortColumn === 'quantity'}
-                        direction={
-                          sortColumn === 'quantity' && sortDirection ? sortDirection : 'desc'
-                        }
-                      />
-                    </Box>
-                  </Th>
+                  <MetricColumnHeader
+                    label={t('overallPerformance.columns.regularity', {
+                      defaultValue: 'Regularity (%)',
+                    })}
+                    column="regularity"
+                    sortColumn={sortColumn}
+                    sortDirection={sortDirection}
+                    onSort={handleSort}
+                  />
+                  <MetricColumnHeader
+                    label={t('overallPerformance.columns.quantityMld', {
+                      defaultValue: 'Quantity (MLD)',
+                    })}
+                    column="coverage"
+                    sortColumn={sortColumn}
+                    sortDirection={sortDirection}
+                    onSort={handleSort}
+                  />
+                  <MetricColumnHeader
+                    label={t('overallPerformance.columns.quantityLpcd', {
+                      defaultValue: 'Quantity (LPCD)',
+                    })}
+                    column="quantity"
+                    sortColumn={sortColumn}
+                    sortDirection={sortDirection}
+                    onSort={handleSort}
+                  />
+                  <MetricColumnHeader
+                    label={t('overallPerformance.columns.households', {
+                      defaultValue: 'Household',
+                    })}
+                    column="households"
+                    sortColumn={sortColumn}
+                    sortDirection={sortDirection}
+                    onSort={handleSort}
+                  />
                 </Tr>
               </Thead>
               <Tbody
@@ -304,7 +306,7 @@ export function OverallPerformanceTable({
                     textStyle: 'bodyText7',
                     fontSize: '14px',
                     fontWeight: '400',
-                    px: { base: 2, md: 3 },
+                    px: { base: 2, md: 2 },
                     py: { base: 2, md: 0 },
                     height: { base: 'auto', md: '40px' },
                     lineHeight: { base: '20px', md: '40px' },
@@ -334,12 +336,20 @@ export function OverallPerformanceTable({
                     onBlur={onRowHover ? () => onRowHover(null) : undefined}
                   >
                     <Td>
+                      {/* Also the column's minimum width: narrowest at lg, where
+                          the map sits beside this card. */}
                       <Box
                         title={state.name}
                         overflow="hidden"
                         textOverflow="ellipsis"
                         whiteSpace="nowrap"
-                        maxW={{ base: '220px', md: '210px' }}
+                        maxW={{
+                          base: '200px',
+                          md: '180px',
+                          lg: '140px',
+                          xl: '180px',
+                          '2xl': '210px',
+                        }}
                       >
                         {state.name}
                       </Box>
@@ -347,6 +357,7 @@ export function OverallPerformanceTable({
                     <Td>{state.regularity.toFixed(1)}%</Td>
                     <Td>{state.coverage.toFixed(1)}</Td>
                     <Td>{state.quantity}</Td>
+                    <Td>{formatHouseholds(state.households)}</Td>
                   </Tr>
                 ))}
               </Tbody>

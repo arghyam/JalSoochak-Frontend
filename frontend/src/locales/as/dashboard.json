@@ -156,7 +156,8 @@
       "entity": "ৰাজ্য/কেন্দ্ৰীয়শাসিত অঞ্চল",
       "quantityMld": "পৰিমাণ (MLD)",
       "quantityLpcd": "পৰিমাণ (LPCD)",
-      "regularity": "নিয়মিততা (%)"
+      "regularity": "নিয়মিততা (%)",
+      "households": "পৰিয়াল"
     },
     "entities": {
       "stateUt": "ৰাজ্য/কেন্দ্ৰীয়শাসিত অঞ্চল",

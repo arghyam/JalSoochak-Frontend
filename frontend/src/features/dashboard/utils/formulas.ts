@@ -1215,6 +1215,7 @@ export const mapOverallPerformanceFromAnalytics = (
 
   return waterChildRegions.map((region, index) => {
     const matchingRegularity = regularityByName.get(slugify(region.title))
+    const achievedFhtcCount = getChildRegionAchievedFhtcCount(region)
     const regionId =
       typeof region.departmentId === 'number' && region.departmentId > 0
         ? String(region.departmentId)
@@ -1235,12 +1236,13 @@ export const mapOverallPerformanceFromAnalytics = (
       continuity: 0,
       quantity: calculateQuantityLpcd(
         region.totalWaterSuppliedLiters,
-        getChildRegionAchievedFhtcCount(region),
+        achievedFhtcCount,
         waterDaysInRange,
         averagePersonsPerHousehold
       ),
       compositeScore: 0,
       status: 'needs-attention',
+      households: achievedFhtcCount,
     }
   })
 }
@@ -1262,6 +1264,7 @@ export const mapOverallPerformanceFromNationalDashboard = (
 
   return response.stateWiseQuantityPerformance.map((state, index) => {
     const matchingRegularity = regularityByName.get(slugify(state.stateTitle))
+    const achievedFhtcCount = getNationalAchievedFhtcCount(state)
     const baseId = state.stateCode
       ? `national-overall-${state.stateCode}`
       : `national-overall-${slugify(state.stateTitle) || index}`
@@ -1288,12 +1291,13 @@ export const mapOverallPerformanceFromNationalDashboard = (
       continuity: 0,
       quantity: calculateQuantityLpcd(
         state.totalWaterSuppliedLiters,
-        getNationalAchievedFhtcCount(state),
+        achievedFhtcCount,
         daysInRange,
         averagePersonsPerHousehold
       ),
       compositeScore: 0,
       status: 'needs-attention',
+      households: achievedFhtcCount,
     }
   })
 }
