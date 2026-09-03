@@ -4178,8 +4178,8 @@ describe('CentralDashboard', () => {
         startDate: '2026-03-01',
         endDate: '2026-03-30',
         daysInRange: 30,
-        activeSchemeCount: 1,
-        inactiveSchemeCount: 0,
+        workStatusCounts: [{ code: 1, label: 'Ongoing', count: 1 }],
+        operatingStatusCounts: [{ code: 1, label: 'Operative', count: 0 }],
         topSchemeCount: 1,
         topSchemes: [
           {
@@ -4282,7 +4282,7 @@ describe('CentralDashboard', () => {
     })
   })
 
-  it('overrides active schemes chart data from scheme performance analytics when rows are available', () => {
+  it('overrides scheme status chart data from scheme performance analytics when rows are available', () => {
     ;(useDashboardData as jest.Mock).mockReturnValue({
       data: mockDashboardData,
       isLoading: false,
@@ -4311,15 +4311,15 @@ describe('CentralDashboard', () => {
         startDate: '2026-03-14',
         endDate: '2026-03-14',
         daysInRange: 1,
-        activeSchemeCount: 1,
-        inactiveSchemeCount: 1,
+        workStatusCounts: [{ code: 1, label: 'Ongoing', count: 1 }],
+        operatingStatusCounts: [{ code: 1, label: 'Operative', count: 1 }],
         topSchemeCount: 2,
         topSchemes: [
           {
             schemeId: 101,
             schemeName: 'Scheme 101',
-            statusCode: 1,
-            status: 'Active',
+            workStatus: { code: 1, label: 'Ongoing' },
+            operatingStatus: { code: 1, label: 'Operative' },
             submissionDays: 30,
             reportingRate: 82,
             totalWaterSupplied: 4500,
@@ -4333,8 +4333,8 @@ describe('CentralDashboard', () => {
           {
             schemeId: 102,
             schemeName: 'Scheme 102',
-            statusCode: 0,
-            status: 'Inactive',
+            workStatus: { code: 0, label: 'Ongoing' },
+            operatingStatus: { code: 0, label: 'Non-Operative' },
             submissionDays: 0,
             reportingRate: 0,
             totalWaterSupplied: 0,
@@ -4351,12 +4351,18 @@ describe('CentralDashboard', () => {
 
     renderWithProviders(<CentralDashboard />)
 
-    const dashboardBodyProps = getLatestDashboardBodyProps<{ data: DashboardData }>()
+    const dashboardBodyProps = getLatestDashboardBodyProps<{
+      data: DashboardData
+      pumpOperatorsTotal: number
+    }>()
 
-    expect(dashboardBodyProps.data.pumpOperators).toEqual([
-      { label: 'Active schemes', value: 1 },
-      { label: 'Non-active schemes', value: 1 },
+    expect(dashboardBodyProps.data.schemeWorkStatusCounts).toEqual([
+      { code: 1, label: 'Ongoing', count: 1 },
     ])
+    expect(dashboardBodyProps.data.schemeOperatingStatusCounts).toEqual([
+      { code: 1, label: 'Operative', count: 1 },
+    ])
+    expect(dashboardBodyProps.pumpOperatorsTotal).toBe(1)
   })
 
   it('overrides scheme performance table rows from scheme performance analytics when rows are available', () => {
@@ -4388,15 +4394,15 @@ describe('CentralDashboard', () => {
         startDate: '2026-03-14',
         endDate: '2026-03-14',
         daysInRange: 1,
-        activeSchemeCount: 1,
-        inactiveSchemeCount: 0,
+        workStatusCounts: [{ code: 1, label: 'Ongoing', count: 1 }],
+        operatingStatusCounts: [{ code: 1, label: 'Operative', count: 0 }],
         topSchemeCount: 1,
         topSchemes: [
           {
             schemeId: 101,
             schemeName: 'Scheme 101',
-            statusCode: 1,
-            status: 'Active',
+            workStatus: { code: 1, label: 'Ongoing' },
+            operatingStatus: { code: 1, label: 'Operative' },
             submissionDays: 30,
             reportingRate: 82,
             totalWaterSupplied: 4500,
@@ -4461,9 +4467,17 @@ describe('CentralDashboard', () => {
 
     renderWithProviders(<CentralDashboard />)
 
-    const dashboardBodyProps = getLatestDashboardBodyProps<{ data: DashboardData }>()
+    const dashboardBodyProps = getLatestDashboardBodyProps<{
+      data: DashboardData
+      pumpOperatorsTotal: number
+    }>()
 
-    expect(dashboardBodyProps.data.pumpOperators).toEqual([])
+    // The legacy `pumpOperators` field belongs to a different endpoint and is left untouched —
+    // only the derived scheme-status fields and the total must reflect the missing analytics.
+    expect(dashboardBodyProps.data.pumpOperators).toEqual([{ label: 'Legacy active', value: 12 }])
+    expect(dashboardBodyProps.data.schemeWorkStatusCounts).toEqual([])
+    expect(dashboardBodyProps.data.schemeOperatingStatusCounts).toEqual([])
+    expect(dashboardBodyProps.pumpOperatorsTotal).toBe(0)
   })
 
   it('does not fall back to legacy scheme performance rows when scheme analytics should be used', () => {

@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next'
 import i18n from '@/app/i18n'
 import { useAuthStore } from '@/app/store'
 import { INDIA_STATES } from '@/shared/constants/states'
+import { WORK_STATUS_CODES, getSchemeStatusCount } from '@/shared/constants/scheme-status'
 import { StatCard, PageHeader } from '@/shared/components/common'
 import { ToastContainer } from '@/shared/components/common/toast-container'
 import { useToast } from '@/shared/hooks/use-toast'
@@ -90,7 +91,9 @@ export function OverviewPage() {
     document.title = `${pageTitle} | JalSoochak`
   }, [t, stateName])
 
-  if (isStaffCountsLoading || isSchemeCountsLoading) {
+  // Only staff counts gate the page. Scheme counts feed a single stat card, so a failure there must
+  // not blank the API-token section or the configuration wizard — that card degrades instead.
+  if (isStaffCountsLoading) {
     return (
       <Flex
         h="64"
@@ -106,7 +109,7 @@ export function OverviewPage() {
     )
   }
 
-  if (isStaffCountsError || isSchemeCountsError) {
+  if (isStaffCountsError) {
     return (
       <Flex h="64" align="center" justify="center">
         <Text color="error.500">{t('common:toast.failedToLoad')}</Text>
@@ -142,12 +145,22 @@ export function OverviewPage() {
       tooltip: t('overview.tooltips.totalAdmins'),
     },
     {
-      title: t('overview.stats.activeSchemes'),
-      value: formatStatValue(schemeCountsData?.activeSchemes ?? 0),
+      title: t('overview.stats.handedOverSchemes'),
+      // Scheme counts no longer gate the whole page, so this card degrades on its own.
+      value: isSchemeCountsError
+        ? t('common:na')
+        : isSchemeCountsLoading
+          ? '—'
+          : formatStatValue(
+              getSchemeStatusCount(
+                schemeCountsData?.workStatusCounts,
+                WORK_STATUS_CODES.HANDED_OVER
+              )
+            ),
       icon: BsDroplet,
       iconBg: '#EBF4FA',
       iconColor: '#3291D1',
-      tooltip: t('overview.tooltips.activeSchemes'),
+      tooltip: t('overview.tooltips.handedOverSchemes'),
     },
   ]
 

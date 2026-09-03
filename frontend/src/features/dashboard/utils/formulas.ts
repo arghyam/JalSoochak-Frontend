@@ -4,7 +4,6 @@ import type {
   EntityPerformance,
   NationalDashboardResponse,
   PumpOperatorPerformanceData,
-  PumpOperatorsData,
   ReadingSubmissionStatusData,
   ReadingSubmissionRateResponse,
   SchemePerformanceResponse,
@@ -21,6 +20,8 @@ import {
   type LocationTitleLookup,
 } from '../services/query/location-title-lookup'
 import { slugify, toCapitalizedWords } from './format-location-label'
+import { sortSchemeStatusCounts } from '@/shared/constants/scheme-status'
+import type { SchemeStatusCount } from '@/shared/constants/scheme-status'
 
 const DEFAULT_DAYS_IN_RANGE = 30
 const MILLION_LITERS = 1_000_000
@@ -1077,25 +1078,57 @@ export const mapReadingSubmissionStatusFromAnalytics = (
   ]
 }
 
-export const mapSchemePerformanceToPumpOperators = (
-  response: SchemePerformanceResponse | undefined,
-  fallbackData: PumpOperatorsData[]
-): PumpOperatorsData[] => {
+export interface SchemeStatusChartData {
+  workStatusCounts: SchemeStatusCount[]
+  operatingStatusCounts: SchemeStatusCount[]
+  totalCount: number
+}
+
+const EMPTY_SCHEME_STATUS_CHART_DATA: SchemeStatusChartData = {
+  workStatusCounts: [],
+  operatingStatusCounts: [],
+  totalCount: 0,
+}
+
+/**
+ * `unwrapAnalyticsResponse` performs no shape validation, so a backend still on the old contract
+ * would hand this an `undefined` array rather than throwing. Sanitizing defensively here — rather
+ * than trusting the declared type — keeps a stale deploy from white-screening the dashboard.
+ */
+const sanitizeSchemeStatusCounts = (value: unknown): SchemeStatusCount[] => {
+  if (!Array.isArray(value)) return []
+  return value
+    .filter((entry): entry is Record<string, unknown> => !!entry && typeof entry === 'object')
+    .filter((entry) => {
+      const count = entry.count
+      return typeof count === 'number' && Number.isFinite(count) && count >= 0
+    })
+    .map((entry) => ({
+      code: typeof entry.code === 'number' && Number.isFinite(entry.code) ? entry.code : null,
+      label: typeof entry.label === 'string' ? entry.label : '',
+      count: entry.count as number,
+    }))
+}
+
+export const mapSchemePerformanceToSchemeStatus = (
+  response: SchemePerformanceResponse | undefined
+): SchemeStatusChartData => {
   if (!response) {
-    return fallbackData
+    return EMPTY_SCHEME_STATUS_CHART_DATA
   }
 
-  const activeSchemeCount = response.activeSchemeCount ?? 0
-  const inactiveSchemeCount = response.inactiveSchemeCount ?? 0
+  const workStatusCounts = sortSchemeStatusCounts(
+    sanitizeSchemeStatusCounts(response.workStatusCounts)
+  )
+  const operatingStatusCounts = sortSchemeStatusCounts(
+    sanitizeSchemeStatusCounts(response.operatingStatusCounts)
+  )
+  const totalCount =
+    Number.isFinite(response.totalCount) && response.totalCount >= 0
+      ? response.totalCount
+      : operatingStatusCounts.reduce((sum, bucket) => sum + bucket.count, 0)
 
-  if (activeSchemeCount + inactiveSchemeCount <= 0) {
-    return []
-  }
-
-  return [
-    { label: 'Active schemes', value: activeSchemeCount },
-    { label: 'Non-active schemes', value: inactiveSchemeCount },
-  ]
+  return { workStatusCounts, operatingStatusCounts, totalCount }
 }
 
 export const mapSchemePerformanceToTable = (

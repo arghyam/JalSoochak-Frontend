@@ -1,7 +1,6 @@
 import type {
   AverageSchemeRegularityResponse,
   AverageWaterSupplyPerRegionResponse,
-  DashboardData,
   EntityPerformance,
   NationalDashboardResponse,
   NationalSchemeRegularityPeriodicResponse,
@@ -21,7 +20,7 @@ import {
   mapReadingSubmissionRateFromAnalytics,
   mapReadingSubmissionStatusFromAnalytics,
   mapRegularityPerformanceFromNationalDashboard,
-  mapSchemePerformanceToPumpOperators,
+  mapSchemePerformanceToSchemeStatus,
   mapSchemePerformanceToTable,
   mapQuantityPerformanceFromAnalytics,
   mapRegularityPerformanceFromAnalytics,
@@ -48,7 +47,6 @@ type BuildCentralDashboardPerformanceDataParams = {
   averagePersonsPerHousehold: number
   averageSchemeRegularityData?: AverageSchemeRegularityResponse
   averageWaterSupplyData?: AverageWaterSupplyPerRegionResponse
-  dashboardData: DashboardData
   emptyEntityPerformance: EntityPerformance[]
   filteredNationalDashboardData?: NationalDashboardResponse
   hierarchyType: 'LGD' | 'DEPARTMENT' | 'DEPARTMENTAL' | 'DEPT'
@@ -69,7 +67,6 @@ type BuildCentralDashboardPerformanceDataParams = {
   schemeRegularityPeriodicData?: SchemeRegularityPeriodicResponse
   screenDateFormat: string
   selectedSchemeId?: number
-  shouldFetchSchemePerformanceAnalytics: boolean
   submissionStatusData?: SubmissionStatusResponse
   tenantBoundaryRegions?: TenantBoundaryRegion[]
   waterQuantityPeriodicData?: WaterQuantityPeriodicResponse
@@ -79,7 +76,6 @@ export function buildCentralDashboardPerformanceData({
   averagePersonsPerHousehold,
   averageSchemeRegularityData,
   averageWaterSupplyData,
-  dashboardData,
   emptyEntityPerformance,
   filteredNationalDashboardData,
   hierarchyType,
@@ -97,7 +93,6 @@ export function buildCentralDashboardPerformanceData({
   schemeRegularityPeriodicData,
   screenDateFormat,
   selectedSchemeId,
-  shouldFetchSchemePerformanceAnalytics,
   submissionStatusData,
   tenantBoundaryRegions,
   waterQuantityPeriodicData,
@@ -138,10 +133,7 @@ export function buildCentralDashboardPerformanceData({
     submissionStatusData,
     []
   )
-  const pumpOperatorsData = mapSchemePerformanceToPumpOperators(
-    schemePerformanceData,
-    shouldFetchSchemePerformanceAnalytics ? [] : (dashboardData?.pumpOperators ?? [])
-  )
+  const schemeStatusData = mapSchemePerformanceToSchemeStatus(schemePerformanceData)
   const tenantBoundaryBlockLookup = (tenantBoundaryRegions ?? []).reduce(
     (lookup, region) => {
       const normalizedTitle = (
@@ -238,7 +230,7 @@ export function buildCentralDashboardPerformanceData({
     derivedVillageSchemeId,
     operatorsPerformanceAnalyticsTable,
     outageReasonsTimeTrendData,
-    pumpOperatorsData,
+    schemeStatusData,
     quantityPerformanceData,
     quantityTimeTrendData,
     readingSubmissionStatusData,

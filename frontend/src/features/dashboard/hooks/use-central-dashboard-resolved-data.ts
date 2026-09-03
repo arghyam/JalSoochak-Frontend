@@ -3,7 +3,6 @@ import type {
   NationalDashboardResponse,
   OutageReasonsResponse,
   PumpOperatorPerformanceData,
-  PumpOperatorsData,
   ReadingSubmissionStatusData,
   SupplyOutageTrendData,
 } from '../types'
@@ -13,6 +12,7 @@ import {
   toOutageReasonsData,
 } from '../utils/central-dashboard-helpers'
 import { mapOutageReasonsFromNationalDashboard } from '../utils/formulas'
+import type { SchemeStatusChartData } from '../utils/formulas'
 
 type BuildCentralDashboardResolvedDataParams = {
   dashboardData: DashboardData
@@ -21,8 +21,8 @@ type BuildCentralDashboardResolvedDataParams = {
   operatorsPerformanceAnalyticsTable: PumpOperatorPerformanceData[]
   outageReasonsData?: OutageReasonsResponse
   outageReasonsTimeTrendData: SupplyOutageTrendData[]
-  pumpOperatorsData: PumpOperatorsData[]
   readingSubmissionStatusData: ReadingSubmissionStatusData[]
+  schemeStatusData: SchemeStatusChartData
   shouldFetchSchemePerformanceAnalytics: boolean
 }
 
@@ -33,8 +33,8 @@ export function buildCentralDashboardResolvedData({
   operatorsPerformanceAnalyticsTable,
   outageReasonsData,
   outageReasonsTimeTrendData,
-  pumpOperatorsData,
   readingSubmissionStatusData,
+  schemeStatusData,
   shouldFetchSchemePerformanceAnalytics,
 }: BuildCentralDashboardResolvedDataParams) {
   const apiWaterSupplyOutageReasonsData = outageReasonsData?.outageReasonSchemeCount
@@ -56,9 +56,16 @@ export function buildCentralDashboardResolvedData({
       ? outageReasonsTimeTrendData
       : dashboardData.supplyOutageTrend
   const resolvedReadingCompliance = dashboardData.readingCompliance
+  const resolvedSchemeWorkStatusCounts = shouldFetchSchemePerformanceAnalytics
+    ? schemeStatusData.workStatusCounts
+    : dashboardData.schemeWorkStatusCounts
+  const resolvedSchemeOperatingStatusCounts = shouldFetchSchemePerformanceAnalytics
+    ? schemeStatusData.operatingStatusCounts
+    : dashboardData.schemeOperatingStatusCounts
   const resolvedDashboardData =
     readingSubmissionStatusData === dashboardData.readingSubmissionStatus &&
-    pumpOperatorsData === dashboardData.pumpOperators &&
+    resolvedSchemeWorkStatusCounts === dashboardData.schemeWorkStatusCounts &&
+    resolvedSchemeOperatingStatusCounts === dashboardData.schemeOperatingStatusCounts &&
     resolvedSupplyOutageTrend === dashboardData.supplyOutageTrend &&
     resolvedReadingCompliance === dashboardData.readingCompliance
       ? dashboardData
@@ -66,14 +73,17 @@ export function buildCentralDashboardResolvedData({
           ...dashboardData,
           readingSubmissionStatus: readingSubmissionStatusData,
           readingCompliance: resolvedReadingCompliance,
-          pumpOperators: pumpOperatorsData,
+          schemeWorkStatusCounts: resolvedSchemeWorkStatusCounts,
+          schemeOperatingStatusCounts: resolvedSchemeOperatingStatusCounts,
           supplyOutageTrend: resolvedSupplyOutageTrend,
         }
 
-  const pumpOperatorsTotal = resolvedDashboardData.pumpOperators.reduce(
-    (total, item) => total + item.value,
-    0
-  )
+  // Both bucket lists sum to totalCount by contract, so the readout must come from one number —
+  // not a reduce over whichever dimension happens to be selected, which would flicker to zero
+  // whenever the user toggles to a dimension that is legitimately empty.
+  const pumpOperatorsTotal = shouldFetchSchemePerformanceAnalytics
+    ? schemeStatusData.totalCount
+    : resolvedDashboardData.pumpOperators.reduce((total, item) => total + item.value, 0)
   const leadingPumpOperators = dashboardData.leadingPumpOperators ?? []
   const bottomPumpOperators = dashboardData.bottomPumpOperators ?? []
   const operatorsPerformanceTable = shouldFetchSchemePerformanceAnalytics

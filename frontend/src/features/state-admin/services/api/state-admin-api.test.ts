@@ -348,17 +348,64 @@ describe('stateAdminApi', () => {
   })
 
   describe('schemes', () => {
-    it('getSchemeCounts returns response.data', async () => {
-      const counts = {
-        totalSchemes: 10,
-        activeSchemes: 7,
-        inactiveSchemes: 3,
-        statusCounts: [],
+    it('getSchemeCounts requests the by-status endpoint with the tenant code', async () => {
+      mockedApiClient.get.mockResolvedValueOnce({
+        data: { totalSchemes: 10, workStatusCounts: [], operatingStatusCounts: [] },
+      } as never)
+
+      await stateAdminApi.getSchemeCounts('TN')
+
+      expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/scheme/schemes/counts/by-status', {
+        params: { tenantCode: 'TN' },
+      })
+    })
+
+    it('getSchemeCounts sorts both breakdowns by code with an unrecorded status last', async () => {
+      mockedApiClient.get.mockResolvedValueOnce({
+        data: {
+          totalSchemes: 10,
+          workStatusCounts: [
+            { code: null, label: 'Unknown', count: 1 },
+            { code: 2, label: 'Completed', count: 4 },
+            { code: 1, label: 'Ongoing', count: 5 },
+          ],
+          operatingStatusCounts: [
+            { code: 2, label: 'Partially Operative', count: 3 },
+            { code: 0, label: 'Non-Operative', count: 2 },
+            { code: 1, label: 'Operative', count: 5 },
+          ],
+        },
+      } as never)
+
+      const res = await stateAdminApi.getSchemeCounts('TN')
+
+      expect(res.totalSchemes).toBe(10)
+      expect(res.workStatusCounts.map((b) => b.code)).toEqual([1, 2, null])
+      expect(res.operatingStatusCounts.map((b) => b.code)).toEqual([0, 1, 2])
+    })
+
+    it('getSchemeCounts defaults missing fields so the UI never maps undefined', async () => {
+      mockedApiClient.get.mockResolvedValueOnce({ data: {} } as never)
+
+      await expect(stateAdminApi.getSchemeCounts('TN')).resolves.toEqual({
+        totalSchemes: 0,
         workStatusCounts: [],
         operatingStatusCounts: [],
-      }
-      mockedApiClient.get.mockResolvedValueOnce({ data: counts } as never)
-      await expect(stateAdminApi.getSchemeCounts('TN')).resolves.toEqual(counts)
+      })
+    })
+
+    it('getSchemeCounts preserves an unrecognised code rather than dropping it', async () => {
+      mockedApiClient.get.mockResolvedValueOnce({
+        data: {
+          totalSchemes: 1,
+          workStatusCounts: [{ code: 99, label: 'Future Status', count: 1 }],
+          operatingStatusCounts: [],
+        },
+      } as never)
+
+      const res = await stateAdminApi.getSchemeCounts('TN')
+
+      expect(res.workStatusCounts).toEqual([{ code: 99, label: 'Future Status', count: 1 }])
     })
 
     it('getSchemeList maps content and optional query params', async () => {
@@ -369,8 +416,8 @@ describe('stateAdminApi', () => {
         tenantCode: 'TN',
         page: 0,
         limit: 10,
-        workStatus: 'W',
-        operatingStatus: 'O',
+        workStatus: 'Completed',
+        operatingStatus: 'Non-Operative',
         schemeName: 'S',
         sortDir: 'asc',
       })
@@ -380,12 +427,25 @@ describe('stateAdminApi', () => {
           tenantCode: 'TN',
           page: 0,
           limit: 10,
-          workStatus: 'W',
-          operatingStatus: 'O',
+          workStatus: 'Completed',
+          operatingStatus: 'Non-Operative',
           schemeName: 'S',
           sortDir: 'asc',
         },
       })
+    })
+
+    it('getSchemeList never sends the removed status filter', async () => {
+      mockedApiClient.get.mockResolvedValueOnce({
+        data: { content: [], totalElements: 0 },
+      } as never)
+
+      await stateAdminApi.getSchemeList({ tenantCode: 'TN', page: 0, limit: 10 })
+
+      // The backend now ignores `status` silently and returns everything with a 200, so a stale
+      // param would be an invisible failure rather than an error.
+      const [, config] = mockedApiClient.get.mock.calls[0] as [string, { params: object }]
+      expect(config.params).not.toHaveProperty('status')
     })
 
     it('uploadSchemes posts with tenant header', async () => {

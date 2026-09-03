@@ -1194,8 +1194,8 @@ describe('dashboardApi.getSchemePerformance', () => {
           startDate: 's',
           endDate: 'e',
           daysInRange: 1,
-          activeSchemeCount: 2,
-          inactiveSchemeCount: 1,
+          workStatusCounts: [{ code: 1, label: 'Ongoing', count: 2 }],
+          operatingStatusCounts: [{ code: 1, label: 'Operative', count: 2 }],
           totalCount: 25,
           topSchemeCount: 1,
           topSchemes: [],
@@ -1224,8 +1224,23 @@ describe('dashboardApi.getSchemePerformance', () => {
         sort_dir: 'desc',
       },
     })
-    expect(res.activeSchemeCount).toBe(2)
+    expect(res.workStatusCounts).toEqual([{ code: 1, label: 'Ongoing', count: 2 }])
     expect(res.totalCount).toBe(25)
+  })
+
+  it('falls back to empty scheme status buckets when the response payload is nullish', async () => {
+    mockGet.mockResolvedValueOnce({ data: null } as never)
+    const { dashboardApi } = await import('./dashboard-api')
+
+    const res = await dashboardApi.getSchemePerformance({
+      tenantId: 10,
+      startDate: 's',
+      endDate: 'e',
+    })
+
+    expect(res.workStatusCounts).toEqual([])
+    expect(res.operatingStatusCounts).toEqual([])
+    expect(res.totalCount).toBe(0)
   })
 })
 

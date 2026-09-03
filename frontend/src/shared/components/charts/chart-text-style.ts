@@ -29,6 +29,16 @@ const resolveColor = (theme: ThemeLike | undefined, token: string | undefined) =
   return theme?.colors?.[scale]?.[shade] ?? token
 }
 
+/**
+ * Resolves a Chakra theme token (e.g. `'success.500'`) to its hex value, for contexts — like an
+ * ECharts option — that cannot consume theme tokens directly. Returns the input unchanged if it
+ * isn't a scale.shade token or isn't found in the theme.
+ */
+export const resolveThemeColorToken = (
+  theme: ThemeLike | undefined | unknown,
+  token: string
+): string => resolveColor(theme as ThemeLike | undefined, token) ?? token
+
 const getTextStyle = (
   theme: ThemeLike | undefined | unknown,
   key: 'bodyText5' | 'bodyText6' | 'bodyText7',
