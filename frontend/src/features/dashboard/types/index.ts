@@ -1,3 +1,11 @@
+import type { SchemeStatus, SchemeStatusCount } from '@/shared/constants/scheme-status'
+
+export type {
+  SchemeStatus,
+  SchemeStatusCount,
+  SchemeStatusDimension,
+} from '@/shared/constants/scheme-status'
+
 export type DashboardLevel =
   | 'central'
   | 'state'
@@ -152,6 +160,10 @@ export interface DashboardData {
   continuityData: EntityPerformance[]
   leadingPumpOperators?: PumpOperatorPerformanceData[]
   bottomPumpOperators?: PumpOperatorPerformanceData[]
+  // Derived from the scheme-performance analytics response — see mapSchemePerformanceToSchemeStatus.
+  // Optional: this legacy payload never carries them, only the analytics path populates them.
+  schemeWorkStatusCounts?: SchemeStatusCount[]
+  schemeOperatingStatusCounts?: SchemeStatusCount[]
 }
 
 export interface StateUtOption {
@@ -717,8 +729,10 @@ export interface SuppliedLgdLocation {
 export interface SchemePerformanceItem {
   schemeId: number
   schemeName: string
-  statusCode: number
-  status: string
+  // Not currently rendered by the Scheme Performance table — kept typed for API fidelity, exactly
+  // as the retired statusCode/status fields were.
+  workStatus: SchemeStatus
+  operatingStatus: SchemeStatus
   submissionDays: number
   reportingRate: number
   totalWaterSupplied: number
@@ -747,8 +761,8 @@ export interface SchemePerformanceResponse {
   startDate: string
   endDate: string
   daysInRange: number
-  activeSchemeCount: number
-  inactiveSchemeCount: number
+  workStatusCounts: SchemeStatusCount[]
+  operatingStatusCounts: SchemeStatusCount[]
   totalCount: number
   topSchemeCount: number
   topSchemes: SchemePerformanceItem[]

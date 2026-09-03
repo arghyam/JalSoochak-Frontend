@@ -54,11 +54,11 @@ const mockSchemeCountsState: {
 } = {
   data: {
     totalSchemes: 100,
-    activeSchemes: 57,
-    inactiveSchemes: 43,
-    statusCounts: [],
-    workStatusCounts: [],
-    operatingStatusCounts: [],
+    workStatusCounts: [
+      { code: 1, label: 'Ongoing', count: 88 },
+      { code: 4, label: 'Handed Over', count: 12 },
+    ],
+    operatingStatusCounts: [{ code: 1, label: 'Operative', count: 100 }],
   },
   isLoading: false,
   isError: false,
@@ -102,11 +102,11 @@ beforeEach(() => {
   mockStaffCountsState.isError = false
   mockSchemeCountsState.data = {
     totalSchemes: 100,
-    activeSchemes: 57,
-    inactiveSchemes: 43,
-    statusCounts: [],
-    workStatusCounts: [],
-    operatingStatusCounts: [],
+    workStatusCounts: [
+      { code: 1, label: 'Ongoing', count: 88 },
+      { code: 4, label: 'Handed Over', count: 12 },
+    ],
+    operatingStatusCounts: [{ code: 1, label: 'Operative', count: 100 }],
   }
   mockSchemeCountsState.isLoading = false
   mockSchemeCountsState.isError = false
@@ -130,7 +130,7 @@ describe('data state', () => {
     expect(screen.getByText('Total Staff')).toBeTruthy()
     expect(screen.getByText('Total Pump Operators')).toBeTruthy()
     expect(screen.getByText('Total Admins')).toBeTruthy()
-    expect(screen.getByText('Active Schemes')).toBeTruthy()
+    expect(screen.getByText('Handed Over Schemes')).toBeTruthy()
   })
 
   it('renders stat card values', () => {
@@ -138,7 +138,19 @@ describe('data state', () => {
     expect(screen.getByText('243')).toBeTruthy()
     expect(screen.getByText('120')).toBeTruthy()
     expect(screen.getByText('15')).toBeTruthy()
-    expect(screen.getByText('57')).toBeTruthy()
+    expect(screen.getByText('12')).toBeTruthy()
+  })
+
+  it('shows 0 when no Handed Over bucket is present', () => {
+    mockSchemeCountsState.data = {
+      totalSchemes: 100,
+      workStatusCounts: [{ code: 1, label: 'Ongoing', count: 100 }],
+      operatingStatusCounts: [],
+    }
+
+    renderWithProviders(<OverviewPage />)
+
+    expect(screen.getByLabelText('Handed Over Schemes: 0')).toBeTruthy()
   })
 
   it('renders stats section with aria-label', () => {
@@ -168,26 +180,29 @@ describe('loading state', () => {
     expect(screen.queryByRole('heading', { level: 1 })).toBeNull()
   })
 
-  it('renders loading spinner when scheme counts are loading', () => {
+  it('keeps the page rendered and degrades only the scheme card while counts load', () => {
     mockSchemeCountsState.data = undefined
     mockSchemeCountsState.isLoading = true
 
     renderWithProviders(<OverviewPage />)
 
-    expect(screen.getByRole('status')).toBeTruthy()
-    expect(screen.queryByRole('heading', { level: 1 })).toBeNull()
+    // Scheme counts feed one stat card; they must not gate the API-token section or the wizard.
+    expect(screen.getByRole('heading', { level: 1 })).toBeTruthy()
+    expect(screen.getByText('Total Staff')).toBeTruthy()
+    expect(screen.getByLabelText('Handed Over Schemes: —')).toBeTruthy()
   })
 })
 
 describe('error state', () => {
-  it('renders error message when scheme counts query fails', () => {
+  it('keeps the page rendered and degrades only the scheme card when counts fail', () => {
     mockSchemeCountsState.isError = true
     mockSchemeCountsState.data = undefined
 
     renderWithProviders(<OverviewPage />)
 
-    expect(screen.getByText(/failed to load/i)).toBeTruthy()
-    expect(screen.queryByRole('heading', { level: 1 })).toBeNull()
+    expect(screen.getByRole('heading', { level: 1 })).toBeTruthy()
+    expect(screen.queryByText(/failed to load/i)).toBeNull()
+    expect(screen.getByLabelText('Handed Over Schemes: N/A')).toBeTruthy()
   })
 
   it('renders error message when staff counts query fails', () => {

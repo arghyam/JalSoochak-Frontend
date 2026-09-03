@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, jest, beforeEach } from '@jest/globals'
 import { renderWithProviders } from '@/test/render-with-providers'
 import { SchemeSyncPage } from './scheme-sync-page'
-import type { Scheme } from '../../types/scheme-sync'
+import type { Scheme, SchemeCounts } from '../../types/scheme-sync'
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -20,7 +20,7 @@ const mockUseSchemeCountsQuery = jest.fn()
 const mockUseDownloadSchemesReportMutation = jest.fn()
 
 jest.mock('../../services/query/use-state-admin-queries', () => ({
-  useSchemeListQuery: () => mockUseSchemeListQuery(),
+  useSchemeListQuery: (params: unknown) => mockUseSchemeListQuery(params),
   useSchemeCountsQuery: () => mockUseSchemeCountsQuery(),
   useUpdateSchemeStatusMutation: () => ({ mutate: jest.fn(), isPending: false }),
   useDownloadSchemesReportMutation: () => mockUseDownloadSchemesReportMutation(),
@@ -65,7 +65,7 @@ const mockSchemes: Scheme[] = [
     longitude: 77.5678,
     channel: 'Channel A',
     workStatus: 'Completed',
-    operatingStatus: 'Active',
+    operatingStatus: 'Operative',
   },
   {
     id: 2,
@@ -79,23 +79,21 @@ const mockSchemes: Scheme[] = [
     latitude: 28.5678,
     longitude: 77.9012,
     channel: 'Channel B',
-    workStatus: 'In Progress',
-    operatingStatus: 'Active',
+    workStatus: 'Ongoing',
+    operatingStatus: 'Operative',
   },
 ]
 
-const mockCounts = {
+const mockCounts: SchemeCounts = {
   totalSchemes: 100,
-  activeSchemes: 80,
-  inactiveSchemes: 20,
-  statusCounts: [],
   workStatusCounts: [
-    { status: 'Completed', count: 50 },
-    { status: 'In Progress', count: 30 },
+    { code: 1, label: 'Ongoing', count: 30 },
+    { code: 2, label: 'Completed', count: 70 },
   ],
   operatingStatusCounts: [
-    { status: 'Active', count: 80 },
-    { status: 'Inactive', count: 20 },
+    { code: 0, label: 'Non-Operative', count: 20 },
+    { code: 1, label: 'Operative', count: 65 },
+    { code: 2, label: 'Partially Operative', count: 15 },
   ],
 }
 
@@ -145,7 +143,7 @@ describe('SchemeSyncPage', () => {
     expect(screen.getAllByText('200')).toHaveLength(2)
     expect(screen.getByText('150')).toBeInTheDocument()
     expect(screen.getByText('Completed')).toBeInTheDocument()
-    expect(screen.getAllByText('Active')).toHaveLength(2)
+    expect(screen.getAllByText('Operative')).toHaveLength(2)
   })
 
   it('should display stat cards with correct values', async () => {
@@ -159,10 +157,120 @@ describe('SchemeSyncPage', () => {
     renderWithProviders(<SchemeSyncPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Total Schemes')).toBeInTheDocument()
-      expect(screen.getByText('Active Schemes')).toBeInTheDocument()
-      expect(screen.getByText('Inactive Schemes')).toBeInTheDocument()
+      expect(screen.getByLabelText('Total Schemes: 100')).toBeInTheDocument()
+      expect(screen.getByLabelText('Operative Schemes: 65')).toBeInTheDocument()
+      expect(screen.getByLabelText('Partially Operative Schemes: 15')).toBeInTheDocument()
+      expect(screen.getByLabelText('Non-Operative Schemes: 20')).toBeInTheDocument()
     })
+  })
+
+  it('shows 0 for an operating status bucket absent from the response', async () => {
+    mockUseSchemeCountsQuery.mockReturnValue({
+      data: {
+        totalSchemes: 100,
+        workStatusCounts: [],
+        operatingStatusCounts: [{ code: 1, label: 'Operative', count: 100 }],
+      } satisfies SchemeCounts,
+      isLoading: false,
+    })
+
+    renderWithProviders(<SchemeSyncPage />)
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Partially Operative Schemes: 0')).toBeInTheDocument()
+      expect(screen.getByLabelText('Non-Operative Schemes: 0')).toBeInTheDocument()
+    })
+  })
+
+  it('explains the shortfall on the total card when schemes have no recorded operating status', async () => {
+    mockUseSchemeCountsQuery.mockReturnValue({
+      data: {
+        totalSchemes: 100,
+        workStatusCounts: [],
+        operatingStatusCounts: [
+          { code: 1, label: 'Operative', count: 98 },
+          { code: null, label: 'Unknown', count: 2 },
+        ],
+      } satisfies SchemeCounts,
+      isLoading: false,
+    })
+
+    renderWithProviders(<SchemeSyncPage />)
+
+    // The three operating cards cannot sum to the total, so the total card gains a tooltip.
+    const stats = screen.getByRole('region', { name: 'Scheme sync statistics' })
+    await waitFor(() => {
+      expect(screen.getByLabelText('Total Schemes: 100')).toBeInTheDocument()
+    })
+    expect(stats.querySelectorAll('[aria-label="More info"]')).toHaveLength(4)
+  })
+
+  it('omits the total card tooltip when every scheme has a recorded operating status', async () => {
+    renderWithProviders(<SchemeSyncPage />)
+
+    const stats = screen.getByRole('region', { name: 'Scheme sync statistics' })
+    await waitFor(() => {
+      expect(screen.getByLabelText('Total Schemes: 100')).toBeInTheDocument()
+    })
+    expect(stats.querySelectorAll('[aria-label="More info"]')).toHaveLength(3)
+  })
+
+  it('shows a placeholder on every card while counts load', async () => {
+    mockUseSchemeCountsQuery.mockReturnValue({ data: undefined, isLoading: true })
+
+    renderWithProviders(<SchemeSyncPage />)
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Total Schemes: —')).toBeInTheDocument()
+    })
+    expect(screen.getByLabelText('Operative Schemes: —')).toBeInTheDocument()
+    expect(screen.getByLabelText('Partially Operative Schemes: —')).toBeInTheDocument()
+    expect(screen.getByLabelText('Non-Operative Schemes: —')).toBeInTheDocument()
+  })
+
+  it('offers Partially Operative as an operating status filter option', async () => {
+    renderWithProviders(<SchemeSyncPage />)
+
+    await userEvent.click(screen.getByRole('combobox', { name: 'Operating Status' }))
+
+    // Newly reachable: the backend could never surface this value before the migration.
+    expect(screen.getByText('Partially Operative')).toBeInTheDocument()
+  })
+
+  it('sends the canonical English label as the operating status filter value', async () => {
+    renderWithProviders(<SchemeSyncPage />)
+
+    await userEvent.click(screen.getByRole('combobox', { name: 'Operating Status' }))
+    await userEvent.click(screen.getByText('Non-Operative'))
+
+    // Non-Operative is code 0; sending the code would be stripped as falsy by the service layer.
+    await waitFor(() => {
+      expect(mockUseSchemeListQuery).toHaveBeenLastCalledWith(
+        expect.objectContaining({ operatingStatus: 'Non-Operative' })
+      )
+    })
+  })
+
+  it('sends the canonical English label as the work status filter value', async () => {
+    renderWithProviders(<SchemeSyncPage />)
+
+    await userEvent.click(screen.getByRole('combobox', { name: 'Work Status' }))
+    await userEvent.click(screen.getByText('Completed'))
+
+    await waitFor(() => {
+      expect(mockUseSchemeListQuery).toHaveBeenLastCalledWith(
+        expect.objectContaining({ workStatus: 'Completed' })
+      )
+    })
+  })
+
+  it('treats a selected Non-Operative filter as active so it can be cleared', async () => {
+    renderWithProviders(<SchemeSyncPage />)
+
+    await userEvent.click(screen.getByRole('combobox', { name: 'Operating Status' }))
+    await userEvent.click(screen.getByText('Non-Operative'))
+
+    expect(await screen.findByText('clear all filters')).toBeInTheDocument()
   })
 
   it('should handle search functionality', async () => {

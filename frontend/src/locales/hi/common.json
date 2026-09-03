@@ -39,6 +39,21 @@
     "success": "सफलता"
   },
 
+  "schemeStatus": {
+    "work": {
+      "notStarted": "प्रारंभ नहीं हुआ",
+      "ongoing": "जारी",
+      "completed": "पूर्ण",
+      "handedOver": "हस्तांतरित"
+    },
+    "operating": {
+      "nonOperative": "गैर-संचालित",
+      "partiallyOperative": "आंशिक रूप से संचालित",
+      "operative": "संचालित"
+    },
+    "unknown": "अज्ञात"
+  },
+
   "toast": {
     "changesSaved": "परिवर्तन सफलतापूर्वक सहेजे गए",
     "changesSavedShort": "परिवर्तन सहेजे गए",

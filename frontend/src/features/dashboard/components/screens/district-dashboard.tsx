@@ -11,13 +11,13 @@ import type {
 import {
   SupplyOutageReasonsChart,
   MonthlyTrendChart,
-  ActiveSchemesChart,
   ReadingSubmissionRateChart,
   SupplyOutageDistributionChart,
 } from '../charts'
 import { SchemePerformanceTable } from '../tables'
 import { PerformanceChartCard } from './performance-chart-card'
 import { ReadingSubmissionStatusCard } from './reading-submission-status-card'
+import { SchemeStatusCard } from './scheme-status-card'
 import {
   ChartEmptyState,
   ChartInfoTooltip,
@@ -433,42 +433,14 @@ export function DistrictDashboardScreen({
 
       {/* Pump Operators + Operators Performance */}
       <Grid templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }} gap={6} mb={6}>
-        <Box
-          bg="white"
-          borderWidth="0.5px"
-          borderRadius="12px"
-          borderColor="#E4E4E7"
-          px="16px"
-          py="24px"
-          h="510px"
-          minW={0}
-        >
-          <Flex align="center" justify="space-between" mb="40px">
-            <Flex align="center" gap="6px">
-              <Text textStyle="bodyText3" fontWeight="400">
-                {t('pumpOperators.title', { defaultValue: 'Active Schemes' })}
-              </Text>
-              <ChartInfoTooltip
-                tooltipContent={glossary.activeSchemes}
-                ariaLabel={t('outageAndSubmissionCharts.ariaActiveSchemes', {
-                  defaultValue: 'Active schemes info',
-                })}
-              />
-            </Flex>
-            <Text textStyle="bodyText3" fontWeight="400">
-              {t('pumpOperators.totalLabel', { defaultValue: 'Total' })}: {pumpOperatorsTotal}
-            </Text>
-          </Flex>
-          {isActiveSchemesLoading ? (
-            <Flex align="center" justify="center" h="360px">
-              <LoadingSpinner />
-            </Flex>
-          ) : isActiveSchemesError ? (
-            <ChartEmptyState minHeight="360px" message={errorMessage} />
-          ) : (
-            <ActiveSchemesChart data={data.pumpOperators} height="360px" />
-          )}
-        </Box>
+        <SchemeStatusCard
+          workStatusCounts={data.schemeWorkStatusCounts ?? []}
+          operatingStatusCounts={data.schemeOperatingStatusCounts ?? []}
+          totalCount={pumpOperatorsTotal}
+          isLoading={isActiveSchemesLoading}
+          errorMessage={isActiveSchemesError ? errorMessage : undefined}
+          tooltipContent={glossary.schemeStatus}
+        />
         <Box
           bg="white"
           borderWidth="0.5px"

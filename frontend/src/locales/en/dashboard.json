@@ -213,7 +213,7 @@
     "ariaViewByGramPanchayat": "Gram panchayat supply outage distribution view by",
     "ariaOutageTimeScale": "Outage time scale",
     "ariaSupplyOutageDistribution": "Supply outage distribution info",
-    "ariaActiveSchemes": "Active schemes info",
+    "ariaSchemeStatus": "Scheme status info",
     "ariaReadingSubmissionRate": "Reading submission rate info",
     "supplyOutageReasons": {
       "tooltip": "Counts are based on unique schemes. A scheme may appear in multiple regions, so region totals may be higher.",
@@ -274,9 +274,13 @@
     }
   },
   "pumpOperators": {
-    "title": "Schemes",
+    "title": "Schemes by Status",
     "totalLabel": "Total",
-    "note": "Note: Schemes active for at least 30 days in a month.",
+    "dimension": {
+      "work": "Work",
+      "operating": "Operating",
+      "ariaLabel": "Scheme status breakdown"
+    },
     "details": {
       "title": "Pump Operator Details",
       "ariaPumpOperatorDetails": "Pump operator details info",
@@ -300,10 +304,6 @@
         "previous": "Previous",
         "next": "Next"
       }
-    },
-    "legend": {
-      "active": "Active schemes",
-      "inactive": "Non-active schemes"
     },
     "performanceTable": {
       "title": "Schemes Performance",
@@ -389,14 +389,12 @@
       "category": "Chart",
       "description": "Geographic spread of supply outage events across child regions within the selected area and period. Regions with more frequent outages are shown with higher values on the chart."
     },
-    "activeSchemes": {
-      "title": "Active Schemes",
-      "category": "Chart",
-      "description": "Count of schemes by operational status based on water supply reporting in the selected period.",
-      "activeLabel": "Active Schemes",
-      "activeDescription": "Schemes that reported at least one water supply reading in the selected period.",
-      "nonActiveLabel": "Non-active Schemes",
-      "nonActiveDescription": "Schemes that did not report any water supply readings in the selected period."
+    "schemeStatus": {
+      "description": "Count of schemes grouped by their recorded status. Use the toggle on the card to switch between work status and operating status.",
+      "workStatusLabel": "Work Status",
+      "workStatusDescription": "The construction and handover stage recorded for the scheme — Not Started, Ongoing, Completed or Handed Over.",
+      "operatingStatusLabel": "Operating Status",
+      "operatingStatusDescription": "Whether the scheme is currently supplying water — Operative, Partially Operative or Non-Operative."
     },
     "schemePerformance": {
       "title": "Schemes Performance",

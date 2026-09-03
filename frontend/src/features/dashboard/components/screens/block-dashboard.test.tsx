@@ -16,9 +16,6 @@ const mockSupplyOutageReasonsChart = jest.fn((_props: unknown) => (
 const mockSupplyOutageDistributionChart = jest.fn((_props: unknown) => (
   <div data-testid="supply-outage-distribution-chart" />
 ))
-const mockActiveSchemesChart = jest.fn((_props: unknown) => (
-  <div data-testid="pump-operators-chart" />
-))
 const mockReadingSubmissionStatusChart = jest.fn((_props: unknown) => (
   <div data-testid="reading-submission-status-chart" />
 ))
@@ -28,19 +25,23 @@ const mockReadingSubmissionRateChart = jest.fn((_props: unknown) => (
 const mockSchemePerformanceTable = jest.fn((_props: unknown) => (
   <div data-testid="pump-operators-performance-table" />
 ))
+const mockSchemeStatusCard = jest.fn((_props: unknown) => <div data-testid="scheme-status-card" />)
 
 jest.mock('../charts', () => ({
   MetricPerformanceChart: (props: unknown) => mockMetricPerformanceChart(props),
   MonthlyTrendChart: (props: unknown) => mockMonthlyTrendChart(props),
   SupplyOutageReasonsChart: (props: unknown) => mockSupplyOutageReasonsChart(props),
   SupplyOutageDistributionChart: (props: unknown) => mockSupplyOutageDistributionChart(props),
-  ActiveSchemesChart: (props: unknown) => mockActiveSchemesChart(props),
   ReadingSubmissionStatusChart: (props: unknown) => mockReadingSubmissionStatusChart(props),
   ReadingSubmissionRateChart: (props: unknown) => mockReadingSubmissionRateChart(props),
 }))
 
 jest.mock('../tables', () => ({
   SchemePerformanceTable: (props: unknown) => mockSchemePerformanceTable(props),
+}))
+
+jest.mock('./scheme-status-card', () => ({
+  SchemeStatusCard: (props: unknown) => mockSchemeStatusCard(props),
 }))
 
 jest.mock('@/shared/components/common/view-by-select', () => ({
@@ -164,6 +165,8 @@ const data: DashboardData = {
     { label: 'Active pump operators', value: 10 },
     { label: 'Non-active pump operators', value: 5 },
   ],
+  schemeWorkStatusCounts: [{ code: 1, label: 'Ongoing', count: 10 }],
+  schemeOperatingStatusCounts: [{ code: 1, label: 'Operative', count: 10 }],
   waterSupplyOutages: waterSupplyOutagesData,
   supplyOutageTrend: [{ period: 'Jan', value: 12 }],
   readingSubmissionTrend: [{ period: 'Jan', value: 77 }],
@@ -196,10 +199,22 @@ describe('BlockDashboardScreen', () => {
     mockMonthlyTrendChart.mockClear()
     mockSupplyOutageReasonsChart.mockClear()
     mockSupplyOutageDistributionChart.mockClear()
-    mockActiveSchemesChart.mockClear()
     mockReadingSubmissionStatusChart.mockClear()
     mockReadingSubmissionRateChart.mockClear()
     mockSchemePerformanceTable.mockClear()
+    mockSchemeStatusCard.mockClear()
+  })
+
+  it('renders the scheme status card with the buckets from data and the total from pumpOperatorsTotal', () => {
+    renderBlockDashboard()
+
+    expect(mockSchemeStatusCard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workStatusCounts: data.schemeWorkStatusCounts,
+        operatingStatusCounts: data.schemeOperatingStatusCounts,
+        totalCount: 15,
+      })
+    )
   })
 
   it('renders block view selectors with Geography selected by default', () => {
@@ -223,12 +238,10 @@ describe('BlockDashboardScreen', () => {
   it('renders pump operators row and both submission charts under it', () => {
     renderBlockDashboard()
 
-    expect(screen.getByText('Schemes')).toBeTruthy()
-    expect(screen.getByText('Total: 15')).toBeTruthy()
     expect(screen.getByText('Reading Submission Status')).toBeTruthy()
     expect(screen.getByText('Reading Submission Rate')).toBeTruthy()
 
-    expect(screen.getByTestId('pump-operators-chart')).toBeTruthy()
+    expect(screen.getByTestId('scheme-status-card')).toBeTruthy()
     expect(screen.getByTestId('pump-operators-performance-table')).toBeTruthy()
     expect(screen.getByTestId('reading-submission-status-chart')).toBeTruthy()
     expect(screen.getByTestId('reading-submission-rate-chart')).toBeTruthy()
