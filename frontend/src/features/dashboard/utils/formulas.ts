@@ -1123,9 +1123,10 @@ export const mapSchemePerformanceToSchemeStatus = (
   const operatingStatusCounts = sortSchemeStatusCounts(
     sanitizeSchemeStatusCounts(response.operatingStatusCounts)
   )
-  const totalCount = Number.isFinite(response.totalCount)
-    ? response.totalCount
-    : operatingStatusCounts.reduce((sum, bucket) => sum + bucket.count, 0)
+  const totalCount =
+    Number.isFinite(response.totalCount) && response.totalCount >= 0
+      ? response.totalCount
+      : operatingStatusCounts.reduce((sum, bucket) => sum + bucket.count, 0)
 
   return { workStatusCounts, operatingStatusCounts, totalCount }
 }

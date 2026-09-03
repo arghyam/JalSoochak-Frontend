@@ -56,10 +56,16 @@ export function buildCentralDashboardResolvedData({
       ? outageReasonsTimeTrendData
       : dashboardData.supplyOutageTrend
   const resolvedReadingCompliance = dashboardData.readingCompliance
+  const resolvedSchemeWorkStatusCounts = shouldFetchSchemePerformanceAnalytics
+    ? schemeStatusData.workStatusCounts
+    : dashboardData.schemeWorkStatusCounts
+  const resolvedSchemeOperatingStatusCounts = shouldFetchSchemePerformanceAnalytics
+    ? schemeStatusData.operatingStatusCounts
+    : dashboardData.schemeOperatingStatusCounts
   const resolvedDashboardData =
     readingSubmissionStatusData === dashboardData.readingSubmissionStatus &&
-    schemeStatusData.workStatusCounts === dashboardData.schemeWorkStatusCounts &&
-    schemeStatusData.operatingStatusCounts === dashboardData.schemeOperatingStatusCounts &&
+    resolvedSchemeWorkStatusCounts === dashboardData.schemeWorkStatusCounts &&
+    resolvedSchemeOperatingStatusCounts === dashboardData.schemeOperatingStatusCounts &&
     resolvedSupplyOutageTrend === dashboardData.supplyOutageTrend &&
     resolvedReadingCompliance === dashboardData.readingCompliance
       ? dashboardData
@@ -67,8 +73,8 @@ export function buildCentralDashboardResolvedData({
           ...dashboardData,
           readingSubmissionStatus: readingSubmissionStatusData,
           readingCompliance: resolvedReadingCompliance,
-          schemeWorkStatusCounts: schemeStatusData.workStatusCounts,
-          schemeOperatingStatusCounts: schemeStatusData.operatingStatusCounts,
+          schemeWorkStatusCounts: resolvedSchemeWorkStatusCounts,
+          schemeOperatingStatusCounts: resolvedSchemeOperatingStatusCounts,
           supplyOutageTrend: resolvedSupplyOutageTrend,
         }
 

@@ -2382,6 +2382,19 @@ describe('dashboard formulas', () => {
       expect(mapSchemePerformanceToSchemeStatus(response).totalCount).toBe(5)
     })
 
+    it('falls back to summing operating status counts when totalCount is negative', () => {
+      const response = {
+        ...baseResponse,
+        operatingStatusCounts: [
+          { code: 0, label: 'Non-Operative', count: 2 },
+          { code: 1, label: 'Operative', count: 3 },
+        ],
+        totalCount: -1,
+      } as unknown as SchemePerformanceResponse
+
+      expect(mapSchemePerformanceToSchemeStatus(response).totalCount).toBe(5)
+    })
+
     it('keeps one dimension empty while the other is populated', () => {
       const response: SchemePerformanceResponse = {
         ...baseResponse,
