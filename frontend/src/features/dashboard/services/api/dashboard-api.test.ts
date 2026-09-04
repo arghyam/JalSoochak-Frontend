@@ -1262,12 +1262,15 @@ describe('dashboardApi pump operator endpoints', () => {
     } as never)
     const { dashboardApi } = await import('./dashboard-api')
     const res = await dashboardApi.getPumpOperatorDetails({
-      pumpOperatorId: 7,
+      pumpOperatorUuid: '3f1a9c22-5b7e-4d38-9a10-8c4b2e6f0d71',
       tenant_code: 'TN',
     })
-    expect(mockGet).toHaveBeenCalledWith('/api/v1/pumpoperator/pump-operators/7', {
-      params: { tenantCode: 'TN' },
-    })
+    expect(mockGet).toHaveBeenCalledWith(
+      '/api/v1/pumpoperator/pump-operators/by-uuid/3f1a9c22-5b7e-4d38-9a10-8c4b2e6f0d71',
+      {
+        params: { tenantCode: 'TN' },
+      }
+    )
     expect(res.data.missedSubmissionDays).toBe(2)
   })
 
@@ -1302,14 +1305,19 @@ describe('dashboardApi pump operator endpoints', () => {
     expect(res).toEqual(body)
   })
 
-  it('getReadingCompliance uses global path when scheme_id absent', async () => {
+  it('getReadingCompliance stays scheme-scoped when scheme_id absent', async () => {
     const body = { status: 200, message: 'ok', data: { content: [], totalElements: 0 } }
     mockGet.mockResolvedValueOnce({ data: body } as never)
     const { dashboardApi } = await import('./dashboard-api')
+    // The unscoped /pump-operators/reading-compliance variant listed every operator in the tenant
+    // and is authenticated now, so this call stays on the scheme-scoped path even with no scheme.
     await dashboardApi.getReadingCompliance({ tenant_code: 'TN' })
-    expect(mockGet).toHaveBeenCalledWith('/api/v1/pumpoperator/pump-operators/reading-compliance', {
-      params: { tenantCode: 'TN', schemeId: undefined, page: 0, size: 50 },
-    })
+    expect(mockGet).toHaveBeenCalledWith(
+      '/api/v1/pumpoperator/pump-operators/by-scheme/reading-compliance',
+      {
+        params: { tenantCode: 'TN', schemeId: undefined, page: 0, size: 50 },
+      }
+    )
   })
 })
 
@@ -1479,11 +1487,11 @@ describe('dashboardApi additional normalization branches', () => {
     const { dashboardApi } = await import('./dashboard-api')
 
     const numeric = await dashboardApi.getPumpOperatorDetails({
-      pumpOperatorId: 1,
+      pumpOperatorUuid: '11111111-1111-4111-8111-111111111111',
       tenant_code: 'TN',
     })
     const nullable = await dashboardApi.getPumpOperatorDetails({
-      pumpOperatorId: 2,
+      pumpOperatorUuid: '22222222-2222-4222-8222-222222222222',
       tenant_code: 'TN',
     })
 

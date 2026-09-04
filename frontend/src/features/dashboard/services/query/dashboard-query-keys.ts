@@ -186,7 +186,7 @@ export const dashboardQueryKeys = {
       'dashboard',
       'pump-operator',
       'details',
-      params?.pumpOperatorId,
+      params?.pumpOperatorUuid,
       params?.tenant_code,
       params?.scheme_id,
       params?.startDate,
