@@ -96,14 +96,13 @@ export const analyticsApi = {
       response.data.data ?? {
         tenantId: params.tenantId,
         stateCode: '',
-        parentLgdLevel: 0,
-        parentDepartmentLevel: 0,
+        parentLgdLevel: null,
+        parentDepartmentLevel: null,
         startDate: params.startDate,
         endDate: params.endDate,
         daysInRange: 0,
-        schemeCount: 0,
+        schemeCount: null,
         childRegionCount: 0,
-        schemes: [],
         childRegions: [],
       }
     )
@@ -153,15 +152,12 @@ export const analyticsApi = {
 
     return normalizeWaterQuantityRegionWiseResponse(
       unwrapAnalyticsResponse(response.data, 'water quantity region-wise analytics') ?? {
-        lgdId: 0,
-        parentDepartmentId: 0,
-        parentLgdLevel: 0,
-        parentDepartmentLevel: 0,
-        scope: params.scope ?? 'child',
+        parentLgdId: params.parentLgdId ?? 0,
+        parentDepartmentId: params.parentDepartmentId ?? null,
+        parentLgdLevel: null,
+        parentDepartmentLevel: null,
         startDate: params.startDate,
         endDate: params.endDate,
-        daysInRange: 0,
-        schemeCount: 0,
         childRegionCount: 0,
         childRegions: [],
       }
@@ -185,10 +181,10 @@ export const analyticsApi = {
 
     return normalizeAverageSchemeRegularityResponse(
       unwrapAnalyticsResponse(response.data, 'average scheme regularity analytics') ?? {
-        lgdId: 0,
-        parentDepartmentId: 0,
-        parentLgdLevel: 0,
-        parentDepartmentLevel: 0,
+        lgdId: params.parentLgdId ?? 0,
+        parentDepartmentId: params.parentDepartmentId ?? null,
+        parentLgdLevel: null,
+        parentDepartmentLevel: null,
         scope: params.scope ?? 'child',
         startDate: params.startDate,
         endDate: params.endDate,

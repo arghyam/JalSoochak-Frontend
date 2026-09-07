@@ -32,7 +32,7 @@ const isFiniteNumber = (value: number) => Number.isFinite(value)
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
 
 const getSchemeAchievedFhtcCount = (
-  scheme: AverageWaterSupplyPerRegionResponse['schemes'][number]
+  scheme: NonNullable<AverageWaterSupplyPerRegionResponse['schemes']>[number]
 ) => scheme.totalAchievedFhtcCount ?? scheme.achievedFhtcCount ?? 0
 
 const getChildRegionAchievedFhtcCount = (
@@ -500,6 +500,27 @@ const mapLocationOptionsByName = (locationOptions: LocationLabelOption[]) =>
 
 const NO_DATA_METRIC_VALUE = -1
 
+/**
+ * Days covered by the water-supply response, or 0 when it is absent/unusable.
+ *
+ * Deliberately does NOT fall back to DEFAULT_DAYS_IN_RANGE: a guessed window silently
+ * rescales supply-day rates, and callers must render "no data" instead.
+ */
+const resolveWaterSupplyDaysInRange = (
+  waterSupplyAnalytics: AverageWaterSupplyPerRegionResponse | undefined
+) => {
+  if (!waterSupplyAnalytics) {
+    return 0
+  }
+
+  const { daysInRange, startDate, endDate } = waterSupplyAnalytics
+  if (isFiniteNumber(daysInRange) && daysInRange > 0) {
+    return daysInRange
+  }
+
+  return resolveMetricDaysInRange(startDate, endDate)
+}
+
 const getTenantBoundaryRegionId = (
   region: TenantBoundaryResponse['childRegions'][number],
   index: number
@@ -563,11 +584,11 @@ export const mapTenantBoundariesToPerformance = (
     }
   })
 
-  const quantityDaysInRange = resolveDaysInRange(
-    quantityAnalytics?.daysInRange ?? regularityAnalytics?.daysInRange,
-    quantityAnalytics?.startDate ?? regularityAnalytics?.startDate,
-    quantityAnalytics?.endDate ?? regularityAnalytics?.endDate
-  )
+  // Window for the quantity metric comes from the water-supply response only — the same
+  // response that supplies per-region scheme counts below. The water-quantity region-wise
+  // endpoint returns no daysInRange, and the regularity endpoint reports its own (possibly
+  // widened) window, so borrowing either would divide 1 day of supply days by 30 days.
+  const quantityDaysInRange = resolveWaterSupplyDaysInRange(waterSupplyAnalytics)
 
   ;(waterSupplyAnalytics?.childRegions ?? []).forEach((region) => {
     const schemeCount = Number(region.schemeCount)
@@ -589,7 +610,8 @@ export const mapTenantBoundariesToPerformance = (
   })
   ;(quantityAnalytics?.childRegions ?? []).forEach((region) => {
     const titleKey = slugify(region.title)
-    const schemeCountRaw = Number(region.schemeCount)
+    // Scheme counts are not part of the water-quantity payload — resolve them from the
+    // water-supply response by department id, then lgd id, then region title.
     const schemeCountLookup =
       (typeof region.departmentId === 'number' && region.departmentId > 0
         ? schemeCountById.get(String(region.departmentId))
@@ -598,12 +620,7 @@ export const mapTenantBoundariesToPerformance = (
         ? schemeCountById.get(String(region.lgdId))
         : undefined) ??
       (titleKey ? schemeCountByName.get(titleKey) : undefined)
-    const schemeCount =
-      Number.isFinite(schemeCountRaw) && schemeCountRaw > 0
-        ? schemeCountRaw
-        : typeof schemeCountLookup === 'number'
-          ? schemeCountLookup
-          : Number.NaN
+    const schemeCount = typeof schemeCountLookup === 'number' ? schemeCountLookup : Number.NaN
     const supplyDays = Number(region.supplyDaysInEfficientRange)
 
     const quantityPercent =
