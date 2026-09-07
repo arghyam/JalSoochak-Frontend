@@ -148,10 +148,10 @@ type TenantBoundaryGeoJsonChildRegionAlias = {
 
 type AnalyticsChildRegionAlias = {
   lgdId?: number
-  departmentId?: number
+  departmentId?: number | null
   title?: string
   childLgdId?: number
-  childDepartmentId?: number
+  childDepartmentId?: number | null
   childLgdTitle?: string
   childDepartmentTitle?: string
 }
