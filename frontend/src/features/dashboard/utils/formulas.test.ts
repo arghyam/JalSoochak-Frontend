@@ -771,24 +771,22 @@ describe('dashboard formulas', () => {
           childRegions: [],
         },
         {
-          lgdId: 0,
+          parentLgdId: 0,
           parentDepartmentId: 0,
           parentLgdLevel: 1,
           parentDepartmentLevel: 0,
-          scope: 'child',
           startDate: '2026-03-01',
           endDate: '2026-03-30',
-          daysInRange: 30,
-          schemeCount: 2,
           childRegionCount: 1,
           childRegions: [
             {
               lgdId: 0,
               departmentId: 10,
               title: 'Region Alpha',
-              schemeCount: null,
               householdCount: 150,
-              totalWaterQuantity: 8200,
+              achievedFhtcCount: 120,
+              plannedFhtcCount: 150,
+              waterQuantity: 8200,
               supplyDaysInEfficientRange: 45,
             },
           ],
@@ -826,7 +824,7 @@ describe('dashboard formulas', () => {
     ])
   })
 
-  it('shows no data for tenant boundary quantity when scheme count is zero', () => {
+  it('shows no data for tenant boundary quantity when the water supply scheme count is zero', () => {
     expect(
       mapTenantBoundariesToPerformance(
         {
@@ -846,25 +844,45 @@ describe('dashboard formulas', () => {
         [],
         undefined,
         {
-          lgdId: 0,
+          parentLgdId: 0,
           parentDepartmentId: 0,
           parentLgdLevel: 1,
           parentDepartmentLevel: 0,
-          scope: 'child',
           startDate: '2026-03-01',
           endDate: '2026-03-30',
-          daysInRange: 30,
-          schemeCount: 0,
           childRegionCount: 1,
           childRegions: [
             {
               lgdId: 0,
               departmentId: 10,
               title: 'Region Alpha',
-              schemeCount: 0,
               householdCount: 0,
-              totalWaterQuantity: 0,
+              achievedFhtcCount: 0,
+              plannedFhtcCount: 0,
+              waterQuantity: 0,
               supplyDaysInEfficientRange: 0,
+            },
+          ],
+        },
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          parentLgdLevel: 1,
+          parentDepartmentLevel: 0,
+          startDate: '2026-03-01',
+          endDate: '2026-03-30',
+          daysInRange: 30,
+          schemeCount: null,
+          childRegionCount: 1,
+          childRegions: [
+            {
+              lgdId: 0,
+              departmentId: 10,
+              title: 'Region Alpha',
+              totalHouseholdCount: 0,
+              totalWaterSuppliedLiters: 0,
+              schemeCount: 0,
+              avgWaterSupplyPerScheme: 0,
             },
           ],
         }
@@ -874,6 +892,231 @@ describe('dashboard formulas', () => {
         id: '10',
         name: 'Region Alpha',
         quantity: -1,
+      }),
+    ])
+  })
+
+  it('shows no data for tenant boundary quantity when the water supply response is missing', () => {
+    expect(
+      mapTenantBoundariesToPerformance(
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          childBoundaryCount: 1,
+          childRegions: [
+            {
+              childDepartmentId: 10,
+              childDepartmentTitle: 'Region Alpha',
+              averagePerformanceScore: 0.48,
+              boundaryGeoJson: null,
+            },
+          ],
+        },
+        [],
+        [],
+        undefined,
+        {
+          parentLgdId: 0,
+          parentDepartmentId: 0,
+          parentLgdLevel: 1,
+          parentDepartmentLevel: 0,
+          startDate: '2026-03-01',
+          endDate: '2026-03-01',
+          childRegionCount: 1,
+          childRegions: [
+            {
+              lgdId: 0,
+              departmentId: 10,
+              title: 'Region Alpha',
+              householdCount: 0,
+              achievedFhtcCount: 0,
+              plannedFhtcCount: 0,
+              waterQuantity: 8200,
+              supplyDaysInEfficientRange: 45,
+            },
+          ],
+        }
+      )
+    ).toEqual([
+      expect.objectContaining({
+        id: '10',
+        name: 'Region Alpha',
+        quantity: -1,
+      }),
+    ])
+  })
+
+  it('scales tenant boundary quantity by the water supply window, not the widened regularity window', () => {
+    // Backend behaviour for a single-date request: water-quantity/region-wise reports the
+    // requested day and no daysInRange, while scheme-regularity/average silently widens the
+    // window to the trailing 30 days. Cachar: 640 supply days over 1821 schemes in 1 day.
+    expect(
+      mapTenantBoundariesToPerformance(
+        {
+          tenantId: 1,
+          stateCode: 'AS',
+          childBoundaryCount: 1,
+          childRegions: [
+            {
+              childLgdId: 7,
+              childLgdTitle: 'Cachar',
+              boundaryGeoJson: null,
+            },
+          ],
+        },
+        [],
+        [],
+        {
+          lgdId: 1,
+          parentDepartmentId: null,
+          parentLgdLevel: 1,
+          parentDepartmentLevel: null,
+          scope: 'child',
+          startDate: '2026-08-08',
+          endDate: '2026-09-06',
+          daysInRange: 30,
+          schemeCount: 35820,
+          totalSupplyDays: 553488,
+          regularSchemeCount: 8053,
+          averageRegularity: 0.2248,
+          thresholdPercent: 90,
+          thresholdDays: 27,
+          childRegionCount: 1,
+          childRegions: [
+            {
+              lgdId: 7,
+              departmentId: null,
+              title: 'Cachar',
+              schemeCount: 1821,
+              totalSupplyDays: 31524,
+              regularSchemeCount: 458,
+              averageRegularity: 0.2515,
+            },
+          ],
+        },
+        {
+          parentLgdId: 1,
+          parentDepartmentId: null,
+          parentLgdLevel: 1,
+          parentDepartmentLevel: null,
+          startDate: '2026-09-06',
+          endDate: '2026-09-06',
+          childRegionCount: 1,
+          childRegions: [
+            {
+              lgdId: 7,
+              departmentId: null,
+              title: 'Cachar',
+              householdCount: 0,
+              achievedFhtcCount: 405598,
+              plannedFhtcCount: 431349,
+              waterQuantity: 672276807,
+              supplyDaysInEfficientRange: 640,
+            },
+          ],
+        },
+        {
+          tenantId: 1,
+          stateCode: 'AS',
+          parentLgdLevel: 1,
+          parentDepartmentLevel: null,
+          startDate: '2026-09-06',
+          endDate: '2026-09-06',
+          daysInRange: 1,
+          schemeCount: null,
+          childRegionCount: 1,
+          childRegions: [
+            {
+              lgdId: 7,
+              departmentId: null,
+              title: 'Cachar',
+              totalHouseholdCount: 0,
+              totalAchievedFhtcCount: 405598,
+              totalPlannedFhtcCount: 431349,
+              totalWaterSuppliedLiters: 672276807,
+              schemeCount: 1821,
+              avgWaterSupplyPerScheme: 369180.0148,
+            },
+          ],
+        }
+      )
+    ).toEqual([
+      expect.objectContaining({
+        id: '7',
+        name: 'Cachar',
+        quantity: 35.1,
+        regularity: 25.2,
+      }),
+    ])
+  })
+
+  it('falls back to the water supply date range when its daysInRange is unusable', () => {
+    expect(
+      mapTenantBoundariesToPerformance(
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          childBoundaryCount: 1,
+          childRegions: [
+            {
+              childDepartmentId: 10,
+              childDepartmentTitle: 'Region Alpha',
+              boundaryGeoJson: null,
+            },
+          ],
+        },
+        [],
+        [],
+        undefined,
+        {
+          parentLgdId: 0,
+          parentDepartmentId: 0,
+          parentLgdLevel: 1,
+          parentDepartmentLevel: 0,
+          startDate: '2026-03-01',
+          endDate: '2026-03-07',
+          childRegionCount: 1,
+          childRegions: [
+            {
+              lgdId: 0,
+              departmentId: 10,
+              title: 'Region Alpha',
+              householdCount: 0,
+              achievedFhtcCount: 0,
+              plannedFhtcCount: 0,
+              waterQuantity: 0,
+              supplyDaysInEfficientRange: 14,
+            },
+          ],
+        },
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          parentLgdLevel: 1,
+          parentDepartmentLevel: 0,
+          startDate: '2026-03-01',
+          endDate: '2026-03-07',
+          daysInRange: 0,
+          schemeCount: null,
+          childRegionCount: 1,
+          childRegions: [
+            {
+              lgdId: 0,
+              departmentId: 10,
+              title: 'Region Alpha',
+              totalHouseholdCount: 0,
+              totalWaterSuppliedLiters: 0,
+              schemeCount: 4,
+              avgWaterSupplyPerScheme: 0,
+            },
+          ],
+        }
+      )
+    ).toEqual([
+      expect.objectContaining({
+        id: '10',
+        name: 'Region Alpha',
+        quantity: 50,
       }),
     ])
   })
