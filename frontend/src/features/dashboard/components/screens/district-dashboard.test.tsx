@@ -22,12 +22,10 @@ const mockReadingSubmissionStatusChart = jest.fn((_props: unknown) => (
 const mockReadingSubmissionRateChart = jest.fn((_props: unknown) => (
   <div data-testid="reading-submission-rate-chart" />
 ))
-const mockActiveSchemesChart = jest.fn((_props: unknown) => (
-  <div data-testid="pump-operators-chart" />
-))
 const mockSchemePerformanceTable = jest.fn((_props: unknown) => (
   <div data-testid="pump-operators-performance-table" />
 ))
+const mockSchemeStatusCard = jest.fn((_props: unknown) => <div data-testid="scheme-status-card" />)
 
 jest.mock('../charts', () => ({
   MetricPerformanceChart: (props: unknown) => mockMetricPerformanceChart(props),
@@ -36,11 +34,14 @@ jest.mock('../charts', () => ({
   SupplyOutageDistributionChart: (props: unknown) => mockSupplyOutageDistributionChart(props),
   ReadingSubmissionStatusChart: (props: unknown) => mockReadingSubmissionStatusChart(props),
   ReadingSubmissionRateChart: (props: unknown) => mockReadingSubmissionRateChart(props),
-  ActiveSchemesChart: (props: unknown) => mockActiveSchemesChart(props),
 }))
 
 jest.mock('../tables', () => ({
   SchemePerformanceTable: (props: unknown) => mockSchemePerformanceTable(props),
+}))
+
+jest.mock('./scheme-status-card', () => ({
+  SchemeStatusCard: (props: unknown) => mockSchemeStatusCard(props),
 }))
 
 jest.mock('@/shared/components/common/view-by-select', () => ({
@@ -138,6 +139,8 @@ const data: DashboardData = {
     { label: 'Active pump operators', value: 10 },
     { label: 'Non-active pump operators', value: 5 },
   ],
+  schemeWorkStatusCounts: [{ code: 1, label: 'Ongoing', count: 10 }],
+  schemeOperatingStatusCounts: [{ code: 1, label: 'Operative', count: 10 }],
   waterSupplyOutages: waterSupplyOutagesData,
   supplyOutageTrend: [{ period: 'Jan', value: 12 }],
   readingSubmissionTrend: [{ period: 'Jan', value: 77 }],
@@ -190,8 +193,20 @@ describe('DistrictDashboardScreen', () => {
     mockSupplyOutageDistributionChart.mockClear()
     mockReadingSubmissionStatusChart.mockClear()
     mockReadingSubmissionRateChart.mockClear()
-    mockActiveSchemesChart.mockClear()
     mockSchemePerformanceTable.mockClear()
+    mockSchemeStatusCard.mockClear()
+  })
+
+  it('renders the scheme status card with the buckets from data and the total from pumpOperatorsTotal', () => {
+    renderDistrictDashboard()
+
+    expect(mockSchemeStatusCard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workStatusCounts: data.schemeWorkStatusCounts,
+        operatingStatusCounts: data.schemeOperatingStatusCounts,
+        totalCount: 15,
+      })
+    )
   })
 
   it('renders all district view selectors with Geography selected by default', () => {

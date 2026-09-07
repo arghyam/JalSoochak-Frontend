@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Badge, Box, Flex, Menu, MenuButton, MenuItem, MenuList } from '@chakra-ui/react'
 import { ChevronDownIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
@@ -7,22 +7,19 @@ import { useToast } from '@/shared/hooks/use-toast'
 import { useUpdateSchemeStatusMutation } from '../../services/query/use-state-admin-queries'
 import type { UpdateSchemeStatusPayload } from '../../types/scheme-sync'
 import {
-  WORK_STATUS_OPTIONS,
-  OPERATING_STATUS_OPTIONS,
+  findSchemeStatusByLabel,
   getSchemeStatusColors,
-} from './scheme-status-constants'
+  getSchemeStatusOptions,
+  resolveSchemeStatusLabel,
+} from '@/shared/constants/scheme-status'
+import type { SchemeStatusDimension } from '@/shared/constants/scheme-status'
 
 interface SchemeStatusChipProps {
   schemeId: number
-  statusType: 'workStatus' | 'operatingStatus'
+  statusType: SchemeStatusDimension
   currentValue: string
   tenantCode: string
 }
-
-const OPTIONS_MAP = {
-  workStatus: WORK_STATUS_OPTIONS,
-  operatingStatus: OPERATING_STATUS_OPTIONS,
-} as const
 
 export function SchemeStatusChip({
   schemeId,
@@ -39,12 +36,21 @@ export function SchemeStatusChip({
     setOptimisticValue(currentValue)
   }, [currentValue])
 
-  const options = OPTIONS_MAP[statusType]
+  const options = useMemo(() => getSchemeStatusOptions(t, statusType), [t, statusType])
   const statusLabel = t(`schemeSync.table.${statusType}`)
-  const { bg, color } = getSchemeStatusColors(optimisticValue)
+  // Rows carry only a label string, so the code — which drives colour and translation — comes from
+  // the reverse map. An unrecognised label resolves to undefined and degrades to neutral + raw text.
+  const currentDescriptor = findSchemeStatusByLabel(statusType, optimisticValue)
+  const { bg, color } = getSchemeStatusColors(statusType, currentDescriptor?.code)
+  const chipLabel = resolveSchemeStatusLabel(t, statusType, {
+    code: currentDescriptor?.code,
+    label: optimisticValue,
+  })
 
-  const handleSelect = (newValue: string) => {
-    if (newValue === optimisticValue || isPending) return
+  /** `newValue` is always a canonical English label — see the menu's onClick. */
+  const handleSelect = (newValue: string, newCode: number) => {
+    // Compare by code, so a casing or spacing variant from the server is not mistaken for a change.
+    if (isPending || currentDescriptor?.code === newCode) return
     const prevValue = optimisticValue
     setOptimisticValue(newValue)
     const payload: UpdateSchemeStatusPayload =
@@ -95,7 +101,7 @@ export function SchemeStatusChip({
             _hover={{ opacity: 0.85 }}
             transition="opacity 0.15s"
           >
-            {optimisticValue}
+            {chipLabel}
             <ChevronDownIcon boxSize={3} flexShrink={0} />
           </Badge>
         </MenuButton>
@@ -109,12 +115,14 @@ export function SchemeStatusChip({
           zIndex={10}
         >
           {options.map((option) => {
-            const { bg: optBg, color: optColor } = getSchemeStatusColors(option)
-            const isSelected = option === optimisticValue
+            const { bg: optBg, color: optColor } = getSchemeStatusColors(statusType, option.code)
+            // Compare by code so casing or spacing variants from the server still highlight.
+            const isSelected = currentDescriptor?.code === option.code
             return (
               <MenuItem
-                key={option}
-                onClick={() => handleSelect(option)}
+                key={option.code}
+                // Always PATCH the canonical English label, never the translated one.
+                onClick={() => handleSelect(option.value, option.code)}
                 bg={isSelected ? 'primary.50' : 'white'}
                 _hover={{ bg: 'neutral.50' }}
                 _focus={{ bg: 'neutral.50' }}
@@ -135,7 +143,7 @@ export function SchemeStatusChip({
                     display="inline-flex"
                     alignItems="center"
                   >
-                    {option}
+                    {option.label}
                   </Badge>
                 </Flex>
               </MenuItem>

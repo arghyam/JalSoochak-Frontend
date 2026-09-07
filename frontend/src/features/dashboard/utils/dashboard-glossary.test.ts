@@ -15,7 +15,7 @@ describe('buildDashboardGlossary', () => {
       'readingSubmissionStatus',
       'supplyOutageReasons',
       'supplyOutageDistribution',
-      'activeSchemes',
+      'schemeStatus',
       'schemePerformance',
       'readingCompliance',
       'pumpOperatorDetails',
@@ -33,6 +33,11 @@ describe('buildDashboardGlossary', () => {
   it('returns 13 entries', () => {
     const glossary = buildDashboardGlossary(mockT)
     expect(Object.keys(glossary)).toHaveLength(13)
+  })
+
+  it('no longer exposes the retired activeSchemes key', () => {
+    const glossary = buildDashboardGlossary(mockT)
+    expect('activeSchemes' in glossary).toBe(false)
   })
 })
 

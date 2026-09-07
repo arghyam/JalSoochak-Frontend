@@ -1,3 +1,5 @@
+import type { SchemeStatusCount } from '@/shared/constants/scheme-status'
+
 export interface Scheme {
   id: number
   uuid: string
@@ -14,18 +16,16 @@ export interface Scheme {
   operatingStatus: string
 }
 
-export interface StatusCount {
-  status: string
-  count: number
-}
-
+/**
+ * Scheme counts by status. The derived `activeSchemes` / `inactiveSchemes` / `statusCounts` fields
+ * were removed from the backend along with the active/inactive binary; the two real dimensions are
+ * all that remain. Buckets share the `SchemeStatusCount` shape with analytics-service, so one
+ * component can render either service's breakdown.
+ */
 export interface SchemeCounts {
   totalSchemes: number
-  activeSchemes: number
-  inactiveSchemes: number
-  statusCounts: StatusCount[]
-  workStatusCounts: StatusCount[]
-  operatingStatusCounts: StatusCount[]
+  workStatusCounts: SchemeStatusCount[]
+  operatingStatusCounts: SchemeStatusCount[]
 }
 
 export interface SchemeListParams {

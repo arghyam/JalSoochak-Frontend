@@ -16,7 +16,7 @@ import { SearchIcon } from '@chakra-ui/icons'
 import { useTranslation } from 'react-i18next'
 import { FiDownload, FiUpload } from 'react-icons/fi'
 import { BsDroplet, BsCheck2Circle } from 'react-icons/bs'
-import { IoCloseCircleOutline } from 'react-icons/io5'
+import { IoAlertCircleOutline, IoCloseCircleOutline } from 'react-icons/io5'
 import {
   DataTable,
   SearchableSelect,
@@ -39,7 +39,11 @@ import { usePageTitle } from '@/shared/hooks'
 import { DEFAULT_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '@/shared/constants/pagination'
 import { UploadSchemesModal } from './upload-schemes-modal'
 import { SchemeStatusChip } from './scheme-status-chip'
-import { WORK_STATUS_OPTIONS, OPERATING_STATUS_OPTIONS } from './scheme-status-constants'
+import {
+  OPERATING_STATUS_CODES,
+  getSchemeStatusCount,
+  getSchemeStatusOptions,
+} from '@/shared/constants/scheme-status'
 
 export function SchemeSyncPage() {
   const { t } = useTranslation('state-admin')
@@ -103,8 +107,14 @@ export function SchemeSyncPage() {
     onError: () => toast.error(t('schemeSync.report.error')),
   })
 
-  const workStatusOptions = WORK_STATUS_OPTIONS.map((s) => ({ value: s, label: s }))
-  const operatingStatusOptions = OPERATING_STATUS_OPTIONS.map((s) => ({ value: s, label: s }))
+  // Translated display labels, canonical English wire values.
+  const workStatusOptions = useMemo(() => getSchemeStatusOptions(t, 'workStatus'), [t])
+  const operatingStatusOptions = useMemo(() => getSchemeStatusOptions(t, 'operatingStatus'), [t])
+
+  const operatingCount = (code: number) => getSchemeStatusCount(counts?.operatingStatusCounts, code)
+  // Schemes with no recorded operating status are counted in the total but have no card of their
+  // own, so the total gets a tooltip explaining the shortfall instead of an invented bucket.
+  const unknownOperatingCount = getSchemeStatusCount(counts?.operatingStatusCounts, null)
 
   const hasActiveFilters = workStatusFilter || operatingStatusFilter || searchQuery
 
@@ -375,7 +385,7 @@ export function SchemeSyncPage() {
           <SimpleGrid
             as="section"
             aria-label={t('schemeSync.aria.statsSection')}
-            columns={{ base: 1, sm: 3 }}
+            columns={{ base: 1, sm: 2, lg: 4 }}
             spacing={{ base: 4, md: 6 }}
             mb={6}
           >
@@ -385,22 +395,39 @@ export function SchemeSyncPage() {
               icon={BsDroplet}
               iconBg="#EBF4FA"
               iconColor="#3291D1"
+              tooltip={
+                unknownOperatingCount > 0
+                  ? t('schemeSync.tooltips.totalSchemesUnknownOperating', {
+                      count: unknownOperatingCount,
+                    })
+                  : undefined
+              }
             />
             <StatCard
-              title={t('schemeSync.stats.activeSchemes')}
-              value={countsLoading ? '—' : (counts?.activeSchemes ?? 0)}
+              title={t('schemeSync.stats.operativeSchemes')}
+              value={countsLoading ? '—' : operatingCount(OPERATING_STATUS_CODES.OPERATIVE)}
               icon={BsCheck2Circle}
               iconBg="#E6F9F0"
               iconColor="#27AE60"
-              tooltip={t('schemeSync.tooltips.activeSchemes')}
+              tooltip={t('schemeSync.tooltips.operativeSchemes')}
             />
             <StatCard
-              title={t('schemeSync.stats.inactiveSchemes')}
-              value={countsLoading ? '—' : (counts?.inactiveSchemes ?? 0)}
+              title={t('schemeSync.stats.partiallyOperativeSchemes')}
+              value={
+                countsLoading ? '—' : operatingCount(OPERATING_STATUS_CODES.PARTIALLY_OPERATIVE)
+              }
+              icon={IoAlertCircleOutline}
+              iconBg="#FFFAEB"
+              iconColor="#DC6803"
+              tooltip={t('schemeSync.tooltips.partiallyOperativeSchemes')}
+            />
+            <StatCard
+              title={t('schemeSync.stats.nonOperativeSchemes')}
+              value={countsLoading ? '—' : operatingCount(OPERATING_STATUS_CODES.NON_OPERATIVE)}
               icon={IoCloseCircleOutline}
               iconBg="#FEF3F2"
               iconColor="#D94B3E"
-              tooltip={t('schemeSync.tooltips.inactiveSchemes')}
+              tooltip={t('schemeSync.tooltips.nonOperativeSchemes')}
             />
           </SimpleGrid>
         }
