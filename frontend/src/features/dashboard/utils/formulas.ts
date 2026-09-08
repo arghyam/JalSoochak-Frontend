@@ -4,7 +4,6 @@ import type {
   EntityPerformance,
   NationalDashboardResponse,
   PumpOperatorPerformanceData,
-  PumpOperatorsData,
   ReadingSubmissionStatusData,
   ReadingSubmissionRateResponse,
   SchemePerformanceResponse,
@@ -21,6 +20,8 @@ import {
   type LocationTitleLookup,
 } from '../services/query/location-title-lookup'
 import { slugify, toCapitalizedWords } from './format-location-label'
+import { sortSchemeStatusCounts } from '@/shared/constants/scheme-status'
+import type { SchemeStatusCount } from '@/shared/constants/scheme-status'
 
 const DEFAULT_DAYS_IN_RANGE = 30
 const MILLION_LITERS = 1_000_000
@@ -32,7 +33,7 @@ const isFiniteNumber = (value: number) => Number.isFinite(value)
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
 
 const getSchemeAchievedFhtcCount = (
-  scheme: AverageWaterSupplyPerRegionResponse['schemes'][number]
+  scheme: NonNullable<AverageWaterSupplyPerRegionResponse['schemes']>[number]
 ) => scheme.totalAchievedFhtcCount ?? scheme.achievedFhtcCount ?? 0
 
 const getChildRegionAchievedFhtcCount = (
@@ -500,6 +501,27 @@ const mapLocationOptionsByName = (locationOptions: LocationLabelOption[]) =>
 
 const NO_DATA_METRIC_VALUE = -1
 
+/**
+ * Days covered by the water-supply response, or 0 when it is absent/unusable.
+ *
+ * Deliberately does NOT fall back to DEFAULT_DAYS_IN_RANGE: a guessed window silently
+ * rescales supply-day rates, and callers must render "no data" instead.
+ */
+const resolveWaterSupplyDaysInRange = (
+  waterSupplyAnalytics: AverageWaterSupplyPerRegionResponse | undefined
+) => {
+  if (!waterSupplyAnalytics) {
+    return 0
+  }
+
+  const { daysInRange, startDate, endDate } = waterSupplyAnalytics
+  if (isFiniteNumber(daysInRange) && daysInRange > 0) {
+    return daysInRange
+  }
+
+  return resolveMetricDaysInRange(startDate, endDate)
+}
+
 const getTenantBoundaryRegionId = (
   region: TenantBoundaryResponse['childRegions'][number],
   index: number
@@ -563,11 +585,11 @@ export const mapTenantBoundariesToPerformance = (
     }
   })
 
-  const quantityDaysInRange = resolveDaysInRange(
-    quantityAnalytics?.daysInRange ?? regularityAnalytics?.daysInRange,
-    quantityAnalytics?.startDate ?? regularityAnalytics?.startDate,
-    quantityAnalytics?.endDate ?? regularityAnalytics?.endDate
-  )
+  // Window for the quantity metric comes from the water-supply response only — the same
+  // response that supplies per-region scheme counts below. The water-quantity region-wise
+  // endpoint returns no daysInRange, and the regularity endpoint reports its own (possibly
+  // widened) window, so borrowing either would divide 1 day of supply days by 30 days.
+  const quantityDaysInRange = resolveWaterSupplyDaysInRange(waterSupplyAnalytics)
 
   ;(waterSupplyAnalytics?.childRegions ?? []).forEach((region) => {
     const schemeCount = Number(region.schemeCount)
@@ -589,7 +611,8 @@ export const mapTenantBoundariesToPerformance = (
   })
   ;(quantityAnalytics?.childRegions ?? []).forEach((region) => {
     const titleKey = slugify(region.title)
-    const schemeCountRaw = Number(region.schemeCount)
+    // Scheme counts are not part of the water-quantity payload — resolve them from the
+    // water-supply response by department id, then lgd id, then region title.
     const schemeCountLookup =
       (typeof region.departmentId === 'number' && region.departmentId > 0
         ? schemeCountById.get(String(region.departmentId))
@@ -598,12 +621,7 @@ export const mapTenantBoundariesToPerformance = (
         ? schemeCountById.get(String(region.lgdId))
         : undefined) ??
       (titleKey ? schemeCountByName.get(titleKey) : undefined)
-    const schemeCount =
-      Number.isFinite(schemeCountRaw) && schemeCountRaw > 0
-        ? schemeCountRaw
-        : typeof schemeCountLookup === 'number'
-          ? schemeCountLookup
-          : Number.NaN
+    const schemeCount = typeof schemeCountLookup === 'number' ? schemeCountLookup : Number.NaN
     const supplyDays = Number(region.supplyDaysInEfficientRange)
 
     const quantityPercent =
@@ -1077,25 +1095,57 @@ export const mapReadingSubmissionStatusFromAnalytics = (
   ]
 }
 
-export const mapSchemePerformanceToPumpOperators = (
-  response: SchemePerformanceResponse | undefined,
-  fallbackData: PumpOperatorsData[]
-): PumpOperatorsData[] => {
+export interface SchemeStatusChartData {
+  workStatusCounts: SchemeStatusCount[]
+  operatingStatusCounts: SchemeStatusCount[]
+  totalCount: number
+}
+
+const EMPTY_SCHEME_STATUS_CHART_DATA: SchemeStatusChartData = {
+  workStatusCounts: [],
+  operatingStatusCounts: [],
+  totalCount: 0,
+}
+
+/**
+ * `unwrapAnalyticsResponse` performs no shape validation, so a backend still on the old contract
+ * would hand this an `undefined` array rather than throwing. Sanitizing defensively here — rather
+ * than trusting the declared type — keeps a stale deploy from white-screening the dashboard.
+ */
+const sanitizeSchemeStatusCounts = (value: unknown): SchemeStatusCount[] => {
+  if (!Array.isArray(value)) return []
+  return value
+    .filter((entry): entry is Record<string, unknown> => !!entry && typeof entry === 'object')
+    .filter((entry) => {
+      const count = entry.count
+      return typeof count === 'number' && Number.isFinite(count) && count >= 0
+    })
+    .map((entry) => ({
+      code: typeof entry.code === 'number' && Number.isFinite(entry.code) ? entry.code : null,
+      label: typeof entry.label === 'string' ? entry.label : '',
+      count: entry.count as number,
+    }))
+}
+
+export const mapSchemePerformanceToSchemeStatus = (
+  response: SchemePerformanceResponse | undefined
+): SchemeStatusChartData => {
   if (!response) {
-    return fallbackData
+    return EMPTY_SCHEME_STATUS_CHART_DATA
   }
 
-  const activeSchemeCount = response.activeSchemeCount ?? 0
-  const inactiveSchemeCount = response.inactiveSchemeCount ?? 0
+  const workStatusCounts = sortSchemeStatusCounts(
+    sanitizeSchemeStatusCounts(response.workStatusCounts)
+  )
+  const operatingStatusCounts = sortSchemeStatusCounts(
+    sanitizeSchemeStatusCounts(response.operatingStatusCounts)
+  )
+  const totalCount =
+    Number.isFinite(response.totalCount) && response.totalCount >= 0
+      ? response.totalCount
+      : operatingStatusCounts.reduce((sum, bucket) => sum + bucket.count, 0)
 
-  if (activeSchemeCount + inactiveSchemeCount <= 0) {
-    return []
-  }
-
-  return [
-    { label: 'Active schemes', value: activeSchemeCount },
-    { label: 'Non-active schemes', value: inactiveSchemeCount },
-  ]
+  return { workStatusCounts, operatingStatusCounts, totalCount }
 }
 
 export const mapSchemePerformanceToTable = (

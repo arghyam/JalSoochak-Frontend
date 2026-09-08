@@ -4,7 +4,6 @@ import type {
   AverageWaterSupplyPerRegionResponse,
   EntityPerformance,
   NationalDashboardResponse,
-  PumpOperatorsData,
   ReadingSubmissionStatusData,
   ReadingSubmissionRateResponse,
   SchemePerformanceResponse,
@@ -25,7 +24,7 @@ import {
   hasWaterSupplyData,
   mapOutageReasonsFromNationalDashboard,
   mapSchemePerformanceToTable,
-  mapSchemePerformanceToPumpOperators,
+  mapSchemePerformanceToSchemeStatus,
   mapTenantBoundariesToPerformance,
   mapReadingSubmissionStatusFromAnalytics,
   mapReadingSubmissionRateFromAnalytics,
@@ -771,24 +770,22 @@ describe('dashboard formulas', () => {
           childRegions: [],
         },
         {
-          lgdId: 0,
+          parentLgdId: 0,
           parentDepartmentId: 0,
           parentLgdLevel: 1,
           parentDepartmentLevel: 0,
-          scope: 'child',
           startDate: '2026-03-01',
           endDate: '2026-03-30',
-          daysInRange: 30,
-          schemeCount: 2,
           childRegionCount: 1,
           childRegions: [
             {
               lgdId: 0,
               departmentId: 10,
               title: 'Region Alpha',
-              schemeCount: null,
               householdCount: 150,
-              totalWaterQuantity: 8200,
+              achievedFhtcCount: 120,
+              plannedFhtcCount: 150,
+              waterQuantity: 8200,
               supplyDaysInEfficientRange: 45,
             },
           ],
@@ -826,7 +823,7 @@ describe('dashboard formulas', () => {
     ])
   })
 
-  it('shows no data for tenant boundary quantity when scheme count is zero', () => {
+  it('shows no data for tenant boundary quantity when the water supply scheme count is zero', () => {
     expect(
       mapTenantBoundariesToPerformance(
         {
@@ -846,25 +843,45 @@ describe('dashboard formulas', () => {
         [],
         undefined,
         {
-          lgdId: 0,
+          parentLgdId: 0,
           parentDepartmentId: 0,
           parentLgdLevel: 1,
           parentDepartmentLevel: 0,
-          scope: 'child',
           startDate: '2026-03-01',
           endDate: '2026-03-30',
-          daysInRange: 30,
-          schemeCount: 0,
           childRegionCount: 1,
           childRegions: [
             {
               lgdId: 0,
               departmentId: 10,
               title: 'Region Alpha',
-              schemeCount: 0,
               householdCount: 0,
-              totalWaterQuantity: 0,
+              achievedFhtcCount: 0,
+              plannedFhtcCount: 0,
+              waterQuantity: 0,
               supplyDaysInEfficientRange: 0,
+            },
+          ],
+        },
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          parentLgdLevel: 1,
+          parentDepartmentLevel: 0,
+          startDate: '2026-03-01',
+          endDate: '2026-03-30',
+          daysInRange: 30,
+          schemeCount: null,
+          childRegionCount: 1,
+          childRegions: [
+            {
+              lgdId: 0,
+              departmentId: 10,
+              title: 'Region Alpha',
+              totalHouseholdCount: 0,
+              totalWaterSuppliedLiters: 0,
+              schemeCount: 0,
+              avgWaterSupplyPerScheme: 0,
             },
           ],
         }
@@ -874,6 +891,231 @@ describe('dashboard formulas', () => {
         id: '10',
         name: 'Region Alpha',
         quantity: -1,
+      }),
+    ])
+  })
+
+  it('shows no data for tenant boundary quantity when the water supply response is missing', () => {
+    expect(
+      mapTenantBoundariesToPerformance(
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          childBoundaryCount: 1,
+          childRegions: [
+            {
+              childDepartmentId: 10,
+              childDepartmentTitle: 'Region Alpha',
+              averagePerformanceScore: 0.48,
+              boundaryGeoJson: null,
+            },
+          ],
+        },
+        [],
+        [],
+        undefined,
+        {
+          parentLgdId: 0,
+          parentDepartmentId: 0,
+          parentLgdLevel: 1,
+          parentDepartmentLevel: 0,
+          startDate: '2026-03-01',
+          endDate: '2026-03-01',
+          childRegionCount: 1,
+          childRegions: [
+            {
+              lgdId: 0,
+              departmentId: 10,
+              title: 'Region Alpha',
+              householdCount: 0,
+              achievedFhtcCount: 0,
+              plannedFhtcCount: 0,
+              waterQuantity: 8200,
+              supplyDaysInEfficientRange: 45,
+            },
+          ],
+        }
+      )
+    ).toEqual([
+      expect.objectContaining({
+        id: '10',
+        name: 'Region Alpha',
+        quantity: -1,
+      }),
+    ])
+  })
+
+  it('scales tenant boundary quantity by the water supply window, not the widened regularity window', () => {
+    // Backend behaviour for a single-date request: water-quantity/region-wise reports the
+    // requested day and no daysInRange, while scheme-regularity/average silently widens the
+    // window to the trailing 30 days. Cachar: 640 supply days over 1821 schemes in 1 day.
+    expect(
+      mapTenantBoundariesToPerformance(
+        {
+          tenantId: 1,
+          stateCode: 'AS',
+          childBoundaryCount: 1,
+          childRegions: [
+            {
+              childLgdId: 7,
+              childLgdTitle: 'Cachar',
+              boundaryGeoJson: null,
+            },
+          ],
+        },
+        [],
+        [],
+        {
+          lgdId: 1,
+          parentDepartmentId: null,
+          parentLgdLevel: 1,
+          parentDepartmentLevel: null,
+          scope: 'child',
+          startDate: '2026-08-08',
+          endDate: '2026-09-06',
+          daysInRange: 30,
+          schemeCount: 35820,
+          totalSupplyDays: 553488,
+          regularSchemeCount: 8053,
+          averageRegularity: 0.2248,
+          thresholdPercent: 90,
+          thresholdDays: 27,
+          childRegionCount: 1,
+          childRegions: [
+            {
+              lgdId: 7,
+              departmentId: null,
+              title: 'Cachar',
+              schemeCount: 1821,
+              totalSupplyDays: 31524,
+              regularSchemeCount: 458,
+              averageRegularity: 0.2515,
+            },
+          ],
+        },
+        {
+          parentLgdId: 1,
+          parentDepartmentId: null,
+          parentLgdLevel: 1,
+          parentDepartmentLevel: null,
+          startDate: '2026-09-06',
+          endDate: '2026-09-06',
+          childRegionCount: 1,
+          childRegions: [
+            {
+              lgdId: 7,
+              departmentId: null,
+              title: 'Cachar',
+              householdCount: 0,
+              achievedFhtcCount: 405598,
+              plannedFhtcCount: 431349,
+              waterQuantity: 672276807,
+              supplyDaysInEfficientRange: 640,
+            },
+          ],
+        },
+        {
+          tenantId: 1,
+          stateCode: 'AS',
+          parentLgdLevel: 1,
+          parentDepartmentLevel: null,
+          startDate: '2026-09-06',
+          endDate: '2026-09-06',
+          daysInRange: 1,
+          schemeCount: null,
+          childRegionCount: 1,
+          childRegions: [
+            {
+              lgdId: 7,
+              departmentId: null,
+              title: 'Cachar',
+              totalHouseholdCount: 0,
+              totalAchievedFhtcCount: 405598,
+              totalPlannedFhtcCount: 431349,
+              totalWaterSuppliedLiters: 672276807,
+              schemeCount: 1821,
+              avgWaterSupplyPerScheme: 369180.0148,
+            },
+          ],
+        }
+      )
+    ).toEqual([
+      expect.objectContaining({
+        id: '7',
+        name: 'Cachar',
+        quantity: 35.1,
+        regularity: 25.2,
+      }),
+    ])
+  })
+
+  it('falls back to the water supply date range when its daysInRange is unusable', () => {
+    expect(
+      mapTenantBoundariesToPerformance(
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          childBoundaryCount: 1,
+          childRegions: [
+            {
+              childDepartmentId: 10,
+              childDepartmentTitle: 'Region Alpha',
+              boundaryGeoJson: null,
+            },
+          ],
+        },
+        [],
+        [],
+        undefined,
+        {
+          parentLgdId: 0,
+          parentDepartmentId: 0,
+          parentLgdLevel: 1,
+          parentDepartmentLevel: 0,
+          startDate: '2026-03-01',
+          endDate: '2026-03-07',
+          childRegionCount: 1,
+          childRegions: [
+            {
+              lgdId: 0,
+              departmentId: 10,
+              title: 'Region Alpha',
+              householdCount: 0,
+              achievedFhtcCount: 0,
+              plannedFhtcCount: 0,
+              waterQuantity: 0,
+              supplyDaysInEfficientRange: 14,
+            },
+          ],
+        },
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          parentLgdLevel: 1,
+          parentDepartmentLevel: 0,
+          startDate: '2026-03-01',
+          endDate: '2026-03-07',
+          daysInRange: 0,
+          schemeCount: null,
+          childRegionCount: 1,
+          childRegions: [
+            {
+              lgdId: 0,
+              departmentId: 10,
+              title: 'Region Alpha',
+              totalHouseholdCount: 0,
+              totalWaterSuppliedLiters: 0,
+              schemeCount: 4,
+              avgWaterSupplyPerScheme: 0,
+            },
+          ],
+        }
+      )
+    ).toEqual([
+      expect.objectContaining({
+        id: '10',
+        name: 'Region Alpha',
+        quantity: 50,
       }),
     ])
   })
@@ -1514,16 +1756,16 @@ describe('dashboard formulas', () => {
           startDate: '2026-03-14',
           endDate: '2026-03-14',
           daysInRange: 1,
-          activeSchemeCount: 1,
-          inactiveSchemeCount: 0,
+          workStatusCounts: [{ code: 1, label: 'Ongoing', count: 1 }],
+          operatingStatusCounts: [{ code: 1, label: 'Operative', count: 0 }],
           totalCount: 1,
           topSchemeCount: 1,
           topSchemes: [
             {
               schemeId: 101,
               schemeName: 'AICHARA PARA PWSS',
-              statusCode: 1,
-              status: 'Active',
+              workStatus: { code: 1, label: 'Ongoing' },
+              operatingStatus: { code: 1, label: 'Operative' },
               submissionDays: 30,
               reportingRate: 82,
               totalWaterSupplied: 4500,
@@ -1564,16 +1806,16 @@ describe('dashboard formulas', () => {
           startDate: '2026-03-14',
           endDate: '2026-03-14',
           daysInRange: 1,
-          activeSchemeCount: 1,
-          inactiveSchemeCount: 0,
+          workStatusCounts: [{ code: 1, label: 'Ongoing', count: 1 }],
+          operatingStatusCounts: [{ code: 1, label: 'Operative', count: 0 }],
           totalCount: 1,
           topSchemeCount: 1,
           topSchemes: [
             {
               schemeId: 201,
               schemeName: 'Village Linked Scheme',
-              statusCode: 1,
-              status: 'Active',
+              workStatus: { code: 1, label: 'Ongoing' },
+              operatingStatus: { code: 1, label: 'Operative' },
               submissionDays: 30,
               reportingRate: 75,
               totalWaterSupplied: 3200,
@@ -1622,16 +1864,16 @@ describe('dashboard formulas', () => {
           startDate: '2026-03-14',
           endDate: '2026-03-14',
           daysInRange: 1,
-          activeSchemeCount: 1,
-          inactiveSchemeCount: 0,
+          workStatusCounts: [{ code: 1, label: 'Ongoing', count: 1 }],
+          operatingStatusCounts: [{ code: 1, label: 'Operative', count: 0 }],
           totalCount: 1,
           topSchemeCount: 1,
           topSchemes: [
             {
               schemeId: 211,
               schemeName: 'Department Mapped Scheme',
-              statusCode: 1,
-              status: 'Active',
+              workStatus: { code: 1, label: 'Ongoing' },
+              operatingStatus: { code: 1, label: 'Operative' },
               submissionDays: 30,
               reportingRate: 76,
               totalWaterSupplied: 4200,
@@ -1680,16 +1922,16 @@ describe('dashboard formulas', () => {
           startDate: '2026-03-14',
           endDate: '2026-03-14',
           daysInRange: 1,
-          activeSchemeCount: 1,
-          inactiveSchemeCount: 0,
+          workStatusCounts: [{ code: 1, label: 'Ongoing', count: 1 }],
+          operatingStatusCounts: [{ code: 1, label: 'Operative', count: 0 }],
           totalCount: 1,
           topSchemeCount: 1,
           topSchemes: [
             {
               schemeId: 212,
               schemeName: 'Ratio Reporting Scheme',
-              statusCode: 1,
-              status: 'Active',
+              workStatus: { code: 1, label: 'Ongoing' },
+              operatingStatus: { code: 1, label: 'Operative' },
               submissionDays: 30,
               reportingRate: 0.9333,
               totalWaterSupplied: 4200,
@@ -1730,16 +1972,16 @@ describe('dashboard formulas', () => {
           startDate: '2026-03-14',
           endDate: '2026-03-14',
           daysInRange: 1,
-          activeSchemeCount: 1,
-          inactiveSchemeCount: 0,
+          workStatusCounts: [{ code: 1, label: 'Ongoing', count: 1 }],
+          operatingStatusCounts: [{ code: 1, label: 'Operative', count: 0 }],
           totalCount: 1,
           topSchemeCount: 1,
           topSchemes: [
             {
               schemeId: 213,
               schemeName: 'Department Scheme',
-              statusCode: 1,
-              status: 'Active',
+              workStatus: { code: 1, label: 'Ongoing' },
+              operatingStatus: { code: 1, label: 'Operative' },
               submissionDays: 30,
               reportingRate: 0.75,
               totalWaterSupplied: 1234,
@@ -1793,16 +2035,16 @@ describe('dashboard formulas', () => {
           startDate: '2026-03-30',
           endDate: '2026-04-28',
           daysInRange: 30,
-          activeSchemeCount: 1,
-          inactiveSchemeCount: 0,
+          workStatusCounts: [{ code: 1, label: 'Ongoing', count: 1 }],
+          operatingStatusCounts: [{ code: 1, label: 'Operative', count: 0 }],
           totalCount: 1,
           topSchemeCount: 1,
           topSchemes: [
             {
               schemeId: 214,
               schemeName: 'CORRAMORE MPWSS POINT - IV 18296',
-              statusCode: 1,
-              status: 'active',
+              workStatus: { code: 1, label: 'Ongoing' },
+              operatingStatus: { code: 1, label: 'Operative' },
               submissionDays: 12,
               reportingRate: 0.4,
               totalWaterSupplied: 15395802,
@@ -1864,16 +2106,16 @@ describe('dashboard formulas', () => {
           startDate: '2026-03-30',
           endDate: '2026-04-28',
           daysInRange: 30,
-          activeSchemeCount: 1,
-          inactiveSchemeCount: 0,
+          workStatusCounts: [{ code: 1, label: 'Ongoing', count: 1 }],
+          operatingStatusCounts: [{ code: 1, label: 'Operative', count: 0 }],
           totalCount: 1,
           topSchemeCount: 1,
           topSchemes: [
             {
               schemeId: 215,
               schemeName: 'LGD Linked Scheme',
-              statusCode: 1,
-              status: 'active',
+              workStatus: { code: 1, label: 'Ongoing' },
+              operatingStatus: { code: 1, label: 'Operative' },
               submissionDays: 12,
               reportingRate: 0.5,
               totalWaterSupplied: 9000,
@@ -1927,16 +2169,16 @@ describe('dashboard formulas', () => {
           startDate: '2026-03-14',
           endDate: '2026-03-14',
           daysInRange: 1,
-          activeSchemeCount: 1,
-          inactiveSchemeCount: 0,
+          workStatusCounts: [{ code: 1, label: 'Ongoing', count: 1 }],
+          operatingStatusCounts: [{ code: 1, label: 'Operative', count: 0 }],
           totalCount: 1,
           topSchemeCount: 1,
           topSchemes: [
             {
               schemeId: 202,
               schemeName: 'Village Linked Scheme',
-              statusCode: 1,
-              status: 'Active',
+              workStatus: { code: 1, label: 'Ongoing' },
+              operatingStatus: { code: 1, label: 'Operative' },
               submissionDays: 30,
               reportingRate: 75,
               totalWaterSupplied: 3200,
@@ -1985,16 +2227,16 @@ describe('dashboard formulas', () => {
           startDate: '2026-03-14',
           endDate: '2026-03-14',
           daysInRange: 1,
-          activeSchemeCount: 1,
-          inactiveSchemeCount: 0,
+          workStatusCounts: [{ code: 1, label: 'Ongoing', count: 1 }],
+          operatingStatusCounts: [{ code: 1, label: 'Operative', count: 0 }],
           totalCount: 1,
           topSchemeCount: 1,
           topSchemes: [
             {
               schemeId: 203,
               schemeName: 'Collision Check Scheme',
-              statusCode: 1,
-              status: 'Active',
+              workStatus: { code: 1, label: 'Ongoing' },
+              operatingStatus: { code: 1, label: 'Operative' },
               submissionDays: 30,
               reportingRate: 80,
               totalWaterSupplied: 3200,
@@ -2044,16 +2286,16 @@ describe('dashboard formulas', () => {
         startDate: '2026-03-14',
         endDate: '2026-03-14',
         daysInRange: 1,
-        activeSchemeCount: 1,
-        inactiveSchemeCount: 0,
+        workStatusCounts: [{ code: 1, label: 'Ongoing', count: 1 }],
+        operatingStatusCounts: [{ code: 1, label: 'Operative', count: 0 }],
         totalCount: 1,
         topSchemeCount: 1,
         topSchemes: [
           {
             schemeId: 301,
             schemeName: 'Multi Location Scheme',
-            statusCode: 1,
-            status: 'active',
+            workStatus: { code: 1, label: 'Ongoing' },
+            operatingStatus: { code: 1, label: 'Operative' },
             submissionDays: 30,
             reportingRate: 0.75,
             totalWaterSupplied: 5000,
@@ -2090,16 +2332,16 @@ describe('dashboard formulas', () => {
         startDate: '2026-03-14',
         endDate: '2026-03-14',
         daysInRange: 1,
-        activeSchemeCount: 1,
-        inactiveSchemeCount: 0,
+        workStatusCounts: [{ code: 1, label: 'Ongoing', count: 1 }],
+        operatingStatusCounts: [{ code: 1, label: 'Operative', count: 0 }],
         totalCount: 1,
         topSchemeCount: 1,
         topSchemes: [
           {
             schemeId: 302,
             schemeName: 'No Location Scheme',
-            statusCode: 1,
-            status: 'active',
+            workStatus: { code: 1, label: 'Ongoing' },
+            operatingStatus: { code: 1, label: 'Operative' },
             submissionDays: 20,
             reportingRate: 0.5,
             totalWaterSupplied: 2000,
@@ -2276,9 +2518,8 @@ describe('dashboard formulas', () => {
     expect(mapReadingSubmissionStatusFromAnalytics(undefined, fallbackData)).toEqual([])
   })
 
-  it('returns no schemes chart slices when scheme performance counts are both zero', () => {
-    const fallbackData: PumpOperatorsData[] = [{ label: 'Legacy active', value: 7 }]
-    const response: SchemePerformanceResponse = {
+  describe('mapSchemePerformanceToSchemeStatus', () => {
+    const baseResponse: SchemePerformanceResponse = {
       parentLgdId: 1,
       parentDepartmentId: 0,
       parentLgdCName: 'state',
@@ -2288,14 +2529,127 @@ describe('dashboard formulas', () => {
       startDate: '2026-03-01',
       endDate: '2026-03-31',
       daysInRange: 31,
-      activeSchemeCount: 0,
-      inactiveSchemeCount: 0,
+      workStatusCounts: [],
+      operatingStatusCounts: [],
       totalCount: 0,
       topSchemeCount: 0,
       topSchemes: [],
     }
 
-    expect(mapSchemePerformanceToPumpOperators(response, fallbackData)).toEqual([])
+    it('returns empty buckets and a zero total when the response is undefined', () => {
+      expect(mapSchemePerformanceToSchemeStatus(undefined)).toEqual({
+        workStatusCounts: [],
+        operatingStatusCounts: [],
+        totalCount: 0,
+      })
+    })
+
+    it('passes both dimensions through with the response total', () => {
+      const response: SchemePerformanceResponse = {
+        ...baseResponse,
+        workStatusCounts: [{ code: 1, label: 'Ongoing', count: 4 }],
+        operatingStatusCounts: [{ code: 1, label: 'Operative', count: 4 }],
+        totalCount: 4,
+      }
+
+      expect(mapSchemePerformanceToSchemeStatus(response)).toEqual({
+        workStatusCounts: [{ code: 1, label: 'Ongoing', count: 4 }],
+        operatingStatusCounts: [{ code: 1, label: 'Operative', count: 4 }],
+        totalCount: 4,
+      })
+    })
+
+    it('re-sorts an out-of-order payload ascending by code with Unknown last', () => {
+      const response: SchemePerformanceResponse = {
+        ...baseResponse,
+        workStatusCounts: [
+          { code: null, label: 'Unknown', count: 1 },
+          { code: 2, label: 'Completed', count: 2 },
+          { code: 1, label: 'Ongoing', count: 3 },
+        ],
+        totalCount: 6,
+      }
+
+      expect(
+        mapSchemePerformanceToSchemeStatus(response).workStatusCounts.map((b) => b.code)
+      ).toEqual([1, 2, null])
+    })
+
+    it('drops malformed buckets rather than passing them through', () => {
+      const response = {
+        ...baseResponse,
+        workStatusCounts: [
+          { code: 1, label: 'Ongoing', count: Number.NaN },
+          { code: 2, label: 'Completed', count: -1 },
+          { code: 3, label: 'Not Started' },
+          { code: 4, label: 'Handed Over', count: 5 },
+        ],
+        totalCount: 5,
+      } as unknown as SchemePerformanceResponse
+
+      expect(mapSchemePerformanceToSchemeStatus(response).workStatusCounts).toEqual([
+        { code: 4, label: 'Handed Over', count: 5 },
+      ])
+    })
+
+    it('coerces a non-numeric code to null rather than dropping the bucket', () => {
+      const response = {
+        ...baseResponse,
+        operatingStatusCounts: [{ code: 'not-a-number', label: 'Odd', count: 3 }],
+      } as unknown as SchemePerformanceResponse
+
+      expect(mapSchemePerformanceToSchemeStatus(response).operatingStatusCounts).toEqual([
+        { code: null, label: 'Odd', count: 3 },
+      ])
+    })
+
+    it('treats a missing or non-array dimension as empty rather than throwing', () => {
+      const response = {
+        ...baseResponse,
+        workStatusCounts: undefined,
+      } as unknown as SchemePerformanceResponse
+
+      expect(mapSchemePerformanceToSchemeStatus(response).workStatusCounts).toEqual([])
+    })
+
+    it('falls back to summing operating status counts when totalCount is not finite', () => {
+      const response = {
+        ...baseResponse,
+        operatingStatusCounts: [
+          { code: 0, label: 'Non-Operative', count: 2 },
+          { code: 1, label: 'Operative', count: 3 },
+        ],
+        totalCount: Number.NaN,
+      } as unknown as SchemePerformanceResponse
+
+      expect(mapSchemePerformanceToSchemeStatus(response).totalCount).toBe(5)
+    })
+
+    it('falls back to summing operating status counts when totalCount is negative', () => {
+      const response = {
+        ...baseResponse,
+        operatingStatusCounts: [
+          { code: 0, label: 'Non-Operative', count: 2 },
+          { code: 1, label: 'Operative', count: 3 },
+        ],
+        totalCount: -1,
+      } as unknown as SchemePerformanceResponse
+
+      expect(mapSchemePerformanceToSchemeStatus(response).totalCount).toBe(5)
+    })
+
+    it('keeps one dimension empty while the other is populated', () => {
+      const response: SchemePerformanceResponse = {
+        ...baseResponse,
+        workStatusCounts: [],
+        operatingStatusCounts: [{ code: 1, label: 'Operative', count: 2 }],
+        totalCount: 2,
+      }
+
+      const result = mapSchemePerformanceToSchemeStatus(response)
+      expect(result.workStatusCounts).toEqual([])
+      expect(result.operatingStatusCounts).toEqual([{ code: 1, label: 'Operative', count: 2 }])
+    })
   })
 
   it('returns no reading submission status slices when api counts are both zero', () => {

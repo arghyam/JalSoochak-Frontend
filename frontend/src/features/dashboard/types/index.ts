@@ -1,3 +1,11 @@
+import type { SchemeStatus, SchemeStatusCount } from '@/shared/constants/scheme-status'
+
+export type {
+  SchemeStatus,
+  SchemeStatusCount,
+  SchemeStatusDimension,
+} from '@/shared/constants/scheme-status'
+
 export type DashboardLevel =
   | 'central'
   | 'state'
@@ -152,6 +160,10 @@ export interface DashboardData {
   continuityData: EntityPerformance[]
   leadingPumpOperators?: PumpOperatorPerformanceData[]
   bottomPumpOperators?: PumpOperatorPerformanceData[]
+  // Derived from the scheme-performance analytics response — see mapSchemePerformanceToSchemeStatus.
+  // Optional: this legacy payload never carries them, only the analytics path populates them.
+  schemeWorkStatusCounts?: SchemeStatusCount[]
+  schemeOperatingStatusCounts?: SchemeStatusCount[]
 }
 
 export interface StateUtOption {
@@ -214,31 +226,42 @@ export interface WaterQuantityRegionWiseQueryParams {
   endDate: string
 }
 
+/**
+ * Shape of `GET /api/v1/analytics/water-quantity/region-wise` child regions.
+ *
+ * The endpoint does NOT return a scheme count — scheme counts for this metric come from
+ * `GET /api/v1/analytics/water-supply/average-per-region` (see AverageWaterSupplyChildRegion).
+ */
 export interface WaterQuantityRegionWiseChildRegion {
   lgdId: number
-  departmentId: number
+  departmentId: number | null
   title: string
-  schemeCount: number | null
+  waterQuantity: number
   householdCount: number
-  totalWaterQuantity: number
+  achievedFhtcCount: number
+  plannedFhtcCount: number
   supplyDaysInEfficientRange: number
   childLgdId?: number
   childLgdCName?: string
   childLgdTitle?: string
-  childDepartmentId?: number
+  childDepartmentId?: number | null
   childDepartmentTitle?: string
 }
 
+/**
+ * Shape of `GET /api/v1/analytics/water-quantity/region-wise`.
+ *
+ * The endpoint returns neither `daysInRange` nor `schemeCount`, so any per-day rate derived
+ * from `supplyDaysInEfficientRange` must take its window and scheme count from the
+ * water-supply average-per-region response instead of inferring them here.
+ */
 export interface WaterQuantityRegionWiseResponse {
-  lgdId: number
-  parentDepartmentId: number
-  parentLgdLevel: number
-  parentDepartmentLevel: number
-  scope: string
+  parentLgdId: number
+  parentDepartmentId: number | null
+  parentLgdLevel: number | null
+  parentDepartmentLevel: number | null
   startDate: string
   endDate: string
-  daysInRange?: number
-  schemeCount?: number
   childRegionCount: number
   childRegions: WaterQuantityRegionWiseChildRegion[]
 }
@@ -378,7 +401,7 @@ export interface AverageWaterSupplyScheme {
 
 export interface AverageWaterSupplyChildRegion {
   lgdId: number
-  departmentId: number
+  departmentId: number | null
   title: string
   totalHouseholdCount: number
   totalAchievedFhtcCount?: number
@@ -400,18 +423,28 @@ export interface AverageWaterSupplyCurrentRegion {
   avgWaterSupplyPerScheme: number
 }
 
+/**
+ * Shape of `GET /api/v1/analytics/water-supply/average-per-region`.
+ *
+ * This is the authoritative window (`daysInRange`) and per-region scheme count for every
+ * supply-day-based rate on the dashboard: the water-quantity region-wise endpoint returns
+ * neither, so both are read from here.
+ *
+ * `schemeCount` is null for `scope=child` responses (per-region counts live on
+ * `childRegions[].schemeCount`), and `schemes` is only present for scheme-level responses.
+ */
 export interface AverageWaterSupplyPerRegionResponse {
   tenantId: number
   stateCode: string
-  parentLgdLevel: number
-  parentDepartmentLevel: number
+  parentLgdLevel: number | null
+  parentDepartmentLevel: number | null
   startDate: string
   endDate: string
   daysInRange: number
-  schemeCount: number
+  schemeCount: number | null
   childRegionCount: number
   currentRegion?: AverageWaterSupplyCurrentRegion
-  schemes: AverageWaterSupplyScheme[]
+  schemes?: AverageWaterSupplyScheme[]
   childRegions: AverageWaterSupplyChildRegion[]
 }
 
@@ -426,7 +459,7 @@ export interface AverageSchemeRegularityQueryParams {
 
 export interface AverageSchemeRegularityChildRegion {
   lgdId: number
-  departmentId: number
+  departmentId: number | null
   title: string
   schemeCount: number
   totalSupplyDays: number
@@ -434,11 +467,18 @@ export interface AverageSchemeRegularityChildRegion {
   averageRegularity: number
 }
 
+/**
+ * Shape of `GET /api/v1/analytics/scheme-regularity/average`.
+ *
+ * `startDate`/`endDate`/`daysInRange` describe the window the BACKEND used, which is not
+ * necessarily the requested one: a single-date request is widened to the trailing 30 days.
+ * Never reuse this window to scale another endpoint's totals.
+ */
 export interface AverageSchemeRegularityResponse {
   lgdId: number
-  parentDepartmentId: number
-  parentLgdLevel: number
-  parentDepartmentLevel: number
+  parentDepartmentId: number | null
+  parentLgdLevel: number | null
+  parentDepartmentLevel: number | null
   scope: string
   startDate: string
   endDate: string
@@ -447,6 +487,8 @@ export interface AverageSchemeRegularityResponse {
   totalSupplyDays: number
   regularSchemeCount?: number
   averageRegularity: number
+  thresholdPercent?: number
+  thresholdDays?: number
   childRegionCount: number
   childRegions: AverageSchemeRegularityChildRegion[]
 }
@@ -722,8 +764,10 @@ export interface SuppliedLgdLocation {
 export interface SchemePerformanceItem {
   schemeId: number
   schemeName: string
-  statusCode: number
-  status: string
+  // Not currently rendered by the Scheme Performance table — kept typed for API fidelity, exactly
+  // as the retired statusCode/status fields were.
+  workStatus: SchemeStatus
+  operatingStatus: SchemeStatus
   submissionDays: number
   reportingRate: number
   totalWaterSupplied: number
@@ -752,8 +796,8 @@ export interface SchemePerformanceResponse {
   startDate: string
   endDate: string
   daysInRange: number
-  activeSchemeCount: number
-  inactiveSchemeCount: number
+  workStatusCounts: SchemeStatusCount[]
+  operatingStatusCounts: SchemeStatusCount[]
   totalCount: number
   topSchemeCount: number
   topSchemes: SchemePerformanceItem[]

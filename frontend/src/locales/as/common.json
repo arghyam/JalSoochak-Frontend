@@ -39,6 +39,21 @@
     "success": "সফলতা"
   },
 
+  "schemeStatus": {
+    "work": {
+      "notStarted": "আৰম্ভ হোৱা নাই",
+      "ongoing": "চলি আছে",
+      "completed": "সম্পূৰ্ণ",
+      "handedOver": "হস্তান্তৰিত"
+    },
+    "operating": {
+      "nonOperative": "অ-পৰিচালিত",
+      "partiallyOperative": "আংশিকভাৱে পৰিচালিত",
+      "operative": "পৰিচালিত"
+    },
+    "unknown": "অজ্ঞাত"
+  },
+
   "toast": {
     "changesSaved": "পৰিবৰ্তন সফলভাৱে চেভ হৈছে",
     "changesSavedShort": "পৰিবৰ্তন চেভ হৈছে",

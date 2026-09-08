@@ -30,12 +30,12 @@
       "totalStaff": "মুঠ কৰ্মচাৰী",
       "pumpOperators": "মুঠ পাম্প অপাৰেটৰ",
       "totalAdmins": "মুঠ প্ৰশাসক",
-      "activeSchemes": "সক্ৰিয় আঁচনি"
+      "handedOverSchemes": "হস্তান্তৰিত আঁচনি"
     },
     "tooltips": {
       "totalStaff": "সকলো অ-প্ৰশাসনিক পদত কৰ্মচাৰীৰ মুঠ সংখ্যা, পাম্প অপাৰেটৰ আৰু অন্যান্য ক্ষেত্ৰ কৰ্মচাৰী সহ",
       "totalAdmins": "সকলো ৰাজ্য প্ৰশাসক, সক্ৰিয় বা নিষ্ক্ৰিয় স্থিতি নিৰ্বিশেষে",
-      "activeSchemes": "অপাৰেটিভ অপাৰেটিং স্থিতিৰ আঁচনিসমূহ"
+      "handedOverSchemes": "যিসকল আঁচনিৰ কামৰ স্থিতি 'হস্তান্তৰিত' হিচাপে লিপিবদ্ধ আছে"
     },
     "charts": {
       "waterSupplyOutages": "পানী যোগান বিজুতি",
@@ -377,12 +377,16 @@
     },
     "stats": {
       "totalSchemes": "মুঠ আঁচনি",
-      "activeSchemes": "সক্ৰিয় আঁচনি",
-      "inactiveSchemes": "নিষ্ক্ৰিয় আঁচনি"
+      "operativeSchemes": "পৰিচালিত আঁচনি",
+      "partiallyOperativeSchemes": "আংশিকভাৱে পৰিচালিত আঁচনি",
+      "nonOperativeSchemes": "অ-পৰিচালিত আঁচনি"
     },
     "tooltips": {
-      "activeSchemes": "অপাৰেটিভ অপাৰেটিং স্থিতিৰ আঁচনিসমূহ",
-      "inactiveSchemes": "অপাৰেটিভ অপাৰেটিং স্থিতি বাদ দি সকলো আঁচনি"
+      "totalSchemesUnknownOperating_one": "ইয়াত পৰিচালনাৰ স্থিতি লিপিবদ্ধ নোহোৱা {{count}} টা আঁচনি অন্তৰ্ভুক্ত",
+      "totalSchemesUnknownOperating_other": "ইয়াত পৰিচালনাৰ স্থিতি লিপিবদ্ধ নোহোৱা {{count}} টা আঁচনি অন্তৰ্ভুক্ত",
+      "operativeSchemes": "যিসকল আঁচনিৰ পৰিচালনাৰ স্থিতি 'পৰিচালিত' হিচাপে লিপিবদ্ধ আছে",
+      "partiallyOperativeSchemes": "যিসকল আঁচনিৰ পৰিচালনাৰ স্থিতি 'আংশিকভাৱে পৰিচালিত' হিচাপে লিপিবদ্ধ আছে",
+      "nonOperativeSchemes": "যিসকল আঁচনিৰ পৰিচালনাৰ স্থিতি 'অ-পৰিচালিত' হিচাপে লিপিবদ্ধ আছে"
     },
     "table": {
       "schemeName": "আঁচনিৰ নাম",
