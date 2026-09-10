@@ -15,7 +15,10 @@ import {
   toLocalIsoDate,
 } from '@/shared/utils/date-format'
 import { isDatePresetId } from '@/shared/utils/date-presets'
+import { trackEvent } from '@/shared/lib/analytics'
+import type { DrilldownSource } from '@/shared/lib/analytics'
 import { slugify, toCapitalizedWords } from './format-location-label'
+import { resolveDashboardLevel } from './dashboard-level'
 import { parseStableLocationValue, toStableLocationValue } from './stable-location-value'
 
 export const CENTRAL_DASHBOARD_FILTER_STORAGE_KEY = 'central-dashboard-filters'
@@ -74,18 +77,62 @@ export type LocationOption = SearchableSelectOption & {
   analyticsId?: number
 }
 
+/**
+ * Reports the level transition this navigation performs.
+ *
+ * Derives both ends from the search params rather than from the caller, so the "from" level
+ * is always whatever the URL actually showed. `dashboard_level_view` counts the views; this
+ * event exists to attribute them to the control the user reached for.
+ */
+const reportDrilldown = ({
+  searchParamsSnapshot,
+  nextSearchParams,
+  fromStateSlug,
+  toStateSlug,
+  isSingleTenant,
+  source,
+}: {
+  searchParamsSnapshot: string
+  nextSearchParams: URLSearchParams
+  fromStateSlug: string
+  toStateSlug: string
+  isSingleTenant: boolean
+  source: DrilldownSource
+}) => {
+  const from = resolveDashboardLevel({
+    searchParams: new URLSearchParams(searchParamsSnapshot),
+    stateSlug: fromStateSlug,
+    isSingleTenant,
+  })
+  const to = resolveDashboardLevel({
+    searchParams: nextSearchParams,
+    stateSlug: toStateSlug,
+    isSingleTenant,
+  })
+
+  trackEvent('drilldown', {
+    from_level: from.level,
+    to_level: to.level,
+    hierarchy: to.hierarchy,
+    source,
+  })
+}
+
 export const navigateWithUpdatedFilters = ({
   filters,
   navigate,
   searchParamsSnapshot,
   selectedState,
   singleTenantOverride,
+  source = 'filter',
 }: {
   filters: FilterUrlUpdate
   navigate: NavigateFunction
   searchParamsSnapshot: string
   selectedState: string
   singleTenantOverride?: boolean
+  /** Which control triggered the navigation. Defaults to the filter dropdowns. */
+  source?: DrilldownSource
 }) => {
   const forcedState = singleTenantOverride ? selectedState : (filters.state ?? '')
   const nextPath = singleTenantOverride
@@ -118,6 +165,15 @@ export const navigateWithUpdatedFilters = ({
   } else {
     nextSearchParams.delete('tab')
   }
+
+  reportDrilldown({
+    searchParamsSnapshot,
+    nextSearchParams,
+    fromStateSlug: selectedState,
+    toStateSlug: forcedState,
+    isSingleTenant: Boolean(singleTenantOverride),
+    source,
+  })
 
   const nextSearch = nextSearchParams.toString()
   navigate({

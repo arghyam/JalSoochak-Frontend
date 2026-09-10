@@ -1,4 +1,5 @@
 import { Box, Flex, Text, Heading, useBreakpointValue } from '@chakra-ui/react'
+import { useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useDashboardData } from '../hooks/use-dashboard-data'
 import { useLocationHierarchyQuery } from '../services/query/use-location-hierarchy-query'
@@ -12,6 +13,7 @@ import { useCentralDashboardMapPerformance } from '../hooks/use-central-dashboar
 import { useCentralDashboardTenantConfig } from '../hooks/use-central-dashboard-tenant-config'
 import { isActiveTenantStatus, toIsoDate } from '../utils/central-dashboard-helpers'
 import { useCentralDashboardFilters } from '../hooks/use-central-dashboard-filters'
+import { useDashboardLevelAnalytics } from '../hooks/use-dashboard-level-analytics'
 import { useCentralDashboardKpis } from '../hooks/use-central-dashboard-kpis'
 import { useCentralDashboardQueries } from '../hooks/use-central-dashboard-queries'
 import { useCentralDashboardLabels } from '../hooks/use-central-dashboard-labels'
@@ -27,6 +29,8 @@ import { useDashboardDefaultDateRange } from '../utils/default-duration'
 import { DEFAULT_PERSONS_PER_HOUSEHOLD, resolveDaysInRange } from '../utils/formulas'
 import { resolvePerformanceTrendRange } from '../utils/performance-trend-range'
 import { isSingleTenantMode } from '@/config/server-config'
+import { trackEvent } from '@/shared/lib/analytics'
+import { resolveDashboardLevel } from '../utils/dashboard-level'
 
 const DASHBOARD_DURATION_DATE_FORMAT = 'DD/MM/YYYY'
 
@@ -57,10 +61,14 @@ export function CentralDashboard({
   singleTenantOverride,
 }: { singleTenantOverride?: StateUtOption } = {}) {
   const { t, i18n } = useTranslation('dashboard')
+  const { search: dashboardSearch } = useLocation()
   const dashboardDefaultDuration = useDashboardDefaultDateRange()
   const overallPerformanceScrollHeight =
     useBreakpointValue({ base: '320px', sm: '420px', lg: '620px' }) ?? '620px'
   const { data } = useDashboardData('central')
+  // Reports one dashboard_level_view per level the user lands on, including deep links and
+  // back/forward navigation. No-op unless analytics is configured.
+  useDashboardLevelAnalytics()
   const {
     activeHierarchySelectedBlock,
     activeHierarchySelectedDistrict,
@@ -611,6 +619,14 @@ export function CentralDashboard({
 
   const handleSchemeDownload = () => {
     if (!schemePerformanceAnalyticsParams) return
+
+    const { level, hierarchy } = resolveDashboardLevel({
+      searchParams: new URLSearchParams(dashboardSearch),
+      stateSlug: effectiveSelectedState,
+      isSingleTenant: inSingleTenantMode,
+    })
+    trackEvent('export_data', { level, hierarchy, format: 'csv' })
+
     const { pageNumber: _page, limit: _limit, ...downloadParams } = schemePerformanceAnalyticsParams
     downloadSchemeReport(downloadParams, {
       onSuccess: (blobUrl) => {

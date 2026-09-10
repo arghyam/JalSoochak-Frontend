@@ -22,4 +22,16 @@ window.APP_CONFIG = {
     DAYS: 1,
     ALLOWED_DAYS: [1, 7, 30],
   },
+  // Enables GA4 analytics and the footer visitor counter. Leave commented out on dev and
+  // staging: without it no events are sent, no visitor is counted, and the Firebase SDK is
+  // never downloaded. Uncomment only in the production config.js.
+  // FIREBASE: {
+  //   apiKey: 'AIzaSyApBmrfGSe65r2LeqULrj7X1S1vE1uLS6I',
+  //   authDomain: 'jalsoochak-dashboard-assam.firebaseapp.com',
+  //   projectId: 'jalsoochak-dashboard-assam',
+  //   storageBucket: 'jalsoochak-dashboard-assam.firebasestorage.app',
+  //   messagingSenderId: '808570519648',
+  //   appId: '1:808570519648:web:1db8fc092dfb78e7f70305',
+  //   measurementId: 'G-ZVV8XJLMEJ',
+  // },
 }

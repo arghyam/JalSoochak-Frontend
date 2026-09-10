@@ -69,6 +69,11 @@ interface SearchLayoutProps {
   placeholder?: string
   actionLabel?: string
   onActionClick?: () => void
+  /**
+   * Observes the search text without taking control of the input. Purely additive: the
+   * layout keeps managing its own value, so consumers that omit this are unaffected.
+   */
+  onSearchTermChange?: (term: string) => void
   inputProps?: InputProps
   actionProps?: ButtonProps
   filterSlot?: ReactNode
@@ -89,6 +94,7 @@ export function SearchLayout({
   placeholder,
   actionLabel,
   onActionClick,
+  onSearchTermChange,
   inputProps,
   actionProps,
   filterSlot,
@@ -262,6 +268,7 @@ export function SearchLayout({
     if (inputProps?.value === undefined) {
       setInternalSearchValue(event.target.value)
     }
+    onSearchTermChange?.(event.target.value)
     inputProps?.onChange?.(event)
   }
 

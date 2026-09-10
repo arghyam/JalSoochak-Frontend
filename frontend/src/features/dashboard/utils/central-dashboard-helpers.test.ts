@@ -1,5 +1,11 @@
-import { describe, expect, it, jest } from '@jest/globals'
+import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import type { NavigateFunction } from 'react-router-dom'
+
+const mockTrackEvent = jest.fn()
+
+jest.mock('@/shared/lib/analytics', () => ({
+  trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
+}))
 import type {
   EntityPerformance,
   NationalDashboardBoundaryResponse,
@@ -393,5 +399,123 @@ describe('central dashboard helpers', () => {
       'Beta',
     ])
     expect(toOutageReasonsData({ electricityFailure: 3 }).electricityFailure).toBe(3)
+  })
+})
+
+describe('navigateWithUpdatedFilters — drilldown reporting', () => {
+  const navigate = jest.fn() as unknown as NavigateFunction
+
+  beforeEach(() => {
+    mockTrackEvent.mockClear()
+  })
+
+  it('reports the level transition, defaulting the source to the filter dropdowns', () => {
+    navigateWithUpdatedFilters({
+      filters: { state: 'assam', district: '101:9101:bajali', tab: 'administrative' },
+      navigate,
+      searchParamsSnapshot: '',
+      selectedState: 'assam',
+    })
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('drilldown', {
+      from_level: 'state',
+      to_level: 'district',
+      hierarchy: 'administrative',
+      source: 'filter',
+    })
+  })
+
+  it('attributes a drilldown to the map when told to', () => {
+    navigateWithUpdatedFilters({
+      filters: {
+        state: 'assam',
+        district: '101:9101:bajali',
+        block: '39:39:bhabanipur',
+        tab: 'administrative',
+      },
+      navigate,
+      searchParamsSnapshot: 'district=101%3A9101%3Abajali',
+      selectedState: 'assam',
+      source: 'map',
+    })
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('drilldown', {
+      from_level: 'district',
+      to_level: 'block',
+      hierarchy: 'administrative',
+      source: 'map',
+    })
+  })
+
+  it('reports a drill back up as a transition to the shallower level', () => {
+    navigateWithUpdatedFilters({
+      filters: { state: 'assam', district: '101:9101:bajali', tab: 'administrative' },
+      navigate,
+      searchParamsSnapshot:
+        'district=101%3A9101%3Abajali&block=39%3A39%3Abhabanipur&gramPanchayat=294%3A294%3Achauliabari',
+      selectedState: 'assam',
+      source: 'breadcrumb',
+    })
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('drilldown', {
+      from_level: 'gramPanchayat',
+      to_level: 'district',
+      hierarchy: 'administrative',
+      source: 'breadcrumb',
+    })
+  })
+
+  it('reports the departmental hierarchy when department params are set', () => {
+    navigateWithUpdatedFilters({
+      filters: { state: 'assam', departmentZone: '1:1:lower-assam' },
+      navigate,
+      searchParamsSnapshot: '',
+      selectedState: 'assam',
+      singleTenantOverride: true,
+    })
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('drilldown', {
+      from_level: 'state',
+      to_level: 'departmentZone',
+      hierarchy: 'departmental',
+      source: 'filter',
+    })
+  })
+
+  it('reports a clear back to the national view in multi-tenant mode', () => {
+    navigateWithUpdatedFilters({
+      filters: { state: '', district: '', block: '' },
+      navigate,
+      searchParamsSnapshot: 'district=101%3A9101%3Abajali&block=39%3A39%3Abhabanipur',
+      selectedState: 'assam',
+      source: 'clear',
+    })
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('drilldown', {
+      from_level: 'block',
+      to_level: 'national',
+      hierarchy: 'administrative',
+      source: 'clear',
+    })
+  })
+
+  it('reports before navigating, so the event cannot be lost to an unmount', () => {
+    const orderedCalls: string[] = []
+    const trackingNavigate = jest.fn(() => {
+      orderedCalls.push('navigate')
+    }) as unknown as NavigateFunction
+    mockTrackEvent.mockImplementation(() => {
+      orderedCalls.push('track')
+    })
+
+    navigateWithUpdatedFilters({
+      filters: { state: 'assam', district: '101:9101:bajali', tab: 'administrative' },
+      navigate: trackingNavigate,
+      searchParamsSnapshot: '',
+      selectedState: 'assam',
+    })
+
+    expect(orderedCalls).toEqual(['track', 'navigate'])
+    mockTrackEvent.mockReset()
   })
 })

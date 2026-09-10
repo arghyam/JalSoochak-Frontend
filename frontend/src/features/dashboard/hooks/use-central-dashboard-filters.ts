@@ -4,9 +4,15 @@ import { useLocation, useNavigate, useParams, useSearchParams } from 'react-rout
 import type { DateRange } from '@/shared/components/common'
 import { isSingleTenantMode } from '@/config/server-config'
 import { useCurrentIsoDate } from '@/shared/hooks/use-current-iso-date'
-import { clampIsoDateToMax, isoDateToLocalDate } from '@/shared/utils/date-format'
+import {
+  clampIsoDateToMax,
+  countInclusiveDays,
+  isoDateToLocalDate,
+} from '@/shared/utils/date-format'
 import { resolveDatePresetRange } from '@/shared/utils/date-presets'
 import { stateCodeToSlug } from '@/shared/constants/states'
+import { trackEvent } from '@/shared/lib/analytics'
+import type { DrilldownSource } from '@/shared/lib/analytics'
 import type { StateUtOption } from '../types'
 import { computeTrailIndices } from '../utils/trail-index'
 import {
@@ -306,6 +312,13 @@ export function useCentralDashboardFilters({
         // filter changes reuse this stored value so a dashboard left open across
         // midnight cannot silently keep a stale range alive.
         setDurationSavedOn(currentIsoDate)
+        // Only concrete picks are reported: a null duration is the clear-filters path, not
+        // a duration the user chose.
+        trackEvent('duration_change', {
+          days: countInclusiveDays(nextDuration.startDate, nextDuration.endDate),
+          ...(nextDuration.presetId ? { preset_id: nextDuration.presetId } : {}),
+          is_custom: !nextDuration.presetId,
+        })
       }
       return nextDuration
     })
@@ -349,13 +362,14 @@ export function useCentralDashboardFilters({
     setIsDurationCleared(true)
   }, [currentIsoDate, durationSavedOn, selectedDuration])
   /* eslint-enable react-hooks/set-state-in-effect */
-  const updateFilterUrl = (filters: FilterUrlUpdate) => {
+  const updateFilterUrl = (filters: FilterUrlUpdate, source?: DrilldownSource) => {
     navigateWithUpdatedFilters({
       filters,
       navigate,
       searchParamsSnapshot,
       selectedState,
       singleTenantOverride: hasSingleTenantOverride,
+      source,
     })
   }
 
@@ -443,54 +457,66 @@ export function useCentralDashboardFilters({
       tab: nextTab,
     })
   }
-  const handleDistrictChange = (value: string) => {
+  const handleDistrictChange = (value: string, source?: DrilldownSource) => {
     setActiveTrailIndex(null)
     setSelectedScheme('')
-    updateFilterUrl({
-      state: selectedState,
-      district: value,
-      block: '',
-      gramPanchayat: '',
-      village: '',
-      tab: 'administrative',
-    })
+    updateFilterUrl(
+      {
+        state: selectedState,
+        district: value,
+        block: '',
+        gramPanchayat: '',
+        village: '',
+        tab: 'administrative',
+      },
+      source
+    )
   }
-  const handleBlockChange = (value: string) => {
+  const handleBlockChange = (value: string, source?: DrilldownSource) => {
     setActiveTrailIndex(null)
     setSelectedScheme('')
-    updateFilterUrl({
-      state: selectedState,
-      district: selectedDistrict,
-      block: value,
-      gramPanchayat: '',
-      village: '',
-      tab: 'administrative',
-    })
+    updateFilterUrl(
+      {
+        state: selectedState,
+        district: selectedDistrict,
+        block: value,
+        gramPanchayat: '',
+        village: '',
+        tab: 'administrative',
+      },
+      source
+    )
   }
-  const handleGramPanchayatChange = (value: string) => {
+  const handleGramPanchayatChange = (value: string, source?: DrilldownSource) => {
     setActiveTrailIndex(null)
     setSelectedScheme('')
-    updateFilterUrl({
-      state: selectedState,
-      district: selectedDistrict,
-      block: selectedBlock,
-      gramPanchayat: value,
-      village: '',
-      tab: 'administrative',
-    })
+    updateFilterUrl(
+      {
+        state: selectedState,
+        district: selectedDistrict,
+        block: selectedBlock,
+        gramPanchayat: value,
+        village: '',
+        tab: 'administrative',
+      },
+      source
+    )
   }
-  const handleVillageChange: Dispatch<SetStateAction<string>> = (value) => {
+  const handleVillageChange = (value: SetStateAction<string>, source?: DrilldownSource) => {
     setActiveTrailIndex(null)
     setSelectedScheme('')
     const nextVillage = typeof value === 'function' ? value(selectedVillage) : value
-    updateFilterUrl({
-      state: selectedState,
-      district: selectedDistrict,
-      block: selectedBlock,
-      gramPanchayat: selectedGramPanchayat,
-      village: nextVillage,
-      tab: 'administrative',
-    })
+    updateFilterUrl(
+      {
+        state: selectedState,
+        district: selectedDistrict,
+        block: selectedBlock,
+        gramPanchayat: selectedGramPanchayat,
+        village: nextVillage,
+        tab: 'administrative',
+      },
+      source
+    )
   }
   const handleFilterTabChange = (nextTabIndex: number) => {
     if (nextTabIndex === filterTabIndex) {
@@ -498,6 +524,12 @@ export function useCentralDashboardFilters({
     }
 
     setFilterTabIndex(nextTabIndex)
+    // Index 0 is the administrative (LGD) hierarchy, 1 is departmental.
+    trackEvent('filter_tab_switch', {
+      from: filterTabIndex === 0 ? 'administrative' : 'departmental',
+      to: nextTabIndex === 0 ? 'administrative' : 'departmental',
+    })
+
     if (nextTabIndex === 0) {
       updateFilterUrl({
         state: selectedState,
@@ -534,7 +566,7 @@ export function useCentralDashboardFilters({
       })
     }
   }
-  const handleDepartmentStateChange = (value: string) => {
+  const handleDepartmentStateChange = (value: string, source?: DrilldownSource) => {
     setSelectedDepartmentState(value)
     setSelectedDepartmentZone('')
     setSelectedDepartmentCircle('')
@@ -542,101 +574,122 @@ export function useCentralDashboardFilters({
     setSelectedDepartmentSubdivision('')
     setSelectedDepartmentVillage('')
     setSelectedScheme('')
-    updateFilterUrl({
-      state: value,
-      departmentZone: '',
-      departmentCircle: '',
-      departmentDivision: '',
-      departmentSubdivision: '',
-      departmentVillage: '',
-    })
+    updateFilterUrl(
+      {
+        state: value,
+        departmentZone: '',
+        departmentCircle: '',
+        departmentDivision: '',
+        departmentSubdivision: '',
+        departmentVillage: '',
+      },
+      source
+    )
   }
-  const handleDepartmentZoneChange = (value: string) => {
+  const handleDepartmentZoneChange = (value: string, source?: DrilldownSource) => {
     setSelectedDepartmentZone(value)
     setSelectedDepartmentCircle('')
     setSelectedDepartmentDivision('')
     setSelectedDepartmentSubdivision('')
     setSelectedDepartmentVillage('')
     setSelectedScheme('')
-    updateFilterUrl({
-      state: selectedState,
-      departmentZone: value,
-      departmentCircle: '',
-      departmentDivision: '',
-      departmentSubdivision: '',
-      departmentVillage: '',
-    })
+    updateFilterUrl(
+      {
+        state: selectedState,
+        departmentZone: value,
+        departmentCircle: '',
+        departmentDivision: '',
+        departmentSubdivision: '',
+        departmentVillage: '',
+      },
+      source
+    )
   }
-  const handleDepartmentCircleChange = (value: string) => {
+  const handleDepartmentCircleChange = (value: string, source?: DrilldownSource) => {
     setSelectedDepartmentCircle(value)
     setSelectedDepartmentDivision('')
     setSelectedDepartmentSubdivision('')
     setSelectedDepartmentVillage('')
     setSelectedScheme('')
-    updateFilterUrl({
-      state: selectedState,
-      departmentZone: selectedDepartmentZone,
-      departmentCircle: value,
-      departmentDivision: '',
-      departmentSubdivision: '',
-      departmentVillage: '',
-    })
+    updateFilterUrl(
+      {
+        state: selectedState,
+        departmentZone: selectedDepartmentZone,
+        departmentCircle: value,
+        departmentDivision: '',
+        departmentSubdivision: '',
+        departmentVillage: '',
+      },
+      source
+    )
   }
-  const handleDepartmentDivisionChange = (value: string) => {
+  const handleDepartmentDivisionChange = (value: string, source?: DrilldownSource) => {
     setSelectedDepartmentDivision(value)
     setSelectedDepartmentSubdivision('')
     setSelectedDepartmentVillage('')
     setSelectedScheme('')
-    updateFilterUrl({
-      state: selectedState,
-      departmentZone: selectedDepartmentZone,
-      departmentCircle: selectedDepartmentCircle,
-      departmentDivision: value,
-      departmentSubdivision: '',
-      departmentVillage: '',
-    })
+    updateFilterUrl(
+      {
+        state: selectedState,
+        departmentZone: selectedDepartmentZone,
+        departmentCircle: selectedDepartmentCircle,
+        departmentDivision: value,
+        departmentSubdivision: '',
+        departmentVillage: '',
+      },
+      source
+    )
   }
-  const handleDepartmentSubdivisionChange = (value: string) => {
+  const handleDepartmentSubdivisionChange = (value: string, source?: DrilldownSource) => {
     setSelectedDepartmentSubdivision(value)
     setSelectedDepartmentVillage('')
     setSelectedScheme('')
-    updateFilterUrl({
-      state: selectedState,
-      departmentZone: selectedDepartmentZone,
-      departmentCircle: selectedDepartmentCircle,
-      departmentDivision: selectedDepartmentDivision,
-      departmentSubdivision: value,
-      departmentVillage: '',
-    })
+    updateFilterUrl(
+      {
+        state: selectedState,
+        departmentZone: selectedDepartmentZone,
+        departmentCircle: selectedDepartmentCircle,
+        departmentDivision: selectedDepartmentDivision,
+        departmentSubdivision: value,
+        departmentVillage: '',
+      },
+      source
+    )
   }
-  const handleDepartmentVillageChange = (value: string) => {
+  const handleDepartmentVillageChange = (value: string, source?: DrilldownSource) => {
     setSelectedDepartmentVillage(value)
     setSelectedScheme('')
-    updateFilterUrl({
-      state: selectedState,
-      departmentZone: selectedDepartmentZone,
-      departmentCircle: selectedDepartmentCircle,
-      departmentDivision: selectedDepartmentDivision,
-      departmentSubdivision: selectedDepartmentSubdivision,
-      departmentVillage: value,
-    })
+    updateFilterUrl(
+      {
+        state: selectedState,
+        departmentZone: selectedDepartmentZone,
+        departmentCircle: selectedDepartmentCircle,
+        departmentDivision: selectedDepartmentDivision,
+        departmentSubdivision: selectedDepartmentSubdivision,
+        departmentVillage: value,
+      },
+      source
+    )
   }
   const handleClearFilters = () => {
     hasAppliedStoredHydrationRef.current = true
     setActiveTrailIndex(null)
     setFilterTabIndex(0)
-    updateFilterUrl({
-      state: isSingleTenantMode() ? selectedState : '',
-      district: '',
-      block: '',
-      gramPanchayat: '',
-      village: '',
-      departmentZone: '',
-      departmentCircle: '',
-      departmentDivision: '',
-      departmentSubdivision: '',
-      departmentVillage: '',
-    })
+    updateFilterUrl(
+      {
+        state: isSingleTenantMode() ? selectedState : '',
+        district: '',
+        block: '',
+        gramPanchayat: '',
+        village: '',
+        departmentZone: '',
+        departmentCircle: '',
+        departmentDivision: '',
+        departmentSubdivision: '',
+        departmentVillage: '',
+      },
+      'clear'
+    )
     handleSelectedDurationChange(null)
     setSelectedScheme('')
     setSelectedDepartmentState('')
