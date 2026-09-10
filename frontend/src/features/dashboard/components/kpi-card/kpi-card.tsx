@@ -25,6 +25,10 @@ export function KPICard({ title, value, icon, trend, tooltipContent }: KPICardPr
     trend?.direction === 'up' ? '#079455' : trend?.direction === 'down' ? '#D92D20' : 'neutral.500'
   const TrendIcon =
     trend?.direction === 'up' ? MdArrowUpward : trend?.direction === 'down' ? MdArrowDownward : null
+  // Cards without a leading icon (5-KPI dashboard row) centre their content;
+  // icon cards (3-KPI landing row) keep the icon-left, text-left layout.
+  const isCentered = !icon
+  const contentAlign = isCentered ? 'center' : 'flex-start'
 
   return (
     <Box
@@ -57,48 +61,62 @@ export function KPICard({ title, value, icon, trend, tooltipContent }: KPICardPr
         pointerEvents: 'none',
       }}
     >
-      <Flex align="center" gap="8px">
+      <Flex position="absolute" top="16px" right="12px" align="flex-start" zIndex={1}>
+        {tooltipContent ? (
+          <Tooltip
+            label={tooltipContent}
+            hasArrow
+            placement="top-end"
+            bg="white"
+            color="neutral.700"
+            borderWidth="1px"
+            borderColor="neutral.200"
+            borderRadius="8px"
+            boxShadow="md"
+            p="12px"
+            maxW="320px"
+          >
+            <IconButton
+              aria-label="More info"
+              icon={<AiOutlineInfoCircle />}
+              variant="ghost"
+              color="neutral.400"
+              minW="auto"
+              h="16px"
+              w="16px"
+              p="0"
+              _hover={{ bg: 'transparent' }}
+              _active={{ bg: 'transparent' }}
+            />
+          </Tooltip>
+        ) : (
+          <Icon as={AiOutlineInfoCircle} boxSize="16px" color="neutral.400" />
+        )}
+      </Flex>
+      <Flex align="center" justify={contentAlign} gap="8px">
         {icon ? (
           <Flex align="center" justify="center">
             {icon}
           </Flex>
         ) : null}
-        <Flex direction="column" flex="1" minW={0}>
-          <Flex justify="space-between" align="flex-start" mb={1}>
-            <Text textStyle="bodyText4" fontWeight="400" color="neutral.600" fontSize="16px">
-              {title}
-            </Text>
-            {tooltipContent ? (
-              <Tooltip
-                label={tooltipContent}
-                hasArrow
-                placement="top-end"
-                bg="white"
-                color="neutral.700"
-                borderWidth="1px"
-                borderColor="neutral.200"
-                borderRadius="8px"
-                boxShadow="md"
-                p="12px"
-                maxW="320px"
-              >
-                <IconButton
-                  aria-label="More info"
-                  icon={<AiOutlineInfoCircle />}
-                  variant="ghost"
-                  color="neutral.400"
-                  minW="auto"
-                  h="16px"
-                  w="16px"
-                  p="0"
-                  _hover={{ bg: 'transparent' }}
-                  _active={{ bg: 'transparent' }}
-                />
-              </Tooltip>
-            ) : (
-              <Icon as={AiOutlineInfoCircle} boxSize="16px" color="neutral.400" />
-            )}
-          </Flex>
+        <Flex
+          direction="column"
+          flex="1"
+          minW={0}
+          align={contentAlign}
+          textAlign={isCentered ? 'center' : 'left'}
+        >
+          <Text
+            textStyle="bodyText4"
+            fontWeight="400"
+            color="neutral.600"
+            fontSize="16px"
+            pl={isCentered ? '16px' : '0'}
+            pr="16px"
+            mb={1}
+          >
+            {title}
+          </Text>
           <Text textStyle="bodyText2" color="neutral.950" mb={1}>
             {formattedValue}
           </Text>

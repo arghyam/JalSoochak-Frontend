@@ -35,4 +35,26 @@ describe('KPICard', () => {
 
     expect(screen.getByText('No change')).toBeInTheDocument()
   })
+
+  it('centres content when the card has no leading icon', () => {
+    render(<KPICard title="Critical Schemes" value={12} tooltipContent="More detail" />)
+
+    const content = screen.getByText('Critical Schemes').parentElement
+    expect(content).toHaveStyle({ 'align-items': 'center', 'text-align': 'center' })
+  })
+
+  it('keeps content left aligned when a leading icon is present', () => {
+    render(
+      <KPICard
+        title="Quantity in MLD"
+        value={12}
+        icon={<span data-testid="kpi-icon" />}
+        tooltipContent="More detail"
+      />
+    )
+
+    expect(screen.getByTestId('kpi-icon')).toBeInTheDocument()
+    const content = screen.getByText('Quantity in MLD').parentElement
+    expect(content).toHaveStyle({ 'align-items': 'flex-start', 'text-align': 'left' })
+  })
 })
