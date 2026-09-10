@@ -39,6 +39,21 @@
     "success": "Success"
   },
 
+  "schemeStatus": {
+    "work": {
+      "notStarted": "Not Started",
+      "ongoing": "Ongoing",
+      "completed": "Completed",
+      "handedOver": "Handed Over"
+    },
+    "operating": {
+      "nonOperative": "Non-Operative",
+      "partiallyOperative": "Partially Operative",
+      "operative": "Operative"
+    },
+    "unknown": "Unknown"
+  },
+
   "toast": {
     "changesSaved": "Changes saved successfully",
     "changesSavedShort": "Changes saved",

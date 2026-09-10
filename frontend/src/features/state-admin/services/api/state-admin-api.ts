@@ -1,6 +1,7 @@
 import { isAxiosError } from 'axios'
 import { useAuthStore } from '@/app/store/auth-store'
 import { apiClient } from '@/shared/lib/axios'
+import { sortSchemeStatusCounts } from '@/shared/constants/scheme-status'
 import type { ConfigurationData } from '../../types/configuration'
 import type { SaveEscalationRulesPayload } from '../../types/escalation-rules'
 import type { IntegrationConfiguration } from '../../types/integration'
@@ -387,10 +388,19 @@ export const stateAdminApi = {
 
   // --- Real HTTP: Scheme Counts ---
   getSchemeCounts: async (tenantCode: string): Promise<SchemeCounts> => {
-    const response = await apiClient.get<SchemeCounts>('/api/v1/scheme/schemes/counts/by-status', {
-      params: { tenantCode },
-    })
-    return response.data
+    // Optional-field DTO plus a total mapped type, so no component needs `?? []` before mapping.
+    type SchemeCountsDto = Partial<SchemeCounts>
+    const response = await apiClient.get<SchemeCountsDto>(
+      '/api/v1/scheme/schemes/counts/by-status',
+      { params: { tenantCode } }
+    )
+    return {
+      totalSchemes: response.data?.totalSchemes ?? 0,
+      // Sorted here rather than in the UI. Non-lossy: unrecognised codes are preserved so a future
+      // backend status still reaches the screen with its server-supplied label.
+      workStatusCounts: sortSchemeStatusCounts(response.data?.workStatusCounts),
+      operatingStatusCounts: sortSchemeStatusCounts(response.data?.operatingStatusCounts),
+    }
   },
 
   // --- Real HTTP: Scheme List ---

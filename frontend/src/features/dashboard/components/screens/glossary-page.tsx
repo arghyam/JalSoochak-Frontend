@@ -286,33 +286,33 @@ export function GlossaryPage() {
           />
 
           <GlossaryCard
-            title={t('pumpOperators.title', { defaultValue: 'Active Schemes' })}
+            title={t('pumpOperators.title', { defaultValue: 'Schemes by Status' })}
             category={categoryStatus}
-            description={t('glossary.activeSchemes.description', {
+            description={t('glossary.schemeStatus.description', {
               defaultValue:
-                'Count of schemes by operational status based on water supply reporting in the selected period.',
+                'Count of schemes grouped by their recorded status. Use the toggle on the card to switch between work status and operating status.',
             })}
             extras={[
               <>
                 <Text as="span" fontWeight="600">
-                  {t('glossary.activeSchemes.activeLabel', { defaultValue: 'Active Schemes' })}
+                  {t('glossary.schemeStatus.workStatusLabel', { defaultValue: 'Work Status' })}
                   :{' '}
                 </Text>
-                {t('glossary.activeSchemes.activeDescription', {
+                {t('glossary.schemeStatus.workStatusDescription', {
                   defaultValue:
-                    'Schemes that reported at least one water supply reading in the selected period.',
+                    'The construction and handover stage recorded for the scheme — Not Started, Ongoing, Completed or Handed Over.',
                 })}
               </>,
               <>
                 <Text as="span" fontWeight="600">
-                  {t('glossary.activeSchemes.nonActiveLabel', {
-                    defaultValue: 'Non-active Schemes',
+                  {t('glossary.schemeStatus.operatingStatusLabel', {
+                    defaultValue: 'Operating Status',
                   })}
                   :{' '}
                 </Text>
-                {t('glossary.activeSchemes.nonActiveDescription', {
+                {t('glossary.schemeStatus.operatingStatusDescription', {
                   defaultValue:
-                    'Schemes that did not report any water supply readings in the selected period.',
+                    'Whether the scheme is currently supplying water — Operative, Partially Operative or Non-Operative.',
                 })}
               </>,
             ]}

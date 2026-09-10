@@ -30,12 +30,12 @@
       "totalStaff": "Total Staff",
       "pumpOperators": "Total Pump Operators",
       "totalAdmins": "Total Admins",
-      "activeSchemes": "Active Schemes"
+      "handedOverSchemes": "Handed Over Schemes"
     },
     "tooltips": {
       "totalStaff": "Total number of staff members across all non-admin roles, including pump operators and other field staff",
       "totalAdmins": "All state admins regardless of active or inactive status",
-      "activeSchemes": "Schemes with an Operative operating status"
+      "handedOverSchemes": "Schemes whose work status is recorded as Handed Over"
     },
     "charts": {
       "waterSupplyOutages": "Water Supply Outages",
@@ -377,12 +377,16 @@
     },
     "stats": {
       "totalSchemes": "Total Schemes",
-      "activeSchemes": "Active Schemes",
-      "inactiveSchemes": "Inactive Schemes"
+      "operativeSchemes": "Operative Schemes",
+      "partiallyOperativeSchemes": "Partially Operative Schemes",
+      "nonOperativeSchemes": "Non-Operative Schemes"
     },
     "tooltips": {
-      "activeSchemes": "Schemes with an Operative operating status",
-      "inactiveSchemes": "All schemes excluding those with an Operative operating status"
+      "totalSchemesUnknownOperating_one": "Includes {{count}} scheme with no recorded operating status",
+      "totalSchemesUnknownOperating_other": "Includes {{count}} schemes with no recorded operating status",
+      "operativeSchemes": "Schemes whose operating status is recorded as Operative",
+      "partiallyOperativeSchemes": "Schemes whose operating status is recorded as Partially Operative",
+      "nonOperativeSchemes": "Schemes whose operating status is recorded as Non-Operative"
     },
     "table": {
       "schemeName": "Scheme Name",

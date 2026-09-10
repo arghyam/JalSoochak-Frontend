@@ -49,6 +49,8 @@ const EMPTY_DASHBOARD_DATA: DashboardData = {
   continuityData: [],
   leadingPumpOperators: [],
   bottomPumpOperators: [],
+  schemeWorkStatusCounts: [],
+  schemeOperatingStatusCounts: [],
 }
 
 export function CentralDashboard({
@@ -443,7 +445,7 @@ export function CentralDashboard({
     derivedVillageSchemeId,
     operatorsPerformanceAnalyticsTable,
     outageReasonsTimeTrendData,
-    pumpOperatorsData,
+    schemeStatusData,
     quantityPerformanceData,
     quantityTimeTrendData,
     readingSubmissionStatusData,
@@ -455,7 +457,6 @@ export function CentralDashboard({
     averagePersonsPerHousehold,
     averageSchemeRegularityData,
     averageWaterSupplyData,
-    dashboardData,
     emptyEntityPerformance,
     filteredNationalDashboardData,
     hierarchyType,
@@ -473,7 +474,6 @@ export function CentralDashboard({
     schemeRegularityPeriodicData,
     screenDateFormat,
     selectedSchemeId,
-    shouldFetchSchemePerformanceAnalytics,
     submissionStatusData,
     tenantBoundaryRegions: tenantBoundaryData?.childRegions,
     waterQuantityPeriodicData,
@@ -586,7 +586,7 @@ export function CentralDashboard({
     operatorsPerformanceAnalyticsTable,
     outageReasonsData,
     outageReasonsTimeTrendData,
-    pumpOperatorsData,
+    schemeStatusData,
     readingSubmissionStatusData,
     shouldFetchSchemePerformanceAnalytics,
   })
