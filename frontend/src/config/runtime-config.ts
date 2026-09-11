@@ -6,9 +6,27 @@
  * without rebuilding the application.
  */
 
+/**
+ * Firebase project credentials for GA4 analytics and the Firestore visitor counter.
+ *
+ * Absent (or incomplete) means analytics and the visitor counter are fully disabled and
+ * the Firebase SDK is never downloaded, which is how dev and staging are expected to run.
+ * Only the production config.js should carry this block.
+ */
+export interface FirebaseRuntimeConfig {
+  apiKey?: string
+  authDomain?: string
+  projectId?: string
+  storageBucket?: string
+  messagingSenderId?: string
+  appId?: string
+  measurementId?: string
+}
+
 interface AppConfig {
   API_BASE_URL: string
   SINGLE_TENANT_MODE: boolean
+  FIREBASE?: FirebaseRuntimeConfig
   CAPTCHA_ENABLED?: boolean
   RECAPTCHA_SITE_KEY?: string
   DEFAULT_AVERAGE_MEMBERS_PER_HOUSEHOLD?: string | number
@@ -49,6 +67,8 @@ export const getRuntimeConfig = (): AppConfig => {
       return url ?? ''
     })(),
     SINGLE_TENANT_MODE: window.APP_CONFIG?.SINGLE_TENANT_MODE ?? false,
+    // Deliberately no fallback: an absent block is the "analytics off" signal.
+    FIREBASE: window.APP_CONFIG?.FIREBASE,
     CAPTCHA_ENABLED: window.APP_CONFIG?.CAPTCHA_ENABLED ?? false,
     RECAPTCHA_SITE_KEY: window.APP_CONFIG?.RECAPTCHA_SITE_KEY ?? '',
     DEFAULT_AVERAGE_MEMBERS_PER_HOUSEHOLD: window.APP_CONFIG?.DEFAULT_AVERAGE_MEMBERS_PER_HOUSEHOLD,
