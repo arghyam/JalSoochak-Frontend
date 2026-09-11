@@ -365,7 +365,14 @@ export function useCentralDashboardFilters({
   // Index 0 is the administrative (LGD) hierarchy, 1 is departmental.
   const activeHierarchy: DashboardHierarchy =
     filterTabIndex === 1 ? 'departmental' : 'administrative'
-  const updateFilterUrl = (filters: FilterUrlUpdate, source?: DrilldownSource) => {
+  // `nextHierarchy` is only needed when this navigation changes tab: `filterTabIndex` is
+  // still the pre-switch value inside the handler that triggered it, so `activeHierarchy`
+  // would otherwise report the tab the user just left.
+  const updateFilterUrl = (
+    filters: FilterUrlUpdate,
+    source?: DrilldownSource,
+    nextHierarchy?: DashboardHierarchy
+  ) => {
     navigateWithUpdatedFilters({
       filters,
       navigate,
@@ -374,6 +381,7 @@ export function useCentralDashboardFilters({
       singleTenantOverride: hasSingleTenantOverride,
       source,
       activeHierarchy,
+      nextHierarchy,
     })
   }
 
@@ -538,19 +546,23 @@ export function useCentralDashboardFilters({
     })
 
     if (nextTabIndex === 0) {
-      updateFilterUrl({
-        state: selectedState,
-        district: selectedDistrict,
-        block: selectedBlock,
-        gramPanchayat: selectedGramPanchayat,
-        village: selectedVillage,
-        departmentZone: '',
-        departmentCircle: '',
-        departmentDivision: '',
-        departmentSubdivision: '',
-        departmentVillage: '',
-        tab: 'administrative',
-      })
+      updateFilterUrl(
+        {
+          state: selectedState,
+          district: selectedDistrict,
+          block: selectedBlock,
+          gramPanchayat: selectedGramPanchayat,
+          village: selectedVillage,
+          departmentZone: '',
+          departmentCircle: '',
+          departmentDivision: '',
+          departmentSubdivision: '',
+          departmentVillage: '',
+          tab: 'administrative',
+        },
+        undefined,
+        'administrative'
+      )
     } else {
       setActiveTrailIndex(null)
       setSelectedDepartmentState('')
@@ -559,18 +571,22 @@ export function useCentralDashboardFilters({
       setSelectedDepartmentDivision('')
       setSelectedDepartmentSubdivision('')
       setSelectedDepartmentVillage('')
-      updateFilterUrl({
-        state: selectedState,
-        district: '',
-        block: '',
-        gramPanchayat: '',
-        village: '',
-        departmentZone: '',
-        departmentCircle: '',
-        departmentDivision: '',
-        departmentSubdivision: '',
-        departmentVillage: '',
-      })
+      updateFilterUrl(
+        {
+          state: selectedState,
+          district: '',
+          block: '',
+          gramPanchayat: '',
+          village: '',
+          departmentZone: '',
+          departmentCircle: '',
+          departmentDivision: '',
+          departmentSubdivision: '',
+          departmentVillage: '',
+        },
+        undefined,
+        'departmental'
+      )
     }
   }
   const handleDepartmentStateChange = (value: string, source?: DrilldownSource) => {
@@ -695,7 +711,9 @@ export function useCentralDashboardFilters({
         departmentSubdivision: '',
         departmentVillage: '',
       },
-      'clear'
+      'clear',
+      // Clearing resets the tab to administrative (index 0) above.
+      'administrative'
     )
     handleSelectedDurationChange(null)
     setSelectedScheme('')

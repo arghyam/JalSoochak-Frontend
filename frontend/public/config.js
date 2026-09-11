@@ -25,6 +25,12 @@ window.APP_CONFIG = {
   // Enables GA4 analytics and the footer visitor counter. Leave commented out on dev and
   // staging: without it no events are sent, no visitor is counted, and the Firebase SDK is
   // never downloaded. Uncomment only in the production config.js.
+  //
+  // This apiKey ships to every browser, so it is a public identifier, not a secret — but it
+  // is also the key the visitor counter writes Firestore with. Before enabling it in
+  // production, restrict it in the Google Cloud console to the production origins only and
+  // to the Firebase APIs this app actually calls (Analytics + Firestore). Never reuse it for
+  // Maps/Places or any other billed Google API.
   // FIREBASE: {
   //   apiKey: 'AIzaSyApBmrfGSe65r2LeqULrj7X1S1vE1uLS6I',
   //   authDomain: 'jalsoochak-dashboard-assam.firebaseapp.com',

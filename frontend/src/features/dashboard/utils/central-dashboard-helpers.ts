@@ -92,6 +92,7 @@ const reportDrilldown = ({
   isSingleTenant,
   source,
   activeHierarchy,
+  nextHierarchy,
 }: {
   searchParamsSnapshot: string
   nextSearchParams: URLSearchParams
@@ -100,6 +101,7 @@ const reportDrilldown = ({
   isSingleTenant: boolean
   source: DrilldownSource
   activeHierarchy?: DashboardHierarchy
+  nextHierarchy?: DashboardHierarchy
 }) => {
   const from = resolveDashboardLevel({
     searchParams: new URLSearchParams(searchParamsSnapshot),
@@ -112,10 +114,15 @@ const reportDrilldown = ({
     stateSlug: toStateSlug,
     isSingleTenant,
     // Drilling up out of the last departmental level leaves no departmental param behind,
-    // so without the hint the destination would read as administrative. An explicit
-    // `tab=administrative` on the destination overrides it.
+    // so without the hint the destination would read as administrative. The hint must
+    // describe where this navigation lands, not where it started: a tab switch or a
+    // clear changes hierarchy without leaving a marker in the URL, so callers that know
+    // the destination pass `nextHierarchy`. An explicit `tab=administrative` on the
+    // destination still overrides both.
     activeHierarchy:
-      nextSearchParams.get('tab') === 'administrative' ? 'administrative' : activeHierarchy,
+      nextSearchParams.get('tab') === 'administrative'
+        ? 'administrative'
+        : (nextHierarchy ?? activeHierarchy),
   })
 
   trackEvent('drilldown', {
@@ -134,6 +141,7 @@ export const navigateWithUpdatedFilters = ({
   singleTenantOverride,
   source = 'filter',
   activeHierarchy,
+  nextHierarchy,
   reportNavigation = true,
 }: {
   filters: FilterUrlUpdate
@@ -145,6 +153,12 @@ export const navigateWithUpdatedFilters = ({
   source?: DrilldownSource
   /** The hierarchy tab active before this navigation, when the caller knows it. */
   activeHierarchy?: DashboardHierarchy
+  /**
+   * The hierarchy tab this navigation lands on, when it differs from `activeHierarchy`.
+   * Required for tab switches and clears, which change hierarchy without leaving a
+   * distinguishing marker in the URL. Defaults to `activeHierarchy`.
+   */
+  nextHierarchy?: DashboardHierarchy
   /**
    * Whether this navigation is a user drilldown worth reporting. `false` for programmatic
    * URL restoration (the mount-time rewrite that replays stored filters), which is not a
@@ -193,6 +207,7 @@ export const navigateWithUpdatedFilters = ({
       isSingleTenant: Boolean(singleTenantOverride),
       source,
       activeHierarchy,
+      nextHierarchy,
     })
   }
 

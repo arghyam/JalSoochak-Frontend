@@ -455,6 +455,84 @@ describe('navigateWithUpdatedFilters — drilldown reporting', () => {
     })
   })
 
+  it('reports the administrative hierarchy when a clear leaves the departmental tab', () => {
+    navigateWithUpdatedFilters({
+      filters: {
+        state: '',
+        district: '',
+        block: '',
+        gramPanchayat: '',
+        village: '',
+        departmentZone: '',
+        departmentCircle: '',
+        departmentDivision: '',
+        departmentSubdivision: '',
+        departmentVillage: '',
+      },
+      navigate,
+      searchParamsSnapshot: 'departmentZone=1%3A1%3Alower-assam',
+      selectedState: 'assam',
+      source: 'clear',
+      // The tab reset to administrative has not been committed yet when the clear runs.
+      activeHierarchy: 'departmental',
+      nextHierarchy: 'administrative',
+    })
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('drilldown', {
+      from_level: 'departmentZone',
+      to_level: 'national',
+      hierarchy: 'administrative',
+      source: 'clear',
+    })
+  })
+
+  it('reports the departmental hierarchy when switching to the empty departmental tab', () => {
+    navigateWithUpdatedFilters({
+      filters: {
+        state: 'assam',
+        district: '',
+        block: '',
+        gramPanchayat: '',
+        village: '',
+        departmentZone: '',
+        departmentCircle: '',
+        departmentDivision: '',
+        departmentSubdivision: '',
+        departmentVillage: '',
+      },
+      navigate,
+      searchParamsSnapshot: 'district=101%3A9101%3Abajali&tab=administrative',
+      selectedState: 'assam',
+      activeHierarchy: 'administrative',
+      nextHierarchy: 'departmental',
+    })
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('drilldown', {
+      from_level: 'district',
+      to_level: 'state',
+      hierarchy: 'departmental',
+      source: 'filter',
+    })
+  })
+
+  it('lets an explicit tab=administrative destination override nextHierarchy', () => {
+    navigateWithUpdatedFilters({
+      filters: { state: 'assam', departmentZone: '', tab: 'administrative' },
+      navigate,
+      searchParamsSnapshot: 'departmentZone=1%3A1%3Alower-assam',
+      selectedState: 'assam',
+      activeHierarchy: 'departmental',
+      nextHierarchy: 'departmental',
+    })
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('drilldown', {
+      from_level: 'departmentZone',
+      to_level: 'state',
+      hierarchy: 'administrative',
+      source: 'filter',
+    })
+  })
+
   it('attributes a drilldown to the map when told to', () => {
     navigateWithUpdatedFilters({
       filters: {
