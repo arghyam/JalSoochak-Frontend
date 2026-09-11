@@ -683,7 +683,12 @@ export interface ContinuousSchemesResponse {
 }
 
 export interface PumpOperatorDetailsQueryParams {
-  pumpOperatorId: number
+  /**
+   * The operator's random v4 uuid, not the sequential id. The public detail endpoint is keyed on
+   * uuid so anonymous callers cannot walk operator records 1..N; the numeric-id route is
+   * authenticated and used only by the Section Officer console.
+   */
+  pumpOperatorUuid: string
   tenant_code: string
   scheme_id?: number
   startDate?: string

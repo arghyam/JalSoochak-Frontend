@@ -96,15 +96,17 @@ export const overviewApi = {
     return response.data.data
   },
 
+  // tenant_id and user_id used to be sent as query parameters. The server takes both from the
+  // bearer token now, because trusting them from the caller let any signed-in user read another
+  // officer's totals, in any tenant. The values sent here were always the logged-in user's own,
+  // so what the screen shows is unchanged.
   getDashboardStats: async (
-    tenantId: string,
-    userId: string,
     startDate: string,
     endDate: string
   ): Promise<DashboardStatsResponse> => {
     const response = await apiClient.get<ApiEnvelope<DashboardStatsResponse>>(
       '/api/v1/analytics/officer/dashboard',
-      { params: { tenant_id: tenantId, user_id: userId, start_date: startDate, end_date: endDate } }
+      { params: { start_date: startDate, end_date: endDate } }
     )
     return response.data.data
   },

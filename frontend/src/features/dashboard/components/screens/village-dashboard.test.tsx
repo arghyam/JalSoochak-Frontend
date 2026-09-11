@@ -528,6 +528,109 @@ describe('VillageDashboardScreen', () => {
     expect(screen.queryByText('Inactive days')).toBeNull()
   })
 
+  it('renders phone number, email and status on the operator card', () => {
+    mockUseQueriesData = [
+      {
+        data: {
+          status: 200,
+          message: 'Pump operators retrieved',
+          data: [
+            {
+              schemeId: 3,
+              schemeName: 'Rural Water Supply 001',
+              pumpOperators: [
+                {
+                  id: 4,
+                  uuid: 'uuid-1',
+                  name: 'Ajay Yadav',
+                  email: 'ajay@example.com',
+                  phoneNumber: '910000000001',
+                  status: 1,
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ]
+
+    renderVillageDashboard()
+
+    expect(screen.getByText('Phone number')).toBeTruthy()
+    expect(screen.getByText('910000000001')).toBeTruthy()
+    expect(screen.getByText('Email')).toBeTruthy()
+    expect(screen.getByText('ajay@example.com')).toBeTruthy()
+    expect(screen.getByText('Status')).toBeTruthy()
+  })
+
+  /**
+   * The by-scheme summary sends TenantUserStatus as its numeric code, and the codes are the enum's
+   * own -- INACTIVE(0), ACTIVE(1) -- not array positions. Reading 0 as "no status" renders a bare
+   * "0" on a public page.
+   */
+  it('labels the numeric operator status codes from the by-scheme summary', () => {
+    mockUseQueriesData = [
+      {
+        data: {
+          status: 200,
+          message: 'Pump operators retrieved',
+          data: [
+            {
+              schemeId: 3,
+              schemeName: 'Rural Water Supply 001',
+              pumpOperators: [
+                {
+                  id: 4,
+                  uuid: 'uuid-1',
+                  name: 'Ajay Yadav',
+                  email: 'ajay@example.com',
+                  phoneNumber: '910000000001',
+                  status: 0,
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ]
+
+    renderVillageDashboard()
+
+    expect(screen.getByText('Inactive')).toBeTruthy()
+    expect(screen.queryByText('0')).toBeNull()
+  })
+
+  it('labels the enum-name operator status from the detail endpoint', () => {
+    mockUsePumpOperatorDetailsQuery.mockReturnValue({
+      data: {
+        status: 200,
+        message: 'Pump operator retrieved',
+        data: {
+          id: 4,
+          uuid: 'uuid-1',
+          name: 'Ajay Yadav',
+          email: 'ajay@example.com',
+          phoneNumber: '910000000001',
+          status: 'ACTIVE',
+          schemeId: 3,
+          schemeName: 'Rural Water Supply 001',
+          schemeLatitude: null,
+          schemeLongitude: null,
+          lastSubmissionAt: null,
+          firstSubmissionDate: null,
+          totalDaysSinceFirstSubmission: null,
+          submittedDays: 0,
+          reportingRatePercent: null,
+          missedSubmissionDays: null,
+        },
+      },
+    })
+
+    renderVillageDashboard()
+
+    expect(screen.getByText('Active')).toBeTruthy()
+  })
+
   it('renders all scheme submission rows from the reading compliance api', () => {
     mockUseReadingComplianceQuery.mockReturnValue({
       data: {
