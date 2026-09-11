@@ -146,7 +146,11 @@ const mapLocationOptions = (locations: TenantChildLocation[] | undefined): Locat
 
 export function DashboardFilters(props: DashboardFiltersProps) {
   const { t, i18n } = useTranslation('dashboard')
-  const reportSearchTerm = useLocationSearchAnalytics()
+  // Index 0 is the administrative (LGD) hierarchy, 1 is departmental. The URL cannot say
+  // which tab is open once its level params are cleared, so the search event is told.
+  const reportSearchTerm = useLocationSearchAnalytics(
+    props.filterTabIndex === 1 ? 'departmental' : 'administrative'
+  )
   const [isVeryCompactFilters] = useMediaQuery('(max-width: 569px)')
   const [isXsFilters] = useMediaQuery('(max-width: 479px)')
   const [isBelowLgFilters] = useMediaQuery('(max-width: 991.98px)')

@@ -425,6 +425,36 @@ describe('navigateWithUpdatedFilters — drilldown reporting', () => {
     })
   })
 
+  it('reports nothing when the navigation is a programmatic filter restore', () => {
+    navigateWithUpdatedFilters({
+      filters: { state: 'assam', district: '101:9101:bajali', tab: 'administrative' },
+      navigate,
+      searchParamsSnapshot: '',
+      selectedState: 'assam',
+      reportNavigation: false,
+    })
+
+    expect(mockTrackEvent).not.toHaveBeenCalled()
+    expect(navigate).toHaveBeenCalled()
+  })
+
+  it('keeps the departmental hierarchy when drilling up leaves no department param', () => {
+    navigateWithUpdatedFilters({
+      filters: { state: 'assam', departmentZone: '' },
+      navigate,
+      searchParamsSnapshot: 'departmentZone=1%3A1%3Alower-assam',
+      selectedState: 'assam',
+      activeHierarchy: 'departmental',
+    })
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('drilldown', {
+      from_level: 'departmentZone',
+      to_level: 'state',
+      hierarchy: 'departmental',
+      source: 'filter',
+    })
+  })
+
   it('attributes a drilldown to the map when told to', () => {
     navigateWithUpdatedFilters({
       filters: {

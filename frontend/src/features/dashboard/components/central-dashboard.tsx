@@ -66,10 +66,8 @@ export function CentralDashboard({
   const overallPerformanceScrollHeight =
     useBreakpointValue({ base: '320px', sm: '420px', lg: '620px' }) ?? '620px'
   const { data } = useDashboardData('central')
-  // Reports one dashboard_level_view per level the user lands on, including deep links and
-  // back/forward navigation. No-op unless analytics is configured.
-  useDashboardLevelAnalytics()
   const {
+    activeHierarchy,
     activeHierarchySelectedBlock,
     activeHierarchySelectedDistrict,
     activeHierarchySelectedGramPanchayat,
@@ -137,6 +135,10 @@ export function CentralDashboard({
     durationDateFormat: DASHBOARD_DURATION_DATE_FORMAT,
     singleTenantOverride,
   })
+  // Reports one dashboard_level_view per level the user lands on, including deep links and
+  // back/forward navigation. No-op unless analytics is configured. Called after the filter
+  // hook so it can be told which hierarchy tab is open — the URL alone cannot say.
+  useDashboardLevelAnalytics(activeHierarchy)
   const {
     hoveredOverallPerformanceRow,
     isMapDistrictView,
@@ -624,6 +626,7 @@ export function CentralDashboard({
       searchParams: new URLSearchParams(dashboardSearch),
       stateSlug: effectiveSelectedState,
       isSingleTenant: inSingleTenantMode,
+      activeHierarchy,
     })
     trackEvent('export_data', { level, hierarchy, format: 'csv' })
 

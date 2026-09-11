@@ -232,11 +232,53 @@ describe('resolveDashboardLevel — legacy value encodings', () => {
   })
 
   it('still resolves the level when a value carries no readable slug', () => {
-    // A numeric-only value has no slug segment to report, but the level still counts.
+    // A numeric-only value is an id, not a name: the level still counts, but nothing is
+    // reported under district_name.
     const view = resolve('?district=2', 'assam')
 
     expect(view.level).toBe('district')
-    expect(view.names).toEqual({ district_name: '2' })
+    expect(view.names).toEqual({})
+  })
+})
+
+describe('resolveDashboardLevel — active hierarchy hint', () => {
+  const resolveWithHint = (search: string, activeHierarchy: 'administrative' | 'departmental') =>
+    resolveDashboardLevel({
+      searchParams: new URLSearchParams(search),
+      stateSlug: 'assam',
+      isSingleTenant: false,
+      activeHierarchy,
+    })
+
+  it('keeps the departmental hierarchy when the tab is open but nothing is selected', () => {
+    // Switching to the departmental tab clears every level param and the tab marker, so
+    // the URL is indistinguishable from a bare administrative state view.
+    const view = resolveWithHint('', 'departmental')
+
+    expect(view.hierarchy).toBe('departmental')
+    expect(view.level).toBe('state')
+  })
+
+  it('keeps the departmental hierarchy after drilling up out of the last department level', () => {
+    const view = resolveWithHint('?departmentZone=1:1:lower-assam', 'departmental')
+
+    expect(view.hierarchy).toBe('departmental')
+    expect(view.level).toBe('departmentZone')
+  })
+
+  it('does not override departmental params with an administrative hint', () => {
+    const view = resolveWithHint('?departmentZone=1:1:lower-assam', 'administrative')
+
+    expect(view.hierarchy).toBe('departmental')
+    expect(view.level).toBe('departmentZone')
+  })
+
+  it('leaves administrative resolution untouched', () => {
+    const view = resolveWithHint('?district=2:2:bajali', 'administrative')
+
+    expect(view.hierarchy).toBe('administrative')
+    expect(view.level).toBe('district')
+    expect(view.names).toEqual({ district_name: 'bajali' })
   })
 })
 

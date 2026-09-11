@@ -141,8 +141,3 @@ export function setAnalyticsUserProperties(properties: AnalyticsUserProperties):
       logDevWarning('Failed to set user properties.', error)
     })
 }
-
-/** Test-only: clears the memoised SDK promise so a fresh config can be picked up. */
-export function resetAnalyticsForTesting(): void {
-  runtimePromise = null
-}

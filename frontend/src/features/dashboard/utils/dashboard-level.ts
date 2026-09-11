@@ -67,6 +67,16 @@ export interface ResolveDashboardLevelArgs {
   /** The `:stateSlug` path segment, empty on the national landing view. */
   stateSlug: string
   isSingleTenant: boolean
+  /**
+   * The hierarchy tab currently active in the dashboard, when the caller knows it.
+   *
+   * The URL cannot express "departmental tab with nothing selected yet" — switching to that
+   * tab clears every level param and the `tab` marker alike — so without this hint the
+   * departmental tab reports as administrative until the first zone is picked, and reverts
+   * again on drill-up. Only ever promotes to `departmental`: departmental params in the URL
+   * still win, matching how the dashboard forces the tab when it sees them.
+   */
+  activeHierarchy?: DashboardHierarchy
 }
 
 /** Reads a param, treating whitespace-only values as absent. */
@@ -74,9 +84,15 @@ function readParam(searchParams: URLSearchParams, key: string): string {
   return (searchParams.get(key) ?? '').trim()
 }
 
-/** Extracts the display slug from a `locationId:analyticsId:slug` value. */
+/**
+ * Extracts the display slug from a `locationId:analyticsId:slug` value.
+ *
+ * A value carrying no slug (a bare `2`) parses to its own numeric id, which is not a name.
+ * Reporting it would put meaningless ids in the `*_name` dimensions, so it is dropped.
+ */
 function toLocationName(value: string): string {
-  return parseStableLocationValue(value).lastSegment ?? ''
+  const lastSegment = parseStableLocationValue(value).lastSegment ?? ''
+  return /^\d+$/.test(lastSegment) ? '' : lastSegment
 }
 
 /**
@@ -121,18 +137,21 @@ function resolveDeepestLevel<TLevel extends AdministrativeLevel | DepartmentalLe
  *
  * Hierarchy is inferred from which params are present because the URL only ever carries
  * `tab=administrative` — the departmental hierarchy is encoded as that param's absence.
+ * `activeHierarchy` disambiguates the case the URL cannot express on its own.
  */
 export function resolveDashboardLevel({
   searchParams,
   stateSlug,
   isSingleTenant,
+  activeHierarchy,
 }: ResolveDashboardLevelArgs): DashboardLevelView {
   const hasDepartmentalParams = DEPARTMENTAL_LEVEL_PARAMS.some((param) =>
     Boolean(readParam(searchParams, param))
   )
-  const hierarchy: DashboardHierarchy = hasDepartmentalParams ? 'departmental' : 'administrative'
+  const isDepartmental = hasDepartmentalParams || activeHierarchy === 'departmental'
+  const hierarchy: DashboardHierarchy = isDepartmental ? 'departmental' : 'administrative'
 
-  const resolved = hasDepartmentalParams
+  const resolved = isDepartmental
     ? // Departmental params are not cascade-guarded on read by the dashboard, so a deeper
       // selection stands even when an intermediate level is missing.
       resolveDeepestLevel(searchParams, DEPARTMENTAL_LEVEL_PARAMS, { enforceCascade: false })

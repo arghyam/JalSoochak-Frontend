@@ -16,7 +16,7 @@ import {
 } from '@/shared/utils/date-format'
 import { isDatePresetId } from '@/shared/utils/date-presets'
 import { trackEvent } from '@/shared/lib/analytics'
-import type { DrilldownSource } from '@/shared/lib/analytics'
+import type { DashboardHierarchy, DrilldownSource } from '@/shared/lib/analytics'
 import { slugify, toCapitalizedWords } from './format-location-label'
 import { resolveDashboardLevel } from './dashboard-level'
 import { parseStableLocationValue, toStableLocationValue } from './stable-location-value'
@@ -91,6 +91,7 @@ const reportDrilldown = ({
   toStateSlug,
   isSingleTenant,
   source,
+  activeHierarchy,
 }: {
   searchParamsSnapshot: string
   nextSearchParams: URLSearchParams
@@ -98,16 +99,23 @@ const reportDrilldown = ({
   toStateSlug: string
   isSingleTenant: boolean
   source: DrilldownSource
+  activeHierarchy?: DashboardHierarchy
 }) => {
   const from = resolveDashboardLevel({
     searchParams: new URLSearchParams(searchParamsSnapshot),
     stateSlug: fromStateSlug,
     isSingleTenant,
+    activeHierarchy,
   })
   const to = resolveDashboardLevel({
     searchParams: nextSearchParams,
     stateSlug: toStateSlug,
     isSingleTenant,
+    // Drilling up out of the last departmental level leaves no departmental param behind,
+    // so without the hint the destination would read as administrative. An explicit
+    // `tab=administrative` on the destination overrides it.
+    activeHierarchy:
+      nextSearchParams.get('tab') === 'administrative' ? 'administrative' : activeHierarchy,
   })
 
   trackEvent('drilldown', {
@@ -125,6 +133,8 @@ export const navigateWithUpdatedFilters = ({
   selectedState,
   singleTenantOverride,
   source = 'filter',
+  activeHierarchy,
+  reportNavigation = true,
 }: {
   filters: FilterUrlUpdate
   navigate: NavigateFunction
@@ -133,6 +143,14 @@ export const navigateWithUpdatedFilters = ({
   singleTenantOverride?: boolean
   /** Which control triggered the navigation. Defaults to the filter dropdowns. */
   source?: DrilldownSource
+  /** The hierarchy tab active before this navigation, when the caller knows it. */
+  activeHierarchy?: DashboardHierarchy
+  /**
+   * Whether this navigation is a user drilldown worth reporting. `false` for programmatic
+   * URL restoration (the mount-time rewrite that replays stored filters), which is not a
+   * level transition the user performed and would otherwise inflate `drilldown` counts.
+   */
+  reportNavigation?: boolean
 }) => {
   const forcedState = singleTenantOverride ? selectedState : (filters.state ?? '')
   const nextPath = singleTenantOverride
@@ -166,14 +184,17 @@ export const navigateWithUpdatedFilters = ({
     nextSearchParams.delete('tab')
   }
 
-  reportDrilldown({
-    searchParamsSnapshot,
-    nextSearchParams,
-    fromStateSlug: selectedState,
-    toStateSlug: forcedState,
-    isSingleTenant: Boolean(singleTenantOverride),
-    source,
-  })
+  if (reportNavigation) {
+    reportDrilldown({
+      searchParamsSnapshot,
+      nextSearchParams,
+      fromStateSlug: selectedState,
+      toStateSlug: forcedState,
+      isSingleTenant: Boolean(singleTenantOverride),
+      source,
+      activeHierarchy,
+    })
+  }
 
   const nextSearch = nextSearchParams.toString()
   navigate({

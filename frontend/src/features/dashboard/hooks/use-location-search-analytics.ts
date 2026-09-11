@@ -10,7 +10,7 @@ import { useLocation, useParams } from 'react-router-dom'
 import { isSingleTenantMode } from '@/config/server-config'
 import { useDebounce } from '@/shared/hooks/use-debounce'
 import { trackEvent } from '@/shared/lib/analytics'
-import type { AnalyticsEventParamMap } from '@/shared/lib/analytics'
+import type { AnalyticsEventParamMap, DashboardHierarchy } from '@/shared/lib/analytics'
 import { stateCodeToSlug } from '@/shared/constants/states'
 import { resolveDashboardLevel } from '../utils/dashboard-level'
 
@@ -19,7 +19,9 @@ const SEARCH_DEBOUNCE_MS = 600
 
 type PendingSearch = AnalyticsEventParamMap['location_search']
 
-export function useLocationSearchAnalytics(): (term: string) => void {
+export function useLocationSearchAnalytics(
+  activeHierarchy?: DashboardHierarchy
+): (term: string) => void {
   const { search } = useLocation()
   const { stateSlug = '' } = useParams<{ stateSlug?: string }>()
 
@@ -45,10 +47,12 @@ export function useLocationSearchAnalytics(): (term: string) => void {
         searchParams: new URLSearchParams(search),
         stateSlug: stateSlug ? (stateCodeToSlug(stateSlug) ?? stateSlug) : '',
         isSingleTenant: isSingleTenantMode(),
+        activeHierarchy,
       })
 
-      setPendingSearch({ search_term: trimmed, level, hierarchy })
+      // Only the length travels: the term itself is untrusted free text.
+      setPendingSearch({ search_term_length: trimmed.length, level, hierarchy })
     },
-    [search, stateSlug]
+    [search, stateSlug, activeHierarchy]
   )
 }

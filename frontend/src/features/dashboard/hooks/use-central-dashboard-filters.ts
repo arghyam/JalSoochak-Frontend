@@ -12,7 +12,7 @@ import {
 import { resolveDatePresetRange } from '@/shared/utils/date-presets'
 import { stateCodeToSlug } from '@/shared/constants/states'
 import { trackEvent } from '@/shared/lib/analytics'
-import type { DrilldownSource } from '@/shared/lib/analytics'
+import type { DashboardHierarchy, DrilldownSource } from '@/shared/lib/analytics'
 import type { StateUtOption } from '../types'
 import { computeTrailIndices } from '../utils/trail-index'
 import {
@@ -362,6 +362,9 @@ export function useCentralDashboardFilters({
     setIsDurationCleared(true)
   }, [currentIsoDate, durationSavedOn, selectedDuration])
   /* eslint-enable react-hooks/set-state-in-effect */
+  // Index 0 is the administrative (LGD) hierarchy, 1 is departmental.
+  const activeHierarchy: DashboardHierarchy =
+    filterTabIndex === 1 ? 'departmental' : 'administrative'
   const updateFilterUrl = (filters: FilterUrlUpdate, source?: DrilldownSource) => {
     navigateWithUpdatedFilters({
       filters,
@@ -370,6 +373,7 @@ export function useCentralDashboardFilters({
       selectedState,
       singleTenantOverride: hasSingleTenantOverride,
       source,
+      activeHierarchy,
     })
   }
 
@@ -386,6 +390,8 @@ export function useCentralDashboardFilters({
         searchParamsSnapshot,
         selectedState,
         singleTenantOverride: hasSingleTenantOverride,
+        // Replaying stored filters into the URL is not a drilldown the user performed.
+        reportNavigation: false,
         filters: {
           state: storedFilters.selectedDepartmentState || storedFilters.selectedState || '',
           district: '',
@@ -406,6 +412,7 @@ export function useCentralDashboardFilters({
       searchParamsSnapshot,
       selectedState,
       singleTenantOverride: hasSingleTenantOverride,
+      reportNavigation: false,
       filters: {
         state: storedFilters.selectedState ?? '',
         district: storedFilters.selectedDistrict ?? '',
@@ -747,6 +754,7 @@ export function useCentralDashboardFilters({
   ])
 
   return {
+    activeHierarchy,
     activeHierarchySelectedBlock,
     activeHierarchySelectedDistrict,
     activeHierarchySelectedGramPanchayat,

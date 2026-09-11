@@ -208,30 +208,41 @@ describe('analytics — parameter sanitising', () => {
   it('truncates strings to the GA4 100-character limit', async () => {
     const { trackEvent } = await loadAnalytics()
 
-    trackEvent('location_search', {
-      search_term: 'a'.repeat(150),
-      level: 'state',
-      hierarchy: 'administrative',
-    })
+    trackEvent('quick_link_click', { link: 'a'.repeat(150), external: false })
     await new Promise(process.nextTick)
 
     const params = mockLogEvent.mock.calls[0][2]
-    expect(params.search_term).toHaveLength(100)
+    expect(params.link).toHaveLength(100)
   })
 
   it('trims surrounding whitespace and drops whitespace-only values', async () => {
     const { trackEvent } = await loadAnalytics()
 
+    trackEvent('quick_link_click', {
+      link: '  glossary  ',
+      external: '   ' as unknown as boolean,
+    })
+    await new Promise(process.nextTick)
+
+    expect(mockLogEvent).toHaveBeenCalledWith(expect.anything(), 'quick_link_click', {
+      link: 'glossary',
+    })
+  })
+
+  it('reports a location search by term length, never the term itself', async () => {
+    const { trackEvent } = await loadAnalytics()
+
     trackEvent('location_search', {
-      search_term: '  bajali  ',
+      search_term_length: 6,
       level: 'state',
-      hierarchy: '   ' as 'administrative',
+      hierarchy: 'administrative',
     })
     await new Promise(process.nextTick)
 
     expect(mockLogEvent).toHaveBeenCalledWith(expect.anything(), 'location_search', {
-      search_term: 'bajali',
+      search_term_length: 6,
       level: 'state',
+      hierarchy: 'administrative',
     })
   })
 })

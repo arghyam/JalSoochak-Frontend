@@ -116,7 +116,12 @@ export interface AnalyticsEventParamMap {
    * count available here would lag the term by a keystroke.
    */
   location_search: {
-    search_term: string
+    /**
+     * Length of the settled term, never the term itself. The search box is free text a
+     * visitor can type anything into — a name, a phone number, an address — so the content
+     * must not leave the browser.
+     */
+    search_term_length: number
     /** The level the user was searching from, not the level searched for. */
     level: DashboardLevel
     hierarchy: DashboardHierarchy
