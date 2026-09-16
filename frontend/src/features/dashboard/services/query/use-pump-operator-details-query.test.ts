@@ -9,7 +9,7 @@ jest.mock('@tanstack/react-query', () => ({
   useQuery: jest.fn(),
 }))
 
-const params = { pumpOperatorId: 12, tenant_code: 'MH' }
+const params = { pumpOperatorUuid: '3f1a9c22-5b7e-4d38-9a10-8c4b2e6f0d71', tenant_code: 'MH' }
 
 describe('usePumpOperatorDetailsQuery', () => {
   afterEach(() => {

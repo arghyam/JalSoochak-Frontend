@@ -15,7 +15,10 @@ import {
   toLocalIsoDate,
 } from '@/shared/utils/date-format'
 import { isDatePresetId } from '@/shared/utils/date-presets'
+import { trackEvent } from '@/shared/lib/analytics'
+import type { DashboardHierarchy, DrilldownSource } from '@/shared/lib/analytics'
 import { slugify, toCapitalizedWords } from './format-location-label'
+import { resolveDashboardLevel } from './dashboard-level'
 import { parseStableLocationValue, toStableLocationValue } from './stable-location-value'
 
 export const CENTRAL_DASHBOARD_FILTER_STORAGE_KEY = 'central-dashboard-filters'
@@ -74,18 +77,94 @@ export type LocationOption = SearchableSelectOption & {
   analyticsId?: number
 }
 
+/**
+ * Reports the level transition this navigation performs.
+ *
+ * Derives both ends from the search params rather than from the caller, so the "from" level
+ * is always whatever the URL actually showed. `dashboard_level_view` counts the views; this
+ * event exists to attribute them to the control the user reached for.
+ */
+const reportDrilldown = ({
+  searchParamsSnapshot,
+  nextSearchParams,
+  fromStateSlug,
+  toStateSlug,
+  isSingleTenant,
+  source,
+  activeHierarchy,
+  nextHierarchy,
+}: {
+  searchParamsSnapshot: string
+  nextSearchParams: URLSearchParams
+  fromStateSlug: string
+  toStateSlug: string
+  isSingleTenant: boolean
+  source: DrilldownSource
+  activeHierarchy?: DashboardHierarchy
+  nextHierarchy?: DashboardHierarchy
+}) => {
+  const from = resolveDashboardLevel({
+    searchParams: new URLSearchParams(searchParamsSnapshot),
+    stateSlug: fromStateSlug,
+    isSingleTenant,
+    activeHierarchy,
+  })
+  const to = resolveDashboardLevel({
+    searchParams: nextSearchParams,
+    stateSlug: toStateSlug,
+    isSingleTenant,
+    // Drilling up out of the last departmental level leaves no departmental param behind,
+    // so without the hint the destination would read as administrative. The hint must
+    // describe where this navigation lands, not where it started: a tab switch or a
+    // clear changes hierarchy without leaving a marker in the URL, so callers that know
+    // the destination pass `nextHierarchy`. An explicit `tab=administrative` on the
+    // destination still overrides both.
+    activeHierarchy:
+      nextSearchParams.get('tab') === 'administrative'
+        ? 'administrative'
+        : (nextHierarchy ?? activeHierarchy),
+  })
+
+  trackEvent('drilldown', {
+    from_level: from.level,
+    to_level: to.level,
+    hierarchy: to.hierarchy,
+    source,
+  })
+}
+
 export const navigateWithUpdatedFilters = ({
   filters,
   navigate,
   searchParamsSnapshot,
   selectedState,
   singleTenantOverride,
+  source = 'filter',
+  activeHierarchy,
+  nextHierarchy,
+  reportNavigation = true,
 }: {
   filters: FilterUrlUpdate
   navigate: NavigateFunction
   searchParamsSnapshot: string
   selectedState: string
   singleTenantOverride?: boolean
+  /** Which control triggered the navigation. Defaults to the filter dropdowns. */
+  source?: DrilldownSource
+  /** The hierarchy tab active before this navigation, when the caller knows it. */
+  activeHierarchy?: DashboardHierarchy
+  /**
+   * The hierarchy tab this navigation lands on, when it differs from `activeHierarchy`.
+   * Required for tab switches and clears, which change hierarchy without leaving a
+   * distinguishing marker in the URL. Defaults to `activeHierarchy`.
+   */
+  nextHierarchy?: DashboardHierarchy
+  /**
+   * Whether this navigation is a user drilldown worth reporting. `false` for programmatic
+   * URL restoration (the mount-time rewrite that replays stored filters), which is not a
+   * level transition the user performed and would otherwise inflate `drilldown` counts.
+   */
+  reportNavigation?: boolean
 }) => {
   const forcedState = singleTenantOverride ? selectedState : (filters.state ?? '')
   const nextPath = singleTenantOverride
@@ -117,6 +196,19 @@ export const navigateWithUpdatedFilters = ({
     nextSearchParams.set('tab', 'administrative')
   } else {
     nextSearchParams.delete('tab')
+  }
+
+  if (reportNavigation) {
+    reportDrilldown({
+      searchParamsSnapshot,
+      nextSearchParams,
+      fromStateSlug: selectedState,
+      toStateSlug: forcedState,
+      isSingleTenant: Boolean(singleTenantOverride),
+      source,
+      activeHierarchy,
+      nextHierarchy,
+    })
   }
 
   const nextSearch = nextSearchParams.toString()

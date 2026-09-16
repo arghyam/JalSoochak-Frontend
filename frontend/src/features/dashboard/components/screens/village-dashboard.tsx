@@ -125,6 +125,42 @@ const formatCount = (value?: number | null) => {
   return String(value)
 }
 
+/**
+ * Operator status arrives in two shapes: the detail endpoint serialises the TenantUserStatus enum
+ * name ("ACTIVE"), while the by-scheme summary returns its numeric code. Codes are the backend
+ * enum's own — INACTIVE(0), ACTIVE(1) — not array positions.
+ */
+const TENANT_USER_STATUS_LABELS: Record<number, string> = {
+  0: 'Inactive',
+  1: 'Active',
+}
+
+const STATUS_NAME_LABELS: Record<string, string> = {
+  ACTIVE: 'Active',
+  INACTIVE: 'Inactive',
+}
+
+const formatOperatorStatus = (value?: number | string | null) => {
+  if (typeof value === 'string' && value.trim().length > 0) {
+    const key = value.trim().toUpperCase()
+    return STATUS_NAME_LABELS[key] ?? value.trim()
+  }
+
+  if (typeof value === 'number') {
+    return TENANT_USER_STATUS_LABELS[value] ?? String(value)
+  }
+
+  return 'N/A'
+}
+
+const formatContactValue = (value?: string | null) => {
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    return 'N/A'
+  }
+
+  return value.trim()
+}
+
 const getMissedSubmissionCount = (value?: number | string[] | null) => {
   if (Array.isArray(value)) {
     return value.length
@@ -474,7 +510,9 @@ function ReadingComplianceSection({
     pumpOperatorPages[activePumpOperatorPage - 1] ?? villagePumpOperatorDetails
   const activePumpOperatorKey =
     activePumpOperator.mappingKey ?? getOperatorMappingKey(activePumpOperator)
-  const activePumpOperatorId = activePumpOperator.id
+  // The public detail endpoint is keyed on the operator uuid, not the sequential id — the id route
+  // is authenticated. Every list this page reads from already carries the uuid.
+  const activePumpOperatorUuid = activePumpOperator.uuid
   const activePumpOperatorSchemeId = activePumpOperator.schemeId
 
   // Reset all paging when the selected scheme changes
@@ -492,19 +530,20 @@ function ReadingComplianceSection({
   const activePumpOperatorDetailsParams = useMemo(
     () =>
       tenantCode &&
-      typeof activePumpOperatorId === 'number' &&
+      typeof activePumpOperatorUuid === 'string' &&
+      activePumpOperatorUuid.length > 0 &&
       typeof activePumpOperatorSchemeId === 'number' &&
       startDate &&
       endDate
         ? {
             tenant_code: tenantCode,
-            pumpOperatorId: activePumpOperatorId,
+            pumpOperatorUuid: activePumpOperatorUuid,
             scheme_id: activePumpOperatorSchemeId,
             startDate,
             endDate,
           }
         : null,
-    [activePumpOperatorId, activePumpOperatorSchemeId, endDate, startDate, tenantCode]
+    [activePumpOperatorUuid, activePumpOperatorSchemeId, endDate, startDate, tenantCode]
   )
 
   const readingComplianceParams = useMemo(
@@ -870,6 +909,47 @@ function ReadingComplianceSection({
                   {resolvedActivePumpOperator.schemeName ||
                     resolvedActivePumpOperator.scheme ||
                     'N/A'}
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                  {t('pumpOperators.details.fields.phoneNumber', {
+                    defaultValue: 'Phone number',
+                  })}
+                </Text>
+                <Text
+                  textStyle="bodyText4"
+                  fontWeight="400"
+                  color="neutral.950"
+                  textAlign={{ base: 'left', sm: 'right' }}
+                  wordBreak="break-word"
+                >
+                  {formatContactValue(resolvedActivePumpOperator.phoneNumber)}
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                  {t('pumpOperators.details.fields.email', {
+                    defaultValue: 'Email',
+                  })}
+                </Text>
+                <Text
+                  textStyle="bodyText4"
+                  fontWeight="400"
+                  color="neutral.950"
+                  textAlign={{ base: 'left', sm: 'right' }}
+                  wordBreak="break-word"
+                >
+                  {formatContactValue(resolvedActivePumpOperator.email)}
+                </Text>
+                <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">
+                  {t('pumpOperators.details.fields.status', {
+                    defaultValue: 'Status',
+                  })}
+                </Text>
+                <Text
+                  textStyle="bodyText4"
+                  fontWeight="400"
+                  color="neutral.950"
+                  textAlign={{ base: 'left', sm: 'right' }}
+                >
+                  {formatOperatorStatus(resolvedActivePumpOperator.status)}
                 </Text>
                 <Flex align="center" gap="4px">
                   <Text textStyle="bodyText4" fontWeight="400" color="neutral.600">

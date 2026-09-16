@@ -27,6 +27,12 @@ export default defineConfig(() => {
             )
               return 'vendor-charts'
 
+            // Isolate firebase so the lazy import() in shared/lib/analytics stays lazy.
+            // Without this branch the catch-all below folds it into the eager `vendor`
+            // chunk, shipping the SDK to dev and staging where analytics is disabled.
+            if (id.includes('/node_modules/firebase/') || id.includes('/node_modules/@firebase/'))
+              return 'vendor-firebase'
+
             // Bucket all remaining node_modules into a single stable vendor
             // chunk. Defining manualChunks disables Vite's automatic vendor
             // splitting, so an explicit catch-all is required. Splitting this

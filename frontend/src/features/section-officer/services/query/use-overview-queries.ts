@@ -43,8 +43,11 @@ export function useDashboardStatsQuery(startDate: string, endDate: string) {
   const userId = useAuthStore((state) => state.user?.id ?? '')
 
   return useQuery({
+    // The request no longer carries tenantId or userId -- the server reads them from the token --
+    // but both stay in the key so one browser session cannot serve a cached dashboard to the next
+    // user who signs in, and stay in `enabled` so the query waits until a user is loaded.
     queryKey: sectionOfficerQueryKeys.dashboardStats(tenantId, userId, startDate, endDate),
-    queryFn: () => overviewApi.getDashboardStats(tenantId, userId, startDate, endDate),
+    queryFn: () => overviewApi.getDashboardStats(startDate, endDate),
     enabled: Boolean(tenantId) && Boolean(userId) && Boolean(startDate) && Boolean(endDate),
   })
 }

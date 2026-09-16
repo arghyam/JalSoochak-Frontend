@@ -132,6 +132,20 @@ export const toLocalIsoDate = (value: Date = new Date()): string => {
 // Inverse of toLocalIsoDate: midnight local time on the given day.
 export const isoDateToLocalDate = (isoDate: string): Date => new Date(`${isoDate}T00:00:00`)
 
+// Number of calendar days an ISO range spans, counting both ends. A single-day range is 1.
+// Returns 0 for a malformed or reversed range. Built from local midnights so a DST
+// transition inside the range cannot round the result down.
+export const countInclusiveDays = (startIsoDate: string, endIsoDate: string): number => {
+  const start = isoDateToLocalDate(startIsoDate)
+  const end = isoDateToLocalDate(endIsoDate)
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return 0
+
+  const millisecondsPerDay = 24 * 60 * 60 * 1000
+  const spannedDays = Math.round((end.getTime() - start.getTime()) / millisecondsPerDay)
+  return spannedDays < 0 ? 0 : spannedDays + 1
+}
+
 // Trims an ISO day to a ceiling. Safe to compare lexicographically because YYYY-MM-DD
 // sorts chronologically.
 export const clampIsoDateToMax = (value: string, max: string) => {

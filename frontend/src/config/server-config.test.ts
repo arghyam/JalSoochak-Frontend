@@ -6,7 +6,18 @@ type TestWindow = Window & {
     SINGLE_TENANT_MODE?: boolean
     CAPTCHA_ENABLED?: boolean
     RECAPTCHA_SITE_KEY?: string
+    FIREBASE?: Record<string, string>
   }
+}
+
+const FULL_FIREBASE_CONFIG = {
+  apiKey: 'test-api-key',
+  authDomain: 'test.firebaseapp.com',
+  projectId: 'test-project',
+  storageBucket: 'test.firebasestorage.app',
+  messagingSenderId: '1234',
+  appId: '1:1234:web:abcd',
+  measurementId: 'G-TEST',
 }
 
 describe('server-config', () => {
@@ -49,5 +60,65 @@ describe('server-config', () => {
     w.APP_CONFIG = { API_BASE_URL: '', SINGLE_TENANT_MODE: false, RECAPTCHA_SITE_KEY: 'site-key' }
     ;({ getRecaptchaSiteKey } = await import('./server-config'))
     expect(getRecaptchaSiteKey()).toBe('site-key')
+  })
+
+  describe('getFirebaseConfig — the analytics gate', () => {
+    it('returns undefined when no FIREBASE block is present, as on dev and staging', async () => {
+      w.APP_CONFIG = { API_BASE_URL: '', SINGLE_TENANT_MODE: false }
+      const { getFirebaseConfig, isAnalyticsEnabled } = await import('./server-config')
+
+      expect(getFirebaseConfig()).toBeUndefined()
+      expect(isAnalyticsEnabled()).toBe(false)
+    })
+
+    it('returns the config when every required credential is present', async () => {
+      w.APP_CONFIG = {
+        API_BASE_URL: '',
+        SINGLE_TENANT_MODE: false,
+        FIREBASE: FULL_FIREBASE_CONFIG,
+      }
+      const { getFirebaseConfig, isAnalyticsEnabled } = await import('./server-config')
+
+      expect(getFirebaseConfig()).toEqual(FULL_FIREBASE_CONFIG)
+      expect(isAnalyticsEnabled()).toBe(true)
+    })
+
+    it.each(['apiKey', 'projectId', 'appId', 'measurementId'])(
+      'treats a config missing %s as absent rather than initialising Firebase partially',
+      async (missingKey) => {
+        const partial = { ...FULL_FIREBASE_CONFIG }
+        delete partial[missingKey as keyof typeof partial]
+        w.APP_CONFIG = { API_BASE_URL: '', SINGLE_TENANT_MODE: false, FIREBASE: partial }
+        const { getFirebaseConfig, isAnalyticsEnabled } = await import('./server-config')
+
+        expect(getFirebaseConfig()).toBeUndefined()
+        expect(isAnalyticsEnabled()).toBe(false)
+      }
+    )
+
+    it('treats a blank credential as absent', async () => {
+      w.APP_CONFIG = {
+        API_BASE_URL: '',
+        SINGLE_TENANT_MODE: false,
+        FIREBASE: { ...FULL_FIREBASE_CONFIG, apiKey: '   ' },
+      }
+      const { isAnalyticsEnabled } = await import('./server-config')
+
+      expect(isAnalyticsEnabled()).toBe(false)
+    })
+
+    it('ignores an optional credential being absent', async () => {
+      // authDomain, storageBucket and messagingSenderId are not required to initialise.
+      const {
+        authDomain: _a,
+        storageBucket: _s,
+        messagingSenderId: _m,
+        ...required
+      } = FULL_FIREBASE_CONFIG
+      w.APP_CONFIG = { API_BASE_URL: '', SINGLE_TENANT_MODE: false, FIREBASE: required }
+      const { isAnalyticsEnabled } = await import('./server-config')
+
+      expect(isAnalyticsEnabled()).toBe(true)
+    })
   })
 })

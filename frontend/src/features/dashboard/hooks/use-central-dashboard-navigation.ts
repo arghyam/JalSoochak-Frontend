@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react'
 import type { EntityPerformance, NationalDashboardBoundaryState, StateUtOption } from '../types'
+import type { DrilldownSource } from '@/shared/lib/analytics'
 import type { FilterUrlUpdate, LocationOption } from '../utils/central-dashboard-helpers'
 import { isActiveTenantStatus, toStateSlug } from '../utils/central-dashboard-helpers'
 import { slugify } from '../utils/format-location-label'
@@ -9,15 +10,15 @@ type UseCentralDashboardNavigationParams = {
   boundaryOverallPerformanceOptions: LocationOption[]
   districtToStateMap: Map<string, NationalDashboardBoundaryState>
   expectedOverallPerformanceOptions: LocationOption[]
-  handleBlockChange: (value: string) => void
-  handleDepartmentCircleChange: (value: string) => void
-  handleDepartmentDivisionChange: (value: string) => void
-  handleDepartmentSubdivisionChange: (value: string) => void
-  handleDepartmentVillageChange: (value: string) => void
-  handleDepartmentZoneChange: (value: string) => void
-  handleDistrictChange: (value: string) => void
-  handleGramPanchayatChange: (value: string) => void
-  handleVillageChange: (value: string) => void
+  handleBlockChange: (value: string, source?: DrilldownSource) => void
+  handleDepartmentCircleChange: (value: string, source?: DrilldownSource) => void
+  handleDepartmentDivisionChange: (value: string, source?: DrilldownSource) => void
+  handleDepartmentSubdivisionChange: (value: string, source?: DrilldownSource) => void
+  handleDepartmentVillageChange: (value: string, source?: DrilldownSource) => void
+  handleDepartmentZoneChange: (value: string, source?: DrilldownSource) => void
+  handleDistrictChange: (value: string, source?: DrilldownSource) => void
+  handleGramPanchayatChange: (value: string, source?: DrilldownSource) => void
+  handleVillageChange: (value: string, source?: DrilldownSource) => void
   isCentralLandingView: boolean
   isDepartmentCircleSelected: boolean
   isDepartmentDivisionSelected: boolean
@@ -38,7 +39,7 @@ type UseCentralDashboardNavigationParams = {
   setFilterTabIndex: Dispatch<SetStateAction<number>>
   setHoveredOverallPerformanceRow: (value: EntityPerformance | null) => void
   setSelectedScheme: Dispatch<SetStateAction<string>>
-  updateFilterUrl: (filters: FilterUrlUpdate) => void
+  updateFilterUrl: (filters: FilterUrlUpdate, source?: DrilldownSource) => void
 }
 
 export function useCentralDashboardNavigation({
@@ -76,7 +77,7 @@ export function useCentralDashboardNavigation({
   setSelectedScheme,
   updateFilterUrl,
 }: UseCentralDashboardNavigationParams) {
-  const handleStateClick = (_stateId: string, stateName: string) => {
+  const handleStateClick = (_stateId: string, stateName: string, source: DrilldownSource) => {
     const stateOption = locationSearchStates.find(
       (option) => option.label.toLowerCase() === stateName.toLowerCase()
     )
@@ -87,16 +88,20 @@ export function useCentralDashboardNavigation({
     setActiveTrailIndex(null)
     setFilterTabIndex(0)
     setSelectedScheme('')
-    updateFilterUrl({
-      state: stateOption?.value ?? toStateSlug(stateName),
-      tab: 'administrative',
-    })
+    updateFilterUrl(
+      {
+        state: stateOption?.value ?? toStateSlug(stateName),
+        tab: 'administrative',
+      },
+      source
+    )
   }
 
   const handleDistrictViewClick = (
     districtId: string,
     districtRawName: string,
-    parentState: NationalDashboardBoundaryState
+    parentState: NationalDashboardBoundaryState,
+    source: DrilldownSource
   ) => {
     setActiveTrailIndex(null)
     setSelectedScheme('')
@@ -117,14 +122,17 @@ export function useCentralDashboardNavigation({
       Number.isFinite(districtLgdId) ? districtLgdId : 0,
       slugify(districtName)
     )
-    updateFilterUrl({
-      state: stateValue,
-      district: districtValue,
-      block: '',
-      gramPanchayat: '',
-      village: '',
-      tab: 'administrative',
-    })
+    updateFilterUrl(
+      {
+        state: stateValue,
+        district: districtValue,
+        block: '',
+        gramPanchayat: '',
+        village: '',
+        tab: 'administrative',
+      },
+      source
+    )
   }
 
   const resolveOverallPerformanceLocationValue = (row: EntityPerformance): string | null => {
@@ -186,30 +194,30 @@ export function useCentralDashboardNavigation({
     return matchedOption?.value ?? null
   }
 
-  const navigateToResolvedLocationValue = (selectedValue: string) => {
+  const navigateToResolvedLocationValue = (selectedValue: string, source: DrilldownSource) => {
     if (isDepartmentTabActive) {
       if (isDepartmentSubdivisionSelected) {
-        handleDepartmentVillageChange(selectedValue)
+        handleDepartmentVillageChange(selectedValue, source)
       } else if (isDepartmentDivisionSelected) {
-        handleDepartmentSubdivisionChange(selectedValue)
+        handleDepartmentSubdivisionChange(selectedValue, source)
       } else if (isDepartmentCircleSelected) {
-        handleDepartmentDivisionChange(selectedValue)
+        handleDepartmentDivisionChange(selectedValue, source)
       } else if (isDepartmentZoneSelected) {
-        handleDepartmentCircleChange(selectedValue)
+        handleDepartmentCircleChange(selectedValue, source)
       } else if (isDepartmentStateSelected) {
-        handleDepartmentZoneChange(selectedValue)
+        handleDepartmentZoneChange(selectedValue, source)
       }
       return
     }
 
     if (isHierarchyFourthLevelSelected) {
-      handleVillageChange(selectedValue)
+      handleVillageChange(selectedValue, source)
     } else if (isHierarchyThirdLevelSelected) {
-      handleGramPanchayatChange(selectedValue)
+      handleGramPanchayatChange(selectedValue, source)
     } else if (isHierarchySecondLevelSelected) {
-      handleBlockChange(selectedValue)
+      handleBlockChange(selectedValue, source)
     } else if (isHierarchyStateSelected) {
-      handleDistrictChange(selectedValue)
+      handleDistrictChange(selectedValue, source)
     }
   }
 
@@ -219,13 +227,13 @@ export function useCentralDashboardNavigation({
     if (isMapDistrictView && isCentralLandingView && !isDepartmentTabActive) {
       const parentState = districtToStateMap.get(regionId)
       if (parentState) {
-        handleDistrictViewClick(regionId, regionName, parentState)
+        handleDistrictViewClick(regionId, regionName, parentState, 'map')
         return
       }
     }
 
     if (isCentralLandingView && !isDepartmentTabActive) {
-      handleStateClick(regionId, regionName)
+      handleStateClick(regionId, regionName, 'map')
       return
     }
 
@@ -236,7 +244,7 @@ export function useCentralDashboardNavigation({
     if (selectedValue) {
       setActiveTrailIndex(null)
       setSelectedScheme('')
-      navigateToResolvedLocationValue(selectedValue)
+      navigateToResolvedLocationValue(selectedValue, 'map')
       return
     }
 
@@ -245,28 +253,32 @@ export function useCentralDashboardNavigation({
       return
     }
 
-    handleOverallPerformanceRowClick(matchedRow)
+    // Reached via the map, so keep the original source rather than defaulting to the table.
+    handleOverallPerformanceRowClick(matchedRow, 'map')
   }
 
-  const handleOverallPerformanceRowClick = (row: EntityPerformance) => {
+  const handleOverallPerformanceRowClick = (
+    row: EntityPerformance,
+    source: DrilldownSource = 'table'
+  ) => {
     setActiveTrailIndex(null)
     setSelectedScheme('')
     setHoveredOverallPerformanceRow(null)
 
     if (isCentralLandingView && !isDepartmentTabActive) {
-      handleStateClick(row.id, row.name)
+      handleStateClick(row.id, row.name, source)
       return
     }
 
     const selectedValue = resolveOverallPerformanceLocationValue(row)
     if (!selectedValue) {
       if (isDepartmentTabActive) {
-        handleStateClick(row.id, row.name)
+        handleStateClick(row.id, row.name, source)
       }
       return
     }
 
-    navigateToResolvedLocationValue(selectedValue)
+    navigateToResolvedLocationValue(selectedValue, source)
   }
 
   const handleStateHover = (_stateId: string, _stateName: string, _metrics: unknown) => {

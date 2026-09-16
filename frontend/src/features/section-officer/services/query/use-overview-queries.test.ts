@@ -281,12 +281,10 @@ describe('useDashboardStatsQuery', () => {
     })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-    expect(overviewApi.getDashboardStats).toHaveBeenCalledWith(
-      MOCK_TENANT_ID,
-      MOCK_USER_ID,
-      '2026-01-01',
-      '2026-01-31'
-    )
+    // Dates only. Identity is not sent any more -- the server reads tenant and user from the
+    // bearer token, because passing them let a signed-in caller ask for someone else's dashboard.
+    // The call is typed to two arguments now, so sending an id again would not compile.
+    expect(overviewApi.getDashboardStats).toHaveBeenCalledWith('2026-01-01', '2026-01-31')
     expect(result.current.data).toEqual({
       totalWaterSupplied: 100,
       totalAnomalyCount: 5,
