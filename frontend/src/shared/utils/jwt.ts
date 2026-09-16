@@ -1,17 +1,11 @@
+/**
+ * Identity claims are deliberately absent: the token carries no name, email or phone.
+ * Profile fields come from the auth response body and GET /api/v1/users/me.
+ */
 interface JWTPayload {
   sub: string
-  email?: string
-  name?: string
-  preferred_username?: string
   exp?: number
   iat?: number
-}
-
-export interface UserFromJWT {
-  id: string
-  name: string
-  email: string
-  phoneNumber: string
 }
 
 export function parseJWT(token: string): JWTPayload | null {
@@ -31,18 +25,6 @@ export function parseJWT(token: string): JWTPayload | null {
   } catch (error) {
     console.error('Failed to parse JWT:', error)
     return null
-  }
-}
-
-export function extractUserFromJWT(idToken: string): UserFromJWT | null {
-  const payload = parseJWT(idToken)
-  if (!payload) return null
-
-  return {
-    id: payload.sub || '',
-    name: payload.name || '',
-    email: payload.email || '',
-    phoneNumber: payload.preferred_username || '',
   }
 }
 

@@ -1,19 +1,12 @@
-import { describe, expect, it, jest, afterEach, beforeEach } from '@jest/globals'
+import { describe, expect, it, jest, afterEach } from '@jest/globals'
 import { AxiosError } from 'axios'
 import { authApi, buildSetPasswordRequest, buildUpdateProfileRequest } from './auth-api'
 import apiClient from '@/shared/lib/axios'
-import { parseJWT } from '@/shared/utils/jwt'
 
 jest.mock('@/shared/lib/axios', () => ({
   __esModule: true,
   default: { post: jest.fn(), get: jest.fn(), put: jest.fn(), patch: jest.fn() },
 }))
-
-jest.mock('@/shared/utils/jwt', () => ({
-  parseJWT: jest.fn(() => ({ sub: '1', name: 'Test User', email: 't@x.com' })),
-}))
-
-const parseJWTMock = parseJWT as jest.MockedFunction<typeof parseJWT>
 
 const mockedClient = apiClient as jest.Mocked<typeof apiClient>
 
@@ -26,14 +19,10 @@ const tokenPayload = {
   phone_number: '999',
   tenant_id: 't1',
   tenant_code: 'TC',
+  name: 'Test User',
 }
 
 describe('authApi', () => {
-  beforeEach(() => {
-    parseJWTMock.mockReset()
-    parseJWTMock.mockReturnValue({ sub: '1', name: 'Test User', email: 't@x.com' })
-  })
-
   afterEach(() => {
     jest.clearAllMocks()
   })
@@ -78,10 +67,32 @@ describe('authApi', () => {
     expect(res.user.personId).toBe('9')
     expect(res.user.tenantId).toBe('t1')
     expect(res.user.tenantCode).toBe('TC')
+    expect(res.user.name).toBe('Test User')
   })
 
-  it('buildUserFromTokenResponse uses empty strings when JWT parse returns null', async () => {
-    parseJWTMock.mockReturnValueOnce(null)
+  it('takes the name from the response body, never from the token payload', async () => {
+    // Guards the PII-in-JWT fix: identity claims must not be read back out of the token.
+    const tokenWithPiiClaims = `e30.${Buffer.from(
+      JSON.stringify({ sub: '1', name: 'Name From Token', email: 'leak@x.com' }),
+      'utf8'
+    )
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '')}.sig`
+
+    mockedClient.post.mockResolvedValueOnce({
+      data: {
+        data: { ...tokenPayload, access_token: tokenWithPiiClaims, name: 'Name From Body' },
+      },
+    } as never)
+
+    const res = await authApi.login({ email: 'a', password: 'b' })
+    expect(res.user.name).toBe('Name From Body')
+    expect(JSON.stringify(res.user)).not.toContain('leak@x.com')
+  })
+
+  it('buildUserFromTokenResponse falls back to an empty name when the response omits it', async () => {
     mockedClient.post.mockResolvedValueOnce({
       data: {
         data: {
@@ -94,7 +105,6 @@ describe('authApi', () => {
     } as never)
     const res = await authApi.login({ email: 'a', password: 'b' })
     expect(res.user.name).toBe('')
-    expect(res.user.email).toBe('')
   })
 
   it('refresh returns session when access_token present', async () => {

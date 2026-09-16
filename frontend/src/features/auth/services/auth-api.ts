@@ -1,6 +1,5 @@
 import { isAxiosError } from 'axios'
 import apiClient from '@/shared/lib/axios'
-import { parseJWT } from '@/shared/utils/jwt'
 
 export interface LoginRequest {
   email: string
@@ -34,6 +33,7 @@ export interface TokenResponse {
   phone_number: string
   tenant_id?: string
   tenant_code?: string
+  name?: string
 }
 
 interface ApiResponse<T> {
@@ -45,7 +45,6 @@ interface ApiResponse<T> {
 export interface AuthUser {
   id: string
   name: string
-  email: string
   role: string
   phoneNumber: string
   tenantId: string
@@ -190,11 +189,9 @@ export interface ResetPasswordRequest {
 }
 
 function buildUserFromTokenResponse(tokenData: TokenResponse): AuthUser {
-  const jwtPayload = parseJWT(tokenData.access_token)
   return {
     id: String(tokenData.person_id),
-    name: jwtPayload?.name ?? '',
-    email: jwtPayload?.email ?? '',
+    name: tokenData.name ?? '',
     role: tokenData.user_role,
     phoneNumber: tokenData.phone_number ?? '',
     tenantId: tokenData.tenant_id ?? '',
