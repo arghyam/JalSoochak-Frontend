@@ -1,5 +1,4 @@
 import apiClient from '@/shared/lib/axios'
-import { parseJWT } from '@/shared/utils/jwt'
 import type { AuthUser, LoginResponse } from '@/features/auth/services/auth-api'
 import type {
   OtpRequestPayload,
@@ -40,11 +39,9 @@ interface TenantsListApiResponse {
 }
 
 function buildUserFromToken(tokenData: TokenResponse): AuthUser {
-  const jwtPayload = parseJWT(tokenData.access_token)
   return {
     id: String(tokenData.person_id),
-    name: jwtPayload?.name ?? '',
-    email: jwtPayload?.email ?? '',
+    name: tokenData.name ?? '',
     role: tokenData.user_role,
     phoneNumber: tokenData.phone_number ?? '',
     tenantId: tokenData.tenant_id ?? '',

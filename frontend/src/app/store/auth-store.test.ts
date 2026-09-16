@@ -26,7 +26,6 @@ const mockedClearFilters = jest.mocked(clearSectionOfficerFilters)
 const stateAdminUser: AuthUser = {
   id: '1',
   name: 'Admin',
-  email: 'a@x.com',
   role: AUTH_ROLES.STATE_ADMIN,
   phoneNumber: '111',
   tenantId: '10',
