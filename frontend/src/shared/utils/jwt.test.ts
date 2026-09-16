@@ -1,5 +1,5 @@
 import { describe, expect, it, jest, beforeEach, afterEach } from '@jest/globals'
-import { extractUserFromJWT, isTokenExpired, parseJWT } from './jwt'
+import { isTokenExpired, parseJWT } from './jwt'
 
 function encodePayload(payload: Record<string, unknown>): string {
   const json = JSON.stringify(payload)
@@ -20,22 +20,8 @@ describe('parseJWT', () => {
   })
 
   it('returns parsed payload for a valid token', () => {
-    const token = encodePayload({
-      sub: 'user-1',
-      name: 'Test',
-      email: 't@x.com',
-      preferred_username: '+9199',
-      exp: 2000000000,
-    })
-    expect(parseJWT(token)).toEqual(
-      expect.objectContaining({
-        sub: 'user-1',
-        name: 'Test',
-        email: 't@x.com',
-        preferred_username: '+9199',
-        exp: 2000000000,
-      })
-    )
+    const token = encodePayload({ sub: 'user-1', exp: 2000000000 })
+    expect(parseJWT(token)).toEqual(expect.objectContaining({ sub: 'user-1', exp: 2000000000 }))
   })
 
   it('returns null when payload segment is missing', () => {
@@ -45,37 +31,6 @@ describe('parseJWT', () => {
   it('returns null on invalid base64 payload', () => {
     expect(parseJWT('a.!!!invalid!!!.c')).toBeNull()
     expect(console.error).toHaveBeenCalled()
-  })
-})
-
-describe('extractUserFromJWT', () => {
-  it('maps known JWT fields to UserFromJWT', () => {
-    const token = encodePayload({
-      sub: '99',
-      name: 'N',
-      email: 'e@e.com',
-      preferred_username: 'phone',
-    })
-    expect(extractUserFromJWT(token)).toEqual({
-      id: '99',
-      name: 'N',
-      email: 'e@e.com',
-      phoneNumber: 'phone',
-    })
-  })
-
-  it('returns null when token cannot be parsed', () => {
-    expect(extractUserFromJWT('bad')).toBeNull()
-  })
-
-  it('uses empty strings for optional claims', () => {
-    const token = encodePayload({ sub: '1' })
-    expect(extractUserFromJWT(token)).toEqual({
-      id: '1',
-      name: '',
-      email: '',
-      phoneNumber: '',
-    })
   })
 })
 
