@@ -1,6 +1,44 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import fs from 'node:fs'
 import path from 'node:path'
+
+/**
+ * Mirrors the nginx security headers onto `vite preview`.
+ *
+ * Production serves the build through nginx, which attaches a CSP; `vite dev` and
+ * `vite preview` attach nothing. That gap is how a CSP violation (gtag.js blocked by a
+ * `script-src` missing googletagmanager.com) reached production without failing locally.
+ *
+ * Parsed from security-headers.conf rather than duplicated, so the two cannot drift.
+ * Applied to `preview` only — it serves the real production bundle. `dev` is deliberately
+ * left alone: HMR and React Refresh need 'unsafe-inline'/'unsafe-eval' and a ws: connection,
+ * so a dev-shaped policy would be a different policy, and passing it would prove nothing.
+ */
+function readNginxSecurityHeaders(): Record<string, string> {
+  const confPath = path.resolve(__dirname, './security-headers.conf')
+
+  try {
+    const conf = fs.readFileSync(confPath, 'utf8')
+    const headers: Record<string, string> = {}
+
+    // Horizontal whitespace only: `\s` would match newlines, letting `^\s*` span lines and
+    // scan the file quadratically under the `m` flag.
+    for (const [, name, value] of conf.matchAll(/^[ \t]*add_header[ \t]+(\S+)[ \t]+"([^"]*)"/gm)) {
+      headers[name] = value
+    }
+
+    if (Object.keys(headers).length === 0) {
+      console.warn(`[vite] No add_header directives found in ${confPath}; preview is unprotected.`)
+    }
+
+    return headers
+  } catch (error) {
+    // Never fail the build over a preview-only nicety.
+    console.warn(`[vite] Could not read ${confPath}; preview runs without security headers.`, error)
+    return {}
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig(() => {
@@ -51,6 +89,10 @@ export default defineConfig(() => {
           changeOrigin: true,
         },
       },
+    },
+    preview: {
+      port: 3000,
+      headers: readNginxSecurityHeaders(),
     },
   }
 })
