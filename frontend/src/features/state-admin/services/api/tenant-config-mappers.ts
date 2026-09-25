@@ -93,7 +93,7 @@ export interface TenantConfigMap {
   }
   FIELD_STAFF_ESCALATION_RULES?: ApiEscalationRules
   MESSAGE_BROKER_CONNECTION_SETTINGS?: { apiUrl: string; apiKey?: string; organizationId: string }
-  GLIFIC_MESSAGE_TEMPLATES?: {
+  WHATSAPP_MESSAGE_TEMPLATES?: {
     version: number
     screens: Record<
       string,
@@ -441,7 +441,7 @@ export function mapIntegrationConfigToApiConfig(
 // ---------------------------------------------------------------------------
 
 export function mapApiConfigToMessageTemplates(configs: TenantConfigMap): MessageTemplatesData {
-  const raw = configs.GLIFIC_MESSAGE_TEMPLATES
+  const raw = configs.WHATSAPP_MESSAGE_TEMPLATES
   const supportedLanguages = configs.SUPPORTED_LANGUAGES?.languages ?? []
 
   if (!raw?.screens) {
