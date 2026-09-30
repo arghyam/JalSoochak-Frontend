@@ -53,6 +53,7 @@ export const dashboardQueryKeys = {
       'dashboard',
       'analytics',
       'water-quantity-periodic',
+      params?.tenantId,
       params?.lgdId,
       params?.departmentId,
       params?.scale,

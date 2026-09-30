@@ -114,6 +114,7 @@ export const analyticsApi = {
       WaterQuantityPeriodicResponse | WrappedAnalyticsResponse<WaterQuantityPeriodicResponse>
     >('/api/v1/analytics/water-quantity/periodic', {
       params: {
+        tenant_id: params.tenantId,
         start_date: params.startDate,
         end_date: params.endDate,
         scale: params.scale,

@@ -10,6 +10,7 @@ jest.mock('@tanstack/react-query', () => ({
 }))
 
 const params = {
+  tenantId: 16,
   scale: 'month' as const,
   startDate: '2026-01-01',
   endDate: '2026-01-31',

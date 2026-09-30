@@ -1030,12 +1030,48 @@ describe('dashboardApi.getWaterQuantityPeriodic', () => {
     } as never)
     const { dashboardApi } = await import('./dashboard-api')
     const res = await dashboardApi.getWaterQuantityPeriodic({
+      tenantId: 7,
       startDate: 'a',
       endDate: 'b',
       scale: 'day',
       lgdId: 1,
     })
     expect(res.periodCount).toBe(2)
+  })
+
+  it('sends tenant_id, which the endpoint requires', async () => {
+    mockGet.mockResolvedValueOnce({
+      data: {
+        success: true,
+        data: {
+          lgdId: 0,
+          departmentId: 201,
+          scale: 'week',
+          startDate: 'a',
+          endDate: 'b',
+          periodCount: 0,
+          metrics: [],
+        },
+      },
+    } as never)
+    const { dashboardApi } = await import('./dashboard-api')
+    await dashboardApi.getWaterQuantityPeriodic({
+      tenantId: 7,
+      startDate: '2026-01-01',
+      endDate: '2026-01-31',
+      scale: 'week',
+      departmentId: 201,
+    })
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/analytics/water-quantity/periodic', {
+      params: {
+        tenant_id: 7,
+        start_date: '2026-01-01',
+        end_date: '2026-01-31',
+        scale: 'week',
+        lgd_id: undefined,
+        department_id: 201,
+      },
+    })
   })
 })
 
