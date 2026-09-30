@@ -189,6 +189,7 @@ export interface AverageWaterSupplyPerRegionQueryParams {
 }
 
 export interface WaterQuantityPeriodicQueryParams {
+  tenantId: number
   startDate: string
   endDate: string
   scale: 'day' | 'week' | 'month' | 'quarter' | 'year'

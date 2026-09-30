@@ -105,21 +105,24 @@ export function useCentralDashboardQueries({
   // Trend params follow the (possibly widened) trend range; the KPI params below stay on the
   // selected duration. When the duration spans more than one day the two are identical, so
   // React Query collapses them onto one request via the shared structural key.
-  const quantityTrendPeriodicAnalyticsParams = !hasValidAnalyticsParentId
-    ? null
-    : hierarchyType === 'LGD'
-      ? {
-          lgdId: analyticsParentId,
-          startDate: performanceTrendDateRange.startDate,
-          endDate: performanceTrendDateRange.endDate,
-          scale: selectedQuantityApiScale,
-        }
-      : {
-          departmentId: analyticsParentId,
-          startDate: performanceTrendDateRange.startDate,
-          endDate: performanceTrendDateRange.endDate,
-          scale: selectedQuantityApiScale,
-        }
+  const quantityTrendPeriodicAnalyticsParams =
+    !selectedTenant?.tenantId || !hasValidAnalyticsParentId
+      ? null
+      : hierarchyType === 'LGD'
+        ? {
+            tenantId: selectedTenant.tenantId,
+            lgdId: analyticsParentId,
+            startDate: performanceTrendDateRange.startDate,
+            endDate: performanceTrendDateRange.endDate,
+            scale: selectedQuantityApiScale,
+          }
+        : {
+            tenantId: selectedTenant.tenantId,
+            departmentId: analyticsParentId,
+            startDate: performanceTrendDateRange.startDate,
+            endDate: performanceTrendDateRange.endDate,
+            scale: selectedQuantityApiScale,
+          }
   const regularityTrendPeriodicAnalyticsParams =
     !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
@@ -141,16 +144,18 @@ export function useCentralDashboardQueries({
   // Only the leaf (village) screen derives its KPI tiles from the periodic payloads, so the
   // duration-scoped copies are fetched there and nowhere else.
   const quantityKpiPeriodicAnalyticsParams =
-    !isHierarchyLeafSelected || !hasValidAnalyticsParentId
+    !isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
+            tenantId: selectedTenant.tenantId,
             lgdId: analyticsParentId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
             scale: selectedQuantityApiScale,
           }
         : {
+            tenantId: selectedTenant.tenantId,
             departmentId: analyticsParentId,
             startDate: analyticsDateRange.startDate,
             endDate: analyticsDateRange.endDate,
@@ -687,10 +692,11 @@ export function useCentralDashboardQueries({
     enabled: Boolean(previousRegularityAnalyticsParams),
   })
   const previousQuantityPeriodicAnalyticsParams =
-    !isHierarchyLeafSelected || !hasValidAnalyticsParentId
+    !isHierarchyLeafSelected || !selectedTenant?.tenantId || !hasValidAnalyticsParentId
       ? null
       : hierarchyType === 'LGD'
         ? {
+            tenantId: selectedTenant.tenantId,
             lgdId: analyticsParentId,
             startDate: previousAnalyticsRange.startDate,
             endDate: previousAnalyticsRange.endDate,
@@ -700,6 +706,7 @@ export function useCentralDashboardQueries({
             ),
           }
         : {
+            tenantId: selectedTenant.tenantId,
             departmentId: analyticsParentId,
             startDate: previousAnalyticsRange.startDate,
             endDate: previousAnalyticsRange.endDate,
