@@ -230,6 +230,30 @@ describe('dashboardQueryKeys', () => {
     ])
   })
 
+  it('includes the tenant in the water quantity periodic query key', () => {
+    const params = {
+      lgdId: 101,
+      scale: 'week' as const,
+      startDate: '2026-03-01',
+      endDate: '2026-03-31',
+    }
+    // LGD ids are only unique within a tenant, so two tenants must never share a cached result.
+    expect(dashboardQueryKeys.waterQuantityPeriodic({ ...params, tenantId: 10 })).not.toEqual(
+      dashboardQueryKeys.waterQuantityPeriodic({ ...params, tenantId: 11 })
+    )
+    expect(dashboardQueryKeys.waterQuantityPeriodic({ ...params, tenantId: 10 })).toEqual([
+      'dashboard',
+      'analytics',
+      'water-quantity-periodic',
+      10,
+      101,
+      undefined,
+      'week',
+      '2026-03-01',
+      '2026-03-31',
+    ])
+  })
+
   it('includes tenant and parent ids in the outage reasons query key', () => {
     expect(
       dashboardQueryKeys.outageReasons({
