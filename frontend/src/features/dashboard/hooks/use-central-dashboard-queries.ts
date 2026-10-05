@@ -18,7 +18,11 @@ import { useTenantBoundariesQuery } from '../services/query/use-tenant-boundarie
 import { useTenantBoundaryGeoJsonQuery } from '../services/query/use-tenant-boundary-geojson-query'
 import { useWaterQuantityPeriodicQuery } from '../services/query/use-water-quantity-periodic-query'
 import { useWaterQuantityRegionWiseQuery } from '../services/query/use-water-quantity-region-wise-query'
-import type { SchemePerformanceSortBy, StateUtOption } from '../types'
+import type {
+  HourlySubmissionActivityQueryParams,
+  SchemePerformanceSortBy,
+  StateUtOption,
+} from '../types'
 import {
   type OutageTimeScaleTab,
   type PerformanceTimeScaleTab,
@@ -309,6 +313,32 @@ export function useCentralDashboardQueries({
               endDate: analyticsDateRange.endDate,
             }
           : null
+  // Needs a chosen state (never the national landing view). Whole state -> tenant-wide;
+  // a district/block/panchayat (or department) -> that region.
+  const isHierarchyStateOnlySelected =
+    isHierarchyStateSelected &&
+    !isHierarchySecondLevelSelected &&
+    !isHierarchyThirdLevelSelected &&
+    !isHierarchyFourthLevelSelected
+  const hourlySubmissionActivityParams: HourlySubmissionActivityQueryParams | null =
+    isHierarchyLeafSelected || !isHierarchyStateSelected || !selectedTenant?.tenantId
+      ? null
+      : isHierarchyStateOnlySelected
+        ? {
+            tenantId: selectedTenant.tenantId,
+            startDate: analyticsDateRange.startDate,
+            endDate: analyticsDateRange.endDate,
+          }
+        : !hasValidAnalyticsParentId
+          ? null
+          : {
+              tenantId: selectedTenant.tenantId,
+              ...(hierarchyType === 'LGD'
+                ? { lgdId: analyticsParentId }
+                : { departmentId: analyticsParentId }),
+              startDate: analyticsDateRange.startDate,
+              endDate: analyticsDateRange.endDate,
+            }
   const parsedSelectedSchemeId = Number.parseInt(selectedScheme, 10)
   const selectedSchemeId = Number.isFinite(parsedSelectedSchemeId)
     ? parsedSelectedSchemeId
@@ -904,6 +934,7 @@ export function useCentralDashboardQueries({
 
   return {
     analyticsParams,
+    hourlySubmissionActivityParams,
     averageSchemeRegularityData,
     averageWaterSupplyData,
     continuousSchemesData,

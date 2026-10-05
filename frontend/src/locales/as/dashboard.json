@@ -226,16 +226,20 @@
       "readingSubmissionStatus": "ৰিডিং জমা দিয়াৰ স্থিতি",
       "readingCompliance": "অনুপালন সম্বন্ধীয় ৰিডিং",
       "photoEvidenceCompliance": "ফটো প্ৰমাণৰ অনুপালন",
-      "issueTypeBreakdown": "সমস্যাৰ ধৰণ বিশ্লেষণ"
+      "issueTypeBreakdown": "সমস্যাৰ ধৰণ বিশ্লেষণ",
+      "hourlySubmissions": "দিনৰ ঘণ্টা অনুসৰি জমা"
     },
     "axis": {
       "percentage": "শতাংশ",
-      "noOfReasons": "কাৰণৰ সংখ্যা"
+      "noOfReasons": "কাৰণৰ সংখ্যা",
+      "hourOfDay": "দিনৰ ঘণ্টা (IST)",
+      "noOfSubmissions": "জমাৰ সংখ্যা"
     },
     "series": {
       "submissionRate": "জমা দিয়াৰ হাৰ",
       "readingSubmission": "ৰিডিং জমা দিয়া",
-      "supplyOutage": "পানী যোগান বিজুতি"
+      "supplyOutage": "পানী যোগান বিজুতি",
+      "submissions": "জমা"
     },
     "timeScale": {
       "day": "দিন",
@@ -271,6 +275,11 @@
           "readingValue": "ৰিডিঙৰ মান"
         }
       }
+    },
+    "hourlySubmissions": {
+      "tooltip": "বাছনি কৰা তাৰিখসমূহত দিনৰ প্ৰতিটো ঘণ্টাত (IST) জমা দিয়া ৰিডিঙৰ মুঠ। অপাৰেটৰসকলে সাধাৰণতে কেতিয়া জমা দিয়ে দেখুৱায়।",
+      "ariaLabel": "দিনৰ ঘণ্টা অনুসৰি জমাৰ তথ্য",
+      "shareOfTotal": "মুঠৰ অংশ"
     }
   },
   "pumpOperators": {

@@ -829,6 +829,31 @@ export interface ReadingSubmissionRateResponse {
   childRegions: ReadingSubmissionRateChildRegion[]
 }
 
+export interface HourlySubmissionActivityQueryParams {
+  tenantId: number
+  lgdId?: number
+  departmentId?: number
+  startDate: string
+  endDate: string
+}
+
+export interface HourlySubmissionActivityBucket {
+  /** Start of the hour in IST, e.g. 2026-03-01T09:00:00 (no offset). */
+  hourStart: string
+  submissionCount: number
+  /** Per-hour figure: never sum it across hours (a scheme can submit in several hours). */
+  distinctSchemeCount: number
+}
+
+export interface HourlySubmissionActivityResponse {
+  tenantId: number
+  lgdId?: number | null
+  departmentId?: number | null
+  startDate: string
+  endDate: string
+  hourlyActivity: HourlySubmissionActivityBucket[]
+}
+
 export interface SubmissionStatusQueryParams {
   tenantId: number
   lgdId?: number

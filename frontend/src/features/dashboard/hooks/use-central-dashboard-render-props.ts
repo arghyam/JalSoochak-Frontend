@@ -15,6 +15,7 @@ type BuildCentralDashboardRenderPropsParams = DashboardFiltersProps &
     | 'blockTableData'
     | 'districtTableData'
     | 'gramPanchayatTableData'
+    | 'hourlySubmissionActivityParams'
     | 'isActiveSchemesError'
     | 'isActiveSchemesLoading'
     | 'isBlockSelected'
@@ -216,6 +217,7 @@ export function buildCentralDashboardRenderProps({
   visibleCoreMetrics,
   waterSupplyOutageDistributionData,
   waterSupplyOutagesData,
+  hourlySubmissionActivityParams,
   ...filterProps
 }: BuildCentralDashboardRenderPropsParams) {
   const performanceScreenKey =
@@ -309,6 +311,7 @@ export function buildCentralDashboardRenderProps({
       tableDateFormat,
       enableExtendedTimeScales: true,
       isOutageTimeViewEnabled,
+      hourlySubmissionActivityParams,
     } satisfies DashboardBodyProps,
     filterProps: {
       ...filterProps,

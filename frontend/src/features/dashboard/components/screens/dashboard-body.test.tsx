@@ -53,6 +53,15 @@ jest.mock('./gram-panchayat-dashboard', () => ({
   GramPanchayatDashboardScreen: () => <div data-testid="gram-panchayat-dashboard-screen" />,
 }))
 
+const mockHourlySubmissionActivityCard = jest.fn((_props: { params: unknown }) => (
+  <div data-testid="hourly-submission-activity-card" />
+))
+
+jest.mock('./hourly-submission-activity-card', () => ({
+  HourlySubmissionActivityCard: (props: { params: unknown }) =>
+    mockHourlySubmissionActivityCard(props),
+}))
+
 jest.mock('./village-dashboard', () => ({
   VillageDashboardScreen: () => <div data-testid="village-dashboard-screen" />,
 }))
@@ -630,6 +639,37 @@ describe('DashboardBody', () => {
     expect(screen.getByText('Reading Submission Rate')).toBeTruthy()
     expect(screen.getByTestId('reading-submission-rate-chart')).toBeTruthy()
     expect(screen.queryByText('All States/UTs')).toBeNull()
+  })
+
+  it('renders the hourly submissions card with its scope when hourly params are given', () => {
+    const hourlySubmissionActivityParams = {
+      tenantId: 16,
+      lgdId: 10,
+      startDate: '2026-03-01',
+      endDate: '2026-03-31',
+    }
+    renderDashboardBody({ isStateSelected: true, hourlySubmissionActivityParams })
+
+    expect(screen.getByTestId('hourly-submission-activity-card')).toBeTruthy()
+    expect(mockHourlySubmissionActivityCard.mock.calls.at(-1)?.[0].params).toEqual(
+      hourlySubmissionActivityParams
+    )
+  })
+
+  it('hides the hourly submissions card without hourly params or on the village view', () => {
+    renderDashboardBody()
+    expect(screen.queryByTestId('hourly-submission-activity-card')).toBeNull()
+
+    renderDashboardBody({
+      selectedVillage: 'Village 1',
+      hourlySubmissionActivityParams: {
+        tenantId: 16,
+        lgdId: 10,
+        startDate: '2026-03-01',
+        endDate: '2026-03-31',
+      },
+    })
+    expect(screen.queryByTestId('hourly-submission-activity-card')).toBeNull()
   })
 
   it('renders village screen only when village is selected', () => {

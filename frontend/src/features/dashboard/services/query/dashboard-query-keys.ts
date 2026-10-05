@@ -12,6 +12,7 @@ import type {
   PumpOperatorDetailsQueryParams,
   PumpOperatorsBySchemeQueryParams,
   ReadingSubmissionRateQueryParams,
+  HourlySubmissionActivityQueryParams,
   SchemeRegularityPeriodicQueryParams,
   SchemePerformanceQueryParams,
   SubmissionStatusQueryParams,
@@ -124,6 +125,17 @@ export const dashboardQueryKeys = {
       params?.tenantId,
       params?.parentLgdId,
       params?.parentDepartmentId,
+    ] as const,
+  hourlySubmissionActivity: (params: HourlySubmissionActivityQueryParams | null) =>
+    [
+      'dashboard',
+      'analytics',
+      'hourly-submission-activity',
+      params?.tenantId,
+      params?.lgdId,
+      params?.departmentId,
+      params?.startDate,
+      params?.endDate,
     ] as const,
   readingSubmissionRate: (params: ReadingSubmissionRateQueryParams | null) =>
     [

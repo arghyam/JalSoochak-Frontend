@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type {
   DashboardData,
   EntityPerformance,
+  HourlySubmissionActivityQueryParams,
   PumpOperatorPerformanceData,
   SchemePerformanceSortBy,
   VillagePumpOperatorDetails,
@@ -24,6 +25,7 @@ import { ChartEmptyState, LoadingSpinner, ViewBySelect } from '@/shared/componen
 import { buildDashboardGlossary } from '../../utils/dashboard-glossary'
 import type { MonthlyTrendPoint } from '../charts/monthly-trend-chart'
 import { VillageDashboardScreen } from './village-dashboard'
+import { HourlySubmissionActivityCard } from './hourly-submission-activity-card'
 import { getOutageTimeScaleXAxisLabel } from './outage-time-scale-toggle'
 import { useOutageDistributionState } from './use-outage-distribution-state'
 import { shouldShowSupplyOutageCharts } from '@/config/server-config'
@@ -108,6 +110,8 @@ type DashboardBodyProps = {
    * deliberately *not* gated by this — they widen their own trend window instead.
    */
   isOutageTimeViewEnabled?: boolean
+  /** Scope for the Submissions by Hour of Day card; null hides it (no tenant or a leaf view). */
+  hourlySubmissionActivityParams?: HourlySubmissionActivityQueryParams | null
 }
 
 type ViewBy = 'geography' | 'time'
@@ -183,6 +187,7 @@ export function DashboardBody({
   tableDateFormat,
   enableExtendedTimeScales = false,
   isOutageTimeViewEnabled = true,
+  hourlySubmissionActivityParams = null,
 }: DashboardBodyProps) {
   const { t } = useTranslation('dashboard')
   const errorMsg = t('failedToLoadDataReload', {
@@ -710,6 +715,13 @@ export function DashboardBody({
           isReadingSubmissionRateError={isReadingSubmissionRateError}
           isReadingSubmissionStatusError={isReadingSubmissionStatusError}
           screenDateFormat={screenDateFormat}
+          errorMessage={errorMsg}
+        />
+      ) : null}
+
+      {hourlySubmissionActivityParams && !selectedVillage ? (
+        <HourlySubmissionActivityCard
+          params={hourlySubmissionActivityParams}
           errorMessage={errorMsg}
         />
       ) : null}

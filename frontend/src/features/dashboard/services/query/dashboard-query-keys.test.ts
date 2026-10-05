@@ -273,4 +273,18 @@ describe('dashboardQueryKeys', () => {
       '2026-03-31',
     ])
   })
+
+  it('keys hourly submission activity by tenant, region and date range', () => {
+    const base = { tenantId: 7, startDate: '2026-03-01', endDate: '2026-03-31' }
+
+    expect(dashboardQueryKeys.hourlySubmissionActivity(base)).not.toEqual(
+      dashboardQueryKeys.hourlySubmissionActivity({ ...base, tenantId: 8 })
+    )
+    expect(dashboardQueryKeys.hourlySubmissionActivity({ ...base, lgdId: 11 })).not.toEqual(
+      dashboardQueryKeys.hourlySubmissionActivity({ ...base, departmentId: 11 })
+    )
+    expect(dashboardQueryKeys.hourlySubmissionActivity(base)).not.toEqual(
+      dashboardQueryKeys.hourlySubmissionActivity({ ...base, endDate: '2026-03-30' })
+    )
+  })
 })

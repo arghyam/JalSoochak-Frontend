@@ -8,6 +8,8 @@ import type {
   ContinuousSchemesResponse,
   CriticalSchemesQueryParams,
   CriticalSchemesResponse,
+  HourlySubmissionActivityQueryParams,
+  HourlySubmissionActivityResponse,
   NationalDashboardBoundaryResponse,
   NationalDashboardQueryParams,
   NationalDashboardResponse,
@@ -339,6 +341,30 @@ export const analyticsApi = {
         readingSubmissionRate: 0,
         childRegionCount: 0,
         childRegions: [],
+      }
+    )
+  },
+  getHourlySubmissionActivity: async (
+    params: HourlySubmissionActivityQueryParams
+  ): Promise<HourlySubmissionActivityResponse> => {
+    const response = await publicApiClient.get<
+      HourlySubmissionActivityResponse | WrappedAnalyticsResponse<HourlySubmissionActivityResponse>
+    >('/api/v1/analytics/submission-activity/hourly', {
+      params: {
+        tenant_id: params.tenantId,
+        lgd_id: params.lgdId,
+        department_id: params.departmentId,
+        start_date: params.startDate,
+        end_date: params.endDate,
+      },
+    })
+
+    return (
+      unwrapAnalyticsResponse(response.data, 'hourly submission activity analytics') ?? {
+        tenantId: params.tenantId,
+        startDate: params.startDate,
+        endDate: params.endDate,
+        hourlyActivity: [],
       }
     )
   },

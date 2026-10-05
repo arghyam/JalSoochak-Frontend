@@ -1571,3 +1571,49 @@ describe('dashboardApi additional normalization branches', () => {
     expect(mockGet).toHaveBeenCalledWith('/api/v1/tenants/5/location-hierarchy/DEPARTMENTAL')
   })
 })
+
+describe('dashboardApi.getHourlySubmissionActivity', () => {
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+  })
+
+  it('requests hourly submission activity for one region and returns its buckets', async () => {
+    mockGet.mockImplementation(async () => ({
+      data: {
+        success: true,
+        data: {
+          tenantId: 16,
+          lgdId: 10,
+          departmentId: null,
+          startDate: '2026-03-25',
+          endDate: '2026-03-25',
+          hourlyActivity: [
+            { hourStart: '2026-03-25T09:00:00', submissionCount: 4, distinctSchemeCount: 3 },
+          ],
+        },
+      },
+    }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+    const result = await dashboardApi.getHourlySubmissionActivity({
+      tenantId: 16,
+      lgdId: 10,
+      startDate: '2026-03-25',
+      endDate: '2026-03-25',
+    })
+
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/analytics/submission-activity/hourly', {
+      params: {
+        tenant_id: 16,
+        lgd_id: 10,
+        department_id: undefined,
+        start_date: '2026-03-25',
+        end_date: '2026-03-25',
+      },
+    })
+    expect(result.hourlyActivity).toEqual([
+      { hourStart: '2026-03-25T09:00:00', submissionCount: 4, distinctSchemeCount: 3 },
+    ])
+  })
+})

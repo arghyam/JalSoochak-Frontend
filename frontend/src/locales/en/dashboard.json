@@ -226,16 +226,20 @@
       "readingSubmissionStatus": "Reading Submission Status",
       "readingCompliance": "Reading Compliance",
       "photoEvidenceCompliance": "Photo Evidence Compliance",
-      "issueTypeBreakdown": "Issue Type Breakdown"
+      "issueTypeBreakdown": "Issue Type Breakdown",
+      "hourlySubmissions": "Submissions by Hour of Day"
     },
     "axis": {
       "percentage": "Percentage",
-      "noOfReasons": "No. of Reasons"
+      "noOfReasons": "No. of Reasons",
+      "hourOfDay": "Hour of day (IST)",
+      "noOfSubmissions": "No. of submissions"
     },
     "series": {
       "submissionRate": "Submission Rate",
       "readingSubmission": "Reading submission",
-      "supplyOutage": "Supply outage"
+      "supplyOutage": "Supply outage",
+      "submissions": "Submissions"
     },
     "timeScale": {
       "day": "Day",
@@ -271,6 +275,11 @@
           "readingValue": "Reading Value"
         }
       }
+    },
+    "hourlySubmissions": {
+      "tooltip": "Readings submitted in each hour of the day (IST), added up over the selected dates. Shows when operators usually submit.",
+      "ariaLabel": "Submissions by hour of day info",
+      "shareOfTotal": "Share of total"
     }
   },
   "pumpOperators": {

@@ -226,16 +226,20 @@
       "readingSubmissionStatus": "रीडिंग सबमिशन स्थिति",
       "readingCompliance": "रीडिंग अनुपालन",
       "photoEvidenceCompliance": "फोटो साक्ष्य अनुपालन",
-      "issueTypeBreakdown": "समस्या प्रकार विभाजन"
+      "issueTypeBreakdown": "समस्या प्रकार विभाजन",
+      "hourlySubmissions": "दिन के घंटे के अनुसार सबमिशन"
     },
     "axis": {
       "percentage": "प्रतिशत",
-      "noOfReasons": "कारणों की संख्या"
+      "noOfReasons": "कारणों की संख्या",
+      "hourOfDay": "दिन का घंटा (IST)",
+      "noOfSubmissions": "सबमिशन की संख्या"
     },
     "series": {
       "submissionRate": "सबमिशन दर",
       "readingSubmission": "रीडिंग सबमिशन",
-      "supplyOutage": "जल आपूर्ति बाधा"
+      "supplyOutage": "जल आपूर्ति बाधा",
+      "submissions": "सबमिशन"
     },
     "timeScale": {
       "day": "दिन",
@@ -271,6 +275,11 @@
           "readingValue": "रीडिंग मान"
         }
       }
+    },
+    "hourlySubmissions": {
+      "tooltip": "चुनी गई तारीखों में दिन के हर घंटे (IST) में जमा की गई रीडिंग का योग। इससे पता चलता है कि ऑपरेटर आमतौर पर कब रीडिंग जमा करते हैं।",
+      "ariaLabel": "दिन के घंटे के अनुसार सबमिशन की जानकारी",
+      "shareOfTotal": "कुल में हिस्सा"
     }
   },
   "pumpOperators": {
