@@ -116,11 +116,37 @@ describe('stateAdminApi', () => {
       expect(mockedApiClient.put).toHaveBeenCalled()
     })
 
-    it('getMessageTemplates returns empty screens when GLIFIC missing', async () => {
+    it('getMessageTemplates returns empty screens when WHATSAPP_MESSAGE_TEMPLATES missing', async () => {
       mockedApiClient.get.mockResolvedValueOnce(tenantEnvelope({}))
       const res = await stateAdminApi.getMessageTemplates()
       expect(res.screens).toEqual({})
       expect(res.supportedLanguages).toEqual([])
+    })
+
+    it('getMessageTemplates requests WHATSAPP_MESSAGE_TEMPLATES and ignores the legacy key', async () => {
+      const screen = {
+        prompt: { en: 'Select language' },
+        options: null,
+        reasons: null,
+        confirmationTemplate: null,
+        message: null,
+      }
+      mockedApiClient.get.mockResolvedValueOnce(
+        tenantEnvelope({
+          WHATSAPP_MESSAGE_TEMPLATES: { version: 1, screens: { INTRO_MESSAGE: screen } },
+          GLIFIC_MESSAGE_TEMPLATES: {
+            version: 1,
+            screens: { INTRO_MESSAGE: { ...screen, prompt: { en: 'legacy' } } },
+          },
+          SUPPORTED_LANGUAGES: { languages: [{ language: 'English', preference: 1 }] },
+        })
+      )
+      const res = await stateAdminApi.getMessageTemplates()
+      expect(mockedApiClient.get).toHaveBeenCalledWith(
+        '/api/v1/tenants/1/config?keys=WHATSAPP_MESSAGE_TEMPLATES,SUPPORTED_LANGUAGES'
+      )
+      expect(res.screens.INTRO_MESSAGE?.prompt).toEqual({ en: 'Select language' })
+      expect(res.supportedLanguages).toHaveLength(1)
     })
 
     it('getConfiguration and saveConfiguration', async () => {
@@ -301,7 +327,7 @@ describe('stateAdminApi', () => {
         format: 'CSV',
         generatedAt: '2026-05-20T00:00:00.000Z',
         dataVersion: 1,
-        downloadUrl: 'https://minio.example.com/report.csv',
+        downloadUrl: 'https://storage.example.com/report.csv',
         urlExpiresAt: '2026-05-20T01:00:00.000Z',
         cached: false,
       }
@@ -324,7 +350,7 @@ describe('stateAdminApi', () => {
         format: 'CSV',
         generatedAt: '2026-05-20T00:00:00.000Z',
         dataVersion: 1,
-        downloadUrl: 'https://minio.example.com/report2.csv',
+        downloadUrl: 'https://storage.example.com/report2.csv',
         urlExpiresAt: '2026-05-20T01:00:00.000Z',
         cached: true,
       }
@@ -507,13 +533,13 @@ describe('stateAdminApi', () => {
 
     it('downloadSchemesReport GETs correct URL with X-Tenant-Code header and returns link', async () => {
       mockedApiClient.get.mockResolvedValueOnce({
-        data: { link: 'https://minio.example.com/schemes.csv' },
+        data: { link: 'https://storage.example.com/schemes.csv' },
       } as never)
       const result = await stateAdminApi.downloadSchemesReport()
       expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/scheme/schemes/download', {
         headers: { 'X-Tenant-Code': 'TN' },
       })
-      expect(result).toBe('https://minio.example.com/schemes.csv')
+      expect(result).toBe('https://storage.example.com/schemes.csv')
     })
 
     it('downloadSchemesReport throws when tenantCode is missing', async () => {
@@ -523,13 +549,13 @@ describe('stateAdminApi', () => {
 
     it('downloadSchemeMappingsReport GETs correct URL with X-Tenant-Code header and returns link', async () => {
       mockedApiClient.get.mockResolvedValueOnce({
-        data: { link: 'https://minio.example.com/mappings.csv' },
+        data: { link: 'https://storage.example.com/mappings.csv' },
       } as never)
       const result = await stateAdminApi.downloadSchemeMappingsReport()
       expect(mockedApiClient.get).toHaveBeenCalledWith('/api/v1/scheme/schemes/mappings/download', {
         headers: { 'X-Tenant-Code': 'TN' },
       })
-      expect(result).toBe('https://minio.example.com/mappings.csv')
+      expect(result).toBe('https://storage.example.com/mappings.csv')
     })
 
     it('downloadSchemeMappingsReport throws when tenantCode is missing', async () => {
@@ -782,6 +808,18 @@ describe('stateAdminApi', () => {
       expect(res.TENANT_LOGO).toEqual({ status: 'CONFIGURED', mandatory: false })
       expect('NOT_A_REAL_KEY' in res).toBe(false)
       expect(res.WATER_NORM).toBeUndefined()
+    })
+
+    it('getConfigStatus keeps WHATSAPP_MESSAGE_TEMPLATES', async () => {
+      mockedApiClient.get.mockResolvedValueOnce({
+        data: {
+          data: {
+            configs: { WHATSAPP_MESSAGE_TEMPLATES: { status: 'CONFIGURED', mandatory: true } },
+          },
+        },
+      } as never)
+      const res = await stateAdminApi.getConfigStatus()
+      expect(res.WHATSAPP_MESSAGE_TEMPLATES).toEqual({ status: 'CONFIGURED', mandatory: true })
     })
   })
 

@@ -110,7 +110,7 @@ const VALID_CONFIG_KEYS = new Set<string>([
   'FIELD_STAFF_ESCALATION_RULES',
   'DATE_FORMAT_SCREEN',
   'DATE_FORMAT_TABLE',
-  'GLIFIC_MESSAGE_TEMPLATES',
+  'WHATSAPP_MESSAGE_TEMPLATES',
   'STATE_IT_SYSTEM_CONNECTION',
   'STATE_DATA_RECONCILIATION_TIME',
   'EMAIL_TEMPLATE_JSON',
@@ -246,7 +246,7 @@ const httpProvider = {
   getMessageTemplates: async () => {
     const tenantId = getTenantId()
     const response = await apiClient.get<ApiEnvelope<{ configs: Record<string, unknown> }>>(
-      `${TENANT_CONFIG_BASE(tenantId)}?keys=GLIFIC_MESSAGE_TEMPLATES,SUPPORTED_LANGUAGES`
+      `${TENANT_CONFIG_BASE(tenantId)}?keys=WHATSAPP_MESSAGE_TEMPLATES,SUPPORTED_LANGUAGES`
     )
     return mapApiConfigToMessageTemplates(
       response.data.data.configs as Parameters<typeof mapApiConfigToMessageTemplates>[0]
