@@ -1071,6 +1071,7 @@ describe('CentralDashboard', () => {
 
     expect(useWaterQuantityPeriodicQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 16,
         lgdId: 544,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
@@ -1786,6 +1787,7 @@ describe('CentralDashboard', () => {
 
     expect(useWaterQuantityPeriodicQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 16,
         lgdId: 10,
         startDate: selectedDuration.startDate,
         endDate: selectedDuration.endDate,
@@ -1840,6 +1842,7 @@ describe('CentralDashboard', () => {
 
     expect(useWaterQuantityPeriodicQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 16,
         lgdId: 544,
         startDate: '2026-02-03',
         endDate: '2026-02-03',
@@ -1893,6 +1896,7 @@ describe('CentralDashboard', () => {
 
     expect(useWaterQuantityPeriodicQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 16,
         lgdId: 544,
         startDate: '2026-01-05',
         endDate: '2026-02-03',
@@ -1945,6 +1949,7 @@ describe('CentralDashboard', () => {
 
     expect(useWaterQuantityPeriodicQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 16,
         lgdId: 10,
         startDate: '2026-01-05',
         endDate: '2026-02-03',
@@ -2004,6 +2009,7 @@ describe('CentralDashboard', () => {
 
     expect(useWaterQuantityPeriodicQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 16,
         lgdId: 10,
         startDate: '2026-02-01',
         endDate: '2026-02-03',
@@ -4250,6 +4256,7 @@ describe('CentralDashboard', () => {
 
     expect(useWaterQuantityPeriodicQuery).toHaveBeenCalledWith({
       params: {
+        tenantId: 17,
         departmentId: 901,
         startDate: '2026-03-25',
         endDate: '2026-03-26',
