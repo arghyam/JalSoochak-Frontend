@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import {
   Box,
   Heading,
@@ -29,7 +30,18 @@ import {
   useUpdateFinalReadingMutation,
 } from '../../services/query/use-fix-readings-queries'
 import { sectionOfficerQueryKeys } from '../../services/query/section-officer-query-keys'
+import { UpdateFinalReadingError } from '../../services/api/fix-readings-api'
 import type { YesterdayFinalReadingItem } from '../../types/fix-readings'
+
+/** Returns null when no toast should be shown (401 → session is ended and user is redirected). */
+function getUpdateErrorMessage(error: unknown, t: TFunction<'section-officer'>): string | null {
+  if (error instanceof UpdateFinalReadingError) {
+    if (error.kind === 'unauthorized') return null
+    if (error.kind === 'forbidden') return t('pages.fixReadings.forbiddenMessage')
+    if (error.kind === 'rejected' && error.message.trim()) return error.message
+  }
+  return t('common.errorMessage', { defaultValue: 'Something went wrong. Please try again.' })
+}
 
 export function FixReadingsPage() {
   const { t } = useTranslation('section-officer')
@@ -94,10 +106,7 @@ export function FixReadingsPage() {
     updateFinalReading(
       {
         schemeId: selectedScheme.schemeId,
-        payload: {
-          phoneNumber: selectedScheme.phoneNumber,
-          reading: parsedReading,
-        },
+        payload: { reading: parsedReading },
       },
       {
         onSuccess: () => {
@@ -114,11 +123,8 @@ export function FixReadingsPage() {
           })
         },
         onError: (error) => {
-          const fallback = t('common.errorMessage', {
-            defaultValue: 'Something went wrong. Please try again.',
-          })
-          const message = error instanceof Error && error.message.trim() ? error.message : fallback
-          toast.error(message)
+          const message = getUpdateErrorMessage(error, t)
+          if (message) toast.error(message)
         },
       }
     )

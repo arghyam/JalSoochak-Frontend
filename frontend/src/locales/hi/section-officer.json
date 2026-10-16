@@ -197,7 +197,8 @@
       "updateReading": "अपडेट रीडिंग",
       "updateButton": "अपडेट करें",
       "successMessage": "रीडिंग सफलतापूर्वक अपडेट की गई",
-      "clearSearch": "खोज साफ़ करें"
+      "clearSearch": "खोज साफ़ करें",
+      "forbiddenMessage": "आपको इस योजना की रीडिंग अपडेट करने की अनुमति नहीं है"
     }
   },
   "common": {
