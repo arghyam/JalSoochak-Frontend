@@ -2,7 +2,6 @@ export interface YesterdayFinalReadingItem {
   schemeId: number
   schemeName: string
   yesterdayFinalReading: number
-  phoneNumber: string
 }
 
 export interface YesterdayFinalReadingResponse {
@@ -14,7 +13,6 @@ export interface YesterdayFinalReadingResponse {
 }
 
 export interface UpdateFinalReadingPayload {
-  phoneNumber: string
   reading: number
 }
 
@@ -25,3 +23,11 @@ export interface UpdateFinalReadingResponse {
   finalReading: number
   message: string
 }
+
+/**
+ * - `unauthorized`: 401 survived the token refresh — session must be ended.
+ * - `forbidden`: 403 — user is not an SO/SDO or not mapped to the scheme.
+ * - `rejected`: backend envelope with `success: false` (2xx, 400, 404).
+ * - `unknown`: network/timeout/anything else.
+ */
+export type UpdateFinalReadingErrorKind = 'unauthorized' | 'forbidden' | 'rejected' | 'unknown'
