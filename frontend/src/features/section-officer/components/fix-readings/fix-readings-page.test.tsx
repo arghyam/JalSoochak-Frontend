@@ -6,6 +6,7 @@ import type { ReactNode } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { FixReadingsPage } from './fix-readings-page'
+import { UpdateFinalReadingError } from '../../services/api/fix-readings-api'
 
 const translations: Record<string, string> = {
   'pages.fixReadings.title': 'Fix Readings',
@@ -16,7 +17,20 @@ const translations: Record<string, string> = {
   'pages.fixReadings.updateButton': 'Update',
   'pages.fixReadings.successMessage': 'Reading updated successfully',
   'pages.fixReadings.clearSearch': 'Clear search',
+  'pages.fixReadings.forbiddenMessage': 'You are not allowed to update readings for this scheme',
 }
+
+const mockToastError = jest.fn()
+const mockToastSuccess = jest.fn()
+
+jest.mock('@/shared/hooks/use-toast', () => ({
+  useToast: () => ({
+    toasts: [],
+    removeToast: jest.fn(),
+    success: mockToastSuccess,
+    error: mockToastError,
+  }),
+}))
 
 jest.mock('@/shared/hooks/use-debounce', () => ({
   useDebounce: <T,>(value: T) => value,
@@ -57,13 +71,11 @@ const mockSchemes = [
     schemeId: 28443,
     schemeName: 'S2604141918',
     yesterdayFinalReading: 150,
-    phoneNumber: '917050624279',
   },
   {
     schemeId: 28444,
     schemeName: 'S2604141919',
     yesterdayFinalReading: 200,
-    phoneNumber: '917050624280',
   },
 ]
 
@@ -190,15 +202,54 @@ describe('FixReadingsPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Update' }))
 
     expect(mockMutate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        schemeId: 28443,
-        payload: expect.objectContaining({
-          phoneNumber: '917050624279',
-          reading: 300500,
-        }),
-      }),
+      { schemeId: 28443, payload: { reading: 300500 } },
       expect.any(Object)
     )
+  })
+
+  describe('update error handling', () => {
+    type MutateOptions = { onError: (error: unknown) => void }
+
+    async function submitWithError(error: unknown) {
+      const mockMutate = jest.fn((_vars: unknown, options: MutateOptions) => options.onError(error))
+      mockUseUpdateFinalReadingMutation.mockReturnValue({ mutate: mockMutate, isPending: false })
+      mockUseYesterdayFinalReadingsQuery.mockReturnValue({
+        data: { content: mockSchemes, totalElements: 2 },
+        isLoading: false,
+      })
+      renderPage()
+
+      await userEvent.type(screen.getByPlaceholderText('Search by scheme name'), 'S26')
+      fireEvent.click(screen.getByText('S2604141918'))
+      fireEvent.change(screen.getByLabelText('Update Reading'), { target: { value: '100' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Update' }))
+    }
+
+    it('shows the not-allowed message on 403', async () => {
+      await submitWithError(new UpdateFinalReadingError('forbidden', 'raw server detail'))
+
+      expect(mockToastError).toHaveBeenCalledWith(
+        'You are not allowed to update readings for this scheme'
+      )
+    })
+
+    it('shows the backend envelope message when the update is rejected', async () => {
+      await submitWithError(new UpdateFinalReadingError('rejected', 'reading must be greater'))
+
+      expect(mockToastError).toHaveBeenCalledWith('reading must be greater')
+    })
+
+    it('shows no toast on 401 (session is ended by the mutation hook)', async () => {
+      await submitWithError(new UpdateFinalReadingError('unauthorized', 'Request failed'))
+
+      expect(mockToastError).not.toHaveBeenCalled()
+    })
+
+    it('shows the generic message for unknown errors instead of the raw message', async () => {
+      await submitWithError(new UpdateFinalReadingError('unknown', 'timeout of 30000ms exceeded'))
+
+      expect(mockToastError).toHaveBeenCalledWith('Something went wrong. Please try again.')
+    })
   })
 
   it('clears form when clear (×) button is clicked after selection', async () => {

@@ -198,7 +198,8 @@
       "updateReading": "ৰিডিং আপডেট কৰক",
       "updateButton": "আপডেট",
       "successMessage": "ৰিডিং সফলভাৱে আপডেট হৈছে",
-      "clearSearch": "অনুসন্ধান ক্লিয়াৰ কৰক"
+      "clearSearch": "অনুসন্ধান ক্লিয়াৰ কৰক",
+      "forbiddenMessage": "আপোনাক এই আঁচনিৰ ৰিডিং আপডেট কৰাৰ অনুমতি নাই"
     }
   },
   "common": {

@@ -198,7 +198,8 @@
       "updateReading": "Update Reading",
       "updateButton": "Update",
       "successMessage": "Reading updated successfully",
-      "clearSearch": "Clear search"
+      "clearSearch": "Clear search",
+      "forbiddenMessage": "You are not allowed to update readings for this scheme"
     }
   },
   "common": {
