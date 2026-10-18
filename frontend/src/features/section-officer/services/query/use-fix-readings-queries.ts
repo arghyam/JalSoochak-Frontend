@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/app/store/auth-store'
-import { fixReadingsApi } from '../api/fix-readings-api'
+import { fixReadingsApi, UpdateFinalReadingError } from '../api/fix-readings-api'
 import { sectionOfficerQueryKeys } from './section-officer-query-keys'
 import type { UpdateFinalReadingPayload } from '../../types/fix-readings'
 
@@ -15,9 +15,15 @@ export function useYesterdayFinalReadingsQuery(schemeName: string) {
 }
 
 export function useUpdateFinalReadingMutation() {
-  const tenantCode = useAuthStore((state) => state.user?.tenantCode ?? '')
   return useMutation({
     mutationFn: ({ schemeId, payload }: { schemeId: number; payload: UpdateFinalReadingPayload }) =>
-      fixReadingsApi.updateFinalReading(schemeId, payload, tenantCode),
+      fixReadingsApi.updateFinalReading(schemeId, payload),
+    onError: (error) => {
+      // The axios interceptor already attempted a refresh; a 401 here means the token is
+      // unrecoverable, so end the session and let ProtectedRoute send the user to login.
+      if (error instanceof UpdateFinalReadingError && error.kind === 'unauthorized') {
+        useAuthStore.getState().setSessionExpired()
+      }
+    },
   })
 }
