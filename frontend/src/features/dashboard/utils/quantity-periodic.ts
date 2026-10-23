@@ -11,7 +11,7 @@ import type {
   WaterQuantityPeriodicResponse,
 } from '../types'
 import { formatIsoDateForDisplay, normalizeDateFormat } from '@/shared/utils/date-format'
-import { DEFAULT_PERSONS_PER_HOUSEHOLD } from './formulas'
+import { DEFAULT_PERSONS_PER_HOUSEHOLD, calculateQuantityLpcd } from './formulas'
 
 const parseIsoDate = (value: string) => {
   const parsed = new Date(`${value}T00:00:00Z`)
@@ -51,18 +51,6 @@ const formatMetricLabel = (
 
 const toRegularityPercent = (value: number) => (value <= 1 ? value * 100 : value)
 
-const resolveMetricDaysInRange = (startDate: string, endDate: string) => {
-  const start = parseIsoDate(startDate)
-  const end = parseIsoDate(endDate)
-
-  if (!start || !end || start > end) {
-    return 0
-  }
-
-  const millisecondsPerDay = 24 * 60 * 60 * 1000
-  return Math.floor((end.getTime() - start.getTime()) / millisecondsPerDay) + 1
-}
-
 const getMetricPeriodKey = (
   metric: Pick<
     WaterQuantityPeriodicMetric | SchemeRegularityPeriodicMetric,
@@ -70,14 +58,19 @@ const getMetricPeriodKey = (
   >
 ) => `${metric.periodStartDate}|${metric.periodEndDate}`
 
-const getAchievedFhtcCount = (metric: WaterQuantityPeriodicMetric | undefined) => {
+const getSuppliedFhtcDays = (
+  metric: Pick<WaterQuantityPeriodicMetric, 'totalSuppliedFhtcDays'> | undefined
+) => {
   if (!metric) {
     return 0
   }
 
-  const count = Number(metric.totalAchievedFhtcCount ?? metric.achievedFhtcCount ?? 0)
-  return Number.isFinite(count) && count > 0 ? count : 0
+  const suppliedFhtcDays = Number(metric.totalSuppliedFhtcDays ?? 0)
+  return Number.isFinite(suppliedFhtcDays) && suppliedFhtcDays > 0 ? suppliedFhtcDays : 0
 }
+
+const hasValidPersonsPerHousehold = (averagePersonsPerHousehold: number) =>
+  Number.isFinite(averagePersonsPerHousehold) && averagePersonsPerHousehold > 0
 
 export const resolveWaterQuantityPeriodicScale = (
   startDate: string,
@@ -183,26 +176,19 @@ export const mapSchemeRegularityQuantityToTrendPoints = (
     }
 
     const matchingWaterQuantityMetric = waterQuantityMetricsByPeriod.get(getMetricPeriodKey(metric))
-    const achievedFhtcCount = getAchievedFhtcCount(matchingWaterQuantityMetric)
-    const metricDays = resolveMetricDaysInRange(metric.periodStartDate, metric.periodEndDate)
+    const suppliedFhtcDays = getSuppliedFhtcDays(matchingWaterQuantityMetric)
 
-    if (
-      achievedFhtcCount <= 0 ||
-      metricDays <= 0 ||
-      !Number.isFinite(averagePersonsPerHousehold) ||
-      averagePersonsPerHousehold <= 0
-    ) {
+    if (suppliedFhtcDays <= 0 || !hasValidPersonsPerHousehold(averagePersonsPerHousehold)) {
       return []
     }
 
     return [
       {
         period: formatMetricLabel(response.scale, metric, dateFormat),
-        value: Number(
-          (
-            metric.totalWaterQuantity /
-            (achievedFhtcCount * averagePersonsPerHousehold * metricDays)
-          ).toFixed(1)
+        value: calculateQuantityLpcd(
+          metric.totalWaterQuantity,
+          suppliedFhtcDays,
+          averagePersonsPerHousehold
         ),
       },
     ]
@@ -242,25 +228,16 @@ export const mapNationalQuantityTrendPoints = (
       Boolean(metric.periodStartDate) &&
       Boolean(metric.periodEndDate)
     ) {
-      const achievedFhtcCount = Number(
-        metric.totalAchievedFhtcCount ?? response.totalAchievedFhtcCount ?? 0
-      )
-      const metricDays = resolveMetricDaysInRange(metric.periodStartDate, metric.periodEndDate)
+      const suppliedFhtcDays = getSuppliedFhtcDays(metric)
 
-      if (
-        achievedFhtcCount > 0 &&
-        metricDays > 0 &&
-        Number.isFinite(averagePersonsPerHousehold) &&
-        averagePersonsPerHousehold > 0
-      ) {
+      if (suppliedFhtcDays > 0 && hasValidPersonsPerHousehold(averagePersonsPerHousehold)) {
         return [
           {
             period: formatMetricLabel(response.scale, metric, dateFormat),
-            value: Number(
-              (
-                metric.totalWaterQuantity /
-                (achievedFhtcCount * averagePersonsPerHousehold * metricDays)
-              ).toFixed(1)
+            value: calculateQuantityLpcd(
+              metric.totalWaterQuantity,
+              suppliedFhtcDays,
+              averagePersonsPerHousehold
             ),
           },
         ]
