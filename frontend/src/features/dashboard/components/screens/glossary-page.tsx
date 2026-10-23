@@ -162,7 +162,7 @@ export function GlossaryPage() {
                 {t('glossary.quantityPerformance.formulaLabel', {
                   defaultValue: 'Quantity (LPCD)',
                 })}{' '}
-                = SUM(W<sub>k</sub>) / (SUM(FHTC<sub>i</sub>) × P × N)
+                = SUM(W<sub>k</sub>) / (SUM(FHTC<sub>i</sub> × D<sub>i</sub>) × P)
               </>
             }
             variables={[
@@ -179,15 +179,15 @@ export function GlossaryPage() {
                 })}
               </>,
               <>
-                P ={' '}
-                {t('glossary.quantityPerformance.definitions.p', {
-                  defaultValue: 'average persons per household',
+                D<sub>i</sub> ={' '}
+                {t('glossary.quantityPerformance.definitions.di', {
+                  defaultValue: 'number of days scheme i supplied water in the selected period',
                 })}
               </>,
               <>
-                N ={' '}
-                {t('glossary.quantityPerformance.definitions.n', {
-                  defaultValue: 'total number of days in the selected period',
+                P ={' '}
+                {t('glossary.quantityPerformance.definitions.p', {
+                  defaultValue: 'average persons per household',
                 })}
               </>,
             ]}
