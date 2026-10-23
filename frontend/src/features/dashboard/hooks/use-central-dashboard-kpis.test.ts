@@ -34,6 +34,7 @@ describe('useCentralDashboardKpis', () => {
           totalAchievedFhtcCount: 500,
           totalWaterSuppliedLiters: 90_000_000,
           avgWaterSupplyPerScheme: 90_000_000,
+          totalSuppliedFhtcDays: 15_000,
         },
       ],
       stateWiseRegularity: [
@@ -119,6 +120,7 @@ describe('useCentralDashboardKpis', () => {
           householdCount: 100,
           achievedFhtcCount: 100,
           plannedFhtcCount: 100,
+          totalSuppliedFhtcDays: 100,
         },
         {
           periodStartDate: '2026-03-02',
@@ -126,6 +128,7 @@ describe('useCentralDashboardKpis', () => {
           householdCount: 100,
           achievedFhtcCount: 100,
           plannedFhtcCount: 100,
+          totalSuppliedFhtcDays: 100,
         },
       ],
     }
@@ -179,6 +182,7 @@ describe('useCentralDashboardKpis', () => {
         totalWaterSuppliedLiters: 90_000_000,
         schemeCount: 1,
         avgWaterSupplyPerScheme: 90_000_000,
+        totalSuppliedFhtcDays: 15_000,
       },
       schemes: [],
       childRegions: [],

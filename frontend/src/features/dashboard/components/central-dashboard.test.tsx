@@ -1380,6 +1380,7 @@ describe('CentralDashboard', () => {
             totalFhtcCount: 500,
             totalWaterSuppliedLiters: 90_000_000,
             avgWaterSupplyPerScheme: 0,
+            totalSuppliedFhtcDays: 15_000,
           },
           {
             tenantId: 99,
@@ -1391,6 +1392,7 @@ describe('CentralDashboard', () => {
             totalFhtcCount: 500,
             totalWaterSuppliedLiters: 90_000_000,
             avgWaterSupplyPerScheme: 0,
+            totalSuppliedFhtcDays: 15_000,
           },
         ],
         stateWiseRegularity: [
@@ -1478,6 +1480,7 @@ describe('CentralDashboard', () => {
             totalSupplyDays: 10,
             totalWaterQuantity: 1500,
             totalAchievedFhtcCount: 10,
+            totalSuppliedFhtcDays: 70,
             averageRegularity: 48,
           },
           {
@@ -1486,6 +1489,7 @@ describe('CentralDashboard', () => {
             totalSupplyDays: 11,
             totalWaterQuantity: 1750,
             totalAchievedFhtcCount: 10,
+            totalSuppliedFhtcDays: 70,
             averageRegularity: 52,
           },
         ],
@@ -2240,6 +2244,7 @@ describe('CentralDashboard', () => {
                     householdCount: 0,
                     achievedFhtcCount: 501,
                     plannedFhtcCount: 448,
+                    totalSuppliedFhtcDays: 501,
                   },
                   {
                     periodStartDate: '2026-03-26',
@@ -2249,6 +2254,7 @@ describe('CentralDashboard', () => {
                     householdCount: 0,
                     achievedFhtcCount: 500,
                     plannedFhtcCount: 448,
+                    totalSuppliedFhtcDays: 500,
                   },
                 ],
               },
@@ -2376,6 +2382,7 @@ describe('CentralDashboard', () => {
               totalPlannedFhtcCount: 550,
               totalWaterSuppliedLiters: 90_000_000,
               avgWaterSupplyPerScheme: 0,
+              totalSuppliedFhtcDays: 15_000,
             },
             {
               tenantId: 2,
@@ -2386,6 +2393,7 @@ describe('CentralDashboard', () => {
               totalFhtcCount: 500,
               totalWaterSuppliedLiters: 60_000_000,
               avgWaterSupplyPerScheme: 0,
+              totalSuppliedFhtcDays: 15_000,
             },
           ],
           stateWiseRegularity: [
@@ -2425,6 +2433,7 @@ describe('CentralDashboard', () => {
               totalFhtcCount: 500,
               totalWaterSuppliedLiters: 120_000_000,
               avgWaterSupplyPerScheme: 0,
+              totalSuppliedFhtcDays: 15_000,
             },
             {
               tenantId: 2,
@@ -2435,6 +2444,7 @@ describe('CentralDashboard', () => {
               totalFhtcCount: 500,
               totalWaterSuppliedLiters: 60_000_000,
               avgWaterSupplyPerScheme: 0,
+              totalSuppliedFhtcDays: 15_000,
             },
           ],
           stateWiseRegularity: [
@@ -5099,24 +5109,18 @@ describe('CentralDashboard', () => {
                 daysInRange: 30,
                 schemeCount: 2,
                 childRegionCount: 0,
-                schemes: [
-                  {
-                    schemeId: 1,
-                    schemeName: 'Scheme 1',
-                    totalAchievedFhtcCount: 1000,
-                    totalWaterSuppliedLiters: 90_000_000,
-                    supplyDays: 30,
-                    avgLitersPerHousehold: 0,
-                  },
-                  {
-                    schemeId: 2,
-                    schemeName: 'Scheme 2',
-                    totalAchievedFhtcCount: 1000,
-                    totalWaterSuppliedLiters: 60_000_000,
-                    supplyDays: 30,
-                    avgLitersPerHousehold: 0,
-                  },
-                ],
+                currentRegion: {
+                  lgdId: 10,
+                  departmentId: null,
+                  title: null,
+                  totalHouseholdCount: 2000,
+                  totalAchievedFhtcCount: 2000,
+                  totalWaterSuppliedLiters: 150_000_000,
+                  schemeCount: 2,
+                  avgWaterSupplyPerScheme: 0,
+                  totalSuppliedFhtcDays: 60_000,
+                },
+                schemes: [],
                 childRegions: [],
               },
             }
@@ -5133,24 +5137,18 @@ describe('CentralDashboard', () => {
               daysInRange: 30,
               schemeCount: 2,
               childRegionCount: 0,
-              schemes: [
-                {
-                  schemeId: 1,
-                  schemeName: 'Scheme 1',
-                  totalAchievedFhtcCount: 1000,
-                  totalWaterSuppliedLiters: 120_000_000,
-                  supplyDays: 30,
-                  avgLitersPerHousehold: 0,
-                },
-                {
-                  schemeId: 2,
-                  schemeName: 'Scheme 2',
-                  totalAchievedFhtcCount: 1000,
-                  totalWaterSuppliedLiters: 60_000_000,
-                  supplyDays: 30,
-                  avgLitersPerHousehold: 0,
-                },
-              ],
+              currentRegion: {
+                lgdId: 10,
+                departmentId: null,
+                title: null,
+                totalHouseholdCount: 2000,
+                totalAchievedFhtcCount: 2000,
+                totalWaterSuppliedLiters: 180_000_000,
+                schemeCount: 2,
+                avgWaterSupplyPerScheme: 0,
+                totalSuppliedFhtcDays: 60_000,
+              },
+              schemes: [],
               childRegions: [],
             },
           }

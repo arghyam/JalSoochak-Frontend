@@ -19,6 +19,7 @@ import {
   calculateQuantityLpcd,
   getRegularityKpi,
   getWaterSupplyKpis,
+  getWaterSupplyKpisFromNationalDashboard,
   getWaterSupplyKpisFromPeriodic,
   getRegularityKpiFromPeriodic,
   hasWaterSupplyData,
@@ -51,11 +52,21 @@ describe('dashboard formulas', () => {
     expect(calculateQuantityMld(90_000_000, 30)).toBe(3)
   })
 
-  it('calculates quantity in LPCD from liters, FHTC count, day range, and P', () => {
-    expect(calculateQuantityLpcd(90_000_000, 500, 30, 5)).toBe(1200)
+  it('calculates quantity in LPCD from liters, supplied FHTC-days, and P', () => {
+    expect(calculateQuantityLpcd(90_000_000, 15_000, 5)).toBe(1200)
   })
 
-  it('calculates state KPI totals from scheme rows using totalAchievedFhtcCount when available', () => {
+  it.each([
+    ['supplied FHTC-days is 0', 90_000_000, 0, 5],
+    ['supplied FHTC-days is negative', 90_000_000, -1, 5],
+    ['supplied FHTC-days is not finite', 90_000_000, Number.NaN, 5],
+    ['liters is 0', 0, 15_000, 5],
+    ['persons per household is 0', 90_000_000, 15_000, 0],
+  ])('returns 0 LPCD instead of dividing when %s', (_, liters, suppliedFhtcDays, persons) => {
+    expect(calculateQuantityLpcd(liters, suppliedFhtcDays, persons)).toBe(0)
+  })
+
+  it('reports 0 LPCD from scheme rows because they carry no totalSuppliedFhtcDays', () => {
     const response: AverageWaterSupplyPerRegionResponse = {
       tenantId: 17,
       stateCode: 'AS',
@@ -82,7 +93,7 @@ describe('dashboard formulas', () => {
 
     expect(getWaterSupplyKpis(response, 5)).toEqual({
       quantityMld: 3,
-      quantityLpcd: 1200,
+      quantityLpcd: 0,
     })
   })
 
@@ -107,6 +118,7 @@ describe('dashboard formulas', () => {
         totalPlannedFhtcCount: 130000,
         schemeCount: 312,
         avgWaterSupplyPerScheme: 3_404_166.67,
+        totalSuppliedFhtcDays: 15_000_000,
       },
       schemes: [],
       childRegions: [
@@ -120,6 +132,7 @@ describe('dashboard formulas', () => {
           totalPlannedFhtcCount: 65000,
           schemeCount: 150,
           avgWaterSupplyPerScheme: 2_666_666,
+          totalSuppliedFhtcDays: 7_000_000,
         },
         {
           lgdId: 42,
@@ -131,6 +144,7 @@ describe('dashboard formulas', () => {
           totalPlannedFhtcCount: 65000,
           schemeCount: 162,
           avgWaterSupplyPerScheme: 4_088_271,
+          totalSuppliedFhtcDays: 9_000_000,
         },
       ],
     }
@@ -138,7 +152,100 @@ describe('dashboard formulas', () => {
     // currentRegion values, not sum of childRegions
     expect(getWaterSupplyKpis(response, 5)).toEqual({
       quantityMld: Number((1_062_300_000 / 179 / 1_000_000).toFixed(2)),
-      quantityLpcd: Number((1_062_300_000 / (118200 * 5 * 179)).toFixed(1)),
+      quantityLpcd: Number((1_062_300_000 / (15_000_000 * 5)).toFixed(1)),
+    })
+  })
+
+  it('sums childRegions supplied FHTC-days when currentRegion omits totalSuppliedFhtcDays', () => {
+    const response: AverageWaterSupplyPerRegionResponse = {
+      tenantId: 17,
+      stateCode: 'AS',
+      parentLgdLevel: 2,
+      parentDepartmentLevel: 0,
+      startDate: '2026-03-01',
+      endDate: '2026-03-30',
+      daysInRange: 30,
+      schemeCount: 2,
+      childRegionCount: 2,
+      currentRegion: {
+        lgdId: 4,
+        departmentId: null,
+        title: null,
+        totalHouseholdCount: 1000,
+        totalAchievedFhtcCount: 1000,
+        totalWaterSuppliedLiters: 90_000_000,
+        schemeCount: 2,
+        avgWaterSupplyPerScheme: 0,
+      },
+      childRegions: [
+        {
+          lgdId: 41,
+          departmentId: 0,
+          title: 'Block A',
+          totalHouseholdCount: 500,
+          totalWaterSuppliedLiters: 40_000_000,
+          schemeCount: 1,
+          avgWaterSupplyPerScheme: 0,
+          totalSuppliedFhtcDays: 6_000,
+        },
+        {
+          lgdId: 42,
+          departmentId: 0,
+          title: 'Block B',
+          totalHouseholdCount: 500,
+          totalWaterSuppliedLiters: 50_000_000,
+          schemeCount: 1,
+          avgWaterSupplyPerScheme: 0,
+          totalSuppliedFhtcDays: 9_000,
+        },
+      ],
+    }
+
+    expect(getWaterSupplyKpis(response, 5)).toEqual({
+      quantityMld: 3,
+      quantityLpcd: 1200,
+    })
+  })
+
+  it('reports 0 LPCD when no region carries totalSuppliedFhtcDays, regardless of FHTC counts', () => {
+    const response: AverageWaterSupplyPerRegionResponse = {
+      tenantId: 17,
+      stateCode: 'AS',
+      parentLgdLevel: 2,
+      parentDepartmentLevel: 0,
+      startDate: '2026-03-01',
+      endDate: '2026-03-30',
+      daysInRange: 30,
+      schemeCount: 1,
+      childRegionCount: 1,
+      currentRegion: {
+        lgdId: 4,
+        departmentId: null,
+        title: null,
+        totalHouseholdCount: 500,
+        totalAchievedFhtcCount: 500,
+        totalWaterSuppliedLiters: 90_000_000,
+        schemeCount: 1,
+        avgWaterSupplyPerScheme: 0,
+        totalSuppliedFhtcDays: null,
+      },
+      childRegions: [
+        {
+          lgdId: 41,
+          departmentId: 0,
+          title: 'Block A',
+          totalHouseholdCount: 500,
+          totalAchievedFhtcCount: 500,
+          totalWaterSuppliedLiters: 90_000_000,
+          schemeCount: 1,
+          avgWaterSupplyPerScheme: 0,
+        },
+      ],
+    }
+
+    expect(getWaterSupplyKpis(response, 5)).toEqual({
+      quantityMld: 3,
+      quantityLpcd: 0,
     })
   })
 
@@ -146,7 +253,7 @@ describe('dashboard formulas', () => {
     expect(calculateDemandMld(500, 5, 50)).toBe(0.13)
   })
 
-  it('calculates village KPI totals using totalWaterQuantity from scheme-regularity and achievedFhtcCount from water-quantity', () => {
+  it('calculates village KPI totals using totalWaterQuantity from scheme-regularity and summed totalSuppliedFhtcDays from water-quantity', () => {
     expect(
       getWaterSupplyKpisFromPeriodic(
         {
@@ -188,6 +295,7 @@ describe('dashboard formulas', () => {
               householdCount: 0,
               achievedFhtcCount: 501,
               plannedFhtcCount: 448,
+              totalSuppliedFhtcDays: 400,
             },
             {
               periodStartDate: '2026-02-26',
@@ -195,17 +303,19 @@ describe('dashboard formulas', () => {
               householdCount: 0,
               achievedFhtcCount: 500,
               plannedFhtcCount: 448,
+              totalSuppliedFhtcDays: 500,
             },
           ],
         }
       )
     ).toEqual({
       quantityMld: 0.05,
-      quantityLpcd: 18.3,
+      // 91_343 L / (900 FHTC-days × 5)
+      quantityLpcd: 20.3,
     })
   })
 
-  it('prefers totalAchievedFhtcCount over achievedFhtcCount when averaging FHTC', () => {
+  it('reports 0 village LPCD when buckets carry no supplied FHTC-days (missing or 0), ignoring FHTC counts', () => {
     expect(
       getWaterSupplyKpisFromPeriodic(
         {
@@ -256,13 +366,14 @@ describe('dashboard formulas', () => {
               totalAchievedFhtcCount: 500,
               achievedFhtcCount: 5,
               plannedFhtcCount: 448,
+              totalSuppliedFhtcDays: 0,
             },
           ],
         }
       )
     ).toEqual({
       quantityMld: 0.05,
-      quantityLpcd: 18.3,
+      quantityLpcd: 0,
     })
   })
 
@@ -309,6 +420,7 @@ describe('dashboard formulas', () => {
               totalAchievedFhtcCount: 999,
               achievedFhtcCount: 999,
               plannedFhtcCount: 448,
+              totalSuppliedFhtcDays: 9_999,
             },
             {
               periodStartDate: '2026-02-26',
@@ -317,6 +429,7 @@ describe('dashboard formulas', () => {
               totalAchievedFhtcCount: 500,
               achievedFhtcCount: 500,
               plannedFhtcCount: 448,
+              totalSuppliedFhtcDays: 500,
             },
           ],
         }
@@ -427,6 +540,7 @@ describe('dashboard formulas', () => {
           totalWaterSuppliedLiters: 90_000_000,
           schemeCount: 1,
           avgWaterSupplyPerScheme: 0,
+          totalSuppliedFhtcDays: 15_000,
         },
       ],
     }
@@ -459,6 +573,7 @@ describe('dashboard formulas', () => {
           totalWaterSuppliedLiters: 120_000_000,
           schemeCount: 1,
           avgWaterSupplyPerScheme: 0,
+          totalSuppliedFhtcDays: 240_000,
         },
         {
           lgdId: 2,
@@ -469,6 +584,7 @@ describe('dashboard formulas', () => {
           totalWaterSuppliedLiters: 210_000_000,
           schemeCount: 1,
           avgWaterSupplyPerScheme: 0,
+          totalSuppliedFhtcDays: 360_000,
         },
       ],
     }
@@ -477,6 +593,60 @@ describe('dashboard formulas', () => {
     expect(getWaterSupplyKpis(response, 5)).toEqual({
       quantityMld: 11,
       quantityLpcd: 110,
+    })
+  })
+
+  it('calculates national KPI LPCD from summed state totalSuppliedFhtcDays, counting a missing value as 0', () => {
+    const response: NationalDashboardResponse = {
+      startDate: '2026-03-01',
+      endDate: '2026-03-30',
+      daysInRange: 30,
+      stateWiseQuantityPerformance: [
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          stateTitle: 'Assam',
+          schemeCount: 10,
+          supplyDaysInEfficientRange: 0,
+          totalHouseholdCount: 0,
+          totalAchievedFhtcCount: 1_000,
+          totalWaterSuppliedLiters: 60_000_000,
+          avgWaterSupplyPerScheme: 0,
+          totalSuppliedFhtcDays: 10_000,
+        },
+        {
+          tenantId: 18,
+          stateCode: 'MP',
+          stateTitle: 'Madhya Pradesh',
+          schemeCount: 10,
+          supplyDaysInEfficientRange: 0,
+          totalHouseholdCount: 0,
+          totalAchievedFhtcCount: 1_000,
+          totalWaterSuppliedLiters: 30_000_000,
+          avgWaterSupplyPerScheme: 0,
+          totalSuppliedFhtcDays: 5_000,
+        },
+        {
+          tenantId: 19,
+          stateCode: 'TG',
+          stateTitle: 'Telangana',
+          schemeCount: 10,
+          supplyDaysInEfficientRange: 0,
+          totalHouseholdCount: 0,
+          totalAchievedFhtcCount: 1_000,
+          totalWaterSuppliedLiters: 0,
+          avgWaterSupplyPerScheme: 0,
+        },
+      ],
+      stateWiseRegularity: [],
+      stateWiseReadingSubmissionRate: [],
+      overallOutageReasonDistribution: {},
+    }
+
+    expect(getWaterSupplyKpisFromNationalDashboard(response, 5)).toEqual({
+      quantityMld: 3,
+      // 90_000_000 L / (15_000 FHTC-days × 5)
+      quantityLpcd: 1200,
     })
   })
 
@@ -551,6 +721,7 @@ describe('dashboard formulas', () => {
           totalWaterSuppliedLiters: 90_000_000,
           schemeCount: 2,
           avgWaterSupplyPerScheme: 0,
+          totalSuppliedFhtcDays: 15_000,
         },
       ],
     }
@@ -1330,6 +1501,7 @@ describe('dashboard formulas', () => {
           totalWaterSuppliedLiters: 15_706_406_504,
           avgWaterSupplyPerScheme: 902044.9405,
           supplyDaysInEfficientRange: 0,
+          totalSuppliedFhtcDays: 120_000,
         },
       ],
       stateWiseRegularity: [],
@@ -1554,6 +1726,7 @@ describe('dashboard formulas', () => {
           totalWaterSuppliedLiters: 90_000_000,
           schemeCount: 2,
           avgWaterSupplyPerScheme: 0,
+          totalSuppliedFhtcDays: 15_000,
         },
       ],
     }
@@ -1658,6 +1831,52 @@ describe('dashboard formulas', () => {
       expect.objectContaining({
         name: 'Assam',
         households: 97_681,
+      }),
+    ])
+  })
+
+  it('maps national overall performance LPCD from totalSuppliedFhtcDays, and 0 when it is absent', () => {
+    const response: NationalDashboardResponse = {
+      startDate: '2026-03-01',
+      endDate: '2026-03-30',
+      daysInRange: 30,
+      stateWiseQuantityPerformance: [
+        {
+          tenantId: 17,
+          stateCode: 'AS',
+          stateTitle: 'Assam',
+          schemeCount: 10,
+          totalHouseholdCount: 0,
+          totalAchievedFhtcCount: 500,
+          totalWaterSuppliedLiters: 90_000_000,
+          supplyDaysInEfficientRange: 0,
+          avgWaterSupplyPerScheme: 0,
+          totalSuppliedFhtcDays: 15_000,
+        },
+        {
+          tenantId: 18,
+          stateCode: 'MP',
+          stateTitle: 'Madhya Pradesh',
+          schemeCount: 10,
+          totalHouseholdCount: 0,
+          totalAchievedFhtcCount: 500,
+          totalWaterSuppliedLiters: 90_000_000,
+          supplyDaysInEfficientRange: 0,
+          avgWaterSupplyPerScheme: 0,
+        },
+      ],
+      stateWiseRegularity: [],
+      stateWiseReadingSubmissionRate: [],
+      overallOutageReasonDistribution: {},
+    }
+
+    expect(mapOverallPerformanceFromNationalDashboard(response, [], 5)).toEqual([
+      expect.objectContaining({ name: 'Assam', coverage: 3, quantity: 1200, households: 500 }),
+      expect.objectContaining({
+        name: 'Madhya Pradesh',
+        coverage: 3,
+        quantity: 0,
+        households: 500,
       }),
     ])
   })

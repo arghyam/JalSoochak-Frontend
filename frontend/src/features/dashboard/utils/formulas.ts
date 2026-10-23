@@ -32,10 +32,6 @@ const isFiniteNumber = (value: number) => Number.isFinite(value)
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
 
-const getSchemeAchievedFhtcCount = (
-  scheme: NonNullable<AverageWaterSupplyPerRegionResponse['schemes']>[number]
-) => scheme.totalAchievedFhtcCount ?? scheme.achievedFhtcCount ?? 0
-
 const getChildRegionAchievedFhtcCount = (
   region: AverageWaterSupplyPerRegionResponse['childRegions'][number]
 ) => region.totalAchievedFhtcCount ?? 0
@@ -140,29 +136,28 @@ export const calculateQuantityMld = (
   return Number((totalWaterSuppliedLiters / daysInRange / MILLION_LITERS).toFixed(2))
 }
 
+/**
+ * LPCD = litres / (totalSuppliedFhtcDays × P). `totalSuppliedFhtcDays` already sums each
+ * supplying scheme's achieved FHTC over its supply days, so it is not multiplied by days again.
+ */
 export const calculateQuantityLpcd = (
   totalWaterSuppliedLiters: number,
-  servedConnectionCount: number,
-  daysInRange: number,
+  totalSuppliedFhtcDays: number,
   averagePersonsPerHousehold = DEFAULT_PERSONS_PER_HOUSEHOLD
 ): number => {
   if (
     !isFiniteNumber(totalWaterSuppliedLiters) ||
-    !isFiniteNumber(servedConnectionCount) ||
+    !isFiniteNumber(totalSuppliedFhtcDays) ||
     !isFiniteNumber(averagePersonsPerHousehold) ||
     totalWaterSuppliedLiters <= 0 ||
-    servedConnectionCount <= 0 ||
-    averagePersonsPerHousehold <= 0 ||
-    daysInRange <= 0
+    totalSuppliedFhtcDays <= 0 ||
+    averagePersonsPerHousehold <= 0
   ) {
     return 0
   }
 
   return Number(
-    (
-      totalWaterSuppliedLiters /
-      (servedConnectionCount * averagePersonsPerHousehold * daysInRange)
-    ).toFixed(1)
+    (totalWaterSuppliedLiters / (totalSuppliedFhtcDays * averagePersonsPerHousehold)).toFixed(1)
   )
 }
 
@@ -226,7 +221,7 @@ export const calculateReadingSubmissionRatePercent = (
 
 const sumWaterSupplyField = (
   response: AverageWaterSupplyPerRegionResponse | undefined,
-  field: 'totalWaterSuppliedLiters' | 'totalAchievedFhtcCount'
+  field: 'totalWaterSuppliedLiters' | 'totalSuppliedFhtcDays'
 ) => {
   if (!response) {
     return 0
@@ -236,37 +231,25 @@ const sumWaterSupplyField = (
     if (field === 'totalWaterSuppliedLiters') {
       return response.currentRegion.totalWaterSuppliedLiters ?? 0
     }
-    if (response.currentRegion.totalAchievedFhtcCount != null) {
-      return response.currentRegion.totalAchievedFhtcCount
+    if (response.currentRegion.totalSuppliedFhtcDays != null) {
+      return response.currentRegion.totalSuppliedFhtcDays
     }
-    // totalAchievedFhtcCount absent — fall through to childRegions/schemes aggregation
+    // totalSuppliedFhtcDays absent — fall through to childRegions aggregation
   }
 
   if (response.childRegions?.length) {
-    if (field === 'totalWaterSuppliedLiters') {
-      return response.childRegions.reduce(
-        (total, region) => total + (region.totalWaterSuppliedLiters ?? 0),
-        0
-      )
-    }
-
-    return response.childRegions.reduce(
-      (total, region) => total + getChildRegionAchievedFhtcCount(region),
-      0
-    )
+    return response.childRegions.reduce((total, region) => total + (region[field] ?? 0), 0)
   }
 
-  if (!response.schemes?.length) {
+  // Scheme rows carry no totalSuppliedFhtcDays, so they only contribute litres.
+  if (field !== 'totalWaterSuppliedLiters' || !response.schemes?.length) {
     return 0
   }
 
-  return response.schemes.reduce((total, scheme) => {
-    if (field === 'totalWaterSuppliedLiters') {
-      return total + (scheme.totalWaterSuppliedLiters ?? 0)
-    }
-
-    return total + getSchemeAchievedFhtcCount(scheme)
-  }, 0)
+  return response.schemes.reduce(
+    (total, scheme) => total + (scheme.totalWaterSuppliedLiters ?? 0),
+    0
+  )
 }
 
 export const hasWaterSupplyData = (response: AverageWaterSupplyPerRegionResponse | undefined) =>
@@ -282,14 +265,13 @@ export const getWaterSupplyKpis = (
 
   const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
   const totalWaterSuppliedLiters = sumWaterSupplyField(response, 'totalWaterSuppliedLiters')
-  const servedConnectionCount = sumWaterSupplyField(response, 'totalAchievedFhtcCount')
+  const totalSuppliedFhtcDays = sumWaterSupplyField(response, 'totalSuppliedFhtcDays')
 
   return {
     quantityMld: calculateQuantityMld(totalWaterSuppliedLiters, daysInRange),
     quantityLpcd: calculateQuantityLpcd(
       totalWaterSuppliedLiters,
-      servedConnectionCount,
-      daysInRange,
+      totalSuppliedFhtcDays,
       averagePersonsPerHousehold
     ),
   }
@@ -308,17 +290,16 @@ export const getWaterSupplyKpisFromNationalDashboard = (
     (acc, state) => ({
       totalWaterSuppliedLiters:
         acc.totalWaterSuppliedLiters + (state.totalWaterSuppliedLiters ?? 0),
-      totalServedConnections: acc.totalServedConnections + getNationalAchievedFhtcCount(state),
+      totalSuppliedFhtcDays: acc.totalSuppliedFhtcDays + (state.totalSuppliedFhtcDays ?? 0),
     }),
-    { totalWaterSuppliedLiters: 0, totalServedConnections: 0 }
+    { totalWaterSuppliedLiters: 0, totalSuppliedFhtcDays: 0 }
   )
 
   return {
     quantityMld: calculateQuantityMld(totals.totalWaterSuppliedLiters, daysInRange),
     quantityLpcd: calculateQuantityLpcd(
       totals.totalWaterSuppliedLiters,
-      totals.totalServedConnections,
-      daysInRange,
+      totals.totalSuppliedFhtcDays,
       averagePersonsPerHousehold
     ),
   }
@@ -392,39 +373,27 @@ export const getWaterSupplyKpisFromPeriodic = (
     return { quantityMld: 0, quantityLpcd: 0 }
   }
 
-  // Average achievedFhtcCount from water-quantity/periodic metrics (valid periods only)
-  let totalAchievedFhtcCount = 0
-  let achievedFhtcMetricCount = 0
+  // Sum totalSuppliedFhtcDays from water-quantity/periodic metrics (valid periods only)
+  let totalSuppliedFhtcDays = 0
 
   for (const metric of waterQuantityResponse?.metrics ?? []) {
     const metricDays = resolveMetricDaysInRange(metric.periodStartDate, metric.periodEndDate)
-    if (metricDays <= 0) {
+    const suppliedFhtcDays = Number(metric.totalSuppliedFhtcDays ?? 0)
+
+    if (!isFiniteNumber(suppliedFhtcDays) || metricDays <= 0) {
       continue
     }
 
-    const count = Number(metric.totalAchievedFhtcCount ?? metric.achievedFhtcCount ?? 0)
-    if (isFiniteNumber(count)) {
-      totalAchievedFhtcCount += count
-      achievedFhtcMetricCount++
-    }
+    totalSuppliedFhtcDays += suppliedFhtcDays
   }
-
-  const averageAchievedFhtcCount =
-    achievedFhtcMetricCount > 0 ? totalAchievedFhtcCount / achievedFhtcMetricCount : 0
 
   return {
     quantityMld: calculateQuantityMld(totalWaterSuppliedLiters, totalDays),
-    quantityLpcd:
-      averageAchievedFhtcCount > 0 &&
-      Number.isFinite(averagePersonsPerHousehold) &&
-      averagePersonsPerHousehold > 0
-        ? Number(
-            (
-              totalWaterSuppliedLiters /
-              (averageAchievedFhtcCount * totalDays * averagePersonsPerHousehold)
-            ).toFixed(1)
-          )
-        : 0,
+    quantityLpcd: calculateQuantityLpcd(
+      totalWaterSuppliedLiters,
+      totalSuppliedFhtcDays,
+      averagePersonsPerHousehold
+    ),
   }
 }
 
@@ -777,7 +746,6 @@ export const mapQuantityPerformanceFromAnalytics = (
 
   const childRegions = response.childRegions
   const fallbackByName = mapFallbackByName(fallbackData)
-  const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
 
   return childRegions.map((region, index) => {
     const fallbackMatch = fallbackByName.get(slugify(region.title)) ?? fallbackData[index]
@@ -792,8 +760,7 @@ export const mapQuantityPerformanceFromAnalytics = (
       continuity: fallbackMatch?.continuity ?? 0,
       quantity: calculateQuantityLpcd(
         region.totalWaterSuppliedLiters,
-        getChildRegionAchievedFhtcCount(region),
-        daysInRange,
+        region.totalSuppliedFhtcDays ?? 0,
         averagePersonsPerHousehold
       ),
       compositeScore: fallbackMatch?.compositeScore ?? 0,
@@ -918,8 +885,6 @@ export const mapQuantityPerformanceFromNationalDashboard = (
     return []
   }
 
-  const daysInRange = resolveDaysInRange(response.daysInRange, response.startDate, response.endDate)
-
   return response.stateWiseQuantityPerformance.map((state, index) => {
     const fallbackMatch = mapNationalFallbackMatch(fallbackData, state.stateTitle, index)
     const demandInputs = resolveDemandInputs?.(state)
@@ -946,8 +911,7 @@ export const mapQuantityPerformanceFromNationalDashboard = (
       continuity: fallbackMatch?.continuity ?? 0,
       quantity: calculateQuantityLpcd(
         state.totalWaterSuppliedLiters,
-        getNationalAchievedFhtcCount(state),
-        daysInRange,
+        state.totalSuppliedFhtcDays ?? 0,
         resolvedAveragePersonsPerHousehold
       ),
       compositeScore: fallbackMatch?.compositeScore ?? 0,
@@ -1286,8 +1250,7 @@ export const mapOverallPerformanceFromAnalytics = (
       continuity: 0,
       quantity: calculateQuantityLpcd(
         region.totalWaterSuppliedLiters,
-        achievedFhtcCount,
-        waterDaysInRange,
+        region.totalSuppliedFhtcDays ?? 0,
         averagePersonsPerHousehold
       ),
       compositeScore: 0,
@@ -1341,8 +1304,7 @@ export const mapOverallPerformanceFromNationalDashboard = (
       continuity: 0,
       quantity: calculateQuantityLpcd(
         state.totalWaterSuppliedLiters,
-        achievedFhtcCount,
-        daysInRange,
+        state.totalSuppliedFhtcDays ?? 0,
         averagePersonsPerHousehold
       ),
       compositeScore: 0,
