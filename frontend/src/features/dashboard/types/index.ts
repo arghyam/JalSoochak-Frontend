@@ -206,6 +206,8 @@ export interface WaterQuantityPeriodicMetric {
   totalAchievedFhtcCount?: number
   achievedFhtcCount: number
   plannedFhtcCount: number
+  /** LPCD denominator: each scheme's achieved FHTC summed over the days it supplied water. */
+  totalSuppliedFhtcDays?: number | null
 }
 
 export interface WaterQuantityPeriodicResponse {
@@ -310,6 +312,8 @@ export interface NationalSchemeRegularityPeriodicMetric {
   regularSchemeCount?: number
   totalWaterQuantity?: number
   totalAchievedFhtcCount?: number
+  /** LPCD denominator: each scheme's achieved FHTC summed over the days it supplied water. */
+  totalSuppliedFhtcDays?: number | null
   averageRegularity: number
 }
 
@@ -341,6 +345,8 @@ export interface NationalDashboardQuantityPerformanceItem {
   totalPlannedFhtcCount?: number
   totalWaterSuppliedLiters: number
   avgWaterSupplyPerScheme: number
+  /** LPCD denominator: each scheme's achieved FHTC summed over the days it supplied water. */
+  totalSuppliedFhtcDays?: number | null
 }
 
 export interface NationalDashboardRegularityItem {
@@ -410,6 +416,8 @@ export interface AverageWaterSupplyChildRegion {
   totalWaterSuppliedLiters: number
   schemeCount: number
   avgWaterSupplyPerScheme: number
+  /** LPCD denominator: each scheme's achieved FHTC summed over the days it supplied water. */
+  totalSuppliedFhtcDays?: number | null
 }
 
 export interface AverageWaterSupplyCurrentRegion {
@@ -422,6 +430,8 @@ export interface AverageWaterSupplyCurrentRegion {
   totalWaterSuppliedLiters: number
   schemeCount: number
   avgWaterSupplyPerScheme: number
+  /** LPCD denominator: each scheme's achieved FHTC summed over the days it supplied water. */
+  totalSuppliedFhtcDays?: number | null
 }
 
 /**

@@ -253,7 +253,7 @@ export function buildCentralDashboardKpiMetrics({
           {t('kpi.tooltips.quantityLpcd.formulaLabel', {
             defaultValue: 'Quantity (LPCD: Litres per Capita per Day)',
           })}{' '}
-          = SUM(W<sub>k</sub>) / (SUM(FHTC<sub>i</sub>) x P x N)
+          = SUM(W<sub>k</sub>) / (SUM(FHTC<sub>i</sub> x D<sub>i</sub>) x P)
         </>,
         [
           <>
@@ -275,15 +275,15 @@ export function buildCentralDashboardKpiMetrics({
             })}
           </>,
           <>
-            P ={' '}
-            {t('kpi.tooltips.quantityLpcd.definitions.averagePersonsPerHousehold', {
-              defaultValue: 'average persons per household',
+            D<sub>i</sub> ={' '}
+            {t('kpi.tooltips.quantityLpcd.definitions.supplyDays', {
+              defaultValue: 'number of days scheme i supplied water in the selected time-period',
             })}
           </>,
           <>
-            N ={' '}
-            {t('kpi.tooltips.quantityLpcd.definitions.numberOfDays', {
-              defaultValue: 'total number of days in the selected time-period',
+            P ={' '}
+            {t('kpi.tooltips.quantityLpcd.definitions.averagePersonsPerHousehold', {
+              defaultValue: 'average persons per household',
             })}
           </>,
         ]
