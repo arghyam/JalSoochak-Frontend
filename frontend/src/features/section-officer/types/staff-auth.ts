@@ -6,10 +6,12 @@ export interface OtpRequestPayload {
 }
 
 export interface OtpRequestResponse {
-  status: number
-  message: string
   otpLength?: number
 }
+
+export type RequestOtpErrorKind = 'accountNotFound' | 'rejected' | 'tooManyAttempts' | 'unknown'
+
+export type VerifyOtpErrorKind = 'invalidOtp' | 'accountDeactivated' | 'tooManyAttempts' | 'unknown'
 
 export interface OtpVerifyPayload {
   phoneNumber: string
