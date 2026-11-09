@@ -35,6 +35,10 @@ interface ApiResponse<T> {
   data: T
 }
 
+interface OtpRequestApiData {
+  otpLength: number
+}
+
 interface TokenResponse {
   access_token: string
   expires_in: number
@@ -75,8 +79,11 @@ function buildUserFromToken(tokenData: TokenResponse): AuthUser {
 export const staffAuthApi = {
   requestOtp: async (payload: OtpRequestPayload): Promise<OtpRequestResponse> => {
     try {
-      const response = await apiClient.post<OtpRequestResponse>('/api/v1/auth/staff/otp', payload)
-      return response.data
+      const response = await apiClient.post<ApiResponse<OtpRequestApiData>>(
+        '/api/v1/auth/staff/otp',
+        payload
+      )
+      return { otpLength: response.data.data.otpLength }
     } catch (err: unknown) {
       throw toRequestOtpError(err)
     }

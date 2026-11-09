@@ -37,7 +37,7 @@ beforeEach(() => {
 
 describe('staffAuthApi.requestOtp', () => {
   it('calls POST /api/v1/auth/staff/otp with correct payload', async () => {
-    const mockResponse = { data: { status: 200, message: 'OTP sent', otpLength: 6 } }
+    const mockResponse = { data: { status: 200, message: 'OTP sent', data: { otpLength: 6 } } }
     mockPost.mockResolvedValueOnce(mockResponse)
 
     const result = await staffAuthApi.requestOtp({ phoneNumber: '918179020960', tenantCode: 'NL' })
@@ -46,7 +46,7 @@ describe('staffAuthApi.requestOtp', () => {
       phoneNumber: '918179020960',
       tenantCode: 'NL',
     })
-    expect(result).toEqual({ status: 200, message: 'OTP sent', otpLength: 6 })
+    expect(result).toEqual({ otpLength: 6 })
   })
 
   it('rejects with an accountNotFound RequestOtpError on HTTP 404', async () => {

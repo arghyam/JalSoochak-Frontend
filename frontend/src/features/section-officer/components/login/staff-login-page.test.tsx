@@ -147,7 +147,7 @@ describe('StaffLoginPage — Phone Step', () => {
   })
 
   it('calls requestOtp mutation with prefixed phone and tenantCode on valid submit', async () => {
-    mockRequestOtpMutate.mockResolvedValueOnce({ status: 200, message: 'OTP sent', otpLength: 6 })
+    mockRequestOtpMutate.mockResolvedValueOnce({ otpLength: 6 })
     render(<StaffLoginPage />, { wrapper: createWrapper() })
 
     await userEvent.type(screen.getByTestId('phone-input'), '8179020960')
@@ -220,7 +220,7 @@ describe('StaffLoginPage — Phone Step', () => {
 
 describe('StaffLoginPage — OTP Step', () => {
   async function renderAtOtpStep() {
-    mockRequestOtpMutate.mockResolvedValueOnce({ status: 200, message: 'OTP sent', otpLength: 4 })
+    mockRequestOtpMutate.mockResolvedValueOnce({ otpLength: 4 })
     render(<StaffLoginPage />, { wrapper: createWrapper() })
 
     await userEvent.type(screen.getByTestId('phone-input'), '8179020960')
@@ -352,7 +352,7 @@ describe('StaffLoginPage — Tenant Code Cookie Persistence', () => {
 
   it('persists cookie after successful login for next session', async () => {
     mockGetCookie.mockReturnValueOnce(null)
-    mockRequestOtpMutate.mockResolvedValueOnce({ status: 200, message: 'OTP sent', otpLength: 4 })
+    mockRequestOtpMutate.mockResolvedValueOnce({ otpLength: 4 })
     mockVerifyOtpMutate.mockResolvedValueOnce({
       user: {
         id: '15',
@@ -474,7 +474,7 @@ describe('StaffLoginPage — Single-Tenant Mode', () => {
   })
 
   it('calls requestOtp with tenants[0].stateCode without any dropdown interaction', async () => {
-    mockRequestOtpMutate.mockResolvedValueOnce({ status: 200, message: 'OTP sent', otpLength: 6 })
+    mockRequestOtpMutate.mockResolvedValueOnce({ otpLength: 6 })
     render(<StaffLoginPage />, { wrapper: createWrapper() })
 
     await userEvent.type(screen.getByTestId('phone-input'), '8179020960')
@@ -500,7 +500,7 @@ describe('StaffLoginPage — Single-Tenant Mode', () => {
       isLoading: false,
       isError: false,
     })
-    mockRequestOtpMutate.mockResolvedValueOnce({ status: 200, message: 'OTP sent', otpLength: 6 })
+    mockRequestOtpMutate.mockResolvedValueOnce({ otpLength: 6 })
     render(<StaffLoginPage />, { wrapper: createWrapper() })
 
     await userEvent.type(screen.getByTestId('phone-input'), '8179020960')
@@ -639,7 +639,7 @@ describe('StaffLoginPage — Captcha enabled', () => {
   })
 
   it('sends captchaToken with requestOtp once the captcha is solved', async () => {
-    mockRequestOtpMutate.mockResolvedValueOnce({ status: 200, message: 'OTP sent', otpLength: 6 })
+    mockRequestOtpMutate.mockResolvedValueOnce({ otpLength: 6 })
     render(<StaffLoginPage />, { wrapper: createWrapper() })
     await fillPhoneAndTenant()
 

@@ -6,8 +6,6 @@ export interface OtpRequestPayload {
 }
 
 export interface OtpRequestResponse {
-  status: number
-  message: string
   otpLength?: number
 }
 
