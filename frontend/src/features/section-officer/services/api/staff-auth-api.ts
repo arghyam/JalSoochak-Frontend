@@ -76,7 +76,7 @@ interface ApiResponse<T> {
 }
 
 interface OtpRequestApiData {
-  otpLength: number
+  otpLength?: number
 }
 
 interface TokenResponse {
@@ -119,11 +119,12 @@ function buildUserFromToken(tokenData: TokenResponse): AuthUser {
 export const staffAuthApi = {
   requestOtp: async (payload: OtpRequestPayload): Promise<OtpRequestResponse> => {
     try {
-      const response = await apiClient.post<ApiResponse<OtpRequestApiData>>(
+      // The envelope omits `data` when it is null, so fall through to the caller's default length.
+      const response = await apiClient.post<ApiResponse<OtpRequestApiData | undefined>>(
         '/api/v1/auth/staff/otp',
         payload
       )
-      return { otpLength: response.data.data.otpLength }
+      return { otpLength: response.data.data?.otpLength }
     } catch (err: unknown) {
       throw toRequestOtpError(err)
     }

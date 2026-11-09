@@ -55,6 +55,14 @@ describe('staffAuthApi.requestOtp', () => {
     expect(result).toEqual({ otpLength: 6 })
   })
 
+  it('resolves with no otpLength when the response omits the data envelope', async () => {
+    mockPost.mockResolvedValueOnce({ data: { status: 200, message: 'OTP sent' } })
+
+    const result = await staffAuthApi.requestOtp({ phoneNumber: '918179020960', tenantCode: 'NL' })
+
+    expect(result).toEqual({ otpLength: undefined })
+  })
+
   it('rejects with an accountNotFound RequestOtpError on HTTP 404', async () => {
     const err = new AxiosError('Request failed with status code 404')
     err.response = {
