@@ -7,6 +7,7 @@ import type {
   OtpVerifyPayload,
   PublicTenant,
   RequestOtpErrorKind,
+  VerifyOtpErrorKind,
 } from '@/features/section-officer/types/staff-auth'
 
 export class RequestOtpError extends Error {
@@ -19,14 +20,53 @@ export class RequestOtpError extends Error {
   }
 }
 
+export class VerifyOtpError extends Error {
+  readonly kind: VerifyOtpErrorKind
+
+  constructor(kind: VerifyOtpErrorKind, message: string) {
+    super(message)
+    this.name = 'VerifyOtpError'
+    this.kind = kind
+  }
+}
+
+const REQUEST_OTP_ERROR_KIND_BY_STATUS: Partial<Record<number, RequestOtpErrorKind>> = {
+  // A system admin trying OTP login, or a failed captcha.
+  400: 'rejected',
+  // The same 404 for an unregistered phone and an unknown or inactive tenant.
+  404: 'accountNotFound',
+  // Gateway rate limit.
+  429: 'tooManyAttempts',
+}
+
+const VERIFY_OTP_ERROR_KIND_BY_STATUS: Partial<Record<number, VerifyOtpErrorKind>> = {
+  // Wrong or expired OTP, or the maximum number of attempts reached.
+  400: 'invalidOtp',
+  403: 'accountDeactivated',
+  // Gateway rate limit.
+  429: 'tooManyAttempts',
+}
+
+function getErrorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err)
+}
+
+function getResponseStatus(err: unknown): number | undefined {
+  return isAxiosError(err) ? err.response?.status : undefined
+}
+
 function toRequestOtpError(err: unknown): RequestOtpError {
   if (err instanceof RequestOtpError) return err
-  const message = err instanceof Error ? err.message : String(err)
-  // The backend returns the same 404 for an unregistered phone and an unknown or inactive tenant.
-  if (isAxiosError(err) && err.response?.status === 404) {
-    return new RequestOtpError('accountNotFound', message)
-  }
-  return new RequestOtpError('unknown', message)
+  const status = getResponseStatus(err)
+  const kind = status === undefined ? undefined : REQUEST_OTP_ERROR_KIND_BY_STATUS[status]
+  return new RequestOtpError(kind ?? 'unknown', getErrorMessage(err))
+}
+
+function toVerifyOtpError(err: unknown): VerifyOtpError {
+  if (err instanceof VerifyOtpError) return err
+  const status = getResponseStatus(err)
+  const kind = status === undefined ? undefined : VERIFY_OTP_ERROR_KIND_BY_STATUS[status]
+  return new VerifyOtpError(kind ?? 'unknown', getErrorMessage(err))
 }
 
 interface ApiResponse<T> {
@@ -90,17 +130,21 @@ export const staffAuthApi = {
   },
 
   verifyOtp: async (payload: OtpVerifyPayload): Promise<LoginResponse> => {
-    const response = await apiClient.post<ApiResponse<TokenResponse>>(
-      '/api/v1/auth/staff/otp/verify',
-      payload
-    )
-    const tokenData = response.data.data
-    if (!tokenData.access_token) {
-      throw new Error('Invalid login response')
-    }
-    return {
-      user: buildUserFromToken(tokenData),
-      accessToken: tokenData.access_token,
+    try {
+      const response = await apiClient.post<ApiResponse<TokenResponse>>(
+        '/api/v1/auth/staff/otp/verify',
+        payload
+      )
+      const tokenData = response.data.data
+      if (!tokenData.access_token) {
+        throw new Error('Invalid login response')
+      }
+      return {
+        user: buildUserFromToken(tokenData),
+        accessToken: tokenData.access_token,
+      }
+    } catch (err: unknown) {
+      throw toVerifyOtpError(err)
     }
   },
 

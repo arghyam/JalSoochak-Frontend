@@ -2,6 +2,7 @@ import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/render-with-providers'
 import { LoginError } from '@/features/auth/services/auth-api'
+import enAuth from '@/locales/en/auth.json'
 import { LoginPage } from './login-page'
 
 const mockNavigate = jest.fn()
@@ -99,6 +100,21 @@ describe('LoginPage', () => {
       await screen.findByText('Incorrect email or password. Please try again.')
     ).toBeInTheDocument()
     expect(screen.queryByText('Unable to login. Please try again.')).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['accessDenied', enAuth.login.accessDenied],
+    ['tooManyAttempts', enAuth.login.tooManyAttempts],
+  ] as const)('shows the %s message when login fails with that kind', async (kind, message) => {
+    mockLogin.mockRejectedValueOnce(new LoginError(kind, 'request failed'))
+    const user = userEvent.setup()
+    renderWithProviders(<LoginPage />)
+    await user.type(screen.getByPlaceholderText('Enter your email'), 'user@test.com')
+    await user.type(screen.getByPlaceholderText('Enter your password'), 'pass')
+    await user.click(screen.getByRole('button', { name: 'Log in' }))
+
+    expect(await screen.findByText(message)).toBeInTheDocument()
+    expect(screen.queryByText(enAuth.login.loginFailed)).not.toBeInTheDocument()
   })
 
   it('shows the generic login failure message for other errors', async () => {

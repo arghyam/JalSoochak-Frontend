@@ -188,7 +188,7 @@ export interface ResetPasswordRequest {
   newPassword: string
 }
 
-export type LoginErrorKind = 'invalidCredentials' | 'unknown'
+export type LoginErrorKind = 'invalidCredentials' | 'accessDenied' | 'tooManyAttempts' | 'unknown'
 
 export class LoginError extends Error {
   readonly kind: LoginErrorKind
@@ -200,14 +200,21 @@ export class LoginError extends Error {
   }
 }
 
+const LOGIN_ERROR_KIND_BY_STATUS: Partial<Record<number, LoginErrorKind>> = {
+  // Only a wrong or unknown email/password.
+  401: 'invalidCredentials',
+  // Account not yet activated, account deactivated, or its State/UT is not accessible.
+  403: 'accessDenied',
+  // Keycloak brute-force lockout, or the gateway rate limit.
+  429: 'tooManyAttempts',
+}
+
 function toLoginError(err: unknown): LoginError {
   if (err instanceof LoginError) return err
   const message = err instanceof Error ? err.message : String(err)
-  // The backend returns 401 only for a wrong or unknown email/password; inactive accounts get 403.
-  if (isAxiosError(err) && err.response?.status === 401) {
-    return new LoginError('invalidCredentials', message)
-  }
-  return new LoginError('unknown', message)
+  const status = isAxiosError(err) ? err.response?.status : undefined
+  const kind = status === undefined ? undefined : LOGIN_ERROR_KIND_BY_STATUS[status]
+  return new LoginError(kind ?? 'unknown', message)
 }
 
 function buildUserFromTokenResponse(tokenData: TokenResponse): AuthUser {

@@ -6,7 +6,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createElement } from 'react'
 import type { PropsWithChildren } from 'react'
 import enSectionOfficer from '@/locales/en/section-officer.json'
-import { RequestOtpError } from '@/features/section-officer/services/api/staff-auth-api'
+import {
+  RequestOtpError,
+  VerifyOtpError,
+} from '@/features/section-officer/services/api/staff-auth-api'
 import { StaffLoginPage } from './staff-login-page'
 
 function resolveTranslation(
@@ -203,10 +206,12 @@ describe('StaffLoginPage — Phone Step', () => {
     })
   })
 
-  it('shows the account-not-found message when the number is not registered', async () => {
-    mockRequestOtpMutate.mockRejectedValueOnce(
-      new RequestOtpError('accountNotFound', 'Request failed with status code 404')
-    )
+  it.each([
+    ['accountNotFound', enSectionOfficer.login.phoneStep.accountNotFound],
+    ['rejected', enSectionOfficer.login.phoneStep.sendOtpRejected],
+    ['tooManyAttempts', enSectionOfficer.login.tooManyAttempts],
+  ] as const)('shows the %s message when requesting the OTP fails', async (kind, message) => {
+    mockRequestOtpMutate.mockRejectedValueOnce(new RequestOtpError(kind, 'request failed'))
     render(<StaffLoginPage />, { wrapper: createWrapper() })
 
     await userEvent.type(screen.getByTestId('phone-input'), '8179020960')
@@ -222,7 +227,7 @@ describe('StaffLoginPage — Phone Step', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText(enSectionOfficer.login.phoneStep.accountNotFound)).toBeTruthy()
+      expect(screen.getByText(message)).toBeTruthy()
     })
     expect(screen.queryByText(enSectionOfficer.login.phoneStep.sendOtpFailed)).toBeNull()
     expect(screen.queryByTestId('otp-inputs')).toBeNull()
@@ -293,6 +298,20 @@ describe('StaffLoginPage — OTP Step', () => {
     expect(screen.getByText(/Resend in/)).toBeTruthy()
   })
 
+  it('shows the rate-limit message when resending is throttled', async () => {
+    jest.useFakeTimers({ advanceTimers: true })
+    await renderAtOtpStep()
+    await endResendCooldown()
+    mockRequestOtpMutate.mockRejectedValueOnce(new RequestOtpError('tooManyAttempts', 'x'))
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('resend-otp-button'))
+    })
+
+    expect(screen.getByText(enSectionOfficer.login.tooManyAttempts)).toBeTruthy()
+    expect(screen.queryByText(enSectionOfficer.login.otpStep.resendFailed)).toBeNull()
+  })
+
   it('calls verifyOtp with correct payload on login', async () => {
     mockVerifyOtpMutate.mockResolvedValueOnce({
       user: {
@@ -329,8 +348,25 @@ describe('StaffLoginPage — OTP Step', () => {
     })
   })
 
-  it('shows error message when verifyOtp fails', async () => {
-    mockVerifyOtpMutate.mockRejectedValueOnce(new Error('Invalid OTP'))
+  it.each([
+    [
+      'invalid OTP',
+      new VerifyOtpError('invalidOtp', 'x'),
+      enSectionOfficer.login.otpStep.invalidOtp,
+    ],
+    [
+      'deactivated account',
+      new VerifyOtpError('accountDeactivated', 'x'),
+      enSectionOfficer.login.otpStep.accountDeactivated,
+    ],
+    [
+      'rate limit',
+      new VerifyOtpError('tooManyAttempts', 'x'),
+      enSectionOfficer.login.tooManyAttempts,
+    ],
+    ['unexpected failure', new Error('Network Error'), enSectionOfficer.login.otpStep.verifyFailed],
+  ])('shows the matching message when verifyOtp fails with a %s', async (_, error, message) => {
+    mockVerifyOtpMutate.mockRejectedValueOnce(error)
     await renderAtOtpStep()
 
     for (let i = 0; i < 4; i++) {
@@ -342,7 +378,7 @@ describe('StaffLoginPage — OTP Step', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText(enSectionOfficer.login.otpStep.invalidOtp)).toBeTruthy()
+      expect(screen.getByText(message)).toBeTruthy()
     })
   })
 

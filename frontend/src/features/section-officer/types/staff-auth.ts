@@ -9,7 +9,9 @@ export interface OtpRequestResponse {
   otpLength?: number
 }
 
-export type RequestOtpErrorKind = 'accountNotFound' | 'unknown'
+export type RequestOtpErrorKind = 'accountNotFound' | 'rejected' | 'tooManyAttempts' | 'unknown'
+
+export type VerifyOtpErrorKind = 'invalidOtp' | 'accountDeactivated' | 'tooManyAttempts' | 'unknown'
 
 export interface OtpVerifyPayload {
   phoneNumber: string

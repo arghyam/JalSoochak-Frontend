@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios'
-import { RequestOtpError, staffAuthApi } from './staff-auth-api'
+import { RequestOtpError, staffAuthApi, VerifyOtpError } from './staff-auth-api'
 import apiClient from '@/shared/lib/axios'
 
 jest.mock('@/shared/lib/axios', () => ({
@@ -29,6 +29,12 @@ const MOCK_TOKEN_RESPONSE = {
   tenant_code: 'NL',
   user_role: 'SECTION_OFFICER',
   phone_number: '918179020960',
+}
+
+function httpError(status: number): AxiosError {
+  const err = new AxiosError(`Request failed with status code ${status}`)
+  err.response = { data: { message: 'Backend message' }, status } as never
+  return err
 }
 
 beforeEach(() => {
@@ -63,6 +69,17 @@ describe('staffAuthApi.requestOtp', () => {
 
     expect(error).toBeInstanceOf(RequestOtpError)
     expect((error as RequestOtpError).kind).toBe('accountNotFound')
+  })
+
+  it.each([
+    [400, 'rejected'],
+    [429, 'tooManyAttempts'],
+    [500, 'unknown'],
+  ] as const)('maps HTTP %i to a %s RequestOtpError', async (status, kind) => {
+    mockPost.mockRejectedValueOnce(httpError(status))
+    await expect(
+      staffAuthApi.requestOtp({ phoneNumber: '918179020960', tenantCode: 'NL' })
+    ).rejects.toMatchObject({ kind, message: `Request failed with status code ${status}` })
   })
 
   it('rejects with an unknown RequestOtpError on other failures', async () => {
@@ -101,6 +118,29 @@ describe('staffAuthApi.verifyOtp', () => {
     await expect(
       staffAuthApi.verifyOtp({ phoneNumber: '918179020960', tenantCode: 'NL', otp: '123456' })
     ).rejects.toThrow('Invalid login response')
+  })
+
+  it.each([
+    [400, 'invalidOtp'],
+    [403, 'accountDeactivated'],
+    [429, 'tooManyAttempts'],
+    [500, 'unknown'],
+  ] as const)('maps HTTP %i to a %s VerifyOtpError', async (status, kind) => {
+    mockPost.mockRejectedValueOnce(httpError(status))
+
+    const error = await staffAuthApi
+      .verifyOtp({ phoneNumber: '918179020960', tenantCode: 'NL', otp: '123456' })
+      .catch((e: unknown) => e)
+
+    expect(error).toBeInstanceOf(VerifyOtpError)
+    expect(error).toMatchObject({ kind, message: `Request failed with status code ${status}` })
+  })
+
+  it('rejects with an unknown VerifyOtpError on a network failure', async () => {
+    mockPost.mockRejectedValueOnce(new AxiosError('Network Error'))
+    await expect(
+      staffAuthApi.verifyOtp({ phoneNumber: '918179020960', tenantCode: 'NL', otp: '123456' })
+    ).rejects.toMatchObject({ kind: 'unknown', message: 'Network Error' })
   })
 })
 

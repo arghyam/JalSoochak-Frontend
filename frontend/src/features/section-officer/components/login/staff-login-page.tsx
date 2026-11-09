@@ -42,7 +42,14 @@ import {
   useRequestOtpMutation,
   useVerifyOtpMutation,
 } from '@/features/section-officer/services/query/use-staff-auth-queries'
-import { RequestOtpError } from '@/features/section-officer/services/api/staff-auth-api'
+import {
+  RequestOtpError,
+  VerifyOtpError,
+} from '@/features/section-officer/services/api/staff-auth-api'
+import type {
+  RequestOtpErrorKind,
+  VerifyOtpErrorKind,
+} from '@/features/section-officer/types/staff-auth'
 
 const OTP_RESEND_COOLDOWN_SECONDS = 60
 const OTP_FALLBACK_LENGTH = 6
@@ -58,10 +65,34 @@ function maskPhoneNumber(phone: string): string {
   return `+91 ******${digits.slice(-4)}`
 }
 
+const SEND_OTP_ERROR_KEYS: Record<RequestOtpErrorKind, string> = {
+  accountNotFound: 'login.phoneStep.accountNotFound',
+  rejected: 'login.phoneStep.sendOtpRejected',
+  tooManyAttempts: 'login.tooManyAttempts',
+  unknown: 'login.phoneStep.sendOtpFailed',
+}
+
+const VERIFY_OTP_ERROR_KEYS: Record<VerifyOtpErrorKind, string> = {
+  invalidOtp: 'login.otpStep.invalidOtp',
+  accountDeactivated: 'login.otpStep.accountDeactivated',
+  tooManyAttempts: 'login.tooManyAttempts',
+  unknown: 'login.otpStep.verifyFailed',
+}
+
 function getSendOtpErrorKey(error: unknown): string {
-  return error instanceof RequestOtpError && error.kind === 'accountNotFound'
-    ? 'login.phoneStep.accountNotFound'
-    : 'login.phoneStep.sendOtpFailed'
+  return SEND_OTP_ERROR_KEYS[error instanceof RequestOtpError ? error.kind : 'unknown']
+}
+
+// Resend reuses the phone and tenant that just received an OTP, so only a rate limit is worth
+// distinguishing.
+function getResendOtpErrorKey(error: unknown): string {
+  return error instanceof RequestOtpError && error.kind === 'tooManyAttempts'
+    ? 'login.tooManyAttempts'
+    : 'login.otpStep.resendFailed'
+}
+
+function getVerifyOtpErrorKey(error: unknown): string {
+  return VERIFY_OTP_ERROR_KEYS[error instanceof VerifyOtpError ? error.kind : 'unknown']
 }
 
 export function StaffLoginPage() {
@@ -236,8 +267,8 @@ export function StaffLoginPage() {
       }
       setOtpError(null)
       startCooldown()
-    } catch {
-      setOtpError(t('login.otpStep.resendFailed'))
+    } catch (error) {
+      setOtpError(t(getResendOtpErrorKey(error)))
     } finally {
       resetCaptcha()
       setIsResendCaptchaVisible(false)
@@ -315,8 +346,8 @@ export function StaffLoginPage() {
       })
       const redirectPath = setFromActivation(response)
       navigate(redirectPath, { replace: true })
-    } catch {
-      setOtpError(t('login.otpStep.invalidOtp'))
+    } catch (error) {
+      setOtpError(t(getVerifyOtpErrorKey(error)))
     }
   }
 

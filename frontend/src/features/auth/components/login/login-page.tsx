@@ -26,7 +26,7 @@ import jalsoochakLogo from '@/assets/media/logo.svg'
 import { useAuthStore } from '@/app/store'
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai'
 import { ForgotPasswordModal } from '@/features/auth/components/login/forgot-password-modal'
-import { LoginError } from '@/features/auth/services/auth-api'
+import { LoginError, type LoginErrorKind } from '@/features/auth/services/auth-api'
 import { RecaptchaField } from '@/shared/components/common'
 import { useRecaptcha } from '@/shared/hooks'
 import { z } from 'zod'
@@ -42,10 +42,15 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>
 
+const LOGIN_ERROR_KEYS: Record<LoginErrorKind, string> = {
+  invalidCredentials: 'login.invalidCredentials',
+  accessDenied: 'login.accessDenied',
+  tooManyAttempts: 'login.tooManyAttempts',
+  unknown: 'login.loginFailed',
+}
+
 function getLoginErrorKey(error: unknown): string {
-  return error instanceof LoginError && error.kind === 'invalidCredentials'
-    ? 'login.invalidCredentials'
-    : 'login.loginFailed'
+  return LOGIN_ERROR_KEYS[error instanceof LoginError ? error.kind : 'unknown']
 }
 
 export function LoginPage() {
