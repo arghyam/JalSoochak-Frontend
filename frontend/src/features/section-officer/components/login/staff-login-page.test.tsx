@@ -1,4 +1,4 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals'
+import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals'
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
@@ -113,6 +113,17 @@ function createWrapper() {
 beforeEach(() => {
   jest.clearAllMocks()
 })
+
+afterEach(() => {
+  jest.useRealTimers()
+})
+
+/** Requires fake timers installed before the OTP was first sent. */
+async function endResendCooldown() {
+  await act(async () => {
+    jest.advanceTimersByTime(60_000)
+  })
+}
 
 describe('StaffLoginPage — Phone Step', () => {
   it('renders heading, phone input, tenant select and Send OTP button', () => {
@@ -261,6 +272,24 @@ describe('StaffLoginPage — OTP Step', () => {
   it('Resend button is disabled during cooldown', async () => {
     await renderAtOtpStep()
     expect(screen.queryByTestId('resend-otp-button')).toBeNull()
+    expect(screen.getByText(/Resend in/)).toBeTruthy()
+  })
+
+  it('resends the OTP without a captcha token once the cooldown ends', async () => {
+    jest.useFakeTimers({ advanceTimers: true })
+    await renderAtOtpStep()
+    await endResendCooldown()
+    mockRequestOtpMutate.mockResolvedValueOnce({ otpLength: 4 })
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('resend-otp-button'))
+    })
+
+    expect(mockRequestOtpMutate).toHaveBeenCalledTimes(2)
+    expect(mockRequestOtpMutate).toHaveBeenLastCalledWith({
+      phoneNumber: '918179020960',
+      tenantCode: 'NL',
+    })
     expect(screen.getByText(/Resend in/)).toBeTruthy()
   })
 
@@ -657,5 +686,74 @@ describe('StaffLoginPage — Captcha enabled', () => {
         captchaToken: 'test-captcha-token',
       })
     })
+  })
+
+  async function renderAtOtpStep() {
+    mockRequestOtpMutate.mockResolvedValueOnce({ otpLength: 6 })
+    render(<StaffLoginPage />, { wrapper: createWrapper() })
+    await fillPhoneAndTenant()
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('recaptcha-widget'))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('send-otp-button'))
+    })
+    await waitFor(() => expect(screen.getByTestId('otp-inputs')).toBeTruthy())
+  }
+
+  it('reveals the captcha on Resend and resends the OTP once it is solved', async () => {
+    jest.useFakeTimers({ advanceTimers: true })
+    await renderAtOtpStep()
+    await endResendCooldown()
+    expect(screen.queryByTestId('recaptcha-widget')).toBeNull()
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('resend-otp-button'))
+    })
+    expect(screen.getByTestId('recaptcha-widget')).toBeTruthy()
+    expect(screen.queryByText(enSectionOfficer.login.phoneStep.captchaRequired)).toBeNull()
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('resend-otp-button'))
+    })
+    expect(mockRequestOtpMutate).toHaveBeenCalledTimes(1)
+    expect(screen.getByText(enSectionOfficer.login.phoneStep.captchaRequired)).toBeTruthy()
+
+    mockRequestOtpMutate.mockResolvedValueOnce({ otpLength: 6 })
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('recaptcha-widget'))
+    })
+
+    expect(mockRequestOtpMutate).toHaveBeenCalledTimes(2)
+    expect(mockRequestOtpMutate).toHaveBeenLastCalledWith({
+      phoneNumber: '918179020960',
+      tenantCode: 'NL',
+      captchaToken: 'test-captcha-token',
+    })
+    expect(screen.queryByTestId('recaptcha-widget')).toBeNull()
+    expect(screen.queryByText(enSectionOfficer.login.phoneStep.captchaRequired)).toBeNull()
+    expect(screen.getByText(/Resend in/)).toBeTruthy()
+  })
+
+  it('hides the captcha after a failed resend until Resend is clicked again', async () => {
+    jest.useFakeTimers({ advanceTimers: true })
+    await renderAtOtpStep()
+    await endResendCooldown()
+    mockRequestOtpMutate.mockRejectedValueOnce(new Error('API error'))
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('resend-otp-button'))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('recaptcha-widget'))
+    })
+    expect(screen.getByText(enSectionOfficer.login.otpStep.resendFailed)).toBeTruthy()
+    expect(screen.queryByTestId('recaptcha-widget')).toBeNull()
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('resend-otp-button'))
+    })
+    expect(mockRequestOtpMutate).toHaveBeenCalledTimes(2)
+    expect(screen.getByTestId('recaptcha-widget')).toBeTruthy()
   })
 })

@@ -83,6 +83,7 @@ export function StaffLoginPage() {
   const [otpValues, setOtpValues] = useState<string[]>(Array(OTP_FALLBACK_LENGTH).fill(''))
   const [otpError, setOtpError] = useState<string | null>(null)
   const [resendCooldown, setResendCooldown] = useState(0)
+  const [isResendCaptchaVisible, setIsResendCaptchaVisible] = useState(false)
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const {
@@ -93,6 +94,7 @@ export function StaffLoginPage() {
   const requestOtpMutation = useRequestOtpMutation()
   const verifyOtpMutation = useVerifyOtpMutation()
   const {
+    enabled: captchaEnabled,
     recaptchaRef,
     handleChange: handleCaptchaChange,
     handleExpired: handleCaptchaExpired,
@@ -207,18 +209,19 @@ export function StaffLoginPage() {
       startCooldown()
       setStep('otp')
     } catch (error) {
-      resetCaptcha()
       setPhoneError(t(getSendOtpErrorKey(error)))
+    } finally {
+      // reCAPTCHA tokens are single-use: the backend has consumed this one whatever the outcome.
+      resetCaptcha()
     }
   }
 
-  const handleResendOtp = async () => {
-    if (resendCooldown > 0) return
-    if (requestOtpMutation.isPending) return
+  const resendOtp = async (captchaToken?: string) => {
     try {
       const result = await requestOtpMutation.mutateAsync({
         phoneNumber: fullPhoneNumber,
         tenantCode: resolvedTenantCode,
+        captchaToken,
       })
       const rawLength = result.otpLength ?? OTP_FALLBACK_LENGTH
       const length =
@@ -235,7 +238,30 @@ export function StaffLoginPage() {
       startCooldown()
     } catch {
       setOtpError(t('login.otpStep.resendFailed'))
+    } finally {
+      resetCaptcha()
+      setIsResendCaptchaVisible(false)
     }
+  }
+
+  const handleResendOtp = () => {
+    if (resendCooldown > 0) return
+    if (requestOtpMutation.isPending) return
+    if (!captchaEnabled) {
+      void resendOtp()
+      return
+    }
+    // With captcha on, the OTP is resent from handleResendCaptchaChange once the user solves it.
+    if (isResendCaptchaVisible) {
+      setCaptchaError(t('login.phoneStep.captchaRequired'))
+    } else {
+      setIsResendCaptchaVisible(true)
+    }
+  }
+
+  const handleResendCaptchaChange = (token: string | null) => {
+    handleCaptchaChange(token)
+    if (token) void resendOtp(token)
   }
 
   const handleOtpChange = (index: number, value: string) => {
@@ -298,6 +324,7 @@ export function StaffLoginPage() {
     setStep('phone')
     setOtpValues(Array(otpLength).fill(''))
     setOtpError(null)
+    setIsResendCaptchaVisible(false)
     resetCaptcha()
   }
 
@@ -363,6 +390,11 @@ export function StaffLoginPage() {
                   onResend={handleResendOtp}
                   onVerify={handleVerifyOtp}
                   onBack={handleBackToPhone}
+                  isCaptchaVisible={isResendCaptchaVisible}
+                  recaptchaRef={recaptchaRef}
+                  onCaptchaChange={handleResendCaptchaChange}
+                  onCaptchaExpired={handleCaptchaExpired}
+                  captchaError={captchaError}
                 />
               )}
             </Box>
@@ -557,6 +589,11 @@ interface OtpStepProps {
   onResend: () => void
   onVerify: () => void
   onBack: () => void
+  isCaptchaVisible: boolean
+  recaptchaRef: RefObject<ReCAPTCHA>
+  onCaptchaChange: (token: string | null) => void
+  onCaptchaExpired: () => void
+  captchaError: string | null
 }
 
 function OtpStep({
@@ -576,6 +613,11 @@ function OtpStep({
   onResend,
   onVerify,
   onBack,
+  isCaptchaVisible,
+  recaptchaRef,
+  onCaptchaChange,
+  onCaptchaExpired,
+  captchaError,
 }: OtpStepProps) {
   const isOtpComplete = otpValues.every((v) => v !== '')
 
@@ -674,6 +716,15 @@ function OtpStep({
             </Link>
           )}
         </HStack>
+
+        {isCaptchaVisible && (
+          <RecaptchaField
+            ref={recaptchaRef}
+            onChange={onCaptchaChange}
+            onExpired={onCaptchaExpired}
+            error={captchaError}
+          />
+        )}
 
         <Button
           ref={loginButtonRef}
