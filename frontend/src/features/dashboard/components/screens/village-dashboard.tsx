@@ -1210,6 +1210,9 @@ export function VillageDashboardScreen({
           isTimeTrendError={isQuantityTimeTrendError}
           entityLabel={t('performanceCharts.viewBy.villages', { defaultValue: 'Villages' })}
           yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
+          timeYAxisLabel={t('performanceCharts.quantity.timeYAxisLabel', {
+            defaultValue: 'Quantity (Litres)',
+          })}
           seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
           cardHeight="492px"
           showAreaLine

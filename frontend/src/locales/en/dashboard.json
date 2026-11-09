@@ -170,6 +170,7 @@
       "ariaViewByDistrict": "District quantity performance view by",
       "ariaViewByGramPanchayat": "Gram panchayat quantity performance view by",
       "yAxisLabel": "Quantity (LPCD)",
+      "timeYAxisLabel": "Quantity (Litres)",
       "seriesName": "Quantity",
       "areaSeriesName": "Demand"
     },
