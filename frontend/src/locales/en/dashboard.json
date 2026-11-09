@@ -84,7 +84,11 @@
     "loadError": "Unable to load the map right now.",
     "legend": {
       "ariaLabel": "Map value ranges",
-      "range": "{{min}}–{{max}}%",
+      "gte90": ">={{value}}%",
+      "gte70": ">={{value}}%",
+      "gte50": ">={{value}}%",
+      "gte30": ">={{value}}%",
+      "gte0": ">={{value}}%",
       "noData": "No Data"
     },
     "metricsHelp": {
@@ -170,7 +174,6 @@
       "ariaViewByDistrict": "District quantity performance view by",
       "ariaViewByGramPanchayat": "Gram panchayat quantity performance view by",
       "yAxisLabel": "Quantity (LPCD)",
-      "timeYAxisLabel": "Quantity (Litres)",
       "seriesName": "Quantity",
       "areaSeriesName": "Demand"
     },

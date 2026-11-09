@@ -3,7 +3,6 @@ import { DashboardBody } from '../components/screens/dashboard-body'
 import { DashboardFilters } from '../components/filters/dashboard-filters'
 import { DashboardKpiGrid } from '../components/central-dashboard/dashboard-kpi-grid'
 import { DashboardMapPerformanceSection } from '../components/central-dashboard/dashboard-map-performance-section'
-import type { QuantityTimeTrendUnit } from '../types'
 
 type DashboardBodyProps = ComponentProps<typeof DashboardBody>
 type DashboardFiltersProps = ComponentProps<typeof DashboardFilters>
@@ -232,8 +231,6 @@ export function buildCentralDashboardRenderProps({
   const isQuantityTimeTrendLoading = isCentralLandingView
     ? isNationalSchemeQuantityPeriodicFetching
     : isWaterQuantityPeriodicFetching
-  // Must match the series picked in `use-central-dashboard-performance-data.ts`.
-  const quantityTimeTrendUnit: QuantityTimeTrendUnit = isCentralLandingView ? 'lpcd' : 'litres'
   const isRegularityTimeTrendLoading = isCentralLandingView
     ? isNationalSchemeRegularityPeriodicFetching
     : isSchemeRegularityPeriodicFetching
@@ -261,7 +258,6 @@ export function buildCentralDashboardRenderProps({
       isQuantityPerformanceLoading,
       isQuantityPerformanceError,
       quantityTimeTrendData,
-      quantityTimeTrendUnit,
       isQuantityTimeTrendLoading,
       isQuantityTimeTrendError,
       isQuantityTimeTrendAwaitingParams: isCentralLandingView

@@ -5,7 +5,6 @@ import type {
   DashboardData,
   EntityPerformance,
   PumpOperatorPerformanceData,
-  QuantityTimeTrendUnit,
   SchemePerformanceSortBy,
   VillagePumpOperatorDetails,
   WaterSupplyOutageData,
@@ -53,7 +52,6 @@ type DashboardBodyProps = {
   quantityPerformanceData: EntityPerformance[]
   isQuantityPerformanceLoading?: boolean
   quantityTimeTrendData: MonthlyTrendPoint[]
-  quantityTimeTrendUnit: QuantityTimeTrendUnit
   isQuantityTimeTrendLoading?: boolean
   isQuantityTimeTrendError?: boolean
   isQuantityTimeTrendAwaitingParams?: boolean
@@ -135,7 +133,6 @@ export function DashboardBody({
   quantityPerformanceData,
   isQuantityPerformanceLoading = false,
   quantityTimeTrendData,
-  quantityTimeTrendUnit,
   isQuantityTimeTrendLoading = false,
   isQuantityTimeTrendError = false,
   isQuantityTimeTrendAwaitingParams = false,
@@ -260,7 +257,6 @@ export function DashboardBody({
           isQuantityPerformanceLoading={isQuantityPerformanceLoading}
           isQuantityPerformanceError={isQuantityPerformanceError}
           quantityTimeTrendData={quantityTimeTrendData}
-          quantityTimeTrendUnit={quantityTimeTrendUnit}
           isQuantityTimeTrendLoading={isQuantityTimeTrendLoading}
           isQuantityTimeTrendError={isQuantityTimeTrendError}
           isQuantityTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
@@ -726,7 +722,6 @@ type PerformanceChartsSectionProps = {
   isQuantityPerformanceLoading: boolean
   isQuantityPerformanceError?: boolean
   quantityTimeTrendData: MonthlyTrendPoint[]
-  quantityTimeTrendUnit: QuantityTimeTrendUnit
   isQuantityTimeTrendLoading: boolean
   isQuantityTimeTrendError?: boolean
   isQuantityTimeTrendAwaitingParams: boolean
@@ -751,7 +746,6 @@ function PerformanceChartsSection({
   isQuantityPerformanceLoading,
   isQuantityPerformanceError = false,
   quantityTimeTrendData,
-  quantityTimeTrendUnit,
   isQuantityTimeTrendLoading,
   isQuantityTimeTrendError = false,
   isQuantityTimeTrendAwaitingParams,
@@ -832,11 +826,6 @@ function PerformanceChartsSection({
         yAxisLabel={t('performanceCharts.quantity.yAxisLabel', {
           defaultValue: 'Quantity',
         })}
-        timeYAxisLabel={
-          quantityTimeTrendUnit === 'litres'
-            ? t('performanceCharts.quantity.timeYAxisLabel', { defaultValue: 'Quantity (Litres)' })
-            : undefined
-        }
         seriesName={t('performanceCharts.quantity.seriesName', {
           defaultValue: 'Quantity',
         })}

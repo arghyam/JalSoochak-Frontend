@@ -1,5 +1,4 @@
-import { AxiosError } from 'axios'
-import { RequestOtpError, staffAuthApi, VerifyOtpError } from './staff-auth-api'
+import { staffAuthApi } from './staff-auth-api'
 import apiClient from '@/shared/lib/axios'
 
 jest.mock('@/shared/lib/axios', () => ({
@@ -31,19 +30,13 @@ const MOCK_TOKEN_RESPONSE = {
   phone_number: '918179020960',
 }
 
-function httpError(status: number): AxiosError {
-  const err = new AxiosError(`Request failed with status code ${status}`)
-  err.response = { data: { message: 'Backend message' }, status } as never
-  return err
-}
-
 beforeEach(() => {
   jest.clearAllMocks()
 })
 
 describe('staffAuthApi.requestOtp', () => {
   it('calls POST /api/v1/auth/staff/otp with correct payload', async () => {
-    const mockResponse = { data: { status: 200, message: 'OTP sent', data: { otpLength: 6 } } }
+    const mockResponse = { data: { status: 200, message: 'OTP sent', otpLength: 6 } }
     mockPost.mockResolvedValueOnce(mockResponse)
 
     const result = await staffAuthApi.requestOtp({ phoneNumber: '918179020960', tenantCode: 'NL' })
@@ -52,49 +45,14 @@ describe('staffAuthApi.requestOtp', () => {
       phoneNumber: '918179020960',
       tenantCode: 'NL',
     })
-    expect(result).toEqual({ otpLength: 6 })
+    expect(result).toEqual({ status: 200, message: 'OTP sent', otpLength: 6 })
   })
 
-  it('resolves with no otpLength when the response omits the data envelope', async () => {
-    mockPost.mockResolvedValueOnce({ data: { status: 200, message: 'OTP sent' } })
-
-    const result = await staffAuthApi.requestOtp({ phoneNumber: '918179020960', tenantCode: 'NL' })
-
-    expect(result).toEqual({ otpLength: undefined })
-  })
-
-  it('rejects with an accountNotFound RequestOtpError on HTTP 404', async () => {
-    const err = new AxiosError('Request failed with status code 404')
-    err.response = {
-      data: { message: "We couldn't find an account with this number." },
-      status: 404,
-    } as never
-    mockPost.mockRejectedValueOnce(err)
-
-    const error = await staffAuthApi
-      .requestOtp({ phoneNumber: '918179020960', tenantCode: 'NL' })
-      .catch((e: unknown) => e)
-
-    expect(error).toBeInstanceOf(RequestOtpError)
-    expect((error as RequestOtpError).kind).toBe('accountNotFound')
-  })
-
-  it.each([
-    [400, 'rejected'],
-    [429, 'tooManyAttempts'],
-    [500, 'unknown'],
-  ] as const)('maps HTTP %i to a %s RequestOtpError', async (status, kind) => {
-    mockPost.mockRejectedValueOnce(httpError(status))
-    await expect(
-      staffAuthApi.requestOtp({ phoneNumber: '918179020960', tenantCode: 'NL' })
-    ).rejects.toMatchObject({ kind, message: `Request failed with status code ${status}` })
-  })
-
-  it('rejects with an unknown RequestOtpError on other failures', async () => {
+  it('propagates API errors', async () => {
     mockPost.mockRejectedValueOnce(new Error('Network error'))
     await expect(
       staffAuthApi.requestOtp({ phoneNumber: '918179020960', tenantCode: 'NL' })
-    ).rejects.toMatchObject({ kind: 'unknown', message: 'Network error' })
+    ).rejects.toThrow('Network error')
   })
 })
 
@@ -126,29 +84,6 @@ describe('staffAuthApi.verifyOtp', () => {
     await expect(
       staffAuthApi.verifyOtp({ phoneNumber: '918179020960', tenantCode: 'NL', otp: '123456' })
     ).rejects.toThrow('Invalid login response')
-  })
-
-  it.each([
-    [400, 'invalidOtp'],
-    [403, 'accountDeactivated'],
-    [429, 'tooManyAttempts'],
-    [500, 'unknown'],
-  ] as const)('maps HTTP %i to a %s VerifyOtpError', async (status, kind) => {
-    mockPost.mockRejectedValueOnce(httpError(status))
-
-    const error = await staffAuthApi
-      .verifyOtp({ phoneNumber: '918179020960', tenantCode: 'NL', otp: '123456' })
-      .catch((e: unknown) => e)
-
-    expect(error).toBeInstanceOf(VerifyOtpError)
-    expect(error).toMatchObject({ kind, message: `Request failed with status code ${status}` })
-  })
-
-  it('rejects with an unknown VerifyOtpError on a network failure', async () => {
-    mockPost.mockRejectedValueOnce(new AxiosError('Network Error'))
-    await expect(
-      staffAuthApi.verifyOtp({ phoneNumber: '918179020960', tenantCode: 'NL', otp: '123456' })
-    ).rejects.toMatchObject({ kind: 'unknown', message: 'Network Error' })
   })
 })
 

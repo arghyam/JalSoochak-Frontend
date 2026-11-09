@@ -25,8 +25,6 @@ import {
   registerDynamicMap,
 } from '../../utils/map-registry'
 
-const MAX_LEGEND_PERCENT = 100
-
 interface IndiaMapChartProps {
   data: EntityPerformance[]
   tooltipData?: EntityPerformance[]
@@ -555,33 +553,46 @@ export function IndiaMapChart({
   ])
 
   const bodyText6 = getBodyText6Style(theme)
-  const formatLegendRange = (min: number, max: number) =>
-    t('map.legend.range', { min, max, defaultValue: `${min}–${max}%` })
   const legendItems = [
     { id: 'noData', label: t('map.legend.noData'), color: mapColors.noData },
     {
       id: 'gte0',
-      label: formatLegendRange(legendThresholds.gte0, legendThresholds.gte30),
+      label: t('map.legend.gte0', {
+        value: legendThresholds.gte0,
+        defaultValue: `>=${legendThresholds.gte0}%`,
+      }),
       color: mapColors.gte0,
     },
     {
       id: 'gte30',
-      label: formatLegendRange(legendThresholds.gte30, legendThresholds.gte50),
+      label: t('map.legend.gte30', {
+        value: legendThresholds.gte30,
+        defaultValue: `>=${legendThresholds.gte30}%`,
+      }),
       color: mapColors.gte30,
     },
     {
       id: 'gte50',
-      label: formatLegendRange(legendThresholds.gte50, legendThresholds.gte70),
+      label: t('map.legend.gte50', {
+        value: legendThresholds.gte50,
+        defaultValue: `>=${legendThresholds.gte50}%`,
+      }),
       color: mapColors.gte50,
     },
     {
       id: 'gte70',
-      label: formatLegendRange(legendThresholds.gte70, legendThresholds.gte90),
+      label: t('map.legend.gte70', {
+        value: legendThresholds.gte70,
+        defaultValue: `>=${legendThresholds.gte70}%`,
+      }),
       color: mapColors.gte70,
     },
     {
       id: 'gte90',
-      label: formatLegendRange(legendThresholds.gte90, MAX_LEGEND_PERCENT),
+      label: t('map.legend.gte90', {
+        value: legendThresholds.gte90,
+        defaultValue: `>=${legendThresholds.gte90}%`,
+      }),
       color: mapColors.gte90,
     },
   ]
