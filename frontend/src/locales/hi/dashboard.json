@@ -84,11 +84,7 @@
     "loadError": "अभी मानचित्र लोड नहीं हो सका।",
     "legend": {
       "ariaLabel": "मानचित्र मान सीमाएँ",
-      "gte90": ">={{value}}%",
-      "gte70": ">={{value}}%",
-      "gte50": ">={{value}}%",
-      "gte30": ">={{value}}%",
-      "gte0": ">={{value}}%",
+      "range": "{{min}}–{{max}}%",
       "noData": "डेटा नहीं"
     },
     "metricsHelp": {
