@@ -1,4 +1,5 @@
-import { staffAuthApi } from './staff-auth-api'
+import { AxiosError } from 'axios'
+import { RequestOtpError, staffAuthApi } from './staff-auth-api'
 import apiClient from '@/shared/lib/axios'
 
 jest.mock('@/shared/lib/axios', () => ({
@@ -48,11 +49,27 @@ describe('staffAuthApi.requestOtp', () => {
     expect(result).toEqual({ status: 200, message: 'OTP sent', otpLength: 6 })
   })
 
-  it('propagates API errors', async () => {
+  it('rejects with an accountNotFound RequestOtpError on HTTP 404', async () => {
+    const err = new AxiosError('Request failed with status code 404')
+    err.response = {
+      data: { message: "We couldn't find an account with this number." },
+      status: 404,
+    } as never
+    mockPost.mockRejectedValueOnce(err)
+
+    const error = await staffAuthApi
+      .requestOtp({ phoneNumber: '918179020960', tenantCode: 'NL' })
+      .catch((e: unknown) => e)
+
+    expect(error).toBeInstanceOf(RequestOtpError)
+    expect((error as RequestOtpError).kind).toBe('accountNotFound')
+  })
+
+  it('rejects with an unknown RequestOtpError on other failures', async () => {
     mockPost.mockRejectedValueOnce(new Error('Network error'))
     await expect(
       staffAuthApi.requestOtp({ phoneNumber: '918179020960', tenantCode: 'NL' })
-    ).rejects.toThrow('Network error')
+    ).rejects.toMatchObject({ kind: 'unknown', message: 'Network error' })
   })
 })
 

@@ -1,3 +1,4 @@
+import { isAxiosError } from 'axios'
 import apiClient from '@/shared/lib/axios'
 import type { AuthUser, LoginResponse } from '@/features/auth/services/auth-api'
 import type {
@@ -5,7 +6,28 @@ import type {
   OtpRequestResponse,
   OtpVerifyPayload,
   PublicTenant,
+  RequestOtpErrorKind,
 } from '@/features/section-officer/types/staff-auth'
+
+export class RequestOtpError extends Error {
+  readonly kind: RequestOtpErrorKind
+
+  constructor(kind: RequestOtpErrorKind, message: string) {
+    super(message)
+    this.name = 'RequestOtpError'
+    this.kind = kind
+  }
+}
+
+function toRequestOtpError(err: unknown): RequestOtpError {
+  if (err instanceof RequestOtpError) return err
+  const message = err instanceof Error ? err.message : String(err)
+  // The backend returns the same 404 for an unregistered phone and an unknown or inactive tenant.
+  if (isAxiosError(err) && err.response?.status === 404) {
+    return new RequestOtpError('accountNotFound', message)
+  }
+  return new RequestOtpError('unknown', message)
+}
 
 interface ApiResponse<T> {
   status: number
@@ -52,8 +74,12 @@ function buildUserFromToken(tokenData: TokenResponse): AuthUser {
 
 export const staffAuthApi = {
   requestOtp: async (payload: OtpRequestPayload): Promise<OtpRequestResponse> => {
-    const response = await apiClient.post<OtpRequestResponse>('/api/v1/auth/staff/otp', payload)
-    return response.data
+    try {
+      const response = await apiClient.post<OtpRequestResponse>('/api/v1/auth/staff/otp', payload)
+      return response.data
+    } catch (err: unknown) {
+      throw toRequestOtpError(err)
+    }
   },
 
   verifyOtp: async (payload: OtpVerifyPayload): Promise<LoginResponse> => {

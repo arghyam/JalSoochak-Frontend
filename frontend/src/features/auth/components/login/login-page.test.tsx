@@ -1,6 +1,7 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/render-with-providers'
+import { LoginError } from '@/features/auth/services/auth-api'
 import { LoginPage } from './login-page'
 
 const mockNavigate = jest.fn()
@@ -84,6 +85,31 @@ describe('LoginPage', () => {
     await waitFor(() => {
       expect(screen.queryByText('Unable to login. Please try again.')).not.toBeInTheDocument()
     })
+  })
+
+  it('shows an incorrect email or password message on invalid credentials', async () => {
+    mockLogin.mockRejectedValueOnce(new LoginError('invalidCredentials', 'status code 401'))
+    const user = userEvent.setup()
+    renderWithProviders(<LoginPage />)
+    await user.type(screen.getByPlaceholderText('Enter your email'), 'user@test.com')
+    await user.type(screen.getByPlaceholderText('Enter your password'), 'wrongpass')
+    await user.click(screen.getByRole('button', { name: 'Log in' }))
+
+    expect(
+      await screen.findByText('Incorrect email or password. Please try again.')
+    ).toBeInTheDocument()
+    expect(screen.queryByText('Unable to login. Please try again.')).not.toBeInTheDocument()
+  })
+
+  it('shows the generic login failure message for other errors', async () => {
+    mockLogin.mockRejectedValueOnce(new LoginError('unknown', 'status code 500'))
+    const user = userEvent.setup()
+    renderWithProviders(<LoginPage />)
+    await user.type(screen.getByPlaceholderText('Enter your email'), 'user@test.com')
+    await user.type(screen.getByPlaceholderText('Enter your password'), 'pass')
+    await user.click(screen.getByRole('button', { name: 'Log in' }))
+
+    expect(await screen.findByText('Unable to login. Please try again.')).toBeInTheDocument()
   })
 
   it('Zod validation fires client-side without API call on empty email', async () => {

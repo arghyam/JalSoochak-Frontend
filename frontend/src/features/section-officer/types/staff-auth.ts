@@ -11,6 +11,8 @@ export interface OtpRequestResponse {
   otpLength?: number
 }
 
+export type RequestOtpErrorKind = 'accountNotFound' | 'unknown'
+
 export interface OtpVerifyPayload {
   phoneNumber: string
   tenantCode: string

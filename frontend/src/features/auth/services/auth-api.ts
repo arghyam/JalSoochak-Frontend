@@ -188,6 +188,28 @@ export interface ResetPasswordRequest {
   newPassword: string
 }
 
+export type LoginErrorKind = 'invalidCredentials' | 'unknown'
+
+export class LoginError extends Error {
+  readonly kind: LoginErrorKind
+
+  constructor(kind: LoginErrorKind, message: string) {
+    super(message)
+    this.name = 'LoginError'
+    this.kind = kind
+  }
+}
+
+function toLoginError(err: unknown): LoginError {
+  if (err instanceof LoginError) return err
+  const message = err instanceof Error ? err.message : String(err)
+  // The backend returns 401 only for a wrong or unknown email/password; inactive accounts get 403.
+  if (isAxiosError(err) && err.response?.status === 401) {
+    return new LoginError('invalidCredentials', message)
+  }
+  return new LoginError('unknown', message)
+}
+
 function buildUserFromTokenResponse(tokenData: TokenResponse): AuthUser {
   return {
     id: String(tokenData.person_id),
@@ -202,18 +224,22 @@ function buildUserFromTokenResponse(tokenData: TokenResponse): AuthUser {
 
 export const authApi = {
   login: async (payload: LoginRequest): Promise<LoginResponse> => {
-    const response = await apiClient.post<ApiResponse<TokenResponse>>('/api/v1/auth/login', {
-      email: payload.email,
-      password: payload.password,
-      ...(payload.captchaToken ? { captchaToken: payload.captchaToken } : {}),
-    })
-    const tokenData = response.data.data
-    if (!tokenData.access_token) {
-      throw new Error('Invalid login response')
-    }
-    return {
-      user: buildUserFromTokenResponse(tokenData),
-      accessToken: tokenData.access_token,
+    try {
+      const response = await apiClient.post<ApiResponse<TokenResponse>>('/api/v1/auth/login', {
+        email: payload.email,
+        password: payload.password,
+        ...(payload.captchaToken ? { captchaToken: payload.captchaToken } : {}),
+      })
+      const tokenData = response.data.data
+      if (!tokenData.access_token) {
+        throw new Error('Invalid login response')
+      }
+      return {
+        user: buildUserFromTokenResponse(tokenData),
+        accessToken: tokenData.access_token,
+      }
+    } catch (err: unknown) {
+      throw toLoginError(err)
     }
   },
 

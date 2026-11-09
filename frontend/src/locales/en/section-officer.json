@@ -15,6 +15,7 @@
       "stateError": "Please select a State/UT.",
       "stateLoadFailed": "Failed to load State/UT list. Please refresh and try again.",
       "sendOtpFailed": "Failed to send OTP. Please try again.",
+      "accountNotFound": "We couldn't find an account with this number. Please check the number and try again, or contact your administrator.",
       "captchaRequired": "Please complete the captcha verification."
     },
     "otpStep": {

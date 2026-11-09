@@ -42,6 +42,7 @@ import {
   useRequestOtpMutation,
   useVerifyOtpMutation,
 } from '@/features/section-officer/services/query/use-staff-auth-queries'
+import { RequestOtpError } from '@/features/section-officer/services/api/staff-auth-api'
 
 const OTP_RESEND_COOLDOWN_SECONDS = 60
 const OTP_FALLBACK_LENGTH = 6
@@ -55,6 +56,12 @@ function maskPhoneNumber(phone: string): string {
   // phone is already full number like "918179020960" - mask middle digits
   const digits = phone.replace(/^\+?91/, '')
   return `+91 ******${digits.slice(-4)}`
+}
+
+function getSendOtpErrorKey(error: unknown): string {
+  return error instanceof RequestOtpError && error.kind === 'accountNotFound'
+    ? 'login.phoneStep.accountNotFound'
+    : 'login.phoneStep.sendOtpFailed'
 }
 
 export function StaffLoginPage() {
@@ -199,9 +206,9 @@ export function StaffLoginPage() {
       setOtpError(null)
       startCooldown()
       setStep('otp')
-    } catch {
+    } catch (error) {
       resetCaptcha()
-      setPhoneError(t('login.phoneStep.sendOtpFailed'))
+      setPhoneError(t(getSendOtpErrorKey(error)))
     }
   }
 

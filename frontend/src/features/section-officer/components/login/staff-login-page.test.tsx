@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createElement } from 'react'
 import type { PropsWithChildren } from 'react'
 import enSectionOfficer from '@/locales/en/section-officer.json'
+import { RequestOtpError } from '@/features/section-officer/services/api/staff-auth-api'
 import { StaffLoginPage } from './staff-login-page'
 
 function resolveTranslation(
@@ -189,6 +190,31 @@ describe('StaffLoginPage — Phone Step', () => {
     await waitFor(() => {
       expect(screen.getByText(enSectionOfficer.login.phoneStep.sendOtpFailed)).toBeTruthy()
     })
+  })
+
+  it('shows the account-not-found message when the number is not registered', async () => {
+    mockRequestOtpMutate.mockRejectedValueOnce(
+      new RequestOtpError('accountNotFound', 'Request failed with status code 404')
+    )
+    render(<StaffLoginPage />, { wrapper: createWrapper() })
+
+    await userEvent.type(screen.getByTestId('phone-input'), '8179020960')
+    await act(async () => {
+      fireEvent.click(screen.getByRole('combobox'))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByText('Nagaland'))
+    })
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('send-otp-button'))
+    })
+
+    await waitFor(() => {
+      expect(screen.getByText(enSectionOfficer.login.phoneStep.accountNotFound)).toBeTruthy()
+    })
+    expect(screen.queryByText(enSectionOfficer.login.phoneStep.sendOtpFailed)).toBeNull()
+    expect(screen.queryByTestId('otp-inputs')).toBeNull()
   })
 })
 

@@ -26,6 +26,7 @@ import jalsoochakLogo from '@/assets/media/logo.svg'
 import { useAuthStore } from '@/app/store'
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai'
 import { ForgotPasswordModal } from '@/features/auth/components/login/forgot-password-modal'
+import { LoginError } from '@/features/auth/services/auth-api'
 import { RecaptchaField } from '@/shared/components/common'
 import { useRecaptcha } from '@/shared/hooks'
 import { z } from 'zod'
@@ -40,6 +41,12 @@ const loginSchema = z.object({
 })
 
 type LoginFormValues = z.infer<typeof loginSchema>
+
+function getLoginErrorKey(error: unknown): string {
+  return error instanceof LoginError && error.kind === 'invalidCredentials'
+    ? 'login.invalidCredentials'
+    : 'login.loginFailed'
+}
 
 export function LoginPage() {
   const { t } = useTranslation('auth')
@@ -75,9 +82,9 @@ export function LoginPage() {
     try {
       const redirectPath = await login({ ...values, captchaToken: captchaToken ?? undefined })
       navigate(redirectPath, { replace: true })
-    } catch {
+    } catch (error) {
       resetCaptcha()
-      setError('root', { message: t('login.loginFailed') })
+      setError('root', { message: t(getLoginErrorKey(error)) })
     }
   }
 
