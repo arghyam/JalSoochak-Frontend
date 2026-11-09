@@ -1503,6 +1503,7 @@ describe('CentralDashboard', () => {
       quantityPerformanceData: Array<{ name: string; coverage: number; quantity: number }>
       regularityPerformanceData: Array<{ name: string; regularity: number }>
       quantityTimeTrendData: Array<{ period: string; value: number }>
+      quantityTimeTrendUnit: string
       regularityTimeTrendData: Array<{ period: string; value: number }>
       supplySubmissionRateData: Array<{ name: string; regularity: number }>
       waterSupplyOutagesData: Array<{
@@ -1536,6 +1537,7 @@ describe('CentralDashboard', () => {
       { period: '01/03/2026\n07/03/2026', value: 4.3 },
       { period: '08/03/2026\n14/03/2026', value: 5 },
     ])
+    expect(dashboardBodyProps.quantityTimeTrendUnit).toBe('lpcd')
     expect(dashboardBodyProps.regularityTimeTrendData).toEqual([
       { period: '01/03/2026\n07/03/2026', value: 48 },
       { period: '08/03/2026\n14/03/2026', value: 52 },
@@ -1802,6 +1804,7 @@ describe('CentralDashboard', () => {
 
     const dashboardBodyProps = getLatestDashboardBodyProps<{
       quantityTimeTrendData: Array<{ period: string; value: number }>
+      quantityTimeTrendUnit: string
       isQuantityTimeTrendLoading: boolean
     }>()
 
@@ -1809,6 +1812,7 @@ describe('CentralDashboard', () => {
       { period: '12/03/2026', value: 87 },
       { period: '13/03/2026', value: 91 },
     ])
+    expect(dashboardBodyProps.quantityTimeTrendUnit).toBe('litres')
     expect(dashboardBodyProps.isQuantityTimeTrendLoading).toBe(false)
   })
 

@@ -243,6 +243,7 @@ describe('VillageDashboardScreen', () => {
     const quantityTrend = trendProps.find((props) => props.seriesName === 'Quantity')
     const regularityTrend = trendProps.find((props) => props.seriesName === 'Regularity')
     expect(quantityTrend?.isPercent).toBeFalsy()
+    expect(quantityTrend?.yAxisLabel).toBe('Quantity (Litres)')
     expect(regularityTrend?.isPercent).toBe(true)
 
     expect(screen.getByTestId('supply-outage-reasons-chart')).toBeTruthy()
