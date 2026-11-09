@@ -1,7 +1,6 @@
 {
   "login": {
     "heading": "Welcome",
-    "tooManyAttempts": "Too many attempts. Please wait a few minutes and try again.",
     "phoneStep": {
       "subtitle": "Please enter your phone number to proceed.",
       "phoneLabel": "Phone Number",
@@ -16,8 +15,6 @@
       "stateError": "Please select a State/UT.",
       "stateLoadFailed": "Failed to load State/UT list. Please refresh and try again.",
       "sendOtpFailed": "Failed to send OTP. Please try again.",
-      "accountNotFound": "We couldn't find an account with this number. Please check the number and try again, or contact your administrator.",
-      "sendOtpRejected": "We couldn't send the OTP. Please try again. If you're a State Admin or Super User, log in with your email and password instead.",
       "captchaRequired": "Please complete the captcha verification."
     },
     "otpStep": {
@@ -31,9 +28,7 @@
       "loggingIn": "Logging in...",
       "back": "Back",
       "incompleteOtp": "Please enter the complete {{otpLength}}-digit OTP.",
-      "invalidOtp": "The OTP is incorrect or has expired. Check the code or request a new one.",
-      "accountDeactivated": "Your account has been deactivated. Please contact your administrator.",
-      "verifyFailed": "Unable to log in. Please try again.",
+      "invalidOtp": "Invalid OTP. Please try again.",
       "resendFailed": "Failed to resend OTP. Please try again."
     }
   },

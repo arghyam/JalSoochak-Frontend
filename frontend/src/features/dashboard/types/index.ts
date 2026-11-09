@@ -20,9 +20,6 @@ export type DashboardLevel =
 
 export type EntityStatus = 'good' | 'needs-attention' | 'critical'
 
-/** Unit of the Quantity Performance time-trend series: national view plots LPCD, tenant views plot litres. */
-export type QuantityTimeTrendUnit = 'lpcd' | 'litres'
-
 export interface KPIData {
   totalSchemes: number
   totalRuralHouseholds: number

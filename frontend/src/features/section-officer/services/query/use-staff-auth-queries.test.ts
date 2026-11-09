@@ -24,7 +24,7 @@ const MOCK_TENANTS = [
   { id: 2, stateCode: 'MH', name: 'Maharashtra', status: 'ACTIVE' },
 ]
 
-const MOCK_OTP_RESPONSE = { otpLength: 6 }
+const MOCK_OTP_RESPONSE = { status: 200, message: 'OTP sent', otpLength: 6 }
 
 const MOCK_LOGIN_RESPONSE = {
   user: {

@@ -226,9 +226,6 @@ export function BlockDashboardScreen({
           isTimeTrendAwaitingParams={isQuantityTimeTrendAwaitingParams}
           entityLabel={childEntityLabel}
           yAxisLabel={t('performanceCharts.quantity.yAxisLabel', { defaultValue: 'Quantity' })}
-          timeYAxisLabel={t('performanceCharts.quantity.timeYAxisLabel', {
-            defaultValue: 'Quantity (Litres)',
-          })}
           seriesName={t('performanceCharts.quantity.seriesName', { defaultValue: 'Quantity' })}
           cardHeight="523px"
           showAreaLine

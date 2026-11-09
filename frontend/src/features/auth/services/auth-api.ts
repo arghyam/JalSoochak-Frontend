@@ -188,35 +188,6 @@ export interface ResetPasswordRequest {
   newPassword: string
 }
 
-export type LoginErrorKind = 'invalidCredentials' | 'accessDenied' | 'tooManyAttempts' | 'unknown'
-
-export class LoginError extends Error {
-  readonly kind: LoginErrorKind
-
-  constructor(kind: LoginErrorKind, message: string) {
-    super(message)
-    this.name = 'LoginError'
-    this.kind = kind
-  }
-}
-
-const LOGIN_ERROR_KIND_BY_STATUS: Partial<Record<number, LoginErrorKind>> = {
-  // Only a wrong or unknown email/password.
-  401: 'invalidCredentials',
-  // Account not yet activated, account deactivated, or its State/UT is not accessible.
-  403: 'accessDenied',
-  // Keycloak brute-force lockout, or the gateway rate limit.
-  429: 'tooManyAttempts',
-}
-
-function toLoginError(err: unknown): LoginError {
-  if (err instanceof LoginError) return err
-  const message = err instanceof Error ? err.message : String(err)
-  const status = isAxiosError(err) ? err.response?.status : undefined
-  const kind = status === undefined ? undefined : LOGIN_ERROR_KIND_BY_STATUS[status]
-  return new LoginError(kind ?? 'unknown', message)
-}
-
 function buildUserFromTokenResponse(tokenData: TokenResponse): AuthUser {
   return {
     id: String(tokenData.person_id),
@@ -231,22 +202,18 @@ function buildUserFromTokenResponse(tokenData: TokenResponse): AuthUser {
 
 export const authApi = {
   login: async (payload: LoginRequest): Promise<LoginResponse> => {
-    try {
-      const response = await apiClient.post<ApiResponse<TokenResponse>>('/api/v1/auth/login', {
-        email: payload.email,
-        password: payload.password,
-        ...(payload.captchaToken ? { captchaToken: payload.captchaToken } : {}),
-      })
-      const tokenData = response.data.data
-      if (!tokenData.access_token) {
-        throw new Error('Invalid login response')
-      }
-      return {
-        user: buildUserFromTokenResponse(tokenData),
-        accessToken: tokenData.access_token,
-      }
-    } catch (err: unknown) {
-      throw toLoginError(err)
+    const response = await apiClient.post<ApiResponse<TokenResponse>>('/api/v1/auth/login', {
+      email: payload.email,
+      password: payload.password,
+      ...(payload.captchaToken ? { captchaToken: payload.captchaToken } : {}),
+    })
+    const tokenData = response.data.data
+    if (!tokenData.access_token) {
+      throw new Error('Invalid login response')
+    }
+    return {
+      user: buildUserFromTokenResponse(tokenData),
+      accessToken: tokenData.access_token,
     }
   },
 
