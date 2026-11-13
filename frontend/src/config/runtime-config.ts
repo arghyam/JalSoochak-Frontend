@@ -49,6 +49,11 @@ interface AppConfig {
    * ships. Resolved and validated in `src/app/i18n/languages.ts`.
    */
   ENABLED_LANGUAGES?: string[]
+  /**
+   * Header/footer branding used in single-tenant mode, e.g. `'assam'` or `'punjab'`.
+   * Resolved and validated in `src/shared/lib/branding`.
+   */
+  BRANDING_PROFILE?: string
 }
 
 // Extend Window interface to include APP_CONFIG
@@ -97,6 +102,8 @@ export const getRuntimeConfig = (): AppConfig => {
     },
     // Deliberately no fallback: an absent key means "every language".
     ENABLED_LANGUAGES: window.APP_CONFIG?.ENABLED_LANGUAGES,
+    // Fallback is applied by the branding module, which knows the valid profiles.
+    BRANDING_PROFILE: window.APP_CONFIG?.BRANDING_PROFILE,
   }
 }
 
