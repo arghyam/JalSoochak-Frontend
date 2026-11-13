@@ -15,6 +15,7 @@ window.APP_CONFIG = {
   SHOW_SUPPLY_OUTAGE_CHARTS: true,
   SHOW_STAFF_OVERVIEW_SUPPLY_OUTAGE_CHARTS: true,
   SHOW_STAFF_OVERVIEW_NON_SUBMISSION_CHARTS: true,
+  BRANDING_PROFILE: 'assam',
 }
 
 if (typeof globalThis.TextEncoder === 'undefined') {

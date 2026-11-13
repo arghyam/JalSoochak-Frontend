@@ -185,15 +185,9 @@
     "sectionOfficerLogin": "Section Officer login",
     "systemUsersLogin": "System Users login",
     "jalsoochakWebsite": "JalSoochak website",
-    "phedAssamWebsite": "PHED Assam",
-    "jjmAssamWebsite": "JJM Assam",
     "glossary": "Dashboard Glossary",
     "contactUs": "Contact Us",
-    "email": "md@jjmassam.in",
-    "phone": "1800-889-3047",
-    "address": "Jal Jeevan Mission Assam\nPHED Assam, Guwahati",
     "copyright": "© {{year}} JalSoochak · ",
-    "phedAssam": "PHED Assam",
     "developedBy": " | Developed by ",
     "arghyam": "Arghyam",
     "visitors": "Visitors",
@@ -206,6 +200,20 @@
       "x": "X (Twitter)",
       "linkedin": "LinkedIn",
       "email": "Email"
+    }
+  },
+  "branding": {
+    "assam": {
+      "departmentWebsite": "PHED Assam",
+      "missionWebsite": "JJM Assam",
+      "phone": "1800-889-3047",
+      "address": "Jal Jeevan Mission Assam\nPHED Assam, Guwahati",
+      "copyrightOrg": "PHED Assam"
+    },
+    "punjab": {
+      "phone": "TODO: Punjab helpline number",
+      "address": "TODO: Punjab office address",
+      "copyrightOrg": "TODO: Punjab department name"
     }
   }
 }
