@@ -274,7 +274,7 @@ describe('DistrictDashboardScreen', () => {
     const quantityCall = monthlyCalls.find((call) => call[0]?.seriesName === 'Quantity')
     expect(quantityCall).toBeDefined()
     expect(quantityCall?.[0].xAxisLabel).toBe('Month')
-    expect(quantityCall?.[0].yAxisLabel).toBe('Quantity (LPCD)')
+    expect(quantityCall?.[0].yAxisLabel).toBe('Quantity (Litres)')
     expect(quantityCall?.[0].data).toEqual(quantityTimeTrendData)
   })
 
