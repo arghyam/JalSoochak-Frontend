@@ -10,6 +10,7 @@ import { isSingleTenantMode } from '@/config/server-config'
 import { trackEvent } from '@/shared/lib/analytics'
 import type { SocialNetwork, TenancyMode } from '@/shared/lib/analytics'
 import { VisitorCounter } from '@/shared/components/common/visitor-counter'
+import { getBrandingProfile } from '@/shared/lib/branding'
 
 interface SocialLink {
   network: SocialNetwork
@@ -42,6 +43,13 @@ const commonLinkProps = {
   borderRadius: '8px',
   _hover: { bg: 'neutral.200' },
   transition: 'background-color 0.2s',
+}
+
+/** Branding profiles hold data only, so the footer maps each network to its icon. */
+const SOCIAL_ICONS: Record<SocialNetwork, ReactNode> = {
+  x: <RiTwitterXLine size={20} color="#64748b" />,
+  linkedin: <BiLogoLinkedin size={20} color="#64748b" />,
+  email: <RiMailLine size={20} color="#64748b" />,
 }
 
 const quickLinkProps = {
@@ -133,29 +141,15 @@ function FooterBottomBar({ children }: { children: ReactNode }) {
 
 function SingleTenantFooter() {
   const { t } = useTranslation()
+  const { footer: branding } = getBrandingProfile()
 
-  const socialLinks: SocialLink[] = [
-    {
-      network: 'x',
-      href: 'https://x.com/JJM_Assam',
-      ariaLabel: t('footer.social.x'),
-      icon: <RiTwitterXLine size={20} color="#64748b" />,
-      isExternal: true,
-    },
-    {
-      network: 'linkedin',
-      href: 'https://www.linkedin.com/company/jjmassam/',
-      ariaLabel: t('footer.social.linkedin'),
-      icon: <BiLogoLinkedin size={20} color="#64748b" />,
-      isExternal: true,
-    },
-    {
-      network: 'email',
-      href: 'mailto:md@jjmassam.in',
-      ariaLabel: t('footer.social.email'),
-      icon: <RiMailLine size={20} color="#64748b" />,
-    },
-  ]
+  const socialLinks: SocialLink[] = branding.socialLinks.map(({ network, href }) => ({
+    network,
+    href,
+    ariaLabel: t(`footer.social.${network}`),
+    icon: SOCIAL_ICONS[network],
+    isExternal: !href.startsWith('mailto:'),
+  }))
 
   const quickLinks: QuickLinkItem[] = [
     {
@@ -174,12 +168,7 @@ function SingleTenantFooter() {
       label: t('footer.jalsoochakWebsite'),
       href: 'https://jalsoochak.in/',
     },
-    {
-      key: 'phed-assam-website',
-      label: t('footer.phedAssamWebsite'),
-      href: 'https://jjmassam.in/',
-    },
-    { key: 'jjm-assam-website', label: t('footer.jjmAssamWebsite'), href: 'https://jjmbrain.in/' },
+    ...branding.quickLinks.map(({ key, labelKey, href }) => ({ key, label: t(labelKey), href })),
     { key: 'glossary', label: t('footer.glossary'), to: ROUTES.GLOSSARY },
   ]
 
@@ -230,13 +219,13 @@ function SingleTenantFooter() {
                 {t('footer.contactUs')}
               </Text>
               <Text fontSize="sm" color="neutral.500">
-                {t('footer.email')}
+                {branding.contact.email}
               </Text>
               <Text fontSize="sm" color="neutral.500">
-                {t('footer.phone')}
+                {t(branding.contact.phoneKey)}
               </Text>
               <Text fontSize="sm" color="neutral.500" lineHeight="1.6" whiteSpace="pre-line">
-                {t('footer.address')}
+                {t(branding.contact.addressKey)}
               </Text>
             </VStack>
           </SimpleGrid>
@@ -246,13 +235,13 @@ function SingleTenantFooter() {
       <FooterBottomBar>
         {t('footer.copyright', { year: new Date().getFullYear() })}
         <Link
-          href="https://jjmassam.in/"
+          href={branding.copyrightOrg.href}
           isExternal
           fontWeight="600"
           color="primary.500"
           _hover={{ textDecoration: 'underline' }}
         >
-          {t('footer.phedAssam')}
+          {t(branding.copyrightOrg.labelKey)}
         </Link>
         {t('footer.developedBy')}
         <Link

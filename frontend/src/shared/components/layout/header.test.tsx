@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react'
 import { renderWithProviders } from '@/test/render-with-providers'
 import { isSingleTenantMode } from '@/config/server-config'
 import { useTenantInfo } from '@/app/context/tenant-context'
+import { BRANDING_PROFILES, getBrandingProfile } from '@/shared/lib/branding'
 import { Header } from './header'
 
 jest.mock('@/config/server-config')
@@ -9,12 +10,19 @@ jest.mock('@/app/context/tenant-context')
 jest.mock('@/shared/components/common', () => ({
   LanguageSwitcher: () => <div>Language Switcher</div>,
 }))
+jest.mock('@/shared/lib/branding', () => ({
+  ...jest.requireActual<typeof import('@/shared/lib/branding')>('@/shared/lib/branding'),
+  getBrandingProfile: jest.fn(),
+}))
 
 const mockIsSingleTenantMode = jest.mocked(isSingleTenantMode)
 const mockUseTenantInfo = jest.mocked(useTenantInfo)
+const mockGetBrandingProfile = jest.mocked(getBrandingProfile)
 
 beforeEach(() => {
+  jest.clearAllMocks()
   mockUseTenantInfo.mockReturnValue({})
+  mockGetBrandingProfile.mockReturnValue(BRANDING_PROFILES.assam)
 })
 
 describe('Header — single-tenant mode', () => {
@@ -59,6 +67,33 @@ describe('Header — single-tenant mode', () => {
   })
 })
 
+describe('Header — single-tenant mode with another state profile', () => {
+  const { header: punjab } = BRANDING_PROFILES.punjab
+
+  beforeEach(() => {
+    mockIsSingleTenantMode.mockReturnValue(true)
+    mockGetBrandingProfile.mockReturnValue(BRANDING_PROFILES.punjab)
+  })
+
+  it("renders the profile's emblem, heading lines and programme logo", () => {
+    renderWithProviders(<Header />)
+
+    expect(screen.getByRole('img', { name: punjab.emblem.alt })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: punjab.partnerLogo.alt })).toBeInTheDocument()
+    expect(screen.getByText(punjab.governmentLine)).toBeInTheDocument()
+    expect(screen.getByText(punjab.departmentLine)).toBeInTheDocument()
+    expect(screen.getByText(punjab.missionLine)).toBeInTheDocument()
+  })
+
+  it('renders none of the Assam branding', () => {
+    renderWithProviders(<Header />)
+
+    expect(screen.queryByRole('img', { name: /government of assam seal/i })).not.toBeInTheDocument()
+    expect(screen.queryByText('Government of Assam')).not.toBeInTheDocument()
+    expect(screen.queryByText('Public Health Engineering Department')).not.toBeInTheDocument()
+  })
+})
+
 describe('Header — multi-tenant mode', () => {
   beforeEach(() => {
     mockIsSingleTenantMode.mockReturnValue(false)
@@ -68,6 +103,12 @@ describe('Header — multi-tenant mode', () => {
     renderWithProviders(<Header />)
 
     expect(screen.getByRole('img', { name: /jalsoochak/i })).toBeInTheDocument()
+  })
+
+  it('does not read the state branding profile', () => {
+    renderWithProviders(<Header />)
+
+    expect(mockGetBrandingProfile).not.toHaveBeenCalled()
   })
 
   it('renders the default center subtitle', () => {

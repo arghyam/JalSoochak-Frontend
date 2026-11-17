@@ -15,6 +15,10 @@ jest.mock('@/app/i18n', () => ({
     { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी' },
     { code: 'as', name: 'Assamese', nativeName: 'অসমীয়া' },
   ],
+  ENABLED_LANGUAGES: [
+    { code: 'en', name: 'English', nativeName: 'English' },
+    { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी' },
+  ],
   DEFAULT_LANGUAGE: 'en',
 }))
 
@@ -64,7 +68,12 @@ describe('useLanguageStore.setLanguage', () => {
     expect(mockTrackEvent).toHaveBeenNthCalledWith(2, 'language_change', { from: 'hi', to: 'as' })
   })
 
-  it('exposes the supported languages', () => {
-    expect(useLanguageStore.getState().getSupportedLanguages()).toHaveLength(3)
+  it('exposes only the languages this deployment enables', () => {
+    const codes = useLanguageStore
+      .getState()
+      .getSupportedLanguages()
+      .map(({ code }) => code)
+
+    expect(codes).toEqual(['en', 'hi'])
   })
 })

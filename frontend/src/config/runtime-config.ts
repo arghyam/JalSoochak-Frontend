@@ -44,6 +44,16 @@ interface AppConfig {
     DAYS?: number
     ALLOWED_DAYS?: number[]
   }
+  /**
+   * Language codes offered in the language switcher. Absent means every language the app
+   * ships. Resolved and validated in `src/app/i18n/languages.ts`.
+   */
+  ENABLED_LANGUAGES?: string[]
+  /**
+   * Header/footer branding used in single-tenant mode, e.g. `'assam'` or `'punjab'`.
+   * Resolved and validated in `src/shared/lib/branding`.
+   */
+  BRANDING_PROFILE?: string
 }
 
 // Extend Window interface to include APP_CONFIG
@@ -90,6 +100,10 @@ export const getRuntimeConfig = (): AppConfig => {
       DAYS: window.APP_CONFIG?.DEFAULT_DASHBOARD_DURATION?.DAYS ?? 1,
       ALLOWED_DAYS: window.APP_CONFIG?.DEFAULT_DASHBOARD_DURATION?.ALLOWED_DAYS ?? [1, 7, 30],
     },
+    // Deliberately no fallback: an absent key means "every language".
+    ENABLED_LANGUAGES: window.APP_CONFIG?.ENABLED_LANGUAGES,
+    // Fallback is applied by the branding module, which knows the valid profiles.
+    BRANDING_PROFILE: window.APP_CONFIG?.BRANDING_PROFILE,
   }
 }
 

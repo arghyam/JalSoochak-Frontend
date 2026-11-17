@@ -1,4 +1,5 @@
 import i18n from 'i18next'
+import type { Resource, ResourceLanguage } from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
 
@@ -21,18 +22,17 @@ import asSuperAdmin from '@/locales/as/super-admin.json'
 import asStateAdmin from '@/locales/as/state-admin.json'
 import asSectionOfficer from '@/locales/as/section-officer.json'
 import asAuth from '@/locales/as/auth.json'
+import { DEFAULT_LANGUAGE, ENABLED_LANGUAGES, type LanguageCode } from './languages'
 
-export const SUPPORTED_LANGUAGES = [
-  { code: 'en', name: 'English', nativeName: 'English' },
-  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी' },
-  { code: 'as', name: 'Assamese', nativeName: 'অসমীয়া' },
-] as const
+export {
+  DEFAULT_LANGUAGE,
+  ENABLED_LANGUAGES,
+  SUPPORTED_LANGUAGES,
+  isLanguageCode,
+} from './languages'
+export type { LanguageCode, SupportedLanguage } from './languages'
 
-export type LanguageCode = (typeof SUPPORTED_LANGUAGES)[number]['code']
-
-export const DEFAULT_LANGUAGE: LanguageCode = 'en'
-
-const resources = {
+const allResources = {
   en: {
     common: enCommon,
     dashboard: enDashboard,
@@ -57,7 +57,13 @@ const resources = {
     'section-officer': asSectionOfficer,
     auth: asAuth,
   },
-}
+} satisfies Record<LanguageCode, ResourceLanguage>
+
+// Register only the enabled languages. i18next picks any language that has resources before
+// consulting `supportedLngs`, so a detected or cached disabled language would otherwise load.
+const resources: Resource = Object.fromEntries(
+  ENABLED_LANGUAGES.map(({ code }) => [code, allResources[code]])
+)
 
 const isTestEnv = process.env.NODE_ENV === 'test'
 
@@ -67,6 +73,7 @@ if (!isTestEnv) {
 
 i18n.use(initReactI18next).init({
   resources,
+  supportedLngs: ENABLED_LANGUAGES.map(({ code }) => code),
   fallbackLng: DEFAULT_LANGUAGE,
   lng: isTestEnv ? DEFAULT_LANGUAGE : undefined,
   defaultNS: 'common',

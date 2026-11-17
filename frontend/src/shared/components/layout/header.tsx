@@ -6,8 +6,7 @@ import { ROUTES } from '@/shared/constants/routes'
 import logoWithText from '@/assets/media/JalSoochak Logo with Text.svg'
 import { useTenantInfo } from '@/app/context/tenant-context'
 import { isSingleTenantMode } from '@/config/server-config'
-import sealOfAssam from '@/assets/media/Seal_of_Assam.svg'
-import jjmLogo from '@/assets/media/jjm_new_logo.svg'
+import { getBrandingProfile } from '@/shared/lib/branding'
 
 const HEADER_SHELL_PROPS = {
   as: 'header' as const,
@@ -33,10 +32,12 @@ export function Header() {
   const inSingleTenantMode = isSingleTenantMode()
 
   if (inSingleTenantMode) {
+    const { header: branding } = getBrandingProfile()
+
     return (
       <Flex {...HEADER_SHELL_PROPS}>
         <Flex {...INNER_FLEX_PROPS}>
-          {/* Left: Assam seal + 3-line department heading */}
+          {/* Left: state emblem + 3-line department heading */}
           <Flex align="center" gap={{ base: '8px', md: '12px' }} flexShrink={0}>
             <Link
               as={RouterLink}
@@ -46,12 +47,12 @@ export function Header() {
               _hover={{ textDecoration: 'none' }}
             >
               <Image
-                src={sealOfAssam}
-                alt="Government of Assam Seal"
+                src={branding.emblem.src}
+                alt={branding.emblem.alt}
                 h={{ base: '44px', sm: '56px', md: '72px' }}
                 w="auto"
                 objectFit="contain"
-                filter="brightness(0) invert(1)"
+                filter={branding.emblem.invertOnDark ? 'brightness(0) invert(1)' : undefined}
               />
             </Link>
             <VStack align="flex-start" spacing={0}>
@@ -64,7 +65,7 @@ export function Header() {
                 letterSpacing="0.06em"
                 textTransform="uppercase"
               >
-                Government of Assam
+                {branding.governmentLine}
               </Text>
               <Text
                 color="white"
@@ -74,7 +75,7 @@ export function Header() {
                 lineHeight={{ base: '12px', sm: '14px', md: '16px' }}
                 letterSpacing="0.03em"
               >
-                Public Health Engineering Department
+                {branding.departmentLine}
               </Text>
               <Text
                 color="white"
@@ -83,7 +84,7 @@ export function Header() {
                 fontWeight="700"
                 lineHeight={{ base: '16px', sm: '19px', md: '24px' }}
               >
-                জল জীৱন মিছন (Jal Jeevan Mission)
+                {branding.missionLine}
               </Text>
             </VStack>
           </Flex>
@@ -91,12 +92,12 @@ export function Header() {
           {/* Center: intentionally empty */}
           <Box flex="1" />
 
-          {/* Right: language switcher + JJM logo */}
+          {/* Right: language switcher + programme logo */}
           <Flex align="center" gap={{ base: '8px', md: '16px' }} flexShrink={0}>
             <LanguageSwitcher isMobileHeader variant="white" />
             <Image
-              src={jjmLogo}
-              alt="Jal Jeevan Mission logo"
+              src={branding.partnerLogo.src}
+              alt={branding.partnerLogo.alt}
               h={{ base: '44px', sm: '56px', md: '72px' }}
               w="auto"
               objectFit="contain"

@@ -22,6 +22,13 @@ window.APP_CONFIG = {
     DAYS: 1,
     ALLOWED_DAYS: [1, 7, 30],
   },
+  // Languages offered in the language switcher: any of 'en', 'hi', 'as'. English is always
+  // kept as the fallback. Omit the key to offer every language the app ships.
+  ENABLED_LANGUAGES: ['en', 'hi', 'as'],
+  // State branding of the dashboard header and footer in single-tenant mode: 'assam' or
+  // 'punjab'. Absent or unknown values fall back to 'assam' with a console warning, so every
+  // non-Assam deployment must set it. Ignored in multi-tenant mode.
+  BRANDING_PROFILE: 'assam',
   // Enables GA4 analytics and the footer visitor counter. Leave commented out on dev and
   // staging: without it no events are sent, no visitor is counted, and the Firebase SDK is
   // never downloaded. Uncomment only in the production config.js.
