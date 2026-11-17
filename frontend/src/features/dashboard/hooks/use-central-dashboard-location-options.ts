@@ -8,6 +8,7 @@ import {
   parseLocationId,
   resolveLgdAnalyticsParentId,
 } from '../utils/central-dashboard-helpers'
+import { useOnboardedLocationOptions } from './use-onboarded-location-options'
 
 type UseCentralDashboardLocationOptionsParams = {
   selectedTenant?: StateUtOption
@@ -86,9 +87,16 @@ export function useCentralDashboardLocationOptions({
     tenantCode: selectedTenant?.tenantCode,
     enabled: Boolean(selectedTenant?.tenantId && districtParentId),
   })
-  const districtApiOptions = isRootStateLevel
-    ? mapLocationOptions(districtLocationsData?.data)
-    : rootLocationOptions
+  // Phased rollout: only onboarded children reach the analytics parent, map and table at
+  // each level below the state.
+  const { options: districtApiOptions } = useOnboardedLocationOptions({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: districtParentId,
+    options: isRootStateLevel
+      ? mapLocationOptions(districtLocationsData?.data)
+      : rootLocationOptions,
+  })
   const selectedDistrictOption = findLocationOption(
     districtApiOptions,
     activeHierarchySelectedDistrict
@@ -103,7 +111,12 @@ export function useCentralDashboardLocationOptions({
     tenantCode: selectedTenant?.tenantCode,
     enabled: Boolean(selectedTenant?.tenantId && selectedDistrictId),
   })
-  const blockApiOptions = mapLocationOptions(blockLocationsData?.data)
+  const { options: blockApiOptions } = useOnboardedLocationOptions({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: selectedDistrictId,
+    options: mapLocationOptions(blockLocationsData?.data),
+  })
   const selectedBlockOption = findLocationOption(blockApiOptions, activeHierarchySelectedBlock)
   const selectedBlockId =
     parseLocationId(activeHierarchySelectedBlock) ?? selectedBlockOption?.locationId
@@ -115,7 +128,12 @@ export function useCentralDashboardLocationOptions({
     tenantCode: selectedTenant?.tenantCode,
     enabled: Boolean(selectedTenant?.tenantId && selectedBlockId),
   })
-  const gramPanchayatApiOptions = mapLocationOptions(gramPanchayatLocationsData?.data)
+  const { options: gramPanchayatApiOptions } = useOnboardedLocationOptions({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: selectedBlockId,
+    options: mapLocationOptions(gramPanchayatLocationsData?.data),
+  })
   const selectedGramPanchayatOption = findLocationOption(
     gramPanchayatApiOptions,
     activeHierarchySelectedGramPanchayat
@@ -130,7 +148,12 @@ export function useCentralDashboardLocationOptions({
     tenantCode: selectedTenant?.tenantCode,
     enabled: Boolean(selectedTenant?.tenantId && selectedGramPanchayatId),
   })
-  const villageApiOptions = mapLocationOptions(villageLocationsData?.data)
+  const { options: villageApiOptions } = useOnboardedLocationOptions({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: selectedGramPanchayatId,
+    options: mapLocationOptions(villageLocationsData?.data),
+  })
   const lgdAnalyticsParentId = resolveLgdAnalyticsParentId({
     selectedVillage: effectiveSelectedVillage,
     selectedGramPanchayat: effectiveSelectedGramPanchayat,

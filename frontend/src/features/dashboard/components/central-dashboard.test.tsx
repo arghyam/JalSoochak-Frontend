@@ -81,6 +81,19 @@ jest.mock('../services/query/use-location-children-query', () => ({
   useLocationChildrenQuery: jest.fn(),
 }))
 
+// Phased rollout off: every region is onboarded, so the dashboard behaves as before.
+jest.mock('../services/query/use-onboarded-regions-query', () => ({
+  useOnboardedRegionsQuery: () => ({
+    data: {
+      tenantId: 0,
+      parentLgdId: null,
+      parentDepartmentId: null,
+      phasedRollout: false,
+      onboardedChildIds: null,
+    },
+  }),
+}))
+
 jest.mock('../services/query/use-district-scheme-block-lookup-query', () => ({
   useDistrictSchemeBlockLookupQuery: jest.fn(),
 }))

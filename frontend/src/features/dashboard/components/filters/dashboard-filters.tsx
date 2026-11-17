@@ -21,6 +21,7 @@ import {
 } from '../../utils/hierarchy-label'
 import { useDashboardDefaultDateRange } from '../../utils/default-duration'
 import { useLocationSearchAnalytics } from '../../hooks/use-location-search-analytics'
+import { useOnboardedLocationOptions } from '../../hooks/use-onboarded-location-options'
 import { isActiveTenantStatus } from '../../utils/central-dashboard-helpers'
 import type { HierarchyType } from '../../services/api/dashboard-api'
 import type { TenantChildLocation } from '../../services/api/dashboard-api'
@@ -248,7 +249,7 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     tenantCode: selectedTenant?.tenantCode,
     enabled: Boolean(selectedTenant?.tenantId && districtParentId),
   })
-  const districtApiOptions = useMemo(() => {
+  const districtLocationOptions = useMemo(() => {
     if (isRootStateLevel) {
       return mapLocationOptions(districtLocationsData?.data)
     }
@@ -256,6 +257,13 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     // Some tenants return districts directly at parentId=0 instead of returning state first.
     return rootLevelOptions
   }, [districtLocationsData?.data, isRootStateLevel, rootLevelOptions])
+  // Phased rollout: only onboarded children are selectable at each level below the state.
+  const { options: districtApiOptions } = useOnboardedLocationOptions({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: districtParentId,
+    options: districtLocationOptions,
+  })
   const selectedDistrictOption = findLocationOption(districtApiOptions, activeSelectedDistrict)
   const selectedDistrictId =
     parseLocationId(activeSelectedDistrict) ?? selectedDistrictOption?.locationId
@@ -266,10 +274,16 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     tenantCode: selectedTenant?.tenantCode,
     enabled: Boolean(selectedTenant?.tenantId && selectedDistrictId),
   })
-  const blockApiOptions = useMemo(
+  const blockLocationOptions = useMemo(
     () => mapLocationOptions(blockLocationsData?.data),
     [blockLocationsData?.data]
   )
+  const { options: blockApiOptions } = useOnboardedLocationOptions({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: selectedDistrictId,
+    options: blockLocationOptions,
+  })
   const selectedBlockOption = findLocationOption(blockApiOptions, activeSelectedBlock)
   const selectedBlockId = parseLocationId(activeSelectedBlock) ?? selectedBlockOption?.locationId
   const { data: gramPanchayatLocationsData } = useLocationChildrenQuery({
@@ -279,10 +293,16 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     tenantCode: selectedTenant?.tenantCode,
     enabled: Boolean(selectedTenant?.tenantId && selectedBlockId),
   })
-  const gramPanchayatApiOptions = useMemo(
+  const gramPanchayatLocationOptions = useMemo(
     () => mapLocationOptions(gramPanchayatLocationsData?.data),
     [gramPanchayatLocationsData?.data]
   )
+  const { options: gramPanchayatApiOptions } = useOnboardedLocationOptions({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: selectedBlockId,
+    options: gramPanchayatLocationOptions,
+  })
   const selectedGramPanchayatOption = findLocationOption(
     gramPanchayatApiOptions,
     activeSelectedGramPanchayat
@@ -296,10 +316,16 @@ export function DashboardFilters(props: DashboardFiltersProps) {
     tenantCode: selectedTenant?.tenantCode,
     enabled: Boolean(selectedTenant?.tenantId && selectedGramPanchayatId),
   })
-  const villageApiOptions = useMemo(
+  const villageLocationOptions = useMemo(
     () => mapLocationOptions(villageLocationsData?.data),
     [villageLocationsData?.data]
   )
+  const { options: villageApiOptions } = useOnboardedLocationOptions({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId: selectedGramPanchayatId,
+    options: villageLocationOptions,
+  })
   const hasSelectedTenant = Boolean(selectedTenant?.tenantId)
   const resolvedDistrictOptions = hasSelectedTenant
     ? districtApiOptions
