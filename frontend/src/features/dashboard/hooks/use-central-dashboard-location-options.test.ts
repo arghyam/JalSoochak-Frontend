@@ -206,6 +206,23 @@ describe('useCentralDashboardLocationOptions onboarded filtering', () => {
     expect(result.current.isOnboardedByLevel.district).toBeUndefined()
   })
 
+  it('allows every district when the root list stands in for them, once it has loaded', () => {
+    const rootListOfDistricts = locations([12, 'Amritsar'], [13, 'Barnala'])
+    mockUseLocationChildrenQuery.mockImplementation((args: unknown) =>
+      (args as ChildrenArgs).parentId === undefined ? rootListOfDistricts : {}
+    )
+
+    const { result, rerender } = renderHook(() => useCentralDashboardLocationOptions(baseParams))
+
+    expect(labels(result.current.districtApiOptions)).toEqual(['Amritsar', 'Barnala'])
+    expect(result.current.isOnboardedByLevel.district?.(13)).toBe(true)
+
+    mockUseLocationChildrenQuery.mockReturnValue({ data: undefined })
+    rerender()
+
+    expect(result.current.isOnboardedByLevel.district).toBeUndefined()
+  })
+
   it('keeps every child while the rollout is off', () => {
     mockUseOnboardedRegionsQuery.mockReturnValue({
       data: {

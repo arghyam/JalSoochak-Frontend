@@ -8,7 +8,7 @@ import {
   parseLocationId,
   resolveLgdAnalyticsParentId,
 } from '../utils/central-dashboard-helpers'
-import type { OnboardedPredicatesByLevel } from '../utils/onboarded-regions'
+import { type OnboardedPredicatesByLevel, everyRegionOnboarded } from '../utils/onboarded-regions'
 import { useOnboardedChildrenPredicate } from './use-onboarded-children-predicate'
 import { useOnboardedLocationOptions } from './use-onboarded-location-options'
 
@@ -100,6 +100,13 @@ export function useCentralDashboardLocationOptions({
         ? mapLocationOptions(districtLocationsData?.data)
         : rootLocationOptions,
     })
+  // When the root list doesn't hold the selected state, it stands in for the districts and
+  // has no parent to ask about. Its options pass unfiltered, so map, table and URL follow suit
+  // once it has loaded.
+  const isDistrictLevelOnboarded =
+    !isRootStateLevel && Boolean(activeHierarchySelectedState) && rootLocationsData !== undefined
+      ? everyRegionOnboarded
+      : isDistrictOnboarded
   const selectedDistrictOption = findLocationOption(
     districtApiOptions,
     activeHierarchySelectedDistrict
@@ -193,13 +200,13 @@ export function useCentralDashboardLocationOptions({
   const isOnboardedByLevel: OnboardedPredicatesByLevel =
     hierarchyType === 'LGD'
       ? {
-          district: isDistrictOnboarded,
+          district: isDistrictLevelOnboarded,
           block: isBlockOnboarded,
           gramPanchayat: isGramPanchayatOnboarded,
           village: isVillageOnboarded,
         }
       : {
-          departmentZone: isDistrictOnboarded,
+          departmentZone: isDistrictLevelOnboarded,
           departmentCircle: isBlockOnboarded,
           departmentDivision: isGramPanchayatOnboarded,
           departmentSubdivision: isVillageOnboarded,

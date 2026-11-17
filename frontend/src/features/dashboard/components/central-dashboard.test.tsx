@@ -6051,30 +6051,19 @@ describe('CentralDashboard', () => {
         ],
       },
     })
-    ;(useLocationChildrenQuery as jest.Mock)
-      .mockReturnValueOnce({
-        data: {
-          data: [
-            {
-              id: 101,
-              title: 'Assam',
-              lgdCode: 18,
-            },
-          ],
-        },
-      })
-      .mockReturnValueOnce({
-        data: {
-          data: [
-            {
-              id: 201,
-              title: 'Kamrup',
-              lgdCode: 404,
-            },
-          ],
-        },
-      })
-      .mockReturnValue({ data: undefined })
+    // Keyed by parent, not call order: the click runs the latest render's handlers, which need
+    // the onboarded check for the districts' parent to have resolved.
+    ;(useLocationChildrenQuery as jest.Mock).mockImplementation((args?: unknown) => {
+      const parentId = (args as { parentId?: number } | undefined)?.parentId
+
+      if (parentId === undefined) {
+        return { data: { data: [{ id: 101, title: 'Assam', lgdCode: 18 }] } }
+      }
+      if (parentId === 101) {
+        return { data: { data: [{ id: 201, title: 'Kamrup', lgdCode: 404 }] } }
+      }
+      return { data: undefined }
+    })
     ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({
       data: {
         childAverageWaterSupplied: [
@@ -6137,9 +6126,10 @@ describe('CentralDashboard', () => {
       mapProps.onStateClick('201', 'Kamrup')
     })
 
+    // The district option carries the analytics id (the LGD code).
     expect(mockNavigate).toHaveBeenCalledWith({
       pathname: '/as',
-      search: '?district=201%3A201%3Akamrup&tab=administrative',
+      search: '?district=201%3A404%3Akamrup&tab=administrative',
     })
   })
 

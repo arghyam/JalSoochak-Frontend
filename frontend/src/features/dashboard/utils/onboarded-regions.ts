@@ -28,7 +28,8 @@ type ChildRegionIds = {
 const isPositiveId = (value: number | null | undefined): value is number =>
   typeof value === 'number' && Number.isInteger(value) && value > 0
 
-const everyRegionOnboarded: OnboardedPredicate = () => true
+/** Allows every region: the rollout is off, or there is no parent to ask about. */
+export const everyRegionOnboarded: OnboardedPredicate = () => true
 
 /**
  * Turns an onboarded-regions response into a predicate over its parent's child ids.
