@@ -368,6 +368,23 @@ describe('central dashboard helpers', () => {
     })
   })
 
+  it('replaces the current history entry only when asked to', () => {
+    const navigate = jest.fn() as unknown as NavigateFunction
+
+    navigateWithUpdatedFilters({
+      filters: { state: 'assam', tab: 'administrative' },
+      navigate,
+      searchParamsSnapshot: 'district=101%3A9101%3Adistrict',
+      selectedState: 'assam',
+      replace: true,
+    })
+
+    expect(navigate).toHaveBeenCalledWith(
+      { pathname: '/as', search: '?tab=administrative' },
+      { replace: true }
+    )
+  })
+
   it('slugifies state names with the same fallback behavior as before', () => {
     expect(toStateSlug(' Jammu & Kashmir ')).toBe('jammu-kashmir')
   })

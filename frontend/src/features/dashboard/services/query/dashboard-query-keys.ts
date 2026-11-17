@@ -6,6 +6,7 @@ import type {
   DashboardLevel,
   NationalSchemeRegularityPeriodicQueryParams,
   NationalDashboardQueryParams,
+  OnboardedRegionsQueryParams,
   OutageReasonsPeriodicQueryParams,
   OutageReasonsQueryParams,
   ReadingComplianceQueryParams,
@@ -121,6 +122,15 @@ export const dashboardQueryKeys = {
       'dashboard',
       'analytics',
       'tenant-boundary-geojson',
+      params?.tenantId,
+      params?.parentLgdId,
+      params?.parentDepartmentId,
+    ] as const,
+  onboardedRegions: (params: OnboardedRegionsQueryParams | null) =>
+    [
+      'dashboard',
+      'analytics',
+      'onboarded-regions',
       params?.tenantId,
       params?.parentLgdId,
       params?.parentDepartmentId,

@@ -2,7 +2,13 @@ import type { Dispatch, SetStateAction } from 'react'
 import type { EntityPerformance, NationalDashboardBoundaryState, StateUtOption } from '../types'
 import type { DrilldownSource } from '@/shared/lib/analytics'
 import type { FilterUrlUpdate, LocationOption } from '../utils/central-dashboard-helpers'
-import { isActiveTenantStatus, toStateSlug } from '../utils/central-dashboard-helpers'
+import {
+  isActiveTenantStatus,
+  parseLocationId,
+  toStateSlug,
+} from '../utils/central-dashboard-helpers'
+import type { LocationSelectionLevel } from '../utils/dashboard-level'
+import type { OnboardedPredicatesByLevel } from '../utils/onboarded-regions'
 import { slugify } from '../utils/format-location-label'
 import { toStableLocationValue } from '../utils/stable-location-value'
 
@@ -31,6 +37,7 @@ type UseCentralDashboardNavigationParams = {
   isHierarchyStateSelected: boolean
   isHierarchyThirdLevelSelected: boolean
   isMapDistrictView: boolean
+  isOnboardedByLevel: OnboardedPredicatesByLevel
   locationSearchStates: StateUtOption[]
   mapChartData: EntityPerformance[]
   overallPerformanceLocationOptions: LocationOption[]
@@ -67,6 +74,7 @@ export function useCentralDashboardNavigation({
   isHierarchyStateSelected,
   isHierarchyThirdLevelSelected,
   isMapDistrictView,
+  isOnboardedByLevel,
   locationSearchStates,
   mapChartData,
   overallPerformanceLocationOptions,
@@ -194,31 +202,49 @@ export function useCentralDashboardNavigation({
     return matchedOption?.value ?? null
   }
 
-  const navigateToResolvedLocationValue = (selectedValue: string, source: DrilldownSource) => {
+  /** The level that a map or table click on the current view selects. */
+  const resolveDrilldownLevel = (): LocationSelectionLevel | undefined => {
     if (isDepartmentTabActive) {
-      if (isDepartmentSubdivisionSelected) {
-        handleDepartmentVillageChange(selectedValue, source)
-      } else if (isDepartmentDivisionSelected) {
-        handleDepartmentSubdivisionChange(selectedValue, source)
-      } else if (isDepartmentCircleSelected) {
-        handleDepartmentDivisionChange(selectedValue, source)
-      } else if (isDepartmentZoneSelected) {
-        handleDepartmentCircleChange(selectedValue, source)
-      } else if (isDepartmentStateSelected) {
-        handleDepartmentZoneChange(selectedValue, source)
-      }
-      return
+      if (isDepartmentSubdivisionSelected) return 'departmentVillage'
+      if (isDepartmentDivisionSelected) return 'departmentSubdivision'
+      if (isDepartmentCircleSelected) return 'departmentDivision'
+      if (isDepartmentZoneSelected) return 'departmentCircle'
+      if (isDepartmentStateSelected) return 'departmentZone'
+      return undefined
     }
 
-    if (isHierarchyFourthLevelSelected) {
-      handleVillageChange(selectedValue, source)
-    } else if (isHierarchyThirdLevelSelected) {
-      handleGramPanchayatChange(selectedValue, source)
-    } else if (isHierarchySecondLevelSelected) {
-      handleBlockChange(selectedValue, source)
-    } else if (isHierarchyStateSelected) {
-      handleDistrictChange(selectedValue, source)
-    }
+    if (isHierarchyFourthLevelSelected) return 'village'
+    if (isHierarchyThirdLevelSelected) return 'gramPanchayat'
+    if (isHierarchySecondLevelSelected) return 'block'
+    if (isHierarchyStateSelected) return 'district'
+    return undefined
+  }
+
+  const changeHandlerByLevel: Record<
+    LocationSelectionLevel,
+    (value: string, source?: DrilldownSource) => void
+  > = {
+    district: handleDistrictChange,
+    block: handleBlockChange,
+    gramPanchayat: handleGramPanchayatChange,
+    village: handleVillageChange,
+    departmentZone: handleDepartmentZoneChange,
+    departmentCircle: handleDepartmentCircleChange,
+    departmentDivision: handleDepartmentDivisionChange,
+    departmentSubdivision: handleDepartmentSubdivisionChange,
+    departmentVillage: handleDepartmentVillageChange,
+  }
+
+  const navigateToResolvedLocationValue = (selectedValue: string, source: DrilldownSource) => {
+    const level = resolveDrilldownLevel()
+    if (!level) return
+    // Phased rollout: block drilldown into a region that isn't onboarded, or not yet known to be.
+    // A blocked click leaves the current selection untouched.
+    if (!isOnboardedByLevel[level]?.(parseLocationId(selectedValue))) return
+
+    setActiveTrailIndex(null)
+    setSelectedScheme('')
+    changeHandlerByLevel[level](selectedValue, source)
   }
 
   const handleMapRegionClick = (regionId: string, regionName: string) => {
@@ -242,8 +268,6 @@ export function useCentralDashboardNavigation({
       resolveLocationValueForRegion(boundaryOverallPerformanceOptions, regionId, regionName)
 
     if (selectedValue) {
-      setActiveTrailIndex(null)
-      setSelectedScheme('')
       navigateToResolvedLocationValue(selectedValue, 'map')
       return
     }
@@ -261,8 +285,8 @@ export function useCentralDashboardNavigation({
     row: EntityPerformance,
     source: DrilldownSource = 'table'
   ) => {
-    setActiveTrailIndex(null)
-    setSelectedScheme('')
+    // The selection resets happen only once a drilldown is allowed: `handleStateClick` and
+    // `navigateToResolvedLocationValue` each do it after their own checks.
     setHoveredOverallPerformanceRow(null)
 
     if (isCentralLandingView && !isDepartmentTabActive) {

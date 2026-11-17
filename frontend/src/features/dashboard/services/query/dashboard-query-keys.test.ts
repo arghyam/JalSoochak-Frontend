@@ -273,4 +273,21 @@ describe('dashboardQueryKeys', () => {
       '2026-03-31',
     ])
   })
+
+  it('keys onboarded regions by tenant and by the parent of either hierarchy', () => {
+    expect(dashboardQueryKeys.onboardedRegions({ tenantId: 3, parentLgdId: 1 })).toEqual([
+      'dashboard',
+      'analytics',
+      'onboarded-regions',
+      3,
+      1,
+      undefined,
+    ])
+    expect(dashboardQueryKeys.onboardedRegions({ tenantId: 3, parentLgdId: 1 })).not.toEqual(
+      dashboardQueryKeys.onboardedRegions({ tenantId: 3, parentDepartmentId: 1 })
+    )
+    expect(dashboardQueryKeys.onboardedRegions({ tenantId: 3, parentLgdId: 1 })).not.toEqual(
+      dashboardQueryKeys.onboardedRegions({ tenantId: 4, parentLgdId: 1 })
+    )
+  })
 })

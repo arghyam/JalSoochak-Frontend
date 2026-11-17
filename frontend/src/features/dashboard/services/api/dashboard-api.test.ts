@@ -768,6 +768,98 @@ describe('dashboardApi analytics normalization', () => {
   })
 })
 
+describe('dashboardApi.getOnboardedRegions', () => {
+  const onboardedRegions = {
+    tenantId: 3,
+    parentLgdId: 1,
+    parentDepartmentId: null,
+    phasedRollout: true,
+    onboardedChildIds: [12, 15],
+  }
+
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+  })
+
+  it('sends the tenant and the LGD parent, and unwraps the envelope', async () => {
+    mockGet.mockImplementation(async () => ({ data: { success: true, data: onboardedRegions } }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+    const response = await dashboardApi.getOnboardedRegions({ tenantId: 3, parentLgdId: 1 })
+
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/analytics/onboarded-regions', {
+      params: {
+        tenant_id: 3,
+        parent_lgd_id: 1,
+        parent_department_id: undefined,
+      },
+    })
+    expect(response).toEqual(onboardedRegions)
+  })
+
+  it('sends a department parent and accepts an unwrapped payload', async () => {
+    const departmentRegions = {
+      ...onboardedRegions,
+      parentLgdId: null,
+      parentDepartmentId: 7,
+      phasedRollout: false,
+      onboardedChildIds: null,
+    }
+    mockGet.mockImplementation(async () => ({ data: departmentRegions }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+    const response = await dashboardApi.getOnboardedRegions({ tenantId: 3, parentDepartmentId: 7 })
+
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/analytics/onboarded-regions', {
+      params: {
+        tenant_id: 3,
+        parent_lgd_id: undefined,
+        parent_department_id: 7,
+      },
+    })
+    expect(response).toEqual(departmentRegions)
+  })
+
+  it('fails instead of inventing a list when the payload is missing', async () => {
+    mockGet.mockImplementation(async () => ({ data: null }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+
+    await expect(dashboardApi.getOnboardedRegions({ tenantId: 3, parentLgdId: 1 })).rejects.toThrow(
+      'Invalid onboarded regions analytics response: payload is missing'
+    )
+  })
+
+  it('fails when the envelope has no data', async () => {
+    mockGet.mockImplementation(async () => ({ data: { success: true, data: null } }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+
+    await expect(dashboardApi.getOnboardedRegions({ tenantId: 3, parentLgdId: 1 })).rejects.toThrow(
+      'Invalid onboarded regions analytics response: wrapped payload is missing data'
+    )
+  })
+
+  it('propagates a 404 for a parent that is not onboarded', async () => {
+    const notFound = Object.assign(new Error('Request failed with status code 404'), {
+      response: {
+        status: 404,
+        data: { status: 404, error: 'Not Found', message: 'Region not found' },
+      },
+    })
+    mockGet.mockImplementation(async () => {
+      throw notFound
+    })
+
+    const { dashboardApi } = await import('./dashboard-api')
+
+    await expect(dashboardApi.getOnboardedRegions({ tenantId: 3, parentLgdId: 99 })).rejects.toBe(
+      notFound
+    )
+  })
+})
+
 describe('dashboardApi.getAverageWaterSupplyPerRegion', () => {
   beforeEach(() => {
     jest.resetModules()

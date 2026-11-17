@@ -23,6 +23,11 @@ import {
   resolveDaysInRange,
 } from '../utils/formulas'
 import { slugify } from '../utils/format-location-label'
+import {
+  type ChildRegionIds,
+  noRegionOnboarded,
+  toOnboardedPredicate,
+} from '../utils/onboarded-regions'
 import { toStableLocationValue } from '../utils/stable-location-value'
 
 type UseCentralDashboardMapPerformanceParams = {
@@ -46,6 +51,9 @@ type UseCentralDashboardMapPerformanceParams = {
   isHierarchyThirdLevelSelected: boolean
   isMapDistrictView: boolean
   isNationalDashboardBoundariesPending: boolean
+  /** Phased rollout: whether a child of the analytics parent is shown. */
+  isOnboardedChild: (region: ChildRegionIds) => boolean
+  isOnboardedChildrenLoading: boolean
   isTenantBoundariesFetching: boolean
   isTenantBoundariesLoading: boolean
   isTenantBoundaryGeoJsonFetching: boolean
@@ -81,6 +89,8 @@ export function useCentralDashboardMapPerformance({
   isHierarchyThirdLevelSelected,
   isMapDistrictView,
   isNationalDashboardBoundariesPending,
+  isOnboardedChild,
+  isOnboardedChildrenLoading,
   isTenantBoundariesFetching,
   isTenantBoundariesLoading,
   isTenantBoundaryGeoJsonFetching,
@@ -314,17 +324,21 @@ export function useCentralDashboardMapPerformance({
         tenantBoundaryLocationOptions,
         averageSchemeRegularityData,
         waterQuantityRegionWiseData,
-        averageWaterSupplyData
+        averageWaterSupplyData,
+        isOnboardedChild
       )
   const isMapDataLoading = isCentralLandingView
     ? !nationalDashboardBoundariesData && isNationalDashboardBoundariesPending
     : Boolean(tenantBoundaryAnalyticsParams) &&
-      (!tenantBoundaryData || !tenantBoundaryGeoJsonData) &&
-      (isTenantBoundariesLoading ||
-        isTenantBoundariesFetching ||
-        isTenantBoundaryGeoJsonLoading ||
-        isTenantBoundaryGeoJsonFetching)
+      (isOnboardedChildrenLoading ||
+        ((!tenantBoundaryData || !tenantBoundaryGeoJsonData) &&
+          (isTenantBoundariesLoading ||
+            isTenantBoundariesFetching ||
+            isTenantBoundaryGeoJsonLoading ||
+            isTenantBoundaryGeoJsonFetching)))
 
+  const isNationalDistrictViewActive =
+    shouldFetchTenantBoundaryGeoJson && isMapDistrictView && isCentralLandingView
   const stateWiseBoundaries = filteredNationalDashboardBoundaries?.stateWiseBoundaries ?? []
   const districtBoundaryQueries = useQueries({
     queries: stateWiseBoundaries.map((state) => ({
@@ -337,30 +351,54 @@ export function useCentralDashboardMapPerformance({
           tenantId: state.tenantId,
           parentLgdId: state.lgdId,
         }),
-      enabled:
-        shouldFetchTenantBoundaryGeoJson &&
-        isMapDistrictView &&
-        isCentralLandingView &&
-        Boolean(state.tenantId),
+      enabled: isNationalDistrictViewActive && Boolean(state.tenantId),
       staleTime: Infinity,
       retry: false,
     })),
   })
-  const districtMapChartData = districtBoundaryQueries.flatMap((query, index) => {
-    if (!query.data) return []
-    const state = stateWiseBoundaries[index]
+  // Phased rollout: which districts of each state are onboarded, in `stateWiseBoundaries` order.
+  const districtOnboardedQueries = useQueries({
+    queries: stateWiseBoundaries.map((state) => {
+      const params = { tenantId: state.tenantId, parentLgdId: state.lgdId }
+      return {
+        queryKey: dashboardQueryKeys.onboardedRegions(params),
+        queryFn: () => dashboardApi.getOnboardedRegions(params),
+        enabled: isNationalDistrictViewActive && Boolean(state.tenantId),
+        // A 404 means the state isn't onboarded; retrying can't change that.
+        retry: false,
+      }
+    }),
+  })
+  // A state's districts are drawn once its onboarded list has settled. Until it resolves (or
+  // when it fails) none of them counts as onboarded, so the view fails closed.
+  const districtViewStates = stateWiseBoundaries.flatMap((state, index) => {
+    const boundaries = districtBoundaryQueries[index]?.data
+    const onboardedQuery = districtOnboardedQueries[index]
+    if (!boundaries || !onboardedQuery || onboardedQuery.isLoading) return []
+
+    return [
+      {
+        state,
+        districts: boundaries.childRegions ?? [],
+        isOnboarded: toOnboardedPredicate(onboardedQuery.data) ?? noRegionOnboarded,
+      },
+    ]
+  })
+  const districtMapChartData = districtViewStates.flatMap(({ state, districts, isOnboarded }) => {
     const statePerf = mapChartData.find((s) => s.id === String(state.tenantId))
-    return (query.data.childRegions ?? []).flatMap((district) => {
+    return districts.flatMap((district) => {
       if (!district.parsedBoundaryGeoJson) return []
       const districtAnalyticsId = String(district.lgdId ?? district.lgdCode ?? '')
+      // Not onboarded: no metrics, so the map draws it grey and won't drill into it.
+      const hasMetrics = isOnboarded(district.lgdId)
       return [
         {
           id: districtAnalyticsId,
           name: `${district.title ?? ''}::${districtAnalyticsId}`,
           coverage: statePerf?.coverage ?? 0,
-          regularity: statePerf?.regularity ?? -1,
+          regularity: hasMetrics ? (statePerf?.regularity ?? -1) : -1,
           continuity: statePerf?.continuity ?? 0,
-          quantity: statePerf?.quantity ?? -1,
+          quantity: hasMetrics ? (statePerf?.quantity ?? -1) : -1,
           compositeScore: statePerf?.compositeScore ?? 0,
           status: statePerf?.status ?? ('needs-attention' as const),
           boundaryGeoJson: district.parsedBoundaryGeoJson,
@@ -368,24 +406,22 @@ export function useCentralDashboardMapPerformance({
       ]
     })
   })
-  const hasAnyDistrictData = districtBoundaryQueries.some((q) => Boolean(q.data))
   const isDistrictMapLoading =
     isMapDistrictView &&
     isCentralLandingView &&
-    !hasAnyDistrictData &&
+    districtViewStates.length === 0 &&
     (isNationalDashboardBoundariesPending ||
-      districtBoundaryQueries.some((query) => query.isLoading || query.isFetching))
+      districtBoundaryQueries.some((query) => query.isLoading || query.isFetching) ||
+      districtOnboardedQueries.some((query) => query.isLoading))
 
   const districtToStateMap = new Map<
     string,
     NonNullable<NationalDashboardBoundaryResponse['stateWiseBoundaries']>[number]
   >()
-  districtBoundaryQueries.forEach((query, index) => {
-    if (!query.data) return
-    const state = stateWiseBoundaries[index]
-    ;(query.data.childRegions ?? []).forEach((district) => {
+  districtViewStates.forEach(({ state, districts, isOnboarded }) => {
+    districts.forEach((district) => {
       const id = String(district.lgdId ?? district.lgdCode ?? '')
-      if (id) districtToStateMap.set(id, state)
+      if (id && isOnboarded(district.lgdId)) districtToStateMap.set(id, state)
     })
   })
 

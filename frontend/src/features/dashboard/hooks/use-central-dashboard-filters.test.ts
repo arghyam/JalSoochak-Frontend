@@ -8,6 +8,7 @@ const mockUseParams = jest.fn(() => ({}))
 const mockUseSearchParams = jest.fn(() => [new URLSearchParams(), jest.fn()])
 const mockUseLocation = jest.fn(() => ({ pathname: '/', search: '', hash: '', state: null }))
 const mockIsSingleTenantMode = jest.fn(() => false)
+const mockTrackEvent = jest.fn()
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual<typeof import('react-router-dom')>('react-router-dom'),
@@ -21,6 +22,10 @@ jest.mock('@/config/server-config', () => ({
   isSingleTenantMode: () => mockIsSingleTenantMode(),
 }))
 
+jest.mock('@/shared/lib/analytics', () => ({
+  trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
+}))
+
 describe('useCentralDashboardFilters', () => {
   beforeEach(() => {
     window.localStorage.clear()
@@ -29,6 +34,7 @@ describe('useCentralDashboardFilters', () => {
     mockUseSearchParams.mockReset()
     mockUseLocation.mockReset()
     mockIsSingleTenantMode.mockReset()
+    mockTrackEvent.mockReset()
     mockUseParams.mockReturnValue({})
     mockUseSearchParams.mockReturnValue([new URLSearchParams(), jest.fn()])
     mockUseLocation.mockReturnValue({ pathname: '/', search: '', hash: '', state: null })
@@ -353,5 +359,138 @@ describe('useCentralDashboardFilters', () => {
     } finally {
       jest.useRealTimers()
     }
+  })
+
+  describe('clearSelectionFrom', () => {
+    it('drops an administrative level and the ones below it, in place and unreported', () => {
+      mockUseParams.mockReturnValue({ stateSlug: 'as' })
+      mockUseSearchParams.mockReturnValue([
+        new URLSearchParams(
+          'district=101:9101:district&block=201:9201:block&gramPanchayat=301:9301:gp&tab=administrative'
+        ),
+        jest.fn(),
+      ])
+
+      const { result } = renderHook(() =>
+        useCentralDashboardFilters({ durationDateFormat: 'DD/MM/YYYY' })
+      )
+
+      act(() => {
+        result.current.setSelectedScheme('scheme-1')
+      })
+      act(() => {
+        result.current.clearSelectionFrom('block')
+      })
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        { pathname: '/as', search: '?district=101%3A9101%3Adistrict&tab=administrative' },
+        { replace: true }
+      )
+      expect(result.current.selectedScheme).toBe('')
+      expect(mockTrackEvent).not.toHaveBeenCalled()
+    })
+
+    it('keeps the administrative tab when the shallowest level is dropped', () => {
+      mockUseParams.mockReturnValue({ stateSlug: 'as' })
+      mockUseSearchParams.mockReturnValue([
+        new URLSearchParams('district=101:9101:district&block=201:9201:block'),
+        jest.fn(),
+      ])
+
+      const { result } = renderHook(() =>
+        useCentralDashboardFilters({ durationDateFormat: 'DD/MM/YYYY' })
+      )
+
+      act(() => {
+        result.current.clearSelectionFrom('district')
+      })
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        { pathname: '/as', search: '?tab=administrative' },
+        { replace: true }
+      )
+    })
+
+    it('drops department levels from the URL', () => {
+      mockUseParams.mockReturnValue({ stateSlug: 'as' })
+      mockUseSearchParams.mockReturnValue([
+        new URLSearchParams(
+          'departmentZone=10:100:zone&departmentCircle=20:200:circle&departmentDivision=30:300:division'
+        ),
+        jest.fn(),
+      ])
+
+      const { result } = renderHook(() =>
+        useCentralDashboardFilters({ durationDateFormat: 'DD/MM/YYYY' })
+      )
+
+      act(() => {
+        result.current.clearSelectionFrom('departmentCircle')
+      })
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        { pathname: '/as', search: '?departmentZone=10%3A100%3Azone' },
+        { replace: true }
+      )
+      expect(mockTrackEvent).not.toHaveBeenCalled()
+    })
+
+    it('drops department levels restored from storage, which are not in the URL', () => {
+      window.localStorage.setItem(
+        CENTRAL_DASHBOARD_FILTER_STORAGE_KEY,
+        JSON.stringify({
+          filterTabIndex: 1,
+          selectedDepartmentZone: '10:100:zone',
+          selectedDepartmentCircle: '20:200:circle',
+          selectedDepartmentDivision: '30:300:division',
+        })
+      )
+
+      const { result } = renderHook(() =>
+        useCentralDashboardFilters({
+          durationDateFormat: 'DD/MM/YYYY',
+          singleTenantOverride: { value: 'punjab', label: 'Punjab', tenantId: 3, tenantCode: 'PB' },
+        })
+      )
+
+      expect(result.current.selectedDepartmentCircle).toBe('20:200:circle')
+
+      act(() => {
+        result.current.clearSelectionFrom('departmentCircle')
+      })
+
+      expect(result.current.selectedDepartmentZone).toBe('10:100:zone')
+      expect(result.current.selectedDepartmentCircle).toBe('')
+      expect(result.current.selectedDepartmentDivision).toBe('')
+      expect(mockNavigate).toHaveBeenCalledWith(
+        { pathname: '/', search: '?departmentZone=10%3A100%3Azone' },
+        { replace: true }
+      )
+    })
+
+    it('keeps the departmental state of a restored selection the URL does not carry yet', () => {
+      window.localStorage.setItem(
+        CENTRAL_DASHBOARD_FILTER_STORAGE_KEY,
+        JSON.stringify({
+          filterTabIndex: 1,
+          selectedDepartmentState: 'punjab',
+          selectedDepartmentZone: '10:100:zone',
+          selectedDepartmentCircle: '20:200:circle',
+        })
+      )
+
+      const { result } = renderHook(() =>
+        useCentralDashboardFilters({ durationDateFormat: 'DD/MM/YYYY' })
+      )
+
+      act(() => {
+        result.current.clearSelectionFrom('departmentCircle')
+      })
+
+      expect(mockNavigate).toHaveBeenLastCalledWith(
+        { pathname: '/pb', search: '?departmentZone=10%3A100%3Azone' },
+        { replace: true }
+      )
+    })
   })
 })

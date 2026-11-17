@@ -10,6 +10,16 @@ const emptyOptions: SearchableSelectOption[] = []
 const mockUseLocationSearchQuery = jest.fn()
 const mockUseLocationHierarchyQuery = jest.fn()
 const mockUseLocationChildrenQuery = jest.fn()
+const mockUseOnboardedRegionsQuery = jest.fn()
+const rolloutOff = {
+  data: {
+    tenantId: 0,
+    parentLgdId: null,
+    parentDepartmentId: null,
+    phasedRollout: false,
+    onboardedChildIds: null,
+  },
+}
 
 jest.mock('../../services/query/use-location-search-query', () => ({
   useLocationSearchQuery: (...args: unknown[]) => mockUseLocationSearchQuery(...args),
@@ -21,6 +31,10 @@ jest.mock('../../services/query/use-location-hierarchy-query', () => ({
 
 jest.mock('../../services/query/use-location-children-query', () => ({
   useLocationChildrenQuery: (...args: unknown[]) => mockUseLocationChildrenQuery(...args),
+}))
+
+jest.mock('../../services/query/use-onboarded-regions-query', () => ({
+  useOnboardedRegionsQuery: (...args: unknown[]) => mockUseOnboardedRegionsQuery(...args),
 }))
 
 type DashboardFiltersProps = ComponentProps<typeof DashboardFilters>
@@ -80,6 +94,7 @@ describe('DashboardFilters', () => {
     })
     mockUseLocationHierarchyQuery.mockReturnValue({ data: undefined })
     mockUseLocationChildrenQuery.mockReturnValue({ data: undefined })
+    mockUseOnboardedRegionsQuery.mockReturnValue(rolloutOff)
   })
 
   afterEach(() => {
@@ -404,6 +419,63 @@ describe('DashboardFilters', () => {
 
     expect(screen.getByText('North Zone')).toBeTruthy()
     expect(screen.getByText('Zone')).toBeTruthy()
+  })
+
+  it('offers only onboarded districts during a phased rollout', () => {
+    mockUseLocationSearchQuery.mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [
+          { value: 'punjab', label: 'Punjab', tenantId: 3, tenantCode: 'PB', status: 'ACTIVE' },
+        ],
+      },
+    })
+    mockUseLocationChildrenQuery.mockImplementation((args?: unknown) => {
+      const options = args as { parentId?: number } | undefined
+      if (options?.parentId === undefined) {
+        return { data: { data: [{ id: 1, title: 'Punjab' }] } }
+      }
+      if (options?.parentId === 1) {
+        return {
+          data: {
+            data: [
+              { id: 12, title: 'Amritsar' },
+              { id: 13, title: 'Barnala' },
+              { id: 15, title: 'Bathinda' },
+            ],
+          },
+        }
+      }
+      return { data: undefined }
+    })
+    mockUseOnboardedRegionsQuery.mockImplementation((args?: unknown) => {
+      const { params } = args as { params: { parentLgdId?: number } | null }
+      return params?.parentLgdId === 1
+        ? {
+            data: {
+              tenantId: 3,
+              parentLgdId: 1,
+              parentDepartmentId: null,
+              phasedRollout: true,
+              onboardedChildIds: [12, 15],
+            },
+          }
+        : { data: undefined }
+    })
+
+    renderDashboardFilters({
+      selectedState: 'punjab',
+      mockFilterStates: [{ value: 'punjab', label: 'Punjab' }],
+    })
+
+    fireEvent.focus(screen.getByRole('textbox'))
+
+    expect(mockUseOnboardedRegionsQuery).toHaveBeenCalledWith({
+      params: { tenantId: 3, parentLgdId: 1 },
+    })
+    expect(screen.getByText('Amritsar')).toBeTruthy()
+    expect(screen.getByText('Bathinda')).toBeTruthy()
+    expect(screen.queryByText('Barnala')).toBeNull()
   })
 
   it('loads department hierarchy labels when the departmental tab is active', () => {

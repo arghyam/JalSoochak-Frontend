@@ -506,13 +506,41 @@ const getTenantBoundaryRegionId = (
   return `tenant-boundary-${index}`
 }
 
+/**
+ * A boundary region drawn without metrics, so the map shows it grey and won't drill into it.
+ * Everything comes from the region itself: the index-based fallbacks belong to other regions.
+ */
+const toRegionWithoutMetrics = (
+  region: TenantBoundaryResponse['childRegions'][number],
+  index: number
+): EntityPerformance => ({
+  id: getTenantBoundaryRegionId(region, index),
+  name: formatEntityName(
+    region.childLgdTitle ?? region.childDepartmentTitle ?? region.childLgdCName,
+    undefined,
+    `Region ${index + 1}`
+  ),
+  coverage: 0,
+  regularity: NO_DATA_METRIC_VALUE,
+  continuity: 0,
+  quantity: NO_DATA_METRIC_VALUE,
+  compositeScore: 0,
+  status: 'needs-attention',
+  boundaryGeoJson: (region.boundaryGeoJson as GeoJsonGeometry | null | undefined) ?? null,
+})
+
+/**
+ * @param isRegionOnboarded Phased rollout: a region that fails it is drawn without metrics.
+ *   Omit it to draw every region with its metrics.
+ */
 export const mapTenantBoundariesToPerformance = (
   response: TenantBoundaryResponse | undefined,
   fallbackData: EntityPerformance[],
   locationOptions: LocationLabelOption[] = [],
   regularityAnalytics?: AverageSchemeRegularityResponse,
   quantityAnalytics?: WaterQuantityRegionWiseResponse,
-  waterSupplyAnalytics?: AverageWaterSupplyPerRegionResponse
+  waterSupplyAnalytics?: AverageWaterSupplyPerRegionResponse,
+  isRegionOnboarded?: (region: TenantBoundaryResponse['childRegions'][number]) => boolean
 ): EntityPerformance[] => {
   if (!response?.childRegions?.length) {
     return []
@@ -620,6 +648,10 @@ export const mapTenantBoundariesToPerformance = (
   })
 
   return response.childRegions.map((region, index) => {
+    if (isRegionOnboarded && !isRegionOnboarded(region)) {
+      return toRegionWithoutMetrics(region, index)
+    }
+
     const regionTitle =
       region.childLgdTitle ?? region.childDepartmentTitle ?? region.childLgdCName ?? ''
     const regionLocationId =

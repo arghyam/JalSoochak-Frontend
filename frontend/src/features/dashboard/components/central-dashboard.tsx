@@ -19,6 +19,7 @@ import { useCentralDashboardQueries } from '../hooks/use-central-dashboard-queri
 import { useCentralDashboardLabels } from '../hooks/use-central-dashboard-labels'
 import { useCentralDashboardMapUiState } from '../hooks/use-central-dashboard-map-ui-state'
 import { useCentralDashboardNavigation } from '../hooks/use-central-dashboard-navigation'
+import { useOnboardedSelectionGuard } from '../hooks/use-onboarded-selection-guard'
 import { buildCentralDashboardPerformanceData } from '../hooks/use-central-dashboard-performance-data'
 import { buildCentralDashboardRenderProps } from '../hooks/use-central-dashboard-render-props'
 import { buildCentralDashboardResolvedData } from '../hooks/use-central-dashboard-resolved-data'
@@ -73,6 +74,7 @@ export function CentralDashboard({
     activeHierarchySelectedGramPanchayat,
     activeHierarchySelectedState,
     activeLeafSelection,
+    clearSelectionFrom,
     effectiveSelectedBlock,
     effectiveSelectedDepartmentState,
     effectiveSelectedDistrict,
@@ -241,6 +243,7 @@ export function CentralDashboard({
     departmentAnalyticsParentId,
     districtApiOptions,
     gramPanchayatApiOptions,
+    isOnboardedByLevel,
     lgdAnalyticsParentId,
     tenantBoundaryLocationOptions,
     villageApiOptions,
@@ -266,6 +269,23 @@ export function CentralDashboard({
     isDepartmentZoneSelected,
     isDepartmentCircleSelected,
     isDepartmentDivisionSelected,
+  })
+  // Phased rollout: drops a deep-linked or restored region the dashboard must not show.
+  useOnboardedSelectionGuard({
+    hierarchyType,
+    selections: {
+      district: selectedDistrict,
+      block: selectedBlock,
+      gramPanchayat: selectedGramPanchayat,
+      village: selectedVillage,
+      departmentZone: selectedDepartmentZone,
+      departmentCircle: selectedDepartmentCircle,
+      departmentDivision: selectedDepartmentDivision,
+      departmentSubdivision: selectedDepartmentSubdivision,
+      departmentVillage: selectedDepartmentVillage,
+    },
+    isOnboardedByLevel,
+    clearSelectionFrom,
   })
   const hasValidAnalyticsParentId = analyticsParentId > 0
   const hasValidDepartmentAnalyticsParentId = departmentAnalyticsParentId > 0
@@ -308,6 +328,8 @@ export function CentralDashboard({
     isOverallPerformanceError,
     isOverallPerformanceLoading,
     isNationalDashboardBoundariesPending,
+    isOnboardedChild,
+    isOnboardedChildrenLoading,
     isOutageDistributionWidgetLoading,
     isOutageReasonsWidgetLoading,
     isOutageReasonsWidgetError,
@@ -438,6 +460,8 @@ export function CentralDashboard({
     isHierarchyThirdLevelSelected,
     isMapDistrictView,
     isNationalDashboardBoundariesPending,
+    isOnboardedChild,
+    isOnboardedChildrenLoading,
     isTenantBoundariesFetching,
     isTenantBoundariesLoading,
     isTenantBoundaryGeoJsonFetching,
@@ -541,6 +565,7 @@ export function CentralDashboard({
       isHierarchyStateSelected,
       isHierarchyThirdLevelSelected,
       isMapDistrictView,
+      isOnboardedByLevel,
       locationSearchStates,
       mapChartData,
       overallPerformanceLocationOptions,

@@ -143,6 +143,7 @@ export const navigateWithUpdatedFilters = ({
   activeHierarchy,
   nextHierarchy,
   reportNavigation = true,
+  replace = false,
 }: {
   filters: FilterUrlUpdate
   navigate: NavigateFunction
@@ -165,6 +166,11 @@ export const navigateWithUpdatedFilters = ({
    * level transition the user performed and would otherwise inflate `drilldown` counts.
    */
   reportNavigation?: boolean
+  /**
+   * Rewrites the current history entry instead of adding one. For corrections the user
+   * didn't ask for, so Back doesn't return to the URL that was just corrected.
+   */
+  replace?: boolean
 }) => {
   const forcedState = singleTenantOverride ? selectedState : (filters.state ?? '')
   const nextPath = singleTenantOverride
@@ -212,10 +218,15 @@ export const navigateWithUpdatedFilters = ({
   }
 
   const nextSearch = nextSearchParams.toString()
-  navigate({
+  const nextLocation = {
     pathname: nextPath,
     search: nextSearch ? `?${nextSearch}` : '',
-  })
+  }
+  if (replace) {
+    navigate(nextLocation, { replace: true })
+    return
+  }
+  navigate(nextLocation)
 }
 
 export const parseLocationId = (value: string): number | undefined => {
