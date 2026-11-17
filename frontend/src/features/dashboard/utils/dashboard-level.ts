@@ -35,6 +35,9 @@ export const DEPARTMENTAL_LEVEL_PARAMS: readonly DepartmentalLevel[] = [
   'departmentVillage',
 ]
 
+/** A level below the state that can be selected, named after its search param. */
+export type LocationSelectionLevel = AdministrativeLevel | DepartmentalLevel
+
 /** Maps each level to the GA4 param carrying its name. */
 const LEVEL_NAME_PARAM: Record<AdministrativeLevel | DepartmentalLevel, string> = {
   district: 'district_name',

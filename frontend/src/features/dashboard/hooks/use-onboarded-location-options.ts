@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import type { HierarchyType } from '../services/api/dashboard-api'
-import { useOnboardedRegionsQuery } from '../services/query/use-onboarded-regions-query'
-import { type OnboardedPredicate, toOnboardedPredicate } from '../utils/onboarded-regions'
+import type { OnboardedPredicate } from '../utils/onboarded-regions'
+import { useOnboardedChildrenPredicate } from './use-onboarded-children-predicate'
 
 type UseOnboardedLocationOptionsParams<TOption extends { locationId?: number }> = {
   tenantId?: number
@@ -31,14 +31,7 @@ export function useOnboardedLocationOptions<TOption extends { locationId?: numbe
   options,
 }: UseOnboardedLocationOptionsParams<TOption>): OnboardedLocationOptions<TOption> {
   const hasParent = typeof parentId === 'number' && parentId > 0
-  const params =
-    tenantId && hasParent
-      ? hierarchyType === 'LGD'
-        ? { tenantId, parentLgdId: parentId }
-        : { tenantId, parentDepartmentId: parentId }
-      : null
-  const { data } = useOnboardedRegionsQuery({ params })
-  const isOnboarded = useMemo(() => toOnboardedPredicate(data), [data])
+  const isOnboarded = useOnboardedChildrenPredicate({ tenantId, hierarchyType, parentId })
   const onboardedOptions = useMemo(
     () => (isOnboarded ? options.filter((option) => isOnboarded(option.locationId)) : []),
     [isOnboarded, options]

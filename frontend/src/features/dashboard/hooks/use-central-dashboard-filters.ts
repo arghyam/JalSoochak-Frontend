@@ -12,9 +12,19 @@ import {
 import { resolveDatePresetRange } from '@/shared/utils/date-presets'
 import { stateCodeToSlug } from '@/shared/constants/states'
 import { trackEvent } from '@/shared/lib/analytics'
-import type { DashboardHierarchy, DrilldownSource } from '@/shared/lib/analytics'
+import type {
+  AdministrativeLevel,
+  DashboardHierarchy,
+  DepartmentalLevel,
+  DrilldownSource,
+} from '@/shared/lib/analytics'
 import type { StateUtOption } from '../types'
 import { computeTrailIndices } from '../utils/trail-index'
+import {
+  ADMINISTRATIVE_LEVEL_PARAMS,
+  DEPARTMENTAL_LEVEL_PARAMS,
+  type LocationSelectionLevel,
+} from '../utils/dashboard-level'
 import {
   CENTRAL_DASHBOARD_FILTER_STORAGE_KEY,
   type FilterUrlUpdate,
@@ -28,6 +38,22 @@ import {
 type UseCentralDashboardFiltersParams = {
   durationDateFormat: string
   singleTenantOverride?: StateUtOption
+}
+
+const isAdministrativeLevel = (level: LocationSelectionLevel): level is AdministrativeLevel =>
+  ADMINISTRATIVE_LEVEL_PARAMS.some((candidate) => candidate === level)
+
+/** Keeps the selections above `level` and blanks `level` and every level below it. */
+const clearLevelsFrom = <TLevel extends LocationSelectionLevel>(
+  levels: readonly TLevel[],
+  level: TLevel,
+  selections: Record<TLevel, string>
+): Record<TLevel, string> => {
+  const remaining = { ...selections }
+  levels.slice(levels.indexOf(level)).forEach((cleared) => {
+    remaining[cleared] = ''
+  })
+  return remaining
 }
 
 export function useCentralDashboardFilters({
@@ -724,6 +750,54 @@ export function useCentralDashboardFilters({
     setSelectedDepartmentSubdivision('')
     setSelectedDepartmentVillage('')
   }
+  const clearAdministrativeSelectionFrom = (level: AdministrativeLevel): FilterUrlUpdate => ({
+    state: selectedState,
+    ...clearLevelsFrom(ADMINISTRATIVE_LEVEL_PARAMS, level, {
+      district: selectedDistrict,
+      block: selectedBlock,
+      gramPanchayat: selectedGramPanchayat,
+      village: selectedVillage,
+    }),
+    // Keeps the administrative tab once no level param is left to imply it.
+    tab: 'administrative',
+  })
+  const clearDepartmentSelectionFrom = (level: DepartmentalLevel): FilterUrlUpdate => {
+    const remaining = clearLevelsFrom(DEPARTMENTAL_LEVEL_PARAMS, level, {
+      departmentZone: selectedDepartmentZone,
+      departmentCircle: selectedDepartmentCircle,
+      departmentDivision: selectedDepartmentDivision,
+      departmentSubdivision: selectedDepartmentSubdivision,
+      departmentVillage: selectedDepartmentVillage,
+    })
+    // Department selections can be restored from storage without being in the URL, so clear
+    // them in component state too, as the level handlers do.
+    setSelectedDepartmentZone(remaining.departmentZone)
+    setSelectedDepartmentCircle(remaining.departmentCircle)
+    setSelectedDepartmentDivision(remaining.departmentDivision)
+    setSelectedDepartmentSubdivision(remaining.departmentSubdivision)
+    setSelectedDepartmentVillage(remaining.departmentVillage)
+    return { state: selectedState, ...remaining }
+  }
+  /**
+   * Drops a selection the dashboard must not show (phased rollout), with every level below
+   * it. The URL is corrected in place and not reported as a drilldown: the user didn't
+   * navigate.
+   */
+  const clearSelectionFrom = (level: LocationSelectionLevel) => {
+    setActiveTrailIndex(null)
+    setSelectedScheme('')
+    navigateWithUpdatedFilters({
+      filters: isAdministrativeLevel(level)
+        ? clearAdministrativeSelectionFrom(level)
+        : clearDepartmentSelectionFrom(level),
+      navigate,
+      searchParamsSnapshot,
+      selectedState,
+      singleTenantOverride: hasSingleTenantOverride,
+      reportNavigation: false,
+      replace: true,
+    })
+  }
 
   useEffect(() => {
     if (shouldPausePersistenceForHydrationRef.current) {
@@ -778,6 +852,7 @@ export function useCentralDashboardFilters({
     activeHierarchySelectedGramPanchayat,
     activeHierarchySelectedState,
     activeLeafSelection,
+    clearSelectionFrom,
     effectiveSelectedBlock,
     effectiveSelectedDepartmentState,
     effectiveSelectedDistrict,

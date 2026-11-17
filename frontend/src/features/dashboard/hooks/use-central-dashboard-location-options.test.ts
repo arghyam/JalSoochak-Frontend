@@ -33,6 +33,7 @@ const onboardedByParent: Record<number, number[]> = {
   1: [12, 15],
   12: [120],
   120: [1201],
+  1201: [12010],
 }
 
 const baseParams = {
@@ -127,6 +128,67 @@ describe('useCentralDashboardLocationOptions onboarded filtering', () => {
     expect(labels(result.current.tenantBoundaryLocationOptions)).toEqual(['Ajnala'])
   })
 
+  it('exposes which regions each LGD level may show', () => {
+    const { result } = renderHook(() =>
+      useCentralDashboardLocationOptions({
+        ...baseParams,
+        activeHierarchySelectedDistrict: '12:12:amritsar',
+        activeHierarchySelectedBlock: '120:120:ajnala',
+        // Ignored on the LGD tab.
+        selectedDepartmentSubdivision: '1201:1201:subdivision',
+      })
+    )
+    const { isOnboardedByLevel } = result.current
+
+    expect(Object.keys(isOnboardedByLevel)).toEqual([
+      'district',
+      'block',
+      'gramPanchayat',
+      'village',
+    ])
+    expect(isOnboardedByLevel.district?.(12)).toBe(true)
+    expect(isOnboardedByLevel.district?.(13)).toBe(false)
+    expect(isOnboardedByLevel.block?.(121)).toBe(false)
+    expect(isOnboardedByLevel.gramPanchayat?.(1201)).toBe(true)
+    // No gram panchayat is selected, so there is no parent to ask about.
+    expect(isOnboardedByLevel.village).toBeUndefined()
+    expect(mockUseOnboardedRegionsQuery).not.toHaveBeenCalledWith({
+      params: { tenantId: 3, parentLgdId: 1201 },
+    })
+  })
+
+  it('exposes which regions each department level may show, down to department villages', () => {
+    const { result } = renderHook(() =>
+      useCentralDashboardLocationOptions({
+        ...baseParams,
+        hierarchyType: 'DEPARTMENT',
+        activeHierarchySelectedState: '1:1:punjab',
+        activeHierarchySelectedDistrict: '12:12:north-zone',
+        effectiveSelectedDepartmentState: '1:1:punjab',
+        selectedDepartmentZone: '12:12:north-zone',
+        selectedDepartmentSubdivision: '1201:1201:subdivision',
+        isDepartmentTabActive: true,
+        isDepartmentStateSelected: true,
+        isDepartmentZoneSelected: true,
+      })
+    )
+    const { isOnboardedByLevel } = result.current
+
+    expect(Object.keys(isOnboardedByLevel)).toEqual([
+      'departmentZone',
+      'departmentCircle',
+      'departmentDivision',
+      'departmentSubdivision',
+      'departmentVillage',
+    ])
+    expect(isOnboardedByLevel.departmentZone?.(15)).toBe(true)
+    expect(isOnboardedByLevel.departmentCircle?.(121)).toBe(false)
+    expect(mockUseOnboardedRegionsQuery).toHaveBeenCalledWith({
+      params: { tenantId: 3, parentDepartmentId: 1201 },
+    })
+    expect(isOnboardedByLevel.departmentVillage?.(12010)).toBe(true)
+  })
+
   it('offers no children while a level is unresolved, but keeps the URL-driven parent id', () => {
     mockUseOnboardedRegionsQuery.mockReturnValue({ data: undefined })
 
@@ -141,6 +203,7 @@ describe('useCentralDashboardLocationOptions onboarded filtering', () => {
     expect(result.current.districtApiOptions).toEqual([])
     expect(result.current.blockApiOptions).toEqual([])
     expect(result.current.analyticsParentId).toBe(12)
+    expect(result.current.isOnboardedByLevel.district).toBeUndefined()
   })
 
   it('keeps every child while the rollout is off', () => {

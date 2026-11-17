@@ -8,6 +8,8 @@ import {
   parseLocationId,
   resolveLgdAnalyticsParentId,
 } from '../utils/central-dashboard-helpers'
+import type { OnboardedPredicatesByLevel } from '../utils/onboarded-regions'
+import { useOnboardedChildrenPredicate } from './use-onboarded-children-predicate'
 import { useOnboardedLocationOptions } from './use-onboarded-location-options'
 
 type UseCentralDashboardLocationOptionsParams = {
@@ -89,14 +91,15 @@ export function useCentralDashboardLocationOptions({
   })
   // Phased rollout: only onboarded children reach the analytics parent, map and table at
   // each level below the state.
-  const { options: districtApiOptions } = useOnboardedLocationOptions({
-    tenantId: selectedTenant?.tenantId,
-    hierarchyType,
-    parentId: districtParentId,
-    options: isRootStateLevel
-      ? mapLocationOptions(districtLocationsData?.data)
-      : rootLocationOptions,
-  })
+  const { options: districtApiOptions, isOnboarded: isDistrictOnboarded } =
+    useOnboardedLocationOptions({
+      tenantId: selectedTenant?.tenantId,
+      hierarchyType,
+      parentId: districtParentId,
+      options: isRootStateLevel
+        ? mapLocationOptions(districtLocationsData?.data)
+        : rootLocationOptions,
+    })
   const selectedDistrictOption = findLocationOption(
     districtApiOptions,
     activeHierarchySelectedDistrict
@@ -111,7 +114,7 @@ export function useCentralDashboardLocationOptions({
     tenantCode: selectedTenant?.tenantCode,
     enabled: Boolean(selectedTenant?.tenantId && selectedDistrictId),
   })
-  const { options: blockApiOptions } = useOnboardedLocationOptions({
+  const { options: blockApiOptions, isOnboarded: isBlockOnboarded } = useOnboardedLocationOptions({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
     parentId: selectedDistrictId,
@@ -128,12 +131,13 @@ export function useCentralDashboardLocationOptions({
     tenantCode: selectedTenant?.tenantCode,
     enabled: Boolean(selectedTenant?.tenantId && selectedBlockId),
   })
-  const { options: gramPanchayatApiOptions } = useOnboardedLocationOptions({
-    tenantId: selectedTenant?.tenantId,
-    hierarchyType,
-    parentId: selectedBlockId,
-    options: mapLocationOptions(gramPanchayatLocationsData?.data),
-  })
+  const { options: gramPanchayatApiOptions, isOnboarded: isGramPanchayatOnboarded } =
+    useOnboardedLocationOptions({
+      tenantId: selectedTenant?.tenantId,
+      hierarchyType,
+      parentId: selectedBlockId,
+      options: mapLocationOptions(gramPanchayatLocationsData?.data),
+    })
   const selectedGramPanchayatOption = findLocationOption(
     gramPanchayatApiOptions,
     activeHierarchySelectedGramPanchayat
@@ -148,12 +152,13 @@ export function useCentralDashboardLocationOptions({
     tenantCode: selectedTenant?.tenantCode,
     enabled: Boolean(selectedTenant?.tenantId && selectedGramPanchayatId),
   })
-  const { options: villageApiOptions } = useOnboardedLocationOptions({
-    tenantId: selectedTenant?.tenantId,
-    hierarchyType,
-    parentId: selectedGramPanchayatId,
-    options: mapLocationOptions(villageLocationsData?.data),
-  })
+  const { options: villageApiOptions, isOnboarded: isVillageOnboarded } =
+    useOnboardedLocationOptions({
+      tenantId: selectedTenant?.tenantId,
+      hierarchyType,
+      parentId: selectedGramPanchayatId,
+      options: mapLocationOptions(villageLocationsData?.data),
+    })
   const lgdAnalyticsParentId = resolveLgdAnalyticsParentId({
     selectedVillage: effectiveSelectedVillage,
     selectedGramPanchayat: effectiveSelectedGramPanchayat,
@@ -176,6 +181,30 @@ export function useCentralDashboardLocationOptions({
     0
   const analyticsParentId =
     hierarchyType === 'LGD' ? lgdAnalyticsParentId : departmentAnalyticsParentId
+  // Department villages, the optional sixth level, have no dropdown, but a map or table click
+  // can select one.
+  const isDepartmentVillageOnboarded = useOnboardedChildrenPredicate({
+    tenantId: selectedTenant?.tenantId,
+    hierarchyType,
+    parentId:
+      hierarchyType === 'DEPARTMENT' ? parseLocationId(selectedDepartmentSubdivision) : undefined,
+  })
+  // The four option levels above are named after the LGD hierarchy but hold the active one.
+  const isOnboardedByLevel: OnboardedPredicatesByLevel =
+    hierarchyType === 'LGD'
+      ? {
+          district: isDistrictOnboarded,
+          block: isBlockOnboarded,
+          gramPanchayat: isGramPanchayatOnboarded,
+          village: isVillageOnboarded,
+        }
+      : {
+          departmentZone: isDistrictOnboarded,
+          departmentCircle: isBlockOnboarded,
+          departmentDivision: isGramPanchayatOnboarded,
+          departmentSubdivision: isVillageOnboarded,
+          departmentVillage: isDepartmentVillageOnboarded,
+        }
 
   const tenantBoundaryLocationOptions: LocationOption[] = isDepartmentTabActive
     ? isDepartmentDivisionSelected
@@ -195,6 +224,7 @@ export function useCentralDashboardLocationOptions({
     departmentAnalyticsParentId,
     districtApiOptions,
     gramPanchayatApiOptions,
+    isOnboardedByLevel,
     lgdAnalyticsParentId,
     tenantBoundaryLocationOptions,
     villageApiOptions,

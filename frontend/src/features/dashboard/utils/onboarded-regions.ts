@@ -1,10 +1,19 @@
 import type { OnboardedRegionsResponse } from '../types'
+import type { LocationSelectionLevel } from './dashboard-level'
 
 /**
  * Whether a child region may be shown on the dashboard (phased rollout). An id that is
  * missing or not positive passes only while the rollout is off.
  */
 export type OnboardedPredicate = (childId: number | undefined) => boolean
+
+/**
+ * For each level of the active hierarchy, which regions of the selected parent may be shown.
+ * A level is absent or `undefined` while that is unknown.
+ */
+export type OnboardedPredicatesByLevel = Partial<
+  Record<LocationSelectionLevel, OnboardedPredicate | undefined>
+>
 
 /** Picks which id field identifies a child: LGD and department children carry both. */
 export type ChildRegionHierarchy = 'LGD' | 'DEPARTMENT'
