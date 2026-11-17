@@ -1,4 +1,5 @@
 import { describe, expect, it } from '@jest/globals'
+import { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import type {
   AverageSchemeRegularityChildRegion,
   AverageSchemeRegularityResponse,
@@ -8,7 +9,12 @@ import type {
   WaterQuantityRegionWiseChildRegion,
   WaterQuantityRegionWiseResponse,
 } from '../types'
-import { retainOnboardedChildren, toOnboardedPredicate } from './onboarded-regions'
+import {
+  isRegionUnavailableError,
+  noRegionOnboarded,
+  retainOnboardedChildren,
+  toOnboardedPredicate,
+} from './onboarded-regions'
 
 const onboardedResponse = (
   overrides: Partial<OnboardedRegionsResponse> = {}
@@ -200,6 +206,12 @@ describe('retainOnboardedChildren', () => {
     expect(retainOnboardedChildren(response, everyRegionOnboarded, 'LGD')).toBe(response)
   })
 
+  it('returns a response that has no child list as is', () => {
+    const response = { averageRegularity: 0.5 } as unknown as AverageSchemeRegularityResponse
+
+    expect(retainOnboardedChildren(response, isOnboarded, 'LGD')).toBe(response)
+  })
+
   it('does not mutate the input when it removes children', () => {
     const childRegions = [regularityRegion({ lgdId: 12 }), regularityRegion({ lgdId: 13 })]
     const response = regularityResponse(childRegions)
@@ -208,5 +220,45 @@ describe('retainOnboardedChildren', () => {
 
     expect(response.childRegions).toBe(childRegions)
     expect(response.childRegions).toHaveLength(2)
+  })
+})
+
+describe('noRegionOnboarded', () => {
+  it('passes no id, so a view waiting on the onboarded list fails closed', () => {
+    expect(noRegionOnboarded(12)).toBe(false)
+    expect(noRegionOnboarded(undefined)).toBe(false)
+  })
+})
+
+describe('isRegionUnavailableError', () => {
+  const httpError = (status: number) => {
+    const error = new AxiosError('Request failed')
+    error.response = {
+      status,
+      data: {},
+      statusText: '',
+      headers: {},
+      config: { headers: {} } as InternalAxiosRequestConfig,
+    }
+    return error
+  }
+
+  it('is true for a 404, which hides a region that is not onboarded', () => {
+    expect(isRegionUnavailableError(httpError(404))).toBe(true)
+  })
+
+  it.each([400, 500])('is false for any other status (%d)', (status) => {
+    expect(isRegionUnavailableError(httpError(status))).toBe(false)
+  })
+
+  it('is false for a request that got no response', () => {
+    expect(isRegionUnavailableError(new AxiosError('Network Error'))).toBe(false)
+  })
+
+  it.each([
+    ['a plain error', new Error('Not Found')],
+    ['no error', null],
+  ])('is false for %s', (_case, error) => {
+    expect(isRegionUnavailableError(error)).toBe(false)
   })
 })

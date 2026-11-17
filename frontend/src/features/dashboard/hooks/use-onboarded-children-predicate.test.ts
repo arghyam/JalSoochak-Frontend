@@ -1,7 +1,10 @@
 import { renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
 import type { OnboardedRegionsResponse } from '../types'
-import { useOnboardedChildrenPredicate } from './use-onboarded-children-predicate'
+import {
+  useOnboardedChildren,
+  useOnboardedChildrenPredicate,
+} from './use-onboarded-children-predicate'
 
 const mockUseOnboardedRegionsQuery = jest.fn()
 
@@ -96,5 +99,43 @@ describe('useOnboardedChildrenPredicate', () => {
     rerender()
 
     expect(result.current).toBe(firstPredicate)
+  })
+})
+
+describe('useOnboardedChildren', () => {
+  beforeEach(() => {
+    mockUseOnboardedRegionsQuery.mockReset()
+  })
+
+  it('reports loading until the onboarded list arrives', () => {
+    mockUseOnboardedRegionsQuery.mockReturnValue({ data: undefined, isLoading: true })
+
+    const { result } = renderHook(() =>
+      useOnboardedChildren({ tenantId: 3, hierarchyType: 'LGD', parentId: 1 })
+    )
+
+    expect(result.current).toEqual({ isOnboarded: undefined, isLoading: true })
+  })
+
+  it('returns the predicate once the onboarded list has loaded', () => {
+    mockUseOnboardedRegionsQuery.mockReturnValue({ ...onboarded(), isLoading: false })
+
+    const { result } = renderHook(() =>
+      useOnboardedChildren({ tenantId: 3, hierarchyType: 'LGD', parentId: 1 })
+    )
+
+    expect(result.current.isLoading).toBe(false)
+    expect(result.current.isOnboarded?.(12)).toBe(true)
+    expect(result.current.isOnboarded?.(13)).toBe(false)
+  })
+
+  it('is unresolved but not loading when the onboarded list failed', () => {
+    mockUseOnboardedRegionsQuery.mockReturnValue({ data: undefined, isLoading: false })
+
+    const { result } = renderHook(() =>
+      useOnboardedChildren({ tenantId: 3, hierarchyType: 'LGD', parentId: 1 })
+    )
+
+    expect(result.current).toEqual({ isOnboarded: undefined, isLoading: false })
   })
 })

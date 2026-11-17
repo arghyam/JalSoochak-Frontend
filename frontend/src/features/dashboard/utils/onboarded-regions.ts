@@ -1,3 +1,4 @@
+import { isAxiosError } from 'axios'
 import type { OnboardedRegionsResponse } from '../types'
 import type { LocationSelectionLevel } from './dashboard-level'
 
@@ -18,7 +19,7 @@ export type OnboardedPredicatesByLevel = Partial<
 /** Picks which id field identifies a child: LGD and department children carry both. */
 export type ChildRegionHierarchy = 'LGD' | 'DEPARTMENT'
 
-type ChildRegionIds = {
+export type ChildRegionIds = {
   lgdId?: number | null
   departmentId?: number | null
   childLgdId?: number | null
@@ -30,6 +31,16 @@ const isPositiveId = (value: number | null | undefined): value is number =>
 
 /** Allows every region: the rollout is off, or there is no parent to ask about. */
 export const everyRegionOnboarded: OnboardedPredicate = () => true
+
+/** Allows no region: stands in for a predicate that is still unknown, so views fail closed. */
+export const noRegionOnboarded: OnboardedPredicate = () => false
+
+/**
+ * Whether a failed analytics request means the region isn't available. analytics-service
+ * answers 404 for a region the phased rollout hides, so callers render "no data", not an error.
+ */
+export const isRegionUnavailableError = (error: unknown): boolean =>
+  isAxiosError(error) && error.response?.status === 404
 
 /**
  * Turns an onboarded-regions response into a predicate over its parent's child ids.
@@ -64,12 +75,15 @@ const getChildRegionId = (
  * Keeps only the onboarded children of a metric response, so tables, KPIs and charts never
  * read the others. Returns `response` itself when nothing is removed, which keeps memoised
  * consumers stable while the rollout is off. Count fields are left as the server sent them.
+ * A response without a child list is returned as is: some are passed on unnormalised.
  */
 export const retainOnboardedChildren = <TResponse extends { childRegions: ChildRegionIds[] }>(
   response: TResponse,
   isOnboarded: OnboardedPredicate,
   hierarchy: ChildRegionHierarchy
 ): TResponse => {
+  if (!Array.isArray(response.childRegions)) return response
+
   const childRegions = response.childRegions.filter((region) =>
     isOnboarded(getChildRegionId(region, hierarchy))
   )

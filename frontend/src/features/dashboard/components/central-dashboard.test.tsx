@@ -81,17 +81,20 @@ jest.mock('../services/query/use-location-children-query', () => ({
   useLocationChildrenQuery: jest.fn(),
 }))
 
-// Phased rollout off: every region is onboarded, so the dashboard behaves as before.
+// Phased rollout off by default: every region is onboarded, so the dashboard behaves as before.
+const ROLLOUT_OFF_ONBOARDED_REGIONS = {
+  data: {
+    tenantId: 0,
+    parentLgdId: null,
+    parentDepartmentId: null,
+    phasedRollout: false,
+    onboardedChildIds: null,
+  },
+}
+const mockUseOnboardedRegionsQuery = jest.fn()
+
 jest.mock('../services/query/use-onboarded-regions-query', () => ({
-  useOnboardedRegionsQuery: () => ({
-    data: {
-      tenantId: 0,
-      parentLgdId: null,
-      parentDepartmentId: null,
-      phasedRollout: false,
-      onboardedChildIds: null,
-    },
-  }),
+  useOnboardedRegionsQuery: (...args: unknown[]) => mockUseOnboardedRegionsQuery(...args),
 }))
 
 jest.mock('../services/query/use-district-scheme-block-lookup-query', () => ({
@@ -372,6 +375,8 @@ describe('CentralDashboard', () => {
     mockIndiaMapChart.mockClear()
     mockOverallPerformanceTable.mockClear()
     mockKPICard.mockClear()
+    mockUseOnboardedRegionsQuery.mockReset()
+    mockUseOnboardedRegionsQuery.mockReturnValue(ROLLOUT_OFF_ONBOARDED_REGIONS)
     ;(useDashboardData as jest.Mock).mockReset()
     ;(useLocationSearchQuery as jest.Mock).mockReset()
     ;(useLocationChildrenQuery as jest.Mock).mockReset()
@@ -2874,6 +2879,107 @@ describe('CentralDashboard', () => {
     }
 
     expect(tableProps.entityLabel).toBe('District')
+  })
+
+  it('lists only onboarded districts in Overall Performance while the phased rollout is on', () => {
+    ;(useDashboardData as jest.Mock).mockReturnValue({
+      data: mockDashboardData,
+      isLoading: false,
+      error: null,
+    })
+    mockUseParams.mockReturnValue({ stateSlug: 'telangana' })
+    ;(useLocationSearchQuery as jest.Mock).mockReturnValue({
+      data: {
+        totalStatesCount: 1,
+        states: [{ value: 'telangana', label: 'Telangana', tenantId: 16, tenantCode: 'TG' }],
+      },
+    })
+    ;(useLocationChildrenQuery as jest.Mock).mockImplementation((args?: unknown) => {
+      const parentId = (args as { parentId?: number } | undefined)?.parentId
+
+      if (parentId === undefined) return { data: { data: [{ id: 10, title: 'Telangana' }] } }
+      if (parentId === 10) {
+        return {
+          data: {
+            data: [
+              { id: 101, title: 'Alpha' },
+              { id: 102, title: 'Beta' },
+            ],
+          },
+        }
+      }
+      return { data: undefined }
+    })
+    mockUseOnboardedRegionsQuery.mockImplementation((args?: unknown) => {
+      const params = (args as { params: { parentLgdId?: number } | null }).params
+
+      return params
+        ? {
+            data: {
+              tenantId: 16,
+              parentLgdId: params.parentLgdId ?? null,
+              parentDepartmentId: null,
+              phasedRollout: true,
+              onboardedChildIds: params.parentLgdId === 10 ? [101] : [],
+            },
+            isLoading: false,
+          }
+        : { data: undefined, isLoading: false }
+    })
+    // Boundaries keep every district for the map, so they don't decide the table rows.
+    ;(useTenantBoundariesQuery as jest.Mock).mockReturnValue({
+      data: {
+        childRegions: [
+          { childLgdId: 101, childLgdTitle: 'Alpha' },
+          { childLgdId: 102, childLgdTitle: 'Beta' },
+        ],
+      },
+    })
+    ;(useAverageWaterSupplyPerRegionQuery as jest.Mock).mockReturnValue({
+      data: {
+        tenantId: 16,
+        daysInRange: 30,
+        schemeCount: 0,
+        childRegionCount: 2,
+        schemes: [],
+        childRegions: [
+          {
+            lgdId: 101,
+            departmentId: null,
+            title: 'Alpha',
+            totalWaterSuppliedLiters: 90_000_000,
+            schemeCount: 2,
+          },
+          {
+            lgdId: 102,
+            departmentId: null,
+            title: 'Beta',
+            totalWaterSuppliedLiters: 0,
+            schemeCount: 0,
+          },
+        ],
+      },
+    })
+    ;(useAverageSchemeRegularityQuery as jest.Mock).mockReturnValue({
+      data: {
+        lgdId: 10,
+        scope: 'child',
+        averageRegularity: 0,
+        childRegionCount: 2,
+        childRegions: [
+          { lgdId: 101, departmentId: null, title: 'Alpha', schemeCount: 2, averageRegularity: 1 },
+          { lgdId: 102, departmentId: null, title: 'Beta', schemeCount: 0, averageRegularity: 0 },
+        ],
+      },
+    })
+
+    renderWithProviders(<CentralDashboard />)
+
+    const tableProps = mockOverallPerformanceTable.mock.calls.at(-1)?.[0] as {
+      data: Array<{ name: string }>
+    }
+
+    expect(tableProps.data.map((row) => row.name)).toEqual(['Alpha'])
   })
 
   it('filters out stale parent rows from Overall Performance during LGD drilldown', () => {
