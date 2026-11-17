@@ -1427,6 +1427,76 @@ describe('dashboard formulas', () => {
     ])
   })
 
+  it('draws a region that fails the onboarded check without metrics, from its own boundary', () => {
+    const notOnboardedGeometry = {
+      type: 'Polygon' as const,
+      coordinates: [
+        [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+          [0, 0],
+        ],
+      ],
+    }
+
+    expect(
+      mapTenantBoundariesToPerformance(
+        {
+          tenantId: 17,
+          stateCode: 'PB',
+          childBoundaryCount: 2,
+          childRegions: [
+            // Listed first, so the index-based fallbacks below would hand it Alpha's row.
+            {
+              childLgdId: 13,
+              childLgdTitle: 'Beta',
+              averageSchemeRegularity: 0.9,
+              averagePerformanceScore: 0.6,
+              boundaryGeoJson: notOnboardedGeometry,
+            },
+            {
+              childLgdId: 12,
+              childLgdTitle: 'Alpha',
+              averageSchemeRegularity: 0.5,
+              boundaryGeoJson: null,
+            },
+          ],
+        },
+        [
+          {
+            id: '12',
+            name: 'Alpha',
+            coverage: 5,
+            regularity: 50,
+            continuity: 0,
+            quantity: 16.6,
+            compositeScore: 0,
+            status: 'needs-attention',
+          },
+        ],
+        [{ locationId: 12, label: 'Alpha' }],
+        undefined,
+        undefined,
+        undefined,
+        (region) => region.childLgdId === 12
+      )
+    ).toEqual([
+      {
+        id: '13',
+        name: 'Beta',
+        coverage: 0,
+        regularity: -1,
+        continuity: 0,
+        quantity: -1,
+        compositeScore: 0,
+        status: 'needs-attention',
+        boundaryGeoJson: notOnboardedGeometry,
+      },
+      expect.objectContaining({ id: '12', name: 'Alpha', coverage: 5, regularity: 50 }),
+    ])
+  })
+
   it('maps national quantity response using achieved FHTC count for demand when available', () => {
     const fallbackData: EntityPerformance[] = [
       {

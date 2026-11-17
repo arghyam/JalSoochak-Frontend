@@ -3,6 +3,7 @@ import {
   type ChildRegionHierarchy,
   type ChildRegionIds,
   type OnboardedPredicate,
+  getChildRegionId,
   noRegionOnboarded,
   retainOnboardedChildren,
 } from '../utils/onboarded-regions'
@@ -18,6 +19,8 @@ type UseOnboardedChildMetricsParams = {
 type OnboardedChildMetrics = {
   /** `undefined` while unknown, or when there is no parent to ask about. */
   isOnboarded: OnboardedPredicate | undefined
+  /** Whether one child of the parent is shown, by the same rule as `retainOnboarded`. */
+  isOnboardedChild: (region: ChildRegionIds) => boolean
   isLoading: boolean
   /** A copy of `response` holding only the children the rollout shows. */
   retainOnboarded: <TResponse extends { childRegions: ChildRegionIds[] }>(
@@ -41,6 +44,8 @@ export function useOnboardedChildMetrics({
 
   return {
     isOnboarded,
+    isOnboardedChild: (region) =>
+      !hasParent || (isOnboarded ?? noRegionOnboarded)(getChildRegionId(region, childHierarchy)),
     isLoading,
     retainOnboarded: (response) =>
       response && hasParent

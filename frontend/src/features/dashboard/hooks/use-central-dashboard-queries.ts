@@ -501,7 +501,11 @@ export function useCentralDashboardQueries({
 
   // Phased rollout: the child-region metrics below keep only onboarded children. The leaf
   // has no children to ask about.
-  const { isLoading: isOnboardedChildrenLoading, retainOnboarded } = useOnboardedChildMetrics({
+  const {
+    isLoading: isOnboardedChildrenLoading,
+    isOnboardedChild,
+    retainOnboarded,
+  } = useOnboardedChildMetrics({
     tenantId: selectedTenant?.tenantId,
     hierarchyType,
     parentId: !isHierarchyLeafSelected && hasValidAnalyticsParentId ? analyticsParentId : undefined,
@@ -977,6 +981,8 @@ export function useCentralDashboardQueries({
     isCentralLandingView,
     isNationalDashboardBoundariesPending,
     isNationalDashboardPending,
+    isOnboardedChild,
+    isOnboardedChildrenLoading,
     isOverallPerformanceError,
     isOverallPerformanceLoading,
     isOutageDistributionWidgetLoading,

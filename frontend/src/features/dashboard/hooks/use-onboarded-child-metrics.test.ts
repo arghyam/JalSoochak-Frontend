@@ -45,6 +45,8 @@ describe('useOnboardedChildMetrics', () => {
     })
     expect(result.current.isLoading).toBe(false)
     expect(result.current.isOnboarded?.(12)).toBe(true)
+    expect(result.current.isOnboardedChild({ childLgdId: 12 })).toBe(true)
+    expect(result.current.isOnboardedChild({ childLgdId: 13 })).toBe(false)
     expect(result.current.retainOnboarded(lgdMetrics())).toEqual({
       averageRegularity: 0.5,
       childRegions: [{ lgdId: 12, departmentId: null, title: 'Onboarded' }],
@@ -73,6 +75,8 @@ describe('useOnboardedChildMetrics', () => {
           ],
         })
       ).toEqual({ childRegions: [{ lgdId: 0, departmentId: 21 }] })
+      expect(result.current.isOnboardedChild({ childLgdId: 0, childDepartmentId: 21 })).toBe(true)
+      expect(result.current.isOnboardedChild({ childLgdId: 21, childDepartmentId: 22 })).toBe(false)
     }
   )
 
@@ -84,6 +88,7 @@ describe('useOnboardedChildMetrics', () => {
     )
 
     expect(result.current.isLoading).toBe(true)
+    expect(result.current.isOnboardedChild({ childLgdId: 12 })).toBe(false)
     expect(result.current.retainOnboarded(lgdMetrics())?.childRegions).toEqual([])
   })
 
@@ -95,6 +100,7 @@ describe('useOnboardedChildMetrics', () => {
     )
 
     expect(result.current.isLoading).toBe(false)
+    expect(result.current.isOnboardedChild({ childLgdId: 12 })).toBe(false)
     expect(result.current.retainOnboarded(lgdMetrics())?.childRegions).toEqual([])
   })
 
@@ -124,6 +130,7 @@ describe('useOnboardedChildMetrics', () => {
 
     expect(mockUseOnboardedRegionsQuery).toHaveBeenCalledWith({ params: null })
     expect(result.current.isOnboarded).toBeUndefined()
+    expect(result.current.isOnboardedChild({ childLgdId: 13 })).toBe(true)
     expect(result.current.retainOnboarded(response)).toBe(response)
   })
 

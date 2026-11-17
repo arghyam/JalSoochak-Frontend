@@ -58,8 +58,11 @@ export const toOnboardedPredicate = (
   return (childId) => isPositiveId(childId) && onboardedIds.has(childId)
 }
 
-// Not `??` across both hierarchies: the normalisers leave the other hierarchy's id as 0 or null.
-const getChildRegionId = (
+/**
+ * The id a child carries in `hierarchy`, or `undefined` when it has none. Not `??` across both
+ * hierarchies: the normalisers leave the other hierarchy's id as 0 or null.
+ */
+export const getChildRegionId = (
   region: ChildRegionIds,
   hierarchy: ChildRegionHierarchy
 ): number | undefined => {
