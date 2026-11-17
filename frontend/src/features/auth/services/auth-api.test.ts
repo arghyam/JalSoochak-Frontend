@@ -1,6 +1,6 @@
 import { describe, expect, it, jest, afterEach } from '@jest/globals'
 import { AxiosError } from 'axios'
-import { authApi, buildSetPasswordRequest, buildUpdateProfileRequest } from './auth-api'
+import { authApi, buildSetPasswordRequest, buildUpdateProfileRequest, LoginError } from './auth-api'
 import apiClient from '@/shared/lib/axios'
 
 jest.mock('@/shared/lib/axios', () => ({
@@ -121,6 +121,40 @@ describe('authApi', () => {
     await expect(authApi.login({ email: 'a', password: 'b' })).rejects.toThrow(
       'Invalid login response'
     )
+  })
+
+  it('login rejects with an invalidCredentials LoginError on HTTP 401', async () => {
+    const err = new AxiosError('Request failed with status code 401')
+    err.response = { data: { message: 'Invalid credentials' }, status: 401 } as never
+    mockedClient.post.mockRejectedValueOnce(err)
+
+    const error = await authApi.login({ email: 'a', password: 'b' }).catch((e: unknown) => e)
+
+    expect(error).toBeInstanceOf(LoginError)
+    expect((error as LoginError).kind).toBe('invalidCredentials')
+  })
+
+  it.each([
+    [403, 'accessDenied'],
+    [429, 'tooManyAttempts'],
+    [500, 'unknown'],
+  ] as const)('login maps HTTP %i to a %s LoginError', async (status, kind) => {
+    const err = new AxiosError(`Request failed with status code ${status}`)
+    err.response = { data: { message: 'Backend message' }, status } as never
+    mockedClient.post.mockRejectedValueOnce(err)
+
+    await expect(authApi.login({ email: 'a', password: 'b' })).rejects.toMatchObject({
+      kind,
+      message: `Request failed with status code ${status}`,
+    })
+  })
+
+  it('login rejects with an unknown LoginError on a network failure', async () => {
+    mockedClient.post.mockRejectedValueOnce(new AxiosError('Network Error'))
+
+    await expect(authApi.login({ email: 'a', password: 'b' })).rejects.toMatchObject({
+      kind: 'unknown',
+    })
   })
 
   it('throws when refresh response has no access_token', async () => {

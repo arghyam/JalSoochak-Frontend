@@ -84,11 +84,7 @@
     "loadError": "মানচিত্ৰ এতিয়া লোড কৰিব পৰা নগ'ল।",
     "legend": {
       "ariaLabel": "মানচিত্ৰৰ মানৰ পৰিসৰ",
-      "gte90": ">={{value}}%",
-      "gte70": ">={{value}}%",
-      "gte50": ">={{value}}%",
-      "gte30": ">={{value}}%",
-      "gte0": ">={{value}}%",
+      "range": "{{min}}–{{max}}%",
       "noData": "কোনো তথ্য নাই"
     },
     "metricsHelp": {
@@ -174,6 +170,7 @@
       "ariaViewByDistrict": "জিলা পৰিমাণ কাৰ্যক্ষমতা দৰ্শন",
       "ariaViewByGramPanchayat": "গ্ৰাম পঞ্চায়ত পৰিমাণ কাৰ্যক্ষমতা দৰ্শন",
       "yAxisLabel": "পৰিমাণ (LPCD)",
+      "timeYAxisLabel": "পৰিমাণ (লিটাৰ)",
       "seriesName": "পৰিমাণ",
       "areaSeriesName": "চাহিদা"
     },

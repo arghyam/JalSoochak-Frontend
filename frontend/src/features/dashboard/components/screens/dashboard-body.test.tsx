@@ -15,6 +15,7 @@ const mockMonthlyTrendChart = jest.fn(
     data: Array<{ period: string; value: number }>
     seriesName: string
     isPercent?: boolean
+    yAxisLabel?: string
   }) => <div data-testid="monthly-trend-chart" />
 )
 const mockDistrictDashboardScreen = jest.fn((_props: unknown) => (
@@ -31,6 +32,7 @@ jest.mock('../charts', () => ({
     data: Array<{ period: string; value: number }>
     seriesName: string
     isPercent?: boolean
+    yAxisLabel?: string
   }) => mockMonthlyTrendChart(props),
   ReadingSubmissionRateChart: () => <div data-testid="reading-submission-rate-chart" />,
   SupplyOutageDistributionChart: () => <div data-testid="supply-outage-distribution-chart" />,
@@ -222,6 +224,7 @@ function renderDashboardBody(overrides: Partial<ComponentProps<typeof DashboardB
       selectedVillage=""
       quantityPerformanceData={mockEntityData}
       quantityTimeTrendData={[{ period: '01 Mar', value: 85 }]}
+      quantityTimeTrendUnit="lpcd"
       regularityPerformanceData={mockEntityData}
       regularityTimeTrendData={[{ period: '01 Mar', value: 94 }]}
       districtTableData={mockEntityData}
@@ -342,6 +345,7 @@ describe('DashboardBody', () => {
     fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
     expect(mockMonthlyTrendChart).toHaveBeenCalledTimes(1)
     expect(mockMonthlyTrendChart.mock.calls[0]?.[0].seriesName).toBe('Quantity')
+    expect(mockMonthlyTrendChart.mock.calls[0]?.[0].yAxisLabel).toBe('Quantity (LPCD)')
     expect(mockMetricPerformanceChart).toHaveBeenCalledTimes(3)
 
     fireEvent.click(regularitySelect)
@@ -441,6 +445,7 @@ describe('DashboardBody', () => {
         selectedVillage=""
         quantityPerformanceData={mockEntityData}
         quantityTimeTrendData={[{ period: '01 Mar', value: 85 }]}
+        quantityTimeTrendUnit="litres"
         regularityPerformanceData={mockEntityData}
         regularityTimeTrendData={[{ period: '01 Mar', value: 94 }]}
         districtTableData={mockEntityData}
@@ -477,6 +482,7 @@ describe('DashboardBody', () => {
         selectedVillage=""
         quantityPerformanceData={mockEntityData}
         quantityTimeTrendData={[{ period: '01 Mar', value: 85 }]}
+        quantityTimeTrendUnit="lpcd"
         regularityPerformanceData={mockEntityData}
         regularityTimeTrendData={[{ period: '01 Mar', value: 94 }]}
         districtTableData={mockEntityData}
@@ -533,6 +539,7 @@ describe('DashboardBody', () => {
         selectedVillage=""
         quantityPerformanceData={mockEntityData}
         quantityTimeTrendData={[{ period: '01 Mar', value: 85 }]}
+        quantityTimeTrendUnit="litres"
         regularityPerformanceData={mockEntityData}
         regularityTimeTrendData={[{ period: '01 Mar', value: 94 }]}
         districtTableData={mockEntityData}
@@ -569,6 +576,7 @@ describe('DashboardBody', () => {
         selectedVillage=""
         quantityPerformanceData={mockEntityData}
         quantityTimeTrendData={[{ period: '01 Mar', value: 85 }]}
+        quantityTimeTrendUnit="litres"
         regularityPerformanceData={mockEntityData}
         regularityTimeTrendData={[{ period: '01 Mar', value: 94 }]}
         districtTableData={mockEntityData}
@@ -600,6 +608,25 @@ describe('DashboardBody', () => {
     expect(
       screen.getByRole('button', { name: 'Regularity performance view by' }).textContent
     ).toContain('Geography')
+  })
+
+  it('labels the quantity time chart in litres when the trend unit is litres', () => {
+    renderDashboardBody({
+      performanceScreenKey: 'state:alpha',
+      isStateSelected: true,
+      quantityTimeTrendUnit: 'litres',
+    })
+
+    const quantityGeographyCall = (
+      mockMetricPerformanceChart.mock.calls as Array<[{ metric: string; yAxisLabel?: string }]>
+    ).find((call) => call[0].metric === 'quantity')
+    expect(quantityGeographyCall?.[0].yAxisLabel).toBe('Quantity (LPCD)')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Quantity performance view by' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Time' }))
+
+    expect(mockMonthlyTrendChart).toHaveBeenCalledTimes(1)
+    expect(mockMonthlyTrendChart.mock.calls[0]?.[0].yAxisLabel).toBe('Quantity (Litres)')
   })
 
   it('shows no data for quantity time view when periodic analytics are empty', () => {

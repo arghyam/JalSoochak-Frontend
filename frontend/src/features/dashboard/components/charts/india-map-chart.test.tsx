@@ -256,21 +256,48 @@ describe('IndiaMapChart', () => {
     const toggle = screen.getByRole('checkbox')
     fireEvent.click(toggle)
 
-    expect(screen.getByText('>=90%')).toBeTruthy()
-    expect(screen.getByText('>=70%')).toBeTruthy()
-    expect(screen.getByText('>=50%')).toBeTruthy()
-    expect(screen.getByText('>=30%')).toBeTruthy()
-    expect(screen.getByText('>=0%')).toBeTruthy()
+    expect(screen.getByText('90–100%')).toBeTruthy()
+    expect(screen.getByText('70–90%')).toBeTruthy()
+    expect(screen.getByText('50–70%')).toBeTruthy()
+    expect(screen.getByText('30–50%')).toBeTruthy()
+    expect(screen.getByText('0–30%')).toBeTruthy()
   })
 
   it('shows percent legend labels in the default regularity view without toggling', () => {
     renderWithProviders(<IndiaMapChart data={chartData} />)
 
-    expect(screen.getByText('>=90%')).toBeTruthy()
-    expect(screen.getByText('>=70%')).toBeTruthy()
-    expect(screen.getByText('>=50%')).toBeTruthy()
-    expect(screen.getByText('>=30%')).toBeTruthy()
-    expect(screen.getByText('>=0%')).toBeTruthy()
+    expect(screen.getByText('90–100%')).toBeTruthy()
+    expect(screen.getByText('70–90%')).toBeTruthy()
+    expect(screen.getByText('50–70%')).toBeTruthy()
+    expect(screen.getByText('30–50%')).toBeTruthy()
+    expect(screen.getByText('0–30%')).toBeTruthy()
+  })
+
+  it('derives legend ranges from the configured thresholds', () => {
+    const originalConfig = window.APP_CONFIG
+    window.APP_CONFIG = {
+      ...originalConfig,
+      API_BASE_URL: '',
+      SINGLE_TENANT_MODE: false,
+      MAP_LEGEND_THRESHOLD_GTE_0: 0,
+      MAP_LEGEND_THRESHOLD_GTE_30: 20,
+      MAP_LEGEND_THRESHOLD_GTE_50: 40,
+      MAP_LEGEND_THRESHOLD_GTE_70: 60,
+      MAP_LEGEND_THRESHOLD_GTE_90: 80,
+    }
+
+    try {
+      renderWithProviders(<IndiaMapChart data={chartData} />)
+
+      expect(screen.getByText('No Data')).toBeTruthy()
+      expect(screen.getByText('0–20%')).toBeTruthy()
+      expect(screen.getByText('20–40%')).toBeTruthy()
+      expect(screen.getByText('40–60%')).toBeTruthy()
+      expect(screen.getByText('60–80%')).toBeTruthy()
+      expect(screen.getByText('80–100%')).toBeTruthy()
+    } finally {
+      window.APP_CONFIG = originalConfig
+    }
   })
 
   it('supports controlled toggle state via isRegularityView/onRegularityViewChange', () => {
