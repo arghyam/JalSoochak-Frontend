@@ -239,8 +239,11 @@ export function useCentralDashboardNavigation({
     const level = resolveDrilldownLevel()
     if (!level) return
     // Phased rollout: block drilldown into a region that isn't onboarded, or not yet known to be.
+    // A blocked click leaves the current selection untouched.
     if (!isOnboardedByLevel[level]?.(parseLocationId(selectedValue))) return
 
+    setActiveTrailIndex(null)
+    setSelectedScheme('')
     changeHandlerByLevel[level](selectedValue, source)
   }
 
@@ -265,8 +268,6 @@ export function useCentralDashboardNavigation({
       resolveLocationValueForRegion(boundaryOverallPerformanceOptions, regionId, regionName)
 
     if (selectedValue) {
-      setActiveTrailIndex(null)
-      setSelectedScheme('')
       navigateToResolvedLocationValue(selectedValue, 'map')
       return
     }
@@ -284,8 +285,8 @@ export function useCentralDashboardNavigation({
     row: EntityPerformance,
     source: DrilldownSource = 'table'
   ) => {
-    setActiveTrailIndex(null)
-    setSelectedScheme('')
+    // The selection resets happen only once a drilldown is allowed: `handleStateClick` and
+    // `navigateToResolvedLocationValue` each do it after their own checks.
     setHoveredOverallPerformanceRow(null)
 
     if (isCentralLandingView && !isDepartmentTabActive) {

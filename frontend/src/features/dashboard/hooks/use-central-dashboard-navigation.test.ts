@@ -110,6 +110,40 @@ describe('useCentralDashboardNavigation onboarded drilldown', () => {
     expect(handlers.handleDistrictChange).not.toHaveBeenCalled()
   })
 
+  it.each([
+    [
+      'map',
+      (nav: ReturnType<typeof renderNavigation>) => nav.handleMapRegionClick('13', 'Barnala'),
+    ],
+    [
+      'table',
+      (nav: ReturnType<typeof renderNavigation>) =>
+        nav.handleOverallPerformanceRowClick(row(13, 'Barnala')),
+    ],
+  ] as const)('keeps the current selection when a %s click is blocked', (_source, click) => {
+    const setActiveTrailIndex = jest.fn()
+    const setSelectedScheme = jest.fn()
+
+    click(renderNavigation({ setActiveTrailIndex, setSelectedScheme }))
+
+    expect(setActiveTrailIndex).not.toHaveBeenCalled()
+    expect(setSelectedScheme).not.toHaveBeenCalled()
+  })
+
+  it('resets the trail and scheme when an onboarded drilldown goes ahead', () => {
+    const setActiveTrailIndex = jest.fn()
+    const setSelectedScheme = jest.fn()
+
+    renderNavigation({ setActiveTrailIndex, setSelectedScheme }).handleMapRegionClick(
+      '12',
+      'Amritsar'
+    )
+
+    expect(setActiveTrailIndex).toHaveBeenCalledWith(null)
+    expect(setSelectedScheme).toHaveBeenCalledWith('')
+    expect(handlers.handleDistrictChange).toHaveBeenCalledWith(amritsar.value, 'map')
+  })
+
   it('ignores clicks while the onboarded districts are unknown', () => {
     renderNavigation({ isOnboardedByLevel: {} }).handleMapRegionClick('12', 'Amritsar')
 

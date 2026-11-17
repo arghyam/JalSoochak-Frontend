@@ -15,7 +15,7 @@ type UseOnboardedRegionsQueryOptions = {
 export function useOnboardedRegionsQuery(options: UseOnboardedRegionsQueryOptions) {
   const { params, enabled = true } = options
 
-  return useQuery<OnboardedRegionsResponse>({
+  const query = useQuery<OnboardedRegionsResponse>({
     queryKey: dashboardQueryKeys.onboardedRegions(params),
     queryFn: () => {
       if (!params) {
@@ -28,4 +28,8 @@ export function useOnboardedRegionsQuery(options: UseOnboardedRegionsQueryOption
     // A 404 means the parent isn't onboarded; retrying can't change that.
     retry: false,
   })
+
+  // A failed refetch keeps the last successful list in `data`. Drop it so the dashboard fails
+  // closed instead of trusting a list the server no longer confirms; `error` stays available.
+  return query.isError ? { ...query, data: undefined } : query
 }

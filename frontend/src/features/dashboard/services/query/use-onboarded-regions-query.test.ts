@@ -1,6 +1,8 @@
-import { renderHook } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, jest } from '@jest/globals'
-import { useQuery } from '@tanstack/react-query'
+import { createElement } from 'react'
+import type { PropsWithChildren } from 'react'
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
 import { dashboardApi } from '../api/dashboard-api'
 import { dashboardQueryKeys } from './dashboard-query-keys'
 import { useOnboardedRegionsQuery } from './use-onboarded-regions-query'
@@ -74,5 +76,39 @@ describe('useOnboardedRegionsQuery', () => {
     )
     expect(() => lastQueryOptions().queryFn()).toThrow('onboarded regions params are required')
     expect(dashboardApi.getOnboardedRegions).not.toHaveBeenCalled()
+  })
+
+  it('stops exposing the last onboarded list once a refetch fails, keeping the error', async () => {
+    const actualQuery =
+      jest.requireActual<typeof import('@tanstack/react-query')>('@tanstack/react-query')
+    ;(useQuery as jest.Mock).mockImplementation(
+      actualQuery.useQuery as (...args: unknown[]) => unknown
+    )
+    const response = {
+      tenantId: 3,
+      parentLgdId: 1,
+      parentDepartmentId: null,
+      phasedRollout: true,
+      onboardedChildIds: [12],
+    }
+    const refetchError = new Error('refetch failed')
+    ;(dashboardApi.getOnboardedRegions as jest.Mock)
+      .mockImplementationOnce(() => Promise.resolve(response))
+      .mockImplementationOnce(() => Promise.reject(refetchError))
+    const queryClient = new QueryClient()
+    const wrapper = ({ children }: PropsWithChildren) =>
+      createElement(QueryClientProvider, { client: queryClient }, children)
+
+    const { result } = renderHook(() => useOnboardedRegionsQuery({ params }), { wrapper })
+    await waitFor(() => expect(result.current.data).toEqual(response))
+
+    await act(async () => {
+      await queryClient.refetchQueries({ queryKey: dashboardQueryKeys.onboardedRegions(params) })
+    })
+
+    await waitFor(() => expect(result.current.isError).toBe(true))
+    expect(result.current.data).toBeUndefined()
+    expect(result.current.error).toBe(refetchError)
+    queryClient.clear()
   })
 })

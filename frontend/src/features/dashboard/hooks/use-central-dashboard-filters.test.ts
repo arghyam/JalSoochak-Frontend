@@ -467,5 +467,30 @@ describe('useCentralDashboardFilters', () => {
         { replace: true }
       )
     })
+
+    it('keeps the departmental state of a restored selection the URL does not carry yet', () => {
+      window.localStorage.setItem(
+        CENTRAL_DASHBOARD_FILTER_STORAGE_KEY,
+        JSON.stringify({
+          filterTabIndex: 1,
+          selectedDepartmentState: 'punjab',
+          selectedDepartmentZone: '10:100:zone',
+          selectedDepartmentCircle: '20:200:circle',
+        })
+      )
+
+      const { result } = renderHook(() =>
+        useCentralDashboardFilters({ durationDateFormat: 'DD/MM/YYYY' })
+      )
+
+      act(() => {
+        result.current.clearSelectionFrom('departmentCircle')
+      })
+
+      expect(mockNavigate).toHaveBeenLastCalledWith(
+        { pathname: '/pb', search: '?departmentZone=10%3A100%3Azone' },
+        { replace: true }
+      )
+    })
   })
 })

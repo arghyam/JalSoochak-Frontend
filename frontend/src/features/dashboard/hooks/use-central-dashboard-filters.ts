@@ -776,7 +776,9 @@ export function useCentralDashboardFilters({
     setSelectedDepartmentDivision(remaining.departmentDivision)
     setSelectedDepartmentSubdivision(remaining.departmentSubdivision)
     setSelectedDepartmentVillage(remaining.departmentVillage)
-    return { state: selectedState, ...remaining }
+    // The cleared levels hang off the departmental state, which a restored selection holds
+    // even before the URL carries it, so the correction stays in that state.
+    return { state: effectiveSelectedDepartmentState, ...remaining }
   }
   /**
    * Drops a selection the dashboard must not show (phased rollout), with every level below
