@@ -13,6 +13,8 @@ import type {
   NationalDashboardResponse,
   NationalSchemeRegularityPeriodicQueryParams,
   NationalSchemeRegularityPeriodicResponse,
+  OnboardedRegionsQueryParams,
+  OnboardedRegionsResponse,
   OutageReasonsPeriodicQueryParams,
   OutageReasonsPeriodicResponse,
   OutageReasonsQueryParams,
@@ -253,6 +255,28 @@ export const analyticsApi = {
         childRegions: [],
       }
     )
+  },
+  getOnboardedRegions: async (
+    params: OnboardedRegionsQueryParams
+  ): Promise<OnboardedRegionsResponse> => {
+    const response = await publicApiClient.get<
+      OnboardedRegionsResponse | WrappedAnalyticsResponse<OnboardedRegionsResponse>
+    >('/api/v1/analytics/onboarded-regions', {
+      params: {
+        tenant_id: params.tenantId,
+        parent_lgd_id: params.parentLgdId,
+        parent_department_id: params.parentDepartmentId,
+      },
+    })
+
+    // No fallback payload: inventing one would decide what is onboarded. Failing keeps the
+    // dashboard closed until the real list arrives.
+    const data = unwrapAnalyticsResponse(response.data, 'onboarded regions analytics')
+    if (!data) {
+      throw new Error('Invalid onboarded regions analytics response: payload is missing')
+    }
+
+    return data
   },
   getSchemeRegularityPeriodic: async (
     params: SchemeRegularityPeriodicQueryParams

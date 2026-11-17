@@ -578,6 +578,27 @@ export interface TenantBoundaryGeoJsonResponse {
   parsedParentBoundaryGeoJson?: GeoJsonGeometry | null
 }
 
+/** Pass exactly one parent; the API answers 400 otherwise. */
+export interface OnboardedRegionsQueryParams {
+  tenantId: number
+  parentLgdId?: number
+  parentDepartmentId?: number
+}
+
+/**
+ * Shape of `GET /api/v1/analytics/onboarded-regions` (phased rollout).
+ *
+ * `phasedRollout: false` means every region is onboarded and `onboardedChildIds` is null.
+ * A parent that isn't onboarded is answered with a 404, not with an empty list.
+ */
+export interface OnboardedRegionsResponse {
+  tenantId: number
+  parentLgdId: number | null
+  parentDepartmentId: number | null
+  phasedRollout: boolean
+  onboardedChildIds: number[] | null
+}
+
 export interface ReadingSubmissionRateQueryParams {
   tenantId: number
   parentLgdId?: number
