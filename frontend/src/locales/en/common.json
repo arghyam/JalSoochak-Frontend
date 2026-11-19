@@ -211,9 +211,10 @@
       "copyrightOrg": "PHED Assam"
     },
     "punjab": {
+      "departmentWebsite": "DWSS Punjab",
       "phone": "TODO: Punjab helpline number",
       "address": "TODO: Punjab office address",
-      "copyrightOrg": "TODO: Punjab department name"
+      "copyrightOrg": "DWSS Punjab"
     }
   }
 }

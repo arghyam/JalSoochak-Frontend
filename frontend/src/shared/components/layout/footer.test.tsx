@@ -203,9 +203,11 @@ describe('Footer — single-tenant mode with another state profile', () => {
   it("credits the profile's organisation in the copyright line", () => {
     renderWithProviders(<Footer />)
 
-    expect(
-      screen.getByRole('link', { name: i18n.t(punjab.copyrightOrg.labelKey) })
-    ).toHaveAttribute('href', punjab.copyrightOrg.href)
+    // The organisation can share its label with a quick link, as the department site does.
+    const orgLinks = screen.getAllByRole('link', { name: i18n.t(punjab.copyrightOrg.labelKey) })
+    expect(orgLinks.some((link) => link.getAttribute('href') === punjab.copyrightOrg.href)).toBe(
+      true
+    )
   })
 
   it("renders exactly the profile's social links", () => {
@@ -226,6 +228,15 @@ describe('Footer — single-tenant mode with another state profile', () => {
       '/login'
     )
     expect(screen.getByRole('link', { name: /dashboard glossary/i })).toBeInTheDocument()
+  })
+
+  it("renders the profile's quick links", () => {
+    renderWithProviders(<Footer />)
+
+    for (const { labelKey, href } of punjab.quickLinks) {
+      const links = screen.getAllByRole('link', { name: i18n.t(labelKey) })
+      expect(links.some((link) => link.getAttribute('href') === href)).toBe(true)
+    }
   })
 
   it('renders none of the Assam branding', () => {
