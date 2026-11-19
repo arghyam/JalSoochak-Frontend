@@ -35,6 +35,16 @@ describe('i18n language gating', () => {
     expect(i18n.language).toBe('hi')
   })
 
+  it('offers Punjabi in place of Assamese when configured as the Punjab deployment is', async () => {
+    const i18n = await loadI18n(['en', 'hi', 'pa'])
+
+    await i18n.changeLanguage('pa')
+
+    expect(i18n.language).toBe('pa')
+    expect(i18n.t('sidebar.language')).toBe('ਭਾਸ਼ਾ')
+    expect(i18n.hasResourceBundle('as', 'common')).toBe(false)
+  })
+
   it('offers every language when the key is absent', async () => {
     const i18n = await loadI18n(undefined)
 

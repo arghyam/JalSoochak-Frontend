@@ -1,0 +1,220 @@
+{
+  "error": {
+    "somethingWentWrong": "ਕੁਝ ਗਲਤ ਹੋ ਗਿਆ"
+  },
+  "loading": "ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ...",
+  "optional": "(ਵਿਕਲਪਿਕ)",
+  "noDataAvailable": "ਕੋਈ ਡੇਟਾ ਉਪਲਬਧ ਨਹੀਂ",
+  "search": "ਖੋਜੋ",
+  "select": "ਚੁਣੋ",
+  "enter": "ਦਰਜ ਕਰੋ",
+  "statusLabel": "ਸਥਿਤੀ",
+  "actions": "ਕਾਰਵਾਈਆਂ",
+  "filters": "ਫਿਲਟਰ",
+  "retry": "ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰੋ",
+  "na": "ਲਾਗੂ ਨਹੀਂ",
+  "yes": "ਹਾਂ",
+  "no": "ਨਹੀਂ",
+
+  "button": {
+    "save": "ਸੇਵ ਕਰੋ",
+    "saveChanges": "ਬਦਲਾਅ ਸੇਵ ਕਰੋ",
+    "saveAndNext": "ਸੇਵ ਕਰੋ ਅਤੇ ਅੱਗੇ",
+    "next": "ਅੱਗੇ",
+    "cancel": "ਰੱਦ ਕਰੋ",
+    "edit": "ਸੋਧੋ",
+    "delete": "ਮਿਟਾਓ",
+    "add": "ਸ਼ਾਮਲ ਕਰੋ",
+    "exportData": "ਡੇਟਾ ਐਕਸਪੋਰਟ ਕਰੋ",
+    "testSend": "ਟੈਸਟ-ਭੇਜੋ"
+  },
+
+  "status": {
+    "active": "ਸਰਗਰਮ",
+    "inactive": "ਅਸਰਗਰਮ",
+    "pending": "ਬਕਾਇਆ",
+    "successful": "ਸਫਲ",
+    "failed": "ਅਸਫਲ",
+    "warning": "ਚੇਤਾਵਨੀ",
+    "success": "ਸਫਲਤਾ"
+  },
+
+  "schemeStatus": {
+    "work": {
+      "notStarted": "ਸ਼ੁਰੂ ਨਹੀਂ ਹੋਇਆ",
+      "ongoing": "ਜਾਰੀ",
+      "completed": "ਮੁਕੰਮਲ",
+      "handedOver": "ਸੌਂਪਿਆ ਗਿਆ"
+    },
+    "operating": {
+      "nonOperative": "ਗੈਰ-ਚਾਲੂ",
+      "partiallyOperative": "ਅੰਸ਼ਕ ਤੌਰ 'ਤੇ ਚਾਲੂ",
+      "operative": "ਚਾਲੂ"
+    },
+    "unknown": "ਅਣਜਾਣ"
+  },
+
+  "toast": {
+    "changesSaved": "ਬਦਲਾਅ ਸਫਲਤਾਪੂਰਵਕ ਸੇਵ ਕੀਤੇ ਗਏ",
+    "changesSavedShort": "ਬਦਲਾਅ ਸੇਵ ਕੀਤੇ ਗਏ",
+    "failedToSave": "ਬਦਲਾਅ ਸੇਵ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+    "failedToLoad": "ਸੰਰਚਨਾ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+    "fillAllFields": "ਕਿਰਪਾ ਕਰਕੇ ਸਾਰੇ ਲੋੜੀਂਦੇ ਖੇਤਰ ਭਰੋ",
+    "fillAllFieldsCorrectly": "ਕਿਰਪਾ ਕਰਕੇ ਸਾਰੇ ਲੋੜੀਂਦੇ ਖੇਤਰ ਸਹੀ ਢੰਗ ਨਾਲ ਭਰੋ",
+    "passwordCreated": "ਪਾਸਵਰਡ ਬਣਾ ਦਿੱਤਾ ਗਿਆ ਹੈ।",
+    "passwordCreateFailed": "ਪਾਸਵਰਡ ਬਣਾਉਣ ਵਿੱਚ ਅਸਫਲ।",
+    "profileUpdated": "ਪ੍ਰੋਫਾਈਲ ਸਫਲਤਾਪੂਰਵਕ ਅੱਪਡੇਟ ਕੀਤੀ ਗਈ।",
+    "profileLoadFailed": "ਪ੍ਰੋਫਾਈਲ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ।",
+    "profileUpdateFailed": "ਪ੍ਰੋਫਾਈਲ ਅੱਪਡੇਟ ਕਰਨ ਵਿੱਚ ਅਸਫਲ।",
+    "sessionExpired": "ਸੈਸ਼ਨ ਦੀ ਮਿਆਦ ਖਤਮ ਹੋ ਗਈ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਸੱਦਾ ਲਿੰਕ ਦੁਬਾਰਾ ਵਰਤੋ।",
+    "reinviteSent": "ਸੱਦਾ ਸਫਲਤਾਪੂਰਵਕ ਦੁਬਾਰਾ ਭੇਜਿਆ ਗਿਆ",
+    "reinviteFailed": "ਸੱਦਾ ਦੁਬਾਰਾ ਭੇਜਣ ਵਿੱਚ ਅਸਫਲ"
+  },
+
+  "sidebar": {
+    "overview": "ਸੰਖੇਪ ਜਾਣਕਾਰੀ",
+    "systemRules": "ਸਿਸਟਮ ਨਿਯਮ",
+    "statesUts": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼",
+    "manageStatesUts": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ਾਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ",
+    "manageAdmins": "ਪ੍ਰਬੰਧਕਾਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ",
+    "apiCredentials": "API ਪ੍ਰਮਾਣ-ਪੱਤਰ",
+    "ingestionMonitor": "ਡੇਟਾ ਇਨਜੈਸ਼ਨ ਮਾਨੀਟਰ",
+    "language": "ਭਾਸ਼ਾ",
+    "waterNorms": "ਪਾਣੀ ਦੇ ਮਾਪਦੰਡ",
+    "integration": "ਏਕੀਕਰਣ",
+    "escalations": "ਐਸਕੇਲੇਸ਼ਨ",
+    "thresholds": "ਸੀਮਾਵਾਂ",
+    "nudgesTemplate": "ਨਜ ਟੈਂਪਲੇਟ",
+    "templates": "ਟੈਂਪਲੇਟ",
+    "apiIngestion": "API ਇਨਜੈਸ਼ਨ",
+    "operatorSync": "ਆਪਰੇਟਰ ਸਿੰਕ",
+    "dataSync": "ਡੇਟਾ ਪ੍ਰਬੰਧਨ",
+    "staffSync": "ਸਟਾਫ",
+    "schemeSync": "ਸਕੀਮਾਂ",
+    "schemeMappingsSync": "ਸਕੀਮ ਮੈਪਿੰਗ",
+    "configuration": "ਸੰਰਚਨਾ",
+    "hierarchy": "ਦਰਜਾਬੰਦੀ",
+    "activity": "ਗਤੀਵਿਧੀ",
+    "stateUtAdmins": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਪ੍ਰਬੰਧਕ",
+    "superUsers": "ਸੁਪਰ ਉਪਭੋਗਤਾ",
+    "schemes": "ਸਕੀਮਾਂ",
+    "pumpOperators": "ਪੰਪ ਆਪਰੇਟਰ",
+    "anomalies": "ਵਿਗਾੜ",
+    "fixReadings": "ਰੀਡਿੰਗਾਂ ਠੀਕ ਕਰੋ",
+    "profile": "ਪ੍ਰੋਫਾਈਲ",
+    "changePassword": "ਪਾਸਵਰਡ ਬਦਲੋ",
+    "logout": "ਲੌਗਆਉਟ",
+    "skipToMain": "ਮੁੱਖ ਸਮੱਗਰੀ 'ਤੇ ਜਾਓ",
+    "openMenu": "ਮੀਨੂ ਖੋਲ੍ਹੋ",
+    "closeMenu": "ਮੀਨੂ ਬੰਦ ਕਰੋ",
+    "logoAlt": "ਜਲਸੂਚਕ ਲੋਗੋ",
+    "mainNavigation": "ਮੁੱਖ ਨੈਵੀਗੇਸ਼ਨ"
+  },
+
+  "validation": {
+    "required": "ਇਹ ਖੇਤਰ ਲੋੜੀਂਦਾ ਹੈ",
+    "invalidEmail": "ਕਿਰਪਾ ਕਰਕੇ ਇੱਕ ਵੈਧ ਈਮੇਲ ਪਤਾ ਦਰਜ ਕਰੋ",
+    "invalidPhone": "ਕਿਰਪਾ ਕਰਕੇ ਇੱਕ ਵੈਧ 10-ਅੰਕਾਂ ਵਾਲਾ ਫ਼ੋਨ ਨੰਬਰ ਦਰਜ ਕਰੋ",
+    "alphabeticOnly": "ਸਿਰਫ਼ ਅੱਖਰ ਅਤੇ ਖਾਲੀ ਥਾਂਵਾਂ ਦੀ ਇਜਾਜ਼ਤ ਹੈ",
+    "maxLength": "{{max}} ਅੱਖਰਾਂ ਤੋਂ ਵੱਧ ਨਹੀਂ ਹੋਣਾ ਚਾਹੀਦਾ",
+    "maxValue": "ਮੁੱਲ {{max}} ਤੋਂ ਵੱਧ ਨਹੀਂ ਹੋਣਾ ਚਾਹੀਦਾ",
+    "passwordComplexity": "ਪਾਸਵਰਡ ਘੱਟੋ-ਘੱਟ 8 ਅੱਖਰਾਂ ਦਾ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ ਅਤੇ ਇਸ ਵਿੱਚ ਘੱਟੋ-ਘੱਟ ਇੱਕ ਵੱਡਾ ਅੱਖਰ, ਇੱਕ ਛੋਟਾ ਅੱਖਰ, ਇੱਕ ਨੰਬਰ ਅਤੇ ਇੱਕ ਵਿਸ਼ੇਸ਼ ਚਿੰਨ੍ਹ ਸ਼ਾਮਲ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ"
+  },
+
+  "time": {
+    "am": "ਪੂ.ਦੁ.",
+    "pm": "ਬਾ.ਦੁ."
+  },
+
+  "table": {
+    "itemsPerPage": "ਪ੍ਰਤੀ ਪੰਨਾ ਆਈਟਮਾਂ",
+    "previous": "ਪਿਛਲਾ",
+    "next": "ਅਗਲਾ",
+    "noResults": "ਕੋਈ ਨਤੀਜਾ ਨਹੀਂ ਮਿਲਿਆ",
+    "goToPage": "ਪੰਨਾ {{page}} 'ਤੇ ਜਾਓ"
+  },
+
+  "searchableSelect": {
+    "search": "ਖੋਜੋ",
+    "noResults": "ਕੋਈ ਨਤੀਜਾ ਨਹੀਂ ਮਿਲਿਆ"
+  },
+
+  "upload": {
+    "validationSummary_one": "{{count}} ਪ੍ਰਮਾਣਿਕਤਾ ਗਲਤੀ ਮਿਲੀ — ਠੀਕ ਕਰੋ ਅਤੇ ਦੁਬਾਰਾ ਅੱਪਲੋਡ ਕਰੋ",
+    "validationSummary_other": "{{count}} ਪ੍ਰਮਾਣਿਕਤਾ ਗਲਤੀਆਂ ਮਿਲੀਆਂ — ਠੀਕ ਕਰੋ ਅਤੇ ਦੁਬਾਰਾ ਅੱਪਲੋਡ ਕਰੋ",
+    "columnRow": "ਕਤਾਰ",
+    "columnField": "ਖੇਤਰ",
+    "columnError": "ਗਲਤੀ",
+    "downloadTemplate": "ਟੈਂਪਲੇਟ",
+    "downloadTemplateAria": "ਅੱਪਲੋਡ ਟੈਂਪਲੇਟ ਡਾਊਨਲੋਡ ਕਰੋ"
+  },
+
+  "profile": {
+    "title": "ਪ੍ਰੋਫਾਈਲ",
+    "details": "ਪ੍ਰੋਫਾਈਲ ਵੇਰਵੇ",
+    "firstName": "ਪਹਿਲਾ ਨਾਮ",
+    "lastName": "ਆਖਰੀ ਨਾਮ",
+    "email": "ਈਮੇਲ ਪਤਾ",
+    "phone": "ਫ਼ੋਨ ਨੰਬਰ",
+    "editProfile": "ਪ੍ਰੋਫਾਈਲ ਸੋਧੋ"
+  },
+
+  "changePassword": {
+    "title": "ਪਾਸਵਰਡ ਬਦਲੋ",
+    "currentPassword": "ਮੌਜੂਦਾ ਪਾਸਵਰਡ",
+    "newPassword": "ਨਵਾਂ ਪਾਸਵਰਡ",
+    "confirmPassword": "ਨਵੇਂ ਪਾਸਵਰਡ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ",
+    "submit": "ਪਾਸਵਰਡ ਅੱਪਡੇਟ ਕਰੋ",
+    "mismatch": "ਪਾਸਵਰਡ ਮੇਲ ਨਹੀਂ ਖਾਂਦੇ",
+    "sameAsCurrent": "ਨਵਾਂ ਪਾਸਵਰਡ ਮੌਜੂਦਾ ਪਾਸਵਰਡ ਤੋਂ ਵੱਖਰਾ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ",
+    "success": "ਪਾਸਵਰਡ ਸਫਲਤਾਪੂਰਵਕ ਅੱਪਡੇਟ ਕੀਤਾ ਗਿਆ",
+    "failed": "ਪਾਸਵਰਡ ਅੱਪਡੇਟ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+    "hidePassword": "ਪਾਸਵਰਡ ਲੁਕਾਓ",
+    "showPassword": "ਪਾਸਵਰਡ ਦਿਖਾਓ"
+  },
+
+  "aria": {
+    "moreInfo": "ਹੋਰ ਜਾਣਕਾਰੀ"
+  },
+
+  "footer": {
+    "logoAlt": "ਟੈਕਸਟ ਸਮੇਤ ਜਲਸੂਚਕ ਲੋਗੋ",
+    "description": "ਭਾਰਤ ਦੀ ਪੇਂਡੂ ਜਲ ਸਪਲਾਈ ਲਈ AI-ਸਮਰੱਥ ਜਲ ਸਪਲਾਈ ਨਿਗਰਾਨੀ। ਫੀਲਡ ਕਰਮਚਾਰੀਆਂ ਨੂੰ ਭਰੋਸੇਯੋਗ, ਆਡਿਟ ਯੋਗ ਡੇਟਾ ਨਾਲ ਸਸ਼ਕਤ ਬਣਾਉਣਾ — ਫੀਲਡ ਤੋਂ ਸ਼ਾਸਨ ਤੱਕ।",
+    "quickLinks": "ਤੁਰੰਤ ਲਿੰਕ",
+    "subDivisionalOfficerLogin": "ਉਪ-ਮੰਡਲ ਅਧਿਕਾਰੀ ਲੌਗਇਨ",
+    "sectionOfficerLogin": "ਸੈਕਸ਼ਨ ਅਧਿਕਾਰੀ ਲੌਗਇਨ",
+    "systemUsersLogin": "ਸਿਸਟਮ ਉਪਭੋਗਤਾ ਲੌਗਇਨ",
+    "jalsoochakWebsite": "ਜਲਸੂਚਕ ਵੈੱਬਸਾਈਟ",
+    "glossary": "ਡੈਸ਼ਬੋਰਡ ਸ਼ਬਦਾਵਲੀ",
+    "contactUs": "ਸਾਡੇ ਨਾਲ ਸੰਪਰਕ ਕਰੋ",
+    "copyright": "© {{year}} ਜਲਸੂਚਕ · ",
+    "developedBy": " | ਵਿਕਸਿਤ ਕਰਤਾ: ",
+    "arghyam": "ਅਰਘਯਮ",
+    "visitors": "ਵਿਜ਼ਿਟਰ",
+    "visitorsAria": "{{count}} ਵਿਜ਼ਿਟਰ",
+    "multiTenantEmail": "info@arghyam.org",
+    "multiTenantPhone": "+91-80 4169 8941",
+    "multiTenantAddress": "#599, ROHINI, 12th Main Rd, 7th Cross, HAL 2nd Stage, Indiranagar, Bengaluru, Karnataka 560068",
+    "multiTenantCopyright": "© {{year}} ਜਲਸੂਚਕ · ਪਹਿਲਕਦਮੀ:",
+    "social": {
+      "x": "X (Twitter)",
+      "linkedin": "LinkedIn",
+      "email": "ਈਮੇਲ"
+    }
+  },
+  "branding": {
+    "assam": {
+      "departmentWebsite": "PHED Assam",
+      "missionWebsite": "JJM Assam",
+      "phone": "1800-889-3047",
+      "address": "ਜਲ ਜੀਵਨ ਮਿਸ਼ਨ ਅਸਾਮ\nPHED Assam, ਗੁਹਾਟੀ",
+      "copyrightOrg": "PHED Assam"
+    },
+    "punjab": {
+      "departmentWebsite": "DWSS ਪੰਜਾਬ",
+      "phone": "TODO: Punjab helpline number",
+      "address": "TODO: Punjab office address",
+      "copyrightOrg": "DWSS ਪੰਜਾਬ"
+    }
+  }
+}

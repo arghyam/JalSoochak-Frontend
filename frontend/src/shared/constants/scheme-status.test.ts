@@ -1,6 +1,7 @@
 import enCommon from '@/locales/en/common.json'
 import hiCommon from '@/locales/hi/common.json'
 import asCommon from '@/locales/as/common.json'
+import paCommon from '@/locales/pa/common.json'
 import {
   DEFAULT_SCHEME_STATUS_COLORS,
   OPERATING_STATUS_CODES,
@@ -98,6 +99,7 @@ describe('scheme status vocabulary', () => {
       ['en', enCommon],
       ['hi', hiCommon],
       ['as', asCommon],
+      ['pa', paCommon],
     ] as const
 
     it.each(locales)('resolves every status key in %s', (_locale, bundle) => {
