@@ -1,4 +1,4 @@
-import dwssPunjabLogo from '@/assets/media/dwss-punjab-logo.jpeg'
+import dwssPunjabLogo from '@/assets/media/dwss-punjab-logo.png'
 import jjmLogo from '@/assets/media/jjm_new_logo.svg'
 import type { BrandingProfile } from './branding-profile'
 
