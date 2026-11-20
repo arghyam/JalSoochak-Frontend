@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/render-with-providers'
 import { Footer } from './footer'
@@ -29,8 +29,10 @@ const mockIsAnalyticsEnabled = isAnalyticsEnabled as jest.Mock
 const mockTrackEvent = trackEvent as jest.Mock
 const mockGetBrandingProfile = jest.mocked(getBrandingProfile)
 
-/** Matches Testing Library's default normalizer, which collapses whitespace in element text. */
-const collapseWhitespace = (text: string) => text.replace(/\s+/g, ' ').trim()
+// A state's department link can appear in both the quick links and the credits with the same
+// label and href, so assertions about either are scoped to their own section.
+const quickLinksSection = () => within(screen.getByRole('navigation', { name: 'Quick Links' }))
+const singleTenantCredits = () => within(screen.getByText(/developed by/i))
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -137,8 +139,10 @@ describe('Footer — single-tenant mode (SINGLE_TENANT_MODE = true)', () => {
       'href',
       'https://jalsoochak.in/'
     )
-    const phedLinks = screen.getAllByRole('link', { name: /phed assam/i })
-    expect(phedLinks.some((l) => l.getAttribute('href') === 'https://jjmassam.in/')).toBe(true)
+    expect(quickLinksSection().getByRole('link', { name: /phed assam/i })).toHaveAttribute(
+      'href',
+      'https://jjmassam.in/'
+    )
     expect(screen.getByRole('link', { name: /jjm assam/i })).toHaveAttribute(
       'href',
       'https://jjmbrain.in/'
@@ -165,6 +169,7 @@ describe('Footer — single-tenant mode (SINGLE_TENANT_MODE = true)', () => {
   it('renders JJM contact info', () => {
     renderWithProviders(<Footer />)
 
+    expect(screen.getByText('Contact Us')).toBeInTheDocument()
     expect(screen.getByText('md@jjmassam.in')).toBeInTheDocument()
     expect(screen.getByText('1800-889-3047')).toBeInTheDocument()
   })
@@ -172,10 +177,12 @@ describe('Footer — single-tenant mode (SINGLE_TENANT_MODE = true)', () => {
   it('renders credits with PHED Assam and Arghyam links', () => {
     renderWithProviders(<Footer />)
 
-    const phedLinks = screen.getAllByRole('link', { name: /phed assam/i })
-    expect(phedLinks.some((l) => l.getAttribute('href') === 'https://jjmassam.in/')).toBe(true)
-
-    expect(screen.getByRole('link', { name: /arghyam/i })).toHaveAttribute(
+    const credits = singleTenantCredits()
+    expect(credits.getByRole('link', { name: /phed assam/i })).toHaveAttribute(
+      'href',
+      'https://jjmassam.in/'
+    )
+    expect(credits.getByRole('link', { name: /arghyam/i })).toHaveAttribute(
       'href',
       'https://arghyam.org/'
     )
@@ -190,32 +197,33 @@ describe('Footer — single-tenant mode with another state profile', () => {
     mockGetBrandingProfile.mockReturnValue(BRANDING_PROFILES.punjab)
   })
 
-  it("renders the profile's contact details", () => {
+  it('omits the Contact Us column when the profile has no contact', () => {
     renderWithProviders(<Footer />)
 
-    expect(screen.getByText(punjab.contact.email)).toBeInTheDocument()
-    expect(screen.getByText(i18n.t(punjab.contact.phoneKey))).toBeInTheDocument()
-    expect(
-      screen.getByText(collapseWhitespace(i18n.t(punjab.contact.addressKey)))
-    ).toBeInTheDocument()
+    expect(punjab.contact).toBeNull()
+    expect(screen.queryByText('Contact Us')).not.toBeInTheDocument()
   })
 
   it("credits the profile's organisation in the copyright line", () => {
     renderWithProviders(<Footer />)
 
     expect(
-      screen.getByRole('link', { name: i18n.t(punjab.copyrightOrg.labelKey) })
+      singleTenantCredits().getByRole('link', { name: i18n.t(punjab.copyrightOrg.labelKey) })
     ).toHaveAttribute('href', punjab.copyrightOrg.href)
   })
 
-  it("renders exactly the profile's social links", () => {
+  it("renders Arghyam's social links", () => {
     renderWithProviders(<Footer />)
 
     const socialHrefs = screen
       .queryAllByRole('link', { name: /x \(twitter\)|linkedin|email/i })
       .map((link) => link.getAttribute('href'))
 
-    expect(socialHrefs).toEqual(punjab.socialLinks.map(({ href }) => href))
+    expect(socialHrefs).toEqual([
+      'https://x.com/arghyamindia',
+      'https://www.linkedin.com/company/arghyam/',
+      'mailto:info@arghyam.org',
+    ])
   })
 
   it('keeps the shared quick links', () => {
@@ -226,6 +234,15 @@ describe('Footer — single-tenant mode with another state profile', () => {
       '/login'
     )
     expect(screen.getByRole('link', { name: /dashboard glossary/i })).toBeInTheDocument()
+  })
+
+  it("renders the profile's quick links", () => {
+    renderWithProviders(<Footer />)
+
+    const quickLinks = quickLinksSection()
+    for (const { labelKey, href } of punjab.quickLinks) {
+      expect(quickLinks.getByRole('link', { name: i18n.t(labelKey) })).toHaveAttribute('href', href)
+    }
   })
 
   it('renders none of the Assam branding', () => {

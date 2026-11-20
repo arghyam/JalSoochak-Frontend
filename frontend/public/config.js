@@ -22,7 +22,7 @@ window.APP_CONFIG = {
     DAYS: 1,
     ALLOWED_DAYS: [1, 7, 30],
   },
-  // Languages offered in the language switcher: any of 'en', 'hi', 'as'. English is always
+  // Languages offered in the language switcher: any of 'en', 'hi', 'as', 'pa'. English is always
   // kept as the fallback. Omit the key to offer every language the app ships.
   ENABLED_LANGUAGES: ['en', 'hi', 'as'],
   // State branding of the dashboard header and footer in single-tenant mode: 'assam' or

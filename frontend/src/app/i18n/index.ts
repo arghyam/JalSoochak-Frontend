@@ -22,6 +22,12 @@ import asSuperAdmin from '@/locales/as/super-admin.json'
 import asStateAdmin from '@/locales/as/state-admin.json'
 import asSectionOfficer from '@/locales/as/section-officer.json'
 import asAuth from '@/locales/as/auth.json'
+import paCommon from '@/locales/pa/common.json'
+import paDashboard from '@/locales/pa/dashboard.json'
+import paSuperAdmin from '@/locales/pa/super-admin.json'
+import paStateAdmin from '@/locales/pa/state-admin.json'
+import paSectionOfficer from '@/locales/pa/section-officer.json'
+import paAuth from '@/locales/pa/auth.json'
 import { DEFAULT_LANGUAGE, ENABLED_LANGUAGES, type LanguageCode } from './languages'
 
 export {
@@ -56,6 +62,14 @@ const allResources = {
     'state-admin': asStateAdmin,
     'section-officer': asSectionOfficer,
     auth: asAuth,
+  },
+  pa: {
+    common: paCommon,
+    dashboard: paDashboard,
+    'super-admin': paSuperAdmin,
+    'state-admin': paStateAdmin,
+    'section-officer': paSectionOfficer,
+    auth: paAuth,
   },
 } satisfies Record<LanguageCode, ResourceLanguage>
 

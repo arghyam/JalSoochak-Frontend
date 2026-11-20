@@ -1,3 +1,4 @@
+export { ARGHYAM_SOCIAL_LINKS } from './arghyam-social-links'
 export {
   BRANDING_PROFILES,
   DEFAULT_BRANDING_PROFILE_ID,
@@ -7,6 +8,7 @@ export {
 } from './branding'
 export type { BrandingProfileId } from './branding'
 export type {
+  BrandingContact,
   BrandingFooter,
   BrandingHeader,
   BrandingImage,

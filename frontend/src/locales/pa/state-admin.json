@@ -1,0 +1,718 @@
+{
+  "hierarchy": {
+    "pageTitle": "ਦਰਜਾਬੰਦੀ",
+    "sectionTitle": "ਦਰਜਾਬੰਦੀ ਸੰਰਚਨਾ",
+    "lgdTitle": "LGD ਦਰਜਾਬੰਦੀ",
+    "departmentTitle": "ਵਿਭਾਗੀ ਦਰਜਾਬੰਦੀ",
+    "levelLabel": "ਪੱਧਰ {{level}}",
+    "addLevel": "ਪੱਧਰ ਸ਼ਾਮਲ ਕਰੋ",
+    "breadcrumb": {
+      "view": "ਦਰਜਾਬੰਦੀ ਦੇਖੋ",
+      "edit": "ਦਰਜਾਬੰਦੀ ਸੋਧੋ"
+    },
+    "messages": {
+      "saveSuccess": "ਦਰਜਾਬੰਦੀ ਸਫਲਤਾਪੂਰਵਕ ਸੇਵ ਕੀਤੀ ਗਈ",
+      "saveFailed": "ਦਰਜਾਬੰਦੀ ਸੇਵ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+      "failedToLoad": "ਦਰਜਾਬੰਦੀ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ। ਕਿਰਪਾ ਕਰਕੇ ਬਾਅਦ ਵਿੱਚ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+      "emptyLevelName": "ਸਾਰੇ ਪੱਧਰਾਂ ਦਾ ਨਾਮ ਹੋਣਾ ਲਾਜ਼ਮੀ ਹੈ",
+      "tenantCodeMismatch": "ਟੈਨੈਂਟ ਕੋਡ \"{{tenantCode}}\" ਲਈ ਰਾਜ ਦਾ ਪਤਾ ਨਹੀਂ ਲਗਾਇਆ ਜਾ ਸਕਿਆ। ਇਸ ਨੂੰ ਠੀਕ ਕੀਤੇ ਜਾਣ ਤੱਕ ਆਨਬੋਰਡਿੰਗ ਸਥਿਤੀ ਉਪਲਬਧ ਨਹੀਂ ਹੋ ਸਕਦੀ।"
+    },
+    "aria": {
+      "editConfiguration": "ਦਰਜਾਬੰਦੀ ਸੰਰਚਨਾ ਸੋਧੋ",
+      "levelInput": "ਪੱਧਰ {{level}} ਲਈ ਨਾਮ ਦਰਜ ਕਰੋ",
+      "deleteLevel": "ਪੱਧਰ {{level}} ਮਿਟਾਓ"
+    }
+  },
+  "overview": {
+    "title": "{{state}} ਦੀ ਸੰਖੇਪ ਜਾਣਕਾਰੀ",
+    "titleFallback": "ਰਾਜ ਦੀ ਸੰਖੇਪ ਜਾਣਕਾਰੀ",
+    "stats": {
+      "totalStaff": "ਕੁੱਲ ਸਟਾਫ",
+      "pumpOperators": "ਕੁੱਲ ਪੰਪ ਆਪਰੇਟਰ",
+      "totalAdmins": "ਕੁੱਲ ਪ੍ਰਬੰਧਕ",
+      "handedOverSchemes": "ਸੌਂਪੀਆਂ ਗਈਆਂ ਸਕੀਮਾਂ"
+    },
+    "tooltips": {
+      "totalStaff": "ਸਾਰੀਆਂ ਗੈਰ-ਪ੍ਰਬੰਧਕ ਭੂਮਿਕਾਵਾਂ ਵਿੱਚ ਸਟਾਫ ਮੈਂਬਰਾਂ ਦੀ ਕੁੱਲ ਗਿਣਤੀ, ਪੰਪ ਆਪਰੇਟਰਾਂ ਅਤੇ ਹੋਰ ਫੀਲਡ ਸਟਾਫ ਸਮੇਤ",
+      "totalAdmins": "ਸਾਰੇ ਰਾਜ ਪ੍ਰਬੰਧਕ, ਸਰਗਰਮ ਜਾਂ ਅਸਰਗਰਮ ਸਥਿਤੀ ਦੀ ਪਰਵਾਹ ਕੀਤੇ ਬਿਨਾਂ",
+      "handedOverSchemes": "ਉਹ ਸਕੀਮਾਂ ਜਿਨ੍ਹਾਂ ਦੇ ਕੰਮ ਦੀ ਸਥਿਤੀ ਸੌਂਪੀ ਗਈ ਵਜੋਂ ਦਰਜ ਹੈ"
+    },
+    "charts": {
+      "waterSupplyOutages": "ਜਲ ਸਪਲਾਈ ਠੱਪ",
+      "demandVsSupply": "ਮੰਗ ਬਨਾਮ ਸਪਲਾਈ",
+      "dailyIngestionMonitor": "ਰੋਜ਼ਾਨਾ ਇਨਜੈਸ਼ਨ ਮਾਨੀਟਰ",
+      "successRate": "ਸਫਲਤਾ ਦਰ",
+      "Demand": "ਮੰਗ",
+      "Supply": "ਸਪਲਾਈ",
+      "Quantity": "ਮਾਤਰਾ (ਇਕਾਈਆਂ)",
+      "Year": "ਸਾਲ",
+      "Districts": "ਜ਼ਿਲ੍ਹੇ"
+    },
+    "months": {
+      "january": "ਜਨਵਰੀ",
+      "february": "ਫ਼ਰਵਰੀ",
+      "march": "ਮਾਰਚ",
+      "april": "ਅਪ੍ਰੈਲ",
+      "may": "ਮਈ",
+      "june": "ਜੂਨ",
+      "july": "ਜੁਲਾਈ",
+      "august": "ਅਗਸਤ",
+      "september": "ਸਤੰਬਰ",
+      "october": "ਅਕਤੂਬਰ",
+      "november": "ਨਵੰਬਰ",
+      "december": "ਦਸੰਬਰ"
+    },
+    "generateToken": {
+      "sectionTitle": "API ਕੁੰਜੀ",
+      "sectionHint": "ਕਿਰਪਾ ਕਰਕੇ ਕੁੰਜੀ ਕਾਪੀ ਕਰੋ ਅਤੇ ਇਸ ਨੂੰ ਸੁਰੱਖਿਅਤ ਰੱਖੋ। ਇਹੀ ਕੁੰਜੀ ਦੁਬਾਰਾ ਨਹੀਂ ਦਿਖਾਈ ਜਾਵੇਗੀ। ਜੇਕਰ ਤੁਸੀਂ ਕੁੰਜੀ ਭੁੱਲ ਜਾਂਦੇ ਹੋ, ਤਾਂ ਇੱਕ ਨਵੀਂ ਬਣਾਓ।",
+      "buttonLabel": "ਕੁੰਜੀ ਬਣਾਓ",
+      "ariaLabel": "ਇੱਕ ਨਵੀਂ API ਕੁੰਜੀ ਬਣਾਓ",
+      "tokenInputLabel": "ਬਣਾਈ ਗਈ API ਕੁੰਜੀ",
+      "generated": "ਨਵੀਂ ਕੁੰਜੀ ਸਫਲਤਾਪੂਰਵਕ ਬਣਾਈ ਗਈ",
+      "showToken": "ਕੁੰਜੀ ਦਿਖਾਓ",
+      "hideToken": "ਕੁੰਜੀ ਲੁਕਾਓ",
+      "copyToken": "ਕੁੰਜੀ ਕਲਿੱਪਬੋਰਡ 'ਤੇ ਕਾਪੀ ਕਰੋ",
+      "copied": "ਕੁੰਜੀ ਕਲਿੱਪਬੋਰਡ 'ਤੇ ਕਾਪੀ ਕੀਤੀ ਗਈ",
+      "clipboardError": "ਕੁੰਜੀ ਕਲਿੱਪਬੋਰਡ 'ਤੇ ਕਾਪੀ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+      "error": "API ਕੁੰਜੀ ਬਣਾਉਣ ਵਿੱਚ ਅਸਫਲ"
+    },
+    "aria": {
+      "selectMonth": "ਚਾਰਟ ਲਈ ਮਹੀਨਾ ਚੁਣੋ",
+      "statsSection": "ਅੰਕੜਿਆਂ ਦੀ ਸੰਖੇਪ ਜਾਣਕਾਰੀ",
+      "demandSupplyChart": "ਮੰਗ ਬਨਾਮ ਸਪਲਾਈ ਚਾਰਟ",
+      "ingestionChart": "ਰੋਜ਼ਾਨਾ ਇਨਜੈਸ਼ਨ ਮਾਨੀਟਰ ਚਾਰਟ"
+    },
+    "setupWizard": {
+      "title": "ਸੈੱਟਅੱਪ ਪ੍ਰਗਤੀ",
+      "hierarchy": "ਦਰਜਾਬੰਦੀ",
+      "configuration": "ਸੰਰਚਨਾ",
+      "language": "ਭਾਸ਼ਾ",
+      "waterNorms": "ਪਾਣੀ ਦੇ ਮਾਪਦੰਡ",
+      "integration": "ਏਕੀਕਰਣ",
+      "escalations": "ਐਸਕੇਲੇਸ਼ਨ",
+      "aria": {
+        "stepDefault": "ਕਦਮ {{number}}: {{label}}",
+        "stepCompleted": "ਕਦਮ {{number}}: {{label}} - ਮੁਕੰਮਲ"
+      }
+    }
+  },
+  "activity": {
+    "title": "ਗਤੀਵਿਧੀ",
+    "table": {
+      "timestamp": "ਸਮਾਂ-ਮੋਹਰ",
+      "action": "ਕਾਰਵਾਈ",
+      "status": "ਸਥਿਤੀ"
+    },
+    "messages": {
+      "noActivitiesFound": "ਕੋਈ ਗਤੀਵਿਧੀ ਨਹੀਂ ਮਿਲੀ",
+      "failedToLoad": "ਗਤੀਵਿਧੀ ਲੌਗ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ"
+    },
+    "aria": {
+      "tableSection": "ਗਤੀਵਿਧੀ ਲੌਗ ਸਾਰਣੀ"
+    }
+  },
+  "language": {
+    "title": "ਭਾਸ਼ਾ",
+    "configuration": "ਭਾਸ਼ਾ ਸੰਰਚਨਾ",
+    "primaryLanguage": "ਮੁੱਖ ਭਾਸ਼ਾ",
+    "secondaryLanguage": "ਦੂਜੀ ਭਾਸ਼ਾ (ਵਿਕਲਪਿਕ)",
+    "tertiaryLanguage": "ਤੀਜੀ ਭਾਸ਼ਾ (ਵਿਕਲਪਿਕ)",
+    "breadcrumb": {
+      "view": "ਭਾਸ਼ਾ ਦੇਖੋ",
+      "edit": "ਭਾਸ਼ਾ ਸੋਧੋ"
+    },
+    "aria": {
+      "editConfiguration": "ਭਾਸ਼ਾ ਸੰਰਚਨਾ ਸੋਧੋ",
+      "selectPrimaryLanguage": "ਮੁੱਖ ਭਾਸ਼ਾ ਚੁਣੋ",
+      "selectSecondaryLanguage": "ਦੂਜੀ ਭਾਸ਼ਾ ਚੁਣੋ",
+      "selectTertiaryLanguage": "ਤੀਜੀ ਭਾਸ਼ਾ ਚੁਣੋ",
+      "clearSecondaryLanguage": "ਦੂਜੀ ਭਾਸ਼ਾ ਹਟਾਓ",
+      "clearTertiaryLanguage": "ਤੀਜੀ ਭਾਸ਼ਾ ਹਟਾਓ"
+    }
+  },
+  "integration": {
+    "title": "ਏਕੀਕਰਣ",
+    "messageBrokerDetails": "ਮੈਸੇਜ ਬ੍ਰੋਕਰ ਵੇਰਵੇ",
+    "fields": {
+      "apiUrl": "API URL",
+      "apiUrlPlaceholder": "https://api.example.com",
+      "apiKey": "API ਕੁੰਜੀ",
+      "organizationId": "ਸੰਸਥਾ ਆਈਡੀ"
+    },
+    "messages": {
+      "failedToLoad": "ਸੰਰਚਨਾ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ"
+    },
+    "aria": {
+      "formLabel": "ਏਕੀਕਰਣ ਸੰਰਚਨਾ ਫਾਰਮ",
+      "enterApiUrl": "API URL ਦਰਜ ਕਰੋ",
+      "enterApiKey": "API ਕੁੰਜੀ ਦਰਜ ਕਰੋ",
+      "enterOrganizationId": "ਸੰਸਥਾ ਆਈਡੀ ਦਰਜ ਕਰੋ"
+    }
+  },
+  "waterNorms": {
+    "title": "ਪਾਣੀ ਦੇ ਮਾਪਦੰਡ",
+    "stateUtWaterNorms": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਪਾਣੀ ਦੇ ਮਾਪਦੰਡ",
+    "breadcrumb": {
+      "view": "ਪਾਣੀ ਦੇ ਮਾਪਦੰਡ ਦੇਖੋ",
+      "edit": "ਪਾਣੀ ਦੇ ਮਾਪਦੰਡ ਸੋਧੋ"
+    },
+    "currentQuantity": "ਮਿਆਰੀ ਮਾਤਰਾ (LPCD)",
+    "alertThresholds": {
+      "title": "ਚੇਤਾਵਨੀ ਸੀਮਾਵਾਂ",
+      "undersupplyThreshold": {
+        "title": "ਘੱਟ ਸਪਲਾਈ ਸੀਮਾ (ਪ੍ਰਤੀਸ਼ਤ)",
+        "description": "ਅਸਲ ਮਾਪਦੰਡ ਤੋਂ ਪ੍ਰਤੀਸ਼ਤ ਵਿੱਚ ਨਕਾਰਾਤਮਕ ਵਿਚਲਨ।"
+      },
+      "oversupplyThreshold": {
+        "title": "ਵੱਧ ਸਪਲਾਈ ਸੀਮਾ (ਪ੍ਰਤੀਸ਼ਤ)",
+        "description": "ਅਸਲ ਮਾਪਦੰਡ ਤੋਂ ਪ੍ਰਤੀਸ਼ਤ ਵਿੱਚ ਸਕਾਰਾਤਮਕ ਵਿਚਲਨ।"
+      }
+    },
+    "districtOverrides": {
+      "title": "ਜ਼ਿਲ੍ਹਾ-ਪੱਧਰੀ ਓਵਰਰਾਈਡ",
+      "districtName": "ਜ਼ਿਲ੍ਹੇ ਦਾ ਨਾਮ",
+      "quantity": "ਮਾਤਰਾ (LPCD)",
+      "addNew": "+ ਨਵਾਂ ਜ਼ਿਲ੍ਹਾ ਸ਼ਾਮਲ ਕਰੋ"
+    },
+    "messages": {
+      "quantityRequired": "ਰਾਜ ਦੀ ਮਾਤਰਾ ਲੋੜੀਂਦੀ ਹੈ",
+      "invalidQuantity": "ਕਿਰਪਾ ਕਰਕੇ ਇੱਕ ਵੈਧ ਮਾਤਰਾ ਦਰਜ ਕਰੋ",
+      "invalidAlertThresholds": "ਕਿਰਪਾ ਕਰਕੇ ਵੈਧ ਚੇਤਾਵਨੀ ਸੀਮਾ ਮੁੱਲ ਦਰਜ ਕਰੋ",
+      "invalidOverrides": "ਸਾਰੇ ਜ਼ਿਲ੍ਹਾ ਓਵਰਰਾਈਡਾਂ ਦੇ ਮੁੱਲ ਵੈਧ ਹੋਣੇ ਚਾਹੀਦੇ ਹਨ",
+      "failedToLoad": "ਸੰਰਚਨਾ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ। ਕਿਰਪਾ ਕਰਕੇ ਬਾਅਦ ਵਿੱਚ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+      "fillExisting": "ਕਿਰਪਾ ਕਰਕੇ ਪਹਿਲਾਂ ਮੌਜੂਦਾ ਜ਼ਿਲ੍ਹਾ ਓਵਰਰਾਈਡ ਭਰੋ"
+    },
+    "aria": {
+      "editConfiguration": "ਪਾਣੀ ਦੇ ਮਾਪਦੰਡਾਂ ਦੀ ਸੰਰਚਨਾ ਸੋਧੋ",
+      "deleteDistrict": "ਜ਼ਿਲ੍ਹਾ {{name}} ਮਿਟਾਓ",
+      "enterQuantity": "LPCD ਵਿੱਚ ਰਾਜ ਦੀ ਪਾਣੀ ਮਾਤਰਾ ਦਰਜ ਕਰੋ",
+      "selectDistrict": "ਜ਼ਿਲ੍ਹੇ ਦਾ ਨਾਮ ਚੁਣੋ",
+      "enterDistrictQuantity": "LPCD ਵਿੱਚ ਜ਼ਿਲ੍ਹੇ ਦੀ ਪਾਣੀ ਮਾਤਰਾ ਦਰਜ ਕਰੋ",
+      "undersupplyThresholdCard": "ਘੱਟ ਸਪਲਾਈ ਸੀਮਾ ਸੰਰਚਨਾ",
+      "oversupplyThresholdCard": "ਵੱਧ ਸਪਲਾਈ ਸੀਮਾ ਸੰਰਚਨਾ",
+      "enterUndersupplyThreshold": "ਘੱਟ ਸਪਲਾਈ ਸੀਮਾ ਪ੍ਰਤੀਸ਼ਤ ਦਰਜ ਕਰੋ (0–100)",
+      "enterOversupplyThreshold": "ਵੱਧ ਸਪਲਾਈ ਸੀਮਾ ਪ੍ਰਤੀਸ਼ਤ ਦਰਜ ਕਰੋ (0–1000)"
+    }
+  },
+  "escalations": {
+    "title": "ਐਸਕੇਲੇਸ਼ਨ",
+    "allEscalations": "ਸਾਰੀਆਂ ਐਸਕੇਲੇਸ਼ਨਾਂ",
+    "breadcrumb": {
+      "view": "ਐਸਕੇਲੇਸ਼ਨ ਦੇਖੋ",
+      "edit": "ਐਸਕੇਲੇਸ਼ਨ ਸੋਧੋ"
+    },
+    "escalationRules": "ਐਸਕੇਲੇਸ਼ਨ ਨਿਯਮ",
+    "addNewEscalationType": "ਨਵੀਂ ਐਸਕੇਲੇਸ਼ਨ ਕਿਸਮ ਸ਼ਾਮਲ ਕਰੋ",
+    "addNewShort": "ਨਵਾਂ ਸ਼ਾਮਲ ਕਰੋ",
+    "typeOfAlert": "ਚੇਤਾਵਨੀ ਦੀ ਕਿਸਮ",
+    "levelOfEscalation": "ਐਸਕੇਲੇਸ਼ਨ ਦਾ ਪੱਧਰ",
+    "level": "ਪੱਧਰ {{number}}",
+    "levelDisplay": "ਪੱਧਰ {{number}}: {{role}}",
+    "escalateAfter": "ਇਸ ਤੋਂ ਬਾਅਦ ਐਸਕੇਲੇਟ ਕਰੋ (ਘੰਟੇ)",
+    "escalateAfterHours": "{{hours}} ਘੰਟਿਆਂ ਬਾਅਦ ਐਸਕੇਲੇਟ ਕਰੋ",
+    "addNewLevel": "ਨਵਾਂ ਪੱਧਰ ਸ਼ਾਮਲ ਕਰੋ",
+    "buttons": {
+      "addEscalation": "ਐਸਕੇਲੇਸ਼ਨ ਸ਼ਾਮਲ ਕਰੋ"
+    },
+    "scheduleTime": "ਨਿਰਧਾਰਤ ਸਮਾਂ",
+    "escalateAfterDays": "ਇਸ ਤੋਂ ਬਾਅਦ ਐਸਕੇਲੇਟ ਕਰੋ (ਦਿਨ)",
+    "escalateAfterDaysValue": "{{days}} ਦਿਨ ਬਾਅਦ ਐਸਕੇਲੇਟ ਕਰੋ",
+    "levelRole": "ਭੂਮਿਕਾ",
+    "messages": {
+      "selectAlertType": "ਕਿਰਪਾ ਕਰਕੇ ਇੱਕ ਚੇਤਾਵਨੀ ਕਿਸਮ ਚੁਣੋ",
+      "invalidLevels": "ਸਾਰੇ ਪੱਧਰਾਂ ਦੀ ਵੈਧ ਭੂਮਿਕਾ ਅਤੇ ਘੰਟੇ ਹੋਣੇ ਚਾਹੀਦੇ ਹਨ",
+      "invalidRulesDays": "ਸਾਰੇ ਪੱਧਰਾਂ ਦੀ ਇੱਕ ਭੂਮਿਕਾ ਅਤੇ ਘੱਟੋ-ਘੱਟ 1 ਦਿਨ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ",
+      "addedSuccess": "ਐਸਕੇਲੇਸ਼ਨ ਸਫਲਤਾਪੂਰਵਕ ਸ਼ਾਮਲ ਕੀਤੀ ਗਈ",
+      "deletedSuccess": "ਐਸਕੇਲੇਸ਼ਨ ਸਫਲਤਾਪੂਰਵਕ ਮਿਟਾਈ ਗਈ",
+      "notFound": "ਐਸਕੇਲੇਸ਼ਨ ਨਹੀਂ ਮਿਲੀ",
+      "failedToLoad": "ਐਸਕੇਲੇਸ਼ਨਾਂ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+      "failedToLoadSingle": "ਐਸਕੇਲੇਸ਼ਨ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+      "failedToDelete": "ਐਸਕੇਲੇਸ਼ਨ ਮਿਟਾਉਣ ਵਿੱਚ ਅਸਫਲ",
+      "failedToSave": "ਐਸਕੇਲੇਸ਼ਨ ਸੇਵ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+      "rulesSaveSuccess": "ਐਸਕੇਲੇਸ਼ਨ ਨਿਯਮ ਸਫਲਤਾਪੂਰਵਕ ਸੇਵ ਕੀਤੇ ਗਏ",
+      "rulesSaveFailed": "ਐਸਕੇਲੇਸ਼ਨ ਨਿਯਮ ਸੇਵ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+      "confirmDeleteTitle": "ਐਸਕੇਲੇਸ਼ਨ ਮਿਟਾਓ",
+      "confirmDelete": "ਕੀ ਤੁਸੀਂ ਯਕੀਨੀ ਤੌਰ 'ਤੇ ਇਸ ਐਸਕੇਲੇਸ਼ਨ ਨੂੰ ਮਿਟਾਉਣਾ ਚਾਹੁੰਦੇ ਹੋ?",
+      "fillExisting": "ਕਿਰਪਾ ਕਰਕੇ ਪਹਿਲਾਂ ਮੌਜੂਦਾ ਐਸਕੇਲੇਸ਼ਨ ਪੱਧਰ ਭਰੋ",
+      "fillExistingRules": "ਕਿਰਪਾ ਕਰਕੇ ਹੋਰ ਪੱਧਰ ਸ਼ਾਮਲ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਮੌਜੂਦਾ ਪੱਧਰ ਭਰੋ"
+    },
+    "aria": {
+      "editEscalation": "ਐਸਕੇਲੇਸ਼ਨ {{name}} ਸੋਧੋ",
+      "deleteEscalation": "ਐਸਕੇਲੇਸ਼ਨ {{name}} ਮਿਟਾਓ",
+      "deleteLevel": "ਪੱਧਰ {{number}} ਮਿਟਾਓ",
+      "editMode": "ਸੋਧ ਮੋਡ",
+      "selectAlertType": "ਚੇਤਾਵਨੀ ਕਿਸਮ ਚੁਣੋ",
+      "selectRole": "ਪੱਧਰ {{number}} ਲਈ ਭੂਮਿਕਾ ਚੁਣੋ",
+      "selectHours": "ਪੱਧਰ {{number}} ਲਈ ਐਸਕੇਲੇਸ਼ਨ ਘੰਟੇ ਚੁਣੋ",
+      "escalationCard": "{{name}} ਲਈ ਐਸਕੇਲੇਸ਼ਨ ਸੰਰਚਨਾ",
+      "formLabel": "ਐਸਕੇਲੇਸ਼ਨ ਨਿਯਮ ਸੰਰਚਨਾ ਫਾਰਮ",
+      "escalateAfterDays": "{{role}} ਲਈ ਇੰਨੇ ਦਿਨਾਂ ਬਾਅਦ ਐਸਕੇਲੇਟ ਕਰੋ"
+    }
+  },
+  "thresholds": {
+    "title": "ਚੇਤਾਵਨੀ ਸੀਮਾਵਾਂ",
+    "configurationSettings": "ਸੰਰਚਨਾ ਸੈਟਿੰਗਾਂ",
+    "coverage": {
+      "title": "ਕਵਰੇਜ",
+      "description": "ਕਵਰੇਜ ਚੇਤਾਵਨੀ ਤੋਂ ਬਚਣ ਲਈ ਕਾਰਜਸ਼ੀਲ ਘਰੇਲੂ ਟੂਟੀ ਕਨੈਕਸ਼ਨ (FHTC) ਵਾਲੇ ਘਰਾਂ ਦੀ ਘੱਟੋ-ਘੱਟ ਪ੍ਰਤੀਸ਼ਤਤਾ।"
+    },
+    "continuity": {
+      "title": "ਨਿਰੰਤਰਤਾ",
+      "description": "ਲਗਾਤਾਰ ਦਿਨਾਂ ਦੀ ਵੱਧ ਤੋਂ ਵੱਧ ਗਿਣਤੀ ਜਿਨ੍ਹਾਂ ਲਈ ਜਲ ਸਪਲਾਈ ਡੇਟਾ ਗੁੰਮ ਹੈ ਜਾਂ ਕੋਈ ਸਪਲਾਈ ਦਰਜ ਨਹੀਂ ਹੈ, ਇਸ ਤੋਂ ਬਾਅਦ ਨਿਰੰਤਰਤਾ ਚੇਤਾਵਨੀ ਸ਼ੁਰੂ ਹੁੰਦੀ ਹੈ।"
+    },
+    "quantity": {
+      "title": "ਮਾਤਰਾ (ਪ੍ਰਤੀ ਵਿਅਕਤੀ)",
+      "description": "ਪ੍ਰਤੀ ਦਿਨ ਲੋੜੀਂਦੀ ਘੱਟੋ-ਘੱਟ ਪ੍ਰਤੀ ਵਿਅਕਤੀ ਜਲ ਸਪਲਾਈ (LPCD ਵਿੱਚ)। ਜੇਕਰ ਔਸਤ ਸਪਲਾਈ ਕੀਤੀ ਮਾਤਰਾ ਇਸ ਮੁੱਲ ਤੋਂ ਘੱਟ ਜਾਂਦੀ ਹੈ, ਤਾਂ ਮਾਤਰਾ ਚੇਤਾਵਨੀ ਸ਼ੁਰੂ ਹੋ ਜਾਵੇਗੀ"
+    },
+    "regularity": {
+      "title": "ਨਿਯਮਤਤਾ ਸੀਮਾ",
+      "description": "ਨਿਯਮਤਤਾ ਚੇਤਾਵਨੀ ਤੋਂ ਬਚਣ ਲਈ ਚੁਣੀ ਗਈ ਮਿਆਦ ਦੌਰਾਨ ਪਾਣੀ ਸਪਲਾਈ ਕੀਤੇ ਜਾਣ ਵਾਲੇ ਦਿਨਾਂ ਦੀ ਘੱਟੋ-ਘੱਟ ਪ੍ਰਤੀਸ਼ਤਤਾ।"
+    },
+    "messages": {
+      "failedToLoad": "ਸੰਰਚਨਾ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+      "failedToSave": "ਬਦਲਾਅ ਸੇਵ ਕਰਨ ਵਿੱਚ ਅਸਫਲ"
+    },
+    "aria": {
+      "formLabel": "ਚੇਤਾਵਨੀ ਸੀਮਾਵਾਂ ਸੰਰਚਨਾ ਫਾਰਮ",
+      "coverageCard": "ਕਵਰੇਜ ਸੀਮਾ ਸੰਰਚਨਾ",
+      "continuityCard": "ਨਿਰੰਤਰਤਾ ਸੀਮਾ ਸੰਰਚਨਾ",
+      "quantityCard": "ਮਾਤਰਾ ਸੀਮਾ ਸੰਰਚਨਾ",
+      "regularityCard": "ਨਿਯਮਤਤਾ ਸੀਮਾ ਸੰਰਚਨਾ",
+      "enterCoverage": "ਕਵਰੇਜ ਸੀਮਾ ਪ੍ਰਤੀਸ਼ਤ ਦਰਜ ਕਰੋ",
+      "enterContinuity": "ਨਿਰੰਤਰਤਾ ਸੀਮਾ ਦਿਨ ਦਰਜ ਕਰੋ",
+      "enterQuantity": "LPCD ਵਿੱਚ ਮਾਤਰਾ ਸੀਮਾ ਦਰਜ ਕਰੋ",
+      "enterRegularity": "ਨਿਯਮਤਤਾ ਸੀਮਾ ਪ੍ਰਤੀਸ਼ਤ ਦਰਜ ਕਰੋ"
+    }
+  },
+  "staffSync": {
+    "title": "ਸਟਾਫ",
+    "searchPlaceholder": "ਨਾਮ ਨਾਲ ਖੋਜੋ",
+    "uploadData": "ਡੇਟਾ ਅੱਪਲੋਡ ਕਰੋ",
+    "filters": {
+      "label": "ਫਿਲਟਰ",
+      "role": "ਭੂਮਿਕਾ",
+      "status": "ਸਥਿਤੀ",
+      "clearAll": "ਸਾਰੇ ਫਿਲਟਰ ਹਟਾਓ"
+    },
+    "stats": {
+      "totalPumpOperators": "ਪੰਪ ਆਪਰੇਟਰਾਂ ਦੀ ਕੁੱਲ ਗਿਣਤੀ",
+      "totalSubDivisionOfficers": "ਉਪ-ਮੰਡਲ ਅਧਿਕਾਰੀਆਂ ਦੀ ਕੁੱਲ ਗਿਣਤੀ",
+      "totalSectionOfficers": "ਸੈਕਸ਼ਨ ਅਧਿਕਾਰੀਆਂ ਦੀ ਕੁੱਲ ਗਿਣਤੀ"
+    },
+    "roles": {
+      "pumpOperator": "ਪੰਪ ਆਪਰੇਟਰ",
+      "subDivisionOfficer": "ਉਪ-ਮੰਡਲ ਅਧਿਕਾਰੀ",
+      "sectionOfficer": "ਸੈਕਸ਼ਨ ਅਧਿਕਾਰੀ"
+    },
+    "table": {
+      "name": "ਨਾਮ",
+      "role": "ਭੂਮਿਕਾ",
+      "mobileNumber": "ਮੋਬਾਈਲ ਨੰਬਰ",
+      "schemes": "ਸਕੀਮਾਂ",
+      "activityStatus": "ਗਤੀਵਿਧੀ ਸਥਿਤੀ"
+    },
+    "upload": {
+      "title": "ਸਟਾਫ ਡੇਟਾ ਅੱਪਲੋਡ ਕਰੋ",
+      "description": "ਸਟਾਫ ਡੇਟਾ ਵਾਲੀ ਇੱਕ Excel ਫ਼ਾਈਲ (.xlsx ਜਾਂ .xls) ਅੱਪਲੋਡ ਕਰੋ।",
+      "selectFile": "ਫ਼ਾਈਲ ਚੁਣੋ",
+      "clickToSelect": "ਫ਼ਾਈਲ ਚੁਣਨ ਲਈ ਕਲਿੱਕ ਕਰੋ",
+      "fileTypes": "ਸਿਰਫ਼ .xlsx ਜਾਂ .xls",
+      "submit": "ਅੱਪਲੋਡ ਕਰੋ",
+      "success": "ਸਟਾਫ ਡੇਟਾ ਸਫਲਤਾਪੂਰਵਕ ਅੱਪਲੋਡ ਕੀਤਾ ਗਿਆ",
+      "error": "ਸਟਾਫ ਡੇਟਾ ਅੱਪਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+      "close": "ਬੰਦ ਕਰੋ",
+      "cancel": "ਰੱਦ ਕਰੋ"
+    },
+    "messages": {
+      "noStaffFound": "ਕੋਈ ਸਟਾਫ ਮੈਂਬਰ ਨਹੀਂ ਮਿਲਿਆ",
+      "failedToLoad": "ਸਟਾਫ ਡੇਟਾ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+      "activatedSuccess": "ਸਟਾਫ ਮੈਂਬਰ ਸਫਲਤਾਪੂਰਵਕ ਸਰਗਰਮ ਕੀਤਾ ਗਿਆ",
+      "deactivatedSuccess": "ਸਟਾਫ ਮੈਂਬਰ ਸਫਲਤਾਪੂਰਵਕ ਅਸਰਗਰਮ ਕੀਤਾ ਗਿਆ",
+      "failedToUpdateStatus": "ਸਟਾਫ ਸਥਿਤੀ ਅੱਪਡੇਟ ਕਰਨ ਵਿੱਚ ਅਸਫਲ"
+    },
+    "aria": {
+      "statsSection": "ਸਟਾਫ ਸਿੰਕ ਅੰਕੜੇ",
+      "searchStaff": "ਨਾਮ ਨਾਲ ਸਟਾਫ ਖੋਜੋ",
+      "filterSection": "ਸਟਾਫ ਮੈਂਬਰ ਫਿਲਟਰ ਕਰੋ",
+      "uploadData": "ਸਟਾਫ ਡੇਟਾ ਅੱਪਲੋਡ ਕਰੋ",
+      "activate": "ਸਟਾਫ ਮੈਂਬਰ ਸਰਗਰਮ ਕਰੋ",
+      "deactivate": "ਸਟਾਫ ਮੈਂਬਰ ਅਸਰਗਰਮ ਕਰੋ"
+    },
+    "broadcast": {
+      "button": "ਪ੍ਰਸਾਰਣ",
+      "modal": {
+        "title": "ਪ੍ਰਸਾਰਣ ਸੁਨੇਹਾ",
+        "selectRole": "ਭੂਮਿਕਾ ਚੁਣੋ",
+        "selectDuration": "ਮਿਆਦ ਚੁਣੋ",
+        "selectTemplate": "ਸੁਨੇਹਾ ਟੈਂਪਲੇਟ ਚੁਣੋ",
+        "send": "ਭੇਜੋ",
+        "cancel": "ਰੱਦ ਕਰੋ",
+        "close": "ਬੰਦ ਕਰੋ"
+      },
+      "messages": {
+        "success": "ਸੁਨੇਹਾ ਸਫਲਤਾਪੂਰਵਕ ਪ੍ਰਸਾਰਿਤ ਕੀਤਾ ਗਿਆ",
+        "error": "ਸੁਨੇਹਾ ਪ੍ਰਸਾਰਿਤ ਕਰਨ ਵਿੱਚ ਅਸਫਲ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"
+      },
+      "aria": {
+        "broadcast": "ਸਟਾਫ ਨੂੰ ਸੁਨੇਹਾ ਪ੍ਰਸਾਰਿਤ ਕਰੋ"
+      }
+    },
+    "report": {
+      "button": "ਰਿਪੋਰਟਾਂ",
+      "success": "ਰਿਪੋਰਟ ਸਫਲਤਾਪੂਰਵਕ ਡਾਊਨਲੋਡ ਕੀਤੀ ਗਈ",
+      "error": "ਰਿਪੋਰਟ ਬਣਾਉਣ ਵਿੱਚ ਅਸਫਲ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+      "aria": {
+        "download": "ਸਟਾਫ ਰਿਪੋਰਟ ਡਾਊਨਲੋਡ ਕਰੋ"
+      }
+    }
+  },
+  "schemeSync": {
+    "title": "ਸਕੀਮਾਂ",
+    "searchPlaceholder": "ਸਕੀਮ ਦੇ ਨਾਮ ਨਾਲ ਖੋਜੋ",
+    "uploadData": "ਡੇਟਾ ਅੱਪਲੋਡ ਕਰੋ",
+    "filters": {
+      "workStatus": "ਕੰਮ ਦੀ ਸਥਿਤੀ",
+      "operatingStatus": "ਸੰਚਾਲਨ ਸਥਿਤੀ",
+      "clearAll": "ਸਾਰੇ ਫਿਲਟਰ ਹਟਾਓ"
+    },
+    "stats": {
+      "totalSchemes": "ਕੁੱਲ ਸਕੀਮਾਂ",
+      "operativeSchemes": "ਚਾਲੂ ਸਕੀਮਾਂ",
+      "partiallyOperativeSchemes": "ਅੰਸ਼ਕ ਤੌਰ 'ਤੇ ਚਾਲੂ ਸਕੀਮਾਂ",
+      "nonOperativeSchemes": "ਗੈਰ-ਚਾਲੂ ਸਕੀਮਾਂ"
+    },
+    "tooltips": {
+      "totalSchemesUnknownOperating_one": "ਇਸ ਵਿੱਚ {{count}} ਸਕੀਮ ਸ਼ਾਮਲ ਹੈ ਜਿਸ ਦੀ ਕੋਈ ਸੰਚਾਲਨ ਸਥਿਤੀ ਦਰਜ ਨਹੀਂ ਹੈ",
+      "totalSchemesUnknownOperating_other": "ਇਸ ਵਿੱਚ {{count}} ਸਕੀਮਾਂ ਸ਼ਾਮਲ ਹਨ ਜਿਨ੍ਹਾਂ ਦੀ ਕੋਈ ਸੰਚਾਲਨ ਸਥਿਤੀ ਦਰਜ ਨਹੀਂ ਹੈ",
+      "operativeSchemes": "ਉਹ ਸਕੀਮਾਂ ਜਿਨ੍ਹਾਂ ਦੀ ਸੰਚਾਲਨ ਸਥਿਤੀ ਚਾਲੂ ਵਜੋਂ ਦਰਜ ਹੈ",
+      "partiallyOperativeSchemes": "ਉਹ ਸਕੀਮਾਂ ਜਿਨ੍ਹਾਂ ਦੀ ਸੰਚਾਲਨ ਸਥਿਤੀ ਅੰਸ਼ਕ ਤੌਰ 'ਤੇ ਚਾਲੂ ਵਜੋਂ ਦਰਜ ਹੈ",
+      "nonOperativeSchemes": "ਉਹ ਸਕੀਮਾਂ ਜਿਨ੍ਹਾਂ ਦੀ ਸੰਚਾਲਨ ਸਥਿਤੀ ਗੈਰ-ਚਾਲੂ ਵਜੋਂ ਦਰਜ ਹੈ"
+    },
+    "table": {
+      "schemeName": "ਸਕੀਮ ਦਾ ਨਾਮ",
+      "stateSchemeId": "ਰਾਜ ਸਕੀਮ ਆਈਡੀ",
+      "plannedFhtc": "ਯੋਜਨਾਬੱਧ FHTC",
+      "achievedFhtc": "ਪ੍ਰਾਪਤ FHTC",
+      "houseHoldCount": "ਘਰਾਂ ਦੀ ਗਿਣਤੀ",
+      "workStatus": "ਕੰਮ ਦੀ ਸਥਿਤੀ",
+      "operatingStatus": "ਸੰਚਾਲਨ ਸਥਿਤੀ"
+    },
+    "upload": {
+      "title": "ਸਕੀਮ ਡੇਟਾ ਅੱਪਲੋਡ ਕਰੋ",
+      "description": "ਸਕੀਮ ਡੇਟਾ ਵਾਲੀ ਇੱਕ Excel ਫ਼ਾਈਲ (.xlsx ਜਾਂ .xls) ਅੱਪਲੋਡ ਕਰੋ।",
+      "clickToSelect": "ਫ਼ਾਈਲ ਚੁਣਨ ਲਈ ਕਲਿੱਕ ਕਰੋ",
+      "fileTypes": "ਸਿਰਫ਼ .xlsx ਜਾਂ .xls",
+      "submit": "ਅੱਪਲੋਡ ਕਰੋ",
+      "success": "ਸਕੀਮ ਡੇਟਾ ਸਫਲਤਾਪੂਰਵਕ ਅੱਪਲੋਡ ਕੀਤਾ ਗਿਆ",
+      "error": "ਸਕੀਮ ਡੇਟਾ ਅੱਪਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+      "close": "ਬੰਦ ਕਰੋ",
+      "cancel": "ਰੱਦ ਕਰੋ"
+    },
+    "messages": {
+      "noSchemesFound": "ਕੋਈ ਸਕੀਮ ਨਹੀਂ ਮਿਲੀ",
+      "failedToLoad": "ਸਕੀਮ ਡੇਟਾ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+      "statusUpdateFailed": "ਸਥਿਤੀ ਅੱਪਡੇਟ ਕਰਨ ਵਿੱਚ ਅਸਫਲ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+      "statusUpdateSuccess": "ਸਥਿਤੀ ਸਫਲਤਾਪੂਰਵਕ ਅੱਪਡੇਟ ਕੀਤੀ ਗਈ।"
+    },
+    "aria": {
+      "statsSection": "ਸਕੀਮ ਸਿੰਕ ਅੰਕੜੇ",
+      "searchSchemes": "ਨਾਮ ਨਾਲ ਸਕੀਮਾਂ ਖੋਜੋ",
+      "filterSection": "ਸਕੀਮਾਂ ਫਿਲਟਰ ਕਰੋ",
+      "uploadData": "ਸਕੀਮ ਡੇਟਾ ਅੱਪਲੋਡ ਕਰੋ",
+      "changeStatus": "{{status}} ਬਦਲੋ"
+    },
+    "report": {
+      "button": "ਰਿਪੋਰਟਾਂ",
+      "success": "ਰਿਪੋਰਟ ਸਫਲਤਾਪੂਰਵਕ ਡਾਊਨਲੋਡ ਕੀਤੀ ਗਈ।",
+      "error": "ਰਿਪੋਰਟ ਬਣਾਉਣ ਵਿੱਚ ਅਸਫਲ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+      "aria": {
+        "download": "ਸਕੀਮਾਂ ਦੀ ਰਿਪੋਰਟ ਡਾਊਨਲੋਡ ਕਰੋ"
+      }
+    }
+  },
+  "schemeMappingsSync": {
+    "title": "ਸਕੀਮ ਮੈਪਿੰਗ",
+    "searchPlaceholder": "ਸਕੀਮ ਦੇ ਨਾਮ ਨਾਲ ਖੋਜੋ",
+    "uploadData": "ਡੇਟਾ ਅੱਪਲੋਡ ਕਰੋ",
+    "filters": {
+      "clearAll": "ਸਾਰੇ ਫਿਲਟਰ ਹਟਾਓ"
+    },
+    "table": {
+      "schemeName": "ਸਕੀਮ ਦਾ ਨਾਮ",
+      "stateSchemeId": "ਰਾਜ ਸਕੀਮ ਆਈਡੀ",
+      "villageName": "ਪਿੰਡ ਦਾ ਨਾਮ",
+      "subDivisionName": "ਉਪ-ਮੰਡਲ ਦਾ ਨਾਮ"
+    },
+    "upload": {
+      "title": "ਸਕੀਮ ਮੈਪਿੰਗ ਡੇਟਾ ਅੱਪਲੋਡ ਕਰੋ",
+      "description": "ਸਕੀਮ ਮੈਪਿੰਗ ਡੇਟਾ ਵਾਲੀ ਇੱਕ Excel ਫ਼ਾਈਲ (.xlsx ਜਾਂ .xls) ਅੱਪਲੋਡ ਕਰੋ।",
+      "clickToSelect": "ਫ਼ਾਈਲ ਚੁਣਨ ਲਈ ਕਲਿੱਕ ਕਰੋ",
+      "fileTypes": "ਸਿਰਫ਼ .xlsx ਜਾਂ .xls",
+      "submit": "ਅੱਪਲੋਡ ਕਰੋ",
+      "success": "ਸਕੀਮ ਮੈਪਿੰਗ ਡੇਟਾ ਸਫਲਤਾਪੂਰਵਕ ਅੱਪਲੋਡ ਕੀਤਾ ਗਿਆ",
+      "error": "ਸਕੀਮ ਮੈਪਿੰਗ ਡੇਟਾ ਅੱਪਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+      "close": "ਬੰਦ ਕਰੋ",
+      "cancel": "ਰੱਦ ਕਰੋ"
+    },
+    "messages": {
+      "noMappingsFound": "ਕੋਈ ਸਕੀਮ ਮੈਪਿੰਗ ਨਹੀਂ ਮਿਲੀ",
+      "failedToLoad": "ਸਕੀਮ ਮੈਪਿੰਗ ਡੇਟਾ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ"
+    },
+    "aria": {
+      "searchMappings": "ਸਕੀਮ ਦੇ ਨਾਮ ਨਾਲ ਸਕੀਮ ਮੈਪਿੰਗ ਖੋਜੋ",
+      "filterSection": "ਸਕੀਮ ਮੈਪਿੰਗ ਫਿਲਟਰ ਕਰੋ",
+      "uploadData": "ਸਕੀਮ ਮੈਪਿੰਗ ਡੇਟਾ ਅੱਪਲੋਡ ਕਰੋ"
+    },
+    "report": {
+      "button": "ਰਿਪੋਰਟਾਂ",
+      "success": "ਰਿਪੋਰਟ ਸਫਲਤਾਪੂਰਵਕ ਡਾਊਨਲੋਡ ਕੀਤੀ ਗਈ।",
+      "error": "ਰਿਪੋਰਟ ਬਣਾਉਣ ਵਿੱਚ ਅਸਫਲ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+      "aria": {
+        "download": "ਸਕੀਮ ਮੈਪਿੰਗ ਰਿਪੋਰਟ ਡਾਊਨਲੋਡ ਕਰੋ"
+      }
+    }
+  },
+  "configuration": {
+    "pageTitle": "ਸੰਰਚਨਾ",
+    "sectionTitle": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਸੰਰਚਨਾ",
+    "breadcrumb": {
+      "view": "ਸੰਰਚਨਾ ਦੇਖੋ",
+      "edit": "ਸੰਰਚਨਾ ਸੋਧੋ"
+    },
+    "sections": {
+      "lgdHierarchy": {
+        "title": "LGD ਦਰਜਾਬੰਦੀ",
+        "levelLabel": "ਪੱਧਰ {{level}}"
+      },
+      "departmentHierarchy": {
+        "title": "ਵਿਭਾਗੀ ਦਰਜਾਬੰਦੀ",
+        "levelLabel": "ਪੱਧਰ {{level}}"
+      },
+      "supportedChannels": {
+        "title": "ਸਮਰਥਿਤ ਚੈਨਲ",
+        "degradedTooltip": "ਇਸ ਚੈਨਲ ਲਈ ਸਿਸਟਮ ਸਹਾਇਤਾ ਹਟਾ ਦਿੱਤੀ ਗਈ ਹੈ"
+      },
+      "logo": {
+        "title": "ਲੋਗੋ",
+        "uploadButton": "ਲੋਗੋ ਅੱਪਲੋਡ ਕਰੋ",
+        "hint": "ਸਿਰਫ਼ PNG ਜਾਂ JPG",
+        "currentLogo": "ਮੌਜੂਦਾ ਲੋਗੋ"
+      },
+      "meterChangeReasons": {
+        "title": "ਰੀਡਿੰਗ ਜਮ੍ਹਾਂ ਨਾ ਕਰਨ ਦੇ ਕਾਰਨ",
+        "placeholder": "ਕਾਰਨ ਦਰਜ ਕਰੋ",
+        "addButton": "ਸ਼ਾਮਲ ਕਰੋ",
+        "addNewButton": "+ ਨਵਾਂ ਕਾਰਨ ਸ਼ਾਮਲ ਕਰੋ",
+        "empty": "ਅਜੇ ਤੱਕ ਕੋਈ ਕਾਰਨ ਸ਼ਾਮਲ ਨਹੀਂ ਕੀਤਾ ਗਿਆ",
+        "editAriaLabel": "ਕਾਰਨ {{name}} ਸੋਧੋ",
+        "deleteAriaLabel": "ਕਾਰਨ {{name}} ਮਿਟਾਓ",
+        "othersToggleLabel": "ਹੋਰ"
+      },
+      "supplyOutageReasons": {
+        "title": "ਪਾਣੀ ਸਪਲਾਈ ਨਾ ਹੋਣ ਦੇ ਕਾਰਨ",
+        "placeholder": "ਕਾਰਨ ਦਰਜ ਕਰੋ",
+        "addNewButton": "+ ਨਵਾਂ ਕਾਰਨ ਸ਼ਾਮਲ ਕਰੋ",
+        "editAriaLabel": "ਕਾਰਨ {{name}} ਸੋਧੋ",
+        "deleteAriaLabel": "ਕਾਰਨ {{name}} ਮਿਟਾਓ",
+        "othersToggleLabel": "ਹੋਰ"
+      },
+      "locationCheckRequired": {
+        "title": "ਸਥਾਨ ਦਰਜ ਕਰੋ",
+        "yes": "ਹਾਂ",
+        "no": "ਨਹੀਂ"
+      },
+      "lgdMapLevels": {
+        "title": "LGD ਨਕਸ਼ਾ ਪੱਧਰ",
+        "displayLevelLabel": "ਡਿਸਪਲੇ ਪੱਧਰ {{level}}"
+      },
+      "departmentMapLevels": {
+        "title": "ਵਿਭਾਗੀ ਨਕਸ਼ਾ ਪੱਧਰ",
+        "displayLevelLabel": "ਡਿਸਪਲੇ ਪੱਧਰ {{level}}"
+      },
+      "dataConsolidationTime": {
+        "title": "ਡੇਟਾ ਏਕੀਕਰਨ ਸਮਾਂ"
+      },
+      "pumpOperatorReminderNudgeTime": {
+        "title": "ਪੰਪ ਆਪਰੇਟਰ ਰੀਮਾਈਂਡਰ ਨਜ ਸਮਾਂ"
+      },
+      "dateFormatScreen": {
+        "title": "ਸਕ੍ਰੀਨ ਮਿਤੀ ਫਾਰਮੈਟ"
+      },
+      "dateFormatTable": {
+        "title": "ਸਾਰਣੀ ਮਿਤੀ ਫਾਰਮੈਟ"
+      },
+      "dateFormat": {
+        "dateFormat": "ਮਿਤੀ ਫਾਰਮੈਟ",
+        "timeFormat": "ਸਮਾਂ ਫਾਰਮੈਟ",
+        "timezone": "ਸਮਾਂ ਖੇਤਰ",
+        "datePlaceholder": "ਮਿਤੀ ਫਾਰਮੈਟ ਚੁਣੋ",
+        "timePlaceholder": "ਸਮਾਂ ਫਾਰਮੈਟ ਚੁਣੋ",
+        "timezonePlaceholder": "ਸਮਾਂ ਖੇਤਰ ਚੁਣੋ"
+      },
+      "averageMembersPerHousehold": {
+        "title": "ਪ੍ਰਤੀ ਘਰ ਔਸਤ ਮੈਂਬਰ"
+      }
+    },
+    "infoText": {
+      "supportedChannels": "ਉਹ ਚੈਨਲ ਜਿਨ੍ਹਾਂ ਰਾਹੀਂ ਸਕੀਮਾਂ ਛੱਡੇ ਗਏ ਪਾਣੀ ਦੇ ਵਹਾਅ ਨੂੰ ਟਰੈਕ ਕਰਦੀਆਂ ਹਨ।",
+      "meterChangeReasons": "ਉਹ ਕਾਰਨ ਜੋ ਫੀਲਡ ਆਪਰੇਟਰ ਮੀਟਰ ਬਦਲਣ ਦੀ ਘਟਨਾ ਦਰਜ ਕਰਦੇ ਸਮੇਂ ਚੁਣ ਸਕਦੇ ਹਨ।",
+      "supplyOutageReasons": "ਉਹ ਕਾਰਨ ਜੋ ਫੀਲਡ ਆਪਰੇਟਰ ਜਲ ਸਪਲਾਈ ਵਿੱਚ ਰੁਕਾਵਟ ਦੀ ਰਿਪੋਰਟ ਕਰਦੇ ਸਮੇਂ ਚੁਣ ਸਕਦੇ ਹਨ।",
+      "locationCheckRequired": "ਸਮਰੱਥ ਹੋਣ 'ਤੇ, ਫੀਲਡ ਆਪਰੇਟਰਾਂ ਨੂੰ ਰੀਡਿੰਗਾਂ ਜਮ੍ਹਾਂ ਕਰਦੇ ਸਮੇਂ ਆਪਣਾ GPS ਸਥਾਨ ਸਾਂਝਾ ਕਰਨਾ ਲਾਜ਼ਮੀ ਹੈ।",
+      "dataConsolidationTime": "ਰੋਜ਼ਾਨਾ ਸਮਾਂ ਜਿਸ 'ਤੇ ਫੀਲਡ ਡੇਟਾ ਰਿਪੋਰਟਿੰਗ ਲਈ ਇਕੱਠਾ ਅਤੇ ਏਕੀਕ੍ਰਿਤ ਕੀਤਾ ਜਾਂਦਾ ਹੈ।",
+      "pumpOperatorReminderNudgeTime": "ਰੋਜ਼ਾਨਾ ਸਮਾਂ ਜਿਸ 'ਤੇ ਉਨ੍ਹਾਂ ਪੰਪ ਆਪਰੇਟਰਾਂ ਨੂੰ ਸਵੈਚਲਿਤ ਰੀਮਾਈਂਡਰ ਭੇਜੇ ਜਾਂਦੇ ਹਨ ਜਿਨ੍ਹਾਂ ਨੇ ਅਜੇ ਤੱਕ ਰੀਡਿੰਗਾਂ ਜਮ੍ਹਾਂ ਨਹੀਂ ਕੀਤੀਆਂ।",
+      "lgdMapLevels": "ਇਹ ਨਿਯੰਤਰਿਤ ਕਰਦਾ ਹੈ ਕਿ ਨਕਸ਼ੇ 'ਤੇ ਕਿਹੜੇ LGD ਪ੍ਰਸ਼ਾਸਕੀ ਪੱਧਰ ਦਿਖਾਈ ਦੇਣ।",
+      "departmentMapLevels": "ਇਹ ਨਿਯੰਤਰਿਤ ਕਰਦਾ ਹੈ ਕਿ ਵਿਭਾਗੀ ਨਕਸ਼ਾ ਦ੍ਰਿਸ਼ 'ਤੇ ਕਿਹੜੇ ਵਿਭਾਗੀ ਪੱਧਰ ਦਿਖਾਈ ਦੇਣ।",
+      "dateFormatScreen": "ਡੈਸ਼ਬੋਰਡਾਂ ਵਰਗੇ ਸਾਰੇ ਆਨ-ਸਕ੍ਰੀਨ ਡਿਸਪਲੇ ਵਿੱਚ ਵਰਤਿਆ ਜਾਣ ਵਾਲਾ ਮਿਤੀ ਫਾਰਮੈਟ।",
+      "dateFormatTable": "ਡੇਟਾ ਸਾਰਣੀਆਂ ਅਤੇ ਐਕਸਪੋਰਟ ਕੀਤੀਆਂ ਰਿਪੋਰਟਾਂ ਵਿੱਚ ਵਰਤਿਆ ਜਾਣ ਵਾਲਾ ਮਿਤੀ ਫਾਰਮੈਟ।",
+      "averageMembersPerHousehold": "ਘਰ-ਪੱਧਰੀ ਸਪਲਾਈ ਡੇਟਾ ਤੋਂ ਪ੍ਰਤੀ ਵਿਅਕਤੀ ਪਾਣੀ ਦੀ ਖਪਤ ਦਾ ਅੰਦਾਜ਼ਾ ਲਗਾਉਣ ਲਈ ਵਰਤਿਆ ਜਾਂਦਾ ਹੈ। ਸਵੀਕਾਰਯੋਗ ਸੀਮਾ: 1–20।",
+      "logo": "ਐਪ ਵਿੱਚ ਦਿਖਾਇਆ ਜਾਣ ਵਾਲਾ ਸੰਸਥਾ ਦਾ ਲੋਗੋ। PNG ਜਾਂ JPG, ਵੱਧ ਤੋਂ ਵੱਧ 2 MB।"
+    },
+    "aria": {
+      "form": "ਸੰਰਚਨਾ ਫਾਰਮ",
+      "editConfiguration": "ਸੰਰਚਨਾ ਸੋਧੋ",
+      "lgdLevel": "LGD ਦਰਜਾਬੰਦੀ ਪੱਧਰ {{level}} ਦਾ ਨਾਮ",
+      "deptLevel": "ਵਿਭਾਗੀ ਦਰਜਾਬੰਦੀ ਪੱਧਰ {{level}} ਦਾ ਨਾਮ"
+    },
+    "messages": {
+      "saveSuccess": "ਸੰਰਚਨਾ ਸਫਲਤਾਪੂਰਵਕ ਸੇਵ ਕੀਤੀ ਗਈ",
+      "saveFailed": "ਸੰਰਚਨਾ ਸੇਵ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+      "validation": {
+        "channelRequired": "ਘੱਟੋ-ਘੱਟ ਇੱਕ ਸਮਰਥਿਤ ਚੈਨਲ ਚੁਣੋ",
+        "hierarchyRequired": "ਸਾਰੇ ਦਰਜਾਬੰਦੀ ਪੱਧਰਾਂ ਦੇ ਨਾਮ ਲੋੜੀਂਦੇ ਹਨ",
+        "logoTooLarge": "ਲੋਗੋ ਫ਼ਾਈਲ 2 MB ਜਾਂ ਇਸ ਤੋਂ ਛੋਟੀ ਹੋਣੀ ਚਾਹੀਦੀ ਹੈ",
+        "logoInvalidType": "ਲੋਗੋ ਇੱਕ PNG ਜਾਂ JPG ਫ਼ਾਈਲ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ",
+        "logoRequired": "ਕਿਰਪਾ ਕਰਕੇ ਇੱਕ ਲੋਗੋ ਅੱਪਲੋਡ ਕਰੋ",
+        "dateFormatScreenRequired": "ਕਿਰਪਾ ਕਰਕੇ ਸਕ੍ਰੀਨ ਡਿਸਪਲੇ ਲਈ ਇੱਕ ਮਿਤੀ ਫਾਰਮੈਟ ਚੁਣੋ",
+        "dateFormatTableRequired": "ਕਿਰਪਾ ਕਰਕੇ ਸਾਰਣੀ ਡਿਸਪਲੇ ਲਈ ਇੱਕ ਮਿਤੀ ਫਾਰਮੈਟ ਚੁਣੋ"
+      }
+    }
+  },
+  "stateUtAdmins": {
+    "title": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਪ੍ਰਬੰਧਕ",
+    "addTitle": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਪ੍ਰਬੰਧਕ ਸ਼ਾਮਲ ਕਰੋ",
+    "editTitle": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਪ੍ਰਬੰਧਕ ਸੋਧੋ",
+    "viewTitle": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਪ੍ਰਬੰਧਕ ਦੇਖੋ",
+    "addAdmin": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਪ੍ਰਬੰਧਕ ਸ਼ਾਮਲ ਕਰੋ",
+    "table": {
+      "name": "ਨਾਮ",
+      "mobileNumber": "ਮੋਬਾਈਲ ਨੰਬਰ",
+      "emailAddress": "ਈਮੇਲ ਪਤਾ",
+      "status": "ਸਥਿਤੀ",
+      "actions": "ਕਾਰਵਾਈਆਂ"
+    },
+    "filters": {
+      "allStatuses": "ਸਾਰੀਆਂ ਸਥਿਤੀਆਂ"
+    },
+    "form": {
+      "userDetails": "ਉਪਭੋਗਤਾ ਵੇਰਵੇ",
+      "firstName": "ਪਹਿਲਾ ਨਾਮ",
+      "lastName": "ਆਖਰੀ ਨਾਮ",
+      "emailAddress": "ਈਮੇਲ ਪਤਾ",
+      "phoneNumber": "ਫ਼ੋਨ ਨੰਬਰ",
+      "statusSection": "ਸਥਿਤੀ",
+      "activated": "ਸਰਗਰਮ ਕੀਤਾ"
+    },
+    "buttons": {
+      "addAndSendLink": "ਪ੍ਰਬੰਧਕ ਸ਼ਾਮਲ ਕਰੋ ਅਤੇ ਈਮੇਲ ਰਾਹੀਂ ਲਿੰਕ ਭੇਜੋ"
+    },
+    "breadcrumb": {
+      "manage": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਪ੍ਰਬੰਧਕਾਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ",
+      "addNew": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਪ੍ਰਬੰਧਕ ਸ਼ਾਮਲ ਕਰੋ",
+      "view": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਪ੍ਰਬੰਧਕ ਦੇਖੋ",
+      "edit": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਪ੍ਰਬੰਧਕ ਸੋਧੋ"
+    },
+    "messages": {
+      "noAdminsFound": "ਕੋਈ ਪ੍ਰਬੰਧਕ ਨਹੀਂ ਮਿਲਿਆ",
+      "notFound": "ਪ੍ਰਬੰਧਕ ਨਹੀਂ ਮਿਲਿਆ",
+      "adminAdded": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਪ੍ਰਬੰਧਕ ਸ਼ਾਮਲ ਕੀਤਾ ਗਿਆ ਅਤੇ ਈਮੇਲ ਰਾਹੀਂ ਸੱਦਾ ਭੇਜਿਆ ਗਿਆ",
+      "failedToAdd": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਪ੍ਰਬੰਧਕ ਸ਼ਾਮਲ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+      "activatedSuccess": "ਪ੍ਰਬੰਧਕ ਸਫਲਤਾਪੂਰਵਕ ਸਰਗਰਮ ਕੀਤਾ ਗਿਆ",
+      "deactivatedSuccess": "ਪ੍ਰਬੰਧਕ ਸਫਲਤਾਪੂਰਵਕ ਅਸਰਗਰਮ ਕੀਤਾ ਗਿਆ",
+      "failedToUpdateStatus": "ਪ੍ਰਬੰਧਕ ਦੀ ਸਥਿਤੀ ਅੱਪਡੇਟ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+      "pendingStatusTooltip": "ਇਸ ਪ੍ਰਬੰਧਕ ਦੀ ਰਜਿਸਟ੍ਰੇਸ਼ਨ ਅਜੇ ਬਕਾਇਆ ਹੈ।"
+    },
+    "aria": {
+      "search": "ਪ੍ਰਬੰਧਕ ਖੋਜੋ",
+      "view": "ਪ੍ਰਬੰਧਕ ਦੇਖੋ",
+      "edit": "ਪ੍ਰਬੰਧਕ ਸੋਧੋ",
+      "resendInvite": "ਪ੍ਰਬੰਧਕ ਨੂੰ ਸੱਦਾ ਦੁਬਾਰਾ ਭੇਜੋ"
+    }
+  },
+  "messageTemplates": {
+    "title": "ਟੈਂਪਲੇਟ",
+    "subtitle": "WhatsApp ਟੈਂਪਲੇਟ (ਸਿਰਫ਼ ਪੜ੍ਹਨ ਲਈ)",
+    "selectLanguage": "ਭਾਸ਼ਾ ਚੁਣੋ",
+    "selectTemplate": "ਟੈਂਪਲੇਟ ਚੁਣੋ",
+    "language": "ਭਾਸ਼ਾ",
+    "template": "ਟੈਂਪਲੇਟ",
+    "prompt": "ਪ੍ਰੌਂਪਟ",
+    "message": "ਸੁਨੇਹਾ",
+    "confirmationTemplate": "ਪੁਸ਼ਟੀ ਸੁਨੇਹਾ",
+    "options": "ਵਿਕਲਪ",
+    "reasons": "ਕਾਰਨ",
+    "noContent": "ਇਸ ਚੋਣ ਲਈ ਕੋਈ ਸਮੱਗਰੀ ਉਪਲਬਧ ਨਹੀਂ",
+    "screens": {
+      "ISSUE_REPORT": "ਸਮੱਸਿਆ ਰਿਪੋਰਟ",
+      "INTRO_MESSAGE": "ਜਾਣ-ਪਛਾਣ ਸੁਨੇਹਾ",
+      "ITEM_SELECTION": "ਆਈਟਮ ਚੋਣ",
+      "CLOSING_MESSAGE": "ਸਮਾਪਤੀ ਸੁਨੇਹਾ",
+      "CHANNEL_SELECTION": "ਚੈਨਲ ਚੋਣ",
+      "LANGUAGE_SELECTION": "ਭਾਸ਼ਾ ਚੋਣ"
+    },
+    "messages": {
+      "failedToLoad": "ਸੁਨੇਹਾ ਟੈਂਪਲੇਟ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ"
+    },
+    "aria": {
+      "selectLanguage": "ਭਾਸ਼ਾ ਚੁਣੋ",
+      "selectTemplate": "ਟੈਂਪਲੇਟ ਚੁਣੋ"
+    }
+  },
+  "nudges": {
+    "title": "ਨਜ ਟੈਂਪਲੇਟ",
+    "language": "ਭਾਸ਼ਾ",
+    "selectLanguage": "ਭਾਸ਼ਾ ਚੁਣੋ",
+    "availableVariables": "ਉਪਲਬਧ ਵੇਰੀਏਬਲ",
+    "message": "ਸੁਨੇਹਾ",
+    "messagePlaceholder": "ਸੁਨੇਹਾ ਟੈਂਪਲੇਟ ਦਰਜ ਕਰੋ",
+    "testSend": "ਟੈਸਟ-ਭੇਜੋ",
+    "messages": {
+      "enterMessage": "ਕਿਰਪਾ ਕਰਕੇ ਇੱਕ ਸੁਨੇਹਾ ਦਰਜ ਕਰੋ",
+      "testSent": "ਟੈਸਟ ਸੁਨੇਹਾ ਸਫਲਤਾਪੂਰਵਕ ਭੇਜਿਆ ਗਿਆ",
+      "failedToLoad": "ਟੈਂਪਲੇਟ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+      "failedToSave": "ਬਦਲਾਅ ਸੇਵ ਕਰਨ ਵਿੱਚ ਅਸਫਲ"
+    },
+    "aria": {
+      "formLabel": "ਨਜ ਟੈਂਪਲੇਟ ਸੰਰਚਨਾ ਫਾਰਮ",
+      "templateCard": "{{name}} ਲਈ ਨਜ ਟੈਂਪਲੇਟ ਸੰਰਚਨਾ",
+      "selectLanguage": "{{name}} ਟੈਂਪਲੇਟ ਲਈ ਭਾਸ਼ਾ ਚੁਣੋ",
+      "enterMessage": "{{name}} ਟੈਂਪਲੇਟ ਲਈ ਸੁਨੇਹਾ ਦਰਜ ਕਰੋ"
+    }
+  },
+  "validation": {
+    "required": "ਇਹ ਖੇਤਰ ਲੋੜੀਂਦਾ ਹੈ",
+    "emptyOrWhitespace": "ਇਹ ਖੇਤਰ ਖਾਲੀ ਨਹੀਂ ਹੋ ਸਕਦਾ ਜਾਂ ਇਸ ਵਿੱਚ ਸਿਰਫ਼ ਖਾਲੀ ਥਾਂਵਾਂ ਨਹੀਂ ਹੋ ਸਕਦੀਆਂ",
+    "containsHtmlTags": "HTML ਟੈਗਾਂ ਦੀ ਇਜਾਜ਼ਤ ਨਹੀਂ ਹੈ",
+    "containsSqlInjection": "ਅਵੈਧ ਅੱਖਰ ਮਿਲੇ ਹਨ",
+    "alphanumericOnly": "ਸਿਰਫ਼ ਅੱਖਰਾਂ, ਨੰਬਰਾਂ, ਖਾਲੀ ਥਾਂਵਾਂ ਅਤੇ ਹਾਈਫਨ (-) ਦੀ ਇਜਾਜ਼ਤ ਹੈ",
+    "invalidUrl": "ਕਿਰਪਾ ਕਰਕੇ https:// ਨਾਲ ਸ਼ੁਰੂ ਹੋਣ ਵਾਲਾ ਇੱਕ ਵੈਧ URL ਦਰਜ ਕਰੋ",
+    "noSpaces": "ਖਾਲੀ ਥਾਂਵਾਂ ਦੀ ਇਜਾਜ਼ਤ ਨਹੀਂ ਹੈ",
+    "maxLength": "{{max}} ਅੱਖਰਾਂ ਤੋਂ ਵੱਧ ਨਹੀਂ ਹੋਣਾ ਚਾਹੀਦਾ",
+    "httpsOnce": "URL ਸਿਰਫ਼ ਇੱਕ ਵਾਰ https:// ਨਾਲ ਸ਼ੁਰੂ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ",
+    "duplicateValue": "ਇਹ ਮੁੱਲ ਪਹਿਲਾਂ ਹੀ ਮੌਜੂਦ ਹੈ",
+    "mustBePositive": "ਮੁੱਲ 0 ਤੋਂ ਵੱਧ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ",
+    "mustBeInRange": "ਮੁੱਲ {{min}} ਅਤੇ {{max}} ਦੇ ਵਿਚਕਾਰ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ",
+    "selectAtLeastOne": "ਘੱਟੋ-ਘੱਟ ਇੱਕ ਵਿਕਲਪ ਚੁਣੋ",
+    "fillPreviousFirst": "ਕਿਰਪਾ ਕਰਕੇ ਨਵੀਂ ਐਂਟਰੀ ਸ਼ਾਮਲ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਪਿਛਲੀ ਐਂਟਰੀ ਭਰੋ",
+    "duplicateDistrict": "ਇਹ ਜ਼ਿਲ੍ਹਾ ਪਹਿਲਾਂ ਹੀ ਸ਼ਾਮਲ ਕੀਤਾ ਜਾ ਚੁੱਕਾ ਹੈ",
+    "duplicateLevelName": "ਦੁਹਰਾਏ ਪੱਧਰ ਨਾਮਾਂ ਦੀ ਇਜਾਜ਼ਤ ਨਹੀਂ ਹੈ",
+    "minLength": "ਘੱਟੋ-ਘੱਟ {{min}} ਅੱਖਰ ਹੋਣੇ ਚਾਹੀਦੇ ਹਨ",
+    "timeRequired": "ਕਿਰਪਾ ਕਰਕੇ ਇੱਕ ਸਮਾਂ ਚੁਣੋ",
+    "daysMinimum": "ਦਿਨ ਘੱਟੋ-ਘੱਟ 1 ਹੋਣੇ ਚਾਹੀਦੇ ਹਨ",
+    "daysMaximum": "ਦਿਨ {{max}} ਤੋਂ ਵੱਧ ਨਹੀਂ ਹੋਣੇ ਚਾਹੀਦੇ",
+    "selectRole": "ਕਿਰਪਾ ਕਰਕੇ ਇੱਕ ਭੂਮਿਕਾ ਚੁਣੋ",
+    "selectAlertType": "ਕਿਰਪਾ ਕਰਕੇ ਇੱਕ ਚੇਤਾਵਨੀ ਕਿਸਮ ਚੁਣੋ",
+    "alphabeticOnly": "ਸਿਰਫ਼ ਅੱਖਰ ਅਤੇ ਖਾਲੀ ਥਾਂਵਾਂ ਦੀ ਇਜਾਜ਼ਤ ਹੈ",
+    "maxValue": "ਮੁੱਲ {{max}} ਤੋਂ ਵੱਧ ਨਹੀਂ ਹੋਣਾ ਚਾਹੀਦਾ",
+    "sdoDaysNotLessThanSo": "ਉਪ-ਮੰਡਲ ਅਧਿਕਾਰੀ ਦੇ ਐਸਕੇਲੇਸ਼ਨ ਦਿਨ ਸੈਕਸ਼ਨ ਅਧਿਕਾਰੀ ਦੇ ਐਸਕੇਲੇਸ਼ਨ ਦਿਨਾਂ ਤੋਂ ਵੱਧ ਜਾਂ ਬਰਾਬਰ ਹੋਣੇ ਚਾਹੀਦੇ ਹਨ"
+  }
+}

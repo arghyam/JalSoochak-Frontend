@@ -1,0 +1,298 @@
+{
+  "overview": {
+    "title": "ਸੰਖੇਪ ਜਾਣਕਾਰੀ",
+    "addNewStateUt": "ਨਵਾਂ ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਸ਼ਾਮਲ ਕਰੋ",
+    "stats": {
+      "totalStatesManaged": "ਪ੍ਰਬੰਧਿਤ ਕੁੱਲ ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼",
+      "activeStates": "ਸਰਗਰਮ ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼",
+      "inactiveStates": "ਅਸਰਗਰਮ ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼"
+    },
+    "charts": {
+      "ingestionSuccessRate": "ਸਮੇਂ ਦੇ ਨਾਲ ਇਨਜੈਸ਼ਨ ਸਫਲਤਾ ਦਰ",
+      "successfulIngestions": "ਸਫਲ ਇਨਜੈਸ਼ਨ",
+      "failedIngestions": "ਅਸਫਲ ਇਨਜੈਸ਼ਨ",
+      "waterSupplyOutages": "ਜਲ ਸਪਲਾਈ ਠੱਪ",
+      "select": "ਚੁਣੋ"
+    }
+  },
+  "systemRules": {
+    "title": "ਸਿਸਟਮ ਨਿਯਮ",
+    "configurationSettings": "ਸੰਰਚਨਾ ਸੈਟਿੰਗਾਂ",
+    "coverage": {
+      "title": "ਕਵਰੇਜ",
+      "description": "ਕਵਰੇਜ ਚੇਤਾਵਨੀ ਤੋਂ ਬਚਣ ਲਈ ਕਾਰਜਸ਼ੀਲ ਘਰੇਲੂ ਟੂਟੀ ਕਨੈਕਸ਼ਨ (FHTC) ਵਾਲੇ ਘਰਾਂ ਦੀ ਘੱਟੋ-ਘੱਟ ਪ੍ਰਤੀਸ਼ਤਤਾ।"
+    },
+    "continuity": {
+      "title": "ਨਿਰੰਤਰਤਾ",
+      "description": "ਲਗਾਤਾਰ ਦਿਨਾਂ ਦੀ ਵੱਧ ਤੋਂ ਵੱਧ ਗਿਣਤੀ ਜਿਨ੍ਹਾਂ ਲਈ ਜਲ ਸਪਲਾਈ ਡੇਟਾ ਗੁੰਮ ਹੈ ਜਾਂ ਕੋਈ ਸਪਲਾਈ ਦਰਜ ਨਹੀਂ ਹੈ, ਇਸ ਤੋਂ ਬਾਅਦ ਨਿਰੰਤਰਤਾ ਚੇਤਾਵਨੀ ਸ਼ੁਰੂ ਹੁੰਦੀ ਹੈ।"
+    },
+    "quantity": {
+      "title": "ਮਾਤਰਾ (ਪ੍ਰਤੀ ਵਿਅਕਤੀ)",
+      "description": "ਪ੍ਰਤੀ ਦਿਨ ਲੋੜੀਂਦੀ ਘੱਟੋ-ਘੱਟ ਪ੍ਰਤੀ ਵਿਅਕਤੀ ਜਲ ਸਪਲਾਈ (LPCD ਵਿੱਚ)। ਜੇਕਰ ਔਸਤ ਸਪਲਾਈ ਕੀਤੀ ਮਾਤਰਾ ਇਸ ਮੁੱਲ ਤੋਂ ਘੱਟ ਜਾਂਦੀ ਹੈ, ਤਾਂ ਮਾਤਰਾ ਚੇਤਾਵਨੀ ਸ਼ੁਰੂ ਹੋ ਜਾਵੇਗੀ"
+    },
+    "regularity": {
+      "title": "ਨਿਯਮਤਤਾ ਸੀਮਾ",
+      "description": "ਨਿਯਮਤਤਾ ਚੇਤਾਵਨੀ ਤੋਂ ਬਚਣ ਲਈ ਚੁਣੀ ਗਈ ਮਿਆਦ ਦੌਰਾਨ ਪਾਣੀ ਸਪਲਾਈ ਕੀਤੇ ਜਾਣ ਵਾਲੇ ਦਿਨਾਂ ਦੀ ਘੱਟੋ-ਘੱਟ ਪ੍ਰਤੀਸ਼ਤਤਾ।"
+    }
+  },
+  "statesUts": {
+    "title": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ਾਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ",
+    "addTitle": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਸ਼ਾਮਲ ਕਰੋ",
+    "viewTitle": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਦੇਖੋ",
+    "editTitle": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਸੋਧੋ",
+    "addNewStateUt": "ਨਵਾਂ ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਸ਼ਾਮਲ ਕਰੋ",
+    "breadcrumb": {
+      "manage": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ਾਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ",
+      "addNew": "ਨਵਾਂ ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਸ਼ਾਮਲ ਕਰੋ",
+      "view": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਦੇਖੋ",
+      "edit": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਸੋਧੋ"
+    },
+    "table": {
+      "stateUt": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼",
+      "stateCode": "ਰਾਜ ਕੋਡ",
+      "lgdCode": "LGD ਕੋਡ",
+      "status": "ਸਥਿਤੀ",
+      "lastSyncDate": "ਆਖਰੀ ਸਿੰਕ ਮਿਤੀ",
+      "totalDistricts": "ਕੁੱਲ ਜ਼ਿਲ੍ਹੇ",
+      "actions": "ਕਾਰਵਾਈਆਂ"
+    },
+    "details": {
+      "title": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਵੇਰਵੇ",
+      "name": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਦਾ ਨਾਮ",
+      "code": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਕੋਡ",
+      "autoFilledOnStateSelection": "ਰਾਜ ਚੁਣਨ 'ਤੇ ਆਪਣੇ-ਆਪ ਭਰਿਆ ਜਾਂਦਾ ਹੈ",
+      "stateCode": "ਰਾਜ ਕੋਡ",
+      "lgdCode": "LGD ਕੋਡ",
+      "createdAt": "ਬਣਾਉਣ ਦੀ ਮਿਤੀ"
+    },
+    "adminDetails": {
+      "title": "ਰਾਜ ਪ੍ਰਬੰਧਕ ਵੇਰਵੇ",
+      "firstName": "ਪਹਿਲਾ ਨਾਮ",
+      "lastName": "ਆਖਰੀ ਨਾਮ",
+      "email": "ਈਮੇਲ ਪਤਾ",
+      "phone": "ਫ਼ੋਨ ਨੰਬਰ",
+      "secondaryEmail": "ਦੂਜਾ ਈਮੇਲ ਪਤਾ (ਵਿਕਲਪਿਕ)",
+      "contactNumber": "ਸੰਪਰਕ ਨੰਬਰ (ਵਿਕਲਪਿਕ)",
+      "noAdminDescription": "ਇਸ ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਨੂੰ ਕੋਈ ਰਾਜ ਪ੍ਰਬੰਧਕ ਨਿਯੁਕਤ ਨਹੀਂ ਕੀਤਾ ਗਿਆ ਹੈ। ਹੇਠਾਂ ਇੱਕ ਨੂੰ ਸੱਦਾ ਦਿਓ।"
+    },
+    "statusSection": {
+      "title": "ਸਥਿਤੀ",
+      "activated": "ਸਰਗਰਮ ਕੀਤਾ",
+      "stateUtStatus": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਸਥਿਤੀ",
+      "statuses": {
+        "INACTIVE": "ਅਸਰਗਰਮ",
+        "ONBOARDED": "ਆਨਬੋਰਡ ਕੀਤਾ",
+        "CONFIGURED": "ਸੰਰਚਿਤ",
+        "ACTIVE": "ਸਰਗਰਮ",
+        "SUSPENDED": "ਮੁਅੱਤਲ",
+        "DEGRADED": "ਘਟੀ ਕਾਰਗੁਜ਼ਾਰੀ",
+        "ARCHIVED": "ਪੁਰਾਲੇਖਿਤ"
+      }
+    },
+    "buttons": {
+      "addAndSendLink": "ਰਾਜ ਸ਼ਾਮਲ ਕਰੋ ਅਤੇ ਈਮੇਲ ਰਾਹੀਂ ਲਿੰਕ ਭੇਜੋ",
+      "backToList": "ਰਾਜਾਂ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ਾਂ 'ਤੇ ਵਾਪਸ ਜਾਓ",
+      "createStateUt": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਬਣਾਓ",
+      "sendInvite": "ਈਮੇਲ ਰਾਹੀਂ ਸੱਦਾ ਭੇਜੋ",
+      "skipForNow": "ਹੁਣ ਲਈ ਛੱਡੋ"
+    },
+    "step": "ਕਦਮ {{current}} / {{total}}",
+    "messages": {
+      "notFound": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਨਹੀਂ ਮਿਲਿਆ",
+      "noStatesFound": "ਕੋਈ ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਨਹੀਂ ਮਿਲਿਆ",
+      "addedSuccess": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਸਫਲਤਾਪੂਰਵਕ ਸ਼ਾਮਲ ਕੀਤਾ ਗਿਆ",
+      "inviteSent": "ਸੱਦਾ ਸਫਲਤਾਪੂਰਵਕ ਭੇਜਿਆ ਗਿਆ",
+      "tenantCreatedSuccess": "ਟੈਨੈਂਟ ਸਫਲਤਾਪੂਰਵਕ ਬਣਾਇਆ ਗਿਆ",
+      "tenantNameLabel": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼",
+      "adminInviteSent": "ਪ੍ਰਬੰਧਕ ਨੂੰ ਸੱਦਾ ਭੇਜਿਆ ਜਾਵੇਗਾ।",
+      "failedToAdd": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਸ਼ਾਮਲ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+      "tenantCreatedAdminFailed": "ਟੈਨੈਂਟ ਬਣ ਗਿਆ ਪਰ ਪ੍ਰਬੰਧਕ ਬਣਾਉਣ ਵਿੱਚ ਅਸਫਲ",
+      "failedToLoadAssignedStates": "ਨਿਰਧਾਰਤ ਰਾਜ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ। ਕਿਰਪਾ ਕਰਕੇ ਪੰਨਾ ਰਿਫ੍ਰੈਸ਼ ਕਰੋ ਅਤੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+      "failedToLoadStateOptions": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਵਿਕਲਪ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ। ਕਿਰਪਾ ਕਰਕੇ ਪੰਨਾ ਰਿਫ੍ਰੈਸ਼ ਕਰੋ ਅਤੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+      "activatedSuccess": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਸਫਲਤਾਪੂਰਵਕ ਸਰਗਰਮ ਕੀਤਾ ਗਿਆ",
+      "deactivatedSuccess": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਸਫਲਤਾਪੂਰਵਕ ਅਸਰਗਰਮ ਕੀਤਾ ਗਿਆ",
+      "failedToUpdateStatus": "ਸਥਿਤੀ ਅੱਪਡੇਟ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+      "statusUpdatedSuccess": "ਸਥਿਤੀ ਸਫਲਤਾਪੂਰਵਕ ਅੱਪਡੇਟ ਕੀਤੀ ਗਈ",
+      "adminActivatedSuccess": "ਰਾਜ ਪ੍ਰਬੰਧਕ ਸਫਲਤਾਪੂਰਵਕ ਸਰਗਰਮ ਕੀਤਾ ਗਿਆ",
+      "adminDeactivatedSuccess": "ਰਾਜ ਪ੍ਰਬੰਧਕ ਸਫਲਤਾਪੂਰਵਕ ਅਸਰਗਰਮ ਕੀਤਾ ਗਿਆ",
+      "adminRegistrationPending": "ਇਸ ਉਪਭੋਗਤਾ ਦੀ ਰਜਿਸਟ੍ਰੇਸ਼ਨ ਅਜੇ ਬਕਾਇਆ ਹੈ।"
+    },
+    "filters": {
+      "allStatuses": "ਸਾਰੀਆਂ ਸਥਿਤੀਆਂ"
+    },
+    "aria": {
+      "viewStateUt": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਦੇਖੋ",
+      "editStateUt": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਸੋਧੋ"
+    },
+    "searchPlaceholder": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਦੇ ਨਾਮ ਨਾਲ ਖੋਜੋ"
+  },
+  "manageStateAdmins": {
+    "title": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਪ੍ਰਬੰਧਕਾਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ",
+    "searchPlaceholder": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਖੋਜੋ",
+    "downloadReport": "ਰਿਪੋਰਟ ਡਾਊਨਲੋਡ ਕਰੋ",
+    "table": {
+      "adminName": "ਪ੍ਰਬੰਧਕ ਦਾ ਨਾਮ",
+      "stateUt": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼",
+      "mobileNumber": "ਮੋਬਾਈਲ ਨੰਬਰ",
+      "emailAddress": "ਈਮੇਲ ਪਤਾ",
+      "signupStatus": "ਸਾਈਨਅੱਪ ਸਥਿਤੀ",
+      "actions": "ਕਾਰਵਾਈਆਂ"
+    },
+    "status": {
+      "completed": "ਮੁਕੰਮਲ",
+      "pending": "ਬਕਾਇਆ",
+      "inactive": "ਅਸਰਗਰਮ"
+    },
+    "messages": {
+      "noAdminsFound": "ਕੋਈ ਪ੍ਰਬੰਧਕ ਨਹੀਂ ਮਿਲਿਆ"
+    },
+    "aria": {
+      "viewAdmin": "ਪ੍ਰਬੰਧਕ ਦੇਖੋ",
+      "editAdmin": "ਪ੍ਰਬੰਧਕ ਸੋਧੋ",
+      "resendInvite": "ਪ੍ਰਬੰਧਕ ਨੂੰ ਸੱਦਾ ਦੁਬਾਰਾ ਭੇਜੋ"
+    }
+  },
+  "apiCredentials": {
+    "title": "API ਪ੍ਰਮਾਣ-ਪੱਤਰ",
+    "searchPlaceholder": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਦੇ ਨਾਮ ਨਾਲ ਖੋਜੋ",
+    "labels": {
+      "lastUsed": "ਆਖਰੀ ਵਾਰ ਵਰਤਿਆ:",
+      "createdOn": "ਬਣਾਉਣ ਦੀ ਮਿਤੀ:",
+      "nextRotation": "ਅਗਲਾ ਰੋਟੇਸ਼ਨ:",
+      "stateUtStatus": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ ਸਥਿਤੀ:"
+    },
+    "buttons": {
+      "generateKey": "ਕੁੰਜੀ ਬਣਾਓ",
+      "sendKey": "ਕੁੰਜੀ ਭੇਜੋ"
+    },
+    "messages": {
+      "noCredentialsFound": "ਤੁਹਾਡੇ ਫਿਲਟਰਾਂ ਨਾਲ ਮੇਲ ਖਾਂਦੇ ਕੋਈ ਪ੍ਰਮਾਣ-ਪੱਤਰ ਨਹੀਂ ਮਿਲੇ"
+    }
+  },
+  "superUsers": {
+    "title": "ਸੁਪਰ ਉਪਭੋਗਤਾ",
+    "addTitle": "ਸੁਪਰ ਉਪਭੋਗਤਾ ਸ਼ਾਮਲ ਕਰੋ",
+    "editTitle": "ਸੁਪਰ ਉਪਭੋਗਤਾ ਸੋਧੋ",
+    "viewTitle": "ਸੁਪਰ ਉਪਭੋਗਤਾ ਦੇਖੋ",
+    "addUser": "ਸੁਪਰ ਉਪਭੋਗਤਾ ਸ਼ਾਮਲ ਕਰੋ",
+    "table": {
+      "name": "ਨਾਮ",
+      "mobileNumber": "ਮੋਬਾਈਲ ਨੰਬਰ",
+      "emailAddress": "ਈਮੇਲ ਪਤਾ",
+      "status": "ਸਥਿਤੀ",
+      "actions": "ਕਾਰਵਾਈਆਂ"
+    },
+    "filters": {
+      "allStatuses": "ਸਾਰੀਆਂ ਸਥਿਤੀਆਂ"
+    },
+    "form": {
+      "userDetails": "ਉਪਭੋਗਤਾ ਵੇਰਵੇ",
+      "firstName": "ਪਹਿਲਾ ਨਾਮ",
+      "lastName": "ਆਖਰੀ ਨਾਮ",
+      "emailAddress": "ਈਮੇਲ ਪਤਾ",
+      "phoneNumber": "ਫ਼ੋਨ ਨੰਬਰ",
+      "statusSection": "ਸਥਿਤੀ",
+      "activated": "ਸਰਗਰਮ ਕੀਤਾ"
+    },
+    "buttons": {
+      "addAndSendLink": "ਸੁਪਰ ਉਪਭੋਗਤਾ ਸ਼ਾਮਲ ਕਰੋ ਅਤੇ ਈਮੇਲ ਰਾਹੀਂ ਲਿੰਕ ਭੇਜੋ"
+    },
+    "breadcrumb": {
+      "manage": "ਸੁਪਰ ਉਪਭੋਗਤਾਵਾਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ",
+      "addNew": "ਸੁਪਰ ਉਪਭੋਗਤਾ ਸ਼ਾਮਲ ਕਰੋ",
+      "view": "ਸੁਪਰ ਉਪਭੋਗਤਾ ਦੇਖੋ",
+      "edit": "ਸੁਪਰ ਉਪਭੋਗਤਾ ਸੋਧੋ"
+    },
+    "messages": {
+      "noUsersFound": "ਕੋਈ ਸੁਪਰ ਉਪਭੋਗਤਾ ਨਹੀਂ ਮਿਲਿਆ",
+      "notFound": "ਸੁਪਰ ਉਪਭੋਗਤਾ ਨਹੀਂ ਮਿਲਿਆ",
+      "userAdded": "ਸੁਪਰ ਉਪਭੋਗਤਾ ਸ਼ਾਮਲ ਕੀਤਾ ਗਿਆ ਅਤੇ ਈਮੇਲ ਰਾਹੀਂ ਸੱਦਾ ਭੇਜਿਆ ਗਿਆ",
+      "failedToAdd": "ਸੁਪਰ ਉਪਭੋਗਤਾ ਸ਼ਾਮਲ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+      "activatedSuccess": "ਸੁਪਰ ਉਪਭੋਗਤਾ ਸਫਲਤਾਪੂਰਵਕ ਸਰਗਰਮ ਕੀਤਾ ਗਿਆ",
+      "deactivatedSuccess": "ਸੁਪਰ ਉਪਭੋਗਤਾ ਸਫਲਤਾਪੂਰਵਕ ਅਸਰਗਰਮ ਕੀਤਾ ਗਿਆ",
+      "failedToUpdateStatus": "ਸੁਪਰ ਉਪਭੋਗਤਾ ਦੀ ਸਥਿਤੀ ਅੱਪਡੇਟ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+      "pendingStatusTooltip": "ਇਸ ਉਪਭੋਗਤਾ ਦੀ ਰਜਿਸਟ੍ਰੇਸ਼ਨ ਅਜੇ ਬਕਾਇਆ ਹੈ।"
+    },
+    "aria": {
+      "search": "ਸੁਪਰ ਉਪਭੋਗਤਾ ਖੋਜੋ",
+      "view": "ਸੁਪਰ ਉਪਭੋਗਤਾ ਦੇਖੋ",
+      "edit": "ਸੁਪਰ ਉਪਭੋਗਤਾ ਸੋਧੋ",
+      "resendInvite": "ਸੁਪਰ ਉਪਭੋਗਤਾ ਨੂੰ ਸੱਦਾ ਦੁਬਾਰਾ ਭੇਜੋ"
+    }
+  },
+  "configuration": {
+    "pageTitle": "ਸੰਰਚਨਾ",
+    "sectionTitle": "ਸਿਸਟਮ ਸੰਰਚਨਾ",
+    "breadcrumb": {
+      "view": "ਸੰਰਚਨਾ ਦੇਖੋ",
+      "edit": "ਸੰਰਚਨਾ ਸੋਧੋ"
+    },
+    "sections": {
+      "supportedChannels": {
+        "title": "ਸਮਰਥਿਤ ਚੈਨਲ"
+      },
+      "undersupplyThreshold": {
+        "title": "ਘੱਟ ਸਪਲਾਈ ਸੀਮਾ (%)",
+        "description": "ਅਸਲ ਮਾਪਦੰਡ ਤੋਂ ਪ੍ਰਤੀਸ਼ਤ ਵਿੱਚ ਨਕਾਰਾਤਮਕ ਵਿਚਲਨ।"
+      },
+      "oversupplyThreshold": {
+        "title": "ਵੱਧ ਸਪਲਾਈ ਸੀਮਾ (%)",
+        "description": "ਅਸਲ ਮਾਪਦੰਡ ਤੋਂ ਪ੍ਰਤੀਸ਼ਤ ਵਿੱਚ ਸਕਾਰਾਤਮਕ ਵਿਚਲਨ।"
+      },
+      "bfmImageConfidence": {
+        "title": "BFM ਚਿੱਤਰ ਭਰੋਸਾ ਸੀਮਾ (%)"
+      },
+      "locationAffinity": {
+        "title": "ਸਥਾਨ ਨੇੜਤਾ ਸੀਮਾ"
+      }
+    },
+    "infoText": {
+      "supportedChannels": "ਉਹ ਚੈਨਲ ਜਿਨ੍ਹਾਂ ਰਾਹੀਂ ਸਕੀਮਾਂ ਛੱਡੇ ਗਏ ਪਾਣੀ ਦੇ ਵਹਾਅ ਨੂੰ ਟਰੈਕ ਕਰਦੀਆਂ ਹਨ। ਰਾਜ ਪ੍ਰਬੰਧਕ ਸਿਰਫ਼ ਇਨ੍ਹਾਂ ਵਿੱਚੋਂ ਹੀ ਚੁਣ ਸਕਦੇ ਹਨ।",
+      "undersupplyThreshold": "ਪਾਣੀ ਦੇ ਮਾਪਦੰਡ ਤੋਂ ਹੇਠਾਂ ਦੀ ਪ੍ਰਤੀਸ਼ਤਤਾ ਜਿਸ 'ਤੇ ਸਪਲਾਈ ਦੀ ਘਾਟ ਦੀ ਚੇਤਾਵਨੀ ਸ਼ੁਰੂ ਹੁੰਦੀ ਹੈ। ਸੀਮਾ: 0–100।",
+      "oversupplyThreshold": "ਪਾਣੀ ਦੇ ਮਾਪਦੰਡ ਤੋਂ ਉੱਪਰ ਦੀ ਪ੍ਰਤੀਸ਼ਤਤਾ ਜਿਸ 'ਤੇ ਵਾਧੂ ਪਾਣੀ ਦੀ ਚੇਤਾਵਨੀ ਸ਼ੁਰੂ ਹੁੰਦੀ ਹੈ। ਸੀਮਾ: 0–1000।",
+      "bfmImageConfidence": "ਬਲਕ ਫਲੋ ਮੀਟਰ ਚਿੱਤਰਾਂ ਨੂੰ ਵੈਧ ਰੀਡਿੰਗਾਂ ਵਜੋਂ ਸਵੀਕਾਰ ਕਰਨ ਲਈ ਘੱਟੋ-ਘੱਟ ਭਰੋਸਾ ਸਕੋਰ। ਸੀਮਾ: 0–100।",
+      "locationAffinity": "ਫੀਲਡ ਆਪਰੇਟਰ ਦੇ GPS ਸਥਾਨ ਅਤੇ ਉਸ ਨੂੰ ਨਿਰਧਾਰਤ ਬੁਨਿਆਦੀ ਢਾਂਚੇ ਦੇ ਬਿੰਦੂ ਵਿਚਕਾਰ ਵੱਧ ਤੋਂ ਵੱਧ ਸਵੀਕਾਰਯੋਗ ਦੂਰੀ।"
+    },
+    "messages": {
+      "saveSuccess": "ਸੰਰਚਨਾ ਸਫਲਤਾਪੂਰਵਕ ਸੇਵ ਕੀਤੀ ਗਈ",
+      "saveFailed": "ਸੰਰਚਨਾ ਸੇਵ ਕਰਨ ਵਿੱਚ ਅਸਫਲ",
+      "validation": {
+        "channelRequired": "ਘੱਟੋ-ਘੱਟ ਇੱਕ ਸਮਰਥਿਤ ਚੈਨਲ ਚੁਣਿਆ ਜਾਣਾ ਚਾਹੀਦਾ ਹੈ"
+      }
+    },
+    "aria": {
+      "editConfiguration": "ਸੰਰਚਨਾ ਸੋਧੋ",
+      "form": "ਸਿਸਟਮ ਸੰਰਚਨਾ ਫਾਰਮ"
+    }
+  },
+  "ingestionMonitor": {
+    "title": "ਇਨਜੈਸ਼ਨ ਮਾਨੀਟਰ",
+    "filters": {
+      "allStatesUts": "ਸਾਰੇ ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼",
+      "lastDays": "ਪਿਛਲੇ {{days}} ਦਿਨ"
+    },
+    "stats": {
+      "totalIngestions": "ਕੁੱਲ ਇਨਜੈਸ਼ਨ",
+      "acrossAllStatesUts": "ਸਾਰੇ ਰਾਜਾਂ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼ਾਂ ਵਿੱਚ",
+      "successfulIngestions": "ਸਫਲ ਇਨਜੈਸ਼ਨ",
+      "successRate": "{{rate}}% ਸਫਲਤਾ ਦਰ",
+      "failedIngestions": "ਅਸਫਲ ਇਨਜੈਸ਼ਨ",
+      "failureRate": "{{rate}}% ਅਸਫਲਤਾ ਦਰ",
+      "currentWarnings": "ਮੌਜੂਦਾ ਚੇਤਾਵਨੀਆਂ",
+      "issuesRequiringAttention": "ਧਿਆਨ ਦੀ ਲੋੜ ਵਾਲੇ ਮੁੱਦੇ"
+    },
+    "charts": {
+      "ingestionSuccessRate": "ਸਮੇਂ ਦੇ ਨਾਲ ਇਨਜੈਸ਼ਨ ਸਫਲਤਾ ਦਰ"
+    },
+    "logs": {
+      "title": "ਵਿਸਤ੍ਰਿਤ ਇਨਜੈਸ਼ਨ ਲੌਗ",
+      "recordsProcessed": "ਪ੍ਰੋਸੈਸ ਕੀਤੇ ਰਿਕਾਰਡ: {{recordCount}}",
+      "batchId": "ਬੈਚ ਆਈਡੀ:",
+      "sourceSystem": "ਸਰੋਤ ਸਿਸਟਮ:",
+      "processingTime": "ਪ੍ਰੋਸੈਸਿੰਗ ਸਮਾਂ:",
+      "noAnomalies": "ਇਨਜੈਸ਼ਨ ਦੌਰਾਨ ਕੋਈ ਵਿਗਾੜ ਨਹੀਂ ਮਿਲਿਆ।",
+      "issue": "ਮੁੱਦਾ:",
+      "error": "ਗਲਤੀ:"
+    }
+  }
+}

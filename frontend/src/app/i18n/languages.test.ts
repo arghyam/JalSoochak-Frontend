@@ -4,11 +4,11 @@ import { SUPPORTED_LANGUAGES, isLanguageCode, resolveEnabledLanguages } from './
 const codesOf = (languages: readonly { code: string }[]) => languages.map(({ code }) => code)
 
 describe('isLanguageCode', () => {
-  it.each(['en', 'hi', 'as'])('accepts the shipped code %s', (code) => {
+  it.each(['en', 'hi', 'as', 'pa'])('accepts the shipped code %s', (code) => {
     expect(isLanguageCode(code)).toBe(true)
   })
 
-  it.each(['pa', 'EN', '', undefined, 1])('rejects %p', (value) => {
+  it.each(['ta', 'EN', '', undefined, 1])('rejects %p', (value) => {
     expect(isLanguageCode(value)).toBe(false)
   })
 })
@@ -44,12 +44,17 @@ describe('resolveEnabledLanguages', () => {
   })
 
   it('keeps catalogue order regardless of config order', () => {
-    expect(codesOf(resolveEnabledLanguages(['as', 'hi', 'en']))).toEqual(['en', 'hi', 'as'])
+    expect(codesOf(resolveEnabledLanguages(['pa', 'as', 'hi', 'en']))).toEqual([
+      'en',
+      'hi',
+      'as',
+      'pa',
+    ])
   })
 
   it('drops unknown codes and warns about them', () => {
-    expect(codesOf(resolveEnabledLanguages(['en', 'pa', 42]))).toEqual(['en'])
-    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('pa, 42'))
+    expect(codesOf(resolveEnabledLanguages(['en', 'ta', 42]))).toEqual(['en'])
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('ta, 42'))
   })
 
   it.each([['en,hi'], [null], [{ en: true }]])(

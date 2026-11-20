@@ -1,0 +1,441 @@
+{
+  "failedToLoadData": "ਡੇਟਾ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+  "failedToLoadDataReload": "ਡੇਟਾ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਫਲ। ਕਿਰਪਾ ਕਰਕੇ ਪੰਨਾ ਦੁਬਾਰਾ ਲੋਡ ਕਰੋ।",
+  "header": {
+    "title": "ਜਲਸੂਚਕ",
+    "subtitle": "ਰਾਸ਼ਟਰੀ ਪੇਂਡੂ ਪੀਣ ਵਾਲੇ ਪਾਣੀ ਦੀ ਸਪਲਾਈ ਡੈਸ਼ਬੋਰਡ",
+    "subtitleSingleTenant": "{{tenantName}} ਪੇਂਡੂ ਪੀਣ ਵਾਲੇ ਪਾਣੀ ਦੀ ਸਪਲਾਈ ਡੈਸ਼ਬੋਰਡ"
+  },
+  "searchLayout": {
+    "placeholder": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼, ਜ਼ਿਲ੍ਹਾ, ਬਲਾਕ, ਗ੍ਰਾਮ ਪੰਚਾਇਤ, ਪਿੰਡ ਨਾਲ ਖੋਜੋ",
+    "downloadReport": "ਰਿਪੋਰਟ ਡਾਊਨਲੋਡ ਕਰੋ",
+    "allStatesUTs": "ਸਾਰੇ ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼",
+    "noOptionsFound": "ਕੋਈ {{label}} ਨਹੀਂ ਮਿਲਿਆ",
+    "tabs": {
+      "administrative": "ਪ੍ਰਸ਼ਾਸਕੀ",
+      "departmental": "ਵਿਭਾਗੀ"
+    },
+    "options": {
+      "states": "ਰਾਜ"
+    },
+    "aria": {
+      "breadcrumb": "ਬ੍ਰੈੱਡਕ੍ਰੰਬ: {{item}}",
+      "closeDropdown": "ਖੋਜ ਡ੍ਰੌਪਡਾਊਨ ਬੰਦ ਕਰੋ"
+    }
+  },
+  "filters": {
+    "duration": "ਮਿਆਦ",
+    "clearAll": "ਸਾਰੇ ਫਿਲਟਰ ਹਟਾਓ",
+    "dateRangePicker": {
+      "quickRanges": "ਤੁਰੰਤ ਮਿਆਦਾਂ",
+      "startDate": "ਸ਼ੁਰੂਆਤੀ ਮਿਤੀ",
+      "endDate": "ਅੰਤਮ ਮਿਤੀ",
+      "dateInputPlaceholder": "dd/mm/yyyy",
+      "clear": "ਹਟਾਓ",
+      "apply": "ਲਾਗੂ ਕਰੋ",
+      "presetUnavailable": "ਮਨਜ਼ੂਰਸ਼ੁਦਾ ਮਿਤੀ ਸੀਮਾ ਵਿੱਚ ਉਪਲਬਧ ਨਹੀਂ",
+      "presets": {
+        "today": "ਅੱਜ",
+        "yesterday": "ਕੱਲ੍ਹ",
+        "thisWeek": "ਇਸ ਹਫ਼ਤੇ",
+        "lastWeek": "ਪਿਛਲੇ ਹਫ਼ਤੇ",
+        "thisMonth": "ਇਸ ਮਹੀਨੇ",
+        "lastMonth": "ਪਿਛਲੇ ਮਹੀਨੇ"
+      }
+    },
+    "options": {
+      "states": "ਰਾਜ",
+      "districts": "ਜ਼ਿਲ੍ਹੇ",
+      "blocks": "ਬਲਾਕ",
+      "gramPanchayats": "ਗ੍ਰਾਮ ਪੰਚਾਇਤਾਂ",
+      "villages": "ਪਿੰਡ"
+    },
+    "searchBy": {
+      "label": "{{label}} ਨਾਲ ਖੋਜੋ",
+      "stateUt": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼",
+      "district": "ਜ਼ਿਲ੍ਹਾ",
+      "block": "ਬਲਾਕ",
+      "gramPanchayat": "ਗ੍ਰਾਮ ਪੰਚਾਇਤ",
+      "village": "ਪਿੰਡ",
+      "zone": "ਜ਼ੋਨ",
+      "circle": "ਸਰਕਲ",
+      "division": "ਮੰਡਲ",
+      "subDivision": "ਉਪ-ਮੰਡਲ"
+    },
+    "noOptions": {
+      "states": "ਕੋਈ ਰਾਜ ਨਹੀਂ ਮਿਲਿਆ",
+      "districts": "ਕੋਈ ਜ਼ਿਲ੍ਹਾ ਨਹੀਂ ਮਿਲਿਆ",
+      "blocks": "ਕੋਈ ਬਲਾਕ ਨਹੀਂ ਮਿਲਿਆ",
+      "gramPanchayats": "ਕੋਈ ਗ੍ਰਾਮ ਪੰਚਾਇਤ ਨਹੀਂ ਮਿਲੀ",
+      "villages": "ਕੋਈ ਪਿੰਡ ਨਹੀਂ ਮਿਲਿਆ"
+    }
+  },
+  "map": {
+    "metric": {
+      "quantity": "ਮਾਤਰਾ",
+      "regularity": "ਨਿਯਮਤਤਾ"
+    },
+    "viewTabs": {
+      "stateView": "ਰਾਜ ਦ੍ਰਿਸ਼",
+      "districtView": "ਜ਼ਿਲ੍ਹਾ ਦ੍ਰਿਸ਼"
+    },
+    "noMapAvailable": "ਨਕਸ਼ਾ ਇਸ ਸਮੇਂ ਉਪਲਬਧ ਨਹੀਂ ਹੈ",
+    "loading": "ਨਕਸ਼ਾ ਲੋਡ ਹੋ ਰਿਹਾ ਹੈ...",
+    "loadError": "ਇਸ ਸਮੇਂ ਨਕਸ਼ਾ ਲੋਡ ਕਰਨ ਵਿੱਚ ਅਸਮਰੱਥ।",
+    "legend": {
+      "ariaLabel": "ਨਕਸ਼ੇ ਦੇ ਮੁੱਲਾਂ ਦੀਆਂ ਸੀਮਾਵਾਂ",
+      "range": "{{min}}–{{max}}%",
+      "noData": "ਕੋਈ ਡੇਟਾ ਨਹੀਂ"
+    },
+    "metricsHelp": {
+      "regularly": "ਨਿਯਮਤਤਾ: ਨਿਯਮਤ ਤੌਰ 'ਤੇ ਪਾਣੀ ਸਪਲਾਈ ਕਰਨ ਵਾਲੀਆਂ ਸਕੀਮਾਂ ਦਾ %",
+      "quantity": "ਮਾਤਰਾ: ਲੋੜੀਂਦਾ ਪਾਣੀ ਸਪਲਾਈ ਕਰਨ ਵਾਲੀਆਂ ਸਕੀਮਾਂ ਦਾ %"
+    }
+  },
+  "kpi": {
+    "labels": {
+      "schemesSupplyingWater": "ਪਾਣੀ ਸਪਲਾਈ ਕਰ ਰਹੀਆਂ ਸਕੀਮਾਂ",
+      "quantityInMld": "MLD ਵਿੱਚ ਮਾਤਰਾ",
+      "quantityInLpcd": "LPCD ਵਿੱਚ ਮਾਤਰਾ",
+      "regularity": "ਨਿਯਮਤਤਾ",
+      "criticalSchemes": "ਨਾਜ਼ੁਕ ਸਕੀਮਾਂ"
+    },
+    "tooltips": {
+      "schemesSupplyingWater": {
+        "description": "ਉਨ੍ਹਾਂ ਸਕੀਮਾਂ ਦੀ ਗਿਣਤੀ (ਕੰਮ ਦੀ ਸਥਿਤੀ ਦੀ ਪਰਵਾਹ ਕੀਤੇ ਬਿਨਾਂ) ਜਿਨ੍ਹਾਂ ਨੇ ਚੁਣੀ ਗਈ ਮਿਤੀ ਸੀਮਾ ਦੌਰਾਨ ਘੱਟੋ-ਘੱਟ ਇੱਕ ਦਿਨ ਪਾਣੀ ਸਪਲਾਈ ਕੀਤਾ।"
+      },
+      "criticalSchemes": {
+        "description": "ਉਨ੍ਹਾਂ ਸਕੀਮਾਂ ਦੀ ਗਿਣਤੀ ਜਿਨ੍ਹਾਂ ਨੇ ਅੱਜ ਦੀ ਮਿਤੀ ਤੋਂ ਪਿਛਲੇ {{days}} ਦਿਨਾਂ ਵਿੱਚ ਪਾਣੀ ਸਪਲਾਈ ਨਹੀਂ ਕੀਤਾ, ਚੁਣੀ ਗਈ ਮਿਤੀ ਸੀਮਾ ਦੀ ਪਰਵਾਹ ਕੀਤੇ ਬਿਨਾਂ।"
+      },
+      "quantityMld": {
+        "formulaLabel": "ਮਾਤਰਾ (MLD)",
+        "definitions": {
+          "mldFullForm": "ਮਿਲੀਅਨ ਲੀਟਰ ਪ੍ਰਤੀ ਦਿਨ",
+          "waterQuantitySupplied": "kਵੇਂ ਦਿਨ ਸਪਲਾਈ ਕੀਤੇ ਪਾਣੀ ਦੀ ਮਾਤਰਾ",
+          "totalWaterSupplied": "ਸਾਰੇ ਦਿਨਾਂ ਵਿੱਚ ਸਪਲਾਈ ਕੀਤਾ ਕੁੱਲ ਪਾਣੀ",
+          "totalNumberOfDays": "ਚੁਣੀ ਗਈ ਸਮਾਂ-ਮਿਆਦ ਵਿੱਚ ਦਿਨਾਂ ਦੀ ਕੁੱਲ ਗਿਣਤੀ"
+        }
+      },
+      "quantityLpcd": {
+        "formulaLabel": "ਮਾਤਰਾ (LPCD)",
+        "definitions": {
+          "lpcdFullForm": "ਲੀਟਰ ਪ੍ਰਤੀ ਵਿਅਕਤੀ ਪ੍ਰਤੀ ਦਿਨ",
+          "waterQuantitySupplied": "kਵੇਂ ਦਿਨ ਸਪਲਾਈ ਕੀਤੇ ਪਾਣੀ ਦੀ ਮਾਤਰਾ",
+          "functionalHouseholdTapConnections": "ਸਕੀਮ i ਦੇ ਕਾਰਜਸ਼ੀਲ ਘਰੇਲੂ ਟੂਟੀ ਕਨੈਕਸ਼ਨ",
+          "averagePersonsPerHousehold": "ਪ੍ਰਤੀ ਘਰ ਔਸਤ ਵਿਅਕਤੀ",
+          "supplyDays": "ਚੁਣੀ ਗਈ ਸਮਾਂ-ਮਿਆਦ ਵਿੱਚ ਸਕੀਮ i ਵੱਲੋਂ ਪਾਣੀ ਸਪਲਾਈ ਕੀਤੇ ਦਿਨਾਂ ਦੀ ਗਿਣਤੀ"
+        }
+      },
+      "regularity": {
+        "description": "ਸਕੀਮਾਂ ਨੂੰ ਨਿਯਮਤ ਮੰਨਿਆ ਜਾਂਦਾ ਹੈ ਜੇਕਰ ਉਨ੍ਹਾਂ ਨੇ ਚੁਣੀ ਗਈ ਮਿਤੀ ਸੀਮਾ ਦੇ ਘੱਟੋ-ਘੱਟ 90% ਦਿਨਾਂ ਵਿੱਚ ਪਾਣੀ ਸਪਲਾਈ ਕੀਤਾ ਹੋਵੇ।",
+        "formulaLabel": "ਨਿਯਮਤਤਾ",
+        "definitions": {
+          "regularSchemes": "ਨਿਯਮਤ ਤੌਰ 'ਤੇ ਪਾਣੀ ਸਪਲਾਈ ਕਰਨ ਵਾਲੀਆਂ ਸਕੀਮਾਂ ਦੀ ਗਿਣਤੀ",
+          "totalSchemes": "ਸਕੀਮਾਂ ਦੀ ਕੁੱਲ ਗਿਣਤੀ"
+        }
+      }
+    },
+    "trends": {
+      "percentVsPreviousDays_one": "ਪਿਛਲੇ {{days}} ਦਿਨ ਦੇ ਮੁਕਾਬਲੇ {{change}}%",
+      "percentVsPreviousDays_other": "ਪਿਛਲੇ {{days}} ਦਿਨਾਂ ਦੇ ਮੁਕਾਬਲੇ {{change}}%",
+      "lpcdVsPreviousDays_one": "ਪਿਛਲੇ {{days}} ਦਿਨ ਦੇ ਮੁਕਾਬਲੇ {{change}} LPCD",
+      "lpcdVsPreviousDays_other": "ਪਿਛਲੇ {{days}} ਦਿਨਾਂ ਦੇ ਮੁਕਾਬਲੇ {{change}} LPCD",
+      "percentDownLastDays": "ਪਿਛਲੇ {{days}} ਦਿਨਾਂ ਦੇ ਮੁਕਾਬਲੇ -{{change}}%",
+      "lpcdUpLastMonth": "ਪਿਛਲੇ ਮਹੀਨੇ ਦੇ ਮੁਕਾਬਲੇ +{{change}} LPCD",
+      "percentDownLastMonth": "ਪਿਛਲੇ ਮਹੀਨੇ ਦੇ ਮੁਕਾਬਲੇ -{{change}}%"
+    }
+  },
+  "overallPerformance": {
+    "title": "ਕਾਰਗੁਜ਼ਾਰੀ ਸਾਰ",
+    "noData": "ਕੋਈ ਡੇਟਾ ਉਪਲਬਧ ਨਹੀਂ",
+    "columns": {
+      "entity": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼",
+      "quantityMld": "ਮਾਤਰਾ (MLD)",
+      "quantityLpcd": "ਮਾਤਰਾ (LPCD)",
+      "regularity": "ਨਿਯਮਤਤਾ (%)",
+      "households": "ਘਰ"
+    },
+    "entities": {
+      "stateUt": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼",
+      "district": "ਜ਼ਿਲ੍ਹਾ",
+      "block": "ਬਲਾਕ",
+      "gramPanchayat": "ਗ੍ਰਾਮ ਪੰਚਾਇਤ",
+      "village": "ਪਿੰਡ"
+    }
+  },
+  "performanceCharts": {
+    "quantity": {
+      "title": "ਮਾਤਰਾ ਕਾਰਗੁਜ਼ਾਰੀ",
+      "ariaViewBy": "ਮਾਤਰਾ ਕਾਰਗੁਜ਼ਾਰੀ ਦ੍ਰਿਸ਼ ਦਾ ਆਧਾਰ",
+      "ariaViewByDistrict": "ਜ਼ਿਲ੍ਹਾ ਮਾਤਰਾ ਕਾਰਗੁਜ਼ਾਰੀ ਦ੍ਰਿਸ਼ ਦਾ ਆਧਾਰ",
+      "ariaViewByGramPanchayat": "ਗ੍ਰਾਮ ਪੰਚਾਇਤ ਮਾਤਰਾ ਕਾਰਗੁਜ਼ਾਰੀ ਦ੍ਰਿਸ਼ ਦਾ ਆਧਾਰ",
+      "yAxisLabel": "ਮਾਤਰਾ (LPCD)",
+      "timeYAxisLabel": "ਮਾਤਰਾ (ਲੀਟਰ)",
+      "seriesName": "ਮਾਤਰਾ",
+      "areaSeriesName": "ਮੰਗ"
+    },
+    "regularity": {
+      "title": "ਨਿਯਮਤਤਾ ਕਾਰਗੁਜ਼ਾਰੀ",
+      "ariaViewBy": "ਨਿਯਮਤਤਾ ਕਾਰਗੁਜ਼ਾਰੀ ਦ੍ਰਿਸ਼ ਦਾ ਆਧਾਰ",
+      "ariaViewByDistrict": "ਜ਼ਿਲ੍ਹਾ ਨਿਯਮਤਤਾ ਕਾਰਗੁਜ਼ਾਰੀ ਦ੍ਰਿਸ਼ ਦਾ ਆਧਾਰ",
+      "ariaViewByGramPanchayat": "ਗ੍ਰਾਮ ਪੰਚਾਇਤ ਨਿਯਮਤਤਾ ਕਾਰਗੁਜ਼ਾਰੀ ਦ੍ਰਿਸ਼ ਦਾ ਆਧਾਰ",
+      "yAxisLabel": "ਨਿਯਮਤਤਾ (%)",
+      "seriesName": "ਨਿਯਮਤਤਾ"
+    },
+    "viewBy": {
+      "select": "ਚੁਣੋ",
+      "geography": "ਭੂਗੋਲ",
+      "time": "ਸਮਾਂ",
+      "month": "ਮਹੀਨਾ",
+      "blocks": "ਬਲਾਕ",
+      "districts": "ਜ਼ਿਲ੍ਹੇ",
+      "statesUTs": "ਰਾਜ/ਕੇਂਦਰ ਸ਼ਾਸਿਤ ਪ੍ਰਦੇਸ਼",
+      "gramPanchayats": "ਗ੍ਰਾਮ ਪੰਚਾਇਤਾਂ",
+      "villages": "ਪਿੰਡ",
+      "zone": "ਜ਼ੋਨ",
+      "circle": "ਸਰਕਲ",
+      "division": "ਮੰਡਲ",
+      "subDivision": "ਉਪ-ਮੰਡਲ",
+      "zones": "ਜ਼ੋਨ",
+      "circles": "ਸਰਕਲ",
+      "divisions": "ਮੰਡਲ",
+      "subDivisions": "ਉਪ-ਮੰਡਲ"
+    }
+  },
+  "aria": {
+    "chartInfo": "{{title}} ਜਾਣਕਾਰੀ"
+  },
+  "outageAndSubmissionCharts": {
+    "ariaViewByBlock": "ਬਲਾਕ ਸਪਲਾਈ ਠੱਪ ਵੰਡ ਦ੍ਰਿਸ਼ ਦਾ ਆਧਾਰ",
+    "ariaViewByGramPanchayat": "ਗ੍ਰਾਮ ਪੰਚਾਇਤ ਸਪਲਾਈ ਠੱਪ ਵੰਡ ਦ੍ਰਿਸ਼ ਦਾ ਆਧਾਰ",
+    "ariaOutageTimeScale": "ਸਪਲਾਈ ਠੱਪ ਸਮਾਂ ਪੈਮਾਨਾ",
+    "ariaSupplyOutageDistribution": "ਸਪਲਾਈ ਠੱਪ ਵੰਡ ਜਾਣਕਾਰੀ",
+    "ariaSchemeStatus": "ਸਕੀਮ ਸਥਿਤੀ ਜਾਣਕਾਰੀ",
+    "ariaReadingSubmissionRate": "ਰੀਡਿੰਗ ਜਮ੍ਹਾਂ ਕਰਨ ਦੀ ਦਰ ਜਾਣਕਾਰੀ",
+    "supplyOutageReasons": {
+      "tooltip": "ਗਿਣਤੀ ਵਿਲੱਖਣ ਸਕੀਮਾਂ 'ਤੇ ਆਧਾਰਿਤ ਹੈ। ਇੱਕ ਸਕੀਮ ਕਈ ਖੇਤਰਾਂ ਵਿੱਚ ਦਿਖਾਈ ਦੇ ਸਕਦੀ ਹੈ, ਇਸ ਲਈ ਖੇਤਰੀ ਕੁੱਲ ਜੋੜ ਵੱਧ ਹੋ ਸਕਦੇ ਹਨ।",
+      "ariaLabel": "ਸਪਲਾਈ ਠੱਪ ਹੋਣ ਦੇ ਕਾਰਨਾਂ ਦੀ ਜਾਣਕਾਰੀ"
+    },
+    "titles": {
+      "supplyOutageReasons": "ਸਪਲਾਈ ਠੱਪ ਹੋਣ ਦੇ ਕਾਰਨ",
+      "supplyOutageDistribution": "ਸਪਲਾਈ ਠੱਪ ਹੋਣ ਦੀ ਵੰਡ",
+      "readingSubmissionRate": "ਰੀਡਿੰਗ ਜਮ੍ਹਾਂ ਕਰਨ ਦੀ ਦਰ",
+      "readingSubmissionStatus": "ਰੀਡਿੰਗ ਜਮ੍ਹਾਂ ਕਰਨ ਦੀ ਸਥਿਤੀ",
+      "readingCompliance": "ਰੀਡਿੰਗ ਪਾਲਣਾ",
+      "photoEvidenceCompliance": "ਫੋਟੋ ਸਬੂਤ ਪਾਲਣਾ",
+      "issueTypeBreakdown": "ਸਮੱਸਿਆ ਦੀ ਕਿਸਮ ਅਨੁਸਾਰ ਵੰਡ"
+    },
+    "axis": {
+      "percentage": "ਪ੍ਰਤੀਸ਼ਤ",
+      "noOfReasons": "ਕਾਰਨਾਂ ਦੀ ਗਿਣਤੀ"
+    },
+    "series": {
+      "submissionRate": "ਜਮ੍ਹਾਂ ਕਰਨ ਦੀ ਦਰ",
+      "readingSubmission": "ਰੀਡਿੰਗ ਜਮ੍ਹਾਂ",
+      "supplyOutage": "ਸਪਲਾਈ ਠੱਪ"
+    },
+    "timeScale": {
+      "day": "ਦਿਨ",
+      "week": "ਹਫ਼ਤਾ",
+      "month": "ਮਹੀਨਾ",
+      "quarter": "ਤਿਮਾਹੀ",
+      "year": "ਸਾਲ"
+    },
+    "timeScaleShort": {
+      "day": "ਦਿ",
+      "week": "ਹ",
+      "month": "ਮ",
+      "quarter": "ਤਿ",
+      "year": "ਸਾ"
+    },
+    "legend": {
+      "electricalFailure": "ਬਿਜਲੀ ਖਰਾਬੀ",
+      "pipelineBreak": "ਪਾਈਪਲਾਈਨ ਟੁੱਟਣਾ",
+      "pumpFailure": "ਪੰਪ ਖਰਾਬੀ",
+      "valveIssue": "ਵਾਲਵ ਸਮੱਸਿਆ",
+      "sourceDrying": "ਸਰੋਤ ਸੁੱਕਣਾ",
+      "complaintSubmission": "ਸ਼ਿਕਾਇਤ ਜਮ੍ਹਾਂ",
+      "automatedSubmission": "ਅਸਧਾਰਨ ਜਮ੍ਹਾਂ",
+      "compliantSubmission": "ਪਾਲਣਾ ਵਾਲੀਆਂ ਜਮ੍ਹਾਂ",
+      "anomalousSubmission": "ਅਸਧਾਰਨ ਜਮ੍ਹਾਂ"
+    },
+    "tables": {
+      "readingCompliance": {
+        "columns": {
+          "name": "ਨਾਮ",
+          "village": "ਪਿੰਡ",
+          "lastSubmission": "ਜਮ੍ਹਾਂ ਕਰਨ ਦੀ ਮਿਤੀ ਅਤੇ ਸਮਾਂ",
+          "readingValue": "ਰੀਡਿੰਗ ਮੁੱਲ"
+        }
+      }
+    }
+  },
+  "pumpOperators": {
+    "title": "ਸਥਿਤੀ ਅਨੁਸਾਰ ਸਕੀਮਾਂ",
+    "totalLabel": "ਕੁੱਲ",
+    "dimension": {
+      "work": "ਕੰਮ",
+      "operating": "ਸੰਚਾਲਨ",
+      "ariaLabel": "ਸਕੀਮ ਸਥਿਤੀ ਵੰਡ"
+    },
+    "details": {
+      "title": "ਪੰਪ ਆਪਰੇਟਰ ਵੇਰਵੇ",
+      "ariaPumpOperatorDetails": "ਪੰਪ ਆਪਰੇਟਰ ਵੇਰਵੇ ਜਾਣਕਾਰੀ",
+      "ariaLastSubmission": "ਆਖਰੀ ਜਮ੍ਹਾਂ ਜਾਣਕਾਰੀ",
+      "ariaReportingRate": "ਰਿਪੋਰਟਿੰਗ ਦਰ ਜਾਣਕਾਰੀ",
+      "ariaMissingSubmissionCount": "ਗੁੰਮ ਜਮ੍ਹਾਂ ਗਿਣਤੀ ਜਾਣਕਾਰੀ",
+      "ariaSchemeSelect": "ਸਕੀਮ ਚੁਣੋ",
+      "fields": {
+        "schemeId": "ਸਕੀਮ ਆਈਡੀ",
+        "stateSchemeId": "ਰਾਜ ਸਕੀਮ ਆਈਡੀ",
+        "centerSchemeId": "ਕੇਂਦਰ ਸਕੀਮ ਆਈਡੀ",
+        "schemeName": "ਸਕੀਮ ਦਾ ਨਾਮ",
+        "phoneNumber": "ਫ਼ੋਨ ਨੰਬਰ",
+        "email": "ਈਮੇਲ",
+        "status": "ਸਥਿਤੀ",
+        "schemeNameSchemeId": "ਸਕੀਮ ਦਾ ਨਾਮ/ ਸਕੀਮ ਆਈਡੀ",
+        "stationLocation": "ਸਟੇਸ਼ਨ ਸਥਾਨ",
+        "lastSubmission": "ਆਖਰੀ ਜਮ੍ਹਾਂ",
+        "reportingRate": "ਰਿਪੋਰਟਿੰਗ ਦਰ",
+        "missingSubmissionCount": "ਗੁੰਮ ਜਮ੍ਹਾਂ ਗਿਣਤੀ",
+        "inactiveDays": "ਅਸਰਗਰਮ ਦਿਨ"
+      },
+      "pagination": {
+        "previous": "ਪਿਛਲਾ",
+        "next": "ਅਗਲਾ"
+      }
+    },
+    "performanceTable": {
+      "title": "ਸਕੀਮਾਂ ਦੀ ਕਾਰਗੁਜ਼ਾਰੀ",
+      "columns": {
+        "name": "ਸਕੀਮ ਦਾ ਨਾਮ",
+        "village": "ਪਿੰਡ",
+        "block": "ਬਲਾਕ",
+        "reportingRate": "ਰਿਪੋਰਟਿੰਗ ਦਰ (%)",
+        "waterSupplied": "ਸਪਲਾਈ ਕੀਤਾ ਪਾਣੀ"
+      }
+    }
+  },
+  "blockDashboard": {
+    "titles": {
+      "allGramPanchayatsPerformance": "ਸਾਰੀਆਂ ਗ੍ਰਾਮ ਪੰਚਾਇਤਾਂ ਦੀ ਕਾਰਗੁਜ਼ਾਰੀ",
+      "demandVsSupply": "ਮੰਗ ਬਨਾਮ ਸਪਲਾਈ",
+      "allGramPanchayats": "ਸਾਰੀਆਂ ਗ੍ਰਾਮ ਪੰਚਾਇਤਾਂ"
+    }
+  },
+  "states": {
+    "dataUnavailable": {
+      "title": "ਡੈਸ਼ਬੋਰਡ ਡੇਟਾ ਉਪਲਬਧ ਨਹੀਂ",
+      "description": "ਕੋਈ ਡੈਸ਼ਬੋਰਡ ਡੇਟਾ ਪ੍ਰਾਪਤ ਨਹੀਂ ਹੋਇਆ।"
+    }
+  },
+  "glossary": {
+    "regularityPerformance": {
+      "title": "ਨਿਯਮਤਤਾ ਕਾਰਗੁਜ਼ਾਰੀ",
+      "category": "ਮੈਟ੍ਰਿਕ",
+      "description": "ਚੁਣੀ ਗਈ ਮਿਆਦ ਦੌਰਾਨ ਨਿਯਮਤ ਤੌਰ 'ਤੇ ਪਾਣੀ ਸਪਲਾਈ ਕਰਨ ਵਾਲੀਆਂ ਸਕੀਮਾਂ ਦੀ ਪ੍ਰਤੀਸ਼ਤਤਾ।",
+      "formulaLabel": "ਨਿਯਮਤਤਾ",
+      "definitions": {
+        "regularSchemes": "ਨਿਯਮਤ ਤੌਰ 'ਤੇ ਪਾਣੀ ਸਪਲਾਈ ਕਰਨ ਵਾਲੀਆਂ ਸਕੀਮਾਂ ਦੀ ਗਿਣਤੀ",
+        "totalSchemes": "ਸਕੀਮਾਂ ਦੀ ਕੁੱਲ ਗਿਣਤੀ"
+      }
+    },
+    "quantityPerformance": {
+      "title": "ਮਾਤਰਾ ਕਾਰਗੁਜ਼ਾਰੀ",
+      "category": "ਮੈਟ੍ਰਿਕ",
+      "description": "ਕਾਰਜਸ਼ੀਲ ਘਰੇਲੂ ਟੂਟੀ ਕਨੈਕਸ਼ਨਾਂ ਵਿੱਚ ਪ੍ਰਤੀ ਵਿਅਕਤੀ ਪ੍ਰਤੀ ਦਿਨ ਸਪਲਾਈ ਕੀਤੇ ਪਾਣੀ ਦੀ ਔਸਤ ਮਾਤਰਾ, ਲੀਟਰ ਪ੍ਰਤੀ ਵਿਅਕਤੀ ਪ੍ਰਤੀ ਦਿਨ (LPCD) ਵਿੱਚ ਮਾਪੀ ਗਈ।",
+      "formulaLabel": "ਮਾਤਰਾ (LPCD: ਲੀਟਰ ਪ੍ਰਤੀ ਵਿਅਕਤੀ ਪ੍ਰਤੀ ਦਿਨ)",
+      "definitions": {
+        "wk": "ਦਿਨ k ਨੂੰ ਸਪਲਾਈ ਕੀਤੇ ਪਾਣੀ ਦੀ ਮਾਤਰਾ (ਲੀਟਰ ਵਿੱਚ)",
+        "fhtci": "ਸਕੀਮ i ਦੇ ਕਾਰਜਸ਼ੀਲ ਘਰੇਲੂ ਟੂਟੀ ਕਨੈਕਸ਼ਨ",
+        "p": "ਪ੍ਰਤੀ ਘਰ ਔਸਤ ਵਿਅਕਤੀ",
+        "di": "ਚੁਣੀ ਗਈ ਮਿਆਦ ਵਿੱਚ ਸਕੀਮ i ਵੱਲੋਂ ਪਾਣੀ ਸਪਲਾਈ ਕੀਤੇ ਦਿਨਾਂ ਦੀ ਗਿਣਤੀ",
+        "demandLine": "ਮੰਗ ਰੇਖਾ ਘਰੇਲੂ ਟੂਟੀ ਕਨੈਕਸ਼ਨਾਂ ਦੇ ਆਧਾਰ 'ਤੇ ਲੋੜੀਂਦੀ LPCD ਸੀਮਾ ({{lpcd}} L) ਦਿਖਾਉਂਦੀ ਹੈ"
+      }
+    },
+    "readingSubmissionRate": {
+      "title": "ਰੀਡਿੰਗ ਜਮ੍ਹਾਂ ਕਰਨ ਦੀ ਦਰ",
+      "category": "ਮੈਟ੍ਰਿਕ",
+      "description": "ਚੁਣੀ ਗਈ ਮਿਆਦ ਵਿੱਚ ਉਨ੍ਹਾਂ ਦਿਨਾਂ ਦੀ ਪ੍ਰਤੀਸ਼ਤਤਾ ਜਿਨ੍ਹਾਂ ਵਿੱਚ ਪੰਪ ਆਪਰੇਟਰਾਂ ਨੇ ਆਪਣੀਆਂ ਸਕੀਮਾਂ ਲਈ ਪਾਣੀ ਦੇ ਫਲੋ ਮੀਟਰ ਦੀਆਂ ਰੀਡਿੰਗਾਂ ਜਮ੍ਹਾਂ ਕੀਤੀਆਂ।",
+      "formulaLabel": "ਸਕੀਮ ਦੀ ਰੀਡਿੰਗ ਜਮ੍ਹਾਂ ਕਰਨ ਦੀ ਦਰ",
+      "definitions": {
+        "si": "ਦਿਨਾਂ ਦੀ ਗਿਣਤੀ ਜਿਨ੍ਹਾਂ ਵਿੱਚ ਪੰਪ ਆਪਰੇਟਰ ਨੇ ਸਕੀਮ i ਲਈ ਰੀਡਿੰਗ ਜਮ੍ਹਾਂ ਕੀਤੀ",
+        "n": "ਚੁਣੀ ਗਈ ਮਿਆਦ ਵਿੱਚ ਦਿਨਾਂ ਦੀ ਕੁੱਲ ਗਿਣਤੀ"
+      }
+    },
+    "readingSubmissionStatus": {
+      "title": "ਰੀਡਿੰਗ ਜਮ੍ਹਾਂ ਕਰਨ ਦੀ ਸਥਿਤੀ",
+      "category": "ਸਥਿਤੀ",
+      "description": "ਚੁਣੀ ਗਈ ਮਿਆਦ ਵਿੱਚ ਸਾਰੀਆਂ ਸਕੀਮਾਂ ਦੀਆਂ ਜਮ੍ਹਾਂ ਕੀਤੀਆਂ ਰੀਡਿੰਗਾਂ ਦੀ ਪਾਲਣਾ ਸਥਿਤੀ ਅਨੁਸਾਰ ਵੰਡ।",
+      "compliantLabel": "ਪਾਲਣਾ ਵਾਲੀਆਂ ਜਮ੍ਹਾਂ",
+      "compliantDescription": "ਸਵੀਕਾਰਯੋਗ ਸੀਮਾਵਾਂ ਦੇ ਅੰਦਰ ਜਮ੍ਹਾਂ ਕੀਤੀਆਂ ਰੀਡਿੰਗਾਂ ਜੋ ਡੇਟਾ ਗੁਣਵੱਤਾ ਦੇ ਮਾਪਦੰਡ ਪੂਰੇ ਕਰਦੀਆਂ ਹਨ।",
+      "anomalousLabel": "ਅਸਧਾਰਨ ਜਮ੍ਹਾਂ",
+      "anomalousDescription": "ਸਵੈਚਲਿਤ ਗੁਣਵੱਤਾ ਜਾਂਚਾਂ ਦੇ ਆਧਾਰ 'ਤੇ ਸੰਭਾਵੀ ਤੌਰ 'ਤੇ ਗਲਤ ਵਜੋਂ ਚਿੰਨ੍ਹਿਤ ਰੀਡਿੰਗਾਂ (ਜਿਵੇਂ ਅਚਾਨਕ ਵਾਧਾ ਜਾਂ ਵਾਰ-ਵਾਰ ਇੱਕੋ ਜਿਹੇ ਮੁੱਲ)।"
+    },
+    "supplyOutageReasons": {
+      "title": "ਸਪਲਾਈ ਠੱਪ ਹੋਣ ਦੇ ਕਾਰਨ",
+      "category": "ਚਾਰਟ",
+      "description": "ਰਿਪੋਰਟ ਕੀਤੀਆਂ ਸਪਲਾਈ ਰੁਕਾਵਟ ਘਟਨਾਵਾਂ ਦੀ ਮੂਲ ਕਾਰਨ ਅਨੁਸਾਰ ਵੰਡ। ਗਿਣਤੀ ਵਿਲੱਖਣ ਸਕੀਮਾਂ 'ਤੇ ਆਧਾਰਿਤ ਹੈ — ਇੱਕ ਸਕੀਮ ਕਈ ਖੇਤਰਾਂ ਵਿੱਚ ਦਿਖਾਈ ਦੇ ਸਕਦੀ ਹੈ, ਇਸ ਲਈ ਖੇਤਰੀ ਕੁੱਲ ਜੋੜ ਸਮੁੱਚੇ ਅੰਕੜੇ ਤੋਂ ਵੱਧ ਹੋ ਸਕਦੇ ਹਨ।",
+      "definitions": {
+        "electricalFailure": "ਪੰਪ ਸਟੇਸ਼ਨ ਦੀ ਬਿਜਲੀ ਸਪਲਾਈ ਵਿੱਚ ਰੁਕਾਵਟ",
+        "pipelineBreak": "ਪਾਣੀ ਵੰਡ ਪਾਈਪਲਾਈਨ ਵਿੱਚ ਲੀਕੇਜ ਜਾਂ ਟੁੱਟ-ਭੱਜ",
+        "pumpFailure": "ਪੰਪ ਉਪਕਰਣ ਦੀ ਮਕੈਨੀਕਲ ਖਰਾਬੀ",
+        "valveIssue": "ਖਰਾਬ ਜਾਂ ਨੁਕਸਾਨੇ ਕੰਟਰੋਲ ਵਾਲਵ",
+        "sourceDrying": "ਸਰੋਤ 'ਤੇ ਨਾਕਾਫ਼ੀ ਪਾਣੀ (ਬੋਰਵੈੱਲ, ਸਤਹੀ ਪਾਣੀ, ਆਦਿ)"
+      }
+    },
+    "supplyOutageDistribution": {
+      "title": "ਸਪਲਾਈ ਠੱਪ ਹੋਣ ਦੀ ਵੰਡ",
+      "category": "ਚਾਰਟ",
+      "description": "ਚੁਣੇ ਗਏ ਖੇਤਰ ਅਤੇ ਮਿਆਦ ਦੇ ਅੰਦਰ ਉਪ-ਖੇਤਰਾਂ ਵਿੱਚ ਸਪਲਾਈ ਠੱਪ ਘਟਨਾਵਾਂ ਦਾ ਭੂਗੋਲਿਕ ਫੈਲਾਅ। ਜ਼ਿਆਦਾ ਵਾਰ ਸਪਲਾਈ ਠੱਪ ਹੋਣ ਵਾਲੇ ਖੇਤਰ ਚਾਰਟ 'ਤੇ ਵੱਧ ਮੁੱਲਾਂ ਨਾਲ ਦਿਖਾਏ ਜਾਂਦੇ ਹਨ।"
+    },
+    "schemeStatus": {
+      "description": "ਸਕੀਮਾਂ ਦੀ ਗਿਣਤੀ, ਉਨ੍ਹਾਂ ਦੀ ਦਰਜ ਸਥਿਤੀ ਅਨੁਸਾਰ ਸਮੂਹਬੱਧ। ਕੰਮ ਦੀ ਸਥਿਤੀ ਅਤੇ ਸੰਚਾਲਨ ਸਥਿਤੀ ਵਿਚਕਾਰ ਬਦਲਣ ਲਈ ਕਾਰਡ 'ਤੇ ਟੌਗਲ ਵਰਤੋ।",
+      "workStatusLabel": "ਕੰਮ ਦੀ ਸਥਿਤੀ",
+      "workStatusDescription": "ਸਕੀਮ ਲਈ ਦਰਜ ਨਿਰਮਾਣ ਅਤੇ ਸੌਂਪਣ ਦਾ ਪੜਾਅ — ਸ਼ੁਰੂ ਨਹੀਂ ਹੋਇਆ, ਜਾਰੀ, ਮੁਕੰਮਲ ਜਾਂ ਸੌਂਪਿਆ ਗਿਆ।",
+      "operatingStatusLabel": "ਸੰਚਾਲਨ ਸਥਿਤੀ",
+      "operatingStatusDescription": "ਕੀ ਸਕੀਮ ਇਸ ਸਮੇਂ ਪਾਣੀ ਸਪਲਾਈ ਕਰ ਰਹੀ ਹੈ — ਚਾਲੂ, ਅੰਸ਼ਕ ਤੌਰ 'ਤੇ ਚਾਲੂ ਜਾਂ ਗੈਰ-ਚਾਲੂ।"
+    },
+    "schemePerformance": {
+      "title": "ਸਕੀਮਾਂ ਦੀ ਕਾਰਗੁਜ਼ਾਰੀ",
+      "category": "ਸਾਰਣੀ",
+      "description": "ਚੁਣੇ ਗਏ ਖੇਤਰ ਦੇ ਅੰਦਰ ਸਕੀਮਾਂ ਦੀ ਦਰਜਾਬੰਦੀ ਸੂਚੀ, ਜੋ ਰਿਪੋਰਟਿੰਗ ਪਾਲਣਾ ਅਤੇ ਸਪਲਾਈ ਕੀਤਾ ਕੁੱਲ ਪਾਣੀ ਦਿਖਾਉਂਦੀ ਹੈ।",
+      "definitions": {
+        "reportingRate": "ਦਿਨਾਂ ਦੀ ਪ੍ਰਤੀਸ਼ਤਤਾ ਜਿਨ੍ਹਾਂ ਵਿੱਚ ਪੰਪ ਆਪਰੇਟਰ ਨੇ ਰੀਡਿੰਗ ਜਮ੍ਹਾਂ ਕੀਤੀ (ਜਮ੍ਹਾਂ ਕਰਨ ਦੇ ਦਿਨ ÷ ਕੁੱਲ ਦਿਨ × 100)",
+        "waterSupplied": "ਚੁਣੀ ਗਈ ਮਿਆਦ ਵਿੱਚ ਸਕੀਮ ਵੱਲੋਂ ਸਪਲਾਈ ਕੀਤੇ ਪਾਣੀ ਦੀ ਕੁੱਲ ਮਾਤਰਾ (ਲੀਟਰ ਵਿੱਚ)"
+      }
+    },
+    "readingCompliance": {
+      "title": "ਰੀਡਿੰਗ ਪਾਲਣਾ",
+      "category": "ਸਾਰਣੀ",
+      "description": "ਚੁਣੀ ਗਈ ਸਕੀਮ ਲਈ ਜਮ੍ਹਾਂ ਕੀਤੀਆਂ ਜਲ ਸਪਲਾਈ ਮੀਟਰ ਰੀਡਿੰਗਾਂ ਦਾ ਰੋਜ਼ਾਨਾ ਲੌਗ। ਮਿਤੀ ਅਤੇ ਰਿਪੋਰਟ ਕੀਤਾ ਰੀਡਿੰਗ ਮੁੱਲ ਦਿਖਾਉਂਦਾ ਹੈ।"
+    },
+    "pumpOperatorDetails": {
+      "title": "ਪੰਪ ਆਪਰੇਟਰ ਵੇਰਵੇ",
+      "category": "ਪੈਨਲ",
+      "description": "ਚੁਣੀ ਗਈ ਮਿਆਦ ਦੇ ਅੰਦਰ ਚੁਣੀ ਗਈ ਸਕੀਮ ਲਈ ਪੰਪ ਆਪਰੇਟਰ ਦੀ ਗਤੀਵਿਧੀ ਦਾ ਸਾਰ — ਉਨ੍ਹਾਂ ਦੀ ਰਿਪੋਰਟਿੰਗ ਬਾਰੰਬਾਰਤਾ ਅਤੇ ਉਨ੍ਹਾਂ ਨੇ ਆਖਰੀ ਵਾਰ ਰੀਡਿੰਗ ਕਦੋਂ ਜਮ੍ਹਾਂ ਕੀਤੀ, ਸਮੇਤ।"
+    },
+    "pumpOperatorReportingRate": {
+      "description": "ਚੁਣੀ ਗਈ ਮਿਆਦ ਵਿੱਚ ਉਨ੍ਹਾਂ ਦਿਨਾਂ ਦੀ ਪ੍ਰਤੀਸ਼ਤਤਾ ਜਿਨ੍ਹਾਂ ਲਈ ਇਸ ਪੰਪ ਆਪਰੇਟਰ ਨੇ ਇਸ ਸਕੀਮ ਲਈ ਰੀਡਿੰਗ ਜਮ੍ਹਾਂ ਕੀਤੀ। ਗਣਨਾ: ਜਮ੍ਹਾਂ ਕਰਨ ਦੇ ਦਿਨ ÷ ਕੁੱਲ ਦਿਨ × 100।"
+    },
+    "pumpOperatorLastSubmission": {
+      "description": "ਇਸ ਪੰਪ ਆਪਰੇਟਰ ਵੱਲੋਂ ਇਸ ਸਕੀਮ ਲਈ ਜਮ੍ਹਾਂ ਕੀਤੀ ਸਭ ਤੋਂ ਤਾਜ਼ਾ ਮੀਟਰ ਰੀਡਿੰਗ ਦੀ ਮਿਤੀ ਅਤੇ ਸਮਾਂ।"
+    },
+    "pumpOperatorMissingSubmissions": {
+      "description": "ਚੁਣੀ ਗਈ ਮਿਆਦ ਵਿੱਚ ਉਨ੍ਹਾਂ ਦਿਨਾਂ ਦੀ ਗਿਣਤੀ ਜਿਨ੍ਹਾਂ ਲਈ ਇਸ ਪੰਪ ਆਪਰੇਟਰ ਨੇ ਇਸ ਸਕੀਮ ਲਈ ਕੋਈ ਰੀਡਿੰਗ ਜਮ੍ਹਾਂ ਨਹੀਂ ਕੀਤੀ।"
+    }
+  },
+  "glossaryPage": {
+    "title": "ਡੈਸ਼ਬੋਰਡ ਸ਼ਬਦਾਵਲੀ",
+    "subtitle": "ਇਸ ਡੈਸ਼ਬੋਰਡ ਵਿੱਚ ਵਰਤੇ ਗਏ ਸਾਰੇ ਮੈਟ੍ਰਿਕਸ, ਚਾਰਟਾਂ ਅਤੇ ਸੂਚਕਾਂ ਦੀਆਂ ਪਰਿਭਾਸ਼ਾਵਾਂ ਅਤੇ ਫਾਰਮੂਲੇ।",
+    "formulaSection": "ਫਾਰਮੂਲਾ",
+    "variablesSection": "ਵੇਰੀਏਬਲ",
+    "statusSection": "ਸਥਿਤੀ ਦੀਆਂ ਕਿਸਮਾਂ",
+    "outageReasonsSection": "ਸਪਲਾਈ ਠੱਪ ਹੋਣ ਦੇ ਕਾਰਨਾਂ ਦੀਆਂ ਪਰਿਭਾਸ਼ਾਵਾਂ",
+    "categoryMetric": "ਮੈਟ੍ਰਿਕ",
+    "categoryChart": "ਚਾਰਟ",
+    "categoryStatus": "ਸਥਿਤੀ",
+    "categoryTable": "ਸਾਰਣੀ",
+    "categoryPanel": "ਪੈਨਲ"
+  }
+}
