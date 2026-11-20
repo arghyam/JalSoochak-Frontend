@@ -88,8 +88,7 @@ function translationKeysOf(profile: BrandingProfile): string[] {
   return [
     ...footer.quickLinks.map(({ labelKey }) => labelKey),
     ...footer.socialLinks.map(({ network }) => `footer.social.${network}`),
-    footer.contact.phoneKey,
-    footer.contact.addressKey,
+    ...(footer.contact ? [footer.contact.phoneKey, footer.contact.addressKey] : []),
     footer.copyrightOrg.labelKey,
   ]
 }

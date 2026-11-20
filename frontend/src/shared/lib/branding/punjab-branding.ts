@@ -1,5 +1,6 @@
 import dwssPunjabLogo from '@/assets/media/dwss-punjab-logo.png'
 import jjmLogo from '@/assets/media/jjm_new_logo.svg'
+import { ARGHYAM_SOCIAL_LINKS } from './arghyam-social-links'
 import type { BrandingProfile } from './branding-profile'
 
 export const PUNJAB_BRANDING: BrandingProfile = {
@@ -16,8 +17,7 @@ export const PUNJAB_BRANDING: BrandingProfile = {
     partnerLogo: { src: jjmLogo, alt: 'Jal Jeevan Mission logo' },
   },
   footer: {
-    // TODO(punjab-pilot): add the department's social links.
-    socialLinks: [],
+    socialLinks: ARGHYAM_SOCIAL_LINKS,
     quickLinks: [
       {
         key: 'dwss-punjab-website',
@@ -25,13 +25,7 @@ export const PUNJAB_BRANDING: BrandingProfile = {
         href: 'https://dwss.punjab.gov.in/',
       },
     ],
-    // TODO(punjab-pilot): replace the placeholder contact details, and the matching
-    // `branding.punjab.*` locale strings, with ones verified by the department.
-    contact: {
-      email: 'TODO: Punjab contact email',
-      phoneKey: 'branding.punjab.phone',
-      addressKey: 'branding.punjab.address',
-    },
+    contact: null,
     copyrightOrg: {
       labelKey: 'branding.punjab.copyrightOrg',
       href: 'https://dwss.punjab.gov.in/',

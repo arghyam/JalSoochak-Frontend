@@ -45,16 +45,19 @@ export interface BrandingQuickLink {
   href: string
 }
 
+export interface BrandingContact {
+  /** Not translated: an address reads the same in every language. */
+  email: string
+  phoneKey: string
+  addressKey: string
+}
+
 export interface BrandingFooter {
   socialLinks: readonly BrandingSocialLink[]
   /** External links listed after the shared JalSoochak website link. */
   quickLinks: readonly BrandingQuickLink[]
-  contact: {
-    /** Not translated: an address reads the same in every language. */
-    email: string
-    phoneKey: string
-    addressKey: string
-  }
+  /** `null` omits the Contact Us column. */
+  contact: BrandingContact | null
   /** Organisation credited in the copyright line. */
   copyrightOrg: {
     labelKey: string

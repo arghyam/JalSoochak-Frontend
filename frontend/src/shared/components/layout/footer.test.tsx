@@ -29,9 +29,6 @@ const mockIsAnalyticsEnabled = isAnalyticsEnabled as jest.Mock
 const mockTrackEvent = trackEvent as jest.Mock
 const mockGetBrandingProfile = jest.mocked(getBrandingProfile)
 
-/** Matches Testing Library's default normalizer, which collapses whitespace in element text. */
-const collapseWhitespace = (text: string) => text.replace(/\s+/g, ' ').trim()
-
 beforeEach(() => {
   jest.clearAllMocks()
   mockIsAnalyticsEnabled.mockReturnValue(false)
@@ -165,6 +162,7 @@ describe('Footer — single-tenant mode (SINGLE_TENANT_MODE = true)', () => {
   it('renders JJM contact info', () => {
     renderWithProviders(<Footer />)
 
+    expect(screen.getByText('Contact Us')).toBeInTheDocument()
     expect(screen.getByText('md@jjmassam.in')).toBeInTheDocument()
     expect(screen.getByText('1800-889-3047')).toBeInTheDocument()
   })
@@ -190,14 +188,11 @@ describe('Footer — single-tenant mode with another state profile', () => {
     mockGetBrandingProfile.mockReturnValue(BRANDING_PROFILES.punjab)
   })
 
-  it("renders the profile's contact details", () => {
+  it('omits the Contact Us column when the profile has no contact', () => {
     renderWithProviders(<Footer />)
 
-    expect(screen.getByText(punjab.contact.email)).toBeInTheDocument()
-    expect(screen.getByText(i18n.t(punjab.contact.phoneKey))).toBeInTheDocument()
-    expect(
-      screen.getByText(collapseWhitespace(i18n.t(punjab.contact.addressKey)))
-    ).toBeInTheDocument()
+    expect(punjab.contact).toBeNull()
+    expect(screen.queryByText('Contact Us')).not.toBeInTheDocument()
   })
 
   it("credits the profile's organisation in the copyright line", () => {
@@ -210,14 +205,18 @@ describe('Footer — single-tenant mode with another state profile', () => {
     )
   })
 
-  it("renders exactly the profile's social links", () => {
+  it("renders Arghyam's social links", () => {
     renderWithProviders(<Footer />)
 
     const socialHrefs = screen
       .queryAllByRole('link', { name: /x \(twitter\)|linkedin|email/i })
       .map((link) => link.getAttribute('href'))
 
-    expect(socialHrefs).toEqual(punjab.socialLinks.map(({ href }) => href))
+    expect(socialHrefs).toEqual([
+      'https://x.com/arghyamindia',
+      'https://www.linkedin.com/company/arghyam/',
+      'mailto:info@arghyam.org',
+    ])
   })
 
   it('keeps the shared quick links', () => {

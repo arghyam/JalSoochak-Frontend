@@ -10,15 +10,8 @@ import { isSingleTenantMode } from '@/config/server-config'
 import { trackEvent } from '@/shared/lib/analytics'
 import type { SocialNetwork, TenancyMode } from '@/shared/lib/analytics'
 import { VisitorCounter } from '@/shared/components/common/visitor-counter'
-import { getBrandingProfile } from '@/shared/lib/branding'
-
-interface SocialLink {
-  network: SocialNetwork
-  href: string
-  ariaLabel: string
-  icon: ReactNode
-  isExternal?: boolean
-}
+import { ARGHYAM_SOCIAL_LINKS, getBrandingProfile } from '@/shared/lib/branding'
+import type { BrandingContact, BrandingSocialLink } from '@/shared/lib/branding'
 
 interface QuickLinkItem {
   /**
@@ -52,25 +45,51 @@ const SOCIAL_ICONS: Record<SocialNetwork, ReactNode> = {
   email: <RiMailLine size={20} color="#64748b" />,
 }
 
+/** Single-tenant footer grid: brand, quick links and contact columns. */
+const GRID_WITH_CONTACT = {
+  columns: { base: 1, md: 3 },
+  templateColumns: { base: '1fr', md: '14fr 10fr 10fr' },
+}
+
+/**
+ * Without a contact column, both columns size to their content and sit centred as a pair
+ * instead of leaving the right side empty. From `xl`, a fixed inset replaces `space-around`,
+ * whose outer margins grow with the spare width and get too wide on large screens.
+ */
+const GRID_WITHOUT_CONTACT = {
+  columns: { base: 1, md: 2 },
+  templateColumns: { base: '1fr', md: 'auto auto' },
+  justifyContent: { md: 'space-around', xl: 'space-between' },
+  px: { xl: '11.5%' },
+}
+
 const quickLinkProps = {
   color: 'primary.500',
   fontSize: 'sm' as const,
   _hover: { textDecoration: 'underline' },
 }
 
-function FooterSocialLinks({ links, tenancy }: { links: SocialLink[]; tenancy: TenancyMode }) {
+function FooterSocialLinks({
+  links,
+  tenancy,
+}: {
+  links: readonly BrandingSocialLink[]
+  tenancy: TenancyMode
+}) {
+  const { t } = useTranslation()
+
   return (
     <HStack spacing="12px">
-      {links.map((link) => (
+      {links.map(({ network, href }) => (
         <Link
-          key={link.href}
-          href={link.href}
-          isExternal={link.isExternal}
-          aria-label={link.ariaLabel}
-          onClick={() => trackEvent('social_link_click', { network: link.network, tenancy })}
+          key={href}
+          href={href}
+          isExternal={!href.startsWith('mailto:')}
+          aria-label={t(`footer.social.${network}`)}
+          onClick={() => trackEvent('social_link_click', { network, tenancy })}
           {...commonLinkProps}
         >
-          {link.icon}
+          {SOCIAL_ICONS[network]}
         </Link>
       ))}
     </HStack>
@@ -110,6 +129,33 @@ function FooterQuickLinks({ heading, items }: { heading: string; items: QuickLin
   )
 }
 
+function FooterContact({ contact }: { contact: BrandingContact }) {
+  const { t } = useTranslation()
+
+  return (
+    <VStack align="flex-start" spacing="12px">
+      <Text
+        fontSize="xs"
+        fontWeight="600"
+        color="neutral.400"
+        textTransform="uppercase"
+        letterSpacing="0.5px"
+      >
+        {t('footer.contactUs')}
+      </Text>
+      <Text fontSize="sm" color="neutral.500">
+        {contact.email}
+      </Text>
+      <Text fontSize="sm" color="neutral.500">
+        {t(contact.phoneKey)}
+      </Text>
+      <Text fontSize="sm" color="neutral.500" lineHeight="1.6" whiteSpace="pre-line">
+        {t(contact.addressKey)}
+      </Text>
+    </VStack>
+  )
+}
+
 /**
  * Credits row. Three slots keep the credits optically centred while pinning the visitor
  * counter to the right edge on the same line, stacking on narrow screens.
@@ -142,14 +188,7 @@ function FooterBottomBar({ children }: { children: ReactNode }) {
 function SingleTenantFooter() {
   const { t } = useTranslation()
   const { footer: branding } = getBrandingProfile()
-
-  const socialLinks: SocialLink[] = branding.socialLinks.map(({ network, href }) => ({
-    network,
-    href,
-    ariaLabel: t(`footer.social.${network}`),
-    icon: SOCIAL_ICONS[network],
-    isExternal: !href.startsWith('mailto:'),
-  }))
+  const hasContact = branding.contact !== null
 
   const quickLinks: QuickLinkItem[] = [
     {
@@ -178,9 +217,8 @@ function SingleTenantFooter() {
       <Box w="full" px={{ base: '40px', md: '80px' }} py={{ base: '32px', md: '40px' }}>
         <Box w="full" maxW="1440px" mx="auto">
           <SimpleGrid
-            columns={{ base: 1, md: 3 }}
             spacing={{ base: '32px', md: '48px', xl: '80px' }}
-            templateColumns={{ base: '1fr', md: '14fr 10fr 10fr' }}
+            {...(hasContact ? GRID_WITH_CONTACT : GRID_WITHOUT_CONTACT)}
           >
             {/* Column 1: Logo & Description */}
             <Stack spacing="16px">
@@ -201,33 +239,14 @@ function SingleTenantFooter() {
                 {t('footer.description')}
               </Text>
               {/* Social Media Icons */}
-              <FooterSocialLinks links={socialLinks} tenancy="single" />
+              <FooterSocialLinks links={branding.socialLinks} tenancy="single" />
             </Stack>
 
             {/* Column 2: Quick Links */}
             <FooterQuickLinks heading={t('footer.quickLinks')} items={quickLinks} />
 
-            {/* Column 3: Contact Us */}
-            <VStack align="flex-start" spacing="12px">
-              <Text
-                fontSize="xs"
-                fontWeight="600"
-                color="neutral.400"
-                textTransform="uppercase"
-                letterSpacing="0.5px"
-              >
-                {t('footer.contactUs')}
-              </Text>
-              <Text fontSize="sm" color="neutral.500">
-                {branding.contact.email}
-              </Text>
-              <Text fontSize="sm" color="neutral.500">
-                {t(branding.contact.phoneKey)}
-              </Text>
-              <Text fontSize="sm" color="neutral.500" lineHeight="1.6" whiteSpace="pre-line">
-                {t(branding.contact.addressKey)}
-              </Text>
-            </VStack>
+            {/* Column 3: Contact Us, only for profiles that have one */}
+            {branding.contact && <FooterContact contact={branding.contact} />}
           </SimpleGrid>
         </Box>
       </Box>
@@ -261,29 +280,6 @@ function SingleTenantFooter() {
 function MultiTenantFooter() {
   const { t } = useTranslation()
 
-  const socialLinks: SocialLink[] = [
-    {
-      network: 'x',
-      href: 'https://x.com/arghyamindia',
-      ariaLabel: t('footer.social.x'),
-      icon: <RiTwitterXLine size={20} color="#64748b" />,
-      isExternal: true,
-    },
-    {
-      network: 'linkedin',
-      href: 'https://www.linkedin.com/company/arghyam/',
-      ariaLabel: t('footer.social.linkedin'),
-      icon: <BiLogoLinkedin size={20} color="#64748b" />,
-      isExternal: true,
-    },
-    {
-      network: 'email',
-      href: 'mailto:info@arghyam.org',
-      ariaLabel: t('footer.social.email'),
-      icon: <RiMailLine size={20} color="#64748b" />,
-    },
-  ]
-
   const quickLinks: QuickLinkItem[] = [
     {
       key: 'sub-divisional-officer-login',
@@ -333,7 +329,7 @@ function MultiTenantFooter() {
                 {t('footer.description')}
               </Text>
               {/* Social Media Icons */}
-              <FooterSocialLinks links={socialLinks} tenancy="multi" />
+              <FooterSocialLinks links={ARGHYAM_SOCIAL_LINKS} tenancy="multi" />
             </Stack>
 
             {/* Column 2: Quick Links */}
