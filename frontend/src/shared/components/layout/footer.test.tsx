@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '@/test/render-with-providers'
 import { Footer } from './footer'
@@ -28,6 +28,11 @@ const mockIsSingleTenantMode = isSingleTenantMode as jest.Mock
 const mockIsAnalyticsEnabled = isAnalyticsEnabled as jest.Mock
 const mockTrackEvent = trackEvent as jest.Mock
 const mockGetBrandingProfile = jest.mocked(getBrandingProfile)
+
+// A state's department link can appear in both the quick links and the credits with the same
+// label and href, so assertions about either are scoped to their own section.
+const quickLinksSection = () => within(screen.getByRole('navigation', { name: 'Quick Links' }))
+const singleTenantCredits = () => within(screen.getByText(/developed by/i))
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -134,8 +139,10 @@ describe('Footer — single-tenant mode (SINGLE_TENANT_MODE = true)', () => {
       'href',
       'https://jalsoochak.in/'
     )
-    const phedLinks = screen.getAllByRole('link', { name: /phed assam/i })
-    expect(phedLinks.some((l) => l.getAttribute('href') === 'https://jjmassam.in/')).toBe(true)
+    expect(quickLinksSection().getByRole('link', { name: /phed assam/i })).toHaveAttribute(
+      'href',
+      'https://jjmassam.in/'
+    )
     expect(screen.getByRole('link', { name: /jjm assam/i })).toHaveAttribute(
       'href',
       'https://jjmbrain.in/'
@@ -170,10 +177,12 @@ describe('Footer — single-tenant mode (SINGLE_TENANT_MODE = true)', () => {
   it('renders credits with PHED Assam and Arghyam links', () => {
     renderWithProviders(<Footer />)
 
-    const phedLinks = screen.getAllByRole('link', { name: /phed assam/i })
-    expect(phedLinks.some((l) => l.getAttribute('href') === 'https://jjmassam.in/')).toBe(true)
-
-    expect(screen.getByRole('link', { name: /arghyam/i })).toHaveAttribute(
+    const credits = singleTenantCredits()
+    expect(credits.getByRole('link', { name: /phed assam/i })).toHaveAttribute(
+      'href',
+      'https://jjmassam.in/'
+    )
+    expect(credits.getByRole('link', { name: /arghyam/i })).toHaveAttribute(
       'href',
       'https://arghyam.org/'
     )
@@ -198,11 +207,9 @@ describe('Footer — single-tenant mode with another state profile', () => {
   it("credits the profile's organisation in the copyright line", () => {
     renderWithProviders(<Footer />)
 
-    // The organisation can share its label with a quick link, as the department site does.
-    const orgLinks = screen.getAllByRole('link', { name: i18n.t(punjab.copyrightOrg.labelKey) })
-    expect(orgLinks.some((link) => link.getAttribute('href') === punjab.copyrightOrg.href)).toBe(
-      true
-    )
+    expect(
+      singleTenantCredits().getByRole('link', { name: i18n.t(punjab.copyrightOrg.labelKey) })
+    ).toHaveAttribute('href', punjab.copyrightOrg.href)
   })
 
   it("renders Arghyam's social links", () => {
@@ -232,9 +239,9 @@ describe('Footer — single-tenant mode with another state profile', () => {
   it("renders the profile's quick links", () => {
     renderWithProviders(<Footer />)
 
+    const quickLinks = quickLinksSection()
     for (const { labelKey, href } of punjab.quickLinks) {
-      const links = screen.getAllByRole('link', { name: i18n.t(labelKey) })
-      expect(links.some((link) => link.getAttribute('href') === href)).toBe(true)
+      expect(quickLinks.getByRole('link', { name: i18n.t(labelKey) })).toHaveAttribute('href', href)
     }
   })
 

@@ -98,7 +98,7 @@ function FooterSocialLinks({
 
 function FooterQuickLinks({ heading, items }: { heading: string; items: QuickLinkItem[] }) {
   return (
-    <VStack align="flex-start" spacing="12px">
+    <VStack as="nav" aria-label={heading} align="flex-start" spacing="12px">
       <Text
         fontSize="xs"
         fontWeight="600"
