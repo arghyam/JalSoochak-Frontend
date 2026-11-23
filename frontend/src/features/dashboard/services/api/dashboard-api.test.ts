@@ -994,6 +994,24 @@ describe('dashboardApi.getNationalOnboardedDistricts', () => {
       'Invalid national onboarded districts analytics response: phasedRollout is not a boolean'
     )
   })
+
+  it.each([
+    ['missing', { phasedRollout: true }],
+    ['not an array', { phasedRollout: true, tenants: { tenantId: 3 } }],
+    ['holding a null entry', { phasedRollout: true, tenants: [null] }],
+    [
+      'holding a non-numeric tenantId',
+      { phasedRollout: true, tenants: [{ tenantId: '3', onboardedDistrictIds: [12] }] },
+    ],
+  ])('fails when tenants is %s', async (_case, payload) => {
+    mockGet.mockImplementation(async () => ({ data: { success: true, data: payload } }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+
+    await expect(dashboardApi.getNationalOnboardedDistricts()).rejects.toThrow(
+      'Invalid national onboarded districts analytics response: tenants is malformed'
+    )
+  })
 })
 
 describe('dashboardApi.getAverageWaterSupplyPerRegion', () => {

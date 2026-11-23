@@ -110,6 +110,22 @@ export const analyticsApi = {
         'Invalid national onboarded districts analytics response: phasedRollout is not a boolean'
       )
     }
+    // Malformed tenants would throw in the map helper, so only null or a list of tenants passes.
+    const tenants: unknown = data.tenants
+    const hasValidTenants =
+      tenants === null ||
+      (Array.isArray(tenants) &&
+        tenants.every(
+          (tenant: unknown) =>
+            typeof tenant === 'object' &&
+            tenant !== null &&
+            typeof (tenant as { tenantId?: unknown }).tenantId === 'number'
+        ))
+    if (!hasValidTenants) {
+      throw new Error(
+        'Invalid national onboarded districts analytics response: tenants is malformed'
+      )
+    }
 
     return data
   },
