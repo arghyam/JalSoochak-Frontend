@@ -1,4 +1,4 @@
-import { useQueries } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { dashboardApi } from '../services/api/dashboard-api'
 import { dashboardQueryKeys } from '../services/query/dashboard-query-keys'
 import type {
@@ -26,8 +26,9 @@ import { slugify } from '../utils/format-location-label'
 import {
   type ChildRegionIds,
   noRegionOnboarded,
-  toOnboardedPredicate,
+  toOnboardedDistrictsByTenant,
 } from '../utils/onboarded-regions'
+import { retryTransientFailures } from '../utils/query-retry'
 import { toStableLocationValue } from '../utils/stable-location-value'
 
 type UseCentralDashboardMapPerformanceParams = {
@@ -340,89 +341,77 @@ export function useCentralDashboardMapPerformance({
   const isNationalDistrictViewActive =
     shouldFetchTenantBoundaryGeoJson && isMapDistrictView && isCentralLandingView
   const stateWiseBoundaries = filteredNationalDashboardBoundaries?.stateWiseBoundaries ?? []
-  const districtBoundaryQueries = useQueries({
-    queries: stateWiseBoundaries.map((state) => ({
-      queryKey: dashboardQueryKeys.tenantBoundaryGeoJson({
-        tenantId: state.tenantId,
-        parentLgdId: state.lgdId,
-      }),
-      queryFn: () =>
-        dashboardApi.getTenantBoundaryGeoJson({
-          tenantId: state.tenantId,
-          parentLgdId: state.lgdId,
-        }),
-      enabled: isNationalDistrictViewActive && Boolean(state.tenantId),
-      staleTime: Infinity,
-      retry: false,
-    })),
+  // One request for every state's districts and one for every state's onboarded list. Two per
+  // state overran the gateway's rate limit, and each rejected state was drawn grey.
+  const districtBoundariesQuery = useQuery({
+    queryKey: dashboardQueryKeys.nationalDashboardDistrictBoundaries(),
+    queryFn: () => dashboardApi.getNationalDashboardDistrictBoundaries(),
+    enabled: isNationalDistrictViewActive,
+    staleTime: Infinity,
+    retry: retryTransientFailures,
   })
-  // Phased rollout: which districts of each state are onboarded, in `stateWiseBoundaries` order.
-  const districtOnboardedQueries = useQueries({
-    queries: stateWiseBoundaries.map((state) => {
-      const params = { tenantId: state.tenantId, parentLgdId: state.lgdId }
-      return {
-        queryKey: dashboardQueryKeys.onboardedRegions(params),
-        queryFn: () => dashboardApi.getOnboardedRegions(params),
-        enabled: isNationalDistrictViewActive && Boolean(state.tenantId),
-        // A 404 means the state isn't onboarded; retrying can't change that.
-        retry: false,
-      }
-    }),
+  // Phased rollout: which districts of each state are onboarded. A 429 or 5xx is retried, so a
+  // passing failure doesn't grey out the map; one that persists does.
+  const onboardedDistrictsQuery = useQuery({
+    queryKey: dashboardQueryKeys.nationalOnboardedDistricts(),
+    queryFn: () => dashboardApi.getNationalOnboardedDistricts(),
+    enabled: isNationalDistrictViewActive,
+    retry: retryTransientFailures,
   })
-  // A state's districts are drawn once its onboarded list has settled. Until it resolves (or
-  // when it fails) none of them counts as onboarded, so the view fails closed.
-  const districtViewStates = stateWiseBoundaries.flatMap((state, index) => {
-    const boundaries = districtBoundaryQueries[index]?.data
-    const onboardedQuery = districtOnboardedQueries[index]
-    if (!boundaries || !onboardedQuery || onboardedQuery.isLoading) return []
-
+  // The districts are drawn once the onboarded list has settled. Until it resolves, or when it
+  // fails (a failed refetch included, which keeps the last list in `data`), none of them counts
+  // as onboarded, so the view fails closed.
+  const onboardedDistrictsOf =
+    toOnboardedDistrictsByTenant(
+      onboardedDistrictsQuery.isError ? undefined : onboardedDistrictsQuery.data
+    ) ?? (() => noRegionOnboarded)
+  const stateByTenantId = new Map(stateWiseBoundaries.map((state) => [state.tenantId, state]))
+  // Only the districts of states on the national map: the endpoint lists every tenant's.
+  const districtViewDistricts =
+    districtBoundariesQuery.data && !onboardedDistrictsQuery.isLoading
+      ? districtBoundariesQuery.data.lgdLevel2Boundaries.flatMap((district) => {
+          const state = stateByTenantId.get(district.tenantId)
+          if (!state) return []
+          return [
+            { state, district, isOnboarded: onboardedDistrictsOf(state.tenantId)(district.lgdId) },
+          ]
+        })
+      : []
+  const districtMapChartData = districtViewDistricts.flatMap(({ state, district, isOnboarded }) => {
+    if (!district.boundary) return []
+    const statePerf = mapChartData.find((s) => s.id === String(state.tenantId))
+    const districtAnalyticsId = String(district.lgdId ?? '')
+    // Not onboarded: no metrics, so the map draws it grey and won't drill into it.
     return [
       {
-        state,
-        districts: boundaries.childRegions ?? [],
-        isOnboarded: toOnboardedPredicate(onboardedQuery.data) ?? noRegionOnboarded,
+        id: districtAnalyticsId,
+        name: `${district.title ?? ''}::${districtAnalyticsId}`,
+        coverage: statePerf?.coverage ?? 0,
+        regularity: isOnboarded ? (statePerf?.regularity ?? -1) : -1,
+        continuity: statePerf?.continuity ?? 0,
+        quantity: isOnboarded ? (statePerf?.quantity ?? -1) : -1,
+        compositeScore: statePerf?.compositeScore ?? 0,
+        status: statePerf?.status ?? ('needs-attention' as const),
+        boundaryGeoJson: district.boundary,
       },
     ]
-  })
-  const districtMapChartData = districtViewStates.flatMap(({ state, districts, isOnboarded }) => {
-    const statePerf = mapChartData.find((s) => s.id === String(state.tenantId))
-    return districts.flatMap((district) => {
-      if (!district.parsedBoundaryGeoJson) return []
-      const districtAnalyticsId = String(district.lgdId ?? district.lgdCode ?? '')
-      // Not onboarded: no metrics, so the map draws it grey and won't drill into it.
-      const hasMetrics = isOnboarded(district.lgdId)
-      return [
-        {
-          id: districtAnalyticsId,
-          name: `${district.title ?? ''}::${districtAnalyticsId}`,
-          coverage: statePerf?.coverage ?? 0,
-          regularity: hasMetrics ? (statePerf?.regularity ?? -1) : -1,
-          continuity: statePerf?.continuity ?? 0,
-          quantity: hasMetrics ? (statePerf?.quantity ?? -1) : -1,
-          compositeScore: statePerf?.compositeScore ?? 0,
-          status: statePerf?.status ?? ('needs-attention' as const),
-          boundaryGeoJson: district.parsedBoundaryGeoJson,
-        },
-      ]
-    })
   })
   const isDistrictMapLoading =
     isMapDistrictView &&
     isCentralLandingView &&
-    districtViewStates.length === 0 &&
+    districtViewDistricts.length === 0 &&
     (isNationalDashboardBoundariesPending ||
-      districtBoundaryQueries.some((query) => query.isLoading || query.isFetching) ||
-      districtOnboardedQueries.some((query) => query.isLoading))
+      districtBoundariesQuery.isLoading ||
+      districtBoundariesQuery.isFetching ||
+      onboardedDistrictsQuery.isLoading)
 
   const districtToStateMap = new Map<
     string,
     NonNullable<NationalDashboardBoundaryResponse['stateWiseBoundaries']>[number]
   >()
-  districtViewStates.forEach(({ state, districts, isOnboarded }) => {
-    districts.forEach((district) => {
-      const id = String(district.lgdId ?? district.lgdCode ?? '')
-      if (id && isOnboarded(district.lgdId)) districtToStateMap.set(id, state)
-    })
+  districtViewDistricts.forEach(({ state, district, isOnboarded }) => {
+    const id = String(district.lgdId ?? '')
+    if (id && isOnboarded) districtToStateMap.set(id, state)
   })
 
   return {
