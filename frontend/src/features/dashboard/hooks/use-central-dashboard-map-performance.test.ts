@@ -1,13 +1,16 @@
 import { createElement, type PropsWithChildren } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { renderHook, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, jest } from '@jest/globals'
+import { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { dashboardQueryKeys } from '../services/query/dashboard-query-keys'
 import type {
   AverageWaterSupplyPerRegionResponse,
   GeoJsonGeometry,
   NationalDashboardBoundaryResponse,
+  NationalDashboardDistrictBoundaryResponse,
   NationalDashboardResponse,
+  NationalOnboardedDistrictsResponse,
   OnboardedRegionsQueryParams,
   OnboardedRegionsResponse,
   TenantBoundaryGeoJsonQueryParams,
@@ -21,12 +24,18 @@ const mockGetTenantBoundaryGeoJson =
   jest.fn<(params: TenantBoundaryGeoJsonQueryParams) => Promise<TenantBoundaryGeoJsonResponse>>()
 const mockGetOnboardedRegions =
   jest.fn<(params: OnboardedRegionsQueryParams) => Promise<OnboardedRegionsResponse>>()
+const mockGetNationalDashboardDistrictBoundaries =
+  jest.fn<() => Promise<NationalDashboardDistrictBoundaryResponse>>()
+const mockGetNationalOnboardedDistricts =
+  jest.fn<() => Promise<NationalOnboardedDistrictsResponse>>()
 
 jest.mock('../services/api/dashboard-api', () => ({
   dashboardApi: {
     getTenantBoundaryGeoJson: (params: TenantBoundaryGeoJsonQueryParams) =>
       mockGetTenantBoundaryGeoJson(params),
     getOnboardedRegions: (params: OnboardedRegionsQueryParams) => mockGetOnboardedRegions(params),
+    getNationalDashboardDistrictBoundaries: () => mockGetNationalDashboardDistrictBoundaries(),
+    getNationalOnboardedDistricts: () => mockGetNationalOnboardedDistricts(),
   },
 }))
 
@@ -93,6 +102,8 @@ describe('useCentralDashboardMapPerformance', () => {
   beforeEach(() => {
     mockGetTenantBoundaryGeoJson.mockReset()
     mockGetOnboardedRegions.mockReset()
+    mockGetNationalDashboardDistrictBoundaries.mockReset()
+    mockGetNationalOnboardedDistricts.mockReset()
   })
 
   describe('state map', () => {
@@ -195,25 +206,25 @@ describe('useCentralDashboardMapPerformance', () => {
       stateTitle: 'Punjab',
       boundary: polygon,
     }
+    const kerala = { ...punjab, tenantId: 9, lgdId: 2, stateCode: 'KL', stateTitle: 'Kerala' }
     const nationalBoundaries: NationalDashboardBoundaryResponse = {
       stateWiseBoundaries: [punjab],
     }
+    const stateRegularity = (tenantId: number, stateTitle: string, regularSchemeCount: number) => ({
+      tenantId,
+      stateCode: '',
+      stateTitle,
+      schemeCount: 4,
+      totalSupplyDays: 30,
+      regularSchemeCount,
+      averageRegularity: regularSchemeCount / 4,
+    })
     const nationalData: NationalDashboardResponse = {
       startDate: '2026-11-01',
       endDate: '2026-11-10',
       daysInRange: 10,
       stateWiseQuantityPerformance: [],
-      stateWiseRegularity: [
-        {
-          tenantId: 3,
-          stateCode: 'PB',
-          stateTitle: 'Punjab',
-          schemeCount: 4,
-          totalSupplyDays: 30,
-          regularSchemeCount: 3,
-          averageRegularity: 0.75,
-        },
-      ],
+      stateWiseRegularity: [stateRegularity(3, 'Punjab', 3), stateRegularity(9, 'Kerala', 2)],
       stateWiseReadingSubmissionRate: [],
       overallOutageReasonDistribution: {},
     }
@@ -225,87 +236,200 @@ describe('useCentralDashboardMapPerformance', () => {
       nationalDashboardBoundariesData: nationalBoundaries,
       shouldFetchTenantBoundaryGeoJson: true,
     }
+    const twoStateParams: Partial<MapPerformanceParams> = {
+      ...districtViewParams,
+      filteredNationalDashboardBoundaries: { stateWiseBoundaries: [punjab, kerala] },
+      nationalDashboardBoundariesData: { stateWiseBoundaries: [punjab, kerala] },
+    }
     const onboardedDistricts = (
-      overrides: Partial<OnboardedRegionsResponse> = {}
-    ): OnboardedRegionsResponse => ({
-      tenantId: 3,
-      parentLgdId: 1,
-      parentDepartmentId: null,
+      overrides: Partial<NationalOnboardedDistrictsResponse> = {}
+    ): NationalOnboardedDistrictsResponse => ({
       phasedRollout: true,
-      onboardedChildIds: [12],
+      tenants: [{ tenantId: 3, onboardedDistrictIds: [12] }],
       ...overrides,
     })
-
-    const punjabDistrictBoundaries: TenantBoundaryGeoJsonResponse = {
-      tenantId: 3,
-      stateCode: 'PB',
-      childBoundaryCount: 2,
-      childRegions: [
-        { lgdId: 12, title: 'Alpha', parsedBoundaryGeoJson: polygon },
-        { lgdId: 13, title: 'Beta', parsedBoundaryGeoJson: polygon },
+    const district = (tenantId: number, lgdId: number, title: string) => ({
+      tenantId,
+      lgdId,
+      tenantStatus: 1,
+      stateCode: '',
+      stateTitle: '',
+      title,
+      boundary: polygon,
+    })
+    const districtBoundaries: NationalDashboardDistrictBoundaryResponse = {
+      lgdLevel2Boundaries: [
+        district(3, 12, 'Alpha'),
+        district(3, 13, 'Beta'),
+        district(9, 40, 'Gamma'),
+        // A tenant the national map leaves out, such as one that isn't active.
+        district(77, 70, 'Elsewhere'),
       ],
+    }
+    const rateLimited = () => {
+      const error = new AxiosError('Request failed with status code 429')
+      error.response = {
+        status: 429,
+        data: {},
+        statusText: 'Too Many Requests',
+        headers: {},
+        config: { headers: {} } as InternalAxiosRequestConfig,
+      }
+      return error
     }
 
     beforeEach(() => {
-      mockGetTenantBoundaryGeoJson.mockResolvedValue(punjabDistrictBoundaries)
+      mockGetNationalDashboardDistrictBoundaries.mockResolvedValue(districtBoundaries)
     })
 
     it('draws districts that are not onboarded without metrics and maps only the others', async () => {
-      mockGetOnboardedRegions.mockResolvedValue(onboardedDistricts())
+      mockGetNationalOnboardedDistricts.mockResolvedValue(onboardedDistricts())
 
       const { result } = renderMapPerformance(districtViewParams)
 
       await waitFor(() => expect(result.current.districtMapChartData).toHaveLength(2))
-      expect(mockGetOnboardedRegions).toHaveBeenCalledWith({ tenantId: 3, parentLgdId: 1 })
       expect(result.current.districtMapChartData).toEqual([
-        expect.objectContaining({ id: '12', regularity: 75 }),
+        expect.objectContaining({
+          id: '12',
+          name: 'Alpha::12',
+          regularity: 75,
+          boundaryGeoJson: polygon,
+        }),
         expect.objectContaining({ id: '13', regularity: -1, quantity: -1 }),
       ])
       expect([...result.current.districtToStateMap.keys()]).toEqual(['12'])
     })
 
+    it('asks once for every state, never once per state', async () => {
+      mockGetNationalOnboardedDistricts.mockResolvedValue(onboardedDistricts())
+
+      const { result } = renderMapPerformance(twoStateParams)
+
+      await waitFor(() => expect(result.current.districtMapChartData).toHaveLength(3))
+      expect(mockGetNationalDashboardDistrictBoundaries).toHaveBeenCalledTimes(1)
+      expect(mockGetNationalOnboardedDistricts).toHaveBeenCalledTimes(1)
+      expect(mockGetTenantBoundaryGeoJson).not.toHaveBeenCalled()
+      expect(mockGetOnboardedRegions).not.toHaveBeenCalled()
+    })
+
+    it("checks each state's districts against its own list, and draws only the map's states", async () => {
+      mockGetNationalOnboardedDistricts.mockResolvedValue(onboardedDistricts())
+
+      const { result } = renderMapPerformance(twoStateParams)
+
+      await waitFor(() => expect(result.current.districtMapChartData).toHaveLength(3))
+      // Kerala isn't listed, so none of its districts is onboarded; tenant 77 isn't on the map.
+      expect(
+        result.current.districtMapChartData.map(({ id, regularity }) => [id, regularity])
+      ).toEqual([
+        ['12', 75],
+        ['13', -1],
+        ['40', -1],
+      ])
+      expect([...result.current.districtToStateMap.entries()]).toEqual([['12', punjab]])
+    })
+
     it('keeps every district while the rollout is off', async () => {
-      mockGetOnboardedRegions.mockResolvedValue(
-        onboardedDistricts({ phasedRollout: false, onboardedChildIds: null })
+      mockGetNationalOnboardedDistricts.mockResolvedValue(
+        onboardedDistricts({ phasedRollout: false, tenants: null })
+      )
+
+      const { result } = renderMapPerformance(twoStateParams)
+
+      await waitFor(() => expect(result.current.districtMapChartData).toHaveLength(3))
+      expect(result.current.districtMapChartData.map((d) => d.regularity)).toEqual([75, 75, 50])
+      expect([...result.current.districtToStateMap.keys()]).toEqual(['12', '13', '40'])
+    })
+
+    it('skips a district without a boundary on the map but still maps it to its state', async () => {
+      mockGetNationalDashboardDistrictBoundaries.mockResolvedValue({
+        lgdLevel2Boundaries: [
+          { ...district(3, 12, 'Alpha'), boundary: null },
+          district(3, 13, 'Beta'),
+        ],
+      })
+      mockGetNationalOnboardedDistricts.mockResolvedValue(
+        onboardedDistricts({ tenants: [{ tenantId: 3, onboardedDistrictIds: [12, 13] }] })
       )
 
       const { result } = renderMapPerformance(districtViewParams)
 
-      await waitFor(() => expect(result.current.districtMapChartData).toHaveLength(2))
-      expect(result.current.districtMapChartData.map((district) => district.regularity)).toEqual([
-        75, 75,
-      ])
+      await waitFor(() => expect(result.current.districtMapChartData).toHaveLength(1))
+      expect(result.current.districtMapChartData[0]).toEqual(expect.objectContaining({ id: '13' }))
       expect([...result.current.districtToStateMap.keys()]).toEqual(['12', '13'])
     })
 
     it('draws no district with metrics when the onboarded list fails', async () => {
-      mockGetOnboardedRegions.mockRejectedValue(new Error('Request failed with status code 404'))
+      mockGetNationalOnboardedDistricts.mockRejectedValue(new Error('Invalid response'))
 
       const { result } = renderMapPerformance(districtViewParams)
 
       await waitFor(() => expect(result.current.districtMapChartData).toHaveLength(2))
-      expect(result.current.districtMapChartData.map((district) => district.regularity)).toEqual([
-        -1, -1,
-      ])
+      expect(result.current.districtMapChartData.map((d) => d.regularity)).toEqual([-1, -1])
       expect(result.current.districtToStateMap.size).toBe(0)
+      expect(mockGetNationalOnboardedDistricts).toHaveBeenCalledTimes(1)
     })
 
-    it("waits for a state's onboarded list before drawing its districts", async () => {
-      // The geometry is already cached, so only the onboarded list is outstanding.
+    it('ignores the last onboarded list once a refetch of it fails', async () => {
+      mockGetNationalOnboardedDistricts.mockResolvedValueOnce(onboardedDistricts())
       const queryClient = createQueryClient()
-      queryClient.setQueryData(
-        dashboardQueryKeys.tenantBoundaryGeoJson({ tenantId: 3, parentLgdId: 1 }),
-        punjabDistrictBoundaries
-      )
-      mockGetOnboardedRegions.mockReturnValue(new Promise<OnboardedRegionsResponse>(() => {}))
 
       const { result } = renderMapPerformance(districtViewParams, queryClient)
 
-      await waitFor(() => expect(mockGetOnboardedRegions).toHaveBeenCalled())
-      expect(mockGetTenantBoundaryGeoJson).not.toHaveBeenCalled()
+      await waitFor(() =>
+        expect(result.current.districtMapChartData.map((d) => d.regularity)).toEqual([75, -1])
+      )
+
+      mockGetNationalOnboardedDistricts.mockRejectedValue(new Error('Invalid response'))
+      await act(() =>
+        queryClient.refetchQueries({ queryKey: dashboardQueryKeys.nationalOnboardedDistricts() })
+      )
+
+      // The failed refetch keeps the old list in `data`; the map must not trust it.
+      await waitFor(() =>
+        expect(result.current.districtMapChartData.map((d) => d.regularity)).toEqual([-1, -1])
+      )
+      expect(result.current.districtToStateMap.size).toBe(0)
+    })
+
+    it('retries a rate-limited onboarded list instead of greying the map', async () => {
+      mockGetNationalOnboardedDistricts
+        .mockRejectedValueOnce(rateLimited())
+        .mockResolvedValue(onboardedDistricts())
+      const queryClient = new QueryClient({ defaultOptions: { queries: { retryDelay: 0 } } })
+
+      const { result } = renderMapPerformance(districtViewParams, queryClient)
+
+      await waitFor(() => expect(result.current.districtMapChartData).toHaveLength(2))
+      expect(mockGetNationalOnboardedDistricts).toHaveBeenCalledTimes(2)
+      expect(result.current.districtMapChartData.map((d) => d.regularity)).toEqual([75, -1])
+    })
+
+    it('waits for the onboarded list before drawing the districts', async () => {
+      // The geometry is already cached, so only the onboarded list is outstanding.
+      const queryClient = createQueryClient()
+      queryClient.setQueryData(
+        dashboardQueryKeys.nationalDashboardDistrictBoundaries(),
+        districtBoundaries
+      )
+      mockGetNationalOnboardedDistricts.mockReturnValue(
+        new Promise<NationalOnboardedDistrictsResponse>(() => {})
+      )
+
+      const { result } = renderMapPerformance(districtViewParams, queryClient)
+
+      await waitFor(() => expect(mockGetNationalOnboardedDistricts).toHaveBeenCalled())
+      expect(mockGetNationalDashboardDistrictBoundaries).not.toHaveBeenCalled()
       expect(result.current.districtMapChartData).toEqual([])
       expect(result.current.districtToStateMap.size).toBe(0)
       expect(result.current.isDistrictMapLoading).toBe(true)
+    })
+
+    it('asks for nothing outside the district view', () => {
+      renderMapPerformance({ ...districtViewParams, isMapDistrictView: false })
+
+      expect(mockGetNationalDashboardDistrictBoundaries).not.toHaveBeenCalled()
+      expect(mockGetNationalOnboardedDistricts).not.toHaveBeenCalled()
     })
   })
 })

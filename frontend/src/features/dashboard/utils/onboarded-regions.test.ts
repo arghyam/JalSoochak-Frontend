@@ -3,6 +3,7 @@ import { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import type {
   AverageSchemeRegularityChildRegion,
   AverageSchemeRegularityResponse,
+  NationalOnboardedDistrictsResponse,
   OnboardedRegionsResponse,
   OutageReasonsChildRegion,
   OutageReasonsResponse,
@@ -13,6 +14,7 @@ import {
   isRegionUnavailableError,
   noRegionOnboarded,
   retainOnboardedChildren,
+  toOnboardedDistrictsByTenant,
   toOnboardedPredicate,
 } from './onboarded-regions'
 
@@ -138,6 +140,50 @@ describe('toOnboardedPredicate', () => {
   it('passes nothing when the rollout is on and the list is empty or missing', () => {
     expect(toOnboardedPredicate(onboardedResponse({ onboardedChildIds: [] }))?.(12)).toBe(false)
     expect(toOnboardedPredicate(onboardedResponse({ onboardedChildIds: null }))?.(12)).toBe(false)
+  })
+})
+
+describe('toOnboardedDistrictsByTenant', () => {
+  const nationalResponse = (
+    overrides: Partial<NationalOnboardedDistrictsResponse> = {}
+  ): NationalOnboardedDistrictsResponse => ({
+    phasedRollout: true,
+    tenants: [
+      { tenantId: 3, onboardedDistrictIds: [12, 15] },
+      { tenantId: 7, onboardedDistrictIds: [12] },
+    ],
+    ...overrides,
+  })
+
+  it('is unresolved while there is no response', () => {
+    expect(toOnboardedDistrictsByTenant(undefined)).toBeUndefined()
+  })
+
+  it("passes every tenant's every district while the rollout is off", () => {
+    const districtsOf = toOnboardedDistrictsByTenant(
+      nationalResponse({ phasedRollout: false, tenants: null })
+    )
+
+    expect(districtsOf?.(3)(13)).toBe(true)
+    expect(districtsOf?.(99)(1)).toBe(true)
+    expect(districtsOf?.(3)(undefined)).toBe(true)
+  })
+
+  it("passes only each tenant's own listed districts while the rollout is on", () => {
+    const districtsOf = toOnboardedDistrictsByTenant(nationalResponse())
+
+    expect(districtsOf?.(3)(12)).toBe(true)
+    expect(districtsOf?.(3)(15)).toBe(true)
+    expect(districtsOf?.(3)(13)).toBe(false)
+    expect(districtsOf?.(3)(undefined)).toBe(false)
+    // District ids repeat across tenants, so 15 belongs to tenant 3 only.
+    expect(districtsOf?.(7)(12)).toBe(true)
+    expect(districtsOf?.(7)(15)).toBe(false)
+  })
+
+  it('passes nothing for a tenant that is not listed, or when the list is missing', () => {
+    expect(toOnboardedDistrictsByTenant(nationalResponse())?.(99)(12)).toBe(false)
+    expect(toOnboardedDistrictsByTenant(nationalResponse({ tenants: null }))?.(3)(12)).toBe(false)
   })
 })
 

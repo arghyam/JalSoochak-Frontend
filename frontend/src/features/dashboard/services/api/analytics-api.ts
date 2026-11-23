@@ -9,8 +9,10 @@ import type {
   CriticalSchemesQueryParams,
   CriticalSchemesResponse,
   NationalDashboardBoundaryResponse,
+  NationalDashboardDistrictBoundaryResponse,
   NationalDashboardQueryParams,
   NationalDashboardResponse,
+  NationalOnboardedDistrictsResponse,
   NationalSchemeRegularityPeriodicQueryParams,
   NationalSchemeRegularityPeriodicResponse,
   OnboardedRegionsQueryParams,
@@ -45,12 +47,30 @@ import {
   normalizeAverageSchemeRegularityResponse,
   normalizeAverageWaterSupplyResponse,
   normalizeNationalDashboardBoundaryResponse,
+  normalizeNationalDashboardDistrictBoundaryResponse,
   normalizeNationalDashboardResponse,
   normalizeTenantBoundaryGeoJsonResponse,
   normalizeTenantBoundaryResponse,
   normalizeWaterQuantityRegionWiseResponse,
   unwrapAnalyticsResponse,
 } from './normalizers/dashboard-api-normalizers'
+
+type NationalOnboardedTenant = NonNullable<NationalOnboardedDistrictsResponse['tenants']>[number]
+
+/** Missing or null district ids are allowed: the map helper reads them as none onboarded. */
+const isNationalOnboardedTenant = (tenant: unknown): tenant is NationalOnboardedTenant => {
+  if (typeof tenant !== 'object' || tenant === null) return false
+  const { tenantId, onboardedDistrictIds } = tenant as {
+    tenantId?: unknown
+    onboardedDistrictIds?: unknown
+  }
+  const hasValidDistrictIds =
+    onboardedDistrictIds === undefined ||
+    onboardedDistrictIds === null ||
+    (Array.isArray(onboardedDistrictIds) &&
+      onboardedDistrictIds.every((id: unknown) => typeof id === 'number'))
+  return typeof tenantId === 'number' && hasValidDistrictIds
+}
 
 export const analyticsApi = {
   getNationalDashboard: async (
@@ -73,6 +93,51 @@ export const analyticsApi = {
     >('/api/v1/analytics/national/dashboard/boundary')
 
     return normalizeNationalDashboardBoundaryResponse(response.data)
+  },
+  /** Every tenant's districts, for the national District View: one request rather than one per state. */
+  getNationalDashboardDistrictBoundaries:
+    async (): Promise<NationalDashboardDistrictBoundaryResponse> => {
+      const response = await publicApiClient.get<
+        | NationalDashboardDistrictBoundaryResponse
+        | WrappedAnalyticsResponse<NationalDashboardDistrictBoundaryResponse>
+      >('/api/v1/analytics/national/dashboard/boundary/district')
+
+      const data = unwrapAnalyticsResponse(response.data, 'national district boundary analytics')
+      if (!data) {
+        throw new Error('Invalid national district boundary analytics response: payload is missing')
+      }
+
+      return normalizeNationalDashboardDistrictBoundaryResponse(data)
+    },
+  /** Every tenant's onboarded districts (phased rollout), for the national District View. */
+  getNationalOnboardedDistricts: async (): Promise<NationalOnboardedDistrictsResponse> => {
+    const response = await publicApiClient.get<
+      | NationalOnboardedDistrictsResponse
+      | WrappedAnalyticsResponse<NationalOnboardedDistrictsResponse>
+    >('/api/v1/analytics/national/onboarded-districts')
+
+    // As for getOnboardedRegions: no fallback, so the map stays closed until the real list arrives.
+    const data = unwrapAnalyticsResponse(response.data, 'national onboarded districts analytics')
+    if (!data) {
+      throw new Error('Invalid national onboarded districts analytics response: payload is missing')
+    }
+    // A missing flag would read as "rollout off" and show every district, so reject it instead.
+    if (typeof data.phasedRollout !== 'boolean') {
+      throw new Error(
+        'Invalid national onboarded districts analytics response: phasedRollout is not a boolean'
+      )
+    }
+    // Malformed tenants would throw in the map helper, so only null or a list of tenants passes.
+    const tenants: unknown = data.tenants
+    const hasValidTenants =
+      tenants === null || (Array.isArray(tenants) && tenants.every(isNationalOnboardedTenant))
+    if (!hasValidTenants) {
+      throw new Error(
+        'Invalid national onboarded districts analytics response: tenants is malformed'
+      )
+    }
+
+    return data
   },
   getAverageWaterSupplyPerRegion: async (
     params: AverageWaterSupplyPerRegionQueryParams

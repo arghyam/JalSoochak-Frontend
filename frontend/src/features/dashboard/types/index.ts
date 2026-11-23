@@ -397,6 +397,23 @@ export interface NationalDashboardBoundaryResponse {
   stateWiseBoundaries: NationalDashboardBoundaryState[]
 }
 
+/** One district of `GET /api/v1/analytics/national/dashboard/boundary/district`. */
+export interface NationalDashboardDistrictBoundary {
+  tenantId: number
+  lgdId: number
+  tenantStatus: number
+  stateCode: string
+  stateTitle: string
+  title: string
+  boundary?: GeoJsonGeometry | null
+}
+
+/** Every tenant's districts with their boundaries, for the national District View. */
+export interface NationalDashboardDistrictBoundaryResponse {
+  nationalBoundary?: GeoJsonGeometry | null
+  lgdLevel2Boundaries: NationalDashboardDistrictBoundary[]
+}
+
 export interface AverageWaterSupplyScheme {
   schemeId: number
   schemeName: string
@@ -597,6 +614,18 @@ export interface OnboardedRegionsResponse {
   parentDepartmentId: number | null
   phasedRollout: boolean
   onboardedChildIds: number[] | null
+}
+
+/**
+ * Shape of `GET /api/v1/analytics/national/onboarded-districts` (phased rollout): each state's
+ * `onboarded-regions` answer for its districts, in one request.
+ *
+ * `phasedRollout: false` means every district is onboarded and `tenants` is null. With it on, a
+ * tenant that isn't listed has no onboarded district.
+ */
+export interface NationalOnboardedDistrictsResponse {
+  phasedRollout: boolean
+  tenants: { tenantId: number; onboardedDistrictIds: number[] }[] | null
 }
 
 export interface ReadingSubmissionRateQueryParams {

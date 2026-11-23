@@ -860,6 +860,184 @@ describe('dashboardApi.getOnboardedRegions', () => {
   })
 })
 
+describe('dashboardApi.getNationalDashboardDistrictBoundaries', () => {
+  const polygon = {
+    type: 'Polygon',
+    coordinates: [
+      [
+        [0, 0],
+        [1, 0],
+        [1, 1],
+        [0, 0],
+      ],
+    ],
+  }
+  const district = {
+    tenantId: 3,
+    lgdId: 12,
+    tenantStatus: 1,
+    stateCode: 'PB',
+    stateTitle: 'Punjab',
+    title: 'Alpha',
+  }
+
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+  })
+
+  it('asks for every district at once and parses each boundary, object or string', async () => {
+    mockGet.mockImplementation(async () => ({
+      data: {
+        success: true,
+        data: {
+          nationalBoundary: JSON.stringify(polygon),
+          lgdLevel2Boundaries: [
+            { ...district, boundary: polygon },
+            { ...district, lgdId: 13, title: 'Beta', boundary: JSON.stringify(polygon) },
+            { ...district, lgdId: 14, title: 'Gamma', boundary: null },
+          ],
+        },
+      },
+    }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+    const response = await dashboardApi.getNationalDashboardDistrictBoundaries()
+
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/analytics/national/dashboard/boundary/district')
+    expect(response).toEqual({
+      nationalBoundary: polygon,
+      lgdLevel2Boundaries: [
+        { ...district, boundary: polygon },
+        { ...district, lgdId: 13, title: 'Beta', boundary: polygon },
+        { ...district, lgdId: 14, title: 'Gamma', boundary: null },
+      ],
+    })
+  })
+
+  it('reads a missing district list as none', async () => {
+    mockGet.mockImplementation(async () => ({ data: { success: true, data: {} } }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+
+    await expect(dashboardApi.getNationalDashboardDistrictBoundaries()).resolves.toEqual({
+      nationalBoundary: null,
+      lgdLevel2Boundaries: [],
+    })
+  })
+
+  it('fails when the payload is missing', async () => {
+    mockGet.mockImplementation(async () => ({ data: null }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+
+    await expect(dashboardApi.getNationalDashboardDistrictBoundaries()).rejects.toThrow(
+      'Invalid national district boundary analytics response: payload is missing'
+    )
+  })
+})
+
+describe('dashboardApi.getNationalOnboardedDistricts', () => {
+  const onboardedDistricts = {
+    phasedRollout: true,
+    tenants: [
+      { tenantId: 3, onboardedDistrictIds: [12, 15] },
+      { tenantId: 7, onboardedDistrictIds: [40] },
+    ],
+  }
+
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+  })
+
+  it('asks for every tenant at once and unwraps the envelope', async () => {
+    mockGet.mockImplementation(async () => ({ data: { success: true, data: onboardedDistricts } }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+    const response = await dashboardApi.getNationalOnboardedDistricts()
+
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/analytics/national/onboarded-districts')
+    expect(response).toEqual(onboardedDistricts)
+  })
+
+  it('accepts an unwrapped payload with the rollout off', async () => {
+    mockGet.mockImplementation(async () => ({ data: { phasedRollout: false, tenants: null } }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+
+    await expect(dashboardApi.getNationalOnboardedDistricts()).resolves.toEqual({
+      phasedRollout: false,
+      tenants: null,
+    })
+  })
+
+  it('fails instead of inventing a list when the payload is missing', async () => {
+    mockGet.mockImplementation(async () => ({ data: null }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+
+    await expect(dashboardApi.getNationalOnboardedDistricts()).rejects.toThrow(
+      'Invalid national onboarded districts analytics response: payload is missing'
+    )
+  })
+
+  it('accepts tenants whose district ids are missing or null', async () => {
+    const payload = {
+      phasedRollout: true,
+      tenants: [{ tenantId: 3 }, { tenantId: 7, onboardedDistrictIds: null }],
+    }
+    mockGet.mockImplementation(async () => ({ data: { success: true, data: payload } }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+
+    await expect(dashboardApi.getNationalOnboardedDistricts()).resolves.toEqual(payload)
+  })
+
+  it.each([
+    ['missing', { tenants: [] }],
+    ['not a boolean', { phasedRollout: 'true', tenants: [] }],
+  ])('fails when phasedRollout is %s', async (_case, payload) => {
+    mockGet.mockImplementation(async () => ({ data: { success: true, data: payload } }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+
+    await expect(dashboardApi.getNationalOnboardedDistricts()).rejects.toThrow(
+      'Invalid national onboarded districts analytics response: phasedRollout is not a boolean'
+    )
+  })
+
+  it.each([
+    ['missing', { phasedRollout: true }],
+    ['not an array', { phasedRollout: true, tenants: { tenantId: 3 } }],
+    ['holding a null entry', { phasedRollout: true, tenants: [null] }],
+    [
+      'holding a non-numeric tenantId',
+      { phasedRollout: true, tenants: [{ tenantId: '3', onboardedDistrictIds: [12] }] },
+    ],
+    [
+      'holding non-iterable district ids',
+      { phasedRollout: true, tenants: [{ tenantId: 3, onboardedDistrictIds: 12 }] },
+    ],
+    [
+      'holding a non-array district-id value',
+      { phasedRollout: true, tenants: [{ tenantId: 3, onboardedDistrictIds: '12' }] },
+    ],
+    [
+      'holding non-numeric district ids',
+      { phasedRollout: true, tenants: [{ tenantId: 3, onboardedDistrictIds: ['12'] }] },
+    ],
+  ])('fails when tenants is %s', async (_case, payload) => {
+    mockGet.mockImplementation(async () => ({ data: { success: true, data: payload } }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+
+    await expect(dashboardApi.getNationalOnboardedDistricts()).rejects.toThrow(
+      'Invalid national onboarded districts analytics response: tenants is malformed'
+    )
+  })
+})
+
 describe('dashboardApi.getAverageWaterSupplyPerRegion', () => {
   beforeEach(() => {
     jest.resetModules()

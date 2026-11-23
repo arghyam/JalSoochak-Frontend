@@ -1,5 +1,5 @@
 import { isAxiosError } from 'axios'
-import type { OnboardedRegionsResponse } from '../types'
+import type { NationalOnboardedDistrictsResponse, OnboardedRegionsResponse } from '../types'
 import type { LocationSelectionLevel } from './dashboard-level'
 
 /**
@@ -56,6 +56,31 @@ export const toOnboardedPredicate = (
 
   const onboardedIds = new Set(response.onboardedChildIds ?? [])
   return (childId) => isPositiveId(childId) && onboardedIds.has(childId)
+}
+
+/** For the national District View: which of a tenant's districts may be shown. */
+export type OnboardedDistrictsByTenant = (tenantId: number) => OnboardedPredicate
+
+/**
+ * Turns a national onboarded-districts response into a predicate per tenant, by the same rules as
+ * `toOnboardedPredicate`. District ids repeat across tenants, so each tenant is checked against its
+ * own list. Returns `undefined` while the response is unresolved, so the map fails closed.
+ */
+export const toOnboardedDistrictsByTenant = (
+  response: NationalOnboardedDistrictsResponse | undefined
+): OnboardedDistrictsByTenant | undefined => {
+  if (!response) return undefined
+  if (!response.phasedRollout) return () => everyRegionOnboarded
+
+  const predicateByTenant = new Map<number, OnboardedPredicate>(
+    (response.tenants ?? []).map(({ tenantId, onboardedDistrictIds }) => {
+      const onboardedIds = new Set(onboardedDistrictIds ?? [])
+      const isOnboarded: OnboardedPredicate = (childId) =>
+        isPositiveId(childId) && onboardedIds.has(childId)
+      return [tenantId, isOnboarded]
+    })
+  )
+  return (tenantId) => predicateByTenant.get(tenantId) ?? noRegionOnboarded
 }
 
 /**

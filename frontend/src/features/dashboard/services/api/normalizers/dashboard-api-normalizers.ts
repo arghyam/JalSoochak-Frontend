@@ -4,6 +4,7 @@ import type {
   DashboardData,
   GeoJsonGeometry,
   NationalDashboardBoundaryResponse,
+  NationalDashboardDistrictBoundaryResponse,
   NationalDashboardResponse,
   PumpOperatorDetailsResponse,
   TenantBoundaryGeoJsonResponse,
@@ -278,6 +279,19 @@ export const normalizeNationalDashboardBoundaryResponse = (
     stateWiseBoundaries: normalizeStateWiseBoundaries(payload.stateWiseBoundaries),
   }
 }
+
+/** Parses each district's boundary, which the API may send as an object or a JSON string. */
+export const normalizeNationalDashboardDistrictBoundaryResponse = (
+  response: NationalDashboardDistrictBoundaryResponse
+): NationalDashboardDistrictBoundaryResponse => ({
+  nationalBoundary: normalizeGeoJsonGeometry(response.nationalBoundary),
+  lgdLevel2Boundaries: Array.isArray(response.lgdLevel2Boundaries)
+    ? response.lgdLevel2Boundaries.map((district) => ({
+        ...district,
+        boundary: normalizeGeoJsonGeometry(district.boundary),
+      }))
+    : [],
+})
 
 const toTenantListContainer = (value: unknown): TenantListContainer | null => {
   if (!value || typeof value !== 'object') {
