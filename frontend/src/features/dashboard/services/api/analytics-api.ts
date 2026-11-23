@@ -55,6 +55,23 @@ import {
   unwrapAnalyticsResponse,
 } from './normalizers/dashboard-api-normalizers'
 
+type NationalOnboardedTenant = NonNullable<NationalOnboardedDistrictsResponse['tenants']>[number]
+
+/** Missing or null district ids are allowed: the map helper reads them as none onboarded. */
+const isNationalOnboardedTenant = (tenant: unknown): tenant is NationalOnboardedTenant => {
+  if (typeof tenant !== 'object' || tenant === null) return false
+  const { tenantId, onboardedDistrictIds } = tenant as {
+    tenantId?: unknown
+    onboardedDistrictIds?: unknown
+  }
+  const hasValidDistrictIds =
+    onboardedDistrictIds === undefined ||
+    onboardedDistrictIds === null ||
+    (Array.isArray(onboardedDistrictIds) &&
+      onboardedDistrictIds.every((id: unknown) => typeof id === 'number'))
+  return typeof tenantId === 'number' && hasValidDistrictIds
+}
+
 export const analyticsApi = {
   getNationalDashboard: async (
     params: NationalDashboardQueryParams
@@ -113,14 +130,7 @@ export const analyticsApi = {
     // Malformed tenants would throw in the map helper, so only null or a list of tenants passes.
     const tenants: unknown = data.tenants
     const hasValidTenants =
-      tenants === null ||
-      (Array.isArray(tenants) &&
-        tenants.every(
-          (tenant: unknown) =>
-            typeof tenant === 'object' &&
-            tenant !== null &&
-            typeof (tenant as { tenantId?: unknown }).tenantId === 'number'
-        ))
+      tenants === null || (Array.isArray(tenants) && tenants.every(isNationalOnboardedTenant))
     if (!hasValidTenants) {
       throw new Error(
         'Invalid national onboarded districts analytics response: tenants is malformed'

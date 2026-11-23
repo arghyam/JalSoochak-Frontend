@@ -982,6 +982,18 @@ describe('dashboardApi.getNationalOnboardedDistricts', () => {
     )
   })
 
+  it('accepts tenants whose district ids are missing or null', async () => {
+    const payload = {
+      phasedRollout: true,
+      tenants: [{ tenantId: 3 }, { tenantId: 7, onboardedDistrictIds: null }],
+    }
+    mockGet.mockImplementation(async () => ({ data: { success: true, data: payload } }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+
+    await expect(dashboardApi.getNationalOnboardedDistricts()).resolves.toEqual(payload)
+  })
+
   it.each([
     ['missing', { tenants: [] }],
     ['not a boolean', { phasedRollout: 'true', tenants: [] }],
@@ -1002,6 +1014,18 @@ describe('dashboardApi.getNationalOnboardedDistricts', () => {
     [
       'holding a non-numeric tenantId',
       { phasedRollout: true, tenants: [{ tenantId: '3', onboardedDistrictIds: [12] }] },
+    ],
+    [
+      'holding non-iterable district ids',
+      { phasedRollout: true, tenants: [{ tenantId: 3, onboardedDistrictIds: 12 }] },
+    ],
+    [
+      'holding a non-array district-id value',
+      { phasedRollout: true, tenants: [{ tenantId: 3, onboardedDistrictIds: '12' }] },
+    ],
+    [
+      'holding non-numeric district ids',
+      { phasedRollout: true, tenants: [{ tenantId: 3, onboardedDistrictIds: ['12'] }] },
     ],
   ])('fails when tenants is %s', async (_case, payload) => {
     mockGet.mockImplementation(async () => ({ data: { success: true, data: payload } }))
