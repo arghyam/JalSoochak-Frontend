@@ -290,4 +290,20 @@ describe('dashboardQueryKeys', () => {
       dashboardQueryKeys.onboardedRegions({ tenantId: 4, parentLgdId: 1 })
     )
   })
+
+  it('keys the national district view queries apart from the state boundaries', () => {
+    expect(dashboardQueryKeys.nationalDashboardDistrictBoundaries()).toEqual([
+      'dashboard',
+      'analytics',
+      'national-dashboard-district-boundaries',
+    ])
+    expect(dashboardQueryKeys.nationalOnboardedDistricts()).toEqual([
+      'dashboard',
+      'analytics',
+      'national-onboarded-districts',
+    ])
+    expect(dashboardQueryKeys.nationalDashboardDistrictBoundaries()).not.toEqual(
+      dashboardQueryKeys.nationalDashboardBoundaries()
+    )
+  })
 })

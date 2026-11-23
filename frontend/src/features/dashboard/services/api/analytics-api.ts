@@ -9,8 +9,10 @@ import type {
   CriticalSchemesQueryParams,
   CriticalSchemesResponse,
   NationalDashboardBoundaryResponse,
+  NationalDashboardDistrictBoundaryResponse,
   NationalDashboardQueryParams,
   NationalDashboardResponse,
+  NationalOnboardedDistrictsResponse,
   NationalSchemeRegularityPeriodicQueryParams,
   NationalSchemeRegularityPeriodicResponse,
   OnboardedRegionsQueryParams,
@@ -45,6 +47,7 @@ import {
   normalizeAverageSchemeRegularityResponse,
   normalizeAverageWaterSupplyResponse,
   normalizeNationalDashboardBoundaryResponse,
+  normalizeNationalDashboardDistrictBoundaryResponse,
   normalizeNationalDashboardResponse,
   normalizeTenantBoundaryGeoJsonResponse,
   normalizeTenantBoundaryResponse,
@@ -73,6 +76,36 @@ export const analyticsApi = {
     >('/api/v1/analytics/national/dashboard/boundary')
 
     return normalizeNationalDashboardBoundaryResponse(response.data)
+  },
+  /** Every tenant's districts, for the national District View: one request rather than one per state. */
+  getNationalDashboardDistrictBoundaries:
+    async (): Promise<NationalDashboardDistrictBoundaryResponse> => {
+      const response = await publicApiClient.get<
+        | NationalDashboardDistrictBoundaryResponse
+        | WrappedAnalyticsResponse<NationalDashboardDistrictBoundaryResponse>
+      >('/api/v1/analytics/national/dashboard/boundary/district')
+
+      const data = unwrapAnalyticsResponse(response.data, 'national district boundary analytics')
+      if (!data) {
+        throw new Error('Invalid national district boundary analytics response: payload is missing')
+      }
+
+      return normalizeNationalDashboardDistrictBoundaryResponse(data)
+    },
+  /** Every tenant's onboarded districts (phased rollout), for the national District View. */
+  getNationalOnboardedDistricts: async (): Promise<NationalOnboardedDistrictsResponse> => {
+    const response = await publicApiClient.get<
+      | NationalOnboardedDistrictsResponse
+      | WrappedAnalyticsResponse<NationalOnboardedDistrictsResponse>
+    >('/api/v1/analytics/national/onboarded-districts')
+
+    // As for getOnboardedRegions: no fallback, so the map stays closed until the real list arrives.
+    const data = unwrapAnalyticsResponse(response.data, 'national onboarded districts analytics')
+    if (!data) {
+      throw new Error('Invalid national onboarded districts analytics response: payload is missing')
+    }
+
+    return data
   },
   getAverageWaterSupplyPerRegion: async (
     params: AverageWaterSupplyPerRegionQueryParams

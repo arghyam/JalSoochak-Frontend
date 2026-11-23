@@ -37,6 +37,10 @@ export const dashboardQueryKeys = {
     ['dashboard', 'analytics', 'national-dashboard', params?.startDate, params?.endDate] as const,
   nationalDashboardBoundaries: () =>
     ['dashboard', 'analytics', 'national-dashboard-boundaries'] as const,
+  nationalDashboardDistrictBoundaries: () =>
+    ['dashboard', 'analytics', 'national-dashboard-district-boundaries'] as const,
+  nationalOnboardedDistricts: () =>
+    ['dashboard', 'analytics', 'national-onboarded-districts'] as const,
   averageWaterSupplyPerRegion: (params: AverageWaterSupplyPerRegionQueryParams | null) =>
     [
       'dashboard',
