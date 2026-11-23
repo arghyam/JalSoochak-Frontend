@@ -104,6 +104,12 @@ export const analyticsApi = {
     if (!data) {
       throw new Error('Invalid national onboarded districts analytics response: payload is missing')
     }
+    // A missing flag would read as "rollout off" and show every district, so reject it instead.
+    if (typeof data.phasedRollout !== 'boolean') {
+      throw new Error(
+        'Invalid national onboarded districts analytics response: phasedRollout is not a boolean'
+      )
+    }
 
     return data
   },

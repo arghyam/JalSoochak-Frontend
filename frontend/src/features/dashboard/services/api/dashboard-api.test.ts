@@ -981,6 +981,19 @@ describe('dashboardApi.getNationalOnboardedDistricts', () => {
       'Invalid national onboarded districts analytics response: payload is missing'
     )
   })
+
+  it.each([
+    ['missing', { tenants: [] }],
+    ['not a boolean', { phasedRollout: 'true', tenants: [] }],
+  ])('fails when phasedRollout is %s', async (_case, payload) => {
+    mockGet.mockImplementation(async () => ({ data: { success: true, data: payload } }))
+
+    const { dashboardApi } = await import('./dashboard-api')
+
+    await expect(dashboardApi.getNationalOnboardedDistricts()).rejects.toThrow(
+      'Invalid national onboarded districts analytics response: phasedRollout is not a boolean'
+    )
+  })
 })
 
 describe('dashboardApi.getAverageWaterSupplyPerRegion', () => {
